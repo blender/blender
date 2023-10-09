@@ -19,7 +19,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_collection.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "MEM_guardedalloc.h"
 
 #include "GPU_capabilities.h"

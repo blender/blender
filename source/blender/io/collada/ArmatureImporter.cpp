@@ -15,7 +15,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"

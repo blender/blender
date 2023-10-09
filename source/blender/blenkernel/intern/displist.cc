@@ -39,7 +39,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_vfont.h"
 
 #include "BLI_sys_types.h" /* For #intptr_t support. */

@@ -29,7 +29,7 @@
 #include "BLI_math_rotation.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 
 #include "view3d_intern.h"

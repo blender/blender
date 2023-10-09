@@ -42,7 +42,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_movieclip.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 

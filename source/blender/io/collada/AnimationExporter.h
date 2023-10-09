@@ -30,7 +30,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "ED_object.hh"
 

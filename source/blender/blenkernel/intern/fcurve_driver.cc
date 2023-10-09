@@ -32,7 +32,7 @@
 #include "BKE_constraint.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"

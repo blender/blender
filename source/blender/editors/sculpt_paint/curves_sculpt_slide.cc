@@ -19,7 +19,7 @@
 #include "BKE_curves.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 

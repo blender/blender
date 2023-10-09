@@ -19,7 +19,7 @@
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
 #include "BKE_main_namemap.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

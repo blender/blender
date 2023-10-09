@@ -22,7 +22,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"

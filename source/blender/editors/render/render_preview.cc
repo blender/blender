@@ -58,7 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pose_backup.h"
 #include "BKE_preview_image.hh"
 #include "BKE_scene.h"

@@ -35,7 +35,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::Int32ArraySamplePtr;

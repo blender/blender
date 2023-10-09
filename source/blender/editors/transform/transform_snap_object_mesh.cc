@@ -12,7 +12,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "ED_transform_snap_object_context.hh"
 
@@ -106,14 +106,12 @@ static bool raycastMesh(SnapObjectContext *sctx,
 
   /* Test BoundBox */
   if (ob_eval->data == me_eval) {
-    const BoundBox *bb = BKE_object_boundbox_get(ob_eval);
-    if (bb) {
-      /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
-      if (!isect_ray_aabb_v3_simple(
-              ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], &len_diff, nullptr))
-      {
-        return retval;
-      }
+    const Bounds<float3> bounds = *me_eval->bounds_min_max();
+    /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+    if (!isect_ray_aabb_v3_simple(
+            ray_start_local, ray_normal_local, bounds.min, bounds.max, &len_diff, nullptr))
+    {
+      return retval;
     }
   }
 
@@ -454,8 +452,8 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   SnapData_Mesh nearest2d(sctx, me_eval, obmat);
 
   if (ob_eval->data == me_eval) {
-    const BoundBox *bb = BKE_mesh_boundbox_get(ob_eval);
-    if (!nearest2d.snap_boundbox(bb->vec[0], bb->vec[6])) {
+    const Bounds<float3> bounds = *me_eval->bounds_min_max();
+    if (!nearest2d.snap_boundbox(bounds.min, bounds.max)) {
       return SCE_SNAP_TO_NONE;
     }
   }

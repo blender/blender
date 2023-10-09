@@ -7,7 +7,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_idprop.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"

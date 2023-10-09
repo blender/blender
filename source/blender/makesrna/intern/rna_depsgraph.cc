@@ -35,7 +35,7 @@
 #  include "RNA_access.hh"
 
 #  include "BKE_duplilist.h"
-#  include "BKE_object.h"
+#  include "BKE_object.hh"
 #  include "BKE_scene.h"
 
 #  include "DEG_depsgraph_build.hh"

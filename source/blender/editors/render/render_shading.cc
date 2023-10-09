@@ -51,7 +51,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"

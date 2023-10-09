@@ -22,7 +22,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_tracking.h"
 
 #include "BLI_listbase.h"

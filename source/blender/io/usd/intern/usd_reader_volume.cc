@@ -6,7 +6,7 @@
 
 #include "BLI_string.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_volume.h"
 
 #include "DNA_object_types.h"

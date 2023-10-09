@@ -114,7 +114,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"

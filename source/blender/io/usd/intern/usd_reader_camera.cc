@@ -13,7 +13,7 @@
 #include "BLI_math_base.h"
 
 #include "BKE_camera.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include <pxr/pxr.h>
 #include <pxr/usd/usdGeom/camera.h>

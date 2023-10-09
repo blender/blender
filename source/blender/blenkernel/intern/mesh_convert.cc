@@ -48,7 +48,7 @@
 /* these 2 are only used by conversion functions */
 #include "BKE_curve.h"
 /* -- */
-#include "BKE_object.h"
+#include "BKE_object.hh"
 /* -- */
 #include "BKE_pointcloud.h"
 

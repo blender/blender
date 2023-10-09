@@ -6,7 +6,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_key.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_modifier_types.h"
 

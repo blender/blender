@@ -10,7 +10,7 @@
 
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_tracking.h"
 
 #include "ED_transform_snap_object_context.hh"

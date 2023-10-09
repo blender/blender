@@ -17,7 +17,7 @@
 
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_hash.h"
 #include "BLI_link_utils.h"

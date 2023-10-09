@@ -25,7 +25,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "RNA_access.hh"

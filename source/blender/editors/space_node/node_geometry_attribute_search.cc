@@ -19,7 +19,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"

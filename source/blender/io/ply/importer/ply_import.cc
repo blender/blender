@@ -9,7 +9,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
 #include "DNA_collection_types.h"

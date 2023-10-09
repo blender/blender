@@ -43,7 +43,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 #include "BKE_subdiv_modifier.hh"

@@ -49,7 +49,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"

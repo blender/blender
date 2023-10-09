@@ -18,7 +18,7 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_outliner_treehash.hh"
 
 #include "ED_outliner.hh"

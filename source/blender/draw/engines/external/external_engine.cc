@@ -16,7 +16,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 
 #include "ED_image.hh"

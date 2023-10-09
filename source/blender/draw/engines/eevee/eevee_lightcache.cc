@@ -18,7 +18,7 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_lightprobe_types.h"
