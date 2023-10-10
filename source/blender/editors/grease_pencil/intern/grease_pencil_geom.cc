@@ -8,6 +8,7 @@
 
 #include <limits>
 
+#include "BLI_math_vector.hh"
 #include "BLI_stack.hh"
 
 #include "BKE_grease_pencil.hh"
@@ -80,6 +81,18 @@ Array<float2> polyline_fit_curve(Span<float2> points,
                                  const float error_threshold,
                                  const IndexMask &corner_mask)
 {
+  if (points.is_empty()) {
+    return {};
+  }
+  double total_length = 0.0;
+  for (const int point_i : points.index_range().drop_front(1)) {
+    total_length += math::distance(points[point_i - 1], points[point_i]);
+  }
+  /* Just return a dot. */
+  if (total_length < 1e-8) {
+    return Array<float2>({points[0], points[0], points[0]});
+  }
+
   Array<int32_t> indices(corner_mask.size());
   corner_mask.to_indices(indices.as_mutable_span());
   uint *indicies_ptr = corner_mask.is_empty() ? nullptr : reinterpret_cast<uint *>(indices.data());
@@ -118,6 +131,12 @@ IndexMask polyline_detect_corners(Span<float2> points,
                                   const float angle_threshold,
                                   IndexMaskMemory &memory)
 {
+  if (points.is_empty()) {
+    return {};
+  }
+  if (points.size() == 1) {
+    return IndexMask::from_indices<int>({0}, memory);
+  }
   uint *r_corners;
   uint r_corner_len;
   const int error = curve_fit_corners_detect_fl(*points.data(),

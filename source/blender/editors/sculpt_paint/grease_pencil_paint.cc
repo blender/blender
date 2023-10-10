@@ -44,6 +44,9 @@ static Array<float2> sample_curve_2d(Span<float2> positions, const int64_t resol
 {
   BLI_assert(positions.size() % 3 == 0);
   const int64_t num_handles = positions.size() / 3;
+  if (num_handles == 1) {
+    return Array<float2>(resolution, positions[1]);
+  }
   const int64_t num_segments = num_handles - 1;
   const int64_t num_points = num_segments * resolution;
 
@@ -234,6 +237,10 @@ struct PaintOperationExecutor {
                         const IndexRange points,
                         const IndexRange smooth_window)
   {
+    /* We don't do active smoothing for when we have just 3 points or less. */
+    if (smooth_window.size() < 4) {
+      return;
+    }
     Span<float2> screen_space_coords_smooth_slice = self.screen_space_coords_.as_span().slice(
         smooth_window);
 
