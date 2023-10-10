@@ -730,8 +730,14 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
 {
   float indicator_factor = -1.0f;
   if (ps->indicator) {
-    indicator_factor = picture->frame / double(((PlayAnimPict *)picsbase.last)->frame -
-                                               ((PlayAnimPict *)picsbase.first)->frame);
+    const int frame_range = static_cast<const PlayAnimPict *>(picsbase.last)->frame -
+                            static_cast<const PlayAnimPict *>(picsbase.first)->frame;
+    if (frame_range > 0) {
+      indicator_factor = float(double(picture->frame) / double(frame_range));
+    }
+    else {
+      BLI_assert_msg(BLI_listbase_is_single(&picsbase), "Multiple frames without a valid range!");
+    }
   }
 
   int fontid = -1;
@@ -756,7 +762,8 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
 
 static void build_pict_list_from_anim(GhostData *ghost_data,
                                       const PlayDisplayContext *display_ctx,
-                                      const char *filepath_first)
+                                      const char *filepath_first,
+                                      const int frame_offset)
 {
   /* OCIO_TODO: support different input color space */
   anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, nullptr);
@@ -774,7 +781,7 @@ static void build_pict_list_from_anim(GhostData *ghost_data,
   for (int pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
     PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
     picture->anim = anim;
-    picture->frame = pic;
+    picture->frame = pic + frame_offset;
     picture->IB_flags = IB_rect;
     picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
     BLI_addtail(&picsbase, picture);
@@ -784,6 +791,7 @@ static void build_pict_list_from_anim(GhostData *ghost_data,
 static void build_pict_list_from_image_sequence(GhostData *ghost_data,
                                                 const PlayDisplayContext *display_ctx,
                                                 const char *filepath_first,
+                                                const int frame_offset,
                                                 const int totframes,
                                                 const int fstep,
                                                 const bool *loading_p)
@@ -831,7 +839,7 @@ static void build_pict_list_from_image_sequence(GhostData *ghost_data,
     picture->IB_flags = IB_rect;
     picture->mem = static_cast<uchar *>(mem);
     picture->filepath = BLI_strdup(filepath);
-    picture->frame = pic;
+    picture->frame = pic + frame_offset;
     BLI_addtail(&picsbase, picture);
 
     pupdate_time();
@@ -891,12 +899,19 @@ static void build_pict_list(GhostData *ghost_data,
                             bool *loading_p)
 {
   *loading_p = true;
+
+  /* NOTE(@ideasman42): When loading many files (expanded from shell globing for e.g.)
+   * it's important the frame number increases each time. Otherwise playing `*.png`
+   * in a directory will expand into many arguments, each calling this function adding
+   * a frame that's set to zero. */
+  const int frame_offset = picsbase.last ? ((PlayAnimPict *)picsbase.last)->frame + 1 : 0;
+
   if (IMB_isanim(filepath_first)) {
-    build_pict_list_from_anim(ghost_data, display_ctx, filepath_first);
+    build_pict_list_from_anim(ghost_data, display_ctx, filepath_first, frame_offset);
   }
   else {
     build_pict_list_from_image_sequence(
-        ghost_data, display_ctx, filepath_first, totframes, fstep, loading_p);
+        ghost_data, display_ctx, filepath_first, frame_offset, totframes, fstep, loading_p);
   }
   *loading_p = false;
 }
