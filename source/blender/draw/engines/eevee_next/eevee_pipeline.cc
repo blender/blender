@@ -895,6 +895,7 @@ void DeferredProbeLayer::render(View &view,
   GPU_framebuffer_bind(prepass_fb);
   inst_.manager->submit(prepass_ps_, view);
 
+  inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.hiz_buffer.set_dirty();
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view);
@@ -981,6 +982,11 @@ void PlanarProbePipeline::begin_sync()
     inst_.bind_uniform_data(&gbuffer_ps_);
     inst_.sampling.bind_resources(&gbuffer_ps_);
     inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
+    /* Cryptomatte. */
+    gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
+    /* RenderPasses & AOVs. */
+    gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+    gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
     inst_.cryptomatte.bind_resources(&gbuffer_ps_);
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL;
@@ -994,13 +1000,16 @@ void PlanarProbePipeline::begin_sync()
   {
     PassSimple &pass = eval_light_ps_;
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
+    pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+    pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_PLANAR_EVAL));
+    pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     inst_.bind_uniform_data(&pass);
     inst_.gbuffer.bind_resources(&pass);
     inst_.lights.bind_resources(&pass);
     inst_.shadows.bind_resources(&pass);
     inst_.sampling.bind_resources(&pass);
     inst_.hiz_buffer.bind_resources(&pass);
+    inst_.reflection_probes.bind_resources(&pass);
     inst_.irradiance_cache.bind_resources(&pass);
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
@@ -1033,9 +1042,12 @@ PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMat
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
-void PlanarProbePipeline::render(View &view, Framebuffer &combined_fb, int2 extent)
+void PlanarProbePipeline::render(View &view, Framebuffer &combined_fb, int layer_id, int2 extent)
 {
   GPU_debug_group_begin("Planar.Capture");
+
+  inst_.hiz_buffer.set_source(&inst_.planar_probes.depth_tx_, layer_id);
+  inst_.hiz_buffer.set_dirty();
 
   GPU_framebuffer_bind(combined_fb);
   GPU_framebuffer_clear_depth(combined_fb, 1.0f);
@@ -1047,6 +1059,7 @@ void PlanarProbePipeline::render(View &view, Framebuffer &combined_fb, int2 exte
 
   inst_.gbuffer.acquire(extent, closure_bits_);
 
+  inst_.hiz_buffer.update();
   GPU_framebuffer_bind(combined_fb);
   GPU_framebuffer_clear_color(combined_fb, float4(0.0f, 0.0f, 0.0f, 1.0f));
   inst_.manager->submit(gbuffer_ps_, view);

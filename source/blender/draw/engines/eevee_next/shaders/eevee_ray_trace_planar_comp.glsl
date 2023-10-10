@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Use screen space tracing against depth buffer to find intersection with the scene.
+ * Use screen space tracing against depth buffer of recorded planar capture to find intersection
+ * with the scene and its radiance.
+ * This pass runs before the screen trace and evaluates valid rays for planar probes. These rays
+ * are then tagged to avoid re-evaluation by screen trace.
  */
 
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
@@ -23,11 +26,6 @@ void main()
   vec4 ray_data = imageLoad(ray_data_img, texel);
   float ray_pdf_inv = ray_data.w;
 
-  if (ray_pdf_inv < 0.0) {
-    /* Ray destined to planar trace. */
-    return;
-  }
-
   if (ray_pdf_inv == 0.0) {
     /* Invalid ray or pixels without ray. Do not trace. */
     imageStore(ray_time_img, texel, vec4(0.0));
@@ -43,6 +41,17 @@ void main()
 
   vec3 P = get_world_space_from_depth(uv, depth);
   vec3 V = cameraVec(P);
+
+  int planar_id = lightprobe_planar_select(P, V, ray_data.xyz);
+  if (planar_id == -1) {
+    return;
+  }
+
+  ProbePlanarData planar = probe_planar_buf[planar_id];
+
+  /* Tag the ray data so that screen trace will not try to evaluate it and override the result. */
+  imageStore(ray_data_img, texel, vec4(ray_data.xyz, -ray_data.w));
+
   Ray ray;
   ray.origin = P;
   ray.direction = ray_data.xyz;
@@ -51,41 +60,23 @@ void main()
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
   float rand_trace = interlieved_gradient_noise(vec2(texel), 5.0, noise_offset);
 
-#if defined(RAYTRACE_REFLECT) || defined(RAYTRACE_DIFFUSE)
-  const bool discard_backface = true;
-  const bool allow_self_intersection = false;
-#elif defined(RAYTRACE_REFRACT)
-  const bool discard_backface = false;
-  const bool allow_self_intersection = true;
-#endif
-
   /* TODO(fclem): Take IOR into account in the roughness LOD bias. */
   /* TODO(fclem): pdf to roughness mapping is a crude approximation. Find something better. */
   float roughness = saturate(sample_pdf_uniform_hemisphere() / ray_pdf_inv);
 
-  /* Transform the ray into view-space. */
+  /* Transform the ray into planar view-space. */
   Ray ray_view;
-  ray_view.origin = transform_point(drw_view.viewmat, ray.origin);
-  ray_view.direction = transform_direction(drw_view.viewmat, ray.direction);
+  ray_view.origin = transform_point(planar.viewmat, ray.origin);
+  ray_view.direction = transform_direction(planar.viewmat, ray.direction);
   /* Extend the ray to cover the whole view. */
   ray_view.max_time = 1000.0;
 
-  ScreenTraceHitData hit = raytrace_screen(uniform_buf.raytrace,
-                                           uniform_buf.hiz,
-                                           hiz_tx,
-                                           rand_trace,
-                                           roughness,
-                                           discard_backface,
-                                           allow_self_intersection,
-                                           ray_view);
+  ScreenTraceHitData hit = raytrace_planar(
+      uniform_buf.raytrace, planar_depth_tx, planar, rand_trace, ray_view);
 
   if (hit.valid) {
-    vec3 hit_P = transform_point(drw_view.viewinv, hit.v_hit_P);
-    /* TODO(@fclem): Split matrix multiply for precision. */
-    vec3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
-    vec3 history_ss_hit_P = history_ndc_hit_P * 0.5 + 0.5;
     /* Evaluate radiance at hit-point. */
-    radiance = textureLod(screen_radiance_tx, history_ss_hit_P.xy, 0.0).rgb;
+    radiance = textureLod(planar_radiance_tx, vec3(hit.ss_hit_P.xy, planar_id), 0.0).rgb;
 
     /* Transmit twice if thickness is set and ray is longer than thickness. */
     // if (thickness > 0.0 && length(ray_data.xyz) > thickness) {

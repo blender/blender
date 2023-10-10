@@ -24,6 +24,13 @@ GPU_SHADER_CREATE_INFO(eevee_hiz_update)
     .push_constant(Type::BOOL, "update_mip_0")
     .compute_source("eevee_hiz_update_comp.glsl");
 
+GPU_SHADER_CREATE_INFO(eevee_hiz_update_layer)
+    .do_static_compilation(true)
+    .define("HIZ_LAYER")
+    .sampler(1, ImageType::DEPTH_2D_ARRAY, "depth_layered_tx")
+    .push_constant(Type::INT, "layer_id")
+    .additional_info("eevee_hiz_update");
+
 GPU_SHADER_CREATE_INFO(eevee_hiz_debug)
     .do_static_compilation(true)
     .fragment_out(0, Type::VEC4, "out_debug_color_add", DualBlend::SRC_0)

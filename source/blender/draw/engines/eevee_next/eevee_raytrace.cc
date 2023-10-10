@@ -96,6 +96,23 @@ void RayTraceModule::sync()
   for (auto type : IndexRange(3)) {
     PassSimple &pass = PASS_VARIATION(trace_, type, _ps_);
     pass.init();
+    if (inst_.planar_probes.enabled() && (&pass == &trace_reflect_ps_)) {
+      /* Inject planar tracing in the same pass as reflection tracing. */
+      PassSimple::Sub &sub = pass.sub("Trace.Planar");
+      sub.shader_set(inst_.shaders.static_shader_get(RAY_TRACE_PLANAR));
+      sub.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
+      sub.bind_image("ray_data_img", &ray_data_tx_);
+      sub.bind_image("ray_time_img", &ray_time_tx_);
+      sub.bind_image("ray_radiance_img", &ray_radiance_tx_);
+      sub.bind_texture("depth_tx", &depth_tx);
+      inst_.bind_uniform_data(&sub);
+      inst_.planar_probes.bind_resources(&sub);
+      inst_.irradiance_cache.bind_resources(&sub);
+      inst_.reflection_probes.bind_resources(&sub);
+      /* TODO(@fclem): Use another dispatch with only tiles that touches planar captures. */
+      sub.dispatch(ray_dispatch_buf_);
+      sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    }
     pass.shader_set(inst_.shaders.static_shader_get(SHADER_VARIATION(RAY_TRACE_SCREEN_, type)));
     pass.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
     pass.bind_image("ray_data_img", &ray_data_tx_);

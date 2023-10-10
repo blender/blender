@@ -22,24 +22,6 @@
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
-                               ivec2 texel,
-                               out ClosureDiffuse closure)
-{
-}
-
-void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
-                               ivec2 texel,
-                               out ClosureRefraction closure)
-{
-}
-
-void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
-                               ivec2 texel,
-                               out ClosureReflection closure)
-{
-}
-
 float bxdf_eval(ClosureDiffuse closure, vec3 L, vec3 V)
 {
   return bsdf_lambert(closure.N, L);
@@ -179,7 +161,7 @@ void main()
     vec4 ray_radiance = imageLoad(ray_radiance_img, sample_texel);
 
     vec3 ray_direction = ray_data.xyz;
-    float ray_pdf_inv = ray_data.w;
+    float ray_pdf_inv = abs(ray_data.w);
     /* Skip invalid pixels. */
     if (ray_pdf_inv == 0.0) {
       continue;

@@ -155,6 +155,7 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             col = layout.column()
             row = col.row()
             col.prop(probe, "clip_start", text="Clipping Offset")
+            col.prop(probe, "influence_distance", text="Distance")
             pass
         else:
             # Currently unsupported

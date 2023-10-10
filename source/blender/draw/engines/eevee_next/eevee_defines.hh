@@ -40,6 +40,8 @@
 #define REFLECTION_PROBE_SH_GROUP_SIZE 512
 #define REFLECTION_PROBE_SH_SAMPLES_PER_GROUP 64
 
+#define PLANAR_PROBES_MAX 16
+
 /**
  * IMPORTANT: Some data packing are tweaked for these values.
  * Be sure to update them accordingly.
@@ -166,6 +168,9 @@
 #define REFLECTION_PROBE_TEX_SLOT 7
 #define VOLUME_SCATTERING_TEX_SLOT 8
 #define VOLUME_TRANSMITTANCE_TEX_SLOT 9
+/* Currently only used by ray-tracing, but might become used by forward too. */
+#define PLANAR_PROBE_DEPTH_TEX_SLOT 10
+#define PLANAR_PROBE_RADIANCE_TEX_SLOT 11
 
 /* Images. */
 #define RBUFS_COLOR_SLOT 0
@@ -188,6 +193,7 @@
 /* Only during surface shading (forward and deferred eval). */
 #define IRRADIANCE_GRID_BUF_SLOT 2
 #define REFLECTION_PROBE_BUF_SLOT 3
+#define PLANAR_PROBE_BUF_SLOT 4
 /* Only during pre-pass. */
 #define VELOCITY_CAMERA_PREV_BUF 2
 #define VELOCITY_CAMERA_CURR_BUF 3

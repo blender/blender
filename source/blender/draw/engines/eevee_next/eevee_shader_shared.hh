@@ -1331,6 +1331,19 @@ struct ReflectionProbeData {
 };
 BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
 
+struct ProbePlanarData {
+  /** Matrices used to render the planar capture. */
+  float4x4 viewmat;
+  float4x4 winmat;
+  /** Transform world to local position with influence distance as Z scale. */
+  float3x4 world_to_object_transposed;
+  /** World space plane normal. */
+  packed_float3 normal;
+  /** Layer in the planar capture textures used by this probe. */
+  int layer_id;
+};
+BLI_STATIC_ASSERT_ALIGN(ProbePlanarData, 16)
+
 struct ClipPlaneData {
   /** World space clip plane equation. Used to render planar light-probes. */
   float4 plane;
@@ -1454,6 +1467,7 @@ using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 using SubsurfaceTileBuf = RayTraceTileBuf;
 using ReflectionProbeDataBuf =
     draw::UniformArrayBuffer<ReflectionProbeData, REFLECTION_PROBES_MAX>;
+using ProbePlanarDataBuf = draw::UniformArrayBuffer<ProbePlanarData, PLANAR_PROBES_MAX>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using ShadowStatisticsBuf = draw::StorageBuffer<ShadowStatistics>;
 using ShadowPagesInfoDataBuf = draw::StorageBuffer<ShadowPagesInfoData>;

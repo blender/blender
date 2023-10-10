@@ -352,7 +352,7 @@ class PlanarProbePipeline : DeferredLayerBase {
   PassMain::Sub *prepass_add(::Material *material, GPUMaterial *gpumat);
   PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
 
-  void render(View &view, Framebuffer &combined_fb, int2 extent);
+  void render(View &view, Framebuffer &combined_fb, int layer_id, int2 extent);
 };
 
 /** \} */

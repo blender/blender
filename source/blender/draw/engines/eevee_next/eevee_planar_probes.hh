@@ -19,13 +19,14 @@ struct Material;
 namespace blender::eevee {
 
 class Instance;
+class HiZBuffer;
 struct ObjectHandle;
 
 /* -------------------------------------------------------------------- */
 /** \name Planar Probe
  * \{ */
 
-struct PlanarProbe {
+struct PlanarProbe : ProbePlanarData {
   /* Copy of object matrices. */
   float4x4 plane_to_world;
   float4x4 world_to_plane;
@@ -35,6 +36,30 @@ struct PlanarProbe {
   int resource_index;
   /* Pruning flag. */
   bool is_probe_used = false;
+
+ public:
+  void sync(const float4x4 &world_to_object, float clipping_offset, float influence_distance);
+
+  /**
+   * Update the ProbePlanarData part of the struct.
+   * `view` is the view we want to render this probe with.
+   */
+  void set_view(const draw::View &view, int layer_id);
+
+  /**
+   * Create the reflection clip plane equation that clips along the XY plane of the given
+   * transform. The `clip_offset` will push the clip plane a bit further to avoid missing pixels in
+   * reflections. The transform does not need to be normalized but is expected to be orthogonal.
+   * \note Only works after `set_view` was called.
+   */
+  float4 reflection_clip_plane_get();
+
+ private:
+  /**
+   * Create the reflection matrix that reflect along the XY plane of the given transform.
+   * The transform does not need to be normalized but is expected to be orthogonal.
+   */
+  float4x4 reflection_matrix_get();
 };
 
 struct PlanarProbeResources : NonCopyable {
@@ -50,18 +75,18 @@ struct PlanarProbeResources : NonCopyable {
 
 class PlanarProbeModule {
   using PlanarProbes = Map<uint64_t, PlanarProbe>;
-  using Resources = Array<PlanarProbeResources>;
 
  private:
   Instance &instance_;
 
   PlanarProbes probes_;
-  Resources resources_;
+  std::array<PlanarProbeResources, PLANAR_PROBES_MAX> resources_;
 
-  Texture color_tx_ = {"planar.color_tx"};
+  Texture radiance_tx_ = {"planar.radiance_tx"};
   Texture depth_tx_ = {"planar.depth_tx"};
 
   ClipPlaneBuf world_clip_buf_ = {"world_clip_buf"};
+  ProbePlanarDataBuf probe_planar_buf_ = {"probe_planar_buf"};
 
   bool update_probes_ = false;
 
@@ -75,26 +100,25 @@ class PlanarProbeModule {
 
   void set_view(const draw::View &main_view, int2 main_view_extent);
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> * /*pass*/) {}
+  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  {
+    /* Disable filter to avoid interpolation with missing background. */
+    GPUSamplerState no_filter = GPUSamplerState::default_sampler();
+    pass->bind_ubo(PLANAR_PROBE_BUF_SLOT, &probe_planar_buf_);
+    pass->bind_texture(PLANAR_PROBE_RADIANCE_TEX_SLOT, &radiance_tx_, no_filter);
+    pass->bind_texture(PLANAR_PROBE_DEPTH_TEX_SLOT, &depth_tx_);
+  }
+
+  bool enabled() const
+  {
+    return update_probes_;
+  }
 
  private:
   PlanarProbe &find_or_insert(ObjectHandle &ob_handle);
-  void remove_unused_probes();
-
-  /**
-   * Create the reflection matrix that reflect along the XY plane of the given transform.
-   * The transform does not need to be normalized but is expected to be orthogonal.
-   */
-  float4x4 reflection_matrix_get(const float4x4 &plane_to_world, const float4x4 &world_to_plane);
-
-  /**
-   * Create the reflection clip plane equation that clips along the XY plane of the given
-   * transform. The `clip_offset` will push the clip plane a bit further to avoid missing pixels in
-   * reflections. The transform does not need to be normalized but is expected to be orthogonal.
-   */
-  float4 reflection_clip_plane_get(const float4x4 &plane_to_world, float clip_offset);
 
   friend class Instance;
+  friend class HiZBuffer;
   friend class PlanarProbePipeline;
 };
 

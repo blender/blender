@@ -473,6 +473,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_deferred_light_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_capture_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_combine_frag.glsl
+  engines/eevee_next/shaders/eevee_deferred_planar_frag.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_accumulator_lib.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_bokeh_lut_comp.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_downsample_comp.glsl
@@ -532,6 +533,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_ray_tile_classify_comp.glsl
   engines/eevee_next/shaders/eevee_ray_tile_compact_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_fallback_comp.glsl
+  engines/eevee_next/shaders/eevee_ray_trace_planar_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee_next/shaders/eevee_ray_types_lib.glsl
