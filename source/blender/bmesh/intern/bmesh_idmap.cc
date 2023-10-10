@@ -168,7 +168,6 @@ void BM_idmap_check_ids(BMIdMap *idmap)
     int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
     if (id == BM_ID_NONE || id < 0 || (id < idmap->map.size() && idmap->map[id])) {
-      // printf("%s: Allocating new id for %p(%d): %d\n", __func__, elem, id, max_id);
       id = max_id++;
       BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
     }
@@ -268,14 +267,10 @@ void BM_idmap_destroy(BMIdMap *idmap)
 static void check_idx_map(BMIdMap *idmap)
 {
   if (idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_LOW) {
-    // idmap_log_message("%s: Deleting free_idx_map\n", __func__);
-
     MEM_delete(idmap->free_idx_map);
     idmap->free_idx_map = nullptr;
   }
   else if (!idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_HIGH) {
-    // idmap_log_message("%s: Adding free_idx_map\n", __func__);
-
     idmap->free_idx_map = MEM_new<BMIdMap::FreeIdxMap>("BMIdMap::FreeIdxMap");
 
     for (int i : IndexRange(idmap->freelist.size())) {

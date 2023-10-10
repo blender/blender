@@ -243,8 +243,7 @@ struct BMLogEdge : public BMLogElem<BMEdge> {
 struct BMLogFace : public BMLogElem<BMFace> {
   Vector<BMID<BMVert>, 5> verts;
   Vector<void *, 5> loop_customdata;
-  // int material_index;
-
+  
   void free(CustomData *domain, CustomData *loop_domain)
   {
     BMLogElem<BMFace>::free(domain);
