@@ -172,7 +172,7 @@ typedef struct Panel {
   /** Sub panels. */
   ListBase children;
 
-  Panel_Runtime runtime;
+  Panel_Runtime *runtime;
 } Panel;
 
 /**

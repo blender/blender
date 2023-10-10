@@ -528,6 +528,11 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region);
 void BKE_area_region_free(SpaceType *st, ARegion *region);
 void BKE_area_region_panels_free(ListBase *panels);
 /**
+ * Create and free panels.
+ */
+Panel *BKE_panel_new(PanelType *panel_type);
+void BKE_panel_free(Panel *panel);
+/**
  * Doesn't free the area itself.
  */
 void BKE_screen_area_free(ScrArea *area);

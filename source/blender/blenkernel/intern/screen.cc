@@ -36,6 +36,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -486,23 +487,36 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
   region_free_gizmomap_callback = callback;
 }
 
-static void area_region_panels_free_recursive(Panel *panel)
+Panel *BKE_panel_new(PanelType *panel_type)
+{
+  Panel *panel = MEM_cnew<Panel>(__func__);
+  panel->runtime = MEM_cnew<Panel_Runtime>(__func__);
+  panel->type = panel_type;
+  STRNCPY(panel->panelname, panel_type->idname);
+  return panel;
+}
+
+void BKE_panel_free(Panel *panel)
 {
   MEM_SAFE_FREE(panel->activedata);
   MEM_SAFE_FREE(panel->drawname);
+  MEM_freeN(panel->runtime);
+  MEM_freeN(panel);
+}
 
+static void area_region_panels_free_recursive(Panel *panel)
+{
   LISTBASE_FOREACH_MUTABLE (Panel *, child_panel, &panel->children) {
     area_region_panels_free_recursive(child_panel);
   }
-
-  MEM_freeN(panel);
+  BKE_panel_free(panel);
 }
 
 void BKE_area_region_panels_free(ListBase *panels)
 {
   LISTBASE_FOREACH_MUTABLE (Panel *, panel, panels) {
     /* Free custom data just for parent panels to avoid a double free. */
-    MEM_SAFE_FREE(panel->runtime.custom_data_ptr);
+    MEM_SAFE_FREE(panel->runtime->custom_data_ptr);
     area_region_panels_free_recursive(panel);
   }
   BLI_listbase_clear(panels);
@@ -1095,11 +1109,11 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
   BLO_read_list(reader, lb);
 
   LISTBASE_FOREACH (Panel *, panel, lb) {
+    panel->runtime = MEM_cnew<Panel_Runtime>(__func__);
     panel->runtime_flag = 0;
     panel->activedata = nullptr;
     panel->type = nullptr;
     panel->drawname = nullptr;
-    panel->runtime.custom_data_ptr = nullptr;
     direct_link_panel_list(reader, &panel->children);
   }
 }

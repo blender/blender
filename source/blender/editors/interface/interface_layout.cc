@@ -3179,6 +3179,8 @@ void uiItemPopoverPanel_ptr(
   if (ok && (pt->draw_header != nullptr)) {
     layout = uiLayoutRow(layout, true);
     Panel panel{};
+    Panel_Runtime panel_runtime{};
+    panel.runtime = &panel_runtime;
     panel.type = pt;
     panel.layout = layout;
     panel.flag = PNL_POPOVER;
@@ -5963,8 +5965,7 @@ static bool ui_layout_has_panel_label(const uiLayout *layout, const PanelType *p
 
 static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout, bool show_header)
 {
-  Panel *panel = MEM_cnew<Panel>(__func__);
-  panel->type = pt;
+  Panel *panel = BKE_panel_new(pt);
   panel->flag = PNL_POPOVER;
 
   if (pt->listener) {
@@ -5993,9 +5994,9 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
   panel->layout = layout;
   pt->draw(C, panel);
   panel->layout = nullptr;
-  BLI_assert(panel->runtime.custom_data_ptr == nullptr);
+  BLI_assert(panel->runtime->custom_data_ptr == nullptr);
 
-  MEM_freeN(panel);
+  BKE_panel_free(panel);
 
   /* Draw child panels. */
   LISTBASE_FOREACH (LinkData *, link, &pt->children) {
