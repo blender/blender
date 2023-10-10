@@ -5,8 +5,6 @@
 
 #include "bmesh.h"
 
-//#define DEBUG_BM_IDMAP /* Debug ID map. */
-
 #define BM_ID_NONE 0
 
 struct BMIdMap {
@@ -16,9 +14,7 @@ struct BMIdMap {
   int cd_id_off[15];
   BMesh *bm;
 
-  BMElem **map;
-  int map_size;
-
+  blender::Vector<BMElem *> map; /* ID -> Element map. */
   blender::Vector<int> freelist;
 
   using FreeIdxMap = blender::Map<int, int>;

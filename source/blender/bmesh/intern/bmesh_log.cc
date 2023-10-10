@@ -639,7 +639,7 @@ struct BMLogEntry {
 
   template<typename T> T *get_elem_from_id(BMesh * /*bm*/, BMID<T> id)
   {
-    if (id.id < 0 || id.id >= idmap->map_size) {
+    if (id.id < 0 || id.id >= idmap->map.size()) {
       return nullptr;
     }
 
@@ -676,7 +676,7 @@ struct BMLogEntry {
   {
     int id = _id.id;
 
-    if (check_unique && id >= 0 && id < idmap->map_size) {
+    if (check_unique && id >= 0 && id < idmap->map.size()) {
       BMElem *old = BM_idmap_lookup(idmap, id);
 
       if (old && old != (BMElem *)elem) {

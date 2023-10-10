@@ -86,21 +86,9 @@ template<typename T> static constexpr char get_elem_type()
 
 static void idmap_grow_map(BMIdMap *idmap, int newid)
 {
-  if (idmap->map_size > newid) {
-    return;
+  if (idmap->map.size() <= newid) {
+    idmap->map.resize(newid + 1);
   }
-
-  int newsize = (newid + 1);
-  newsize += newsize >> 1;
-
-  if (idmap->map) {
-    idmap->map = (BMElem **)MEM_recallocN((void *)idmap->map, sizeof(void *) * newsize);
-  }
-  else {
-    idmap->map = (BMElem **)MEM_calloc_arrayN(newsize, sizeof(void *), "bm idmap");
-  }
-
-  idmap->map_size = newsize;
 }
 
 void BM_idmap_clear_attributes_mesh(Mesh *me)
@@ -169,19 +157,17 @@ void BM_idmap_check_ids(BMIdMap *idmap)
 
   max_id++;
 
-  if (idmap->map_size >= max_id) {
-    memset((void *)idmap->map, 0, sizeof(void *) * idmap->map_size);
+  if (idmap->map.size() <= max_id) {
+    idmap->map.resize(max_id);
   }
-  else {
-    MEM_SAFE_FREE(idmap->map);
-    idmap->map_size = max_id + 1;
-    idmap->map = (BMElem **)MEM_calloc_arrayN(max_id + 1, sizeof(BMElem *), "bm idmap->map");
-  }
+
+  /* Zero map. */
+  memset(static_cast<void *>(idmap->map.data()), 0, sizeof(void *) * idmap->map.size());
 
   auto check_elem = [&](auto *elem) {
     int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
-    if (id == BM_ID_NONE || id < 0 || (id < idmap->map_size && idmap->map[id])) {
+    if (id == BM_ID_NONE || id < 0 || (id < idmap->map.size() && idmap->map[id])) {
       // printf("%s: Allocating new id for %p(%d): %d\n", __func__, elem, id, max_id);
       id = max_id++;
       BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
@@ -276,7 +262,6 @@ void BM_idmap_destroy(BMIdMap *idmap)
     MEM_delete(idmap->free_idx_map);
   }
 
-  MEM_SAFE_FREE(idmap->map);
   MEM_delete(idmap);
 }
 
@@ -364,7 +349,7 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
     idmap_log_message("%s: unassigned id!\n", __func__);
     return;
   };
-  if (id < 0 || id >= idmap->map_size || (idmap->map[id] && idmap->map[id] != elem)) {
+  if (id < 0 || id >= idmap->map.size() || (idmap->map[id] && idmap->map[id] != elem)) {
     idmap_log_message("%s: id corruptions\n", __func__);
   }
   else {

@@ -65,8 +65,8 @@ template<typename T = BMVert> static void check_new_elem_id(T *elem, PBVH *pbvh)
 {
   int id = BM_ELEM_CD_GET_INT(elem, pbvh->bm_idmap->cd_id_off[int(elem->head.htype)]);
   if (id != BM_ID_NONE) {
-    BMElem *existing = id < pbvh->bm_idmap->map_size ? BM_idmap_lookup(pbvh->bm_idmap, id) :
-                                                       nullptr;
+    BMElem *existing = id < pbvh->bm_idmap->map.size() ? BM_idmap_lookup(pbvh->bm_idmap, id) :
+                                                         nullptr;
 
     if (existing) {
       BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));

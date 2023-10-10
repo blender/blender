@@ -843,7 +843,7 @@ static void pbvh_print_mem_size(PBVH *pbvh)
 
   int ptrsize = (int)sizeof(void *);
 
-  float memsize3[3] = {(float)(ptrsize * pbvh->bm_idmap->map_size) / 1024.0f / 1024.0f,
+  float memsize3[3] = {(float)(ptrsize * pbvh->bm_idmap->map.size()) / 1024.0f / 1024.0f,
                        (float)(ptrsize * pbvh->bm_idmap->freelist.capacity()) / 1024.0f / 1024.0f,
                        pbvh->bm_idmap->free_idx_map ?
                            (float)(4 * pbvh->bm_idmap->free_idx_map->capacity()) / 1024.0f /
