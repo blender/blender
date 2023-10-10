@@ -2624,15 +2624,15 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
    * If latency improves, increase frames in flight to improve overall
    * performance. */
   int perf_max_drawables = MTL_MAX_DRAWABLES;
-  if (MTLContext::avg_drawable_latency_us > 185000) {
+  if (MTLContext::avg_drawable_latency_us > 150000) {
     perf_max_drawables = 1;
   }
-  else if (MTLContext::avg_drawable_latency_us > 85000) {
+  else if (MTLContext::avg_drawable_latency_us > 75000) {
     perf_max_drawables = 2;
   }
 
   while (MTLContext::max_drawables_in_flight > min_ii(perf_max_drawables, MTL_MAX_DRAWABLES)) {
-    PIL_sleep_ms(2);
+    PIL_sleep_ms(1);
   }
 
   /* Present is submitted in its own CMD Buffer to ensure drawable reference released as early as
