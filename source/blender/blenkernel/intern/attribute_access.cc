@@ -147,16 +147,18 @@ static int attribute_domain_priority(const eAttrDomain domain)
   switch (domain) {
     case ATTR_DOMAIN_INSTANCE:
       return 0;
-    case ATTR_DOMAIN_CURVE:
+    case ATTR_DOMAIN_GREASE_PENCIL_LAYER:
       return 1;
-    case ATTR_DOMAIN_FACE:
+    case ATTR_DOMAIN_CURVE:
       return 2;
-    case ATTR_DOMAIN_EDGE:
+    case ATTR_DOMAIN_FACE:
       return 3;
-    case ATTR_DOMAIN_POINT:
+    case ATTR_DOMAIN_EDGE:
       return 4;
-    case ATTR_DOMAIN_CORNER:
+    case ATTR_DOMAIN_POINT:
       return 5;
+    case ATTR_DOMAIN_CORNER:
+      return 6;
     default:
       /* Domain not supported in nodes yet. */
       BLI_assert_unreachable();

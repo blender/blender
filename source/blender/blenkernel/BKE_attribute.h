@@ -24,15 +24,16 @@ struct ReportList;
 
 /** #Attribute.domain */
 typedef enum eAttrDomain {
-  ATTR_DOMAIN_AUTO = -1,    /* Use for nodes to choose automatically based on other data. */
-  ATTR_DOMAIN_POINT = 0,    /* Mesh, Curve or Point Cloud Point */
-  ATTR_DOMAIN_EDGE = 1,     /* Mesh Edge */
-  ATTR_DOMAIN_FACE = 2,     /* Mesh Face */
-  ATTR_DOMAIN_CORNER = 3,   /* Mesh Corner */
-  ATTR_DOMAIN_CURVE = 4,    /* A single curve in a larger curve data-block */
-  ATTR_DOMAIN_INSTANCE = 5, /* Instance */
+  ATTR_DOMAIN_AUTO = -1,              /* Use for nodes to choose automatically based on other data. */
+  ATTR_DOMAIN_POINT = 0,              /* Mesh, Curve or Point Cloud Point */
+  ATTR_DOMAIN_EDGE = 1,               /* Mesh Edge */
+  ATTR_DOMAIN_FACE = 2,               /* Mesh Face */
+  ATTR_DOMAIN_CORNER = 3,             /* Mesh Corner */
+  ATTR_DOMAIN_CURVE = 4,              /* A single curve in a larger curve data-block */
+  ATTR_DOMAIN_INSTANCE = 5,           /* Instance */
+  ATTR_DOMAIN_GREASE_PENCIL_LAYER = 6,/* A layer in a grease pencil data-block */
 } eAttrDomain;
-#define ATTR_DOMAIN_NUM 6
+#define ATTR_DOMAIN_NUM 7
 
 typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_POINT = (1 << 0),
@@ -40,7 +41,8 @@ typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_FACE = (1 << 2),
   ATTR_DOMAIN_MASK_CORNER = (1 << 3),
   ATTR_DOMAIN_MASK_CURVE = (1 << 4),
-  ATTR_DOMAIN_MASK_ALL = (1 << 5) - 1
+  ATTR_DOMAIN_MASK_GREASE_PENCIL_LAYER = (1 << 6),
+  ATTR_DOMAIN_MASK_ALL = (1 << 7) - 1
 } eAttrDomainMask;
 ENUM_OPERATORS(eAttrDomainMask, ATTR_DOMAIN_MASK_ALL);
 

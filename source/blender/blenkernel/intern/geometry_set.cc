@@ -240,6 +240,9 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
     parts.append(std::to_string(curves->geometry.point_num) + " control points");
     parts.append(std::to_string(curves->geometry.curve_num) + " curves");
   }
+  if (const GreasePencil *grease_pencil = geometry_set.get_grease_pencil()) {
+    parts.append(std::to_string(grease_pencil->layers().size()) + " grease pencil layers");
+  }
   if (const PointCloud *point_cloud = geometry_set.get_pointcloud()) {
     parts.append(std::to_string(point_cloud->totpoint) + " points");
   }

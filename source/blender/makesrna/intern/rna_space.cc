@@ -85,6 +85,11 @@ const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
      ICON_EMPTY_AXIS,
      "Instances",
      "Instances of objects or collections"},
+    {int(blender::bke::GeometryComponent::Type::GreasePencil),
+     "GREASEPENCIL",
+     ICON_GREASEPENCIL,
+     "Grease Pencil",
+     "Grease Pencil component containing layers and curves data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -3316,6 +3321,10 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
       if (!ELEM(item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
         continue;
       }
+    }
+    if (!U.experimental.use_grease_pencil_version3 &&
+        item->value == ATTR_DOMAIN_GREASE_PENCIL_LAYER) {
+      continue;
     }
     if (item->value == ATTR_DOMAIN_POINT &&
         component_type == blender::bke::GeometryComponent::Type::Mesh)

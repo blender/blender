@@ -88,6 +88,11 @@ const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     // {ATTR_DOMAIN_GRIDS, "GRIDS", 0, "Grids", "Attribute on mesh multires grids"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
     {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
+    {ATTR_DOMAIN_GREASE_PENCIL_LAYER,
+     "GREASE_PENCIL_LAYER",
+     0,
+     "Grease Pencil Layer",
+     "Attribute on grease pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -244,6 +249,11 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
       continue;
     }
     if (!include_instances && domain_item->value == ATTR_DOMAIN_INSTANCE) {
+      continue;
+    }
+    if (!U.experimental.use_grease_pencil_version3 &&
+        domain_item->value == ATTR_DOMAIN_GREASE_PENCIL_LAYER)
+    {
       continue;
     }
 

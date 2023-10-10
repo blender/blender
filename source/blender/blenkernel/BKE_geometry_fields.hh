@@ -21,6 +21,9 @@ namespace blender::bke {
 
 class CurvesGeometry;
 class GeometryFieldInput;
+namespace greasepencil {
+class Drawing;
+}
 
 class MeshFieldContext : public fn::FieldContext {
  private:
@@ -72,6 +75,40 @@ class PointCloudFieldContext : public fn::FieldContext {
   }
 };
 
+class GreasePencilLayerFieldContext : public fn::FieldContext {
+ private:
+  const GreasePencil &grease_pencil_;
+  const eAttrDomain domain_;
+  const int layer_index_;
+
+ public:
+  GreasePencilLayerFieldContext(const GreasePencil &grease_pencil,
+                                eAttrDomain domain,
+                                int layer_index)
+      : grease_pencil_(grease_pencil), domain_(domain), layer_index_(layer_index)
+  {
+  }
+
+  const GreasePencil &grease_pencil() const
+  {
+    return grease_pencil_;
+  }
+
+  eAttrDomain domain() const
+  {
+    return domain_;
+  }
+
+  int layer_index() const
+  {
+    return layer_index_;
+  }
+
+  GVArray get_varray_for_input(const fn::FieldInput &field_input,
+                               const IndexMask &mask,
+                               ResourceScope &scope) const;
+};
+
 class InstancesFieldContext : public fn::FieldContext {
  private:
   const Instances &instances_;
@@ -86,8 +123,8 @@ class InstancesFieldContext : public fn::FieldContext {
 };
 
 /**
- * A field context that can represent meshes, curves, point clouds, or instances,
- * used for field inputs that can work for multiple geometry types.
+ * A field context that can represent meshes, curves, point clouds, instances or grease pencil
+ * layers, used for field inputs that can work for multiple geometry types.
  */
 class GeometryFieldContext : public fn::FieldContext {
  private:
@@ -99,12 +136,26 @@ class GeometryFieldContext : public fn::FieldContext {
   const void *geometry_;
   const GeometryComponent::Type type_;
   const eAttrDomain domain_;
+  /**
+   * Only used when the type is grease pencil and the domain is either points or curves
+   * (not layers).
+   */
+  int grease_pencil_layer_index_;
 
   friend GeometryFieldInput;
 
  public:
+  GeometryFieldContext(const GeometryFieldContext &other, eAttrDomain domain);
   GeometryFieldContext(const GeometryComponent &component, eAttrDomain domain);
-  GeometryFieldContext(const void *geometry, GeometryComponent::Type type, eAttrDomain domain);
+  GeometryFieldContext(const void *geometry,
+                       GeometryComponent::Type type,
+                       eAttrDomain domain,
+                       int grease_pencil_layer_index);
+  GeometryFieldContext(const Mesh &mesh, eAttrDomain domain);
+  GeometryFieldContext(const CurvesGeometry &curves, eAttrDomain domain);
+  GeometryFieldContext(const GreasePencil &grease_pencil, eAttrDomain domain, int layer_index);
+  GeometryFieldContext(const PointCloud &points);
+  GeometryFieldContext(const Instances &instances);
 
   const void *geometry() const
   {
@@ -121,17 +172,22 @@ class GeometryFieldContext : public fn::FieldContext {
     return domain_;
   }
 
+  int grease_pencil_layer_index() const
+  {
+    BLI_assert(this->type_ == GeometryComponent::Type::GreasePencil);
+    BLI_assert(ELEM(
+        this->domain_, ATTR_DOMAIN_GREASE_PENCIL_LAYER, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT));
+    return grease_pencil_layer_index_;
+  }
+
   std::optional<AttributeAccessor> attributes() const;
   const Mesh *mesh() const;
   const CurvesGeometry *curves() const;
   const PointCloud *pointcloud() const;
+  const GreasePencil *grease_pencil() const;
+  const greasepencil::Drawing *grease_pencil_layer_drawing() const;
   const Instances *instances() const;
-
- private:
-  GeometryFieldContext(const Mesh &mesh, eAttrDomain domain);
-  GeometryFieldContext(const CurvesGeometry &curves, eAttrDomain domain);
-  GeometryFieldContext(const PointCloud &points);
-  GeometryFieldContext(const Instances &instances);
+  const CurvesGeometry *curves_or_strokes() const;
 };
 
 class GeometryFieldInput : public fn::FieldInput {

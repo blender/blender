@@ -93,35 +93,49 @@ TEST(greasepencil, remove_drawings)
 /* --------------------------------------------------------------------------------------------- */
 /* Layer Tree Tests. */
 
+struct GreasePencilHelper : public ::GreasePencil {
+  GreasePencilHelper()
+  {
+    this->root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
+    this->active_layer = nullptr;
+
+    CustomData_reset(&this->layers_data);
+
+    this->runtime = MEM_new<GreasePencilRuntime>(__func__);
+  }
+
+  ~GreasePencilHelper()
+  {
+    CustomData_free(&this->layers_data, this->layers().size());
+    MEM_delete(&this->root_group());
+    MEM_delete(this->runtime);
+    this->runtime = nullptr;
+  }
+};
+
 TEST(greasepencil, layer_tree_empty)
 {
-  GreasePencil grease_pencil;
-  grease_pencil.root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
+  GreasePencilHelper grease_pencil;
   EXPECT_EQ(grease_pencil.root_group().num_nodes_total(), 0);
-  MEM_delete(&grease_pencil.root_group());
 }
 
 TEST(greasepencil, layer_tree_build_simple)
 {
-  GreasePencil grease_pencil;
-  grease_pencil.root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
+  GreasePencilHelper grease_pencil;
 
   LayerGroup &group = grease_pencil.add_layer_group(grease_pencil.root_group(), "Group1");
   grease_pencil.add_layer(group, "Layer1");
   grease_pencil.add_layer(group, "Layer2");
   EXPECT_EQ(grease_pencil.root_group().num_nodes_total(), 3);
-  MEM_delete(&grease_pencil.root_group());
 }
 
 struct GreasePencilLayerTreeExample {
   StringRefNull names[7] = {"Group1", "Layer1", "Layer2", "Group2", "Layer3", "Layer4", "Layer5"};
   const bool is_layer[7] = {false, true, true, false, true, true, true};
-  GreasePencil grease_pencil;
+  GreasePencilHelper grease_pencil;
 
   GreasePencilLayerTreeExample()
   {
-    grease_pencil.root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
-
     LayerGroup &group = grease_pencil.add_layer_group(grease_pencil.root_group(), names[0]);
     grease_pencil.add_layer(group, names[1]);
     grease_pencil.add_layer(group, names[2]);
@@ -131,11 +145,6 @@ struct GreasePencilLayerTreeExample {
     grease_pencil.add_layer(group2, names[5]);
 
     grease_pencil.add_layer(grease_pencil.root_group(), names[6]);
-  }
-
-  ~GreasePencilLayerTreeExample()
-  {
-    MEM_delete(&grease_pencil.root_group());
   }
 };
 

@@ -311,7 +311,8 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
             OB_VOLUME,
             OB_CURVES_LEGACY,
             OB_FONT,
-            OB_CURVES))
+            OB_CURVES,
+            OB_GREASE_PENCIL))
   {
     return nullptr;
   }

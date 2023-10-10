@@ -93,6 +93,20 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item)
               CD_PROP_QUATERNION);
 }
 
+const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext * /*C*/,
+                                                                      PointerRNA * /*ptr*/,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free)
+{
+  *r_free = true;
+  return enum_items_filter(rna_enum_attribute_domain_items,
+                           [](const EnumPropertyItem &item) -> bool {
+                             return (item.value == ATTR_DOMAIN_GREASE_PENCIL_LAYER) ?
+                                        U.experimental.use_grease_pencil_version3 :
+                                        true;
+                           });
+}
+
 }  // namespace enums
 
 }  // namespace blender::nodes
