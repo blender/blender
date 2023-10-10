@@ -57,18 +57,6 @@ using blender::Map;
 using blender::Set;
 using blender::Vector;
 
-#define USE_SIMPLE_CD_COPY
-
-extern "C" void bm_log_message(const char *fmt, ...)
-{
-  char msg[64];
-
-  va_list args;
-  va_start(args, fmt);
-  vsnprintf(msg, sizeof(msg), fmt, args);
-  va_end(args);
-}
-
 /* Avoid C++ runtime type ids. */
 enum BMLogSetType { LOG_SET_DIFF, LOG_SET_FULL };
 
@@ -541,13 +529,6 @@ struct BMLogEntry {
     if (!*dest_block) {
       *dest_block = BLI_mempool_calloc(dest->pool);
     }
-
-#ifdef USE_SIMPLE_CD_COPY
-    /* Signal simple copy by using bm->XXXdata for dest. */
-    if (!cd_layout_changed) {
-      dest = source;
-    }
-#endif
 
     CustomData_bmesh_copy_data(source, dest, src_block, dest_block);
   }

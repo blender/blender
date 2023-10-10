@@ -394,7 +394,6 @@ bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v);
 BMVert *pbvh_bmesh_collapse_edge(
     PBVH *pbvh, BMEdge *e, BMVert *v1, BMVert *v2, struct EdgeQueueContext *eq_ctx);
 
-extern "C" void bm_log_message(const char *fmt, ...);
 void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v);
 inline bool bm_edge_tag_test(BMEdge *e)
 {

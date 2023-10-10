@@ -1652,11 +1652,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
 static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
 {
   bool modified = false;
-
-  bm_log_message("  == cleanup_valence_3_4 == ");
-
   const int cd_vert_node = pbvh->cd_vert_node_offset;
-
   int updateflag = SCULPTFLAG_NEED_VALENCE;
 
   for (BMVert *v : ectx->used_verts) {
