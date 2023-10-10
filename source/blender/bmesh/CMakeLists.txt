@@ -70,7 +70,7 @@ set(SRC
   intern/bmesh_edgeloop.cc
   intern/bmesh_edgeloop.h
   intern/bmesh_idmap.cc
-  intern/bmesh_idmap.h
+  intern/bmesh_idmap.hh
   intern/bmesh_inline.h
   intern/bmesh_interp.cc
   intern/bmesh_interp.h
@@ -78,8 +78,7 @@ set(SRC
   intern/bmesh_iterators.h
   intern/bmesh_iterators_inline.h
   intern/bmesh_log.cc
-  intern/bmesh_log_intern.h
-  intern/bmesh_log.h
+  intern/bmesh_log.hh
   intern/bmesh_marking.cc
   intern/bmesh_marking.h
   intern/bmesh_mesh.cc
@@ -164,8 +163,8 @@ set(SRC
   tools/bmesh_wireframe.h
 
   bmesh_class.h
-  bmesh_idmap.h
-  bmesh_log.h
+  bmesh_idmap.hh
+  bmesh_log.hh
 
   # public includes
   bmesh.h

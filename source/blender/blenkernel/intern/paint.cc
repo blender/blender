@@ -80,8 +80,8 @@
 #include "BLO_read_write.hh"
 
 #include "bmesh.h"
-#include "bmesh_idmap.h"
-#include "bmesh_log.h"
+#include "bmesh_idmap.hh"
+#include "bmesh_log.hh"
 
 // TODO: figure out bad cross module refs
 void SCULPT_undo_ensure_bmlog(Object *ob);

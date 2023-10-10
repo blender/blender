@@ -82,10 +82,10 @@
 #include "GPU_vertex_format.h"
 
 #include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh_log.hh"
 #include "bmesh_tools.h"
 
-#include "bmesh_idmap.h"
+#include "bmesh_idmap.hh"
 
 #include <cmath>
 #include <cstdlib>
@@ -1618,7 +1618,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     BMVert *v;
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-      BM_log_vert_before_modified(ss->bm, ss->bm_log, v);
+      BM_log_vert_if_modified(ss->bm, ss->bm_log, v);
     }
     BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
       BM_log_face_modified(ss->bm, ss->bm_log, f);

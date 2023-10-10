@@ -58,8 +58,8 @@
 #include "UI_resources.hh"
 
 #include "bmesh.h"
-#include "bmesh_idmap.h"
-#include "bmesh_log.h"
+#include "bmesh_idmap.hh"
+#include "bmesh_log.hh"
 #include "bmesh_tools.h"
 
 #include <math.h>

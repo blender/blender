@@ -80,8 +80,8 @@
 #include "ED_undo.hh"
 
 #include "bmesh.h"
-#include "bmesh_idmap.h"
-#include "bmesh_log.h"
+#include "bmesh_idmap.hh"
+#include "bmesh_log.hh"
 #include "sculpt_intern.hh"
 
 using blender::bke::dyntopo::DyntopoSet;

@@ -44,7 +44,7 @@
 #include "BKE_sculpt.hh"
 
 #include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh_log.hh"
 
 #include "dyntopo_intern.hh"
 #include "pbvh_intern.hh"
@@ -706,9 +706,6 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
   int ni = int(node - &pbvh->nodes[0]);
 
   const char facetag = BM_ELEM_TAG_ALT;
-
-  /* Only do reprojection if UVs exist. */
-  eAttrCorrectMode distort_correction_mode = eq_ctx->distort_correction_mode;
 
 /*
  * Clear edge flags.
@@ -2217,7 +2214,10 @@ void EdgeQueueContext::finish()
 }
 
 template<typename EdgeHeapT>
-BMEdge *EdgeQueueContext::pop_invalid_edges(EdgeHeapT &heap, BMEdge *in_e, float &w, bool is_max)
+BMEdge *EdgeQueueContext::pop_invalid_edges(EdgeHeapT & /*heap*/,
+                                            BMEdge *in_e,
+                                            float &w,
+                                            bool is_max)
 {
   if (!in_e) {
     return nullptr;

@@ -51,7 +51,7 @@
 #include "ED_view3d.hh"
 
 #include "bmesh.h"
-#include "bmesh_idmap.h"
+#include "bmesh_idmap.hh"
 #include "tools/bmesh_boolean.h"
 
 #include "paint_intern.hh"

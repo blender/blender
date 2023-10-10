@@ -14,7 +14,7 @@
 #include "BKE_pbvh_api.hh"
 
 #include "bmesh.h"
-#include "bmesh_idmap.h"
+#include "bmesh_idmap.hh"
 
 #define PBVH_STACK_FIXED_DEPTH 100
 

@@ -33,7 +33,7 @@
 
 #include "../../bmesh/intern/bmesh_collapse.hh"
 #include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh_log.hh"
 
 #include "dyntopo_intern.hh"
 #include "pbvh_intern.hh"

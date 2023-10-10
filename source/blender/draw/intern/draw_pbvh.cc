@@ -974,7 +974,7 @@ struct PBVHBatches {
               fno += l2->f->no;
 
               if (i++ > 1000) {
-                printf("%s: infinite loop error.\n");
+                printf("%s: infinite loop error.\n", __func__);
                 break;
               }
 

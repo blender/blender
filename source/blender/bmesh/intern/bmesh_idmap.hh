@@ -1,19 +1,15 @@
-#include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_map.hh"
 #include "BLI_sys_types.h"
+#include "BLI_vector.hh"
 
 #include "bmesh.h"
 
-//#define DEBUG_BM_IDMAP /* Debug idmap; note: disables mempool deallocation */
+//#define DEBUG_BM_IDMAP /* Debug ID map. */
 
-#define BM_ID_NONE 0  //-1
+#define BM_ID_NONE 0
 
-#ifdef __cplusplus
-#  include "BLI_map.hh"
-#  include "BLI_vector.hh"
-#endif
-
-typedef struct BMIdMap {
+struct BMIdMap {
   int flag;
 
   uint maxid;
@@ -23,7 +19,6 @@ typedef struct BMIdMap {
   BMElem **map;
   int map_size;
 
-#ifdef __cplusplus
   blender::Vector<int> freelist;
 
   using FreeIdxMap = blender::Map<int, int>;
@@ -32,45 +27,47 @@ typedef struct BMIdMap {
        only used if freelist is bigger then a certain size,
        see FREELIST_HASHMAP_THRESHOLD_HIGH in bmesh_construct.c.*/
   FreeIdxMap *free_idx_map;
-#endif
-
-#ifdef DEBUG_BM_IDMAP
-#  ifdef __cplusplus
-  blender::Map<BMElem *, int> *elem2id;
-  blender::Map<int, BMElem *> *id2elem;
-#  else
-  void elem_idmap;
-#  endif
-#endif
-} BMIdMap;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+};
 
 BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask);
-bool BM_idmap_check_attributes(BMIdMap *idmap);
-void BM_idmap_check_ids(BMIdMap *idmap);
 void BM_idmap_destroy(BMIdMap *idmap);
 
-int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem);
+/* Ensures idmap attributes exist. */
+bool BM_idmap_check_attributes(BMIdMap *idmap);
+
+/* Ensures every element has a unique ID. */
+void BM_idmap_check_ids(BMIdMap *idmap);
+
+/* Explicitly assign an ID. id cannot be BM_ID_NONE (zero). */
 void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id);
-void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id);
+
+/* Automatically allocate an ID. */
+int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem);
+
+/* Checks if an element needs an ID (it's id is BM_ID_NONE),
+ * and if so allocates one.
+ */
 int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem);
-void BM_idmap_clear_attributes(BMesh *bm);
+
+/* Release an ID; if clear_id is true the id attribute for
+ * that element will be set to BM_ID_NONE.
+ */
+void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id);
+
 const char *BM_idmap_attr_name_get(int htype);
+
+/* Deletes all id attributes. */
+void BM_idmap_clear_attributes(BMesh *bm);
 void BM_idmap_clear_attributes_mesh(Mesh *me);
 
+/* Elem -> ID. */
 BLI_INLINE int BM_idmap_get_id(BMIdMap *map, BMElem *elem)
 {
   return BM_ELEM_CD_GET_INT(elem, map->cd_id_off[(int)elem->head.htype]);
 }
 
+/* ID -> elem. */
 BLI_INLINE BMElem *BM_idmap_lookup(BMIdMap *map, int elem)
 {
   return elem >= 0 ? map->map[elem] : NULL;
 }
-
-#ifdef __cplusplus
-}
-#endif

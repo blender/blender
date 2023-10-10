@@ -31,7 +31,6 @@
 #include "BKE_pbvh.h"
 
 #include "bmesh.h"
-#include "bmesh_log.h"
 
 #include <type_traits>
 
@@ -39,6 +38,7 @@ struct SculptAttribute;
 struct BMFace;
 struct BMesh;
 struct BMIdMap;
+struct BMLog;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;

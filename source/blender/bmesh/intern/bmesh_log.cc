@@ -38,8 +38,9 @@
 #include "BLI_vector.hh"
 
 #include "bmesh.h"
-#include "bmesh_idmap.h"
-#include "bmesh_log_intern.h"
+#include "bmesh_idmap.hh"
+#include "bmesh_log.hh"
+
 extern "C" {
 #include "bmesh_structure.h"
 }
@@ -50,6 +51,11 @@ extern "C" {
 #include <cstdlib>
 #include <functional>
 #include <type_traits>
+
+using blender::float3;
+using blender::Map;
+using blender::Set;
+using blender::Vector;
 
 #define USE_SIMPLE_CD_COPY
 
@@ -65,8 +71,6 @@ extern "C" void bm_log_message(const char *fmt, ...)
 
 /* Avoid C++ runtime type ids. */
 enum BMLogSetType { LOG_SET_DIFF, LOG_SET_FULL };
-
-namespace blender {
 
 template<typename T> struct BMID {
   int id = -1;
@@ -591,6 +595,46 @@ struct BMLogEntry {
     CustomData_free(&edata, 0);
     CustomData_free(&ldata, 0);
     CustomData_free(&pdata, 0);
+  }
+
+  void print()
+  {
+    int av = 0, ae = 0, af = 0, mv = 0, me = 0, mf = 0, dv = 0, de = 0, df = 0;
+    int totmesh = 0;
+
+    for (BMLogSetBase *set : sets) {
+      switch (set->type) {
+        case LOG_SET_DIFF: {
+          BMLogSetDiff *diff = static_cast<BMLogSetDiff *>(set);
+
+          av += diff->added_verts.size();
+          ae += diff->added_edges.size();
+          af += diff->added_faces.size();
+
+          mv += diff->modified_verts.size();
+          me += diff->modified_edges.size();
+          mf += diff->modified_faces.size();
+
+          dv += diff->removed_verts.size();
+          de += diff->removed_edges.size();
+          df += diff->removed_faces.size();
+          break;
+        }
+        case LOG_SET_FULL:
+          totmesh++;
+          break;
+      }
+    }
+
+    if (av + ae + af + mv + me + mf + dv + de + df) {
+      printf("  addv: %d, adde: %d, addf: %d\n", av, ae, af);
+      printf("  modv: %d, mode: %d, modf: %d\n", mv, me, mf);
+      printf("  delv: %d, dele: %d, delf: %d\n", dv, de, df);
+    }
+
+    if (totmesh > 0) {
+      printf("  totmesh: %d\n", totmesh);
+    }
   }
 
   template<typename T> T *get_elem_from_id(BMesh * /*bm*/, BMID<T> id)
@@ -1668,8 +1712,6 @@ static BMIdMap *entry_get_idmap(BMLogEntry *entry)
   return entry->idmap;
 }
 
-}  // namespace blender
-
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMIdMap *idmap, BMLogEntry *entry)
 {
   BMLog *log = BM_log_create(bm, idmap);
@@ -1737,7 +1779,7 @@ void BM_log_vert_removed(BMesh *bm, BMLog *log, BMVert *v)
   log->remove_vert(bm, v);
 }
 
-void BM_log_vert_before_modified(BMesh *bm, BMLog *log, BMVert *v)
+void BM_log_vert_if_modified(BMesh *bm, BMLog *log, BMVert *v)
 {
   log->modify_if_vert(bm, v);
 }
@@ -1874,9 +1916,6 @@ void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry)
 
 bool BM_log_entry_drop(BMLogEntry *entry)
 {
-  float size = entry->calc_size() / 1024.0f / 1024.0f;
-  printf("%s: Freeing log entry %p, size: %.3fmb\n", __func__, entry, size);
-
   if (entry->prev) {
     entry->prev->next = entry->next;
   }
@@ -1900,5 +1939,7 @@ bool BM_log_entry_drop(BMLogEntry *entry)
 
 void BM_log_print_entry(BMLog * /*log*/, BMLogEntry *entry)
 {
-  printf("entry: %p", entry);
+  printf("BMLogEntry: %p", entry);
+  entry->print();
+  printf("\n");
 }

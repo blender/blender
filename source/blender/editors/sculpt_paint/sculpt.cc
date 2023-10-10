@@ -86,7 +86,7 @@
 #include "RNA_define.hh"
 
 #include "bmesh.h"
-#include "bmesh_idmap.h"
+#include "bmesh_idmap.hh"
 
 using blender::float3;
 using blender::IndexRange;

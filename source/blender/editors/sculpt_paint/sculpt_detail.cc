@@ -270,7 +270,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    BM_log_vert_before_modified(bm, ss->bm_log, v);
+    BM_log_vert_if_modified(bm, ss->bm_log, v);
   }
 
   double time = PIL_check_seconds_timer();
@@ -377,7 +377,7 @@ int sculpt_detail_flood_fill_invoke(bContext *C, wmOperator *op, const wmEvent *
     BMVert *v;
 
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      BM_log_vert_before_modified(bm, ss->bm_log, v);
+      BM_log_vert_if_modified(bm, ss->bm_log, v);
     }
 
     flood_fill_job.tool_settings = CTX_data_tool_settings(C);

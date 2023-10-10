@@ -29,7 +29,7 @@
 #include "BKE_pbvh.h"
 
 #include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh_log.hh"
 
 #include <stdint.h>
 

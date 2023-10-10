@@ -109,7 +109,7 @@
 #include "atomic_ops.h"
 
 #include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh_log.hh"
 #include "bmesh_tools.h"
 
 #include "UI_resources.hh"

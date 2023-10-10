@@ -68,7 +68,7 @@ Topology rake:
 
 #include "atomic_ops.h"
 #include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh_log.hh"
 #include "dyntopo_intern.hh"
 #include "pbvh_intern.hh"
 
