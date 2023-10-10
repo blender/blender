@@ -175,6 +175,8 @@ struct GhostData {
 struct PlayDisplayContext {
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
+  /** Scale calculated from the DPI. */
+  float ui_scale;
   /** Window & viewport size in pixels. */
   int size[2];
 };
@@ -663,6 +665,7 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
   pupdate_time();
 
   if ((fontid != -1) && picture) {
+    const int font_margin = int(10 * display_ctx->ui_scale);
     int sizex, sizey;
     float fsizex_inv, fsizey_inv;
     char label[32 + FILE_MAX];
@@ -678,10 +681,23 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
     fsizey_inv = 1.0f / sizey;
 
     BLF_color4f(fontid, 1.0, 1.0, 1.0, 1.0);
+
+    /* FIXME(@ideasman42): Font positioning doesn't work because the aspect causes the position
+     * to be rounded to zero, investigate making BLF support this,
+     * for now use GPU matrix API to adjust the text position. */
+#if 0
     BLF_enable(fontid, BLF_ASPECT);
     BLF_aspect(fontid, fsizex_inv, fsizey_inv, 1.0f);
-    BLF_position(fontid, 10.0f * fsizex_inv, 10.0f * fsizey_inv, 0.0f);
+    BLF_position(fontid, font_margin * fsizex_inv, font_margin * fsizey_inv, 0.0f);
     BLF_draw(fontid, label, sizeof(label));
+#else
+    GPU_matrix_push();
+    GPU_matrix_scale_2f(fsizex_inv, fsizey_inv);
+    GPU_matrix_translate_2f(font_margin, font_margin);
+    BLF_position(fontid, 0, 0, 0.0f);
+    BLF_draw(fontid, label, sizeof(label));
+    GPU_matrix_pop();
+#endif
   }
 
   if (indicator_factor != -1.0f) {
@@ -1517,12 +1533,16 @@ static bool playanim_window_font_scale_from_dpi(PlayState *ps)
   const float scale = (GHOST_GetDPIHint(ps->ghost_data.window) / 96.0f);
   const float font_size_base = 11.0f; /* Font size un-scaled. */
   const int font_size = int(font_size_base * scale) + 0.5f;
+  bool changed = false;
   if (ps->font_size != font_size) {
     BLF_size(ps->fontid, font_size);
     ps->font_size = font_size;
-    return true;
+    changed = true;
   }
-  return false;
+  if (ps->display_ctx.ui_scale != scale) {
+    ps->display_ctx.ui_scale = scale;
+  }
+  return changed;
 }
 
 /**
@@ -1566,6 +1586,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
           IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
   IMB_colormanagement_init_default_view_settings(&ps.display_ctx.view_settings,
                                                  &ps.display_ctx.display_settings);
+  ps.display_ctx.ui_scale = 1.0f;
 
   /* Skip the first argument which is assumed to be '-a' (used to launch this player). */
   while (argc > 1) {
