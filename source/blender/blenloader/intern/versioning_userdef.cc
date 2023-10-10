@@ -110,9 +110,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_view3d.asset_shelf.back);
     FROM_DEFAULT_V4_UCHAR(space_view3d.asset_shelf.header_back);
   }
-  if (!USER_VERSION_ATLEAST(400, 24)) {
-    memcpy(btheme->tarm, &U_theme_default.tarm, sizeof(*btheme->tarm)*20);
-  }
 
   if (!USER_VERSION_ATLEAST(400, 24)) {
     FROM_DEFAULT_V4_UCHAR(tui.wcol_list_item.inner_sel);
@@ -381,6 +378,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    *
    * \note Keep this message at the bottom of the function.
    */
+  {
+    /* Keep this block, even when empty. */
+    memcpy(btheme->tarm, &U_theme_default.tarm, sizeof(*btheme->tarm) * 20);
+  }
 
 #undef FROM_DEFAULT_V4_UCHAR
 
