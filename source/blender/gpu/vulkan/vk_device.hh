@@ -72,6 +72,7 @@ class VKDevice : public NonCopyable {
 
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer_;
+  std::optional<std::reference_wrapper<VKTexture>> dummy_color_attachment_;
 
   Vector<std::pair<VkImage, VmaAllocation>> discarded_images_;
   Vector<std::pair<VkBuffer, VmaAllocation>> discarded_buffers_;
@@ -158,6 +159,7 @@ class VKDevice : public NonCopyable {
    * Dummy buffer can only be initialized after the command buffer of the context is retrieved.
    */
   void init_dummy_buffer(VKContext &context);
+  void init_dummy_color_attachment();
   void deinit();
 
   eGPUDeviceType device_type() const;
@@ -181,6 +183,12 @@ class VKDevice : public NonCopyable {
   const VKBuffer &dummy_buffer_get() const
   {
     return dummy_buffer_;
+  }
+
+  VKTexture &dummy_color_attachment_get() const
+  {
+    BLI_assert(dummy_color_attachment_.has_value());
+    return (*dummy_color_attachment_).get();
   }
 
   void discard_image(VkImage vk_image, VmaAllocation vma_allocation);

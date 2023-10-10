@@ -55,6 +55,7 @@ void VKContext::sync_backbuffer()
       command_buffer_.init(device);
       command_buffer_.begin_recording();
       device.init_dummy_buffer(*this);
+      device.init_dummy_color_attachment();
     }
     device.descriptor_pools_get().reset();
   }

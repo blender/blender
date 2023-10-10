@@ -109,6 +109,15 @@ class VKFrameBuffer : public FrameBuffer {
    */
   void update_size();
 
+  /**
+   * Return the number of color attachments of this frame buffer, including unused color
+   * attachments.
+   *
+   * Framebuffers can have unused attachments. When higher attachment slots are being used, unused
+   * lower attachment slots will be counted as they are required resources in renderpasses.
+   */
+  int color_attachments_resource_size() const;
+
  private:
   void update_attachments();
   void render_pass_free();

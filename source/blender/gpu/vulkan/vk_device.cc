@@ -27,6 +27,10 @@ void VKDevice::deinit()
   vkDestroyCommandPool(vk_device_, vk_command_pool_, vk_allocation_callbacks);
 
   dummy_buffer_.free();
+  if (dummy_color_attachment_.has_value()) {
+    delete &(*dummy_color_attachment_).get();
+    dummy_color_attachment_.reset();
+  }
   sampler_.free();
   destroy_discarded_resources();
   vmaDestroyAllocator(mem_allocator_);
@@ -133,6 +137,19 @@ void VKDevice::init_dummy_buffer(VKContext &context)
                        static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                                                           VK_BUFFER_USAGE_TRANSFER_DST_BIT));
   dummy_buffer_.clear(context, 0);
+}
+
+void VKDevice::init_dummy_color_attachment()
+{
+  if (dummy_color_attachment_.has_value()) {
+    return;
+  }
+
+  GPUTexture *texture = GPU_texture_create_2d(
+      "dummy_attachment", 1, 1, 1, GPU_R32F, GPU_TEXTURE_USAGE_ATTACHMENT, nullptr);
+  BLI_assert(texture);
+  VKTexture &vk_texture = *unwrap(unwrap(texture));
+  dummy_color_attachment_ = std::make_optional(std::reference_wrapper(vk_texture));
 }
 
 /* -------------------------------------------------------------------- */
