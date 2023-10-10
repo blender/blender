@@ -114,7 +114,7 @@ static ssize_t imb_ispic_read_header_from_filepath(const char *filepath, uchar b
     return -1;
   }
 
-  const ssize_t size = read(fp, buf, HEADER_SIZE);
+  const ssize_t size = BLI_read(fp, buf, HEADER_SIZE);
 
   close(fp);
   return size;
