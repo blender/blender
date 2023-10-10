@@ -49,7 +49,7 @@ class ObjectKey {
 
   ObjectKey(Object *ob, int sub_key = 0)
   {
-    /** Since we use memcmp for comparison,
+    /* Since we use `memcmp` for comparison,
      * we have to ensure the padding bytes are initialized as well. */
     memset(this, 0, sizeof(*this));
 
