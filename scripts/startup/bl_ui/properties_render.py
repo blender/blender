@@ -897,6 +897,7 @@ class RENDER_PT_eevee_next_indirect_lighting(RenderButtonsPanel, Panel):
         col.operator("object.lightprobe_cache_free", text="Delete Light Caches").subset = 'ALL'
 
         col.prop(props, "gi_irradiance_pool_size", text="Pool Size")
+        col.prop(props, "gi_cubemap_resolution", text="Probe Resolution")
 
 
 class RENDER_PT_eevee_indirect_lighting_display(RenderButtonsPanel, Panel):

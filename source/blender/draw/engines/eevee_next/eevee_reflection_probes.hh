@@ -163,6 +163,8 @@ class ReflectionProbeModule {
 
   bool has_only_world_probe() const;
 
+  eLightProbeResolution reflection_probe_resolution() const;
+
   /* Capture View requires access to the cube-maps texture for frame-buffer configuration. */
   friend class CaptureView;
   /* Instance requires access to #update_probes_this_sample_ */

@@ -141,6 +141,25 @@ void ReflectionProbeModule::sync_world_lookdev()
   }
 }
 
+eLightProbeResolution ReflectionProbeModule::reflection_probe_resolution() const
+{
+  switch (instance_.scene->eevee.gi_cubemap_resolution) {
+    case 64:
+      return LIGHT_PROBE_RESOLUTION_64;
+    case 128:
+      return LIGHT_PROBE_RESOLUTION_128;
+    case 256:
+      return LIGHT_PROBE_RESOLUTION_256;
+    case 512:
+      return LIGHT_PROBE_RESOLUTION_512;
+    case 1024:
+      return LIGHT_PROBE_RESOLUTION_1024;
+    default:
+      return LIGHT_PROBE_RESOLUTION_2048;
+  }
+  return LIGHT_PROBE_RESOLUTION_2048;
+}
+
 void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
 {
   const ::LightProbe *light_probe = (::LightProbe *)ob->data;
@@ -148,8 +167,7 @@ void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
     return;
   }
   const bool is_dirty = ob_handle.recalc != 0;
-  int subdivision = layer_subdivision_for(
-      max_resolution_, static_cast<eLightProbeResolution>(light_probe->resolution));
+  int subdivision = layer_subdivision_for(max_resolution_, reflection_probe_resolution());
   ReflectionProbe &probe = find_or_insert(ob_handle, subdivision);
   probe.do_render |= is_dirty;
   probe.is_probe_used = true;
