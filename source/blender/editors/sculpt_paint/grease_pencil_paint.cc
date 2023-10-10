@@ -223,7 +223,7 @@ struct PaintOperationExecutor {
         "cyclic", ATTR_DOMAIN_CURVE);
     cyclic.span.last() = false;
     materials.span.last() = material_index;
-    
+
     cyclic.finish();
     materials.finish();
 
