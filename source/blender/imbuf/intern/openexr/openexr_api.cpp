@@ -157,14 +157,7 @@ class IMMapStream : public Imf::IStream {
     if (file < 0) {
       throw IEX_NAMESPACE::InputExc("file not found");
     }
-    const size_t file_size = BLI_file_descriptor_size(file);
-    if (UNLIKELY(file_size == size_t(-1))) {
-      close(file);
-      throw IEX_NAMESPACE::InputExc("file size could not be accessed");
-    }
-
     _exrpos = 0;
-    _exrsize = file_size;
     imb_mmap_lock();
     _mmap_file = BLI_mmap_open(file);
     imb_mmap_unlock();
@@ -173,6 +166,7 @@ class IMMapStream : public Imf::IStream {
       throw IEX_NAMESPACE::InputExc("BLI_mmap_open failed");
     }
     _exrbuf = (uchar *)BLI_mmap_get_pointer(_mmap_file);
+    _exrsize = BLI_mmap_get_length(_mmap_file);
   }
 
   ~IMMapStream() override
