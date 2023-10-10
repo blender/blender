@@ -68,6 +68,10 @@
 
 #include "WM_api.hh" /* only for WM_main_playanim */
 
+#ifdef WIN32
+#  include "BLI_winstuff.h" /* Only for `ssize_t`. */
+#endif
+
 #ifdef WITH_AUDASPACE
 #  include <AUD_Device.h>
 #  include <AUD_Handle.h>
