@@ -170,7 +170,7 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
     raytrace_clip_ray_to_near_plane(ray);
   }
 
-  vec2 inv_texture_size = 1.0 / textureSize(planar_depth_tx, 0).xy;
+  vec2 inv_texture_size = 1.0 / vec2(textureSize(planar_depth_tx, 0).xy);
   /* NOTE: The 2.0 factor here is because we are applying it in NDC space. */
   /* TODO(@fclem): This uses the main view's projection matrix, not the planar's one.
    * This works fine for reflection, but this prevent the use of any other projection capture. */
