@@ -1183,6 +1183,30 @@ static void enable_geometry_nodes_is_modifier(Main &bmain)
   }
 }
 
+static void version_bone_color_theme(Main &bmain)
+{
+  auto version_bone_color = [&](animrig::BoneColor &color) {
+    // do stuff.
+  };
+
+  /* Version pose bone colors. */
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type != OB_ARMATURE || !ob->pose) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+      version_bone_color(pchan->color);
+    }
+  }
+
+  /* Version armature bone colors. */
+  LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+    blender::animrig::ANIM_armature_foreach_bone(
+        &arm->bonebase, [&](Bone *bone) { version_bone_color(bone->color); });
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
