@@ -932,6 +932,7 @@ static void rna_def_bonecolor(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_color_palettes_items);
   RNA_def_property_enum_funcs(prop, nullptr, "rna_BoneColor_palette_index_set", nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Color Set", "Color palette to use");
   RNA_def_property_update(prop, 0, "rna_BoneColor_update");
 
@@ -947,6 +948,7 @@ static void rna_def_bonecolor(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "ThemeBoneColorSet");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(
       prop, "Custom", "The custom bone colors, used when palette is 'CUSTOM'");
   RNA_def_property_update(prop, 0, "rna_BoneColor_update");
