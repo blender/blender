@@ -162,10 +162,10 @@ class IMMapStream : public Imf::IStream {
     imb_mmap_lock();
     _mmap_file = BLI_mmap_open(file);
     imb_mmap_unlock();
+    close(file);
     if (_mmap_file == nullptr) {
       throw IEX_NAMESPACE::InputExc("BLI_mmap_open failed");
     }
-    close(file);
     _exrbuf = (uchar *)BLI_mmap_get_pointer(_mmap_file);
   }
 
