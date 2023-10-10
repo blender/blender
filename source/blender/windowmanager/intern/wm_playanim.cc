@@ -124,7 +124,7 @@ static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_s
   else if (r_mem && UNLIKELY(!(mem = static_cast<uchar *>(MEM_mallocN(size, __func__))))) {
     CLOG_WARN(&LOG, "error allocating buffer for '%s'", filepath);
   }
-  else if (r_mem && UNLIKELY((size_read = read(file, mem, size)) != size)) {
+  else if (r_mem && UNLIKELY((size_read = BLI_read(file, mem, size)) != size)) {
     CLOG_WARN(&LOG,
               "error '%s' while reading '%s' (expected %" PRIu64 ", was %" PRId64 ")",
               strerror(errno),
