@@ -998,144 +998,143 @@
         </space>
       </ThemeSpreadsheet>
     </spreadsheet>
-    <bone_color_sets>
-      <ThemeBoneColorSet
+    <bone_color_sets><ThemeBoneColorSet
         normal="#e06254"
-        select="#ff7f71"
-        active="#ffe9e6"
+        select="#ff7566"
+        active="#ffe8e6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
-        normal="#d2a087"
-        select="#eeb899"
-        active="#ffefe6"
+        normal="#d2b1a1"
+        select="#fea275"
+        active="#ffeee6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
-        normal="#d2944d"
-        select="#eda348"
-        active="#fff4e6"
+        normal="#d2743f"
+        select="#ffbb6e"
+        active="#fff3e6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#d5bb3a"
-        select="#d0b639"
+        select="#edd041"
         active="#fffbe6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#b9b379"
-        select="#bcb57b"
-        active="#fffce6"
+        select="#e5de96"
+        active="#fffde6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#9fbe39"
-        select="#acc13a"
-        active="#fbffe6"
+        select="#c5eb47"
+        active="#f9ffe6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#7bc83b"
-        select="#85cc3c"
-        active="#f3ffe6"
-        show_colored_constraints="FALSE"
-        >
-      </ThemeBoneColorSet>
-      <ThemeBoneColorSet
-        normal="#a2c491"
-        select="#a1bc8b"
+        select="#91eb45"
         active="#f1ffe6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
-        normal="#2ebe4a"
-        select="#37e14e"
-        active="#e6ffe9"
+        normal="#a2c491"
+        select="#c1e9ac"
+        active="#efffe6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
-        normal="#71c595"
-        select="#77c88b"
-        active="#e6ffec"
+        normal="#2ebe4a"
+        select="#3ce35b"
+        active="#e6ffeb"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#34d79c"
-        select="#35da9e"
+        select="#39efad"
         active="#e6fff6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#3ad5d4"
-        select="#3bd2d7"
-        active="#e6feff"
+        select="#3fe7e6"
+        active="#e6ffff"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
-        normal="#61b0dd"
-        select="#6bc1f3"
-        active="#e6f6ff"
-        show_colored_constraints="FALSE"
-        >
-      </ThemeBoneColorSet>
-      <ThemeBoneColorSet
-        normal="#9cc1e5"
-        select="#83d0e1"
-        active="#e6fbff"
+        normal="#88bbd7"
+        select="#71b6f9"
+        active="#e6f3ff"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#9d94ff"
-        select="#b2abff"
+        select="#9990ff"
         active="#e8e6ff"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#cfb2f1"
-        select="#c4a8e3"
+        select="#c28eff"
         active="#f2e6ff"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#ce68f2"
-        select="#e59cff"
-        active="#f8e6ff"
+        select="#de80ff"
+        active="#f9e6ff"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#e74ad2"
-        select="#ff95f1"
+        select="#ff71ed"
         active="#ffe6fc"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#daa1c9"
-        select="#dda3cc"
+        select="#fd8bdb"
         active="#ffe6f8"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
       <ThemeBoneColorSet
         normal="#d85989"
-        select="#ff98d9"
-        active="#ffe6f6"
+        select="#ff83b1"
+        active="#ffe6ef"
+        show_colored_constraints="FALSE"
+        >
+      </ThemeBoneColorSet>
+      <ThemeBoneColorSet
+        normal="#b4abae"
+        select="#d6adb3"
+        active="#ffe6ea"
+        show_colored_constraints="FALSE"
+        >
+      </ThemeBoneColorSet>
+      <ThemeBoneColorSet
+        normal="#464344"
+        select="#b1b0b0"
+        active="#ffe6e6"
         show_colored_constraints="FALSE"
         >
       </ThemeBoneColorSet>
