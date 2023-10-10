@@ -369,7 +369,11 @@ typedef struct bNode {
    */
   int16_t type;
 
-  char _pad1[2];
+  /**
+   * Depth of the node in the node editor, used to keep recently selected nodes at the front, and
+   * to order frame nodes properly.
+   */
+  int16_t ui_order;
 
   /** Used for some builtin nodes that store properties but don't have a storage struct. */
   int16_t custom1, custom2;

@@ -1782,7 +1782,7 @@ static int node_parent_set_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  node_sort(ntree);
+  tree_draw_order_update(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -1869,7 +1869,7 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  node_sort(ntree);
+  tree_draw_order_update(ntree);
   ED_node_tree_propagate_change(C, &bmain, snode.edittree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
@@ -1897,15 +1897,13 @@ void NODE_OT_join(wmOperatorType *ot)
 /** \name Attach Operator
  * \{ */
 
-static bNode *node_find_frame_to_attach(ARegion &region,
-                                        const bNodeTree &ntree,
-                                        const int2 mouse_xy)
+static bNode *node_find_frame_to_attach(ARegion &region, bNodeTree &ntree, const int2 mouse_xy)
 {
   /* convert mouse coordinates to v2d space */
   float2 cursor;
   UI_view2d_region_to_view(&region.v2d, mouse_xy.x, mouse_xy.y, &cursor.x, &cursor.y);
 
-  LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree.nodes) {
+  for (bNode *frame : tree_draw_order_calc_nodes_reversed(ntree)) {
     /* skip selected, those are the nodes we want to attach */
     if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
       continue;
@@ -1929,7 +1927,7 @@ static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *e
     return OPERATOR_FINISHED;
   }
 
-  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
+  for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
     if (!(node->flag & NODE_SELECT)) {
       continue;
     }
@@ -1954,7 +1952,7 @@ static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *e
     nodeAttachNode(&ntree, node, frame);
   }
 
-  node_sort(ntree);
+  tree_draw_order_update(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -2029,7 +2027,7 @@ static int node_detach_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  node_sort(ntree);
+  tree_draw_order_update(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -2461,7 +2459,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
     rctf totr_frame;
 
     /* check nodes front to back */
-    LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree->nodes) {
+    for (bNode *frame : tree_draw_order_calc_nodes_reversed(*ntree)) {
       /* skip selected, those are the nodes we want to attach */
       if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
         continue;

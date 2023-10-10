@@ -174,10 +174,14 @@ void node_draw_space(const bContext &C, ARegion &region);
 void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, uiLayout &layout);
 
 /**
- * Sort nodes by selection: unselected nodes first, then selected,
+ * Update node draw order nodes based on selection: unselected nodes first, then selected,
  * then the active node at the very end. Relative order is kept intact.
  */
-void node_sort(bNodeTree &ntree);
+void tree_draw_order_update(bNodeTree &ntree);
+/** Return the nodes in draw order, with the top nodes at the end. */
+Array<bNode *> tree_draw_order_calc_nodes(bNodeTree &ntree);
+/** Return the nodes in reverse draw order, with the top nodes at the start. */
+Array<bNode *> tree_draw_order_calc_nodes_reversed(bNodeTree &ntree);
 
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor);
 /* DPI scaled coords */

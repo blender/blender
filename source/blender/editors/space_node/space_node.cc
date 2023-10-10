@@ -1071,7 +1071,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
   }
   if (CTX_data_equals(member, "selected_nodes")) {
     if (snode->edittree) {
-      LISTBASE_FOREACH_BACKWARD (bNode *, node, &snode->edittree->nodes) {
+      for (bNode *node : snode->edittree->all_nodes()) {
         if (node->flag & NODE_SELECT) {
           CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
         }

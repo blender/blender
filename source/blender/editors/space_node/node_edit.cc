@@ -846,9 +846,9 @@ namespace blender::ed::space_node {
 
 static bool socket_is_occluded(const float2 &location,
                                const bNode &node_the_socket_belongs_to,
-                               const SpaceNode &snode)
+                               const Span<bNode *> sorted_nodes)
 {
-  LISTBASE_FOREACH_BACKWARD (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : sorted_nodes) {
     if (node == &node_the_socket_belongs_to) {
       /* Nodes after this one are underneath and can't occlude the socket. */
       return false;
@@ -1168,13 +1168,14 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
   bNodeTree &node_tree = *snode.edittree;
   node_tree.ensure_topology_cache();
-  const Span<bNode *> nodes = node_tree.all_nodes();
-  if (nodes.is_empty()) {
+
+  const Array<bNode *> sorted_nodes = tree_draw_order_calc_nodes_reversed(*snode.edittree);
+  if (sorted_nodes.is_empty()) {
     return nullptr;
   }
 
-  for (int i = nodes.index_range().last(); i >= 0; i--) {
-    bNode &node = *nodes[i];
+  for (const int i : sorted_nodes.index_range()) {
+    bNode &node = *sorted_nodes[i];
 
     BLI_rctf_init_pt_radius(&rect, cursor, size_sock_padded);
     if (!(node.flag & NODE_HIDDEN)) {
@@ -1195,13 +1196,13 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
           const float2 location = sock->runtime->location;
           if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
-              if (!socket_is_occluded(location, node, snode)) {
+              if (!socket_is_occluded(location, node, sorted_nodes)) {
                 return sock;
               }
             }
           }
           else if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, snode)) {
+            if (!socket_is_occluded(location, node, sorted_nodes)) {
               return sock;
             }
           }
@@ -1213,7 +1214,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
         if (node.is_socket_icon_drawn(*sock)) {
           const float2 location = sock->runtime->location;
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, snode)) {
+            if (!socket_is_occluded(location, node, sorted_nodes)) {
               return sock;
             }
           }

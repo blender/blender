@@ -1287,15 +1287,6 @@ void BKE_ntree_update_tag_node_removed(bNodeTree *ntree)
   add_tree_tag(ntree, NTREE_CHANGED_REMOVED_NODE);
 }
 
-void BKE_ntree_update_tag_node_reordered(bNodeTree *ntree)
-{
-  /* Don't add a tree update tag to avoid reevaluations for trivial operations like selection or
-   * parenting that typically influence the node order. This means the node order can be different
-   * for original and evaluated trees. A different solution might avoid sorting nodes based on UI
-   * states like selection, which would require not tying the node order to the drawing order. */
-  ntree->runtime->topology_cache_mutex.tag_dirty();
-}
-
 void BKE_ntree_update_tag_node_mute(bNodeTree *ntree, bNode *node)
 {
   add_node_tag(ntree, node, NTREE_CHANGED_NODE_PROPERTY);
