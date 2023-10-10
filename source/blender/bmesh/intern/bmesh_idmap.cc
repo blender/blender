@@ -279,7 +279,7 @@ static void check_idx_map(BMIdMap *idmap)
   }
 }
 
-int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
+template<typename T> int BM_idmap_alloc(BMIdMap *idmap, T *elem)
 {
   int id = BM_ID_NONE;
 
@@ -302,14 +302,14 @@ int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
   }
 
   idmap_grow_map(idmap, id);
-  idmap->map[id] = elem;
+  idmap->map[id] = reinterpret_cast<BMElem *>(elem);
 
   BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
 
   return id;
 }
 
-void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
+template<typename T> void BM_idmap_assign(BMIdMap *idmap, T *elem, int id)
 {
   /* Remove id from freelist. */
   if (idmap->free_idx_map) {
@@ -331,12 +331,12 @@ void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
   BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
 
   idmap_grow_map(idmap, id);
-  idmap->map[id] = elem;
+  idmap->map[id] = reinterpret_cast<BMElem *>(elem);
 
   check_idx_map(idmap);
 }
 
-void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
+template<typename T> void BM_idmap_release(BMIdMap *idmap, T *elem, bool clear_id)
 {
   int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
@@ -344,7 +344,9 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
     idmap_log_message("%s: unassigned id!\n", __func__);
     return;
   };
-  if (id < 0 || id >= idmap->map.size() || (idmap->map[id] && idmap->map[id] != elem)) {
+  if (id < 0 || id >= idmap->map.size() ||
+      (idmap->map[id] && idmap->map[id] != reinterpret_cast<BMElem *>(elem)))
+  {
     idmap_log_message("%s: id corruptions\n", __func__);
   }
   else {
@@ -364,13 +366,38 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
   }
 }
 
-int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
+template<typename T> int BM_idmap_check_assign(BMIdMap *idmap, T *elem)
 {
   int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
   if (id == BM_ID_NONE) {
-    id = BM_idmap_alloc(idmap, elem);
+    id = BM_idmap_alloc(idmap, (BMElem *)elem);
   }
 
   return id;
 }
+
+/* Instantiate templates. */
+template void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id);
+template void BM_idmap_assign(BMIdMap *idmap, BMVert *elem, int id);
+template void BM_idmap_assign(BMIdMap *idmap, BMEdge *elem, int id);
+template void BM_idmap_assign(BMIdMap *idmap, BMLoop *elem, int id);
+template void BM_idmap_assign(BMIdMap *idmap, BMFace *elem, int id);
+
+template int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem);
+template int BM_idmap_check_assign(BMIdMap *idmap, BMVert *elem);
+template int BM_idmap_check_assign(BMIdMap *idmap, BMEdge *elem);
+template int BM_idmap_check_assign(BMIdMap *idmap, BMLoop *elem);
+template int BM_idmap_check_assign(BMIdMap *idmap, BMFace *elem);
+
+template int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem);
+template int BM_idmap_alloc(BMIdMap *idmap, BMVert *elem);
+template int BM_idmap_alloc(BMIdMap *idmap, BMEdge *elem);
+template int BM_idmap_alloc(BMIdMap *idmap, BMLoop *elem);
+template int BM_idmap_alloc(BMIdMap *idmap, BMFace *elem);
+
+template void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id);
+template void BM_idmap_release(BMIdMap *idmap, BMVert *elem, bool clear_id);
+template void BM_idmap_release(BMIdMap *idmap, BMEdge *elem, bool clear_id);
+template void BM_idmap_release(BMIdMap *idmap, BMLoop *elem, bool clear_id);
+template void BM_idmap_release(BMIdMap *idmap, BMFace *elem, bool clear_id);

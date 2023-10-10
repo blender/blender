@@ -52,7 +52,7 @@ template<typename T> struct BMID {
 
   T *lookup(BMIdMap *idmap)
   {
-    return reinterpret_cast<T *>(BM_idmap_lookup(idmap, id));
+    return BM_idmap_lookup<T>(idmap, id);
   }
 
   uint64_t hash() const
@@ -589,7 +589,7 @@ struct BMLogEntry {
       return nullptr;
     }
 
-    T *elem = reinterpret_cast<T *>(BM_idmap_lookup(idmap, id.id));
+    T *elem = BM_idmap_lookup<T>(idmap, id.id);
     char htype = 0;
 
     if (!elem) {
@@ -623,9 +623,9 @@ struct BMLogEntry {
     int id = _id.id;
 
     if (check_unique && id >= 0 && id < idmap->map.size()) {
-      BMElem *old = BM_idmap_lookup(idmap, id);
+      T *old = BM_idmap_lookup<T>(idmap, id);
 
-      if (old && old != (BMElem *)elem) {
+      if (old && old != elem) {
         printf(
             "id conflict in BMLogEntry::assign_elem_id; elem %p (a %s) is being reassinged to id "
             "%d.\n",
@@ -635,18 +635,18 @@ struct BMLogEntry {
         printf(
             "  elem %p (a %s) will get a new id\n", old, get_elem_htype_str((int)old->head.htype));
 
-        BM_idmap_assign(idmap, reinterpret_cast<BMElem *>(elem), id);
+        BM_idmap_assign(idmap, elem, id);
         return;
       }
     }
 
-    BM_idmap_assign(idmap, reinterpret_cast<BMElem *>(elem), id);
+    BM_idmap_assign(idmap, elem, id);
   }
 
   template<typename T> BMID<T> get_elem_id(BMesh * /*bm*/, T *elem)
   {
-    BM_idmap_check_assign(idmap, reinterpret_cast<BMElem *>(elem));
-    return BM_idmap_get_id(idmap, reinterpret_cast<BMElem *>(elem));
+    BM_idmap_check_assign(idmap, elem);
+    return BM_idmap_get_id(idmap, elem);
   }
 
   void push_set(BMesh *bm, BMLogSetType type)
@@ -1247,7 +1247,7 @@ void BMLogSetDiff::modify_edge(BMesh *bm, BMEdge *e)
 
 void BMLogSetDiff::add_face(BMesh *bm, BMFace *f)
 {
-  BM_idmap_check_assign(entry->idmap, (BMElem *)f);
+  BM_idmap_check_assign(entry->idmap, f);
 
   BMID<BMFace> id = entry->get_elem_id<BMFace>(bm, f);
 
@@ -1373,7 +1373,7 @@ void BMLogSetDiff::remove_verts(BMesh *bm,
       callbacks->on_vert_kill(v, callbacks->userdata);
     }
 
-    BM_idmap_release(entry->idmap, (BMElem *)v, false);
+    BM_idmap_release(entry->idmap, v, false);
     BM_vert_kill(bm, v);
   }
 
@@ -1428,7 +1428,7 @@ void BMLogSetDiff::remove_edges(BMesh *bm,
       callbacks->on_edge_kill(e, callbacks->userdata);
     }
 
-    BM_idmap_release(entry->idmap, reinterpret_cast<BMElem *>(e), true);
+    BM_idmap_release(entry->idmap, e, true);
     BM_edge_kill(bm, e);
   }
 }
@@ -1531,7 +1531,7 @@ void BMLogSetDiff::remove_faces(BMesh *bm,
       callbacks->on_face_kill(f, callbacks->userdata);
     }
 
-    BM_idmap_release(entry->idmap, reinterpret_cast<BMElem *>(f), true);
+    BM_idmap_release(entry->idmap, f, true);
     BM_face_kill(bm, f);
   }
 
@@ -1766,22 +1766,22 @@ void BM_log_full_mesh(BMesh *bm, BMLog *log)
 
 BMVert *BM_log_id_vert_get(BMesh * /*bm*/, BMLog *log, uint id)
 {
-  return reinterpret_cast<BMVert *>(BM_idmap_lookup(log->idmap, id));
+  return BM_idmap_lookup<BMVert>(log->idmap, id);
 }
 
 uint BM_log_vert_id_get(BMesh * /*bm*/, BMLog *log, BMVert *v)
 {
-  return BM_idmap_get_id(log->idmap, reinterpret_cast<BMElem *>(v));
+  return BM_idmap_get_id(log->idmap, v);
 }
 
 BMFace *BM_log_id_face_get(BMesh * /*bm*/, BMLog *log, uint id)
 {
-  return reinterpret_cast<BMFace *>(BM_idmap_lookup(log->idmap, id));
+  return BM_idmap_lookup<BMFace>(log->idmap, id);
 }
 
 uint BM_log_face_id_get(BMesh * /*bm*/, BMLog *log, BMFace *f)
 {
-  return BM_idmap_get_id(log->idmap, reinterpret_cast<BMElem *>(f));
+  return BM_idmap_get_id(log->idmap, f);
 }
 
 int BM_log_entry_size(BMLogEntry *entry)

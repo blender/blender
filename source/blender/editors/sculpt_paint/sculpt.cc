@@ -3931,13 +3931,13 @@ static void sculpt_topology_update(
   int actv = BM_ID_NONE, actf = BM_ID_NONE;
 
   if (ss->active_vertex.i != PBVH_REF_NONE) {
-    BM_idmap_check_assign(ss->bm_idmap, (BMElem *)ss->active_vertex.i);
-    actv = BM_idmap_get_id(ss->bm_idmap, (BMElem *)ss->active_vertex.i);
+    BM_idmap_check_assign(ss->bm_idmap, (BMVert *)ss->active_vertex.i);
+    actv = BM_idmap_get_id(ss->bm_idmap, (BMVert *)ss->active_vertex.i);
   }
 
   if (ss->active_face.i != PBVH_REF_NONE) {
-    BM_idmap_check_assign(ss->bm_idmap, (BMElem *)ss->active_face.i);
-    actf = BM_idmap_get_id(ss->bm_idmap, (BMElem *)ss->active_face.i);
+    BM_idmap_check_assign(ss->bm_idmap, (BMFace *)ss->active_face.i);
+    actf = BM_idmap_get_id(ss->bm_idmap, (BMFace *)ss->active_face.i);
   }
 
   blender::bke::dyntopo::BrushSphere sphere_tester(ss->cache->location,
@@ -3964,7 +3964,7 @@ static void sculpt_topology_update(
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
   if (actv != BM_ID_NONE) {
-    BMVert *v = (BMVert *)BM_idmap_lookup(ss->bm_idmap, actv);
+    BMVert *v = BM_idmap_lookup<BMVert>(ss->bm_idmap, actv);
 
     if (v && v->head.htype == BM_VERT) {
       ss->active_vertex.i = (intptr_t)v;
@@ -3975,7 +3975,7 @@ static void sculpt_topology_update(
   }
 
   if (actf != BM_ID_NONE) {
-    BMFace *f = (BMFace *)BM_idmap_lookup(ss->bm_idmap, actf);
+    BMFace *f = BM_idmap_lookup<BMFace>(ss->bm_idmap, actf);
 
     if (f && f->head.htype == BM_FACE) {
       ss->active_face.i = (intptr_t)f;

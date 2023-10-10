@@ -65,22 +65,22 @@ template<typename T = BMVert> static void check_new_elem_id(T *elem, PBVH *pbvh)
 {
   int id = BM_ELEM_CD_GET_INT(elem, pbvh->bm_idmap->cd_id_off[int(elem->head.htype)]);
   if (id != BM_ID_NONE) {
-    BMElem *existing = id < pbvh->bm_idmap->map.size() ? BM_idmap_lookup(pbvh->bm_idmap, id) :
-                                                         nullptr;
+    T *existing = id < pbvh->bm_idmap->map.size() ? BM_idmap_lookup<T>(pbvh->bm_idmap, id) :
+                                                    nullptr;
 
     if (existing) {
-      BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));
+      BM_idmap_check_assign(pbvh->bm_idmap, elem);
       BM_idmap_release(pbvh->bm_idmap, existing, true);
     }
 
-    BM_idmap_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem), id);
+    BM_idmap_assign(pbvh->bm_idmap, elem, id);
 
     if (existing) {
       BM_idmap_check_assign(pbvh->bm_idmap, existing);
     }
   }
   else {
-    BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));
+    BM_idmap_check_assign(pbvh->bm_idmap, elem);
   }
 }
 
@@ -435,7 +435,7 @@ class DyntopoCollapseCallbacks {
   {
     BM_log_vert_removed(bm, pbvh->bm_log, v);
     pbvh_bmesh_vert_remove(pbvh, v);
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v), false);
+    BM_idmap_release(pbvh->bm_idmap, v, false);
   }
   inline void on_edge_kill(BMEdge *e)
   {
@@ -443,13 +443,13 @@ class DyntopoCollapseCallbacks {
     dyntopo_add_flag(pbvh, e->v2, SCULPTFLAG_NEED_VALENCE);
 
     BM_log_edge_removed(bm, pbvh->bm_log, e);
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e), false);
+    BM_idmap_release(pbvh->bm_idmap, e, false);
   }
   inline void on_face_kill(BMFace *f)
   {
     BM_log_face_removed(bm, pbvh->bm_log, f);
     pbvh_bmesh_face_remove(pbvh, f, false, true, true);
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f), false);
+    BM_idmap_release(pbvh->bm_idmap, f, false);
   }
 
   inline void on_vert_create(BMVert *v)
@@ -678,7 +678,7 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
       BMVert *v2 = BM_edge_other_vert(e2, v_conn);
 
       BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e2);
-      BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e2), true);
+      BM_idmap_release(pbvh->bm_idmap, e2, true);
       BM_edge_kill(pbvh->header.bm, e2);
 
       dyntopo_add_flag(pbvh, v2, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
@@ -693,7 +693,7 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
     }
 
     BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v_conn);
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn), true);
+    BM_idmap_release(pbvh->bm_idmap, v_conn, true);
     BM_vert_kill(pbvh->header.bm, v_conn);
 
     return nullptr;

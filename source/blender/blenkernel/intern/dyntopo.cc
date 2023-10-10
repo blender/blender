@@ -837,7 +837,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
   // BKE_pbvh_bmesh_remove_face(pbvh, f, true);
   pbvh_bmesh_face_remove(pbvh, f, false, true, true);
   BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, f);
-  BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
+  BM_idmap_release(pbvh->bm_idmap, f, true);
 
   int len = (f->len - 2) * 3;
 
@@ -888,7 +888,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
       dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
     } while ((l = l->next) != f2->l_first);
 
-    BM_idmap_release(pbvh->bm_idmap, (BMElem *)dbl->link, true);
+    BM_idmap_release(pbvh->bm_idmap, static_cast<BMFace *>(dbl->link), true);
     BM_face_kill(pbvh->header.bm, f2);
 
     MEM_freeN(dbl);
@@ -1110,7 +1110,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
 
     pbvh_bmesh_face_remove(pbvh, f, true, true, false);
-    BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
+    BM_idmap_release(pbvh->bm_idmap, f, true);
     BM_face_kill(pbvh->header.bm, f);
   }
 
@@ -1119,7 +1119,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 
     if (!e->l) {
       BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
-      BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
+      BM_idmap_release(pbvh->bm_idmap, e, true);
       BM_edge_kill(pbvh->header.bm, e);
     }
     else {
@@ -1140,7 +1140,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
       pbvh_bmesh_vert_remove(pbvh, v);
 
       BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v);
-      BM_idmap_release(pbvh->bm_idmap, (BMElem *)v, true);
+      BM_idmap_release(pbvh->bm_idmap, v, true);
       BM_vert_kill(pbvh->header.bm, v);
     }
     else {
@@ -1852,7 +1852,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
       if (!BM_edge_exists(ls[0]->v, ls[2]->v)) {
         BMEdge *e_diag = BM_edge_create(
             pbvh->header.bm, ls[0]->v, ls[2]->v, nullptr, BM_CREATE_NOP);
-        BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e_diag));
+        BM_idmap_check_assign(pbvh->bm_idmap, e_diag);
         BM_log_edge_added(pbvh->header.bm, pbvh->bm_log, e_diag);
       }
     }
@@ -1877,7 +1877,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
 
     if (ok1) {
       f1 = pbvh_bmesh_face_create(pbvh, n, vs, nullptr, l->f, true, false);
-      BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f1));
+      BM_idmap_check_assign(pbvh->bm_idmap, f1);
 
       normal_tri_v3(
           f1->no, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->prev->v->co);
@@ -1912,7 +1912,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
       }
 
       f2 = pbvh_bmesh_face_create(pbvh, n, vs, nullptr, example, true, false);
-      BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f2));
+      BM_idmap_check_assign(pbvh->bm_idmap, f2);
 
       bmesh_swap_data_simple(&pbvh->header.bm->ldata,
                              &f2->l_first->prev->head.data,
@@ -2604,7 +2604,7 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   do {
     if (BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
       pbvh_bmesh_face_remove(pbvh, l->f, true, true, true);
-      BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(l->f), true);
+      BM_idmap_release(pbvh->bm_idmap, l->f, true);
       fs.append(l->f);
     }
 
@@ -2619,7 +2619,7 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   } while ((l = l->radial_next) != e->l);
 
   BM_log_edge_removed(bm, pbvh->bm_log, e);
-  BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e), true);
+  BM_idmap_release(pbvh->bm_idmap, e, true);
 
   StrokeID stroke_id1 = blender::bke::paint::vertex_attr_get<StrokeID>(
       {reinterpret_cast<intptr_t>(e->v1)}, ss->attrs.stroke_id);
@@ -2686,13 +2686,13 @@ void EdgeQueueContext::split_edge(BMEdge *e)
 
   BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
-  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newv));
+  BM_idmap_check_assign(pbvh->bm_idmap, newv);
   BM_log_vert_added(bm, pbvh->bm_log, newv);
 
-  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e));
+  BM_idmap_check_assign(pbvh->bm_idmap, e);
   BM_log_edge_added(bm, pbvh->bm_log, e);
 
-  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newe));
+  BM_idmap_check_assign(pbvh->bm_idmap, newe);
   BM_log_edge_added(bm, pbvh->bm_log, newe);
 
   dyntopo_add_flag(pbvh, newv, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
@@ -2729,7 +2729,7 @@ void EdgeQueueContext::split_edge(BMEdge *e)
     pbvh_boundary_update_bmesh(pbvh, l->next->next->next->e);
 
     BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
-    BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f));
+    BM_idmap_check_assign(pbvh->bm_idmap, f);
     BKE_pbvh_bmesh_add_face(pbvh, f, true, false);
 
     if (!newf || newf == f) {
@@ -2737,11 +2737,11 @@ void EdgeQueueContext::split_edge(BMEdge *e)
     }
 
     BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
-    BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f));
+    BM_idmap_check_assign(pbvh->bm_idmap, f);
     BKE_pbvh_bmesh_add_face(pbvh, newf, true, false);
 
     if (!exist_e) {
-      BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newl->e));
+      BM_idmap_check_assign(pbvh->bm_idmap, newl->e);
       BM_log_edge_added(bm, pbvh->bm_log, newl->e);
     }
 

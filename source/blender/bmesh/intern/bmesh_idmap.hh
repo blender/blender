@@ -13,7 +13,7 @@
  * Stores IDs in integer attributes.
  */
 
- #include "BLI_compiler_compat.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_map.hh"
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
@@ -50,20 +50,20 @@ bool BM_idmap_check_attributes(BMIdMap *idmap);
 void BM_idmap_check_ids(BMIdMap *idmap);
 
 /* Explicitly assign an ID. id cannot be BM_ID_NONE (zero). */
-void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id);
+template<typename T = BMElem> void BM_idmap_assign(BMIdMap *idmap, T *elem, int id);
 
 /* Automatically allocate an ID. */
-int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem);
+template<typename T = BMElem> int BM_idmap_alloc(BMIdMap *idmap, T *elem);
 
 /* Checks if an element needs an ID (it's id is BM_ID_NONE),
  * and if so allocates one.
  */
-int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem);
+template<typename T = BMElem> int BM_idmap_check_assign(BMIdMap *idmap, T *elem);
 
 /* Release an ID; if clear_id is true the id attribute for
  * that element will be set to BM_ID_NONE.
  */
-void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id);
+template<typename T = BMElem> void BM_idmap_release(BMIdMap *idmap, T *elem, bool clear_id);
 
 const char *BM_idmap_attr_name_get(int htype);
 
@@ -72,13 +72,13 @@ void BM_idmap_clear_attributes(BMesh *bm);
 void BM_idmap_clear_attributes_mesh(Mesh *me);
 
 /* Elem -> ID. */
-BLI_INLINE int BM_idmap_get_id(BMIdMap *map, BMElem *elem)
+template<typename T = BMElem> BLI_INLINE int BM_idmap_get_id(BMIdMap *map, T *elem)
 {
   return BM_ELEM_CD_GET_INT(elem, map->cd_id_off[(int)elem->head.htype]);
 }
 
 /* ID -> elem. */
-BLI_INLINE BMElem *BM_idmap_lookup(BMIdMap *map, int elem)
+template<typename T = BMElem> BLI_INLINE T *BM_idmap_lookup(BMIdMap *map, int elem)
 {
-  return elem >= 0 ? map->map[elem] : NULL;
+  return elem >= 0 ? reinterpret_cast<T *>(map->map[elem]) : NULL;
 }
