@@ -1487,11 +1487,47 @@ static GHOST_WindowHandle playanim_window_open(
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpusettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
 
-  if (GHOST_GetCapabilities() & GHOST_kCapabilityWindowPosition) {
-    uint32_t scr_w, scr_h;
-    if (GHOST_GetMainDisplayDimensions(ghost_system, &scr_w, &scr_h) == GHOST_kSuccess) {
-      posy = (scr_h - posy - sizey);
+  {
+    bool screen_size_valid = false;
+    uint32_t screen_size[2];
+    if ((GHOST_GetMainDisplayDimensions(ghost_system, &screen_size[0], &screen_size[1]) ==
+         GHOST_kSuccess) &&
+        (screen_size[0] > 0) && (screen_size[1] > 0))
+    {
+      screen_size_valid = true;
     }
+    else {
+      /* Unlikely the screen size fails to access,
+       * if this happens it's still important to clamp the window size by *something*. */
+      screen_size[0] = 1024;
+      screen_size[1] = 1024;
+    }
+
+    if (screen_size_valid) {
+      if (GHOST_GetCapabilities() & GHOST_kCapabilityWindowPosition) {
+        posy = (screen_size[1] - posy - sizey);
+      }
+    }
+    else {
+      posx = 0;
+      posy = 0;
+    }
+
+    /* NOTE: ideally the GPU could be queried for the maximum supported window size,
+     * this isn't so simple as the GPU back-end's capabilities are initialized *after* the window
+     * has been created. Further, it's quite unlikely the users main monitor size is larger
+     * than the maximum window size supported by the GPU. */
+
+    /* Clamp the size so very large requests aren't rejected by the GPU.
+     * Halve until a usable range is reached instead of scaling down to meet the screen size
+     * since fractional scaling tends not to look so nice. */
+    while (sizex >= int(screen_size[0]) || sizey >= int(screen_size[1])) {
+      sizex /= 2;
+      sizey /= 2;
+    }
+    /* Unlikely but ensure the size is *never* zero. */
+    CLAMP_MIN(sizex, 1);
+    CLAMP_MIN(sizey, 1);
   }
 
   return GHOST_CreateWindow(ghost_system,
