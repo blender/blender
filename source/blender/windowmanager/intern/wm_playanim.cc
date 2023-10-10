@@ -113,14 +113,20 @@ static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_s
   bool success = false;
   uchar *mem = nullptr;
   const size_t size = BLI_file_descriptor_size(file);
+  ssize_t size_read;
   if (UNLIKELY(size == size_t(-1))) {
     CLOG_WARN(&LOG, "failure '%s' to access size '%s'", strerror(errno), filepath);
   }
   else if (r_mem && UNLIKELY(!(mem = static_cast<uchar *>(MEM_mallocN(size, __func__))))) {
     CLOG_WARN(&LOG, "error allocating buffer for '%s'", filepath);
   }
-  else if (r_mem && UNLIKELY(read(file, mem, size) != size)) {
-    CLOG_WARN(&LOG, "error '%s' while reading '%s'", strerror(errno), filepath);
+  else if (r_mem && UNLIKELY((size_read = read(file, mem, size)) != size)) {
+    CLOG_WARN(&LOG,
+              "error '%s' while reading '%s' (expected %" PRIu64 ", was %" PRId64 ")",
+              strerror(errno),
+              filepath,
+              size,
+              size_read);
   }
   else {
     close(file);
@@ -311,7 +317,7 @@ static void playanim_event_qual_update(GhostData *ghost_data)
 struct PlayAnimPict {
   PlayAnimPict *next, *prev;
   uchar *mem;
-  int size;
+  size_t size;
   /** The allocated file-path to the image. */
   const char *filepath;
   ImBuf *ibuf;
