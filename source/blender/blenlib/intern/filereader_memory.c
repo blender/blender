@@ -23,7 +23,7 @@ typedef struct {
   size_t length;
 } MemoryReader;
 
-static ssize_t memory_read_raw(FileReader *reader, void *buffer, size_t size)
+static int64_t memory_read_raw(FileReader *reader, void *buffer, size_t size)
 {
   MemoryReader *mem = (MemoryReader *)reader;
 
@@ -87,7 +87,7 @@ FileReader *BLI_filereader_new_memory(const void *data, size_t len)
  * This avoids system call overhead and can significantly speed up file loading.
  */
 
-static ssize_t memory_read_mmap(FileReader *reader, void *buffer, size_t size)
+static int64_t memory_read_mmap(FileReader *reader, void *buffer, size_t size)
 {
   MemoryReader *mem = (MemoryReader *)reader;
 

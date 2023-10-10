@@ -68,10 +68,6 @@
 
 #include "WM_api.hh" /* only for WM_main_playanim */
 
-#ifdef WIN32
-#  include "BLI_winstuff.h" /* Only for `ssize_t`. */
-#endif
-
 #ifdef WITH_AUDASPACE
 #  include <AUD_Device.h>
 #  include <AUD_Handle.h>
@@ -117,7 +113,7 @@ static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_s
   bool success = false;
   uchar *mem = nullptr;
   const size_t size = BLI_file_descriptor_size(file);
-  ssize_t size_read;
+  int64_t size_read;
   if (UNLIKELY(size == size_t(-1))) {
     CLOG_WARN(&LOG, "failure '%s' to access size '%s'", strerror(errno), filepath);
   }
