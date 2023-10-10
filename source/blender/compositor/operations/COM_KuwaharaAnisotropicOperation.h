@@ -12,6 +12,7 @@ namespace blender::compositor {
 
 class KuwaharaAnisotropicOperation : public MultiThreadedOperation {
   SocketReader *image_reader_;
+  SocketReader *size_reader_;
   SocketReader *structure_tensor_reader_;
 
  public:

@@ -16,6 +16,7 @@ namespace blender::compositor {
 KuwaharaAnisotropicOperation::KuwaharaAnisotropicOperation()
 {
   this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   this->flags_.is_fullframe_operation = true;
@@ -24,12 +25,14 @@ KuwaharaAnisotropicOperation::KuwaharaAnisotropicOperation()
 void KuwaharaAnisotropicOperation::init_execution()
 {
   image_reader_ = this->get_input_socket_reader(0);
-  structure_tensor_reader_ = this->get_input_socket_reader(1);
+  size_reader_ = this->get_input_socket_reader(1);
+  structure_tensor_reader_ = this->get_input_socket_reader(2);
 }
 
 void KuwaharaAnisotropicOperation::deinit_execution()
 {
   image_reader_ = nullptr;
+  size_reader_ = nullptr;
   structure_tensor_reader_ = nullptr;
 }
 
@@ -87,14 +90,18 @@ void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
   float eigenvalue_difference = first_eigenvalue - second_eigenvalue;
   float anisotropy = eigenvalue_sum > 0.0f ? eigenvalue_difference / eigenvalue_sum : 0.0f;
 
+  float4 size;
+  size_reader_->read(size, x, y, nullptr);
+  float radius = max(0.0f, size.x);
+
   /* Compute the width and height of an ellipse that is more width-elongated for high anisotropy
    * and more circular for low anisotropy, controlled using the eccentricity factor. Since the
    * anisotropy is in the [0, 1] range, the width factor tends to 1 as the eccentricity tends to
    * infinity and tends to infinity when the eccentricity tends to zero. This is based on the
    * equations in section "3.2. Anisotropic Kuwahara Filtering" of the paper. */
   float ellipse_width_factor = (get_eccentricity() + anisotropy) / get_eccentricity();
-  float ellipse_width = ellipse_width_factor * data.size;
-  float ellipse_height = data.size / ellipse_width_factor;
+  float ellipse_width = ellipse_width_factor * radius;
+  float ellipse_height = radius / ellipse_width_factor;
 
   /* Compute the cosine and sine of the angle that the eigenvector makes with the x axis. Since
    * the eigenvector is normalized, its x and y components are the cosine and sine of the angle
@@ -126,7 +133,7 @@ void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
    * section "3 Alternative Weighting Functions" of the polynomial weights paper. More on this
    * later in the code. */
   const int number_of_sectors = 8;
-  float sector_center_overlap_parameter = 2.0f / data.size;
+  float sector_center_overlap_parameter = 2.0f / radius;
   float sector_envelope_angle = ((3.0f / 2.0f) * M_PI) / number_of_sectors;
   float cross_sector_overlap_parameter = (sector_center_overlap_parameter +
                                           cos(sector_envelope_angle)) /
@@ -307,7 +314,7 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     /* The structure tensor is encoded in a float4 using a column major storage order, as can be
      * seen in the KuwaharaAnisotropicStructureTensorOperation. */
-    float4 encoded_structure_tensor = float4(inputs[1]->get_elem(it.x, it.y));
+    float4 encoded_structure_tensor = float4(inputs[2]->get_elem(it.x, it.y));
     float dxdx = encoded_structure_tensor.x;
     float dxdy = encoded_structure_tensor.y;
     float dydy = encoded_structure_tensor.w;
@@ -334,14 +341,16 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
     float eigenvalue_difference = first_eigenvalue - second_eigenvalue;
     float anisotropy = eigenvalue_sum > 0.0f ? eigenvalue_difference / eigenvalue_sum : 0.0f;
 
+    float radius = max(0.0f, *inputs[1]->get_elem(it.x, it.y));
+
     /* Compute the width and height of an ellipse that is more width-elongated for high anisotropy
      * and more circular for low anisotropy, controlled using the eccentricity factor. Since the
      * anisotropy is in the [0, 1] range, the width factor tends to 1 as the eccentricity tends to
      * infinity and tends to infinity when the eccentricity tends to zero. This is based on the
      * equations in section "3.2. Anisotropic Kuwahara Filtering" of the paper. */
     float ellipse_width_factor = (get_eccentricity() + anisotropy) / get_eccentricity();
-    float ellipse_width = ellipse_width_factor * data.size;
-    float ellipse_height = data.size / ellipse_width_factor;
+    float ellipse_width = ellipse_width_factor * radius;
+    float ellipse_height = radius / ellipse_width_factor;
 
     /* Compute the cosine and sine of the angle that the eigenvector makes with the x axis. Since
      * the eigenvector is normalized, its x and y components are the cosine and sine of the angle
@@ -374,7 +383,7 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
      * section "3 Alternative Weighting Functions" of the polynomial weights paper. More on this
      * later in the code. */
     int number_of_sectors = 8;
-    float sector_center_overlap_parameter = 2.0f / data.size;
+    float sector_center_overlap_parameter = 2.0f / radius;
     float sector_envelope_angle = ((3.0f / 2.0f) * M_PI) / number_of_sectors;
     float cross_sector_overlap_parameter = (sector_center_overlap_parameter +
                                             cos(sector_envelope_angle)) /

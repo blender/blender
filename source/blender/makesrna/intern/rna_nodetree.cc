@@ -8432,14 +8432,6 @@ static void def_cmp_kuwahara(StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  prop = RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "size");
-  RNA_def_property_range(prop, 1.0, 100.0);
-  RNA_def_property_ui_range(prop, 1, 100, 1, -1);
-  RNA_def_property_ui_text(
-      prop, "Size", "Size of filter. Larger values give stronger stylized effect");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
   prop = RNA_def_property(srna, "variation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "variation");
   RNA_def_property_enum_items(prop, variation_items);
