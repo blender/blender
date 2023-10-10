@@ -837,7 +837,9 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
       win->ghost_window->deactivate();
     }
   }
-  else {
+  else if (false) {
+    /* Disabled, this can happen during debugging
+     * when the window changed while the process has been paused. */
     GHOST_ASSERT(
         win->frame.is_active ==
             (win->ghost_system->getWindowManager()->getActiveWindow() == win->ghost_window),
