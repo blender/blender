@@ -1,4 +1,19 @@
-#include "BLI_compiler_compat.h"
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#include "BLI_sys_types.h"
+
+/** \file
+ * \ingroup bmesh
+ *
+ * A simple self-contained element ID library.
+ * Stores IDs in integer attributes.
+ */
+
+ #include "BLI_compiler_compat.h"
 #include "BLI_map.hh"
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
