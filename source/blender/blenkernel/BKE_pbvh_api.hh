@@ -305,7 +305,8 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
 void BKE_pbvh_set_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
 void BKE_pbvh_get_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
 
-void BKE_pbvh_draw_cb(PBVH *pbvh,
+void BKE_pbvh_draw_cb(const Mesh &mesh,
+                      PBVH *pbvh,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
