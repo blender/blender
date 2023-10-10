@@ -1095,7 +1095,7 @@ static ID *rna_ID_make_local(ID *self, Main *bmain, bool /*clear_proxy*/)
     BKE_lib_id_make_local(bmain, self, 0);
   }
   else if (ID_IS_OVERRIDE_LIBRARY_REAL(self)) {
-    BKE_lib_override_library_make_local(self);
+    BKE_lib_override_library_make_local(bmain, self);
   }
 
   ID *ret_id = self->newid ? self->newid : self;

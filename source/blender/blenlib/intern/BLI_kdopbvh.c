@@ -2340,7 +2340,7 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
   BVHNode *root = tree->nodes[tree->leaf_num];
   if (root != NULL) {
     BVHNearestProjectedData *data = (BVHNearestProjectedData *)alloca(
-        sizeof(*data) + (sizeof(*clip_plane) * max_ii(1, clip_plane_len)));
+        sizeof(*data) + (sizeof(*clip_plane) * (size_t)max_ii(1, clip_plane_len)));
 
     dist_squared_to_projected_aabb_precalc(&data->precalc, projmat, winsize, mval);
 
