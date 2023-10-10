@@ -47,28 +47,29 @@ class ObjectKey {
  public:
   ObjectKey() = default;
 
-  ObjectKey(Object *ob, int sub_key = 0) : sub_key_(sub_key)
+  ObjectKey(Object *ob, int sub_key = 0)
   {
+    /** Since we use memcmp for comparison,
+     * we have to ensure the padding bytes are initialized as well. */
+    memset(this, 0, sizeof(*this));
+
     ob_ = DEG_get_original_object(ob);
     hash_value_ = BLI_ghashutil_ptrhash(ob_);
 
     if (DupliObject *dupli = DRW_object_get_dupli(ob)) {
       parent_ = DRW_object_get_dupli_parent(ob);
       hash_value_ = BLI_ghashutil_combine_hash(hash_value_, BLI_ghashutil_ptrhash(parent_));
-      memcpy(id_, dupli->persistent_id, sizeof(id_));
-      for (int id : id_) {
-        if (id == INT_MAX) {
+      for (int i : IndexRange(MAX_DUPLI_RECUR)) {
+        id_[i] = dupli->persistent_id[i];
+        if (id_[i] == INT_MAX) {
           break;
         }
-        hash_value_ = BLI_ghashutil_combine_hash(hash_value_, BLI_ghashutil_inthash(id));
+        hash_value_ = BLI_ghashutil_combine_hash(hash_value_, BLI_ghashutil_inthash(id_[i]));
       }
     }
-    else {
-      parent_ = nullptr;
-      memset(id_, 0, sizeof(id_));
-    }
 
-    if (sub_key_ != 0) {
+    if (sub_key != 0) {
+      sub_key_ = sub_key;
       hash_value_ = BLI_ghashutil_combine_hash(hash_value_, BLI_ghashutil_inthash(sub_key_));
     }
   }
