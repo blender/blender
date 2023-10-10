@@ -2310,7 +2310,7 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     unode->typemask |= 1 << type;
 
     /* add a log sub-entry */
-    BM_log_entry_add_ex(ss->bm, ss->bm_log, true);
+    BM_log_entry_add_delta_set(ss->bm, ss->bm_log);
   }
 
   if (!node) {

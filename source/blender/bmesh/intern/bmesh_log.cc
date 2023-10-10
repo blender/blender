@@ -5,17 +5,6 @@
 /** \file
  * \ingroup bmesh
  *
- * The BMLog is an interface for storing undo/redo steps as a BMesh is
- * modified. It only stores changes to the BMesh, not full copies.
- *
- * Currently it supports the following types of changes:
- *
- * - Adding and removing vertices
- * - Adding and removing edges
- * - Adding and removing faces
- * - Custom Attributes.
- * - Moving vertices
- * - Element header flags.
  */
 
 #include "MEM_guardedalloc.h"
@@ -40,10 +29,6 @@
 #include "bmesh.h"
 #include "bmesh_idmap.hh"
 #include "bmesh_log.hh"
-
-extern "C" {
-#include "bmesh_structure.h"
-}
 
 #include <algorithm>
 #include <cstdarg>
@@ -231,7 +216,7 @@ struct BMLogEdge : public BMLogElem<BMEdge> {
 struct BMLogFace : public BMLogElem<BMFace> {
   Vector<BMID<BMVert>, 5> verts;
   Vector<void *, 5> loop_customdata;
-  
+
   void free(CustomData *domain, CustomData *loop_domain)
   {
     BMLogElem<BMFace>::free(domain);
@@ -260,7 +245,6 @@ struct BMLogSetBase {
   {
     return "";
   }
-  virtual void print_info() {}
   virtual void undo(BMesh * /*bm*/, BMLogCallbacks * /*callbacks*/) {}
   virtual void redo(BMesh * /*bm*/, BMLogCallbacks * /*callbacks*/) {}
 };
@@ -283,22 +267,6 @@ struct BMLogSetDiff : public BMLogSetBase {
   const char *debug_name() override
   {
     return "Diff";
-  }
-
-  void print_info() override
-  {
-    printf("  modified: v: %d e: %d f: %d\n",
-           int(modified_verts.size()),
-           int(modified_edges.size()),
-           int(modified_faces.size()));
-    printf("  removed: v: %d e: %d f: %d\n",
-           int(removed_verts.size()),
-           int(removed_edges.size()),
-           int(removed_faces.size()));
-    printf("  added: v: %d e: %d f: %d\n",
-           int(added_verts.size()),
-           int(added_edges.size()),
-           int(added_faces.size()));
   }
 
   void add_vert(BMesh *bm, BMVert *v);
@@ -367,8 +335,6 @@ struct BMLogSetFull : public BMLogSetBase {
   {
     return "Full";
   }
-
-  void print_info() {}
 
   void swap(BMesh *bm)
   {
@@ -955,30 +921,14 @@ struct BMLogEntry {
 
   void undo(BMesh *bm, BMLogCallbacks *callbacks)
   {
-#ifdef BM_LOG_PRINT_DEBUG
-    printf("\n");
-#endif
-
     for (int i = sets.size() - 1; i >= 0; i--) {
-#ifdef BM_LOG_PRINT_DEBUG
-      printf("%s: - %d of %d\n", sets[i]->debug_name(), i, (int)(sets.size() - 1));
-      sets[i]->print_info();
-#endif
       sets[i]->undo(bm, callbacks);
     }
   }
 
   void redo(BMesh *bm, BMLogCallbacks *callbacks)
   {
-#ifdef BM_LOG_PRINT_DEBUG
-    printf("\n");
-#endif
-
     for (int i = 0; i < sets.size(); i++) {
-#ifdef BM_LOG_PRINT_DEBUG
-      printf("%s: - %d of %d\n", sets[i]->debug_name(), i, (int)(sets.size() - 1));
-      sets[i]->print_info();
-#endif
       sets[i]->redo(bm, callbacks);
     }
   }
@@ -1711,16 +1661,15 @@ bool BM_log_free(BMLog *log)
   return true;
 }
 
-BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last)
+BMLogEntry *BM_log_entry_add_delta_set(BMesh *bm, BMLog *log)
 {
-  if (combine_with_last && log->current_entry) {
-    log->current_entry->push_set(bm, LOG_SET_DIFF);
-  }
-  else {
+  if (!log->current_entry) {
     log->push_entry(bm);
   }
+  else {
+    log->current_entry->push_set(bm, LOG_SET_DIFF);
+  }
 
-  log->current_entry->push_set(bm, LOG_SET_DIFF);
   return log->current_entry;
 }
 
@@ -1757,7 +1706,7 @@ BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)
   if (!entry) {
     fprintf(stdout, "no current entry; creating...\n");
     fflush(stdout);
-    return BM_log_entry_add_ex(bm, log, true);
+    return BM_log_entry_add_delta_set(bm, log);
   }
 
   CustomData *cd1[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
@@ -1769,7 +1718,7 @@ BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)
       fflush(stdout);
 
       entry->cd_layout_changed = true;
-      return BM_log_entry_add_ex(bm, log, true);
+      return BM_log_entry_add_delta_set(bm, log);
     }
   }
 

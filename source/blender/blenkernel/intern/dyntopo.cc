@@ -1390,7 +1390,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
   }
 
   /* Push a subentry just to be on the safe side w.r.t. element IDs. */
-  BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
+  BM_log_entry_add_delta_set(pbvh->header.bm, pbvh->bm_log);
 }
 
 static void short_edge_queue_task_cb_local(void *__restrict userdata,
@@ -2013,7 +2013,7 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx, PBVH *pbvh)
     }
   }
 
-  BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
+  BM_log_entry_add_delta_set(pbvh->header.bm, pbvh->bm_log);
 
   pbvh_bmesh_check_nodes(pbvh);
 
@@ -2206,7 +2206,7 @@ void EdgeQueueContext::finish()
   }
 
   /* Push a subentry. */
-  BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
+  BM_log_entry_add_delta_set(pbvh->header.bm, pbvh->bm_log);
 }
 
 template<typename EdgeHeapT>

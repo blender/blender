@@ -9,9 +9,30 @@
 /** \file
  * \ingroup bmesh
  *
- * DynTopo undo backend.  Stores removal, addition or customdata changes for verts,
- * edges and faces.  Elements are assigned unique IDs (which are stored in integer
- * attributes) with BMIdMap (see bmesh_idmap.hh).  
+ * `BMLog` is the undo system used by DynTopo. Changes
+ *  to a `BMesh` are stored incrementally.
+ *
+ *  The following operations are supported for logging:
+ * - Adding and removing vertices
+ * - Adding and removing edges
+ * - Adding and removing faces
+ * - Attribute changes.
+ * - Element header flags.
+ *
+ * Internal details:
+ *
+ * Each sculpt undo step owns a pointer to a `BMLogEntry`.
+ * Every `BMLogEntry` in turn has a list of log sets.
+ *
+ * A log set is a subclass of `BMLogSetBase` and can be
+ * either a delta set (`BMLogSetDiff`) or a full mesh
+ * (BMLogSetFull).
+ *
+ * Particuarly complex mesh operations can sometimes benefit from
+ * having a clean `BMLogSetDiff` set, this helps avoid corrupting
+ * element IDs. This can be done with `BM_log_entry_add_delta_set`.
+ *
+ * To log a complete mesh, use `BM_log_full_mesh`.
  */
 
 struct BMesh;
@@ -55,10 +76,11 @@ bool BM_log_free(BMLog *log);
 /* Start a new log entry and update the log entry list */
 BMLogEntry *BM_log_entry_add(BMesh *bm, BMLog *log);
 
-/* Start a new log entry and update the log entry list.  If combine_with_last
- * is true entry will be added as a subentry of the last one.
+/*
+ * Add a new delta set to the current log entry.  If no entry
+ * exists one will be created. Returns current log entry.
  */
-BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last);
+BMLogEntry *BM_log_entry_add_delta_set(BMesh *bm, BMLog *log);
 
 /* Check if customdata layout has changed. If it has a new
  * subentry will be pushed so any further logging will have

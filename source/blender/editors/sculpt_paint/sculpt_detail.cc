@@ -205,7 +205,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     remesher.start();
 
     float quality = ss->cached_dyntopo.quality;
-    float time_limit = (min_ff(1.0f * (100.0f - quality + 2500.0f * quality), 2500.0f))*0.001f;
+    float time_limit = (min_ff(1.0f * (100.0f - quality + 2500.0f * quality), 2500.0f)) * 0.001f;
     float quality_time = PIL_check_seconds_timer();
 
     printf("Remesh\n");
@@ -232,7 +232,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     remesher.finish();
 
     /* Push a new subentry. */
-    BM_log_entry_add_ex(ss->bm, ss->bm_log, true);
+    BM_log_entry_add_delta_set(ss->bm, ss->bm_log);
     blender::bke::dyntopo::after_stroke(ss->pbvh, true);
 
     unlock_main_thread();
