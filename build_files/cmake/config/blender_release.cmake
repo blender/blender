@@ -7,6 +7,9 @@
 # Example usage:
 #   cmake -C../blender/build_files/cmake/config/blender_release.cmake  ../blender
 #
+# NOTE: the built-bot supports configuration overrides for some of these settings.
+# This means the daily-builds may not match this configuration *exactly*,
+# see: `build_files/buildbot/config/*.cmake`.
 
 set(WITH_ALEMBIC             ON  CACHE BOOL "" FORCE)
 set(WITH_ASSERT_ABORT        OFF CACHE BOOL "" FORCE)

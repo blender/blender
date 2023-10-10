@@ -218,7 +218,7 @@ SeqRetimingKey *SEQ_retiming_transition_start_get(SeqRetimingKey *key)
   if ((key->flag & SEQ_SPEED_TRANSITION_OUT)) {
     return key - 1;
   }
-  if ((key->flag & SEQ_SPEED_TRANSITION_IN)) {
+  if (key->flag & SEQ_SPEED_TRANSITION_IN) {
     return key;
   }
   return nullptr;
