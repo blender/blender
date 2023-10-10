@@ -216,7 +216,12 @@ struct PaintOperationExecutor {
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
         "material_index", ATTR_DOMAIN_CURVE);
+    bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
+        "cyclic", ATTR_DOMAIN_CURVE);
+    cyclic.span.last() = false;
     materials.span.last() = material_index;
+    
+    cyclic.finish();
     materials.finish();
 
     curves.curve_types_for_write().last() = CURVE_TYPE_POLY;
