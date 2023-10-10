@@ -60,7 +60,10 @@ BMLogEntry *BM_log_entry_add(BMesh *bm, BMLog *log);
  */
 BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last);
 
-/* Make sure customdata layout is valid. */
+/* Check if customdata layout has changed. If it has a new
+ * subentry will be pushed so any further logging will have
+ * the correct customdata.
+ */
 BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log);
 
 /* Undo one BMLogEntry. */
