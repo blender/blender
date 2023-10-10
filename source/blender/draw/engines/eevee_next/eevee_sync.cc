@@ -54,6 +54,7 @@ ObjectHandle &SyncModule::sync_object(Object *ob)
   DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
   DrawData *dd = DRW_drawdata_ensure((ID *)ob, owner, sizeof(DrawData), nullptr, nullptr);
   handle.recalc |= dd->recalc;
+  dd->recalc = 0;
 
   const int recalc_flags = ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_SHADING |
                            ID_RECALC_GEOMETRY;
