@@ -1308,7 +1308,6 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
   if (!*queue->stop && queue->cfra <= queue->efra) {
     MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
     char filepath[FILE_MAX];
-    size_t size;
     int file;
 
     user.framenr = queue->cfra;
@@ -1321,8 +1320,8 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
       return nullptr;
     }
 
-    size = BLI_file_descriptor_size(file);
-    if (size < 1) {
+    const size_t size = BLI_file_descriptor_size(file);
+    if (UNLIKELY(ELEM(size, 0, size_t(-1)))) {
       close(file);
       BLI_spin_unlock(&queue->spin);
       return nullptr;

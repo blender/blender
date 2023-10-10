@@ -89,6 +89,9 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   }
 
   const size_t data_size = BLI_file_descriptor_size(file);
+  if (UNLIKELY(data_size == size_t(-1))) {
+    return nullptr;
+  }
 
   imb_mmap_lock();
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);

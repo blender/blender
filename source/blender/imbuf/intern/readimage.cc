@@ -119,13 +119,15 @@ ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const
 {
   ImBuf *ibuf;
   uchar *mem;
-  size_t size;
 
   if (file == -1) {
     return nullptr;
   }
 
-  size = BLI_file_descriptor_size(file);
+  const size_t size = BLI_file_descriptor_size(file);
+  if (size == size_t(-1)) {
+    return nullptr;
+  }
 
   imb_mmap_lock();
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);

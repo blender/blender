@@ -323,11 +323,11 @@ size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t f
 bool BLI_file_magic_is_zstd(const char header[4]);
 
 /**
- * Returns the file size of an opened file descriptor.
+ * Returns the file size of an opened file descriptor or `size_t(-1)` on failure.
  */
 size_t BLI_file_descriptor_size(int file) ATTR_WARN_UNUSED_RESULT;
 /**
- * Returns the size of a file.
+ * Returns the size of a file or `size_t(-1)` on failure..
  */
 size_t BLI_file_size(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

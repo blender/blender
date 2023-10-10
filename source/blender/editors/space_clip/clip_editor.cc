@@ -709,7 +709,7 @@ static uchar *prefetch_read_file_to_memory(
   }
 
   const size_t size = BLI_file_descriptor_size(file);
-  if (size < 1) {
+  if (UNLIKELY(ELEM(size, 0, size_t(-1)))) {
     close(file);
     return nullptr;
   }
