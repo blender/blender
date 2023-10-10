@@ -132,7 +132,10 @@ static void sigbus_handler_remove(BLI_mmap_file *file)
 BLI_mmap_file *BLI_mmap_open(int fd)
 {
   void *memory, *handle = NULL;
-  size_t length = BLI_lseek(fd, 0, SEEK_END);
+  const size_t length = BLI_lseek(fd, 0, SEEK_END);
+  if (UNLIKELY(length == (size_t)-1)) {
+    return NULL;
+  }
 
 #ifndef WIN32
   /* Ensure that the SIGBUS handler is configured. */
