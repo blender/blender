@@ -284,10 +284,14 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root);
 /**
  * Make given ID fully local.
  *
+ * \param bmain If given, all liboverrides hierarchy roots will be re-validated/generated after
+ * clearing the liboverride data from given \a id. If nullptr, caller is responsible to perform
+ * this action (call #BKE_lib_override_library_main_hierarchy_root_ensure) itself.
+ *
  * \note Only differs from lower-level #BKE_lib_override_library_free in infamous embedded ID
  * cases.
  */
-void BKE_lib_override_library_make_local(ID *id);
+void BKE_lib_override_library_make_local(Main *bmain, ID *id);
 
 /**
  * Find override property from given RNA path, if it exists.
