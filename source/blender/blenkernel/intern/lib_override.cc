@@ -3552,7 +3552,7 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 }
 
-void BKE_lib_override_library_make_local(ID *id)
+void BKE_lib_override_library_make_local(Main *bmain, ID *id)
 {
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
     return;
@@ -3582,6 +3582,10 @@ void BKE_lib_override_library_make_local(ID *id)
   if (node_tree != nullptr) {
     node_tree->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
   }
+
+  /* In case a liboverride hierarchy root is 'made local', i.e. is not a liboverride anymore, all
+   * hierarchy roots of all liboverrides need to be validated/re-generated again. */
+  BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
 }
 
 /* We only build override GHash on request. */

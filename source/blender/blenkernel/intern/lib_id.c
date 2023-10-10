@@ -503,7 +503,7 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
   if (force_local) {
     BKE_lib_id_clear_library_data(bmain, id, flags);
     if ((flags & LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR) != 0) {
-      BKE_lib_override_library_make_local(id);
+      BKE_lib_override_library_make_local(bmain, id);
     }
     BKE_lib_id_expand_local(bmain, id, flags);
   }
@@ -1816,7 +1816,9 @@ void BKE_library_make_local(Main *bmain,
             ELEM(lib, NULL, id->override_library->reference->lib) &&
             ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING)))
         {
-          BKE_lib_override_library_make_local(id);
+          /* Validating liboverride hierarchy root pointers will happen later in this function,
+           * rather than doing it for each and every localized ID. */
+          BKE_lib_override_library_make_local(NULL, id);
         }
       }
       /* The check on the fourth line (LIB_TAG_PRE_EXISTING) is done so it's possible to tag data
@@ -1954,6 +1956,10 @@ void BKE_library_make_local(Main *bmain,
       id_us_ensure_real(id->newid);
     }
   }
+
+  /* Making some liboverride local may have had some impact on validity of liboverrides hierarchy
+   * roots, these need to be re-validated/re-generated. */
+  BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
 
 #ifdef DEBUG_TIME
   printf("Step 4: Remap local usages of old (linked) ID to new (local) ID: Done.\n");

@@ -999,7 +999,7 @@ static void id_local_fn(bContext *C,
     }
   }
   else if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id)) {
-    BKE_lib_override_library_make_local(tselem->id);
+    BKE_lib_override_library_make_local(CTX_data_main(C), tselem->id);
   }
 }
 
