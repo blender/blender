@@ -2688,6 +2688,9 @@ class WM_OT_batch_rename(Operator):
             ('NODE', "Nodes", ""),
             ('SEQUENCE_STRIP', "Sequence Strips", ""),
             ('ACTION_CLIP', "Action Clips", ""),
+            None,
+            ('SCENE', "Scenes", ""),
+            ('BRUSH', "Brushes", ""),
         ),
         description="Type of data to rename",
     )
@@ -2883,6 +2886,26 @@ class WM_OT_batch_rename(Operator):
                     [id for id in bpy.data.actions if id.library is None],
                     "name",
                     iface_("Action(s)"),
+                )
+            elif data_type == 'SCENE':
+                data = (
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Scene)
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.scenes if id.library is None]
+                    ),
+                    "name",
+                    iface_("Scene(s)"),
+                )
+            elif data_type == 'BRUSH':
+                data = (
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Brush)
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.brushes if id.library is None]
+                    ),
+                    "name",
+                    iface_("Brush(es)"),
                 )
             elif data_type in object_data_type_attrs_map.keys():
                 attr, descr, ty = object_data_type_attrs_map[data_type]
