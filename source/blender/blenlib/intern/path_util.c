@@ -1537,7 +1537,7 @@ bool BLI_path_extension_ensure(char *path, size_t path_maxncpy, const char *ext)
 
   const size_t path_len = strlen(path);
   const size_t ext_len = strlen(ext);
-  ssize_t a;
+  int64_t a;
 
   for (a = path_len - 1; a >= 0; a--) {
     if (path[a] == '.') {

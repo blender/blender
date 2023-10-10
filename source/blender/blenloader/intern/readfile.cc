@@ -670,7 +670,7 @@ static void bh8_from_bh4(BHead *bhead, BHead4 *bhead4)
 static BHeadN *get_bhead(FileData *fd)
 {
   BHeadN *new_bhead = nullptr;
-  ssize_t readsize;
+  int64_t readsize;
 
   if (fd) {
     if (!fd->is_eof) {
@@ -922,7 +922,7 @@ AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *
 static void decode_blender_header(FileData *fd)
 {
   char header[SIZEOFBLENDERHEADER], num[4];
-  ssize_t readsize;
+  int64_t readsize;
 
   /* read in the header data */
   readsize = fd->file->read(fd->file, header, sizeof(header));
