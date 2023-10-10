@@ -123,10 +123,15 @@ int64_t BLI_read(int fd, void *buf, size_t nbytes)
       /* Error. */
       return nbytes_read;
     }
+
     if (UNLIKELY(nbytes_read > nbytes)) {
-      /* Badly behaving C-API - this should never happen.
+      /* Badly behaving LIBC, reading more bytes than requested should never happen.
        * Possibly an invalid internal state/corruption, only check to prevent an eternal loop. */
       BLI_assert_unreachable();
+      /* Set the IO-error so there is some indication an error occurred. */
+      if (errno == 0) {
+        errno = EIO;
+      }
       return -1;
     }
 
