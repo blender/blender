@@ -84,6 +84,7 @@ static void rna_uiItemR(uiLayout *layout,
                         const char *text_ctxt,
                         bool translate,
                         int icon,
+                        const char *placeholder,
                         bool expand,
                         bool slider,
                         int toggle,
@@ -109,6 +110,7 @@ static void rna_uiItemR(uiLayout *layout,
 
   /* Get translated name (label). */
   name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  placeholder = rna_translate_ui_text(placeholder, text_ctxt, nullptr, prop, translate);
 
   if (slider) {
     flag |= UI_ITEM_R_SLIDER;
@@ -140,7 +142,7 @@ static void rna_uiItemR(uiLayout *layout,
     flag |= UI_ITEM_R_CHECKBOX_INVERT;
   }
 
-  uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
+  uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon, placeholder);
 }
 
 static void rna_uiItemR_with_popover(uiLayout *layout,
@@ -1147,6 +1149,8 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_ui_description(func, "Item. Exposes an RNA item and places it into the layout");
   api_ui_item_rna_common(func);
   api_ui_item_common(func);
+  RNA_def_string(
+      func, "placeholder", nullptr, 0, "", "Hint describing the expected value when empty");
   RNA_def_boolean(func, "expand", false, "", "Expand button to show more detail");
   RNA_def_boolean(func, "slider", false, "", "Use slider widget for numeric values");
   RNA_def_int(func,
