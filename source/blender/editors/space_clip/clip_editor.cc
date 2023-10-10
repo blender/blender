@@ -720,7 +720,7 @@ static uchar *prefetch_read_file_to_memory(
     return nullptr;
   }
 
-  if (read(file, mem, size) != size) {
+  if (BLI_read(file, mem, size) != size) {
     close(file);
     MEM_freeN(mem);
     return nullptr;

@@ -219,7 +219,7 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath_rel, co
     /* #MEM_mallocN complains about `MEM_mallocN(0, "...")`,
      * a single allocation is harmless and doesn't cause any complications. */
     void *data = MEM_mallocN(std::max(file_size, size_t(1)), "packFile");
-    if (read(file, data, file_size) == file_size) {
+    if (BLI_read(file, data, file_size) == file_size) {
       pf = BKE_packedfile_new_from_memory(data, file_size);
     }
     else {
@@ -398,13 +398,13 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
           len = sizeof(buf);
         }
 
-        if (read(file, buf, len) != len) {
+        if (BLI_read(file, buf, len) != len) {
           /* read error ... */
           ret_val = PF_CMP_DIFFERS;
           break;
         }
 
-        if (memcmp(buf, ((char *)pf->data) + i, len) != 0) {
+        if (memcmp(buf, ((const char *)pf->data) + i, len) != 0) {
           ret_val = PF_CMP_DIFFERS;
           break;
         }

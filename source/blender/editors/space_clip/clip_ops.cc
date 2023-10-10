@@ -1329,7 +1329,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 
     mem = MEM_cnew_array<uchar>(size, "movieclip proxy memory file");
 
-    if (read(file, mem, size) != size) {
+    if (BLI_read(file, mem, size) != size) {
       close(file);
       BLI_spin_unlock(&queue->spin);
       MEM_freeN(mem);
