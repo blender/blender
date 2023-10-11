@@ -315,16 +315,14 @@ void BKE_spacedata_freelist(ListBase *lb)
 static void panel_list_copy(ListBase *newlb, const ListBase *lb)
 {
   BLI_listbase_clear(newlb);
-  BLI_duplicatelist(newlb, lb);
 
-  /* copy panel pointers */
-  Panel *new_panel = static_cast<Panel *>(newlb->first);
-  Panel *panel = static_cast<Panel *>(lb->first);
-  for (; new_panel; new_panel = new_panel->next, panel = panel->next) {
+  LISTBASE_FOREACH (const Panel *, old_panel, lb) {
+    Panel *new_panel = BKE_panel_new(old_panel->type);
+    *new_panel = *old_panel;
     new_panel->activedata = nullptr;
     new_panel->drawname = nullptr;
-    memset(&new_panel->runtime, 0x0, sizeof(new_panel->runtime));
-    panel_list_copy(&new_panel->children, &panel->children);
+    BLI_addtail(newlb, new_panel);
+    panel_list_copy(&new_panel->children, &old_panel->children);
   }
 }
 
@@ -362,6 +360,9 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
   }
 
   panel_list_copy(&newar->panels, &region->panels);
+  LISTBASE_FOREACH (Panel *, p, &newar->panels) {
+    BLI_assert(p->runtime);
+  }
 
   BLI_listbase_clear(&newar->ui_previews);
   BLI_duplicatelist(&newar->ui_previews, &region->ui_previews);
