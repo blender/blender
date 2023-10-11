@@ -189,6 +189,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->mval = mval;
 
+  /* Initialize this mouse variable in advance as it is required by
+   * `transform_convert_frame_side_dir_get` which is called before `initMouseInput`. */
+  t->mouse.imval = mval;
+
   t->mode_info = nullptr;
 
   t->data_len_all = 0;
