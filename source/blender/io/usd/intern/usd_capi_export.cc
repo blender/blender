@@ -224,6 +224,11 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   Scene *scene = DEG_get_input_scene(depsgraph);
   Main *bmain = DEG_get_bmain(depsgraph);
 
+  /* This whole `export_to_stage` function is assumed to cover about 80% of the whole export
+   * process, from 0.1f to 0.9f. */
+  worker_status->progress = 0.10f;
+  worker_status->do_update = true;
+
   usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, double(scene->unit.scale_length));
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
                                               BKE_blender_version_string());
@@ -246,9 +251,12 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   USDHierarchyIterator iter(bmain, depsgraph, usd_stage, params);
 
+  worker_status->progress = 0.11f;
+  worker_status->do_update = true;
+
   if (params.export_animation) {
-    /* Writing the animated frames is not 100% of the work, but it's our best guess. */
-    float progress_per_frame = 1.0f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
+    /* Writing the animated frames is not 100% of the work, here it's assumed to be 75% of it. */
+    float progress_per_frame = 0.75f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
 
     for (float frame = scene->r.sfra; frame <= scene->r.efra; frame++) {
       if (G.is_break || worker_status->stop) {
@@ -272,6 +280,9 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     iter.iterate_and_write();
   }
 
+  worker_status->progress = 0.86f;
+  worker_status->do_update = true;
+
   iter.release_writers();
 
   /* Set the default prim if it doesn't exist */
@@ -286,11 +297,17 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   call_export_hooks(usd_stage, depsgraph, params.worker_status->reports);
 
+  worker_status->progress = 0.88f;
+  worker_status->do_update = true;
+
   /* Finish up by going back to the keyframe that was current before we started. */
   if (scene->r.cfra != orig_frame) {
     scene->r.cfra = orig_frame;
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
+
+  worker_status->progress = 0.9f;
+  worker_status->do_update = true;
 
   return usd_stage;
 }
@@ -307,6 +324,9 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   }
   G.is_break = false;
 
+  worker_status->progress = 0.01f;
+  worker_status->do_update = true;
+
   /* Evaluate the depsgraph for exporting.
    *
    * Note that, unlike with its building, this is expected to be safe to perform from worker
@@ -316,7 +336,7 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
    * #USD_export. */
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
-  worker_status->progress = 0.0f;
+  worker_status->progress = 0.1f;
   worker_status->do_update = true;
   data->params.worker_status = worker_status;
 
