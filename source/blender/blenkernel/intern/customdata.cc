@@ -2414,7 +2414,7 @@ static void ensure_layer_data_is_mutable(CustomDataLayer &layer, const int totel
   }
 }
 
-static bool layer_is_mutable(CustomDataLayer &layer)
+[[maybe_unused]] static bool layer_is_mutable(CustomDataLayer &layer)
 {
   if (layer.sharing_info == nullptr) {
     return true;
