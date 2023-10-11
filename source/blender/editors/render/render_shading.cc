@@ -1668,18 +1668,17 @@ static int lightprobe_cache_bake_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_lightprobe_cache_bake(wmOperatorType *ot)
 {
   static const EnumPropertyItem light_cache_subset_items[] = {
-      {LIGHTCACHE_SUBSET_ALL, "ALL", 0, "All Light Probes", "Bake all light probes"},
-      {LIGHTCACHE_SUBSET_DIRTY,
-       "DIRTY",
-       0,
-       "Dirty Only",
-       "Only bake light probes that are marked as dirty"},
+      {LIGHTCACHE_SUBSET_ALL, "ALL", 0, "All Volumes", "Bake all light probe volumes"},
       {LIGHTCACHE_SUBSET_SELECTED,
        "SELECTED",
        0,
        "Selected Only",
-       "Only bake selected light probes"},
-      {LIGHTCACHE_SUBSET_ACTIVE, "ACTIVE", 0, "Active Only", "Only bake the active light probe"},
+       "Only bake selected light probe volumes"},
+      {LIGHTCACHE_SUBSET_ACTIVE,
+       "ACTIVE",
+       0,
+       "Active Only",
+       "Only bake the active light probe volume"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
