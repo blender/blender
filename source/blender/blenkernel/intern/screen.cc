@@ -490,7 +490,7 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
 Panel *BKE_panel_new(PanelType *panel_type)
 {
   Panel *panel = MEM_cnew<Panel>(__func__);
-  panel->runtime = MEM_cnew<Panel_Runtime>(__func__);
+  panel->runtime = MEM_new<Panel_Runtime>(__func__);
   panel->type = panel_type;
   STRNCPY(panel->panelname, panel_type->idname);
   return panel;
@@ -500,7 +500,7 @@ void BKE_panel_free(Panel *panel)
 {
   MEM_SAFE_FREE(panel->activedata);
   MEM_SAFE_FREE(panel->drawname);
-  MEM_freeN(panel->runtime);
+  MEM_delete(panel->runtime);
   MEM_freeN(panel);
 }
 
@@ -1109,7 +1109,7 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
   BLO_read_list(reader, lb);
 
   LISTBASE_FOREACH (Panel *, panel, lb) {
-    panel->runtime = MEM_cnew<Panel_Runtime>(__func__);
+    panel->runtime = MEM_new<Panel_Runtime>(__func__);
     panel->runtime_flag = 0;
     panel->activedata = nullptr;
     panel->type = nullptr;

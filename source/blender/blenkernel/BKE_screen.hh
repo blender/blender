@@ -39,6 +39,7 @@ struct View3DShading;
 struct WorkSpace;
 struct bContext;
 struct bScreen;
+struct uiBlock;
 struct uiLayout;
 struct uiList;
 struct wmGizmoMap;
@@ -341,7 +342,7 @@ enum {
 
 typedef struct Panel_Runtime {
   /* Applied to Panel.ofsx, but saved separately so we can track changes between redraws. */
-  int region_ofsx;
+  int region_ofsx = 0;
 
   /**
    * Pointer for storing which data the panel corresponds to.
@@ -350,14 +351,14 @@ typedef struct Panel_Runtime {
    * \note A panel and its sub-panels share the same custom data pointer.
    * This avoids freeing the same pointer twice when panels are removed.
    */
-  struct PointerRNA *custom_data_ptr;
+  PointerRNA *custom_data_ptr = nullptr;
 
   /* Pointer to the panel's block. Useful when changes to panel #uiBlocks
    * need some context from traversal of the panel "tree". */
-  struct uiBlock *block;
+  uiBlock *block = nullptr;
 
   /* Non-owning pointer. The context is stored in the block. */
-  struct bContextStore *context;
+  bContextStore *context = nullptr;
 } Panel_Runtime;
 
 /* #uiList types. */
