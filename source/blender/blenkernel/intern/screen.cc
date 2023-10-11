@@ -318,7 +318,9 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
 
   LISTBASE_FOREACH (const Panel *, old_panel, lb) {
     Panel *new_panel = BKE_panel_new(old_panel->type);
+    Panel_Runtime *new_runtime = new_panel->runtime;
     *new_panel = *old_panel;
+    new_panel->runtime = new_runtime;
     new_panel->activedata = nullptr;
     new_panel->drawname = nullptr;
     BLI_addtail(newlb, new_panel);
