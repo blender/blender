@@ -321,7 +321,8 @@ struct PaintOperationExecutor {
     if (num_converged > 0) {
       self.active_smooth_index_ = math::min(self.active_smooth_index_ + int64_t(num_converged),
                                             int64_t(drawing_->strokes().points_num() - 1));
-      if (self.screen_space_curve_fitted_coords_.size() - num_converged > 0) {
+      const IndexRange new_smooth_window = points.drop_front(self.active_smooth_index_);
+      if (new_smooth_window.size() > 0) {
         self.screen_space_curve_fitted_coords_.remove(0, num_converged);
       }
       else {
