@@ -10315,7 +10315,7 @@ float ui_block_calc_pie_segment(uiBlock *block, const float event_xy[2])
 
 static int ui_handle_menu_letter_press(uiPopupBlockHandle *menu)
 {
-  /* Start menu search on spacebar press if the menu has a name. */
+  /* Start menu search on space-bar press if the menu has a name. */
   if (menu->menu_idname[0]) {
     uiAfterFunc *after = ui_afterfunc_new();
     wmOperatorType *ot = WM_operatortype_find("WM_OT_search_single_menu", false);

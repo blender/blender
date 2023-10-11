@@ -1575,12 +1575,12 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
   }
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) {
-    /* Re-processing an entry already being processed higher in the callgraph (re-entry caused by a
-     * dependency loops). Just do nothing, there is no more usefull info to provide here. */
+    /* Re-processing an entry already being processed higher in the call-graph (re-entry caused by
+     * a dependency loops). Just do nothing, there is no more useful info to provide here. */
     return nullptr;
   }
   /* Flag this entry to avoid re-processing it in case some dependency loop leads to it again
-   * downwards in the callstack. */
+   * downwards in the call-stack. */
   entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
 
   int best_level_candidate = curr_level;
