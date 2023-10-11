@@ -39,9 +39,10 @@ void main()
   LightProbeSample samp = lightprobe_load(P, Ng, V);
 
   vec3 radiance = vec3(0.0);
-  radiance += (stack.cl[0].light_shadowed + lightprobe_eval(samp, gbuf.diffuse, V, vec2(0.0))) *
+  radiance += (stack.cl[0].light_shadowed + lightprobe_eval(samp, gbuf.diffuse, P, V, vec2(0.0))) *
               gbuf.diffuse.color;
-  radiance += (stack.cl[1].light_shadowed + lightprobe_eval(samp, gbuf.reflection, V, vec2(0.0))) *
+  radiance += (stack.cl[1].light_shadowed +
+               lightprobe_eval(samp, gbuf.reflection, P, V, vec2(0.0))) *
               gbuf.reflection.color;
 
   out_radiance = vec4(radiance, 0.0);

@@ -82,8 +82,7 @@ void PlanarProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
 
 void PlanarProbeModule::end_sync()
 {
-  probes_.remove_if(
-      [](const PlanarProbes::MutableItem &item) { return !item.value.is_probe_used; });
+  probes_.remove_if([](const PlanarProbes::Item &item) { return !item.value.is_probe_used; });
 
   /* When first planar probes are enabled it can happen that the first sample is off. */
   if (!update_probes_ && !probes_.is_empty()) {

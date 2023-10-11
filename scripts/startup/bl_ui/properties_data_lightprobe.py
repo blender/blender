@@ -145,6 +145,17 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             col.prop(probe, "grid_capture_emission")
 
         elif probe.type == 'SPHERE':
+            col = layout.column()
+            col.prop(probe, "influence_type")
+
+            if probe.influence_type == 'ELIPSOID':
+                influence_text = "Radius"
+            else:
+                influence_text = "Size"
+
+            col.prop(probe, "influence_distance", text=influence_text)
+            col.prop(probe, "falloff")
+
             sub = layout.column(align=True)
             sub.prop(probe, "clip_start", text="Clipping Start")
             sub.prop(probe, "clip_end", text="End")
@@ -186,7 +197,7 @@ class DATA_PT_lightprobe_visibility(DataButtonsPanel, Panel):
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
     bl_label = "Custom Parallax"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT'}
 
     @classmethod
     def poll(cls, context):

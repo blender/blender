@@ -48,7 +48,7 @@ void main()
    * direction over many rays. */
   vec3 Ng = ray.direction;
   LightProbeSample samp = lightprobe_load(P, Ng, V);
-  vec3 radiance = lightprobe_eval_direction(samp, ray.direction, safe_rcp(ray_pdf_inv));
+  vec3 radiance = lightprobe_eval_direction(samp, P, ray.direction, safe_rcp(ray_pdf_inv));
   /* Set point really far for correct reprojection of background. */
   float hit_time = 1000.0;
 
