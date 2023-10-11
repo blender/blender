@@ -1459,7 +1459,8 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                             wmOperatorCallContext context,
                             eUI_Item_Flag flag,
                             const EnumPropertyItem *item_array,
-                            int totitem)
+                            int totitem,
+                            int active)
 {
   const char *propname = RNA_property_identifier(prop);
   if (RNA_property_type(prop) != PROP_ENUM) {
@@ -1548,7 +1549,13 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                       flag,
                       nullptr);
 
-      ui_but_tip_from_enum_item(static_cast<uiBut *>(block->buttons.last), item);
+      uiBut *but = static_cast<uiBut *>(block->buttons.last);
+
+      if (active == (i - 1)) {
+        but->flag |= UI_SELECT_DRAW;
+      }
+
+      ui_but_tip_from_enum_item(but, item);
     }
     else {
       if (item->name) {
@@ -1603,7 +1610,8 @@ void uiItemsFullEnumO(uiLayout *layout,
                       const char *propname,
                       IDProperty *properties,
                       wmOperatorCallContext context,
-                      eUI_Item_Flag flag)
+                      eUI_Item_Flag flag,
+                      const int active)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
@@ -1651,7 +1659,8 @@ void uiItemsFullEnumO(uiLayout *layout,
     }
 
     /* add items */
-    uiItemsFullEnumO_items(layout, ot, ptr, prop, properties, context, flag, item_array, totitem);
+    uiItemsFullEnumO_items(
+        layout, ot, ptr, prop, properties, context, flag, item_array, totitem, active);
 
     if (free) {
       MEM_freeN((void *)item_array);
@@ -3552,15 +3561,46 @@ struct MenuItemLevel {
   PointerRNA rnapoin;
 };
 
-static void menu_item_enum_opname_menu(bContext * /*C*/, uiLayout *layout, void *arg)
+/* Obtain the active menu item based on the calling button's text. */
+static int menu_item_enum_opname_menu_active(bContext *C, uiBut *but, MenuItemLevel *lvl)
+{
+  wmOperatorType *ot = WM_operatortype_find(lvl->opname, true);
+
+  if (!ot) {
+    return -1;
+  }
+
+  PointerRNA ptr;
+  const EnumPropertyItem *item_array = nullptr;
+  bool free;
+  int totitem;
+  WM_operator_properties_create_ptr(&ptr, ot);
+  /* so the context is passed to itemf functions (some need it) */
+  WM_operator_properties_sanitize(&ptr, false);
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname);
+  RNA_property_enum_items_gettexted(C, &ptr, prop, &item_array, &totitem, &free);
+  int active = RNA_enum_from_name(item_array, but->str);
+  if (free) {
+    MEM_freeN((void *)item_array);
+  }
+
+  return active;
+}
+
+static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
 {
   uiBut *but = static_cast<uiBut *>(arg);
   MenuItemLevel *lvl = static_cast<MenuItemLevel *>(but->func_argN);
   /* Use the operator properties from the button owning the menu. */
   IDProperty *op_props = but->opptr ? static_cast<IDProperty *>(but->opptr->data) : nullptr;
 
+  /* The calling but's str _probably_ contains the active
+   * menu item name, set in uiItemMenuEnumFullO_ptr. */
+  const int active = menu_item_enum_opname_menu_active(C, but, lvl);
+
   uiLayoutSetOperatorContext(layout, lvl->opcontext);
-  uiItemsFullEnumO(layout, lvl->opname, lvl->propname, op_props, lvl->opcontext, UI_ITEM_NONE);
+  uiItemsFullEnumO(
+      layout, lvl->opname, lvl->propname, op_props, lvl->opcontext, UI_ITEM_NONE, active);
 
   /* override default, needed since this was assumed pre 2.70 */
   UI_block_direction_set(layout->root->block, UI_DIR_DOWN);
