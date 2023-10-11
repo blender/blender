@@ -275,7 +275,6 @@ void RE_engine_gpu_context_unlock(struct RenderEngine *engine);
 /* Engine Types */
 
 void RE_engines_init(void);
-void RE_engines_init_experimental(void);
 void RE_engines_exit(void);
 void RE_engines_register(RenderEngineType *render_type);
 

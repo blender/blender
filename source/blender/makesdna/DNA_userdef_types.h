@@ -704,7 +704,6 @@ typedef struct UserDef_Experimental {
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
   char use_override_templates;
-  char enable_eevee_next;
   char use_sculpt_texture_paint;
   char use_grease_pencil_version3;
   char enable_overlay_next;
@@ -712,7 +711,7 @@ typedef struct UserDef_Experimental {
   char use_shader_node_previews;
   char use_extension_repos;
 
-  char _pad[2];
+  char _pad[3];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
