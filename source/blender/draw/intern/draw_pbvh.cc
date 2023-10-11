@@ -839,6 +839,9 @@ struct PBVHBatches {
         case CD_PROP_BYTE_COLOR:
           extract_data_vert_bmesh<MLoopCol, ushort4>(args, cd_offset, *vbo.vert_buf);
           return;
+        case CD_PROP_FLOAT2:
+          extract_data_vert_bmesh<float2, float2>(args, cd_offset, *vbo.vert_buf);
+          return;
         default:
           break;
       }
@@ -851,6 +854,9 @@ struct PBVHBatches {
           return;
         case CD_PROP_BYTE_COLOR:
           extract_data_corner_bmesh<MLoopCol, ushort4>(args, cd_offset, *vbo.vert_buf);
+          return;
+        case CD_PROP_FLOAT2:
+          extract_data_corner_bmesh<float2, float2>(args, cd_offset, *vbo.vert_buf);
           return;
         default:
           break;
