@@ -343,8 +343,6 @@ typedef struct Panel_Runtime {
   /* Applied to Panel.ofsx, but saved separately so we can track changes between redraws. */
   int region_ofsx;
 
-  char _pad[4];
-
   /**
    * Pointer for storing which data the panel corresponds to.
    * Useful when there can be multiple instances of the same panel type.
