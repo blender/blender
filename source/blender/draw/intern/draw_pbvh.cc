@@ -714,9 +714,14 @@ struct PBVHBatches {
         break;
       }
       case CD_PROP_FLOAT2: {
-        const float2 *uv_map = static_cast<const float2 *>(
-            CustomData_get_layer_named(args.loop_data, CD_PROP_FLOAT2, vbo.name.c_str()));
-        extract_data_corner_faces<float2, float2>(args, {uv_map, args.me->totloop}, vert_buf);
+        const float2 *data = static_cast<const float2 *>(CustomData_get_layer_named(
+            get_cdata(vbo.domain, args), CD_PROP_FLOAT2, vbo.name.c_str()));
+        if (vbo.domain == ATTR_DOMAIN_POINT) {
+          extract_data_vert_faces<float2, float2>(args, {data, args.me->totvert}, vert_buf);
+        }
+        else if (vbo.domain == ATTR_DOMAIN_CORNER) {
+          extract_data_corner_faces<float2, float2>(args, {data, args.me->totloop}, vert_buf);
+        }
         break;
       }
     }
