@@ -473,7 +473,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
   if (![closing_window isKeyWindow]) {
     /* If the window wasn't key then its either none of the windows are key or another window
-     * is a key. The former situation is a bit strange, but probably forcin a key window is not
+     * is a key. The former situation is a bit strange, but probably forcing a key window is not
      * something desirable. The latter situation is when we definitely do not want to change the
      * key window.
      *

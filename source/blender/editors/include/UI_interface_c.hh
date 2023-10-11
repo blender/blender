@@ -118,17 +118,21 @@ struct uiViewItemHandle;
 
 /** #uiBlock.emboss and #uiBut.emboss */
 enum eUIEmbossType {
-  UI_EMBOSS = 0,          /* use widget style for drawing */
-  UI_EMBOSS_NONE = 1,     /* Nothing, only icon and/or text */
-  UI_EMBOSS_PULLDOWN = 2, /* Pull-down menu style */
-  UI_EMBOSS_RADIAL = 3,   /* Pie Menu */
+  /** Use widget style for drawing. */
+  UI_EMBOSS = 0,
+  /** Nothing, only icon and/or text */
+  UI_EMBOSS_NONE = 1,
+  /** Pull-down menu style */
+  UI_EMBOSS_PULLDOWN = 2,
+  /** Pie Menu */
+  UI_EMBOSS_RADIAL = 3,
   /**
    * The same as #UI_EMBOSS_NONE, unless the button has
    * a coloring status like an animation state or red alert.
    */
   UI_EMBOSS_NONE_OR_STATUS = 4,
-
-  UI_EMBOSS_UNDEFINED = 255, /* For layout engine, use emboss from block. */
+  /** For layout engine, use emboss from block. */
+  UI_EMBOSS_UNDEFINED = 255,
 };
 
 /** #uiBlock::direction */
@@ -2834,7 +2838,11 @@ void uiItemPointerR(uiLayout *layout,
                     const char *name,
                     int icon);
 
-/* Create a list of enum items. Active is an optional item to highlight. */
+/**
+* Create a list of enum items.
+
+ * \param active: an optional item to highlight.
+*/
 void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,
@@ -2846,7 +2854,7 @@ void uiItemsFullEnumO(uiLayout *layout,
  * Create UI items for enum items in \a item_array.
  *
  * A version of #uiItemsFullEnumO that takes pre-calculated item array.
- * active, if not -1, will highlight that item.
+ * \param active: if not -1, will highlight that item.
  */
 void uiItemsFullEnumO_items(uiLayout *layout,
                             wmOperatorType *ot,
