@@ -2833,16 +2833,20 @@ void uiItemPointerR(uiLayout *layout,
                     const char *searchpropname,
                     const char *name,
                     int icon);
+
+/* Create a list of enum items. Active is an optional item to highlight. */
 void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,
                       IDProperty *properties,
                       wmOperatorCallContext context,
-                      eUI_Item_Flag flag);
+                      eUI_Item_Flag flag,
+                      const int active = -1);
 /**
  * Create UI items for enum items in \a item_array.
  *
  * A version of #uiItemsFullEnumO that takes pre-calculated item array.
+ * active, if not -1, will highlight that item.
  */
 void uiItemsFullEnumO_items(uiLayout *layout,
                             wmOperatorType *ot,
@@ -2852,7 +2856,8 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                             wmOperatorCallContext context,
                             eUI_Item_Flag flag,
                             const EnumPropertyItem *item_array,
-                            int totitem);
+                            int totitem,
+                            int active = -1);
 
 struct uiPropertySplitWrapper {
   uiLayout *label_column;
