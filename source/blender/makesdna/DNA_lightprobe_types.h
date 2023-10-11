@@ -81,9 +81,9 @@ typedef struct LightProbe {
 
 /* Probe->type */
 enum {
-  LIGHTPROBE_TYPE_CUBE = 0,
-  LIGHTPROBE_TYPE_PLANAR = 1,
-  LIGHTPROBE_TYPE_GRID = 2,
+  LIGHTPROBE_TYPE_SPHERE = 0,
+  LIGHTPROBE_TYPE_PLANE = 1,
+  LIGHTPROBE_TYPE_VOLUME = 2,
 };
 
 /* Probe->flag */

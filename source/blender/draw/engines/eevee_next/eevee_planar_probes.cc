@@ -71,7 +71,7 @@ void PlanarProbeModule::begin_sync()
 void PlanarProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
 {
   const ::LightProbe *light_probe = (::LightProbe *)ob->data;
-  if (light_probe->type != LIGHTPROBE_TYPE_PLANAR) {
+  if (light_probe->type != LIGHTPROBE_TYPE_PLANE) {
     return;
   }
 

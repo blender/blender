@@ -1525,7 +1525,7 @@ static blender::Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(b
 
   auto is_irradiance_volume = [](Object *ob) -> bool {
     return ob->type == OB_LIGHTPROBE &&
-           static_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_GRID;
+           static_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_VOLUME;
   };
 
   blender::Vector<Object *> probes;
