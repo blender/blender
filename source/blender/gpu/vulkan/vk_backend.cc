@@ -251,6 +251,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_varying_floats = limits.maxVertexOutputComponents;
   GCaps.max_shader_storage_buffer_bindings = limits.maxPerStageDescriptorStorageBuffers;
   GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
+  GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
 
   detect_workarounds(device);
 }
