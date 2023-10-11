@@ -1224,10 +1224,11 @@ void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame
   grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
   grease_pencil.insert_blank_frame(layer_color, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 
-  GreasePencilDrawing &drawing_lines = *reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawing(0));
-  drawing_lines.geometry.wrap() = create_drawing_data(
+  Drawing &drawing_lines =
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(0))->wrap();
+  drawing_lines.strokes_for_write() = create_drawing_data(
       stroke_positions, stroke_radii, stroke_opacities, {0, 175}, {material_index}, {75}, matrix);
+  drawing_lines.tag_topology_changed();
 }
 
 void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
@@ -1285,25 +1286,27 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
   grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
   grease_pencil.insert_blank_frame(layer_fills, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 
-  GreasePencilDrawing *drawing_lines = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawing(0));
-  drawing_lines->geometry.wrap() = create_drawing_data(monkey_line_positions,
-                                                       monkey_line_radii,
-                                                       monkey_line_opacities,
-                                                       monkey_line_offsets,
-                                                       monkey_line_materials,
-                                                       monkey_line_radii_factors,
-                                                       matrix);
+  Drawing &drawing_lines =
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(0))->wrap();
+  drawing_lines.strokes_for_write() = create_drawing_data(monkey_line_positions,
+                                                          monkey_line_radii,
+                                                          monkey_line_opacities,
+                                                          monkey_line_offsets,
+                                                          monkey_line_materials,
+                                                          monkey_line_radii_factors,
+                                                          matrix);
+  drawing_lines.tag_topology_changed();
 
-  GreasePencilDrawing *drawing_fills = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawing(1));
-  drawing_fills->geometry.wrap() = create_drawing_data(monkey_fill_positions,
-                                                       monkey_fill_radii,
-                                                       monkey_fill_opacities,
-                                                       monkey_fill_offsets,
-                                                       monkey_fill_materials,
-                                                       monkey_fill_radii_factors,
-                                                       matrix);
+  Drawing &drawing_fills =
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1))->wrap();
+  drawing_fills.strokes_for_write() = create_drawing_data(monkey_fill_positions,
+                                                          monkey_fill_radii,
+                                                          monkey_fill_opacities,
+                                                          monkey_fill_offsets,
+                                                          monkey_fill_materials,
+                                                          monkey_fill_radii_factors,
+                                                          matrix);
+  drawing_fills.tag_topology_changed();
 }
 
 }  // namespace blender::ed::greasepencil
