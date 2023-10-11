@@ -2320,21 +2320,20 @@ static void rna_EditMesh_update(bContext *C, PointerRNA * /*ptr*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Mesh *me = nullptr;
-
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *object = BKE_view_layer_active_object_get(view_layer);
-  if (object) {
-    me = BKE_mesh_from_object(object);
-    if (me && me->edit_mesh == nullptr) {
-      me = nullptr;
-    }
-  }
 
-  if (me) {
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    Mesh *me = BKE_mesh_from_object(obedit);
+
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, me);
   }
+
+  MEM_freeN(objects);
 }
 
 static char *rna_MeshStatVis_path(const PointerRNA * /*ptr*/)
