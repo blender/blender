@@ -163,11 +163,11 @@ static void brush_painter_2d_require_imbuf(
     cache->ibuf = NULL;
     cache->tex_mask = NULL;
     cache->lastdiameter = -1; /* force ibuf create in refresh */
-    cache->invert = invert;
   }
 
   cache->use_float = use_float;
   cache->use_color_correction = use_float && use_color_correction;
+  cache->invert = invert;
   cache->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? true :
                                                                                         false;
   cache->is_maskbrush = (brush->mask_mtex.tex) ? true : false;
