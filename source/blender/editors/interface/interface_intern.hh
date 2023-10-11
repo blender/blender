@@ -175,8 +175,6 @@ struct uiBut {
   char strdata[UI_MAX_NAME_STR] = "";
   char drawstr[UI_MAX_DRAW_STR] = "";
 
-  char *placeholder = nullptr;
-
   rctf rect = {}; /* block relative coords */
 
   char *poin = nullptr;
@@ -743,11 +741,6 @@ void ui_but_active_string_clear_and_exit(bContext *C, uiBut *but) ATTR_NONNULL()
  */
 void ui_but_set_string_interactive(bContext *C, uiBut *but, const char *value);
 uiBut *ui_but_drag_multi_edit_get(uiBut *but);
-
-/**
- * Get the hint that describes the expected value when empty.
- */
-const char *ui_but_placeholder_get(uiBut *but);
 
 void ui_def_but_icon(uiBut *but, int icon, int flag);
 /**

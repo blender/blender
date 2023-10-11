@@ -2187,22 +2187,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
   }
 
-  /* Show placeholder text if the input is empty and not being edited. */
-  if (!drawstr[0] && !but->editstr && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-    const char *placeholder = ui_but_placeholder_get(but);
-    if (placeholder && placeholder[0]) {
-      uiFontStyleDraw_Params params{};
-      params.align = align;
-      uiFontStyle style = *fstyle;
-      style.shadow = 0;
-      uchar col[4];
-      copy_v4_v4_uchar(col, wcol->text);
-      col[3] *= 0.33f;
-      UI_fontstyle_draw_ex(
-          &style, rect, placeholder, strlen(placeholder), col, &params, nullptr, nullptr, nullptr);
-    }
-  }
-
   /* part text right aligned */
   if (drawstr_right) {
     uchar col[4];

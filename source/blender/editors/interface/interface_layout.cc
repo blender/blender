@@ -2055,8 +2055,7 @@ void uiItemFullR(uiLayout *layout,
                  int value,
                  eUI_Item_Flag flag,
                  const char *name,
-                 int icon,
-                 const char *placeholder)
+                 int icon)
 {
   uiBlock *block = layout->root->block;
   char namestr[UI_MAX_NAME_STR];
@@ -2467,10 +2466,6 @@ void uiItemFullR(uiLayout *layout,
       ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS))
   {
     UI_but_flag_enable(but, UI_BUT_LIST_ITEM);
-  }
-
-  if (but && placeholder) {
-    UI_but_placeholder_set(but, placeholder);
   }
 
 #ifdef UI_PROP_DECORATE

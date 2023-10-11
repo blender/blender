@@ -588,7 +588,6 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                   ),
         "message": (),
         "heading": (),
-        "placeholder": ((("text_ctxt",), _ctxt_to_ctxt),),
     }
 
     context_kw_set = {}
@@ -622,8 +621,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
             if (not arg.is_output) and (arg.type == 'STRING'):
                 for msgid, msgctxts in context_kw_set.items():
-                    # The msgid can be missing if it is used in only some UILayout functions but not all
-                    if arg_kw in msgctxts and msgid in func_translate_args[func_id]:
+                    if arg_kw in msgctxts:
                         func_translate_args[func_id][msgid][1][arg_kw] = arg_pos
     # The report() func of operators.
     for func_id, func in bpy.types.Operator.bl_rna.functions.items():
