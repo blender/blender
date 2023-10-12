@@ -101,10 +101,10 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
 
 /**
  * Set a 4x4 matrix to be multiplied before draw the text.
- * Remember that you need call BLF_enable(BLF_MATRIX)
+ * Remember that you need call `BLF_enable(BLF_MATRIX)`
  * to enable this.
  *
- * The order of the matrix is like GL:
+ * The order of the matrix is column major (following the GPU module):
  * \code{.unparsed}
  *  | m[0]  m[4]  m[8]  m[12] |
  *  | m[1]  m[5]  m[9]  m[13] |
