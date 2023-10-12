@@ -300,7 +300,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 
     keyingflag |= ANIM_get_keyframing_flags(scene, false);
 
-    if (IS_AUTOKEY_FLAG(scene, XYZ2RGB)) {
+    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_XYZ2RGB)) {
       keyingflag |= INSERTKEY_XYZ2RGB;
     }
 
@@ -705,10 +705,12 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *tra
    * - use the active KeyingSet if defined (and user wants to use it for all autokeying),
    *   or otherwise key transforms only
    */
-  if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (scene->active_keyingset)) {
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) &&
+      (scene->active_keyingset))
+  {
     return ANIM_scene_get_active_keyingset(scene);
   }
-  if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
     return ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_AVAILABLE_ID);
   }
   return ANIM_builtin_keyingset_get_named(nullptr, transformKSName);

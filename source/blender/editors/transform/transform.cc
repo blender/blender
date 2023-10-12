@@ -448,7 +448,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 
       /* For real-time animation record - send notifiers recognized by animation editors */
       /* XXX: is this notifier a lame duck? */
-      if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+      if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
         WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, nullptr);
       }
     }
@@ -524,7 +524,7 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* if autokeying is enabled, send notifiers that keyframes were added */
-    if (IS_AUTOKEY_ON(t->scene)) {
+    if (blender::animrig::is_autokey_on(t->scene)) {
       WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
     }
 

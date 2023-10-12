@@ -127,13 +127,13 @@ static void autokeyframe_pose(
     ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan);
 
     /* only insert into active keyingset? */
-    if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
+    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
       /* Run the active Keying Set on the current data-source. */
       ANIM_apply_keyingset(
           C, &dsources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     /* only insert into available channels? */
-    else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
+    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
       if (act) {
         LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
           /* only insert keyframes for this F-Curve if it affects the current bone */
@@ -162,7 +162,7 @@ static void autokeyframe_pose(
       }
     }
     /* only insert keyframe if needed? */
-    else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
+    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       bool do_loc = false, do_rot = false, do_scale = false;
 
       /* Filter the conditions when this happens
@@ -1472,7 +1472,7 @@ static void recalcData_pose(TransInfo *t)
 
       /* TODO: autokeyframe calls need some setting to specify to add samples
        * (FPoints) instead of keyframes? */
-      if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
+      if ((t->animtimer) && (t->context) && blender::animrig::is_autokey_on(t->scene)) {
 
         /* XXX: this currently doesn't work, since flags aren't set yet! */
         int targetless_ik = (t->flag & T_AUTOIK);

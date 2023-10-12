@@ -31,16 +31,40 @@
 
 namespace blender::animrig {
 
+bool is_autokey_on(const Scene *scene)
+{
+  if (scene) {
+    return scene->toolsettings->autokey_mode & AUTOKEY_ON;
+  }
+  return U.autokey_mode & AUTOKEY_ON;
+}
+
+bool is_autokey_mode(const Scene *scene, const eAutokey_Mode mode)
+{
+  if (scene) {
+    return scene->toolsettings->autokey_mode == mode;
+  }
+  return U.autokey_mode == mode;
+}
+
+bool is_autokey_flag(const Scene *scene, const eAutokey_Flag flag)
+{
+  if (scene) {
+    return (scene->toolsettings->autokey_flag & flag) || (U.autokey_flag & flag);
+  }
+  return U.autokey_flag & flag;
+}
+
 bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
 {
   const float cfra = BKE_scene_frame_get(scene);
 
   /* only filter if auto-key mode requires this */
-  if (IS_AUTOKEY_ON(scene) == 0) {
+  if (is_autokey_on(scene) == 0) {
     return false;
   }
 
-  if (IS_AUTOKEY_MODE(scene, EDITKEYS)) {
+  if (is_autokey_mode(scene, AUTOKEY_MODE_EDITKEYS)) {
     /* Replace Mode:
      * For whole block, only key if there's a keyframe on that frame already
      * This is a valid assumption when we're blocking + tweaking
@@ -89,7 +113,7 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
     /* Add data-source override for the object. */
     ANIM_relative_keyingset_add_source(&dsources, id, nullptr, nullptr);
 
-    if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
+    if (is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
       /* Only insert into active keyingset
        * NOTE: we assume here that the active Keying Set
        * does not need to have its iterator overridden.
@@ -97,7 +121,7 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
       ANIM_apply_keyingset(
           C, &dsources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
-    else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
+    else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
       AnimData *adt = ob->adt;
 
       /* only key on available channels */
@@ -120,7 +144,7 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
         BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
       }
     }
-    else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
+    else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       bool do_loc = false, do_rot = false, do_scale = false;
 
       /* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -257,7 +281,7 @@ bool ED_autokeyframe_property(bContext *C,
 
   if (special) {
     /* NLA Strip property */
-    if (IS_AUTOKEY_ON(scene)) {
+    if (is_autokey_on(scene)) {
       ReportList *reports = CTX_wm_reports(C);
       ToolSettings *ts = scene->toolsettings;
 
@@ -276,7 +300,7 @@ bool ED_autokeyframe_property(bContext *C,
     /* Driver - Try to insert keyframe using the driver's input as the frame,
      * making it easier to set up corrective drivers
      */
-    if (IS_AUTOKEY_ON(scene)) {
+    if (is_autokey_on(scene)) {
       ReportList *reports = CTX_wm_reports(C);
       ToolSettings *ts = scene->toolsettings;
 

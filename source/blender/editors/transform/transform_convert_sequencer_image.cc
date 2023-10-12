@@ -254,7 +254,7 @@ static void recalcData_sequencer_image(TransInfo *t)
       transform->rotation = tdseq->orig_rotation - t->values_final[0];
     }
 
-    if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+    if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
       animrecord_check_state(t, &t->scene->id);
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
@@ -282,7 +282,7 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
       continue;
     }
 
-    if (IS_AUTOKEY_ON(t->scene)) {
+    if (blender::animrig::is_autokey_on(t->scene)) {
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
   }

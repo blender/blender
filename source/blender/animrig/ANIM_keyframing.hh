@@ -11,7 +11,6 @@
 #pragma once
 
 #include "DNA_anim_types.h"
-#include "DNA_userdef_types.h"
 #include "RNA_types.hh"
 
 struct ID;
@@ -113,20 +112,14 @@ int clear_keyframe(Main *bmain,
  * - "On/Off + Mode" are stored per Scene, but "settings" are currently stored as user-preferences.
  * \{ */
 
-/* Auto-Keying macros for use by various tools. */
-
 /** Check if auto-key-framing is enabled (per scene takes precedence). */
-#define IS_AUTOKEY_ON(scene) \
-  ((scene) ? ((scene)->toolsettings->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
+bool is_autokey_on(const Scene *scene);
+
 /** Check the mode for auto-keyframing (per scene takes precedence). */
-#define IS_AUTOKEY_MODE(scene, mode) \
-  ((scene) ? ((scene)->toolsettings->autokey_mode == AUTOKEY_MODE_##mode) : \
-             (U.autokey_mode == AUTOKEY_MODE_##mode))
+bool is_autokey_mode(const Scene *scene, eAutokey_Mode mode);
+
 /** Check if a flag is set for auto-key-framing (per scene takes precedence). */
-#define IS_AUTOKEY_FLAG(scene, flag) \
-  ((scene) ? (((scene)->toolsettings->autokey_flag & AUTOKEY_FLAG_##flag) || \
-              (U.autokey_flag & AUTOKEY_FLAG_##flag)) : \
-             (U.autokey_flag & AUTOKEY_FLAG_##flag))
+bool is_autokey_flag(const Scene *scene, eAutokey_Flag flag);
 
 /**
  * Auto-keyframing feature - checks for whether anything should be done for the current frame.

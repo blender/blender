@@ -1265,7 +1265,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
   bGPdata *gpd = CTX_data_gpencil_data(C);
   tGPDprimitive *tgpi = nullptr;
 
-  if (!IS_AUTOKEY_ON(scene)) {
+  if (!blender::animrig::is_autokey_on(scene)) {
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
     if ((gpl == nullptr) || (gpl->actframe == nullptr)) {
       BKE_report(op->reports, RPT_INFO, "No available frame for creating stroke");
@@ -1327,7 +1327,7 @@ static void gpencil_primitive_interaction_end(bContext *C,
 
   /* insert keyframes as required... */
   short add_frame_mode;
-  if (IS_AUTOKEY_ON(tgpi->scene)) {
+  if (blender::animrig::is_autokey_on(tgpi->scene)) {
     if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
       add_frame_mode = GP_GETFRAME_ADD_COPY;
     }

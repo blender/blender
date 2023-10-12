@@ -1197,7 +1197,7 @@ void animrecord_check_state(TransInfo *t, ID *id)
    * - we're not only keying for available channels
    * - the option to add new actions for each round is not enabled
    */
-  if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL) == 0 &&
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL) == 0 &&
       (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA))
   {
     /* if playback has just looped around,

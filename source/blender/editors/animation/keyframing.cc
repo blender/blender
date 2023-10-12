@@ -73,22 +73,23 @@ static int delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *k
 
 eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, const bool use_autokey_mode)
 {
+  using namespace blender::animrig;
   eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
 
   /* standard flags */
   {
     /* visual keying */
-    if (IS_AUTOKEY_FLAG(scene, AUTOMATKEY)) {
+    if (is_autokey_flag(scene, AUTOKEY_FLAG_AUTOMATKEY)) {
       flag |= INSERTKEY_MATRIX;
     }
 
     /* only needed */
-    if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
+    if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       flag |= INSERTKEY_NEEDED;
     }
 
     /* default F-Curve color mode - RGB from XYZ indices */
-    if (IS_AUTOKEY_FLAG(scene, XYZ2RGB)) {
+    if (is_autokey_flag(scene, AUTOKEY_FLAG_XYZ2RGB)) {
       flag |= INSERTKEY_XYZ2RGB;
     }
   }
@@ -96,12 +97,12 @@ eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, const bool use_autokey_m
   /* only if including settings from the autokeying mode... */
   if (use_autokey_mode) {
     /* keyframing mode - only replace existing keyframes */
-    if (IS_AUTOKEY_MODE(scene, EDITKEYS)) {
+    if (is_autokey_mode(scene, AUTOKEY_MODE_EDITKEYS)) {
       flag |= INSERTKEY_REPLACE;
     }
 
     /* cycle-aware keyframe insertion - preserve cycle period and flow */
-    if (IS_AUTOKEY_FLAG(scene, CYCLEAWARE)) {
+    if (is_autokey_flag(scene, AUTOKEY_FLAG_CYCLEAWARE)) {
       flag |= INSERTKEY_CYCLE_AWARE;
     }
   }

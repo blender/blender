@@ -1762,7 +1762,7 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
         }
 
         bGPDframe *gpf;
-        if (IS_AUTOKEY_ON(scene) || (gpl->actframe == nullptr)) {
+        if (blender::animrig::is_autokey_on(scene) || (gpl->actframe == nullptr)) {
           gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
         }
         else {
