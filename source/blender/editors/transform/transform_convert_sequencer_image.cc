@@ -179,23 +179,23 @@ static bool autokeyframe_sequencer_image(bContext *C,
   bool changed = false;
   if (do_rot) {
     prop = RNA_struct_find_property(&ptr, "rotation");
-    changed |= blender::animrig::ED_autokeyframe_property(
+    changed |= blender::animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_loc) {
     prop = RNA_struct_find_property(&ptr, "offset_x");
-    changed |= blender::animrig::ED_autokeyframe_property(
+    changed |= blender::animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "offset_y");
-    changed |= blender::animrig::ED_autokeyframe_property(
+    changed |= blender::animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_scale) {
     prop = RNA_struct_find_property(&ptr, "scale_x");
-    changed |= blender::animrig::ED_autokeyframe_property(
+    changed |= blender::animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "scale_y");
-    changed |= blender::animrig::ED_autokeyframe_property(
+    changed |= blender::animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
 

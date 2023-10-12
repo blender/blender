@@ -910,7 +910,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
       bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
       if (pchan != nullptr) {
         /* Keyframing tagging for successful paste, */
-        blender::animrig::ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
+        blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
       }
     }
   }

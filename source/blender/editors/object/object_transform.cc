@@ -349,7 +349,7 @@ static int object_clear_transform_generic_exec(bContext *C,
     /* run provided clearing function */
     clear_func(ob, clear_delta);
 
-    blender::animrig::ED_autokeyframe_object(C, scene, ob, ks);
+    blender::animrig::autokeyframe_object(C, scene, ob, ks);
 
     /* tag for updates */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);

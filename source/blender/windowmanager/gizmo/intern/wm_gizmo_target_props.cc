@@ -345,7 +345,7 @@ void WM_gizmo_target_property_anim_autokey(bContext *C,
     Scene *scene = CTX_data_scene(C);
     const float cfra = float(scene->r.cfra);
     const int index = gz_prop->index == -1 ? 0 : gz_prop->index;
-    blender::animrig::ED_autokeyframe_property(
+    blender::animrig::autokeyframe_property(
         C, scene, &gz_prop->ptr, gz_prop->prop, index, cfra, false);
   }
 }

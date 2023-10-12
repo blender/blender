@@ -127,10 +127,8 @@ bool is_autokey_flag(const Scene *scene, eAutokey_Flag flag);
 bool autokeyframe_cfra_can_key(const Scene *scene, ID *id);
 
 void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int tmode);
-
-bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks);
-bool ED_autokeyframe_pchan(
-    bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks);
+bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks);
+bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks);
 
 /**
  * Use for auto-key-framing.
@@ -138,13 +136,13 @@ bool ED_autokeyframe_pchan(
  * properties. This is by design when using buttons. For other callers such as gizmos or sequencer
  * preview transform, creating new animation/keyframes also on non-keyed properties is desired.
  */
-bool ED_autokeyframe_property(bContext *C,
-                              Scene *scene,
-                              PointerRNA *ptr,
-                              PropertyRNA *prop,
-                              int rnaindex,
-                              float cfra,
-                              bool only_if_property_keyed);
+bool autokeyframe_property(bContext *C,
+                           Scene *scene,
+                           PointerRNA *ptr,
+                           PropertyRNA *prop,
+                           int rnaindex,
+                           float cfra,
+                           bool only_if_property_keyed);
 
 /** \} */
 

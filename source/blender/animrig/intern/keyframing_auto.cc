@@ -207,7 +207,7 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
   }
 }
 
-bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
+bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
 {
   /* auto keyframing */
   if (autokeyframe_cfra_can_key(scene, &ob->id)) {
@@ -227,8 +227,7 @@ bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks
   return false;
 }
 
-bool ED_autokeyframe_pchan(
-    bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks)
+bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks)
 {
   if (autokeyframe_cfra_can_key(scene, &ob->id)) {
     ListBase dsources = {nullptr, nullptr};
@@ -248,13 +247,13 @@ bool ED_autokeyframe_pchan(
   return false;
 }
 
-bool ED_autokeyframe_property(bContext *C,
-                              Scene *scene,
-                              PointerRNA *ptr,
-                              PropertyRNA *prop,
-                              int rnaindex,
-                              float cfra,
-                              const bool only_if_property_keyed)
+bool autokeyframe_property(bContext *C,
+                           Scene *scene,
+                           PointerRNA *ptr,
+                           PropertyRNA *prop,
+                           int rnaindex,
+                           float cfra,
+                           const bool only_if_property_keyed)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
