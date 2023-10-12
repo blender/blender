@@ -34,6 +34,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>("Instance Count").make_available([](bNode &node) {
     node.custom1 = int16_t(GeometryComponent::Type::Instance);
   });
+  b.add_output<decl::Int>("Layer Count").make_available([](bNode &node) {
+    node.custom1 = int16_t(GeometryComponent::Type::GreasePencil);
+  });
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -54,6 +57,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *face_corner_socket = face_socket->next;
   bNodeSocket *spline_socket = face_corner_socket->next;
   bNodeSocket *instances_socket = spline_socket->next;
+  bNodeSocket *layers_socket = instances_socket->next;
 
   bke::nodeSetSocketAvailability(ntree,
                                  point_socket,
@@ -71,6 +75,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
       ntree, spline_socket, node->custom1 == int16_t(GeometryComponent::Type::Curve));
   bke::nodeSetSocketAvailability(
       ntree, instances_socket, node->custom1 == int16_t(GeometryComponent::Type::Instance));
+  bke::nodeSetSocketAvailability(
+      ntree, layers_socket, node->custom1 == int16_t(GeometryComponent::Type::GreasePencil));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -118,6 +124,17 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (const InstancesComponent *component = geometry_set.get_component<InstancesComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Instance Count", attributes.domain_size(ATTR_DOMAIN_INSTANCE));
+      }
+      else {
+        params.set_default_remaining_outputs();
+      }
+      break;
+    }
+    case GeometryComponent::Type::GreasePencil: {
+      if (const GreasePencilComponent *component =
+              geometry_set.get_component<GreasePencilComponent>()) {
+        const AttributeAccessor attributes = *component->attributes();
+        params.set_output("Layer Count", attributes.domain_size(ATTR_DOMAIN_LAYER));
       }
       else {
         params.set_default_remaining_outputs();
