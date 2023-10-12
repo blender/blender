@@ -222,9 +222,13 @@ LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
 /* Return the best parallax corrected ray direction from the probe center. */
 vec3 lightprobe_sphere_parallax(ReflectionProbeData probe, vec3 P, vec3 L)
 {
+  bool is_world = (probe.influence_scale == 0.0);
+  if (is_world) {
+    return L;
+  }
   /* Correct reflection ray using parallax volume intersection. */
   vec3 lP = vec4(P, 1.0) * probe.world_to_probe_transposed;
-  vec3 lL = L * mat3x3(probe.world_to_probe_transposed);
+  vec3 lL = (mat3x3(probe.world_to_probe_transposed) * L) / probe.parallax_distance;
 
   float dist = (probe.parallax_shape == SHAPE_ELIPSOID) ? line_unit_sphere_intersect_dist(lP, lL) :
                                                           line_unit_box_intersect_dist(lP, lL);

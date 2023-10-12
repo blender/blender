@@ -293,7 +293,9 @@ void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
   }
 
   bool use_custom_parallax = (light_probe.flag & LIGHTPROBE_FLAG_CUSTOM_PARALLAX) != 0;
-  float parallax_distance = use_custom_parallax ? light_probe.distpar : light_probe.distinf;
+  float parallax_distance = use_custom_parallax ?
+                                max_ff(light_probe.distpar, light_probe.distinf) :
+                                light_probe.distinf;
   float influence_distance = light_probe.distinf;
   float influence_falloff = light_probe.falloff;
   probe.influence_shape = (light_probe.attenuation_type == LIGHTPROBE_SHAPE_BOX) ? SHAPE_CUBOID :
