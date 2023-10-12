@@ -304,13 +304,13 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   }
   G.is_break = false;
 
-  /* Construct the depsgraph for exporting. */
-  if (data->params.visible_objects_only) {
-    DEG_graph_build_from_view_layer(data->depsgraph);
-  }
-  else {
-    DEG_graph_build_for_all_objects(data->depsgraph);
-  }
+  /* Evaluate the despgraph for exporting.
+   *
+   * Note that, unlike with its building, this is expected to be safe to perform from worker
+   * thread, since UI is locked during export, so there should not be any more changes in the Main
+   * original data concurrently done from the main thread at this point. All necessary (deferred)
+   * changes are expected to have been triggered and processed during depsgraph building in
+   * #USD_export. */
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
   worker_status->progress = 0.0f;
@@ -439,6 +439,17 @@ bool USD_export(bContext *C,
 
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;
+
+  /* Construct the depsgraph for exporting.
+   *
+   * Has to be done from main thread currently, as it may affect Main original data (e.g. when
+   * doing deferred update of the viewlayers, see #112534 for details). */
+  if (job->params.visible_objects_only) {
+    DEG_graph_build_from_view_layer(job->depsgraph);
+  }
+  else {
+    DEG_graph_build_for_all_objects(job->depsgraph);
+  }
 
   bool export_ok = false;
   if (as_background_job) {
