@@ -71,6 +71,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_capture_eval)
                      "eevee_light_data",
                      "eevee_shadow_data",
                      "eevee_hiz_data",
+                     "eevee_volume_probe_data",
                      "draw_view",
                      "draw_fullscreen")
     .fragment_source("eevee_deferred_capture_frag.glsl")
