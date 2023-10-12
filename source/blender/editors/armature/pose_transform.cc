@@ -49,6 +49,7 @@
 #include "ED_util.hh"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -909,7 +910,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
       bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
       if (pchan != nullptr) {
         /* Keyframing tagging for successful paste, */
-        ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
+        blender::animrig::ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
       }
     }
   }
@@ -1206,7 +1207,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
       changed = true;
 
       /* do auto-keyframing as appropriate */
-      if (autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
+      if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
         /* tag for autokeying later */
         ANIM_relative_keyingset_add_source(&dsources, &ob_iter->id, &RNA_PoseBone, pchan);
 

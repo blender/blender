@@ -38,6 +38,8 @@
 #include "ED_screen_types.hh"
 #include "ED_sequencer.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "UI_view2d.hh"
 
 #include "WM_types.hh"

@@ -37,6 +37,8 @@
 #include "ED_armature.hh"
 #include "ED_keyframing.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "armature_intern.h"
 
 /* *********************************************** */
@@ -261,7 +263,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
       continue;
     }
 
-    if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+    if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
       ob->id.tag |= LIB_TAG_DOIT;
       skip = false;
     }

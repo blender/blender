@@ -19,8 +19,9 @@
 
 #include "ED_clip.hh"
 #include "ED_image.hh"
-#include "ED_keyframing.hh"
 #include "ED_mask.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

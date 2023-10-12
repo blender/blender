@@ -23,6 +23,7 @@ set(SRC
   intern/bone_collections.cc
   intern/bonecolor.cc
   intern/keyframing.cc
+  intern/keyframing_auto.cc
   intern/visualkey.cc
   intern/fcurve.cc
 

@@ -28,10 +28,11 @@
 
 #include "ED_clip.hh"
 #include "ED_image.hh"
-#include "ED_keyframing.hh"
 #include "ED_mask.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

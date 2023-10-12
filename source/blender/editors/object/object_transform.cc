@@ -63,6 +63,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_keyframing.hh"
@@ -347,7 +349,7 @@ static int object_clear_transform_generic_exec(bContext *C,
     /* run provided clearing function */
     clear_func(ob, clear_delta);
 
-    ED_autokeyframe_object(C, scene, ob, ks);
+    blender::animrig::ED_autokeyframe_object(C, scene, ob, ks);
 
     /* tag for updates */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);

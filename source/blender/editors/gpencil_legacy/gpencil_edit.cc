@@ -69,7 +69,6 @@
 
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
@@ -77,6 +76,8 @@
 #include "ED_space_api.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

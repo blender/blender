@@ -102,6 +102,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_datafiles
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
 )
 
 if(WITH_INTERNATIONAL)

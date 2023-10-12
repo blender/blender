@@ -55,10 +55,11 @@
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

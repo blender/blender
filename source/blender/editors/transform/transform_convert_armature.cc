@@ -64,7 +64,7 @@ struct BoneInitData {
  * and we will insert a keyframe at the end of transform. */
 static bool motionpath_need_update_pose(Scene *scene, Object *ob)
 {
-  if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+  if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
     return (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
   }
 
@@ -90,7 +90,7 @@ static void autokeyframe_pose(
   bAction *act = (adt) ? adt->action : nullptr;
   bPose *pose = ob->pose;
 
-  if (!autokeyframe_cfra_can_key(scene, id)) {
+  if (!blender::animrig::autokeyframe_cfra_can_key(scene, id)) {
     return;
   }
 

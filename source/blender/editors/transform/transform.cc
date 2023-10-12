@@ -35,6 +35,8 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "SEQ_transform.h"
 
 #include "WM_api.hh"
@@ -1580,7 +1582,7 @@ static void drawTransformPixel(const bContext * /*C*/, ARegion *region, void *ar
     if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
       if (region == t->region) {
         if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
-          if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
+          if (ob && blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
             drawAutoKeyWarning(t, region);
           }
         }

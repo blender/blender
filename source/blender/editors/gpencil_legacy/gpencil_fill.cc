@@ -40,10 +40,11 @@
 #include "BKE_screen.hh"
 
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_view3d.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

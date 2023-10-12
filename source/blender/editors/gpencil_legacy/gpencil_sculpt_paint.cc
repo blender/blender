@@ -63,9 +63,10 @@
 #include "UI_view2d.hh"
 
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

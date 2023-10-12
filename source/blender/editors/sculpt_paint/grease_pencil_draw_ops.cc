@@ -13,9 +13,10 @@
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
-#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

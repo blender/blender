@@ -24,7 +24,8 @@
 #include "BKE_layer.h"
 
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

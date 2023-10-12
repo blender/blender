@@ -28,6 +28,8 @@
 
 #include "ED_keyframing.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "UI_view2d.hh"
 
 #include "RNA_access.hh"
@@ -177,19 +179,24 @@ static bool autokeyframe_sequencer_image(bContext *C,
   bool changed = false;
   if (do_rot) {
     prop = RNA_struct_find_property(&ptr, "rotation");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= blender::animrig::ED_autokeyframe_property(
+        C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_loc) {
     prop = RNA_struct_find_property(&ptr, "offset_x");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= blender::animrig::ED_autokeyframe_property(
+        C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "offset_y");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= blender::animrig::ED_autokeyframe_property(
+        C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_scale) {
     prop = RNA_struct_find_property(&ptr, "scale_x");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= blender::animrig::ED_autokeyframe_property(
+        C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "scale_y");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= blender::animrig::ED_autokeyframe_property(
+        C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
 
   return changed;

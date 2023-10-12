@@ -51,6 +51,7 @@
 #include "ED_view3d.hh"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"
 
@@ -824,7 +825,7 @@ static int pose_flip_quats_exec(bContext *C, wmOperator * /*op*/)
         /* quaternions have 720 degree range */
         negate_v4(pchan->quat);
 
-        ED_autokeyframe_pchan(C, scene, ob_iter, pchan, ks);
+        blender::animrig::ED_autokeyframe_pchan(C, scene, ob_iter, pchan, ks);
       }
     }
     FOREACH_PCHAN_SELECTED_IN_OBJECT_END;

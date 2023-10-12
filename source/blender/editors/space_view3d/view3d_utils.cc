@@ -51,6 +51,8 @@
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "UI_resources.hh"
 
 #include "view3d_intern.h" /* own include */
@@ -638,7 +640,7 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 bool ED_view3d_camera_autokey(
     const Scene *scene, ID *id_key, bContext *C, const bool do_rotate, const bool do_translate)
 {
-  if (autokeyframe_cfra_can_key(scene, id_key)) {
+  if (blender::animrig::autokeyframe_cfra_can_key(scene, id_key)) {
     const float cfra = float(scene->r.cfra);
     ListBase dsources = {nullptr, nullptr};
 

@@ -46,6 +46,7 @@
 #include "ED_util.hh"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_keyframing.hh"
 
 #include "armature_intern.h"
 
@@ -116,7 +117,7 @@ static void poselib_backup_posecopy(PoseBlendData *pbd)
 /* Auto-key/tag bones affected by the pose Action. */
 static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 {
-  if (!autokeyframe_cfra_can_key(scene, &pbd->ob->id)) {
+  if (!blender::animrig::autokeyframe_cfra_can_key(scene, &pbd->ob->id)) {
     return;
   }
 
