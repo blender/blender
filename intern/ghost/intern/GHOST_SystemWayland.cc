@@ -4701,14 +4701,9 @@ static void output_handle_done(void *data, wl_output * /*wl_output*/)
   CLOG_INFO(LOG, 2, "done");
 
   GWL_Output *output = static_cast<GWL_Output *>(data);
-  int32_t size_native[2];
-  if (output->transform & WL_OUTPUT_TRANSFORM_90) {
-    size_native[0] = output->size_native[1];
-    size_native[1] = output->size_native[0];
-  }
-  else {
-    size_native[0] = output->size_native[0];
-    size_native[1] = output->size_native[1];
+  int32_t size_native[2] = {UNPACK2(output->size_native)};
+  if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+    std::swap(size_native[0], size_native[1]);
   }
 
   /* If `xdg-output` is present, calculate the true scale of the desktop */
@@ -6300,8 +6295,13 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
 
   if (!display_->outputs.empty()) {
     /* We assume first output as main. */
-    width = uint32_t(display_->outputs[0]->size_native[0]);
-    height = uint32_t(display_->outputs[0]->size_native[1]);
+    const GWL_Output *output = display_->outputs[0];
+    int32_t size_native[2] = {UNPACK2(output->size_native)};
+    if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+      std::swap(size_native[0], size_native[1]);
+    }
+    width = uint32_t(size_native[0]);
+    height = uint32_t(size_native[1]);
   }
 }
 
@@ -6316,14 +6316,18 @@ void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &hei
 
     for (const GWL_Output *output : display_->outputs) {
       int32_t xy[2] = {0, 0};
+      int32_t size_native[2] = {UNPACK2(output->size_native)};
       if (output->has_position_logical) {
         xy[0] = output->position_logical[0];
         xy[1] = output->position_logical[1];
       }
+      if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+        std::swap(size_native[0], size_native[1]);
+      }
       xy_min[0] = std::min(xy_min[0], xy[0]);
       xy_min[1] = std::min(xy_min[1], xy[1]);
-      xy_max[0] = std::max(xy_max[0], xy[0] + output->size_native[0]);
-      xy_max[1] = std::max(xy_max[1], xy[1] + output->size_native[1]);
+      xy_max[0] = std::max(xy_max[0], xy[0] + size_native[0]);
+      xy_max[1] = std::max(xy_max[1], xy[1] + size_native[1]);
     }
 
     width = xy_max[0] - xy_min[0];
