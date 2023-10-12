@@ -2490,7 +2490,8 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
         if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
           wm_operator_reports(C, op, retval, false);
 
-          if (op->type->modalkeymap) {
+          wmOperator *op_test = handler->op->opm ? handler->op->opm : handler->op;
+          if (op_test->type->modalkeymap) {
             WM_window_status_area_tag_redraw(win);
           }
         }
