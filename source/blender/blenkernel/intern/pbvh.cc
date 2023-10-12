@@ -1958,9 +1958,9 @@ int BKE_pbvh_num_faces(const PBVH *pbvh)
   return 0;
 }
 
-const int *BKE_pbvh_node_get_vert_indices(PBVHNode *node)
+blender::Span<int> BKE_pbvh_node_get_vert_indices(PBVHNode *node)
 {
-  return node->vert_indices.data();
+  return node->vert_indices;
 }
 
 void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int *r_totvert)

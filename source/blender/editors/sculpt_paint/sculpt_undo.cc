@@ -319,28 +319,26 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
     if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
       BKE_pbvh_node_mark_update(node);
     }
-    int verts_num;
-    BKE_pbvh_node_num_verts(data->pbvh, node, nullptr, &verts_num);
-    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
+    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
     if (data->modified_mask_verts != nullptr) {
-      for (int i = 0; i < verts_num; i++) {
-        if (data->modified_mask_verts[vert_indices[i]]) {
+      for (const int vert : verts) {
+        if (data->modified_mask_verts[vert]) {
           BKE_pbvh_node_mark_update_mask(node);
           break;
         }
       }
     }
     if (data->modified_color_verts != nullptr) {
-      for (int i = 0; i < verts_num; i++) {
-        if (data->modified_color_verts[vert_indices[i]]) {
+      for (const int vert : verts) {
+        if (data->modified_color_verts[vert]) {
           BKE_pbvh_node_mark_update_color(node);
           break;
         }
       }
     }
     if (data->modified_hidden_verts != nullptr) {
-      for (int i = 0; i < verts_num; i++) {
-        if (data->modified_hidden_verts[vert_indices[i]]) {
+      for (const int vert : verts) {
+        if (data->modified_hidden_verts[vert]) {
           if (data->rebuild) {
             BKE_pbvh_node_mark_update_visibility(node);
           }
@@ -1449,13 +1447,9 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
     /* Already stored during allocation. */
   }
   else {
-    int allvert;
-
-    BKE_pbvh_node_num_verts(pbvh, node, nullptr, &allvert);
-    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-    for (int i = 0; i < allvert; i++) {
-      BLI_BITMAP_SET(unode->vert_hidden, i, hide_vert[vert_indices[i]]);
-    }
+    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+    for (const int i : verts.index_range())
+      BLI_BITMAP_SET(unode->vert_hidden, i, hide_vert[verts[i]]);
   }
 }
 
@@ -1646,8 +1640,8 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     int allvert, allloop;
 
     BKE_pbvh_node_num_verts(ss->pbvh, static_cast<PBVHNode *>(unode->node), nullptr, &allvert);
-    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-    memcpy(unode->index, vert_indices, sizeof(int) * allvert);
+    const blender::Span<int> vert_indices = BKE_pbvh_node_get_vert_indices(node);
+    memcpy(unode->index, vert_indices.data(), sizeof(int) * allvert);
 
     if (unode->loop_index) {
       BKE_pbvh_node_num_loops(ss->pbvh, static_cast<PBVHNode *>(unode->node), &allloop);

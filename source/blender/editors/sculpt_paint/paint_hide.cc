@@ -76,11 +76,9 @@ static void partialvis_update_mesh(Object *ob,
   Mesh *me = static_cast<Mesh *>(ob->data);
   const float(*positions)[3] = BKE_pbvh_get_vert_positions(pbvh);
   const float *paint_mask;
-  int totvert, i;
   bool any_changed = false, any_visible = false;
 
-  BKE_pbvh_node_num_verts(pbvh, node, nullptr, &totvert);
-  const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
+  const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
   paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
 
   bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
@@ -92,16 +90,16 @@ static void partialvis_update_mesh(Object *ob,
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-  for (i = 0; i < totvert; i++) {
-    float vmask = paint_mask ? paint_mask[vert_indices[i]] : 0;
+  for (const int vert : verts) {
+    float vmask = paint_mask ? paint_mask[vert] : 0;
 
     /* Hide vertex if in the hide volume. */
-    if (is_effected(area, planes, positions[vert_indices[i]], vmask)) {
-      hide_vert[vert_indices[i]] = (action == PARTIALVIS_HIDE);
+    if (is_effected(area, planes, positions[vert], vmask)) {
+      hide_vert[vert] = (action == PARTIALVIS_HIDE);
       any_changed = true;
     }
 
-    if (!hide_vert[vert_indices[i]]) {
+    if (!hide_vert[vert]) {
       any_visible = true;
     }
   }
