@@ -37,7 +37,7 @@ static Domain compute_realized_transformation_domain(const Domain &domain)
    * result. */
   const float sine = math::abs(math::sin(rotation));
   const float cosine = math::abs(math::cos(rotation));
-  size = float2(size.x * sine + size.y * cosine, size.x * cosine + size.y * sine);
+  size = float2(size.x * cosine + size.y * sine, size.x * sine + size.y * cosine);
   rotation = 0.0f;
 
   /* Set the scale to 1 and scale the domain size to adapt to the new domain. */
