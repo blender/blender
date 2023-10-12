@@ -166,8 +166,7 @@ class Context : public realtime_compositor::Context {
 
   GPUTexture *get_output_texture() override
   {
-    /* TODO: support outputting for previews.
-     * TODO: just a temporary hack, needs to get stored in RenderResult,
+    /* TODO: just a temporary hack, needs to get stored in RenderResult,
      * once that supports GPU buffers. */
     if (output_texture_ == nullptr) {
       const int2 size = get_render_size();
@@ -183,13 +182,8 @@ class Context : public realtime_compositor::Context {
     return output_texture_;
   }
 
-  GPUTexture *get_viewer_output_texture() override
+  GPUTexture *get_viewer_output_texture(int2 size) override
   {
-    /* TODO: support outputting previews.
-     * TODO: just a temporary hack, needs to get stored in RenderResult,
-     * once that supports GPU buffers. */
-    const int2 size = get_render_size();
-
     /* Re-create texture if the viewer size changes. */
     if (viewer_output_texture_) {
       const int current_width = GPU_texture_width(viewer_output_texture_);
@@ -201,6 +195,8 @@ class Context : public realtime_compositor::Context {
       }
     }
 
+    /* TODO: just a temporary hack, needs to get stored in RenderResult,
+     * once that supports GPU buffers. */
     if (viewer_output_texture_ == nullptr) {
       viewer_output_texture_ = GPU_texture_create_2d("compositor_viewer_output_texture",
                                                      size.x,
@@ -334,12 +330,13 @@ class Context : public realtime_compositor::Context {
     void *lock;
     ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, &lock);
 
-    const int2 render_size = get_render_size();
-    if (image_buffer->x != render_size.x || image_buffer->y != render_size.y) {
+    const int2 size = int2(GPU_texture_width(viewer_output_texture_),
+                           GPU_texture_height(viewer_output_texture_));
+    if (image_buffer->x != size.x || image_buffer->y != size.y) {
       imb_freerectImBuf(image_buffer);
       imb_freerectfloatImBuf(image_buffer);
-      image_buffer->x = render_size.x;
-      image_buffer->y = render_size.y;
+      image_buffer->x = size.x;
+      image_buffer->y = size.y;
       imb_addrectfloatImBuf(image_buffer, 4);
       image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
     }
@@ -350,9 +347,8 @@ class Context : public realtime_compositor::Context {
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     float *output_buffer = (float *)GPU_texture_read(viewer_output_texture_, GPU_DATA_FLOAT, 0);
 
-    std::memcpy(image_buffer->float_buffer.data,
-                output_buffer,
-                render_size.x * render_size.y * 4 * sizeof(float));
+    std::memcpy(
+        image_buffer->float_buffer.data, output_buffer, size.x * size.y * 4 * sizeof(float));
 
     MEM_freeN(output_buffer);
 
