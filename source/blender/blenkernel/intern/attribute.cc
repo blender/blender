@@ -93,8 +93,8 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
     }
     case ID_GP: {
       GreasePencil *grease_pencil = (GreasePencil *)id;
-      info[ATTR_DOMAIN_GREASE_PENCIL_LAYER].customdata = &grease_pencil->layers_data;
-      info[ATTR_DOMAIN_GREASE_PENCIL_LAYER].length = grease_pencil->layers().size();
+      info[ATTR_DOMAIN_LAYER].customdata = &grease_pencil->layers_data;
+      info[ATTR_DOMAIN_LAYER].length = grease_pencil->layers().size();
       break;
     }
     default:

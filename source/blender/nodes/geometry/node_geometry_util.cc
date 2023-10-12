@@ -99,12 +99,11 @@ const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext *
                                                                       bool *r_free)
 {
   *r_free = true;
-  return enum_items_filter(rna_enum_attribute_domain_items,
-                           [](const EnumPropertyItem &item) -> bool {
-                             return (item.value == ATTR_DOMAIN_GREASE_PENCIL_LAYER) ?
-                                        U.experimental.use_grease_pencil_version3 :
-                                        true;
-                           });
+  return enum_items_filter(
+      rna_enum_attribute_domain_items, [](const EnumPropertyItem &item) -> bool {
+        return (item.value == ATTR_DOMAIN_LAYER) ? U.experimental.use_grease_pencil_version3 :
+                                                   true;
+      });
 }
 
 }  // namespace enums

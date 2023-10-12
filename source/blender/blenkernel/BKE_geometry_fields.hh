@@ -175,8 +175,7 @@ class GeometryFieldContext : public fn::FieldContext {
   int grease_pencil_layer_index() const
   {
     BLI_assert(this->type_ == GeometryComponent::Type::GreasePencil);
-    BLI_assert(ELEM(
-        this->domain_, ATTR_DOMAIN_GREASE_PENCIL_LAYER, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT));
+    BLI_assert(ELEM(this->domain_, ATTR_DOMAIN_LAYER, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT));
     return grease_pencil_layer_index_;
   }
 

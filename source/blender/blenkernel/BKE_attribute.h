@@ -31,7 +31,7 @@ typedef enum eAttrDomain {
   ATTR_DOMAIN_CORNER = 3,   /* Mesh Corner */
   ATTR_DOMAIN_CURVE = 4,    /* A single curve in a larger curve data-block */
   ATTR_DOMAIN_INSTANCE = 5, /* Instance */
-  ATTR_DOMAIN_GREASE_PENCIL_LAYER = 6, /* A layer in a grease pencil data-block */
+  ATTR_DOMAIN_LAYER = 6,    /* A layer in a grease pencil data-block */
 } eAttrDomain;
 #define ATTR_DOMAIN_NUM 7
 

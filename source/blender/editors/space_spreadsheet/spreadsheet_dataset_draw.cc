@@ -102,7 +102,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
               ICON_OUTLINER_DATA_GREASEPENCIL);
       grease_pencil.add_tree_item<GeometryDataSetTreeViewItem>(
           bke::GeometryComponent::Type::GreasePencil,
-          ATTR_DOMAIN_GREASE_PENCIL_LAYER,
+          ATTR_DOMAIN_LAYER,
           IFACE_("Layer"),
           ICON_OUTLINER_DATA_GP_LAYER);
     }

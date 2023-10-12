@@ -115,8 +115,7 @@ static ComponentAttributeProviders create_attribute_providers_for_grease_pencil(
         return grease_pencil.layers().size();
       }};
 
-  static CustomDataAttributeProvider layer_custom_data(ATTR_DOMAIN_GREASE_PENCIL_LAYER,
-                                                       layers_access);
+  static CustomDataAttributeProvider layer_custom_data(ATTR_DOMAIN_LAYER, layers_access);
 
   return ComponentAttributeProviders({}, {&layer_custom_data});
 }
@@ -144,14 +143,14 @@ static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
     }
     const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
     switch (domain) {
-      case ATTR_DOMAIN_GREASE_PENCIL_LAYER:
+      case ATTR_DOMAIN_LAYER:
         return int(grease_pencil.layers().size());
       default:
         return 0;
     }
   };
   fn.domain_supported = [](const void * /*owner*/, const eAttrDomain domain) {
-    return domain == ATTR_DOMAIN_GREASE_PENCIL_LAYER;
+    return domain == ATTR_DOMAIN_LAYER;
   };
   fn.adapt_domain = [](const void *owner,
                        const GVArray &varray,

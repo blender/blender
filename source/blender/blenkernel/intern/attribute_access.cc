@@ -147,7 +147,7 @@ static int attribute_domain_priority(const eAttrDomain domain)
   switch (domain) {
     case ATTR_DOMAIN_INSTANCE:
       return 0;
-    case ATTR_DOMAIN_GREASE_PENCIL_LAYER:
+    case ATTR_DOMAIN_LAYER:
       return 1;
     case ATTR_DOMAIN_CURVE:
       return 2;

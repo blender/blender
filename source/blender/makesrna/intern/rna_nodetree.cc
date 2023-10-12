@@ -1886,8 +1886,7 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeDomain_attribute_domain_
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != nullptr;
        item++)
   {
-    if (!U.experimental.use_grease_pencil_version3 &&
-        item->value == ATTR_DOMAIN_GREASE_PENCIL_LAYER) {
+    if (!U.experimental.use_grease_pencil_version3 && item->value == ATTR_DOMAIN_LAYER) {
       continue;
     }
     RNA_enum_item_add(&item_array, &items_len, item);

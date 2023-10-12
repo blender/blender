@@ -132,8 +132,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         const auto &grease_pencil_component = *static_cast<const bke::GreasePencilComponent *>(
             component);
         GreasePencilInfo &info = this->grease_pencil_info.emplace();
-        info.layers_num = grease_pencil_component.attribute_domain_size(
-            ATTR_DOMAIN_GREASE_PENCIL_LAYER);
+        info.layers_num = grease_pencil_component.attribute_domain_size(ATTR_DOMAIN_LAYER);
         break;
       }
     }

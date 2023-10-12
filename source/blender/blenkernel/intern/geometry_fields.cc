@@ -109,7 +109,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
           static_cast<const GreasePencilComponent &>(component);
       geometry_ = grease_pencil_component.get();
       /* Need to use another constructor for other domains. */
-      BLI_assert(domain == ATTR_DOMAIN_GREASE_PENCIL_LAYER);
+      BLI_assert(domain == ATTR_DOMAIN_LAYER);
       break;
     }
     case GeometryComponent::Type::Instance: {
@@ -165,7 +165,7 @@ std::optional<AttributeAccessor> GeometryFieldContext::attributes() const
     return pointcloud->attributes();
   }
   if (const GreasePencil *grease_pencil = this->grease_pencil()) {
-    if (domain_ == ATTR_DOMAIN_GREASE_PENCIL_LAYER) {
+    if (domain_ == ATTR_DOMAIN_LAYER) {
       return grease_pencil->attributes();
     }
     else if (const greasepencil::Drawing *drawing =
@@ -365,7 +365,7 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
   const eAttrDomain domain = context.domain();
   if (const GreasePencil *grease_pencil = context.grease_pencil()) {
     const AttributeAccessor layer_attributes = grease_pencil->attributes();
-    if (domain == ATTR_DOMAIN_GREASE_PENCIL_LAYER) {
+    if (domain == ATTR_DOMAIN_LAYER) {
       return *layer_attributes.lookup(name_, data_type);
     }
     else if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
@@ -742,7 +742,7 @@ std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &comp
     return ATTR_DOMAIN_POINT;
   }
   if (component_type == GeometryComponent::Type::GreasePencil) {
-    return ATTR_DOMAIN_GREASE_PENCIL_LAYER;
+    return ATTR_DOMAIN_LAYER;
   }
   if (component_type == GeometryComponent::Type::Instance) {
     return ATTR_DOMAIN_INSTANCE;

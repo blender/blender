@@ -403,7 +403,7 @@ typedef struct GreasePencil {
   GreasePencilLayerTreeGroup *root_group_ptr;
 
   /**
-   * All attributes stored on the grease pencil layers (#ATTR_DOMAIN_GREASE_PENCIL_LAYER).
+   * All attributes stored on the grease pencil layers (#ATTR_DOMAIN_LAYER).
    */
   CustomData layers_data;
   /**
