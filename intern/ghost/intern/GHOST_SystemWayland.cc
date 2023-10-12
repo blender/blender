@@ -5679,6 +5679,12 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     }
   }
 
+  /* Without this, the output fractional size from `display->xdg.output_manager` isn't known,
+   * while this isn't essential, the first window creation uses this for setting the size.
+   * Supporting both XDG initialized/uninitialized outputs is possible it complicates logic.
+   * see: #113328 for an example of size on startup issues. */
+  wl_display_roundtrip(display_->wl.display);
+
 #ifdef USE_EVENT_BACKGROUND_THREAD
   gwl_display_event_thread_create(display_);
 
