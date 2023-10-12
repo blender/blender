@@ -52,10 +52,9 @@ enum class OutputSocketFieldType {
 enum class CompositorInputRealizationOptions : uint8_t {
   None = 0,
   RealizeOnOperationDomain = (1 << 0),
-  RealizeRotation = (1 << 1),
-  RealizeScale = (1 << 2),
 };
-ENUM_OPERATORS(CompositorInputRealizationOptions, CompositorInputRealizationOptions::RealizeScale)
+ENUM_OPERATORS(CompositorInputRealizationOptions,
+               CompositorInputRealizationOptions::RealizeOnOperationDomain)
 
 /**
  * Contains information about how a node output's field state depends on inputs of the same node.

@@ -16,14 +16,6 @@ namespace blender::realtime_compositor {
 struct InputRealizationOptions {
   /* The input should be realized on the operation domain of the operation. */
   bool realize_on_operation_domain : 1;
-  /* The input should be realized on a domain that is identical to the domain of the input but with
-   * an identity rotation and an increased size that completely fits the image after rotation. This
-   * is useful for operations that are not rotation invariant. */
-  bool realize_rotation : 1;
-  /* The input should be realized on a domain that is identical to the domain of the input but with
-   * an identity scale and an increased/decreased size that completely fits the image after
-   * scaling. This is useful for operations that are not scale invariant. */
-  bool realize_scale : 1;
 };
 
 /* ------------------------------------------------------------------------------------------------
