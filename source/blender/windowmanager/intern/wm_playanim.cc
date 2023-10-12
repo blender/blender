@@ -2027,8 +2027,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   }
 #endif
 
-  BLI_freelistN(&picsbase);
-
 #ifdef USE_FRAME_CACHE_LIMIT
   BLI_freelistN(&g_frame_cache.pics);
   g_frame_cache.pics_len = 0;
