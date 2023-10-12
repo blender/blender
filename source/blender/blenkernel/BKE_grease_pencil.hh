@@ -681,7 +681,10 @@ class GreasePencilEditHints {
    */
   const GreasePencil &grease_pencil_id_orig;
 
-  GreasePencilEditHints(const GreasePencil &grease_pencil_id_orig) : grease_pencil_id_orig(grease_pencil_id_orig) {}
+  GreasePencilEditHints(const GreasePencil &grease_pencil_id_orig)
+      : grease_pencil_id_orig(grease_pencil_id_orig)
+  {
+  }
 
   /**
    * Array of #GreasePencilDrawingEditHints. There is one edit hint for each evaluated drawing.
