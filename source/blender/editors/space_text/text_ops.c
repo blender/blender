@@ -5,6 +5,7 @@
  * \ingroup sptext
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <string.h>
 
@@ -3541,7 +3542,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   ret = text_insert_exec(C, op);
 
-  if ((ret == OPERATOR_FINISHED) && (auto_close_char != 0)) {
+  if ((ret == OPERATOR_FINISHED) && (auto_close_char != 0) && isascii(auto_close_char)) {
     const uint auto_close_match = text_closing_character_pair_get(auto_close_char);
     if (auto_close_match != 0) {
       Text *text = CTX_data_edit_text(C);
