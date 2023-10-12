@@ -489,6 +489,11 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 
     std::string filepath = BKE_main_blendfile_path_from_global();
     std::string filename = BLI_path_basename(filepath.c_str());
+    size_t lastdot = filename.find_last_of(".");
+    if (lastdot != std::string::npos) {
+      filename = filename.substr(0, lastdot);
+    }
+
     bool has_filepath = !filepath.empty();
     bool include_directory = has_filepath && (filepath != filename) &&
                              GHOST_SetPath(handle, filepath.c_str()) == GHOST_kFailure;
@@ -501,7 +506,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
     }
 
     if (include_directory) {
-      str += " [" + filepath.substr(0, filepath.length() - filename.length()) + "]";
+      str += " [" + filepath + "]";
     }
 
     str += " - Blender ";
