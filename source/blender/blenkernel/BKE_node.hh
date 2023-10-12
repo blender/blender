@@ -287,6 +287,12 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int maxle
 const char *nodeSocketLabel(const bNodeSocket *sock);
 
 /**
+ * Get node socket short label if it is set.
+ * It is used when grouping sockets under panels, to avoid redundancy in the label.
+ */
+const char *nodeSocketShortLabel(const bNodeSocket *sock);
+
+/**
  * Initialize a new node type struct with default values and callbacks.
  */
 void node_type_base(bNodeType *ntype, int type, const char *name, short nclass);

@@ -4002,6 +4002,17 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int
   BLI_strncpy(label, IFACE_(node->typeinfo->ui_name), label_maxncpy);
 }
 
+const char *nodeSocketShortLabel(const bNodeSocket *sock)
+{
+  if (sock->runtime->declaration != nullptr) {
+    blender::StringRefNull short_label = sock->runtime->declaration->short_label;
+    if (!short_label.is_empty()) {
+      return sock->runtime->declaration->short_label.data();
+    }
+  }
+  return nullptr;
+}
+
 const char *nodeSocketLabel(const bNodeSocket *sock)
 {
   return (sock->label[0] != '\0') ? sock->label : sock->name;

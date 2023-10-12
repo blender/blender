@@ -415,8 +415,16 @@ static bool node_update_basis_buttons(const bContext &C,
 
 const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label)
 {
-  const char *socket_label = bke::nodeSocketLabel(socket);
+  /* Get the short label if possible. This is used when grouping sockets under panels,
+   * to avoid redundancy in the label. */
+  const char *socket_short_label = bke::nodeSocketShortLabel(socket);
   const char *socket_translation_context = node_socket_get_translation_context(*socket);
+
+  if (socket_short_label) {
+    return CTX_IFACE_(socket_translation_context, socket_short_label);
+  }
+
+  const char *socket_label = bke::nodeSocketLabel(socket);
   const char *translated_socket_label = CTX_IFACE_(socket_translation_context, socket_label);
 
   /* Shorten socket label if it begins with the panel label. */

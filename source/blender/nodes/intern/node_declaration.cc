@@ -586,6 +586,17 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on(const Span<
   return *this;
 }
 
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::short_label(std::string value)
+{
+  if (decl_in_base_) {
+    decl_in_base_->description = std::move(value);
+  }
+  if (decl_out_base_) {
+    decl_out_base_->description = std::move(value);
+  }
+  return *this;
+}
+
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::description(std::string value)
 {
   if (decl_in_base_) {

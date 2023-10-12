@@ -170,6 +170,7 @@ using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
 class SocketDeclaration : public ItemDeclaration {
  public:
   std::string name;
+  std::string short_label;
   std::string identifier;
   std::string description;
   std::string translation_context;
@@ -266,6 +267,8 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &hide_value(bool value = true);
 
   BaseSocketDeclarationBuilder &multi_input(bool value = true);
+
+  BaseSocketDeclarationBuilder &short_label(std::string value = "");
 
   BaseSocketDeclarationBuilder &description(std::string value = "");
 
