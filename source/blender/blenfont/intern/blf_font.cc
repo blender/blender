@@ -406,9 +406,15 @@ BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(FontBLF *font,
   GlyphBLF *g = blf_glyph_ensure(font, gc, charcode);
   if (g && pen_x && !(font->flags & BLF_MONOSPACED)) {
     *pen_x += blf_kerning(font, g_prev, g);
-#ifndef BLF_SUBPIXEL_POSITION
+
+#ifdef BLF_SUBPIXEL_POSITION
+    if (!(font->flags & BLF_RENDER_SUBPIXELAA)) {
+      *pen_x = FT_PIX_ROUND(*pen_x);
+    }
+#else
     *pen_x = FT_PIX_ROUND(*pen_x);
 #endif
+
 #ifdef BLF_SUBPIXEL_AA
     g = blf_glyph_ensure_subpixel(font, gc, g, *pen_x);
 #endif
