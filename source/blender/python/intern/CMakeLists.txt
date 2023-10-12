@@ -126,6 +126,7 @@ set(LIB
   bf_editor_interface
   bf_editor_space_api
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
   bf_python_gpu
 
   ${PYTHON_LINKFLAGS}

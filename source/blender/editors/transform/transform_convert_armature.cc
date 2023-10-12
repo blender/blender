@@ -39,6 +39,7 @@
 #include "RNA_prototypes.h"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_keyframing.hh"
 
 #include "transform.hh"
 #include "transform_orientations.hh"
@@ -145,17 +146,17 @@ static void autokeyframe_pose(
            * NOTE: this will do constraints too, but those are ok to do here too?
            */
           if (STREQ(pchan_name, pchan->name)) {
-            insert_keyframe(bmain,
-                            reports,
-                            id,
-                            act,
-                            ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
-                            fcu->rna_path,
-                            fcu->array_index,
-                            &anim_eval_context,
-                            eBezTriple_KeyframeType(ts->keyframe_type),
-                            &nla_cache,
-                            flag);
+            blender::animrig::insert_keyframe(bmain,
+                                              reports,
+                                              id,
+                                              act,
+                                              ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                                              fcu->rna_path,
+                                              fcu->array_index,
+                                              &anim_eval_context,
+                                              eBezTriple_KeyframeType(ts->keyframe_type),
+                                              &nla_cache,
+                                              flag);
           }
         }
       }

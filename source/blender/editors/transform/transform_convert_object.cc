@@ -24,6 +24,7 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
+#include "ANIM_keyframing.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 
@@ -778,17 +779,17 @@ static void autokeyframe_object(
       if (adt && adt->action) {
         ListBase nla_cache = {nullptr, nullptr};
         LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
-          insert_keyframe(bmain,
-                          reports,
-                          id,
-                          adt->action,
-                          (fcu->grp ? fcu->grp->name : nullptr),
-                          fcu->rna_path,
-                          fcu->array_index,
-                          &anim_eval_context,
-                          eBezTriple_KeyframeType(ts->keyframe_type),
-                          &nla_cache,
-                          flag);
+          blender::animrig::insert_keyframe(bmain,
+                                            reports,
+                                            id,
+                                            adt->action,
+                                            (fcu->grp ? fcu->grp->name : nullptr),
+                                            fcu->rna_path,
+                                            fcu->array_index,
+                                            &anim_eval_context,
+                                            eBezTriple_KeyframeType(ts->keyframe_type),
+                                            &nla_cache,
+                                            flag);
         }
 
         BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);

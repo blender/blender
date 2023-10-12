@@ -38,6 +38,9 @@ struct NlaKeyframingContext;
 /** \name Key-Framing Management
  * \{ */
 
+float *ANIM_setting_get_rna_values(
+    PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count);
+
 /**
  * Get the active settings for key-framing settings from context (specifically the given scene)
  * \param use_autokey_mode: include settings from key-framing mode in the result
@@ -79,6 +82,7 @@ FCurve *ED_action_fcurve_find(bAction *act, const char rna_path[], int array_ind
  * but also through RNA when editing an ID prop, see #37103).
  */
 void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, PointerRNA *ptr);
+void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
 
 /* -------- */
 
@@ -124,74 +128,6 @@ int insert_vert_fcurve(
  * afterwards.
  */
 void ED_keyframes_add(FCurve *fcu, int num_keys_to_add);
-
-/* -------- */
-
-/**
- * \brief Secondary Insert Key-framing API call.
- *
- * Use this when validation of necessary animation data is not necessary,
- * since an RNA-pointer to the necessary data being keyframed,
- * and a pointer to the F-Curve to use have both been provided.
- *
- * This function can't keyframe quaternion channels on some NLA strip types.
- *
- * \param keytype: The "keyframe type" (eBezTriple_KeyframeType), as shown in the Dope Sheet.
- *
- * \param flag: Used for special settings that alter the behavior of the keyframe insertion.
- * These include the 'visual' key-framing modes, quick refresh,
- * and extra keyframe filtering.
- * \return Success.
- */
-bool insert_keyframe_direct(ReportList *reports,
-                            PointerRNA ptr,
-                            PropertyRNA *prop,
-                            FCurve *fcu,
-                            const AnimationEvalContext *anim_eval_context,
-                            eBezTriple_KeyframeType keytype,
-                            NlaKeyframingContext *nla,
-                            eInsertKeyFlags flag);
-
-/* -------- */
-
-/**
- * \brief Main Insert Key-framing API call.
- *
- * Use this to create any necessary animation data, and then insert a keyframe
- * using the current value being keyframed, in the relevant place.
- *
- * \param flag: Used for special settings that alter the behavior of the keyframe insertion.
- * These include the 'visual' key-framing modes, quick refresh, and extra keyframe filtering.
- *
- * \param array_index: The index to key or -1 keys all array indices.
- * \return The number of key-frames inserted.
- */
-int insert_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    bAction *act,
-                    const char group[],
-                    const char rna_path[],
-                    int array_index,
-                    const AnimationEvalContext *anim_eval_context,
-                    eBezTriple_KeyframeType keytype,
-                    ListBase *nla_cache,
-                    eInsertKeyFlags flag);
-
-/**
- * \brief Main Delete Key-Framing API call.
- *
- * Use this to delete keyframe on current frame for relevant channel.
- * Will perform checks just in case.
- * \return The number of key-frames deleted.
- */
-int delete_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    bAction *act,
-                    const char rna_path[],
-                    int array_index,
-                    float cfra);
 
 /** \} */
 
