@@ -41,6 +41,7 @@ using bke::GeometryComponentEditData;
 using bke::GeometrySet;
 using bke::GreasePencilComponent;
 using bke::GSpanAttributeWriter;
+using bke::GreasePencilComponent;
 using bke::InstancesComponent;
 using bke::MeshComponent;
 using bke::MutableAttributeAccessor;
