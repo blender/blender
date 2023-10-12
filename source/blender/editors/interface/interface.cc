@@ -61,6 +61,7 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.h"
@@ -3477,6 +3478,10 @@ static void ui_but_free(const bContext *C, uiBut *but)
     MEM_freeN(but->hold_argN);
   }
 
+  if (but->placeholder) {
+    MEM_freeN(but->placeholder);
+  }
+
   ui_but_free_type_specific(but);
 
   if (but->active) {
@@ -5904,6 +5909,36 @@ void UI_but_disable(uiBut *but, const char *disabled_hint)
   }
 
   but->disabled_info = disabled_hint;
+}
+
+void UI_but_placeholder_set(uiBut *but, const char *placeholder_text)
+{
+  MEM_SAFE_FREE(but->placeholder);
+  but->placeholder = BLI_strdup_null(placeholder_text);
+}
+
+const char *ui_but_placeholder_get(uiBut *but)
+{
+  const char *placeholder = (but->placeholder) ? but->placeholder : nullptr;
+
+  if (!placeholder && but->rnaprop) {
+    if (but->type == UI_BTYPE_SEARCH_MENU) {
+      StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
+      const short idcode = RNA_type_to_ID_code(type);
+      if (idcode != 0) {
+        RNA_enum_name(rna_enum_id_type_items, idcode, &placeholder);
+        placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_ID, placeholder);
+      }
+    }
+    else if (but->type == UI_BTYPE_TEXT) {
+      const char *identifier = RNA_property_identifier(but->rnaprop);
+      if (STR_ELEM(identifier, "search_filter", "filter_text", "filter_search")) {
+        placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Search");
+      }
+    }
+  }
+
+  return placeholder;
 }
 
 void UI_but_type_set_menu_from_pulldown(uiBut *but)
