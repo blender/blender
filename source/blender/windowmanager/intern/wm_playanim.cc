@@ -1822,7 +1822,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 #ifdef WITH_AUDASPACE
   source = AUD_Sound_file(filepath);
-  {
+  if (!BLI_listbase_is_empty(&picsbase)) {
     anim *anim_movie = ((PlayAnimPict *)picsbase.first)->anim;
     if (anim_movie) {
       short frs_sec = 25;
