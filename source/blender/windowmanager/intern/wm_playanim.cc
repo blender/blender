@@ -947,15 +947,27 @@ static void build_pict_list(GhostData *ghost_data,
    * it's important the frame number increases each time. Otherwise playing `*.png`
    * in a directory will expand into many arguments, each calling this function adding
    * a frame that's set to zero. */
-  const int frame_offset = picsbase.last ? ((PlayAnimPict *)picsbase.last)->frame + 1 : 0;
+  const PlayAnimPict *picture_last = (PlayAnimPict *)picsbase.last;
+  const int frame_offset = picture_last ? (picture_last->frame + 1) : 0;
 
+  bool do_image_load = false;
   if (IMB_isanim(filepath_first)) {
     build_pict_list_from_anim(ghost_data, display_ctx, filepath_first, frame_offset);
+    if (picsbase.last == picture_last) {
+      /* FFMPEG detected JPEG200 as a video which would load with zero duration.
+       * Resolve this by using images as a fallback when a video file has no frames to display. */
+      do_image_load = true;
+    }
   }
   else {
+    do_image_load = true;
+  }
+
+  if (do_image_load) {
     build_pict_list_from_image_sequence(
         ghost_data, display_ctx, filepath_first, frame_offset, totframes, fstep, loading_p);
   }
+
   *loading_p = false;
 }
 
