@@ -538,7 +538,7 @@ static bool view3d_drop_id_in_main_region_poll(bContext *C,
   return WM_drag_is_ID_type(drag, id_type);
 }
 
-static void view3d_ob_drop_draw_activate(wmDropBox *drop, wmDrag *drag)
+static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
 {
   V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (state) {
@@ -575,7 +575,7 @@ static void view3d_ob_drop_draw_activate(wmDropBox *drop, wmDrag *drag)
   }
 }
 
-static void view3d_ob_drop_draw_deactivate(wmDropBox *drop, wmDrag * /*drag*/)
+static void view3d_ob_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)
 {
   V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (state) {
@@ -982,8 +982,8 @@ static void view3d_dropboxes()
                         nullptr);
 
   drop->draw_droptip = WM_drag_draw_item_name_fn;
-  drop->draw_activate = view3d_ob_drop_draw_activate;
-  drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
+  drop->on_enter = view3d_ob_drop_on_enter;
+  drop->on_exit = view3d_ob_drop_on_exit;
 
   drop = WM_dropbox_add(lb,
                         "OBJECT_OT_transform_to_mouse",
@@ -993,8 +993,8 @@ static void view3d_dropboxes()
                         nullptr);
 
   drop->draw_droptip = WM_drag_draw_item_name_fn;
-  drop->draw_activate = view3d_ob_drop_draw_activate;
-  drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
+  drop->on_enter = view3d_ob_drop_on_enter;
+  drop->on_exit = view3d_ob_drop_on_exit;
 
   WM_dropbox_add(lb,
                  "OBJECT_OT_collection_external_asset_drop",

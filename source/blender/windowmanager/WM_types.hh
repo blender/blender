@@ -1186,8 +1186,7 @@ using WMDropboxTooltipFunc = char *(*)(bContext *C,
 struct wmDragActiveDropState {
   /**
    * Informs which dropbox is activated with the drag item.
-   * When this value changes, the #draw_activate and #draw_deactivate dropbox callbacks are
-   * triggered.
+   * When this value changes, the #on_enter() and #on_exit() dropbox callbacks are triggered.
    */
   wmDropBox *active_dropbox;
 
@@ -1258,6 +1257,13 @@ struct wmDropBox {
    * So this callback is called on every dropbox that is registered in the current screen. */
   void (*on_drag_start)(bContext *C, wmDrag *drag);
 
+  /** Called when poll returns true the first time. Typically used to setup some drawing data. */
+  void (*on_enter)(wmDropBox *drop, wmDrag *drag);
+
+  /** Called when poll returns false the first time or when the drag event ends (successful drop or
+   * canceled). Typically used to cleanup resources or end drawing. */
+  void (*on_exit)(wmDropBox *drop, wmDrag *drag);
+
   /** Before exec, this copies drag info to #wmDrop properties. */
   void (*copy)(bContext *C, wmDrag *drag, wmDropBox *drop);
 
@@ -1281,12 +1287,6 @@ struct wmDropBox {
    * \param xy: Cursor location in window coordinates (#wmEvent.xy compatible).
    */
   void (*draw_in_view)(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2]);
-
-  /** Called when poll returns true the first time. */
-  void (*draw_activate)(wmDropBox *drop, wmDrag *drag);
-
-  /** Called when poll returns false the first time or when the drag event ends. */
-  void (*draw_deactivate)(wmDropBox *drop, wmDrag *drag);
 
   /** Custom data for drawing. */
   void *draw_data;
