@@ -89,9 +89,9 @@ class HiZBuffer {
     DRW_shgroup_uniform_texture_ref(grp, "hiz_tx", &hiz_tx_);
   }
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_texture(HIZ_TEX_SLOT, &hiz_tx_);
+    pass.bind_texture(HIZ_TEX_SLOT, &hiz_tx_);
   }
 };
 

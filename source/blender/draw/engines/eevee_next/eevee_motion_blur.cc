@@ -139,8 +139,8 @@ void MotionBlurModule::sync()
   RenderBuffers &render_buffers = inst_.render_buffers;
 
   motion_blur_ps_.init();
-  inst_.velocity.bind_resources(&motion_blur_ps_);
-  inst_.sampling.bind_resources(&motion_blur_ps_);
+  inst_.velocity.bind_resources(motion_blur_ps_);
+  inst_.sampling.bind_resources(motion_blur_ps_);
   {
     /* Create max velocity tiles. */
     PassSimple::Sub &sub = motion_blur_ps_.sub("TilesFlatten");

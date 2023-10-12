@@ -43,7 +43,7 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat, const float background_opacit
   world_ps_.bind_image("rp_value_img", &rbufs.rp_value_tx);
   world_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
   /* Required by validation layers. */
-  inst_.cryptomatte.bind_resources(&world_ps_);
+  inst_.cryptomatte.bind_resources(world_ps_);
 
   inst_.bind_uniform_data(&world_ps_);
 
@@ -93,7 +93,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   pass.bind_image("rp_color_img", dummy_aov_color_tx_);
   pass.bind_image("rp_value_img", dummy_aov_value_tx_);
   /* Required by validation layers. */
-  inst_.cryptomatte.bind_resources(&pass);
+  inst_.cryptomatte.bind_resources(pass);
 
   pass.bind_image("aov_color_img", dummy_aov_color_tx_);
   pass.bind_image("aov_value_img", dummy_aov_value_tx_);
@@ -126,7 +126,7 @@ void WorldVolumePipeline::sync(GPUMaterial *gpumat)
   world_ps_.state_set(DRW_STATE_WRITE_COLOR);
   inst_.bind_uniform_data(&world_ps_);
   inst_.volume.bind_properties_buffers(world_ps_);
-  inst_.sampling.bind_resources(&world_ps_);
+  inst_.sampling.bind_resources(world_ps_);
 
   world_ps_.material_set(*inst_.manager, gpumat);
   volume_sub_pass(world_ps_, nullptr, nullptr, gpumat);
@@ -190,7 +190,7 @@ void ShadowPipeline::sync()
       pass.bind_ssbo(SHADOW_PAGE_INFO_SLOT, &inst_.shadows.pages_infos_data_);
     }
     inst_.bind_uniform_data(&pass);
-    inst_.sampling.bind_resources(&pass);
+    inst_.sampling.bind_resources(pass);
     surface_ps_ = &pass;
   }
 
@@ -249,8 +249,8 @@ void ForwardPipeline::sync()
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
       inst_.bind_uniform_data(&prepass_ps_);
-      inst_.velocity.bind_resources(&prepass_ps_);
-      inst_.sampling.bind_resources(&prepass_ps_);
+      inst_.velocity.bind_resources(prepass_ps_);
+      inst_.sampling.bind_resources(prepass_ps_);
     }
 
     prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided.Static");
@@ -279,13 +279,13 @@ void ForwardPipeline::sync()
       opaque_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
       inst_.bind_uniform_data(&opaque_ps_);
-      inst_.lights.bind_resources(&opaque_ps_);
-      inst_.shadows.bind_resources(&opaque_ps_);
-      inst_.volume.bind_resources(&opaque_ps_);
-      inst_.sampling.bind_resources(&opaque_ps_);
-      inst_.hiz_buffer.bind_resources(&opaque_ps_);
-      inst_.irradiance_cache.bind_resources(&opaque_ps_);
-      inst_.reflection_probes.bind_resources(&opaque_ps_);
+      inst_.lights.bind_resources(opaque_ps_);
+      inst_.shadows.bind_resources(opaque_ps_);
+      inst_.volume.bind_resources(opaque_ps_);
+      inst_.sampling.bind_resources(opaque_ps_);
+      inst_.hiz_buffer.bind_resources(opaque_ps_);
+      inst_.irradiance_cache.bind_resources(opaque_ps_);
+      inst_.reflection_probes.bind_resources(opaque_ps_);
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");
@@ -307,13 +307,13 @@ void ForwardPipeline::sync()
     sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
     inst_.bind_uniform_data(&sub);
-    inst_.lights.bind_resources(&sub);
-    inst_.shadows.bind_resources(&sub);
-    inst_.volume.bind_resources(&sub);
-    inst_.sampling.bind_resources(&sub);
-    inst_.hiz_buffer.bind_resources(&sub);
-    inst_.irradiance_cache.bind_resources(&sub);
-    inst_.reflection_probes.bind_resources(&sub);
+    inst_.lights.bind_resources(sub);
+    inst_.shadows.bind_resources(sub);
+    inst_.volume.bind_resources(sub);
+    inst_.sampling.bind_resources(sub);
+    inst_.hiz_buffer.bind_resources(sub);
+    inst_.irradiance_cache.bind_resources(sub);
+    inst_.reflection_probes.bind_resources(sub);
   }
 }
 
@@ -422,8 +422,8 @@ void DeferredLayer::begin_sync()
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
       inst_.bind_uniform_data(&prepass_ps_);
-      inst_.velocity.bind_resources(&prepass_ps_);
-      inst_.sampling.bind_resources(&prepass_ps_);
+      inst_.velocity.bind_resources(prepass_ps_);
+      inst_.sampling.bind_resources(prepass_ps_);
     }
 
     DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
@@ -464,9 +464,9 @@ void DeferredLayer::begin_sync()
       gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
       inst_.bind_uniform_data(&gbuffer_ps_);
-      inst_.sampling.bind_resources(&gbuffer_ps_);
-      inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
-      inst_.cryptomatte.bind_resources(&gbuffer_ps_);
+      inst_.sampling.bind_resources(gbuffer_ps_);
+      inst_.hiz_buffer.bind_resources(gbuffer_ps_);
+      inst_.cryptomatte.bind_resources(gbuffer_ps_);
     }
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL |
@@ -500,11 +500,11 @@ void DeferredLayer::end_sync()
       pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
       inst_.bind_uniform_data(&pass);
-      inst_.gbuffer.bind_resources(&pass);
-      inst_.lights.bind_resources(&pass);
-      inst_.shadows.bind_resources(&pass);
-      inst_.sampling.bind_resources(&pass);
-      inst_.hiz_buffer.bind_resources(&pass);
+      inst_.gbuffer.bind_resources(pass);
+      inst_.lights.bind_resources(pass);
+      inst_.shadows.bind_resources(pass);
+      inst_.sampling.bind_resources(pass);
+      inst_.hiz_buffer.bind_resources(pass);
       pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
@@ -523,7 +523,7 @@ void DeferredLayer::end_sync()
       pass.bind_image("indirect_refract_img", &indirect_refract_tx_);
       pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-      inst_.gbuffer.bind_resources(&pass);
+      inst_.gbuffer.bind_resources(pass);
       inst_.bind_uniform_data(&pass);
       pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
@@ -765,7 +765,7 @@ void VolumePipeline::sync()
   volume_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
   inst_.bind_uniform_data(&volume_ps_);
   inst_.volume.bind_properties_buffers(volume_ps_);
-  inst_.sampling.bind_resources(&volume_ps_);
+  inst_.sampling.bind_resources(volume_ps_);
 }
 
 PassMain::Sub *VolumePipeline::volume_material_add(GPUMaterial *gpumat)
@@ -795,8 +795,8 @@ void DeferredProbeLayer::begin_sync()
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
       inst_.bind_uniform_data(&prepass_ps_);
-      inst_.velocity.bind_resources(&prepass_ps_);
-      inst_.sampling.bind_resources(&prepass_ps_);
+      inst_.velocity.bind_resources(prepass_ps_);
+      inst_.sampling.bind_resources(prepass_ps_);
     }
 
     DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
@@ -828,9 +828,9 @@ void DeferredProbeLayer::begin_sync()
       gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
       inst_.bind_uniform_data(&gbuffer_ps_);
-      inst_.sampling.bind_resources(&gbuffer_ps_);
-      inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
-      inst_.cryptomatte.bind_resources(&gbuffer_ps_);
+      inst_.sampling.bind_resources(gbuffer_ps_);
+      inst_.hiz_buffer.bind_resources(gbuffer_ps_);
+      inst_.cryptomatte.bind_resources(gbuffer_ps_);
     }
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL |
@@ -857,12 +857,12 @@ void DeferredProbeLayer::end_sync()
     pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     inst_.bind_uniform_data(&pass);
-    inst_.gbuffer.bind_resources(&pass);
-    inst_.lights.bind_resources(&pass);
-    inst_.shadows.bind_resources(&pass);
-    inst_.sampling.bind_resources(&pass);
-    inst_.hiz_buffer.bind_resources(&pass);
-    inst_.irradiance_cache.bind_resources(&pass);
+    inst_.gbuffer.bind_resources(pass);
+    inst_.lights.bind_resources(pass);
+    inst_.shadows.bind_resources(pass);
+    inst_.sampling.bind_resources(pass);
+    inst_.hiz_buffer.bind_resources(pass);
+    inst_.irradiance_cache.bind_resources(pass);
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
@@ -966,7 +966,7 @@ void PlanarProbePipeline::begin_sync()
     prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     prepass_ps_.bind_ubo(CLIP_PLANE_BUF, inst_.planar_probes.world_clip_buf_);
     inst_.bind_uniform_data(&prepass_ps_);
-    inst_.sampling.bind_resources(&prepass_ps_);
+    inst_.sampling.bind_resources(prepass_ps_);
 
     DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 
@@ -983,14 +983,14 @@ void PlanarProbePipeline::begin_sync()
     gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
     gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     inst_.bind_uniform_data(&gbuffer_ps_);
-    inst_.sampling.bind_resources(&gbuffer_ps_);
-    inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
+    inst_.sampling.bind_resources(gbuffer_ps_);
+    inst_.hiz_buffer.bind_resources(gbuffer_ps_);
     /* Cryptomatte. */
     gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
     /* RenderPasses & AOVs. */
     gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
     gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    inst_.cryptomatte.bind_resources(&gbuffer_ps_);
+    inst_.cryptomatte.bind_resources(gbuffer_ps_);
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL;
 
@@ -1007,13 +1007,13 @@ void PlanarProbePipeline::begin_sync()
     pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_PLANAR_EVAL));
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     inst_.bind_uniform_data(&pass);
-    inst_.gbuffer.bind_resources(&pass);
-    inst_.lights.bind_resources(&pass);
-    inst_.shadows.bind_resources(&pass);
-    inst_.sampling.bind_resources(&pass);
-    inst_.hiz_buffer.bind_resources(&pass);
-    inst_.reflection_probes.bind_resources(&pass);
-    inst_.irradiance_cache.bind_resources(&pass);
+    inst_.gbuffer.bind_resources(pass);
+    inst_.lights.bind_resources(pass);
+    inst_.shadows.bind_resources(pass);
+    inst_.sampling.bind_resources(pass);
+    inst_.hiz_buffer.bind_resources(pass);
+    inst_.reflection_probes.bind_resources(pass);
+    inst_.irradiance_cache.bind_resources(pass);
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }

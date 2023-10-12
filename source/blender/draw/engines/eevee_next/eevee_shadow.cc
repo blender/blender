@@ -849,7 +849,7 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("capture_info_buf", &capture_info_buf);
       sub.push_constant("directional_level", directional_level);
       sub.push_constant("tilemap_projection_ratio", projection_ratio);
-      inst_.lights.bind_resources(&sub);
+      inst_.lights.bind_resources(sub);
       sub.dispatch(&inst_.irradiance_cache.bake.dispatch_per_surfel_);
 
       /* Skip opaque and transparent tagging for light baking. */
@@ -864,7 +864,7 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.bind_texture("depth_tx", &render_buffers.depth_tx);
       sub.push_constant("tilemap_projection_ratio", &tilemap_projection_ratio_);
-      inst_.lights.bind_resources(&sub);
+      inst_.lights.bind_resources(sub);
       sub.dispatch(&dispatch_depth_scan_size_);
     }
     {
@@ -884,8 +884,8 @@ void ShadowModule::begin_sync()
       sub.push_constant("fb_resolution", &usage_tag_fb_resolution_);
       sub.push_constant("fb_lod", &usage_tag_fb_lod_);
       inst_.bind_uniform_data(&sub);
-      inst_.hiz_buffer.bind_resources(&sub);
-      inst_.lights.bind_resources(&sub);
+      inst_.hiz_buffer.bind_resources(sub);
+      inst_.lights.bind_resources(sub);
 
       box_batch_ = DRW_cache_cube_get();
       tilemap_usage_transparent_ps_ = &sub;
@@ -1031,7 +1031,7 @@ void ShadowModule::end_sync()
         sub.bind_ssbo("casters_id_buf", curr_casters_);
         sub.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
         sub.push_constant("resource_len", int(curr_casters_.size()));
-        inst_.lights.bind_resources(&sub);
+        inst_.lights.bind_resources(sub);
         sub.dispatch(int3(
             divide_ceil_u(std::max(curr_casters_.size(), int64_t(1)), SHADOW_BOUNDS_GROUP_SIZE),
             1,
@@ -1086,10 +1086,10 @@ void ShadowModule::end_sync()
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.push_constant("tilemap_projection_ratio", &tilemap_projection_ratio_);
       inst_.bind_uniform_data(&sub);
-      inst_.hiz_buffer.bind_resources(&sub);
-      inst_.sampling.bind_resources(&sub);
-      inst_.lights.bind_resources(&sub);
-      inst_.volume.bind_resources(&sub);
+      inst_.hiz_buffer.bind_resources(sub);
+      inst_.sampling.bind_resources(sub);
+      inst_.lights.bind_resources(sub);
+      inst_.volume.bind_resources(sub);
       inst_.volume.bind_properties_buffers(sub);
       sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
       sub.dispatch(math::divide_ceil(inst_.volume.grid_size(), int3(VOLUME_GROUP_SIZE)));
@@ -1233,9 +1233,9 @@ void ShadowModule::debug_end_sync()
   debug_draw_ps_.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
   debug_draw_ps_.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
   inst_.bind_uniform_data(&debug_draw_ps_);
-  inst_.hiz_buffer.bind_resources(&debug_draw_ps_);
-  inst_.lights.bind_resources(&debug_draw_ps_);
-  inst_.shadows.bind_resources(&debug_draw_ps_);
+  inst_.hiz_buffer.bind_resources(debug_draw_ps_);
+  inst_.lights.bind_resources(debug_draw_ps_);
+  inst_.shadows.bind_resources(debug_draw_ps_);
   debug_draw_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 

@@ -133,10 +133,10 @@ class ReflectionProbeModule {
   void sync_object(Object *ob, ObjectHandle &ob_handle);
   void end_sync();
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_texture(REFLECTION_PROBE_TEX_SLOT, &probes_tx_);
-    pass->bind_ubo(REFLECTION_PROBE_BUF_SLOT, &data_buf_);
+    pass.bind_texture(REFLECTION_PROBE_TEX_SLOT, &probes_tx_);
+    pass.bind_ubo(REFLECTION_PROBE_BUF_SLOT, &data_buf_);
   }
 
   bool do_world_update_get() const;

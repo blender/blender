@@ -653,8 +653,8 @@ void IrradianceBake::sync()
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    inst_.lights.bind_resources(&pass);
-    inst_.shadows.bind_resources(&pass);
+    inst_.lights.bind_resources(pass);
+    inst_.shadows.bind_resources(pass);
     /* Sync with the surfel creation stage. */
     pass.barrier(GPU_BARRIER_SHADER_STORAGE);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -704,7 +704,7 @@ void IrradianceBake::sync()
       sub.shader_set(inst_.shaders.static_shader_get(SURFEL_RAY));
       sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
       sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
-      inst_.reflection_probes.bind_resources(&sub);
+      inst_.reflection_probes.bind_resources(sub);
       sub.push_constant("radiance_src", &radiance_src_);
       sub.push_constant("radiance_dst", &radiance_dst_);
       sub.barrier(GPU_BARRIER_SHADER_STORAGE);
@@ -717,7 +717,7 @@ void IrradianceBake::sync()
     pass.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_RAY));
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
-    inst_.reflection_probes.bind_resources(&pass);
+    inst_.reflection_probes.bind_resources(pass);
     pass.bind_ssbo("list_start_buf", &list_start_buf_);
     pass.bind_ssbo("list_info_buf", &list_info_buf_);
     pass.push_constant("radiance_src", &radiance_src_);
