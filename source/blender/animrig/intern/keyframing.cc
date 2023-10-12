@@ -204,7 +204,7 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
   }
 
   BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert - 1];
-  float start = first->vec[1][0], end = last->vec[1][0];
+  const float start = first->vec[1][0], end = last->vec[1][0];
 
   if (start >= end) {
     return FCU_CYCLE_NONE;
@@ -338,7 +338,7 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
    *    keyframe is not equal to last keyframe.
    */
   bezt = (fcu->bezt + (fcu->totvert - 1));
-  float valA = bezt->vec[1][1];
+  const float valA = bezt->vec[1][1];
   float valB;
   if (prev) {
     valB = prev->vec[1][1];
@@ -423,10 +423,8 @@ static bool insert_keyframe_value(ReportList *reports,
 
   /* only insert keyframes where they are needed */
   if (flag & INSERTKEY_NEEDED) {
-    short insert_mode;
-
     /* check whether this curve really needs a new keyframe */
-    insert_mode = new_key_needed(fcu, cfra, curval);
+    static short insert_mode = new_key_needed(fcu, cfra, curval);
 
     /* only return success if keyframe added */
     if (insert_mode == KEYNEEDED_DONTADD) {
@@ -466,7 +464,6 @@ bool insert_keyframe_direct(ReportList *reports,
                             NlaKeyframingContext *nla_context,
                             eInsertKeyFlags flag)
 {
-  float curval = 0.0f;
 
   /* no F-Curve to add keyframe to? */
   if (fcu == nullptr) {
@@ -507,7 +504,7 @@ bool insert_keyframe_direct(ReportList *reports,
   /* Obtain the value to insert. */
   float value_buffer[RNA_MAX_ARRAY_LENGTH];
   int value_count;
-  int index = fcu->array_index;
+  const int index = fcu->array_index;
 
   BLI_bitmap *successful_remaps = nullptr;
   float *values = get_keyframe_values(reports,
@@ -523,8 +520,9 @@ bool insert_keyframe_direct(ReportList *reports,
                                       nullptr,
                                       &successful_remaps);
 
+  float current_value = 0.0f;
   if (index >= 0 && index < value_count) {
-    curval = values[index];
+    current_value = values[index];
   }
 
   if (values != value_buffer) {
@@ -539,7 +537,8 @@ bool insert_keyframe_direct(ReportList *reports,
     return false;
   }
 
-  return insert_keyframe_value(reports, &ptr, prop, fcu, anim_eval_context, curval, keytype, flag);
+  return insert_keyframe_value(
+      reports, &ptr, prop, fcu, anim_eval_context, current_value, keytype, flag);
 }
 
 /** Find or create the #FCurve based on the given path, and insert the specified value into it. */
@@ -560,52 +559,52 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
    * - if we're replacing keyframes only, DO NOT create new F-Curves if they do not exist yet
    *   but still try to get the F-Curve if it exists...
    */
-  bool can_create_curve = (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;
+  const bool can_create_curve = (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;
   FCurve *fcu = can_create_curve ?
                     ED_action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
                     ED_action_fcurve_find(act, rna_path, array_index);
 
   /* we may not have a F-Curve when we're replacing only... */
-  if (fcu) {
-    const bool is_new_curve = (fcu->totvert == 0);
-
-    /* set color mode if the F-Curve is new (i.e. without any keyframes) */
-    if (is_new_curve && (flag & INSERTKEY_XYZ2RGB)) {
-      /* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
-       * is determined by the array index for the F-Curve
-       */
-      PropertySubType prop_subtype = RNA_property_subtype(prop);
-      if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
-        fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
-      }
-      else if (ELEM(prop_subtype, PROP_QUATERNION)) {
-        fcu->color_mode = FCURVE_COLOR_AUTO_YRGB;
-      }
-    }
-
-    /* If the curve has only one key, make it cyclic if appropriate. */
-    const bool is_cyclic_action = (flag & INSERTKEY_CYCLE_AWARE) && BKE_action_is_cyclic(act);
-
-    if (is_cyclic_action && fcu->totvert == 1) {
-      make_new_fcurve_cyclic(act, fcu);
-    }
-
-    /* update F-Curve flags to ensure proper behavior for property type */
-    update_autoflags_fcurve_direct(fcu, prop);
-
-    /* insert keyframe */
-    const bool success = insert_keyframe_value(
-        reports, ptr, prop, fcu, anim_eval_context, curval, keytype, flag);
-
-    /* If the curve is new, make it cyclic if appropriate. */
-    if (is_cyclic_action && is_new_curve) {
-      make_new_fcurve_cyclic(act, fcu);
-    }
-
-    return success;
+  if (!fcu) {
+    return false;
   }
 
-  return false;
+  const bool is_new_curve = (fcu->totvert == 0);
+
+  /* set color mode if the F-Curve is new (i.e. without any keyframes) */
+  if (is_new_curve && (flag & INSERTKEY_XYZ2RGB)) {
+    /* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
+     * is determined by the array index for the F-Curve
+     */
+    PropertySubType prop_subtype = RNA_property_subtype(prop);
+    if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
+      fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
+    }
+    else if (ELEM(prop_subtype, PROP_QUATERNION)) {
+      fcu->color_mode = FCURVE_COLOR_AUTO_YRGB;
+    }
+  }
+
+  /* If the curve has only one key, make it cyclic if appropriate. */
+  const bool is_cyclic_action = (flag & INSERTKEY_CYCLE_AWARE) && BKE_action_is_cyclic(act);
+
+  if (is_cyclic_action && fcu->totvert == 1) {
+    make_new_fcurve_cyclic(act, fcu);
+  }
+
+  /* update F-Curve flags to ensure proper behavior for property type */
+  update_autoflags_fcurve_direct(fcu, prop);
+
+  /* insert keyframe */
+  const bool success = insert_keyframe_value(
+      reports, ptr, prop, fcu, anim_eval_context, curval, keytype, flag);
+
+  /* If the curve is new, make it cyclic if appropriate. */
+  if (is_cyclic_action && is_new_curve) {
+    make_new_fcurve_cyclic(act, fcu);
+  }
+
+  return success;
 }
 
 int insert_keyframe(Main *bmain,
@@ -620,13 +619,6 @@ int insert_keyframe(Main *bmain,
                     ListBase *nla_cache,
                     eInsertKeyFlags flag)
 {
-  PointerRNA ptr;
-  PropertyRNA *prop = nullptr;
-  AnimData *adt;
-  ListBase tmp_nla_cache = {nullptr, nullptr};
-  NlaKeyframingContext *nla_context = nullptr;
-  int ret = 0;
-
   /* validate pointer first - exit if failure */
   if (id == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "No ID block to insert keyframe in (path = %s)", rna_path);
@@ -638,6 +630,8 @@ int insert_keyframe(Main *bmain,
     return 0;
   }
 
+  PointerRNA ptr;
+  PropertyRNA *prop = nullptr;
   PointerRNA id_ptr = RNA_id_pointer_create(id);
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
     BKE_reportf(
@@ -666,7 +660,9 @@ int insert_keyframe(Main *bmain,
   }
 
   /* apply NLA-mapping to frame to use (if applicable) */
-  adt = BKE_animdata_from_id(id);
+  NlaKeyframingContext *nla_context = nullptr;
+  ListBase tmp_nla_cache = {nullptr, nullptr};
+  AnimData *adt = BKE_animdata_from_id(id);
   const AnimationEvalContext remapped_context = nla_time_remap(
       anim_eval_context, &id_ptr, adt, act, nla_cache ? nla_cache : &tmp_nla_cache, &nla_context);
 
@@ -690,6 +686,7 @@ int insert_keyframe(Main *bmain,
                                       &successful_remaps);
 
   /* Key the entire array. */
+  int key_count = 0;
   if (array_index == -1 || force_all) {
     /* In force mode, if any of the curves succeeds, drop the replace mode and restart. */
     if (force_all && (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) != 0) {
@@ -713,7 +710,7 @@ int insert_keyframe(Main *bmain,
                                          keytype,
                                          flag))
         {
-          ret++;
+          key_count++;
           exclude = array_index;
           break;
         }
@@ -728,18 +725,18 @@ int insert_keyframe(Main *bmain,
           }
 
           if (array_index != exclude) {
-            ret += insert_keyframe_fcurve_value(bmain,
-                                                reports,
-                                                &ptr,
-                                                prop,
-                                                act,
-                                                group,
-                                                rna_path,
-                                                array_index,
-                                                &remapped_context,
-                                                values[array_index],
-                                                keytype,
-                                                flag);
+            key_count += insert_keyframe_fcurve_value(bmain,
+                                                      reports,
+                                                      &ptr,
+                                                      prop,
+                                                      act,
+                                                      group,
+                                                      rna_path,
+                                                      array_index,
+                                                      &remapped_context,
+                                                      values[array_index],
+                                                      keytype,
+                                                      flag);
           }
         }
       }
@@ -751,18 +748,18 @@ int insert_keyframe(Main *bmain,
           continue;
         }
 
-        ret += insert_keyframe_fcurve_value(bmain,
-                                            reports,
-                                            &ptr,
-                                            prop,
-                                            act,
-                                            group,
-                                            rna_path,
-                                            array_index,
-                                            &remapped_context,
-                                            values[array_index],
-                                            keytype,
-                                            flag);
+        key_count += insert_keyframe_fcurve_value(bmain,
+                                                  reports,
+                                                  &ptr,
+                                                  prop,
+                                                  act,
+                                                  group,
+                                                  rna_path,
+                                                  array_index,
+                                                  &remapped_context,
+                                                  values[array_index],
+                                                  keytype,
+                                                  flag);
       }
     }
   }
@@ -771,18 +768,18 @@ int insert_keyframe(Main *bmain,
     if (array_index >= 0 && array_index < value_count &&
         BLI_BITMAP_TEST_BOOL(successful_remaps, array_index))
     {
-      ret += insert_keyframe_fcurve_value(bmain,
-                                          reports,
-                                          &ptr,
-                                          prop,
-                                          act,
-                                          group,
-                                          rna_path,
-                                          array_index,
-                                          &remapped_context,
-                                          values[array_index],
-                                          keytype,
-                                          flag);
+      key_count += insert_keyframe_fcurve_value(bmain,
+                                                reports,
+                                                &ptr,
+                                                prop,
+                                                act,
+                                                group,
+                                                rna_path,
+                                                array_index,
+                                                &remapped_context,
+                                                values[array_index],
+                                                keytype,
+                                                flag);
     }
   }
 
@@ -793,7 +790,7 @@ int insert_keyframe(Main *bmain,
   MEM_freeN(successful_remaps);
   BKE_animsys_free_nla_keyframing_context_cache(&tmp_nla_cache);
 
-  if (ret) {
+  if (key_count > 0) {
     if (act != nullptr) {
       DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
     }
@@ -802,7 +799,7 @@ int insert_keyframe(Main *bmain,
     }
   }
 
-  return ret;
+  return key_count;
 }
 
 /* ************************************************** */
@@ -839,10 +836,6 @@ int delete_keyframe(Main *bmain,
                     float cfra)
 {
   AnimData *adt = BKE_animdata_from_id(id);
-  PointerRNA ptr;
-  PropertyRNA *prop;
-  int array_index_max = array_index + 1;
-  int ret = 0;
 
   /* sanity checks */
   if (ELEM(nullptr, id, adt)) {
@@ -851,6 +844,8 @@ int delete_keyframe(Main *bmain,
   }
 
   /* validate pointer first - exit if failure */
+  PointerRNA ptr;
+  PropertyRNA *prop;
   PointerRNA id_ptr = RNA_id_pointer_create(id);
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
     BKE_reportf(
@@ -882,6 +877,7 @@ int delete_keyframe(Main *bmain,
     }
   }
 
+  int array_index_max = array_index + 1;
   /* key entire array convenience method */
   if (array_index == -1) {
     array_index = 0;
@@ -897,6 +893,7 @@ int delete_keyframe(Main *bmain,
   }
 
   /* will only loop once unless the array index was -1 */
+  int key_count = 0;
   for (; array_index < array_index_max; array_index++) {
     FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
 
@@ -915,13 +912,13 @@ int delete_keyframe(Main *bmain,
       continue;
     }
 
-    ret += delete_keyframe_fcurve(adt, fcu, cfra);
+    key_count += delete_keyframe_fcurve(adt, fcu, cfra);
   }
-  if (ret) {
+  if (key_count) {
     deg_tag_after_keyframe_delete(bmain, id, adt);
   }
   /* return success/failure */
-  return ret;
+  return key_count;
 }
 
 /* ************************************************** */
@@ -946,10 +943,6 @@ int clear_keyframe(Main *bmain,
                    eInsertKeyFlags /*flag*/)
 {
   AnimData *adt = BKE_animdata_from_id(id);
-  PointerRNA ptr;
-  PropertyRNA *prop;
-  int array_index_max = array_index + 1;
-  int ret = 0;
 
   /* sanity checks */
   if (ELEM(nullptr, id, adt)) {
@@ -958,6 +951,8 @@ int clear_keyframe(Main *bmain,
   }
 
   /* validate pointer first - exit if failure */
+  PointerRNA ptr;
+  PropertyRNA *prop;
   PointerRNA id_ptr = RNA_id_pointer_create(id);
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
     BKE_reportf(
@@ -987,6 +982,7 @@ int clear_keyframe(Main *bmain,
   }
 
   /* key entire array convenience method */
+  int array_index_max = array_index + 1;
   if (array_index == -1) {
     array_index = 0;
     array_index_max = RNA_property_array_length(&ptr, prop);
@@ -1000,6 +996,7 @@ int clear_keyframe(Main *bmain,
     }
   }
 
+  int key_count = 0;
   /* will only loop once unless the array index was -1 */
   for (; array_index < array_index_max; array_index++) {
     FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
@@ -1022,13 +1019,13 @@ int clear_keyframe(Main *bmain,
     ANIM_fcurve_delete_from_animdata(nullptr, adt, fcu);
 
     /* return success */
-    ret++;
+    key_count++;
   }
-  if (ret) {
+  if (key_count) {
     deg_tag_after_keyframe_delete(bmain, id, adt);
   }
   /* return success/failure */
-  return ret;
+  return key_count;
 }
 
 }  // namespace blender::animrig
