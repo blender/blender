@@ -281,6 +281,7 @@ void ForwardPipeline::sync()
       inst_.bind_uniform_data(&opaque_ps_);
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.shadows.bind_resources(&opaque_ps_);
+      inst_.volume.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
       inst_.hiz_buffer.bind_resources(&opaque_ps_);
       inst_.irradiance_cache.bind_resources(&opaque_ps_);
@@ -308,9 +309,11 @@ void ForwardPipeline::sync()
     inst_.bind_uniform_data(&sub);
     inst_.lights.bind_resources(&sub);
     inst_.shadows.bind_resources(&sub);
-    inst_.volume.bind_resources(sub);
+    inst_.volume.bind_resources(&sub);
     inst_.sampling.bind_resources(&sub);
     inst_.hiz_buffer.bind_resources(&sub);
+    inst_.irradiance_cache.bind_resources(&sub);
+    inst_.reflection_probes.bind_resources(&sub);
   }
 }
 

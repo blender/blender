@@ -1089,7 +1089,7 @@ void ShadowModule::end_sync()
       inst_.hiz_buffer.bind_resources(&sub);
       inst_.sampling.bind_resources(&sub);
       inst_.lights.bind_resources(&sub);
-      inst_.volume.bind_resources(sub);
+      inst_.volume.bind_resources(&sub);
       inst_.volume.bind_properties_buffers(sub);
       sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
       sub.dispatch(math::divide_ceil(inst_.volume.grid_size(), int3(VOLUME_GROUP_SIZE)));
