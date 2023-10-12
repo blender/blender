@@ -1465,8 +1465,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
           MEM_freeN(tmp->format);
         }
 
-        /* Put new_line in the tmp->line spot
-         * still need to try and set the curc correctly. */
+        /* Put new_line in the tmp->line spot. */
         tmp->line = BLI_strdup(tmp_line);
         tmp->len = strlen(tmp_line);
         tmp->format = NULL;
@@ -1475,6 +1474,12 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 
     MEM_freeN(tmp_line);
   }
+
+  /* As the text has been manipulated, ensure the cursor us never outside the buffer bounds.
+   * Even if it is within the bounds it's possibly invalid as it may be in the middle
+   * of a multi-byte sequence. Set to zero to avoid any problems (solved properly in v4.0x). */
+  text->curc = 0;
+  text->selc = 0;
 
   text_update_edited(text);
   text_update_cursor_moved(C);
