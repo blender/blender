@@ -203,9 +203,10 @@ class SocketDeclaration : public ItemDeclaration {
   /** Utility method to make the socket available if there is a straightforward way to do so. */
   std::function<void(bNode &)> make_available_fn_;
 
+ public:
   /** Some input sockets can have non-trivial values in the case when they are unlinked. This
    * callback computes the default input of a values in geometry nodes when nothing is linked. */
-  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn_;
+  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn;
 
   friend NodeDeclarationBuilder;
   friend class BaseSocketDeclarationBuilder;
@@ -234,11 +235,6 @@ class SocketDeclaration : public ItemDeclaration {
   const CompositorInputRealizationOptions &compositor_realization_options() const;
   int compositor_domain_priority() const;
   bool compositor_expects_single_value() const;
-
-  const ImplicitInputValueFn *implicit_input_fn() const
-  {
-    return implicit_input_fn_.get();
-  }
 
  protected:
   void set_common_flags(bNodeSocket &socket) const;

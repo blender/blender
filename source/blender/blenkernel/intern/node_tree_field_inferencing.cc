@@ -508,6 +508,9 @@ static void determine_group_input_states(
       if (!is_field_socket_type(type)) {
         new_inferencing_interface.inputs[index] = InputSocketFieldType::None;
       }
+      else if (group_input->default_input != NODE_INPUT_DEFAULT_VALUE) {
+        new_inferencing_interface.inputs[index] = InputSocketFieldType::Implicit;
+      }
       else if (group_input->flag & NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY) {
         new_inferencing_interface.inputs[index] = InputSocketFieldType::None;
       }
@@ -518,8 +521,13 @@ static void determine_group_input_states(
   for (const bNode *node : tree.group_input_nodes()) {
     for (const bNodeSocket *output_socket : node->output_sockets().drop_back(1)) {
       SocketFieldState &state = field_state_by_socket_id[output_socket->index_in_tree()];
+      const int output_index = output_socket->index();
       if (state.requires_single) {
-        new_inferencing_interface.inputs[output_socket->index()] = InputSocketFieldType::None;
+        if (new_inferencing_interface.inputs[output_index] == InputSocketFieldType::Implicit) {
+          /* Don't override hard-coded implicit fields. */
+          continue;
+        }
+        new_inferencing_interface.inputs[output_index] = InputSocketFieldType::None;
       }
     }
   }

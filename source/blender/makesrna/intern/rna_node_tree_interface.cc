@@ -33,7 +33,11 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_interface.hh"
 #  include "BKE_node_tree_update.h"
+
 #  include "BLI_set.hh"
+
+#  include "BLT_translation.h"
+
 #  include "DNA_material_types.h"
 #  include "ED_node.hh"
 #  include "WM_api.hh"
@@ -384,6 +388,64 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_socket_type_itemf(
 
   return rna_node_socket_type_itemf(
       ntree->typeinfo, rna_NodeTreeInterfaceSocket_socket_type_poll, r_free);
+}
+
+static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
+    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
+{
+  const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
+  const bNodeTreeInterfaceSocket *socket = static_cast<const bNodeTreeInterfaceSocket *>(
+      ptr->data);
+  if (!ntree) {
+    return rna_enum_dummy_NULL_items;
+  }
+
+  *r_free = true;
+  EnumPropertyItem *items = nullptr;
+  int items_count = 0;
+
+  const EnumPropertyItem none{GEO_NODE_DEFAULT_INPUT_VALUE,
+                              "VALUE",
+                              0,
+                              N_("Default Value"),
+                              N_("The node socket's default value")};
+  RNA_enum_item_add(&items, &items_count, &none);
+
+  if (ntree->type == NTREE_GEOMETRY) {
+    const bNodeSocketType *type = socket->socket_typeinfo();
+    if (type->type == SOCK_INT) {
+      const EnumPropertyItem index{GEO_NODE_DEFAULT_FIELD_INPUT_INDEX_FIELD,
+                                   "INDEX",
+                                   0,
+                                   N_("Index"),
+                                   N_("The index from the context")};
+      RNA_enum_item_add(&items, &items_count, &index);
+      const EnumPropertyItem index_or_id{
+          GEO_NODE_DEFAULT_FIELD_INPUT_ID_INDEX_FIELD,
+          "ID_OR_INDEX",
+          0,
+          N_("ID or Index"),
+          N_("The \"id\" attribute if available, otherwise the index")};
+      RNA_enum_item_add(&items, &items_count, &index_or_id);
+    }
+    else if (type->type == SOCK_VECTOR) {
+      const EnumPropertyItem normal{GEO_NODE_DEFAULT_FIELD_INPUT_NORMAL_FIELD,
+                                    "NORMAL",
+                                    0,
+                                    N_("Normal"),
+                                    N_("The geometry's normal direction")};
+      RNA_enum_item_add(&items, &items_count, &normal);
+      const EnumPropertyItem position{GEO_NODE_DEFAULT_FIELD_INPUT_POSITION_FIELD,
+                                      "POSITION",
+                                      0,
+                                      N_("Position"),
+                                      N_("The position from the context")};
+      RNA_enum_item_add(&items, &items_count, &position);
+    }
+  }
+
+  RNA_enum_item_end(&items, &items_count);
+  return items;
 }
 
 static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_attribute_domain_itemf(
@@ -954,6 +1016,15 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
                            "Default Attribute",
                            "The attribute name used by default when the node group is used by a "
                            "geometry nodes modifier");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
+  prop = RNA_def_property(srna, "default_input", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
+  RNA_def_property_ui_text(prop,
+                           "Default Input",
+                           "Input to use when the socket is unconnected. Requires \"Hide Value\"");
+  RNA_def_property_enum_funcs(
+      prop, nullptr, nullptr, "rna_NodeTreeInterfaceSocket_default_input_itemf");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
   /* Registered properties and functions for custom socket types. */
