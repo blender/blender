@@ -60,7 +60,7 @@ float lightprobe_planar_score(ProbePlanarData planar, vec3 P, vec3 V, vec3 L)
 
 #ifdef PLANAR_PROBES
 /**
- * Return the best planar probe index for a given light direction vector and postion.
+ * Return the best planar probe index for a given light direction vector and position.
  */
 int lightprobe_planar_select(vec3 P, vec3 V, vec3 L)
 {
