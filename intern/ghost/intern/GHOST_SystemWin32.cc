@@ -1134,7 +1134,9 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
        * every motion, see: D16558 (alternative fix for #102346). */
 
       /* Rather than adjust the bounds, use a margin based on the bounds width. */
-      int32_t bounds_margin = bounds.getWidth() / 10;
+      int32_t bounds_margin = (window->getCursorGrabMode() == GHOST_kGrabHide) ?
+                                  bounds.getWidth() / 10 :
+                                  2;
       GHOST_TAxisFlag bounds_axis = window->getCursorGrabAxis();
 
       /* Could also clamp to screen bounds wrap with a window outside the view will
