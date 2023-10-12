@@ -1113,6 +1113,19 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     ss << "layout(early_fragment_tests) in;\n";
   }
   ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
+
+  ss << "\n/* Sub-pass Inputs. */\n";
+  for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+    /* Declare global for input. */
+    ss << to_string(input.type) << " " << input.name << ";\n";
+
+    std::stringstream ss_pre;
+    /* Populate the global before main. */
+    ss_pre << "  " << input.name << " = " << to_string(input.type) << "(0);\n";
+
+    pre_main += ss_pre.str();
+  }
+
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
     ss << "layout(location = " << output.index;
