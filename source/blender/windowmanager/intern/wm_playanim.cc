@@ -823,6 +823,12 @@ static void build_pict_list_from_anim(GhostData *ghost_data,
     picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
     BLI_addtail(&picsbase, picture);
   }
+
+  const PlayAnimPict *picture = (const PlayAnimPict *)picsbase.last;
+  if (!(picture && picture->anim == anim)) {
+    IMB_close_anim(anim);
+    CLOG_WARN(&LOG, "no frames added for: '%s'", filepath_first);
+  }
 }
 
 static void build_pict_list_from_image_sequence(GhostData *ghost_data,
