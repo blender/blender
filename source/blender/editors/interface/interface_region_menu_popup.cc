@@ -623,7 +623,7 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
   handle->can_refresh = true;
 
   if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
-      ED_workspace_status_text(C, TIP_("Type to search..."));
+    ED_workspace_status_text(C, TIP_("Type to search..."));
   }
   else if (mt->idname[0]) {
     ED_workspace_status_text(C, TIP_("Press spacebar to search..."));

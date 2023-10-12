@@ -10771,7 +10771,7 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_YKEY:
         case EVT_ZKEY:
         case EVT_SPACEKEY: {
-            if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
+          if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0) &&
               /* Only respond to explicit press to avoid the event that opened the menu
                * activating an item when the key is held. */
@@ -10781,8 +10781,7 @@ static int ui_handle_menu_event(bContext *C,
             /* Menu search if spacebar or SearchOnKeyPress. */
             MenuType *mt = WM_menutype_find(menu->menu_idname, false);
             if ((mt && bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) ||
-                event->type == EVT_SPACEKEY)
-            {
+                event->type == EVT_SPACEKEY) {
               if ((level != 0) && (but == nullptr || !menu->menu_idname[0])) {
                 /* Search parent if the child is open but not activated or not searchable. */
                 menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
@@ -10794,8 +10793,7 @@ static int ui_handle_menu_event(bContext *C,
             }
 
             if (ui_menu_pass_event_to_parent_if_nonactive(
-                    menu, but, level, is_parent_menu, retval))
-            {
+                    menu, but, level, is_parent_menu, retval)) {
               break;
             }
 
