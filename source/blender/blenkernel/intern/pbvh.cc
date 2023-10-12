@@ -1963,6 +1963,11 @@ blender::Span<int> BKE_pbvh_node_get_vert_indices(PBVHNode *node)
   return node->vert_indices;
 }
 
+blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(PBVHNode *node)
+{
+  return node->vert_indices.as_span().take_front(node->uniq_verts);
+}
+
 void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int *r_totvert)
 {
   int tot;

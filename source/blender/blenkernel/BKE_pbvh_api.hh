@@ -405,6 +405,7 @@ void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              CCGElem ***r_griddata);
 void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int *r_totvert);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(PBVHNode *node);
+blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(PBVHNode *node);
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,

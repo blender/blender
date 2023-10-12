@@ -1505,11 +1505,10 @@ static void paint_mesh_restore_node(Object *ob,
     case SCULPT_UNDO_MASK: {
       switch (BKE_pbvh_type(ss->pbvh)) {
         case PBVH_FACES: {
-          PBVHVertexIter vd;
-          BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-            mask_write.layer[vd.index] = unode->mask[vd.i];
+          const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+          for (const int i : verts.index_range()) {
+            mask_write.layer[verts[i]] = unode->mask[i];
           }
-          BKE_pbvh_vertex_iter_end;
           break;
         }
         case PBVH_BMESH: {
