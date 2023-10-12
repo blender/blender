@@ -96,7 +96,7 @@ static void node_geo_exec(GeoNodeExecParams params)
             bke::CurvesGeometry dst_curves = geometry::resample_to_count(
                 src_curves, field_context, selection, count);
             drawing->strokes_for_write() = std::move(dst_curves);
-            drawing->tag_positions_changed();
+            drawing->tag_topology_changed();
           }
         }
       });
@@ -129,7 +129,7 @@ static void node_geo_exec(GeoNodeExecParams params)
             bke::CurvesGeometry dst_curves = geometry::resample_to_length(
                 src_curves, field_context, selection, length);
             drawing->strokes_for_write() = std::move(dst_curves);
-            drawing->tag_positions_changed();
+            drawing->tag_topology_changed();
           }
         }
       });
