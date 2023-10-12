@@ -322,7 +322,7 @@ void main(void)
   bool end_endcap = (gpencil_stroke_data.caps_end != GPENCIL_FLATCAP) && is_equal(P1, P3);
 
   switch (output_prim_triangle_id) {
-    /* -- Start end cap. -*/
+    /* -- Start: end cap. -*/
     case 1:
       EMIT_VERTEX_COND(vertex_in_triangle, start_endcap, V3, V4, V5)
     case 2:
@@ -334,7 +334,7 @@ void main(void)
       EMIT_VERTEX(vertex_in_triangle, V6, V7, V8)
     case 5:
       EMIT_VERTEX(vertex_in_triangle, V7, V8, V9)
-    /* -- End end cap. -- */
+    /* -- End: end cap. -- */
     case 6:
       EMIT_VERTEX_COND(vertex_in_triangle, end_endcap, V8, V9, V10)
     case 7:

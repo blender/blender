@@ -10325,7 +10325,7 @@ static int ui_handle_menu_letter_press_search(uiPopupBlockHandle *menu, const wm
     WM_operator_properties_create_ptr(after->opptr, ot);
     RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
     if (event->type != EVT_SPACEKEY) {
-      /* Forward all keys except spacebar to the search. */
+      /* Forward all keys except space-bar to the search. */
       const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
       if (num_bytes != -1) {
         char buf[sizeof(event->utf8_buf) + 1];
