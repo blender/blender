@@ -29,6 +29,7 @@ class ComponentAttributeProviders;
 class CurvesEditHints;
 class Instances;
 class GeometryComponent;
+class GreasePencilEditHints;
 }  // namespace blender::bke
 
 namespace blender::bke {
@@ -668,6 +669,10 @@ class GeometryComponentEditData final : public GeometryComponent {
    * example, when the curves have been converted to a mesh.
    */
   std::unique_ptr<CurvesEditHints> curves_edit_hints_;
+  /**
+   * Information about how drawings on the grease pencil layers are manipulated during evaluation.
+   */
+  std::unique_ptr<GreasePencilEditHints> grease_pencil_edit_hints_;
 
   GeometryComponentEditData();
 
@@ -683,7 +688,7 @@ class GeometryComponentEditData final : public GeometryComponent {
    * lost, which would make curves sculpt mode fall back to using original curve positions instead
    * of deformed ones.
    */
-  static void remember_deformed_curve_positions_if_necessary(GeometrySet &geometry);
+  static void remember_deformed_positions_if_necessary(GeometrySet &geometry);
 
   static constexpr inline GeometryComponent::Type static_type = GeometryComponent::Type::Edit;
 };

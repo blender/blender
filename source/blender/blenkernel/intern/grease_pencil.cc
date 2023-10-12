@@ -1183,6 +1183,14 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
   grease_pencil->runtime->eval_frame = int(DEG_get_ctime(depsgraph));
   GeometrySet geometry_set = GeometrySet::from_grease_pencil(grease_pencil,
                                                              GeometryOwnershipType::ReadOnly);
+  /* Only add the edit hint component in edit mode for now so users can properly select deformed
+   * drawings. */
+  if (object->mode == OB_MODE_EDIT) {
+    GeometryComponentEditData &edit_component =
+        geometry_set.get_component_for_write<GeometryComponentEditData>();
+    edit_component.grease_pencil_edit_hints_ = std::make_unique<GreasePencilEditHints>(
+        *static_cast<const GreasePencil *>(DEG_get_original_object(object)->data));
+  }
   grease_pencil_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   if (!geometry_set.has_grease_pencil()) {
@@ -1761,56 +1769,17 @@ enum ForeachDrawingMode {
 };
 
 static void foreach_drawing_ex(
-    GreasePencil &grease_pencil,
-    const int frame,
-    const ForeachDrawingMode mode,
-    blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
-{
-  using namespace blender::bke::greasepencil;
-
-  blender::Span<GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
-  for (const Layer *layer : grease_pencil.layers()) {
-    switch (mode) {
-      case VISIBLE: {
-        if (!layer->is_visible()) {
-          continue;
-        }
-        break;
-      }
-      case EDITABLE: {
-        if (!layer->is_editable()) {
-          continue;
-        }
-        break;
-      }
-    }
-
-    int index = layer->drawing_index_at(frame);
-    if (index == -1) {
-      continue;
-    }
-    GreasePencilDrawingBase *drawing_base = drawings[index];
-    if (drawing_base->type == GP_DRAWING) {
-      GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-      function(index, drawing->wrap());
-    }
-    else if (drawing_base->type == GP_DRAWING_REFERENCE) {
-      /* TODO: Drawing references are not implemented yet. */
-      BLI_assert_unreachable();
-    }
-  }
-}
-
-static void foreach_drawing_ex(
     const GreasePencil &grease_pencil,
     const int frame,
     const ForeachDrawingMode mode,
-    blender::FunctionRef<void(int, const blender::bke::greasepencil::Drawing &)> function)
+    blender::FunctionRef<void(const int, const blender::bke::greasepencil::Drawing &)> function)
 {
   using namespace blender::bke::greasepencil;
 
   blender::Span<const GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
-  for (const Layer *layer : grease_pencil.layers()) {
+  blender::Span<const Layer *> layers = grease_pencil.layers();
+  for (const int layer_i : layers.index_range()) {
+    const Layer *layer = layers[layer_i];
     switch (mode) {
       case VISIBLE: {
         if (!layer->is_visible()) {
@@ -1834,7 +1803,7 @@ static void foreach_drawing_ex(
     if (drawing_base->type == GP_DRAWING) {
       const GreasePencilDrawing *drawing = reinterpret_cast<const GreasePencilDrawing *>(
           drawing_base);
-      function(index, drawing->wrap());
+      function(layer_i, drawing->wrap());
     }
     else if (drawing_base->type == GP_DRAWING_REFERENCE) {
       /* TODO: Drawing references are not implemented yet. */
@@ -1845,23 +1814,38 @@ static void foreach_drawing_ex(
 
 void GreasePencil::foreach_visible_drawing(
     const int frame,
-    blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
+    blender::FunctionRef<void(const int, blender::bke::greasepencil::Drawing &)> function)
 {
-  foreach_drawing_ex(*this, frame, VISIBLE, function);
+  foreach_drawing_ex(
+      *this,
+      frame,
+      VISIBLE,
+      [&](const int layer_index, const blender::bke::greasepencil::Drawing &drawing) {
+        /* We const_cast here to be able to implement `foreach_drawing_ex` only once. */
+        function(layer_index, const_cast<blender::bke::greasepencil::Drawing &>(drawing));
+      });
 }
 
 void GreasePencil::foreach_visible_drawing(
     const int frame,
-    blender::FunctionRef<void(int, const blender::bke::greasepencil::Drawing &)> function) const
+    blender::FunctionRef<void(const int, const blender::bke::greasepencil::Drawing &)> function)
+    const
 {
   foreach_drawing_ex(*this, frame, VISIBLE, function);
 }
 
 void GreasePencil::foreach_editable_drawing(
     const int frame,
-    blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
+    blender::FunctionRef<void(const int, blender::bke::greasepencil::Drawing &)> function)
 {
-  foreach_drawing_ex(*this, frame, EDITABLE, function);
+  foreach_drawing_ex(
+      *this,
+      frame,
+      EDITABLE,
+      [&](const int layer_index, const blender::bke::greasepencil::Drawing &drawing) {
+        /* We const_cast here to be able to implement `foreach_drawing_ex` only once. */
+        function(layer_index, const_cast<blender::bke::greasepencil::Drawing &>(drawing));
+      });
 }
 
 std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max() const
@@ -1870,7 +1854,7 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max() c
   std::optional<Bounds<float3>> bounds;
   this->foreach_visible_drawing(
       this->runtime->eval_frame,
-      [&](int /*drawing_index*/, const bke::greasepencil::Drawing &drawing) {
+      [&](const int /*layer_index*/, const bke::greasepencil::Drawing &drawing) {
         const bke::CurvesGeometry &curves = drawing.strokes();
         bounds = bounds::merge(bounds, curves.bounds_min_max());
       });

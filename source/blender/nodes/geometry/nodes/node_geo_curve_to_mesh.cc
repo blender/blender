@@ -35,7 +35,7 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
   const Curves &curves = *geometry_set.get_curves();
   const Curves *profile_curves = profile_set.get_curves();
 
-  bke::GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
+  bke::GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
   if (profile_curves == nullptr) {
     Mesh *mesh = bke::curve_to_wire_mesh(curves.geometry.wrap(), propagation_info);

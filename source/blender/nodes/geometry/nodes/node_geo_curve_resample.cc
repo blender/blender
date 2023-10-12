@@ -66,7 +66,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
 
-  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
+  GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
   switch (mode) {
     case GEO_NODE_CURVE_RESAMPLE_COUNT: {

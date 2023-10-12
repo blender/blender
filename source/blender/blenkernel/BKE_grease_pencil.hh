@@ -666,6 +666,30 @@ class GreasePencilRuntime {
   ~GreasePencilRuntime() {}
 };
 
+class GreasePencilDrawingEditHints {
+ public:
+  std::optional<Array<float3>> positions;
+};
+
+/**
+ * Used to propagate deformation data through modifier evaluation.
+ */
+class GreasePencilEditHints {
+ public:
+  /**
+   * Original data that the edit hints below are meant to be used for.
+   */
+  const GreasePencil &grease_pencil_id_orig;
+
+  GreasePencilEditHints(const GreasePencil &grease_pencil_id_orig) : grease_pencil_id_orig(grease_pencil_id_orig) {}
+
+  /**
+   * Array of #GreasePencilDrawingEditHints. There is one edit hint for each evaluated drawing.
+   * Note: The index for each element is the layer index.
+   */
+  std::optional<Array<GreasePencilDrawingEditHints>> drawing_hints;
+};
+
 }  // namespace blender::bke
 
 inline blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap()

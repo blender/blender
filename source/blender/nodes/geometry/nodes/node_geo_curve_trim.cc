@@ -207,7 +207,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
+  GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
   const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
       "Curve");

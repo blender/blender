@@ -1192,10 +1192,10 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
-      vc->scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
+      vc->scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
         bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, drawing_index);
+                ob_eval, *vc->obedit, layer_index);
 
         changed = ed::curves::select_lasso(
             *vc,
@@ -3171,11 +3171,11 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obedit->data);
   Vector<blender::bke::greasepencil::Drawing *> drawings;
-  Vector<int> drawing_indices;
+  Vector<int> layer_indices;
   grease_pencil.foreach_editable_drawing(
-      vc.scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
+      vc.scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
         drawings.append(&drawing);
-        drawing_indices.append(drawing_index);
+        layer_indices.append(layer_index);
       });
 
   /* Get selection domain from tool settings. */
@@ -3191,7 +3191,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           /* Get deformation by modifiers. */
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                  ob_eval, *vc.obedit, drawing_indices[i]);
+                  ob_eval, *vc.obedit, layer_indices[i]);
           std::optional<ed::curves::FindClosestData> new_closest_elem =
               ed::curves::closest_elem_find_screen_space(vc,
                                                          *vc.obedit,
@@ -4194,10 +4194,10 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
         bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, drawing_index);
+                ob_eval, *vc->obedit, layer_index);
         changed |= ed::curves::select_box(*vc,
                                           drawing.strokes_for_write(),
                                           deformation.positions,
@@ -5042,10 +5042,10 @@ static bool grease_pencil_circle_select(ViewContext *vc,
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
-      vc->scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
+      vc->scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
         bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, drawing_index);
+                ob_eval, *vc->obedit, layer_index);
 
         changed = ed::curves::select_circle(*vc,
                                             drawing.strokes_for_write(),

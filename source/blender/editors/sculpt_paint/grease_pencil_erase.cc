@@ -747,13 +747,13 @@ struct EraseOperationExecutor {
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
 
     bool changed = false;
-    const auto execute_eraser_on_drawing = [&](int drawing_index, Drawing &drawing) {
+    const auto execute_eraser_on_drawing = [&](const int layer_index, Drawing &drawing) {
       const bke::CurvesGeometry &src = drawing.strokes();
 
       /* Evaluated geometry. */
       bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              ob_eval, *obact, drawing_index);
+              ob_eval, *obact, layer_index);
 
       /* Compute screen space positions. */
       Array<float2> screen_space_positions(src.points_num());
