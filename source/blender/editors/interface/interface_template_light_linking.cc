@@ -117,8 +117,10 @@ class ReorderCollectionDropTarget : public TreeViewItemDropTarget {
   const ID &drop_id_;
 
  public:
-  ReorderCollectionDropTarget(AbstractTreeView &view, Collection &collection, const ID &drop_id)
-      : TreeViewItemDropTarget(view, DropBehavior::Reorder),
+  ReorderCollectionDropTarget(AbstractTreeViewItem &item,
+                              Collection &collection,
+                              const ID &drop_id)
+      : TreeViewItemDropTarget(item, DropBehavior::Reorder),
         collection_target_(collection),
         drop_id_(drop_id)
   {
@@ -253,7 +255,7 @@ class CollectionViewItem : public BasicTreeViewItem {
 
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
   {
-    return std::make_unique<ReorderCollectionDropTarget>(get_tree_view(), collection_, id_);
+    return std::make_unique<ReorderCollectionDropTarget>(*this, collection_, id_);
   }
 
  private:

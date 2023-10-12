@@ -39,6 +39,8 @@ struct wmDragNodeTreeInterface {
 
 namespace {
 
+class NodePanelViewItem;
+class NodeSocketViewItem;
 class NodeTreeInterfaceView;
 
 class NodeTreeInterfaceDragController : public AbstractViewItemDragController {
@@ -60,7 +62,7 @@ class NodeSocketDropTarget : public TreeViewItemDropTarget {
   bNodeTreeInterfaceSocket &socket_;
 
  public:
-  explicit NodeSocketDropTarget(NodeTreeInterfaceView &view, bNodeTreeInterfaceSocket &socket);
+  explicit NodeSocketDropTarget(NodeSocketViewItem &item, bNodeTreeInterfaceSocket &socket);
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
   std::string drop_tooltip(const DragInfo &drag_info) const override;
@@ -75,7 +77,7 @@ class NodePanelDropTarget : public TreeViewItemDropTarget {
   bNodeTreeInterfacePanel &panel_;
 
  public:
-  explicit NodePanelDropTarget(NodeTreeInterfaceView &view, bNodeTreeInterfacePanel &panel);
+  explicit NodePanelDropTarget(NodePanelViewItem &item, bNodeTreeInterfacePanel &panel);
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
   std::string drop_tooltip(const DragInfo &drag_info) const override;
@@ -285,8 +287,7 @@ std::unique_ptr<AbstractViewItemDragController> NodeSocketViewItem::create_drag_
 
 std::unique_ptr<TreeViewItemDropTarget> NodeSocketViewItem::create_drop_target()
 {
-  return std::make_unique<NodeSocketDropTarget>(
-      static_cast<NodeTreeInterfaceView &>(this->get_tree_view()), socket_);
+  return std::make_unique<NodeSocketDropTarget>(*this, socket_);
 }
 
 std::unique_ptr<AbstractViewItemDragController> NodePanelViewItem::create_drag_controller() const
@@ -297,8 +298,7 @@ std::unique_ptr<AbstractViewItemDragController> NodePanelViewItem::create_drag_c
 
 std::unique_ptr<TreeViewItemDropTarget> NodePanelViewItem::create_drop_target()
 {
-  return std::make_unique<NodePanelDropTarget>(
-      static_cast<NodeTreeInterfaceView &>(this->get_tree_view()), panel_);
+  return std::make_unique<NodePanelDropTarget>(*this, panel_);
 }
 
 NodeTreeInterfaceDragController::NodeTreeInterfaceDragController(NodeTreeInterfaceView &view,
@@ -319,9 +319,9 @@ void *NodeTreeInterfaceDragController::create_drag_data() const
   return drag_data;
 }
 
-NodeSocketDropTarget::NodeSocketDropTarget(NodeTreeInterfaceView &view,
+NodeSocketDropTarget::NodeSocketDropTarget(NodeSocketViewItem &item,
                                            bNodeTreeInterfaceSocket &socket)
-    : TreeViewItemDropTarget(view, DropBehavior::Reorder), socket_(socket)
+    : TreeViewItemDropTarget(item, DropBehavior::Reorder), socket_(socket)
 {
 }
 
@@ -402,9 +402,8 @@ wmDragNodeTreeInterface *NodeSocketDropTarget::get_drag_node_tree_declaration(
   return static_cast<wmDragNodeTreeInterface *>(drag.poin);
 }
 
-NodePanelDropTarget::NodePanelDropTarget(NodeTreeInterfaceView &view,
-                                         bNodeTreeInterfacePanel &panel)
-    : TreeViewItemDropTarget(view, DropBehavior::ReorderAndInsert), panel_(panel)
+NodePanelDropTarget::NodePanelDropTarget(NodePanelViewItem &item, bNodeTreeInterfacePanel &panel)
+    : TreeViewItemDropTarget(item, DropBehavior::ReorderAndInsert), panel_(panel)
 {
 }
 
