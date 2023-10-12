@@ -225,6 +225,13 @@ static void wm_software_cursor_motion_clear(void)
   g_software_cursor.xy[1] = -1;
 }
 
+static void wm_software_cursor_motion_clear_with_window(const wmWindow *win)
+{
+  if (g_software_cursor.winid == win->winid) {
+    wm_software_cursor_motion_clear();
+  }
+}
+
 static void wm_software_cursor_draw_bitmap(const int event_xy[2],
                                            const GHOST_CursorBitmapRef *bitmap)
 {
@@ -1108,7 +1115,8 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
       wm_software_cursor_motion_update(win);
     }
     else {
-      wm_software_cursor_motion_clear();
+      /* Checking the window is needed so one window doesn't clear the cursor state of another. */
+      wm_software_cursor_motion_clear_with_window(win);
     }
   }
 
@@ -1437,7 +1445,7 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
     else {
       /* Detect the edge case when the previous draw used the software cursor but this one doesn't,
        * it's important to redraw otherwise the software cursor will remain displayed. */
-      if (g_software_cursor.winid != -1) {
+      if (g_software_cursor.winid == win->winid) {
         return true;
       }
     }
