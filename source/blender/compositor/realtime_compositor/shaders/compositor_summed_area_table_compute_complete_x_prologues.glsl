@@ -24,7 +24,7 @@ void main()
       /* Note that the first row of sums is the result of summing the prologues of a virtual block
        * that is before the first row of blocks and we assume that those prologues are all zeros,
        * so we set the sum to zero in that case. This is implemented by setting the sums of the
-       * first vertical work-group to zero, white latter work-groups are summed as as usual and
+       * first vertical work-group to zero, white latter work-groups are summed as usual and
        * stored starting from the second row. */
       imageStore(complete_x_prologues_sum_img, ivec2(y, 0), vec4(0.0));
     }

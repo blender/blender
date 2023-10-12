@@ -953,8 +953,9 @@ static void build_pict_list(GhostData *ghost_data,
   bool do_image_load = false;
   if (IMB_isanim(filepath_first)) {
     build_pict_list_from_anim(ghost_data, display_ctx, filepath_first, frame_offset);
+
     if (picsbase.last == picture_last) {
-      /* FFMPEG detected JPEG200 as a video which would load with zero duration.
+      /* FFMPEG detected JPEG2000 as a video which would load with zero duration.
        * Resolve this by using images as a fallback when a video file has no frames to display. */
       do_image_load = true;
     }

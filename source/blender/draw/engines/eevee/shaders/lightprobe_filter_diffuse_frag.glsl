@@ -111,7 +111,7 @@ void main()
   FragColor = vec4(sh, 1.0);
 #else
 #  if defined(IRRADIANCE_HL2)
-  /* Downside: very very low resolution (6 texels), bleed lighting because of interpolation */
+  /* Downside: extremely low resolution (6 texels), bleed lighting because of interpolation */
   int x = int(gl_FragCoord.x) % 3;
   int y = int(gl_FragCoord.y) % 2;
 

@@ -806,7 +806,7 @@ bool match_slope_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float
   const BezTriple *reference_key;
 
   if (factor >= 0) {
-    /* Stop the function if there is no key beyond the the right neighboring one. */
+    /* Stop the function if there is no key beyond the right neighboring one. */
     if (segment->start_index + segment->length >= fcu->totvert - 1) {
       return false;
     }
