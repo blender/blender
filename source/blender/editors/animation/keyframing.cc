@@ -700,7 +700,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   }
 
   /* try to insert keyframes for the channels specified by KeyingSet */
-  num_channels = ANIM_apply_keyingset(C, nullptr, nullptr, ks, MODIFYKEY_MODE_INSERT, cfra);
+  num_channels = ANIM_apply_keyingset(C, nullptr, ks, MODIFYKEY_MODE_INSERT, cfra);
   if (G.debug & G_DEBUG) {
     BKE_reportf(op->reports,
                 RPT_INFO,
@@ -909,7 +909,7 @@ static int delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *k
   const bool confirm = op->flag & OP_IS_INVOKE;
 
   /* try to delete keyframes for the channels specified by KeyingSet */
-  num_channels = ANIM_apply_keyingset(C, nullptr, nullptr, ks, MODIFYKEY_MODE_DELETE, cfra);
+  num_channels = ANIM_apply_keyingset(C, nullptr, ks, MODIFYKEY_MODE_DELETE, cfra);
   if (G.debug & G_DEBUG) {
     printf("KeyingSet '%s' - Successfully removed %d Keyframes\n", ks->name, num_channels);
   }
@@ -1769,8 +1769,7 @@ bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks
      * 3) Free the extra info.
      */
     ANIM_relative_keyingset_add_source(&dsources, &ob->id, nullptr, nullptr);
-    ANIM_apply_keyingset(
-        C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
+    ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
     BLI_freelistN(&dsources);
 
     return true;
@@ -1790,8 +1789,7 @@ bool ED_autokeyframe_pchan(
      * 3) Free the extra info.
      */
     ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan);
-    ANIM_apply_keyingset(
-        C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
+    ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
     BLI_freelistN(&dsources);
 
     return true;

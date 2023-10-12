@@ -1227,8 +1227,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
         KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 
         /* insert keyframes */
-        ANIM_apply_keyingset(
-            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
+        ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
 
         /* now recalculate paths */
         if (ob_iter->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {

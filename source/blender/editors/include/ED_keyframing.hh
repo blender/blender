@@ -221,8 +221,7 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, Keyi
  * \returns the number of channels that key-frames were added or
  * an #eModifyKey_Returns value (always a negative number).
  */
-int ANIM_apply_keyingset(
-    bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra);
+int ANIM_apply_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks, short mode, float cfra);
 
 /* -------- */
 

@@ -292,7 +292,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
   }
 
   /* insert keyframes for all relevant bones in one go */
-  ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, cframe);
+  ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, cframe);
   BLI_freelistN(&dsources);
 
   /* do the bone paths

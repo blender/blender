@@ -1040,8 +1040,7 @@ static eInsertKeyFlags keyingset_apply_keying_flags(const eInsertKeyFlags base_f
   return result;
 }
 
-int ANIM_apply_keyingset(
-    bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+int ANIM_apply_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks, short mode, float cfra)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -1146,7 +1145,7 @@ int ANIM_apply_keyingset(
         num_channels += blender::animrig::insert_keyframe(bmain,
                                                           reports,
                                                           ksp->id,
-                                                          act,
+                                                          nullptr,
                                                           groupname,
                                                           ksp->rna_path,
                                                           i,
@@ -1157,7 +1156,7 @@ int ANIM_apply_keyingset(
       }
       else if (mode == MODIFYKEY_MODE_DELETE) {
         num_channels += blender::animrig::delete_keyframe(
-            bmain, reports, ksp->id, act, ksp->rna_path, i, cfra);
+            bmain, reports, ksp->id, nullptr, ksp->rna_path, i, cfra);
       }
     }
 

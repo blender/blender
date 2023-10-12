@@ -652,11 +652,11 @@ bool ED_view3d_camera_autokey(
      */
     if (do_rotate) {
       KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
-      ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
     if (do_translate) {
       KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
-      ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
 
     /* free temp data */
