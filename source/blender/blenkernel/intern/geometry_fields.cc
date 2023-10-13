@@ -303,7 +303,7 @@ GVArray CurvesFieldInput::get_varray_for_context(const fn::FieldContext &context
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
           &context))
   {
-    if (const CurvesGeometry *curves = geometry_context->curves()) {
+    if (const CurvesGeometry *curves = geometry_context->curves_or_strokes()) {
       return this->get_varray_for_context(*curves, geometry_context->domain(), mask);
     }
   }
