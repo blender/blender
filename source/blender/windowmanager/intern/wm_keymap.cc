@@ -83,7 +83,7 @@ static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
   return kmin;
 }
 
-static void wm_keymap_item_free(wmKeyMapItem *kmi)
+static void wm_keymap_item_free_data(wmKeyMapItem *kmi)
 {
   /* not kmi itself */
   if (kmi->ptr) {
@@ -138,7 +138,7 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
     }
     else {
       /* zombie keymap item */
-      wm_keymap_item_free(kmi);
+      wm_keymap_item_free_data(kmi);
     }
   }
 }
@@ -242,11 +242,11 @@ static wmKeyMapDiffItem *wm_keymap_diff_item_copy(wmKeyMapDiffItem *kmdi)
 static void wm_keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
 {
   if (kmdi->remove_item) {
-    wm_keymap_item_free(kmdi->remove_item);
+    wm_keymap_item_free_data(kmdi->remove_item);
     MEM_freeN(kmdi->remove_item);
   }
   if (kmdi->add_item) {
-    wm_keymap_item_free(kmdi->add_item);
+    wm_keymap_item_free_data(kmdi->add_item);
     MEM_freeN(kmdi->add_item);
   }
 }
@@ -425,7 +425,7 @@ void WM_keymap_clear(wmKeyMap *keymap)
   }
 
   LISTBASE_FOREACH_MUTABLE (wmKeyMapItem *, kmi, &keymap->items) {
-    wm_keymap_item_free(kmi);
+    wm_keymap_item_free_data(kmi);
     MEM_freeN(kmi);
   }
 
@@ -710,7 +710,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 
     /* remove item */
     if (kmi_remove) {
-      wm_keymap_item_free(kmi_remove);
+      wm_keymap_item_free_data(kmi_remove);
       BLI_freelinkN(&km->items, kmi_remove);
     }
   }
