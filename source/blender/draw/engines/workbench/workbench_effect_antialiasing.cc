@@ -166,8 +166,6 @@ void AntiAliasingPass::sync(const SceneState &scene_state, SceneResources &resou
   sample0_depth_tx_.ensure_2d(GPU_DEPTH24_STENCIL8,
                               scene_state.resolution,
                               GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-  sample0_depth_in_front_tx_.ensure_2d(
-      GPU_DEPTH24_STENCIL8, scene_state.resolution, GPU_TEXTURE_USAGE_ATTACHMENT);
 
   taa_accumulation_ps_.init();
   taa_accumulation_ps_.state_set(scene_state.sample == 0 ?
@@ -257,7 +255,8 @@ void AntiAliasingPass::setup_view(View &view, const SceneState &scene_state)
 void AntiAliasingPass::draw(Manager &manager,
                             View &view,
                             const SceneState &scene_state,
-                            SceneResources &resources)
+                            SceneResources &resources,
+                            GPUTexture *depth_in_front_tx)
 {
   if (resources.depth_in_front_tx.is_valid() && scene_state.sample == 0 &&
       scene_state.overlays_enabled)
@@ -278,14 +277,19 @@ void AntiAliasingPass::draw(Manager &manager,
     if (scene_state.sample == 0) {
       GPU_texture_copy(sample0_depth_tx_, resources.depth_tx);
       if (resources.depth_in_front_tx.is_valid()) {
+        sample0_depth_in_front_tx_.ensure_2d(
+            GPU_DEPTH24_STENCIL8, scene_state.resolution, GPU_TEXTURE_USAGE_ATTACHMENT);
         GPU_texture_copy(sample0_depth_in_front_tx_, resources.depth_in_front_tx);
+      }
+      else {
+        sample0_depth_in_front_tx_.free();
       }
     }
     else if (!DRW_state_is_scene_render() || last_sample) {
       /* Copy back the saved depth buffer for correct overlays. */
       GPU_texture_copy(resources.depth_tx, sample0_depth_tx_);
-      if (resources.depth_in_front_tx.is_valid()) {
-        GPU_texture_copy(resources.depth_in_front_tx, sample0_depth_in_front_tx_);
+      if (sample0_depth_in_front_tx_.is_valid()) {
+        GPU_texture_copy(depth_in_front_tx, sample0_depth_in_front_tx_);
       }
     }
   }
