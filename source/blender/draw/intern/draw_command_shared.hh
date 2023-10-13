@@ -42,7 +42,6 @@ struct DrawGroup {
   uint total_counter;
 
 #ifndef GPU_SHADER
-
   /* NOTE: Union just to make sure the struct has always the same size on all platform. */
   union {
     struct {
@@ -51,18 +50,12 @@ struct DrawGroup {
       uint back_proto_len;
       /** Needed to create the correct draw call. */
       GPUBatch *gpu_batch;
-#  ifdef WITH_METAL_BACKEND
-      GPUShader *gpu_shader;
-#  endif
     };
     struct {
 #endif
       uint front_facing_counter;
       uint back_facing_counter;
       uint _pad0, _pad1;
-#if defined(WITH_METAL_BACKEND) || defined(GPU_METAL)
-      uint _pad2, _pad3, _pad4, _pad5;
-#endif
 #ifndef GPU_SHADER
     };
   };

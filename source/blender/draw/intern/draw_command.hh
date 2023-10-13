@@ -302,11 +302,6 @@ struct Draw {
   uint vertex_len;
   uint vertex_first;
   ResourceHandle handle;
-#ifdef WITH_METAL_BACKEND
-  /* Shader is required for extracting SSBO vertex fetch expansion parameters during draw command
-   * generation. */
-  GPUShader *shader;
-#endif
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
@@ -416,7 +411,7 @@ union Undetermined {
 };
 
 /** Try to keep the command size as low as possible for performance. */
-BLI_STATIC_ASSERT(sizeof(Undetermined) <= /*24*/ 32, "One of the command type is too large.")
+BLI_STATIC_ASSERT(sizeof(Undetermined) <= 24, "One of the command type is too large.")
 
 /** \} */
 
@@ -452,28 +447,14 @@ class DrawCommandBuf {
                    uint vertex_len,
                    uint vertex_first,
                    ResourceHandle handle,
-                   uint /*custom_id*/
-#ifdef WITH_METAL_BACKEND
-                   ,
-                   GPUShader *shader = nullptr
-#endif
-  )
+                   uint /*custom_id*/)
   {
     vertex_first = vertex_first != -1 ? vertex_first : 0;
     instance_len = instance_len != -1 ? instance_len : 1;
 
     int64_t index = commands.append_and_get_index({});
     headers.append({Type::Draw, uint(index)});
-    commands[index].draw = {batch,
-                            instance_len,
-                            vertex_len,
-                            vertex_first,
-                            handle
-#ifdef WITH_METAL_BACKEND
-                            ,
-                            shader
-#endif
-    };
+    commands[index].draw = {batch, instance_len, vertex_len, vertex_first, handle};
   }
 
   void bind(RecordingState &state,
@@ -567,12 +548,7 @@ class DrawMultiBuf {
                    uint vertex_len,
                    uint vertex_first,
                    ResourceHandle handle,
-                   uint custom_id
-#ifdef WITH_METAL_BACKEND
-                   ,
-                   GPUShader *shader
-#endif
-  )
+                   uint custom_id)
   {
     /* Custom draw-calls cannot be batched and will produce one group per draw. */
     const bool custom_group = ((vertex_first != 0 && vertex_first != -1) || vertex_len != -1);
@@ -611,11 +587,6 @@ class DrawMultiBuf {
       group.back_proto_len = 0;
       group.vertex_len = vertex_len;
       group.vertex_first = vertex_first;
-#ifdef WITH_METAL_BACKEND
-      /* If SSBO vertex fetch is used, shader must be known to extract vertex expansion parameters.
-       */
-      group.gpu_shader = shader;
-#endif
       /* Custom group are not to be registered in the group_ids_. */
       if (!custom_group) {
         group_id = new_group_id;
@@ -629,11 +600,6 @@ class DrawMultiBuf {
       DrawGroup &group = group_buf_[group_id];
       group.len += instance_len;
       group.front_facing_len += inverted ? 0 : instance_len;
-#ifdef WITH_METAL_BACKEND
-      /* If SSBO vertex fetch is used, shader must be known to extract vertex expansion parameters.
-       */
-      group.gpu_shader = shader;
-#endif
       /* For serialization only. */
       (inverted ? group.back_proto_len : group.front_proto_len)++;
     }
