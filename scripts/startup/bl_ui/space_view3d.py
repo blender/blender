@@ -5752,6 +5752,14 @@ class VIEW3D_MT_gpencil_animation(Menu):
         layout.operator("gpencil.delete", text="Delete Active Keyframe (Active Layer)").type = 'FRAME'
         layout.operator("gpencil.active_frames_delete_all", text="Delete Active Keyframes (All Layers)")
 
+class VIEW3D_MT_edit_greasepencil_animation(Menu):
+    bl_label = "Animation"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("grease_pencil.insert_blank_frame", text="Insert Blank Keyframe (Active Layer)")
+        layout.operator("grease_pencil.insert_blank_frame", text="Insert Blank Keyframe (All Layer)").all_layers = True
+
 
 class VIEW3D_MT_edit_gpencil_transform(Menu):
     bl_label = "Transform"
@@ -8703,6 +8711,7 @@ classes = (
     VIEW3D_MT_edit_greasepencil,
     VIEW3D_MT_edit_greasepencil_delete,
     VIEW3D_MT_edit_greasepencil_stroke,
+    VIEW3D_MT_edit_greasepencil_animation,
     VIEW3D_MT_edit_curve,
     VIEW3D_MT_edit_curve_ctrlpoints,
     VIEW3D_MT_edit_curve_segments,
