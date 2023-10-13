@@ -28,7 +28,7 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "curve_intern.h"
 

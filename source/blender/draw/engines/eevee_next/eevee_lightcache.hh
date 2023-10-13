@@ -17,6 +17,7 @@ struct ViewLayer;
 struct Scene;
 struct Object;
 struct wmJob;
+struct wmJobWorkerStatus;
 
 /** Opaque type hiding eevee::LightBake. */
 struct EEVEE_NEXT_LightBake;
@@ -72,8 +73,6 @@ void EEVEE_NEXT_lightbake_update(/*EEVEE_NEXT_LightBake*/ void *job_data);
  * Will call `EEVEE_NEXT_lightbake_update()` on finish.
  */
 void EEVEE_NEXT_lightbake_job(/*EEVEE_NEXT_LightBake*/ void *job_data,
-                              bool *stop,
-                              bool *do_update,
-                              float *progress);
+                              wmJobWorkerStatus *worker_status);
 
 /** \} */

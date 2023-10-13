@@ -27,6 +27,12 @@ void WM_keyconfig_free(wmKeyConfig *keyconf);
 
 void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname);
 
+/**
+ * \param keep_properties: When true, the properties for operators which cannot be found are kept.
+ * This is needed for operator reloading that validates key-map items for operators that may have
+ * their operators loaded back in the future, see: #113309.
+ */
+void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties);
 void WM_keyconfig_update(wmWindowManager *wm);
 void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi);
 void WM_keyconfig_update_operatortype();

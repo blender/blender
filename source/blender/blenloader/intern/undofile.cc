@@ -254,7 +254,7 @@ bool BLO_memfile_write_file(MemFile *memfile, const char *filepath)
   return true;
 }
 
-static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
+static int64_t undo_read(FileReader *reader, void *buffer, size_t size)
 {
   UndoReader *undo = (UndoReader *)reader;
 
@@ -323,7 +323,7 @@ static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
                                                                       chunk->is_identical_future;
     } while (totread < size);
 
-    return ssize_t(totread);
+    return int64_t(totread);
   }
 
   return 0;

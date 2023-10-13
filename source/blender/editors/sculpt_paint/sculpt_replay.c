@@ -9,7 +9,7 @@
 
 #include "BKE_context.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"

@@ -59,7 +59,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
@@ -342,29 +342,27 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
     if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
       BKE_pbvh_node_mark_update(node);
     }
-    int verts_num;
-    BKE_pbvh_node_num_verts(data->pbvh, node, nullptr, &verts_num);
-    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
+    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
     if (data->modified_mask_verts != nullptr) {
-      for (int i = 0; i < verts_num; i++) {
-        if (data->modified_mask_verts[vert_indices[i]]) {
+      for (const int vert : verts) {
+        if (data->modified_mask_verts[vert]) {
           BKE_pbvh_node_mark_update_mask(node);
           break;
         }
       }
     }
     if (data->modified_color_verts != nullptr) {
-      for (int i = 0; i < verts_num; i++) {
-        if (data->modified_color_verts[vert_indices[i]]) {
+      for (const int vert : verts) {
+        if (data->modified_color_verts[vert]) {
           BKE_pbvh_node_mark_update_color(node);
           break;
         }
       }
     }
     if (data->modified_hidden_verts != nullptr) {
-      for (int i = 0; i < verts_num; i++) {
-        if (data->modified_hidden_verts[vert_indices[i]]) {
-          BKE_sculpt_boundary_flag_update(data->ss, BKE_pbvh_make_vref(vert_indices[i]));
+      for (int vert : verts) {
+        if (data->modified_hidden_verts[vert]) {
+          BKE_sculpt_boundary_flag_update(data->ss, BKE_pbvh_make_vref(vert));
 
           if (data->rebuild) {
             BKE_pbvh_vert_tag_update_normal_visibility(node);
@@ -424,7 +422,6 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  int *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
@@ -448,14 +445,14 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
     }
 
     /* No need for float comparison here (memory is exactly equal or not). */
-    index = unode->index;
+    const Span<int> index = unode->index;
     blender::MutableSpan<blender::float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
       float(*vertCos)[3];
       vertCos = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
 
-      if (unode->orig_co) {
+      if (!unode->orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
@@ -483,7 +480,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       MEM_freeN(vertCos);
     }
     else {
-      if (unode->orig_co) {
+      if (!unode->orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], positions[index[i]]);
@@ -509,19 +506,20 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
     /* Multires restore. */
     CCGElem **grids, *grid;
     CCGKey key;
-    float(*co)[3];
     int gridsize;
 
     grids = subdiv_ccg->grids;
     gridsize = subdiv_ccg->grid_size;
     BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 
-    co = unode->co;
+    blender::MutableSpan<blender::float3> co = unode->co;
+    int index = 0;
     for (int j = 0; j < unode->totgrid; j++) {
       grid = grids[unode->grids[j]];
 
-      for (int i = 0; i < gridsize * gridsize; i++, co++) {
-        swap_v3_v3(CCG_elem_offset_co(&key, grid, i), co[0]);
+      for (int i = 0; i < gridsize * gridsize; i++) {
+        swap_v3_v3(CCG_elem_offset_co(&key, grid, i), co[index]);
+        index++;
       }
     }
   }
@@ -545,7 +543,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
       const int vert_index = unode->index[i];
 
       if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != hide_vert[vert_index]) {
-        BLI_BITMAP_FLIP(unode->vert_hidden, i);
+        unode->vert_hidden[i].set(!unode->vert_hidden[i].test());
         hide_vert[vert_index] = !hide_vert[vert_index];
         modified_vertices[vert_index] = true;
       }
@@ -585,19 +583,15 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode, bool *
 
   /* NOTE: even with loop colors we still store derived
    * vertex colors for original data lookup. */
-  if (unode->col && !unode->loop_col) {
-    int *indices = sculpt_undo_get_indices32(unode, unode->totvert);
-
-    BKE_pbvh_swap_colors(ss->pbvh, indices, unode->totvert, unode->col);
+  if (!unode->col.is_empty() && unode->loop_col.is_empty()) {
+    BKE_pbvh_swap_colors(ss->pbvh, unode->index, unode->col);
     modified = true;
-
-    MEM_SAFE_FREE(indices);
   }
 
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
-  if (unode->loop_col && unode->maxloop == me->totloop) {
-    BKE_pbvh_swap_colors(ss->pbvh, unode->loop_index, unode->totloop, unode->loop_col);
+  if (!unode->loop_col.is_empty() && unode->maxloop == me->totloop) {
+    BKE_pbvh_swap_colors(ss->pbvh, unode->loop_index, unode->loop_col);
 
     modified = true;
   }
@@ -620,7 +614,6 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  int *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
@@ -628,7 +621,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
         CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
     ss->vmask = vmask;
 
-    index = unode->index;
+    const Span<int> index = unode->index;
 
     for (int i = 0; i < unode->totvert; i++) {
       if (vmask[index[i]] != unode->mask[i]) {
@@ -641,19 +634,20 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
     /* Multires restore. */
     CCGElem **grids, *grid;
     CCGKey key;
-    float *mask;
     int gridsize;
 
     grids = subdiv_ccg->grids;
     gridsize = subdiv_ccg->grid_size;
     BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 
-    mask = unode->mask;
+    blender::MutableSpan<float> mask = unode->mask;
+    int index = 0;
     for (int j = 0; j < unode->totgrid; j++) {
       grid = grids[unode->grids[j]];
 
-      for (int i = 0; i < gridsize * gridsize; i++, mask++) {
-        SWAP(float, *CCG_elem_offset_mask(&key, grid, i), *mask);
+      for (int i = 0; i < gridsize * gridsize; i++) {
+        SWAP(float, *CCG_elem_offset_mask(&key, grid, i), mask[index]);
+        index++;
       }
     }
   }
@@ -1053,7 +1047,7 @@ static void sculpt_unode_bmlog_ensure(SculptSession *ss, SculptUndoNode *unode)
 }
 
 /* Create empty sculpt BMesh and enable logging. */
-static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_redo)
+static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool /*is_redo*/)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = static_cast<Mesh *>(ob->data);
@@ -1069,15 +1063,6 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
 
   /* Create empty BMesh and enable logging. */
   ss->bm = SCULPT_dyntopo_empty_bmesh();
-#if 0
-  ss->bm = BM_mesh_create(&bm_mesh_allocsize_default,
-                          &((struct BMeshCreateParams){.use_toolflags = false,
-                                                       .create_unique_ids = true,
-                                                       .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                                       .id_map = true,
-                                                       .temporary_ids = false,
-                                                       .no_reuse_ids = false}));
-#endif
 
   BMeshFromMeshParams params = {0};
   params.use_shapekey = true;
@@ -1629,40 +1614,7 @@ static void sculpt_undo_free_list(ListBase *lb)
 
   while (unode != nullptr) {
     SculptUndoNode *unode_next = unode->next;
-    if (unode->co) {
-      MEM_freeN(unode->co);
-    }
 
-    if (unode->nodemap) {
-      MEM_freeN(unode->nodemap);
-    }
-    if (unode->col) {
-      MEM_freeN(unode->col);
-    }
-    if (unode->loop_col) {
-      MEM_freeN(unode->loop_col);
-    }
-    if (unode->no) {
-      MEM_freeN(unode->no);
-    }
-    if (unode->index) {
-      MEM_freeN(unode->index);
-    }
-    if (unode->faces) {
-      MEM_freeN(unode->faces);
-    }
-    if (unode->loop_index) {
-      MEM_freeN(unode->loop_index);
-    }
-    if (unode->grids) {
-      MEM_freeN(unode->grids);
-    }
-    if (unode->orig_co) {
-      MEM_freeN(unode->orig_co);
-    }
-    if (unode->vert_hidden) {
-      MEM_freeN(unode->vert_hidden);
-    }
     if (unode->grid_hidden) {
       for (int i = 0; i < unode->totgrid; i++) {
         if (unode->grid_hidden[i]) {
@@ -1671,9 +1623,6 @@ static void sculpt_undo_free_list(ListBase *lb)
       }
       MEM_freeN(unode->grid_hidden);
     }
-    if (unode->mask) {
-      MEM_freeN(unode->mask);
-    }
 
     if (unode->bm_entry) {
       BM_log_entry_drop(unode->bm_entry);
@@ -1681,11 +1630,10 @@ static void sculpt_undo_free_list(ListBase *lb)
       unode->bm_log = nullptr;
     }
 
-    if (unode->face_sets) {
-      MEM_freeN(unode->face_sets);
-    }
+    sculpt_undo_geometry_free_data(&unode->geometry_original);
+    sculpt_undo_geometry_free_data(&unode->geometry_modified);
 
-    MEM_freeN(unode);
+    MEM_delete(unode);
 
     unode = unode_next;
   }
@@ -1777,7 +1725,7 @@ static size_t sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *uno
 static SculptUndoNode *sculpt_undo_alloc_node_type(Object *object, SculptUndoType type)
 {
   const size_t alloc_size = sizeof(SculptUndoNode);
-  SculptUndoNode *unode = static_cast<SculptUndoNode *>(MEM_callocN(alloc_size, "SculptUndoNode"));
+  SculptUndoNode *unode = MEM_new<SculptUndoNode>(__func__);
   STRNCPY(unode->idname, object->id.name);
   unode->type = type;
 
@@ -1814,8 +1762,7 @@ static void sculpt_undo_store_faces(SculptSession *ss, SculptUndoNode *unode)
   }
   BKE_pbvh_face_iter_end(fd);
 
-  unode->faces = static_cast<PBVHFaceRef *>(
-      MEM_malloc_arrayN(sizeof(*unode->faces), unode->faces_num, __func__));
+  unode->faces.reinitialize(unode->faces_num);
   BKE_pbvh_face_iter_begin (ss->pbvh, static_cast<PBVHNode *>(unode->node), fd) {
     unode->faces[fd.i] = fd.face;
   }
@@ -1851,18 +1798,16 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
 
     BKE_pbvh_node_num_loops(ss->pbvh, node, &totloop);
 
-    unode->loop_index = static_cast<int *>(MEM_calloc_arrayN(totloop, sizeof(int), __func__));
+    unode->loop_index.reinitialize(totloop);
     unode->maxloop = 0;
     unode->totloop = totloop;
 
-    size_t alloc_size = sizeof(int) * size_t(totloop);
-    usculpt->undo_size += alloc_size;
+    usculpt->undo_size += unode->loop_index.as_span().size_in_bytes();
   }
 
   if (need_faces) {
     sculpt_undo_store_faces(ss, unode);
-    const size_t alloc_size = sizeof(*unode->faces) * size_t(unode->faces_num);
-    usculpt->undo_size += alloc_size;
+    usculpt->undo_size += unode->faces.as_span().size_in_bytes();
   }
 
   switch (type) {
@@ -1870,14 +1815,12 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
       BLI_assert_unreachable();
       break;
     case SCULPT_UNDO_COORDS: {
-      size_t alloc_size = sizeof(*unode->co) * size_t(allvert);
-      unode->co = static_cast<float(*)[3]>(MEM_callocN(alloc_size, "SculptUndoNode.co"));
-      usculpt->undo_size += alloc_size;
+      unode->co.reinitialize(allvert);
+      usculpt->undo_size += unode->co.as_span().size_in_bytes();
 
       /* Needed for original data lookup. */
-      alloc_size = sizeof(*unode->no) * size_t(allvert);
-      unode->no = static_cast<float(*)[3]>(MEM_callocN(alloc_size, "SculptUndoNode.no"));
-      usculpt->undo_size += alloc_size;
+      unode->no.reinitialize(allvert);
+      usculpt->undo_size += unode->no.as_span().size_in_bytes();
       break;
     }
     case SCULPT_UNDO_HIDDEN: {
@@ -1885,32 +1828,27 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
         usculpt->undo_size += sculpt_undo_alloc_and_store_hidden(ss->pbvh, unode);
       }
       else {
-        unode->vert_hidden = BLI_BITMAP_NEW(allvert, "SculptUndoNode.vert_hidden");
+        unode->vert_hidden.resize(allvert);
         usculpt->undo_size += BLI_BITMAP_SIZE(allvert);
       }
 
       break;
     }
     case SCULPT_UNDO_MASK: {
-      const size_t alloc_size = sizeof(*unode->mask) * size_t(allvert);
-      unode->mask = static_cast<float *>(MEM_callocN(alloc_size, "SculptUndoNode.mask"));
-      usculpt->undo_size += alloc_size;
+      unode->mask.reinitialize(allvert);
+      usculpt->undo_size += unode->mask.as_span().size_in_bytes();
       break;
     }
     case SCULPT_UNDO_COLOR: {
       /* Allocate vertex colors, even for loop colors we still
        * need this for original data lookup. */
-      const size_t alloc_size = sizeof(*unode->col) * size_t(allvert);
-      unode->col = static_cast<float(*)[4]>(MEM_callocN(alloc_size, "SculptUndoNode.col"));
-      usculpt->undo_size += alloc_size;
+      unode->col.reinitialize(allvert);
+      usculpt->undo_size += unode->col.as_span().size_in_bytes();
 
       /* Allocate loop colors separately too. */
       if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
-        size_t alloc_size_loop = sizeof(float) * 4 * size_t(unode->totloop);
-
-        unode->loop_col = static_cast<float(*)[4]>(
-            MEM_calloc_arrayN(unode->totloop, sizeof(float) * 4, "SculptUndoNode.loop_col"));
-        usculpt->undo_size += alloc_size_loop;
+        unode->loop_col.reinitialize(unode->totloop);
+        unode->undo_size += unode->loop_col.as_span().size_in_bytes();
       }
       break;
     }
@@ -1922,8 +1860,8 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_GEOMETRY:
       break;
     case SCULPT_UNDO_FACE_SETS: {
-      const size_t alloc_size = sizeof(*unode->face_sets) * size_t(unode->faces_num);
-      usculpt->undo_size += alloc_size;
+      unode->face_sets.reinitialize(unode->faces_num);
+      usculpt->undo_size += unode->face_sets.as_span().size_in_bytes();
       break;
     }
   }
@@ -1934,23 +1872,19 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     unode->totgrid = totgrid;
     unode->gridsize = gridsize;
 
-    const size_t alloc_size = sizeof(*unode->grids) * size_t(totgrid);
-    unode->grids = static_cast<int *>(MEM_callocN(alloc_size, "SculptUndoNode.grids"));
-    usculpt->undo_size += alloc_size;
+    unode->grids.reinitialize(totgrid);
+    usculpt->undo_size += unode->grids.as_span().size_in_bytes();
   }
   else {
     /* Regular mesh. */
     unode->maxvert = ss->totvert;
-
-    const size_t alloc_size = sizeof(*unode->index) * size_t(allvert);
-    unode->index = static_cast<int *>(MEM_callocN(alloc_size, "SculptUndoNode.index"));
-    usculpt->undo_size += alloc_size;
+    unode->index.reinitialize(allvert);
+    usculpt->undo_size += unode->index.as_span().size_in_bytes();
   }
 
   if (ss->deform_modifiers_active) {
-    const size_t alloc_size = sizeof(*unode->orig_co) * size_t(allvert);
-    unode->orig_co = static_cast<float(*)[3]>(MEM_callocN(alloc_size, "undoSculpt orig_cos"));
-    usculpt->undo_size += alloc_size;
+    unode->orig_co.reinitialize(allvert);
+    usculpt->undo_size += unode->orig_co.as_span().size_in_bytes();
   }
 
   return unode;
@@ -1964,9 +1898,8 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
   int totvert, allvert;
   BKE_pbvh_node_num_verts(ss->pbvh, (PBVHNode *)unode->node, &totvert, &allvert);
 
-  if (ss->deform_modifiers_active && !unode->orig_co) {
-    unode->orig_co = (float(*)[3])MEM_malloc_arrayN(
-        allvert, sizeof(float) * 3, "sculpt unode undo coords");
+  if (ss->deform_modifiers_active && unode->orig_co.is_empty()) {
+    unode->orig_co.reinitialize(allvert);
   }
 
   bool have_grids = BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
@@ -2005,17 +1938,13 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
     return;
   }
 
-  if (unode->grids) {
+  if (!unode->grids.is_empty()) {
     /* Already stored during allocation. */
   }
   else {
-    int allvert;
-
-    BKE_pbvh_node_num_verts(pbvh, node, nullptr, &allvert);
-    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-    for (int i = 0; i < allvert; i++) {
-      BLI_BITMAP_SET(unode->vert_hidden, i, hide_vert[vert_indices[i]]);
-    }
+    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+    for (const int i : verts.index_range())
+      unode->vert_hidden[i].set(hide_vert[verts[i]]);
   }
 }
 
@@ -2036,21 +1965,13 @@ static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
 
   BLI_assert(BKE_pbvh_type(ss->pbvh) == PBVH_FACES);
 
-  int allvert;
-  BKE_pbvh_node_num_verts(ss->pbvh, static_cast<PBVHNode *>(unode->node), nullptr, &allvert);
-
-  int *indices = sculpt_undo_get_indices32(unode, allvert);
-
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
+  BKE_pbvh_store_colors_vertex(ss->pbvh, unode->index, unode->col);
 
-  BKE_pbvh_store_colors_vertex(ss->pbvh, indices, allvert, unode->col);
-
-  if (unode->loop_col && unode->totloop) {
-    BKE_pbvh_store_colors(ss->pbvh, unode->loop_index, unode->totloop, unode->loop_col);
+  if (!unode->loop_col.is_empty() && unode->totloop) {
+    BKE_pbvh_store_colors(ss->pbvh, unode->loop_index, unode->loop_col);
   }
-
-  MEM_SAFE_FREE(indices);
 }
 
 static SculptUndoNodeGeometry *sculpt_undo_geometry_get(SculptUndoNode *unode)
@@ -2078,8 +1999,7 @@ static SculptUndoNode *sculpt_undo_geometry_push(Object *object, SculptUndoType 
 
 static void sculpt_undo_store_face_sets(SculptSession *ss, SculptUndoNode *unode)
 {
-  unode->face_sets = static_cast<int *>(
-      MEM_malloc_arrayN(sizeof(*unode->face_sets), unode->faces_num, __func__));
+  unode->face_sets.reinitialize(unode->faces_num);
 
   PBVHFaceIter fd;
   BKE_pbvh_face_iter_begin (ss->pbvh, static_cast<PBVHNode *>(unode->node), fd) {
@@ -2158,7 +2078,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
   if (unode == nullptr) {
     new_node = true;
-    unode = (SculptUndoNode *)MEM_callocN(sizeof(*unode), __func__);
+    unode = MEM_new<SculptUndoNode>(__func__);
 
     STRNCPY(unode->idname, ob->id.name);
     unode->type = type;
@@ -2299,7 +2219,6 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
 
     unode->type = type;
-    unode->typemask = 1 << type;
     unode->applied = true;
     unode->bm_log = ss->bm_log;
     unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
@@ -2307,9 +2226,7 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     return SCULPT_ensure_dyntopo_node_undo(ob, node, type, extraType, force_push_mask);
   }
   else if (!(unode->typemask & (1 << type))) {
-    unode->typemask |= 1 << type;
-
-    /* add a log sub-entry */
+    /* Add a log sub-entry. */
     BM_log_entry_add_delta_set(ss->bm, ss->bm_log);
   }
 
@@ -2317,38 +2234,22 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     return false;
   }
 
-  int n = BKE_pbvh_get_node_id(ss->pbvh, node);
+  int node_id = BKE_pbvh_get_node_id(ss->pbvh, node);
+  bool pushed = false;
 
-  if (unode->nodemap_size <= n) {
-    int newsize = (n + 1);
-    newsize += newsize >> 1;
-
-    if (!unode->nodemap) {
-      unode->nodemap = (int *)MEM_callocN(sizeof(*unode->nodemap) * newsize, "unode->nodemap");
-    }
-    else {
-      unode->nodemap = (int *)MEM_recallocN(unode->nodemap, sizeof(*unode->nodemap) * newsize);
-    }
-
-    unode->nodemap_size = newsize;
-  }
-
-  auto check = [&unode, force_push_mask, n](int type) {
-    return (type & force_push_mask) || !(unode->nodemap[n] & (1 << type));
-  };
-
-  if (check(type)) {
+  if ((type & force_push_mask) || unode->dyntopo_undo_set.add({node_id, type})) {
     sculpt_undo_bmesh_push(ob, node, type);
+    pushed = true;
   }
 
-  if (extraType != SCULPT_UNDO_NONE && check(extraType)) {
-    sculpt_undo_bmesh_push(ob, node, (SculptUndoType)extraType);
-    unode->nodemap[n] |= 1 << extraType;
+  if (extraType != SCULPT_UNDO_NONE &&
+      ((extraType & force_push_mask) || unode->dyntopo_undo_set.add({node_id, extraType})))
+  {
+    sculpt_undo_bmesh_push(ob, node, type);
+    pushed = true;
   }
 
-  unode->nodemap[n] |= 1 << type;
-
-  return true;
+  return pushed;
 }
 
 static bool check_first_undo_entry_dyntopo(Object *ob)
@@ -2434,27 +2335,24 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
    * fully initialized.
    */
 
-  if (unode->grids) {
+  if (!unode->grids.is_empty()) {
     int totgrid;
     const int *grids;
     BKE_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid, nullptr, nullptr, nullptr);
-    memcpy(unode->grids, grids, sizeof(int) * totgrid);
+    unode->grids.as_mutable_span().copy_from({grids, totgrid});
   }
   else {
-    const int *loop_indices;
-    int allvert, allloop;
+    unode->index.as_mutable_span().copy_from(BKE_pbvh_node_get_vert_indices(node));
 
-    BKE_pbvh_node_num_verts(ss->pbvh, static_cast<PBVHNode *>(unode->node), nullptr, &allvert);
-    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-    memcpy(unode->index, vert_indices, sizeof(int) * allvert);
-
-    if (unode->loop_index) {
+    if (!unode->loop_index.is_empty()) {
+      const int *loop_indices;
+      int allloop;
       BKE_pbvh_node_num_loops(ss->pbvh, static_cast<PBVHNode *>(unode->node), &allloop);
       BKE_pbvh_node_get_loops(
           ss->pbvh, static_cast<PBVHNode *>(unode->node), &loop_indices, nullptr);
 
       if (allloop) {
-        memcpy(unode->loop_index, loop_indices, sizeof(int) * allloop);
+        unode->loop_index.as_mutable_span().copy_from({loop_indices, allloop});
 
         unode->maxloop = BKE_object_get_original_mesh(ob)->totloop;
       }
@@ -2640,11 +2538,8 @@ void SCULPT_undo_push_end_ex(Object *ob, const bool use_nested_undo)
       update_unode_bmesh_memsize(unode);
     }
 
-    if (unode->no) {
-      usculpt->undo_size -= MEM_allocN_len(unode->no);
-      MEM_freeN(unode->no);
-      unode->no = nullptr;
-    }
+    usculpt->undo_size -= unode->no.as_span().size_in_bytes();
+    unode->no = {};
   }
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */

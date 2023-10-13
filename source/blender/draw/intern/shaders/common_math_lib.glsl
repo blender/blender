@@ -114,16 +114,14 @@ float avg(vec4 v) { return dot(vec4(1.0 / 4.0), v); }
 /* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */
 #ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
 float safe_rcp(float a) { return (a != 0.0) ? (1.0 / a) : 0.0; }
+float safe_sqrt(float a) { return sqrt(max(a, 0.0)); }
+float safe_acos(float a) { return acos(clamp(a, -1.0, 1.0)); }
 #endif
 #ifndef GPU_SHADER_MATH_VECTOR_LIB_GLSL
 vec2 safe_rcp(vec2 a) { return select(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
 vec3 safe_rcp(vec3 a) { return select(vec3(0.0), (1.0 / a), notEqual(a, vec3(0.0))); }
 vec4 safe_rcp(vec4 a) { return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
 #endif
-
-float safe_sqrt(float a) { return sqrt(max(a, 0.0)); }
-
-float safe_acos(float a) { return acos(clamp(a, -1.0, 1.0)); }
 
 float sqr(float a) { return a * a; }
 vec2 sqr(vec2 a) { return a * a; }
@@ -146,10 +144,10 @@ bool flag_test(int flag, int val) { return (flag & val) != 0; }
 
 void set_flag_from_test(inout uint value, bool test, uint flag) { if (test) { value |= flag; } else { value &= ~flag; } }
 void set_flag_from_test(inout int value, bool test, int flag) { if (test) { value |= flag; } else { value &= ~flag; } }
-#endif
 
 #define weighted_sum(val0, val1, val2, val3, weights) ((val0 * weights[0] + val1 * weights[1] + val2 * weights[2] + val3 * weights[3]) * safe_rcp(sum(weights)))
 #define weighted_sum_array(val, weights) ((val[0] * weights[0] + val[1] * weights[1] + val[2] * weights[2] + val[3] * weights[3]) * safe_rcp(sum(weights)))
+#endif
 
 /* clang-format on */
 

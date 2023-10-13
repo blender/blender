@@ -88,8 +88,6 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
     return nullptr;
   }
 
-  const size_t data_size = BLI_file_descriptor_size(file);
-
   imb_mmap_lock();
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   imb_mmap_unlock();
@@ -99,6 +97,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   }
 
   const uchar *data = static_cast<const uchar *>(BLI_mmap_get_pointer(mmap_file));
+  const size_t data_size = BLI_mmap_get_length(mmap_file);
 
   WebPDecoderConfig config;
   if (!data || !WebPInitDecoderConfig(&config) ||

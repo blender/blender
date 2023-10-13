@@ -16,7 +16,7 @@ namespace blender::nodes::node_shader_subsurface_scattering_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Float>("Scale").default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>("Scale").default_value(0.05f).min(0.0f).max(1000.0f);
   b.add_input<decl::Vector>("Radius").default_value({1.0f, 0.2f, 0.1f}).min(0.0f).max(100.0f);
   b.add_input<decl::Float>("IOR").default_value(1.4f).min(1.01f).max(3.8f).subtype(PROP_FACTOR);
   b.add_input<decl::Float>("Anisotropy")

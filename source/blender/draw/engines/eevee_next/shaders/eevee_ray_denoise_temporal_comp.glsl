@@ -15,13 +15,12 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 struct LocalStatistics {
   vec3 mean;
@@ -183,11 +182,11 @@ void main()
   /* Surface reprojection. */
   /* TODO(fclem): Use per pixel velocity. Is this worth it? */
   float scene_depth = texelFetch(depth_tx, texel_fullres, 0).r;
-  vec3 P = get_world_space_from_depth(uv, scene_depth);
+  vec3 P = drw_point_screen_to_world(vec3(uv, scene_depth));
   vec4 history_radiance = radiance_history_sample(P, local);
   /* Reflection reprojection. */
   float hit_depth = imageLoad(hit_depth_img, texel_fullres).r;
-  vec3 P_hit = get_world_space_from_depth(uv, hit_depth);
+  vec3 P_hit = drw_point_screen_to_world(vec3(uv, hit_depth));
   history_radiance += radiance_history_sample(P_hit, local);
   /* Finalize accumulation. */
   history_radiance *= safe_rcp(history_radiance.w);
@@ -199,7 +198,8 @@ void main()
   float mix_fac = (history_radiance.w > 1e-3) ? 0.97 : 0.0;
   /* Reduce blend factor to improve low roughness reflections. Use variance instead for speed. */
   mix_fac *= mix(0.75, 1.0, saturate(in_variance * 20.0));
-  vec3 out_radiance = mix(safe_color(in_radiance), safe_color(history_radiance.rgb), mix_fac);
+  vec3 out_radiance = mix(
+      colorspace_safe_color(in_radiance), colorspace_safe_color(history_radiance.rgb), mix_fac);
   /* This is feedback next frame as radiance_history_tx. */
   imageStore(out_radiance_img, texel_fullres, vec4(out_radiance, 0.0));
 

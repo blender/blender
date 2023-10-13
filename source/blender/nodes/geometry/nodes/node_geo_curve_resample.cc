@@ -5,6 +5,7 @@
 #include "GEO_resample_curves.hh"
 
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -19,7 +20,8 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveResample)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
+  b.add_input<decl::Geometry>("Curve").supported_type(
+      {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).field_on_all();
   b.add_input<decl::Float>("Length")
@@ -64,7 +66,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
 
-  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
+  GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
   switch (mode) {
     case GEO_NODE_CURVE_RESAMPLE_COUNT: {
@@ -72,11 +74,30 @@ static void node_geo_exec(GeoNodeExecParams params)
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
+          const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
           bke::CurvesGeometry dst_curves = geometry::resample_to_count(
-              src_curves, selection, count);
+              src_curves, field_context, selection, count);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
+        }
+        if (geometry_set.has_grease_pencil()) {
+          using namespace blender::bke::greasepencil;
+          GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+          for (const int layer_index : grease_pencil.layers().index_range()) {
+            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                              layer_index);
+            if (drawing == nullptr) {
+              continue;
+            }
+            const bke::CurvesGeometry &src_curves = drawing->strokes();
+            const bke::GreasePencilLayerFieldContext field_context(
+                grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+            bke::CurvesGeometry dst_curves = geometry::resample_to_count(
+                src_curves, field_context, selection, count);
+            drawing->strokes_for_write() = std::move(dst_curves);
+            drawing->tag_topology_changed();
+          }
         }
       });
       break;
@@ -86,11 +107,30 @@ static void node_geo_exec(GeoNodeExecParams params)
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
+          const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
-              src_curves, selection, length);
+              src_curves, field_context, selection, length);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
+        }
+        if (geometry_set.has_grease_pencil()) {
+          using namespace blender::bke::greasepencil;
+          GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+          for (const int layer_index : grease_pencil.layers().index_range()) {
+            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                              layer_index);
+            if (drawing == nullptr) {
+              continue;
+            }
+            const bke::CurvesGeometry &src_curves = drawing->strokes();
+            const bke::GreasePencilLayerFieldContext field_context(
+                grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+            bke::CurvesGeometry dst_curves = geometry::resample_to_length(
+                src_curves, field_context, selection, length);
+            drawing->strokes_for_write() = std::move(dst_curves);
+            drawing->tag_topology_changed();
+          }
         }
       });
       break;
@@ -99,10 +139,30 @@ static void node_geo_exec(GeoNodeExecParams params)
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(src_curves, selection);
+          const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+          bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
+              src_curves, field_context, selection);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
+        }
+        if (geometry_set.has_grease_pencil()) {
+          using namespace blender::bke::greasepencil;
+          GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+          for (const int layer_index : grease_pencil.layers().index_range()) {
+            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                              layer_index);
+            if (drawing == nullptr) {
+              continue;
+            }
+            const bke::CurvesGeometry &src_curves = drawing->strokes();
+            const bke::GreasePencilLayerFieldContext field_context(
+                grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+            bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
+                src_curves, field_context, selection);
+            drawing->strokes_for_write() = std::move(dst_curves);
+            drawing->tag_topology_changed();
+          }
         }
       });
       break;

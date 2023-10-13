@@ -37,7 +37,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h" /* own include */
 
 /* -------------------------------------------------------------------- */

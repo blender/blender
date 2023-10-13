@@ -86,9 +86,9 @@ class Sampling {
     return reset_;
   }
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_ssbo(SAMPLING_BUF_SLOT, &data_);
+    pass.bind_ssbo(SAMPLING_BUF_SLOT, &data_);
   }
 
   /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated.

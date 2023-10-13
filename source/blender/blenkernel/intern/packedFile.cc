@@ -183,15 +183,12 @@ PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen)
 
 PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath_rel, const char *basepath)
 {
-  PackedFile *pf = nullptr;
-  int file, filelen;
   char filepath[FILE_MAX];
-  void *data;
 
   /* render result has no filepath and can be ignored
    * any other files with no name can be ignored too */
   if (filepath_rel[0] == '\0') {
-    return pf;
+    return nullptr;
   }
 
   // XXX waitcursor(1);
@@ -204,30 +201,33 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath_rel, co
   /* open the file
    * and create a PackedFile structure */
 
-  file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
+  const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
     BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path '%s' not found", filepath);
+    return nullptr;
+  }
+
+  PackedFile *pf = nullptr;
+  const size_t file_size = BLI_file_descriptor_size(file);
+  if (file_size == size_t(-1)) {
+    BKE_reportf(reports, RPT_ERROR, "Unable to access the size of, source path '%s'", filepath);
+  }
+  else if (file_size > INT_MAX) {
+    BKE_reportf(reports, RPT_ERROR, "Unable to pack files over 2gb, source path '%s'", filepath);
   }
   else {
-    filelen = BLI_file_descriptor_size(file);
-
-    if (filelen == 0) {
-      /* MEM_mallocN complains about MEM_mallocN(0, "bla");
-       * we don't care.... */
-      data = MEM_mallocN(1, "packFile");
-    }
-    else {
-      data = MEM_mallocN(filelen, "packFile");
-    }
-    if (read(file, data, filelen) == filelen) {
-      pf = BKE_packedfile_new_from_memory(data, filelen);
+    /* #MEM_mallocN complains about `MEM_mallocN(0, "...")`,
+     * a single allocation is harmless and doesn't cause any complications. */
+    void *data = MEM_mallocN(std::max(file_size, size_t(1)), "packFile");
+    if (BLI_read(file, data, file_size) == file_size) {
+      pf = BKE_packedfile_new_from_memory(data, file_size);
     }
     else {
       MEM_freeN(data);
     }
-
-    close(file);
   }
+
+  close(file);
 
   // XXX waitcursor(0);
 
@@ -398,13 +398,13 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
           len = sizeof(buf);
         }
 
-        if (read(file, buf, len) != len) {
+        if (BLI_read(file, buf, len) != len) {
           /* read error ... */
           ret_val = PF_CMP_DIFFERS;
           break;
         }
 
-        if (memcmp(buf, ((char *)pf->data) + i, len) != 0) {
+        if (memcmp(buf, ((const char *)pf->data) + i, len) != 0) {
           ret_val = PF_CMP_DIFFERS;
           break;
         }

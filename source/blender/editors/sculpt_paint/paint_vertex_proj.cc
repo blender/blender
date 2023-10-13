@@ -18,7 +18,7 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_math_vector.h"
 

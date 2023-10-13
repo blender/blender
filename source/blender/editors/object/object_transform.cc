@@ -48,7 +48,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -62,6 +62,8 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
@@ -347,7 +349,7 @@ static int object_clear_transform_generic_exec(bContext *C,
     /* run provided clearing function */
     clear_func(ob, clear_delta);
 
-    ED_autokeyframe_object(C, scene, ob, ks);
+    blender::animrig::autokeyframe_object(C, scene, ob, ks);
 
     /* tag for updates */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);

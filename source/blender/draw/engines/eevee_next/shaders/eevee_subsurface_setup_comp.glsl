@@ -7,9 +7,9 @@
  * processing.
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 
 shared uint has_visible_sss;
 
@@ -29,7 +29,7 @@ void main(void)
     vec3 radiance = imageLoad(direct_light_img, texel).rgb +
                     imageLoad(indirect_light_img, texel).rgb;
 
-    float max_radius = max_v3(gbuf.diffuse.sss_radius);
+    float max_radius = reduce_max(gbuf.diffuse.sss_radius);
 
     imageStore(radiance_img, texel, vec4(radiance, 0.0));
     imageStore(object_id_img, texel, uvec4(gbuf.diffuse.sss_id));
@@ -37,7 +37,7 @@ void main(void)
     vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0));
     float depth = texelFetch(depth_tx, texel, 0).r;
     /* TODO(fclem): Check if this simplifies. */
-    float vPz = get_view_z_from_depth(depth);
+    float vPz = drw_depth_screen_to_view(depth);
     float homcoord = ProjectionMatrix[2][3] * vPz + ProjectionMatrix[3][3];
     float sample_scale = ProjectionMatrix[0][0] * (0.5 * max_radius / homcoord);
     float pixel_footprint = sample_scale * float(textureSize(gbuf_header_tx, 0).x);

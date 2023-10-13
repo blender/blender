@@ -15,6 +15,7 @@
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_utility_mixins.hh"
@@ -33,6 +34,14 @@ struct Material;
 namespace blender::bke {
 
 namespace greasepencil {
+
+struct DrawingTransforms {
+  float4x4 world_space_to_layer_space;
+  float4x4 layer_space_to_world_space;
+
+  DrawingTransforms() = default;
+  DrawingTransforms(const Object &grease_pencil_ob);
+};
 
 class DrawingRuntime {
  public:
@@ -637,6 +646,10 @@ void legacy_gpencil_to_grease_pencil(Main &main, GreasePencil &grease_pencil, bG
 
 }  // namespace convert
 
+const Drawing *get_eval_grease_pencil_layer_drawing(const GreasePencil &grease_pencil,
+                                                    int layer_index);
+Drawing *get_eval_grease_pencil_layer_drawing_for_write(GreasePencil &grease_pencil,
+                                                        int layer_index);
 }  // namespace greasepencil
 
 class GreasePencilRuntime {
@@ -651,6 +664,33 @@ class GreasePencilRuntime {
  public:
   GreasePencilRuntime() {}
   ~GreasePencilRuntime() {}
+};
+
+class GreasePencilDrawingEditHints {
+ public:
+  std::optional<Array<float3>> positions;
+};
+
+/**
+ * Used to propagate deformation data through modifier evaluation.
+ */
+class GreasePencilEditHints {
+ public:
+  /**
+   * Original data that the edit hints below are meant to be used for.
+   */
+  const GreasePencil &grease_pencil_id_orig;
+
+  GreasePencilEditHints(const GreasePencil &grease_pencil_id_orig)
+      : grease_pencil_id_orig(grease_pencil_id_orig)
+  {
+  }
+
+  /**
+   * Array of #GreasePencilDrawingEditHints. There is one edit hint for each evaluated drawing.
+   * Note: The index for each element is the layer index.
+   */
+  std::optional<Array<GreasePencilDrawingEditHints>> drawing_hints;
 };
 
 }  // namespace blender::bke

@@ -266,7 +266,8 @@ static void detect_workarounds()
     /* Although an OpenGL 4.3 feature, our implementation requires shader_draw_parameters_support.
      * NOTE: we should untangle this by checking both features for clarity. */
     GLContext::multi_draw_indirect_support = false;
-
+    /* Turn off extensions. */
+    GLContext::layered_rendering_support = false;
     /* Turn off vendor specific extensions. */
     GLContext::native_barycentric_support = false;
     GLContext::framebuffer_fetch_support = false;
@@ -281,7 +282,6 @@ static void detect_workarounds()
     GLContext::debug_layer_support = false;
     GLContext::fixed_restart_index_support = false;
     GLContext::geometry_shader_invocations = false;
-    GLContext::layered_rendering_support = false;
     GLContext::texture_cube_map_array_support = false;
     GLContext::texture_gather_support = false;
     GLContext::texture_storage_support = false;
@@ -469,7 +469,6 @@ GLint GLContext::max_cubemap_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
 GLint GLContext::max_ssbo_binds = 0;
-GLint GLContext::max_ssbo_size = 0;
 
 /** Extensions. */
 
@@ -544,6 +543,9 @@ void GLBackend::capabilities_init()
     glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS,
                   &GCaps.max_shader_storage_buffer_bindings);
     glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &GCaps.max_compute_shader_storage_blocks);
+    int64_t max_ssbo_size;
+    glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_ssbo_size);
+    GCaps.max_storage_buffer_size = size_t(max_ssbo_size);
   }
   GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
@@ -562,7 +564,6 @@ void GLBackend::capabilities_init()
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
   glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
-  glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");
   GLContext::clear_texture_support = epoxy_has_gl_extension("GL_ARB_clear_texture");
   GLContext::copy_image_support = epoxy_has_gl_extension("GL_ARB_copy_image");

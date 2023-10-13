@@ -8,6 +8,7 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
@@ -15,11 +16,8 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 vec4 closure_to_rgba(Closure cl)
 {
@@ -28,8 +26,8 @@ vec4 closure_to_rgba(Closure cl)
   vec3 refraction_light = vec3(0.0);
   float shadow = 1.0;
 
-  float vPz = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
-  vec3 V = cameraVec(g_data.P);
+  float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
+  vec3 V = drw_world_incident_vector(g_data.P);
 
   ClosureLightStack stack;
 
@@ -51,15 +49,15 @@ vec4 closure_to_rgba(Closure cl)
   vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
 
-  diffuse_light += lightprobe_eval(samp, g_diffuse_data, V, noise_probe);
-  reflection_light += lightprobe_eval(samp, g_reflection_data, V, noise_probe);
+  diffuse_light += lightprobe_eval(samp, g_diffuse_data, g_data.P, V, noise_probe);
+  reflection_light += lightprobe_eval(samp, g_reflection_data, g_data.P, V, noise_probe);
 
   vec4 out_color;
   out_color.rgb = g_emission;
   out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * stack.cl[0].light_shadowed;
   out_color.rgb += g_reflection_data.color * g_reflection_data.weight * stack.cl[1].light_shadowed;
 
-  out_color.a = saturate(1.0 - avg(g_transmittance));
+  out_color.a = saturate(1.0 - average(g_transmittance));
 
   /* Reset for the next closure tree. */
   closure_weights_reset();
@@ -85,8 +83,8 @@ void main()
 
   float thickness = nodetree_thickness();
 
-  float vPz = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
-  vec3 V = cameraVec(g_data.P);
+  float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
+  vec3 V = drw_world_incident_vector(g_data.P);
 
   ClosureLightStack stack;
 
@@ -122,8 +120,8 @@ void main()
   vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
 
-  diffuse_light += lightprobe_eval(samp, g_diffuse_data, V, noise_probe);
-  reflection_light += lightprobe_eval(samp, g_reflection_data, V, noise_probe);
+  diffuse_light += lightprobe_eval(samp, g_diffuse_data, g_data.P, V, noise_probe);
+  reflection_light += lightprobe_eval(samp, g_reflection_data, g_data.P, V, noise_probe);
 
   g_diffuse_data.color *= g_diffuse_data.weight;
   g_reflection_data.color *= g_reflection_data.weight;
@@ -177,7 +175,7 @@ void main()
   output_renderpass_color(uniform_buf.render_pass.specular_color_id, vec4(specular_color, 1.0));
   output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0));
   output_renderpass_color(uniform_buf.render_pass.emission_id, vec4(g_emission, 1.0));
-  output_renderpass_value(uniform_buf.render_pass.shadow_id, avg(shadows));
+  output_renderpass_value(uniform_buf.render_pass.shadow_id, average(shadows));
   /** NOTE: AO is done on its own pass. */
 #endif
 
@@ -198,5 +196,5 @@ void main()
   out_radiance.rgb *= 1.0 - g_holdout;
 
   out_transmittance.rgb = g_transmittance;
-  out_transmittance.a = saturate(avg(g_transmittance));
+  out_transmittance.a = saturate(average(g_transmittance));
 }

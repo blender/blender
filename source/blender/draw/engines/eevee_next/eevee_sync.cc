@@ -11,7 +11,7 @@
 #include "eevee_engine.h"
 
 #include "BKE_gpencil_legacy.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "DEG_depsgraph_query.hh"
@@ -54,6 +54,7 @@ ObjectHandle &SyncModule::sync_object(Object *ob)
   DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
   DrawData *dd = DRW_drawdata_ensure((ID *)ob, owner, sizeof(DrawData), nullptr, nullptr);
   handle.recalc |= dd->recalc;
+  dd->recalc = 0;
 
   const int recalc_flags = ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_SHADING |
                            ID_RECALC_GEOMETRY;
@@ -166,7 +167,7 @@ void SyncModule::sync_mesh(Object *ob,
     geometry_call(material.prepass.sub_pass, geom, res_handle);
     geometry_call(material.shadow.sub_pass, geom, res_handle);
     geometry_call(material.capture.sub_pass, geom, res_handle);
-    /* TODO: We should not compile the shader and create a subpass if the object has no visibiility
+    /* TODO: We should not compile the shader and create a sub-pass if the object has no visibility
      * for these passes. */
     if (do_reflection_probe_sync) {
       geometry_call(material.reflection_probe_prepass.sub_pass, geom, res_handle);
@@ -247,6 +248,7 @@ bool SyncModule::sync_sculpt(Object *ob,
     }
     if (do_planar_probe_sync) {
       geometry_call(material.planar_probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.planar_probe_shading.sub_pass, geom, res_handle);
     }
 
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;

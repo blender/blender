@@ -13,8 +13,7 @@
  * by Jorge Jimenez
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_motion_blur_lib.glsl)
@@ -86,7 +85,7 @@ void gather_sample(vec2 screen_uv,
   float sample_depth = texture(depth_tx, sample_uv).r;
   vec4 sample_color = textureLod(in_color_tx, sample_uv, 0.0);
 
-  sample_depth = get_view_z_from_depth(sample_depth);
+  sample_depth = drw_depth_screen_to_view(sample_depth);
 
   vec3 weights;
   weights.xy = sample_weights(
@@ -161,7 +160,7 @@ void main()
   }
 
   /* Data of the center pixel of the gather (target). */
-  float center_depth = get_view_z_from_depth(texelFetch(depth_tx, texel, 0).r);
+  float center_depth = drw_depth_screen_to_view(texelFetch(depth_tx, texel, 0).r);
   vec4 center_motion = motion_blur_sample_velocity(velocity_tx, uv);
 
   vec4 center_color = textureLod(in_color_tx, uv, 0.0);

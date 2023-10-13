@@ -32,7 +32,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -2752,21 +2752,20 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   drw_manager_exit(&DST);
 }
 
-void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, const rcti *rect)
+void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
 {
   SELECTID_Context *sel_ctx = DRW_select_engine_context_get();
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
   if (!viewport) {
     /* Selection engine requires a viewport.
      * TODO(@germano): This should be done internally in the engine. */
-    sel_ctx->is_dirty = true;
-    sel_ctx->objects_drawn.clear();
     sel_ctx->index_drawn_len = 1;
     return;
   }
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -2775,7 +2774,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
   BKE_view_layer_synced_ensure(scene, view_layer);
   DST.draw_ctx = {};
   DST.draw_ctx.region = region;
-  DST.draw_ctx.rv3d = static_cast<RegionView3D *>(region->regiondata);
+  DST.draw_ctx.rv3d = rv3d;
   DST.draw_ctx.v3d = v3d;
   DST.draw_ctx.scene = scene;
   DST.draw_ctx.view_layer = view_layer;
@@ -2791,16 +2790,13 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
   DRW_globals_update();
 
-  /* Init Select Engine */
-  sel_ctx->last_rect = *rect;
-
+  /* Select Engine */
   use_drw_engine(&draw_engine_select_type);
   drw_engines_init();
   {
     drw_engines_cache_init();
 
-    for (Object *obj : sel_ctx->objects) {
-      Object *obj_eval = DEG_get_evaluated_object(depsgraph, obj);
+    for (Object *obj_eval : sel_ctx->objects) {
       drw_engines_cache_populate(obj_eval);
     }
 
@@ -3038,33 +3034,6 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 
   BLI_addtail(&g_registered_engines.engines, draw_engine);
   g_registered_engines.len = BLI_listbase_count(&g_registered_engines.engines);
-}
-
-void DRW_engines_register_experimental()
-{
-  if (!U.experimental.enable_eevee_next) {
-    /** Since EEVEE Next is always registered in `DRW_engines_register`,
-     * Here we just have to unregister if it's not actually enabled. */
-    for (auto *type = static_cast<RenderEngineType *>(R_engines.first); type; type = type->next) {
-      if (type == &DRW_engine_viewport_eevee_next_type) {
-        BLI_remlink(&R_engines, type);
-        break;
-      }
-    }
-
-    for (auto *type = static_cast<DRWRegisteredDrawEngine *>(g_registered_engines.engines.first);
-         type != nullptr;
-         type = static_cast<DRWRegisteredDrawEngine *>(type->next))
-    {
-      if (type->draw_engine == DRW_engine_viewport_eevee_next_type.draw_engine) {
-        BLI_remlink(&g_registered_engines.engines, type);
-        type->draw_engine->engine_free();
-        g_registered_engines.len--;
-        MEM_freeN(type);
-        break;
-      }
-    }
-  }
 }
 
 void DRW_engines_register()

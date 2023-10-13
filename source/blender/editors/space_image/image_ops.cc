@@ -2336,7 +2336,7 @@ bool ED_image_should_save_modified(const Main *bmain)
   uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
   bool should_save = modified_images_count || !BLI_listbase_is_empty(&reports.list);
 
-  BKE_reports_clear(&reports);
+  BKE_reports_free(&reports);
 
   return should_save;
 }

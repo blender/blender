@@ -4,7 +4,7 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
@@ -430,9 +430,23 @@ class Instance {
 
     int2 resolution = scene_state.resolution;
 
+    /** Always setup in-front depth, since Overlays can be updated without causing a Workbench
+     * re-sync (See #113580). */
+    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
+                                (!opaque_ps.gbuffer_in_front_ps_.is_empty() &&
+                                 scene_state.overlays_enabled && scene_state.sample == 0);
+    resources.depth_in_front_tx.wrap(needs_depth_in_front ? depth_in_front_tx : nullptr);
+    if ((!needs_depth_in_front && scene_state.overlays_enabled) ||
+        (needs_depth_in_front && opaque_ps.gbuffer_in_front_ps_.is_empty()))
+    {
+      resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
+      resources.clear_in_front_fb.bind();
+      GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
+    }
+
     if (scene_state.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps.draw(manager, view, scene_state, resources);
+      anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
       return;
     }
 
@@ -454,18 +468,6 @@ class Instance {
     GPU_framebuffer_multi_clear(resources.clear_fb, reinterpret_cast<float(*)[4]>(clear_colors));
     GPU_framebuffer_clear_depth_stencil(resources.clear_fb, 1.0f, 0x00);
 
-    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
-                                (!opaque_ps.gbuffer_in_front_ps_.is_empty() &&
-                                 scene_state.overlays_enabled && scene_state.sample == 0);
-    resources.depth_in_front_tx.wrap(needs_depth_in_front ? depth_in_front_tx : nullptr);
-    if ((!needs_depth_in_front && scene_state.overlays_enabled) ||
-        (needs_depth_in_front && opaque_ps.gbuffer_in_front_ps_.is_empty()))
-    {
-      resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
-      resources.clear_in_front_fb.bind();
-      GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
-    }
-
     opaque_ps.draw(
         manager, view, resources, resolution, scene_state.draw_shadows ? &shadow_ps : nullptr);
     transparent_ps.draw(manager, view, resources, resolution);
@@ -474,7 +476,7 @@ class Instance {
     volume_ps.draw(manager, view, resources);
     outline_ps.draw(manager, resources);
     dof_ps.draw(manager, view, resources, resolution);
-    anti_aliasing_ps.draw(manager, view, scene_state, resources);
+    anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
 
     resources.object_id_tx.release();
   }

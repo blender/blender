@@ -23,7 +23,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 
 #include "GPU_batch.h"

@@ -223,11 +223,11 @@ class IrradianceCache {
   Vector<IrradianceBrickPacked> bricks_alloc(int brick_len);
   void bricks_free(Vector<IrradianceBrickPacked> &bricks);
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_ubo(IRRADIANCE_GRID_BUF_SLOT, &grids_infos_buf_);
-    pass->bind_ssbo(IRRADIANCE_BRICK_BUF_SLOT, &bricks_infos_buf_);
-    pass->bind_texture(IRRADIANCE_ATLAS_TEX_SLOT, &irradiance_atlas_tx_);
+    pass.bind_ubo(IRRADIANCE_GRID_BUF_SLOT, &grids_infos_buf_);
+    pass.bind_ssbo(IRRADIANCE_BRICK_BUF_SLOT, &bricks_infos_buf_);
+    pass.bind_texture(IRRADIANCE_ATLAS_TEX_SLOT, &irradiance_atlas_tx_);
   }
 
  private:

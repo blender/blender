@@ -231,30 +231,23 @@ class GHOST_DeviceVK {
     device_features.drawIndirectFirstInstance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
 
-    VkPhysicalDeviceVulkan12Features device_12_features = {};
-    device_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-    device_12_features.shaderOutputLayer = VK_TRUE;
-    device_12_features.shaderOutputViewportIndex = VK_TRUE;
+    /* Enable shader draw parameters on logical device when supported on physical device. */
+    VkPhysicalDeviceShaderDrawParametersFeatures shader_draw_parameters = {};
+    shader_draw_parameters.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
+    shader_draw_parameters.shaderDrawParameters = features_11.shaderDrawParameters;
 
     VkPhysicalDeviceMaintenance4FeaturesKHR maintenance_4 = {};
     maintenance_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;
     maintenance_4.maintenance4 = VK_TRUE;
     /* Mainenance4 is core in Vulkan 1.3 so we need to query for availability. */
     if (has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
-      maintenance_4.pNext = device_12_features.pNext;
-      device_12_features.pNext = &maintenance_4;
+      maintenance_4.pNext = shader_draw_parameters.pNext;
+      shader_draw_parameters.pNext = &maintenance_4;
     }
 
-    /* Enable shader draw parameters on logical device when supported on physical device. */
-    VkPhysicalDeviceShaderDrawParametersFeatures shader_draw_parameters = {};
-    shader_draw_parameters.sType =
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
-    shader_draw_parameters.shaderDrawParameters = features_11.shaderDrawParameters;
-    shader_draw_parameters.pNext = device_12_features.pNext;
-    device_12_features.pNext = &shader_draw_parameters;
-
     VkDeviceCreateInfo device_create_info = {};
-    device_create_info.pNext = &device_12_features;
+    device_create_info.pNext = &shader_draw_parameters;
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.queueCreateInfoCount = uint32_t(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
@@ -980,8 +973,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   if (m_debug) {
     enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
     requireExtension(extensions_available, extensions_enabled, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    requireExtension(
-        extensions_available, extensions_enabled, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
   }
 
   if (use_window_surface) {

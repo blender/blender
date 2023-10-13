@@ -4049,7 +4049,7 @@ static bool filelist_readjob_is_partial_read(const FileListReadJob *read_job)
  *       some current entries are kept and we just call the readjob to update the main files (see
  *       #FileListReadJob.only_main_data).
  */
-static void filelist_readjob_startjob(void *flrjv, bool *stop, bool *do_update, float *progress)
+static void filelist_readjob_startjob(void *flrjv, wmJobWorkerStatus *worker_status)
 {
   FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
 
@@ -4082,7 +4082,8 @@ static void filelist_readjob_startjob(void *flrjv, bool *stop, bool *do_update, 
 
   BLI_mutex_unlock(&flrj->lock);
 
-  flrj->tmp_filelist->read_job_fn(flrj, stop, do_update, progress);
+  flrj->tmp_filelist->read_job_fn(
+      flrj, &worker_status->stop, &worker_status->do_update, &worker_status->progress);
 }
 
 /**
@@ -4197,12 +4198,9 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   const bool no_threads = (filelist->tags & FILELIST_TAGS_NO_THREADS) || flrj->only_main_data;
 
   if (no_threads) {
-    bool dummy_stop = false;
-    bool dummy_do_update = false;
-    float dummy_progress = 0.0f;
-
     /* Single threaded execution. Just directly call the callbacks. */
-    filelist_readjob_startjob(flrj, &dummy_stop, &dummy_do_update, &dummy_progress);
+    wmJobWorkerStatus worker_status = {};
+    filelist_readjob_startjob(flrj, &worker_status);
     filelist_readjob_endjob(flrj);
     filelist_readjob_free(flrj);
 

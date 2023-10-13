@@ -29,7 +29,7 @@
 #include "BLI_math_rotation.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 
 #include "view3d_intern.h"
@@ -109,8 +109,8 @@ void DRW_draw_cursor()
   const View3DCursor *cursor = &scene->cursor;
 
   int co[2];
-  if (!ED_view3d_project_int_global(
-          region, cursor->location, co, V3D_PROJ_TEST_NOP | V3D_PROJ_TEST_CLIP_NEAR) ==
+  if (ED_view3d_project_int_global(
+          region, cursor->location, co, V3D_PROJ_TEST_NOP | V3D_PROJ_TEST_CLIP_NEAR) !=
       V3D_PROJ_RET_OK)
   {
     return;

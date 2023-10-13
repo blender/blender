@@ -39,6 +39,7 @@ using bke::GAttributeWriter;
 using bke::GeometryComponent;
 using bke::GeometryComponentEditData;
 using bke::GeometrySet;
+using bke::GreasePencilComponent;
 using bke::GSpanAttributeWriter;
 using bke::InstancesComponent;
 using bke::MeshComponent;

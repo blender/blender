@@ -64,13 +64,8 @@ struct DRWShaderCompiler {
   bool own_context;
 };
 
-static void drw_deferred_shader_compilation_exec(
-    void *custom_data,
-    /* Cannot be const, this function implements wm_jobs_start_callback.
-     * NOLINTNEXTLINE: readability-non-const-parameter. */
-    bool *stop,
-    bool * /*do_update*/,
-    float * /*progress*/)
+static void drw_deferred_shader_compilation_exec(void *custom_data,
+                                                 wmJobWorkerStatus *worker_status)
 {
   GPU_render_begin();
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
@@ -90,7 +85,7 @@ static void drw_deferred_shader_compilation_exec(
   GPU_context_active_set(blender_gpu_context);
 
   while (true) {
-    if (*stop != 0) {
+    if (worker_status->stop != 0) {
       /* We don't want user to be able to cancel the compilation
        * but wm can kill the task if we are closing blender. */
       break;

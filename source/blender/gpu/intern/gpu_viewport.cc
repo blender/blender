@@ -159,10 +159,10 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
     }
   }
 
-  /* Can be shared with GPUOffscreen. */
+  /* Can be shared with #GPUOffscreen. */
   if (viewport->depth_tx == nullptr) {
     /* Depth texture can be read back by gizmos #view3d_depths_create. */
-    /* Swizle flag is needed by Workbench Volumes to read the stencil view. */
+    /* Swizzle flag is needed by Workbench Volumes to read the stencil view. */
     viewport->depth_tx = GPU_texture_create_2d("dtxl_depth",
                                                UNPACK2(size),
                                                1,

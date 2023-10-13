@@ -37,8 +37,7 @@ GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldCon
     return {};
   }
 
-  const bke::GeometryFieldContext value_context{
-      context.geometry(), context.type(), value_field_domain_};
+  const bke::GeometryFieldContext value_context{context, value_field_domain_};
   FieldEvaluator value_evaluator{value_context, attributes->domain_size(value_field_domain_)};
   value_evaluator.add(value_field_);
   value_evaluator.evaluate();
@@ -191,7 +190,8 @@ static void node_rna(StructRNA *srna)
                     "Domain the field is evaluated in",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom1),
-                    ATTR_DOMAIN_POINT);
+                    ATTR_DOMAIN_POINT,
+                    enums::domain_experimental_grease_pencil_version3_fn);
 
   RNA_def_node_enum(srna,
                     "data_type",

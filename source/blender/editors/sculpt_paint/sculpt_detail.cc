@@ -308,20 +308,17 @@ struct FloodFillJob {
 
 static FloodFillJob flood_fill_job;
 
-static void start_fill_job(void * /*custom_data*/,
-                           bool *stop,
-                           bool *do_update,
-                           float * /*progress*/)
+static void start_fill_job(void * /*custom_data*/, wmJobWorkerStatus *status)
 {
   printf("Start detail fill job.\n");
 
   auto lock_main_thread = [&]() { WM_job_main_thread_lock_acquire(flood_fill_job.job); };
   auto unlock_main_thread = [&]() { WM_job_main_thread_lock_release(flood_fill_job.job); };
-  auto update_main_thread = [&]() { *do_update = true; };
-  auto should_stop = [&]() { return *stop; };
+  auto update_main_thread = [&]() { status->do_update = true; };
+  auto should_stop = [&]() { return status->stop; };
 
   while (true) {
-    if (*stop) {
+    if (status->stop) {
       break;
     }
 
@@ -339,7 +336,7 @@ static void start_fill_job(void * /*custom_data*/,
       break;
     }
 
-    *do_update = true;
+    status->do_update = true;
     PIL_sleep_ms(15);
   }
 

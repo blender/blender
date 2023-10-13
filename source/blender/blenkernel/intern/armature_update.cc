@@ -25,7 +25,7 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_fcurve.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "BIK_api.h"

@@ -23,7 +23,7 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
@@ -43,6 +43,7 @@
 #include "ED_transverts.hh"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_keyframing.hh"
 
 #include "view3d_intern.h"
 
@@ -157,7 +158,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
               }
 
               /* auto-keyframing */
-              ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
+              blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
             }
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
@@ -237,7 +238,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
       }
 
       /* auto-keyframing */
-      ED_autokeyframe_object(C, scene, ob, ks);
+      blender::animrig::autokeyframe_object(C, scene, ob, ks);
 
       if (use_transform_data_origin) {
         ED_object_data_xform_container_item_ensure(xds, ob);
@@ -430,7 +431,7 @@ static bool snap_selected_to_location(bContext *C,
             }
 
             /* auto-keyframing */
-            ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
+            blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
           }
           else {
             copy_v3_v3(pchan->loc, cursor_pose);
@@ -537,7 +538,7 @@ static bool snap_selected_to_location(bContext *C,
         }
 
         /* auto-keyframing */
-        ED_autokeyframe_object(C, scene, ob, ks);
+        blender::animrig::autokeyframe_object(C, scene, ob, ks);
       }
       else {
         add_v3_v3(ob->loc, cursor_parent);

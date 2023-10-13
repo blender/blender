@@ -122,7 +122,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
   std::string normalized_root_path = utils::normalize_directory_path(root_path);
 
   std::unique_ptr<AssetLibrary> *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(
-      normalized_root_path);
+      {library_type, normalized_root_path});
   if (lib_uptr_ptr != nullptr) {
     CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", normalized_root_path.c_str());
     AssetLibrary *lib = lib_uptr_ptr->get();
@@ -139,7 +139,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
   /* Reload catalogs on refresh. */
   lib->on_refresh_ = [](AssetLibrary &self) { self.catalog_service->reload_catalogs(); };
 
-  on_disk_libraries_.add_new(normalized_root_path, std::move(lib_uptr));
+  on_disk_libraries_.add_new({library_type, normalized_root_path}, std::move(lib_uptr));
   CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", normalized_root_path.c_str());
   return lib;
 }

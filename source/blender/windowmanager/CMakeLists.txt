@@ -103,6 +103,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_screen
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
   bf_sequencer
   bf_intern_ghost
 )

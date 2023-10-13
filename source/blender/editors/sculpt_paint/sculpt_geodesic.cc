@@ -36,7 +36,7 @@
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -201,7 +201,7 @@ static bool sculpt_geodesic_mesh_test_dist_add_bmesh(BMVert *v0,
                                                      BMVert *v1,
                                                      BMVert *v2,
                                                      float *dists,
-                                                     GSet *initial_verts,
+                                                     GSet */*initial_verts*/,
                                                      PBVHVertRef *r_closest_verts,
                                                      float (*cos)[3])
 {

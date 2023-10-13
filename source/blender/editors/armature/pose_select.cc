@@ -26,7 +26,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"

@@ -464,9 +464,24 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 // key window from here if the closing one is not in the orderedWindows. This
 // saves lack of key windows when closing "About", but does not interfere with
 // Blender's window manager when closing Blender's windows.
+//
+// NOTE: It also receives notifiers when menus are closed on macOS 14.
+// Presumably it considers menus to be windows.
 - (void)windowWillClose:(NSNotification *)notification
 {
   NSWindow *closing_window = (NSWindow *)[notification object];
+
+  if (![closing_window isKeyWindow]) {
+    /* If the window wasn't key then its either none of the windows are key or another window
+     * is a key. The former situation is a bit strange, but probably forcing a key window is not
+     * something desirable. The latter situation is when we definitely do not want to change the
+     * key window.
+     *
+     * Ignoring non-key windows also avoids the code which ensures ordering below from running
+     * when the notifier is received for menus on macOS 14. */
+    return;
+  }
+
   NSInteger index = [[NSApp orderedWindows] indexOfObject:closing_window];
   if (index != NSNotFound) {
     return;

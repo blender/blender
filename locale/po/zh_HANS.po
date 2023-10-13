@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
 "PO-Revision-Date: 2023-09-26 10:38+0000\n"
 "Last-Translator: maylog <maylog@126.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
@@ -48632,6 +48632,10 @@ msgid "Show All"
 msgstr "显示全部"
 
 
+msgid "Pose Bone"
+msgstr "姿态骨骼"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "删除所选骨骼"
@@ -48990,10 +48994,6 @@ msgstr "-X 到 +X"
 
 msgid "+X to -X"
 msgstr "+X 到 -X"
-
-
-msgid "Pose Bone"
-msgstr "姿态骨骼"
 
 
 msgctxt "Operator"
@@ -52381,8 +52381,20 @@ msgstr "转换转动至欧拉 ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "导出PLY"
+msgid "Export STL"
+msgstr "导出STL"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "保存 STL 三角网格数据"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "保存文件为 ASCII 文件格式"
 
 
 msgid "X Forward"
@@ -52429,39 +52441,6 @@ msgid "-Z Up"
 msgstr "-Z 向上"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Apply Modifiers"
-msgstr "应用修改器"
-
-
-msgid "Selection Only"
-msgstr "仅导出选中的物体"
-
-
-msgid "Export selected objects only"
-msgstr "仅导出选择的物体"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "导出STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "保存 STL 三角网格数据"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "保存文件为 ASCII 文件格式"
-
-
 msgid "Batch Mode"
 msgstr "批量模式"
 
@@ -52482,6 +52461,10 @@ msgid "Export in this reference space"
 msgstr "在此参考空间中导出"
 
 
+msgid "Apply Modifiers"
+msgstr "应用修改器"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "保存前应用修改器"
 
@@ -52492,6 +52475,14 @@ msgstr "场景单位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "应用当前场景单位 (由单位比例定义) 输出数据"
+
+
+msgid "Selection Only"
+msgstr "仅导出选中的物体"
+
+
+msgid "Export selected objects only"
+msgstr "仅导出选择的物体"
 
 
 msgctxt "Operator"
@@ -53298,18 +53289,6 @@ msgstr "记住导出设置"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "将 glTF 导出设置存储在 Blender 中"
-
-
-msgid "Material Groups"
-msgstr "材质组"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "为几何中使用不同材质的每个部分生成OBJ组"
-
-
-msgid "Smooth Groups"
-msgstr "平滑组"
 
 
 msgctxt "Operator"
@@ -57911,10 +57890,6 @@ msgid "Always face the camera"
 msgstr "总是朝向摄像机"
 
 
-msgid "Hashed"
-msgstr "散列"
-
-
 msgid "Setup Corner Pin"
 msgstr "设置拐角钉固"
 
@@ -58085,11 +58060,6 @@ msgstr "使用每Blender单位点数定义图像"
 
 msgid "Use alpha channel for transparency"
 msgstr "将Alpha 通道用于透明"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "导入PLY"
 
 
 msgctxt "Operator"
@@ -58325,10 +58295,6 @@ msgstr "日志级别"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "glTF 格式要求将不连续法向、UV以及其他顶点属性存储为单独的顶点，这是在典型图形硬件上渲染所需的。此选项将尽可能合并同一位置的顶点。当前无法合并具有不同法向的顶点"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "将 OBJ 组导入为顶点组"
 
 
 msgctxt "Operator"
@@ -77503,6 +77469,10 @@ msgid "Export Material Groups"
 msgstr "导出材质组"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "为几何中使用不同材质的每个部分生成OBJ组"
+
+
 msgid "Export Materials"
 msgstr "导出材质"
 
@@ -77624,6 +77594,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "调整物体大小以使边界框保持在该值以下。数值为0禁用钳制"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "将 OBJ 组导入为顶点组"
+
+
 msgid "Split By Group"
 msgstr "按组拆分"
 
@@ -77723,6 +77697,16 @@ msgstr "启用工作区的插件"
 
 msgid "Open a path in a file browser"
 msgstr "在文件浏览器中打开路径"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "导出PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "导入PLY"
 
 
 msgctxt "Operator"
@@ -96356,10 +96340,6 @@ msgid "Shade for bones corresponding to a locked weight group during painting"
 msgstr "在涂抹过程中,与锁定的权重组对应骨骼的着色方式"
 
 
-msgid "Bone Pose"
-msgstr "骨骼姿态"
-
-
 msgid "Bone Pose Active"
 msgstr "激活的骨骼姿势"
 
@@ -102282,10 +102262,6 @@ msgid "Add a new Variant Slot"
 msgstr "添加新的变量槽"
 
 
-msgid "Curves as NURBS"
-msgstr "曲线为NURBS"
-
-
 msgid "untitled"
 msgstr "无标题"
 
@@ -102649,10 +102625,6 @@ msgstr "未找到 '{}' 插件!"
 
 msgid "Message extraction process failed!"
 msgstr "词条提取过程失败!"
-
-
-msgid "Info written to {} text datablock!"
-msgstr "信息写入 {} 文本数据块!"
 
 
 msgid "Could not init languages data!"
@@ -105877,13 +105849,13 @@ msgstr "所选标记区间内"
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "粘贴翻转"
+msgid "Clean Channels"
+msgstr "清除通道"
 
 
 msgctxt "Operator"
-msgid "Clean Channels"
-msgstr "清除通道"
+msgid "Paste Flipped"
+msgstr "粘贴翻转"
 
 
 msgctxt "Operator"
@@ -113244,6 +113216,10 @@ msgid "Triangulated Mesh"
 msgstr "三角化网格"
 
 
+msgid "Curves as NURBS"
+msgstr "曲线为NURBS"
+
+
 msgid "PBR Extensions"
 msgstr "PBR扩展"
 
@@ -113256,8 +113232,20 @@ msgid "Object Groups"
 msgstr "物体组"
 
 
+msgid "Material Groups"
+msgstr "材质组"
+
+
+msgid "Smooth Groups"
+msgstr "平滑组"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "平滑组位标记"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"

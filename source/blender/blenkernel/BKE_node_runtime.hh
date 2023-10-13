@@ -296,6 +296,9 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Eagerly maintained cache of the node's index in the tree. */
   int index_in_tree = -1;
 
+  /** Used to avoid running forward compatibility code more often than necessary. */
+  bool forward_compatible_versioning_done = false;
+
   /** Only valid if #topology_cache_is_dirty is false. */
   Vector<bNodeSocket *> inputs;
   Vector<bNodeSocket *> outputs;

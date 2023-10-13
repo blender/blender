@@ -293,7 +293,7 @@ void WM_operator_free(wmOperator *op)
   }
 
   if (op->reports && (op->reports->flag & RPT_FREE)) {
-    BKE_reports_clear(op->reports);
+    BKE_reports_free(op->reports);
     MEM_freeN(op->reports);
   }
 
@@ -344,7 +344,7 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 
 static void wm_reports_free(wmWindowManager *wm)
 {
-  BKE_reports_clear(&wm->reports);
+  BKE_reports_free(&wm->reports);
   WM_event_timer_remove(wm, nullptr, wm->reports.reporttimer);
 }
 
@@ -523,6 +523,8 @@ void wm_add_default(Main *bmain, bContext *C)
   bScreen *screen = CTX_wm_screen(C); /* XXX from file read hrmf */
   WorkSpace *workspace;
   WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
+
+  BKE_reports_init(&wm->reports, RPT_STORE);
 
   CTX_wm_manager_set(C, wm);
   win = wm_window_new(bmain, wm, nullptr, false);

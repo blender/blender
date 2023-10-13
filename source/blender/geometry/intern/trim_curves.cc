@@ -1059,17 +1059,14 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
       copy_point_skip.add("nurbs_weight");
     }
 
-    /* Copy point domain. */
-    for (auto &attribute : bke::retrieve_attributes_for_transfer(src_attributes,
-                                                                 dst_attributes,
-                                                                 ATTR_DOMAIN_MASK_POINT,
-                                                                 propagation_info,
-                                                                 copy_point_skip))
-    {
-      bke::curves::copy_point_data(
-          src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
-      attribute.dst.finish();
-    }
+    bke::copy_attributes_group_to_group(src_attributes,
+                                        ATTR_DOMAIN_POINT,
+                                        propagation_info,
+                                        copy_point_skip,
+                                        src_points_by_curve,
+                                        dst_points_by_curve,
+                                        unselected,
+                                        dst_attributes);
   }
 
   dst_curves.remove_attributes_based_on_types();

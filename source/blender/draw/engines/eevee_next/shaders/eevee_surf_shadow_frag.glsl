@@ -11,14 +11,18 @@
  * the destination texel.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_transparency_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
+
+vec4 closure_to_rgba(Closure cl)
+{
+  return vec4(0.0);
+}
 
 void main()
 {
@@ -30,7 +34,7 @@ void main()
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
   float random_threshold = transparency_hashed_alpha_threshold(1.0, noise_offset, g_data.P);
 
-  float transparency = avg(g_transmittance);
+  float transparency = average(g_transmittance);
   if (transparency > random_threshold) {
     discard;
     return;

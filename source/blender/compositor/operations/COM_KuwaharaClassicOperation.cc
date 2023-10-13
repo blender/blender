@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -14,8 +15,8 @@ namespace blender::compositor {
 KuwaharaClassicOperation::KuwaharaClassicOperation()
 {
   this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
-  this->set_kernel_size(4);
 
   this->flags_.is_fullframe_operation = true;
 }
@@ -23,11 +24,13 @@ KuwaharaClassicOperation::KuwaharaClassicOperation()
 void KuwaharaClassicOperation::init_execution()
 {
   image_reader_ = this->get_input_socket_reader(0);
+  size_reader_ = this->get_input_socket_reader(1);
 }
 
 void KuwaharaClassicOperation::deinit_execution()
 {
   image_reader_ = nullptr;
+  size_reader_ = nullptr;
 }
 
 void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
@@ -39,9 +42,13 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
   float4 mean_of_squared_color[] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
   int quadrant_pixel_count[] = {0, 0, 0, 0};
 
+  float4 size;
+  size_reader_->read_sampled(size, x, y, sampler);
+  const int kernel_size = int(math::max(0.0f, size[0]));
+
   /* Split surroundings of pixel into 4 overlapping regions. */
-  for (int dy = -kernel_size_; dy <= kernel_size_; dy++) {
-    for (int dx = -kernel_size_; dx <= kernel_size_; dx++) {
+  for (int dy = -kernel_size; dy <= kernel_size; dy++) {
+    for (int dx = -kernel_size; dx <= kernel_size; dx++) {
 
       int xx = x + dx;
       int yy = y + dy;
@@ -102,21 +109,12 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
   output[3] = mean_of_color[min_index].w; /* Also apply filter to alpha channel. */
 }
 
-void KuwaharaClassicOperation::set_kernel_size(int kernel_size)
-{
-  kernel_size_ = kernel_size;
-}
-
-int KuwaharaClassicOperation::get_kernel_size()
-{
-  return kernel_size_;
-}
-
 void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                             const rcti &area,
                                                             Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *image = inputs[0];
+  MemoryBuffer *size_image = inputs[1];
 
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const int x = it.x;
@@ -126,9 +124,11 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
     float4 mean_of_squared_color[] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
     int quadrant_pixel_count[] = {0, 0, 0, 0};
 
+    const int kernel_size = int(math::max(0.0f, *size_image->get_elem(x, y)));
+
     /* Split surroundings of pixel into 4 overlapping regions. */
-    for (int dy = -kernel_size_; dy <= kernel_size_; dy++) {
-      for (int dx = -kernel_size_; dx <= kernel_size_; dx++) {
+    for (int dy = -kernel_size; dy <= kernel_size; dy++) {
+      for (int dx = -kernel_size; dx <= kernel_size; dx++) {
 
         int xx = x + dx;
         int yy = y + dy;

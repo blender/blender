@@ -12,7 +12,7 @@
  */
 
 #include "BKE_duplilist.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_modifier_types.h"

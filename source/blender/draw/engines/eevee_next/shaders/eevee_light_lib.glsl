@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ltc_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 
@@ -29,7 +29,7 @@ LightVector light_vector_get(LightData light, const bool is_directional, vec3 P)
   }
   else {
     lv.L = light._position - P;
-    float inv_distance = inversesqrt(len_squared(lv.L));
+    float inv_distance = inversesqrt(length_squared(lv.L));
     lv.L *= inv_distance;
     lv.dist = 1.0 / inv_distance;
   }
@@ -56,7 +56,7 @@ LightVector light_shape_vector_get(LightData light, const bool is_directional, v
     vec3 L_prime = light._right * closest_point.x + light._up * closest_point.y;
 
     L = L_prime - L;
-    float inv_distance = inversesqrt(len_squared(L));
+    float inv_distance = inversesqrt(length_squared(L));
     LightVector lv;
     lv.L = L * inv_distance;
     lv.dist = 1.0 / inv_distance;
@@ -89,15 +89,15 @@ vec3 light_local_position_to_world(LightData light, vec3 lP)
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
 float light_influence_attenuation(float dist, float inv_sqr_influence)
 {
-  float factor = sqr(dist) * inv_sqr_influence;
-  float fac = saturate(1.0 - sqr(factor));
-  return sqr(fac);
+  float factor = square(dist) * inv_sqr_influence;
+  float fac = saturate(1.0 - square(factor));
+  return square(fac);
 }
 
 float light_spot_attenuation(LightData light, vec3 L)
 {
   vec3 lL = light_world_to_local(light, L);
-  float ellipse = inversesqrt(1.0 + len_squared(lL.xy * light.spot_size_inv / lL.z));
+  float ellipse = inversesqrt(1.0 + length_squared(lL.xy * light.spot_size_inv / lL.z));
   float spotmask = smoothstep(0.0, 1.0, ellipse * light._spot_mul + light._spot_bias);
   return spotmask * step(0.0, -dot(L, -light._back));
 }
@@ -133,7 +133,7 @@ float light_attenuation_facing(LightData light, vec3 L, vec3 Ng, bool use_subsur
 float light_attenuation_surface(
     LightData light, const bool is_directional, vec3 Ng, bool use_subsurface, LightVector lv)
 {
-  /* TODO(fclem): add cutoff attenuation when backfacing. For now do nothing with Ng. */
+  /* TODO(fclem): add cutoff attenuation when back-facing. For now do nothing with Ng. */
   return light_attenuation_common(light, is_directional, lv.L) *
          light_attenuation_facing(light, lv.L, Ng, use_subsurface) *
          light_influence_attenuation(lv.dist, light.influence_radius_invsqr_surface);
@@ -156,7 +156,7 @@ float light_point_light(LightData light, const bool is_directional, LightVector 
    * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
    * http://www.cemyuksel.com/research/pointlightattenuation/
    */
-  float d_sqr = sqr(lv.dist);
+  float d_sqr = square(lv.dist);
   float r_sqr = light.radius_squared;
   /* Using reformulation that has better numerical precision. */
   float power = 2.0 / (d_sqr + r_sqr + lv.dist * sqrt(d_sqr + r_sqr));
@@ -177,7 +177,7 @@ float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
 {
   /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
    * half-angle spanned by a disk light with the same radius. */
-  return sphere_radius * inversesqrt(1.0 - sqr(sphere_radius / distance_to_sphere));
+  return sphere_radius * inversesqrt(1.0 - square(sphere_radius / distance_to_sphere));
 }
 
 float light_ltc(

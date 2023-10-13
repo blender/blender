@@ -13,9 +13,10 @@
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
-#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -140,8 +141,9 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   const int current_frame = scene->r.cfra;
-  if (grease_pencil.get_active_layer()->drawing_index_at(current_frame) == -1) {
-    if (!IS_AUTOKEY_ON(scene)) {
+
+  if (!grease_pencil.get_active_layer()->frames().contains(current_frame)) {
+    if (!blender::animrig::is_autokey_on(scene)) {
       BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
       return OPERATOR_CANCELLED;
     }

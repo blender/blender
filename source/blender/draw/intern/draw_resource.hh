@@ -16,7 +16,7 @@
 #include "BKE_curve.h"
 #include "BKE_duplilist.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_volume.h"
 #include "BLI_hash.h"
 #include "DNA_curve_types.h"

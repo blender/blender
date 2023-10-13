@@ -40,7 +40,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "BKE_screen.hh"

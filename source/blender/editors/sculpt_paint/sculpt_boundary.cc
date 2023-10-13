@@ -23,7 +23,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 

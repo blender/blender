@@ -44,6 +44,9 @@ static Array<float2> sample_curve_2d(Span<float2> positions, const int64_t resol
 {
   BLI_assert(positions.size() % 3 == 0);
   const int64_t num_handles = positions.size() / 3;
+  if (num_handles == 1) {
+    return Array<float2>(resolution, positions[1]);
+  }
   const int64_t num_segments = num_handles - 1;
   const int64_t num_points = num_segments * resolution;
 
@@ -119,6 +122,8 @@ struct PaintOperationExecutor {
 
   bke::greasepencil::Drawing *drawing_;
 
+  bke::greasepencil::DrawingTransforms transforms_;
+
   PaintOperationExecutor(const bContext &C)
   {
     Scene *scene = CTX_data_scene(&C);
@@ -155,16 +160,18 @@ struct PaintOperationExecutor {
     BLI_assert(drawing_index >= 0);
     drawing_ =
         &reinterpret_cast<GreasePencilDrawing *>(grease_pencil_->drawing(drawing_index))->wrap();
+
+    transforms_ = bke::greasepencil::DrawingTransforms(*object);
   }
 
-  float3 screen_space_to_object_space(const float2 co)
+  float3 screen_space_to_drawing_plane(const float2 co)
   {
     /* TODO: Use correct plane/projection. */
     const float4 plane{0.0f, -1.0f, 0.0f, 0.0f};
-    /* TODO: Use object transform. */
     float3 proj_point;
-    ED_view3d_win_to_3d_on_plane(region_, plane, co, false, proj_point);
-    return proj_point;
+    ED_view3d_win_to_3d_on_plane(
+        region_, transforms_.layer_space_to_world_space * plane, co, false, proj_point);
+    return math::transform_point(transforms_.world_space_to_layer_space, proj_point);
   }
 
   float radius_from_input_sample(const InputSample &sample)
@@ -204,7 +211,7 @@ struct PaintOperationExecutor {
     curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
     curves.offsets_for_write().last(1) = num_old_points;
 
-    curves.positions_for_write().last() = screen_space_to_object_space(start_coords);
+    curves.positions_for_write().last() = screen_space_to_drawing_plane(start_coords);
     drawing_->radii_for_write().last() = start_radius;
     drawing_->opacities_for_write().last() = start_opacity;
     drawing_->vertex_colors_for_write().last() = start_vertex_color;
@@ -212,7 +219,12 @@ struct PaintOperationExecutor {
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
         "material_index", ATTR_DOMAIN_CURVE);
+    bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
+        "cyclic", ATTR_DOMAIN_CURVE);
+    cyclic.span.last() = false;
     materials.span.last() = material_index;
+
+    cyclic.finish();
     materials.finish();
 
     curves.curve_types_for_write().last() = CURVE_TYPE_POLY;
@@ -225,6 +237,10 @@ struct PaintOperationExecutor {
                         const IndexRange points,
                         const IndexRange smooth_window)
   {
+    /* We don't do active smoothing for when we have just 3 points or less. */
+    if (smooth_window.size() < 4) {
+      return;
+    }
     Span<float2> screen_space_coords_smooth_slice = self.screen_space_coords_.as_span().slice(
         smooth_window);
 
@@ -298,14 +314,15 @@ struct PaintOperationExecutor {
 
       /* Update the positions in the current cache. */
       smoothed_coords_slice[i] = new_pos;
-      positions_slice[i] = screen_space_to_object_space(new_pos);
+      positions_slice[i] = screen_space_to_drawing_plane(new_pos);
     }
 
     /* Remove all the converged points from the active window and shrink the window accordingly. */
     if (num_converged > 0) {
       self.active_smooth_index_ = math::min(self.active_smooth_index_ + int64_t(num_converged),
                                             int64_t(drawing_->strokes().points_num() - 1));
-      if (self.screen_space_curve_fitted_coords_.size() - num_converged > 0) {
+      const IndexRange new_smooth_window = points.drop_front(self.active_smooth_index_);
+      if (new_smooth_window.size() > 0) {
         self.screen_space_curve_fitted_coords_.remove(0, num_converged);
       }
       else {
@@ -332,7 +349,7 @@ struct PaintOperationExecutor {
 
     /* Overwrite last point if it's very close. */
     if (math::distance(coords, prev_coords) < POINT_OVERRIDE_THRESHOLD_PX) {
-      curves.positions_for_write().last() = screen_space_to_object_space(coords);
+      curves.positions_for_write().last() = screen_space_to_drawing_plane(coords);
       drawing_->radii_for_write().last() = math::max(radius, prev_radius);
       drawing_->opacities_for_write().last() = math::max(opacity, prev_opacity);
       return;
@@ -376,7 +393,7 @@ struct PaintOperationExecutor {
     if (points.size() < min_active_smoothing_points_num) {
       MutableSpan<float3> positions_slice = curves.positions_for_write().slice(new_range);
       for (const int64_t i : new_screen_space_coords.index_range()) {
-        positions_slice[i] = screen_space_to_object_space(new_screen_space_coords[i]);
+        positions_slice[i] = screen_space_to_drawing_plane(new_screen_space_coords[i]);
       }
       return;
     }

@@ -281,11 +281,9 @@ static bool bpy_run_string_impl(bContext *C,
 
     ReportList *wm_reports = CTX_wm_reports(C);
     if (wm_reports) {
-      BLI_movelisttolist(&wm_reports->list, &reports.list);
+      BKE_reports_move_to_reports(wm_reports, &reports);
     }
-    else {
-      BKE_reports_clear(&reports);
-    }
+    BKE_reports_free(&reports);
   }
   else {
     Py_DECREF(retval);

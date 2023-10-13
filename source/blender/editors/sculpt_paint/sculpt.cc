@@ -56,7 +56,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
@@ -1750,7 +1750,7 @@ void SCULPT_orig_face_data_unode_init(SculptOrigFaceData *data, Object *ob, Scul
     data->bm_log = ss->bm_log;
   }
   else {
-    data->face_sets = unode->face_sets;
+    data->face_sets = unode->face_sets.data();
   }
 }
 
@@ -2407,7 +2407,7 @@ static void calc_area_normal_and_center_task(Object *ob,
 
   if (ss->cache && !ss->cache->accum) {
     unode = SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
-    use_original = (unode->co || unode->bm_entry);
+    use_original = (!unode->co.is_empty() || unode->bm_entry);
   }
 
   SculptBrushTest normal_test;
@@ -4070,7 +4070,7 @@ static void do_brush_action(Sculpt *sd,
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) || !ss->cache->accum;
   const bool use_pixels = sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob);
   bool needs_original = use_original || SCULPT_automasking_needs_original(sd, brush);
-  needs_original |= (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT));
+  needs_original |= bool(brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT));
 
   if (sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob)) {
     sculpt_pbvh_update_pixels(paint_mode_settings, ss, ob);
@@ -5614,7 +5614,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
     else {
       /* Intersect with coordinates from before we started stroke. */
       SculptUndoNode *unode = SCULPT_undo_get_node(node, SCULPT_UNDO_COORDS);
-      origco = (unode) ? unode->co : nullptr;
+      origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->co.data()) : nullptr;
       use_origco = origco ? true : false;
     }
   }
@@ -5659,7 +5659,7 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
     else {
       /* Intersect with coordinates from before we started stroke. */
       SculptUndoNode *unode = SCULPT_undo_get_node(node, SCULPT_UNDO_COORDS);
-      origco = (unode) ? unode->co : nullptr;
+      origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->co.data()) : nullptr;
       use_origco = origco ? true : false;
     }
   }

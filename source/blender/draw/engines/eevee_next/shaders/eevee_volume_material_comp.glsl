@@ -5,8 +5,6 @@
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 
 /* Needed includes for shader nodes. */
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_attribute_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
@@ -31,7 +29,7 @@ GlobalData init_globals(vec3 wP)
   surf.barycentric_dists = vec3(0.0);
   surf.ray_type = RAY_TYPE_CAMERA;
   surf.ray_depth = 0.0;
-  surf.ray_length = distance(surf.P, cameraPos);
+  surf.ray_length = distance(surf.P, drw_view_position());
   return surf;
 }
 
@@ -52,7 +50,7 @@ void main()
   }
 
   vec3 jitter = sampling_rng_3D_get(SAMPLING_VOLUME_U);
-  vec3 ndc_cell = volume_to_ndc((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
+  vec3 ndc_cell = volume_to_screen((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
 
   vec3 vP = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
   vec3 wP = point_view_to_world(vP);

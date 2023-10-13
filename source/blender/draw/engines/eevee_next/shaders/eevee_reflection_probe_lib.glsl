@@ -7,25 +7,19 @@
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 
 #ifdef REFLECTION_PROBE
-vec4 reflection_probes_sample(vec3 L, float lod, ReflectionProbeData probe_data)
+vec4 reflection_probes_sample(vec3 L, float lod, ReflectionProbeAtlasCoordinate atlas_coord)
 {
   vec2 octahedral_uv_packed = octahedral_uv_from_direction(L);
-  vec2 texel_size = vec2(1.0 / float(1 << (11 - probe_data.layer_subdivision)));
+  vec2 texel_size = vec2(1.0 / float(1 << (11 - atlas_coord.layer_subdivision)));
   vec2 octahedral_uv = octahedral_uv_to_layer_texture_coords(
-      octahedral_uv_packed, probe_data, texel_size);
-  return textureLod(reflection_probes_tx, vec3(octahedral_uv, probe_data.layer), lod);
-}
-
-vec3 reflection_probes_world_sample(vec3 L, float lod)
-{
-  ReflectionProbeData probe_data = reflection_probe_buf[0];
-  return reflection_probes_sample(L, lod, probe_data).rgb;
+      octahedral_uv_packed, atlas_coord, texel_size);
+  return textureLod(reflection_probes_tx, vec3(octahedral_uv, atlas_coord.layer), lod);
 }
 #endif
 
 ReflectionProbeLowFreqLight reflection_probes_extract_low_freq(SphericalHarmonicL1 sh)
 {
-  /* To avoid color shift and negative values, we reduce saturation and directionnality. */
+  /* To avoid color shift and negative values, we reduce saturation and directionality. */
   ReflectionProbeLowFreqLight result;
   result.ambient = sh.L0.M0.r + sh.L0.M0.g + sh.L0.M0.b;
 
@@ -44,7 +38,7 @@ vec3 reflection_probes_normalization_eval(vec3 L,
                                           ReflectionProbeLowFreqLight numerator,
                                           ReflectionProbeLowFreqLight denominator)
 {
-  /* TODO(fclem): Adjusting directionnality is tricky.
+  /* TODO(fclem): Adjusting directionality is tricky.
    * Needs to be revisited later on. For now only use the ambient term. */
   return vec3(numerator.ambient * safe_rcp(denominator.ambient));
 }

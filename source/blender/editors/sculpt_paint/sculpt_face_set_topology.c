@@ -45,7 +45,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"

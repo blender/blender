@@ -59,7 +59,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -1135,9 +1135,11 @@ static int forcefield_toggle_exec(bContext *C, wmOperator * /*op*/)
 
   if (ob->pd == nullptr) {
     ob->pd = BKE_partdeflect_new(PFIELD_FORCE);
+    ob->empty_drawtype = OB_PLAINAXES;
   }
   else if (ob->pd->forcefield == 0) {
     ob->pd->forcefield = PFIELD_FORCE;
+    ob->empty_drawtype = OB_PLAINAXES;
   }
   else {
     ob->pd->forcefield = 0;

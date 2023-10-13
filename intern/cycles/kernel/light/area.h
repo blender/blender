@@ -48,7 +48,7 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   /* The original paper uses acos() to compute the internal angles here, and then computes the
    * solid angle as their sum minus 2*pi. However, for very small rectangles, this results in
    * excessive cancellation error since the sum will be almost 2*pi as well.
-   * This can be avoided by using that asin(x) = pi/2 - acos(x). */
+   * This can be avoided by using that `asin(x) = pi/2 - acos(x)`. */
   float g0 = safe_asinf(-nz.x * nz.y);
   float g1 = safe_asinf(-nz.y * nz.z);
   float g2 = safe_asinf(-nz.z * nz.w);

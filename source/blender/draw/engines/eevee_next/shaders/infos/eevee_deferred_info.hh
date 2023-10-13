@@ -71,9 +71,31 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_capture_eval)
                      "eevee_light_data",
                      "eevee_shadow_data",
                      "eevee_hiz_data",
+                     "eevee_volume_probe_data",
                      "draw_view",
                      "draw_fullscreen")
     .fragment_source("eevee_deferred_capture_frag.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(eevee_deferred_planar_eval)
+    /* Early fragment test is needed to avoid processing fragments without correct GBuffer data. */
+    .early_fragment_test(true)
+    /* Inputs. */
+    .fragment_out(0, Type::VEC4, "out_radiance")
+    .define("REFLECTION_PROBE")
+    .define("SSS_TRANSMITTANCE")
+    .define("LIGHT_CLOSURE_EVAL_COUNT", "2")
+    .additional_info("eevee_shared",
+                     "eevee_gbuffer_data",
+                     "eevee_utility_texture",
+                     "eevee_sampling_data",
+                     "eevee_light_data",
+                     "eevee_lightprobe_data",
+                     "eevee_shadow_data",
+                     "eevee_hiz_data",
+                     "draw_view",
+                     "draw_fullscreen")
+    .fragment_source("eevee_deferred_planar_frag.glsl")
     .do_static_compilation(true);
 
 #undef image_out

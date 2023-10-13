@@ -1210,8 +1210,8 @@ void SCULPT_cloth_simulation_free(SculptClothSimulation *cloth_sim)
   MEM_SAFE_FREE(cloth_sim);
 }
 
-void SCULPT_cloth_simulation_limits_draw(const SculptSession *ss,
-                                         const Sculpt *sd,
+void SCULPT_cloth_simulation_limits_draw(const SculptSession */*ss*/,
+                                         const Sculpt */*sd*/,
                                          const uint gpuattr,
                                          const Brush *brush,
                                          const float location[3],

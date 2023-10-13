@@ -92,6 +92,56 @@ static char *windows_operation_string(FileExternalOperation operation)
 }
 #endif
 
+int64_t BLI_read(int fd, void *buf, size_t nbytes)
+{
+  /* Define our own read as `read` is not guaranteed to read the number of bytes requested.
+   * This happens rarely but was observed with larger than 2GB files on Linux, see: #113473.
+   *
+   * Even though this is a loop, the most common code-path will exit with "Success" case.
+   * In the case where read more data than the file contains, it will loop twice,
+   * exiting on EOF with the second iteration. */
+  int64_t nbytes_read_total = 0;
+  while (true) {
+    int64_t nbytes_read = read(fd,
+                               buf,
+#ifdef WIN32
+                               /* Read must not exceed INT_MAX on WIN32, clamp. */
+                               MIN2(nbytes, INT_MAX)
+#else
+                               nbytes
+#endif
+    );
+    if (nbytes_read == nbytes) {
+      /* Success (common case). */
+      return nbytes_read_total + nbytes_read;
+    }
+    if (nbytes_read == 0) {
+      /* EOF (common case for the second iteration when reading more data than `fd` contains). */
+      return nbytes_read_total;
+    }
+    if (nbytes_read < 0) {
+      /* Error. */
+      return nbytes_read;
+    }
+
+    if (UNLIKELY(nbytes_read > nbytes)) {
+      /* Badly behaving LIBC, reading more bytes than requested should never happen.
+       * Possibly an invalid internal state/corruption, only check to prevent an eternal loop. */
+      BLI_assert_unreachable();
+      /* Set the IO-error so there is some indication an error occurred. */
+      if (errno == 0) {
+        errno = EIO;
+      }
+      return -1;
+    }
+
+    /* If this is reached, fewer bytes were read than were requested. */
+    buf = (void *)(((char *)buf) + nbytes_read);
+    nbytes_read_total += nbytes_read;
+    nbytes -= nbytes_read;
+  }
+}
+
 bool BLI_file_external_operation_supported(const char *filepath, FileExternalOperation operation)
 {
 #ifdef WIN32
@@ -1194,7 +1244,7 @@ static int copy_single_file(const char *from, const char *to)
     /* symbolic links should be copied in special way */
     char *link_buffer;
     int need_free;
-    ssize_t link_len;
+    int64_t link_len;
 
     /* get large enough buffer to read link content */
     if ((st.st_size + 1) < sizeof(buf)) {

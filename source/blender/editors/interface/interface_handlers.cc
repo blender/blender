@@ -8458,7 +8458,16 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
   /* number editing */
   if (state == BUTTON_STATE_NUM_EDITING) {
     if (ui_but_is_cursor_warp(but)) {
-      WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, nullptr, true);
+      if (ELEM(but->type, UI_BTYPE_HSVCIRCLE, UI_BTYPE_HSVCUBE)) {
+        rctf rectf;
+        ui_block_to_window_rctf(data->region, but->block, &rectf, &but->rect);
+        rcti bounds;
+        BLI_rcti_rctf_copy(&bounds, &rectf);
+        WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, &bounds, true);
+      }
+      else {
+        WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, nullptr, true);
+      }
     }
     ui_numedit_begin(but, data);
   }
@@ -10304,45 +10313,29 @@ float ui_block_calc_pie_segment(uiBlock *block, const float event_xy[2])
   return len;
 }
 
-static int ui_handle_menu_letter_press(
-    bContext *C, ARegion *region, uiPopupBlockHandle *menu, const wmEvent *event, uiBlock *block)
+static int ui_handle_menu_letter_press_search(uiPopupBlockHandle *menu, const wmEvent *event)
 {
-  /* Start menu search on key press if enabled. */
+  /* Start menu search if the menu has a name. */
   if (menu->menu_idname[0]) {
-    MenuType *mt = WM_menutype_find(menu->menu_idname, false);
-    if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
-      uiAfterFunc *after = ui_afterfunc_new();
-      wmOperatorType *ot = WM_operatortype_find("WM_OT_search_single_menu", false);
-      after->optype = ot;
-      after->opcontext = WM_OP_INVOKE_DEFAULT;
-      after->opptr = MEM_cnew<PointerRNA>(__func__);
-      WM_operator_properties_create_ptr(after->opptr, ot);
-      RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
-      if (event->type != EVT_SPACEKEY) {
-        const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
-        if (num_bytes != -1) {
-          char buf[sizeof(event->utf8_buf) + 1];
-          memcpy(buf, event->utf8_buf, num_bytes);
-          buf[num_bytes] = '\0';
-          RNA_string_set(after->opptr, "initial_query", buf);
-        }
+    uiAfterFunc *after = ui_afterfunc_new();
+    wmOperatorType *ot = WM_operatortype_find("WM_OT_search_single_menu", false);
+    after->optype = ot;
+    after->opcontext = WM_OP_INVOKE_DEFAULT;
+    after->opptr = MEM_cnew<PointerRNA>(__func__);
+    WM_operator_properties_create_ptr(after->opptr, ot);
+    RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
+    if (event->type != EVT_SPACEKEY) {
+      /* Forward all keys except space-bar to the search. */
+      const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
+      if (num_bytes != -1) {
+        char buf[sizeof(event->utf8_buf) + 1];
+        memcpy(buf, event->utf8_buf, num_bytes);
+        buf[num_bytes] = '\0';
+        RNA_string_set(after->opptr, "initial_query", buf);
       }
-      menu->menuretval = UI_RETURN_OK;
-      return WM_UI_HANDLER_BREAK;
     }
-  }
-
-  /* Handle accelerator keys that allow "pressing" a menu entry by pressing a single key. */
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
-      if (but->type == UI_BTYPE_BUT) {
-        UI_but_execute(C, region, but);
-      }
-      else {
-        ui_handle_button_activate_by_type(C, region, but);
-      }
-      return WM_UI_HANDLER_BREAK;
-    }
+    menu->menuretval = UI_RETURN_OK;
+    return WM_UI_HANDLER_BREAK;
   }
   return WM_UI_HANDLER_CONTINUE;
 }
@@ -10784,13 +10777,39 @@ static int ui_handle_menu_event(bContext *C,
                * activating an item when the key is held. */
               (event->flag & WM_EVENT_IS_REPEAT) == 0)
           {
+
+            /* Menu search if spacebar or SearchOnKeyPress. */
+            MenuType *mt = WM_menutype_find(menu->menu_idname, false);
+            if ((mt && bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) ||
+                event->type == EVT_SPACEKEY) {
+              if ((level != 0) && (but == nullptr || !menu->menu_idname[0])) {
+                /* Search parent if the child is open but not activated or not searchable. */
+                menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
+              }
+              else {
+                retval = ui_handle_menu_letter_press_search(menu, event);
+              }
+              break;
+            }
+
             if (ui_menu_pass_event_to_parent_if_nonactive(
                     menu, but, level, is_parent_menu, retval)) {
               break;
             }
-            retval = ui_handle_menu_letter_press(C, region, menu, event, block);
+
+            /* Accelerator keys that allow "pressing" a menu entry by pressing a single key. */
+            LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+              if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
+                if (but->type == UI_BTYPE_BUT) {
+                  UI_but_execute(C, region, but);
+                }
+                else {
+                  ui_handle_button_activate_by_type(C, region, but);
+                }
+                return WM_UI_HANDLER_BREAK;
+              }
+            }
           }
-          break;
         }
       }
     }

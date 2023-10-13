@@ -38,3 +38,16 @@ vec4 colorspace_scene_linear_from_YCoCg(vec4 ycocg_color)
 }
 
 /** \} */
+
+/**
+ * Clamp components to avoid black square artifacts if a pixel goes NaN or negative.
+ * Threshold is arbitrary.
+ */
+vec4 colorspace_safe_color(vec4 c)
+{
+  return clamp(c, vec4(0.0), vec4(1e20));
+}
+vec3 colorspace_safe_color(vec3 c)
+{
+  return clamp(c, vec3(0.0), vec3(1e20));
+}

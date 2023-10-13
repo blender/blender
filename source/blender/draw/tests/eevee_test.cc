@@ -8,7 +8,7 @@
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
 

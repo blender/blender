@@ -34,7 +34,7 @@
 #include "BKE_lattice.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BKE_deform.h"
 

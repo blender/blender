@@ -935,7 +935,7 @@ static void wm_add_reports(ReportList *reports)
     wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
 
     /* Add reports to the global list, otherwise they are not seen. */
-    BLI_movelisttolist(&wm->reports.list, &reports->list);
+    BKE_reports_move_to_reports(&wm->reports, reports);
 
     WM_report_banner_show(wm, nullptr);
   }
@@ -950,7 +950,7 @@ void WM_report(eReportType type, const char *message)
 
   wm_add_reports(&reports);
 
-  BKE_reports_clear(&reports);
+  BKE_reports_free(&reports);
 }
 
 void WM_reportf(eReportType type, const char *format, ...)
@@ -2490,7 +2490,8 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
         if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
           wm_operator_reports(C, op, retval, false);
 
-          if (op->type->modalkeymap) {
+          wmOperator *op_test = handler->op->opm ? handler->op->opm : handler->op;
+          if (op_test->type->modalkeymap) {
             WM_window_status_area_tag_redraw(win);
           }
         }
@@ -2830,12 +2831,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           BKE_report_print_level_set(handler->op->reports, RPT_WARNING);
           UI_popup_menu_reports(C, handler->op->reports);
 
-          /* XXX: copied from #wm_operator_finished(). */
-          /* Add reports to the global list, otherwise they are not seen. */
-          BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
-
-          /* More hacks, since we meddle with reports, banner display doesn't happen automatic. */
-          WM_report_banner_show(CTX_wm_manager(C), CTX_wm_window(C));
+          wm_add_reports(handler->op->reports);
 
           CTX_wm_window_set(C, win_prev);
           CTX_wm_area_set(C, area_prev);

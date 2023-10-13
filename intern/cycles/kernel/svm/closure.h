@@ -552,37 +552,38 @@ ccl_device
           !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
         break;
 #endif
-      Spectrum weight = closure_weight * mix_weight;
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-          sd, sizeof(MicrofacetBsdf), weight);
+          sd, sizeof(MicrofacetBsdf), make_spectrum(mix_weight));
+      ccl_private FresnelGeneralizedSchlick *fresnel =
+          (bsdf != NULL) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
+                               sd, sizeof(FresnelGeneralizedSchlick)) :
+                           NULL;
 
-      if (bsdf) {
+      if (bsdf && fresnel) {
         bsdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bsdf->T = zero_float3();
-        bsdf->fresnel = NULL;
 
-        float eta = fmaxf(param2, 1e-5f);
-        eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
+        float ior = fmaxf(param2, 1e-5f);
+        bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / ior : ior;
+        bsdf->alpha_x = bsdf->alpha_y = sqr(param1);
+
+        fresnel->f0 = make_float3(F0_from_ior(ior));
+        fresnel->f90 = one_spectrum();
+        fresnel->exponent = -ior;
+        const float3 color = stack_load_float3(stack, data_node.z);
+        fresnel->reflection_tint = color;
+        fresnel->transmission_tint = color;
 
         /* setup bsdf */
-        float roughness = sqr(param1);
-        bsdf->alpha_x = roughness;
-        bsdf->alpha_y = roughness;
-        bsdf->ior = eta;
-
         if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID) {
           sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
         }
         else {
           sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
-          if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID) {
-            kernel_assert(stack_valid(data_node.z));
-            const Spectrum color = rgb_to_spectrum(stack_load_float3(stack, data_node.z));
-            bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd, color);
-          }
         }
+        const bool is_multiggx = (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+        bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, is_multiggx);
       }
-
       break;
     }
     case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID: {

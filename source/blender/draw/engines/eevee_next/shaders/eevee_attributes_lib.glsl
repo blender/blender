@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 
 #define EEVEE_ATTRIBUTE_LIB
@@ -33,7 +33,7 @@ vec3 attr_load_orco(vec4 orco)
 #  endif
 vec4 attr_load_tangent(vec4 tangent)
 {
-  tangent.xyz = safe_normalize(normal_object_to_world(tangent.xyz));
+  tangent.xyz = safe_normalize(drw_normal_object_to_world(tangent.xyz));
   return tangent;
 }
 vec4 attr_load_vec4(vec4 attr)

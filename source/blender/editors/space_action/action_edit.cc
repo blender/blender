@@ -43,6 +43,7 @@
 
 #include "UI_view2d.hh"
 
+#include "ANIM_keyframing.hh"
 #include "ED_anim_api.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_grease_pencil.hh"
@@ -838,17 +839,17 @@ static void insert_fcurve_key(bAnimContext *ac,
    *   (TODO: add the full-blown PointerRNA relative parsing case here...)
    */
   if (ale->id && !ale->owner) {
-    insert_keyframe(ac->bmain,
-                    reports,
-                    ale->id,
-                    nullptr,
-                    ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
-                    fcu->rna_path,
-                    fcu->array_index,
-                    &anim_eval_context,
-                    eBezTriple_KeyframeType(ts->keyframe_type),
-                    nla_cache,
-                    flag);
+    blender::animrig::insert_keyframe(ac->bmain,
+                                      reports,
+                                      ale->id,
+                                      nullptr,
+                                      ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                                      fcu->rna_path,
+                                      fcu->array_index,
+                                      &anim_eval_context,
+                                      eBezTriple_KeyframeType(ts->keyframe_type),
+                                      nla_cache,
+                                      flag);
   }
   else {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);

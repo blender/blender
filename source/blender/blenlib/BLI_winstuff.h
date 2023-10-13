@@ -65,15 +65,6 @@ extern "C" {
 
 typedef unsigned int mode_t;
 
-#ifndef _SSIZE_T_
-#  define _SSIZE_T_
-/* python uses HAVE_SSIZE_T */
-#  ifndef HAVE_SSIZE_T
-#    define HAVE_SSIZE_T 1
-typedef SSIZE_T ssize_t;
-#  endif
-#endif
-
 /** Directory reading compatibility with UNIX. */
 struct dirent {
   int d_ino;

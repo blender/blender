@@ -653,8 +653,8 @@ void IrradianceBake::sync()
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    inst_.lights.bind_resources(&pass);
-    inst_.shadows.bind_resources(&pass);
+    inst_.lights.bind_resources(pass);
+    inst_.shadows.bind_resources(pass);
     /* Sync with the surfel creation stage. */
     pass.barrier(GPU_BARRIER_SHADER_STORAGE);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -704,7 +704,7 @@ void IrradianceBake::sync()
       sub.shader_set(inst_.shaders.static_shader_get(SURFEL_RAY));
       sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
       sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
-      inst_.reflection_probes.bind_resources(&sub);
+      inst_.reflection_probes.bind_resources(sub);
       sub.push_constant("radiance_src", &radiance_src_);
       sub.push_constant("radiance_dst", &radiance_dst_);
       sub.barrier(GPU_BARRIER_SHADER_STORAGE);
@@ -717,7 +717,7 @@ void IrradianceBake::sync()
     pass.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_RAY));
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
-    inst_.reflection_probes.bind_resources(&pass);
+    inst_.reflection_probes.bind_resources(pass);
     pass.bind_ssbo("list_start_buf", &list_start_buf_);
     pass.bind_ssbo("list_info_buf", &list_info_buf_);
     pass.push_constant("radiance_src", &radiance_src_);
@@ -827,6 +827,9 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   capture_info_buf_.capture_visibility_indirect = !(capture_world_ && capture_indirect_);
   capture_info_buf_.capture_indirect = capture_indirect_;
   capture_info_buf_.capture_emission = capture_emission_;
+
+  ReflectionProbeAtlasCoordinate atlas_coord = inst_.reflection_probes.world_atlas_coord_get();
+  capture_info_buf_.world_atlas_coord = *reinterpret_cast<int4 *>(&atlas_coord);
 
   dispatch_per_grid_sample_ = math::divide_ceil(grid_resolution, int3(IRRADIANCE_GRID_GROUP_SIZE));
   capture_info_buf_.irradiance_grid_size = grid_resolution;
@@ -984,6 +987,9 @@ void IrradianceBake::surfels_lights_eval()
   /* Use the last setup view. This should work since the view is orthographic. */
   /* TODO(fclem): Remove this. It is only present to avoid crash inside `shadows.set_view` */
   inst_.render_buffers.acquire(int2(1));
+  inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
+  inst_.hiz_buffer.set_dirty();
+
   inst_.lights.set_view(view_z_, grid_pixel_extent_.xy());
   inst_.shadows.set_view(view_z_);
   inst_.render_buffers.release();

@@ -16,10 +16,13 @@
 #ifdef __cplusplus
 #  include "BLI_bounds_types.hh"
 #  include "BLI_function_ref.hh"
+#  include "BLI_generic_virtual_array.hh"
 #  include "BLI_map.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_span.hh"
 namespace blender::bke {
+class AttributeAccessor;
+class MutableAttributeAccessor;
 class GreasePencilRuntime;
 class GreasePencilDrawingRuntime;
 namespace greasepencil {
@@ -400,6 +403,16 @@ typedef struct GreasePencil {
   GreasePencilLayerTreeGroup *root_group_ptr;
 
   /**
+   * All attributes stored on the grease pencil layers (#ATTR_DOMAIN_LAYER).
+   */
+  CustomData layers_data;
+  /**
+   * The index of the active attribute in the UI.
+   */
+  int attributes_active_index;
+  char _pad2[4];
+
+  /**
    * Pointer to the active layer. Can be NULL.
    * This pointer does not own the data.
    */
@@ -410,7 +423,7 @@ typedef struct GreasePencil {
    */
   struct Material **material_array;
   short material_array_num;
-  char _pad2[2];
+  char _pad3[2];
   /**
    * Global flag on the data-block.
    */
@@ -548,15 +561,22 @@ typedef struct GreasePencil {
 
   void foreach_visible_drawing(
       const int frame,
-      blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function);
+      blender::FunctionRef<void(const int /*layer_index*/,
+                                blender::bke::greasepencil::Drawing & /*drawing*/)> function);
   void foreach_visible_drawing(
       const int frame,
-      blender::FunctionRef<void(int, const blender::bke::greasepencil::Drawing &)> function) const;
+      blender::FunctionRef<void(const int /*layer_index*/,
+                                const blender::bke::greasepencil::Drawing & /*drawing*/)> function)
+      const;
   void foreach_editable_drawing(
       const int frame,
-      blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function);
+      blender::FunctionRef<void(const int /*layer_index*/,
+                                blender::bke::greasepencil::Drawing & /*drawing*/)> function);
 
   std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
+
+  blender::bke::AttributeAccessor attributes() const;
+  blender::bke::MutableAttributeAccessor attributes_for_write();
 
   /* For debugging purposes. */
   void print_layer_tree();

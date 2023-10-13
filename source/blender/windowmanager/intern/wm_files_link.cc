@@ -49,7 +49,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
@@ -230,7 +230,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", filepath);
     return OPERATOR_CANCELLED;
   }
-  if (!group || !name) {
+  if (!group) {
     BKE_reportf(op->reports, RPT_ERROR, "'%s': nothing indicated", filepath);
     return OPERATOR_CANCELLED;
   }

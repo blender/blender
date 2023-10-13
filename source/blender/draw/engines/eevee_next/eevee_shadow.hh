@@ -341,10 +341,10 @@ class ShadowModule {
   void debug_end_sync();
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_texture(SHADOW_ATLAS_TEX_SLOT, &atlas_tx_);
-    pass->bind_texture(SHADOW_TILEMAPS_TEX_SLOT, &tilemap_pool.tilemap_tx);
+    pass.bind_texture(SHADOW_ATLAS_TEX_SLOT, &atlas_tx_);
+    pass.bind_texture(SHADOW_TILEMAPS_TEX_SLOT, &tilemap_pool.tilemap_tx);
   }
 
  private:

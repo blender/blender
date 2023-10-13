@@ -9,7 +9,7 @@
 #include "BLI_rect.h"
 #include "BLI_sys_types.h" /* bool */
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "eevee_private.h"
 

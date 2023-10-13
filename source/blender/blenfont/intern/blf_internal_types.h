@@ -258,7 +258,7 @@ typedef struct FontBLF {
 
   /**
    * Multiplied this matrix with the current one before draw the text!
-   * see #blf_draw_gl__start.
+   * see #blf_draw_gpu__start.
    */
   float m[16];
 

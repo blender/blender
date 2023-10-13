@@ -11,6 +11,8 @@
 
 #include "BLT_translation.h"
 
+#include "DEG_depsgraph.hh"
+
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 
@@ -42,8 +44,8 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
   TreeNode &drop_tree_node_;
 
  public:
-  LayerNodeDropTarget(AbstractTreeView &view, TreeNode &drop_tree_node, DropBehavior behavior)
-      : TreeViewItemDropTarget(view, behavior), drop_tree_node_(drop_tree_node)
+  LayerNodeDropTarget(AbstractTreeViewItem &item, TreeNode &drop_tree_node, DropBehavior behavior)
+      : TreeViewItemDropTarget(item, behavior), drop_tree_node_(drop_tree_node)
   {
   }
 
@@ -118,8 +120,9 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
         return false;
       }
     }
-    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
     return true;
   }
 };
@@ -224,8 +227,7 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
   {
-    return std::make_unique<LayerNodeDropTarget>(
-        get_tree_view(), layer_.as_node(), DropBehavior::Reorder);
+    return std::make_unique<LayerNodeDropTarget>(*this, layer_.as_node(), DropBehavior::Reorder);
   }
 
  private:
@@ -327,7 +329,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
   {
     return std::make_unique<LayerNodeDropTarget>(
-        get_tree_view(), group_.as_node(), DropBehavior::ReorderAndInsert);
+        *this, group_.as_node(), DropBehavior::ReorderAndInsert);
   }
 
  private:

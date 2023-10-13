@@ -17,7 +17,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_rand.h"
 #include "BLI_rect.h"

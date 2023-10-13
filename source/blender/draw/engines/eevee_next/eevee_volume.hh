@@ -101,19 +101,19 @@ class VolumeModule {
   ~VolumeModule(){};
 
   /* Bind resources needed by external passes to perform their own resolve. */
-  template<typename PassType> void bind_resources(PassType &ps)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    ps.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &transparent_pass_scatter_tx_);
-    ps.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transparent_pass_transmit_tx_);
+    pass.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &transparent_pass_scatter_tx_);
+    pass.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transparent_pass_transmit_tx_);
   }
 
   /* Bind the common resources needed by all volumetric passes. */
-  template<typename PassType> void bind_properties_buffers(PassType &ps)
+  template<typename PassType> void bind_properties_buffers(PassType &pass)
   {
-    ps.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &prop_scattering_tx_);
-    ps.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
-    ps.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);
-    ps.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
+    pass.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &prop_scattering_tx_);
+    pass.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
+    pass.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);
+    pass.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
   }
 
   bool needs_shadow_tagging()

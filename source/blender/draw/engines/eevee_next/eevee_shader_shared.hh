@@ -331,7 +331,7 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
   float weight = expf(fac * r);
 #else
   /* Blackman-Harris filter. */
-  float r = M_2PI * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_radius));
+  float r = M_TAU * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_radius));
   float weight = 0.35875 - 0.48829 * cosf(r) + 0.14128 * cosf(2.0 * r) - 0.01168 * cosf(3.0 * r);
 #endif
   return weight;
@@ -520,12 +520,12 @@ static inline float view_z_to_volume_z(
   }
 }
 
-static inline float3 ndc_to_volume(float4x4 projection_matrix,
-                                   float near,
-                                   float far,
-                                   float distribution,
-                                   float2 coord_scale,
-                                   float3 coord)
+static inline float3 screen_to_volume(float4x4 projection_matrix,
+                                      float near,
+                                      float far,
+                                      float distribution,
+                                      float2 coord_scale,
+                                      float3 coord)
 {
   bool is_persp = projection_matrix[3][3] == 0.0;
 
@@ -1036,6 +1036,11 @@ struct Surfel {
   packed_float3 albedo_back;
   /** Cluster this surfel is assigned to. */
   int cluster_id;
+  /** True if the light can bounce or be emitted by the surfel back face. */
+  bool1 double_sided;
+  int _pad0;
+  int _pad1;
+  int _pad2;
   /** Surface radiance: Emission + Direct Lighting. */
   SurfelRadiance radiance_direct;
   /** Surface radiance: Indirect Lighting. Double buffered to avoid race conditions. */
@@ -1089,6 +1094,9 @@ struct CaptureInfoData {
   bool1 capture_indirect;
   bool1 capture_emission;
   int _pad0;
+  /* World light probe atlas coordinate. */
+  /* TODO(fclem): Remove this silly aliasing. */
+  int4 world_atlas_coord;
 };
 BLI_STATIC_ASSERT_ALIGN(CaptureInfoData, 16)
 
@@ -1287,47 +1295,74 @@ struct ReflectionProbeLowFreqLight {
 };
 BLI_STATIC_ASSERT_ALIGN(ReflectionProbeLowFreqLight, 16)
 
-/** Mapping data to locate a reflection probe in texture. */
-struct ReflectionProbeData {
-  /**
-   * Position of the light probe in world space.
-   * World probe uses origin.
-   *
-   * 4th component is not used.
-   */
-  float4 pos;
+enum LightProbeShape : uint32_t {
+  SHAPE_ELIPSOID = 0u,
+  SHAPE_CUBOID = 1u,
+};
 
+struct ReflectionProbeAtlasCoordinate {
   /** On which layer of the texture array is this reflection probe stored. */
   int layer;
-
   /**
    * Subdivision of the layer. 0 = no subdivision and resolution would be
    * ReflectionProbeModule::MAX_RESOLUTION.
    */
   int layer_subdivision;
-
   /**
    * Which area of the subdivided layer is the reflection probe located.
    *
    * A layer has (2^layer_subdivision)^2 areas.
    */
   int area_index;
+  int _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeAtlasCoordinate, 16)
 
-  /**
-   * LOD factor for mipmap selection.
-   */
+/** Mapping data to locate a reflection probe in texture. */
+struct ReflectionProbeData {
+  /** Transform to probe local position with non-uniform scaling. */
+  float3x4 world_to_probe_transposed;
+
+  packed_float3 location;
+  float _pad2;
+
+  /** Shape of the parallax projection. */
+  LightProbeShape parallax_shape;
+  LightProbeShape influence_shape;
+  float parallax_distance;
+  /** Influence factor based on the distance to the parallax shape. */
+  float influence_scale;
+  float influence_bias;
+  /** LOD factor for mipmap selection. */
   float lod_factor;
+  float _pad0;
+  float _pad1;
+
+  ReflectionProbeAtlasCoordinate atlas_coord;
 
   /**
    * Irradiance at the probe location encoded as spherical harmonics.
-   * Only contain the average luminance. Used for cubemap normalization.
+   * Only contain the average luminance. Used for cube-map normalization.
    */
   ReflectionProbeLowFreqLight low_freq_light;
 };
 BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
 
+struct ProbePlanarData {
+  /** Matrices used to render the planar capture. */
+  float4x4 viewmat;
+  float4x4 winmat;
+  /** Transform world to local position with influence distance as Z scale. */
+  float3x4 world_to_object_transposed;
+  /** World space plane normal. */
+  packed_float3 normal;
+  /** Layer in the planar capture textures used by this probe. */
+  int layer_id;
+};
+BLI_STATIC_ASSERT_ALIGN(ProbePlanarData, 16)
+
 struct ClipPlaneData {
-  /** World space clip plane equation. Used to render planar lightprobes. */
+  /** World space clip plane equation. Used to render planar light-probes. */
   float4 plane;
 };
 BLI_STATIC_ASSERT_ALIGN(ClipPlaneData, 16)
@@ -1449,6 +1484,7 @@ using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 using SubsurfaceTileBuf = RayTraceTileBuf;
 using ReflectionProbeDataBuf =
     draw::UniformArrayBuffer<ReflectionProbeData, REFLECTION_PROBES_MAX>;
+using ProbePlanarDataBuf = draw::UniformArrayBuffer<ProbePlanarData, PLANAR_PROBES_MAX>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using ShadowStatisticsBuf = draw::StorageBuffer<ShadowStatistics>;
 using ShadowPagesInfoDataBuf = draw::StorageBuffer<ShadowPagesInfoData>;

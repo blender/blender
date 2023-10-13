@@ -139,8 +139,8 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
   data.attrs = attrs;
   data.attrs_len = attrs_len;
 
-  BKE_pbvh_draw_cb(pbvh,
-                   mesh,
+  BKE_pbvh_draw_cb(*mesh,
+                   pbvh,
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,

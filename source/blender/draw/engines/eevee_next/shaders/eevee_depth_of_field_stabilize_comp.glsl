@@ -17,7 +17,6 @@
  * - Stabilized Color and CoC (half-resolution).
  */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
@@ -263,7 +262,7 @@ DofSample dof_sample_history(vec2 input_texel)
   color += textureLod(in_history_tx, vec2(uv_3.x, uv_12.y), 0.0) * weight_cross.z;
   color += textureLod(in_history_tx, vec2(uv_12.x, uv_3.y), 0.0) * weight_cross.w;
   /* Re-normalize for the removed corners. */
-  color /= (weight_center + sum(weight_cross));
+  color /= (weight_center + reduce_add(weight_cross));
 #endif
   /* NOTE(fclem): Opacity is wrong on purpose. Final Opacity does not rely on history. */
   return DofSample(color.xyzz, color.w);
@@ -306,7 +305,7 @@ float dof_history_blend_factor(
    * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
-  float distance_to_luma_clip = min_v2(vec2(luma_history - luma_min, luma_max - luma_history));
+  float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
   distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */

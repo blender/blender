@@ -6,12 +6,12 @@
  * Film accumulation utils functions.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_camera_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_cryptomatte_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 
 /* Return scene linear Z depth from the camera or radial depth for panoramic cameras. */
 float film_depth_convert_to_scene(float depth)
@@ -20,7 +20,7 @@ float film_depth_convert_to_scene(float depth)
     /* TODO */
     return 1.0;
   }
-  return abs(get_view_z_from_depth(depth));
+  return abs(drw_depth_screen_to_view(depth));
 }
 
 /* Load a texture sample in a specific format. Combined pass needs to use this. */
@@ -70,7 +70,7 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
    * can be used by many final pixel. */
   vec2 offset = uniform_buf.film.subpixel_offset -
                 vec2(texel_film % uniform_buf.film.scaling_factor);
-  film_sample.weight = film_filter_weight(uniform_buf.film.filter_size, len_squared(offset));
+  film_sample.weight = film_filter_weight(uniform_buf.film.filter_size, length_squared(offset));
 #  endif
 
 #endif /* PANORAMIC */
@@ -119,7 +119,7 @@ void film_sample_accum_mist(FilmSample samp, inout float accum)
   }
   float depth = texelFetch(depth_tx, samp.texel, 0).x;
   vec2 uv = (vec2(samp.texel) + 0.5) / vec2(textureSize(depth_tx, 0).xy);
-  vec3 vP = get_view_space_from_depth(uv, depth);
+  vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
   bool is_persp = ProjectionMatrix[3][3] == 0.0;
   float mist = (is_persp) ? length(vP) : abs(vP.z);
   /* Remap to 0..1 range. */
@@ -312,7 +312,7 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
   color += textureLod(color_tx, vec2(uv_3.x, uv_12.y), 0.0) * weight_cross.z;
   color += textureLod(color_tx, vec2(uv_12.x, uv_3.y), 0.0) * weight_cross.w;
   /* Re-normalize for the removed corners. */
-  return color / (weight_center + sum(weight_cross));
+  return color / (weight_center + reduce_add(weight_cross));
 
 #else /* Nearest interpolation for debugging. 1 Tap. */
   ivec2 texel = ivec2(center_texel) + ivec2(greaterThan(inter_texel, vec2(0.5)));
@@ -343,7 +343,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
   for (int i = 0; i < 5; i++) {
     vec4 color = film_texelfetch_as_YCoCg_opacity(combined_tx, texel + plus_offsets[i]);
     mu1 += color;
-    mu2 += sqr(color);
+    mu2 += square(color);
   }
   mu1 *= (1.0 / 5.0);
   mu2 *= (1.0 / 5.0);
@@ -352,7 +352,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
    * Balance between more flickering (0.75) or more ghosting (1.25). */
   const float gamma = 1.25;
   /* Standard deviation. */
-  vec4 sigma = sqrt(abs(mu2 - sqr(mu1)));
+  vec4 sigma = sqrt(abs(mu2 - square(mu1)));
   /* eq. 6 in "A Survey of Temporal Anti-aliasing Techniques". */
   min_c = mu1 - gamma * sigma;
   max_c = mu1 + gamma * sigma;
@@ -425,7 +425,7 @@ float film_history_blend_factor(float velocity,
    * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
-  float distance_to_luma_clip = min_v2(vec2(luma_history - luma_min, luma_max - luma_history));
+  float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
   distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */

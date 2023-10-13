@@ -14,7 +14,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 

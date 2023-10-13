@@ -1577,7 +1577,6 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const PBVHV
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
   const int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
@@ -1777,8 +1776,6 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
      * vertex in the sculpt session. */
     initial_vertex = SCULPT_active_vertex_get(ss);
   }
-
-  int initial_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, initial_vertex);
 
   copy_v2_v2(ss->expand_cache->initial_mouse, mval);
   expand_cache->initial_active_vertex = initial_vertex;

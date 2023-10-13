@@ -24,7 +24,7 @@ void main()
 
   if (dof_buf.bokeh_blades > 0.0) {
     /* NOTE: atan(y,x) has output range [-M_PI..M_PI], so add 2pi to avoid negative angles. */
-    float theta = atan(gather_uv.y, gather_uv.x) + M_2PI;
+    float theta = atan(gather_uv.y, gather_uv.x) + M_TAU;
     float r = length(gather_uv);
 
     radius /= circle_to_polygon_radius(dof_buf.bokeh_blades, theta - dof_buf.bokeh_rotation);
@@ -39,7 +39,7 @@ void main()
     {
       /* Slight focus distance */
       slight_focus_texel *= dof_buf.bokeh_anisotropic_scale_inv;
-      float theta = atan(slight_focus_texel.y, -slight_focus_texel.x) + M_2PI;
+      float theta = atan(slight_focus_texel.y, -slight_focus_texel.x) + M_TAU;
       slight_focus_texel /= circle_to_polygon_radius(dof_buf.bokeh_blades,
                                                      theta + dof_buf.bokeh_rotation);
     }

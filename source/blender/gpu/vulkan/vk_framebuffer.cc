@@ -413,6 +413,8 @@ void VKFrameBuffer::render_pass_create()
 
   bool has_depth_attachment = false;
   bool found_attachment = false;
+  const VKImageView &dummy_attachment =
+      VKBackend::get().device_get().dummy_color_attachment_get().image_view_get();
   int depth_location = -1;
 
   for (int type = GPU_FB_MAX_ATTACHMENT - 1; type >= 0; type--) {
@@ -436,8 +438,14 @@ void VKFrameBuffer::render_pass_create()
 
     int attachment_location = type >= GPU_FB_COLOR_ATTACHMENT0 ? type - GPU_FB_COLOR_ATTACHMENT0 :
                                                                  depth_location;
+    const bool is_depth_attachment = ELEM(
+        type, GPU_FB_DEPTH_ATTACHMENT, GPU_FB_DEPTH_STENCIL_ATTACHMENT);
 
     if (attachment.tex) {
+      BLI_assert_msg(!is_depth_attachment || !has_depth_attachment,
+                     "There can only be one depth/stencil attachment.");
+      has_depth_attachment |= is_depth_attachment;
+
       /* Ensure texture is allocated to ensure the image view. */
       VKTexture &texture = *static_cast<VKTexture *>(unwrap(attachment.tex));
       image_views_.append(VKImageView(texture,
@@ -461,17 +469,30 @@ void VKFrameBuffer::render_pass_create()
       attachment_description.finalLayout = texture.current_layout_get();
 
       /* Create the attachment reference. */
-      const bool is_depth_attachment = ELEM(
-          type, GPU_FB_DEPTH_ATTACHMENT, GPU_FB_DEPTH_STENCIL_ATTACHMENT);
-
-      BLI_assert_msg(!is_depth_attachment || !has_depth_attachment,
-                     "There can only be one depth/stencil attachment.");
-      has_depth_attachment |= is_depth_attachment;
       VkAttachmentReference &attachment_reference = attachment_references[attachment_location];
       attachment_reference.attachment = attachment_location;
       attachment_reference.layout = is_depth_attachment ?
                                         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL :
                                         VK_IMAGE_LAYOUT_GENERAL;
+    }
+    else if (!is_depth_attachment) {
+      image_views[attachment_location] = dummy_attachment.vk_handle();
+
+      VkAttachmentDescription &attachment_description =
+          attachment_descriptions[attachment_location];
+      attachment_description.flags = 0;
+      attachment_description.format = VK_FORMAT_R32_SFLOAT;
+      attachment_description.samples = VK_SAMPLE_COUNT_1_BIT;
+      attachment_description.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+      attachment_description.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+      attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+      attachment_description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+      attachment_description.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
+      attachment_description.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+      VkAttachmentReference &attachment_reference = attachment_references[attachment_location];
+      attachment_reference.attachment = VK_ATTACHMENT_UNUSED;
+      attachment_reference.layout = VK_IMAGE_LAYOUT_UNDEFINED;
     }
   }
 
@@ -492,7 +513,6 @@ void VKFrameBuffer::render_pass_create()
   scissor_reset();
 
   /* Create render pass. */
-
   const int attachment_len = has_depth_attachment ? depth_location + 1 : depth_location;
   const int color_attachment_len = depth_location;
   VkSubpassDescription subpass = {};
@@ -592,6 +612,17 @@ void VKFrameBuffer::update_size()
     }
   }
   size_set(1, 1);
+}
+
+int VKFrameBuffer::color_attachments_resource_size() const
+{
+  int size = 0;
+  for (int color_slot : IndexRange(GPU_FB_MAX_COLOR_ATTACHMENT)) {
+    if (color_tex(color_slot) != nullptr) {
+      size = max_ii(color_slot + 1, size);
+    }
+  }
+  return size;
 }
 
 /** \} */

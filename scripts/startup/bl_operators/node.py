@@ -292,8 +292,10 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
     @staticmethod
     def find_valid_socket_type(tree):
         socket_type = 'NodeSocketFloat'
-        # Try the default float socket type
-        if tree.valid_socket_type(socket_type):
+        # Socket type validation function is only available for custom
+        # node trees. Assume that 'NodeSocketFloat' is valid for
+        # built-in node tree types.
+        if not hasattr(tree, "valid_socket_type") or tree.valid_socket_type(socket_type):
             return socket_type
         # Custom nodes may not support float sockets, search all
         # registered socket subclasses.

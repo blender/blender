@@ -52,10 +52,9 @@ enum class OutputSocketFieldType {
 enum class CompositorInputRealizationOptions : uint8_t {
   None = 0,
   RealizeOnOperationDomain = (1 << 0),
-  RealizeRotation = (1 << 1),
-  RealizeScale = (1 << 2),
 };
-ENUM_OPERATORS(CompositorInputRealizationOptions, CompositorInputRealizationOptions::RealizeScale)
+ENUM_OPERATORS(CompositorInputRealizationOptions,
+               CompositorInputRealizationOptions::RealizeOnOperationDomain)
 
 /**
  * Contains information about how a node output's field state depends on inputs of the same node.
@@ -171,6 +170,7 @@ using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
 class SocketDeclaration : public ItemDeclaration {
  public:
   std::string name;
+  std::string short_label;
   std::string identifier;
   std::string description;
   std::string translation_context;
@@ -204,9 +204,10 @@ class SocketDeclaration : public ItemDeclaration {
   /** Utility method to make the socket available if there is a straightforward way to do so. */
   std::function<void(bNode &)> make_available_fn_;
 
+ public:
   /** Some input sockets can have non-trivial values in the case when they are unlinked. This
    * callback computes the default input of a values in geometry nodes when nothing is linked. */
-  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn_;
+  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn;
 
   friend NodeDeclarationBuilder;
   friend class BaseSocketDeclarationBuilder;
@@ -235,11 +236,6 @@ class SocketDeclaration : public ItemDeclaration {
   const CompositorInputRealizationOptions &compositor_realization_options() const;
   int compositor_domain_priority() const;
   bool compositor_expects_single_value() const;
-
-  const ImplicitInputValueFn *implicit_input_fn() const
-  {
-    return implicit_input_fn_.get();
-  }
 
  protected:
   void set_common_flags(bNodeSocket &socket) const;
@@ -271,6 +267,8 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &hide_value(bool value = true);
 
   BaseSocketDeclarationBuilder &multi_input(bool value = true);
+
+  BaseSocketDeclarationBuilder &short_label(std::string value = "");
 
   BaseSocketDeclarationBuilder &description(std::string value = "");
 

@@ -37,7 +37,7 @@ float shadow_unpack(uint shadow_bits, uint bit_depth, uint shift)
   return float((shadow_bits >> shift) & ~(~0u << bit_depth)) / float((1u << bit_depth) - 1u);
 }
 
-void light_shadow_single(LightData light,
+void light_shadow_single(uint l_idx,
                          const bool is_directional,
                          vec3 P,
                          vec3 Ng,
@@ -45,6 +45,8 @@ void light_shadow_single(LightData light,
                          inout uint shadow_bits,
                          inout uint shift)
 {
+  LightData light = light_buf[l_idx];
+
   if (light.tilemap_index == LIGHT_NO_SHADOW) {
     return;
   }
@@ -73,12 +75,12 @@ void light_shadow_mask(vec3 P, vec3 Ng, float vPz, float thickness, out uint sha
   uint shift = 0u;
   shadow_bits = 0u;
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_shadow_single(light_buf[l_idx], true, P, Ng, thickness, shadow_bits, shift);
+    light_shadow_single(l_idx, true, P, Ng, thickness, shadow_bits, shift);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_shadow_single(light_buf[l_idx], false, P, Ng, thickness, shadow_bits, shift);
+    light_shadow_single(l_idx, false, P, Ng, thickness, shadow_bits, shift);
   }
   LIGHT_FOREACH_END
 }
@@ -117,7 +119,7 @@ void light_eval_single_closure(LightData light,
   }
 }
 
-void light_eval_single(LightData light,
+void light_eval_single(uint l_idx,
                        const bool is_directional,
                        inout ClosureLightStack stack,
                        vec3 P,
@@ -127,6 +129,7 @@ void light_eval_single(LightData light,
                        uint packed_shadows,
                        inout uint shift)
 {
+  LightData light = light_buf[l_idx];
   int ray_count = uniform_buf.shadow.ray_count;
   int ray_step_count = uniform_buf.shadow.step_count;
 
@@ -149,7 +152,7 @@ void light_eval_single(LightData light,
   }
   float visibility = attenuation * shadow;
 
-  /* WATCH(@fclem): Might have to manually unroll for best perf. */
+  /* WATCH(@fclem): Might have to manually unroll for best performance. */
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
     light_eval_single_closure(light, lv, stack.cl[i], P, V, thickness, attenuation, visibility);
   }
@@ -171,12 +174,12 @@ void light_eval(inout ClosureLightStack stack,
   uint shift = 0u;
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_eval_single(light_buf[l_idx], true, stack, P, Ng, V, thickness, packed_shadows, shift);
+    light_eval_single(l_idx, true, stack, P, Ng, V, thickness, packed_shadows, shift);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_eval_single(light_buf[l_idx], false, stack, P, Ng, V, thickness, packed_shadows, shift);
+    light_eval_single(l_idx, false, stack, P, Ng, V, thickness, packed_shadows, shift);
   }
   LIGHT_FOREACH_END
 }

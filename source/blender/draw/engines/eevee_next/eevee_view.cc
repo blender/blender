@@ -102,8 +102,6 @@ void ShadingView::render()
 
   update_view();
 
-  inst_.hiz_buffer.set_dirty();
-
   DRW_stats_group_start(name_);
   DRW_view_set_active(render_view_);
 
@@ -120,6 +118,7 @@ void ShadingView::render()
   GPU_framebuffer_bind(combined_fb_);
   GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
 
+  inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.hiz_buffer.set_dirty();
 
   inst_.pipelines.background.render(render_view_new_);
@@ -215,7 +214,7 @@ void ShadingView::update_view()
 void CaptureView::render_world()
 {
   const std::optional<ReflectionProbeUpdateInfo> update_info =
-      inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::World);
+      inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::WORLD);
   if (!update_info.has_value()) {
     return;
   }
@@ -241,7 +240,7 @@ void CaptureView::render_world()
       inst_.pipelines.world.render(view);
     }
 
-    inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
+    inst_.reflection_probes.remap_to_octahedral_projection(update_info->atlas_coord);
     inst_.reflection_probes.update_probes_texture_mipmaps();
   }
 
@@ -258,7 +257,7 @@ void CaptureView::render_probes()
   View view = {"Capture.View"};
   bool do_update_mipmap_chain = false;
   while (const std::optional<ReflectionProbeUpdateInfo> update_info =
-             inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::Probe))
+             inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::PROBE))
   {
     GPU_debug_group_begin("Probe.Capture");
     do_update_mipmap_chain = true;
@@ -292,7 +291,7 @@ void CaptureView::render_probes()
 
     inst_.render_buffers.release();
     GPU_debug_group_end();
-    inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
+    inst_.reflection_probes.remap_to_octahedral_projection(update_info->atlas_coord);
   }
 
   if (do_update_mipmap_chain) {

@@ -7,8 +7,8 @@
  * See eShadowDebug for more information.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_debug_gradients_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
@@ -173,7 +173,7 @@ void main()
   out_color_mul = vec4(1.0);
 
   float depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), 0).r;
-  vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
+  vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
   /* Make it pass the depth test. */
   gl_FragDepth = depth - 1e-6;
 

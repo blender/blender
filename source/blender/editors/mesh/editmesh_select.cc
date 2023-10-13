@@ -278,7 +278,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
 
     /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_VERTEX);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_VERTEX);
 
       index = DRW_select_buffer_find_nearest_to_point(
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
@@ -509,7 +509,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
 
     /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_EDGE);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_EDGE);
 
       index = DRW_select_buffer_find_nearest_to_point(
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
@@ -729,7 +729,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
             ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
       }
 
-      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_FACE);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_FACE);
 
       if (dist_px_manhattan_test == 0) {
         index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, vc->mval);

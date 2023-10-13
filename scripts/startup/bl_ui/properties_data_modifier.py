@@ -57,7 +57,18 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
     def draw(self, context):
         layout = self.layout
         ob_type = context.object.type
-        geometry_nodes_supported = ob_type in {'MESH', 'CURVE', 'CURVES', 'FONT', 'SURFACE', 'VOLUME', 'POINTCLOUD'}
+
+        geometry_nodes_supported = ob_type in {'MESH', 'CURVE', 'CURVES',
+                                               'FONT', 'SURFACE', 'VOLUME', 'POINTCLOUD', 'GREASEPENCIL'}
+
+        if layout.operator_context == 'EXEC_REGION_WIN':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator("WM_OT_search_single_menu", text="Search...",
+                            icon='VIEWZOOM').menu_idname = "OBJECT_MT_modifier_add"
+            layout.separator()
+
+        layout.operator_context = 'EXEC_REGION_WIN'
+
         if geometry_nodes_supported:
             self.operator_modifier_add(layout, 'NODES')
             layout.separator()
@@ -76,6 +87,7 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
 
 class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):
     bl_label = "Edit"
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
         layout = self.layout
@@ -99,6 +111,7 @@ class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):
 
 class OBJECT_MT_modifier_add_generate(ModifierAddMenu, Menu):
     bl_label = "Generate"
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
         layout = self.layout
@@ -140,6 +153,7 @@ class OBJECT_MT_modifier_add_generate(ModifierAddMenu, Menu):
 
 class OBJECT_MT_modifier_add_deform(ModifierAddMenu, Menu):
     bl_label = "Deform"
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
         layout = self.layout
@@ -175,6 +189,7 @@ class OBJECT_MT_modifier_add_deform(ModifierAddMenu, Menu):
 
 class OBJECT_MT_modifier_add_physics(ModifierAddMenu, Menu):
     bl_label = "Physics"
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
         layout = self.layout

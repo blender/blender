@@ -18,7 +18,7 @@
 
 #include "BKE_colorband.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "draw_common.h"
 

@@ -33,7 +33,6 @@ static struct {
 
   SELECTID_Shaders sh_data[GPU_SHADER_CFG_LEN];
   SELECTID_Context context;
-  uint runtime_new_objects;
 } e_data = {nullptr}; /* Engine data */
 
 /* -------------------------------------------------------------------- */
@@ -102,23 +101,8 @@ static void select_engine_init(void *vedata)
   }
 
   {
-    /* Create view from a subregion */
-    const DRWView *view_default = DRW_view_default_get();
-    float viewmat[4][4], winmat[4][4], winmat_subregion[4][4];
-    DRW_view_viewmat_get(view_default, viewmat, false);
-    DRW_view_winmat_get(view_default, winmat, false);
-    projmat_from_subregion(winmat,
-                           blender::int2{draw_ctx->region->winx, draw_ctx->region->winy},
-                           e_data.context.last_rect.xmin,
-                           e_data.context.last_rect.xmax,
-                           e_data.context.last_rect.ymin,
-                           e_data.context.last_rect.ymax,
-                           winmat_subregion);
-
-    stl->g_data->view_subregion = DRW_view_create(
-        viewmat, winmat_subregion, nullptr, nullptr, nullptr);
-
     /* Create view with depth offset */
+    const DRWView *view_default = DRW_view_default_get();
     stl->g_data->view_faces = (DRWView *)view_default;
     stl->g_data->view_edges = DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.0f);
     stl->g_data->view_verts = DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.1f);
@@ -186,96 +170,48 @@ static void select_cache_init(void *vedata)
     }
   }
 
-  /* Check if the viewport has changed. */
-  float(*persmat)[4] = draw_ctx->rv3d->persmat;
-  e_data.context.is_dirty = !compare_m4m4(e_data.context.persmat, persmat, FLT_EPSILON);
+  /* Create selection data. */
+  for (uint sel_id : e_data.context.objects.index_range()) {
+    Object *obj_eval = e_data.context.objects[sel_id];
+    DrawData *data = DRW_drawdata_ensure(
+        &obj_eval->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), nullptr, nullptr);
+    SELECTID_ObjectData *sel_data = reinterpret_cast<SELECTID_ObjectData *>(data);
 
-  if (!e_data.context.is_dirty) {
-    /* Check if any of the drawn objects have been transformed. */
-    for (Object *ob : e_data.context.objects_drawn) {
-      DrawData *data = DRW_drawdata_get(&ob->id, &draw_engine_select_type);
-      if (data && (data->recalc & ID_RECALC_TRANSFORM) != 0) {
-        data->recalc &= ~ID_RECALC_TRANSFORM;
-        e_data.context.is_dirty = true;
-      }
-    }
+    data->recalc = 0;
+    sel_data->drawn_index = sel_id;
+    sel_data->in_pass = false;
+    sel_data->is_drawn = false;
   }
 
-  if (e_data.context.is_dirty) {
-    /* Remove all tags from drawn or culled objects. */
-    copy_m4_m4(e_data.context.persmat, persmat);
-    e_data.context.objects_drawn.clear();
-    e_data.context.index_offsets.clear();
-    e_data.context.index_drawn_len = 1;
-    select_engine_framebuffer_setup();
-    GPU_framebuffer_bind(e_data.framebuffer_select_id);
-    GPU_framebuffer_clear_color_depth(e_data.framebuffer_select_id, blender::float4{0.0f}, 1.0f);
-  }
-  e_data.runtime_new_objects = 0;
+  copy_m4_m4(e_data.context.persmat, draw_ctx->rv3d->persmat);
+  e_data.context.index_drawn_len = 1;
+  select_engine_framebuffer_setup();
+  GPU_framebuffer_bind(e_data.framebuffer_select_id);
+  GPU_framebuffer_clear_color_depth(e_data.framebuffer_select_id, blender::float4{0.0f}, 1.0f);
 }
 
 static void select_cache_populate(void *vedata, Object *ob)
 {
   SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
+      &ob->id, &draw_engine_select_type);
 
-  const bool retopology_occlusion = RETOPOLOGY_ENABLED(draw_ctx->v3d) &&
-                                    !XRAY_ENABLED(draw_ctx->v3d);
-  if (retopology_occlusion && !DRW_object_is_in_edit_mode(ob)) {
+  if (!sel_data || sel_data->is_drawn) {
+    if (sel_data) {
+      /* Remove data, object is not in array. */
+      DrawDataList *drawdata = DRW_drawdatalist_from_id(&ob->id);
+      BLI_freelinkN((ListBase *)drawdata, sel_data);
+    }
+
+    /* This object is not in the array. It is here to participate in the depth buffer. */
     if (ob->dt >= OB_SOLID) {
       GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(static_cast<Mesh *>(ob->data));
       DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world);
     }
-    return;
   }
-
-  SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
-      &ob->id, &draw_engine_select_type);
-
-  if (!e_data.context.is_dirty && sel_data && sel_data->is_drawn) {
-    /* The object indices have already been drawn. Fill depth pass.
-     * Optimization: Most of the time this depth pass is not used. */
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    if (e_data.context.select_mode & SCE_SELECT_FACE) {
-      GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->object_to_world);
-    }
-    else if (ob->dt >= OB_SOLID) {
-#ifdef USE_CAGE_OCCLUSION
-      GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
-#else
-      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(me);
-#endif
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->object_to_world);
-    }
-
-    if (e_data.context.select_mode & SCE_SELECT_EDGE) {
-      GPUBatch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_edges, ob->object_to_world);
-    }
-
-    if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
-      GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_verts, ob->object_to_world);
-    }
-    return;
-  }
-
-  float min[3], max[3];
-  select_id_object_min_max(ob, min, max);
-
-  if (DRW_culling_min_max_test(stl->g_data->view_subregion, ob->object_to_world, min, max)) {
-    if (sel_data == nullptr) {
-      sel_data = (SELECTID_ObjectData *)DRW_drawdata_ensure(
-          &ob->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), nullptr, nullptr);
-    }
-    sel_data->dd.recalc = 0;
-    sel_data->drawn_index = e_data.context.objects_drawn.size();
-    sel_data->is_drawn = true;
-
-    e_data.context.index_offsets.increase_size_by_unchecked(1);
-    ObjectOffsets *ob_offsets = &e_data.context.index_offsets.last();
-
+  else if (!sel_data->in_pass) {
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    ObjectOffsets *ob_offsets = &e_data.context.index_offsets[sel_data->drawn_index];
     uint offset = e_data.context.index_drawn_len;
     select_id_draw_object(vedata,
                           draw_ctx->v3d,
@@ -287,12 +223,8 @@ static void select_cache_populate(void *vedata, Object *ob)
                           &ob_offsets->face);
 
     ob_offsets->offset = offset;
+    sel_data->in_pass = true;
     e_data.context.index_drawn_len = ob_offsets->vert;
-    e_data.context.objects_drawn.append(ob);
-    e_data.runtime_new_objects++;
-  }
-  else if (sel_data) {
-    sel_data->is_drawn = false;
   }
 }
 
@@ -300,11 +232,6 @@ static void select_draw_scene(void *vedata)
 {
   SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
   SELECTID_PassList *psl = ((SELECTID_Data *)vedata)->psl;
-
-  if (!e_data.runtime_new_objects) {
-    /* Nothing new needs to be drawn. */
-    return;
-  }
 
   DRW_view_set_active(stl->g_data->view_faces);
 
@@ -329,6 +256,14 @@ static void select_draw_scene(void *vedata)
     DRW_view_set_active(stl->g_data->view_verts);
     DRW_draw_pass(psl->select_id_vert_pass);
   }
+
+  /* Mark objects from the array to later identify which ones are not in the array. */
+  for (Object *obj_eval : e_data.context.objects) {
+    DrawData *data = DRW_drawdata_ensure(
+        &obj_eval->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), nullptr, nullptr);
+    SELECTID_ObjectData *sel_data = reinterpret_cast<SELECTID_ObjectData *>(data);
+    sel_data->is_drawn = true;
+  }
 }
 
 static void select_engine_free()
@@ -341,9 +276,8 @@ static void select_engine_free()
 
   DRW_TEXTURE_FREE_SAFE(e_data.texture_u32);
   GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
-  e_data.context.objects.clear_and_shrink();
-  e_data.context.objects_drawn.clear_and_shrink();
-  e_data.context.index_offsets.clear_and_shrink();
+  e_data.context.objects.reinitialize(0);
+  e_data.context.index_offsets.reinitialize(0);
 }
 
 /** \} */

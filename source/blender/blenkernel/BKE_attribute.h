@@ -31,8 +31,9 @@ typedef enum eAttrDomain {
   ATTR_DOMAIN_CORNER = 3,   /* Mesh Corner */
   ATTR_DOMAIN_CURVE = 4,    /* A single curve in a larger curve data-block */
   ATTR_DOMAIN_INSTANCE = 5, /* Instance */
+  ATTR_DOMAIN_LAYER = 6,    /* A layer in a grease pencil data-block */
 } eAttrDomain;
-#define ATTR_DOMAIN_NUM 6
+#define ATTR_DOMAIN_NUM 7
 
 typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_POINT = (1 << 0),
@@ -40,7 +41,8 @@ typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_FACE = (1 << 2),
   ATTR_DOMAIN_MASK_CORNER = (1 << 3),
   ATTR_DOMAIN_MASK_CURVE = (1 << 4),
-  ATTR_DOMAIN_MASK_ALL = (1 << 5) - 1
+  ATTR_DOMAIN_MASK_GREASE_PENCIL_LAYER = (1 << 6),
+  ATTR_DOMAIN_MASK_ALL = (1 << 7) - 1
 } eAttrDomainMask;
 ENUM_OPERATORS(eAttrDomainMask, ATTR_DOMAIN_MASK_ALL);
 

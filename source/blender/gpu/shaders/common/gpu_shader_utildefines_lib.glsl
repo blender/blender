@@ -36,6 +36,9 @@
 #define in_range_exclusive(val, min_v, max_v) (all(greaterThan(val, min_v)) && all(lessThan(val, max_v)))
 #define in_texture_range(texel, tex) (all(greaterThanEqual(texel, ivec2(0))) && all(lessThan(texel, textureSize(tex, 0).xy)))
 #define in_image_range(texel, tex) (all(greaterThanEqual(texel, ivec2(0))) && all(lessThan(texel, imageSize(tex).xy)))
+
+#define weighted_sum(val0, val1, val2, val3, weights) ((val0 * weights[0] + val1 * weights[1] + val2 * weights[2] + val3 * weights[3]) * safe_rcp(weights[0] + weights[1] + weights[2] + weights[3]))
+#define weighted_sum_array(val, weights) ((val[0] * weights[0] + val[1] * weights[1] + val[2] * weights[2] + val[3] * weights[3]) * safe_rcp(weights[0] + weights[1] + weights[2] + weights[3]))
 /* clang-format on */
 
 bool flag_test(uint flag, uint val)

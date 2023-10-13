@@ -8,6 +8,7 @@
 /* Step 3 : Integrate for each froxel the final amount of light
  * scattered back to the viewer and the amount of transmittance. */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 
 void main()
@@ -25,8 +26,8 @@ void main()
 
   /* Compute view ray. */
   vec2 uvs = (vec2(texel) + vec2(0.5)) / vec2(tex_size.xy);
-  vec3 ndc_cell = volume_to_ndc(vec3(uvs, 1e-5));
-  vec3 view_cell = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
+  vec3 ss_cell = volume_to_screen(vec3(uvs, 1e-5));
+  vec3 view_cell = drw_point_screen_to_view(ss_cell);
 
   float prev_ray_len;
   float orig_ray_len;

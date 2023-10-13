@@ -40,7 +40,7 @@ class ShaderCache {
   GPUShader *prepass_shader_cache_[pipeline_type_len][geometry_type_len][shader_type_len]
                                   [lighting_type_len][2 /*clip*/] = {{{{{nullptr}}}}};
   GPUShader *resolve_shader_cache_[pipeline_type_len][lighting_type_len][2 /*cavity*/]
-                                  [2 /*curvature*/][2 /*shadow*/] = {{{{nullptr}}}};
+                                  [2 /*curvature*/][2 /*shadow*/] = {{{{{nullptr}}}}};
 };
 
 struct Material {
@@ -563,10 +563,14 @@ class AntiAliasingPass {
   void init(const SceneState &scene_state);
   void sync(const SceneState &scene_state, SceneResources &resources);
   void setup_view(View &view, const SceneState &scene_state);
-  void draw(Manager &manager,
-            View &view,
-            const SceneState &scene_state,
-            SceneResources &resources);
+  void draw(
+      Manager &manager,
+      View &view,
+      const SceneState &scene_state,
+      SceneResources &resources,
+      /** Passed directly since we may need to copy back the results from the first sample,
+       * and resources.depth_in_front_tx is only valid when mesh passes have to draw to it. */
+      GPUTexture *depth_in_front_tx);
 };
 
 }  // namespace blender::workbench

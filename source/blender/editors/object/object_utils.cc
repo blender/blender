@@ -26,7 +26,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"

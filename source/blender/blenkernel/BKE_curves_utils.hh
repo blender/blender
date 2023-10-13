@@ -470,31 +470,6 @@ class IndexRangeCyclic {
 /** \name Utility Functions
  * \{ */
 
-/**
- * Copy the provided point attribute values between all curves in the #curve_ranges index
- * ranges, assuming that all curves have the same number of control points in #src_curves
- * and #dst_curves.
- */
-void copy_point_data(OffsetIndices<int> src_points_by_curve,
-                     OffsetIndices<int> dst_points_by_curve,
-                     const IndexMask &src_curve_selection,
-                     GSpan src,
-                     GMutableSpan dst);
-
-template<typename T>
-void copy_point_data(OffsetIndices<int> src_points_by_curve,
-                     OffsetIndices<int> dst_points_by_curve,
-                     const IndexMask &src_curve_selection,
-                     Span<T> src,
-                     MutableSpan<T> dst)
-{
-  copy_point_data(src_points_by_curve,
-                  dst_points_by_curve,
-                  src_curve_selection,
-                  GSpan(src),
-                  GMutableSpan(dst));
-}
-
 void fill_points(OffsetIndices<int> points_by_curve,
                  const IndexMask &curve_selection,
                  GPointer value,

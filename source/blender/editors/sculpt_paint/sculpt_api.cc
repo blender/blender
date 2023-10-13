@@ -67,7 +67,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
@@ -497,7 +497,10 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
   }
 }
 
-void SCULPT_apply_dyntopo_settings(Scene *scene, SculptSession *ss, Sculpt *sculpt, Brush *brush)
+void SCULPT_apply_dyntopo_settings(Scene * /*scene*/,
+                                   SculptSession *ss,
+                                   Sculpt *sculpt,
+                                   Brush *brush)
 {
   using namespace blender::bke::dyntopo;
 

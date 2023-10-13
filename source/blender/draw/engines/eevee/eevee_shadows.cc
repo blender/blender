@@ -9,7 +9,7 @@
 #include "BLI_string_utils.h"
 #include "BLI_sys_types.h" /* bool */
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 

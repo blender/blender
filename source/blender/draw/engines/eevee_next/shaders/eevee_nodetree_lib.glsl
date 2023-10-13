@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 
 vec3 g_emission;
 vec3 g_transmittance;
@@ -230,12 +232,12 @@ float ambient_occlusion_eval(vec3 normal,
   // clang-format off
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && !defined(MAT_SHADOW)
   // clang-format on
-  vec3 vP = transform_point(ViewMatrix, g_data.P);
+  vec3 vP = drw_point_world_to_view(g_data.P);
   ivec2 texel = ivec2(gl_FragCoord.xy);
   OcclusionData data = ambient_occlusion_search(
       vP, hiz_tx, texel, max_distance, inverted, sample_count);
 
-  vec3 V = cameraVec(g_data.P);
+  vec3 V = drw_world_incident_vector(g_data.P);
   vec3 N = g_data.N;
   vec3 Ng = g_data.Ng;
 
@@ -338,7 +340,7 @@ vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
   float critical_cos = sqrt(1.0 - ior * ior);
 
   vec3 coords;
-  coords.x = sqr(ior);
+  coords.x = square(ior);
   coords.y = cos_theta;
   coords.y -= critical_cos;
   coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
@@ -506,9 +508,9 @@ vec3 coordinate_camera(vec3 P)
   }
   else {
 #ifdef MAT_WORLD
-    vP = transform_direction(ViewMatrix, P);
+    vP = drw_normal_world_to_view(P);
 #else
-    vP = transform_point(ViewMatrix, P);
+    vP = drw_point_world_to_view(P);
 #endif
   }
   vP.z = -vP.z;
@@ -524,7 +526,7 @@ vec3 coordinate_screen(vec3 P)
   }
   else {
     /* TODO(fclem): Actual camera transform. */
-    window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
+    window.xy = drw_point_world_to_screen(P).xy;
     window.xy = window.xy * uniform_buf.camera.uv_scale + uniform_buf.camera.uv_bias;
   }
   return window;
@@ -535,7 +537,7 @@ vec3 coordinate_reflect(vec3 P, vec3 N)
 #ifdef MAT_WORLD
   return N;
 #else
-  return -reflect(cameraVec(P), N);
+  return -reflect(drw_world_incident_vector(P), N);
 #endif
 }
 
@@ -544,7 +546,7 @@ vec3 coordinate_incoming(vec3 P)
 #ifdef MAT_WORLD
   return -P;
 #else
-  return cameraVec(P);
+  return drw_world_incident_vector(P);
 #endif
 }
 

@@ -13,8 +13,10 @@
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
 
 void thickness_from_shadow_single(
-    LightData light, const bool is_directional, vec3 P, vec3 Ng, inout vec2 thickness)
+    uint l_idx, const bool is_directional, vec3 P, vec3 Ng, inout vec2 thickness)
 {
+  LightData light = light_buf[l_idx];
+
   if (light.tilemap_index == LIGHT_NO_SHADOW) {
     return;
   }
@@ -36,7 +38,7 @@ void thickness_from_shadow_single(
 #define THICKNESS_NO_VALUE 1.0e6
 /**
  * Return the apparent thickness of an object behind surface considering all shadow maps
- * availables. If no shadow-map has a record of the other side of the surface, this function
+ * available. If no shadow-map has a record of the other side of the surface, this function
  * returns THICKNESS_NO_VALUE.
  */
 float thickness_from_shadow(vec3 P, vec3 Ng, float vPz)
@@ -47,12 +49,12 @@ float thickness_from_shadow(vec3 P, vec3 Ng, float vPz)
   vec2 thickness = vec2(0.0);
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    thickness_from_shadow_single(light_buf[l_idx], true, P, Ng, thickness);
+    thickness_from_shadow_single(l_idx, true, P, Ng, thickness);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    thickness_from_shadow_single(light_buf[l_idx], false, P, Ng, thickness);
+    thickness_from_shadow_single(l_idx, false, P, Ng, thickness);
   }
   LIGHT_FOREACH_END
 

@@ -1172,15 +1172,18 @@ int ShaderGraph::get_num_closures()
       num_closures += 2;
     }
     else if (CLOSURE_IS_PRINCIPLED(closure_type)) {
-      num_closures += 8;
+      num_closures += 12;
     }
     else if (CLOSURE_IS_VOLUME(closure_type)) {
       /* TODO(sergey): Verify this is still needed, since we have special minimized volume storage
        * for the volume steps. */
       num_closures += MAX_VOLUME_STACK_SIZE;
     }
-    else if (closure_type == CLOSURE_BSDF_HAIR_CHIANG_ID ||
-             closure_type == CLOSURE_BSDF_HAIR_HUANG_ID) {
+    else if (closure_type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID ||
+             closure_type == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID ||
+             closure_type == CLOSURE_BSDF_HAIR_CHIANG_ID ||
+             closure_type == CLOSURE_BSDF_HAIR_HUANG_ID)
+    {
       num_closures += 2;
     }
     else {

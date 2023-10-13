@@ -17,7 +17,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_volume.h"
@@ -1361,8 +1361,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   Mesh *mesh = static_cast<Mesh *>(scd->ob->data);
   BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg);
 
-  BKE_pbvh_draw_cb(pbvh,
-                   mesh,
+  BKE_pbvh_draw_cb(*mesh,
+                   pbvh,
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,

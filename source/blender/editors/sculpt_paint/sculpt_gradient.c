@@ -37,7 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"

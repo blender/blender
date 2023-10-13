@@ -32,12 +32,12 @@ bool VolumeModule::GridAABB::init(Object *ob, const Camera &camera, const Volume
     float3 ndc_coords = math::project_point(projection_matrix * view_matrix, wP);
     ndc_coords = (ndc_coords * 0.5f) + float3(0.5f);
 
-    float3 grid_coords = ndc_to_volume(projection_matrix,
-                                       data.depth_near,
-                                       data.depth_far,
-                                       data.depth_distribution,
-                                       data.coord_scale,
-                                       ndc_coords);
+    float3 grid_coords = screen_to_volume(projection_matrix,
+                                          data.depth_near,
+                                          data.depth_far,
+                                          data.depth_distribution,
+                                          data.coord_scale,
+                                          ndc_coords);
 
     return int3(grid_coords * float3(data.tex_size));
   };
@@ -260,11 +260,11 @@ void VolumeModule::end_sync()
   scatter_ps_.init();
   scatter_ps_.shader_set(inst_.shaders.static_shader_get(
       data_.use_lights ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
-  inst_.lights.bind_resources(&scatter_ps_);
-  inst_.reflection_probes.bind_resources(&scatter_ps_);
-  inst_.irradiance_cache.bind_resources(&scatter_ps_);
-  inst_.shadows.bind_resources(&scatter_ps_);
-  inst_.sampling.bind_resources(&scatter_ps_);
+  inst_.lights.bind_resources(scatter_ps_);
+  inst_.reflection_probes.bind_resources(scatter_ps_);
+  inst_.irradiance_cache.bind_resources(scatter_ps_);
+  inst_.shadows.bind_resources(scatter_ps_);
+  inst_.sampling.bind_resources(scatter_ps_);
   scatter_ps_.bind_image("in_scattering_img", &prop_scattering_tx_);
   scatter_ps_.bind_image("in_extinction_img", &prop_extinction_tx_);
   scatter_ps_.bind_texture("extinction_tx", &prop_extinction_tx_);

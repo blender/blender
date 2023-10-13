@@ -558,10 +558,20 @@ static int startffmpeg(anim *anim)
       }
     }
   }
-  /* Fall back to manually estimating the video stream duration.
-   * This is because the video stream duration can be shorter than the pFormatCtx->duration.
-   */
-  if (anim->duration_in_frames == 0) {
+
+  if (anim->duration_in_frames != 0) {
+    /* Pass (already valid). */
+  }
+  else if (pFormatCtx->duration == AV_NOPTS_VALUE) {
+    /* The duration has not been set, happens for single JPEG2000 images.
+     * NOTE: Leave the duration zeroed, although it could set to 1 so the file is recognized
+     * as a movie with 1 frame, leave as-is since image loading code-paths are preferred
+     * in this case. */
+  }
+  else {
+    /* Fall back to manually estimating the video stream duration.
+     * This is because the video stream duration can be shorter than the `pFormatCtx->duration`. */
+    BLI_assert(anim->duration_in_frames == 0);
     double stream_dur;
 
     if (video_stream->duration != AV_NOPTS_VALUE) {

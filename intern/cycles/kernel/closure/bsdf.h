@@ -233,7 +233,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *eval *= shift_cos_in(cosNO, frequency_multiplier);
     }
     if (label & LABEL_DIFFUSE) {
-      if (!isequal(sc->N, sd->N)) {
+      if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) && !isequal(sc->N, sd->N)) {
         *eval *= bump_shadowing_term(sd->N, sc->N, *wo);
       }
     }
@@ -521,7 +521,7 @@ ccl_device_inline
   }
 
   if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-    if (!isequal(sc->N, sd->N)) {
+    if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) && !isequal(sc->N, sd->N)) {
       eval *= bump_shadowing_term(sd->N, sc->N, wo);
     }
   }

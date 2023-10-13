@@ -42,7 +42,6 @@
     .intensity = 1.0f, \
     .flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE, \
     .grid_flag = LIGHTPROBE_GRID_CAPTURE_INDIRECT | LIGHTPROBE_GRID_CAPTURE_EMISSION, \
-    .resolution = LIGHT_PROBE_RESOLUTION_1024, \
   }
 
 /** \} */

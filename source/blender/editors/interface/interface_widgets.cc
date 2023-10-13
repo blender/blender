@@ -1656,7 +1656,15 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
     strwidth = BLF_width(fstyle->uifont_id, str, max_len);
   }
 
-  BLI_assert((strwidth <= (okwidth + 1)) || (okwidth <= 0.0f));
+  /* The following assert is meant to catch code changes that break this function's result, but
+   * some wriggle room is fine and needed. Just a couple pixels for large sizes and with some
+   * settings like "Full" hinting which can move features both left and right a pixel. We could
+   * probably reduce this to one pixel if we consolodate text output with length measuring. But
+   * our text string lengths include the last character's right-side bearing anyway, so a string
+   * can be longer by that amount and still fit visibly in the required space.
+   */
+
+  BLI_assert((strwidth <= (okwidth + 2)) || (okwidth <= 0.0f));
 
   return strwidth;
 }
@@ -2184,6 +2192,22 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           }
         }
       }
+    }
+  }
+
+  /* Show placeholder text if the input is empty and not being edited. */
+  if (!drawstr[0] && !but->editstr && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+    const char *placeholder = ui_but_placeholder_get(but);
+    if (placeholder && placeholder[0]) {
+      uiFontStyleDraw_Params params{};
+      params.align = align;
+      uiFontStyle style = *fstyle;
+      style.shadow = 0;
+      uchar col[4];
+      copy_v4_v4_uchar(col, wcol->text);
+      col[3] *= 0.33f;
+      UI_fontstyle_draw_ex(
+          &style, rect, placeholder, strlen(placeholder), col, &params, nullptr, nullptr, nullptr);
     }
   }
 
@@ -4192,10 +4216,10 @@ static void widget_list_itembut(uiBut *but,
   if (but->type == UI_BTYPE_VIEW_ITEM) {
     uiButViewItem *item_but = static_cast<uiButViewItem *>(but);
     if (item_but->draw_width > 0) {
-      BLI_rcti_resize_x(&draw_rect, item_but->draw_width);
+      BLI_rcti_resize_x(&draw_rect, zoom * item_but->draw_width);
     }
     if (item_but->draw_height > 0) {
-      BLI_rcti_resize_y(&draw_rect, item_but->draw_height);
+      BLI_rcti_resize_y(&draw_rect, zoom * item_but->draw_height);
     }
   }
 

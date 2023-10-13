@@ -2376,6 +2376,17 @@ static void data_device_handle_data_offer(void * /*data*/,
 {
   CLOG_INFO(LOG, 2, "data_offer");
 
+  /* The ownership of data-offer isn't so obvious:
+   * At this point it's not known if this will be used for drag & drop or selection.
+   *
+   * The API docs state that the following callbacks run immediately after this callback:
+   * - #wl_data_device_listener::enter (for drag & drop).
+   * - #wl_data_device_listener::selection (for copy & paste).
+   *
+   * In the case of GHOST, this means they will be assigned to either:
+   * - #GWL_Seat::data_offer_dnd
+   * - #GWL_Seat::data_offer_copy_paste
+   */
   GWL_DataOffer *data_offer = new GWL_DataOffer;
   data_offer->wl.id = id;
   wl_data_offer_add_listener(id, &data_offer_listener, data_offer);
@@ -2389,18 +2400,28 @@ static void data_device_handle_enter(void *data,
                                      const wl_fixed_t y,
                                      wl_data_offer *id)
 {
+  /* Always clear the current data-offer no matter what else happens. */
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  std::lock_guard lock{seat->data_offer_dnd_mutex};
+  if (seat->data_offer_dnd) {
+    wl_data_offer_destroy(seat->data_offer_dnd->wl.id);
+    delete seat->data_offer_dnd;
+    seat->data_offer_dnd = nullptr;
+  }
+  /* Clearing complete. */
+
+  /* Handle the new offer. */
+  GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   if (!ghost_wl_surface_own_with_null_check(wl_surface)) {
     CLOG_INFO(LOG, 2, "enter (skipped)");
+    wl_data_offer_destroy(data_offer->wl.id);
+    delete data_offer;
     return;
   }
   CLOG_INFO(LOG, 2, "enter");
 
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  std::lock_guard lock{seat->data_offer_dnd_mutex};
-
-  delete seat->data_offer_dnd;
-  seat->data_offer_dnd = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
-  GWL_DataOffer *data_offer = seat->data_offer_dnd;
+  /* Transfer ownership of the `data_offer`. */
+  seat->data_offer_dnd = data_offer;
 
   data_offer->dnd.in_use = true;
   data_offer->dnd.xy[0] = x;
@@ -2427,7 +2448,10 @@ static void data_device_handle_leave(void *data, wl_data_device * /*wl_data_devi
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   std::lock_guard lock{seat->data_offer_dnd_mutex};
-
+  /* The user may have only dragged over the window decorations. */
+  if (seat->data_offer_dnd == nullptr) {
+    return;
+  }
   CLOG_INFO(LOG, 2, "leave");
 
   dnd_events(seat, GHOST_kEventDraggingExited);
@@ -2448,6 +2472,10 @@ static void data_device_handle_motion(void *data,
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   std::lock_guard lock{seat->data_offer_dnd_mutex};
+  /* The user may have only dragged over the window decorations. */
+  if (seat->data_offer_dnd == nullptr) {
+    return;
+  }
 
   CLOG_INFO(LOG, 2, "motion");
 
@@ -2462,6 +2490,8 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   std::lock_guard lock{seat->data_offer_dnd_mutex};
 
+  /* No need to check this for null (as other callbacks do).
+   * because the the data-offer has not been accepted (actions set... etc). */
   GWL_DataOffer *data_offer = seat->data_offer_dnd;
 
   /* Use a blank string for  `mime_receive` to prevent crashes, although could also be `nullptr`.
@@ -2573,27 +2603,25 @@ static void data_device_handle_selection(void *data,
                                          wl_data_device * /*wl_data_device*/,
                                          wl_data_offer *id)
 {
+  /* Always clear the current data-offer no matter what else happens. */
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-
   std::lock_guard lock{seat->data_offer_copy_paste_mutex};
-
-  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
-
-  /* Delete old data offer. */
-  if (data_offer != nullptr) {
-    wl_data_offer_destroy(data_offer->wl.id);
-    delete data_offer;
-    data_offer = nullptr;
+  if (seat->data_offer_copy_paste) {
+    wl_data_offer_destroy(seat->data_offer_copy_paste->wl.id);
+    delete seat->data_offer_copy_paste;
     seat->data_offer_copy_paste = nullptr;
   }
+  /* Clearing complete. */
 
+  /* Handle the new offer. */
   if (id == nullptr) {
     CLOG_INFO(LOG, 2, "selection: (skipped)");
     return;
   }
+
   CLOG_INFO(LOG, 2, "selection");
-  /* Get new data offer. */
-  data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
+  GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
+  /* Transfer ownership of the `data_offer`. */
   seat->data_offer_copy_paste = data_offer;
 }
 
@@ -4701,14 +4729,9 @@ static void output_handle_done(void *data, wl_output * /*wl_output*/)
   CLOG_INFO(LOG, 2, "done");
 
   GWL_Output *output = static_cast<GWL_Output *>(data);
-  int32_t size_native[2];
-  if (output->transform & WL_OUTPUT_TRANSFORM_90) {
-    size_native[0] = output->size_native[1];
-    size_native[1] = output->size_native[0];
-  }
-  else {
-    size_native[0] = output->size_native[0];
-    size_native[1] = output->size_native[1];
+  int32_t size_native[2] = {UNPACK2(output->size_native)};
+  if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+    std::swap(size_native[0], size_native[1]);
   }
 
   /* If `xdg-output` is present, calculate the true scale of the desktop */
@@ -5684,6 +5707,12 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     }
   }
 
+  /* Without this, the output fractional size from `display->xdg.output_manager` isn't known,
+   * while this isn't essential, the first window creation uses this for setting the size.
+   * Supporting both XDG initialized/uninitialized outputs is possible it complicates logic.
+   * see: #113328 for an example of size on startup issues. */
+  wl_display_roundtrip(display_->wl.display);
+
 #ifdef USE_EVENT_BACKGROUND_THREAD
   gwl_display_event_thread_create(display_);
 
@@ -6300,8 +6329,13 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
 
   if (!display_->outputs.empty()) {
     /* We assume first output as main. */
-    width = uint32_t(display_->outputs[0]->size_native[0]);
-    height = uint32_t(display_->outputs[0]->size_native[1]);
+    const GWL_Output *output = display_->outputs[0];
+    int32_t size_native[2] = {UNPACK2(output->size_native)};
+    if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+      std::swap(size_native[0], size_native[1]);
+    }
+    width = uint32_t(size_native[0]);
+    height = uint32_t(size_native[1]);
   }
 }
 
@@ -6316,14 +6350,18 @@ void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &hei
 
     for (const GWL_Output *output : display_->outputs) {
       int32_t xy[2] = {0, 0};
+      int32_t size_native[2] = {UNPACK2(output->size_native)};
       if (output->has_position_logical) {
         xy[0] = output->position_logical[0];
         xy[1] = output->position_logical[1];
       }
+      if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+        std::swap(size_native[0], size_native[1]);
+      }
       xy_min[0] = std::min(xy_min[0], xy[0]);
       xy_min[1] = std::min(xy_min[1], xy[1]);
-      xy_max[0] = std::max(xy_max[0], xy[0] + output->size_native[0]);
-      xy_max[1] = std::max(xy_max[1], xy[1] + output->size_native[1]);
+      xy_max[0] = std::max(xy_max[0], xy[0] + size_native[0]);
+      xy_max[1] = std::max(xy_max[1], xy[1] + size_native[1]);
     }
 
     width = xy_max[0] - xy_min[0];

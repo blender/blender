@@ -13,7 +13,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"

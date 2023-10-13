@@ -15,7 +15,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_action.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 namespace blender::deg {
 

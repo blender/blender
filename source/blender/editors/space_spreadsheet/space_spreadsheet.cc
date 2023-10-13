@@ -311,7 +311,8 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
             OB_VOLUME,
             OB_CURVES_LEGACY,
             OB_FONT,
-            OB_CURVES))
+            OB_CURVES,
+            OB_GREASE_PENCIL))
   {
     return nullptr;
   }
@@ -512,6 +513,10 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
       ED_region_tag_redraw(region);
       break;
     }
+    case NC_GPENCIL: {
+      ED_region_tag_redraw(region);
+      break;
+    }
     case NC_VIEWER_PATH: {
       if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE) {
         ED_region_tag_redraw(region);
@@ -562,6 +567,10 @@ static void spreadsheet_header_region_listener(const wmRegionListenerParams *par
       break;
     }
     case NC_GEOM: {
+      ED_region_tag_redraw(region);
+      break;
+    }
+    case NC_GPENCIL: {
       ED_region_tag_redraw(region);
       break;
     }

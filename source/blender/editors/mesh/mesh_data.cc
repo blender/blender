@@ -24,7 +24,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
@@ -1024,6 +1024,7 @@ static void mesh_remove_verts(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->vert_data, mesh->totvert);
   const int totvert = mesh->totvert - len;
   CustomData_free_elem(&mesh->vert_data, totvert, len);
   mesh->totvert = totvert;
@@ -1034,6 +1035,7 @@ static void mesh_remove_edges(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->edge_data, mesh->totedge);
   const int totedge = mesh->totedge - len;
   CustomData_free_elem(&mesh->edge_data, totedge, len);
   mesh->totedge = totedge;
@@ -1044,6 +1046,7 @@ static void mesh_remove_loops(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->loop_data, mesh->totloop);
   const int totloop = mesh->totloop - len;
   CustomData_free_elem(&mesh->loop_data, totloop, len);
   mesh->totloop = totloop;
@@ -1054,6 +1057,7 @@ static void mesh_remove_faces(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->face_data, mesh->faces_num);
   const int faces_num = mesh->faces_num - len;
   CustomData_free_elem(&mesh->face_data, faces_num, len);
   mesh->faces_num = faces_num;

@@ -230,7 +230,7 @@ void SCULPT_filter_cache_init(bContext *C,
   }
 }
 
-void SCULPT_filter_cache_free(SculptSession *ss, Object *ob)
+void SCULPT_filter_cache_free(SculptSession *ss, Object * /*ob*/)
 {
   if (ss->filter_cache->cloth_sim) {
     SCULPT_cloth_simulation_free(ss->filter_cache->cloth_sim);
@@ -586,7 +586,6 @@ static void mesh_filter_surface_smooth_init(SculptSession *ss,
                                             const float shape_preservation,
                                             const float current_vertex_displacement)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
   FilterCache *filter_cache = ss->filter_cache;
 
   filter_cache->surface_smooth_shape_preservation = shape_preservation;

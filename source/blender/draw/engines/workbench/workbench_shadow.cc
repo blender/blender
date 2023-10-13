@@ -15,7 +15,7 @@
  * Then the shading pass will shade the areas with stencil not equal 0 differently.
  */
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "DRW_render.h"
 #include "GPU_compute.h"
 

@@ -1,0 +1,332 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"PO-Revision-Date: 2023-10-03 21:49+0000\n"
+"Last-Translator: Mani <manivasagam0024@gmail.com>\n"
+"Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Shader AOV"
+msgstr "AOV நிழலி"
+
+
+msgid "Valid"
+msgstr "சரியான"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "AOVயின் பெயர் முரண்பாடாக உள்ளது"
+
+
+msgid "Name"
+msgstr "பெயர்"
+
+
+msgid "Name of the AOV"
+msgstr "AOVயின் பெயர்"
+
+
+msgid "Type"
+msgstr "வகை"
+
+
+msgid "Data type of the AOV"
+msgstr "AOVயின் தகவல்"
+
+
+msgid "Color"
+msgstr "வண்ணம்"
+
+
+msgid "Value"
+msgstr "மதிப்பு"
+
+
+msgid "List of AOVs"
+msgstr "AOVகளின் பட்டியல்"
+
+
+msgid "Collection of AOVs"
+msgstr "AOV களின் சேகரிப்பு"
+
+
+msgid "Action F-Curves"
+msgstr "செயல் F-வளைவுகள்"
+
+
+msgid "Collection of action F-Curves"
+msgstr "செயல் F-வளைவுகளின் சேகரிப்பு"
+
+
+msgid "Action Group"
+msgstr "செயல் குழு"
+
+
+msgid "Groups of F-Curves"
+msgstr "F-வளைவுகளின் குழு"
+
+
+msgid "Channels"
+msgstr "சேனல்கள்"
+
+
+msgid "F-Curves in this group"
+msgstr "இந்த குழுவில் F-வளைவுகள்"
+
+
+msgid "Color Set"
+msgstr "வண்ணத் தொகுப்பு"
+
+
+msgid "Custom color set to use"
+msgstr "பயன்படுத்த தனிப்பயன் வண்ண தொகுப்பு"
+
+
+msgid "Default Colors"
+msgstr "இயல்பான நிறங்கள்"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - தீம் வண்ணத் தொகுப்பு"
+
+
+msgid "Custom Color Set"
+msgstr "தனிப்பயன் வண்ண தொகுப்பு"
+
+
+msgid "Colors"
+msgstr "நிறங்கள்"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "குழுவின் வண்ணத் தொகுப்புடன் தொடர்புடைய வண்ணங்களின் நகல்"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "வண்ணத் தொகுப்பு என்பது நிலையான தீம் வண்ணத் தொகுப்பிற்குப் பதிலாக பயனர் வரையறுக்கப்பட்டதாகும்"
+
+
+msgid "Lock"
+msgstr "பூட்டு"
+
+
+msgid "Action group is locked"
+msgstr "செயல் குழு பூட்டப்பட்டுள்ளது"
+
+
+msgid "Mute"
+msgstr "முடக்கு"
+
+
+msgid "Action group is muted"
+msgstr "செயல் குழு முடக்கப்பட்டுள்ளது"
+
+
+msgid "Select"
+msgstr "தேர்ந்தெடு"
+
+
+msgid "Action group is selected"
+msgstr "செயல் குழு தேர்ந்தெடுக்கப்பட்டுள்ளது"
+
+
+msgid "Expanded"
+msgstr "விரிவாக்கப்பட்டது"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "வரைபட எடிட்டரைத் தவிர செயல் குழு விரிவாக்கப்பட்டது"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "வரைபட எடிட்டரில் விரிவாக்கப்பட்டது"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "வரைபட எடிட்டரில் செயல் குழு விரிவாக்கப்பட்டது"
+
+
+msgid "Pin in Graph Editor"
+msgstr "வரைபட எடிட்டரில் பின் செய்யவும்"
+
+
+msgid "Action Groups"
+msgstr "செயல் குழுக்கள்"
+
+
+msgid "Collection of action groups"
+msgstr "செயல் குழுக்களின் தொகுப்பு"
+
+
+msgid "Action Pose Markers"
+msgstr "செயல் நடிப்பு குறிப்பான்கள்"
+
+
+msgid "Collection of timeline markers"
+msgstr "காலவரிசை குறிப்பான்களின் தொகுப்பு"
+
+
+msgid "Active Pose Marker"
+msgstr "செயலில் உள்ள நடிப்பு குறிப்பான்"
+
+
+msgid "Active pose marker for this action"
+msgstr "இந்த செயலுக்கான செயலில் உள்ள நடிப்பு மார்க்கர்"
+
+
+msgid "Active Pose Marker Index"
+msgstr "செயல்லில் உள்ள குருப்பானின் குறியீட்டு"
+
+
+msgid "Index of active pose marker"
+msgstr "செயல்பாட்டில் உள்ளநடிப்பு குறிப்பானின் குறியீட்டு"
+
+
+msgid "Add-on"
+msgstr "துணை நிரல்"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "பைதான் துணை நிரல்கள் தானாக ஏற்றப்படும்"
+
+
+msgid "Module"
+msgstr "தொகுதி"
+
+
+msgid "Module name"
+msgstr "தொகுதி பெயர்]"
+
+
+msgid "Add-on Preferences"
+msgstr "துணை நிரல் விருப்பத்தேர்வுகள்"
+
+
+msgid "Password"
+msgstr "கடவுச்சொல்"
+
+
+msgid "E-mail address"
+msgstr "மின்னஞ்சல் முகவரி"
+
+
+msgid "Error Message"
+msgstr "பிழை செய்தி"
+
+
+msgid "Message"
+msgstr "செய்தி"
+
+
+msgid "Compute Device Type"
+msgstr "கணக்கிடும் சாதனத்தின் வகை"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "கணக்கீட்டிற்கு பயன்படுத்த வேண்டிய சாதனம் (சுழற்சிகளுடன் வழங்குதல்)"
+
+
+msgid "Kernel Optimization"
+msgstr "கர்னல்லை மேம்படுத்த"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "காட்சி உள்ளடக்கத்தின் அடிப்படையில் கர்னல்களை மேம்படுத்தலாம். ரெண்டரின் தொடக்கத்தில் உகந்த கர்னல்கள் மேம்படுத்தபடுகின்றன. மேம்படுத்தப்பட்ட கர்னல்கள் கிடைக்கவில்லை என்றால், கேச்சில் உகந்த செட் கிடைக்கும் வரை ரெண்டரிங் பொதுவான கர்னல்களைப் பயன்படுத்தி தொடரும். இது ஒரு குறுகிய காலத்திற்கு (பத்துகளில் வினாடிகள்) கூடுதல் CPU பயன்பாட்டை ஏற்படுத்தலாம்"
+
+
+msgid "Off"
+msgstr "நிறுத்து"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "கர்னல் மேம்பாட்டை முடக்கு. மெதுவான ரெண்டரிங், கூடுதல் பின்னணி CPU பயன்பாடு இல்லை"
+
+
+msgid "Intersection only"
+msgstr "குறுக்குவெட்டு(பொதுவானவை) மட்டும்"
+

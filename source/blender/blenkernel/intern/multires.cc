@@ -36,7 +36,7 @@
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "CCGSubSurf.h"
 

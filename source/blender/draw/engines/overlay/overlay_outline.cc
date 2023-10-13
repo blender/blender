@@ -11,7 +11,7 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 

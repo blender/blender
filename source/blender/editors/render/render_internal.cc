@@ -39,7 +39,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -701,13 +701,13 @@ static void current_scene_update(void *rjv, Scene *scene)
   rj->iuser.scene = scene;
 }
 
-static void render_startjob(void *rjv, bool *stop, bool *do_update, float *progress)
+static void render_startjob(void *rjv, wmJobWorkerStatus *worker_status)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
-  rj->stop = stop;
-  rj->do_update = do_update;
-  rj->progress = progress;
+  rj->stop = &worker_status->stop;
+  rj->do_update = &worker_status->do_update;
+  rj->progress = &worker_status->progress;
 
   RE_SetReports(rj->re, rj->reports);
 

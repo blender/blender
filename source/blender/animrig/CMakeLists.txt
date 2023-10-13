@@ -8,7 +8,12 @@ set(INC
 
   ../blenkernel
   ../blentranslation
+  ../depsgraph
   ../editors/include
+  ../makesrna
+  ../windowmanager
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -17,10 +22,17 @@ set(INC_SYS
 set(SRC
   intern/bone_collections.cc
   intern/bonecolor.cc
+  intern/keyframing.cc
+  intern/keyframing_auto.cc
+  intern/visualkey.cc
+  intern/fcurve.cc
 
   ANIM_bone_collections.h
   ANIM_bone_collections.hh
   ANIM_bonecolor.hh
+  ANIM_keyframing.hh
+  ANIM_visualkey.hh
+  ANIM_fcurve.hh
 )
 
 set(LIB

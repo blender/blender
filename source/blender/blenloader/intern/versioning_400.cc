@@ -619,7 +619,13 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
 
     bNodeSocket *subsurf = nodeFindSocket(node, SOCK_IN, "Subsurface");
     float *subsurf_val = version_cycles_node_socket_float_value(subsurf);
-    *version_cycles_node_socket_float_value(scale_in) = *subsurf_val;
+
+    if (!subsurf->link && *subsurf_val == 0.0f) {
+      *version_cycles_node_socket_float_value(scale_in) = 0.05f;
+    }
+    else {
+      *version_cycles_node_socket_float_value(scale_in) = *subsurf_val;
+    }
 
     if (subsurf->link == nullptr && *subsurf_val == 0.0f) {
       /* Node doesn't use Subsurf, we're done here. */
@@ -1173,12 +1179,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Set default bake resolution. */
-    if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "int", "resolution")) {
-      LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
-        lightprobe->resolution = LIGHT_PROBE_RESOLUTION_1024;
-      }
-    }
-
     if (!DNA_struct_member_exists(fd->filesdna, "World", "int", "probe_resolution")) {
       LISTBASE_FOREACH (World *, world, &bmain->worlds) {
         world->probe_resolution = LIGHT_PROBE_RESOLUTION_1024;

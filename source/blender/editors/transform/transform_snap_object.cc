@@ -18,7 +18,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -1257,21 +1257,33 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                      float r_face_nor[3])
 {
   eSnapMode retval = SCE_SNAP_TO_NONE;
+  float ray_depth_max = BVH_RAYCAST_DIST_MAX;
 
   bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
 
   if (use_occlusion_test || (snap_to_flag & SCE_SNAP_TO_FACE)) {
-    if (!ED_view3d_win_to_ray_clipped_ex(depsgraph,
-                                         region,
-                                         v3d,
-                                         mval,
-                                         nullptr,
-                                         sctx->runtime.ray_dir,
-                                         sctx->runtime.ray_start,
-                                         true))
-    {
-      snap_to_flag &= ~SCE_SNAP_TO_FACE;
-      use_occlusion_test = false;
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
+    float3 ray_end;
+    ED_view3d_win_to_ray_clipped_ex(depsgraph,
+                                    region,
+                                    v3d,
+                                    mval,
+                                    false,
+                                    nullptr,
+                                    sctx->runtime.ray_dir,
+                                    sctx->runtime.ray_start,
+                                    ray_end);
+
+    if (rv3d->rflag & RV3D_CLIPPING) {
+      if (clip_segment_v3_plane_n(
+              sctx->runtime.ray_start, ray_end, rv3d->clip, 6, sctx->runtime.ray_start, ray_end))
+      {
+        ray_depth_max = math::dot(ray_end - sctx->runtime.ray_start, sctx->runtime.ray_dir);
+      }
+      else {
+        snap_to_flag &= ~SCE_SNAP_TO_FACE;
+        use_occlusion_test = false;
+      }
     }
   }
 
@@ -1283,7 +1295,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                         params,
                                         sctx->runtime.ray_start,
                                         sctx->runtime.ray_dir,
-                                        BVH_RAYCAST_DIST_MAX,
+                                        ray_depth_max,
                                         mval,
                                         init_co,
                                         prev_co,
@@ -1465,7 +1477,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
   float ray_start[3], ray_normal[3];
 
   if (!ED_view3d_win_to_ray_clipped_ex(
-          depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true))
+          depsgraph, region, v3d, mval, true, nullptr, ray_normal, ray_start, nullptr))
   {
     return false;
   }
