@@ -494,6 +494,8 @@ static char *glsl_patch_get()
     return patch;
   }
 
+  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
+
   size_t slen = 0;
   /* Version need to go first. */
   STR_CONCAT(patch, slen, "#version 450\n");
@@ -511,8 +513,12 @@ static char *glsl_patch_get()
 
   /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
   STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
-  STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
-  STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
+  if (!workarounds.shader_output_layer) {
+    STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
+  }
+  if (!workarounds.shader_output_viewport_index) {
+    STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
+  }
 
   STR_CONCAT(patch, slen, "#define DFDX_SIGN 1.0\n");
   STR_CONCAT(patch, slen, "#define DFDY_SIGN 1.0\n");
@@ -668,6 +674,14 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 {
   if (compilation_failed_) {
     return false;
+  }
+
+  if (do_geometry_shader_injection(info)) {
+    std::string source = workaround_geometry_shader_source_create(*info);
+    Vector<const char *> sources;
+    sources.append("version");
+    sources.append(source.c_str());
+    geometry_shader_from_glsl(sources);
   }
 
   VKShaderInterface *vk_interface = new VKShaderInterface();
@@ -1042,6 +1056,7 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
 {
   std::stringstream ss;
   std::string post_main;
+  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
 
   ss << "\n/* Inputs. */\n";
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
@@ -1052,6 +1067,13 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   int location = 0;
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     print_interface(ss, "out", *iface, location);
+  }
+  if (workarounds.shader_output_layer && bool(info.builtins_ & BuiltinBits::LAYER)) {
+    ss << "layout(location=" << (location++) << ") out int gpu_Layer;\n ";
+  }
+  if (workarounds.shader_output_viewport_index &&
+      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+    ss << "layout(location=" << (location++) << ") out int gpu_ViewportIndex;\n";
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     /* Need this for stable barycentric. */
@@ -1073,6 +1095,7 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
 {
   std::stringstream ss;
   std::string pre_main;
+  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
 
   ss << "\n/* Interfaces. */\n";
   const Vector<StageInterfaceInfo *> &in_interfaces = info.geometry_source_.is_empty() ?
@@ -1082,6 +1105,14 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   for (const StageInterfaceInfo *iface : in_interfaces) {
     print_interface(ss, "in", *iface, location);
   }
+  if (workarounds.shader_output_layer && bool(info.builtins_ & BuiltinBits::LAYER)) {
+    ss << "#define gpu_Layer gl_Layer\n";
+  }
+  if (workarounds.shader_output_viewport_index &&
+      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+    ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
+  }
+
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     std::cout << "native" << std::endl;
     /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
@@ -1222,6 +1253,102 @@ std::string VKShader::compute_layout_declare(const shader::ShaderCreateInfo &inf
   ss << "\n";
   return ss.str();
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Passthrough geometry shader emulation
+ *
+ * \{ */
+
+std::string VKShader::workaround_geometry_shader_source_create(
+    const shader::ShaderCreateInfo &info)
+{
+  std::stringstream ss;
+  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
+
+  const bool do_layer_workaround = workarounds.shader_output_layer &&
+                                   bool(info.builtins_ & BuiltinBits::LAYER);
+  const bool do_viewport_workaround = workarounds.shader_output_viewport_index &&
+                                      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX);
+  const bool do_barycentric_workaround = bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD);
+
+  shader::ShaderCreateInfo info_modified = info;
+  info_modified.geometry_out_interfaces_ = info_modified.vertex_out_interfaces_;
+  /**
+   * NOTE(@fclem): Assuming we will render TRIANGLES. This will not work with other primitive
+   * types. In this case, it might not trigger an error on some implementations.
+   */
+  info_modified.geometry_layout(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3);
+
+  ss << geometry_layout_declare(info_modified);
+  ss << geometry_interface_declare(info_modified);
+  int location = 0;
+  for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
+    for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
+      location += get_location_count(inout.type);
+    }
+  }
+
+  if (do_layer_workaround) {
+    ss << "layout(location=" << (location++) << ") in int gpu_Layer[];\n";
+  }
+  if (do_viewport_workaround) {
+    ss << "layout(location=" << (location++) << ") in int gpu_ViewportIndex[];\n";
+  }
+  if (do_barycentric_workaround) {
+    ss << "flat out vec4 gpu_pos[3];\n";
+    ss << "smooth out vec3 gpu_BaryCoord;\n";
+    ss << "noperspective out vec3 gpu_BaryCoordNoPersp;\n";
+  }
+  ss << "\n";
+
+  ss << "void main()\n";
+  ss << "{\n";
+  if (do_layer_workaround) {
+    ss << "  gl_Layer = gpu_Layer[0];\n";
+  }
+  if (do_viewport_workaround) {
+    ss << "  gl_ViewportIndex = gpu_ViewportIndex[0];\n";
+  }
+  if (do_barycentric_workaround) {
+    ss << "  gpu_pos[0] = gl_in[0].gl_Position;\n";
+    ss << "  gpu_pos[1] = gl_in[1].gl_Position;\n";
+    ss << "  gpu_pos[2] = gl_in[2].gl_Position;\n";
+  }
+  for (auto i : IndexRange(3)) {
+    for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
+      for (auto &inout : iface->inouts) {
+        ss << "  " << iface->instance_name << "_out." << inout.name;
+        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+      }
+    }
+    if (do_barycentric_workaround) {
+      ss << "  gpu_BaryCoordNoPersp = gpu_BaryCoord =";
+      ss << " vec3(" << int(i == 0) << ", " << int(i == 1) << ", " << int(i == 2) << ");\n";
+    }
+    ss << "  gl_Position = gl_in[" << i << "].gl_Position;\n";
+    ss << "  EmitVertex();\n";
+  }
+  ss << "}\n";
+  return ss.str();
+}
+
+bool VKShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info)
+{
+  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
+  BuiltinBits builtins = info->builtins_;
+  if (bool(builtins & BuiltinBits::BARYCENTRIC_COORD)) {
+    return true;
+  }
+  if (workarounds.shader_output_layer && bool(builtins & BuiltinBits::LAYER)) {
+    return true;
+  }
+  if (workarounds.shader_output_viewport_index && bool(builtins & BuiltinBits::VIEWPORT_INDEX)) {
+    return true;
+  }
+  return false;
+}
+
+/** \} */
 
 int VKShader::program_handle_get() const
 {

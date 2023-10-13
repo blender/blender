@@ -81,6 +81,25 @@ void VKBackend::detect_workarounds(VKDevice &device)
 {
   VKWorkarounds workarounds;
 
+  if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
+    printf("\n");
+    printf("VK: Forcing workaround usage and disabling features and extensions.\n");
+    printf("    Vendor: %s\n", device.vendor_name().c_str());
+    printf("    Device: %s\n", device.physical_device_properties_get().deviceName);
+    printf("    Driver: %s\n", device.driver_version().c_str());
+    /* Force workarounds. */
+    workarounds.not_aligned_pixel_formats = true;
+    workarounds.shader_output_layer = true;
+    workarounds.shader_output_viewport_index = true;
+
+    return;
+  }
+
+  workarounds.shader_output_layer =
+      !device.physical_device_vulkan_12_features_get().shaderOutputLayer;
+  workarounds.shader_output_viewport_index =
+      !device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
+
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     workarounds.not_aligned_pixel_formats = true;

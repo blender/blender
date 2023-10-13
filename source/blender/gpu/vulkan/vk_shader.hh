@@ -95,6 +95,13 @@ class VKShader : public Shader {
   {
     return compute_module_ != VK_NULL_HANDLE;
   }
+
+  /**
+   * \brief features available on newer implementation such as native barycentric coordinates
+   * and layered rendering, necessitate a geometry shader to work on older hardware.
+   */
+  std::string workaround_geometry_shader_source_create(const shader::ShaderCreateInfo &info);
+  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info);
 };
 
 static inline VKShader &unwrap(Shader &shader)
