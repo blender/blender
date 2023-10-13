@@ -1790,6 +1790,7 @@ typedef enum uiTooltipStyle {
   UI_TIP_STYLE_HEADER,     /* Header text. */
   UI_TIP_STYLE_MONO,       /* Mono-spaced text. */
   UI_TIP_STYLE_IMAGE,      /* Image field. */
+  UI_TIP_STYLE_SPACER,     /* Padding to separate sections. */
 } uiTooltipStyle;
 
 typedef enum uiTooltipColorID {

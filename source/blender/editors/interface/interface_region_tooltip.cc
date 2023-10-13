@@ -66,8 +66,8 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
-#define UI_TIP_PAD_FAC 1.3f
-#define UI_TIP_PADDING int(UI_TIP_PAD_FAC * UI_UNIT_Y)
+#define UI_TIP_SPACER 0.3f
+#define UI_TIP_PADDING int(1.3f * UI_UNIT_Y)
 #define UI_TIP_MAXWIDTH 600
 #define UI_TIP_MAXIMAGEWIDTH 500
 #define UI_TIP_MAXIMAGEHEIGHT 300
@@ -76,7 +76,6 @@
 struct uiTooltipFormat {
   uiTooltipStyle style;
   uiTooltipColorID color_id;
-  bool is_pad;
 };
 
 struct uiTooltipField {
@@ -121,11 +120,16 @@ void UI_tooltip_text_field_add(uiTooltipData *data,
                                const uiTooltipColorID color_id,
                                const bool is_pad)
 {
+  if (is_pad) {
+    /* Add a spacer field before this one. */
+    UI_tooltip_text_field_add(
+        data, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
+  }
+
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = style;
   field->format.color_id = color_id;
-  field->format.is_pad = is_pad;
   field->text = text;
   field->text_suffix = suffix;
 }
@@ -280,6 +284,9 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 
       GPU_blend(GPU_BLEND_ALPHA);
     }
+    else if (field->format.style == UI_TIP_STYLE_SPACER) {
+      bbox.ymax -= data->lineh * UI_TIP_SPACER;
+    }
     else {
       BLI_assert(field->format.style == UI_TIP_STYLE_NORMAL);
       uiFontStyleDraw_Params fs_params{};
@@ -293,10 +300,6 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
     }
 
     bbox.ymax -= data->lineh * field->geom.lines;
-
-    if (field_next && field_next->format.is_pad) {
-      bbox.ymax -= data->lineh * (UI_TIP_PAD_FAC - 1);
-    }
   }
 
   BLF_disable(data->fstyle.uifont_id, BLF_WORD_WRAP);
@@ -1249,8 +1252,9 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     }
 
     fonth += h * info.lines;
-    if (field_next && field_next->format.is_pad) {
-      fonth += h * (UI_TIP_PAD_FAC - 1);
+
+    if (field->format.style == UI_TIP_STYLE_SPACER) {
+      fonth += h * UI_TIP_SPACER;
     }
 
     if (field->format.style == UI_TIP_STYLE_IMAGE) {
