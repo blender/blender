@@ -58,9 +58,12 @@ void main()
   /* Write result to atlas. */
 #  ifdef GPU_METAL
   /* NOTE: Use the fastest possible write function without any parameter wrapping or conversion.*/
-  shadow_atlas_img.texture->write(u_depth, ushort2(out_texel_xy), out_page_z);
+  shadow_atlas_img.texture->write(
+      u_depth, ushort2(interp_noperspective.out_texel_xy), interp_flat.out_page_z);
 #  else
-  imageStore(shadow_atlas_img, ivec3(out_texel_xy, out_page_z), uvec4(u_depth));
+  imageStore(shadow_atlas_img,
+             ivec3(interp_noperspective.out_texel_xy, interp_flat.out_page_z),
+             uvec4(u_depth));
 #  endif
 }
 

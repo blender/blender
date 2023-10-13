@@ -227,8 +227,9 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_tile_clear)
 #endif
 
 /* Interface for passing precalculated values in accumulation vertex to frag. */
-GPU_SHADER_INTERFACE_INFO(eevee_shadow_page_tile_store_iface, "")
-    .no_perspective(Type::VEC2, "out_texel_xy")
+GPU_SHADER_INTERFACE_INFO(eevee_shadow_page_tile_store_noperspective_iface, "interp_noperspective")
+    .no_perspective(Type::VEC2, "out_texel_xy");
+GPU_SHADER_INTERFACE_INFO(eevee_shadow_page_tile_store_flat_iface, "interp_flat")
     .flat(PAGE_Z_TYPE, "out_page_z");
 
 #undef PAGE_Z_TYPE
@@ -247,7 +248,8 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_tile_store)
            Qualifier::READ_WRITE,
            ImageType::UINT_2D_ARRAY,
            "shadow_atlas_img")
-    .vertex_out(eevee_shadow_page_tile_store_iface)
+    .vertex_out(eevee_shadow_page_tile_store_noperspective_iface)
+    .vertex_out(eevee_shadow_page_tile_store_flat_iface)
     .vertex_source("eevee_shadow_page_tile_vert.glsl")
     .fragment_source("eevee_shadow_page_tile_frag.glsl");
 

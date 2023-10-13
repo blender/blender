@@ -243,7 +243,37 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
-#ifdef DEBUG
+  if (!this->geometry_source_.is_empty()) {
+    if (bool(this->builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
+      error += "Shader " + this->name_ +
+               " has geometry stage and uses barycentric coordinates. This is not allowed as "
+               "fallback injects a geometry stage.\n";
+    }
+    if (bool(this->builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+      error += "Shader " + this->name_ +
+               " has geometry stage and uses multi-viewport. This is not allowed as "
+               "fallback injects a geometry stage.\n";
+    }
+    if (bool(this->builtins_ & BuiltinBits::LAYER)) {
+      error += "Shader " + this->name_ +
+               " has geometry stage and uses layer output. This is not allowed as "
+               "fallback injects a geometry stage.\n";
+    }
+  }
+
+#ifndef NDEBUG
+  if (bool(this->builtins_ &
+           (BuiltinBits::BARYCENTRIC_COORD | BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)))
+  {
+    for (const StageInterfaceInfo *interface : this->vertex_out_interfaces_) {
+      if (interface->instance_name.is_empty()) {
+        error += "Shader " + this->name_ + " uses interface " + interface->name +
+                 " that doesn't contain an instance name, but is required for the fallback "
+                 "geometry shader.\n";
+      }
+    }
+  }
+
   if (!this->is_vulkan_compatible()) {
     error += this->name_ +
              " contains a stage interface using an instance name and mixed interpolation modes. "
