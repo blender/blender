@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 
 vec3 lightprobe_irradiance_grid_sample_position(mat4 grid_local_to_world_mat,
@@ -54,8 +55,7 @@ float lightprobe_planar_score(ProbePlanarData planar, vec3 P, vec3 V, vec3 L)
   }
   /* Return how much the ray is lined up with the captured ray. */
   vec3 R = -reflect(V, planar.normal);
-  /* TODO: Use saturate (dependency hell). */
-  return clamp(dot(L, R), 0.0, 1.0);
+  return saturate(dot(L, R));
 }
 
 #ifdef PLANAR_PROBES
@@ -65,8 +65,7 @@ float lightprobe_planar_score(ProbePlanarData planar, vec3 P, vec3 V, vec3 L)
 int lightprobe_planar_select(vec3 P, vec3 V, vec3 L)
 {
   /* Initialize to the score of a camera ray. */
-  /* TODO: Use saturate (dependency hell). */
-  float best_score = clamp(dot(L, -V), 0.0, 1.0);
+  float best_score = saturate(dot(L, -V));
   int best_index = -1;
 
   for (int index = 0; index < PLANAR_PROBES_MAX; index++) {

@@ -300,7 +300,6 @@ vec3 lightprobe_eval(
     LightProbeSample samp, ClosureReflection reflection, vec3 P, vec3 V, vec2 noise)
 {
   vec3 L = lightprobe_specular_dominant_dir(reflection.N, V, reflection.roughness);
-  /* TODO: Right now generate a dependency hell. */
   // vec3 L = ray_generate_direction(noise, reflection, V, pdf);
 
   float lod = lightprobe_roughness_to_lod(reflection.roughness);

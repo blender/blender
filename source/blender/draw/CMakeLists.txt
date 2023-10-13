@@ -675,6 +675,7 @@ set(GLSL_SRC
   intern/shaders/draw_resource_finalize_comp.glsl
   intern/shaders/draw_view_finalize_comp.glsl
   intern/shaders/draw_view_lib.glsl
+  intern/shaders/draw_view_reconstruction_lib.glsl
   intern/shaders/draw_visibility_comp.glsl
 
   intern/draw_command_shared.hh
