@@ -35,6 +35,7 @@
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_declarations.hh"
 
 #include "FN_field.hh"
 
@@ -275,14 +276,224 @@ static void refresh_node_panel(const PanelDeclaration &panel_decl,
   }
 }
 
+/**
+ * Not great to have this here, but this is only for forward compatibility, so this code shouldn't
+ * in the `main` branch.
+ */
+static std::optional<eNodeSocketDatatype> decl_to_data_type(const SocketDeclaration &socket_decl)
+{
+  if (dynamic_cast<const decl::Float *>(&socket_decl)) {
+    return SOCK_FLOAT;
+  }
+  else if (dynamic_cast<const decl::Int *>(&socket_decl)) {
+    return SOCK_INT;
+  }
+  else if (dynamic_cast<const decl::Bool *>(&socket_decl)) {
+    return SOCK_BOOLEAN;
+  }
+  else if (dynamic_cast<const decl::Vector *>(&socket_decl)) {
+    return SOCK_VECTOR;
+  }
+  else if (dynamic_cast<const decl::Color *>(&socket_decl)) {
+    return SOCK_RGBA;
+  }
+  else if (dynamic_cast<const decl::Rotation *>(&socket_decl)) {
+    return SOCK_ROTATION;
+  }
+  else if (dynamic_cast<const decl::String *>(&socket_decl)) {
+    return SOCK_STRING;
+  }
+  else if (dynamic_cast<const decl::Image *>(&socket_decl)) {
+    return SOCK_IMAGE;
+  }
+  else if (dynamic_cast<const decl::Texture *>(&socket_decl)) {
+    return SOCK_TEXTURE;
+  }
+  else if (dynamic_cast<const decl::Material *>(&socket_decl)) {
+    return SOCK_MATERIAL;
+  }
+  else if (dynamic_cast<const decl::Shader *>(&socket_decl)) {
+    return SOCK_SHADER;
+  }
+  else if (dynamic_cast<const decl::Collection *>(&socket_decl)) {
+    return SOCK_COLLECTION;
+  }
+  else if (dynamic_cast<const decl::Object *>(&socket_decl)) {
+    return SOCK_OBJECT;
+  }
+  return std::nullopt;
+}
+
+static const char *get_identifier_from_decl(const char *identifier_prefix,
+                                            const bNodeSocket &socket,
+                                            const Span<const SocketDeclaration *> socket_decls)
+{
+  if (!BLI_str_startswith(socket.identifier, identifier_prefix)) {
+    return nullptr;
+  }
+  for (const SocketDeclaration *socket_decl : socket_decls) {
+    if (BLI_str_startswith(socket_decl->identifier.c_str(), identifier_prefix)) {
+      if (socket.type == decl_to_data_type(*socket_decl)) {
+        return socket_decl->identifier.c_str();
+      }
+    }
+  }
+  return nullptr;
+}
+
+static const char *get_identifier_from_decl(const Span<const char *> identifier_prefixes,
+                                            const bNodeSocket &socket,
+                                            const Span<const SocketDeclaration *> socket_decls)
+{
+  for (const char *identifier_prefix : identifier_prefixes) {
+    if (const char *identifier = get_identifier_from_decl(identifier_prefix, socket, socket_decls))
+    {
+      return identifier;
+    }
+  }
+  return nullptr;
+}
+
+/**
+ * Currently, nodes that support different socket types have sockets for all supported types with
+ * different identifiers (e.g. `Attribute`, `Attribute_001`, `Attribute_002`, ...). In the future,
+ * we will hopefully have a better way to handle this that does not require all the sockets of
+ * different types to exist at the same time. Instead we want that there is only a single socket
+ * that can change its type while the identifier stays the same.
+ *
+ * This function prepares us for that future. It returns the identifier that we use for a socket
+ * now based on the "base socket name" (e.g. `Attribute`) and its socket type. It allows us to
+ * change the socket identifiers in the future without breaking forward compatibility for the nodes
+ * handled here.
+ */
+static const char *get_current_socket_identifier_for_future_socket(
+    const bNode &node,
+    const bNodeSocket &socket,
+    const Span<const SocketDeclaration *> socket_decls)
+{
+  switch (node.type) {
+    case GEO_NODE_SWITCH: {
+      const NodeSwitch &storage = *static_cast<const NodeSwitch *>(node.storage);
+      const bool use_field_socket = ELEM(storage.input_type,
+                                         SOCK_FLOAT,
+                                         SOCK_INT,
+                                         SOCK_BOOLEAN,
+                                         SOCK_VECTOR,
+                                         SOCK_RGBA,
+                                         SOCK_STRING,
+                                         SOCK_ROTATION);
+      if (BLI_str_startswith(socket.identifier, "Switch")) {
+        if (use_field_socket) {
+          return "Switch";
+        }
+        return "Switch_001";
+      }
+      return get_identifier_from_decl({"False", "True", "Output"}, socket, socket_decls);
+    }
+    case GEO_NODE_ACCUMULATE_FIELD: {
+      return get_identifier_from_decl(
+          {"Value", "Leading", "Trailing", "Total"}, socket, socket_decls);
+    }
+    case GEO_NODE_CAPTURE_ATTRIBUTE: {
+      return get_identifier_from_decl({"Value", "Attribute"}, socket, socket_decls);
+    }
+    case GEO_NODE_ATTRIBUTE_STATISTIC: {
+      return get_identifier_from_decl({"Attribute",
+                                       "Mean",
+                                       "Median",
+                                       "Sum",
+                                       "Min",
+                                       "Max",
+                                       "Range",
+                                       "Standard Deviation",
+                                       "Variance"},
+                                      socket,
+                                      socket_decls);
+    }
+    case GEO_NODE_BLUR_ATTRIBUTE: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_SAMPLE_CURVE: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_EVALUATE_AT_INDEX: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_EVALUATE_ON_DOMAIN: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_INPUT_NAMED_ATTRIBUTE: {
+      return get_identifier_from_decl({"Attribute"}, socket, socket_decls);
+    }
+    case GEO_NODE_RAYCAST: {
+      return get_identifier_from_decl({"Attribute"}, socket, socket_decls);
+    }
+    case GEO_NODE_SAMPLE_INDEX: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_SAMPLE_NEAREST_SURFACE: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case FN_NODE_RANDOM_VALUE: {
+      return get_identifier_from_decl({"Min", "Max", "Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_SAMPLE_UV_SURFACE: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_STORE_NAMED_ATTRIBUTE: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case GEO_NODE_VIEWER: {
+      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+    }
+    case SH_NODE_MIX: {
+      return get_identifier_from_decl({"A", "B", "Result"}, socket, socket_decls);
+    }
+    case FN_NODE_COMPARE: {
+      return get_identifier_from_decl({"A", "B"}, socket, socket_decls);
+    }
+  }
+  return nullptr;
+}
+
+/**
+ * Try to update identifiers of sockets created in the future to match identifiers that exist now.
+ */
+static void do_forward_compat_versioning(bNode &node, const NodeDeclaration &node_decl)
+{
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    if (socket->is_available()) {
+      if (const char *new_identifier = get_current_socket_identifier_for_future_socket(
+              node, *socket, node_decl.inputs))
+      {
+        STRNCPY(socket->identifier, new_identifier);
+      }
+    }
+  }
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+    if (socket->is_available()) {
+      if (const char *new_identifier = get_current_socket_identifier_for_future_socket(
+              node, *socket, node_decl.outputs))
+      {
+        STRNCPY(socket->identifier, new_identifier);
+      }
+    }
+  }
+}
+
 static void refresh_node_sockets_and_panels(bNodeTree &ntree,
                                             bNode &node,
-                                            Span<ItemDeclarationPtr> item_decls,
+                                            const NodeDeclaration &node_decl,
                                             const bool do_id_user)
 {
+  if (!node.runtime->forward_compatible_versioning_done) {
+    do_forward_compat_versioning(node, node_decl);
+    node.runtime->forward_compatible_versioning_done = true;
+  }
+
   /* Count panels */
   int new_num_panels = 0;
-  for (const ItemDeclarationPtr &item_decl : item_decls) {
+  for (const ItemDeclarationPtr &item_decl : node_decl.items) {
     if (dynamic_cast<const PanelDeclaration *>(item_decl.get())) {
       ++new_num_panels;
     }
@@ -309,7 +520,7 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
   VectorSet<bNodeSocket *> new_inputs;
   VectorSet<bNodeSocket *> new_outputs;
   bNodePanelState *new_panel = node.panel_states_array;
-  for (const ItemDeclarationPtr &item_decl : item_decls) {
+  for (const ItemDeclarationPtr &item_decl : node_decl.items) {
     if (const SocketDeclaration *socket_decl = dynamic_cast<const SocketDeclaration *>(
             item_decl.get()))
     {
@@ -360,7 +571,7 @@ static void refresh_node(bNodeTree &ntree,
     return;
   }
   if (!node_decl.matches(node)) {
-    refresh_node_sockets_and_panels(ntree, node, node_decl.items, do_id_user);
+    refresh_node_sockets_and_panels(ntree, node, node_decl, do_id_user);
   }
   blender::bke::nodeSocketDeclarationsUpdate(&node);
 }
