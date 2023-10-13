@@ -162,6 +162,10 @@ static void surface_smooth_v_safe(
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
     PBVHVertRef vertex2 = {reinterpret_cast<intptr_t>(v2)};
 
+    if (BM_ELEM_CD_GET_INT(e, pbvh->cd_edge_boundary) & SCULPT_BOUNDARY_SHARP_ANGLE) {
+      return;
+    }
+
     float w;
 
     if (e->l && e->l->f->len == 3) {
