@@ -706,6 +706,15 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
           mesh_final = BKE_mesh_copy_for_eval(mesh_input);
           ASSERT_IS_VALID_MESH(mesh_final);
         }
+
+        if (mti->required_data_mask) {
+          CustomData_MeshMasks mask{};
+          mti->required_data_mask(md, &mask);
+          if (mask.vmask & CD_MASK_ORCO) {
+            add_orco_mesh(ob, nullptr, mesh_final, nullptr, CD_ORCO);
+          }
+        }
+
         BKE_modifier_deform_verts(
             md,
             &mectx,
