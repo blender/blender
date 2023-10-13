@@ -529,7 +529,7 @@ GVArray NormalFieldInput::get_varray_for_context(const GeometryFieldContext &con
   if (const Mesh *mesh = context.mesh()) {
     return mesh_normals_varray(*mesh, mask, context.domain());
   }
-  if (const CurvesGeometry *curves = context.curves()) {
+  if (const CurvesGeometry *curves = context.curves_or_strokes()) {
     return curve_normals_varray(*curves, context.domain());
   }
   return {};
