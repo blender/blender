@@ -642,10 +642,9 @@ bool ED_view3d_camera_autokey(
 {
   if (blender::animrig::autokeyframe_cfra_can_key(scene, id_key)) {
     const float cfra = float(scene->r.cfra);
-    ListBase dsources = {nullptr, nullptr};
-
+    blender::Vector<PointerRNA> sources;
     /* add data-source override for the camera object */
-    ANIM_relative_keyingset_add_source(&dsources, id_key, nullptr, nullptr);
+    ANIM_relative_keyingset_add_source(sources, id_key);
 
     /* insert keyframes
      * 1) on the first frame
@@ -654,15 +653,12 @@ bool ED_view3d_camera_autokey(
      */
     if (do_rotate) {
       KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
-      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
     if (do_translate) {
       KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
-      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
-
-    /* free temp data */
-    BLI_freelistN(&dsources);
 
     return true;
   }

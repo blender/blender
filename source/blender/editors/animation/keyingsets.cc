@@ -904,15 +904,6 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 
 /* Special 'Overrides' Iterator for Relative KeyingSets ------ */
 
-/* 'Data Sources' for relative Keying Set 'overrides'
- * - this is basically a wrapper for PointerRNA's in a linked list
- * - do not allow this to be accessed from outside for now
- */
-struct tRKS_DSource {
-  tRKS_DSource *next, *prev;
-  PointerRNA ptr; /* the whole point of this exercise! */
-};
-
 /* Iterator used for overriding the behavior of iterators defined for
  * relative Keying Sets, with the main usage of this being operators
  * requiring Auto Keyframing. Internal Use Only!
@@ -920,45 +911,38 @@ struct tRKS_DSource {
 static void RKS_ITER_overrides_list(KeyingSetInfo *ksi,
                                     bContext *C,
                                     KeyingSet *ks,
-                                    ListBase *dsources)
+                                    blender::Vector<PointerRNA> &sources)
 {
-  LISTBASE_FOREACH (tRKS_DSource *, ds, dsources) {
-    /* run generate callback on this data */
-    ksi->generate(ksi, C, ks, &ds->ptr);
+  for (PointerRNA ptr : sources) {
+    /* Run generate callback on this data. */
+    ksi->generate(ksi, C, ks, &ptr);
   }
 }
 
-void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *srna, void *data)
+void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources,
+                                        ID *id,
+                                        StructRNA *srna,
+                                        void *data)
 {
-  tRKS_DSource *ds;
-
-  /* sanity checks
-   * - we must have somewhere to output the data
-   * - we must have both srna+data (and with id too optionally), or id by itself only
-   */
-  if (dsources == nullptr) {
+  if (ELEM(nullptr, srna, data, id)) {
     return;
   }
-  if (ELEM(nullptr, srna, data) && (id == nullptr)) {
+  sources.append(RNA_pointer_create(id, srna, data));
+}
+
+void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID *id)
+{
+  if (id == nullptr) {
     return;
   }
-
-  /* allocate new elem, and add to the list */
-  ds = static_cast<tRKS_DSource *>(MEM_callocN(sizeof(tRKS_DSource), "tRKS_DSource"));
-  BLI_addtail(dsources, ds);
-
-  /* depending on what data we have, create using ID or full pointer call */
-  if (srna && data) {
-    ds->ptr = RNA_pointer_create(id, srna, data);
-  }
-  else {
-    ds->ptr = RNA_id_pointer_create(id);
-  }
+  sources.append(RNA_id_pointer_create(id));
 }
 
 /* KeyingSet Operations (Insert/Delete Keyframes) ------------ */
 
-eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
+eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
+                                           blender::Vector<PointerRNA> *sources,
+                                           KeyingSet *ks)
 {
   /* sanity check */
   if (ks == nullptr) {
@@ -994,8 +978,8 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, Keyi
   /* if a list of data sources are provided, run a special iterator over them,
    * otherwise, just continue per normal
    */
-  if (dsources) {
-    RKS_ITER_overrides_list(ksi, C, ks, dsources);
+  if (sources != nullptr) {
+    RKS_ITER_overrides_list(ksi, C, ks, *sources);
   }
   else {
     ksi->iter(ksi, C, ks);
@@ -1044,7 +1028,8 @@ static eInsertKeyFlags keyingset_apply_keying_flags(const eInsertKeyFlags base_f
   return result;
 }
 
-int ANIM_apply_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks, short mode, float cfra)
+int ANIM_apply_keyingset(
+    bContext *C, blender::Vector<PointerRNA> *sources, KeyingSet *ks, short mode, float cfra)
 {
   /* sanity checks */
   if (ks == nullptr) {
@@ -1066,7 +1051,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks, short m
 
   /* if relative Keying Sets, poll and build up the paths */
   {
-    const eModifyKey_Returns error = ANIM_validate_keyingset(C, dsources, ks);
+    const eModifyKey_Returns error = ANIM_validate_keyingset(C, sources, ks);
     if (error != MODIFYKEY_SUCCESS) {
       BLI_assert(error < 0);
       /* return error code if failed */

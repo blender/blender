@@ -133,7 +133,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   bAction *act = poselib_action_to_blend(pbd);
 
   KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
-  ListBase dsources = {nullptr, nullptr};
+  blender::Vector<PointerRNA> sources;
 
   /* start tagging/keying */
   const bArmature *armature = static_cast<const bArmature *>(pbd->ob->data);
@@ -151,12 +151,11 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
     }
 
     /* Add data-source override for the PoseChannel, to be used later. */
-    ANIM_relative_keyingset_add_source(&dsources, &pbd->ob->id, &RNA_PoseBone, pchan);
+    ANIM_relative_keyingset_add_source(sources, &pbd->ob->id, &RNA_PoseBone, pchan);
   }
 
   /* Perform actual auto-keying. */
-  ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
-  BLI_freelistN(&dsources);
+  ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
 
   /* send notifiers for this */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);

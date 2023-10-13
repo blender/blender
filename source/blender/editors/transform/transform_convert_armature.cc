@@ -121,16 +121,15 @@ static void autokeyframe_pose(
       continue;
     }
 
-    ListBase dsources = {nullptr, nullptr};
-
+    blender::Vector<PointerRNA> sources;
     /* Add data-source override for the camera object. */
-    ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan);
+    ANIM_relative_keyingset_add_source(sources, id, &RNA_PoseBone, pchan);
 
     /* only insert into active keyingset? */
     if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
       /* Run the active Keying Set on the current data-source. */
       ANIM_apply_keyingset(
-          C, &dsources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+          C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     /* only insert into available channels? */
     else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
@@ -198,25 +197,22 @@ static void autokeyframe_pose(
 
       if (do_loc) {
         KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOCATION_ID);
-        ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
       if (do_rot) {
         KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_ROTATION_ID);
-        ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
       if (do_scale) {
         KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_SCALING_ID);
-        ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
     }
     /* insert keyframe in all (transform) channels */
     else {
       KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOC_ROT_SCALE_ID);
-      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
-
-    /* free temp info */
-    BLI_freelistN(&dsources);
   }
 
   BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);

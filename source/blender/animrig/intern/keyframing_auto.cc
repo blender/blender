@@ -101,7 +101,6 @@ void autokeyframe_object(
 
   ReportList *reports = CTX_wm_reports(C);
   KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
-  ListBase dsources = {nullptr, nullptr};
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       depsgraph, BKE_scene_frame_get(scene));
@@ -111,7 +110,8 @@ void autokeyframe_object(
   flag = ANIM_get_keyframing_flags(scene, true);
 
   /* Add data-source override for the object. */
-  ANIM_relative_keyingset_add_source(&dsources, id, nullptr, nullptr);
+  blender::Vector<PointerRNA> sources;
+  ANIM_relative_keyingset_add_source(sources, id);
 
   if (is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
     /* Only insert into active keyingset
@@ -119,7 +119,7 @@ void autokeyframe_object(
      * does not need to have its iterator overridden.
      */
     ANIM_apply_keyingset(
-        C, &dsources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
   }
   else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
     AnimData *adt = ob->adt;
@@ -187,25 +187,22 @@ void autokeyframe_object(
     /* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
     if (do_loc) {
       KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOCATION_ID);
-      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     if (do_rot) {
       KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_ROTATION_ID);
-      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     if (do_scale) {
       KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_SCALING_ID);
-      ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
   }
   /* insert keyframe in all (transform) channels */
   else {
     KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOC_ROT_SCALE_ID);
-    ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+    ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
   }
-
-  /* free temp info */
-  BLI_freelistN(&dsources);
 }
 
 bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
@@ -215,16 +212,14 @@ bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
     return false;
   }
 
-  ListBase dsources = {nullptr, nullptr};
-
   /* Now insert the key-frame(s) using the Keying Set:
    * 1) Add data-source override for the Object.
    * 2) Insert key-frames.
    * 3) Free the extra info.
    */
-  ANIM_relative_keyingset_add_source(&dsources, &ob->id, nullptr, nullptr);
-  ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
-  BLI_freelistN(&dsources);
+  blender::Vector<PointerRNA> sources;
+  ANIM_relative_keyingset_add_source(sources, &ob->id);
+  ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
 
   return true;
 }
@@ -234,16 +229,15 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
   if (autokeyframe_cfra_can_key(scene, &ob->id)) {
     return false;
   }
-  ListBase dsources = {nullptr, nullptr};
 
   /* Now insert the keyframe(s) using the Keying Set:
    * 1) Add data-source override for the pose-channel.
    * 2) Insert key-frames.
    * 3) Free the extra info.
    */
-  ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan);
-  ANIM_apply_keyingset(C, &dsources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
-  BLI_freelistN(&dsources);
+  blender::Vector<PointerRNA> sources;
+  ANIM_relative_keyingset_add_source(sources, &ob->id, &RNA_PoseBone, pchan);
+  ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
 
   return true;
 }
