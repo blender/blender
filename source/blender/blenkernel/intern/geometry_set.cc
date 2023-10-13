@@ -605,6 +605,33 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> componen
   }
 }
 
+void GeometrySet::propagate_attributes_from_layer_to_instances(
+    const AttributeAccessor src_attributes,
+    MutableAttributeAccessor dst_attributes,
+    const AnonymousAttributePropagationInfo &propagation_info)
+{
+  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+      return true;
+    }
+    const GAttributeReader src = src_attributes.lookup(id, ATTR_DOMAIN_LAYER);
+    if (src.sharing_info && src.varray.is_span()) {
+      const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
+      if (dst_attributes.add(id, ATTR_DOMAIN_INSTANCE, meta_data.data_type, init)) {
+        return true;
+      }
+    }
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, ATTR_DOMAIN_INSTANCE, meta_data.data_type);
+    if (!dst) {
+      return true;
+    }
+    array_utils::copy(src.varray, dst.span);
+    dst.finish();
+    return true;
+  });
+}
+
 void GeometrySet::gather_attributes_for_propagation(
     const Span<GeometryComponent::Type> component_types,
     const GeometryComponent::Type dst_component_type,
