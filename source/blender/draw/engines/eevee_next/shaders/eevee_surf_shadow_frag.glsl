@@ -19,6 +19,11 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
+vec4 closure_to_rgba(Closure cl)
+{
+  return vec4(0.0);
+}
+
 void main()
 {
 #ifdef MAT_TRANSPARENT

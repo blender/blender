@@ -14,6 +14,11 @@
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 
+vec4 closure_to_rgba(Closure cl)
+{
+  return vec4(0.0);
+}
+
 void main()
 {
   /* Clear AOVs first. In case the material renders to them. */
