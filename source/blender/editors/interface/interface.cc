@@ -5929,7 +5929,7 @@ const char *ui_but_placeholder_get(uiBut *but)
         RNA_enum_name(rna_enum_id_type_items, idcode, &placeholder);
         placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_ID, placeholder);
       }
-      else if (type && RNA_struct_identifier(type) != "UnknownType") {
+      else if (type && !STREQ(RNA_struct_identifier(type), "UnknownType")) {
         placeholder = RNA_struct_ui_name(type);
       }
     }
