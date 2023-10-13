@@ -446,7 +446,7 @@ class Instance {
 
     if (scene_state.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps.draw(manager, view, scene_state, resources);
+      anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
       return;
     }
 
@@ -476,7 +476,7 @@ class Instance {
     volume_ps.draw(manager, view, resources);
     outline_ps.draw(manager, resources);
     dof_ps.draw(manager, view, resources, resolution);
-    anti_aliasing_ps.draw(manager, view, scene_state, resources);
+    anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
 
     resources.object_id_tx.release();
   }
