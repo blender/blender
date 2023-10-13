@@ -672,13 +672,34 @@ void blf_font_draw_buffer(FontBLF *font, const char *str, const size_t str_len, 
  * - #BLF_width_to_rstrlen
  * \{ */
 
-static bool blf_font_width_to_strlen_glyph_process(
-    FontBLF *font, GlyphBLF *g_prev, GlyphBLF *g, ft_pix *pen_x, const int width_i)
+static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
+                                                   GlyphCacheBLF *gc,
+                                                   GlyphBLF *g_prev,
+                                                   GlyphBLF *g,
+                                                   ft_pix *pen_x,
+                                                   const int width_i)
 {
   if (UNLIKELY(g == nullptr)) {
     return false; /* continue the calling loop. */
   }
-  *pen_x += blf_kerning(font, g_prev, g) + g->advance_x;
+
+  if (g && pen_x && !(font->flags & BLF_MONOSPACED)) {
+    *pen_x += blf_kerning(font, g_prev, g);
+
+#ifdef BLF_SUBPIXEL_POSITION
+    if (!(font->flags & BLF_RENDER_SUBPIXELAA)) {
+      *pen_x = FT_PIX_ROUND(*pen_x);
+    }
+#else
+    *pen_x = FT_PIX_ROUND(*pen_x);
+#endif
+
+#ifdef BLF_SUBPIXEL_AA
+    g = blf_glyph_ensure_subpixel(font, gc, g, *pen_x);
+#endif
+  }
+
+  *pen_x += g->advance_x;
 
   /* When true, break the calling loop. */
   return (ft_pix_to_int(*pen_x) >= width_i);
@@ -699,7 +720,7 @@ size_t blf_font_width_to_strlen(
        i_prev = i, width_new = pen_x, g_prev = g)
   {
     g = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i, nullptr);
-    if (blf_font_width_to_strlen_glyph_process(font, g_prev, g, &pen_x, width_i)) {
+    if (blf_font_width_to_strlen_glyph_process(font, gc, g_prev, g, &pen_x, width_i)) {
       break;
     }
   }
@@ -742,7 +763,7 @@ size_t blf_font_width_to_rstrlen(
       BLI_assert(i_tmp == i);
     }
 
-    if (blf_font_width_to_strlen_glyph_process(font, g_prev, g, &pen_x, width)) {
+    if (blf_font_width_to_strlen_glyph_process(font, gc, g_prev, g, &pen_x, width)) {
       break;
     }
   }
