@@ -2376,6 +2376,17 @@ static void data_device_handle_data_offer(void * /*data*/,
 {
   CLOG_INFO(LOG, 2, "data_offer");
 
+  /* The ownership of data-offer isn't so obvious:
+   * At this point it's not known if this will be used for drag & drop or selection.
+   *
+   * The API docs state that the following callbacks run immediately after this callback:
+   * - #wl_data_device_listener::enter (for drag & drop).
+   * - #wl_data_device_listener::selection (for copy & paste).
+   *
+   * In the case of GHOST, this means they will be assigned to either:
+   * - #GWL_Seat::data_offer_dnd
+   * - #GWL_Seat::data_offer_copy_paste
+   */
   GWL_DataOffer *data_offer = new GWL_DataOffer;
   data_offer->wl.id = id;
   wl_data_offer_add_listener(id, &data_offer_listener, data_offer);
@@ -2389,18 +2400,28 @@ static void data_device_handle_enter(void *data,
                                      const wl_fixed_t y,
                                      wl_data_offer *id)
 {
+  /* Always clear the current data-offer no matter what else happens. */
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  std::lock_guard lock{seat->data_offer_dnd_mutex};
+  if (seat->data_offer_dnd) {
+    wl_data_offer_destroy(seat->data_offer_dnd->wl.id);
+    delete seat->data_offer_dnd;
+    seat->data_offer_dnd = nullptr;
+  }
+  /* Clearing complete. */
+
+  /* Handle the new offer. */
+  GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   if (!ghost_wl_surface_own_with_null_check(wl_surface)) {
     CLOG_INFO(LOG, 2, "enter (skipped)");
+    wl_data_offer_destroy(data_offer->wl.id);
+    delete data_offer;
     return;
   }
   CLOG_INFO(LOG, 2, "enter");
 
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  std::lock_guard lock{seat->data_offer_dnd_mutex};
-
-  delete seat->data_offer_dnd;
-  seat->data_offer_dnd = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
-  GWL_DataOffer *data_offer = seat->data_offer_dnd;
+  /* Transfer ownership of the `data_offer`. */
+  seat->data_offer_dnd = data_offer;
 
   data_offer->dnd.in_use = true;
   data_offer->dnd.xy[0] = x;
@@ -2582,27 +2603,25 @@ static void data_device_handle_selection(void *data,
                                          wl_data_device * /*wl_data_device*/,
                                          wl_data_offer *id)
 {
+  /* Always clear the current data-offer no matter what else happens. */
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-
   std::lock_guard lock{seat->data_offer_copy_paste_mutex};
-
-  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
-
-  /* Delete old data offer. */
-  if (data_offer != nullptr) {
-    wl_data_offer_destroy(data_offer->wl.id);
-    delete data_offer;
-    data_offer = nullptr;
+  if (seat->data_offer_copy_paste) {
+    wl_data_offer_destroy(seat->data_offer_copy_paste->wl.id);
+    delete seat->data_offer_copy_paste;
     seat->data_offer_copy_paste = nullptr;
   }
+  /* Clearing complete. */
 
+  /* Handle the new offer. */
   if (id == nullptr) {
     CLOG_INFO(LOG, 2, "selection: (skipped)");
     return;
   }
+
   CLOG_INFO(LOG, 2, "selection");
-  /* Get new data offer. */
-  data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
+  GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
+  /* Transfer ownership of the `data_offer`. */
   seat->data_offer_copy_paste = data_offer;
 }
 
