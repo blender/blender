@@ -2346,7 +2346,10 @@ static void data_device_handle_leave(void *data, struct wl_data_device * /*wl_da
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   std::lock_guard lock{seat->data_offer_dnd_mutex};
-
+  /* The user may have only dragged over the window decorations. */
+  if (seat->data_offer_dnd == nullptr) {
+    return;
+  }
   CLOG_INFO(LOG, 2, "leave");
 
   dnd_events(seat, GHOST_kEventDraggingExited);
@@ -2367,6 +2370,10 @@ static void data_device_handle_motion(void *data,
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   std::lock_guard lock{seat->data_offer_dnd_mutex};
+  /* The user may have only dragged over the window decorations. */
+  if (seat->data_offer_dnd == nullptr) {
+    return;
+  }
 
   CLOG_INFO(LOG, 2, "motion");
 
@@ -2381,6 +2388,8 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   std::lock_guard lock{seat->data_offer_dnd_mutex};
 
+  /* No need to check this for null (as other callbacks do).
+   * because the the data-offer has not been accepted (actions set... etc). */
   GWL_DataOffer *data_offer = seat->data_offer_dnd;
 
   /* Use a blank string for  `mime_receive` to prevent crashes, although could also be `nullptr`.
