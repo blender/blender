@@ -1778,8 +1778,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     exit(EXIT_FAILURE);
   }
 
+  GHOST_EventConsumerHandle ghost_event_consumer = nullptr;
   {
-    GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
+    ghost_event_consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
 
     GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
@@ -1792,7 +1793,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
       exit(EXIT_FAILURE);
     }
 
-    GHOST_AddEventConsumer(ps.ghost_data.system, consumer);
+    GHOST_AddEventConsumer(ps.ghost_data.system, ghost_event_consumer);
 
     ps.ghost_data.window = playanim_window_open(
         ps.ghost_data.system, "Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
@@ -2055,7 +2056,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   /* we still miss freeing a lot!,
    * but many areas could skip initialization too for anim play */
 
-  IMB_exit();
   DEG_free_node_types();
 
   BLF_exit();
@@ -2066,6 +2066,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     GPU_context_discard(ps.ghost_data.gpu_context);
     ps.ghost_data.gpu_context = nullptr;
   }
+  GHOST_RemoveEventConsumer(ps.ghost_data.system, ghost_event_consumer);
+  GHOST_DisposeEventConsumer(ghost_event_consumer);
 
   GHOST_DisposeWindow(ps.ghost_data.system, ps.ghost_data.window);
 
@@ -2074,6 +2076,10 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     STRNCPY(filepath, ps.dropped_file);
     return filepath;
   }
+
+  GHOST_DisposeSystem(ps.ghost_data.system);
+
+  IMB_exit();
 
   totblock = MEM_get_memory_blocks_in_use();
   if (totblock != 0) {
