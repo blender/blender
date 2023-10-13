@@ -528,25 +528,15 @@ KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[])
       BLI_findstring(&keyingset_type_infos, name, offsetof(KeyingSetInfo, idname)));
 }
 
-KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[])
+KeyingSet *ANIM_builtin_keyingset_get_named(const char name[])
 {
-  KeyingSet *ks, *first = nullptr;
-
   /* sanity checks  any name to check? */
   if (name[0] == 0) {
     return nullptr;
   }
 
-  /* get first KeyingSet to use */
-  if (prevKS && prevKS->next) {
-    first = prevKS->next;
-  }
-  else {
-    first = static_cast<KeyingSet *>(builtin_keyingsets.first);
-  }
-
   /* loop over KeyingSets checking names */
-  for (ks = first; ks; ks = ks->next) {
+  LISTBASE_FOREACH (KeyingSet *, ks, &builtin_keyingsets) {
     if (STREQ(name, ks->idname)) {
       return ks;
     }
@@ -710,10 +700,10 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *tra
   }
 
   if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
-    return ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_AVAILABLE_ID);
+    return ANIM_builtin_keyingset_get_named(ANIM_KS_AVAILABLE_ID);
   }
 
-  return ANIM_builtin_keyingset_get_named(nullptr, transformKSName);
+  return ANIM_builtin_keyingset_get_named(transformKSName);
 }
 
 static void anim_keyingset_visit_for_search_impl(const bContext *C,

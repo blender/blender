@@ -186,21 +186,21 @@ void autokeyframe_object(
 
     /* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
     if (do_loc) {
-      KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOCATION_ID);
+      KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOCATION_ID);
       ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     if (do_rot) {
-      KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_ROTATION_ID);
+      KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_ROTATION_ID);
       ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     if (do_scale) {
-      KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_SCALING_ID);
+      KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_SCALING_ID);
       ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
   }
   /* insert keyframe in all (transform) channels */
   else {
-    KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOC_ROT_SCALE_ID);
+    KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOC_ROT_SCALE_ID);
     ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
   }
 }

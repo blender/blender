@@ -809,7 +809,7 @@ void POSE_OT_reveal(wmOperatorType *ot)
 static int pose_flip_quats_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
-  KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOC_ROT_SCALE_ID);
+  KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOC_ROT_SCALE_ID);
 
   bool changed_multi = false;
 

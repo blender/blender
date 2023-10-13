@@ -239,10 +239,9 @@ int ANIM_apply_keyingset(
 /**
  * Find builtin #KeyingSet by name.
  *
- * \return The first builtin #KeyingSet with the given name, which occurs after the given one
- * (or start of list if none given).
+ * \return The first builtin #KeyingSet with the given name
  */
-KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[]);
+KeyingSet *ANIM_builtin_keyingset_get_named(const char name[]);
 
 /**
  * Find KeyingSet type info given a name.
