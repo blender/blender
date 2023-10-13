@@ -4200,10 +4200,10 @@ static void widget_list_itembut(uiBut *but,
   if (but->type == UI_BTYPE_VIEW_ITEM) {
     uiButViewItem *item_but = static_cast<uiButViewItem *>(but);
     if (item_but->draw_width > 0) {
-      BLI_rcti_resize_x(&draw_rect, item_but->draw_width);
+      BLI_rcti_resize_x(&draw_rect, zoom * item_but->draw_width);
     }
     if (item_but->draw_height > 0) {
-      BLI_rcti_resize_y(&draw_rect, item_but->draw_height);
+      BLI_rcti_resize_y(&draw_rect, zoom * item_but->draw_height);
     }
   }
 
