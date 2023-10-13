@@ -144,21 +144,26 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
       mesh_by_layer[layer_index] = cdt_to_mesh(results);
     }
     if (!mesh_by_layer.is_empty()) {
-      bke::Instances *mesh_instances = new bke::Instances();
+      InstancesComponent &instances_component =
+          geometry_set.get_component_for_write<InstancesComponent>();
+      bke::Instances *instances = instances_component.get_for_write();
+      if (instances == nullptr) {
+        instances = new bke::Instances();
+        instances_component.replace(instances);
+      }
       for (Mesh *mesh : mesh_by_layer) {
         if (!mesh) {
           /* Add an empty reference so the number of layers and instances match.
            * This makes it easy to reconstruct the layers afterwards and keep their attributes.
            * Although in this particular case we don't propagate the attributes. */
-          const int handle = mesh_instances->add_reference(bke::InstanceReference());
-          mesh_instances->add_instance(handle, float4x4::identity());
+          const int handle = instances->add_reference(bke::InstanceReference());
+          instances->add_instance(handle, float4x4::identity());
           continue;
         }
         GeometrySet temp_set = GeometrySet::from_mesh(mesh);
-        const int handle = mesh_instances->add_reference(bke::InstanceReference{temp_set});
-        mesh_instances->add_instance(handle, float4x4::identity());
+        const int handle = instances->add_reference(bke::InstanceReference{temp_set});
+        instances->add_instance(handle, float4x4::identity());
       }
-      geometry_set.replace_instances(mesh_instances);
     }
     geometry_set.replace_grease_pencil(nullptr);
   }
