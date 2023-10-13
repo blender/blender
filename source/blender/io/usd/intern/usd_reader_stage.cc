@@ -44,6 +44,7 @@
 
 #include "BKE_lib_id.h"
 #include "BKE_modifier.h"
+#include "BKE_report.h"
 
 #include "DNA_material_types.h"
 
@@ -366,10 +367,11 @@ void USDStageReader::process_armature_modifiers() const
     std::string skel_path = mesh_reader->get_skeleton_path();
     std::map<std::string, Object *>::const_iterator it = usd_path_to_armature.find(skel_path);
     if (it == usd_path_to_armature.end()) {
-      WM_reportf(RPT_WARNING,
-                 "%s: Couldn't find armature object corresponding to USD skeleton %s",
-                 __func__,
-                 skel_path.c_str());
+      BKE_reportf(reports(),
+                  RPT_WARNING,
+                  "%s: Couldn't find armature object corresponding to USD skeleton %s",
+                  __func__,
+                  skel_path.c_str());
     }
     amd->object = it->second;
   }

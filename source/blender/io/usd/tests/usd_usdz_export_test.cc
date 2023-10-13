@@ -98,7 +98,7 @@ TEST_F(UsdUsdzExportTest, usdz_export)
   params.export_materials = false;
   params.visible_objects_only = false;
 
-  bool result = USD_export(context, output_filepath, &params, false);
+  bool result = USD_export(context, output_filepath, &params, false, nullptr);
   ASSERT_TRUE(result) << "usd export to " << output_filepath << " failed.";
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filepath);

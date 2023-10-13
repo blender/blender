@@ -46,8 +46,12 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
 
         infile = str(self.testdir / "this_file_doesn't_exist.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'CANCELLED'}, res, "Was somehow able to import a non-existent USD file!")
+        # RPT_ERROR Reports from operators generate `RuntimeError` python exceptions.
+        try:
+            res = bpy.ops.wm.usd_import(filepath=infile)
+            self.assertEqual({'CANCELLED'}, res, "Was somehow able to import a non-existent USD file!")
+        except RuntimeError as e:
+            self.assertTrue(e.args[0].startswith("Error: USD Import: unable to open stage to read"))
 
     def test_import_prim_hierarchy(self):
         """Test importing a simple object hierarchy from a USDA file."""

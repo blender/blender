@@ -5,6 +5,8 @@
 
 struct Main;
 
+#include "WM_types.hh"
+
 #include "usd.h"
 #include "usd_reader_prim.h"
 
@@ -77,6 +79,12 @@ class USDStageReader {
   const ImportSettings &settings() const
   {
     return settings_;
+  }
+
+  /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
+  ReportList *reports() const
+  {
+    return params_.worker_status->reports;
   }
 
   void clear_readers();

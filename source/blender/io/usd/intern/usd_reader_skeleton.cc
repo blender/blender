@@ -39,7 +39,7 @@ void USDSkeletonReader::read_object_data(Main *bmain, const double motionSampleT
     return;
   }
 
-  import_skeleton(bmain, object_, skel_);
+  import_skeleton(bmain, object_, skel_, reports());
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
 }

@@ -28,6 +28,7 @@
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "BLI_fileops.h"
@@ -108,6 +109,8 @@ static bool prim_path_valid(const char *path)
 /**
  * Perform validation of export parameter settings.
  * \return true if the parameters are valid; returns false otherwise.
+ *
+ * \warning Do not call from worker thread, only from main thread (i.e. before starting the wmJob).
  */
 static bool export_params_valid(const USDExportParams &params)
 {
@@ -183,33 +186,36 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   if (BLI_exists(data->usdz_filepath)) {
     result = BLI_delete(data->usdz_filepath, false, false);
     if (result != 0) {
-      WM_reportf(
-          RPT_ERROR, "USD Export: Unable to delete existing usdz file %s", data->usdz_filepath);
+      BKE_reportf(data->params.worker_status->reports,
+                  RPT_ERROR,
+                  "USD Export: Unable to delete existing usdz file %s",
+                  data->usdz_filepath);
       return false;
     }
   }
   result = BLI_path_move(usdz_temp_full_path, data->usdz_filepath);
   if (result != 0) {
-    WM_reportf(RPT_ERROR,
-               "USD Export: Couldn't move new usdz file from temporary location %s to %s",
-               usdz_temp_full_path,
-               data->usdz_filepath);
+    BKE_reportf(data->params.worker_status->reports,
+                RPT_ERROR,
+                "USD Export: Couldn't move new usdz file from temporary location %s to %s",
+                usdz_temp_full_path,
+                data->usdz_filepath);
     return false;
   }
 
   return true;
 }
 
-static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
-                                           Depsgraph *depsgraph,
-                                           const char *filepath,
-                                           wmJobWorkerStatus *worker_status)
+pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
+                                    Depsgraph *depsgraph,
+                                    const char *filepath)
 {
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filepath);
   if (!usd_stage) {
     return usd_stage;
   }
 
+  wmJobWorkerStatus *worker_status = params.worker_status;
   Scene *scene = DEG_get_input_scene(depsgraph);
   Main *bmain = DEG_get_bmain(depsgraph);
 
@@ -273,7 +279,7 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     }
   }
 
-  call_export_hooks(usd_stage, depsgraph);
+  call_export_hooks(usd_stage, depsgraph, params.worker_status->reports);
 
   /* Finish up by going back to the keyframe that was current before we started. */
   if (scene->r.cfra != orig_frame) {
@@ -282,14 +288,6 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   }
 
   return usd_stage;
-}
-
-pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
-                                    Depsgraph *depsgraph,
-                                    const char *filepath)
-{
-  wmJobWorkerStatus worker_status = {};
-  return export_to_stage(params, depsgraph, filepath, &worker_status);
 }
 
 static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
@@ -315,16 +313,18 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   worker_status->progress = 0.0f;
   worker_status->do_update = true;
+  data->params.worker_status = worker_status;
 
   pxr::UsdStageRefPtr usd_stage = export_to_stage(
-      data->params, data->depsgraph, data->unarchived_filepath, worker_status);
+      data->params, data->depsgraph, data->unarchived_filepath);
   if (!usd_stage) {
     /* This happens when the USD JSON files cannot be found. When that happens,
      * the USD library doesn't know it has the functionality to write USDA and
      * USDC files, and creating a new UsdStage fails. */
-    WM_reportf(RPT_ERROR,
-               "USD Export: unable to find suitable USD plugin to write %s",
-               data->unarchived_filepath);
+    BKE_reportf(worker_status->reports,
+                RPT_ERROR,
+                "USD Export: unable to find suitable USD plugin to write %s",
+                data->unarchived_filepath);
     return;
   }
 
@@ -420,7 +420,8 @@ static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *f
 bool USD_export(bContext *C,
                 const char *filepath,
                 const USDExportParams *params,
-                bool as_background_job)
+                bool as_background_job,
+                ReportList *reports)
 {
   if (!blender::io::usd::export_params_valid(*params)) {
     return false;
@@ -469,6 +470,9 @@ bool USD_export(bContext *C,
   }
   else {
     wmJobWorkerStatus worker_status = {};
+    /* Use the operator's reports in non-background case. */
+    worker_status.reports = reports;
+
     blender::io::usd::export_startjob(job, &worker_status);
     blender::io::usd::export_endjob(job);
     export_ok = job->export_ok;

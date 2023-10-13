@@ -13,6 +13,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_report.h"
 
 #include "IMB_colormanagement.h"
 
@@ -428,7 +429,8 @@ static std::string get_in_memory_texture_filename(Image *ima)
 
 static void export_in_memory_texture(Image *ima,
                                      const std::string &export_dir,
-                                     const bool allow_overwrite)
+                                     const bool allow_overwrite,
+                                     ReportList *reports)
 {
   char image_abs_path[FILE_MAX];
 
@@ -472,7 +474,8 @@ static void export_in_memory_texture(Image *ima,
   std::cout << "Exporting in-memory texture to " << export_path << std::endl;
 
   if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
-    WM_reportf(RPT_WARNING, "USD export: couldn't export in-memory texture to %s", export_path);
+    BKE_reportf(
+        reports, RPT_WARNING, "USD export: couldn't export in-memory texture to %s", export_path);
   }
 }
 
@@ -702,7 +705,8 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
  * destination directory. */
 static void copy_tiled_textures(Image *ima,
                                 const std::string &dest_dir,
-                                const bool allow_overwrite)
+                                const bool allow_overwrite,
+                                ReportList *reports)
 {
   char src_path[FILE_MAX];
   get_absolute_path(ima, src_path);
@@ -743,17 +747,21 @@ static void copy_tiled_textures(Image *ima,
 
     /* Copy the file. */
     if (BLI_copy(src_tile_path, dest_tile_path) != 0) {
-      WM_reportf(RPT_WARNING,
-                 "USD export: could not copy texture tile from %s to %s",
-                 src_tile_path,
-                 dest_tile_path);
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "USD export: could not copy texture tile from %s to %s",
+                  src_tile_path,
+                  dest_tile_path);
     }
   }
   MEM_SAFE_FREE(udim_pattern);
 }
 
 /* Copy the given image to the destination directory. */
-static void copy_single_file(Image *ima, const std::string &dest_dir, const bool allow_overwrite)
+static void copy_single_file(Image *ima,
+                             const std::string &dest_dir,
+                             const bool allow_overwrite,
+                             ReportList *reports)
 {
   char source_path[FILE_MAX];
   get_absolute_path(ima, source_path);
@@ -777,8 +785,11 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
 
   /* Copy the file. */
   if (BLI_copy(source_path, dest_path) != 0) {
-    WM_reportf(
-        RPT_WARNING, "USD export: could not copy texture from %s to %s", source_path, dest_path);
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "USD export: could not copy texture from %s to %s",
+                source_path,
+                dest_path);
   }
 }
 
@@ -816,13 +827,16 @@ static void export_texture(const USDExporterContext &usd_export_context, bNode *
   std::string dest_dir(tex_dir_path);
 
   if (is_generated || is_dirty || is_packed) {
-    export_in_memory_texture(ima, dest_dir, allow_overwrite);
+    export_in_memory_texture(
+        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
   }
   else if (ima->source == IMA_SRC_TILED) {
-    copy_tiled_textures(ima, dest_dir, allow_overwrite);
+    copy_tiled_textures(
+        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
   }
   else {
-    copy_single_file(ima, dest_dir, allow_overwrite);
+    copy_single_file(
+        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
   }
 }
 
@@ -853,7 +867,10 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
     create_usd_viewport_material(usd_export_context, material, usd_material);
   }
 
-  call_material_export_hooks(usd_export_context.stage, material, usd_material);
+  call_material_export_hooks(usd_export_context.stage,
+                             material,
+                             usd_material,
+                             usd_export_context.export_params.worker_status->reports);
 
   return usd_material;
 }

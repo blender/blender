@@ -9,6 +9,8 @@
 
 #include "usd.h"
 
+#include "WM_types.hh"
+
 #include <pxr/usd/usd/prim.h>
 
 #include <map>
@@ -111,6 +113,12 @@ class USDPrimReader {
   void parent(USDPrimReader *parent)
   {
     parent_reader_ = parent;
+  }
+
+  /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
+  ReportList *reports() const
+  {
+    return import_params_.worker_status->reports;
   }
 
   /* Since readers might be referenced through handles

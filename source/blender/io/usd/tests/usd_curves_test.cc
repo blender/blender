@@ -110,7 +110,7 @@ TEST_F(UsdCurvesTest, usd_export_curves)
 
   USDExportParams params;
 
-  const bool result = USD_export(context, output_filename.c_str(), &params, false);
+  const bool result = USD_export(context, output_filename.c_str(), &params, false, nullptr);
   EXPECT_TRUE(result) << "USD export should succed.";
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filename);
