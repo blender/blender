@@ -237,7 +237,7 @@ void ambient_occlusion_eval(OcclusionData data,
   bent_normal = N * 0.001;
 
   for (int i = 0; i < 2; i++) {
-    vec3 T = drw_point_view_to_world(vec3(dir, 0.0));
+    vec3 T = drw_normal_view_to_world(vec3(dir, 0.0));
     /* Setup integration domain around V. */
     vec3 B = normalize(cross(V, T));
     T = normalize(cross(B, V));
