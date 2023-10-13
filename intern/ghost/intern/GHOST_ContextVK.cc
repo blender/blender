@@ -973,8 +973,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   if (m_debug) {
     enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
     requireExtension(extensions_available, extensions_enabled, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    requireExtension(
-        extensions_available, extensions_enabled, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
   }
 
   if (use_window_surface) {
