@@ -14,6 +14,13 @@
 
 #include "DNA_ID.h"
 
+#ifdef __cplusplus
+#  include <mutex>
+using std_mutex_type = std::mutex;
+#else
+#  define std_mutex_type void
+#endif
+
 /* Defined here: */
 
 struct wmWindow;
@@ -98,6 +105,9 @@ typedef struct ReportList {
   int flag;
   char _pad[4];
   struct wmTimer *reporttimer;
+
+  /** Mutex for thread-safety, runtime only. */
+  std_mutex_type *lock;
 } ReportList;
 
 /* Timer custom-data to control reports display. */
@@ -162,6 +172,7 @@ typedef struct wmWindowManager {
    * \note keep in sync with `notifier_queue` adding/removing elements must also update this set.
    */
   struct GSet *notifier_queue_set;
+  void *_pad1;
 
   /** Information and error reports. */
   struct ReportList reports;

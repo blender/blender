@@ -137,19 +137,6 @@ CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_MSGBUS_SUB, "wm.msgbus.sub");
 
 static void wm_init_scripts_extensions_once(bContext *C);
 
-static void wm_init_reports(bContext *C)
-{
-  ReportList *reports = CTX_wm_reports(C);
-
-  BLI_assert(!reports || BLI_listbase_is_empty(&reports->list));
-
-  BKE_reports_init(reports, RPT_STORE);
-}
-static void wm_free_reports(wmWindowManager *wm)
-{
-  BKE_reports_clear(&wm->reports);
-}
-
 static bool wm_start_with_console = false;
 
 void WM_init_state_start_with_console_set(bool value)
@@ -264,10 +251,6 @@ void WM_init(bContext *C, int argc, const char **argv)
    * for scripts that do background processing with preview icons. */
   BKE_icons_init(BIFICONID_LAST_STATIC);
   BKE_preview_images_init();
-
-  /* Reports can't be initialized before the window-manager,
-   * but keep before file reading, since that may report errors */
-  wm_init_reports(C);
 
   WM_msgbus_types_init();
 
@@ -618,11 +601,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   ED_preview_free_dbase(); /* frees a Main dbase, before BKE_blender_free! */
   ED_preview_restart_queue_free();
   ED_assetlist_storage_exit();
-
-  if (wm) {
-    /* Before BKE_blender_free! - since the ListBases get freed there. */
-    wm_free_reports(wm);
-  }
 
   SEQ_clipboard_free(); /* `sequencer.cc` */
   BKE_tracking_clipboard_free();

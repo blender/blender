@@ -1815,7 +1815,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
         }
       }
       RE_SetReports(re, nullptr);
-      BKE_reports_clear(&reports);
+      BKE_reports_free(&reports);
       MEM_freeN(frame_range_arr);
       return 1;
     }
@@ -1842,7 +1842,7 @@ static int arg_handle_render_animation(int /*argc*/, const char ** /*argv*/, voi
     RE_RenderAnim(
         re, bmain, scene, nullptr, nullptr, scene->r.sfra, scene->r.efra, scene->r.frame_step);
     RE_SetReports(re, nullptr);
-    BKE_reports_clear(&reports);
+    BKE_reports_free(&reports);
   }
   else {
     fprintf(stderr, "\nError: no blend loaded. cannot use '-a'.\n");
@@ -2180,7 +2180,7 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
   BKE_reports_init(&reports, RPT_PRINT);
   WM_file_autoexec_init(filepath);
   const bool success = WM_file_read(C, filepath, &reports);
-  BKE_reports_clear(&reports);
+  BKE_reports_free(&reports);
 
   if (success) {
     if (G.background) {

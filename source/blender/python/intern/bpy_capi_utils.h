@@ -18,7 +18,10 @@ extern "C" {
 
 struct ReportList;
 
-/* error reporting */
+/** Error reporting: convert BKE_report (#ReportList) reports into python errors.
+ *
+ * \param clear: When `true`, #BKE_reports_free is called on the given `reports`, which should
+ * then be considered as 'freed' data and not used anymore. */
 short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, bool clear);
 /**
  * A version of #BKE_report_write_file_fp that uses Python's stdout.
