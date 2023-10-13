@@ -21,7 +21,7 @@ void main()
 
   init_globals();
   /* View position is passed to keep accuracy. */
-  g_data.N = normal_view_to_world(drw_view_incident_vector(interp.P));
+  g_data.N = drw_normal_view_to_world(drw_view_incident_vector(interp.P));
   g_data.Ng = g_data.N;
   g_data.P = -g_data.N;
   attrib_load();

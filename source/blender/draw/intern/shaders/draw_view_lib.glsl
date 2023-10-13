@@ -57,7 +57,7 @@ vec3 drw_world_incident_vector(vec3 P)
  */
 vec3 drw_view_incident_vector(vec3 vP)
 {
-  return drw_view_is_perspective() ? normalize(vP) : vec3(0.0, 0.0, -1.0);
+  return drw_view_is_perspective() ? normalize(-vP) : vec3(0.0, 0.0, 1.0);
 }
 
 /**
