@@ -26,7 +26,8 @@ struct SearchItem {
    * given higher weight.
    */
   int main_group_id;
-  int length;
+  int main_group_length;
+  int total_length;
   int weight;
   /**
    * This is a logical time stamp, i.e. the greater it is, the more recent the item was used. The
