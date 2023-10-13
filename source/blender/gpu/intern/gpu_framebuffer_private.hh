@@ -188,6 +188,7 @@ class FrameBuffer {
   inline void scissor_test_set(bool test)
   {
     scissor_test_ = test;
+    dirty_state_ = true;
   }
 
   inline void viewport_get(int r_viewport[4]) const
