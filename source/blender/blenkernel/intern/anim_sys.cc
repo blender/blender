@@ -255,7 +255,7 @@ void BKE_keyingsets_foreach_id(LibraryForeachIDData *data, const ListBase *keyin
 
 /* Freeing Tools --------------------------- */
 
-void BKE_keyingset_free(KeyingSet *ks)
+void BKE_keyingset_free_paths(KeyingSet *ks)
 {
   KS_Path *ksp, *kspn;
 
@@ -281,11 +281,11 @@ void BKE_keyingsets_free(ListBase *list)
   }
 
   /* loop over KeyingSets freeing them
-   * - BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
+   * - BKE_keyingset_free_paths() doesn't free the set itself, but it frees its sub-data
    */
   for (ks = static_cast<KeyingSet *>(list->first); ks; ks = ksn) {
     ksn = ks->next;
-    BKE_keyingset_free(ks);
+    BKE_keyingset_free_paths(ks);
     BLI_freelinkN(list, ks);
   }
 }

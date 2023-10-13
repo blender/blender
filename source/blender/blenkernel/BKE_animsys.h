@@ -95,7 +95,7 @@ void BKE_keyingsets_foreach_id(struct LibraryForeachIDData *data,
 void BKE_keyingset_free_path(struct KeyingSet *ks, struct KS_Path *ksp);
 
 /* Free data for KeyingSet but not set itself */
-void BKE_keyingset_free(struct KeyingSet *ks);
+void BKE_keyingset_free_paths(struct KeyingSet *ks);
 
 /* Free all the KeyingSets in the given list */
 void BKE_keyingsets_free(struct ListBase *list);

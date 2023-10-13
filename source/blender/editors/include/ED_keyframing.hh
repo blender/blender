@@ -195,6 +195,7 @@ enum eModifyKey_Modes {
 
 /* return codes for errors (with Relative KeyingSets) */
 enum eModifyKey_Returns {
+  MODIFYKEY_SUCCESS = 0,
   /** Context info was invalid for using the Keying Set. */
   MODIFYKEY_INVALID_CONTEXT = -1,
   /** There isn't any type-info for generating paths from context. */
