@@ -7,7 +7,8 @@
  * Results are meant to be conservative.
  */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(common_shape_lib.glsl)
 
 /* ---------------------------------------------------------------------- */
@@ -513,7 +514,7 @@ bool intersect(Cone cone, Sphere sphere)
 bool intersect(Circle circle_a, Circle circle_b)
 {
   return distance_squared(circle_a.center, circle_b.center) <
-         sqr(circle_a.radius + circle_b.radius);
+         square(circle_a.radius + circle_b.radius);
 }
 
 /** \} */

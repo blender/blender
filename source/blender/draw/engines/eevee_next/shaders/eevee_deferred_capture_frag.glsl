@@ -6,8 +6,8 @@
  * Compute light objects lighting contribution using captured Gbuffer data.
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 
@@ -24,10 +24,10 @@ void main()
   stack.cl[0].ltc_mat = LTC_LAMBERT_MAT;
   stack.cl[0].type = LIGHT_DIFFUSE;
 
-  vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
+  vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
   vec3 Ng = stack.cl[0].N;
-  vec3 V = cameraVec(P);
-  float vPz = dot(cameraForward, P) - dot(cameraForward, cameraPos);
+  vec3 V = drw_world_incident_vector(P);
+  float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
 
   /* Direct light. */
   light_eval(stack, P, Ng, V, vPz, gbuf.thickness);

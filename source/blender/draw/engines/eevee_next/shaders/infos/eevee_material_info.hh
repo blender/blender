@@ -249,6 +249,7 @@ GPU_SHADER_CREATE_INFO(eevee_volume_material_common)
     .local_group_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
     .define("VOLUMETRICS")
     .additional_info("draw_modelmat_new_common",
+                     /* TODO(fclem): Legacy API. To remove. */
                      "draw_resource_id_uniform",
                      "draw_view",
                      "eevee_shared",
@@ -343,7 +344,8 @@ GPU_SHADER_CREATE_INFO(eevee_material_stub)
 
 #  define EEVEE_MAT_GEOM_VARIATIONS(prefix, ...) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_world, "eevee_geom_world", __VA_ARGS__) \
-    EEVEE_MAT_FINAL_VARIATION(prefix##_gpencil, "eevee_geom_gpencil", __VA_ARGS__) \
+    /* Turned off until dependency on common_view/math_lib are sorted out. */ \
+    /* EEVEE_MAT_FINAL_VARIATION(prefix##_gpencil, "eevee_geom_gpencil", __VA_ARGS__) */ \
     EEVEE_MAT_FINAL_VARIATION(prefix##_curves, "eevee_geom_curves", __VA_ARGS__) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_mesh, "eevee_geom_mesh", __VA_ARGS__) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_point_cloud, "eevee_geom_point_cloud", __VA_ARGS__)

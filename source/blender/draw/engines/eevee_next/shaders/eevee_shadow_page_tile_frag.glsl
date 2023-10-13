@@ -35,6 +35,7 @@
  * belong to shadow pages not being updated in this pass are discarded.
  **/
 
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
 #if defined(PASS_CLEAR)

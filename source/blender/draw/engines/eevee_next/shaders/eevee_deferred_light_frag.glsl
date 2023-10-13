@@ -6,12 +6,12 @@
  * Compute light objects lighting contribution using Gbuffer data.
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -20,8 +20,12 @@ void main()
   float depth = texelFetch(hiz_tx, texel, 0).r;
   GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
 
-  vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
-  vec3 V = cameraVec(P);
+  vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
+  /* Assume reflection closure normal is always somewhat representative of the geometric normal.
+   * Ng is only used for shadow biases and subsurface check in this case. */
+  vec3 Ng = gbuf.has_reflection ? gbuf.reflection.N : gbuf.diffuse.N;
+  vec3 V = drw_world_incident_vector(P);
+  float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
 
   ClosureLightStack stack;
 
@@ -44,11 +48,6 @@ void main()
   cl_sss.type = LIGHT_DIFFUSE;
   stack.cl[2] = cl_sss;
 #endif
-
-  /* Assume reflection closure normal is always somewhat representative of the geometric normal.
-   * Ng is only used for shadow biases and subsurface check in this case. */
-  vec3 Ng = gbuf.has_reflection ? gbuf.reflection.N : gbuf.diffuse.N;
-  float vPz = dot(cameraForward, P) - dot(cameraForward, cameraPos);
 
 #ifdef SSS_TRANSMITTANCE
   float shadow_thickness = thickness_from_shadow(P, Ng, vPz);
@@ -90,7 +89,7 @@ void main()
 
   /* TODO(fclem): Change shadow pass to be colored. */
   vec3 shadows = radiance_shadowed * safe_rcp(radiance_unshadowed);
-  output_renderpass_value(uniform_buf.render_pass.shadow_id, avg(shadows));
+  output_renderpass_value(uniform_buf.render_pass.shadow_id, average(shadows));
 
   imageStore(direct_diffuse_img, texel, vec4(radiance_diffuse, 1.0));
   imageStore(direct_reflect_img, texel, vec4(radiance_specular, 1.0));

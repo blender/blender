@@ -13,7 +13,7 @@
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
 /**
  * Return the brick coordinate inside the grid.

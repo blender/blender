@@ -2,7 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+uint bitfield_mask(uint bit_width, uint bit_min)
+{
+  /* Cannot bit shift more than 31 positions. */
+  uint mask = (bit_width > 31u) ? 0x0u : (0xFFFFFFFFu << bit_width);
+  return ~mask << bit_min;
+}
 
 uint zbin_mask(uint word_index, uint zbin_min, uint zbin_max)
 {
@@ -11,7 +16,7 @@ uint zbin_mask(uint word_index, uint zbin_min, uint zbin_max)
   uint local_min = max(zbin_min, word_start);
   uint local_max = min(zbin_max, word_end);
   uint mask_width = local_max - local_min + 1;
-  return bit_field_mask(mask_width, local_min);
+  return bitfield_mask(mask_width, local_min);
 }
 
 int culling_z_to_zbin(float scale, float bias, float z)

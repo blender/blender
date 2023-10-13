@@ -7,7 +7,7 @@
  * - uniform_buf.volumes
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
 
@@ -35,23 +35,23 @@ float view_z_to_volume_z(float depth)
   return view_z_to_volume_z(near, far, distribution, is_persp, depth);
 }
 
-/* Volume texture normalized coordinates to NDC (special range [0, 1]). */
-vec3 volume_to_ndc(vec3 coord)
+/* Volume texture normalized coordinates to screen UVs (special range [0, 1]). */
+vec3 volume_to_screen(vec3 coord)
 {
   coord.z = volume_z_to_view_z(coord.z);
-  coord.z = get_depth_from_view_z(coord.z);
+  coord.z = drw_depth_view_to_screen(coord.z);
   coord.xy /= uniform_buf.volumes.coord_scale;
   return coord;
 }
 
-vec3 ndc_to_volume(vec3 coord)
+vec3 screen_to_volume(vec3 coord)
 {
   float near = uniform_buf.volumes.depth_near;
   float far = uniform_buf.volumes.depth_far;
   float distribution = uniform_buf.volumes.depth_distribution;
   vec2 coord_scale = uniform_buf.volumes.coord_scale;
   /* Implemented in eevee_shader_shared.cc */
-  return ndc_to_volume(ProjectionMatrix, near, far, distribution, coord_scale, coord);
+  return screen_to_volume(ProjectionMatrix, near, far, distribution, coord_scale, coord);
 }
 
 float volume_phase_function_isotropic()
@@ -76,7 +76,7 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
     float light_clamp = uniform_buf.volumes.light_clamp;
     if (light_clamp != 0.0) {
       /* 0.0 light clamp means it's disabled. */
-      float max_power = max_v3(light.color) * light.power[LIGHT_VOLUME];
+      float max_power = reduce_max(light.color) * light.power[LIGHT_VOLUME];
       if (max_power > 0.0) {
         /* The limit of the power attenuation function when the distance to the light goes to 0 is
          * `2 / r^2` where r is the light radius. We need to find the right radius that emits at
@@ -93,7 +93,7 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
      * http://www.cemyuksel.com/research/pointlightattenuation/
      */
     float d = lv.dist;
-    float d_sqr = sqr(d);
+    float d_sqr = square(d);
     float r_sqr = volume_radius_squared;
 
     /* Using reformulation that has better numerical precision. */
@@ -123,14 +123,12 @@ vec3 volume_shadow(
 
   if (is_directional) {
     /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
-    vec3 ndcP = project_point(ProjectionMatrix, transform_point(ViewMatrix, P));
-    vec3 ndcL = project_point(ProjectionMatrix, transform_point(ViewMatrix, P + lv.L * lv.dist)) -
-                ndcP;
+    vec3 ndcP = drw_point_world_to_ndc(P);
+    vec3 ndcL = drw_point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
 
     vec3 frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
 
-    vec4 L_hom = ViewMatrixInverse * (ProjectionMatrixInverse * vec4(frustum_isect, 1.0));
-    L = (L_hom.xyz / L_hom.w) - P;
+    L = drw_point_screen_to_world(frustum_isect) - P;
     L /= uniform_buf.volumes.shadow_steps;
     dd = length(L);
   }
@@ -142,8 +140,8 @@ vec3 volume_shadow(
   {
     vec3 pos = P + L * t;
 
-    vec3 ndc = project_point(ProjectionMatrix, transform_point(ViewMatrix, pos));
-    vec3 volume_co = ndc_to_volume(ndc * 0.5 + 0.5);
+    vec3 ndc = drw_point_world_to_ndc(pos);
+    vec3 volume_co = screen_to_volume(drw_ndc_to_screen(ndc));
     /* Let the texture be clamped to edge. This reduce visual glitches. */
     vec3 s_extinction = texture(extinction_tx, volume_co).rgb;
 
@@ -172,7 +170,7 @@ struct VolumeResolveSample {
 
 VolumeResolveSample volume_resolve(vec3 ndc_P, sampler3D transmittance_tx, sampler3D scattering_tx)
 {
-  vec3 coord = ndc_to_volume(ndc_P);
+  vec3 coord = screen_to_volume(ndc_P);
 
   VolumeResolveSample volume;
   volume.scattering = texture(scattering_tx, coord).rgb;

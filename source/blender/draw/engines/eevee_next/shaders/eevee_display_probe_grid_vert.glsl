@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
 
 void main()
@@ -35,9 +35,9 @@ void main()
   }
 
   vec3 vs_offset = vec3(lP, 0.0) * sphere_radius_final;
-  vec3 vP = (ViewMatrix * vec4(ws_cell_pos, 1.0)).xyz + vs_offset;
+  vec3 vP = drw_point_world_to_view(ws_cell_pos) + vs_offset;
 
-  gl_Position = ProjectionMatrix * vec4(vP, 1.0);
+  gl_Position = drw_point_view_to_homogenous(vP);
   /* Small bias to let the icon draw without Z-fighting. */
   gl_Position.z += 0.0001;
 }

@@ -10,8 +10,8 @@
  * tiles.
  */
 
+#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tag_usage_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max)
 {
@@ -19,8 +19,8 @@ float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max
   vec3 t_mins = (aabb_min - ray_origin) / ray_direction;
   vec3 t_maxs = (aabb_max - ray_origin) / ray_direction;
 
-  float t_min = max_v3(min(t_mins, t_maxs));
-  float t_max = min_v3(max(t_mins, t_maxs));
+  float t_min = reduce_max(min(t_mins, t_maxs));
+  float t_max = reduce_min(max(t_mins, t_maxs));
 
   /* AABB is in the opposite direction. */
   if (t_max < 0.0) {
@@ -68,14 +68,14 @@ void step_bounding_sphere(vec3 vs_near_plane,
   for (int x = -1; x <= 1; x += 2) {
     for (int y = -1; y <= 1; y += 2) {
       vec3 near_corner = near_center + (near_pixel_size * 0.5 * vec3(x, y, 0));
-      sphere_radius = max(sphere_radius, len_squared(near_corner - sphere_center));
+      sphere_radius = max(sphere_radius, length_squared(near_corner - sphere_center));
 
       vec3 far_corner = far_center + (far_pixel_size * 0.5 * vec3(x, y, 0));
-      sphere_radius = max(sphere_radius, len_squared(far_corner - sphere_center));
+      sphere_radius = max(sphere_radius, length_squared(far_corner - sphere_center));
     }
   }
 
-  sphere_center = point_view_to_world(sphere_center);
+  sphere_center = drw_point_view_to_world(sphere_center);
   sphere_radius = sqrt(sphere_radius);
 }
 
@@ -84,14 +84,14 @@ void main()
   vec2 screen_uv = gl_FragCoord.xy / vec2(fb_resolution);
 
   float opaque_depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), fb_lod).r;
-  vec3 ws_opaque = get_world_space_from_depth(screen_uv, opaque_depth);
+  vec3 ws_opaque = drw_point_screen_to_world(vec3(screen_uv, opaque_depth));
 
-  vec3 ws_near_plane = get_world_space_from_depth(screen_uv, 0);
+  vec3 ws_near_plane = drw_point_screen_to_world(vec3(screen_uv, 0.0));
   vec3 ws_view_direction = normalize(interp.P - ws_near_plane);
-  vec3 vs_near_plane = get_view_space_from_depth(screen_uv, 0);
+  vec3 vs_near_plane = drw_point_screen_to_view(vec3(screen_uv, 0.0));
   vec3 vs_view_direction = normalize(interp.vP - vs_near_plane);
-  vec3 ls_near_plane = point_world_to_object(ws_near_plane);
-  vec3 ls_view_direction = normalize(point_world_to_object(interp.P) - ls_near_plane);
+  vec3 ls_near_plane = drw_point_world_to_object(ws_near_plane);
+  vec3 ls_view_direction = normalize(drw_point_world_to_object(interp.P) - ls_near_plane);
 
   /* TODO (Miguel Pozo): We could try to ray-cast against the non-inflated bounds first,
    * and fallback to the inflated ones if there is no hit.
@@ -99,7 +99,7 @@ void main()
   float ls_near_box_t = ray_aabb(
       ls_near_plane, ls_view_direction, interp_flat.ls_aabb_min, interp_flat.ls_aabb_max);
   vec3 ls_near_box = ls_near_plane + ls_view_direction * ls_near_box_t;
-  vec3 ws_near_box = point_object_to_world(ls_near_box);
+  vec3 ws_near_box = drw_point_object_to_world(ls_near_box);
 
   float near_box_t = distance(ws_near_plane, ws_near_box);
   float far_box_t = distance(ws_near_plane, interp.P);
@@ -116,7 +116,7 @@ void main()
     vec3 P = ws_near_plane + (ws_view_direction * t);
     float step_radius;
     step_bounding_sphere(vs_near_plane, vs_view_direction, t, t + step_size, P, step_radius);
-    vec3 vP = point_world_to_view(P);
+    vec3 vP = drw_point_world_to_view(P);
 
     shadow_tag_usage(
         vP, P, ws_view_direction, step_radius, t, gl_FragCoord.xy * exp2(float(fb_lod)), 0);

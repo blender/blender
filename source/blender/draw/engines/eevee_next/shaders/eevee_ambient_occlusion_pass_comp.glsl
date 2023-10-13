@@ -2,9 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
 
 /* Similar to https://atyuwen.github.io/posts/normal-reconstruction/.
@@ -27,16 +25,17 @@ vec3 view_position_derivative_from_depth(
 
   /* Fix issue with depth precision. Take even larger diff. */
   vec4 diff = abs(vec4(depth_center, H.yzw) - H.x);
-  if (max_v4(diff) < 2.4e-7 && all(lessThan(diff.xyz, diff.www))) {
-    return 0.25 * (get_view_space_from_depth(uv3, H.w) - get_view_space_from_depth(uv1, H.x));
+  if (reduce_max(diff) < 2.4e-7 && all(lessThan(diff.xyz, diff.www))) {
+    return 0.25 *
+           (drw_point_screen_to_view(vec3(uv3, H.w)) - drw_point_screen_to_view(vec3(uv1, H.x)));
   }
   /* Simplified (H.xw + 2.0 * (H.yz - H.xw)) - depth_center */
   vec2 deltas = abs((2.0 * H.yz - H.xw) - depth_center);
   if (deltas.x < deltas.y) {
-    return vP - get_view_space_from_depth(uv2, H.y);
+    return vP - drw_point_screen_to_view(vec3(uv2, H.y));
   }
   else {
-    return get_view_space_from_depth(uv3, H.z) - vP;
+    return drw_point_screen_to_view(vec3(uv3, H.z)) - vP;
   }
 }
 
@@ -47,7 +46,7 @@ bool reconstruct_view_position_and_normal_from_depth(
 {
   float depth_center = texelFetch(depth_tx, ivec2(uv * vec2(extent)), 0).r;
 
-  vP = get_view_space_from_depth(uv, depth_center);
+  vP = drw_point_screen_to_view(vec3(uv, depth_center));
 
   vec3 dPdx = view_position_derivative_from_depth(
       depth_tx, extent, uv, ivec2(1, 0), vP, depth_center);
@@ -76,9 +75,9 @@ void main()
     return;
   }
 
-  vec3 P = transform_point(ViewMatrixInverse, vP);
-  vec3 V = cameraVec(P);
-  vec3 Ng = transform_direction(ViewMatrixInverse, vNg);
+  vec3 P = drw_point_view_to_world(vP);
+  vec3 V = drw_world_incident_vector(P);
+  vec3 Ng = drw_normal_view_to_world(vNg);
   vec3 N = imageLoad(in_normal_img, ivec3(texel, in_normal_img_layer_index)).xyz;
 
   OcclusionData data = ambient_occlusion_search(

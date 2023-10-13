@@ -17,7 +17,7 @@
  * downsample to max level.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 
 shared float local_depths[gl_WorkGroupSize.y][gl_WorkGroupSize.x];
 
@@ -59,7 +59,7 @@ void main()
   }
 
   /* Level 1. (No load) */
-  float max_depth = max_v4(samp);
+  float max_depth = reduce_max(samp);
   ivec2 dst_px = ivec2(kernel_origin + local_px);
   imageStore(out_mip_1, dst_px, vec4(max_depth));
   store_local_depth(local_px, max_depth);
@@ -72,7 +72,7 @@ void main()
   active_thread = all(lessThan(uvec2(local_px), gl_WorkGroupSize.xy >> uint(mask_shift))); \
   barrier(); /* Wait for previous writes to finish. */ \
   if (active_thread) { \
-    max_depth = max_v4(load_local_depths(local_px)); \
+    max_depth = reduce_max(load_local_depths(local_px)); \
     dst_px = ivec2((kernel_origin >> mask_shift) + local_px); \
     imageStore(out_mip__, dst_px, vec4(max_depth)); \
   } \
@@ -109,7 +109,7 @@ void main()
       samp.z = imageLoad(out_mip_5, min(src_px + ivec2(1, 0), image_border)).x;
       samp.w = imageLoad(out_mip_5, min(src_px + ivec2(0, 0), image_border)).x;
       /* Level 6. */
-      float max_depth = max_v4(samp);
+      float max_depth = reduce_max(samp);
       ivec2 dst_px = ivec2(kernel_origin + local_px);
       imageStore(out_mip_6, dst_px, vec4(max_depth));
       store_local_depth(local_px, max_depth);

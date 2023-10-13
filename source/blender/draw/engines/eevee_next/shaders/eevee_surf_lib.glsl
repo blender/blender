@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
@@ -60,7 +62,7 @@ void init_globals_curves()
   g_data.N = g_data.Ni = normalize(interp.N * sin_theta + curve_interp.binormal * cos_theta);
 
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
-  vec3 V = cameraVec(g_data.P);
+  vec3 V = drw_world_incident_vector(g_data.P);
   g_data.curve_T = -curve_interp.tangent;
   g_data.curve_B = cross(V, g_data.curve_T);
   g_data.curve_N = safe_normalize(cross(g_data.curve_T, g_data.curve_B));
@@ -94,7 +96,7 @@ void init_globals()
   g_data.hair_strand_id = 0;
   g_data.ray_type = RAY_TYPE_CAMERA; /* TODO */
   g_data.ray_depth = 0.0;
-  g_data.ray_length = distance(g_data.P, cameraPos);
+  g_data.ray_length = distance(g_data.P, drw_view_position());
   g_data.barycentric_coords = vec2(0.0);
   g_data.barycentric_dists = vec3(0.0);
 

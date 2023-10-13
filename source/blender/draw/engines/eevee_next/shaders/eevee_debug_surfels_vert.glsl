@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 
 void main()
 {
@@ -37,17 +37,15 @@ void main()
       break;
   }
 
-  vec3 N = surfel.normal;
-  vec3 T, B;
-  make_orthonormal_basis(N, T, B);
+  mat3x3 TBN = from_up_axis(surfel.normal);
 
-  mat4 model_matrix = mat4(vec4(T * debug_surfel_radius, 0),
-                           vec4(B * debug_surfel_radius, 0),
-                           vec4(N * debug_surfel_radius, 0),
+  mat4 model_matrix = mat4(vec4(TBN[0] * debug_surfel_radius, 0),
+                           vec4(TBN[1] * debug_surfel_radius, 0),
+                           vec4(TBN[2] * debug_surfel_radius, 0),
                            vec4(surfel.position, 1));
 
   P = (model_matrix * vec4(lP, 1)).xyz;
 
-  gl_Position = point_world_to_ndc(P);
+  gl_Position = drw_point_world_to_homogenous(P);
   gl_Position.z -= 2.5e-5;
 }

@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 
 void main()
 {
@@ -24,7 +24,7 @@ void main()
   float validity = texelFetch(validity_tx, cell, 0).r;
 
   vec3 vN = vec3(lP, sqrt(max(0.0, 1.0 - dist_sqr)));
-  vec3 N = normal_view_to_world(vN);
+  vec3 N = drw_normal_view_to_world(vN);
   vec3 lN = transform_direction(world_to_grid, N);
 
   vec3 irradiance = spherical_harmonics_evaluate_lambert(lN, sh);

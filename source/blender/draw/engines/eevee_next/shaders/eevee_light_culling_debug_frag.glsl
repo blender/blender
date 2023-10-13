@@ -8,8 +8,8 @@
  * pass is not conservative enough).
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_debug_gradients_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 
@@ -18,8 +18,8 @@ void main()
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
   float depth = texelFetch(hiz_tx, texel, 0).r;
-  float vP_z = get_view_z_from_depth(depth);
-  vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
+  float vP_z = drw_depth_screen_to_view(depth);
+  vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
 
   float light_count = 0.0;
   uint light_cull = 0u;

@@ -11,8 +11,6 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_trace_screen_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 void main()
 {
@@ -41,8 +39,8 @@ void main()
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
 
-  vec3 P = get_world_space_from_depth(uv, depth);
-  vec3 V = cameraVec(P);
+  vec3 P = drw_point_screen_to_world(vec3(uv, depth));
+  vec3 V = drw_world_incident_vector(P);
   Ray ray;
   ray.origin = P;
   ray.direction = ray_data.xyz;
@@ -104,7 +102,7 @@ void main()
     hit.time = 10000.0;
   }
 
-  float luma = max(1e-8, max_v3(radiance));
+  float luma = max(1e-8, reduce_max(radiance));
   radiance *= 1.0 - max(0.0, luma - uniform_buf.raytrace.brightness_clamp) / luma;
 
   imageStore(ray_time_img, texel, vec4(hit.time));

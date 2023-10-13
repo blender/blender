@@ -9,39 +9,40 @@
  * This renders the bounding boxes for transparent objects in order to tag the correct shadows.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
 #pragma BLENDER_REQUIRE(common_shape_lib.glsl)
 
 /* Inflate bounds by half a pixel as a conservative rasterization alternative,
  * to ensure the tiles needed by all LOD0 pixels get tagged */
 void inflate_bounds(vec3 ls_center, inout vec3 P, inout vec3 lP)
 {
-  vec3 vP = point_world_to_view(P);
+  vec3 vP = drw_point_world_to_view(P);
 
   float inflate_scale = pixel_world_radius * exp2(float(fb_lod));
-  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
-  if (is_persp) {
+  if (drw_view_is_perspective()) {
     inflate_scale *= -vP.z;
   }
   /* Half-pixel. */
   inflate_scale *= 0.5;
 
-  vec3 vs_inflate_vector = normal_object_to_view(sign(lP - ls_center));
+  vec3 vs_inflate_vector = drw_normal_object_to_view(sign(lP - ls_center));
   vs_inflate_vector.z = 0;
   /* Scale the vector so the largest axis length is 1 */
-  vs_inflate_vector /= max_v2(abs(vs_inflate_vector.xy));
+  vs_inflate_vector /= reduce_max(abs(vs_inflate_vector.xy));
   vs_inflate_vector *= inflate_scale;
 
   vP += vs_inflate_vector;
-  P = point_view_to_world(vP);
-  lP = point_world_to_object(P);
+  P = drw_point_view_to_world(vP);
+  lP = drw_point_world_to_object(P);
 }
 
 void main()
 {
-  PASS_RESOURCE_ID
+  DRW_RESOURCE_ID_VARYING_SET
 
-  const ObjectBounds bounds = bounds_buf[resource_id];
+  ObjectBounds bounds = bounds_buf[resource_id];
 
   Box box = shape_box(bounds.bounding_corners[0].xyz,
                       bounds.bounding_corners[0].xyz + bounds.bounding_corners[1].xyz,
@@ -52,14 +53,14 @@ void main()
   vec3 ws_aabb_max = bounds.bounding_corners[0].xyz + bounds.bounding_corners[1].xyz +
                      bounds.bounding_corners[2].xyz + bounds.bounding_corners[3].xyz;
 
-  vec3 ls_center = point_world_to_object((ws_aabb_min + ws_aabb_max) / 2.0);
+  vec3 ls_center = drw_point_world_to_object(midpoint(ws_aabb_min, ws_aabb_max));
 
   vec3 ls_conservative_min = vec3(FLT_MAX);
   vec3 ls_conservative_max = vec3(-FLT_MAX);
 
   for (int i = 0; i < 8; i++) {
     vec3 P = box.corners[i];
-    vec3 lP = point_world_to_object(P);
+    vec3 lP = drw_point_world_to_object(P);
     inflate_bounds(ls_center, P, lP);
 
     ls_conservative_min = min(ls_conservative_min, lP);
@@ -71,10 +72,10 @@ void main()
 
   vec3 lP = mix(ls_conservative_min, ls_conservative_max, max(vec3(0), pos));
 
-  interp.P = point_object_to_world(lP);
-  interp.vP = point_world_to_view(interp.P);
+  interp.P = drw_point_object_to_world(lP);
+  interp.vP = drw_point_world_to_view(interp.P);
 
-  gl_Position = point_world_to_ndc(interp.P);
+  gl_Position = drw_point_world_to_homogenous(interp.P);
 
 #if 0
   if (gl_VertexID == 0) {
@@ -84,7 +85,7 @@ void main()
         ls_conservative_min + (ls_conservative_max - ls_conservative_min) * vec3(0, 1, 0),
         ls_conservative_min + (ls_conservative_max - ls_conservative_min) * vec3(0, 0, 1));
     for (int i = 0; i < 8; i++) {
-      debug_box.corners[i] = point_object_to_world(debug_box.corners[i]);
+      debug_box.corners[i] = drw_point_object_to_world(debug_box.corners[i]);
     }
     drw_debug(debug_box);
   }

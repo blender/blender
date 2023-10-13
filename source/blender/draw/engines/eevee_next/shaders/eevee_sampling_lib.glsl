@@ -7,7 +7,7 @@
  * Also contains some sample mapping functions.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Sampling data.
@@ -114,9 +114,9 @@ vec2 hammersley_2d(int i, int sample_count)
 /* Given 1 random number in [0..1] range, return a random unit circle sample. */
 vec2 sample_circle(float rand)
 {
-  float phi = (rand - 0.5) * M_2PI;
+  float phi = (rand - 0.5) * M_TAU;
   float cos_phi = cos(phi);
-  float sin_phi = sqrt(1.0 - sqr(cos_phi)) * sign(phi);
+  float sin_phi = sqrt(1.0 - square(cos_phi)) * sign(phi);
   return vec2(cos_phi, sin_phi);
 }
 
@@ -149,7 +149,7 @@ vec3 sample_sphere(vec2 rand)
 vec3 sample_hemisphere(vec2 rand)
 {
   float cos_theta = rand.x;
-  float sin_theta = safe_sqrt(1.0 - sqr(cos_theta));
+  float sin_theta = safe_sqrt(1.0 - square(cos_theta));
   return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 

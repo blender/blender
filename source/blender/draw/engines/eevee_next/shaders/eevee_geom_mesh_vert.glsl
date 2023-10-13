@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
@@ -17,8 +17,8 @@ void main()
 
   init_interface();
 
-  interp.P = point_object_to_world(pos);
-  interp.N = normal_object_to_world(nor);
+  interp.P = drw_point_object_to_world(pos);
+  interp.N = drw_normal_object_to_world(nor);
 #ifdef MAT_VELOCITY
   vec3 prv, nxt;
   velocity_local_pos_get(pos, gl_VertexID, prv, nxt);
@@ -39,5 +39,5 @@ void main()
   clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
 #endif
 
-  gl_Position = point_world_to_ndc(interp.P);
+  gl_Position = drw_point_world_to_homogenous(interp.P);
 }

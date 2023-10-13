@@ -2,13 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_hair_lib.glsl) /* TODO rename to curve. */
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
+#pragma BLENDER_REQUIRE(common_hair_lib.glsl) /* TODO rename to curve. */
 
 void main()
 {
@@ -58,5 +57,5 @@ void main()
   clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
 #endif
 
-  gl_Position = point_world_to_ndc(interp.P);
+  gl_Position = drw_point_world_to_homogenous(interp.P);
 }

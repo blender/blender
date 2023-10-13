@@ -15,12 +15,12 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 float bxdf_eval(ClosureDiffuse closure, vec3 L, vec3 V)
 {
@@ -104,7 +104,9 @@ void main()
   }
 
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
-  vec3 V = transform_direction(ViewMatrixInverse, get_view_vector_from_screen_uv(uv));
+
+  vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
+  vec3 V = drw_world_incident_vector(P);
 
   GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel_fullres);
 
@@ -132,7 +134,7 @@ void main()
     sample_count = max(sample_count, 5u);
   }
   /* NOTE: Roughness is squared now. */
-  closure.roughness = max(1e-3, sqr(closure.roughness));
+  closure.roughness = max(1e-3, square(closure.roughness));
 #endif
 
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel_fullres), UTIL_BLUE_NOISE_LAYER).ba;
@@ -176,7 +178,7 @@ void main()
     radiance_accum += ray_radiance.rgb * weight;
     weight_accum += weight;
 
-    rgb_moment += sqr(ray_radiance.rgb) * weight;
+    rgb_moment += square(ray_radiance.rgb) * weight;
   }
   float inv_weight = safe_rcp(weight_accum);
 
@@ -185,11 +187,11 @@ void main()
   vec3 rgb_mean = radiance_accum;
   rgb_moment *= inv_weight;
 
-  vec3 rgb_variance = abs(rgb_moment - sqr(rgb_mean));
-  float hit_variance = max_v3(rgb_variance);
+  vec3 rgb_variance = abs(rgb_moment - square(rgb_mean));
+  float hit_variance = reduce_max(rgb_variance);
 
-  float scene_z = get_view_z_from_depth(texelFetch(depth_tx, texel_fullres, 0).r);
-  float hit_depth = get_depth_from_view_z(scene_z - closest_hit_time);
+  float scene_z = drw_depth_screen_to_view(texelFetch(depth_tx, texel_fullres, 0).r);
+  float hit_depth = drw_depth_view_to_screen(scene_z - closest_hit_time);
 
   imageStore(out_radiance_img, texel_fullres, vec4(radiance_accum, 0.0));
   imageStore(out_variance_img, texel_fullres, vec4(hit_variance));

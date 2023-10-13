@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_film_lib.glsl)
 
 void main()
@@ -33,7 +32,7 @@ void main()
     film_process_data(texel_film, out_color, out_depth);
   }
 
-  gl_FragDepth = get_depth_from_view_z(-out_depth);
+  gl_FragDepth = drw_depth_view_to_screen(-out_depth);
 
   gl_FragDepth = film_display_depth_ammend(texel_film, gl_FragDepth);
 }

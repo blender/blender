@@ -72,11 +72,11 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
     neighbor_max = (i == 0) ? ycocg_sample : max(neighbor_max, ycocg_sample);
   }
   /* Pad the bounds in the near in focus region to get back a bit of detail. */
-  float padding = 0.125 * saturate(1.0 - sqr(center_coc) / sqr(8.0));
+  float padding = 0.125 * saturate(1.0 - square(center_coc) / square(8.0));
   neighbor_max += abs(neighbor_min) * padding;
   neighbor_min -= abs(neighbor_min) * padding;
   /* Progressively apply the clamp to avoid harsh transition. Also mask by weight. */
-  float fac = saturate(sqr(center_coc) * 4.0) * weight;
+  float fac = saturate(square(center_coc) * 4.0) * weight;
   /* Clamp in YCoCg space to avoid too much color drift. */
   color = colorspace_YCoCg_from_scene_linear(color);
   color = mix(color, clamp(color, neighbor_min, neighbor_max), fac);
@@ -154,7 +154,7 @@ void main()
   }
 
   if (!no_focus_pass && prediction.do_focus) {
-    layer_color = safe_color(textureLod(color_tx, uv, 0.0));
+    layer_color = colorspace_safe_color(textureLod(color_tx, uv, 0.0));
     layer_weight = 1.0;
     /* Composite in focus. */
     out_color = out_color * (1.0 - layer_weight) + layer_color;
