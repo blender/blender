@@ -113,9 +113,15 @@ class prettyface:
 
                 # ngons work different, we store projected result
                 # in UVs to avoid having to re-project later.
-                for i, co in enumerate(cos_2d):
-                    self.uv[i][:] = ((co.x - xmin) / xspan,
-                                     (co.y - ymin) / yspan)
+                if xspan < 0.0000001 or yspan < 0.0000001:
+                    for i in range(len(cos_2d)):
+                        self.uv[i][:] = (0.0, 0.0)
+                else:
+                    for i, co in enumerate(cos_2d):
+                        self.uv[i][:] = (
+                            (co.x - xmin) / xspan,
+                            (co.y - ymin) / yspan,
+                        )
 
             self.children = []
 
