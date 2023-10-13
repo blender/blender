@@ -245,7 +245,6 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
  private:
   static void tree_row_click_fn(bContext *, void *, void *);
   static void collapse_chevron_click_fn(bContext *, void *but_arg1, void *);
-  static bool is_collapse_chevron_but(const uiBut *but);
 
   /**
    * Override of #AbstractViewItem::set_state_active() that also ensures the parents of this

@@ -361,12 +361,6 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   }
 }
 
-bool AbstractTreeViewItem::is_collapse_chevron_but(const uiBut *but)
-{
-  return but->type == UI_BTYPE_BUT_TOGGLE && ELEM(but->icon, ICON_TRIA_RIGHT, ICON_TRIA_DOWN) &&
-         (but->func == collapse_chevron_click_fn);
-}
-
 void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
 {
   if (!is_collapsible()) {
@@ -379,9 +373,6 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
   /* Note that we're passing the tree-row button here, not the chevron one. */
   UI_but_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
   UI_but_flag_disable(but, UI_BUT_UNDO);
-
-  /* Check if the query for the button matches the created button. */
-  BLI_assert(is_collapse_chevron_but(but));
 }
 
 void AbstractTreeViewItem::add_rename_button(uiLayout &row)
@@ -577,8 +568,6 @@ class TreeViewLayoutBuilder {
  private:
   /* Created through #TreeViewBuilder (friend class). */
   TreeViewLayoutBuilder(uiLayout &layout);
-
-  static void polish_layout(const uiBlock &block);
 };
 
 TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
@@ -597,22 +586,6 @@ void TreeViewLayoutBuilder::build_from_tree(const AbstractTreeView &tree_view)
                              AbstractTreeView::IterOptions::SkipFiltered);
 
   UI_block_layout_set_current(&block(), &parent_layout);
-}
-
-void TreeViewLayoutBuilder::polish_layout(const uiBlock &block)
-{
-  LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block.buttons) {
-    if (AbstractTreeViewItem::is_collapse_chevron_but(but) && but->next &&
-        /* Embossed buttons with padding-less text padding look weird, so don't touch them. */
-        ELEM(but->next->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS))
-    {
-      UI_but_drawflag_enable(static_cast<uiBut *>(but->next), UI_BUT_NO_TEXT_PADDING);
-    }
-
-    if (but->type == UI_BTYPE_VIEW_ITEM) {
-      break;
-    }
-  }
 }
 
 void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
@@ -649,7 +622,6 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   else {
     item.build_row(*row);
   }
-  polish_layout(block_);
 
   UI_block_emboss_set(&block_, previous_emboss);
   UI_block_layout_set_current(&block_, &prev_layout);
