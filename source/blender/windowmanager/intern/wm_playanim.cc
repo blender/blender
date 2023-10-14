@@ -1012,7 +1012,9 @@ static void playanim_change_frame(PlayState *ps)
   int sizex, sizey;
   playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
   const int i_last = ((PlayAnimPict *)picsbase.last)->frame;
-  int i = (i_last * ps->frame_cursor_x) / sizex;
+  /* Without this the indicator location isn't closest to the cursor.  */
+  const int correct_rounding = (sizex / i_last) / 2;
+  int i = (i_last * (ps->frame_cursor_x + correct_rounding)) / sizex;
   CLAMP(i, 0, i_last);
 
 #ifdef WITH_AUDASPACE
