@@ -1474,7 +1474,7 @@ static void grease_pencil_eraser_draw(PaintCursorContext *pcontext)
 {
   float radius = static_cast<float>(BKE_brush_size_get(pcontext->scene, pcontext->brush));
 
-  /* Redish color with alpha. */
+  /* Red-ish color with alpha. */
   immUniformColor4ub(255, 100, 100, 20);
   imm_draw_circle_fill_2d(pcontext->pos, pcontext->x, pcontext->y, radius, 40);
 

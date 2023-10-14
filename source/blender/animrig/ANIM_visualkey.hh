@@ -5,7 +5,7 @@
 /** \file
  * \ingroup animrig
  *
- * \brief Functions to work with the visal keying system.
+ * \brief Functions to work with the visual keying system.
  */
 
 struct PointerRNA;

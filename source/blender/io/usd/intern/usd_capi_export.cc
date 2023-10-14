@@ -304,7 +304,7 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   }
   G.is_break = false;
 
-  /* Evaluate the despgraph for exporting.
+  /* Evaluate the depsgraph for exporting.
    *
    * Note that, unlike with its building, this is expected to be safe to perform from worker
    * thread, since UI is locked during export, so there should not be any more changes in the Main
@@ -443,7 +443,7 @@ bool USD_export(bContext *C,
   /* Construct the depsgraph for exporting.
    *
    * Has to be done from main thread currently, as it may affect Main original data (e.g. when
-   * doing deferred update of the viewlayers, see #112534 for details). */
+   * doing deferred update of the view-layers, see #112534 for details). */
   if (job->params.visible_objects_only) {
     DEG_graph_build_from_view_layer(job->depsgraph);
   }

@@ -1659,10 +1659,9 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
   /* The following assert is meant to catch code changes that break this function's result, but
    * some wriggle room is fine and needed. Just a couple pixels for large sizes and with some
    * settings like "Full" hinting which can move features both left and right a pixel. We could
-   * probably reduce this to one pixel if we consolodate text output with length measuring. But
+   * probably reduce this to one pixel if we consolidate text output with length measuring. But
    * our text string lengths include the last character's right-side bearing anyway, so a string
-   * can be longer by that amount and still fit visibly in the required space.
-   */
+   * can be longer by that amount and still fit visibly in the required space. */
 
   BLI_assert((strwidth <= (okwidth + 2)) || (okwidth <= 0.0f));
 
