@@ -176,6 +176,11 @@ struct GhostData {
   eWS_Qual qual;
 };
 
+struct PlayArgs {
+  int argc;
+  char **argv;
+};
+
 /**
  * The minimal context necessary for displaying an image.
  * Used while displaying images both on load and while playing.
@@ -247,7 +252,8 @@ struct PlayState {
   int font_size;
 
   /** Restarts player for file drop (drag & drop). */
-  char dropped_file[FILE_MAX];
+  int argc_next;
+  char **argv_next;
 
   /** Force update when scrubbing with the cursor. */
   bool need_frame_update;
@@ -1506,14 +1512,14 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
       if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
         const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
-        int a;
-
-        for (a = 0; a < stra->count; a++) {
-          STRNCPY(ps->dropped_file, (char *)stra->strings[a]);
-          ps->go = false;
-          printf("drop file %s\n", stra->strings[a]);
-          break; /* only one drop element supported now */
+        ps->argc_next = stra->count;
+        ps->argv_next = static_cast<char **>(
+            MEM_mallocN(sizeof(char **) * ps->argc_next, __func__));
+        for (int i = 0; i < stra->count; i++) {
+          ps->argv_next[i] = BLI_strdup(reinterpret_cast<const char *>(stra->strings[i]));
         }
+        ps->go = false;
+        printf("dropped %s, %d file(s)\n", ps->argv_next[0], ps->argc_next);
       }
       break;
     }
@@ -1627,12 +1633,12 @@ static bool playanim_window_font_scale_from_dpi(PlayState *ps)
 }
 
 /**
- * \return The a path used to restart the animation player or nullptr to exit.
+ * \return True when `args_next` is filled with arguments used to re-run this function
+ * (used for drag & drop).
  */
-static char *wm_main_playanim_intern(int argc, const char **argv)
+static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_next)
 {
   ImBuf *ibuf = nullptr;
-  static char filepath[FILE_MAX]; /* abused to return dropped file path */
   int i;
   /* This was done to disambiguate the name for use under c++. */
   int start_x = 0, start_y = 0;
@@ -1654,7 +1660,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   ps.loading = false;
   ps.picture = nullptr;
   ps.indicator = false;
-  ps.dropped_file[0] = 0;
+  ps.argc_next = 0;
+  ps.argv_next = nullptr;
   ps.zoom = 1.0f;
   ps.draw_flip[0] = false;
   ps.draw_flip[1] = false;
@@ -1745,13 +1752,12 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     }
   }
 
-  if (argc > 0) {
-    STRNCPY(filepath, argv[0]);
-  }
-  else {
+  if (argc == 0) {
     printf("%s: no filepath argument given\n", __func__);
     exit(EXIT_FAILURE);
   }
+
+  const char *filepath = argv[0];
 
   if (IMB_isanim(filepath)) {
     /* OCIO_TODO: support different input color spaces */
@@ -1866,7 +1872,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
   for (i = 1; i < argc; i++) {
-    STRNCPY(filepath, argv[i]);
+    filepath = argv[i];
     build_pict_list(
         &ps.ghost_data, &ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
   }
@@ -2081,9 +2087,10 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   GHOST_DisposeWindow(ps.ghost_data.system, ps.ghost_data.window);
 
   /* early exit, IMB and BKE should be exited only in end */
-  if (ps.dropped_file[0]) {
-    STRNCPY(filepath, ps.dropped_file);
-    return filepath;
+  if (ps.argv_next) {
+    args_next->argc = ps.argc_next;
+    args_next->argv = ps.argv_next;
+    return true;
   }
 
   GHOST_DisposeSystem(ps.ghost_data.system);
@@ -2099,14 +2106,11 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
   }
 
-  return nullptr;
+  return false;
 }
 
 void WM_main_playanim(int argc, const char **argv)
 {
-  const char *argv_next[1];
-  bool looping = true;
-
 #ifdef WITH_AUDASPACE
   {
     AUD_DeviceSpecs specs;
@@ -2123,20 +2127,27 @@ void WM_main_playanim(int argc, const char **argv)
   }
 #endif
 
-  while (looping) {
-    const char *filepath = wm_main_playanim_intern(argc, argv);
+  PlayArgs args_next = {0};
+  do {
+    PlayArgs args_free = args_next;
+    args_next = {0};
 
-    if (filepath) { /* use simple args */
-      argv_next[0] = filepath;
-      argc = 1;
-
-      /* continue with new args */
-      argv = argv_next;
+    if (wm_main_playanim_intern(argc, argv, &args_next)) {
+      argc = args_next.argc;
+      argv = const_cast<const char **>(args_next.argv);
     }
     else {
-      looping = false;
+      argc = 0;
+      argv = nullptr;
     }
-  }
+
+    if (args_free.argv) {
+      for (int i = 0; i < args_free.argc; i++) {
+        MEM_freeN(args_free.argv[i]);
+      }
+      MEM_freeN(args_free.argv);
+    }
+  } while (argv != nullptr);
 
 #ifdef WITH_AUDASPACE
   AUD_exit(g_audaspace.audio_device);
