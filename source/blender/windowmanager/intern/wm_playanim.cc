@@ -1670,16 +1670,16 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   ps.display_ctx.ui_scale = 1.0f;
 
   /* Skip the first argument which is assumed to be '-a' (used to launch this player). */
-  while (argc > 1) {
-    if (argv[1][0] == '-') {
-      switch (argv[1][1]) {
+  while (argc > 0) {
+    if (argv[0][0] == '-') {
+      switch (argv[0][1]) {
         case 'm':
           fromdisk = true;
           break;
         case 'p':
-          if (argc > 3) {
-            start_x = atoi(argv[2]);
-            start_y = atoi(argv[3]);
+          if (argc > 2) {
+            start_x = atoi(argv[1]);
+            start_y = atoi(argv[2]);
             argc -= 2;
             argv += 2;
           }
@@ -1688,9 +1688,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
           }
           break;
         case 'f':
-          if (argc > 3) {
-            double fps = atof(argv[2]);
-            double fps_base = atof(argv[3]);
+          if (argc > 2) {
+            double fps = atof(argv[1]);
+            double fps_base = atof(argv[2]);
             if (fps == 0.0) {
               fps = 1;
               printf(
@@ -1706,19 +1706,19 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
           }
           break;
         case 's':
-          sfra = atoi(argv[2]);
+          sfra = atoi(argv[1]);
           CLAMP(sfra, 1, MAXFRAME);
           argc--;
           argv++;
           break;
         case 'e':
-          efra = atoi(argv[2]);
+          efra = atoi(argv[1]);
           CLAMP(efra, 1, MAXFRAME);
           argc--;
           argv++;
           break;
         case 'j':
-          ps.fstep = atoi(argv[2]);
+          ps.fstep = atoi(argv[1]);
           CLAMP(ps.fstep, 1, MAXFRAME);
           swaptime *= ps.fstep;
           argc--;
@@ -1726,7 +1726,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
           break;
         case 'c': {
 #ifdef USE_FRAME_CACHE_LIMIT
-          const int memory_in_mb = max_ii(0, atoi(argv[2]));
+          const int memory_in_mb = max_ii(0, atoi(argv[1]));
           g_frame_cache.memory_limit = size_t(memory_in_mb) * (1024 * 1024);
 #endif
           argc--;
@@ -1734,7 +1734,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
           break;
         }
         default:
-          printf("unknown option '%c': skipping\n", argv[1][1]);
+          printf("unknown option '%c': skipping\n", argv[0][1]);
           break;
       }
       argc--;
@@ -1745,8 +1745,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     }
   }
 
-  if (argc > 1) {
-    STRNCPY(filepath, argv[1]);
+  if (argc > 0) {
+    STRNCPY(filepath, argv[0]);
   }
   else {
     printf("%s: no filepath argument given\n", __func__);
@@ -1856,7 +1856,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   }
 #endif
 
-  for (i = 2; i < argc; i++) {
+  for (i = 1; i < argc; i++) {
     STRNCPY(filepath, argv[i]);
     build_pict_list(
         &ps.ghost_data, &ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
@@ -2095,7 +2095,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 void WM_main_playanim(int argc, const char **argv)
 {
-  const char *argv_next[2];
+  const char *argv_next[1];
   bool looping = true;
 
 #ifdef WITH_AUDASPACE
@@ -2118,9 +2118,8 @@ void WM_main_playanim(int argc, const char **argv)
     const char *filepath = wm_main_playanim_intern(argc, argv);
 
     if (filepath) { /* use simple args */
-      argv_next[0] = argv[0];
-      argv_next[1] = filepath;
-      argc = 2;
+      argv_next[0] = filepath;
+      argc = 1;
 
       /* continue with new args */
       argv = argv_next;

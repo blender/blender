@@ -1394,8 +1394,8 @@ static int arg_handle_playback_mode(int argc, const char **argv, void * /*data*/
     IMB_ffmpeg_init();
 #  endif
 
-    /* This function knows to skip this argument ('-a'). */
-    WM_main_playanim(argc, argv);
+    /* Skip this argument (`-a`). */
+    WM_main_playanim(argc - 1, argv + 1);
 
     exit(EXIT_SUCCESS);
   }
