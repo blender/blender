@@ -68,6 +68,8 @@ struct Eyedropper {
   float accum_col[3];
   int accum_tot;
 
+  wmWindow *cb_win;
+  int cb_win_mval[2];
   void *draw_handle_sample_text;
   char sample_text[MAX_NAME];
 
@@ -75,10 +77,10 @@ struct Eyedropper {
   CryptomatteSession *cryptomatte_session;
 };
 
-static void eyedropper_draw_cb(const wmWindow *window, void *arg)
+static void eyedropper_draw_cb(const wmWindow * /*window*/, void *arg)
 {
   Eyedropper *eye = static_cast<Eyedropper *>(arg);
-  eyedropper_draw_cursor_text_window(window, eye->sample_text);
+  eyedropper_draw_cursor_text_region(eye->cb_win_mval, eye->sample_text);
 }
 
 static bool eyedropper_init(bContext *C, wmOperator *op)
@@ -108,7 +110,8 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
     eye->crypto_node = (bNode *)eye->ptr.data;
     eye->cryptomatte_session = ntreeCompositCryptomatteSession(CTX_data_scene(C),
                                                                eye->crypto_node);
-    eye->draw_handle_sample_text = WM_draw_cb_activate(CTX_wm_window(C), eyedropper_draw_cb, eye);
+    eye->cb_win = CTX_wm_window(C);
+    eye->draw_handle_sample_text = WM_draw_cb_activate(eye->cb_win, eyedropper_draw_cb, eye);
   }
 
   if (prop_subtype != PROP_COLOR) {
@@ -135,7 +138,7 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
   WM_cursor_modal_restore(window);
 
   if (eye->draw_handle_sample_text) {
-    WM_draw_cb_exit(window, eye->draw_handle_sample_text);
+    WM_draw_cb_exit(eye->cb_win, eye->draw_handle_sample_text);
     eye->draw_handle_sample_text = nullptr;
   }
 
@@ -253,34 +256,52 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
     return false;
   }
 
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event_xy);
+  ScrArea *area = nullptr;
+
+  int mval[2];
+  wmWindow *win = WM_window_find_under_cursor(CTX_wm_window(C), event_xy, mval);
+  if (win) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mval);
+  }
+
+  eye->cb_win_mval[0] = mval[0];
+  eye->cb_win_mval[1] = mval[1];
+
+  if (win && win != eye->cb_win && eye->draw_handle_sample_text) {
+    WM_draw_cb_exit(eye->cb_win, eye->draw_handle_sample_text);
+    eye->cb_win = win;
+    eye->draw_handle_sample_text = WM_draw_cb_activate(eye->cb_win, eyedropper_draw_cb, eye);
+    ED_region_tag_redraw(CTX_wm_region(C));
+  }
+
   if (!area || !ELEM(area->spacetype, SPACE_IMAGE, SPACE_NODE, SPACE_CLIP)) {
     return false;
   }
 
-  ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, event_xy);
+  ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
+
   if (!region) {
     return false;
   }
 
-  int mval[2] = {event_xy[0] - region->winrct.xmin, event_xy[1] - region->winrct.ymin};
+  int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
   float fpos[2] = {-1.0f, -1.0};
   switch (area->spacetype) {
     case SPACE_IMAGE: {
       SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
-      ED_space_image_get_position(sima, region, mval, fpos);
+      ED_space_image_get_position(sima, region, region_mval, fpos);
       break;
     }
     case SPACE_NODE: {
       Main *bmain = CTX_data_main(C);
       SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
-      ED_space_node_get_position(bmain, snode, region, mval, fpos);
+      ED_space_node_get_position(bmain, snode, region, region_mval, fpos);
       break;
     }
     case SPACE_CLIP: {
       SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
-      ED_space_clip_get_position(sc, region, mval, fpos);
+      ED_space_clip_get_position(sc, region, region_mval, fpos);
       break;
     }
     default: {
@@ -297,6 +318,8 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
   if (!node->id) {
     return false;
   }
+
+  ED_region_tag_redraw(region);
 
   /* TODO(jbakker): Migrate this file to cc and use std::string as return param. */
   char prefix[MAX_NAME + 1];
@@ -491,7 +514,6 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     if (eye->draw_handle_sample_text) {
       eyedropper_color_sample_text_update(C, eye, event->xy);
-      ED_region_tag_redraw(CTX_wm_region(C));
     }
   }
 
