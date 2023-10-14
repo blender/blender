@@ -847,13 +847,15 @@ static void build_pict_list_from_image_sequence(GhostData *ghost_data,
                                                 const int fstep,
                                                 const bool *loading_p)
 {
-/* Load images into cache until the cache is full,
- * this resolves choppiness for images that are slow to load, see: #81751. */
+  /* Load images into cache until the cache is full,
+   * this resolves choppiness for images that are slow to load, see: #81751. */
+  bool fill_cache = (
 #ifdef USE_FRAME_CACHE_LIMIT
-  bool fill_cache = true;
+      true
 #else
-  bool fill_cache = false;
+      false
 #endif
+  );
 
   int fp_framenr;
   struct {
@@ -992,28 +994,25 @@ static void update_sound_fps()
 #endif
 }
 
-static void tag_change_frame(PlayState *ps, int cx)
+static void playanim_change_frame_tag(PlayState *ps, int cx)
 {
   ps->need_frame_update = true;
   ps->frame_cursor_x = cx;
 }
 
-static void change_frame(PlayState *ps)
+static void playanim_change_frame(PlayState *ps)
 {
   if (!ps->need_frame_update) {
     return;
   }
-
-  int sizex, sizey;
-  int i, i_last;
-
   if (BLI_listbase_is_empty(&picsbase)) {
     return;
   }
 
+  int sizex, sizey;
   playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
-  i_last = ((PlayAnimPict *)picsbase.last)->frame;
-  i = (i_last * ps->frame_cursor_x) / sizex;
+  const int i_last = ((PlayAnimPict *)picsbase.last)->frame;
+  int i = (i_last * ps->frame_cursor_x) / sizex;
   CLAMP(i, 0, i_last);
 
 #ifdef WITH_AUDASPACE
@@ -1415,7 +1414,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
         if (type == GHOST_kEventButtonDown) {
           if (inside_window) {
             ps->ghost_data.qual |= WS_QUAL_LMOUSE;
-            tag_change_frame(ps, cx);
+            playanim_change_frame_tag(ps, cx);
           }
         }
         else {
@@ -1464,7 +1463,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
           }
         }
 
-        tag_change_frame(ps, cx);
+        playanim_change_frame_tag(ps, cx);
       }
       break;
     }
@@ -1639,12 +1638,9 @@ static bool playanim_window_font_scale_from_dpi(PlayState *ps)
 static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_next)
 {
   ImBuf *ibuf = nullptr;
-  int i;
-  /* This was done to disambiguate the name for use under c++. */
-  int start_x = 0, start_y = 0;
+  int window_pos[2] = {0, 0};
   int sfra = -1;
   int efra = -1;
-  int totblock;
 
   PlayState ps{};
 
@@ -1676,7 +1672,6 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
                                                  &ps.display_ctx.display_settings);
   ps.display_ctx.ui_scale = 1.0f;
 
-  /* Skip the first argument which is assumed to be '-a' (used to launch this player). */
   while (argc > 0) {
     if (argv[0][0] == '-') {
       switch (argv[0][1]) {
@@ -1685,8 +1680,8 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
           break;
         case 'p':
           if (argc > 2) {
-            start_x = atoi(argv[1]);
-            start_y = atoi(argv[2]);
+            window_pos[0] = atoi(argv[1]);
+            window_pos[1] = atoi(argv[2]);
             argc -= 2;
             argv += 2;
           }
@@ -1801,8 +1796,12 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
     GHOST_AddEventConsumer(ps.ghost_data.system, ghost_event_consumer);
 
-    ps.ghost_data.window = playanim_window_open(
-        ps.ghost_data.system, "Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
+    ps.ghost_data.window = playanim_window_open(ps.ghost_data.system,
+                                                "Blender Animation Player",
+                                                window_pos[0],
+                                                window_pos[1],
+                                                ibuf->x,
+                                                ibuf->y);
   }
 
   // GHOST_ActivateWindowDrawingContext(ps.ghost_data.window);
@@ -1871,7 +1870,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   }
 #endif
 
-  for (i = 1; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     filepath = argv[i];
     build_pict_list(
         &ps.ghost_data, &ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
@@ -1979,7 +1978,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       if (ps.go == false) {
         break;
       }
-      change_frame(&ps);
+      playanim_change_frame(&ps);
       if (!has_event) {
         PIL_sleep_ms(1);
       }
@@ -2068,8 +2067,8 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   g_audaspace.source = nullptr;
 #endif
 
-  /* we still miss freeing a lot!,
-   * but many areas could skip initialization too for anim play */
+  /* We still miss freeing a lot!
+   * But many areas could skip initialization too for anim play. */
 
   DEG_free_node_types();
 
@@ -2097,14 +2096,14 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   IMB_exit();
 
-  totblock = MEM_get_memory_blocks_in_use();
-  if (totblock != 0) {
-/* prints many bAKey, bArgument's which are tricky to fix */
 #if 0
+  const int totblock = MEM_get_memory_blocks_in_use();
+  if (totblock != 0) {
+    /* Prints many bAKey, bArgument's which are tricky to fix. */
     printf("Error Totblock: %d\n", totblock);
     MEM_printmemlist();
-#endif
   }
+#endif
 
   return false;
 }
