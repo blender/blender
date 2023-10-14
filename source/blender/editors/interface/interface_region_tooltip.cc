@@ -219,8 +219,6 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 
   for (int i = 0; i < data->fields_len; i++) {
     const uiTooltipField *field = &data->fields[i];
-    const uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] :
-                                                                     nullptr;
 
     bbox.ymin = bbox.ymax - (data->lineh * field->geom.lines);
     if (field->format.style == UI_TIP_STYLE_HEADER) {
@@ -1226,8 +1224,6 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   int i, fonth, fontw;
   for (i = 0, fontw = 0, fonth = 0; i < data->fields_len; i++) {
     uiTooltipField *field = &data->fields[i];
-    uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : nullptr;
-
     ResultBLF info = {0};
     int w = 0;
     int x_pos = 0;
