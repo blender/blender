@@ -1830,10 +1830,19 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   GHOST_SwapWindowBuffers(ps.ghost_data.window);
 
+  /* One of the frames was invalid or not passed in. */
   if (sfra == -1 || efra == -1) {
-    /* one of the frames was invalid, just use all images */
     sfra = 1;
-    efra = MAXFRAME;
+    if (argc == 1) {
+      /* A single file was passed in, attempt to load all images from an image sequence.
+       * (if it is an image sequence). */
+      efra = MAXFRAME;
+    }
+    else {
+      /* Multiple files passed in, show each file without expanding image sequences.
+       * This occurs when dropping multiple files. */
+      efra = 1;
+    }
   }
 
   build_pict_list(
