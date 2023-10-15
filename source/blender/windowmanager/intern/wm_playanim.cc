@@ -103,12 +103,15 @@ static bool playanim_window_font_scale_from_dpi(PlayState *ps);
  * \param r_mem: Optional, when nullptr, don't allocate memory (just set the size).
  * \param r_size: The file-size of `filepath`.
  */
-static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_size)
+static bool buffer_from_filepath(const char *filepath,
+                                 void **r_mem,
+                                 size_t *r_size,
+                                 char **r_error_message)
 {
   errno = 0;
   const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (UNLIKELY(file == -1)) {
-    CLOG_WARN(&LOG, "failure '%s' to open file '%s'", strerror(errno), filepath);
+    *r_error_message = BLI_sprintfN("failure '%s' to open file", strerror(errno));
     return false;
   }
 
@@ -117,18 +120,18 @@ static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_s
   const size_t size = BLI_file_descriptor_size(file);
   int64_t size_read;
   if (UNLIKELY(size == size_t(-1))) {
-    CLOG_WARN(&LOG, "failure '%s' to access size '%s'", strerror(errno), filepath);
+    *r_error_message = BLI_sprintfN("failure '%s' to access size", strerror(errno));
   }
   else if (r_mem && UNLIKELY(!(mem = static_cast<uchar *>(MEM_mallocN(size, __func__))))) {
-    CLOG_WARN(&LOG, "error allocating buffer for '%s'", filepath);
+    *r_error_message = BLI_sprintfN("error allocating buffer %" PRIu64 " size", size);
   }
   else if (r_mem && UNLIKELY((size_read = BLI_read(file, mem, size)) != size)) {
-    CLOG_WARN(&LOG,
-              "error '%s' while reading '%s' (expected %" PRIu64 ", was %" PRId64 ")",
-              strerror(errno),
-              filepath,
-              size,
-              size_read);
+    *r_error_message = BLI_sprintfN(
+        "error '%s' reading file "
+        "(expected %" PRIu64 ", was %" PRId64 ")",
+        strerror(errno),
+        size,
+        size_read);
   }
   else {
     close(file);
@@ -331,6 +334,8 @@ struct PlayAnimPict {
   size_t size;
   /** The allocated file-path to the image. */
   const char *filepath;
+  /** The allocated error message to show if the file cannot be loaded. */
+  char *error_message;
   ImBuf *ibuf;
   struct anim *anim;
   int frame;
@@ -716,7 +721,10 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
       SNPRINTF(label, "%s | %.2f frames/s", picture->filepath, fstep / g_playanim.swap_time);
     }
     else {
-      SNPRINTF(label, "%s | <failed to load buffer>", picture->filepath);
+      SNPRINTF(label,
+               "%s | %s",
+               picture->filepath,
+               picture->error_message ? picture->error_message : "<unknown error>");
     }
 
     playanim_window_get_size(ghost_window, &sizex, &sizey);
@@ -897,11 +905,14 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
       break;
     }
 
+    bool has_error = false;
+    char *error_message = nullptr;
     void *mem = nullptr;
     size_t size = -1;
-    if (!buffer_from_filepath(filepath, g_playanim.from_disk ? nullptr : &mem, &size)) {
-      /* A warning will have been logged. */
-      break;
+    if (!buffer_from_filepath(
+            filepath, g_playanim.from_disk ? nullptr : &mem, &size, &error_message)) {
+      has_error = true;
+      size = 0;
     }
 
     PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
@@ -909,6 +920,7 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
     picture->IB_flags = IB_rect;
     picture->mem = static_cast<uchar *>(mem);
     picture->filepath = BLI_strdup(filepath);
+    picture->error_message = error_message;
     picture->frame = pic + frame_offset;
     BLI_addtail(picsbase, picture);
 
@@ -916,7 +928,13 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
 
     const bool display_imbuf = g_playanim.total_time > 1.0;
 
-    if (display_imbuf || fill_cache) {
+    if (has_error) {
+      CLOG_WARN(&LOG,
+                "Picture %s failed: %s",
+                filepath,
+                error_message ? error_message : "<unknown error>");
+    }
+    else if (display_imbuf || fill_cache) {
       /* OCIO_TODO: support different input color space. */
       ImBuf *ibuf = ibuf_from_picture(picture);
 
@@ -2073,7 +2091,9 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     if (ps.picture->mem) {
       MEM_freeN(ps.picture->mem);
     }
-
+    if (ps.picture->error_message) {
+      MEM_freeN((void *)ps.picture->error_message);
+    }
     MEM_freeN((void *)ps.picture->filepath);
     MEM_freeN(ps.picture);
   }
