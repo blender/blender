@@ -848,7 +848,7 @@ static void build_pict_list_from_anim(ListBase *picsbase,
   }
 
   for (int pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
-    PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
+    PlayAnimPict *picture = static_cast<PlayAnimPict *>(MEM_callocN(sizeof(PlayAnimPict), "Pict"));
     picture->anim = anim;
     picture->frame = pic + frame_offset;
     picture->IB_flags = IB_rect;
@@ -856,7 +856,7 @@ static void build_pict_list_from_anim(ListBase *picsbase,
     BLI_addtail(picsbase, picture);
   }
 
-  const PlayAnimPict *picture = (const PlayAnimPict *)picsbase->last;
+  const PlayAnimPict *picture = static_cast<const PlayAnimPict *>(picsbase->last);
   if (!(picture && picture->anim == anim)) {
     IMB_close_anim(anim);
     CLOG_WARN(&LOG, "no frames added for: '%s'", filepath_first);
@@ -915,7 +915,8 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
       size = 0;
     }
 
-    PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
+    PlayAnimPict *picture = static_cast<PlayAnimPict *>(
+        MEM_callocN(sizeof(PlayAnimPict), "picture"));
     picture->size = size;
     picture->IB_flags = IB_rect;
     picture->mem = static_cast<uchar *>(mem);
@@ -993,7 +994,7 @@ static void build_pict_list(ListBase *picsbase,
    * it's important the frame number increases each time. Otherwise playing `*.png`
    * in a directory will expand into many arguments, each calling this function adding
    * a frame that's set to zero. */
-  const PlayAnimPict *picture_last = (PlayAnimPict *)picsbase->last;
+  const PlayAnimPict *picture_last = static_cast<PlayAnimPict *>(picsbase->last);
   const int frame_offset = picture_last ? (picture_last->frame + 1) : 0;
 
   bool do_image_load = false;
@@ -1053,7 +1054,7 @@ static void playanim_change_frame(PlayState *ps)
 
   int sizex, sizey;
   playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
-  const int i_last = ((PlayAnimPict *)ps->picsbase.last)->frame;
+  const int i_last = static_cast<PlayAnimPict *>(ps->picsbase.last)->frame;
   /* Without this the indicator location isn't closest to the cursor.  */
   const int correct_rounding = (sizex / i_last) / 2;
   const int i = clamp_i((i_last * (ps->frame_cursor_x + correct_rounding)) / sizex, 0, i_last);
@@ -1106,7 +1107,7 @@ static void playanim_change_frame(PlayState *ps)
 
 static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 {
-  PlayState *ps = (PlayState *)ps_void;
+  PlayState *ps = static_cast<PlayState *>(ps_void);
   const GHOST_TEventType type = GHOST_GetEventType(evt);
   GHOST_TEventDataPtr data = GHOST_GetEventData(evt);
   /* Convert ghost event into value keyboard or mouse. */
@@ -1906,7 +1907,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 #ifdef WITH_AUDASPACE
   g_audaspace.source = AUD_Sound_file(filepath);
   if (!BLI_listbase_is_empty(&ps.picsbase)) {
-    anim *anim_movie = ((PlayAnimPict *)ps.picsbase.first)->anim;
+    anim *anim_movie = static_cast<PlayAnimPict *>(ps.picsbase.first)->anim;
     if (anim_movie) {
       short frs_sec = 25;
       float frs_sec_base = 1.0;
@@ -2092,9 +2093,9 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       MEM_freeN(ps.picture->mem);
     }
     if (ps.picture->error_message) {
-      MEM_freeN((void *)ps.picture->error_message);
+      MEM_freeN(static_cast<void *>(ps.picture->error_message));
     }
-    MEM_freeN((void *)ps.picture->filepath);
+    MEM_freeN(const_cast<char *>(ps.picture->filepath));
     MEM_freeN(ps.picture);
   }
 
