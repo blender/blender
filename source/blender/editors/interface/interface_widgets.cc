@@ -2054,8 +2054,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         bool has_prev = false;
         if (pos > 0) {
           if (BLF_str_offset_to_glyph_bounds(
-                  fstyle->uifont_id, drawstr + but->ofs, pos - 1, &bounds))
-          {
+                  fstyle->uifont_id, drawstr + but->ofs, pos - 1, &bounds)) {
             if (bounds.xmax > bounds.xmin) {
               prev_right_edge = bounds.xmax;
             }
