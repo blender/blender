@@ -117,6 +117,24 @@ void NodeDeclarationBuilder::finalize()
   BLI_assert(declaration_.is_valid());
 }
 
+NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration)
+    : declaration_(declaration)
+{
+}
+
+void NodeDeclarationBuilder::use_custom_socket_order(bool enable)
+{
+  declaration_.use_custom_socket_order = enable;
+}
+
+Span<SocketDeclaration *> NodeDeclaration::sockets(eNodeSocketInOut in_out) const
+{
+  if (in_out == SOCK_IN) {
+    return inputs;
+  }
+  return outputs;
+}
+
 void NodeDeclarationBuilder::set_active_panel_builder(const PanelDeclarationBuilder *panel_builder)
 {
   if (panel_builders_.is_empty()) {
@@ -782,6 +800,110 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::make_available(
   if (decl_out_base_) {
     decl_out_base_->make_available_fn_ = std::move(fn);
   }
+  return *this;
+}
+
+OutputFieldDependency OutputFieldDependency::ForFieldSource()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::FieldSource;
+  return field_dependency;
+}
+
+OutputFieldDependency OutputFieldDependency::ForDataSource()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::None;
+  return field_dependency;
+}
+
+OutputFieldDependency OutputFieldDependency::ForDependentField()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::DependentField;
+  return field_dependency;
+}
+
+OutputFieldDependency OutputFieldDependency::ForPartiallyDependentField(Vector<int> indices)
+{
+  OutputFieldDependency field_dependency;
+  if (indices.is_empty()) {
+    field_dependency.type_ = OutputSocketFieldType::None;
+  }
+  else {
+    field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
+    field_dependency.linked_input_indices_ = std::move(indices);
+  }
+  return field_dependency;
+}
+
+OutputSocketFieldType OutputFieldDependency::field_type() const
+{
+  return type_;
+}
+
+Span<int> OutputFieldDependency::linked_input_indices() const
+{
+  return linked_input_indices_;
+}
+
+bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
+{
+  return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
+}
+
+bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
+{
+  return !(a == b);
+}
+
+bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+{
+  return a.inputs == b.inputs && a.outputs == b.outputs;
+}
+
+bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+{
+  return !(a == b);
+}
+
+const CompositorInputRealizationOptions &SocketDeclaration::compositor_realization_options() const
+{
+  return compositor_realization_options_;
+}
+
+int SocketDeclaration::compositor_domain_priority() const
+{
+  return compositor_domain_priority_;
+}
+
+bool SocketDeclaration::compositor_expects_single_value() const
+{
+  return compositor_expects_single_value_;
+}
+
+void SocketDeclaration::make_available(bNode &node) const
+{
+  if (make_available_fn_) {
+    make_available_fn_(node);
+  }
+}
+
+PanelDeclarationBuilder &PanelDeclarationBuilder::description(std::string value)
+{
+  decl_->description = std::move(value);
+  return *this;
+}
+
+PanelDeclarationBuilder &PanelDeclarationBuilder::default_closed(bool closed)
+{
+  decl_->default_collapsed = closed;
+  return *this;
+}
+
+PanelDeclarationBuilder &PanelDeclarationBuilder::draw_buttons(PanelDrawButtonsFunction func)
+{
+  decl_->draw_buttons = func;
   return *this;
 }
 
