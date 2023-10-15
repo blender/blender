@@ -771,7 +771,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet guide_curves_geometry = params.extract_input<GeometrySet>("Guide Curves");
   const GeometrySet points_geometry = params.extract_input<GeometrySet>("Points");
 
-  if (!guide_curves_geometry.has_curves()) {
+  if (!guide_curves_geometry.has_curves() ||
+      guide_curves_geometry.get_curves()->geometry.curve_num == 0)
+  {
     params.set_default_remaining_outputs();
     return;
   }
