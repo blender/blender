@@ -672,15 +672,18 @@ std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
 
 namespace blender::nodes::node_geo_simulation_output_cc {
 
-static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
-                                 const bNode &node,
-                                 NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  const NodeGeometrySimulationOutput &storage = node_storage(node);
-
   b.add_input<decl::Bool>("Skip").description(
       "Forward the output of the simulation input node directly to the output node and ignore "
       "the nodes in the simulation zone");
+
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
+
+  const NodeGeometrySimulationOutput &storage = node_storage(*node);
 
   for (const int i : IndexRange(storage.items_num)) {
     const NodeSimulationItem &item = storage.items[i];
@@ -877,7 +880,7 @@ static void node_register()
   geo_node_type_base(
       &ntype, GEO_NODE_SIMULATION_OUTPUT, "Simulation Output", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
-  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.declare = node_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;

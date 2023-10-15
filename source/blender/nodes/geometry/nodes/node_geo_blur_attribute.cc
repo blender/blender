@@ -86,7 +86,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  const NodeDeclaration &declaration = *node_type.fixed_declaration;
+  const NodeDeclaration &declaration = *node_type.static_declaration;
 
   /* Weight and Iterations inputs don't change based on the data type. */
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(2));

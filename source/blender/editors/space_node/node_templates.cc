@@ -364,7 +364,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     using namespace blender::nodes;
 
     r_node_decl.emplace(NodeDeclaration());
-    blender::nodes::build_node_declaration(*arg->node_type, *r_node_decl);
+    blender::nodes::build_node_declaration(*arg->node_type, *r_node_decl, nullptr, nullptr);
     Span<SocketDeclaration *> socket_decls = (in_out == SOCK_IN) ? r_node_decl->inputs :
                                                                    r_node_decl->outputs;
     int index = 0;

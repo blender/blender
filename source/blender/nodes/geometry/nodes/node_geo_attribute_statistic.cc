@@ -125,7 +125,7 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(2));
 
   const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());

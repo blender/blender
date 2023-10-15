@@ -1153,7 +1153,7 @@ namespace blender::bke {
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
-  if (ntype->declare || ntype->declare_dynamic) {
+  if (ntype->declare) {
     node_verify_sockets(ntree, node, true);
     return;
   }
@@ -1455,8 +1455,8 @@ static void node_free_type(void *nodetype_v)
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   blender::bke::update_typeinfo(G_MAIN, nullptr, nullptr, nodetype, nullptr, true);
 
-  delete nodetype->fixed_declaration;
-  nodetype->fixed_declaration = nullptr;
+  delete nodetype->static_declaration;
+  nodetype->static_declaration = nullptr;
 
   /* Can be null when the type is not dynamically allocated. */
   if (nodetype->free_self) {
@@ -1470,11 +1470,9 @@ void nodeRegisterType(bNodeType *nt)
   BLI_assert(nt->idname[0] != '\0');
   BLI_assert(nt->poll != nullptr);
 
-  if (nt->declare && !nt->declare_dynamic) {
-    if (nt->fixed_declaration == nullptr) {
-      nt->fixed_declaration = new blender::nodes::NodeDeclaration();
-      blender::nodes::build_node_declaration(*nt, *nt->fixed_declaration);
-    }
+  if (nt->declare) {
+    nt->static_declaration = new blender::nodes::NodeDeclaration();
+    blender::nodes::build_node_declaration(*nt, *nt->static_declaration, nullptr, nullptr);
   }
 
   BLI_ghash_insert(blender::bke::nodetypes_hash, nt->idname, nt);
@@ -3268,8 +3266,12 @@ void node_free_node(bNodeTree *ntree, bNode *node)
     MEM_freeN(node->prop);
   }
 
-  if (node->typeinfo->declare_dynamic) {
-    delete node->runtime->declaration;
+  if (node->runtime->declaration) {
+    /* Only free if this declaration is not shared with the node type, which can happen if it does
+     * not depend on any context. */
+    if (node->runtime->declaration != node->typeinfo->static_declaration) {
+      delete node->runtime->declaration;
+    }
   }
 
   MEM_delete(node->runtime);
@@ -3734,16 +3736,18 @@ bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
   if (node->runtime->declaration != nullptr) {
     return false;
   }
-  if (node->typeinfo->declare_dynamic) {
+  if (node->typeinfo->declare) {
+    if (node->typeinfo->static_declaration) {
+      if (!node->typeinfo->static_declaration->is_context_dependent) {
+        node->runtime->declaration = node->typeinfo->static_declaration;
+        return true;
+      }
+    }
+  }
+  if (node->typeinfo->declare) {
     BLI_assert(ntree != nullptr);
     BLI_assert(node != nullptr);
     blender::nodes::update_node_declaration_and_sockets(*ntree, *node);
-    return true;
-  }
-  if (node->typeinfo->declare) {
-    /* Declaration should have been created in #nodeRegisterType. */
-    BLI_assert(node->typeinfo->fixed_declaration != nullptr);
-    node->runtime->declaration = node->typeinfo->fixed_declaration;
     return true;
   }
   return false;

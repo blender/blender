@@ -21,21 +21,14 @@ static void reset_declaration(NodeDeclaration &declaration)
   new (&declaration) NodeDeclaration();
 }
 
-void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration)
+void build_node_declaration(const bNodeType &typeinfo,
+                            NodeDeclaration &r_declaration,
+                            const bNodeTree *ntree,
+                            const bNode *node)
 {
   reset_declaration(r_declaration);
-  NodeDeclarationBuilder node_decl_builder{r_declaration};
+  NodeDeclarationBuilder node_decl_builder{r_declaration, ntree, node};
   typeinfo.declare(node_decl_builder);
-  node_decl_builder.finalize();
-}
-
-void build_node_declaration_dynamic(const bNodeTree &node_tree,
-                                    const bNode &node,
-                                    NodeDeclaration &r_declaration)
-{
-  reset_declaration(r_declaration);
-  NodeDeclarationBuilder node_decl_builder{r_declaration};
-  node.typeinfo->declare_dynamic(node_tree, node, node_decl_builder);
   node_decl_builder.finalize();
 }
 
@@ -117,8 +110,10 @@ void NodeDeclarationBuilder::finalize()
   BLI_assert(declaration_.is_valid());
 }
 
-NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration)
-    : declaration_(declaration)
+NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration,
+                                               const bNodeTree *ntree,
+                                               const bNode *node)
+    : declaration_(declaration), ntree_(ntree), node_(node)
 {
 }
 

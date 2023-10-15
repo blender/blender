@@ -469,6 +469,11 @@ class NodeDeclaration {
    * outputs | buttons | inputs order. Panels are only supported when using custom socket order. */
   bool use_custom_socket_order = false;
 
+  /**
+   * True if any context was used to build this declaration.
+   */
+  bool is_context_dependent = false;
+
   friend NodeDeclarationBuilder;
 
   /** Returns true if the declaration is considered valid. */
@@ -488,6 +493,8 @@ class NodeDeclaration {
 class NodeDeclarationBuilder {
  private:
   NodeDeclaration &declaration_;
+  const bNodeTree *ntree_ = nullptr;
+  const bNode *node_ = nullptr;
   Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> socket_builders_;
   Vector<std::unique_ptr<PanelDeclarationBuilder>> panel_builders_;
   bool is_function_node_ = false;
@@ -496,7 +503,21 @@ class NodeDeclarationBuilder {
   friend PanelDeclarationBuilder;
 
  public:
-  NodeDeclarationBuilder(NodeDeclaration &declaration);
+  NodeDeclarationBuilder(NodeDeclaration &declaration,
+                         const bNodeTree *ntree = nullptr,
+                         const bNode *node = nullptr);
+
+  const bNode *node_or_null() const
+  {
+    declaration_.is_context_dependent = true;
+    return node_;
+  }
+
+  const bNodeTree *tree_or_null() const
+  {
+    declaration_.is_context_dependent = true;
+    return ntree_;
+  }
 
   /**
    * All inputs support fields, and all outputs are fields if any of the inputs is a field.
@@ -558,10 +579,10 @@ void index(const bNode &node, void *r_value);
 void id_or_index(const bNode &node, void *r_value);
 }  // namespace implicit_field_inputs
 
-void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration);
-void build_node_declaration_dynamic(const bNodeTree &node_tree,
-                                    const bNode &node,
-                                    NodeDeclaration &r_declaration);
+void build_node_declaration(const bNodeType &typeinfo,
+                            NodeDeclaration &r_declaration,
+                            const bNodeTree *ntree,
+                            const bNode *node);
 
 std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
     eNodeSocketDatatype socket_type);

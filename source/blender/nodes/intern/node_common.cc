@@ -357,12 +357,14 @@ static PanelDeclarationPtr declaration_for_interface_panel(const bNodeTree & /*n
   return dst;
 }
 
-void node_group_declare_dynamic(const bNodeTree & /*node_tree*/,
-                                const bNode &node,
-                                NodeDeclarationBuilder &b)
+void node_group_declare(NodeDeclarationBuilder &b)
 {
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
   NodeDeclaration &r_declaration = b.declaration();
-  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id);
+  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
   if (!group) {
     return;
   }
@@ -606,19 +608,21 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 
 namespace blender::nodes {
 
-static void group_input_declare_dynamic(const bNodeTree &node_tree,
-                                        const bNode & /*node*/,
-                                        NodeDeclarationBuilder &b)
+static void group_input_declare(NodeDeclarationBuilder &b)
 {
+  const bNodeTree *node_tree = b.tree_or_null();
+  if (node_tree == nullptr) {
+    return;
+  }
   NodeDeclaration &r_declaration = b.declaration();
-  node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
+  node_tree->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
     switch (item.item_type) {
       case NODE_INTERFACE_SOCKET: {
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
         if (socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
           SocketDeclarationPtr socket_decl = declaration_for_interface_socket(
-              node_tree, socket, SOCK_OUT);
+              *node_tree, socket, SOCK_OUT);
           r_declaration.outputs.append(socket_decl.get());
           r_declaration.items.append(std::move(socket_decl));
         }
@@ -632,19 +636,21 @@ static void group_input_declare_dynamic(const bNodeTree &node_tree,
   r_declaration.items.append(std::move(extend_decl));
 }
 
-static void group_output_declare_dynamic(const bNodeTree &node_tree,
-                                         const bNode & /*node*/,
-                                         NodeDeclarationBuilder &b)
+static void group_output_declare(NodeDeclarationBuilder &b)
 {
+  const bNodeTree *node_tree = b.tree_or_null();
+  if (node_tree == nullptr) {
+    return;
+  }
   NodeDeclaration &r_declaration = b.declaration();
-  node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
+  node_tree->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
     switch (item.item_type) {
       case NODE_INTERFACE_SOCKET: {
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
         if (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
           SocketDeclarationPtr socket_decl = declaration_for_interface_socket(
-              node_tree, socket, SOCK_IN);
+              *node_tree, socket, SOCK_IN);
           r_declaration.inputs.append(socket_decl.get());
           r_declaration.items.append(std::move(socket_decl));
         }
@@ -710,7 +716,7 @@ void register_node_type_group_input()
 
   blender::bke::node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
   blender::bke::node_type_size(ntype, 140, 80, 400);
-  ntype->declare_dynamic = blender::nodes::group_input_declare_dynamic;
+  ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
 
   nodeRegisterType(ntype);
@@ -734,7 +740,7 @@ void register_node_type_group_output()
 
   blender::bke::node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
   blender::bke::node_type_size(ntype, 140, 80, 400);
-  ntype->declare_dynamic = blender::nodes::group_output_declare_dynamic;
+  ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;
 
   ntype->no_muting = true;
