@@ -343,11 +343,24 @@ struct PlayAnimPict {
 #endif
 };
 
-static bool fromdisk = false;
-static double ptottime = 0.0, swaptime = 0.04;
+/**
+ * Various globals relating to playback.
+ * \note Avoid adding members here where possible,
+ * prefer #PlayState or one of it's members where possible.
+ */
+static struct {
+  bool from_disk;
+  double swap_time;
+  double total_time;
 #ifdef WITH_AUDASPACE
-static double fps_movie;
+  double fps_movie;
 #endif
+} g_playanim = {
+    /*from_disk*/ false,
+    /*swap_time*/ 0.04,
+    /*total_time*/ 0.0,
+    /*fps_movie*/ 0.0,
+};
 
 #ifdef USE_FRAME_CACHE_LIMIT
 static struct {
@@ -469,9 +482,9 @@ static int pupdate_time()
 
   double time = PIL_check_seconds_timer();
 
-  ptottime += (time - time_last);
+  g_playanim.total_time += (time - time_last);
   time_last = time;
-  return (ptottime < 0);
+  return (g_playanim.total_time < 0.0);
 }
 
 static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
@@ -700,7 +713,7 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
     float fsizex_inv, fsizey_inv;
     char label[32 + FILE_MAX];
     if (ibuf) {
-      SNPRINTF(label, "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
+      SNPRINTF(label, "%s | %.2f frames/s", picture->filepath, fstep / g_playanim.swap_time);
     }
     else {
       SNPRINTF(label, "%s | <failed to load buffer>", picture->filepath);
@@ -877,7 +890,7 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
                                         &fp_decoded.digits);
 
   pupdate_time();
-  ptottime = 1.0;
+  g_playanim.total_time = 1.0;
 
   for (int pic = 0; pic < totframes; pic++) {
     if (!IMB_ispic(filepath)) {
@@ -886,7 +899,7 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
 
     void *mem = nullptr;
     size_t size = -1;
-    if (!buffer_from_filepath(filepath, fromdisk ? nullptr : &mem, &size)) {
+    if (!buffer_from_filepath(filepath, g_playanim.from_disk ? nullptr : &mem, &size)) {
       /* A warning will have been logged. */
       break;
     }
@@ -901,7 +914,7 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
 
     pupdate_time();
 
-    const bool display_imbuf = ptottime > 1.0;
+    const bool display_imbuf = g_playanim.total_time > 1.0;
 
     if (display_imbuf || fill_cache) {
       /* OCIO_TODO: support different input color space */
@@ -926,7 +939,7 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
 
       if (display_imbuf) {
         pupdate_time();
-        ptottime = 0.0;
+        g_playanim.total_time = 0.0;
       }
     }
 
@@ -997,8 +1010,8 @@ static void update_sound_fps()
 {
 #ifdef WITH_AUDASPACE
   if (g_audaspace.playback_handle) {
-    /* swaptime stores the 1.0/fps ratio */
-    double speed = 1.0 / (swaptime * fps_movie);
+    /* Swap-time stores the 1.0/fps ratio. */
+    double speed = 1.0 / (g_playanim.swap_time * g_playanim.fps_movie);
 
     AUD_Handle_setPitch(g_audaspace.playback_handle, speed);
   }
@@ -1025,8 +1038,7 @@ static void playanim_change_frame(PlayState *ps)
   const int i_last = ((PlayAnimPict *)ps->picsbase.last)->frame;
   /* Without this the indicator location isn't closest to the cursor.  */
   const int correct_rounding = (sizex / i_last) / 2;
-  int i = (i_last * (ps->frame_cursor_x + correct_rounding)) / sizex;
-  CLAMP(i, 0, i_last);
+  const int i = clamp_i((i_last * (ps->frame_cursor_x + correct_rounding)) / sizex, 0, i_last);
 
 #ifdef WITH_AUDASPACE
   if (g_audaspace.scrub_handle) {
@@ -1041,21 +1053,24 @@ static void playanim_change_frame(PlayState *ps)
       g_audaspace.playback_handle = AUD_Device_play(
           g_audaspace.audio_device, g_audaspace.source, 1);
       if (g_audaspace.playback_handle) {
-        AUD_Handle_setPosition(g_audaspace.playback_handle, i / fps_movie);
-        g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle, 1 / fps_movie);
+        AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
+        g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle,
+                                                  1.0 / g_playanim.fps_movie);
       }
       update_sound_fps();
     }
     else {
-      AUD_Handle_setPosition(g_audaspace.playback_handle, i / fps_movie);
-      g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle, 1 / fps_movie);
+      AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
+      g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle,
+                                                1.0 / g_playanim.fps_movie);
     }
   }
   else if (g_audaspace.source) {
     g_audaspace.playback_handle = AUD_Device_play(g_audaspace.audio_device, g_audaspace.source, 1);
     if (g_audaspace.playback_handle) {
-      AUD_Handle_setPosition(g_audaspace.playback_handle, i / fps_movie);
-      g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle, 1 / fps_movie);
+      AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
+      g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle,
+                                                1.0 / g_playanim.fps_movie);
     }
     update_sound_fps();
   }
@@ -1112,7 +1127,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
   if (ps->wait2) {
     pupdate_time();
-    ptottime = 0;
+    g_playanim.total_time = 0.0;
   }
 
   switch (type) {
@@ -1145,67 +1160,67 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
         case GHOST_kKey1:
         case GHOST_kKeyNumpad1:
           if (val) {
-            swaptime = ps->fstep / 60.0;
+            g_playanim.swap_time = ps->fstep / 60.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey2:
         case GHOST_kKeyNumpad2:
           if (val) {
-            swaptime = ps->fstep / 50.0;
+            g_playanim.swap_time = ps->fstep / 50.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey3:
         case GHOST_kKeyNumpad3:
           if (val) {
-            swaptime = ps->fstep / 30.0;
+            g_playanim.swap_time = ps->fstep / 30.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey4:
         case GHOST_kKeyNumpad4:
           if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-            swaptime = ps->fstep / 24.0;
+            g_playanim.swap_time = ps->fstep / 24.0;
             update_sound_fps();
           }
           else {
-            swaptime = ps->fstep / 25.0;
+            g_playanim.swap_time = ps->fstep / 25.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey5:
         case GHOST_kKeyNumpad5:
           if (val) {
-            swaptime = ps->fstep / 20.0;
+            g_playanim.swap_time = ps->fstep / 20.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey6:
         case GHOST_kKeyNumpad6:
           if (val) {
-            swaptime = ps->fstep / 15.0;
+            g_playanim.swap_time = ps->fstep / 15.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey7:
         case GHOST_kKeyNumpad7:
           if (val) {
-            swaptime = ps->fstep / 12.0;
+            g_playanim.swap_time = ps->fstep / 12.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey8:
         case GHOST_kKeyNumpad8:
           if (val) {
-            swaptime = ps->fstep / 10.0;
+            g_playanim.swap_time = ps->fstep / 10.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey9:
         case GHOST_kKeyNumpad9:
           if (val) {
-            swaptime = ps->fstep / 6.0;
+            g_playanim.swap_time = ps->fstep / 6.0;
             update_sound_fps();
           }
           break;
@@ -1267,11 +1282,11 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
               if (ps->picture && ps->picture->ibuf) {
                 printf(" Name: %s | Speed: %.2f frames/s\n",
                        ps->picture->ibuf->filepath,
-                       ps->fstep / swaptime);
+                       ps->fstep / g_playanim.swap_time);
               }
             }
             else {
-              swaptime = ps->fstep / 5.0;
+              g_playanim.swap_time = ps->fstep / 5.0;
               update_sound_fps();
             }
           }
@@ -1310,7 +1325,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
                 g_audaspace.playback_handle = AUD_Device_play(
                     g_audaspace.audio_device, g_audaspace.source, 1);
                 if (g_audaspace.playback_handle) {
-                  AUD_Handle_setPosition(g_audaspace.playback_handle, i / fps_movie);
+                  AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
                 }
                 update_sound_fps();
               }
@@ -1347,7 +1362,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
               g_audaspace.playback_handle = AUD_Device_play(
                   g_audaspace.audio_device, g_audaspace.source, 1);
               if (g_audaspace.playback_handle) {
-                AUD_Handle_setPosition(g_audaspace.playback_handle, i / fps_movie);
+                AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
               }
               update_sound_fps();
             }
@@ -1382,8 +1397,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
             playanim_window_zoom(ps, 0.1f);
           }
           else {
-            if (swaptime > ps->fstep / 60.0) {
-              swaptime /= 1.1;
+            if (g_playanim.swap_time > ps->fstep / 60.0) {
+              g_playanim.swap_time /= 1.1;
               update_sound_fps();
             }
           }
@@ -1398,8 +1413,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
             playanim_window_zoom(ps, -0.1f);
           }
           else {
-            if (swaptime < ps->fstep / 5.0) {
-              swaptime *= 1.1;
+            if (g_playanim.swap_time < ps->fstep / 5.0) {
+              g_playanim.swap_time *= 1.1;
               update_sound_fps();
             }
           }
@@ -1503,7 +1518,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
       playanim_gl_matrix();
 
-      ptottime = 0.0;
+      g_playanim.total_time = 0.0;
 
       playanim_toscreen(ps, ps->picture, ps->picture ? ps->picture->ibuf : nullptr);
 
@@ -1688,7 +1703,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   while ((argc > 0) && (argv[0][0] == '-')) {
     switch (argv[0][1]) {
       case 'm': {
-        fromdisk = true;
+        g_playanim.from_disk = true;
         break;
       }
       case 'p': {
@@ -1711,7 +1726,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
             fps = 1;
             printf("invalid fps, forcing 1\n");
           }
-          swaptime = fps_base / fps;
+          g_playanim.swap_time = fps_base / fps;
           argc -= 2;
           argv += 2;
         }
@@ -1737,7 +1752,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       case 'j': {
         ps.fstep = atoi(argv[1]);
         CLAMP(ps.fstep, 1, MAXFRAME);
-        swaptime *= ps.fstep;
+        g_playanim.swap_time *= ps.fstep;
         argc--;
         argv++;
         break;
@@ -1881,9 +1896,9 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
       IMB_anim_get_fps(anim_movie, &frs_sec, &frs_sec_base, true);
 
-      fps_movie = double(frs_sec) / double(frs_sec_base);
+      g_playanim.fps_movie = double(frs_sec) / double(frs_sec_base);
       /* enforce same fps for movie as sound */
-      swaptime = ps.fstep / fps_movie;
+      g_playanim.swap_time = ps.fstep / g_playanim.fps_movie;
     }
   }
 #endif
@@ -1903,7 +1918,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   ibuf = nullptr;
 
   pupdate_time();
-  ptottime = 0;
+  g_playanim.total_time = 0.0;
 
 /* newly added in 2.6x, without this images never get freed */
 #define USE_IMB_CACHE
@@ -1932,8 +1947,8 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
         ps.picture = ps.picture->prev;
       }
     }
-    if (ptottime > 0.0) {
-      ptottime = 0.0;
+    if (g_playanim.total_time > 0.0) {
+      g_playanim.total_time = 0.0;
     }
 
 #ifdef WITH_AUDASPACE
@@ -1980,7 +1995,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
         while (pupdate_time()) {
           PIL_sleep_ms(1);
         }
-        ptottime -= swaptime;
+        g_playanim.total_time -= g_playanim.swap_time;
         playanim_toscreen(&ps, ps.picture, ibuf);
       }
 
@@ -2032,10 +2047,10 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
             }
           }
 
-          if (ps.wait2 || ptottime < swaptime || ps.noskip) {
+          if (ps.wait2 || g_playanim.total_time < g_playanim.swap_time || ps.noskip) {
             break;
           }
-          ptottime -= swaptime;
+          g_playanim.total_time -= g_playanim.swap_time;
         }
         if (ps.picture == nullptr && ps.sstep) {
           ps.picture = playanim_step(ps.picture, ps.next_frame);
