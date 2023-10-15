@@ -364,7 +364,9 @@ static struct {
     /*from_disk*/ false,
     /*swap_time*/ 0.04,
     /*total_time*/ 0.0,
+#ifdef WITH_AUDASPACE
     /*fps_movie*/ 0.0,
+#endif
 };
 
 #ifdef USE_FRAME_CACHE_LIMIT
