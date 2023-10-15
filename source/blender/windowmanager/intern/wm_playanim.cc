@@ -1674,79 +1674,79 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
                                                  &ps.display_ctx.display_settings);
   ps.display_ctx.ui_scale = 1.0f;
 
-  while (argc > 0) {
-    if (argv[0][0] == '-') {
-      switch (argv[0][1]) {
-        case 'm':
-          fromdisk = true;
-          break;
-        case 'p':
-          if (argc > 2) {
-            window_pos[0] = atoi(argv[1]);
-            window_pos[1] = atoi(argv[2]);
-            argc -= 2;
-            argv += 2;
-          }
-          else {
-            printf("too few arguments for -p (need 2): skipping\n");
-          }
-          break;
-        case 'f':
-          if (argc > 2) {
-            double fps = atof(argv[1]);
-            double fps_base = atof(argv[2]);
-            if (fps == 0.0) {
-              fps = 1;
-              printf(
-                  "invalid fps,"
-                  "forcing 1\n");
-            }
-            swaptime = fps_base / fps;
-            argc -= 2;
-            argv += 2;
-          }
-          else {
-            printf("too few arguments for -f (need 2): skipping\n");
-          }
-          break;
-        case 's':
-          sfra = atoi(argv[1]);
-          CLAMP(sfra, 1, MAXFRAME);
-          argc--;
-          argv++;
-          break;
-        case 'e':
-          efra = atoi(argv[1]);
-          CLAMP(efra, 1, MAXFRAME);
-          argc--;
-          argv++;
-          break;
-        case 'j':
-          ps.fstep = atoi(argv[1]);
-          CLAMP(ps.fstep, 1, MAXFRAME);
-          swaptime *= ps.fstep;
-          argc--;
-          argv++;
-          break;
-        case 'c': {
-#ifdef USE_FRAME_CACHE_LIMIT
-          const int memory_in_mb = max_ii(0, atoi(argv[1]));
-          g_frame_cache.memory_limit = size_t(memory_in_mb) * (1024 * 1024);
-#endif
-          argc--;
-          argv++;
-          break;
-        }
-        default:
-          printf("unknown option '%c': skipping\n", argv[0][1]);
-          break;
+  while ((argc > 0) && (argv[0][0] == '-')) {
+    switch (argv[0][1]) {
+      case 'm': {
+        fromdisk = true;
+        break;
       }
-      argc--;
-      argv++;
+      case 'p': {
+        if (argc > 2) {
+          window_pos[0] = atoi(argv[1]);
+          window_pos[1] = atoi(argv[2]);
+          argc -= 2;
+          argv += 2;
+        }
+        else {
+          printf("too few arguments for -p (need 2): skipping\n");
+        }
+        break;
+      }
+      case 'f': {
+        if (argc > 2) {
+          double fps = atof(argv[1]);
+          double fps_base = atof(argv[2]);
+          if (fps == 0.0) {
+            fps = 1;
+            printf("invalid fps, forcing 1\n");
+          }
+          swaptime = fps_base / fps;
+          argc -= 2;
+          argv += 2;
+        }
+        else {
+          printf("too few arguments for -f (need 2): skipping\n");
+        }
+        break;
+      }
+      case 's': {
+        sfra = atoi(argv[1]);
+        CLAMP(sfra, 1, MAXFRAME);
+        argc--;
+        argv++;
+        break;
+      }
+      case 'e': {
+        efra = atoi(argv[1]);
+        CLAMP(efra, 1, MAXFRAME);
+        argc--;
+        argv++;
+        break;
+      }
+      case 'j': {
+        ps.fstep = atoi(argv[1]);
+        CLAMP(ps.fstep, 1, MAXFRAME);
+        swaptime *= ps.fstep;
+        argc--;
+        argv++;
+        break;
+      }
+      case 'c': {
+#ifdef USE_FRAME_CACHE_LIMIT
+        const int memory_in_mb = max_ii(0, atoi(argv[1]));
+        g_frame_cache.memory_limit = size_t(memory_in_mb) * (1024 * 1024);
+#endif
+        argc--;
+        argv++;
+        break;
+      }
+      default: {
+        printf("unknown option '%c': skipping\n", argv[0][1]);
+        break;
+      }
     }
-    else {
-      break;
-    }
+    argc--;
+    argv++;
   }
 
   if (argc == 0) {
