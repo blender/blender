@@ -242,6 +242,9 @@ struct PlayState {
   /** The number of frames to step each update (default to 1, command line argument). */
   int fstep;
 
+  /** Picture #PlayAnimPict, list (both image-sequence or videos) in-memory. */
+  ListBase picsbase;
+
   /** Current frame (picture). */
   struct PlayAnimPict *picture;
 
@@ -340,8 +343,6 @@ struct PlayAnimPict {
 #endif
 };
 
-static ListBase picsbase = {nullptr, nullptr};
-/* frames in memory - store them here to for easy deallocation later */
 static bool fromdisk = false;
 static double ptottime = 0.0, swaptime = 0.04;
 #ifdef WITH_AUDASPACE
@@ -775,13 +776,14 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
 {
   float indicator_factor = -1.0f;
   if (ps->indicator) {
-    const int frame_range = static_cast<const PlayAnimPict *>(picsbase.last)->frame -
-                            static_cast<const PlayAnimPict *>(picsbase.first)->frame;
+    const int frame_range = static_cast<const PlayAnimPict *>(ps->picsbase.last)->frame -
+                            static_cast<const PlayAnimPict *>(ps->picsbase.first)->frame;
     if (frame_range > 0) {
       indicator_factor = float(double(picture->frame) / double(frame_range));
     }
     else {
-      BLI_assert_msg(BLI_listbase_is_single(&picsbase), "Multiple frames without a valid range!");
+      BLI_assert_msg(BLI_listbase_is_single(&ps->picsbase),
+                     "Multiple frames without a valid range!");
     }
   }
 
@@ -805,7 +807,8 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
                        indicator_factor);
 }
 
-static void build_pict_list_from_anim(GhostData *ghost_data,
+static void build_pict_list_from_anim(ListBase *picsbase,
+                                      GhostData *ghost_data,
                                       const PlayDisplayContext *display_ctx,
                                       const char *filepath_first,
                                       const int frame_offset)
@@ -829,17 +832,18 @@ static void build_pict_list_from_anim(GhostData *ghost_data,
     picture->frame = pic + frame_offset;
     picture->IB_flags = IB_rect;
     picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
-    BLI_addtail(&picsbase, picture);
+    BLI_addtail(picsbase, picture);
   }
 
-  const PlayAnimPict *picture = (const PlayAnimPict *)picsbase.last;
+  const PlayAnimPict *picture = (const PlayAnimPict *)picsbase->last;
   if (!(picture && picture->anim == anim)) {
     IMB_close_anim(anim);
     CLOG_WARN(&LOG, "no frames added for: '%s'", filepath_first);
   }
 }
 
-static void build_pict_list_from_image_sequence(GhostData *ghost_data,
+static void build_pict_list_from_image_sequence(ListBase *picsbase,
+                                                GhostData *ghost_data,
                                                 const PlayDisplayContext *display_ctx,
                                                 const char *filepath_first,
                                                 const int frame_offset,
@@ -893,7 +897,7 @@ static void build_pict_list_from_image_sequence(GhostData *ghost_data,
     picture->mem = static_cast<uchar *>(mem);
     picture->filepath = BLI_strdup(filepath);
     picture->frame = pic + frame_offset;
-    BLI_addtail(&picsbase, picture);
+    BLI_addtail(picsbase, picture);
 
     pupdate_time();
 
@@ -944,7 +948,8 @@ static void build_pict_list_from_image_sequence(GhostData *ghost_data,
   }
 }
 
-static void build_pict_list(GhostData *ghost_data,
+static void build_pict_list(ListBase *picsbase,
+                            GhostData *ghost_data,
                             const PlayDisplayContext *display_ctx,
                             const char *filepath_first,
                             const int totframes,
@@ -957,14 +962,14 @@ static void build_pict_list(GhostData *ghost_data,
    * it's important the frame number increases each time. Otherwise playing `*.png`
    * in a directory will expand into many arguments, each calling this function adding
    * a frame that's set to zero. */
-  const PlayAnimPict *picture_last = (PlayAnimPict *)picsbase.last;
+  const PlayAnimPict *picture_last = (PlayAnimPict *)picsbase->last;
   const int frame_offset = picture_last ? (picture_last->frame + 1) : 0;
 
   bool do_image_load = false;
   if (IMB_isanim(filepath_first)) {
-    build_pict_list_from_anim(ghost_data, display_ctx, filepath_first, frame_offset);
+    build_pict_list_from_anim(picsbase, ghost_data, display_ctx, filepath_first, frame_offset);
 
-    if (picsbase.last == picture_last) {
+    if (picsbase->last == picture_last) {
       /* FFMPEG detected JPEG2000 as a video which would load with zero duration.
        * Resolve this by using images as a fallback when a video file has no frames to display. */
       do_image_load = true;
@@ -975,8 +980,14 @@ static void build_pict_list(GhostData *ghost_data,
   }
 
   if (do_image_load) {
-    build_pict_list_from_image_sequence(
-        ghost_data, display_ctx, filepath_first, frame_offset, totframes, fstep, loading_p);
+    build_pict_list_from_image_sequence(picsbase,
+                                        ghost_data,
+                                        display_ctx,
+                                        filepath_first,
+                                        frame_offset,
+                                        totframes,
+                                        fstep,
+                                        loading_p);
   }
 
   *loading_p = false;
@@ -1005,13 +1016,13 @@ static void playanim_change_frame(PlayState *ps)
   if (!ps->need_frame_update) {
     return;
   }
-  if (BLI_listbase_is_empty(&picsbase)) {
+  if (BLI_listbase_is_empty(&ps->picsbase)) {
     return;
   }
 
   int sizex, sizey;
   playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
-  const int i_last = ((PlayAnimPict *)picsbase.last)->frame;
+  const int i_last = ((PlayAnimPict *)ps->picsbase.last)->frame;
   /* Without this the indicator location isn't closest to the cursor.  */
   const int correct_rounding = (sizex / i_last) / 2;
   int i = (i_last * (ps->frame_cursor_x + correct_rounding)) / sizex;
@@ -1050,7 +1061,7 @@ static void playanim_change_frame(PlayState *ps)
   }
 #endif
 
-  ps->picture = static_cast<PlayAnimPict *>(BLI_findlink(&picsbase, i));
+  ps->picture = static_cast<PlayAnimPict *>(BLI_findlink(&ps->picsbase, i));
   BLI_assert(ps->picture != nullptr);
 
   ps->sstep = true;
@@ -1203,7 +1214,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
             ps->sstep = true;
             ps->wait2 = false;
             if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-              ps->picture = static_cast<PlayAnimPict *>(picsbase.first);
+              ps->picture = static_cast<PlayAnimPict *>(ps->picsbase.first);
               ps->next_frame = 0;
             }
             else {
@@ -1228,7 +1239,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
             ps->sstep = true;
             ps->wait2 = false;
             if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-              ps->picture = static_cast<PlayAnimPict *>(picsbase.last);
+              ps->picture = static_cast<PlayAnimPict *>(ps->picsbase.last);
               ps->next_frame = 0;
             }
             else {
@@ -1285,7 +1296,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
               ps->wait2 = ps->sstep = false;
 #ifdef WITH_AUDASPACE
               {
-                PlayAnimPict *picture = static_cast<PlayAnimPict *>(picsbase.first);
+                PlayAnimPict *picture = static_cast<PlayAnimPict *>(ps->picsbase.first);
                 /* TODO: store in ps direct? */
                 int i = 0;
 
@@ -1323,7 +1334,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
             ps->wait2 = ps->sstep = false;
 #ifdef WITH_AUDASPACE
             {
-              PlayAnimPict *picture = static_cast<PlayAnimPict *>(picsbase.first);
+              PlayAnimPict *picture = static_cast<PlayAnimPict *>(ps->picsbase.first);
               /* TODO: store in ps direct? */
               int i = 0;
               while (picture && picture != ps->picture) {
@@ -1852,13 +1863,18 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     }
   }
 
-  build_pict_list(
-      &ps.ghost_data, &ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
+  build_pict_list(&ps.picsbase,
+                  &ps.ghost_data,
+                  &ps.display_ctx,
+                  filepath,
+                  (efra - sfra) + 1,
+                  ps.fstep,
+                  &ps.loading);
 
 #ifdef WITH_AUDASPACE
   g_audaspace.source = AUD_Sound_file(filepath);
-  if (!BLI_listbase_is_empty(&picsbase)) {
-    anim *anim_movie = ((PlayAnimPict *)picsbase.first)->anim;
+  if (!BLI_listbase_is_empty(&ps.picsbase)) {
+    anim *anim_movie = ((PlayAnimPict *)ps.picsbase.first)->anim;
     if (anim_movie) {
       short frs_sec = 25;
       float frs_sec_base = 1.0;
@@ -1874,8 +1890,13 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   for (int i = 1; i < argc; i++) {
     filepath = argv[i];
-    build_pict_list(
-        &ps.ghost_data, &ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
+    build_pict_list(&ps.picsbase,
+                    &ps.ghost_data,
+                    &ps.display_ctx,
+                    filepath,
+                    (efra - sfra) + 1,
+                    ps.fstep,
+                    &ps.loading);
   }
 
   IMB_freeImBuf(ibuf);
@@ -1893,10 +1914,10 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     }
 
     if (ps.direction == 1) {
-      ps.picture = static_cast<PlayAnimPict *>(picsbase.first);
+      ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.first);
     }
     else {
-      ps.picture = static_cast<PlayAnimPict *>(picsbase.last);
+      ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.last);
     }
 
     if (ps.picture == nullptr) {
@@ -2025,7 +2046,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       }
     }
   }
-  while ((ps.picture = static_cast<PlayAnimPict *>(BLI_pophead(&picsbase)))) {
+  while ((ps.picture = static_cast<PlayAnimPict *>(BLI_pophead(&ps.picsbase)))) {
     if (ps.picture->anim) {
       if ((ps.picture->next == nullptr) || (ps.picture->next->anim != ps.picture->anim)) {
         IMB_close_anim(ps.picture->anim);
