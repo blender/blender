@@ -8688,6 +8688,7 @@ static void def_geo_curve_set_handle_type(StructRNA *srna)
 
   prop = RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "handle_type");
+  RNA_def_property_ui_text(prop, "Handle Type", "");
   RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_type_items);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
@@ -8978,6 +8979,7 @@ static void def_geo_curve_handle_type_selection(StructRNA *srna)
 
   prop = RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "handle_type");
+  RNA_def_property_ui_text(prop, "Handle Type", "");
   RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_type_items);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
