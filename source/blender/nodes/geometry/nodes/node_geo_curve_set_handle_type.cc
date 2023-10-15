@@ -73,6 +73,8 @@ static void set_handle_type(bke::CurvesGeometry &curves,
         curves.handle_types_right_for_write(), new_handle_type, selection);
   }
 
+  curves.tag_topology_changed();
+
   /* Eagerly calculate automatically derived handle positions if necessary. */
   if (ELEM(new_handle_type, BEZIER_HANDLE_AUTO, BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_ALIGN)) {
     curves.calculate_bezier_auto_handles();
