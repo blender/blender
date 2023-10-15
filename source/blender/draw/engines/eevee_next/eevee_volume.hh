@@ -79,12 +79,25 @@ class VolumeModule {
   /* Axis aligned bounding box in the volume grid.
    * Used for frustum culling and volumes overlapping detection. */
   struct GridAABB {
+    /* Represent min and max grid corners covered by a volume.
+     * So a volume covering the first froxel will have min={0,0,0} and max={1,1,1}.
+     * A volume with min={0,0,0} and max={0,0,0} covers nothing. */
     int3 min, max;
 
-    /* Returns true if visible. */
-    bool init(Object *ob, const Camera &camera, const VolumesInfoData &data);
+    GridAABB(int3 min_, int3 max_) : min(min_), max(max_){};
+    GridAABB(Object *ob, const Camera &camera, const VolumesInfoData &data);
 
-    bool overlaps(const GridAABB &aabb);
+    /** Returns the intersection between this AABB and the \a other AABB. */
+    GridAABB intersect(const GridAABB &other) const;
+
+    /** Returns true if volume covers no froxel. */
+    bool is_empty() const;
+
+    /** Returns the extent of the volume. */
+    int3 extent() const
+    {
+      return max - min;
+    }
   };
   /* Stores a vector of volume AABBs for each material pass,
    * so we can detect overlapping volumes and place GPU barriers where needed
