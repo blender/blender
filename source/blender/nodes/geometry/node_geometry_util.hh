@@ -67,9 +67,6 @@ void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
 
 int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
 
-std::optional<eCustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
-std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
-
 #ifdef WITH_OPENVDB
 /**
  * Initializes the VolumeComponent of a GeometrySet with a new Volume from points.

@@ -12,6 +12,7 @@
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_node.hh"
 #include "BKE_pointcloud.h"
 
 #include "NOD_rna_define.hh"
@@ -20,33 +21,6 @@
 #include "RNA_enum_types.hh"
 
 namespace blender::nodes {
-
-std::optional<eCustomDataType> node_data_type_to_custom_data_type(const eNodeSocketDatatype type)
-{
-  switch (type) {
-    case SOCK_FLOAT:
-      return CD_PROP_FLOAT;
-    case SOCK_VECTOR:
-      return CD_PROP_FLOAT3;
-    case SOCK_RGBA:
-      return CD_PROP_COLOR;
-    case SOCK_BOOLEAN:
-      return CD_PROP_BOOL;
-    case SOCK_ROTATION:
-      return CD_PROP_QUATERNION;
-    case SOCK_INT:
-      return CD_PROP_INT32;
-    case SOCK_STRING:
-      return CD_PROP_STRING;
-    default:
-      return {};
-  }
-}
-
-std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket)
-{
-  return node_data_type_to_custom_data_type(eNodeSocketDatatype(socket.type));
-}
 
 bool check_tool_context_and_error(GeoNodeExecParams &params)
 {
