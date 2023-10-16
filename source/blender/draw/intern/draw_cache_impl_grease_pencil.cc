@@ -193,7 +193,8 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
 }
 
 static void grease_pencil_edit_lines_batch_ensure(
-    const Vector<blender::bke::greasepencil::Drawing *> drawings, GreasePencilBatchCache *cache)
+    const Span<const blender::bke::greasepencil::Drawing *> drawings,
+    GreasePencilBatchCache *cache)
 {
   using namespace blender::bke::greasepencil;
   int total_line_ids_num = 0;
@@ -205,7 +206,7 @@ static void grease_pencil_edit_lines_batch_ensure(
 
     /* Calculate the vertex and triangle offsets for all the curves. */
     for (const int curve_i : curves.curves_range()) {
-      IndexRange points = points_by_curve[curve_i];
+      const IndexRange points = points_by_curve[curve_i];
       const bool is_cyclic = cyclic[curve_i];
 
       if (points.size() == 0) {
@@ -241,7 +242,7 @@ static void grease_pencil_edit_lines_batch_ensure(
 
     threading::parallel_for(curves.curves_range(), 512, [&](IndexRange range) {
       for (const int curve_i : range) {
-        IndexRange points = points_by_curve[curve_i];
+        const IndexRange points = points_by_curve[curve_i];
         const bool is_cyclic = cyclic[curve_i];
 
         if (points.size() == 0) {
@@ -269,7 +270,7 @@ static void grease_pencil_edit_lines_batch_ensure(
   GPU_batch_vertbuf_add(cache->edit_lines, cache->edit_points_selection, false);
 }
 
-static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil,
+static void grease_pencil_geom_batch_ensure(const GreasePencil &grease_pencil,
                                             int cfra,
                                             const bool lines)
 {
@@ -287,9 +288,9 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil,
   BLI_assert(cache->geom_batch == nullptr);
 
   /* Get the visible drawings. */
-  Vector<Drawing *> drawings;
+  Vector<const Drawing *> drawings;
   grease_pencil.foreach_visible_drawing(
-      cfra, [&](const int /*layer_index*/, Drawing &drawing) { drawings.append(&drawing); });
+      cfra, [&](const int /*layer_index*/, const Drawing &drawing) { drawings.append(&drawing); });
 
   /* First, count how many vertices and triangles are needed for the whole object. Also record the
    * offsets into the curves for the vertices and triangles. */
