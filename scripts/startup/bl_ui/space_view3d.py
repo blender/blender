@@ -5752,6 +5752,7 @@ class VIEW3D_MT_gpencil_animation(Menu):
         layout.operator("gpencil.delete", text="Delete Active Keyframe (Active Layer)").type = 'FRAME'
         layout.operator("gpencil.active_frames_delete_all", text="Delete Active Keyframes (All Layers)")
 
+
 class VIEW3D_MT_edit_greasepencil_animation(Menu):
     bl_label = "Animation"
 
