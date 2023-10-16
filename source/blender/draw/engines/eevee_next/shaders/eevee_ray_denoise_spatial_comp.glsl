@@ -37,21 +37,6 @@ float bxdf_eval(ClosureReflection closure, vec3 L, vec3 V)
   return bsdf_ggx(closure.N, L, V, closure.roughness);
 }
 
-void neighbor_tile_mask_bit_set(inout uint tile_mask, ivec2 offset)
-{
-  /* Only valid for a 3x3 neighborhood. */
-  offset += 1;
-  uint shift = offset.x + (offset.y << 2u);
-  tile_mask |= 1u << shift;
-}
-
-bool neighbor_tile_mask_bit_get(uint tile_mask, ivec2 offset)
-{
-  offset += 1;
-  uint shift = offset.x + (offset.y << 2u);
-  return flag_test(tile_mask, 1u << shift);
-}
-
 void main()
 {
   const uint tile_size = RAYTRACE_GROUP_SIZE;
@@ -65,8 +50,6 @@ void main()
     return;
   }
 
-  /* Store invalid neighbor tiles to avoid sampling them in the resampling loop. */
-  uint invalid_neighbor_tile_mask = 0u;
   /* Clear neighbor tiles that will not be processed. */
   /* TODO(fclem): Optimize this. We don't need to clear the whole ring. */
   for (int x = -1; x <= 1; x++) {
@@ -77,7 +60,6 @@ void main()
 
       ivec2 tile_coord_neighbor = ivec2(tile_coord) + ivec2(x, y);
       if (!in_image_range(tile_coord_neighbor, tile_mask_img)) {
-        neighbor_tile_mask_bit_set(invalid_neighbor_tile_mask, ivec2(x, y));
         continue;
       }
 
@@ -88,8 +70,6 @@ void main()
         imageStore(out_radiance_img, texel_fullres_neighbor, vec4(FLT_11_11_10_MAX, 0.0));
         imageStore(out_variance_img, texel_fullres_neighbor, vec4(0.0));
         imageStore(out_hit_depth_img, texel_fullres_neighbor, vec4(0.0));
-
-        neighbor_tile_mask_bit_set(invalid_neighbor_tile_mask, ivec2(x, y));
       }
     }
   }
@@ -149,14 +129,6 @@ void main()
     vec2 offset_f = (fract(hammersley_2d(i, sample_count) + noise) - 0.5) * filter_size;
     ivec2 offset = ivec2(floor(offset_f + 0.5));
     ivec2 sample_texel = texel + offset;
-
-    /* Reject samples outside of valid neighbor tiles. */
-    ivec2 sample_tile = ivec2(sample_texel * uniform_buf.raytrace.resolution_scale) /
-                        int(tile_size);
-    ivec2 sample_tile_relative = sample_tile - ivec2(tile_coord);
-    if (neighbor_tile_mask_bit_get(invalid_neighbor_tile_mask, sample_tile_relative)) {
-      continue;
-    }
 
     vec4 ray_data = imageLoad(ray_data_img, sample_texel);
     float ray_time = imageLoad(ray_time_img, sample_texel).r;
