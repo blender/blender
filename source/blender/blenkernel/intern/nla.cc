@@ -1074,9 +1074,20 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
     if (scaleChanged) {
       float p1, p2;
 
-      /* compute positions of endpoints relative to old extents of strip */
-      p1 = (strip->start - oStart) / oLen;
-      p2 = (strip->end - oStart) / oLen;
+      if (oLen) {
+        /* Compute positions of endpoints relative to old extents of strip. */
+        p1 = (strip->start - oStart) / oLen;
+        p2 = (strip->end - oStart) / oLen;
+      }
+      else {
+        /* WORKAROUND: in theory, a strip should never be zero length. However,
+         * zero-length strips are nevertheless showing up here (see issue #113552).
+         * This is a stop-gap fix to handle that and prevent a divide by zero. A
+         * proper fix will need to track down and fix the source(s) of these
+         * zero-length strips. */
+        p1 = 0.0f;
+        p2 = 1.0f;
+      }
 
       /* Apply new strip endpoints using the proportions,
        * then wait for second pass to flush scale properly. */
