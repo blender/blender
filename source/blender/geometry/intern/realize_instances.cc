@@ -392,35 +392,37 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
     const OrderedAttributes &ordered_attributes)
 {
   Vector<std::pair<int, GSpan>> attributes_to_override;
-  const CustomDataAttributes &attributes = instances.custom_data_attributes();
-  attributes.foreach_attribute(
-      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-        const int attribute_index = ordered_attributes.ids.index_of_try(attribute_id);
-        if (attribute_index == -1) {
-          /* The attribute is not propagated to the final geometry. */
-          return true;
-        }
-        GSpan span = *attributes.get_for_read(attribute_id);
-        const eCustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
-        if (meta_data.data_type != expected_type) {
-          const CPPType &from_type = span.type();
-          const CPPType &to_type = *custom_data_type_to_cpp_type(expected_type);
-          const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-          if (!conversions.is_convertible(from_type, to_type)) {
-            /* Ignore the attribute because it can not be converted to the desired type. */
-            return true;
-          }
-          /* Convert the attribute on the instances component to the expected attribute type. */
-          std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
-              to_type, instances.instances_num());
-          conversions.convert_to_initialized_n(span, temporary_array->as_mutable_span());
-          span = temporary_array->as_span();
-          gather_info.r_temporary_arrays.append(std::move(temporary_array));
-        }
-        attributes_to_override.append({attribute_index, span});
+  const bke::AttributeAccessor attributes = instances.attributes();
+  attributes.for_all([&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+    const int attribute_index = ordered_attributes.ids.index_of_try(attribute_id);
+    if (attribute_index == -1) {
+      /* The attribute is not propagated to the final geometry. */
+      return true;
+    }
+    const bke::GAttributeReader attribute = attributes.lookup(attribute_id);
+    if (!attribute || !attribute.varray.is_span()) {
+      return true;
+    }
+    GSpan span = attribute.varray.get_internal_span();
+    const eCustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
+    if (meta_data.data_type != expected_type) {
+      const CPPType &from_type = span.type();
+      const CPPType &to_type = *custom_data_type_to_cpp_type(expected_type);
+      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+      if (!conversions.is_convertible(from_type, to_type)) {
+        /* Ignore the attribute because it can not be converted to the desired type. */
         return true;
-      },
-      ATTR_DOMAIN_INSTANCE);
+      }
+      /* Convert the attribute on the instances component to the expected attribute type. */
+      std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
+          to_type, instances.instances_num());
+      conversions.convert_to_initialized_n(span, temporary_array->as_mutable_span());
+      span = temporary_array->as_span();
+      gather_info.r_temporary_arrays.append(std::move(temporary_array));
+    }
+    attributes_to_override.append({attribute_index, span});
+    return true;
+  });
   return attributes_to_override;
 }
 
