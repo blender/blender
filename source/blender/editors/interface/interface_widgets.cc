@@ -2069,7 +2069,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         /* Find left edge of next character if available. */
         int next_left_edge = 0;
         bool has_next = false;
-        if (pos < strlen(drawstr)) {
+        if (pos < strlen(drawstr + but->ofs)) {
           if (BLF_str_offset_to_glyph_bounds(fstyle->uifont_id, drawstr + but->ofs, pos, &bounds))
           {
             next_left_edge = bounds.xmin;
