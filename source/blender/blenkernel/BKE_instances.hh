@@ -102,13 +102,17 @@ class Instances {
   mutable std::mutex almost_unique_ids_mutex_;
   mutable blender::Array<int> almost_unique_ids_;
 
-  CustomDataAttributes attributes_;
+  CustomData attributes_;
 
  public:
-  Instances() = default;
+  Instances();
+  Instances(Instances &&other);
   Instances(const Instances &other);
+  ~Instances();
 
-  void reserve(int min_capacity);
+  Instances &operator=(const Instances &other);
+  Instances &operator=(Instances &&other);
+
   /**
    * Resize the transform, handles, and attributes to the specified capacity.
    *
@@ -258,12 +262,12 @@ inline const GeometrySet &InstanceReference::geometry_set() const
 
 inline CustomData &Instances::custom_data_attributes()
 {
-  return attributes_.data;
+  return attributes_;
 }
 
 inline const CustomData &Instances::custom_data_attributes() const
 {
-  return attributes_.data;
+  return attributes_;
 }
 
 /** \} */

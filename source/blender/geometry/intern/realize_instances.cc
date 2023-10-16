@@ -32,7 +32,6 @@ using blender::bke::AttributeIDRef;
 using blender::bke::AttributeKind;
 using blender::bke::AttributeMetaData;
 using blender::bke::custom_data_type_to_cpp_type;
-using blender::bke::CustomDataAttributes;
 using blender::bke::GSpanAttributeWriter;
 using blender::bke::InstanceReference;
 using blender::bke::Instances;

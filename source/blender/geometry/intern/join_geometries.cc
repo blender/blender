@@ -105,7 +105,6 @@ static void join_instances(const Span<const GeometryComponent *> src_components,
         static_cast<const bke::InstancesComponent &>(*src_component);
     tot_instances += src_instance_component.get()->instances_num();
   }
-  dst_instances->reserve(tot_instances);
 
   for (const GeometryComponent *src_component : src_components) {
     const bke::InstancesComponent &src_instance_component =
