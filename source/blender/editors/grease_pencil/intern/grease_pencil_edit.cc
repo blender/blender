@@ -769,6 +769,7 @@ static int grease_pencil_delete_frame_exec(bContext *C, wmOperator *op)
   if (changed) {
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
