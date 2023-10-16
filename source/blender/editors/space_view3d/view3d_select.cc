@@ -1188,7 +1188,8 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      vc->scene->toolsettings);
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
@@ -3179,7 +3180,8 @@ static bool ed_grease_pencil_select_pick(bContext *C,
       });
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      vc.scene->toolsettings);
 
   const ClosestGreasePencilDrawing closest = threading::parallel_reduce(
       drawings.index_range(),
@@ -4190,7 +4192,7 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
@@ -5038,7 +5040,8 @@ static bool grease_pencil_circle_select(ViewContext *vc,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      vc->scene->toolsettings);
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(

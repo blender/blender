@@ -22,6 +22,7 @@ struct Main;
 struct Object;
 struct KeyframeEditData;
 struct wmKeyConfig;
+struct ToolSettings;
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -42,7 +43,7 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
-eAttrDomain ED_grease_pencil_selection_domain_get(bContext *C);
+eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
 
 /** \} */
 
