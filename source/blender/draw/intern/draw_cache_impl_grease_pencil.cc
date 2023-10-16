@@ -209,10 +209,6 @@ static void grease_pencil_edit_lines_batch_ensure(
       const IndexRange points = points_by_curve[curve_i];
       const bool is_cyclic = cyclic[curve_i];
 
-      if (points.size() == 0) {
-        continue;
-      }
-
       /* Add one id for the first point in the curve. */
       total_line_ids_num++;
       /* Add ids for the segments. */
@@ -244,10 +240,6 @@ static void grease_pencil_edit_lines_batch_ensure(
       for (const int curve_i : range) {
         const IndexRange points = points_by_curve[curve_i];
         const bool is_cyclic = cyclic[curve_i];
-
-        if (points.size() == 0) {
-          continue;
-        }
 
         for (const int point : points) {
           GPU_indexbuf_add_generic_vert(&elb, point + drawing_start_offset);
