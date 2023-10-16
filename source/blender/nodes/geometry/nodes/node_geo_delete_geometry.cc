@@ -10,9 +10,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_curves.hh"
-#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
-#include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 
