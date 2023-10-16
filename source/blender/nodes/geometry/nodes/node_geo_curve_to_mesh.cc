@@ -91,7 +91,6 @@ static void grease_pencil_to_mesh(GeometrySet &geometry_set,
     const int handle = instances->add_reference(bke::InstanceReference{temp_set});
     instances->add_instance(handle, float4x4::identity());
   }
-  geometry_set.replace_instances(instances);
   GeometrySet::propagate_attributes_from_layer_to_instances(
       geometry_set.get_grease_pencil()->attributes(),
       geometry_set.get_instances_for_write()->attributes_for_write(),
