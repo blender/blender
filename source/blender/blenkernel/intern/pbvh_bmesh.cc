@@ -110,11 +110,13 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
   } \
   ((void)0)
 
-static void bm_edges_from_tri(BMesh *bm, BMVert *v_tri[3], BMEdge *e_tri[3])
+static std::array<BMEdge *, 3> bm_edges_from_tri(BMesh *bm, const blender::Span<BMVert *> v_tri)
 {
-  e_tri[0] = BM_edge_create(bm, v_tri[0], v_tri[1], nullptr, BM_CREATE_NO_DOUBLE);
-  e_tri[1] = BM_edge_create(bm, v_tri[1], v_tri[2], nullptr, BM_CREATE_NO_DOUBLE);
-  e_tri[2] = BM_edge_create(bm, v_tri[2], v_tri[0], nullptr, BM_CREATE_NO_DOUBLE);
+  return {
+      BM_edge_create(bm, v_tri[0], v_tri[1], nullptr, BM_CREATE_NO_DOUBLE),
+      BM_edge_create(bm, v_tri[1], v_tri[2], nullptr, BM_CREATE_NO_DOUBLE),
+      BM_edge_create(bm, v_tri[2], v_tri[0], nullptr, BM_CREATE_NO_DOUBLE),
+  };
 }
 
 BLI_INLINE void bm_face_as_array_index_tri(BMFace *f, int r_index[3])
@@ -513,15 +515,19 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
 /**
  * \note Callers are responsible for checking if the face exists before adding.
  */
-static BMFace *pbvh_bmesh_face_create(
-    PBVH *pbvh, int node_index, BMVert *v_tri[3], BMEdge *e_tri[3], const BMFace *f_example)
+static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
+                                      int node_index,
+                                      const blender::Span<BMVert *> v_tri,
+                                      const blender::Span<BMEdge *> e_tri,
+                                      const BMFace *f_example)
 {
   PBVHNode *node = &pbvh->nodes[node_index];
 
   /* ensure we never add existing face */
-  BLI_assert(!BM_face_exists(v_tri, 3));
+  BLI_assert(!BM_face_exists(v_tri.data(), 3));
 
-  BMFace *f = BM_face_create(pbvh->header.bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
+  BMFace *f = BM_face_create(
+      pbvh->header.bm, v_tri.data(), e_tri.data(), 3, f_example, BM_CREATE_NOP);
   f->head.hflag = f_example->head.hflag;
 
   BLI_gset_insert(node->bm_faces, f);
@@ -1108,6 +1114,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
                                   BMEdge *e,
                                   BLI_Buffer *edge_loops)
 {
+  BMesh *bm = pbvh->header.bm;
+
   float co_mid[3], no_mid[3];
 
   /* Get all faces adjacent to the edge */
@@ -1128,8 +1136,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     BMFace *f_adj = l_adj->f;
     BMFace *f_new;
     BMVert *v_opp, *v1, *v2;
-    BMVert *v_tri[3];
-    BMEdge *e_tri[3];
 
     BLI_assert(f_adj->len == 3);
     int ni = BM_ELEM_CD_GET_INT(f_adj, eq_ctx->cd_face_node_offset);
@@ -1156,7 +1162,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
      * - original face is `(v1, v2, v3)`
      *
      * <pre>
-     *         + v3(v_opp)
+     *         + v_opp
      *        /|\
      *       / | \
      *      /  |  \
@@ -1165,34 +1171,33 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
      *   /     |     \
      *  /  e1  |  e2  \
      * +-------+-------+
-     * v1      v4(v_new) v2
+     * v1      v_new     v2
      *  (first) (second)
      * </pre>
      *
-     * - f_new (first):  `v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)`
-     * - f_new (second): `v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)`
+     * - f_new (first):  `v_tri=(v1, v_new, v_opp), e_tri=(e1, e5, e4)`
+     * - f_new (second): `v_tri=(v_new, v2, v_opp), e_tri=(e2, e3, e5)`
      */
 
-    /* Create two new faces */
-    v_tri[0] = v1;
-    v_tri[1] = v_new;
-    v_tri[2] = v_opp;
-    bm_edges_from_tri(pbvh->header.bm, v_tri, e_tri);
-    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
+    /* Create first face (v1, v_new, v_opp). */
+    const std::array<BMVert *, 3> first_tri({v1, v_new, v_opp});
+    const std::array<BMEdge *, 3> first_edges = bm_edges_from_tri(bm, first_tri);
+    f_new = pbvh_bmesh_face_create(pbvh, ni, first_tri, first_edges, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
 
-    v_tri[0] = v_new;
-    v_tri[1] = v2;
-    // v_tri[2] = v_opp; /* Unchanged. */
-    e_tri[0] = BM_edge_create(pbvh->header.bm, v_tri[0], v_tri[1], nullptr, BM_CREATE_NO_DOUBLE);
-    e_tri[2] = e_tri[1]; /* switched */
-    e_tri[1] = BM_edge_create(pbvh->header.bm, v_tri[1], v_tri[2], nullptr, BM_CREATE_NO_DOUBLE);
-    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
+    /* Create second face (v_new, v2, v_opp). */
+    const std::array<BMVert *, 3> second_tri({v_new, v2, v_opp});
+    const std::array<BMEdge *, 3> second_edges{
+        BM_edge_create(bm, second_tri[0], second_tri[1], nullptr, BM_CREATE_NO_DOUBLE),
+        BM_edge_create(bm, second_tri[1], second_tri[2], nullptr, BM_CREATE_NO_DOUBLE),
+        first_edges[1],
+    };
+    f_new = pbvh_bmesh_face_create(pbvh, ni, second_tri, second_edges, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
 
     /* Delete original */
     pbvh_bmesh_face_remove(pbvh, f_adj);
-    BM_face_kill(pbvh->header.bm, f_adj);
+    BM_face_kill(bm, f_adj);
 
     /* Ensure new vertex is in the node */
     if (!BLI_gset_haskey(pbvh->nodes[ni].bm_unique_verts, v_new)) {
@@ -1209,7 +1214,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     }
   }
 
-  BM_edge_kill(pbvh->header.bm, e);
+  BM_edge_kill(bm, e);
 }
 
 static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
@@ -1342,13 +1347,12 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       BLI_buffer_append(deleted_faces, BMFace *, existing_face);
     }
     else {
-      BMVert *v_tri[3] = {v_conn, l->next->v, l->prev->v};
+      const std::array<BMVert *, 3> v_tri{v_conn, l->next->v, l->prev->v};
 
-      BLI_assert(!BM_face_exists(v_tri, 3));
-      BMEdge *e_tri[3];
+      BLI_assert(!BM_face_exists(v_tri.data(), 3));
       PBVHNode *n = pbvh_bmesh_node_from_face(pbvh, f);
       int ni = n - pbvh->nodes.data();
-      bm_edges_from_tri(pbvh->header.bm, v_tri, e_tri);
+      const std::array<BMEdge *, 3> e_tri = bm_edges_from_tri(pbvh->header.bm, v_tri);
       pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f);
 
       /* Ensure that v_conn is in the new face's node */
