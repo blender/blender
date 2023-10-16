@@ -2500,6 +2500,8 @@ static void panel_handle_data_ensure(const bContext *C,
                                      Panel *panel,
                                      const uiHandlePanelState state)
 {
+  BLI_assert(ELEM(state, PANEL_STATE_DRAG, PANEL_STATE_ANIMATION));
+
   if (panel->activedata == nullptr) {
     panel->activedata = MEM_callocN(sizeof(uiHandlePanelData), __func__);
     WM_event_add_ui_handler(C,
@@ -2512,7 +2514,11 @@ static void panel_handle_data_ensure(const bContext *C,
 
   uiHandlePanelData *data = static_cast<uiHandlePanelData *>(panel->activedata);
 
-  data->animtimer = WM_event_timer_add(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
+  /* Only create a new timer if necessary. Reuse can occur when PANEL_STATE_ANIMATION follows
+   * PANEL_STATE_DRAG for example (i.e. panel->activedata was present already). */
+  if (!data->animtimer) {
+    data->animtimer = WM_event_timer_add(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
+  }
 
   data->state = state;
   data->startx = win->eventstate->xy[0];
