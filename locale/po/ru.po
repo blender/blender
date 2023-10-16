@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -27826,6 +27826,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "Основной тип для модификаторов прозрачности"
 
 
+msgid "Modifier Name"
+msgstr "Имя модификатора"
+
+
+msgid "Name of the modifier"
+msgstr "Имя модификатора"
+
+
 msgid "Along Stroke"
 msgstr "Вдоль штриха"
 
@@ -27864,14 +27872,6 @@ msgstr "Использовать линейное отображение"
 
 msgid "Use curve mapping"
 msgstr "Использовать отображение по кривой"
-
-
-msgid "Modifier Name"
-msgstr "Имя модификатора"
-
-
-msgid "Name of the modifier"
-msgstr "Имя модификатора"
 
 
 msgid "Modifier Type"
@@ -90307,16 +90307,8 @@ msgid "Subsurface Radius"
 msgstr "Радиус подповерхностного рассеивания"
 
 
-msgid "Specular Tint"
-msgstr "Цветной блик"
-
-
 msgid "Anisotropic Rotation"
 msgstr "Поворот анизотропии"
-
-
-msgid "Sheen Tint"
-msgstr "Оттенок блеска ткани"
 
 
 msgid "Emission Color"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -18055,6 +18055,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "定義 alpha 透明修改器的基礎類型"
 
 
+msgid "Modifier Name"
+msgstr "修改器名稱"
+
+
+msgid "Name of the modifier"
+msgstr "修改器的名稱"
+
+
 msgid "Along Stroke"
 msgstr "沿筆觸"
 
@@ -18089,14 +18097,6 @@ msgstr "使用線性映射"
 
 msgid "Use curve mapping"
 msgstr "使用曲線映射"
-
-
-msgid "Modifier Name"
-msgstr "修改器名稱"
-
-
-msgid "Name of the modifier"
-msgstr "修改器的名稱"
 
 
 msgid "Modifier Type"

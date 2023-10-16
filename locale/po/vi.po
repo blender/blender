@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -31090,6 +31090,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "Loại cơ sở cho chỉ định bộ điều chỉnh độ đục"
 
 
+msgid "Modifier Name"
+msgstr "Tên Bộ Điều Chỉnh"
+
+
+msgid "Name of the modifier"
+msgstr "Tên của bộ điều chỉnh"
+
+
 msgid "Along Stroke"
 msgstr "Theo Nét"
 
@@ -31128,14 +31136,6 @@ msgstr "Dùng ánh xạ bậc một"
 
 msgid "Use curve mapping"
 msgstr "Dùng ánh xạ đường cong"
-
-
-msgid "Modifier Name"
-msgstr "Tên Bộ Điều Chỉnh"
-
-
-msgid "Name of the modifier"
-msgstr "Tên của bộ điều chỉnh"
 
 
 msgid "Modifier Type"
@@ -116976,16 +116976,8 @@ msgid "Subsurface Anisotropy"
 msgstr "Dị Hướng Hạ Mặt"
 
 
-msgid "Specular Tint"
-msgstr "Màu Nhiễm Cao Quang"
-
-
 msgid "Anisotropic Rotation"
 msgstr "Xoay Dị Hướng"
-
-
-msgid "Sheen Tint"
-msgstr "Nhiễm Xán Lạn"
 
 
 msgid "Emission Color"

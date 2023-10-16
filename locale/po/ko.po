@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -24612,6 +24612,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "알파 투명도 모디파이어를 정의하는 베이스 유형"
 
 
+msgid "Modifier Name"
+msgstr "모디파이어 이름"
+
+
+msgid "Name of the modifier"
+msgstr "이 모디파이어의 이름"
+
+
 msgid "Along Stroke"
 msgstr "스트로크를 따라"
 
@@ -24650,14 +24658,6 @@ msgstr "선형 맵핑을 사용"
 
 msgid "Use curve mapping"
 msgstr "커브 맵핑을 사용"
-
-
-msgid "Modifier Name"
-msgstr "모디파이어 이름"
-
-
-msgid "Name of the modifier"
-msgstr "이 모디파이어의 이름"
 
 
 msgid "Modifier Type"
@@ -85830,16 +85830,8 @@ msgid "Subsurface Radius"
 msgstr "서브 표면 샘플 반경"
 
 
-msgid "Specular Tint"
-msgstr "반사 틴트"
-
-
 msgid "Anisotropic Rotation"
 msgstr "비등방성 회전"
-
-
-msgid "Sheen Tint"
-msgstr "윤기 틴트"
 
 
 msgid "Emission Color"
