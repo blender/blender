@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
-"PO-Revision-Date: 2023-10-06 18:25+0000\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"PO-Revision-Date: 2023-10-10 16:11+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -33662,6 +33662,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "Type de base pour définir des modificateurs de transparence alpha"
 
 
+msgid "Modifier Name"
+msgstr "Nom du modificateur"
+
+
+msgid "Name of the modifier"
+msgstr "Nom du modificateur"
+
+
 msgid "Along Stroke"
 msgstr "Le long du trait"
 
@@ -33700,14 +33708,6 @@ msgstr "Utiliser une conversion linéaire"
 
 msgid "Use curve mapping"
 msgstr "Utiliser une courbe de conversion"
-
-
-msgid "Modifier Name"
-msgstr "Nom du modificateur"
-
-
-msgid "Name of the modifier"
-msgstr "Nom du modificateur"
 
 
 msgid "Modifier Type"
@@ -44005,7 +44005,7 @@ msgstr "Placage UV"
 
 
 msgid "Map Value"
-msgstr "Convertir valeur"
+msgstr "Convertir la valeur"
 
 
 msgid "Use Maximum"
@@ -51491,12 +51491,25 @@ msgid "Name of the bone to unassign from the collection; empty to use the active
 msgstr "Nom de l’os à retirer de la collection. Laisser vide pour utiliser l’os actif"
 
 
+msgctxt "Operator"
+msgid "Copy Colors to Selected"
+msgstr "Copier les couleurs vers la sélection"
+
+
 msgid "Copy the bone color of the active bone to all selected bones"
 msgstr "Copier la couleur de l’os actif vers les os sélectionnés"
 
 
+msgid "Copy Bone colors from the active bone to all selected bones"
+msgstr "Copier les couleurs de l’os actif vers tous les os sélectionnés"
+
+
 msgid "Pose Bone"
 msgstr "Os de pose"
+
+
+msgid "Copy Pose Bone colors from the active pose bone to all selected pose bones"
+msgstr "Copier les couleurs de l’os de pose actif vers tous les os de pose sélectionnés"
 
 
 msgctxt "Operator"
@@ -56225,7 +56238,7 @@ msgstr "Exporter les clés de forme (morph targets)"
 
 
 msgid "Shape Key Animations"
-msgstr "Animation des clés de forme"
+msgstr "Animations des clés de forme"
 
 
 msgid "Export shape keys animations (morph targets)"
@@ -61742,6 +61755,21 @@ msgid "Always face the camera"
 msgstr "Toujours faire face à la caméra"
 
 
+msgctxt "Material"
+msgid "Blend"
+msgstr "Mélange"
+
+
+msgctxt "Material"
+msgid "Clip"
+msgstr "Seuil"
+
+
+msgctxt "Material"
+msgid "Hashed"
+msgstr "Hachage"
+
+
 msgid "Setup Corner Pin"
 msgstr "Préparer l’épingle de coin"
 
@@ -61872,6 +61900,16 @@ msgstr "Visible uniquement à la caméra et dans les reflets"
 
 msgid "Emission Shader"
 msgstr "Shader émission"
+
+
+msgctxt "Material"
+msgid "Shadow Mode"
+msgstr "Mode d’ombrage"
+
+
+msgctxt "Material"
+msgid "None"
+msgstr "Aucun"
 
 
 msgid "Size Mode"
@@ -77749,6 +77787,15 @@ msgstr "Aller à la ligne"
 
 msgid "Line number to jump to"
 msgstr "Numéro de la ligne à rejoindre"
+
+
+msgctxt "Operator"
+msgid "Jump to File at Point"
+msgstr "Ouvrir le fichier texte actuel"
+
+
+msgid "Jump to a file for the text editor"
+msgstr "Aller au fichier dans l’éditeur de texte"
 
 
 msgid "Column"
@@ -94984,7 +95031,7 @@ msgstr "Options de lancer diffus"
 
 
 msgid "EEVEE settings for tracing diffuse reflections"
-msgstr "Réglages EEVEE pour le lancer diffus des réflexions"
+msgstr "Réglages EEVEE pour le lancer des réflexions diffuses"
 
 
 msgid "Auto Bake"
@@ -95252,7 +95299,7 @@ msgstr "Options du lancer de réfraction"
 
 
 msgid "EEVEE settings for tracing refractions"
-msgstr "Réglages EEVEE pour le lancer des réfraction"
+msgstr "Réglages EEVEE pour le lancer des réfractions"
 
 
 msgid "Directional Shadows Resolution"
@@ -96835,6 +96882,10 @@ msgstr "Conversion tonale"
 
 msgid "White Balance"
 msgstr "Balance des blancs"
+
+
+msgid "Sound Equalizer"
+msgstr "Égaliseur audio"
 
 
 msgid "Bright/contrast modifier data for sequence strip"
@@ -102887,16 +102938,32 @@ msgid "Shade for bones corresponding to a locked weight group during painting"
 msgstr "Teinte pour les os correspondants à un groupe de poids verrouillé pendant la peinture"
 
 
+msgid "Bone Pose Selected"
+msgstr "Os de pose sélectionné"
+
+
+msgid "Outline color of selected pose bones"
+msgstr "Couleur du contour des os de pose sélectionnés"
+
+
 msgid "Bone Pose Active"
-msgstr "Pose d’os active"
+msgstr "Os de pose actif"
+
+
+msgid "Outline color of active pose bones"
+msgstr "Couleur du contour des os de pose actifs"
 
 
 msgid "Bone Solid"
-msgstr "Os solide"
+msgstr "Os plein"
+
+
+msgid "Default color of the solid shapes of bones"
+msgstr "Couleur par défaut de la forme pleine des os"
 
 
 msgid "Bundle Solid"
-msgstr "Faisceau solide"
+msgstr "Faisceau plein"
 
 
 msgid "Camera Passepartout"
@@ -109238,6 +109305,10 @@ msgid "%s is not supported"
 msgstr "%s n’est pas pris en charge"
 
 
+msgid "Please select at least an image."
+msgstr "Veuillez sélectionner au moins une image."
+
+
 msgid "Cannot generate materials for unknown %s render engine"
 msgstr "Impossible de générer des matériaux pour le moteur de rendu inconnu %s"
 
@@ -114316,6 +114387,16 @@ msgstr "Intervertir les données"
 
 
 msgctxt "Operator"
+msgid "Delete Retiming Keys"
+msgstr "Supprimer les clés de reminutage"
+
+
+msgctxt "Operator"
+msgid "Toggle Retiming Keys"
+msgstr "(Dés)activer les clés de reminutage"
+
+
+msgctxt "Operator"
 msgid "Slip Strip Contents"
 msgstr "Faire glisser le contenu de la bande"
 
@@ -118307,6 +118388,10 @@ msgid "GP_Layer"
 msgstr "Calque_GP"
 
 
+msgid "GP_Group"
+msgstr "Groupe_GP"
+
+
 msgid "Cannot pack multiview images from raw data currently..."
 msgstr "Impossible d’empaqueter des images multivues à partir de données brutes pour le moment…"
 
@@ -121070,7 +121155,7 @@ msgstr "Rouge, vert, bleu"
 
 
 msgid "Hue, Saturation, Lightness"
-msgstr "Teinte, saturation, valeur"
+msgstr "Teinte, saturation, luminosité"
 
 
 msgid "Color as hexadecimal values"
@@ -126505,6 +126590,10 @@ msgid "Python disabled in this build"
 msgstr "Python est désactivé dans cette build"
 
 
+msgid "File path property not set"
+msgstr "La propriété de chemin de fichier n’est pas définie"
+
+
 msgid "No file path for \"%s\""
 msgstr "Aucun chemin de fichier pour « %s »"
 
@@ -126527,6 +126616,10 @@ msgstr "Impossible de faire un stat sur « %s » : %s"
 
 msgid "Text not found: %s"
 msgstr "Texte introuvable : %s"
+
+
+msgid "See '%s' in the external editor"
+msgstr "Voir « %s » dans l’éditeur externe"
 
 
 msgid "File '%s' cannot be opened"
@@ -128054,7 +128147,7 @@ msgstr "%s : Incohérence des nombres d’éléments des poids et indices d’a
 
 
 msgid "%s: Joint weights and joint indices size mismatch for prim %s"
-msgstr "%s : Incohérence des nombres d’éléments des poids et indices d’articulations pour la prim %s"
+msgstr "%s : Incohérence des nombres d’indices des poids et indices d’articulations pour la prim %s"
 
 
 msgid "%s: Unexpected joint weights interpolation type %s for prim %s"
@@ -128981,6 +129074,10 @@ msgid "Registering node tree class: '%s' is too long, maximum length is %d"
 msgstr "Enregistrement de la classe d’arborescence nodale : « %s » est trop long, longueur maximum de %d"
 
 
+msgid "Registering node tree class: '%s', bl_idname '%s' could not be unregistered"
+msgstr "Enregistrement de la classe d’arborescence nodale : « %s », avec le bl_idname « %s » n’a pas pu être déchargé"
+
+
 msgid "Node tree '%s' has undefined type %s"
 msgstr "L’arborescence de nœuds « %s » a un type indéfini %s"
 
@@ -129010,11 +129107,11 @@ msgstr "Enregistrement de la classe de nœud : « %s » est trop long, longue
 
 
 msgid "Registering node class: '%s', bl_idname '%s' is a builtin node"
-msgstr "Enregistrement de la classe de nœud : « %s » le bl_idname « %s » est un nœud prédéfini"
+msgstr "Enregistrement de la classe de nœud : « %s », avec le bl_idname « %s » est un nœud prédéfini"
 
 
 msgid "Registering node class: '%s', bl_idname '%s' could not be unregistered"
-msgstr "Enregistrement de la classe de nœud : « %s » le bl_idname « %s » n’a pas pu être déchargé"
+msgstr "Enregistrement de la classe de nœud : « %s », avec le bl_idname « %s » n’a pas pu être déchargé"
 
 
 msgid "Unable to locate socket '%s' in node"
@@ -129342,7 +129439,7 @@ msgstr "%s '%s' a la catégorie '%s'"
 
 
 msgid "%s '%s', bl_idname '%s' could not be unregistered"
-msgstr "%s '%s', bl_idname '%s' n’a pas pu être déchargé"
+msgstr "%s « %s », bl_idname « %s » n’a pas pu être déchargé"
 
 
 msgid "%s parent '%s' for '%s' not found"
@@ -131904,6 +132001,10 @@ msgid "Delta Time"
 msgstr "Delta temps"
 
 
+msgid "Skip"
+msgstr "Passer"
+
+
 msgid "Forward the output of the simulation input node directly to the output node and ignore the nodes in the simulation zone"
 msgstr "Transmettre directement la sortie du nœud entrée de simulation au nœud de sortie et ignorer les nœuds dans la zone de simulation"
 
@@ -132228,10 +132329,6 @@ msgid "Specular IOR Level"
 msgstr "Niveau IDR de spéculaire"
 
 
-msgid "Specular Tint"
-msgstr "Teinte de spéculaire"
-
-
 msgid "Anisotropic Rotation"
 msgstr "Rotation anisotrope"
 
@@ -132252,10 +132349,6 @@ msgid "Coat IOR"
 msgstr "IDR de vernis"
 
 
-msgid "Coat Tint"
-msgstr "Teinte de vernis"
-
-
 msgid "Coat Normal"
 msgstr "Normale de vernis"
 
@@ -132266,10 +132359,6 @@ msgstr "Poids de lustre"
 
 msgid "Sheen Roughness"
 msgstr "Rugosité de lustre"
-
-
-msgid "Sheen Tint"
-msgstr "Teinte de lustre"
 
 
 msgid "Emission Color"
@@ -132322,6 +132411,14 @@ msgstr "Indice de réfraction de la couche de vernis (affecte sa réflectivité 
 
 msgid "Adds a colored tint to the coat layer by modeling absorption in the layer. Saturation increases at shallower angles, as the light travels farther through the medium (depending on the Coat IOR)"
 msgstr "Ajouter une teinte colorée à la couche de vernis en modélisant l’absorption dans la couche. La saturation augmente aux angles rasants, car la lumière voyage plus loin dans le médium (selon l’IDR de la couche)"
+
+
+msgid "Subsurface"
+msgstr "Subsurface"
+
+
+msgid "Sheen"
+msgstr "Lustre"
 
 
 msgid "View Vector"
@@ -133250,6 +133347,10 @@ msgid "(Unsaved)"
 msgstr "(Non-enregistré)"
 
 
+msgid " (Recovered)"
+msgstr " (Récupéré)"
+
+
 msgid "Python script uses OpenGL for drawing"
 msgstr "Le script Python utilise OpenGL pour l’affichage"
 
@@ -134120,6 +134221,10 @@ msgstr "Slovaque (Slovenčina)"
 
 msgid "Georgian (ქართული)"
 msgstr "Géorgien (ქართული)"
+
+
+msgid "Tamil (தமிழ்)"
+msgstr "Tamoul (தமிழ்)"
 
 
 msgid "Complete"

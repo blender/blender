@@ -1,17 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
-"PO-Revision-Date: \n"
-"Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
-"Language-Team: Taby <tabycz@gmail.com>\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"PO-Revision-Date: 2023-10-12 15:54+0000\n"
+"Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
+"Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.2"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Weblate 5.0.1"
 
 
 msgid "Shader AOV"
@@ -20,6 +21,10 @@ msgstr "Shader AOV"
 
 msgid "Valid"
 msgstr "Platné"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "Je jméno AOV rozporující"
 
 
 msgid "Name"
@@ -198,6 +203,10 @@ msgid "Mute"
 msgstr "Tlumit"
 
 
+msgid "Action group is muted"
+msgstr "Skupina akcí je ztlumena"
+
+
 msgid "Select"
 msgstr "Vybrat"
 
@@ -302,12 +311,32 @@ msgid "Device to use for computation (rendering with Cycles)"
 msgstr "Zařízení pro výpočet (vykreslování s enginem Cycles)"
 
 
+msgid "Kernel Optimization"
+msgstr "Optimalizace jádra"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Jádra mohou být optimalizována podle obsahu scény. Optimalizovaná jádra jsou vyžádána na začátku renderu. Pokud nejsou k dispozici, renderování bude používat generická jádra do té doby, než budou optimalizovaná k dispozici v mezipaměti. To může na krátkou dobu (cca 10s) vést k vyššímu využití CPU"
+
+
 msgid "Off"
 msgstr "Vypnout"
 
 
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Vypnout optimalizaci jader. Nejpomalejší renderování, bez využití CPU na pozadí"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Optimalizovat pouze protínající se jádra. Rychlejší renderování, zanedbatelné využíti CPU na pozadí"
+
+
 msgid "Full"
 msgstr "Plná"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Optimalizovat všechna jádra. Nejrychlejší renderování, může způsobit dodatečnou zátěž CPU na pozadí"
 
 
 msgid "Distribute memory across devices"
@@ -315,7 +344,43 @@ msgstr "Distribuce paměti mezi zařízeními"
 
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
-msgstr "Udělejte více místa pro velké scény tím, že distribuujete paměť mezi propojená zařízení (např. přes NVLink), spíše než ji duplikujete"
+msgstr "Udělejte více místa pro velké scény tím, že rozložíte paměť mezi propojená zařízení (např. přes NVLink), spíše než že ji duplikujete"
+
+
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (Experimentální)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT povoluje AMD hardwarový ray tracing na RDNA2 a vyšší. Tato funkcionalita je experimentální a některé scény mohou být špatně vyrenderovány"
+
+
+msgid "MetalRT (Experimental)"
+msgstr "MetalRT (Experimentální)"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
+msgstr "MetalRT pro ray tracing používá méně paměti ve scénách, kde jsou často používány křivky, a může v některých případech být rychlejší. Podpora MetalRT je experimentální a některé scény mohou být vyrenderovány chybně"
+
+
+msgid "Embree on GPU"
+msgstr "Embree na GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree na GPU umožňuje použití hardwarového ray tracingu na GPU Intel, což vede k dosažení lepšího výkonu"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Zobrazí glTF uživatelské rozhraní k správě variant materiálů"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Zobrazí glTF uživatelské rozhraní k správě animací"
 
 
 msgid "Fribidi Library"
@@ -612,6 +677,18 @@ msgstr "Má cesty pohybu"
 
 msgid "Are there any bone paths that will need updating (read-only)"
 msgstr "Existují nějaké kostní cesty, které budou potřeba aktualizovat (jen pro čtení)"
+
+
+msgid "Paths Range"
+msgstr "Rozsah Cest"
+
+
+msgid "From the first keyframe to the last"
+msgstr "Od prvního klíče k poslednímu"
+
+
+msgid "From the first selected keyframe to the last"
+msgstr "Od prvního vybraného klíče k poslednímu"
 
 
 msgid "Show Frame Numbers"
@@ -1678,8 +1755,24 @@ msgid "Grease Pencil"
 msgstr "Skicovací tužka"
 
 
+msgid "Grease Pencil data-blocks"
+msgstr "Datové bloky Grease Pencil"
+
+
+msgid "Hair Curves"
+msgstr "Křivky vlasů"
+
+
+msgid "Hair curve data-blocks"
+msgstr "Datové bloky křivek vlasů"
+
+
 msgid "Images"
 msgstr "Obrázky"
+
+
+msgid "Image data-blocks"
+msgstr "Datové bloky obrázků"
 
 
 msgid "File Has Unsaved Changes"
@@ -1694,12 +1787,20 @@ msgid "File is Saved"
 msgstr "Soubor je uložen"
 
 
+msgid "Has the current session been saved to disk as a .blend file"
+msgstr "Aktuální relace byla uložena na disk jako .blend soubor"
+
+
 msgid "Lattices"
 msgstr "Mříže"
 
 
 msgid "Libraries"
 msgstr "Knihovny"
+
+
+msgid "Library data-blocks"
+msgstr "Datové bloky knihoven"
 
 
 msgid "Light Probes"
@@ -1710,6 +1811,10 @@ msgid "Lights"
 msgstr "Světla"
 
 
+msgid "Light data-blocks"
+msgstr "Datové bloky světel"
+
+
 msgid "Line Styles"
 msgstr "Styly čar"
 
@@ -1718,8 +1823,16 @@ msgid "Masks"
 msgstr "Masky"
 
 
+msgid "Masks data-blocks"
+msgstr "Datové bloky mask"
+
+
 msgid "Materials"
 msgstr "Materiály"
+
+
+msgid "Material data-blocks"
+msgstr "Datové bloky materiálů"
 
 
 msgid "Meshes"
@@ -1734,16 +1847,32 @@ msgid "Metaballs"
 msgstr "Metabally"
 
 
+msgid "Metaball data-blocks"
+msgstr "Datové bloky metaball"
+
+
 msgid "Movie Clips"
 msgstr "Filmové klipy"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "Datové bloky video klipů"
 
 
 msgid "Node Groups"
 msgstr "Skupiny uzlů"
 
 
+msgid "Node group data-blocks"
+msgstr "Datové bloky skupin uzlů"
+
+
 msgid "Objects"
 msgstr "Objekty"
+
+
+msgid "Object data-blocks"
+msgstr "Datové bloky objektů"
 
 
 msgid "Paint Curves"
@@ -1754,16 +1883,32 @@ msgid "Palettes"
 msgstr "Palety"
 
 
+msgid "Palette data-blocks"
+msgstr "Datové bloky vzorů"
+
+
 msgid "Particles"
 msgstr "Částice"
+
+
+msgid "Particle data-blocks"
+msgstr "Datové bloky částic"
 
 
 msgid "Point Clouds"
 msgstr "Point Clouds"
 
 
+msgid "Point cloud data-blocks"
+msgstr "Datové bloky bodových mraků"
+
+
 msgid "Scenes"
 msgstr "Scény"
+
+
+msgid "Scene data-blocks"
+msgstr "Datové bloky scén"
 
 
 msgid "Screens"
@@ -1995,7 +2140,11 @@ msgstr "Hlavní Světelné Sondy"
 
 
 msgid "Main Scenes"
-msgstr "Hlavní Scěny"
+msgstr "Hlavní Scény"
+
+
+msgid "Collection of scenes"
+msgstr "Kolekce scén"
 
 
 msgid "Main Screens"
@@ -2008,6 +2157,18 @@ msgstr "Kolekce obrazovek"
 
 msgid "Main Sounds"
 msgstr "Hlavní Zvuky"
+
+
+msgid "Collection of sounds"
+msgstr "Kolekce zvuků"
+
+
+msgid "Collection of speakers"
+msgstr "Kolekce reproduktorů"
+
+
+msgid "Collection of texts"
+msgstr "Kolekce textů"
 
 
 msgid "Main Volumes"
@@ -13795,16 +13956,16 @@ msgid "Selected Objects"
 msgstr "Vybrané objekty"
 
 
-msgid "Use linear mapping"
-msgstr "Použít lineární mapování"
-
-
 msgid "Modifier Name"
 msgstr "Název modifikátoru"
 
 
 msgid "Name of the modifier"
 msgstr "Název modifikátoru"
+
+
+msgid "Use linear mapping"
+msgstr "Použít lineární mapování"
 
 
 msgid "Modifier Type"
@@ -18266,7 +18427,7 @@ msgstr "Mixovací mód pro průhledné plošky"
 
 
 msgid "Brick Texture"
-msgstr "Cihla Texture"
+msgstr "Textura Cihly"
 
 
 msgid "Offset Amount"

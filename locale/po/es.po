@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
-"PO-Revision-Date: 2023-09-28 03:54+0000\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"PO-Revision-Date: 2023-10-13 23:54+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -1165,6 +1165,10 @@ msgstr "Representación del recurso"
 
 msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
 msgstr "Información acerca de una entidad, que hace posible que el sistema de recursos trate a la misma como un recurso"
+
+
+msgid "Full Library Path"
+msgstr "Ruta de la Biblioteca Completa"
 
 
 msgctxt "ID"
@@ -33140,6 +33144,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "Tipo base para definir modificadores de transparencia alfa"
 
 
+msgid "Modifier Name"
+msgstr "Nombre del modificador"
+
+
+msgid "Name of the modifier"
+msgstr "Nombre del modificador"
+
+
 msgid "Along Stroke"
 msgstr "A lo largo del trazo"
 
@@ -33178,14 +33190,6 @@ msgstr "Usar un mapeo lineal"
 
 msgid "Use curve mapping"
 msgstr "Usar una curva de mapeo"
-
-
-msgid "Modifier Name"
-msgstr "Nombre del modificador"
-
-
-msgid "Name of the modifier"
-msgstr "Nombre del modificador"
 
 
 msgid "Modifier Type"
@@ -125461,7 +125465,7 @@ msgstr "Invertir UDIM"
 
 msgctxt "Mesh"
 msgid "Clipping"
-msgstr "Recortar"
+msgstr "Limitar"
 
 
 msgid "Level Viewport"
@@ -127790,16 +127794,8 @@ msgid "Subsurface Anisotropy"
 msgstr "Anisotropía de transluminiscencia"
 
 
-msgid "Specular Tint"
-msgstr "Tinte de especularidad"
-
-
 msgid "Anisotropic Rotation"
 msgstr "Rotación de anisotropía"
-
-
-msgid "Sheen Tint"
-msgstr "Tinte del brillo"
 
 
 msgid "Emission Color"

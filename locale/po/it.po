@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -17495,6 +17495,14 @@ msgid "Selected Objects"
 msgstr "Oggetti Selezionati"
 
 
+msgid "Modifier Name"
+msgstr "Nome Modificatore"
+
+
+msgid "Name of the modifier"
+msgstr "Nome del Modificatore"
+
+
 msgid "Along Stroke"
 msgstr "Lungo il Tratto"
 
@@ -17509,14 +17517,6 @@ msgstr "Vero se la scheda modificatore è espansa"
 
 msgid "Select the mapping type"
 msgstr "Seleziona il tipo di mappatura"
-
-
-msgid "Modifier Name"
-msgstr "Nome Modificatore"
-
-
-msgid "Name of the modifier"
-msgstr "Nome del Modificatore"
 
 
 msgid "Modifier Type"
@@ -58229,16 +58229,8 @@ msgid "Subsurface Radius"
 msgstr "Raggio Subsuperficie"
 
 
-msgid "Specular Tint"
-msgstr "Tinta Speculare"
-
-
 msgid "Anisotropic Rotation"
 msgstr "Rotazione Anisotropica"
-
-
-msgid "Sheen Tint"
-msgstr "Tinta Lucentezza"
 
 
 msgid "Emission Color"

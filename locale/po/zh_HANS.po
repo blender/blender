@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
-"PO-Revision-Date: 2023-09-26 10:38+0000\n"
+"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"PO-Revision-Date: 2023-10-10 05:56+0000\n"
 "Last-Translator: maylog <maylog@126.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -3789,12 +3789,48 @@ msgid "Visible"
 msgstr "可见"
 
 
+msgid "Bones in this collection will be visible in pose/object mode"
+msgstr "此集合中的骨骼将在姿势/物体模式下可见"
+
+
+msgid "Bone Collection Memberships"
+msgstr "骨骼集合的成员关系"
+
+
+msgid "The Bone Collections that contain this Bone"
+msgstr "包含该骨骼的骨骼集合"
+
+
+msgid "Armature Bone Collections"
+msgstr "骨架骨骼集合"
+
+
+msgid "The Bone Collections of this Armature"
+msgstr "包含该骨架的骨骼集合"
+
+
 msgid "Active Collection"
 msgstr "活动集合"
 
 
+msgid "Active Collection Index"
+msgstr "活动集合的索引值"
+
+
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
+msgstr "骨架所在活动骨骼集合的索引值，当没有活动集合时为-1"
+
+
+msgid "Theme color or custom color of a bone"
+msgstr "骨骼的主题颜色或自定义颜色"
+
+
 msgid "Custom"
 msgstr "自定义"
+
+
+msgid "The custom bone colors, used when palette is 'CUSTOM'"
+msgstr "当启用调色板的 \"自定义\"后的自定义骨骼颜色"
 
 
 msgid "Bool Attribute Value"
@@ -32004,6 +32040,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "用于定义Alpha透明度修改器的基本类型"
 
 
+msgid "Modifier Name"
+msgstr "修改器名称"
+
+
+msgid "Name of the modifier"
+msgstr "修改器的名称"
+
+
 msgid "Along Stroke"
 msgstr "沿笔画"
 
@@ -32042,14 +32086,6 @@ msgstr "使用线性映射"
 
 msgid "Use curve mapping"
 msgstr "使用曲线映射"
-
-
-msgid "Modifier Name"
-msgstr "修改器名称"
-
-
-msgid "Name of the modifier"
-msgstr "修改器的名称"
 
 
 msgid "Modifier Type"
@@ -121869,16 +121905,8 @@ msgid "Subsurface Anisotropy"
 msgstr "次表面各向异性"
 
 
-msgid "Specular Tint"
-msgstr "高光染色"
-
-
 msgid "Anisotropic Rotation"
 msgstr "各向异性旋转"
-
-
-msgid "Sheen Tint"
-msgstr "光泽染色"
 
 
 msgid "Emission Color"
