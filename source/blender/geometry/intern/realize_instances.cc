@@ -482,9 +482,9 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
 
   Span<int> stored_instance_ids;
   if (gather_info.create_id_attribute_on_any_component) {
-    std::optional<GSpan> ids = instances.custom_data_attributes().get_for_read("id");
-    if (ids.has_value()) {
-      stored_instance_ids = ids->typed<int>();
+    bke::AttributeReader ids = instances.attributes().lookup<int>("id");
+    if (ids) {
+      stored_instance_ids = ids.varray.get_internal_span();
     }
   }
 
@@ -1500,7 +1500,7 @@ static void remove_id_attribute_from_instances(bke::GeometrySet &geometry_set)
 {
   geometry_set.modify_geometry_sets([&](bke::GeometrySet &sub_geometry) {
     if (Instances *instances = sub_geometry.get_instances_for_write()) {
-      instances->custom_data_attributes().remove("id");
+      instances->attributes_for_write().remove("id");
     }
   });
 }

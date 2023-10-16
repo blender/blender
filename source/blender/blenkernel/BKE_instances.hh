@@ -169,8 +169,8 @@ class Instances {
   blender::bke::AttributeAccessor attributes() const;
   blender::bke::MutableAttributeAccessor attributes_for_write();
 
-  CustomDataAttributes &custom_data_attributes();
-  const CustomDataAttributes &custom_data_attributes() const;
+  CustomData &custom_data_attributes();
+  const CustomData &custom_data_attributes() const;
 
   void foreach_referenced_geometry(
       blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const;
@@ -256,14 +256,14 @@ inline const GeometrySet &InstanceReference::geometry_set() const
   return *geometry_set_;
 }
 
-inline CustomDataAttributes &Instances::custom_data_attributes()
+inline CustomData &Instances::custom_data_attributes()
 {
-  return attributes_;
+  return attributes_.data;
 }
 
-inline const CustomDataAttributes &Instances::custom_data_attributes() const
+inline const CustomData &Instances::custom_data_attributes() const
 {
-  return attributes_;
+  return attributes_.data;
 }
 
 /** \} */
