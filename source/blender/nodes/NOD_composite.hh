@@ -10,10 +10,6 @@
 
 #include "BKE_node.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Scene;
 struct RenderData;
 struct Render;
@@ -101,7 +97,3 @@ void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
  */
 void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node);
 struct CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *node);
-
-#ifdef __cplusplus
-}
-#endif

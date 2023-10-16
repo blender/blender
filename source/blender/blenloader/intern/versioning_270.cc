@@ -74,7 +74,7 @@
 #include "BLO_readfile.h"
 
 #include "NOD_common.h"
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_socket.hh"
 
 #include "readfile.hh"

@@ -33,7 +33,7 @@ if(WITH_COMPOSITOR_CPU)
   )
 
   set(SRC
-    COM_compositor.h
+    COM_compositor.hh
     COM_defines.h
 
     intern/COM_BufferArea.h

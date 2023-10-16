@@ -44,7 +44,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 
 #include "DEG_depsgraph.hh"
 

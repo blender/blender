@@ -96,7 +96,7 @@ set(SRC
   intern/socket_search_link.cc
 
   NOD_common.h
-  NOD_composite.h
+  NOD_composite.hh
   NOD_derived_node_tree.hh
   NOD_geometry.hh
   NOD_geometry_exec.hh

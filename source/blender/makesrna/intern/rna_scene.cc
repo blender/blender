@@ -741,7 +741,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "BKE_screen.hh"
 #  include "BKE_unit.h"
 
-#  include "NOD_composite.h"
+#  include "NOD_composite.hh"
 
 #  include "ED_image.hh"
 #  include "ED_info.hh"

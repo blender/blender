@@ -58,7 +58,7 @@
 
 #include "RE_texture.h"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
 
@@ -594,7 +594,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "GPU_material.h"
 
 #  include "NOD_common.h"
-#  include "NOD_composite.h"
+#  include "NOD_composite.hh"
 #  include "NOD_geometry.hh"
 #  include "NOD_shader.h"
 #  include "NOD_socket.hh"

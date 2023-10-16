@@ -27,7 +27,7 @@
 #include "BKE_node.hh"
 #include "BKE_screen.hh"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

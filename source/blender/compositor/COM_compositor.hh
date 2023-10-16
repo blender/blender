@@ -7,10 +7,6 @@
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Render;
 
 /* Keep ascii art. */
@@ -349,7 +345,3 @@ void COM_deinitialize(void);
  * To deinitialize the compositor use the COM_deinitialize method.
  */
 // void COM_clear_caches(void); // NOT YET WRITTEN
-
-#ifdef __cplusplus
-}
-#endif

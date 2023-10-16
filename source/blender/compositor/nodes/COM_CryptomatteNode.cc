@@ -6,7 +6,7 @@
 
 #include "BKE_node.hh"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 
 #include "COM_ConvertOperation.h"
 #include "COM_CryptomatteNode.h"
