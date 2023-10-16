@@ -199,22 +199,22 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   switch (data_type) {
     case CD_PROP_FLOAT:
-      field = params.get_input<Field<float>>(input_identifier);
+      field = params.extract_input<GField>(input_identifier);
       break;
     case CD_PROP_FLOAT3:
-      field = params.get_input<Field<float3>>(input_identifier);
+      field = params.extract_input<GField>(input_identifier);
       break;
     case CD_PROP_COLOR:
-      field = params.get_input<Field<ColorGeometry4f>>(input_identifier);
+      field = params.extract_input<GField>(input_identifier);
       break;
     case CD_PROP_BOOL:
-      field = params.get_input<Field<bool>>(input_identifier);
+      field = params.extract_input<GField>(input_identifier);
       break;
     case CD_PROP_INT32:
-      field = params.get_input<Field<int>>(input_identifier);
+      field = params.extract_input<GField>(input_identifier);
       break;
     case CD_PROP_QUATERNION:
-      field = params.get_input<Field<math::Quaternion>>(input_identifier);
+      field = params.extract_input<GField>(input_identifier);
       break;
     default:
       break;

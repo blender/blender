@@ -246,32 +246,32 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
   switch (data_type) {
     case CD_PROP_FLOAT:
       if (params.output_is_required("Attribute_001")) {
-        return params.extract_input<Field<float>>("Attribute_001");
+        return params.extract_input<GField>("Attribute_001");
       }
       break;
     case CD_PROP_FLOAT3:
       if (params.output_is_required("Attribute")) {
-        return params.extract_input<Field<float3>>("Attribute");
+        return params.extract_input<GField>("Attribute");
       }
       break;
     case CD_PROP_COLOR:
       if (params.output_is_required("Attribute_002")) {
-        return params.extract_input<Field<ColorGeometry4f>>("Attribute_002");
+        return params.extract_input<GField>("Attribute_002");
       }
       break;
     case CD_PROP_BOOL:
       if (params.output_is_required("Attribute_003")) {
-        return params.extract_input<Field<bool>>("Attribute_003");
+        return params.extract_input<GField>("Attribute_003");
       }
       break;
     case CD_PROP_INT32:
       if (params.output_is_required("Attribute_004")) {
-        return params.extract_input<Field<int>>("Attribute_004");
+        return params.extract_input<GField>("Attribute_004");
       }
       break;
     case CD_PROP_QUATERNION:
       if (params.output_is_required("Attribute_005")) {
-        return params.extract_input<Field<math::Quaternion>>("Attribute_005");
+        return params.extract_input<GField>("Attribute_005");
       }
       break;
     default:

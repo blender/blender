@@ -419,7 +419,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     using T = decltype(dummy);
     if constexpr (is_same_any_v<T, int, float, float3>) {
       const std::string suffix = " " + identifier_suffix<T>();
-      Field<T> input_field = params.extract_input<Field<T>>("Value" + suffix);
+      GField input_field = params.extract_input<GField>("Value" + suffix);
       if (params.output_is_required("Leading" + suffix)) {
         params.set_output(
             "Leading" + suffix,

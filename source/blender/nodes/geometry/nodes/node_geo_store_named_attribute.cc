@@ -126,33 +126,33 @@ static void node_geo_exec(GeoNodeExecParams params)
   GField field;
   switch (data_type) {
     case CD_PROP_FLOAT:
-      field = params.get_input<Field<float>>("Value_Float");
+      field = params.extract_input<GField>("Value_Float");
       break;
     case CD_PROP_FLOAT2: {
-      field = params.get_input<Field<float3>>("Value_Vector");
+      field = params.extract_input<GField>("Value_Vector");
       field = bke::get_implicit_type_conversions().try_convert(field, CPPType::get<float2>());
       break;
     }
     case CD_PROP_FLOAT3:
-      field = params.get_input<Field<float3>>("Value_Vector");
+      field = params.extract_input<GField>("Value_Vector");
       break;
     case CD_PROP_COLOR:
-      field = params.get_input<Field<ColorGeometry4f>>("Value_Color");
+      field = params.extract_input<GField>("Value_Color");
       break;
     case CD_PROP_BYTE_COLOR: {
-      field = params.get_input<Field<ColorGeometry4f>>("Value_Color");
+      field = params.extract_input<GField>("Value_Color");
       field = bke::get_implicit_type_conversions().try_convert(field,
                                                                CPPType::get<ColorGeometry4b>());
       break;
     }
     case CD_PROP_BOOL:
-      field = params.get_input<Field<bool>>("Value_Bool");
+      field = params.extract_input<GField>("Value_Bool");
       break;
     case CD_PROP_INT32:
-      field = params.get_input<Field<int>>("Value_Int");
+      field = params.extract_input<GField>("Value_Int");
       break;
     case CD_PROP_QUATERNION:
-      field = params.get_input<Field<math::Quaternion>>("Value_Rotation");
+      field = params.extract_input<GField>("Value_Rotation");
       break;
     default:
       break;
