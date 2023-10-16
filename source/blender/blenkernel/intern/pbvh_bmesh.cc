@@ -1109,6 +1109,16 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 
 /*************************** Topology update **************************/
 
+/* Copy custom data from src to dst edge.
+ *
+ * NOTE: The BM_ELEM_TAG is used to tell whether an edge is in the queue for collapse/split,
+ * so we do not copy this flag as we do not want the new edge to appear in the queue. */
+static void copy_edge_data(BMesh &bm, BMEdge &dst, /*const*/ BMEdge &src)
+{
+  dst.head.hflag = src.head.hflag & ~BM_ELEM_TAG;
+  CustomData_bmesh_copy_data(&bm.edata, &bm.edata, src.head.data, &dst.head.data);
+}
+
 static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
                                   PBVH *pbvh,
                                   BMEdge *e,
@@ -1182,6 +1192,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     /* Create first face (v1, v_new, v_opp). */
     const std::array<BMVert *, 3> first_tri({v1, v_new, v_opp});
     const std::array<BMEdge *, 3> first_edges = bm_edges_from_tri(bm, first_tri);
+    copy_edge_data(*bm, *first_edges[0], *e);
+
     f_new = pbvh_bmesh_face_create(pbvh, ni, first_tri, first_edges, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
 
@@ -1192,6 +1204,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
         BM_edge_create(bm, second_tri[1], second_tri[2], nullptr, BM_CREATE_NO_DOUBLE),
         first_edges[1],
     };
+    copy_edge_data(*bm, *second_edges[0], *e);
+
     f_new = pbvh_bmesh_face_create(pbvh, ni, second_tri, second_edges, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
 
