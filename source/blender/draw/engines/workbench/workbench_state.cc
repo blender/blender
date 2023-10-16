@@ -152,6 +152,12 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
     reset_taa = true;
   }
 
+  if (assign_if_different(overlays_enabled, v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS))) {
+    /** Reset TAA when enabling overlays, since we won't have valid sample0 depth textures.
+     * (See #113741) */
+    reset_taa = true;
+  }
+
   if (reset_taa || samples_len <= 1) {
     sample = 0;
   }
@@ -173,8 +179,6 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
              shading.flag & V3D_SHADING_DEPTH_OF_FIELD;
 
   draw_object_id = draw_outline || draw_curvature;
-
-  overlays_enabled = v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS);
 };
 
 static const CustomData *get_loop_custom_data(const Mesh *mesh)
