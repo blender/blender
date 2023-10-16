@@ -1395,7 +1395,9 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
     }
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
-      /* By default don't allow nullptr string args, callers may clear. */
+      /* By default don't allow nullptr string args, callers may clear.
+       * Used so generated 'get/length/set' functions skip a nullptr check
+       * in some cases we want it */
       RNA_def_property_flag(prop, PROP_NEVER_NULL);
       sprop->defaultvalue = "";
       break;
@@ -1428,7 +1430,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
   prop->rawtype = RawPropertyType(-1);
 
   if (!ELEM(type, PROP_COLLECTION, PROP_POINTER)) {
-    prop->flag = PROP_EDITABLE;
+    RNA_def_property_flag(prop, PROP_EDITABLE);
 
     if (type != PROP_STRING) {
 #ifdef RNA_RUNTIME
@@ -1446,12 +1448,6 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
     prop->flag_override |= PROPOVERRIDE_OVERRIDABLE_LIBRARY;
   }
 #endif
-
-  if (type == PROP_STRING) {
-    /* used so generated 'get/length/set' functions skip a nullptr check
-     * in some cases we want it */
-    RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  }
 
   if (DefRNA.preprocess) {
     switch (type) {
