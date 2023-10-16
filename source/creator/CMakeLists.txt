@@ -898,9 +898,20 @@ elseif(WIN32)
 
   if(WITH_CODEC_FFMPEG)
     # Filenames change slightly between ffmpeg versions
-    # check both 5.0 and fallback to 4.4 to ease the transition
+    # check both 6.0 and fallback to 5.0 to ease the transition
     # between versions.
-    if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-59.dll")
+    if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-60.dll")
+      install(
+        FILES
+          ${LIBDIR}/ffmpeg/lib/avcodec-60.dll
+          ${LIBDIR}/ffmpeg/lib/avformat-60.dll
+          ${LIBDIR}/ffmpeg/lib/avdevice-60.dll
+          ${LIBDIR}/ffmpeg/lib/avutil-58.dll
+          ${LIBDIR}/ffmpeg/lib/swscale-7.dll
+          ${LIBDIR}/ffmpeg/lib/swresample-4.dll
+        DESTINATION "."
+      )
+    else()
       install(
         FILES
           ${LIBDIR}/ffmpeg/lib/avcodec-59.dll
@@ -909,17 +920,6 @@ elseif(WIN32)
           ${LIBDIR}/ffmpeg/lib/avutil-57.dll
           ${LIBDIR}/ffmpeg/lib/swscale-6.dll
           ${LIBDIR}/ffmpeg/lib/swresample-4.dll
-        DESTINATION "."
-      )
-    else()
-      install(
-        FILES
-          ${LIBDIR}/ffmpeg/lib/avcodec-58.dll
-          ${LIBDIR}/ffmpeg/lib/avformat-58.dll
-          ${LIBDIR}/ffmpeg/lib/avdevice-58.dll
-          ${LIBDIR}/ffmpeg/lib/avutil-56.dll
-          ${LIBDIR}/ffmpeg/lib/swscale-5.dll
-          ${LIBDIR}/ffmpeg/lib/swresample-3.dll
         DESTINATION "."
       )
     endif()

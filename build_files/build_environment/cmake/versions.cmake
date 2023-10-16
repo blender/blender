@@ -161,7 +161,7 @@ set(OPENMP_FILE openmp-${OPENMP_VERSION}.src.tar.xz)
 
 set(OPENIMAGEIO_VERSION v2.3.20.0)
 set(OPENIMAGEIO_URI https://github.com/OpenImageIO/oiio/archive/refs/tags/${OPENIMAGEIO_VERSION}.tar.gz)
-set(OPENIMAGEIO_HASH defb1fe7c8e64bac60eb3cacaf5c3736)
+set(OPENIMAGEIO_HASH 5a25a98b961f04f8b2828885b50e9a2b)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
 
@@ -462,7 +462,7 @@ set(EMBREE_FILE embree-v${EMBREE_VERSION}.zip)
 
 set(USD_VERSION 22.03)
 set(USD_URI https://github.com/PixarAnimationStudios/OpenUSD/archive/v${USD_VERSION}.tar.gz)
-set(USD_HASH e0e441a05057692a83124a1195b09eed)
+set(USD_HASH f6b1d79cbce82d1da6fc1a322ab7a2c1)
 set(USD_HASH_TYPE MD5)
 set(USD_FILE usd-v${USD_VERSION}.tar.gz)
 
