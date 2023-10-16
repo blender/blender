@@ -899,58 +899,59 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
                              bool is_object_active,
                              bool use_hide)
 {
-  eSnapMode retval = SCE_SNAP_TO_NONE;
-
   if (ob_data == nullptr && (ob_eval->type == OB_MESH)) {
-    retval = snap_object_editmesh(
+    return snap_object_editmesh(
         sctx, ob_eval, nullptr, obmat, sctx->runtime.snap_to_flag, use_hide);
   }
-  else if (ob_data == nullptr) {
-    retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
+
+  if (ob_data == nullptr) {
+    return snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
   }
-  else {
-    switch (ob_eval->type) {
-      case OB_MESH: {
-        if (ob_eval->dt == OB_BOUNDBOX) {
-          /* Do not snap to objects that are in bounding box display mode */
-          return SCE_SNAP_TO_NONE;
-        }
-        if (GS(ob_data->name) == ID_ME) {
-          retval = snap_object_mesh(
-              sctx, ob_eval, ob_data, obmat, sctx->runtime.snap_to_flag, use_hide);
-        }
-        break;
-      }
-      case OB_ARMATURE:
-        retval = snapArmature(sctx, ob_eval, obmat, is_object_active);
-        break;
-      case OB_CURVES_LEGACY:
-      case OB_SURF:
-        if (ob_eval->type == OB_CURVES_LEGACY || BKE_object_is_in_editmode(ob_eval)) {
-          retval = snapCurve(sctx, ob_eval, obmat);
-          if (sctx->runtime.params.edit_mode_type != SNAP_GEOM_FINAL) {
-            break;
-          }
-        }
-        ATTR_FALLTHROUGH;
-      case OB_FONT: {
-        const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-        if (mesh_eval) {
-          retval |= snap_object_mesh(
-              sctx, ob_eval, (ID *)mesh_eval, obmat, sctx->runtime.snap_to_flag, use_hide);
-        }
-        break;
-      }
-      case OB_EMPTY:
-      case OB_GPENCIL_LEGACY:
-      case OB_LAMP:
-        retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
-        break;
-      case OB_CAMERA:
-        retval = snapCamera(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
-        break;
+
+  if (ob_eval->dt == OB_BOUNDBOX) {
+    /* Do not snap to objects that are in bounding box display mode */
+    return SCE_SNAP_TO_NONE;
+  }
+
+  if (GS(ob_data->name) == ID_ME) {
+    return snap_object_mesh(sctx, ob_eval, ob_data, obmat, sctx->runtime.snap_to_flag, use_hide);
+  }
+
+  eSnapMode retval = SCE_SNAP_TO_NONE;
+  switch (ob_eval->type) {
+    case OB_MESH: {
+      break;
     }
+    case OB_ARMATURE:
+      retval = snapArmature(sctx, ob_eval, obmat, is_object_active);
+      break;
+    case OB_CURVES_LEGACY:
+    case OB_SURF:
+      if (ob_eval->type == OB_CURVES_LEGACY || BKE_object_is_in_editmode(ob_eval)) {
+        retval = snapCurve(sctx, ob_eval, obmat);
+        if (sctx->runtime.params.edit_mode_type != SNAP_GEOM_FINAL) {
+          break;
+        }
+      }
+      ATTR_FALLTHROUGH;
+    case OB_FONT: {
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      if (mesh_eval) {
+        retval |= snap_object_mesh(
+            sctx, ob_eval, (ID *)mesh_eval, obmat, sctx->runtime.snap_to_flag, use_hide);
+      }
+      break;
+    }
+    case OB_EMPTY:
+    case OB_GPENCIL_LEGACY:
+    case OB_LAMP:
+      retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
+      break;
+    case OB_CAMERA:
+      retval = snapCamera(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
+      break;
   }
+
   return retval;
 }
 
