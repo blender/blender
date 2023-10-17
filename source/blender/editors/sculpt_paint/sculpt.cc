@@ -5087,14 +5087,13 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   Sculpt *sd = scene->toolsettings->sculpt;
   Object *ob;
   SculptSession *ss;
-  ViewContext vc;
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
   float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3], sampled_normal[3],
       mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
   bool original = false;
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   ob = vc.obact;
   ss = ob->sculpt;
@@ -5227,9 +5226,8 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
   StrokeCache *cache;
   float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3];
   bool original;
-  ViewContext vc;
-
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   ob = vc.obact;
 

@@ -1559,10 +1559,9 @@ wmKeyMap *curve_pen_modal_keymap(wmKeyConfig *keyconf)
 static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Object *obedit = CTX_data_edit_object(C);
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   Curve *cu = static_cast<Curve *>(vc.obedit->data);
   ListBase *nurbs = &cu->editnurb->nurbs;
   const float threshold_dist_px = ED_view3d_select_dist_px() * SEL_DIST_FACTOR;
@@ -1749,8 +1748,8 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, CTX_data_ensure_evaluated_depsgraph(C));
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   Curve *cu = static_cast<Curve *>(vc.obedit->data);
   ListBase *nurbs = &cu->editnurb->nurbs;
 

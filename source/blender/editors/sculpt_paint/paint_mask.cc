@@ -291,7 +291,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
                                                SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ED_view3d_viewcontext_init(C, &sgcontext->vc, depsgraph);
+  sgcontext->vc = ED_view3d_viewcontext_init(C, depsgraph);
   Object *ob = sgcontext->vc.obact;
 
   /* Operator properties. */

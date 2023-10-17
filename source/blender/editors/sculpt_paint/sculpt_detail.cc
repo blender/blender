@@ -246,8 +246,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
   CTX_wm_region_set(C, region);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   Object *ob = vc.obact;
   if (ob == nullptr) {

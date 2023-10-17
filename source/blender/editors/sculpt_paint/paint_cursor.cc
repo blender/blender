@@ -1307,7 +1307,7 @@ static bool paint_cursor_context_init(bContext *C,
   }
   pcontext->mode = BKE_paintmode_get_active_from_context(C);
 
-  ED_view3d_viewcontext_init(C, &pcontext->vc, pcontext->depsgraph);
+  pcontext->vc = ED_view3d_viewcontext_init(C, pcontext->depsgraph);
 
   if (pcontext->brush->flag & BRUSH_CURVE) {
     pcontext->cursor_type = PAINT_CURSOR_CURVE;

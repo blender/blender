@@ -315,9 +315,7 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
         transform_radius = BKE_brush_unprojected_radius_get(scene, brush);
       }
       else {
-        ViewContext vc;
-
-        ED_view3d_viewcontext_init(C, &vc, depsgraph);
+        ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         transform_radius = paint_calc_object_space_radius(
             &vc, ss->init_pivot_pos, BKE_brush_size_get(scene, brush));

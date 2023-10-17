@@ -148,8 +148,7 @@ void SCULPT_filter_cache_init(bContext *C,
   invert_m4_m4(ss->filter_cache->obmat_inv, ob->object_to_world);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   ss->filter_cache->vc = vc;
   if (vc.rv3d) {

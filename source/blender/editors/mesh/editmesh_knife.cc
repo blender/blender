@@ -4810,10 +4810,9 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const float angle_snapping_increment = RAD2DEGF(
       RNA_float_get(op->ptr, "angle_snapping_increment"));
 
-  ViewContext vc;
   KnifeTool_OpData *kcd;
 
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
 
   /* alloc new customdata */
   kcd = static_cast<KnifeTool_OpData *>(

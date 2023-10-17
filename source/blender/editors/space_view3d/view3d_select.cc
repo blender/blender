@@ -113,22 +113,22 @@ float ED_view3d_select_dist_px()
   return 75.0f * U.pixelsize;
 }
 
-void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph)
+ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph)
 {
   /* TODO: should return whether there is valid context to continue. */
-
-  memset(vc, 0, sizeof(ViewContext));
-  vc->C = C;
-  vc->region = CTX_wm_region(C);
-  vc->bmain = CTX_data_main(C);
-  vc->depsgraph = depsgraph;
-  vc->scene = CTX_data_scene(C);
-  vc->view_layer = CTX_data_view_layer(C);
-  vc->v3d = CTX_wm_view3d(C);
-  vc->win = CTX_wm_window(C);
-  vc->rv3d = CTX_wm_region_view3d(C);
-  vc->obact = CTX_data_active_object(C);
-  vc->obedit = CTX_data_edit_object(C);
+  ViewContext vc = {};
+  vc.C = C;
+  vc.region = CTX_wm_region(C);
+  vc.bmain = CTX_data_main(C);
+  vc.depsgraph = depsgraph;
+  vc.scene = CTX_data_scene(C);
+  vc.view_layer = CTX_data_view_layer(C);
+  vc.v3d = CTX_wm_view3d(C);
+  vc.win = CTX_wm_window(C);
+  vc.rv3d = CTX_wm_region_view3d(C);
+  vc.obact = CTX_data_active_object(C);
+  vc.obedit = CTX_data_edit_object(C);
+  return vc;
 }
 
 void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
@@ -1461,7 +1461,6 @@ static bool view3d_lasso_select(bContext *C,
  * with short array we convert */
 static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  ViewContext vc;
   int mcoords_len;
   const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
@@ -1471,7 +1470,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
     BKE_object_update_select_id(CTX_data_main(C));
 
     /* setup view context for argument to callbacks */
-    ED_view3d_viewcontext_init(C, &vc, depsgraph);
+    ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
     eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
     bool changed_multi = view3d_lasso_select(C, &vc, mcoords, mcoords_len, sel_op);
@@ -2411,7 +2410,6 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
                                                  int *r_material_slot)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Base *basact = nullptr;
   GPUSelectResult buffer[MAXPICKELEMS];
 
@@ -2419,7 +2417,7 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
   view3d_operator_needs_opengl(C);
   BKE_object_update_select_id(CTX_data_main(C));
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
   const bool do_material_slot_selection = r_material_slot != nullptr;
@@ -2588,9 +2586,8 @@ static bool ed_object_select_pick(bContext *C,
                                   const bool object_only)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   /* Setup view context for argument to callbacks. */
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   Scene *scene = vc.scene;
   View3D *v3d = vc.v3d;
@@ -3063,9 +3060,8 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
-  ViewContext vc;
   /* Setup view context for argument to callbacks. */
-  ED_view3d_viewcontext_init(&C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(&C, depsgraph);
 
   uint bases_len;
   Base **bases_ptr = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
@@ -3164,9 +3160,8 @@ static bool ed_grease_pencil_select_pick(bContext *C,
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   /* Setup view context for argument to callbacks. */
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   /* Collect editable drawings. */
   const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
@@ -3272,8 +3267,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   SelectPick_Params params{};
   ED_select_pick_params_from_operator(op->ptr, &params);
@@ -4220,7 +4214,6 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   rcti rect;
   bool changed_multi = false;
 
@@ -4231,7 +4224,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
   BKE_object_update_select_id(CTX_data_main(C));
 
   /* setup view context for argument to callbacks */
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
   WM_operator_properties_border_to_rcti(op, &rect);
@@ -5186,8 +5179,7 @@ static void view3d_circle_select_recalc(void *user_data)
   if (obedit_active) {
     switch (obedit_active->type) {
       case OB_MESH: {
-        ViewContext vc;
-        em_setup_viewcontext(C, &vc);
+        ViewContext vc = em_setup_viewcontext(C);
         FOREACH_OBJECT_IN_MODE_BEGIN (
             vc.scene, vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter)
         {
@@ -5226,7 +5218,6 @@ static void view3d_circle_select_cancel(bContext *C, wmOperator *op)
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   const int radius = RNA_int_get(op->ptr, "radius");
   const int mval[2] = {RNA_int_get(op->ptr, "x"), RNA_int_get(op->ptr, "y")};
 
@@ -5238,7 +5229,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = ED_select_op_modal(
       static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode")), WM_gesture_is_modal_first(gesture));
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   Object *obact = vc.obact;
   Object *obedit = vc.obedit;

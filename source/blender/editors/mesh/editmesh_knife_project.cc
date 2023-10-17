@@ -123,8 +123,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ViewContext vc;
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
 
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(

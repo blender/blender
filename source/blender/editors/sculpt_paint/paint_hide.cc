@@ -289,11 +289,10 @@ static void clip_planes_from_rect(bContext *C,
                                   float clip_planes[4][4],
                                   const rcti *rect)
 {
-  ViewContext vc;
   BoundBox bb;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, rect);
 }
 

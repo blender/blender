@@ -414,13 +414,12 @@ void paint_sample_color(
       const int *material_indices = (const int *)CustomData_get_layer_named(
           &me_eval->face_data, CD_PROP_INT32, "material_index");
 
-      ViewContext vc;
       const int mval[2] = {x, y};
       uint faceindex;
       uint faces_num = me->faces_num;
 
       if (CustomData_has_layer(&me_eval->loop_data, CD_PROP_FLOAT2)) {
-        ED_view3d_viewcontext_init(C, &vc, depsgraph);
+        ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         view3d_operator_needs_opengl(C);
 
