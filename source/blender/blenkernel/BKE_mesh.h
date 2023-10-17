@@ -539,6 +539,7 @@ void BKE_mesh_flush_hidden_from_faces(struct Mesh *me);
 
 void BKE_mesh_flush_select_from_faces(struct Mesh *me);
 void BKE_mesh_flush_select_from_verts(struct Mesh *me);
+void BKE_mesh_flush_select_from_edges(struct Mesh *me);
 
 /* spatial evaluation */
 /**
