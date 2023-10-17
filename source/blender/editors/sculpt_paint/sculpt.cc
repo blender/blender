@@ -5226,7 +5226,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
   StrokeCache *cache;
   float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3];
   bool original;
-  
+
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   ob = vc.obact;
