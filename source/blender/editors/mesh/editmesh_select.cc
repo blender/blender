@@ -6,6 +6,8 @@
  * \ingroup edmesh
  */
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
@@ -5356,6 +5358,110 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
                   false,
                   "Select Bigger",
                   "Select bigger regions instead of smaller ones");
+}
+
+static bool edbm_select_by_attribute_poll(bContext *C)
+{
+  if (!ED_operator_editmesh(C)) {
+    return false;
+  }
+  Object *obedit = CTX_data_edit_object(C);
+  const Mesh *mesh = static_cast<const Mesh *>(obedit->data);
+  const CustomDataLayer *layer = BKE_id_attributes_active_get(&const_cast<ID &>(mesh->id));
+  if (!layer) {
+    CTX_wm_operator_poll_msg_set(C, "There must be an active attribute");
+    return false;
+  }
+  if (layer->type != CD_PROP_BOOL) {
+    CTX_wm_operator_poll_msg_set(C, "The active attribute must have a boolean type");
+    return false;
+  }
+  if (BKE_id_attribute_domain(&mesh->id, layer) == ATTR_DOMAIN_CORNER) {
+    CTX_wm_operator_poll_msg_set(
+        C, "The active attribute must be on the vertex, edge, or face domain");
+    return false;
+  }
+  return true;
+}
+
+static std::optional<BMIterType> domain_to_iter_type(const eAttrDomain domain)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      return BM_VERTS_OF_MESH;
+    case ATTR_DOMAIN_EDGE:
+      return BM_EDGES_OF_MESH;
+    case ATTR_DOMAIN_FACE:
+      return BM_FACES_OF_MESH;
+    default:
+      return std::nullopt;
+  }
+}
+
+static int edbm_select_by_attribute_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMesh *bm = em->bm;
+
+    const CustomDataLayer *layer = BKE_id_attributes_active_get(&mesh->id);
+    if (!layer) {
+      continue;
+    }
+    if (layer->type != CD_PROP_BOOL) {
+      continue;
+    }
+    if (BKE_id_attribute_domain(&mesh->id, layer) == ATTR_DOMAIN_CORNER) {
+      continue;
+    }
+    const std::optional<BMIterType> iter_type = domain_to_iter_type(
+        BKE_id_attribute_domain(&mesh->id, layer));
+    if (!iter_type) {
+      continue;
+    }
+
+    bool changed = false;
+    BMElem *elem;
+    BMIter iter;
+    BM_ITER_MESH (elem, &iter, bm, *iter_type) {
+      if (BM_elem_flag_test(elem, BM_ELEM_HIDDEN | BM_ELEM_SELECT)) {
+        continue;
+      }
+      if (BM_ELEM_CD_GET_BOOL(elem, layer->offset)) {
+        BM_elem_select_set(bm, elem, true);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      EDBM_selectmode_flush(em);
+
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+    }
+  }
+  MEM_freeN(objects);
+
+  return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_by_attribute(wmOperatorType *ot)
+{
+  ot->name = "Select by Attribute";
+  ot->idname = "MESH_OT_select_by_attribute";
+  ot->description = "Select elements based on the active boolean attribute";
+
+  ot->exec = edbm_select_by_attribute_exec;
+  ot->poll = edbm_select_by_attribute_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */

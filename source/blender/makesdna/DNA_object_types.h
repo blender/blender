@@ -60,6 +60,16 @@ typedef struct bDeformGroup {
   char flag, _pad0[7];
 } bDeformGroup;
 
+#ifdef DNA_DEPRECATED_ALLOW
+typedef struct bFaceMap {
+  struct bFaceMap *next, *prev;
+  /** MAX_VGROUP_NAME. */
+  char name[64];
+  char flag;
+  char _pad0[7];
+} bFaceMap;
+#endif
+
 #define MAX_VGROUP_NAME 64
 
 /** #bDeformGroup::flag */
@@ -349,6 +359,7 @@ typedef struct Object {
   ListBase constraintChannels DNA_DEPRECATED; /* XXX deprecated... old animation system */
   ListBase effect DNA_DEPRECATED;             /* XXX deprecated... keep for readfile */
   ListBase defbase DNA_DEPRECATED;            /* Only for versioning, moved to object data. */
+  ListBase fmaps DNA_DEPRECATED;              /* For versioning, moved to generic attributes. */
   /** List of ModifierData structures. */
   ListBase modifiers;
   /** List of GpencilModifierData structures. */

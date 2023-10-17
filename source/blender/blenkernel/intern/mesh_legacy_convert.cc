@@ -17,11 +17,13 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
+#include "BLI_multi_value_map.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_resource_scope.hh"
 #include "BLI_string.h"
@@ -31,6 +33,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_multires.hh"
@@ -1346,18 +1349,18 @@ void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
 /** \name Face Map Conversion
  * \{ */
 
-void BKE_mesh_legacy_face_map_to_generic(Mesh *mesh)
+static void move_face_map_data_to_attributes(Mesh *mesh)
 {
   using namespace blender;
   if (mesh->attributes().contains("face_maps")) {
     return;
   }
-  void *data = nullptr;
+  int *data = nullptr;
   const ImplicitSharingInfo *sharing_info = nullptr;
   for (const int i : IndexRange(mesh->face_data.totlayer)) {
     CustomDataLayer &layer = mesh->face_data.layers[i];
     if (layer.type == CD_FACEMAP) {
-      data = layer.data;
+      data = static_cast<int *>(layer.data);
       sharing_info = layer.sharing_info;
       layer.data = nullptr;
       layer.sharing_info = nullptr;
@@ -1365,12 +1368,52 @@ void BKE_mesh_legacy_face_map_to_generic(Mesh *mesh)
       break;
     }
   }
-  if (data != nullptr) {
-    CustomData_add_layer_named_with_data(
-        &mesh->face_data, CD_PROP_INT32, data, mesh->faces_num, "face_maps", sharing_info);
+  if (!data) {
+    return;
   }
+
+  CustomData_add_layer_named_with_data(
+      &mesh->face_data, CD_PROP_INT32, data, mesh->faces_num, "face_maps", sharing_info);
   if (sharing_info != nullptr) {
     sharing_info->remove_user_and_delete_if_last();
+  }
+
+  MultiValueMap<int, int> groups;
+  for (const int i : IndexRange(mesh->faces_num)) {
+    if (data[i] == -1) {
+      /* -1 values "didn't have" a face map. */
+      continue;
+    }
+    groups.add(data[i], i);
+  }
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  for (const auto item : groups.items()) {
+    bke::SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_span<bool>(
+        ".temp_face_map_" + std::to_string(item.key), ATTR_DOMAIN_FACE);
+    if (attribute) {
+      attribute.span.fill_indices(item.value.as_span(), true);
+      attribute.finish();
+    }
+  }
+}
+
+void BKE_mesh_legacy_face_map_to_generic(Main *bmain)
+{
+  LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+    move_face_map_data_to_attributes(mesh);
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (object->type != OB_MESH) {
+      continue;
+    }
+    Mesh *mesh = static_cast<Mesh *>(object->data);
+    int i;
+    LISTBASE_FOREACH_INDEX (bFaceMap *, face_map, &object->fmaps, i) {
+      mesh->attributes_for_write().rename(".temp_face_map_" + std::to_string(i), face_map->name);
+    }
+    BLI_freelistN(&object->fmaps);
   }
 }
 

@@ -1902,6 +1902,10 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.operator("mesh.select_axis", text="Side of Active")
         layout.operator("mesh.select_mirror")
 
+        layout.separator()
+
+        layout.operator("mesh.select_by_attribute", text="By Attribute")
+
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 

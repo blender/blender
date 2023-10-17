@@ -72,7 +72,7 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh);
 
 void BKE_mesh_legacy_convert_loops_to_corners(Mesh *mesh);
 
-void BKE_mesh_legacy_face_map_to_generic(Mesh *mesh);
+void BKE_mesh_legacy_face_map_to_generic(Main *bmain);
 
 /**
  * Recreate #MFace Tessellation.

@@ -73,6 +73,7 @@ void ED_operatortypes_mesh()
   WM_operatortype_append(MESH_OT_edge_rotate);
   WM_operatortype_append(MESH_OT_shortest_path_select);
   WM_operatortype_append(MESH_OT_loop_to_region);
+  WM_operatortype_append(MESH_OT_select_by_attribute);
   WM_operatortype_append(MESH_OT_region_to_loop);
   WM_operatortype_append(MESH_OT_select_axis);
 
