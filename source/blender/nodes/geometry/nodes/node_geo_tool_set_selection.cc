@@ -54,6 +54,13 @@ static void node_geo_exec(GeoNodeExecParams params)
                                              selection);
           BKE_mesh_flush_select_from_verts(mesh);
           break;
+        case ATTR_DOMAIN_EDGE:
+          bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
+                                             ".select_edge",
+                                             ATTR_DOMAIN_EDGE,
+                                             selection);
+          BKE_mesh_flush_select_from_edges(mesh);
+          break;
         case ATTR_DOMAIN_FACE:
           /* Remove attributes in case they are on the wrong domain, which can happen after
            * conversion to and from other geometry types. */
@@ -93,7 +100,7 @@ static void node_rna(StructRNA *srna)
                     "domain",
                     "Domain",
                     "",
-                    rna_enum_attribute_domain_point_face_curve_items,
+                    rna_enum_attribute_domain_point_edge_face_curve_items,
                     NOD_inline_enum_accessors(custom1),
                     ATTR_DOMAIN_POINT);
 }
