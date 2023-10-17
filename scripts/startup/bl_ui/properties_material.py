@@ -270,7 +270,7 @@ class EEVEE_NEXT_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
         row.prop(mat, "alpha_threshold")
 
         if mat.blend_method not in {'OPAQUE', 'CLIP', 'HASHED'}:
-            col.prop(mat, "show_transparent_back", text="Transparency")
+            layout.prop(mat, "show_transparent_back")
 
         layout.prop(mat, "use_screen_refraction")
         layout.prop(mat, "pass_index")
