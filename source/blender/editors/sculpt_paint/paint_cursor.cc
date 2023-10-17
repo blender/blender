@@ -1539,6 +1539,9 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       return;
     }
 
+    /* Note: For now, there is only as screen space sized cursor. */
+    radius = BKE_brush_size_get(pcontext->scene, brush);
+
     /* Get current drawing material. */
     Material *ma = BKE_grease_pencil_object_material_from_brush_get(object, brush);
     if (ma) {
@@ -1559,9 +1562,6 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
                                              ELEM(brush->gpencil_settings->vertex_mode,
                                                   GPPAINT_MODE_STROKE,
                                                   GPPAINT_MODE_BOTH);
-
-        radius = ed::greasepencil::brush_radius_world_space(
-            *pcontext->C, pcontext->x, pcontext->y);
 
         copy_v3_v3(color, use_vertex_color_stroke ? brush->rgb : gp_style->stroke_rgba);
       }

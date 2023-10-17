@@ -29,6 +29,17 @@ namespace blender::ed::sculpt_paint::greasepencil {
 static constexpr float POINT_OVERRIDE_THRESHOLD_PX = 3.0f;
 static constexpr float POINT_RESAMPLE_MIN_DISTANCE_PX = 10.0f;
 
+static float calc_brush_radius(ViewContext *vc,
+                               const Brush *brush,
+                               const Scene *scene,
+                               const float3 location)
+{
+  if (!BKE_brush_use_locked_size(scene, brush)) {
+    return paint_calc_object_space_radius(vc, location, BKE_brush_size_get(scene, brush));
+  }
+  return BKE_brush_unprojected_radius_get(scene, brush);
+}
+
 template<typename T>
 static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> dst)
 {
@@ -110,12 +121,11 @@ class PaintOperation : public GreasePencilStrokeOperation {
  * because it avoids passing a very large number of parameters between functions.
  */
 struct PaintOperationExecutor {
+  Scene *scene_;
   ARegion *region_;
   GreasePencil *grease_pencil_;
 
   Brush *brush_;
-  int brush_size_;
-  float brush_alpha_;
 
   BrushGpencilSettings *settings_;
   float4 vertex_color_;
@@ -126,18 +136,16 @@ struct PaintOperationExecutor {
 
   PaintOperationExecutor(const bContext &C)
   {
-    Scene *scene = CTX_data_scene(&C);
+    scene_ = CTX_data_scene(&C);
     region_ = CTX_wm_region(&C);
     Object *object = CTX_data_active_object(&C);
     grease_pencil_ = static_cast<GreasePencil *>(object->data);
 
-    Paint *paint = &scene->toolsettings->gp_paint->paint;
+    Paint *paint = &scene_->toolsettings->gp_paint->paint;
     brush_ = BKE_paint_brush(paint);
     settings_ = brush_->gpencil_settings;
-    brush_size_ = BKE_brush_size_get(scene, brush_);
-    brush_alpha_ = BKE_brush_alpha_get(scene, brush_);
 
-    const bool use_vertex_color = (scene->toolsettings->gp_paint->mode ==
+    const bool use_vertex_color = (scene_->toolsettings->gp_paint->mode ==
                                    GPPAINT_FLAG_USE_VERTEXCOLOR);
     const bool use_vertex_color_stroke = use_vertex_color && ELEM(settings_->vertex_mode,
                                                                   GPPAINT_MODE_STROKE,
@@ -154,7 +162,7 @@ struct PaintOperationExecutor {
     /* The object should have an active layer. */
     BLI_assert(grease_pencil_->has_active_layer());
     bke::greasepencil::Layer &active_layer = *grease_pencil_->get_active_layer_for_write();
-    const int drawing_index = active_layer.drawing_index_at(scene->r.cfra);
+    const int drawing_index = active_layer.drawing_index_at(scene_->r.cfra);
 
     /* Drawing should exist. */
     BLI_assert(drawing_index >= 0);
@@ -174,9 +182,12 @@ struct PaintOperationExecutor {
     return math::transform_point(transforms_.world_space_to_layer_space, proj_point);
   }
 
-  float radius_from_input_sample(const InputSample &sample)
+  float radius_from_input_sample(const bContext &C, const InputSample &sample)
   {
-    float radius = brush_size_ / 2.0f;
+    ViewContext vc;
+    ED_view3d_viewcontext_init(const_cast<bContext *>(&C), &vc, CTX_data_depsgraph_pointer(&C));
+    float radius = calc_brush_radius(
+        &vc, brush_, scene_, screen_space_to_drawing_plane(sample.mouse_position));
     if (BKE_brush_use_size_pressure(brush_)) {
       radius *= BKE_curvemapping_evaluateF(settings_->curve_sensitivity, 0, sample.pressure);
     }
@@ -185,7 +196,7 @@ struct PaintOperationExecutor {
 
   float opacity_from_input_sample(const InputSample &sample)
   {
-    float opacity = brush_alpha_;
+    float opacity = BKE_brush_alpha_get(scene_, brush_);
     if (BKE_brush_use_alpha_pressure(brush_)) {
       opacity *= BKE_curvemapping_evaluateF(settings_->curve_strength, 0, sample.pressure);
     }
@@ -193,11 +204,12 @@ struct PaintOperationExecutor {
   }
 
   void process_start_sample(PaintOperation &self,
+                            const bContext &C,
                             const InputSample &start_sample,
                             const int material_index)
   {
     const float2 start_coords = start_sample.mouse_position;
-    const float start_radius = this->radius_from_input_sample(start_sample);
+    const float start_radius = this->radius_from_input_sample(C, start_sample);
     const float start_opacity = this->opacity_from_input_sample(start_sample);
     const ColorGeometry4f start_vertex_color = ColorGeometry4f(vertex_color_);
 
@@ -332,11 +344,12 @@ struct PaintOperationExecutor {
   }
 
   void process_extension_sample(PaintOperation &self,
+                                const bContext &C,
                                 const InputSample &extension_sample,
                                 const int curve_index)
   {
     const float2 coords = extension_sample.mouse_position;
-    const float radius = this->radius_from_input_sample(extension_sample);
+    const float radius = this->radius_from_input_sample(C, extension_sample);
     const float opacity = this->opacity_from_input_sample(extension_sample);
     const ColorGeometry4f vertex_color = ColorGeometry4f(vertex_color_);
 
@@ -403,11 +416,11 @@ struct PaintOperationExecutor {
         self, points, points.index_range().drop_front(self.active_smooth_index_));
   }
 
-  void execute(PaintOperation &self, const InputSample &extension_sample)
+  void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)
   {
     /* New curve was created in `process_start_sample`.*/
     const int curve_index = drawing_->strokes().curves_range().last();
-    this->process_extension_sample(self, extension_sample, curve_index);
+    this->process_extension_sample(self, C, extension_sample, curve_index);
     drawing_->tag_topology_changed();
   }
 };
@@ -436,7 +449,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   const int material_index = BKE_grease_pencil_object_material_index_get(object, material);
 
   PaintOperationExecutor executor{C};
-  executor.process_start_sample(*this, start_sample, material_index);
+  executor.process_start_sample(*this, C, start_sample, material_index);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, grease_pencil);
@@ -448,7 +461,7 @@ void PaintOperation::on_stroke_extended(const bContext &C, const InputSample &ex
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
 
   PaintOperationExecutor executor{C};
-  executor.execute(*this, extension_sample);
+  executor.execute(*this, C, extension_sample);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, grease_pencil);

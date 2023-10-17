@@ -85,7 +85,7 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry_next)
     .vertex_out(gpencil_geometry_flat_iface)
     .vertex_out(gpencil_geometry_noperspective_iface)
     .vertex_source("grease_pencil_vert.glsl")
-    .fragment_source("gpencil_frag.glsl")
+    .fragment_source("grease_pencil_frag.glsl")
     .additional_info("draw_gpencil_new")
     .depth_write(DepthWrite::ANY);
 
