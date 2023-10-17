@@ -565,7 +565,7 @@ float SEQ_retiming_key_speed_get(const Sequence *seq, const SeqRetimingKey *key)
 
   const SeqRetimingKey *key_prev = key - 1;
 
-  const int frame_index_max = seq->len - 1;
+  const int frame_index_max = seq->len;
   const int frame_retimed_prev = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const int frame_index_prev = key_prev->strip_frame_index;
   const int frame_retimed = round_fl_to_int(key->retiming_factor * frame_index_max);
