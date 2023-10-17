@@ -81,9 +81,8 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
                                                                      IndexMask(mesh->faces_num);
         const AttributeAccessor attributes = mesh->attributes();
         VArray<bool> selection = select_by_material(
-            {mesh->mat, mesh->totcol}, material_, attributes, domain, domain_mask);
-        return mesh->attributes().adapt_domain<bool>(
-            std::move(selection), ATTR_DOMAIN_FACE, domain);
+            {mesh->mat, mesh->totcol}, material_, attributes, ATTR_DOMAIN_FACE, domain_mask);
+        return attributes.adapt_domain<bool>(std::move(selection), ATTR_DOMAIN_FACE, domain);
       }
       case GeometryComponent::Type::GreasePencil: {
         const bke::CurvesGeometry *curves = context.curves_or_strokes();
@@ -102,10 +101,9 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
             {grease_pencil.material_array, grease_pencil.material_array_num},
             material_,
             attributes,
-            domain,
+            ATTR_DOMAIN_CURVE,
             domain_mask);
-        return curves->attributes().adapt_domain<bool>(
-            std::move(selection), ATTR_DOMAIN_CURVE, domain);
+        return attributes.adapt_domain<bool>(std::move(selection), ATTR_DOMAIN_CURVE, domain);
       }
       default:
         return {};
