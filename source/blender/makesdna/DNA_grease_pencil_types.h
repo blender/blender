@@ -467,6 +467,9 @@ typedef struct GreasePencil {
   /* Adding layers and layer groups. */
   blender::bke::greasepencil::Layer &add_layer(
       blender::bke::greasepencil::LayerGroup &parent_group, blender::StringRefNull name);
+  blender::bke::greasepencil::Layer &add_layer(
+      blender::bke::greasepencil::LayerGroup &parent_group,
+      const blender::bke::greasepencil::Layer &duplicate_layer);
   blender::bke::greasepencil::LayerGroup &add_layer_group(
       blender::bke::greasepencil::LayerGroup &parent_group, blender::StringRefNull name);
 
@@ -545,6 +548,10 @@ typedef struct GreasePencil {
    * drawings array.
    */
   void remove_drawings_with_no_users();
+  /**
+   * Makes sure all the drawings that the layer points to have a user.
+   */
+  void update_drawing_users_for_layer(const blender::bke::greasepencil::Layer &layer);
 
   /**
    * Returns a drawing on \a layer at frame \a frame_number or `nullptr` if no such
