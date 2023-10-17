@@ -98,7 +98,7 @@ static void remember_deformed_grease_pencil_if_necessary(const GreasePencil *gre
     if (drawing->strokes().points_num() != orig_drawing->strokes().points_num()) {
       continue;
     }
-    drawing_hints.positions->as_mutable_span().copy_from(drawing->strokes().positions());
+    drawing_hints.positions.emplace(drawing->strokes().positions());
   }
 }
 
