@@ -4223,7 +4223,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       StructRNA *type = rna_find_struct((const char *)pprop->type);
       if (type && (type->flag & STRUCT_ID) &&
           !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
-        prop->flag |= PROP_PTR_NO_OWNERSHIP;
+        RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
     }
@@ -4235,7 +4235,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       StructRNA *type = rna_find_struct((const char *)cprop->item_type);
       if (type && (type->flag & STRUCT_ID) &&
           !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
-        prop->flag |= PROP_PTR_NO_OWNERSHIP;
+        RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
     }
