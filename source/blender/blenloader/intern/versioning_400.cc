@@ -1093,8 +1093,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
 #define SCE_SNAP_PROJECT (1 << 3)
       if (ts->snap_flag & SCE_SNAP_PROJECT) {
-        ts->snap_mode &= ~SCE_SNAP_TO_FACE;
-        ts->snap_mode |= SCE_SNAP_INDIVIDUAL_PROJECT;
+        ts->snap_mode &= ~(1 << 2); /* SCE_SNAP_TO_FACE */
+        ts->snap_mode |= (1 << 8);  /* SCE_SNAP_INDIVIDUAL_PROJECT */
       }
 #undef SCE_SNAP_PROJECT
     }
@@ -1389,7 +1389,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       scene->toolsettings->snap_flag_anim |= SCE_SNAP;
-      scene->toolsettings->snap_anim_mode |= SCE_SNAP_TO_FRAME;
+      scene->toolsettings->snap_anim_mode |= (1 << 10); /* SCE_SNAP_TO_FRAME */
     }
   }
 
@@ -1641,10 +1641,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
           snap_to_new |= SCE_SNAP_TO_GRID;
         }
         if (type == IS_DEFAULT && snap_to_old & (1 << 8)) {
-          snap_to_new |= SCE_SNAP_INDIVIDUAL_PROJECT;
+          snap_to_new |= SCE_SNAP_INDIVIDUAL_NEAREST;
         }
         if (type == IS_DEFAULT && snap_to_old & (1 << 9)) {
-          snap_to_new |= SCE_SNAP_INDIVIDUAL_NEAREST;
+          snap_to_new |= SCE_SNAP_INDIVIDUAL_PROJECT;
         }
         if (snap_to_old & (1 << 10)) {
           snap_to_new |= SCE_SNAP_TO_FRAME;
