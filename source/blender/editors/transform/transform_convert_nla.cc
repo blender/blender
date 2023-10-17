@@ -621,12 +621,14 @@ static void createTransNlaData(bContext *C, TransInfo *t)
         if (tdn->handle == 2) {
           tdn += 2;
         }
-        else {
+        else if (tdn->handle) {
           tdn++;
         }
       }
     }
   }
+
+  BLI_assert(tdn <= (((TransDataNla *)tc->custom.type.data) + tc->data_len));
 
   /* cleanup temp list */
   ANIM_animdata_freelist(&anim_data);
