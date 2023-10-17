@@ -21,6 +21,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_map.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
@@ -2039,7 +2040,7 @@ static int find_layer_insertion_index(
   bke::greasepencil::LayerGroup &parent_group = *group.as_node().parent_group();
   const Span<const bke::greasepencil::TreeNode *> nodes = parent_group.nodes();
   int index = nodes.first_index(&group.as_node());
-  while (index > 0 && index < nodes.size()) {
+  while (index > 0 && index < nodes.size() - 1) {
     if (nodes[index]->is_layer()) {
       break;
     }
@@ -2050,6 +2051,7 @@ static int find_layer_insertion_index(
       index--;
     }
   }
+  index = math::clamp(index, 0, int(layers.size() - 1));
   return index;
 }
 
@@ -2327,10 +2329,6 @@ void GreasePencil::move_node_into(blender::bke::greasepencil::TreeNode &node,
     const Span<const bke::greasepencil::Layer *> layers = this->layers();
     const int from_index = layers.first_index(&node.as_layer());
     int to_index = find_layer_insertion_index(layers, parent_group, true);
-    if (from_index > to_index) {
-      to_index++;
-    }
-
     reorder_layer_data(*this, from_index, to_index);
   }
   if (node.is_group()) {
