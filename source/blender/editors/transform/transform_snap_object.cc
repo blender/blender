@@ -665,6 +665,7 @@ static void nearest_world_tree_co(BVHTree *tree,
                                   BVHTree_NearestPointCallback nearest_cb,
                                   void *treedata,
                                   const float3 &co,
+                                  const blender::float4x4 &obmat,
                                   BVHTreeNearest *r_nearest)
 {
   r_nearest->index = -1;
@@ -673,28 +674,32 @@ static void nearest_world_tree_co(BVHTree *tree,
 
   BLI_bvhtree_find_nearest(tree, co, r_nearest, nearest_cb, treedata);
 
-  float diff[3];
-  sub_v3_v3v3(diff, co, r_nearest->co);
-  r_nearest->dist_sq = len_squared_v3(diff);
+  float3 vec = float3(r_nearest->co) - co;
+  r_nearest->dist_sq = math::length(math::transform_direction(obmat, vec));
 }
 
 bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
-                        const float3 &init_co,
-                        const float3 &curr_co,
+                        const blender::float4x4 &obmat,
                         void *treedata,
                         BVHTreeNearest *r_nearest)
 {
+  float4x4 imat = math::invert(obmat);
+  float3 init_co = math::transform_point(imat, sctx->runtime.init_co);
+  float3 curr_co = math::transform_point(imat, sctx->runtime.curr_co);
+
   BVHTreeNearest nearest{};
+  float original_distance;
   if (sctx->runtime.params.keep_on_same_target) {
-    nearest_world_tree_co(tree, nearest_cb, treedata, init_co, &nearest);
+    nearest_world_tree_co(tree, nearest_cb, treedata, init_co, obmat, &nearest);
+    original_distance = nearest.dist_sq;
   }
   else {
     /* NOTE: when `params->face_nearest_steps == 1`, the return variables of function below contain
      * the answer.  We could return immediately after updating r_loc, r_no, r_index, but that would
      * also complicate the code. Foregoing slight optimization for code clarity. */
-    nearest_world_tree_co(tree, nearest_cb, treedata, curr_co, &nearest);
+    nearest_world_tree_co(tree, nearest_cb, treedata, curr_co, obmat, &nearest);
   }
 
   if (r_nearest->dist_sq <= nearest.dist_sq) {
@@ -710,11 +715,14 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   float3 co = init_co;
   for (int i = 0; i < sctx->runtime.params.face_nearest_steps; i++) {
     co += delta;
-    nearest_world_tree_co(tree, nearest_cb, treedata, co, &nearest);
+    nearest_world_tree_co(tree, nearest_cb, treedata, co, obmat, &nearest);
     co = nearest.co;
   }
 
   *r_nearest = nearest;
+  if (sctx->runtime.params.keep_on_same_target) {
+    r_nearest->dist_sq = original_distance;
+  }
   return true;
 }
 
