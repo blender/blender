@@ -106,7 +106,6 @@ static const EnumPropertyItem prop_graphkeys_insertkey_types[] = {
 static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 {
   ListBase anim_data = {nullptr, nullptr};
-  ListBase nla_cache = {nullptr, nullptr};
   int filter;
   size_t num_items;
 
@@ -214,7 +213,6 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
                                           fcu->array_index,
                                           &anim_eval_context,
                                           eBezTriple_KeyframeType(ts->keyframe_type),
-                                          &nla_cache,
                                           flag);
       }
       else {
@@ -237,8 +235,6 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       ale->update |= ANIM_UPDATE_DEFAULT;
     }
   }
-
-  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);

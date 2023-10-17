@@ -394,7 +394,6 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
                                                 index,
                                                 &anim_eval_context,
                                                 eBezTriple_KeyframeType(keytype),
-                                                nullptr,
                                                 eInsertKeyFlags(options)) != 0);
   }
 

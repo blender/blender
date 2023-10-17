@@ -128,7 +128,6 @@ void autokeyframe_object(
 
     /* only key on available channels */
     if (adt && adt->action) {
-      ListBase nla_cache = {nullptr, nullptr};
       LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
         insert_keyframe(bmain,
                         reports,
@@ -139,11 +138,8 @@ void autokeyframe_object(
                         fcu->array_index,
                         &anim_eval_context,
                         eBezTriple_KeyframeType(ts->keyframe_type),
-                        &nla_cache,
                         flag);
       }
-
-      BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
     }
   }
   else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
@@ -333,7 +329,6 @@ bool autokeyframe_property(bContext *C,
                                 rnaindex,
                                 &anim_eval_context,
                                 eBezTriple_KeyframeType(ts->keyframe_type),
-                                nullptr,
                                 flag) != 0;
       if (path) {
         MEM_freeN(path);

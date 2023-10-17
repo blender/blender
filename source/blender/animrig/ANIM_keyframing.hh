@@ -50,7 +50,6 @@ int insert_keyframe(Main *bmain,
                     int array_index,
                     const AnimationEvalContext *anim_eval_context,
                     eBezTriple_KeyframeType keytype,
-                    ListBase *nla_cache,
                     eInsertKeyFlags flag);
 
 /**

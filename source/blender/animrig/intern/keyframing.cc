@@ -616,7 +616,6 @@ int insert_keyframe(Main *bmain,
                     int array_index,
                     const AnimationEvalContext *anim_eval_context,
                     eBezTriple_KeyframeType keytype,
-                    ListBase *nla_cache,
                     eInsertKeyFlags flag)
 {
   /* validate pointer first - exit if failure */
@@ -661,10 +660,10 @@ int insert_keyframe(Main *bmain,
 
   /* apply NLA-mapping to frame to use (if applicable) */
   NlaKeyframingContext *nla_context = nullptr;
-  ListBase tmp_nla_cache = {nullptr, nullptr};
+  ListBase nla_cache = {nullptr, nullptr};
   AnimData *adt = BKE_animdata_from_id(id);
   const AnimationEvalContext remapped_context = nla_time_remap(
-      anim_eval_context, &id_ptr, adt, act, nla_cache ? nla_cache : &tmp_nla_cache, &nla_context);
+      anim_eval_context, &id_ptr, adt, act, &nla_cache, &nla_context);
 
   /* Obtain values to insert. */
   float value_buffer[RNA_MAX_ARRAY_LENGTH];
@@ -788,7 +787,7 @@ int insert_keyframe(Main *bmain,
   }
 
   MEM_freeN(successful_remaps);
-  BKE_animsys_free_nla_keyframing_context_cache(&tmp_nla_cache);
+  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   if (key_count > 0) {
     if (act != nullptr) {

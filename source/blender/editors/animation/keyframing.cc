@@ -1336,7 +1336,6 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
                                                      index,
                                                      &anim_eval_context,
                                                      eBezTriple_KeyframeType(ts->keyframe_type),
-                                                     nullptr,
                                                      flag) != 0);
 
         MEM_freeN(path);

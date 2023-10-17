@@ -97,7 +97,6 @@ static void autokeyframe_pose(
   ReportList *reports = CTX_wm_reports(C);
   ToolSettings *ts = scene->toolsettings;
   KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
-  ListBase nla_cache = {nullptr, nullptr};
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       depsgraph, BKE_scene_frame_get(scene));
@@ -154,7 +153,6 @@ static void autokeyframe_pose(
                                               fcu->array_index,
                                               &anim_eval_context,
                                               eBezTriple_KeyframeType(ts->keyframe_type),
-                                              &nla_cache,
                                               flag);
           }
         }
@@ -214,8 +212,6 @@ static void autokeyframe_pose(
       ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
   }
-
-  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 }
 
 static bConstraint *add_temporary_ik_constraint(bPoseChannel *pchan,

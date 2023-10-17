@@ -1051,7 +1051,6 @@ int ANIM_apply_keyingset(
 
   Main *bmain = CTX_data_main(C);
   ReportList *reports = CTX_wm_reports(C);
-  ListBase nla_cache = {nullptr, nullptr};
   char keytype = scene->toolsettings->keyframe_type;
   int num_channels = 0;
   const char *groupname = nullptr;
@@ -1130,7 +1129,6 @@ int ANIM_apply_keyingset(
                                                           i,
                                                           &anim_eval_context,
                                                           eBezTriple_KeyframeType(keytype),
-                                                          &nla_cache,
                                                           kflag2);
       }
       else if (mode == MODIFYKEY_MODE_DELETE) {
@@ -1157,8 +1155,6 @@ int ANIM_apply_keyingset(
     /* send notifiers for updates (this doesn't require context to work!) */
     WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
   }
-
-  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   /* return the number of channels successfully affected */
   BLI_assert(num_channels >= 0);
