@@ -32,7 +32,7 @@ static VArray<bool> select_by_material(const Span<Material *> materials,
 {
   const int domain_size = attributes.domain_size(domain);
   Vector<int> slots;
-  for (const int slot_i : IndexRange(materials.size())) {
+  for (const int slot_i : materials.index_range()) {
     if (materials[slot_i] == material) {
       slots.append(slot_i);
     }
@@ -71,16 +71,10 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask &mask) const final
   {
-    if (!ELEM(
-            context.type(), GeometryComponent::Type::Mesh, GeometryComponent::Type::GreasePencil))
-    {
-      return {};
-    }
-
     switch (context.type()) {
-      case (GeometryComponent::Type::Mesh): {
+      case GeometryComponent::Type::Mesh: {
         const Mesh *mesh = context.mesh();
-        if (mesh == nullptr) {
+        if (!mesh) {
           return {};
         }
         const eAttrDomain domain = context.domain();
@@ -92,9 +86,9 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
         return mesh->attributes().adapt_domain<bool>(
             std::move(selection), ATTR_DOMAIN_FACE, domain);
       }
-      case (GeometryComponent::Type::GreasePencil): {
+      case GeometryComponent::Type::GreasePencil: {
         const bke::CurvesGeometry *curves = context.curves_or_strokes();
-        if (curves == nullptr) {
+        if (!curves) {
           return {};
         }
         const eAttrDomain domain = context.domain();
@@ -115,10 +109,8 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
             std::move(selection), ATTR_DOMAIN_CURVE, domain);
       }
       default:
-        BLI_assert_unreachable();
-        break;
+        return {};
     }
-    return {};
   }
 
   uint64_t hash() const override
