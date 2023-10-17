@@ -646,6 +646,12 @@ static void rna_float_print(FILE *f, float num)
   else if ((fabsf(num) < float(INT64_MAX)) && (int64_t(num) == num)) {
     fprintf(f, "%.1ff", num);
   }
+  else if (num == std::numeric_limits<float>::infinity()) {
+    fprintf(f, "std::numeric_limits<float>::infinity()");
+  }
+  else if (num == -std::numeric_limits<float>::infinity()) {
+    fprintf(f, "-std::numeric_limits<float>::infinity()");
+  }
   else {
     fprintf(f, "%.10ff", num);
   }
