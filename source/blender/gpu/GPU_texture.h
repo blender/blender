@@ -991,6 +991,21 @@ bool GPU_texture_has_stencil_format(const GPUTexture *texture);
 bool GPU_texture_has_integer_format(const GPUTexture *texture);
 
 /**
+ * Return true if the texture format is a float type.
+ */
+bool GPU_texture_has_float_format(const GPUTexture *tex);
+
+/**
+ * Return true if the texture format is an integer normalized type.
+ */
+bool GPU_texture_has_normalized_format(const GPUTexture *tex);
+
+/**
+ * Return true if the texture format is a signed type.
+ */
+bool GPU_texture_has_signed_format(const GPUTexture *tex);
+
+/**
  * Returns the pixel dimensions of a texture's mip-map level.
  * \a size is expected to be a pointer to a vector of dimension matching the texture's dimension
  * (including the array dimension).
