@@ -466,8 +466,8 @@ class RealtimeCompositor {
 
     context_->output_to_render_result();
     context_->viewer_output_to_viewer_image();
-    DRW_render_context_disable(&render_);
     texture_pool_->free_unused_and_reset();
+    DRW_render_context_disable(&render_);
   }
 };
 
