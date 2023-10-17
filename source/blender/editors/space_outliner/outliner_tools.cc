@@ -393,6 +393,15 @@ static void unlink_collection_fn(bContext *C,
     return;
   }
 
+  if (tsep && (ID_IS_LINKED(tsep->id) || ID_IS_OVERRIDE_LIBRARY(tsep->id))) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink collection '%s' parented to another linked collection '%s'",
+                collection->id.name + 2,
+                tsep->id->name + 2);
+    return;
+  }
+
   if (tsep) {
     if (GS(tsep->id->name) == ID_OB) {
       Object *ob = (Object *)tsep->id;
