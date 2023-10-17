@@ -71,6 +71,14 @@ bool curves_poll(bContext *C);
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Operators
+ * \{ */
+
+void CURVES_OT_attribute_set(wmOperatorType *ot);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Mask Functions
  * \{ */
 
