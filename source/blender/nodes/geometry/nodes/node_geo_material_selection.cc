@@ -43,9 +43,8 @@ static VArray<bool> select_by_material(const Span<Material *> materials,
 
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", domain, 0);
-  if (material_indices.is_single()) {
-    const int slot_i = material_indices.get_internal_single();
-    return VArray<bool>::ForSingle(slots.contains(slot_i), domain_size);
+  if (const std::optional<int> single = material_indices.get_if_single()) {
+    return VArray<bool>::ForSingle(slots.contains(*single), domain_size);
   }
 
   const VArraySpan<int> material_indices_span(material_indices);
