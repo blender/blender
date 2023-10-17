@@ -88,8 +88,8 @@ ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
 
 bool ED_space_clip_get_position(const SpaceClip *sc,
                                 const ARegion *region,
-                                int mval[2],
-                                float fpos[2]);
+                                const int mval[2],
+                                float r_fpos[2]);
 /**
  * Returns color in linear space, matching #ED_space_image_color_sample().
  */
@@ -118,7 +118,10 @@ void ED_clip_point_stable_pos__reverse(const SpaceClip *sc,
 /**
  * Takes `event->mval`.
  */
-void ED_clip_mouse_pos(const SpaceClip *sc, const ARegion *region, const int mval[2], float co[2]);
+void ED_clip_mouse_pos(const SpaceClip *sc,
+                       const ARegion *region,
+                       const int mval[2],
+                       float r_co[2]);
 
 bool ED_space_clip_check_show_trackedit(const SpaceClip *sc);
 bool ED_space_clip_check_show_maskedit(const SpaceClip *sc);
