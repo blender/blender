@@ -120,7 +120,7 @@ set(SRC
   intern/noise.c
   intern/noise.cc
   intern/offset_indices.cc
-  intern/path_util.c
+  intern/path_util.cc
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
   intern/quadric.c
