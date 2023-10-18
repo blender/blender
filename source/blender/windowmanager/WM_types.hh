@@ -99,6 +99,7 @@ struct bContext;
 struct bContextStore;
 struct GreasePencil;
 struct GreasePencilLayer;
+struct ReportList;
 struct wmDrag;
 struct wmDropBox;
 struct wmEvent;
@@ -943,6 +944,10 @@ struct wmJobWorkerStatus {
 
   /** OUTPUT - Progress as reported by the worker, from `0.0f` to `1.0f`. */
   float progress;
+
+  /** OUTPUT - Storage of reports generated during this job's run. Contains its own locking for
+   * thread-safety. */
+  ReportList *reports;
 };
 
 struct wmOperatorType {
