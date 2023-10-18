@@ -847,8 +847,9 @@ void ShaderGraph::default_inputs(bool do_osl)
   /* nodes can specify default texture coordinates, for now we give
    * everything the position by default, except for the sky texture */
 
-  ShaderNode *geom = NULL;
-  ShaderNode *texco = NULL;
+  GeometryNode *geom = NULL;
+  TextureCoordinateNode *texco = NULL;
+  VectorTransformNode *normal_transform = NULL;
 
   foreach (ShaderNode *node, nodes) {
     foreach (ShaderInput *input, node->inputs) {
@@ -873,6 +874,20 @@ void ShaderGraph::default_inputs(bool do_osl)
           }
 
           connect(texco->output("UV"), input);
+        }
+        else if (input->flags() & SocketType::LINK_TEXTURE_INCOMING) {
+          if (!geom) {
+            geom = create_node<GeometryNode>();
+          }
+          if (!normal_transform) {
+            normal_transform = create_node<VectorTransformNode>();
+            normal_transform->set_transform_type(NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
+            normal_transform->set_convert_from(NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD);
+            normal_transform->set_convert_to(NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT);
+            connect(geom->output("Incoming"), normal_transform->input("Vector"));
+          }
+
+          connect(normal_transform->output("Vector"), input);
         }
         else if (input->flags() & SocketType::LINK_INCOMING) {
           if (!geom) {
@@ -911,6 +926,9 @@ void ShaderGraph::default_inputs(bool do_osl)
   }
   if (texco) {
     add(texco);
+  }
+  if (normal_transform) {
+    add(normal_transform);
   }
 }
 
