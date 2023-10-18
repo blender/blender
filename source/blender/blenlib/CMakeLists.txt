@@ -142,7 +142,7 @@ set(SRC
   intern/string_ref.cc
   intern/string_search.cc
   intern/string_utf8.c
-  intern/string_utils.c
+  intern/string_utils.cc
   intern/system.c
   intern/task_graph.cc
   intern/task_iterator.c
