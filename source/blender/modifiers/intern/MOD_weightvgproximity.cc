@@ -652,7 +652,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout, ptr, "vertex_group", &ob_ptr, "vertex_groups", nullptr, ICON_NONE);
+  uiItemPointerR(
+      layout, ptr, "vertex_group", &ob_ptr, "vertex_groups", nullptr, ICON_GROUP_VERTEX);
 
   uiItemR(layout, ptr, "target", UI_ITEM_NONE, nullptr, ICON_NONE);
 

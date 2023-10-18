@@ -1179,7 +1179,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
+  uiItemPointerR(layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
   uiItemR(row, ptr, "show_alive", toggles_flag, nullptr, ICON_NONE);
