@@ -349,12 +349,21 @@ void Shader::tag_update(Scene *scene)
   has_displacement = has_displacement || output->input("Displacement")->link;
 
   if (!has_surface) {
+    /* If we need to output surface AOVs, add a Transparent BSDF so that the
+     * surface shader runs. */
     foreach (ShaderNode *node, graph->nodes) {
       if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
         foreach (const ShaderInput *in, node->inputs) {
           if (in->link) {
+            TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
+            graph->add(transparent);
+            graph->connect(transparent->output("BSDF"), output->input("Surface"));
             has_surface = true;
+            break;
           }
+        }
+        if (has_surface) {
+          break;
         }
       }
     }
