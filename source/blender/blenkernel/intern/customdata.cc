@@ -2414,6 +2414,7 @@ static void ensure_layer_data_is_mutable(CustomDataLayer &layer, const int totel
   }
 }
 
+#ifndef NDEBUG
 static bool layer_is_mutable(CustomDataLayer &layer)
 {
   if (layer.sharing_info == nullptr) {
@@ -2421,6 +2422,7 @@ static bool layer_is_mutable(CustomDataLayer &layer)
   }
   return layer.sharing_info->is_mutable();
 }
+#endif
 
 void CustomData_ensure_data_is_mutable(CustomDataLayer *layer, const int totelem)
 {

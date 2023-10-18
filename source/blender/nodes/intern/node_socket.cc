@@ -411,40 +411,40 @@ static const char *get_current_socket_identifier_for_future_socket(
                                       socket_decls);
     }
     case GEO_NODE_BLUR_ATTRIBUTE: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case GEO_NODE_SAMPLE_CURVE: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case GEO_NODE_EVALUATE_AT_INDEX: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case GEO_NODE_EVALUATE_ON_DOMAIN: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case GEO_NODE_INPUT_NAMED_ATTRIBUTE: {
-      return get_identifier_from_decl({"Attribute"}, socket, socket_decls);
+      return get_identifier_from_decl("Attribute", socket, socket_decls);
     }
     case GEO_NODE_RAYCAST: {
-      return get_identifier_from_decl({"Attribute"}, socket, socket_decls);
+      return get_identifier_from_decl("Attribute", socket, socket_decls);
     }
     case GEO_NODE_SAMPLE_INDEX: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case GEO_NODE_SAMPLE_NEAREST_SURFACE: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case FN_NODE_RANDOM_VALUE: {
       return get_identifier_from_decl({"Min", "Max", "Value"}, socket, socket_decls);
     }
     case GEO_NODE_SAMPLE_UV_SURFACE: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case GEO_NODE_STORE_NAMED_ATTRIBUTE: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case GEO_NODE_VIEWER: {
-      return get_identifier_from_decl({"Value"}, socket, socket_decls);
+      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case SH_NODE_MIX: {
       return get_identifier_from_decl({"A", "B", "Result"}, socket, socket_decls);
