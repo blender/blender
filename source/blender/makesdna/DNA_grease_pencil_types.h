@@ -28,6 +28,7 @@ class GreasePencilDrawingRuntime;
 namespace greasepencil {
 class DrawingRuntime;
 class Drawing;
+class DrawingReference;
 class TreeNode;
 class Layer;
 class LayerRuntime;
@@ -120,6 +121,10 @@ typedef struct GreasePencilDrawingReference {
    * See the note in `GreasePencilLayer->frames()` for a detailed explanation of this.
    */
   struct GreasePencil *id_reference;
+#ifdef __cplusplus
+  blender::bke::greasepencil::DrawingReference &wrap();
+  const blender::bke::greasepencil::DrawingReference &wrap() const;
+#endif
 } GreasePencilDrawingReference;
 
 /**

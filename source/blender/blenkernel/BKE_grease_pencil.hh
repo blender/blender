@@ -110,6 +110,13 @@ class Drawing : public ::GreasePencilDrawing {
   bool has_users() const;
 };
 
+class DrawingReference : public ::GreasePencilDrawingReference {
+ public:
+  DrawingReference();
+  DrawingReference(const DrawingReference &other);
+  ~DrawingReference();
+};
+
 class LayerGroup;
 class Layer;
 
@@ -703,6 +710,16 @@ inline blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap()
 inline const blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap() const
 {
   return *reinterpret_cast<const blender::bke::greasepencil::Drawing *>(this);
+}
+
+inline blender::bke::greasepencil::DrawingReference &GreasePencilDrawingReference::wrap()
+{
+  return *reinterpret_cast<blender::bke::greasepencil::DrawingReference *>(this);
+}
+inline const blender::bke::greasepencil::DrawingReference &GreasePencilDrawingReference::wrap()
+    const
+{
+  return *reinterpret_cast<const blender::bke::greasepencil::DrawingReference *>(this);
 }
 
 inline GreasePencilFrame GreasePencilFrame::null()
