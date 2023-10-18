@@ -118,6 +118,25 @@ static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
 }
 
 /* -------------------------------------------------------------------- */
+/** \name Rounding Utilities
+ * \{ */
+
+static void gwl_round_int_by(int *value_p, const int round_value)
+{
+  GHOST_ASSERT(round_value > 0, "Invalid rounding value!");
+  *value_p = (*value_p / round_value) * round_value;
+}
+
+static void gwl_round_int2_by(int value_p[2], const int round_value)
+{
+  GHOST_ASSERT(round_value > 0, "Invalid rounding value!");
+  value_p[0] = (value_p[0] / round_value) * round_value;
+  value_p[1] = (value_p[1] / round_value) * round_value;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Window-Viewport/Wayland to/from Scale Conversion
  * \{ */
 
@@ -1404,10 +1423,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   /* The window surface must be rounded to the scale,
    * failing to do so causes the WAYLAND-server to close the window immediately. */
-  window_->frame.size[0] = (window_->frame.size[0] / window_->frame.buffer_scale) *
-                           window_->frame.buffer_scale;
-  window_->frame.size[1] = (window_->frame.size[1] / window_->frame.buffer_scale) *
-                           window_->frame.buffer_scale;
+  gwl_round_int2_by(window_->frame.size, window_->frame.buffer_scale);
 
   window_->is_dialog = is_dialog;
 
@@ -2166,9 +2182,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
         window_->frame_pending.size[i] = (value * scale_next) / scale_prev;
       }
       if (window_->frame_pending.buffer_scale > 1) {
-        window_->frame_pending.size[i] = (window_->frame_pending.size[i] /
-                                          window_->frame_pending.buffer_scale) *
-                                         window_->frame_pending.buffer_scale;
+        gwl_round_int_by(&window_->frame_pending.size[i], window_->frame_pending.buffer_scale);
       }
     }
 
