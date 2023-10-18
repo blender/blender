@@ -75,6 +75,19 @@ class PointCloudFieldContext : public fn::FieldContext {
   }
 };
 
+class GreasePencilFieldContext : public fn::FieldContext {
+ private:
+  const GreasePencil &grease_pencil_;
+
+ public:
+  GreasePencilFieldContext(const GreasePencil &grease_pencil) : grease_pencil_(grease_pencil) {}
+
+  const GreasePencil &grease_pencil() const
+  {
+    return grease_pencil_;
+  }
+};
+
 class GreasePencilLayerFieldContext : public fn::FieldContext {
  private:
   const GreasePencil &grease_pencil_;
@@ -153,6 +166,7 @@ class GeometryFieldContext : public fn::FieldContext {
                        int grease_pencil_layer_index);
   GeometryFieldContext(const Mesh &mesh, eAttrDomain domain);
   GeometryFieldContext(const CurvesGeometry &curves, eAttrDomain domain);
+  GeometryFieldContext(const GreasePencil &grease_pencil);
   GeometryFieldContext(const GreasePencil &grease_pencil, eAttrDomain domain, int layer_index);
   GeometryFieldContext(const PointCloud &points);
   GeometryFieldContext(const Instances &instances);

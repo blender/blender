@@ -137,6 +137,12 @@ GeometryFieldContext::GeometryFieldContext(const PointCloud &points)
     : geometry_(&points), type_(GeometryComponent::Type::PointCloud), domain_(ATTR_DOMAIN_POINT)
 {
 }
+GeometryFieldContext::GeometryFieldContext(const GreasePencil &grease_pencil)
+    : geometry_(&grease_pencil),
+      type_(GeometryComponent::Type::GreasePencil),
+      domain_(ATTR_DOMAIN_LAYER)
+{
+}
 GeometryFieldContext::GeometryFieldContext(const GreasePencil &grease_pencil,
                                            const eAttrDomain domain,
                                            const int layer_index)
@@ -251,6 +257,11 @@ GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &conte
           &context))
   {
     return this->get_varray_for_context({point_context->pointcloud()}, mask);
+  }
+  if (const GreasePencilFieldContext *grease_pencil_context =
+          dynamic_cast<const GreasePencilFieldContext *>(&context))
+  {
+    return this->get_varray_for_context({grease_pencil_context->grease_pencil()}, mask);
   }
   if (const GreasePencilLayerFieldContext *grease_pencil_context =
           dynamic_cast<const GreasePencilLayerFieldContext *>(&context))

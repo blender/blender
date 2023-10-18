@@ -128,6 +128,44 @@ static std::optional<Mesh *> separate_mesh_selection(
   return nullptr;
 }
 
+static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
+    const GreasePencil &src_grease_pencil,
+    const Field<bool> &selection_field,
+    const AnonymousAttributePropagationInfo &propagation_info)
+{
+  const bke::AttributeAccessor attributes = src_grease_pencil.attributes();
+  const bke::GeometryFieldContext context(src_grease_pencil);
+
+  fn::FieldEvaluator evaluator(context, attributes.domain_size(ATTR_DOMAIN_LAYER));
+  evaluator.set_selection(selection_field);
+  evaluator.evaluate();
+
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.size() == attributes.domain_size(ATTR_DOMAIN_LAYER)) {
+    return std::nullopt;
+  }
+  if (selection.is_empty()) {
+    return nullptr;
+  }
+
+  GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
+  BKE_grease_pencil_duplicate_drawing_array(&src_grease_pencil, dst_grease_pencil);
+  selection.foreach_index([&](const int index) {
+    const bke::greasepencil::Layer &src_layer = *src_grease_pencil.layers()[index];
+    dst_grease_pencil->add_layer(dst_grease_pencil->root_group(), src_layer);
+  });
+  dst_grease_pencil->remove_drawings_with_no_users();
+
+  bke::gather_attributes(src_grease_pencil.attributes(),
+                         ATTR_DOMAIN_LAYER,
+                         propagation_info,
+                         {},
+                         selection,
+                         dst_grease_pencil->attributes_for_write());
+
+  return dst_grease_pencil;
+}
+
 }  // namespace blender::nodes::node_geo_delete_geometry_cc
 
 namespace blender::nodes {
@@ -183,24 +221,36 @@ void separate_geometry(GeometrySet &geometry_set,
   }
   if (geometry_set.get_grease_pencil()) {
     using namespace blender::bke::greasepencil;
-    GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
-    for (const int layer_index : grease_pencil.layers().index_range()) {
-      Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
-                                                                        layer_index);
-      if (drawing == nullptr) {
-        continue;
+    if (domain == ATTR_DOMAIN_LAYER) {
+      const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
+      std::optional<GreasePencil *> dst_grease_pencil =
+          file_ns::separate_grease_pencil_layer_selection(
+              grease_pencil, selection, propagation_info);
+      if (dst_grease_pencil) {
+        geometry_set.replace_grease_pencil(*dst_grease_pencil);
       }
-      const bke::CurvesGeometry &src_curves = drawing->strokes();
-      const bke::GreasePencilLayerFieldContext field_context(
-          grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
-      std::optional<bke::CurvesGeometry> dst_curves = file_ns::separate_curves_selection(
-          src_curves, field_context, selection, domain, propagation_info);
-      if (!dst_curves) {
-        continue;
-      }
-      drawing->strokes_for_write() = std::move(*dst_curves);
-      drawing->tag_topology_changed();
       some_valid_domain = true;
+    }
+    else if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+      GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+      for (const int layer_index : grease_pencil.layers().index_range()) {
+        Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                          layer_index);
+        if (drawing == nullptr) {
+          continue;
+        }
+        const bke::CurvesGeometry &src_curves = drawing->strokes();
+        const bke::GreasePencilLayerFieldContext field_context(
+            grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+        std::optional<bke::CurvesGeometry> dst_curves = file_ns::separate_curves_selection(
+            src_curves, field_context, selection, domain, propagation_info);
+        if (!dst_curves) {
+          continue;
+        }
+        drawing->strokes_for_write() = std::move(*dst_curves);
+        drawing->tag_topology_changed();
+        some_valid_domain = true;
+      }
     }
   }
   if (geometry_set.has_instances()) {
