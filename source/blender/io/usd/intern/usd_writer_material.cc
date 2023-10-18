@@ -301,9 +301,9 @@ static void create_usd_viewport_material(const USDExporterContext &usd_export_co
 static InputSpecMap &preview_surface_input_map()
 {
   static InputSpecMap input_map = {
-      {"Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
-      {"Emission Color", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Float3, true}},
-      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
+      {"Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f, true}},
+      {"Emission Color", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Color3f, true}},
+      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f, true}},
       {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, true}},
       {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true}},
       {"Specular IOR Level", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true}},
