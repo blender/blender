@@ -8,7 +8,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_buffer.h"
 #include "BLI_ghash.h"
 #include "BLI_heap_simple.h"
 #include "BLI_math_geom.h"
@@ -26,8 +25,10 @@
 #include "bmesh.h"
 #include "pbvh_intern.hh"
 
+using blender::Array;
 using blender::IndexRange;
 using blender::Span;
+using blender::Vector;
 
 /* Avoid skinny faces */
 #define USE_EDGEQUEUE_EVEN_SUBDIV
@@ -251,7 +252,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
 }
 
 /* Recursively split the node if it exceeds the leaf_limit. */
-static void pbvh_bmesh_node_split(PBVH *pbvh, const BBC *bbc_array, int node_index)
+static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int node_index)
 {
   const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
   const int cd_face_node_offset = pbvh->cd_face_node_offset;
@@ -379,8 +380,8 @@ static void pbvh_bmesh_node_split(PBVH *pbvh, const BBC *bbc_array, int node_ind
 static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 {
   GSet *bm_faces = pbvh->nodes[node_index].bm_faces;
-  const int bm_faces_size = BLI_gset_len(bm_faces);
-  if (bm_faces_size <= pbvh->leaf_limit) {
+  const int faces_num = BLI_gset_len(bm_faces);
+  if (faces_num <= pbvh->leaf_limit) {
     /* Node limit not exceeded */
     return false;
   }
@@ -389,7 +390,7 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   pbvh->draw_cache_invalid = true;
 
   /* For each BMFace, store the AABB and AABB centroid. */
-  BBC *bbc_array = static_cast<BBC *>(MEM_mallocN(sizeof(BBC) * bm_faces_size, "BBC"));
+  Array<BBC> bbc_array(faces_num);
 
   GSetIterator gs_iter;
   int i;
@@ -412,8 +413,6 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   pbvh->header.bm->elem_index_dirty |= BM_FACE;
 
   pbvh_bmesh_node_split(pbvh, bbc_array, node_index);
-
-  MEM_freeN(bbc_array);
 
   return true;
 }
@@ -695,19 +694,17 @@ static void pbvh_bmesh_face_remove(PBVH *pbvh, BMFace *f)
   f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_TopologyUpdated;
 }
 
-static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
+static Array<BMLoop *> pbvh_bmesh_edge_loops(BMEdge *e)
 {
-  /* Fast-path for most common case where an edge has 2 faces,
-   * no need to iterate twice. This assumes that the buffer. */
-  BMLoop **data = static_cast<BMLoop **>(buf->data);
-  BLI_assert(buf->alloc_count >= 2);
-  if (LIKELY(BM_edge_loop_pair(e, &data[0], &data[1]))) {
-    buf->count = 2;
+  /* Fast-path for most common case where an edge has 2 faces no need to iterate twice. */
+  std::array<BMLoop *, 2> manifold_loops;
+  if (LIKELY(BM_edge_loop_pair(e, &manifold_loops[0], &manifold_loops[1]))) {
+    return Array<BMLoop *>(Span(manifold_loops));
   }
-  else {
-    BLI_buffer_reinit(buf, BM_edge_face_count(e));
-    BM_iter_as_array(nullptr, BM_LOOPS_OF_EDGE, e, static_cast<void **>(buf->data), buf->count);
-  }
+  Array<BMLoop *> loops;
+  BM_iter_as_array(
+      nullptr, BM_LOOPS_OF_EDGE, e, reinterpret_cast<void **>(loops.data()), loops.size());
+  return loops;
 }
 
 static void pbvh_bmesh_node_drop_orig(PBVHNode *node)
@@ -1118,17 +1115,14 @@ static void copy_edge_data(BMesh &bm, BMEdge &dst, /*const*/ BMEdge &src)
   CustomData_bmesh_copy_data(&bm.edata, &bm.edata, src.head.data, &dst.head.data);
 }
 
-static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
-                                  PBVH *pbvh,
-                                  BMEdge *e,
-                                  BLI_Buffer *edge_loops)
+static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *e)
 {
   BMesh *bm = pbvh->header.bm;
 
   float co_mid[3], no_mid[3];
 
   /* Get all faces adjacent to the edge. */
-  pbvh_bmesh_edge_loops(edge_loops, e);
+  Array<BMLoop *> edge_loops = pbvh_bmesh_edge_loops(e);
 
   /* Create a new vertex in current node at the edge's midpoint. */
   mid_v3_v3v3(co_mid, e->v1->co, e->v2->co);
@@ -1140,8 +1134,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
       pbvh, e->v1, e->v2, node_index, co_mid, no_mid, eq_ctx->cd_vert_mask_offset);
 
   /* For each face, add two new triangles and delete the original. */
-  for (int i = 0; i < edge_loops->count; i++) {
-    BMLoop *l_adj = BLI_buffer_at(edge_loops, BMLoop *, i);
+  for (const int i : edge_loops.index_range()) {
+    BMLoop *l_adj = edge_loops[i];
     BMFace *f_adj = l_adj->f;
 
     BLI_assert(f_adj->len == 3);
@@ -1226,9 +1220,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   BM_edge_kill(bm, e);
 }
 
-static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
-                                            PBVH *pbvh,
-                                            BLI_Buffer *edge_loops)
+static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh)
 {
   bool any_subdivided = false;
 
@@ -1271,7 +1263,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
 
     any_subdivided = true;
 
-    pbvh_bmesh_split_edge(eq_ctx, pbvh, e, edge_loops);
+    pbvh_bmesh_split_edge(eq_ctx, pbvh, e);
   }
 
 #ifdef USE_EDGEQUEUE_TAG_VERIFY
@@ -1281,13 +1273,8 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
   return any_subdivided;
 }
 
-static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
-                                     BMEdge *e,
-                                     BMVert *v1,
-                                     BMVert *v2,
-                                     GHash *deleted_verts,
-                                     BLI_Buffer *deleted_faces,
-                                     EdgeQueueContext *eq_ctx)
+static void pbvh_bmesh_collapse_edge(
+    PBVH *pbvh, BMEdge *e, BMVert *v1, BMVert *v2, GHash *deleted_verts, EdgeQueueContext *eq_ctx)
 {
   BMesh &bm = *pbvh->header.bm;
   /* Prefer deleting the vertex that is less masked. */
@@ -1325,7 +1312,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   /* NOTE: this could be done with BM_vert_splice(), but that
    * requires handling other issues like duplicate edges, so doesn't
    * really buy anything. */
-  BLI_buffer_clear(deleted_faces);
+  Vector<BMFace *, 16> deleted_faces;
 
   BMLoop *l;
   BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
@@ -1354,7 +1341,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     if (UNLIKELY(existing_face = bm_face_exists_tri_from_loop_vert(l->next, v_conn)))
 #endif
     {
-      BLI_buffer_append(deleted_faces, BMFace *, existing_face);
+      deleted_faces.append(existing_face);
     }
     else {
       const std::array<BMVert *, 3> v_tri{v_conn, l->next->v, l->prev->v};
@@ -1371,14 +1358,12 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       }
     }
 
-    BLI_buffer_append(deleted_faces, BMFace *, f);
+    deleted_faces.append(f);
   }
   BM_LOOPS_OF_VERT_ITER_END;
 
   /* Delete the tagged faces. */
-  for (int i = 0; i < deleted_faces->count; i++) {
-    BMFace *f_del = BLI_buffer_at(deleted_faces, BMFace *, i);
-
+  for (BMFace *f_del : deleted_faces) {
     /* Get vertices and edges of face. */
     BLI_assert(f_del->len == 3);
     BMLoop *l_iter = BM_FACE_FIRST_LOOP(f_del);
@@ -1439,9 +1424,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BM_vert_kill(&bm, v_del);
 }
 
-static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
-                                            PBVH *pbvh,
-                                            BLI_Buffer *deleted_faces)
+static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh)
 {
   const float min_len_squared = pbvh->bm_min_edge_len * pbvh->bm_min_edge_len;
   bool any_collapsed = false;
@@ -1486,7 +1469,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
     any_collapsed = true;
 
-    pbvh_bmesh_collapse_edge(pbvh, e, v1, v2, deleted_verts, deleted_faces, eq_ctx);
+    pbvh_bmesh_collapse_edge(pbvh, e, v1, v2, deleted_verts, eq_ctx);
   }
 
   BLI_ghash_free(deleted_verts, nullptr, nullptr);
@@ -1972,9 +1955,6 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     const bool use_frontface,
                                     const bool use_projected)
 {
-  /* 2 is enough for edge faces - manifold edge. */
-  BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);
-  BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
   const int cd_vert_mask_offset = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
   const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
   const int cd_face_node_offset = pbvh->cd_face_node_offset;
@@ -1999,7 +1979,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
     short_edge_queue_create(
         &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
-    modified |= pbvh_bmesh_collapse_short_edges(&eq_ctx, pbvh, &deleted_faces);
+    modified |= pbvh_bmesh_collapse_short_edges(&eq_ctx, pbvh);
     BLI_heapsimple_free(q.heap, nullptr);
     BLI_mempool_destroy(queue_pool);
   }
@@ -2018,7 +1998,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
     long_edge_queue_create(
         &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
-    modified |= pbvh_bmesh_subdivide_long_edges(&eq_ctx, pbvh, &edge_loops);
+    modified |= pbvh_bmesh_subdivide_long_edges(&eq_ctx, pbvh);
     BLI_heapsimple_free(q.heap, nullptr);
     BLI_mempool_destroy(queue_pool);
   }
@@ -2029,8 +2009,6 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
       node.flag &= ~PBVH_UpdateTopology;
     }
   }
-  BLI_buffer_free(&edge_loops);
-  BLI_buffer_free(&deleted_faces);
 
   /* Go over all changed nodes and check if anything needs to be updated. */
   for (PBVHNode &node : pbvh->nodes) {
