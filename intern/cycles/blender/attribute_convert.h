@@ -37,6 +37,14 @@ template<> struct AttributeConverter<int> {
     return float(value);
   }
 };
+template<> struct AttributeConverter<blender::float2> {
+  using CyclesT = float2;
+  static constexpr auto type_desc = TypeFloat2;
+  static CyclesT convert(const blender::float2 &value)
+  {
+    return make_float2(value[0], value[1]);
+  }
+};
 template<> struct AttributeConverter<blender::float3> {
   using CyclesT = float3;
   static constexpr auto type_desc = TypeVector;
