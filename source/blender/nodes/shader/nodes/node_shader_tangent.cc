@@ -40,7 +40,7 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
       PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
-      uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
+      uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
     }
     else {
       uiItemR(row, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
