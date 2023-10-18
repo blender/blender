@@ -419,42 +419,6 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 
 /**********************************************************************/
 
-#if 0
-static int pbvh_bmesh_node_offset_from_elem(PBVH *pbvh, BMElem *ele)
-{
-  switch (ele->head.htype) {
-    case BM_VERT:
-      return pbvh->cd_vert_node_offset;
-    default:
-      BLI_assert(ele->head.htype == BM_FACE);
-      return pbvh->cd_face_node_offset;
-  }
-}
-
-static int pbvh_bmesh_node_index_from_elem(PBVH *pbvh, void *key)
-{
-  const int cd_node_offset = pbvh_bmesh_node_offset_from_elem(pbvh, key);
-  const int node_index = BM_ELEM_CD_GET_INT((BMElem *)key, cd_node_offset);
-
-  BLI_assert(node_index != DYNTOPO_NODE_NONE);
-  BLI_assert(node_index < pbvh->totnode);
-  (void)pbvh;
-
-  return node_index;
-}
-
-static PBVHNode *pbvh_bmesh_node_from_elem(PBVH *pbvh, void *key)
-{
-  return &pbvh->nodes[pbvh_bmesh_node_index_from_elem(pbvh, key)];
-}
-
-/* typecheck */
-#  define pbvh_bmesh_node_index_from_elem(pbvh, key) \
-    (CHECK_TYPE_ANY(key, BMFace *, BMVert *), pbvh_bmesh_node_index_from_elem(pbvh, key))
-#  define pbvh_bmesh_node_from_elem(pbvh, key) \
-    (CHECK_TYPE_ANY(key, BMFace *, BMVert *), pbvh_bmesh_node_from_elem(pbvh, key))
-#endif
-
 BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)
 {
   const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_vert_node_offset);
@@ -533,7 +497,6 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
   BLI_gset_insert(node->bm_faces, f);
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, node_index);
 
-  /* mark node for update. */
   node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_TopologyUpdated;
   node->flag &= ~PBVH_FullyHidden;
 
@@ -542,25 +505,6 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
 
   return f;
 }
-
-/* Return the number of faces in 'node' that use vertex 'v'. */
-#if 0
-static int pbvh_bmesh_node_vert_use_count(PBVH *pbvh, PBVHNode *node, BMVert *v)
-{
-  BMFace *f;
-  int count = 0;
-
-  BM_FACES_OF_VERT_ITER_BEGIN (f, v) {
-    PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
-    if (f_node == node) {
-      count++;
-    }
-  }
-  BM_FACES_OF_VERT_ITER_END;
-
-  return count;
-}
-#endif
 
 #define pbvh_bmesh_node_vert_use_count_is_equal(pbvh, node, v, n) \
   (pbvh_bmesh_node_vert_use_count_at_most(pbvh, node, v, (n) + 1) == n)
@@ -1241,15 +1185,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh
     EDGE_QUEUE_DISABLE(e);
 #endif
 
-    /* At the moment edges never get shorter (subdivision will make new edges)
-     * unlike collapse where edges can become longer. */
-#if 0
-    if (len_squared_v3v3(v1->co, v2->co) <= eq_ctx->q->limit_len_squared) {
-      continue;
-    }
-#else
     BLI_assert(len_squared_v3v3(v1->co, v2->co) > eq_ctx->q->limit_len_squared);
-#endif
 
     /* Check that the edge's vertices are still in the PBVH. It's
      * possible that an edge collapse has deleted adjacent faces
@@ -1316,31 +1252,13 @@ static void pbvh_bmesh_collapse_edge(
 
   BMLoop *l;
   BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
-    BMFace *existing_face;
-
     /* Get vertices, replace use of v_del with v_conn */
-    // BM_iter_as_array(nullptr, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
     BMFace *f = l->f;
-#if 0
-    BMVert *v_tri[3];
-    BM_face_as_array_vert_tri(f, v_tri);
-    for (int i = 0; i < 3; i++) {
-      if (v_tri[i] == v_del) {
-        v_tri[i] = v_conn;
-      }
-    }
-#endif
 
-    /* Check if a face using these vertices already exists. If so,
-     * skip adding this face and mark the existing one for
-     * deletion as well. Prevents extraneous "flaps" from being
-     * created. */
-#if 0
-    if (UNLIKELY(existing_face = BM_face_exists(v_tri, 3)))
-#else
-    if (UNLIKELY(existing_face = bm_face_exists_tri_from_loop_vert(l->next, v_conn)))
-#endif
-    {
+    /* Check if a face using these vertices already exists. If so, skip adding this face and mark
+     * the existing one for deletion as well. Prevents extraneous "flaps" from being created.
+     * Check is similar to #BM_face_exists. */
+    if (BMFace *existing_face = bm_face_exists_tri_from_loop_vert(l->next, v_conn)) {
       deleted_faces.append(existing_face);
     }
     else {
@@ -2092,17 +2010,7 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool u
       continue;
     }
 
-#if 0
-    BMIter bm_iter;
-    BMVert *v;
-    int j = 0;
-    BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
-      node->bm_ortri[i][j] = BM_elem_index_get(v);
-      j++;
-    }
-#else
     bm_face_as_array_index_tri(f, node->bm_ortri[i]);
-#endif
     i++;
   }
   node->bm_tot_ortri = i;
