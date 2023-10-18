@@ -225,6 +225,7 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
     case MTLPixelFormatR8Unorm:
+    case MTLPixelFormatR8Snorm:
       return 1;
     case MTLPixelFormatR32Uint:
     case MTLPixelFormatR32Sint:
@@ -288,6 +289,7 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatDepth32Float_Stencil8:
     case MTLPixelFormatRG16Snorm:
     case MTLPixelFormatRG16Unorm:
+    case MTLPixelFormatRG8Snorm:
       return 2;
 
     case MTLPixelFormatR8Uint:
@@ -411,7 +413,9 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
           [NSNumber numberWithInt:specialization_params.component_count_input],
       @"COMPONENT_COUNT_OUTPUT" :
           [NSNumber numberWithInt:specialization_params.component_count_output],
-      @"TEX_TYPE" : [NSNumber numberWithInt:((int)(texture_type))]
+      @"TEX_TYPE" : [NSNumber numberWithInt:((int)(texture_type))],
+      @"IS_TEXTURE_CLEAR" :
+          [NSNumber numberWithInt:((int)(specialization_params.is_clear ? 1 : 0))]
     };
 
     /* Prepare shader library for conversion routine. */

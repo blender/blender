@@ -385,6 +385,11 @@ void gpu_batch_presets_exit()
     MEM_freeN(link);
   }
 
+  /* Reset pointers to null for subsequent initializations after tear-down. */
+  g_presets_2d = {{nullptr}};
+  g_presets_3d = {{nullptr}};
+  presets_list = {nullptr, nullptr};
+
   BLI_mutex_end(&g_presets_3d.mutex);
 }
 

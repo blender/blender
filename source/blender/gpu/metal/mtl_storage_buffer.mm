@@ -298,6 +298,9 @@ void MTLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, ui
   if (dst->metal_buffer_ == nullptr) {
     dst->init();
   }
+  if (copy_size == 0) {
+    return;
+  }
   if (src->vbo_ == nullptr) {
     src->bind();
   }

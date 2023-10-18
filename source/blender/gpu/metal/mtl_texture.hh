@@ -42,20 +42,26 @@ struct TextureUpdateRoutineSpecialisation {
   /* Number of channels the destination texture has (min=1, max=4). */
   int component_count_output;
 
+  /* Whether the update routine is a clear, and only the first texel of the input data buffer will
+   * be read. */
+  bool is_clear;
+
   bool operator==(const TextureUpdateRoutineSpecialisation &other) const
   {
     return ((input_data_type == other.input_data_type) &&
             (output_data_type == other.output_data_type) &&
             (component_count_input == other.component_count_input) &&
-            (component_count_output == other.component_count_output));
+            (component_count_output == other.component_count_output) &&
+            (is_clear == other.is_clear));
   }
 
   uint64_t hash() const
   {
     blender::DefaultHash<std::string> string_hasher;
-    return (uint64_t)string_hasher(
-        this->input_data_type + this->output_data_type +
-        std::to_string((this->component_count_input << 8) + this->component_count_output));
+    return (uint64_t)string_hasher(this->input_data_type + this->output_data_type +
+                                   std::to_string((this->component_count_input << 9) |
+                                                  (this->component_count_output << 5) |
+                                                  (this->is_clear ? 1 : 0)));
   }
 };
 
@@ -348,8 +354,7 @@ class MTLTexture : public Texture {
             uint dst_slice,
             int width,
             int height);
-  GPUFrameBuffer *get_blit_framebuffer(uint dst_slice, uint dst_mip);
-
+  GPUFrameBuffer *get_blit_framebuffer(int dst_slice, uint dst_mip);
   /* Texture Update function Utilities. */
   /* Metal texture updating does not provide the same range of functionality for type conversion
    * and format compatibility as are available in OpenGL. To achieve the same level of
