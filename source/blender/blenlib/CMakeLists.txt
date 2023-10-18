@@ -26,7 +26,7 @@ set(SRC
   intern/BLI_color.cc
   intern/BLI_dial_2d.c
   intern/BLI_dynstr.c
-  intern/BLI_filelist.c
+  intern/BLI_filelist.cc
   intern/BLI_ghash.c
   intern/BLI_ghash_utils.c
   intern/BLI_heap.c

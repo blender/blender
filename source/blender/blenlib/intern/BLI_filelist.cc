@@ -241,7 +241,7 @@ uint BLI_filelist_dir_contents(const char *dirname, struct direntry **r_filelist
   else {
     /* Keep Blender happy. Blender stores this in a variable
      * where 0 has special meaning..... */
-    *r_filelist = MEM_mallocN(sizeof(**r_filelist), __func__);
+    *r_filelist = static_cast<direntry *>(MEM_mallocN(sizeof(**r_filelist), __func__));
   }
 
   return dir_ctx.files_num;
@@ -250,7 +250,7 @@ uint BLI_filelist_dir_contents(const char *dirname, struct direntry **r_filelist
 void BLI_filelist_entry_size_to_string(const struct stat *st,
                                        const uint64_t st_size_fallback,
                                        /* Used to change MB -> M, etc. - is that really useful? */
-                                       const bool UNUSED(compact),
+                                       const bool /*compact*/,
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN])
 {
   /*
@@ -267,7 +267,7 @@ void BLI_filelist_entry_size_to_string(const struct stat *st,
 }
 
 void BLI_filelist_entry_mode_to_string(const struct stat *st,
-                                       const bool UNUSED(compact),
+                                       const bool /*compact*/,
                                        char r_mode1[FILELIST_DIRENTRY_MODE_LEN],
                                        char r_mode2[FILELIST_DIRENTRY_MODE_LEN],
                                        char r_mode3[FILELIST_DIRENTRY_MODE_LEN])
@@ -315,7 +315,7 @@ void BLI_filelist_entry_mode_to_string(const struct stat *st,
 }
 
 void BLI_filelist_entry_owner_to_string(const struct stat *st,
-                                        const bool UNUSED(compact),
+                                        const bool /*compact*/,
                                         char r_owner[FILELIST_DIRENTRY_OWNER_LEN])
 {
 #ifdef WIN32
@@ -399,10 +399,10 @@ void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *s
 {
   *dst = *src;
   if (dst->relname) {
-    dst->relname = MEM_dupallocN(src->relname);
+    dst->relname = static_cast<char *>(MEM_dupallocN(src->relname));
   }
   if (dst->path) {
-    dst->path = MEM_dupallocN(src->path);
+    dst->path = static_cast<char *>(MEM_dupallocN(src->path));
   }
 }
 
@@ -412,7 +412,8 @@ void BLI_filelist_duplicate(struct direntry **dest_filelist,
 {
   uint i;
 
-  *dest_filelist = MEM_mallocN(sizeof(**dest_filelist) * (size_t)(nrentries), __func__);
+  *dest_filelist = static_cast<struct direntry *>(
+      MEM_mallocN(sizeof(**dest_filelist) * (size_t)(nrentries), __func__));
   for (i = 0; i < nrentries; i++) {
     struct direntry *const src = &src_filelist[i];
     struct direntry *dst = &(*dest_filelist)[i];
