@@ -95,29 +95,7 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
   grease_pencil_dst->material_array = static_cast<Material **>(
       MEM_dupallocN(grease_pencil_src->material_array));
 
-  /* Duplicate drawing array. */
-  grease_pencil_dst->drawing_array_num = grease_pencil_src->drawing_array_num;
-  grease_pencil_dst->drawing_array = MEM_cnew_array<GreasePencilDrawingBase *>(
-      grease_pencil_src->drawing_array_num, __func__);
-  for (int i = 0; i < grease_pencil_src->drawing_array_num; i++) {
-    const GreasePencilDrawingBase *src_drawing_base = grease_pencil_src->drawing_array[i];
-    switch (src_drawing_base->type) {
-      case GP_DRAWING: {
-        const GreasePencilDrawing *src_drawing = reinterpret_cast<const GreasePencilDrawing *>(
-            src_drawing_base);
-        grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
-            MEM_new<bke::greasepencil::Drawing>(__func__, src_drawing->wrap()));
-        break;
-      }
-      case GP_DRAWING_REFERENCE: {
-        const GreasePencilDrawingReference *src_drawing_reference =
-            reinterpret_cast<const GreasePencilDrawingReference *>(src_drawing_base);
-        grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
-            MEM_new<bke::greasepencil::DrawingReference>(__func__, src_drawing_reference->wrap()));
-        break;
-      }
-    }
-  }
+  BKE_grease_pencil_duplicate_drawing_array(grease_pencil_src, grease_pencil_dst);
 
   /* Duplicate layer tree. */
   grease_pencil_dst->root_group_ptr = MEM_new<bke::greasepencil::LayerGroup>(
@@ -471,6 +449,31 @@ Drawing *get_eval_grease_pencil_layer_drawing_for_write(GreasePencil &grease_pen
                                                         const int layer)
 {
   return const_cast<Drawing *>(get_eval_grease_pencil_layer_drawing(grease_pencil, layer));
+}
+
+void copy_drawing_array(Span<const GreasePencilDrawingBase *> src_drawings,
+                        MutableSpan<GreasePencilDrawingBase *> dst_drawings)
+{
+  BLI_assert(src_drawings.size() == dst_drawings.size());
+  for (const int i : src_drawings.index_range()) {
+    const GreasePencilDrawingBase *src_drawing_base = src_drawings[i];
+    switch (src_drawing_base->type) {
+      case GP_DRAWING: {
+        const GreasePencilDrawing *src_drawing = reinterpret_cast<const GreasePencilDrawing *>(
+            src_drawing_base);
+        dst_drawings[i] = reinterpret_cast<GreasePencilDrawingBase *>(
+            MEM_new<bke::greasepencil::Drawing>(__func__, src_drawing->wrap()));
+        break;
+      }
+      case GP_DRAWING_REFERENCE: {
+        const GreasePencilDrawingReference *src_drawing_reference =
+            reinterpret_cast<const GreasePencilDrawingReference *>(src_drawing_base);
+        dst_drawings[i] = reinterpret_cast<GreasePencilDrawingBase *>(
+            MEM_new<bke::greasepencil::DrawingReference>(__func__, src_drawing_reference->wrap()));
+        break;
+      }
+    }
+  }
 }
 
 TreeNode::TreeNode()
@@ -1229,6 +1232,17 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
   /* Assign evaluated object. */
   BKE_object_eval_assign_data(object, &grease_pencil_eval->id, false);
   object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
+}
+
+void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
+                                               GreasePencil *grease_pencil_dst)
+{
+  using namespace blender;
+  grease_pencil_dst->drawing_array_num = grease_pencil_src->drawing_array_num;
+  grease_pencil_dst->drawing_array = MEM_cnew_array<GreasePencilDrawingBase *>(
+      grease_pencil_src->drawing_array_num, __func__);
+  bke::greasepencil::copy_drawing_array(grease_pencil_src->drawings(),
+                                        grease_pencil_dst->drawings());
 }
 
 /** \} */

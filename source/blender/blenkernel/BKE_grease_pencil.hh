@@ -117,6 +117,17 @@ class DrawingReference : public ::GreasePencilDrawingReference {
   ~DrawingReference();
 };
 
+const Drawing *get_eval_grease_pencil_layer_drawing(const GreasePencil &grease_pencil,
+                                                    int layer_index);
+Drawing *get_eval_grease_pencil_layer_drawing_for_write(GreasePencil &grease_pencil,
+                                                        int layer_index);
+/**
+ * Copies the drawings from one array to another. Assumes that \a dst_drawings is allocated but not
+ * initialized, e.g. it will allocate new drawings and store the pointers.
+ */
+void copy_drawing_array(Span<const GreasePencilDrawingBase *> src_drawings,
+                        MutableSpan<GreasePencilDrawingBase *> dst_drawings);
+
 class LayerGroup;
 class Layer;
 
@@ -653,11 +664,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 void legacy_gpencil_to_grease_pencil(Main &main, GreasePencil &grease_pencil, bGPdata &gpd);
 
 }  // namespace convert
-
-const Drawing *get_eval_grease_pencil_layer_drawing(const GreasePencil &grease_pencil,
-                                                    int layer_index);
-Drawing *get_eval_grease_pencil_layer_drawing_for_write(GreasePencil &grease_pencil,
-                                                        int layer_index);
 }  // namespace greasepencil
 
 class GreasePencilRuntime {
@@ -797,6 +803,9 @@ GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob);
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
+
+void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
+                                               GreasePencil *grease_pencil_dst);
 
 int BKE_grease_pencil_object_material_index_get(Object *ob, Material *ma);
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name);
