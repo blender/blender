@@ -65,7 +65,7 @@ set(SRC
   intern/easing.c
   intern/endian_switch.c
   intern/expr_pylike_eval.c
-  intern/fileops.c
+  intern/fileops_c.cc
   intern/fileops.cc
   intern/filereader_file.c
   intern/filereader_gzip.c

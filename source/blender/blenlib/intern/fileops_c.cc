@@ -53,7 +53,7 @@
 
 #ifdef WIN32
 /* Text string used as the "verb" for Windows shell operations. */
-static char *windows_operation_string(FileExternalOperation operation)
+static const char *windows_operation_string(FileExternalOperation operation)
 {
   switch (operation) {
     case FILE_EXTERNAL_OPERATION_OPEN:
@@ -145,7 +145,7 @@ int64_t BLI_read(int fd, void *buf, size_t nbytes)
 bool BLI_file_external_operation_supported(const char *filepath, FileExternalOperation operation)
 {
 #ifdef WIN32
-  char *opstring = windows_operation_string(operation);
+  const char *opstring = windows_operation_string(operation);
   return BLI_windows_external_operation_supported(filepath, opstring);
 #else
   UNUSED_VARS(filepath, operation);
@@ -156,7 +156,7 @@ bool BLI_file_external_operation_supported(const char *filepath, FileExternalOpe
 bool BLI_file_external_operation_execute(const char *filepath, FileExternalOperation operation)
 {
 #ifdef WIN32
-  char *opstring = windows_operation_string(operation);
+  const char *opstring = windows_operation_string(operation);
   if (BLI_windows_external_operation_supported(filepath, opstring) &&
       BLI_windows_external_operation_execute(filepath, opstring))
   {
@@ -402,7 +402,7 @@ bool BLI_dir_create_recursive(const char *dirname)
 
   size_t len = strlen(dirname);
   if (len >= sizeof(dirname_static_buf)) {
-    dirname_mut = MEM_mallocN(len + 1, __func__);
+    dirname_mut = MEM_cnew_array<char>(len + 1, __func__);
   }
   memcpy(dirname_mut, dirname, len + 1);
 
@@ -564,23 +564,23 @@ static bool delete_soft(const wchar_t *path_16, const char **error_message)
      * S_FALSE, which is not an error. Both HRESULT values S_OK and S_FALSE indicate success. */
 
     hr = CoCreateInstance(
-        &CLSID_FileOperation, NULL, CLSCTX_ALL, &IID_IFileOperation, (void **)&pfo);
+        CLSID_FileOperation, NULL, CLSCTX_ALL, IID_IFileOperation, (void **)&pfo);
 
     if (SUCCEEDED(hr)) {
       /* Flags for deletion:
        * FOF_ALLOWUNDO: Enables moving file to recycling bin.
        * FOF_SILENT: Don't show progress dialog box.
        * FOF_WANTNUKEWARNING: Show dialog box if file can't be moved to recycling bin. */
-      hr = pfo->lpVtbl->SetOperationFlags(pfo, FOF_ALLOWUNDO | FOF_SILENT | FOF_WANTNUKEWARNING);
+      hr = pfo->SetOperationFlags(FOF_ALLOWUNDO | FOF_SILENT | FOF_WANTNUKEWARNING);
 
       if (SUCCEEDED(hr)) {
-        hr = SHCreateItemFromParsingName(path_16, NULL, &IID_IShellItem, (void **)&psi);
+        hr = SHCreateItemFromParsingName(path_16, NULL, IID_IShellItem, (void **)&psi);
 
         if (SUCCEEDED(hr)) {
-          hr = pfo->lpVtbl->DeleteItem(pfo, psi, NULL);
+          hr = pfo->DeleteItem(psi, NULL);
 
           if (SUCCEEDED(hr)) {
-            hr = pfo->lpVtbl->PerformOperations(pfo);
+            hr = pfo->PerformOperations();
 
             if (FAILED(hr)) {
               *error_message = "Failed to prepare delete operation";
@@ -589,7 +589,7 @@ static bool delete_soft(const wchar_t *path_16, const char **error_message)
           else {
             *error_message = "Failed to prepare delete operation";
           }
-          psi->lpVtbl->Release(psi);
+          psi->Release();
         }
         else {
           *error_message = "Failed to parse path";
@@ -598,7 +598,7 @@ static bool delete_soft(const wchar_t *path_16, const char **error_message)
       else {
         *error_message = "Failed to set operation flags";
       }
-      pfo->lpVtbl->Release(pfo);
+      pfo->Release();
     }
     else {
       *error_message = "Failed to create FileOperation instance";
@@ -731,7 +731,7 @@ static const char *path_destination_ensure_filename(const char *path_src,
       size_t buf_size_needed = path_dst_len + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_mallocN(buf_size_needed, __func__);
+                                         MEM_cnew_array<char>(buf_size_needed, __func__);
       BLI_string_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       return path_dst_with_filename;
     }
@@ -823,10 +823,10 @@ static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, c
   size_t len = strlen(dir) + strlen(file) + 1;
 
   if (*dst == NULL) {
-    *dst = MEM_mallocN(len + 1, "join_dirfile_alloc path");
+    *dst = MEM_cnew_array<char>(len + 1, "join_dirfile_alloc path");
   }
   else if (*alloc_len < len) {
-    *dst = MEM_reallocN(*dst, len + 1);
+    *dst = static_cast<char *>(MEM_reallocN(*dst, len + 1));
   }
 
   *alloc_len = len;
@@ -991,7 +991,7 @@ static int recursive_operation(const char *startfrom,
   return ret;
 }
 
-static int delete_callback_post(const char *from, const char *UNUSED(to))
+static int delete_callback_post(const char *from, const char * /*to*/)
 {
   if (rmdir(from)) {
     perror("rmdir");
@@ -1002,7 +1002,7 @@ static int delete_callback_post(const char *from, const char *UNUSED(to))
   return RecursiveOp_Callback_OK;
 }
 
-static int delete_single_file(const char *from, const char *UNUSED(to))
+static int delete_single_file(const char *from, const char * /*to*/)
 {
   if (unlink(from)) {
     perror("unlink");
@@ -1252,7 +1252,7 @@ static int copy_single_file(const char *from, const char *to)
       need_free = 0;
     }
     else {
-      link_buffer = MEM_callocN(st.st_size + 2, "copy_single_file link_buffer");
+      link_buffer = MEM_cnew_array<char>(st.st_size + 2, "copy_single_file link_buffer");
       need_free = 1;
     }
 
@@ -1373,7 +1373,7 @@ static const char *path_destination_ensure_filename(const char *path_src,
       const size_t buf_size_needed = strlen(path_dst) + 1 + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_mallocN(buf_size_needed, __func__);
+                                         MEM_cnew_array<char>(buf_size_needed, __func__);
       BLI_path_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       path_dst = path_dst_with_filename;
     }
