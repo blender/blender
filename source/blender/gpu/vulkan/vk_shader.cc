@@ -17,7 +17,7 @@
 #include "vk_shader_interface.hh"
 #include "vk_shader_log.hh"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_global.h"

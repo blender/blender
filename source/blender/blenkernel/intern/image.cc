@@ -22,7 +22,7 @@
 #include <string>
 
 #include "BLI_array.hh"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "CLG_log.h"
 

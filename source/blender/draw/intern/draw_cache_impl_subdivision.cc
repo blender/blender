@@ -23,7 +23,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_virtual_array.hh"
 
 #include "PIL_time.h"

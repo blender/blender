@@ -20,7 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string_utf8_symbols.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 

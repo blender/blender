@@ -15,7 +15,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 
 #include "BKE_armature.h"

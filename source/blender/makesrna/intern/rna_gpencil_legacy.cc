@@ -151,7 +151,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 
 #  include "BLI_ghash.h"
 #  include "BLI_listbase.h"
-#  include "BLI_string_utils.h"
+#  include "BLI_string_utils.hh"
 
 #  include "WM_api.hh"
 

@@ -16,7 +16,7 @@
 #include "NOD_socket.hh"
 #include "NOD_zone_socket_items.hh"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "node_geometry_util.hh"
 

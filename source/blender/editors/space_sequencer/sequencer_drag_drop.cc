@@ -12,7 +12,7 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

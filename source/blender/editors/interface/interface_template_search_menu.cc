@@ -31,7 +31,7 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"

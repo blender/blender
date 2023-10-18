@@ -15,7 +15,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"

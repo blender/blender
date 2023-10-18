@@ -23,7 +23,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_vector.h"
 #include "BLI_sort_utils.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"

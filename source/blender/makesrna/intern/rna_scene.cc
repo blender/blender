@@ -705,7 +705,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_string_utils.h"
+#  include "BLI_string_utils.hh"
 
 #  include "DNA_anim_types.h"
 #  include "DNA_cachefile_types.h"

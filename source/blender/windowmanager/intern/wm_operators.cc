@@ -42,7 +42,7 @@
 #include "BLI_dynstr.h" /* For #WM_operator_pystring. */
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"

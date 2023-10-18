@@ -159,7 +159,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"
-#  include "BLI_string_utils.h"
+#  include "BLI_string_utils.hh"
 
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"

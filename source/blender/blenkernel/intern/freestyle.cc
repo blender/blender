@@ -13,7 +13,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 

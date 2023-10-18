@@ -15,7 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_uuid.h"
 
 #include "BKE_asset.h"

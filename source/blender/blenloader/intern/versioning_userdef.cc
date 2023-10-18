@@ -15,7 +15,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"

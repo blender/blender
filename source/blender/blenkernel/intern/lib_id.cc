@@ -35,7 +35,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 

@@ -18,7 +18,7 @@
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"

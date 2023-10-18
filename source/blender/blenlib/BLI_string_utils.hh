@@ -13,10 +13,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 
 typedef bool (*UniquenameCheckCallback)(void *arg, const char *name);
@@ -531,7 +527,3 @@ BLI_INLINE char *_BLI_string_join_by_sep_charN_11(_BLI_STRING_ARGS_10)
 /** \} */
 
 #undef _BLI_STRING_ARGS_0
-
-#ifdef __cplusplus
-}
-#endif

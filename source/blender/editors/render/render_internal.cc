@@ -15,7 +15,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"

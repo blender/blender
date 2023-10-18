@@ -4,7 +4,7 @@
 
 #include "BLI_math_matrix.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"

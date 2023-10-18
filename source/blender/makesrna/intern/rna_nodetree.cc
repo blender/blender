@@ -65,7 +65,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 const EnumPropertyItem rna_enum_node_socket_in_out_items[] = {{SOCK_IN, "IN", 0, "Input", ""},
                                                               {SOCK_OUT, "OUT", 0, "Output", ""},
