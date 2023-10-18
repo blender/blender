@@ -4,7 +4,10 @@
 
 #include "node_geometry_util.hh"
 
+#include "DNA_grease_pencil_types.h"
+
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 
 namespace blender::nodes::node_geo_set_material_index_cc {
 

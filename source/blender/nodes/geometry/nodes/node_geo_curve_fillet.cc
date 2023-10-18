@@ -4,6 +4,10 @@
 
 #include "NOD_rna_define.hh"
 
+#include "DNA_grease_pencil_types.h"
+
+#include "BKE_grease_pencil.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
