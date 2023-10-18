@@ -21,6 +21,8 @@ WAYLAND_DYNLOAD_FN(libdecor_configuration_get_window_state)
 WAYLAND_DYNLOAD_FN(libdecor_decorate)
 WAYLAND_DYNLOAD_FN(libdecor_dispatch)
 WAYLAND_DYNLOAD_FN(libdecor_frame_commit)
+WAYLAND_DYNLOAD_FN(libdecor_frame_get_content_height)
+WAYLAND_DYNLOAD_FN(libdecor_frame_get_content_width)
 WAYLAND_DYNLOAD_FN(libdecor_frame_get_xdg_toplevel)
 WAYLAND_DYNLOAD_FN(libdecor_frame_map)
 WAYLAND_DYNLOAD_FN(libdecor_frame_set_app_id)
@@ -76,6 +78,8 @@ struct WaylandDynload_Libdecor {
   void WL_DYN_FN(libdecor_frame_commit)(struct libdecor_frame *frame,
                                         struct libdecor_state *state,
                                         struct libdecor_configuration *configuration);
+  int WL_DYN_FN(libdecor_frame_get_content_width)(struct libdecor_frame *frame);
+  int WL_DYN_FN(libdecor_frame_get_content_height)(struct libdecor_frame *frame);
   struct xdg_toplevel *WL_DYN_FN(libdecor_frame_get_xdg_toplevel)(struct libdecor_frame *frame);
   void WL_DYN_FN(libdecor_frame_map)(struct libdecor_frame *frame);
   void WL_DYN_FN(libdecor_frame_set_app_id)(struct libdecor_frame *frame, const char *app_id);
@@ -112,6 +116,10 @@ struct WaylandDynload_Libdecor {
 #      define libdecor_dispatch(...) (*wayland_dynload_libdecor.libdecor_dispatch)(__VA_ARGS__)
 #      define libdecor_frame_commit(...) \
         (*wayland_dynload_libdecor.libdecor_frame_commit)(__VA_ARGS__)
+#      define libdecor_frame_get_content_height(...) \
+        (*wayland_dynload_libdecor.libdecor_frame_get_content_height)(__VA_ARGS__)
+#      define libdecor_frame_get_content_width(...) \
+        (*wayland_dynload_libdecor.libdecor_frame_get_content_width)(__VA_ARGS__)
 #      define libdecor_frame_get_xdg_toplevel(...) \
         (*wayland_dynload_libdecor.libdecor_frame_get_xdg_toplevel)(__VA_ARGS__)
 #      define libdecor_frame_map(...) (*wayland_dynload_libdecor.libdecor_frame_map)(__VA_ARGS__)

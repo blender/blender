@@ -1169,25 +1169,57 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   GWL_WindowFrame *frame_pending = &static_cast<GWL_Window *>(data)->frame_pending;
 
   /* Set the size. */
-  int size_next[2];
+  int size_decor[2]{
+      libdecor_frame_get_content_width(frame),
+      libdecor_frame_get_content_height(frame),
+  };
+  int size_next[2] = {0, 0};
+  bool has_size = false;
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
-    const int scale = win->frame.buffer_scale;
-    if (!libdecor_configuration_get_content_size(
+    const int fractional_scale = win->frame.fractional_scale;
+    /* The size from LIBDECOR wont use the GHOST windows buffer size.
+     * so it's important to calculate the buffer size that would have been used
+     * if fractional scaling wasn't supported. */
+    const int scale = fractional_scale ? (fractional_scale / FRACTIONAL_DENOMINATOR) + 1 :
+                                         win->frame.buffer_scale;
+    const int scale_as_fractional = scale * FRACTIONAL_DENOMINATOR;
+    if (libdecor_configuration_get_content_size(
             configuration, frame, &size_next[0], &size_next[1])) {
-      size_next[0] = win->frame.size[0] / scale;
-      size_next[1] = win->frame.size[1] / scale;
-    }
+      if (win->frame.fractional_scale) {
+        win->frame_pending.size[0] = gwl_window_fractional_to_viewport_round(win->frame,
+                                                                             size_next[0]);
+        win->frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame,
+                                                                             size_next[1]);
+      }
+      else {
+        frame_pending->size[0] = size_next[0] * scale;
+        frame_pending->size[1] = size_next[1] * scale;
+      }
 
-    if (win->frame.fractional_scale) {
-      win->frame_pending.size[0] = gwl_window_fractional_to_viewport_round(win->frame,
-                                                                           size_next[0]);
-      win->frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame,
-                                                                           size_next[1]);
+      /* Account for buffer rounding requirement, once fractional scaling is enabled
+       * the buffer scale will be 1, rounding is a requirement until then. */
+      gwl_round_int2_by(frame_pending->size, win->frame.buffer_scale);
+
+      has_size = true;
     }
     else {
-      frame_pending->size[0] = size_next[0] * scale;
-      frame_pending->size[1] = size_next[1] * scale;
+      /* The window decorations may be zero on startup. */
+      if (UNLIKELY(size_decor[0] == 0 || size_decor[1] == 0)) {
+        if (fractional_scale != 0 && (scale_as_fractional != fractional_scale)) {
+          /* Invert the fractional part: (1.25 -> 1.75), (2.75 -> 2.25), (1.5 -> 1.5).
+           * Needed to properly set the initial window size. */
+          const int scale_fractional_part_inv = scale_as_fractional -
+                                                (FRACTIONAL_DENOMINATOR -
+                                                 (scale_as_fractional - fractional_scale));
+          size_decor[0] = ((win->frame.size[0] / scale_as_fractional) * scale_fractional_part_inv);
+          size_decor[1] = ((win->frame.size[1] / scale_as_fractional) * scale_fractional_part_inv);
+        }
+        else {
+          size_decor[0] = win->frame.size[0] / scale;
+          size_decor[1] = win->frame.size[1] / scale;
+        }
+      }
     }
 
 #  ifdef USE_EVENT_BACKGROUND_THREAD
@@ -1196,8 +1228,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
      * (which uses a deferred update) and the window get noticeably out of sync.
      * Rely on the new `frame_pending->size` to resize the window later. */
     if (is_main_thread == false) {
-      size_next[0] = win->frame.size[0] / scale;
-      size_next[1] = win->frame.size[1] / scale;
+      has_size = false;
     }
 #  endif
   }
@@ -1230,6 +1261,10 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
     WGL_LibDecor_Window &decor = *win->libdecor;
+    if (has_size == false) {
+      size_next[0] = size_decor[0];
+      size_next[1] = size_decor[1];
+    }
     libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
     libdecor_frame_commit(frame, state, configuration);
     libdecor_state_free(state);
