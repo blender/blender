@@ -195,6 +195,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
           sc, Ng, sd->wi, rand_xy, eval, wo, pdf, sampled_roughness);
       *eta = 1.0f;
       break;
+#  ifdef __PRINCIPLED_HAIR__
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
       label = bsdf_hair_chiang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness);
       *eta = 1.0f;
@@ -203,6 +204,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       label = bsdf_hair_huang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness);
       *eta = 1.0f;
       break;
+#  endif
     case CLOSURE_BSDF_SHEEN_ID:
       label = bsdf_sheen_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
       *sampled_roughness = one_float2();
@@ -325,6 +327,7 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
                                ((ccl_private HairBsdf *)sc)->roughness2);
       *eta = 1.0f;
       break;
+#  ifdef __PRINCIPLED_HAIR__
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
       alpha = ((ccl_private ChiangHairBSDF *)sc)->m0_roughness;
       *roughness = make_float2(alpha, alpha);
@@ -335,6 +338,7 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
       *roughness = make_float2(alpha, alpha);
       *eta = 1.0f;
       break;
+#  endif
     case CLOSURE_BSDF_SHEEN_ID:
       alpha = ((ccl_private SheenBsdf *)sc)->roughness;
       *roughness = make_float2(alpha, alpha);
@@ -409,6 +413,7 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
     case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
       label = LABEL_TRANSMIT | LABEL_GLOSSY;
       break;
+#  ifdef __PRINCIPLED_HAIR__
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
       if (bsdf_is_transmission(sc, wo))
         label = LABEL_TRANSMIT | LABEL_GLOSSY;
@@ -418,6 +423,7 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
     case CLOSURE_BSDF_HAIR_HUANG_ID:
       label = LABEL_REFLECT | LABEL_GLOSSY;
       break;
+#  endif
     case CLOSURE_BSDF_SHEEN_ID:
       label = LABEL_REFLECT | LABEL_DIFFUSE;
       break;
@@ -500,12 +506,14 @@ ccl_device_inline
     case CLOSURE_BSDF_GLOSSY_TOON_ID:
       eval = bsdf_glossy_toon_eval(sc, sd->wi, wo, pdf);
       break;
+#  ifdef __PRINCIPLED_HAIR__
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
       eval = bsdf_hair_chiang_eval(kg, sd, sc, wo, pdf);
       break;
     case CLOSURE_BSDF_HAIR_HUANG_ID:
       eval = bsdf_hair_huang_eval(kg, sd, sc, wo, pdf);
       break;
+#  endif
     case CLOSURE_BSDF_HAIR_REFLECTION_ID:
       eval = bsdf_hair_reflection_eval(sc, sd->wi, wo, pdf);
       break;
@@ -560,12 +568,14 @@ ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
       bsdf_ashikhmin_shirley_blur(sc, roughness);
       break;
+#  ifdef __PRINCIPLED_HAIR__
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
       bsdf_hair_chiang_blur(sc, roughness);
       break;
     case CLOSURE_BSDF_HAIR_HUANG_ID:
       bsdf_hair_huang_blur(sc, roughness);
       break;
+#  endif
     default:
       break;
   }
@@ -593,6 +603,7 @@ ccl_device_inline Spectrum bsdf_albedo(KernelGlobals kg,
     albedo *= bsdf_microfacet_estimate_albedo(
         kg, sd, (ccl_private const MicrofacetBsdf *)sc, reflection, transmission);
   }
+#  ifdef __PRINCIPLED_HAIR__
   else if (sc->type == CLOSURE_BSDF_HAIR_CHIANG_ID) {
     /* TODO(lukas): Principled Hair could also be split into a glossy and a transmission component,
      * similar to Glass BSDFs. */
@@ -601,6 +612,7 @@ ccl_device_inline Spectrum bsdf_albedo(KernelGlobals kg,
   else if (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID) {
     albedo *= bsdf_hair_huang_albedo(sd, sc);
   }
+#  endif
 #endif
   return albedo;
 }
