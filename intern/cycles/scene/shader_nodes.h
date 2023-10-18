@@ -859,6 +859,11 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(NodePrincipledHairParametrization, parametrization)
   /* Selected scattering model (near-/far-field). */
   NODE_SOCKET_API(NodePrincipledHairModel, model)
+
+  virtual int get_feature()
+  {
+    return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR;
+  }
 };
 
 class HairBsdfNode : public BsdfNode {
