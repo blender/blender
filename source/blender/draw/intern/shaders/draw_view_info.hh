@@ -171,7 +171,7 @@ GPU_SHADER_CREATE_INFO(draw_gpencil_new)
     .sampler(0, ImageType::FLOAT_BUFFER, "gp_pos_tx")
     .sampler(1, ImageType::FLOAT_BUFFER, "gp_col_tx")
     /* Per Object */
-    .define("gpThicknessScale", "1.0")               /* TODO(fclem): Replace with object info. */
+    .define("gpThicknessScale", "1.0") /* TODO(fclem): Replace with object info. */
     /* Per Layer */
     .additional_info("draw_modelmat_new",
                      "draw_resource_id_varying",

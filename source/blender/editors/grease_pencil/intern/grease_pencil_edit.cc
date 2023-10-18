@@ -800,7 +800,7 @@ static void GREASE_PENCIL_OT_delete_frame(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int grease_pencil_stroke_change_color_exec(bContext *C, wmOperator *op)
+static int grease_pencil_stroke_change_color_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender;
   const Scene *scene = CTX_data_scene(C);
@@ -820,15 +820,15 @@ static int grease_pencil_stroke_change_color_exec(bContext *C, wmOperator *op)
           return;
         }
 
-        bke::SpanAttributeWriter<int> materials = curves.attributes_for_write().lookup_or_add_for_write_span<int>(
-            "material_index", ATTR_DOMAIN_CURVE);
+        bke::SpanAttributeWriter<int> materials =
+            curves.attributes_for_write().lookup_or_add_for_write_span<int>("material_index",
+                                                                            ATTR_DOMAIN_CURVE);
 
         IndexMaskMemory memory;
         IndexMask selected_curves = ed::curves::retrieve_selected_curves(curves, memory);
 
         selected_curves.foreach_index(
-            [&](const int curve_index) { materials.span[curve_index] = material_index;
-          });
+            [&](const int curve_index) { materials.span[curve_index] = material_index; });
 
         materials.finish();
       });
@@ -839,7 +839,7 @@ static int grease_pencil_stroke_change_color_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void GREASE_PENCIL_OT_stroke_change_color(wmOperatorType* ot)
+static void GREASE_PENCIL_OT_stroke_change_color(wmOperatorType *ot)
 {
   ot->name = "Change Stroke color";
   ot->idname = "GREASE_PENCIL_OT_stroke_change_color";

@@ -184,7 +184,8 @@ struct PaintOperationExecutor {
 
   float radius_from_input_sample(const bContext &C, const InputSample &sample)
   {
-    ViewContext vc = ED_view3d_viewcontext_init(const_cast<bContext *>(&C), CTX_data_depsgraph_pointer(&C));
+    ViewContext vc = ED_view3d_viewcontext_init(const_cast<bContext *>(&C),
+                                                CTX_data_depsgraph_pointer(&C));
     float radius = calc_brush_radius(
         &vc, brush_, scene_, screen_space_to_drawing_plane(sample.mouse_position));
     if (BKE_brush_use_size_pressure(brush_)) {
