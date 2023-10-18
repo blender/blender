@@ -928,17 +928,21 @@ void WM_ndof_deadzone_set(float deadzone)
 }
 #endif
 
-static void wm_add_reports(ReportList *reports)
+void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports)
 {
   /* If the caller owns them, handle this. */
-  if (reports->list.first && (reports->flag & RPT_OP_HOLD) == 0) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-
-    /* Add reports to the global list, otherwise they are not seen. */
-    BKE_reports_move_to_reports(&wm->reports, reports);
-
-    WM_report_banner_show(wm, nullptr);
+  if (!reports || BLI_listbase_is_empty(&reports->list) || (reports->flag & RPT_OP_HOLD) != 0) {
+    return;
   }
+
+  if (!wm) {
+    wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  }
+
+  /* Add reports to the global list, otherwise they are not seen. */
+  BKE_reports_move_to_reports(&wm->reports, reports);
+
+  WM_report_banner_show(wm, nullptr);
 }
 
 void WM_report(eReportType type, const char *message)
@@ -948,7 +952,7 @@ void WM_report(eReportType type, const char *message)
   BKE_report_print_level_set(&reports, RPT_WARNING);
   BKE_report(&reports, type, message);
 
-  wm_add_reports(&reports);
+  WM_reports_from_reports_move(nullptr, &reports);
 
   BKE_reports_free(&reports);
 }
@@ -1112,7 +1116,7 @@ static void wm_operator_reports(bContext *C,
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, nullptr);
   }
   /* If the caller owns them, handle this. */
-  wm_add_reports(op->reports);
+  WM_reports_from_reports_move(CTX_wm_manager(C), op->reports);
 }
 
 /**
@@ -2498,7 +2502,7 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
         else {
           /* Not very common, but modal operators may report before finishing. */
           if (!BLI_listbase_is_empty(&op->reports->list)) {
-            wm_add_reports(op->reports);
+            WM_reports_from_reports_move(wm, op->reports);
           }
         }
 
@@ -2831,7 +2835,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           BKE_report_print_level_set(handler->op->reports, RPT_WARNING);
           UI_popup_menu_reports(C, handler->op->reports);
 
-          wm_add_reports(handler->op->reports);
+          WM_reports_from_reports_move(CTX_wm_manager(C), handler->op->reports);
 
           CTX_wm_window_set(C, win_prev);
           CTX_wm_area_set(C, area_prev);
