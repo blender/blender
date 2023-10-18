@@ -217,6 +217,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS(Menu):
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateComponents")
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateGeometry")
+        node_add_menu.add_node_type(layout, "GeometryNodeSplitToInstances")
         node_add_menu.draw_assets_for_catalog(layout, "Geometry/Operations")
 
 

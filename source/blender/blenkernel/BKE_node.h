@@ -1314,6 +1314,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_TOOL_SET_FACE_SET 2113
 #define GEO_NODE_POINTS_TO_CURVES 2114
 #define GEO_NODE_INPUT_EDGE_SMOOTH 2115
+#define GEO_NODE_SPLIT_TO_INSTANCES 2116
 
 /** \} */
 

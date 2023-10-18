@@ -63,6 +63,7 @@ class InstanceReference {
   InstanceReference(Object &object);
   InstanceReference(Collection &collection);
   InstanceReference(GeometrySet geometry_set);
+  InstanceReference(std::unique_ptr<GeometrySet> geometry_set);
 
   InstanceReference(const InstanceReference &other);
   InstanceReference(InstanceReference &&other);
@@ -186,6 +187,11 @@ class Instances {
 /* -------------------------------------------------------------------- */
 /** \name #InstanceReference Inline Methods
  * \{ */
+
+inline InstanceReference::InstanceReference(std::unique_ptr<GeometrySet> geometry_set)
+    : type_(Type::GeometrySet), data_(nullptr), geometry_set_(std::move(geometry_set))
+{
+}
 
 inline InstanceReference::InstanceReference(Object &object) : type_(Type::Object), data_(&object)
 {
