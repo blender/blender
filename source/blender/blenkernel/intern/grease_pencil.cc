@@ -511,6 +511,7 @@ TreeNode::~TreeNode()
 
 void TreeNode::set_name(StringRefNull name)
 {
+  MEM_SAFE_FREE(this->GreasePencilLayerTreeNode::name);
   this->GreasePencilLayerTreeNode::name = BLI_strdup(name.c_str());
 }
 
