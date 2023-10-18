@@ -140,6 +140,11 @@ class GHOST_WindowWayland : public GHOST_Window {
   void setOpaque() const;
 #endif
 
+#ifdef WITH_INPUT_IME
+  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override;
+  void endIME() override;
+#endif /* WITH_INPUT_IME */
+
   /* WAYLAND direct-data access. */
 
   int scale_get() const;

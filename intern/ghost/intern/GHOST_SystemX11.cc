@@ -1742,7 +1742,9 @@ GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
                                    /* No support yet for desktop sampling. */
                                    GHOST_kCapabilityDesktopSample |
                                    /* No support yet for image copy/paste. */
-                                   GHOST_kCapabilityClipboardImages));
+                                   GHOST_kCapabilityClipboardImages |
+                                   /* No support yet for IME input methods. */
+                                   GHOST_kCapabilityInputIME));
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)

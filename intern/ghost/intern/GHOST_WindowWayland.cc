@@ -2012,6 +2012,20 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
   }
 }
 
+#ifdef WITH_INPUT_IME
+
+void GHOST_WindowWayland::beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed)
+{
+  system_->ime_begin(this, x, y, w, h, completed);
+}
+
+void GHOST_WindowWayland::endIME()
+{
+  system_->ime_end(this);
+}
+
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

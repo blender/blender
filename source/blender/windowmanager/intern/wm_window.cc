@@ -1977,6 +1977,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityDesktopSample) {
     flag |= WM_CAPABILITY_DESKTOP_SAMPLE;
   }
+  if (ghost_flag & GHOST_kCapabilityInputIME) {
+    flag |= WM_CAPABILITY_INPUT_IME;
+  }
 
   return flag;
 }
@@ -2739,6 +2742,9 @@ bool WM_window_is_temp_screen(const wmWindow *win)
 void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
 {
   BLI_assert(win);
+  if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
+    return;
+  }
 
   /* Convert to native OS window coordinates. */
   float fac = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->ghostwin));
@@ -2750,8 +2756,17 @@ void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complet
 
 void wm_window_IME_end(wmWindow *win)
 {
-  BLI_assert(win && win->ime_data);
+  if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
+    return;
+  }
 
+  BLI_assert(win);
+  /* NOTE(@ideasman42): on WAYLAND a call to "begin" must be closed by an "end" call.
+   * Even if no IME events were generated (which assigned `ime_data`).
+   * TODO: check if #GHOST_EndIME can run on WIN32 & APPLE without causing problems. */
+#  if defined(WIN32) || defined(__APPLE__)
+  BLI_assert(win->ime_data);
+#  endif
   GHOST_EndIME(static_cast<GHOST_WindowHandle>(win->ghostwin));
   win->ime_data = nullptr;
   win->ime_data_is_composing = false;

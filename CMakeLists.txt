@@ -511,7 +511,7 @@ Boost uses ICU library (required for linking with static Boost built with libicu
 endif()
 
 # Misc
-if(WIN32 OR APPLE)
+if(WIN32 OR APPLE OR ((UNIX AND (NOT HAIKU)) AND WITH_GHOST_WAYLAND))
   option(WITH_INPUT_IME "Enable Input Method Editor (IME) for complex Asian character input" ON)
 else()
   set(WITH_INPUT_IME OFF)

@@ -172,6 +172,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CLIPBOARD_IMAGES = (1 << 4),
   /** Ability to sample a color outside of Blender windows. */
   WM_CAPABILITY_DESKTOP_SAMPLE = (1 << 5),
+  /** Support for IME input methods. */
+  WM_CAPABILITY_INPUT_IME = (1 << 6),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1 << 31),
 };

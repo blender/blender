@@ -236,6 +236,10 @@ class GHOST_SystemWayland : public GHOST_System {
 
   struct wl_shm *wl_shm_get() const;
 
+  void ime_begin(
+      GHOST_WindowWayland *win, int32_t x, int32_t y, int32_t w, int32_t h, bool completed) const;
+  void ime_end(GHOST_WindowWayland *win) const;
+
   static const char *xdg_app_id_get();
 
   /* WAYLAND utility functions. */
