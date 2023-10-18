@@ -793,6 +793,16 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    /* Adding and removing attributes with the C++ API doesn't affect the active attribute index.
+     * In order to make the active attribute consistent before and after the change, save the name
+     * and reset the active item afterwards.
+     *
+     * This would be unnecessary if the active attribute were stored as a string on the ID. */
+    std::string active_attribute;
+    if (const CustomDataLayer *layer = BKE_id_attributes_active_get(&curves_id->id)) {
+      active_attribute = layer->name;
+    }
+
     if (const GVArray src = *attributes.lookup(".selection", domain)) {
       const CPPType &type = src.type();
       void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
@@ -807,6 +817,8 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
         MEM_freeN(dst);
       }
     }
+
+    BKE_id_attributes_active_set(&curves_id->id, active_attribute.c_str());
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
