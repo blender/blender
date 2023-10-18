@@ -50,18 +50,6 @@
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
 
-/**
- * NOTE(@ideasman42): Workaround a bug with fractional scaling with LIBDECOR.
- * When fractional scaling is used the GHOST window uses a buffer-scale of 1
- * with the actual scale compensated for by a #wp_viewport.
- *
- * This causes various glitches between the GHOST window and LIBDECOR.
- * While this hack doesn't resolve all of them it does fix the problem where a new windows
- * decorations don't match the window, sometimes causing a delayed decrease in the windows size.
- * See #109194 for related issues.
- */
-#define USE_LIBDECOR_FRACTIONAL_SCALE_HACK
-
 static const xdg_activation_token_v1_listener *xdg_activation_listener_get();
 
 static constexpr size_t base_dpi = 96;
@@ -74,6 +62,12 @@ static constexpr size_t base_dpi = 96;
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 struct WGL_LibDecor_Window {
   libdecor_frame *frame = nullptr;
+
+  /**
+   * Used at startup to set the initial window size
+   * (before fractional scale information is available).
+   */
+  int scale_fractional_from_output = 0;
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
   bool initial_configure_seen = false;
@@ -524,20 +518,6 @@ static bool gwl_window_viewport_set(GWL_Window *win,
     else {
       wl_surface_commit(win->wl.surface);
     }
-
-#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(USE_LIBDECOR_FRACTIONAL_SCALE_HACK)
-    /* NOTE(@ideasman42): it's important this only runs when enabling the viewport
-     * since there is a bug with LIBDECOR not supporting the switch from non-fractional
-     * to fractional scaled surfaces. */
-    if (use_libdecor) {
-      WGL_LibDecor_Window &decor = *win->libdecor;
-      libdecor_state *state = libdecor_state_new(
-          gwl_window_fractional_from_viewport_round(win->frame, win->frame.size[0]),
-          gwl_window_fractional_from_viewport_round(win->frame, win->frame.size[1]));
-      libdecor_frame_commit(decor.frame, state, nullptr);
-      libdecor_state_free(state);
-    }
-#endif
   }
 
   return true;
@@ -1149,7 +1129,9 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   bool has_size = false;
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
-    const int fractional_scale = win->frame.fractional_scale;
+    const int fractional_scale = win->frame.fractional_scale ?
+                                     win->frame.fractional_scale :
+                                     win->libdecor->scale_fractional_from_output;
     /* The size from LIBDECOR wont use the GHOST windows buffer size.
      * so it's important to calculate the buffer size that would have been used
      * if fractional scaling wasn't supported. */
@@ -1163,6 +1145,12 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
                                                                              size_next[0]);
         win->frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame,
                                                                              size_next[1]);
+      }
+      else if (fractional_scale && (fractional_scale != (scale * FRACTIONAL_DENOMINATOR))) {
+        /* The windows `preferred_scale` is not yet available,
+         * set the size as if fractional scale is available. */
+        frame_pending->size[0] = ((size_next[0] * scale) * fractional_scale) / scale_as_fractional;
+        frame_pending->size[1] = ((size_next[1] * scale) * fractional_scale) / scale_as_fractional;
       }
       else {
         frame_pending->size[0] = size_next[0] * scale;
@@ -1447,10 +1435,10 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * is detected and enabled. Unfortunately, it doesn't seem possible to receive the
    * #wp_fractional_scale_v1_listener::preferred_scale information before the window is created
    * So leave the buffer scaled up because there is no *guarantee* the fractional scaling support
-   * will run which could result in an incorrect buffer scale.
-   * Leaving the buffer scale is necessary for #USE_LIBDECOR_FRACTIONAL_SCALE_HACK to work too. */
+   * will run which could result in an incorrect buffer scale. */
+  int scale_fractional_from_output;
   window_->frame.buffer_scale = outputs_uniform_scale_or_default(
-      system_->outputs_get(), 1, nullptr);
+      system_->outputs_get(), 1, &scale_fractional_from_output);
   window_->frame_pending.buffer_scale = window_->frame.buffer_scale;
 
   window_->frame.size[0] = int32_t(width);
@@ -1548,12 +1536,16 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   /* Causes a glitch with `libdecor` for some reason. */
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
+    WGL_LibDecor_Window &decor = *window_->libdecor;
+    if (fractional_scale_manager) {
+      decor.scale_fractional_from_output = scale_fractional_from_output;
+    }
+
     /* Additional round-trip is needed to ensure `xdg_toplevel` is set. */
     wl_display_roundtrip(system_->wl_display_get());
 
     /* NOTE: LIBDECOR requires the window to be created & configured before the state can be set.
      * Workaround this by using the underlying `xdg_toplevel` */
-    WGL_LibDecor_Window &decor = *window_->libdecor;
     while (!decor.initial_configure_seen) {
       wl_display_flush(system->wl_display_get());
       wl_display_dispatch(system->wl_display_get());
