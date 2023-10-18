@@ -485,7 +485,12 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
 
   std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const override
   {
-    return bke::try_detect_field_domain(component, value_field_);
+    const std::optional<eAttrDomain> domain = bke::try_detect_field_domain(component,
+                                                                           value_field_);
+    if (domain.has_value() && *domain == ATTR_DOMAIN_CORNER) {
+      return ATTR_DOMAIN_POINT;
+    }
+    return domain;
   }
 };
 
