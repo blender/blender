@@ -66,13 +66,14 @@ struct SocketType {
     LINK_TEXTURE_GENERATED = (1 << 4),
     LINK_TEXTURE_NORMAL = (1 << 5),
     LINK_TEXTURE_UV = (1 << 6),
-    LINK_INCOMING = (1 << 7),
-    LINK_NORMAL = (1 << 8),
-    LINK_POSITION = (1 << 9),
-    LINK_TANGENT = (1 << 10),
-    LINK_OSL_INITIALIZER = (1 << 11),
+    LINK_TEXTURE_INCOMING = (1 << 7),
+    LINK_INCOMING = (1 << 8),
+    LINK_NORMAL = (1 << 9),
+    LINK_POSITION = (1 << 10),
+    LINK_TANGENT = (1 << 11),
+    LINK_OSL_INITIALIZER = (1 << 12),
     DEFAULT_LINK_MASK = (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9) |
-                        (1 << 10) | (1 << 11)
+                        (1 << 10) | (1 << 11) | (1 << 12)
   };
 
   ustring name;
