@@ -452,6 +452,32 @@ static const char *get_current_socket_identifier_for_future_socket(
     case FN_NODE_COMPARE: {
       return get_identifier_from_decl({"A", "B"}, socket, socket_decls);
     }
+    case SH_NODE_MAP_RANGE: {
+      if (socket.type == SOCK_VECTOR) {
+        if (STREQ(socket.identifier, "Value")) {
+          return "Vector";
+        }
+        if (STREQ(socket.identifier, "From Min")) {
+          return "From_Min_FLOAT3";
+        }
+        if (STREQ(socket.identifier, "From Max")) {
+          return "From_Max_FLOAT3";
+        }
+        if (STREQ(socket.identifier, "To Min")) {
+          return "To_Min_FLOAT3";
+        }
+        if (STREQ(socket.identifier, "To Max")) {
+          return "To_Max_FLOAT3";
+        }
+        if (STREQ(socket.identifier, "Steps")) {
+          return "Steps_FLOAT3";
+        }
+        if (STREQ(socket.identifier, "Result")) {
+          return "Vector";
+        }
+      }
+      return nullptr;
+    }
   }
   return nullptr;
 }
