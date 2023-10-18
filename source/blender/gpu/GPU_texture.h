@@ -779,7 +779,7 @@ void GPU_texture_update_mipmap(GPUTexture *texture,
 
 /**
  * Fills the whole texture with the same data for all pixels.
- * \warning Only work for 2D texture for now.
+ * \warning Only works for 2D and 3D textures.
  * \warning Only clears the MIP 0 of the texture.
  * \param data_format: data format of the pixel data.
  * \note The format is float for UNORM textures.
