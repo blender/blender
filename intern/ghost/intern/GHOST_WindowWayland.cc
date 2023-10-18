@@ -1725,8 +1725,11 @@ GHOST_TSuccess GHOST_WindowWayland::setClientSize(const uint32_t width, const ui
   std::lock_guard lock_frame_guard{window_->frame_pending_mutex};
 #endif
 
-  window_->frame_pending.size[0] = width;
-  window_->frame_pending.size[1] = height;
+  GWL_WindowFrame &frame_pending = window_->frame_pending;
+
+  frame_pending.size[0] = width;
+  frame_pending.size[1] = height;
+  gwl_round_int2_by(frame_pending.size, frame_pending.buffer_scale);
 
   gwl_window_frame_pending_size_set(window_, nullptr, nullptr, nullptr);
 
