@@ -57,7 +57,7 @@ IDTypeInfo IDType_ID_SPK = {
     /*main_listbase_index*/ INDEX_ID_SPK,
     /*struct_size*/ sizeof(Speaker),
     /*name*/ "Speaker",
-    /*name_plural*/ "speakers",
+    /*name_plural*/ N_("speakers"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_SPEAKER,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

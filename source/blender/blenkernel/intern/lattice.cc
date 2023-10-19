@@ -165,7 +165,7 @@ IDTypeInfo IDType_ID_LT = {
     /*main_listbase_index*/ INDEX_ID_LT,
     /*struct_size*/ sizeof(Lattice),
     /*name*/ "Lattice",
-    /*name_plural*/ "lattices",
+    /*name_plural*/ N_("lattices"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_LATTICE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

@@ -235,7 +235,7 @@ IDTypeInfo IDType_ID_CA = {
     /*main_listbase_index*/ INDEX_ID_CA,
     /*struct_size*/ sizeof(Camera),
     /*name*/ "Camera",
-    /*name_plural*/ "cameras",
+    /*name_plural*/ N_("cameras"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_CAMERA,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

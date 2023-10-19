@@ -334,7 +334,7 @@ IDTypeInfo IDType_ID_GR = {
     /*main_listbase_index*/ INDEX_ID_GR,
     /*struct_size*/ sizeof(Collection),
     /*name*/ "Collection",
-    /*name_plural*/ "collections",
+    /*name_plural*/ N_("collections"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_COLLECTION,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

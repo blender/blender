@@ -374,7 +374,7 @@ IDTypeInfo IDType_ID_AR = {
     /*main_listbase_index*/ INDEX_ID_AR,
     /*struct_size*/ sizeof(bArmature),
     /*name*/ "Armature",
-    /*name_plural*/ "armatures",
+    /*name_plural*/ N_("armatures"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_ARMATURE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

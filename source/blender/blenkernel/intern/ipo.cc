@@ -160,7 +160,7 @@ IDTypeInfo IDType_ID_IP = {
     /*main_listbase_index*/ INDEX_ID_IP,
     /*struct_size*/ sizeof(Ipo),
     /*name*/ "Ipo",
-    /*name_plural*/ "ipos",
+    /*name_plural*/ N_("ipos"),
     /*translation_context*/ "",
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ nullptr,
