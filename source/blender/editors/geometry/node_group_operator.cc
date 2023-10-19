@@ -350,7 +350,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
     uiItemL(name_row, "", ICON_NONE);
   }
   else {
-    uiItemL(name_row, socket.name, ICON_NONE);
+    uiItemL(name_row, socket.name ? socket.name : "", ICON_NONE);
   }
 
   uiLayout *prop_row = uiLayoutRow(split, true);
@@ -364,7 +364,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
     uiItemR(prop_row, md_ptr, rna_path_attribute_name.c_str(), UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
-    const char *name = socket_type == SOCK_BOOLEAN ? socket.name : "";
+    const char *name = (socket_type == SOCK_BOOLEAN && socket.name) ? socket.name : "";
     uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
   }
 
@@ -404,29 +404,30 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
   /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
    * information about what type of ID to select for editing the values. This is because
    * pointer IDProperties contain no information about their type. */
+  const char *name = socket.name ? socket.name : "";
   switch (socket_type) {
     case SOCK_OBJECT:
-      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "objects", name, ICON_OBJECT_DATA);
       break;
     case SOCK_COLLECTION:
       uiItemPointerR(
-          row, op_ptr, rna_path, bmain_ptr, "collections", socket.name, ICON_OUTLINER_COLLECTION);
+          row, op_ptr, rna_path, bmain_ptr, "collections", name, ICON_OUTLINER_COLLECTION);
       break;
     case SOCK_MATERIAL:
-      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "materials", name, ICON_MATERIAL);
       break;
     case SOCK_TEXTURE:
-      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "textures", name, ICON_TEXTURE);
       break;
     case SOCK_IMAGE:
-      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "images", name, ICON_IMAGE);
       break;
     default:
       if (nodes::input_has_attribute_toggle(node_tree, socket_index)) {
         add_attribute_search_or_value_buttons(row, op_ptr, socket);
       }
       else {
-        uiItemR(row, op_ptr, rna_path, UI_ITEM_NONE, socket.name, ICON_NONE);
+        uiItemR(row, op_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
       }
   }
   if (!nodes::input_has_attribute_toggle(node_tree, socket_index)) {
