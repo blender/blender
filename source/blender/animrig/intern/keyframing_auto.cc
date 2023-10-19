@@ -222,7 +222,7 @@ bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
 
 bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks)
 {
-  if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+  if (!autokeyframe_cfra_can_key(scene, &ob->id)) {
     return false;
   }
 
