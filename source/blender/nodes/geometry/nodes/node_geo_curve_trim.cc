@@ -141,8 +141,7 @@ static bool trim_curves(const bke::CurvesGeometry &src_curves,
     return false;
   }
 
-  dst_curves = std::move(
-      geometry::trim_curves(src_curves, selection, starts, ends, mode, propagation_info));
+  dst_curves = geometry::trim_curves(src_curves, selection, starts, ends, mode, propagation_info);
   return true;
 }
 
