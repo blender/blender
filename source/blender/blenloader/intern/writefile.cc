@@ -157,13 +157,13 @@ struct ZstdFrame {
 };
 
 class WriteWrap {
-public:
- virtual bool open(const char *filepath) = 0;
- virtual bool close() = 0;
- virtual bool write(const void *data, size_t data_len) = 0;
+ public:
+  virtual bool open(const char *filepath) = 0;
+  virtual bool close() = 0;
+  virtual bool write(const void *data, size_t data_len) = 0;
 
- /* Buffer output (we only want when output isn't already buffered). */
- bool use_buf = true;
+  /* Buffer output (we only want when output isn't already buffered). */
+  bool use_buf = true;
 };
 
 class RawWriteWrap : public WriteWrap {
@@ -213,14 +213,14 @@ class ZstdWriteWrap : public WriteWrap {
 
   bool write_error = false;
 
-public:
- ZstdWriteWrap(WriteWrap &baseWrap) : baseWrap(baseWrap) {}
+ public:
+  ZstdWriteWrap(WriteWrap &baseWrap) : baseWrap(baseWrap) {}
 
- bool open(const char *filepath) override;
- bool close() override;
- bool write(const void *data, size_t data_len) override;
+  bool open(const char *filepath) override;
+  bool close() override;
+  bool write(const void *data, size_t data_len) override;
 
-private:
+ private:
   struct ZstdWriteBlockTask;
   void write_task(ZstdWriteBlockTask *task);
   void write_u32_le(uint32_t val);

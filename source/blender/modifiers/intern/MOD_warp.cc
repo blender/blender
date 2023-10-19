@@ -370,8 +370,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA to_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&to_obj_ptr) && RNA_enum_get(&to_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA to_obj_data_ptr = RNA_pointer_get(&to_obj_ptr, "data");
-    uiItemPointerR(
-        col, ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
+    uiItemPointerR(col, ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
   uiItemR(layout, ptr, "use_volume_preserve", UI_ITEM_NONE, nullptr, ICON_NONE);
