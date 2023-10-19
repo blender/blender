@@ -849,8 +849,8 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
 
     static float one[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-    /* If any of the two inputs is dynamic, we add a Mix node. */
-    if (base_color_sock->link || specular_tint_sock->link) {
+    /* Add a mix node when working with dynamic inputs. */
+    if (specular_tint_sock->link || (base_color_sock->link && specular_tint_old != 0)) {
       bNode *mix = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX);
       static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
       mix->locx = node->locx - 170;
