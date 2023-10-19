@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_quaternion_types.hh"
+
 #include "BKE_grease_pencil.hh"
 #include "BKE_image.h"
 #include "DRW_gpu_wrapper.hh"
@@ -52,8 +54,11 @@ class ObjectModule {
   bool use_stroke_fill_ = true;
   bool use_vfx_ = true;
   bool is_render_ = true;
+  bool is_persp_ = true;
+
   /** Forward vector used to sort gpencil objects. */
   float3 camera_forward_;
+  float3 camera_pos_;
   /** Scene current frame. */
   float current_frame_ = 0;
 
@@ -90,12 +95,14 @@ class ObjectModule {
 
   void begin_sync(Depsgraph *depsgraph, const View &main_view)
   {
-    camera_forward_ = float3(main_view.viewinv()[2]);
+    camera_forward_ = main_view.forward();
+    camera_pos_ = main_view.location();
     current_frame_ = DEG_get_ctime(depsgraph);
 
     is_object_fb_needed_ = false;
     is_layer_fb_needed_ = false;
 
+    is_persp_ = main_view.is_persp();
     /* TODO(fclem): Shrink buffer. */
     // objects_buf_.shrink();
   }
@@ -103,6 +110,7 @@ class ObjectModule {
   void sync_grease_pencil(Manager &manager,
                           ObjectRef &object_ref,
                           Framebuffer &main_fb,
+                          TextureFromPool &depth_tx,
                           PassSortable &main_ps)
   {
     using namespace blender::bke::greasepencil;
@@ -188,6 +196,14 @@ class ObjectModule {
       object_subpass.draw(geom, handle);
     }
 
+    float4x4 plane_mat = get_object_plane_mat(object);
+    ResourceHandle handle_plane_mat = manager.resource_handle(plane_mat);
+    object_subpass.framebuffer_set(&DRW_viewport_framebuffer_list_get()->depth_only_fb);
+    object_subpass.state_set(DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH);
+    object_subpass.shader_set(shaders_.static_shader_get(DEPTH_MERGE));
+    object_subpass.bind_texture("depthBuf", (object_has_vfx) ? nullptr : &depth_tx);
+    object_subpass.draw(DRW_cache_quad_get(), handle_plane_mat);
+
     /* TODO: Do object VFX. */
 #if 0
     if (object_has_vfx) {
@@ -248,6 +264,55 @@ class ObjectModule {
   bool scene_has_visible_gpencil_object() const
   {
     return objects_buf_.size() > 0;
+  }
+
+  float4x4 get_object_plane_mat(Object *object)
+  {
+    using namespace math;
+    /* Find the normal most likely to represent the gpObject. */
+    /* TODO: This does not work quite well if you use
+     * strokes not aligned with the object axes. Maybe we could try to
+     * compute the minimum axis of all strokes. But this would be more
+     * computationally heavy and should go into the GPData evaluation. */
+    const BoundBox *bbox = BKE_object_boundbox_get(object);
+    float4x4 object_to_world = float4x4(object->object_to_world);
+
+    /* Convert bbox to matrix */
+    float3 size;
+    float3 center;
+    BKE_boundbox_calc_size_aabb(bbox, size);
+    BKE_boundbox_calc_center_aabb(bbox, center);
+    /* Avoid division by 0.0 later. */
+    size += 1e-8f;
+
+    /* BBox space to World. */
+    float4x4 bbox_mat = object_to_world *
+                        from_loc_rot_scale<float4x4>(center, Quaternion::identity(), size);
+    float3 plane_normal;
+    if (is_persp_) {
+      /* BBox center to camera vector. */
+      plane_normal = camera_pos_ - bbox_mat.location();
+    }
+    else {
+      plane_normal = camera_forward_;
+    }
+    /* World to BBox space. */
+    float4x4 bbox_mat_inv = invert(bbox_mat);
+    /* mat_inv_t is a "normal" matrix which will transform
+     * BBox normal space to world space. */
+    float4x4 bbox_mat_inv_t = transpose(bbox_mat_inv);
+
+    /* Normalize the vector in BBox space. */
+    plane_normal = normalize(transform_direction(bbox_mat_inv, plane_normal));
+    plane_normal = normalize(transform_direction(bbox_mat_inv_t, plane_normal));
+
+    /* Define a matrix that will be used to render a triangle to merge the depth of the rendered
+     * gpencil object with the rest of the scene. */
+    float4x4 plane_mat = from_up_axis<float4x4>(plane_normal);
+    float radius = length(transform_direction(object_to_world, size));
+    plane_mat = scale(plane_mat, float3(radius));
+    plane_mat.location() = transform_point(object_to_world, center);
+    return plane_mat;
   }
 };
 

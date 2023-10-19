@@ -695,6 +695,7 @@ set(GLSL_SRC
   engines/gpencil/shaders/gpencil_mask_invert_frag.glsl
   engines/gpencil/shaders/gpencil_depth_merge_frag.glsl
   engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
+  engines/gpencil/shaders/grease_pencil_depth_merge_vert.glsl
   engines/gpencil/shaders/gpencil_vfx_frag.glsl
 
   engines/gpencil/gpencil_defines.h

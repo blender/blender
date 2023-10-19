@@ -140,7 +140,7 @@ class Instance {
   {
     switch (object_ref.object->type) {
       case OB_GREASE_PENCIL:
-        objects.sync_grease_pencil(manager, object_ref, main_fb_, main_ps_);
+        objects.sync_grease_pencil(manager, object_ref, main_fb_, depth_tx_, main_ps_);
         break;
       case OB_LAMP:
         lights.sync(object_ref);
