@@ -129,7 +129,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     /* Do first point. */
     const bGPDspoint &first_pt = stroke_points.first();
     stroke_positions.first() = float3(first_pt.x, first_pt.y, first_pt.z);
-    /* Previously, Grease Pencil used a radius convention where 1 "px" = 0.001 units. This "px" was
+    /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px` was
      * the brush size which would be stored in the stroke thickness and then scaled by the point
      * pressure factor. Finally, the render engine would divide this thickness value by 2000 (we're
      * going from a thickness to a radius, hence the factor of two) to convert back into blender

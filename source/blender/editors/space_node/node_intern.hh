@@ -96,7 +96,7 @@ struct SpaceNode_Runtime {
   bool recalc_auto_compositing;
 
   /**
-   * Indicates that the compositing int the space  tree needs to be re-evaluated using
+   * Indicates that the compositing int the space tree needs to be re-evaluated using
    * regular compositing pipeline.
    */
   bool recalc_regular_compositing;

@@ -607,7 +607,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 {
   /* pointers to modifier data for unwrap control */
   SubsurfModifierData *smd_real;
-  /* Modifier initialization data, will  control what type of subdivision will happen. */
+  /* Modifier initialization data, will control what type of subdivision will happen. */
   SubsurfModifierData smd = {{nullptr}};
 
   /* Holds a map to edit-faces for every subdivision-surface face.

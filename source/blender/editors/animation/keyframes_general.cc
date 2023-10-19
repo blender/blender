@@ -684,7 +684,7 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor
   const float exponent = 1 + fabs(factor) * 4;
 
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
-    /* For easy calculation of the curve, the  values are normalized. */
+    /* For easy calculation of the curve, the values are normalized. */
     const float normalized_x = (fcu->bezt[i].vec[1][0] - left_x) / key_x_range;
 
     float normalized_y = 0;

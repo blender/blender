@@ -1186,7 +1186,7 @@ static void node_socket_outline_color_get(const bool selected,
   }
   else if (socket_type == SOCK_CUSTOM) {
     /* Until there is a better place for per socket color,
-     * the outline color for virtual sockets is set  here. */
+     * the outline color for virtual sockets is set here. */
     copy_v4_v4(r_outline_color, virtual_node_socket_outline_color);
   }
   else {
@@ -2672,7 +2672,7 @@ static void node_draw_extra_info_panel_back(const bNode &node, const rctf &extra
 {
   const rctf &node_rect = node.runtime->totr;
   rctf panel_back_rect = extra_info_rect;
-  /* Extend the panel behind hidden nodes to accomodate the large rounded corners. */
+  /* Extend the panel behind hidden nodes to accommodate the large rounded corners. */
   if (node.flag & NODE_HIDDEN) {
     panel_back_rect.ymin = BLI_rctf_cent_y(&node_rect);
   }

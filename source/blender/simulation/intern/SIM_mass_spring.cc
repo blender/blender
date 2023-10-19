@@ -566,7 +566,7 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 static void cloth_calc_force(
     Scene *scene, ClothModifierData *clmd, float /*frame*/, ListBase *effectors, float time)
 {
-  /* Collect forces and derivatives:  F, dFdX, dFdV */
+  /* Collect forces and derivatives: F, dFdX, dFdV. */
   Cloth *cloth = clmd->clothObject;
   ClothSimSettings *parms = clmd->sim_parms;
   Implicit_Data *data = cloth->implicit;

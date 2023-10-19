@@ -692,19 +692,19 @@ class NonTVertex : public ViewVertex {
     return _SVertex->getPoint3D();
   }
 
-  /** Returns the projected 3D  x coordinate of the vertex. */
+  /** Returns the projected 3D. Y coordinate of the vertex. */
   virtual real getProjectedX() const
   {
     return _SVertex->point2D().x();
   }
 
-  /** Returns the projected 3D  y coordinate of the vertex. */
+  /** Returns the projected 3D. Y coordinate of the vertex. */
   virtual real getProjectedY() const
   {
     return _SVertex->point2D().y();
   }
 
-  /** Returns the projected 3D  z coordinate of the vertex. */
+  /** Returns the projected 3D. Z coordinate of the vertex. */
   virtual real getProjectedZ() const
   {
     return _SVertex->point2D().z();

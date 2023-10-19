@@ -1062,7 +1062,7 @@ static void enable_geometry_nodes_is_modifier(Main &bmain)
 static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_pencil)
 {
   using namespace blender;
-  /* Previously, Grease Pencil used a radius convention where 1 "px" = 0.001 units. This "px" was
+  /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px` was
    * the brush size which would be stored in the stroke thickness and then scaled by the point
    * pressure factor. Finally, the render engine would divide this thickness value by 2000 (we're
    * going from a thickness to a radius, hence the factor of two) to convert back into blender

@@ -199,9 +199,9 @@ static float tex_tri(float a)
 static float wood_int(const Tex *tex, float x, float y, float z)
 {
   float wi = 0;
-  /* wave form:   TEX_SIN=0,  TEX_SAW=1,  TEX_TRI=2 */
+  /* wave form: TEX_SIN=0, TEX_SAW=1, TEX_TRI=2. */
   short wf = tex->noisebasis2;
-  /* wood type:   TEX_BAND=0, TEX_RING=1, TEX_BANDNOISE=2, TEX_RINGNOISE=3 */
+  /* wood type: TEX_BAND=0, TEX_RING=1, TEX_BANDNOISE=2, TEX_RINGNOISE=3. */
   short wt = tex->stype;
 
   float (*waveform[3])(float); /* create array of pointers to waveform functions */

@@ -740,7 +740,7 @@ static void ui_block_colorpicker(uiBlock *block,
   }
   UI_but_flag_disable(bt, UI_BUT_UNDO);
 
-  bt->hardmax = hardmax; /* not common but rgb  may be over 1.0 */
+  bt->hardmax = hardmax; /* Not common but RGB may be over 1.0. */
   UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
 

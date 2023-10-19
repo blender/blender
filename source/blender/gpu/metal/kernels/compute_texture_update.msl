@@ -35,7 +35,7 @@ using namespace metal;
 
 /* `base_offset` refers to the base read offset in bytes of the input data buffer.
  * Component offset adds an additional offset to read components. When clearing a buffer
- * and only one source colour data element is provided, the base_offset is always zero.*/
+ * and only one source color data element is provided, the base_offset is always zero.*/
 #if IS_TEXTURE_CLEAR == 1
 #  define READ_INPUT_DATA(base_offset, component_offset) (input_data[0 + component_offset])
 #else

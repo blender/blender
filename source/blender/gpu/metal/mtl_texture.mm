@@ -1308,14 +1308,14 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
   /* Ensure texture is baked. */
   this->ensure_baked();
 
-  /* If renderpass clear is not supported, use compute-based clear. */
+  /* If render-pass clear is not supported, use compute-based clear. */
   bool do_render_pass_clear = true;
   if (ELEM(type_, GPU_TEXTURE_1D, GPU_TEXTURE_1D_ARRAY)) {
     do_render_pass_clear = false;
   }
 
   if (do_render_pass_clear) {
-    /* Create clear framebuffer for fast clear. */
+    /* Create clear frame-buffer for fast clear. */
     GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
     FrameBuffer *fb = unwrap(this->get_blit_framebuffer(-1, 0));
     fb->bind(true);
@@ -1894,7 +1894,7 @@ void gpu::MTLTexture::read_internal(int mip,
             [enc insertDebugSignpost:@"GPUTextureReadCubeArray"];
           }
 
-          /* NOTE: Depth should have a minimum vaue of 1 as we read at least one slice. */
+          /* NOTE: Depth should have a minimum value of 1 as we read at least one slice. */
           int base_slice = z_off;
           int final_slice = base_slice + depth;
           size_t texture_array_relative_offset = 0;

@@ -60,7 +60,7 @@ class VKShader : public Shader {
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
-  /* Unusued: SSBO vertex fetch draw parameters. */
+  /* Unused: SSBO vertex fetch draw parameters. */
   bool get_uses_ssbo_vertex_fetch() const override
   {
     return false;

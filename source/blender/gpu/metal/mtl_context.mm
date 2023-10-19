@@ -1253,7 +1253,7 @@ bool MTLContext::ensure_buffer_bindings(
                   "[UBO] UBO (UBO Name: %s) bound at location: %d (buffer[[%d]]) with size "
                   "%lu (Expected size "
                   "%d)  (Shader Name: %s) is too small -- binding NULL buffer. This is likely an "
-                  "over-binding, which is not used,  but we need this to avoid validation "
+                  "over-binding, which is not used, but we need this to avoid validation "
                   "issues",
                   shader_interface->get_name_at_offset(ubo.name_offset),
                   ubo_location,
@@ -2683,7 +2683,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
                                          .count();
     MTLContext::latency_resolve_average(microseconds_per_frame);
 
-    MTL_LOG_INFO("Frame Latency: %f ms  (Rolling avg: %f ms  Drawables: %d)",
+    MTL_LOG_INFO("Frame Latency: %f ms  (Rolling avg: %f ms Drawables: %d)",
                  ((float)microseconds_per_frame) / 1000.0f,
                  ((float)MTLContext::avg_drawable_latency_us) / 1000.0f,
                  perf_max_drawables);

@@ -665,7 +665,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Texture data read  routines
+/** \name Texture data read routines
  * \{ */
 
 id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(

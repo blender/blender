@@ -560,7 +560,7 @@ typedef enum eStringPropertySearchFlag {
    * if search is supported.
    */
   PROP_STRING_SEARCH_SUPPORTED = (1 << 0),
-  /** Items resulting from  the search must be sorted. */
+  /** Items resulting from the search must be sorted. */
   PROP_STRING_SEARCH_SORT = (1 << 1),
   /**
    * Allow members besides the ones listed to be entered.

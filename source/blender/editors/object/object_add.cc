@@ -3683,8 +3683,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  // XXX  ED_object_editmode_enter(C, 0);
-  // XXX  exit_editmode(C, EM_FREEDATA|); /* free data, but no undo */
+  // XXX: ED_object_editmode_enter(C, 0);
+  // XXX: exit_editmode(C, EM_FREEDATA|); /* free data, but no undo. */
 
   if (basact) {
     /* active base was changed */

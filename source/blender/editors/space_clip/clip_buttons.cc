@@ -791,7 +791,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
    * as metadata panel. So if the cache is skipped here it is not really a memory saver, but
    * skipping the cache could lead to a performance impact depending on the order in which panels
    * and the main area is drawn. Basically, if it is this template drawn first and then the main
-   * area it will lead to frame read and processing  happening twice. */
+   * area it will lead to frame read and processing happening twice. */
   ImBuf *ibuf = BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, 0);
 
   int width, height;

@@ -682,7 +682,7 @@ void DrawMultiBuf::bind(RecordingState &state,
       group.vertex_len = num_input_primitives *
                          GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(group.gpu_shader);
       /* Override base index to -1, as all SSBO calls are submitted as non-indexed, with the
-       * index buffer indirection handled within the implemnetation. This is to ensure
+       * index buffer indirection handled within the implementation. This is to ensure
        * command generation can correctly assigns baseInstance in the non-indexed formatting. */
       group.base_index = -1;
     }

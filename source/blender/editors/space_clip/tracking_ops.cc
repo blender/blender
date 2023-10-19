@@ -1297,7 +1297,7 @@ static int average_tracks_exec(bContext *C, wmOperator *op)
   }
 
   /* Create new empty track, which will be the averaged result.
-   * Makes it simple to average all selection  to it. */
+   * Makes it simple to average all selection to it. */
   MovieTrackingTrack *result_track = BKE_tracking_track_add_empty(tracking,
                                                                   &tracking_object->tracks);
 

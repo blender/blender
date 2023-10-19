@@ -1958,7 +1958,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
    *
    * By definition transform-data has selected items in beginning,
    * so only the first item in each container needs to be checked
-   * when looking  for the presence of selected data. */
+   * when looking for the presence of selected data. */
   if (t->flag & T_PROP_EDIT) {
     bool has_selected_any = false;
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {

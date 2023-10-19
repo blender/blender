@@ -861,8 +861,8 @@ class Texture : NonCopyable {
   }
 
   /**
-   * Clear the texture to NaN for floats, or a to debug value for ints.
-   * (For debugging unitialized data issues)
+   * Clear the texture to NaN for floats, or a to debug value for integers.
+   * (For debugging uninitialized data issues)
    */
   void debug_clear()
   {

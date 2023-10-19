@@ -4210,9 +4210,9 @@ static float bm_edge_seg_isect(const float sco_a[2],
       y2max = max_ff(y21, y22) + 0.001f;
       y2min = min_ff(y21, y22) - 0.001f;
 
-      /* Found an intersect,  calc intersect point */
-      if (m1 == m2) { /* co-incident lines */
-        /* cut at 50% of overlap area */
+      /* Found an intersect, calc intersect point. */
+      if (m1 == m2) { /* Co-incident lines. */
+        /* Cut at 50% of overlap area. */
         x1max = max_ff(x11, x12);
         x1min = min_ff(x11, x12);
         xi = (min_ff(x2max, x1max) + max_ff(x2min, x1min)) / 2.0f;

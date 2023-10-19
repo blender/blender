@@ -80,8 +80,10 @@ BLI_INLINE void copy_v3_v3_unmap(float a[3], const float b[3], const uint map[3]
   a[map[2]] = b[2];
 }
 
-/* Clamps/Limits the given coordinate to:  limits[0] <= co[axis] <= limits[1]
- * The amount of clamp is saved on dcut */
+/**
+ * Clamps/Limits the given coordinate to: limits[0] <= co[axis] <= limits[1]
+ * The amount of clamp is saved on `dcut`.
+ */
 static void axis_limit(const int axis, const float limits[2], float co[3], float dcut[3])
 {
   float val = co[axis];

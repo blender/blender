@@ -218,7 +218,7 @@ struct SlideOperationExecutor {
       self_->initial_positions_cu_ = curves_orig_->positions();
       self_->initial_deformed_positions_cu_ = deformation.positions;
 
-      /* First find all curves to slide. When the mouse moves, only those curves  will be moved. */
+      /* First find all curves to slide. When the mouse moves, only those curves will be moved. */
       this->find_curves_to_slide_with_symmetry();
       return;
     }

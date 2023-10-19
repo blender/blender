@@ -103,10 +103,10 @@ void WriteBufferOperation::execute_opencl_region(OpenCLDevice *device,
   float *output_float_buffer = output_buffer->get_buffer();
   cl_int error;
   /*
-   * 1. create cl_mem from outputbuffer
-   * 2. call NodeOperation (input) executeOpenCLChunk(.....)
-   * 3. schedule read back from opencl to main device (outputbuffer)
-   * 4. schedule native callback
+   * 1. create cl_mem from output_buffer.
+   * 2. call NodeOperation (input) executeOpenCLChunk(...).
+   * 3. schedule read back from OPENCL to main device (output_buffer).
+   * 4. schedule native callback.
    *
    * NOTE: list of cl_mem will be filled by 2, and needs to be cleaned up by 4
    */
