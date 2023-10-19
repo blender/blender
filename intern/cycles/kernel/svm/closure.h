@@ -204,7 +204,7 @@ ccl_device
 
             /* Attenuate lower layers */
             Spectrum albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
-            weight *= 1.0f - reduce_max(safe_divide_color(albedo, weight));
+            weight = closure_layering_weight(albedo, weight);
           }
         }
       }
@@ -229,7 +229,7 @@ ccl_device
 
             /* Attenuate lower layers */
             Spectrum albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
-            weight *= 1.0f - reduce_max(safe_divide_color(albedo, weight));
+            weight = closure_layering_weight(albedo, weight);
           }
         }
 
@@ -367,7 +367,7 @@ ccl_device
 
           /* Attenuate lower layers */
           Spectrum albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
-          weight *= 1.0f - reduce_max(safe_divide_color(albedo, weight));
+          weight = closure_layering_weight(albedo, weight);
         }
       }
 

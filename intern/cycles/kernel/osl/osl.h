@@ -151,7 +151,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
       if (stack_size == layer_stack_level) {
         /* We just finished processing the top layers of a Layer closure, so adjust the weight to
          * account for the layering. */
-        weight *= saturatef(1.0f - reduce_max(safe_divide_color(layer_albedo, weight)));
+        weight = closure_layering_weight(layer_albedo, weight);
         layer_stack_level = -1;
         /* If it's fully occluded, skip the base layer we just popped from the stack and grab
          * the next entry instead. */
