@@ -116,7 +116,7 @@ class ObjectModule {
     using namespace blender::bke::greasepencil;
 
     Object *object = object_ref.object;
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+    const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
     if (grease_pencil.drawings().is_empty()) {
       return;
@@ -196,7 +196,7 @@ class ObjectModule {
       object_subpass.draw(geom, handle);
     }
 
-    float4x4 plane_mat = get_object_plane_mat(object);
+    float4x4 plane_mat = get_object_plane_mat(*object);
     ResourceHandle handle_plane_mat = manager.resource_handle(plane_mat);
     object_subpass.framebuffer_set(&DRW_viewport_framebuffer_list_get()->depth_only_fb);
     object_subpass.state_set(DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH);
@@ -266,7 +266,7 @@ class ObjectModule {
     return objects_buf_.size() > 0;
   }
 
-  float4x4 get_object_plane_mat(Object *object)
+  float4x4 get_object_plane_mat(const Object &object)
   {
     using namespace math;
     /* Find the normal most likely to represent the gpObject. */
@@ -274,8 +274,8 @@ class ObjectModule {
      * strokes not aligned with the object axes. Maybe we could try to
      * compute the minimum axis of all strokes. But this would be more
      * computationally heavy and should go into the GPData evaluation. */
-    BLI_assert(object->type == OB_GREASE_PENCIL);
-    const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object->data);
+    BLI_assert(object.type == OB_GREASE_PENCIL);
+    const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object.data);
     const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max();
     if (!bounds) {
       return float4x4::identity();
@@ -286,7 +286,7 @@ class ObjectModule {
     const float3 center = midpoint(bounds->min, bounds->max);
 
     /* BBox space to World. */
-    const float4x4 object_to_world = float4x4(object->object_to_world);
+    const float4x4 object_to_world = float4x4(object.object_to_world);
     float4x4 bbox_mat = object_to_world *
                         from_loc_rot_scale<float4x4>(center, Quaternion::identity(), size);
     float3 plane_normal;

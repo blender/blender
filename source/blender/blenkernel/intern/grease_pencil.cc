@@ -1398,6 +1398,7 @@ void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *r
     }
     for (const int i : material_indices.span.index_range()) {
       BLI_assert(blender::IndexRange(totcol).contains(remap[material_indices.span[i]]));
+      UNUSED_VARS_NDEBUG(totcol);
       material_indices.span[i] = remap[material_indices.span[i]];
     }
     material_indices.finish();
