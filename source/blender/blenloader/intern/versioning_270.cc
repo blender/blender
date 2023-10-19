@@ -12,6 +12,8 @@
 /* for MinGW32 definition of NULL, could use BLI_blenlib.h instead too */
 #include <cstddef>
 
+#include <string>
+
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
@@ -805,7 +807,9 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 273, 8)) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (BKE_modifier_unique_name(&ob->modifiers, md)) {
+        const std::string old_name = md->name;
+        BKE_modifier_unique_name(&ob->modifiers, md);
+        if (old_name != md->name) {
           printf(
               "Warning: Object '%s' had several modifiers with the "
               "same name, renamed one of them to '%s'.\n",

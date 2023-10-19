@@ -121,14 +121,13 @@ void BKE_shaderfx_free(ShaderFxData *fx)
   BKE_shaderfx_free_ex(fx, 0);
 }
 
-bool BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx)
+void BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx)
 {
   if (shaders && fx) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
-    return BLI_uniquename(
+    BLI_uniquename(
         shaders, fx, DATA_(fxi->name), '.', offsetof(ShaderFxData, name), sizeof(fx->name));
   }
-  return false;
 }
 
 bool BKE_shaderfx_depends_ontime(ShaderFxData *fx)

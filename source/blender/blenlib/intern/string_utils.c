@@ -385,7 +385,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
 
 /* Unique name utils. */
 
-bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
+void BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        void *arg,
                        const char *defname,
                        char delim,
@@ -421,11 +421,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
     } while (unique_check(arg, tempname));
 
     BLI_strncpy(name, tempname, name_maxncpy);
-
-    return true;
   }
-
-  return false;
 }
 
 /**
@@ -462,7 +458,7 @@ static bool uniquename_unique_check(void *arg, const char *name)
   return uniquename_find_dupe(data->lb, data->vlink, name, data->name_offset);
 }
 
-bool BLI_uniquename(ListBase *list,
+void BLI_uniquename(ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,
@@ -482,15 +478,15 @@ bool BLI_uniquename(ListBase *list,
 
   /* See if we are given an empty string */
   if (ELEM(NULL, vlink)) {
-    return false;
+    return;
   }
 
-  return BLI_uniquename_cb(uniquename_unique_check,
-                           &data,
-                           defname,
-                           delim,
-                           POINTER_OFFSET(vlink, name_offset),
-                           name_maxncpy);
+  BLI_uniquename_cb(uniquename_unique_check,
+                    &data,
+                    defname,
+                    delim,
+                    POINTER_OFFSET(vlink, name_offset),
+                    name_maxncpy);
 }
 
 size_t BLI_string_len_array(const char *strings[], uint strings_num)

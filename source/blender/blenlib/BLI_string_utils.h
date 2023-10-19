@@ -150,9 +150,8 @@ size_t BLI_string_flip_side_name(char *name_dst,
  * \param delim: Delimits numeric suffix in name
  * \param name: Name to be ensured unique
  * \param name_maxncpy: Maximum length of name area
- * \return true if there if the name was changed
  */
-bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
+void BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        void *arg,
                        const char *defname,
                        char delim,
@@ -169,7 +168,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
  * \param name_offset: Offset of name within block structure
  * \param name_maxncpy: Maximum length of name area
  */
-bool BLI_uniquename(struct ListBase *list,
+void BLI_uniquename(struct ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,

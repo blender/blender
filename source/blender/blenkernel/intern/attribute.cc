@@ -263,7 +263,7 @@ static bool unique_name_cb(void *arg, const char *name)
   return false;
 }
 
-bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
+void BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 {
   AttrUniqueData data{id};
 
@@ -274,7 +274,7 @@ bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
   BLI_strncpy_utf8(outname, (name && name[0]) ? name : IFACE_("Attribute"), name_maxncpy);
 
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
-  return BLI_uniquename_cb(unique_name_cb, &data, defname, '.', outname, name_maxncpy);
+  BLI_uniquename_cb(unique_name_cb, &data, defname, '.', outname, name_maxncpy);
 }
 
 CustomDataLayer *BKE_id_attribute_new(ID *id,

@@ -2021,11 +2021,11 @@ static bool check_unique_node_cb(void *arg, const char *name)
   return names.contains(name);
 }
 
-static bool unique_node_name_ex(VectorSet<blender::StringRefNull> &names,
+static void unique_node_name_ex(VectorSet<blender::StringRefNull> &names,
                                 const char *default_name,
                                 char *name)
 {
-  return BLI_uniquename_cb(check_unique_node_cb, &names, default_name, '.', name, MAX_NAME);
+  BLI_uniquename_cb(check_unique_node_cb, &names, default_name, '.', name, MAX_NAME);
 }
 
 static std::string unique_node_name(const GreasePencil &grease_pencil,
