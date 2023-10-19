@@ -252,6 +252,11 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!node_tree->group_output_node()) {
+    BKE_report(op->reports, RPT_ERROR, "Node group must have a group output node");
+    return OPERATOR_CANCELLED;
+  }
+
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len, mode);
