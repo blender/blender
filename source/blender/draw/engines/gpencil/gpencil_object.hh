@@ -274,18 +274,19 @@ class ObjectModule {
      * strokes not aligned with the object axes. Maybe we could try to
      * compute the minimum axis of all strokes. But this would be more
      * computationally heavy and should go into the GPData evaluation. */
-    const BoundBox *bbox = BKE_object_boundbox_get(object);
-    float4x4 object_to_world = float4x4(object->object_to_world);
+    BLI_assert(object->type == OB_GREASE_PENCIL);
+    const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object->data);
+    const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max();
+    if (!bounds) {
+      return float4x4::identity();
+    }
 
     /* Convert bbox to matrix */
-    float3 size;
-    float3 center;
-    BKE_boundbox_calc_size_aabb(bbox, size);
-    BKE_boundbox_calc_center_aabb(bbox, center);
-    /* Avoid division by 0.0 later. */
-    size += 1e-8f;
+    const float3 size = float3(bounds->max - bounds->min) + 1e-8f;
+    const float3 center = midpoint(bounds->min, bounds->max);
 
     /* BBox space to World. */
+    const float4x4 object_to_world = float4x4(object->object_to_world);
     float4x4 bbox_mat = object_to_world *
                         from_loc_rot_scale<float4x4>(center, Quaternion::identity(), size);
     float3 plane_normal;
