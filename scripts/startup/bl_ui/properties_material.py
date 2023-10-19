@@ -273,6 +273,7 @@ class EEVEE_NEXT_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
             layout.prop(mat, "show_transparent_back")
 
         layout.prop(mat, "use_screen_refraction")
+        layout.prop(mat, "volume_intersection_method")
         layout.prop(mat, "pass_index")
 
 

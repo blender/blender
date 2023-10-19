@@ -78,6 +78,17 @@ GPU_SHADER_CREATE_INFO(eevee_geom_point_cloud)
                      "draw_resource_id_varying",
                      "draw_view");
 
+GPU_SHADER_CREATE_INFO(eevee_geom_volume)
+    .additional_info("eevee_shared")
+    .define("MAT_GEOM_VOLUME")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_out(eevee_surf_iface)
+    .vertex_source("eevee_geom_volume_vert.glsl")
+    .additional_info("draw_modelmat_new",
+                     "draw_object_infos_new",
+                     "draw_resource_id_varying",
+                     "draw_view");
+
 GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
     .additional_info("eevee_shared")
     .define("MAT_GEOM_GPENCIL")
@@ -280,6 +291,7 @@ GPU_SHADER_CREATE_INFO(eevee_volume_object)
            Qualifier::READ_WRITE,
            ImageType::FLOAT_3D,
            "out_phase_img")
+    .image(VOLUME_OCCUPANCY_SLOT, GPU_R32UI, Qualifier::READ, ImageType::UINT_3D, "occupancy_img")
     .additional_info("eevee_volume_material_common", "draw_object_infos_new", "draw_volume_infos");
 
 GPU_SHADER_CREATE_INFO(eevee_volume_world)
@@ -306,22 +318,23 @@ GPU_SHADER_CREATE_INFO(eevee_volume_world)
     .define("MAT_GEOM_VOLUME_WORLD")
     .additional_info("eevee_volume_material_common");
 
-#if 0 /* TODO */
-GPU_SHADER_INTERFACE_INFO(eevee_volume_iface, "interp")
-    .smooth(Type::VEC3, "P_start")
-    .smooth(Type::VEC3, "P_end");
-
-GPU_SHADER_CREATE_INFO(eevee_volume_deferred)
-    .sampler(0, ImageType::DEPTH_2D, "depth_max_tx")
-    .vertex_in(0, Type::VEC3, "pos")
-    .vertex_out(eevee_volume_iface)
-    .fragment_out(0, Type::UVEC4, "out_volume_data")
-    .fragment_out(1, Type::VEC4, "out_transparency_data")
-    .additional_info("eevee_shared")
-    .vertex_source("eevee_volume_vert.glsl")
-    .fragment_source("eevee_volume_deferred_frag.glsl")
-    .additional_info("draw_fullscreen");
-#endif
+GPU_SHADER_CREATE_INFO(eevee_surf_occupancy)
+    .define("MAT_OCCUPANCY")
+    .builtins(BuiltinBits::TEXTURE_ATOMIC)
+    .push_constant(Type::BOOL, "use_fast_method")
+    .image(VOLUME_HIT_DEPTH_SLOT, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_3D, "hit_depth_img")
+    .image(VOLUME_HIT_COUNT_SLOT,
+           GPU_R32UI,
+           Qualifier::READ_WRITE,
+           ImageType::UINT_2D,
+           "hit_count_img")
+    .image(VOLUME_OCCUPANCY_SLOT,
+           GPU_R32UI,
+           Qualifier::READ_WRITE,
+           ImageType::UINT_3D,
+           "occupancy_img")
+    .fragment_source("eevee_surf_occupancy_frag.glsl")
+    .additional_info("eevee_global_ubo", "eevee_sampling_data");
 
 /** \} */
 
@@ -348,7 +361,8 @@ GPU_SHADER_CREATE_INFO(eevee_material_stub)
     /* EEVEE_MAT_FINAL_VARIATION(prefix##_gpencil, "eevee_geom_gpencil", __VA_ARGS__) */ \
     EEVEE_MAT_FINAL_VARIATION(prefix##_curves, "eevee_geom_curves", __VA_ARGS__) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_mesh, "eevee_geom_mesh", __VA_ARGS__) \
-    EEVEE_MAT_FINAL_VARIATION(prefix##_point_cloud, "eevee_geom_point_cloud", __VA_ARGS__)
+    EEVEE_MAT_FINAL_VARIATION(prefix##_point_cloud, "eevee_geom_point_cloud", __VA_ARGS__) \
+    EEVEE_MAT_FINAL_VARIATION(prefix##_volume, "eevee_geom_volume", __VA_ARGS__)
 
 #  define EEVEE_MAT_PIPE_VARIATIONS(name, ...) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_world, "eevee_surf_world", __VA_ARGS__) \
@@ -356,6 +370,7 @@ GPU_SHADER_CREATE_INFO(eevee_material_stub)
     EEVEE_MAT_GEOM_VARIATIONS(name##_deferred, "eevee_surf_deferred", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_forward, "eevee_surf_forward", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_capture, "eevee_surf_capture", __VA_ARGS__) \
+    EEVEE_MAT_GEOM_VARIATIONS(name##_occupancy, "eevee_surf_occupancy", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_shadow_atomic, "eevee_surf_shadow_atomic", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_shadow_tbdr, "eevee_surf_shadow_tbdr", __VA_ARGS__)
 

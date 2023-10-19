@@ -312,7 +312,7 @@ void brdf_f82_tint_lut(vec3 F0,
 #ifdef EEVEE_UTILITY_TX
   vec3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
 #else
-  vec3 split_sum = vec2(1.0, 0.0, 0.0);
+  vec3 split_sum = vec3(1.0, 0.0, 0.0);
 #endif
 
   reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :

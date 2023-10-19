@@ -215,7 +215,9 @@ typedef struct Material {
   char blend_method;
   char blend_shadow;
   char blend_flag;
-  char _pad3[1];
+
+  /* Volume. */
+  char volume_intersection_method;
 
   /**
    * Cached slots for texture painting, must be refreshed in
@@ -324,6 +326,12 @@ typedef enum ePreviewType {
 /** #Material::pr_flag */
 enum {
   MA_PREVIEW_WORLD = 1 << 0,
+};
+
+/** #Material::volume_intersection_method */
+enum {
+  MA_VOLUME_ISECT_FAST = 0,
+  MA_VOLUME_ISECT_ACCURATE = 1,
 };
 
 /** #Material::blend_method */

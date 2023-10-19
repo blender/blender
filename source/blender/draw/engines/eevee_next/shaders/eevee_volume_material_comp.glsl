@@ -9,6 +9,7 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_occupancy_lib.glsl)
 
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
@@ -48,6 +49,21 @@ void main()
   if (any(greaterThanEqual(froxel, uniform_buf.volumes.tex_size))) {
     return;
   }
+
+#ifdef MAT_GEOM_VOLUME_OBJECT
+  /** Check occupancy map. Discard thread if froxel is empty. */
+  /* Shift for 32bits per layer. Avoid integer modulo and division. */
+  const int shift = 5;
+  const int mask = int(~(0xFFFFFFFFu << 5u));
+  /* Divide by 32. */
+  int occupancy_layer = froxel.z >> shift;
+  /* Modulo 32. */
+  uint occupancy_shift = froxel.z & mask;
+  uint occupancy_bits = imageLoad(occupancy_img, ivec3(froxel.xy, occupancy_layer)).r;
+  if (((occupancy_bits >> occupancy_shift) & 1u) == 0u) {
+    return;
+  }
+#endif
 
   vec3 jitter = sampling_rng_3D_get(SAMPLING_VOLUME_U);
   vec3 ndc_cell = volume_to_screen((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);

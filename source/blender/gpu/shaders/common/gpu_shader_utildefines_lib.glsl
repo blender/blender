@@ -74,7 +74,7 @@ void set_flag_from_test(inout int value, bool test, int flag)
 }
 
 /* Keep define to match C++ implementation. */
-#define SET_FLAG_FROM_TEST(value, test, flag) flag_test(value, test, flag)
+#define SET_FLAG_FROM_TEST(value, test, flag) set_flag_from_test(value, test, flag)
 
 /**
  * Pack two 16-bit uint into one 32-bit uint.

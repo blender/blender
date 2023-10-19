@@ -262,6 +262,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_surfel_ray";
     case VOLUME_INTEGRATION:
       return "eevee_volume_integration";
+    case VOLUME_OCCUPANCY_CONVERT:
+      return "eevee_volume_occupancy_convert";
     case VOLUME_RESOLVE:
       return "eevee_volume_resolve";
     case VOLUME_SCATTER:
@@ -426,6 +428,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       }
       info.vertex_inputs_.clear();
       break;
+    case MAT_GEOM_VOLUME:
     case MAT_GEOM_VOLUME_OBJECT:
     case MAT_GEOM_VOLUME_WORLD:
       /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
@@ -436,8 +439,11 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       break;
   }
 
-  const bool do_vertex_attrib_load = !ELEM(
-      geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME_WORLD, MAT_GEOM_VOLUME_OBJECT);
+  const bool do_vertex_attrib_load = !ELEM(geometry_type,
+                                           MAT_GEOM_WORLD,
+                                           MAT_GEOM_VOLUME_WORLD,
+                                           MAT_GEOM_VOLUME_OBJECT,
+                                           MAT_GEOM_VOLUME);
 
   if (!do_vertex_attrib_load && !info.vertex_out_interfaces_.is_empty()) {
     /* Codegen outputs only one interface. */
@@ -461,7 +467,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
   std::stringstream vert_gen, frag_gen, comp_gen;
 
-  bool is_compute = pipeline_type == MAT_PIPE_VOLUME;
+  bool is_compute = pipeline_type == MAT_PIPE_VOLUME_MATERIAL;
 
   if (do_vertex_attrib_load) {
     vert_gen << global_vars.str() << attr_load.str();
@@ -474,7 +480,12 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (!is_compute) {
-    if (!ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME_WORLD, MAT_GEOM_VOLUME_OBJECT)) {
+    if (!ELEM(geometry_type,
+              MAT_GEOM_WORLD,
+              MAT_GEOM_VOLUME_WORLD,
+              MAT_GEOM_VOLUME_OBJECT,
+              MAT_GEOM_VOLUME))
+    {
       vert_gen << "vec3 nodetree_displacement()\n";
       vert_gen << "{\n";
       vert_gen << ((codegen.displacement) ? codegen.displacement : "return vec3(0);\n");
@@ -547,6 +558,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     case MAT_GEOM_POINT_CLOUD:
       info.additional_info("eevee_geom_point_cloud");
       break;
+    case MAT_GEOM_VOLUME:
+      info.additional_info("eevee_geom_volume");
+      break;
   }
   /* Pipeline Info. */
   switch (geometry_type) {
@@ -583,6 +597,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
             } break;
           }
           break;
+        case MAT_PIPE_VOLUME_OCCUPANCY:
+          info.additional_info("eevee_surf_occupancy");
+          break;
         case MAT_PIPE_CAPTURE:
           info.additional_info("eevee_surf_capture");
           break;
@@ -613,7 +630,7 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
                                                eMaterialGeometry geometry_type,
                                                bool deferred_compilation)
 {
-  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME);
+  bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
 
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
@@ -625,7 +642,7 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
                                             bNodeTree *nodetree,
                                             eMaterialPipeline pipeline_type)
 {
-  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME);
+  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL);
   bool defer_compilation = is_volume;
 
   eMaterialGeometry geometry_type = is_volume ? MAT_GEOM_VOLUME_WORLD : MAT_GEOM_WORLD;
@@ -647,7 +664,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
 {
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
-  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME);
+  bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
 
   GPUMaterial *gpumat = GPU_material_from_nodetree(nullptr,
                                                    nullptr,

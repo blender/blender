@@ -1855,6 +1855,7 @@ typedef struct SceneEEVEE {
   float volumetric_sample_distribution;
   float volumetric_light_clamp;
   int volumetric_shadow_samples;
+  int volumetric_ray_depth;
 
   float gtao_distance;
   float gtao_factor;
@@ -1887,7 +1888,6 @@ typedef struct SceneEEVEE {
   int shadow_ray_count;
   int shadow_step_count;
   float shadow_normal_bias;
-  char _pad[4];
 
   int ray_split_settings;
   int ray_tracing_method;

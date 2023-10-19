@@ -40,14 +40,33 @@
 namespace blender::eevee {
 
 class Instance;
+class VolumePipeline;
 
 class VolumeModule {
+  friend VolumePipeline;
+
  private:
   Instance &inst_;
 
   bool enabled_;
 
   VolumesInfoData &data_;
+
+  /**
+   * Occupancy map that allows to fill froxels that are inside the geometry.
+   * It is filled during a pre-pass using atomic operations.
+   * Using a 3D bitfield, we only allocate one bit per froxel.
+   */
+  Texture occupancy_tx_ = {"occupancy_tx"};
+  /**
+   * List of surface hit for correct occupancy determination.
+   * One texture holds the number of hit count and the other the depth and
+   * the facing of each hit.
+   */
+  Texture hit_count_tx_ = {"hit_count_tx"};
+  Texture hit_depth_tx_ = {"hit_depth_tx"};
+  /** Empty framebuffer for occupancy pass. */
+  Framebuffer occupancy_fb_ = {"occupancy_fb"};
 
   /* Material Parameters */
   Texture prop_scattering_tx_;
@@ -76,34 +95,6 @@ class VolumeModule {
   Texture dummy_scatter_tx_;
   Texture dummy_transmit_tx_;
 
-  /* Axis aligned bounding box in the volume grid.
-   * Used for frustum culling and volumes overlapping detection. */
-  struct GridAABB {
-    /* Represent min and max grid corners covered by a volume.
-     * So a volume covering the first froxel will have min={0,0,0} and max={1,1,1}.
-     * A volume with min={0,0,0} and max={0,0,0} covers nothing. */
-    int3 min, max;
-
-    GridAABB(int3 min_, int3 max_) : min(min_), max(max_){};
-    GridAABB(Object *ob, const Camera &camera, const VolumesInfoData &data);
-
-    /** Returns the intersection between this AABB and the \a other AABB. */
-    GridAABB intersect(const GridAABB &other) const;
-
-    /** Returns true if volume covers no froxel. */
-    bool is_empty() const;
-
-    /** Returns the extent of the volume. */
-    int3 extent() const
-    {
-      return max - min;
-    }
-  };
-  /* Stores a vector of volume AABBs for each material pass,
-   * so we can detect overlapping volumes and place GPU barriers where needed
-   * (Only stores the AABBs for the volumes rendered since the last barrier). */
-  Map<GPUShader *, Vector<GridAABB>> subpass_aabbs_;
-
  public:
   VolumeModule(Instance &inst, VolumesInfoData &data) : inst_(inst), data_(data)
   {
@@ -127,6 +118,14 @@ class VolumeModule {
     pass.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
     pass.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);
     pass.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
+    pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
+  }
+
+  template<typename PassType> void bind_occupancy_buffers(PassType &pass)
+  {
+    pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
+    pass.bind_image(VOLUME_HIT_DEPTH_SLOT, &hit_depth_tx_);
+    pass.bind_image(VOLUME_HIT_COUNT_SLOT, &hit_count_tx_);
   }
 
   bool needs_shadow_tagging()
@@ -144,10 +143,8 @@ class VolumeModule {
   void begin_sync();
 
   void sync_world();
-  void sync_object(Object *ob,
-                   ObjectHandle &ob_handle,
-                   ResourceHandle res_handle,
-                   MaterialPass *material_pass = nullptr);
+
+  void material_call(MaterialPass &material_pass, Object *ob, ResourceHandle res_handle);
 
   void end_sync();
 

@@ -19,6 +19,8 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_pointcloud_types.h"
+#include "DNA_volume_types.h"
 
 #include "draw_common.hh"
 #include "draw_sculpt.hh"
@@ -153,9 +155,10 @@ void SyncModule::sync_mesh(Object *ob,
     Material &material = material_array.materials[i];
     GPUMaterial *gpu_material = material_array.gpu_materials[i];
 
-    if (material.volume.gpumat && i == 0) {
+    if (material.is_volume && (i == 0)) {
       /* Only support single volume material for now. */
-      inst_.volume.sync_object(ob, ob_handle, res_handle, &material.volume);
+      geometry_call(material.volume_occupancy.sub_pass, geom, res_handle);
+      inst_.pipelines.volume.material_call(material.volume_material, ob, res_handle);
       /* Do not render surface if we are rendering a volume object
        * and do not have a surface closure. */
       if (gpu_material && !GPU_material_has_surface_output(gpu_material)) {
@@ -278,7 +281,7 @@ void SyncModule::sync_point_cloud(Object *ob,
                                   ResourceHandle res_handle,
                                   const ObjectRef & /*ob_ref*/)
 {
-  int material_slot = 1;
+  const int material_slot = POINTCLOUD_MATERIAL_NR;
 
   bool has_motion = inst_.velocity.step_object_sync(
       ob, ob_handle.object_key, res_handle, ob_handle.recalc);
@@ -308,6 +311,30 @@ void SyncModule::sync_point_cloud(Object *ob,
   bool is_caster = material.shadow.sub_pass != nullptr;
   bool is_alpha_blend = material.is_alpha_blend_transparent;
   inst_.shadows.sync_object(ob_handle, res_handle, is_caster, is_alpha_blend);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume Objects
+ * \{ */
+
+void SyncModule::sync_volume(Object *ob, ObjectHandle & /*ob_handle*/, ResourceHandle res_handle)
+{
+  const int material_slot = VOLUME_MATERIAL_NR;
+
+  /* Motion is not supported on volumes yet. */
+  const bool has_motion = false;
+
+  Material &material = inst_.materials.material_get(
+      ob, has_motion, material_slot - 1, MAT_GEOM_VOLUME);
+
+  /* Use bounding box tag empty spaces. */
+  GPUBatch *geom = DRW_cache_cube_get();
+
+  geometry_call(material.volume_occupancy.sub_pass, geom, res_handle);
+
+  inst_.pipelines.volume.material_call(material.volume_material, ob, res_handle);
 }
 
 /** \} */

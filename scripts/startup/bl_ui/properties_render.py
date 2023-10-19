@@ -461,6 +461,7 @@ class RENDER_PT_eevee_next_volumes(RenderButtonsPanel, Panel):
         col.prop(props, "volumetric_tile_size")
         col.prop(props, "volumetric_samples")
         col.prop(props, "volumetric_sample_distribution", text="Distribution")
+        col.prop(props, "volumetric_ray_depth", text="Max Depth")
 
 
 class RENDER_PT_eevee_next_volumes_lighting(RenderButtonsPanel, Panel):

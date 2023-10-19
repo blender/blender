@@ -980,8 +980,93 @@ inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_3d<S
 
 /* Image atomic operations. */
 #  define imageAtomicMin(tex, coord, data) _texture_image_atomic_min_internal(tex, coord, data)
+#  define imageAtomicAdd(tex, coord, data) _texture_image_atomic_add_internal(tex, coord, data)
 #  define imageAtomicExchange(tex, coord, data) \
     _texture_image_atomic_exchange_internal(tex, coord, data)
+#  define imageAtomicXor(tex, coord, data) _texture_image_atomic_xor_internal(tex, coord, data)
+#  define imageAtomicOr(tex, coord, data) _texture_image_atomic_or_internal(tex, coord, data)
+
+/* Atomic OR. */
+template<typename S, access A>
+S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
+                                     int coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_or(uint(coord), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_1d_array<S, A> tex,
+                                     int2 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_or(uint(coord.x), uint(coord.y), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_2d<S, A> tex,
+                                     int2 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_or(uint2(coord.xy), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_2d_array<S, A> tex,
+                                     int3 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_or(uint2(coord.xy), uint(coord.z), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_3d<S, A> tex,
+                                     int3 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_or(uint3(coord), vec<S, 4>(data)).x;
+}
+
+/* Atomic XOR. */
+template<typename S, access A>
+S _texture_image_atomic_xor_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
+                                     int coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_xor(uint(coord), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_xor_internal(thread _mtl_combined_image_sampler_1d_array<S, A> tex,
+                                     int2 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_xor(uint(coord.x), uint(coord.y), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_xor_internal(thread _mtl_combined_image_sampler_2d<S, A> tex,
+                                     int2 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_xor(uint2(coord.xy), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_xor_internal(thread _mtl_combined_image_sampler_2d_array<S, A> tex,
+                                     int3 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_xor(uint2(coord.xy), uint(coord.z), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_xor_internal(thread _mtl_combined_image_sampler_3d<S, A> tex,
+                                     int3 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_xor(uint3(coord), vec<S, 4>(data)).x;
+}
 
 /* Atomic Min. */
 template<typename S, access A>
@@ -1022,6 +1107,47 @@ S _texture_image_atomic_min_internal(thread _mtl_combined_image_sampler_3d<S, A>
                                      S data)
 {
   return tex.texture->atomic_fetch_min(uint3(coord), vec<S, 4>(data)).x;
+}
+
+/* Atomic Add. */
+template<typename S, access A>
+S _texture_image_atomic_add_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
+                                     int coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_add(uint(coord), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_add_internal(thread _mtl_combined_image_sampler_1d_array<S, A> tex,
+                                     int2 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_add(uint(coord.x), uint(coord.y), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_add_internal(thread _mtl_combined_image_sampler_2d<S, A> tex,
+                                     int2 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_add(uint2(coord.xy), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_add_internal(thread _mtl_combined_image_sampler_2d_array<S, A> tex,
+                                     int3 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_add(uint2(coord.xy), uint(coord.z), vec<S, 4>(data)).x;
+}
+
+template<typename S, access A>
+S _texture_image_atomic_add_internal(thread _mtl_combined_image_sampler_3d<S, A> tex,
+                                     int3 coord,
+                                     S data)
+{
+  return tex.texture->atomic_fetch_add(uint3(coord), vec<S, 4>(data)).x;
 }
 
 /* Atomic Exchange. */

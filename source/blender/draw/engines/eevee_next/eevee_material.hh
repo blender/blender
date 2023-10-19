@@ -32,17 +32,22 @@ enum eMaterialPipeline {
   MAT_PIPE_DEFERRED_PREPASS_VELOCITY,
   MAT_PIPE_FORWARD_PREPASS,
   MAT_PIPE_FORWARD_PREPASS_VELOCITY,
-  MAT_PIPE_VOLUME,
+  MAT_PIPE_VOLUME_MATERIAL,
+  MAT_PIPE_VOLUME_OCCUPANCY,
   MAT_PIPE_SHADOW,
   MAT_PIPE_CAPTURE,
   MAT_PIPE_PLANAR_PREPASS,
 };
 
 enum eMaterialGeometry {
+  /* These maps directly to object types. */
   MAT_GEOM_MESH = 0,
   MAT_GEOM_POINT_CLOUD,
   MAT_GEOM_CURVES,
   MAT_GEOM_GPENCIL,
+  MAT_GEOM_VOLUME,
+
+  /* These maps to special shader. */
   MAT_GEOM_VOLUME_OBJECT,
   MAT_GEOM_VOLUME_WORLD,
   MAT_GEOM_WORLD,
@@ -67,6 +72,7 @@ static inline void material_type_from_shader_uuid(uint64_t shader_uuid,
 static inline uint64_t shader_uuid_from_material_type(eMaterialPipeline pipeline_type,
                                                       eMaterialGeometry geometry_type)
 {
+  BLI_assert(geometry_type < (1 << 4));
   return geometry_type | (pipeline_type << 4);
 }
 
@@ -108,7 +114,7 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
     case OB_CURVES:
       return MAT_GEOM_CURVES;
     case OB_VOLUME:
-      return MAT_GEOM_VOLUME_OBJECT;
+      return MAT_GEOM_VOLUME;
     case OB_GPENCIL_LEGACY:
       return MAT_GEOM_GPENCIL;
     case OB_POINTCLOUD:
@@ -227,8 +233,17 @@ struct MaterialPass {
 
 struct Material {
   bool is_alpha_blend_transparent;
-  MaterialPass shadow, shading, prepass, capture, reflection_probe_prepass,
-      reflection_probe_shading, planar_probe_prepass, planar_probe_shading, volume;
+  bool is_volume;
+  MaterialPass shadow;
+  MaterialPass shading;
+  MaterialPass prepass;
+  MaterialPass capture;
+  MaterialPass reflection_probe_prepass;
+  MaterialPass reflection_probe_shading;
+  MaterialPass planar_probe_prepass;
+  MaterialPass planar_probe_shading;
+  MaterialPass volume_occupancy;
+  MaterialPass volume_material;
 };
 
 struct MaterialArray {

@@ -230,7 +230,7 @@ float attr_load_float(samplerBuffer cd_buf)
 
 /** \} */
 
-#elif defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
+#elif defined(MAT_GEOM_VOLUME) || defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
 
 /* -------------------------------------------------------------------- */
 /** \name Volume
