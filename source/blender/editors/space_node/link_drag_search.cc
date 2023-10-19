@@ -336,12 +336,12 @@ static void gather_socket_link_operations(const bContext &C,
           return true;
         }
       }
-      search_link_ops.append(
-          {std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP + interface_socket.name,
-           [interface_socket](nodes::LinkSearchOpParams &params) {
-             add_existing_group_input_fn(params, interface_socket);
-           },
-           weight});
+      search_link_ops.append({std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP +
+                                  (interface_socket.name ? interface_socket.name : ""),
+                              [interface_socket](nodes::LinkSearchOpParams &params) {
+                                add_existing_group_input_fn(params, interface_socket);
+                              },
+                              weight});
       weight--;
       return true;
     });

@@ -306,7 +306,7 @@ static SocketDeclarationPtr declaration_for_interface_socket(
       dst = std::move(value);
       break;
   }
-  dst->name = io_socket.name;
+  dst->name = io_socket.name ? io_socket.name : "";
   dst->identifier = io_socket.identifier;
   dst->in_out = in_out;
   dst->description = io_socket.description ? io_socket.description : "";

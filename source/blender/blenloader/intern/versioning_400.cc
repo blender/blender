@@ -891,7 +891,7 @@ static void version_copy_socket(bNodeTreeInterfaceSocket &dst,
                                 char *identifier)
 {
   /* Node socket copy function based on bNodeTreeInterface::item_copy to avoid using blenkernel. */
-  dst.name = BLI_strdup(src.name);
+  dst.name = BLI_strdup_null(src.name);
   dst.description = BLI_strdup_null(src.description);
   dst.socket_type = BLI_strdup(src.socket_type);
   dst.default_attribute_name = BLI_strdup_null(src.default_attribute_name);
