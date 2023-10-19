@@ -156,6 +156,7 @@ void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)
   BLI_assert(active_fb == nullptr);
   active_fb = &framebuffer;
   framebuffer.update_size();
+  framebuffer.update_srgb();
   command_buffer_.begin_render_pass(framebuffer);
 }
 

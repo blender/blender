@@ -411,12 +411,19 @@ static VkImageUsageFlagBits to_vk_image_usage(const eGPUTextureUsage usage,
   return result;
 }
 
-static VkImageCreateFlagBits to_vk_image_create(const eGPUTextureType texture_type)
+static VkImageCreateFlagBits to_vk_image_create(const eGPUTextureType texture_type,
+                                                const eGPUTextureFormatFlag format_flag,
+                                                const eGPUTextureUsage usage)
 {
   VkImageCreateFlagBits result = static_cast<VkImageCreateFlagBits>(0);
 
   if (ELEM(texture_type, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY)) {
     result = static_cast<VkImageCreateFlagBits>(result | VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+  }
+
+  /* sRGB textures needs to be mutable as they can be used as non-sRGB framebuffer attachments. */
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT && format_flag & GPU_FORMAT_SRGB) {
+    result = static_cast<VkImageCreateFlagBits>(result | VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT);
   }
 
   return result;
@@ -431,7 +438,7 @@ bool VKTexture::allocate()
   const VKDevice &device = VKBackend::get().device_get();
   VkImageCreateInfo image_info = {};
   image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-  image_info.flags = to_vk_image_create(type_);
+  image_info.flags = to_vk_image_create(type_, format_flag_, usage_get());
   image_info.imageType = to_vk_image_type(type_);
   image_info.extent = vk_extent_3d(0);
   image_info.mipLevels = max_ii(mipmaps_, 1);
@@ -569,8 +576,13 @@ void VKTexture::image_view_ensure()
 
 void VKTexture::image_view_update()
 {
-  image_view_.emplace(VKImageView(
-      *this, eImageViewUsage::ShaderBinding, layer_range(), mip_map_range(), use_stencil_, name_));
+  image_view_.emplace(VKImageView(*this,
+                                  eImageViewUsage::ShaderBinding,
+                                  layer_range(),
+                                  mip_map_range(),
+                                  use_stencil_,
+                                  true,
+                                  name_));
 }
 
 IndexRange VKTexture::mip_map_range() const
