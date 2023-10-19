@@ -1545,7 +1545,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
     uiItemL(layout, "", ICON_BLANK1);
   }
   else {
-    const char *name = type == (SOCK_BOOLEAN && socket.name) ? socket.name : "";
+    const char *name = type == SOCK_BOOLEAN ? (socket.name ? socket.name : "") : "";
     uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
     uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
