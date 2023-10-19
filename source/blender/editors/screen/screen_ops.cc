@@ -2862,8 +2862,10 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* execute the events */
   switch (event->type) {
     case MOUSEMOVE: {
-      const float aspect = BLI_rctf_size_x(&rmd->region->v2d.cur) /
-                           (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1);
+      const float aspect = (rmd->region->v2d.flag & V2D_IS_INIT) ?
+                               (BLI_rctf_size_x(&rmd->region->v2d.cur) /
+                                (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1)) :
+                               1.0f;
       const int snap_size_threshold = (U.widget_unit * 2) / aspect;
       bool size_changed = false;
 
