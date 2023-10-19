@@ -1245,7 +1245,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     uiDefBut(block,
              UI_BTYPE_LABEL,
              0,
-             IFACE_("Dimensions:"),
+             IFACE_("Dimensions"),
              0,
              yi -= buth,
              butw,

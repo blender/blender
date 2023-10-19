@@ -211,20 +211,6 @@ struct uiLayoutItemRoot {
 /** \name Item
  * \{ */
 
-static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_NAME_STR])
-{
-  const int len = strlen(name);
-
-  if (len != 0 && len + 1 < UI_MAX_NAME_STR) {
-    memcpy(namestr, name, len);
-    namestr[len] = ':';
-    namestr[len + 1] = '\0';
-    return namestr;
-  }
-
-  return name;
-}
-
 static int ui_item_fit(
     int item, int pos, int all, int available, bool is_last, int alignment, float *extra_pixel)
 {
@@ -2068,7 +2054,6 @@ void uiItemFullR(uiLayout *layout,
                  const char *placeholder)
 {
   uiBlock *block = layout->root->block;
-  char namestr[UI_MAX_NAME_STR];
   const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
   const bool inside_prop_sep = ((layout->item.flag & UI_ITEM_INSIDE_PROP_SEP) != 0);
   /* Columns can define a heading to insert. If the first item added to a split layout doesn't have
@@ -2128,23 +2113,14 @@ void uiItemFullR(uiLayout *layout,
     /* pass */
   }
   else if (ELEM(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER)) {
-    if (use_prop_sep == false) {
-      name = ui_item_name_add_colon(name, namestr);
-    }
+    /* pass */
   }
   else if (type == PROP_BOOLEAN && is_array && index == RNA_NO_INDEX) {
-    if (use_prop_sep == false) {
-      name = ui_item_name_add_colon(name, namestr);
-    }
+    /* pass */
   }
   else if (type == PROP_ENUM && index != RNA_ENUM_VALUE) {
     if (flag & UI_ITEM_R_COMPACT) {
       name = "";
-    }
-    else {
-      if (use_prop_sep == false) {
-        name = ui_item_name_add_colon(name, namestr);
-      }
     }
   }
 
@@ -2881,8 +2857,6 @@ void uiItemPointerR_prop(uiLayout *layout,
                          int icon,
                          bool results_are_suggestions)
 {
-  const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
-
   ui_block_new_button_group(uiLayoutGetBlock(layout), uiButtonGroupFlag(0));
 
   const PropertyType type = RNA_property_type(prop);
@@ -2913,11 +2887,6 @@ void uiItemPointerR_prop(uiLayout *layout,
   }
   if (!name) {
     name = RNA_property_ui_name(prop);
-  }
-
-  char namestr[UI_MAX_NAME_STR];
-  if (use_prop_sep == false) {
-    name = ui_item_name_add_colon(name, namestr);
   }
 
   /* create button */
@@ -3365,10 +3334,6 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int
     return split_wrapper.decorate_column;
   }
 
-  char namestr[UI_MAX_NAME_STR];
-  if (text) {
-    text = ui_item_name_add_colon(text, namestr);
-  }
   uiItemL_(layout, text, icon);
 
   return layout;
