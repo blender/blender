@@ -75,6 +75,10 @@ set(LIB
   PRIVATE bf::dna
 )
 
+if(WITH_INPUT_IME)
+  add_definitions(-DWITH_INPUT_IME)
+endif()
+
 if(WITH_OPENGL_BACKEND)
   list(APPEND INC_SYS
     ${Epoxy_INCLUDE_DIRS}
@@ -177,9 +181,6 @@ elseif(WITH_GHOST_SDL)
   endif()
 
 elseif(APPLE AND NOT WITH_GHOST_X11)
-  if(WITH_INPUT_IME)
-    add_definitions(-DWITH_INPUT_IME)
-  endif()
   list(APPEND SRC
     intern/GHOST_DisplayManagerCocoa.mm
     intern/GHOST_SystemCocoa.mm
@@ -443,7 +444,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       generate_protocol_bindings(
         "${WAYLAND_PROTOCOLS_DIR}/unstable/text-input/text-input-unstable-v3.xml"
       )
-      add_definitions(-DWITH_INPUT_IME)
     endif()
 
     unset(INC_DST)
@@ -504,8 +504,6 @@ elseif(WIN32)
   )
 
   if(WITH_INPUT_IME)
-    add_definitions(-DWITH_INPUT_IME)
-
     list(APPEND SRC
       intern/GHOST_ImeWin32.cc
 
