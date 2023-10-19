@@ -21,8 +21,8 @@
 #ifdef WIN32
 #  include "BLI_fileops_types.h"
 #  include "BLI_winstuff.h"
-#  include "utf_winfunc.h"
-#  include "utfconv.h"
+#  include "utf_winfunc.hh"
+#  include "utfconv.hh"
 #  include <io.h>
 #  include <shellapi.h>
 #  include <shobjidl.h>

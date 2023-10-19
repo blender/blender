@@ -10,8 +10,8 @@
 #  define _WIN32_IE 0x0501
 #endif
 
-#include "utf_winfunc.h"
-#include "utfconv.h"
+#include "utf_winfunc.hh"
+#include "utfconv.hh"
 #include <io.h>
 #include <wchar.h>
 #include <windows.h>

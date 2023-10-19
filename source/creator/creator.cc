@@ -10,7 +10,7 @@
 #include <cstring>
 
 #ifdef WIN32
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #  include <windows.h>
 #endif
 

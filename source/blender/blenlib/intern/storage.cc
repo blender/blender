@@ -37,7 +37,7 @@
 #ifdef WIN32
 #  include "BLI_string_utf8.h"
 #  include "BLI_winstuff.h"
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #  include <ShObjIdl.h>
 #  include <direct.h>
 #  include <io.h>
@@ -235,14 +235,14 @@ eFileAttributes BLI_file_attributes(const char *path)
 
   WCHAR wline[FILE_MAXDIR];
   if (conv_utf_8_to_16(path, wline, ARRAY_SIZE(wline)) != 0) {
-    return ret;
+    return eFileAttributes(ret);
   }
 
   DWORD attr = GetFileAttributesW(wline);
   if (attr == INVALID_FILE_ATTRIBUTES) {
     BLI_assert_msg(GetLastError() != ERROR_FILE_NOT_FOUND,
                    "BLI_file_attributes should only be called on existing files.");
-    return ret;
+    return eFileAttributes(ret);
   }
 
   if (attr & FILE_ATTRIBUTE_READONLY) {
@@ -287,7 +287,7 @@ eFileAttributes BLI_file_attributes(const char *path)
    * If Archived set FILE_ATTR_ARCHIVE
    */
 #  endif
-  return ret;
+  return eFileAttributes(ret);
 }
 #endif
 
@@ -311,30 +311,30 @@ bool BLI_file_alias_target(const char *filepath,
 
   IShellLinkW *Shortcut = NULL;
   hr = CoCreateInstance(
-      &CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, &IID_IShellLinkW, (LPVOID *)&Shortcut);
+      CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID *)&Shortcut);
 
   bool success = false;
   if (SUCCEEDED(hr)) {
     IPersistFile *PersistFile;
-    hr = Shortcut->lpVtbl->QueryInterface(Shortcut, &IID_IPersistFile, (LPVOID *)&PersistFile);
+    hr = Shortcut->QueryInterface(IID_IPersistFile, (LPVOID *)&PersistFile);
     if (SUCCEEDED(hr)) {
       WCHAR path_utf16[FILE_MAXDIR] = {0};
       if (conv_utf_8_to_16(filepath, path_utf16, ARRAY_SIZE(path_utf16)) == 0) {
-        hr = PersistFile->lpVtbl->Load(PersistFile, path_utf16, STGM_READ);
+        hr = PersistFile->Load(path_utf16, STGM_READ);
         if (SUCCEEDED(hr)) {
-          hr = Shortcut->lpVtbl->Resolve(Shortcut, 0, SLR_NO_UI | SLR_UPDATE);
+          hr = Shortcut->Resolve(0, SLR_NO_UI | SLR_UPDATE);
           if (SUCCEEDED(hr)) {
             wchar_t target_utf16[FILE_MAXDIR] = {0};
-            hr = Shortcut->lpVtbl->GetPath(Shortcut, target_utf16, FILE_MAXDIR, NULL, 0);
+            hr = Shortcut->GetPath(target_utf16, FILE_MAXDIR, NULL, 0);
             if (SUCCEEDED(hr)) {
               success = (conv_utf_16_to_8(target_utf16, r_targetpath, FILE_MAXDIR) == 0);
             }
           }
-          PersistFile->lpVtbl->Release(PersistFile);
+          PersistFile->Release();
         }
       }
     }
-    Shortcut->lpVtbl->Release(Shortcut);
+    Shortcut->Release();
   }
 
   CoUninitialize();
@@ -526,14 +526,14 @@ void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
                                                     size_t pad_bytes,
                                                     size_t *r_size)
 {
-  char *mem = BLI_file_read_text_as_mem(filepath, pad_bytes, r_size);
+  char *mem = static_cast<char *>(BLI_file_read_text_as_mem(filepath, pad_bytes, r_size));
   if (mem != NULL) {
     char *mem_end = mem + *r_size;
     if (pad_bytes != 0) {
       *mem_end = '\0';
     }
     for (char *p = mem, *p_next; p != mem_end; p = p_next) {
-      p_next = memchr(p, '\n', mem_end - p);
+      p_next = static_cast<char *>(memchr(p, '\n', mem_end - p));
       if (p_next != NULL) {
         if (trim_trailing_space) {
           for (char *p_trim = p_next - 1; p_trim > p && ELEM(*p_trim, ' ', '\t'); p_trim--) {
@@ -571,7 +571,7 @@ LinkNode *BLI_file_read_as_lines(const char *filepath)
     return NULL;
   }
 
-  buf = MEM_mallocN(size, "file_as_lines");
+  buf = MEM_cnew_array<char>(size, "file_as_lines");
   if (buf) {
     size_t i, last = 0;
 

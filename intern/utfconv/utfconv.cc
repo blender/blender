@@ -6,7 +6,7 @@
  * \ingroup intern_utf_conv
  */
 
-#include "utfconv.h"
+#include "utfconv.hh"
 
 size_t count_utf_8_from_16(const wchar_t *string16)
 {

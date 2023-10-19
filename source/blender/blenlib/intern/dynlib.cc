@@ -20,8 +20,8 @@ struct DynamicLibrary {
 
 #ifdef WIN32
 #  define WIN32_LEAN_AND_MEAN
-#  include "utf_winfunc.h"
-#  include "utfconv.h"
+#  include "utf_winfunc.hh"
+#  include "utfconv.hh"
 #  include <windows.h>
 
 DynamicLibrary *BLI_dynlib_open(const char *name)
@@ -37,7 +37,7 @@ DynamicLibrary *BLI_dynlib_open(const char *name)
     return NULL;
   }
 
-  lib = MEM_callocN(sizeof(*lib), "Dynamic Library");
+  lib = MEM_cnew<DynamicLibrary>("Dynamic Library");
   lib->handle = handle;
 
   return lib;
@@ -45,7 +45,7 @@ DynamicLibrary *BLI_dynlib_open(const char *name)
 
 void *BLI_dynlib_find_symbol(DynamicLibrary *lib, const char *symname)
 {
-  return GetProcAddress(lib->handle, symname);
+  return GetProcAddress(HMODULE(lib->handle), symname);
 }
 
 char *BLI_dynlib_get_error_as_string(DynamicLibrary *lib)
@@ -78,7 +78,7 @@ char *BLI_dynlib_get_error_as_string(DynamicLibrary *lib)
 
 void BLI_dynlib_close(DynamicLibrary *lib)
 {
-  FreeLibrary(lib->handle);
+  FreeLibrary(HMODULE(lib->handle));
   MEM_freeN(lib);
 }
 
@@ -95,7 +95,7 @@ DynamicLibrary *BLI_dynlib_open(const char *name)
     return NULL;
   }
 
-  lib = MEM_callocN(sizeof(*lib), "Dynamic Library");
+  lib = MEM_cnew<DynamicLibrary>("Dynamic Library");
   lib->handle = handle;
 
   return lib;

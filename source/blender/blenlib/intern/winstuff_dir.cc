@@ -23,7 +23,7 @@
 #  define WIN32_SKIP_HKEY_PROTECTION /* Need to use `HKEY`. */
 #  include "BLI_utildefines.h"
 #  include "BLI_winstuff.h"
-#  include "utfconv.h"
+#  include "utfconv.hh"
 
 #  define PATH_SUFFIX "\\*"
 #  define PATH_SUFFIX_LEN 2
@@ -58,7 +58,7 @@ DIR *opendir(const char *path)
   if ((GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) &&
       ((path_len = strlen(path)) < (sizeof(newd->path) - PATH_SUFFIX_LEN)))
   {
-    newd = MEM_mallocN(sizeof(DIR), "opendir");
+    newd = static_cast<DIR *>(MEM_mallocN(sizeof(DIR), "opendir"));
     newd->handle = INVALID_HANDLE_VALUE;
     memcpy(newd->path, path, path_len);
     memcpy(newd->path + path_len, PATH_SUFFIX, PATH_SUFFIX_LEN + 1);

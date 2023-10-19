@@ -66,7 +66,7 @@
 #include <openexr_api.h>
 
 #if defined(WIN32)
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #  include <io.h>
 #else
 #  include <unistd.h>

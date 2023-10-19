@@ -21,7 +21,7 @@
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #  include <direct.h>
 #  include <io.h>
 #else

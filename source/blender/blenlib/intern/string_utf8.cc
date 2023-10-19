@@ -22,7 +22,7 @@
 #include "BLI_string.h"      /* #BLI_string_debug_size. */
 #include "BLI_string_utf8.h" /* own include */
 #ifdef WIN32
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #endif
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"
@@ -598,10 +598,10 @@ char32_t BLI_str_utf32_char_to_upper(const char32_t wc)
 
   if (wc >= from[0] && wc <= from[ARRAY_SIZE(from) - 2]) {
     /* Binary search since these are sorted. */
-    int min = 0;
-    int max = ARRAY_SIZE(from) - 2;
+    size_t min = 0;
+    size_t max = ARRAY_SIZE(from) - 2;
     while (max >= min) {
-      const int mid = (min + max) / 2;
+      const size_t mid = (min + max) / 2;
       if (wc > from[mid]) {
         min = mid + 1;
       }
@@ -704,10 +704,10 @@ char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
 
   if (wc >= from[0] && wc <= from[ARRAY_SIZE(from) - 2]) {
     /* Binary search since these are sorted. */
-    int min = 0;
-    int max = ARRAY_SIZE(from) - 2;
+    size_t min = 0;
+    size_t max = ARRAY_SIZE(from) - 2;
     while (max >= min) {
-      const int mid = (min + max) / 2;
+      const size_t mid = (min + max) / 2;
       if (wc > from[mid]) {
         min = mid + 1;
       }

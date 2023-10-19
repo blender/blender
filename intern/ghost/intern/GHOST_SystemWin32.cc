@@ -23,8 +23,8 @@
 #include <tlhelp32.h>
 #include <windowsx.h>
 
-#include "utf_winfunc.h"
-#include "utfconv.h"
+#include "utf_winfunc.hh"
+#include "utfconv.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

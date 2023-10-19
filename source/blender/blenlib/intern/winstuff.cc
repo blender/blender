@@ -23,8 +23,8 @@
 #  include "BLI_utildefines.h"
 #  include "BLI_winstuff.h"
 
-#  include "utf_winfunc.h"
-#  include "utfconv.h"
+#  include "utf_winfunc.hh"
+#  include "utfconv.hh"
 
 /* FILE_MAXDIR + FILE_MAXFILE */
 

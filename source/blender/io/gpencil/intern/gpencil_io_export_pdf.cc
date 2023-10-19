@@ -30,7 +30,7 @@
 #include "ED_view3d.hh"
 
 #ifdef WIN32
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #endif
 
 #include "UI_view2d.hh"

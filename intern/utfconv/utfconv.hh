@@ -13,10 +13,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Counts how many bytes is required for future utf-8 string using utf-16
  * \param string16: pointer to working utf-16 string
@@ -89,9 +85,5 @@ wchar_t *alloc_utf16_from_8(const char *in8, size_t add);
   free(in8str##_16); \
   } \
   (void)0
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __UTFCONV_H__ */

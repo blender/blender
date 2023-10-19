@@ -61,7 +61,7 @@ set(SRC
   intern/cpp_types.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
-  intern/dynlib.c
+  intern/dynlib.cc
   intern/easing.c
   intern/endian_switch.c
   intern/expr_pylike_eval.c
@@ -136,12 +136,12 @@ set(SRC
   intern/sort.c
   intern/sort_utils.c
   intern/stack.c
-  intern/storage.c
+  intern/storage.cc
   intern/string.c
   intern/string_cursor_utf8.c
   intern/string_ref.cc
   intern/string_search.cc
-  intern/string_utf8.c
+  intern/string_utf8.cc
   intern/string_utils.cc
   intern/system.c
   intern/task_graph.cc
@@ -160,8 +160,8 @@ set(SRC
   intern/virtual_array.cc
   intern/voronoi_2d.c
   intern/voxel.c
-  intern/winstuff.c
-  intern/winstuff_dir.c
+  intern/winstuff.cc
+  intern/winstuff_dir.cc
 
   # Private headers.
   intern/BLI_mempool_private.h
