@@ -364,7 +364,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
     uiItemR(prop_row, md_ptr, rna_path_attribute_name.c_str(), UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
-    const char *name = (socket_type == SOCK_BOOLEAN && socket.name) ? socket.name : "";
+    const char *name = socket_type == SOCK_BOOLEAN ? (socket.name ? socket.name : "") : "";
     uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
   }
 
