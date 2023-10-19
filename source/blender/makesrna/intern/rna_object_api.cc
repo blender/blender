@@ -608,7 +608,7 @@ static void rna_Object_ray_cast(Object *ob,
   }
 
   /* Test BoundBox first (efficiency) */
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
   float distmin;
 
   /* Needed for valid distance check from #isect_ray_aabb_v3_simple() call. */

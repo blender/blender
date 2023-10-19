@@ -898,12 +898,12 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       }
 
       /* Get the boundbox out of the evaluated object. */
-      const BoundBox *bb = nullptr;
+      std::optional<BoundBox> bb;
       if (use_only_center == false) {
         bb = BKE_object_boundbox_get(base->object);
       }
 
-      if (use_only_center || (bb == nullptr)) {
+      if (use_only_center || !bb) {
         user_fn(base->object->object_to_world[3]);
       }
       else {

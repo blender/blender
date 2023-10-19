@@ -259,16 +259,10 @@ std::optional<blender::Bounds<blender::float3>> PointCloud::bounds_min_max() con
   return this->runtime->bounds_cache.data();
 }
 
-BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
+BoundBox BKE_pointcloud_boundbox_get(Object *ob)
 {
   using namespace blender;
   BLI_assert(ob->type == OB_POINTCLOUD);
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
-    return ob->runtime.bb;
-  }
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
 
   std::optional<Bounds<float3>> bounds;
   if (ob->runtime.geometry_set_eval) {
@@ -279,14 +273,15 @@ BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
     bounds = pointcloud->bounds_min_max();
   }
 
+  BoundBox bb;
   if (bounds) {
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, bounds->min, bounds->max);
+    BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
   }
   else {
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, float3(-1), float3(1));
+    BKE_boundbox_init_from_minmax(&bb, float3(-1), float3(1));
   }
 
-  return ob->runtime.bb;
+  return bb;
 }
 
 bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const char *name)

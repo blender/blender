@@ -161,8 +161,8 @@ inline void ObjectBounds::sync()
 
 inline void ObjectBounds::sync(Object &ob)
 {
-  const BoundBox *bbox = BKE_object_boundbox_get(&ob);
-  if (bbox == nullptr) {
+  const std::optional<BoundBox> bbox = BKE_object_boundbox_get(&ob);
+  if (!bbox) {
     bounding_sphere.w = -1.0f; /* Disable test. */
     return;
   }

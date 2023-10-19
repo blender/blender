@@ -116,8 +116,8 @@ void transform_object(Object *object, const OBJImportParams &import_params)
   if (import_params.clamp_size != 0.0f) {
     float3 max_coord(-INT_MAX);
     float3 min_coord(INT_MAX);
-    BoundBox *bb = BKE_mesh_boundbox_get(object);
-    for (const float(&vertex)[3] : bb->vec) {
+    const BoundBox bb = BKE_mesh_boundbox_get(object);
+    for (const float(&vertex)[3] : bb.vec) {
       for (int axis = 0; axis < 3; axis++) {
         max_coord[axis] = max_ff(max_coord[axis], vertex[axis]);
         min_coord[axis] = min_ff(min_coord[axis], vertex[axis]);

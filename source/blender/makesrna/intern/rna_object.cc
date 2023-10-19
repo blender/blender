@@ -1990,8 +1990,7 @@ static void rna_Object_shaderfx_clear(Object *object, bContext *C)
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
-  if (bb) {
+  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
     memcpy(values, bb->vec, sizeof(bb->vec));
   }
   else {

@@ -13,6 +13,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h" /* #BoundBox. */
 
 #include "BKE_customdata.h"
 
@@ -233,7 +234,7 @@ void BKE_mesh_auto_smooth_flag_set(struct Mesh *me, bool use_auto_smooth, float 
  */
 const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
-struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
+BoundBox BKE_mesh_boundbox_get(struct Object *ob);
 
 void BKE_mesh_texspace_calc(struct Mesh *me);
 void BKE_mesh_texspace_ensure(struct Mesh *me);

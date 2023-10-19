@@ -360,21 +360,21 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
     return;
   }
 
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
   BoundBox bb_local;
-  if (bb == nullptr) {
+  if (!bb) {
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
     BKE_boundbox_init_from_minmax(&bb_local, min, max);
-    bb = &bb_local;
+    bb.emplace(bb_local);
   }
 
-  BKE_boundbox_calc_size_aabb(bb, size);
+  BKE_boundbox_calc_size_aabb(&*bb, size);
 
   if (around_origin) {
     zero_v3(center);
   }
   else {
-    BKE_boundbox_calc_center_aabb(bb, center);
+    BKE_boundbox_calc_center_aabb(&*bb, center);
   }
 
   switch (boundtype) {

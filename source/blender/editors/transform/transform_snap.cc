@@ -1316,7 +1316,7 @@ static void snap_source_closest_fn(TransInfo *t)
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         TransData *td;
         for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
-          const BoundBox *bb = nullptr;
+          std::optional<BoundBox> bb;
 
           if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
             bb = BKE_object_boundbox_get(td->ob);

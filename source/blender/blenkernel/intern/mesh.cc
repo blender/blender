@@ -1155,28 +1155,20 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
   ensure_orig_index_layer(mesh->face_data, mesh->faces_num);
 }
 
-BoundBox *BKE_mesh_boundbox_get(Object *ob)
+BoundBox BKE_mesh_boundbox_get(Object *ob)
 {
-  /* This is Object-level data access,
-   * DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
-  if (ob->runtime.bb == nullptr || ob->runtime.bb->flag & BOUNDBOX_DIRTY) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    float min[3], max[3];
+  Mesh *me = static_cast<Mesh *>(ob->data);
+  float min[3], max[3];
 
-    INIT_MINMAX(min, max);
-    if (!BKE_mesh_wrapper_minmax(me, min, max)) {
-      min[0] = min[1] = min[2] = -1.0f;
-      max[0] = max[1] = max[2] = 1.0f;
-    }
-
-    if (ob->runtime.bb == nullptr) {
-      ob->runtime.bb = (BoundBox *)MEM_mallocN(sizeof(*ob->runtime.bb), __func__);
-    }
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-    ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
+  INIT_MINMAX(min, max);
+  if (!BKE_mesh_wrapper_minmax(me, min, max)) {
+    min[0] = min[1] = min[2] = -1.0f;
+    max[0] = max[1] = max[2] = 1.0f;
   }
 
-  return ob->runtime.bb;
+  BoundBox bb;
+  BKE_boundbox_init_from_minmax(&bb, min, max);
+  return bb;
 }
 
 void BKE_mesh_texspace_calc(Mesh *me)

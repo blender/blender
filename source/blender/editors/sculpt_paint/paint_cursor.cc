@@ -1065,14 +1065,14 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
                                        Object *ob,
                                        const float radius)
 {
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox bb = *BKE_object_boundbox_get(ob);
   float orgLoc[3], location[3];
   int tile_pass = 0;
   int start[3];
   int end[3];
   int cur[3];
-  const float *bbMin = bb->vec[0];
-  const float *bbMax = bb->vec[6];
+  const float *bbMin = bb.vec[0];
+  const float *bbMax = bb.vec[6];
   const float *step = sd->paint.tile_offset;
 
   copy_v3_v3(orgLoc, true_location);
