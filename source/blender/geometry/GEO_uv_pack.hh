@@ -113,7 +113,7 @@ class UVPackIsland_Params {
   float *progress;
 };
 
-class uv_phi;
+class UVPhi;
 class PackIsland {
  public:
   PackIsland();
@@ -148,7 +148,7 @@ class PackIsland {
   float2 half_diagonal_;
   float pre_rotate_;
 
-  void place_(const float scale, const uv_phi phi);
+  void place_(const float scale, const UVPhi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
   bool can_rotate_(const UVPackIsland_Params &params) const;
