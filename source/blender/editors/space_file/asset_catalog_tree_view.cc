@@ -486,6 +486,7 @@ bool AssetCatalogDropTarget::drop_assets_into_catalog(bContext *C,
     filelist_tag_needs_filtering(tree_view.space_file_.files);
     file_select_deselect_all(&tree_view.space_file_, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED);
     WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
+    WM_main_add_notifier(NC_ASSET | ND_ASSET_CATALOGS, nullptr);
   }
 
   if (did_update) {
