@@ -117,7 +117,7 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   /* TODO: implement */
-  return get_input_value("Value", NodeItem::Type::Vector3);
+  return get_input_value("Vector", NodeItem::Type::Vector3);
 }
 #endif
 NODE_SHADER_MATERIALX_END
