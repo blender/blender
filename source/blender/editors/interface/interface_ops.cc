@@ -58,6 +58,7 @@
 
 #include "ED_object.hh"
 #include "ED_paint.hh"
+#include "ED_undo.hh"
 
 /* for Copy As Driver */
 #include "ED_keyframing.hh"
@@ -2315,6 +2316,10 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       }
       RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
+    }
+
+    if (UI_but_flag_is_set(but, UI_BUT_UNDO)) {
+      ED_undo_push(C, RNA_property_ui_name(but->rnaprop));
     }
   }
   else {
