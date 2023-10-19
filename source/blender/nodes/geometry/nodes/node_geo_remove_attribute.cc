@@ -83,7 +83,7 @@ static void node_register()
   geo_node_type_base(
       &ntype, GEO_NODE_REMOVE_ATTRIBUTE, "Remove Named Attribute", NODE_CLASS_ATTRIBUTE);
   ntype.declare = node_declare;
-  blender::bke::node_type_size(&ntype, 170, 100, 700);
+  bke::node_type_size(&ntype, 170, 100, 700);
   ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }

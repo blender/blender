@@ -84,10 +84,10 @@ static float dist_signed_squared_to_edge(const float2 probe, const float2 uva, c
   const float2 edge = uvb - uva;
   const float2 side = probe - uva;
 
-  const float edge_length_squared = blender::math::length_squared(edge);
+  const float edge_length_squared = math::length_squared(edge);
   /* Tolerance here is to avoid division by zero later. */
   if (edge_length_squared < 1e-40f) {
-    return blender::math::length_squared(side);
+    return math::length_squared(side);
   }
 
   const float numerator = edge.x * side.y - edge.y * side.x; /* c.f. cross product. */
@@ -162,7 +162,7 @@ void PackIsland::add_triangle(const float2 uv0, const float2 uv1, const float2 u
   }
 }
 
-void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap)
+void PackIsland::add_polygon(const Span<float2> uvs, MemArena *arena, Heap *heap)
 {
   /* Internally, PackIsland uses triangles as the primitive, so we have to triangulate. */
 
@@ -254,7 +254,7 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
 
   /* TODO: Use "Rotating Calipers" directly. */
   {
-    blender::Array<float2> coords(triangle_vertices_.size());
+    Array<float2> coords(triangle_vertices_.size());
     for (const int64_t i : triangle_vertices_.index_range()) {
       coords[i].x = triangle_vertices_[i].x * aspect_y;
       coords[i].y = triangle_vertices_[i].y;
@@ -327,7 +327,7 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
 
     /* Write back. */
     triangle_vertices_.clear();
-    blender::Array<float2> convexVertices(convex_len);
+    Array<float2> convexVertices(convex_len);
     for (int i = 0; i < convex_len; i++) {
       convexVertices[i] = source[index_map[i]];
     }
@@ -1128,7 +1128,7 @@ class Occupancy {
   int bitmap_radix;              /* Width and Height of `bitmap`. */
   float bitmap_scale_reciprocal; /* == 1.0f / `bitmap_scale`. */
  private:
-  mutable blender::Array<float> bitmap_;
+  mutable Array<float> bitmap_;
 
   mutable float2 witness_;         /* Witness to a previously known occupied pixel. */
   mutable float witness_distance_; /* Signed distance to nearest placed island. */
@@ -1178,9 +1178,9 @@ static float signed_distance_fat_triangle(const float2 probe,
     return -sqrtf(-result_ssq);
   }
   BLI_assert(result_ssq >= 0.0f);
-  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv0));
-  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv1));
-  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv2));
+  result_ssq = std::min(result_ssq, math::length_squared(probe - uv0));
+  result_ssq = std::min(result_ssq, math::length_squared(probe - uv1));
+  result_ssq = std::min(result_ssq, math::length_squared(probe - uv2));
   BLI_assert(result_ssq >= 0.0f);
   return sqrtf(result_ssq);
 }
@@ -1414,8 +1414,8 @@ class UVMinimumEnclosingSquareFinder {
   float best_angle;
   rctf best_bounds;
 
-  blender::Vector<float2> points;
-  blender::Vector<int> indices;
+  Vector<float2> points;
+  Vector<int> indices;
 
   UVMinimumEnclosingSquareFinder(const float scale,
                                  const float margin,
@@ -1599,7 +1599,7 @@ static int64_t pack_island_xatlas(const Span<std::unique_ptr<UVAABBIsland>> isla
   if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
     return 0; /* Not yet supported. */
   }
-  blender::Array<uv_phi> phis(r_phis.size());
+  Array<uv_phi> phis(r_phis.size());
   Occupancy occupancy(guess_initial_scale(islands, scale, margin));
   rctf extent = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -1986,9 +1986,9 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
   float scale_high = 0.0f;
   float value_high = 0.0f;
 
-  blender::Array<uv_phi> phis_a(islands.size());
-  blender::Array<uv_phi> phis_b(islands.size());
-  blender::Array<uv_phi> *phis_low = nullptr;
+  Array<uv_phi> phis_a(islands.size());
+  Array<uv_phi> phis_b(islands.size());
+  Array<uv_phi> *phis_low = nullptr;
 
   /* Scaling smaller than `min_scale_roundoff` is unlikely to fit and
    * will destroy information in existing UVs. */
@@ -2044,7 +2044,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
     scale = std::max(scale, min_scale_roundoff);
 
     /* Evaluate our `f`. */
-    blender::Array<uv_phi> *phis_target = (phis_low == &phis_a) ? &phis_b : &phis_a;
+    Array<uv_phi> *phis_target = (phis_low == &phis_a) ? &phis_b : &phis_a;
     const float margin = rescale_margin ? margin_fraction * scale : margin_fraction;
     const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, *phis_target) /
                          params.target_extent;
@@ -2182,8 +2182,8 @@ class OverlapMerger {
      *
      * Technically, performance is O(n^2). In practice, should be fast enough. */
 
-    blender::Vector<PackIsland *> sub_islands; /* Pack these islands instead. */
-    blender::Vector<PackIsland *> merge_trace; /* Trace merge information. */
+    Vector<PackIsland *> sub_islands; /* Pack these islands instead. */
+    Vector<PackIsland *> merge_trace; /* Trace merge information. */
     for (const int64_t i : islands.index_range()) {
       PackIsland *island = islands[i];
       island->calculate_pivot_();
@@ -2304,7 +2304,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
 
   /* Either all of the islands can scale, or none of them can.
    * In either case, we pack them all tight to the origin. */
-  blender::Array<uv_phi> phis(islands.size());
+  Array<uv_phi> phis(islands.size());
   const float scale = 1.0f;
   const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, phis);
   const float result = can_scale_count && max_uv > 1e-14f ? params.target_extent / max_uv : 1.0f;

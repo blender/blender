@@ -34,9 +34,9 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
               attribute_id,
               [&](AttributeMetaData *meta_data_final) { *meta_data_final = meta_data; },
               [&](AttributeMetaData *meta_data_final) {
-                meta_data_final->data_type = blender::bke::attribute_data_type_highest_complexity(
+                meta_data_final->data_type = bke::attribute_data_type_highest_complexity(
                     {meta_data_final->data_type, meta_data.data_type});
-                meta_data_final->domain = blender::bke::attribute_domain_highest_priority(
+                meta_data_final->domain = bke::attribute_domain_highest_priority(
                     {meta_data_final->domain, meta_data.domain});
               });
           return true;
