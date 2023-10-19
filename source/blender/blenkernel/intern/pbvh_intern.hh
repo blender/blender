@@ -6,6 +6,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -17,6 +18,8 @@
 
 struct PBVHGPUFormat;
 struct MLoopTri;
+struct BMVert;
+struct BMFace;
 
 /* Axis-aligned bounding box */
 struct BB {
@@ -107,13 +110,13 @@ struct PBVHNode {
 
   /* Dyntopo */
 
-  /* GSet of pointers to the BMFaces used by this node.
+  /* Set of pointers to the BMFaces used by this node.
    * NOTE: PBVH_BMESH only. Faces are always triangles
    * (dynamic topology forcibly triangulates the mesh).
    */
-  GSet *bm_faces = nullptr;
-  GSet *bm_unique_verts = nullptr;
-  GSet *bm_other_verts = nullptr;
+  blender::Set<BMFace *, 0> bm_faces;
+  blender::Set<BMVert *, 0> bm_unique_verts;
+  blender::Set<BMVert *, 0> bm_other_verts;
 
   /* Deprecated. Stores original coordinates of triangles. */
   float (*bm_orco)[3] = nullptr;

@@ -722,9 +722,7 @@ static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *arg
       args->vert_data = &args->bm->vdata;
       args->loop_data = &args->bm->ldata;
       args->face_data = &args->bm->pdata;
-      args->bm_faces = node->bm_faces;
-      args->bm_other_verts = node->bm_other_verts;
-      args->bm_unique_vert = node->bm_unique_verts;
+      args->bm_faces = &node->bm_faces;
       args->cd_mask_layer = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
 
       break;
@@ -1018,16 +1016,6 @@ void BKE_pbvh_free(PBVH *pbvh)
     if (node.flag & PBVH_Leaf) {
       if (node.draw_batches) {
         DRW_pbvh_node_free(node.draw_batches);
-      }
-
-      if (node.bm_faces) {
-        BLI_gset_free(node.bm_faces, nullptr);
-      }
-      if (node.bm_unique_verts) {
-        BLI_gset_free(node.bm_unique_verts, nullptr);
-      }
-      if (node.bm_other_verts) {
-        BLI_gset_free(node.bm_other_verts, nullptr);
       }
     }
 
@@ -1623,23 +1611,14 @@ static void pbvh_grids_node_visibility_update(PBVH *pbvh, PBVHNode *node)
 
 static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
 {
-  GSet *unique, *other;
-
-  unique = BKE_pbvh_bmesh_node_unique_verts(node);
-  other = BKE_pbvh_bmesh_node_other_verts(node);
-
-  GSetIterator gs_iter;
-
-  GSET_ITER (gs_iter, unique) {
-    BMVert *v = static_cast<BMVert *>(BLI_gsetIterator_getKey(&gs_iter));
+  for (BMVert *v : node->bm_unique_verts) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
   }
 
-  GSET_ITER (gs_iter, other) {
-    BMVert *v = static_cast<BMVert *>(BLI_gsetIterator_getKey(&gs_iter));
+  for (BMVert *v : node->bm_other_verts) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
@@ -1994,9 +1973,9 @@ void BKE_pbvh_node_num_verts(const PBVH *pbvh,
       }
       break;
     case PBVH_BMESH:
-      tot = BLI_gset_len(node->bm_unique_verts);
+      tot = node->bm_unique_verts.size();
       if (r_totvert) {
-        *r_totvert = tot + BLI_gset_len(node->bm_other_verts);
+        *r_totvert = tot + node->bm_other_verts.size();
       }
       if (r_uniquevert) {
         *r_uniquevert = tot;
@@ -3113,8 +3092,10 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->is_mesh = !pbvh->vert_positions.is_empty();
 
   if (pbvh->header.type == PBVH_BMESH) {
-    BLI_gsetIterator_init(&vi->bm_unique_verts, node->bm_unique_verts);
-    BLI_gsetIterator_init(&vi->bm_other_verts, node->bm_other_verts);
+    vi->bm_unique_verts = node->bm_unique_verts.begin();
+    vi->bm_unique_verts_end = node->bm_unique_verts.end();
+    vi->bm_other_verts = node->bm_other_verts.begin();
+    vi->bm_other_verts_end = node->bm_other_verts.end();
     vi->bm_vdata = &pbvh->header.bm->vdata;
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
   }
@@ -3373,13 +3354,13 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
   switch (fd->pbvh_type_) {
     case PBVH_BMESH: {
       if (do_step) {
-        BLI_gsetIterator_step(&fd->bm_faces_iter_);
-        if (BLI_gsetIterator_done(&fd->bm_faces_iter_)) {
+        (*fd->bm_faces_iter_)++;
+        if (*fd->bm_faces_iter_ == fd->node_->bm_faces.end()) {
           return;
         }
       }
 
-      BMFace *f = (BMFace *)BLI_gsetIterator_getKey(&fd->bm_faces_iter_);
+      BMFace *f = **fd->bm_faces_iter_;
       fd->face.i = intptr_t(f);
       fd->index = f->head.index;
 
@@ -3493,7 +3474,7 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
       fd->cd_hide_poly_ = CustomData_get_offset_named(
           &pbvh->header.bm->pdata, CD_PROP_INT32, ".hide_poly");
 
-      BLI_gsetIterator_init(&fd->bm_faces_iter_, node->bm_faces);
+      fd->bm_faces_iter_ = node->bm_faces.begin();
       break;
   }
 
@@ -3516,7 +3497,7 @@ bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd)
     case PBVH_GRIDS:
       return fd->prim_index_ >= fd->node_->prim_indices.size();
     case PBVH_BMESH:
-      return BLI_gsetIterator_done(&fd->bm_faces_iter_);
+      return *fd->bm_faces_iter_ == fd->node_->bm_faces.end();
     default:
       BLI_assert_unreachable();
       return true;

@@ -1514,15 +1514,12 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         break;
 
       case SCULPT_UNDO_HIDDEN: {
-        GSetIterator gs_iter;
-        GSet *faces = BKE_pbvh_bmesh_node_faces(node);
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
         }
         BKE_pbvh_vertex_iter_end;
 
-        GSET_ITER (gs_iter, faces) {
-          BMFace *f = static_cast<BMFace *>(BLI_gsetIterator_getKey(&gs_iter));
+        for (BMFace *f : BKE_pbvh_bmesh_node_faces(node)) {
           BM_log_face_modified(ss->bm_log, f);
         }
         break;

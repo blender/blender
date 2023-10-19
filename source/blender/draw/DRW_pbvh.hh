@@ -13,13 +13,10 @@
 #include "BLI_bitmap.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 
 #include "BKE_ccg.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 class PBVHAttrReq;
 struct GPUBatch;
@@ -33,6 +30,7 @@ struct MLoopTri;
 struct CustomData;
 struct SubdivCCG;
 struct BMesh;
+struct BMFace;
 
 struct PBVH_GPU_Args {
   int pbvh_type;
@@ -72,7 +70,7 @@ struct PBVH_GPU_Args {
   PBVHNode *node;
 
   /* BMesh. */
-  GSet *bm_unique_vert, *bm_other_verts, *bm_faces;
+  const blender::Set<BMFace *, 0> *bm_faces;
   int cd_mask_layer;
 };
 
@@ -94,7 +92,3 @@ GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
                              const PBVH_GPU_Args &args,
                              int *r_prim_count,
                              bool do_coarse_grids);
-
-#ifdef __cplusplus
-}
-#endif
