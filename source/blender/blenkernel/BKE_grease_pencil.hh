@@ -826,6 +826,7 @@ Material *BKE_grease_pencil_object_material_ensure_from_active_input_brush(Main 
                                                                            Brush *brush);
 Material *BKE_grease_pencil_object_material_ensure_from_active_input_material(Object *ob);
 Material *BKE_grease_pencil_object_material_ensure_active(Object *ob);
+void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *remap, int totcol);
 
 bool BKE_grease_pencil_references_cyclic_check(const GreasePencil *id_reference,
                                                const GreasePencil *grease_pencil);

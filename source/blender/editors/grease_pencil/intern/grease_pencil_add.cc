@@ -1226,7 +1226,7 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
   int color_skin_light = add_material_from_template(bmain, object, gp_monkey_material_skin_light);
   int color_skin_shadow = add_material_from_template(
       bmain, object, gp_monkey_material_skin_shadow);
-  object.actcol = color_black;
+  object.actcol = color_black + 1;
 
   const std::array<int, 15> monkey_line_materials({
       color_black,
