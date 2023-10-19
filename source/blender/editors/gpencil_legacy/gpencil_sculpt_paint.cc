@@ -1639,9 +1639,6 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
                                 GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_STROKE |
                                 GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_ACTIVE |
                                 GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_ACTIVE)) != 0;
-  /* Calc bound box matrix. */
-  float bound_mat[4][4];
-  BKE_gpencil_layer_transform_matrix_get(gso->depsgraph, gso->object, gpl, bound_mat);
 
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
     /* skip strokes that are invalid for current view */
@@ -1662,7 +1659,7 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
 
     /* Check if the stroke collide with brush. */
     if ((gps->totpoints > 1) &&
-        !ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat))
+        !ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, diff_mat))
     {
       continue;
     }
@@ -1700,7 +1697,7 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
              */
             gpencil_brush_grab_stroke_init(gso, gps_active);
             changed |= gpencil_sculpt_brush_do_stroke(
-                gso, gps, bound_mat, gpencil_brush_grab_store_points);
+                gso, gps, diff_mat, gpencil_brush_grab_store_points);
           }
           else {
             /* Apply effect to the stored points */
