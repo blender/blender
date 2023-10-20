@@ -989,40 +989,40 @@ inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_3d<S
 /* Atomic OR. */
 template<typename S, access A>
 S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
-                                     int coord,
-                                     S data)
+                                    int coord,
+                                    S data)
 {
   return tex.texture->atomic_fetch_or(uint(coord), vec<S, 4>(data)).x;
 }
 
 template<typename S, access A>
 S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_1d_array<S, A> tex,
-                                     int2 coord,
-                                     S data)
+                                    int2 coord,
+                                    S data)
 {
   return tex.texture->atomic_fetch_or(uint(coord.x), uint(coord.y), vec<S, 4>(data)).x;
 }
 
 template<typename S, access A>
 S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_2d<S, A> tex,
-                                     int2 coord,
-                                     S data)
+                                    int2 coord,
+                                    S data)
 {
   return tex.texture->atomic_fetch_or(uint2(coord.xy), vec<S, 4>(data)).x;
 }
 
 template<typename S, access A>
 S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_2d_array<S, A> tex,
-                                     int3 coord,
-                                     S data)
+                                    int3 coord,
+                                    S data)
 {
   return tex.texture->atomic_fetch_or(uint2(coord.xy), uint(coord.z), vec<S, 4>(data)).x;
 }
 
 template<typename S, access A>
 S _texture_image_atomic_or_internal(thread _mtl_combined_image_sampler_3d<S, A> tex,
-                                     int3 coord,
-                                     S data)
+                                    int3 coord,
+                                    S data)
 {
   return tex.texture->atomic_fetch_or(uint3(coord), vec<S, 4>(data)).x;
 }
