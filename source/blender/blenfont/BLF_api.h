@@ -85,6 +85,11 @@ void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
 void BLF_size(int fontid, float size);
 
+/**
+ * Weight class: 100 (Thin) - 400 (Normal) - 900 (Heavy).
+ */
+void BLF_character_weight(int fontid, int weight);
+
 /* Goal: small but useful color API. */
 
 void BLF_color4ubv(int fontid, const unsigned char rgba[4]);

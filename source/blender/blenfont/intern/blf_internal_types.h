@@ -116,7 +116,7 @@ typedef struct GlyphCacheBLF {
   /** Font size. */
   float size;
 
-  float char_weight;
+  int char_weight;
   float char_slant;
   float char_width;
   float char_spacing;
@@ -343,11 +343,11 @@ typedef struct FontBLF {
   /** Axes data for Adobe MM, TrueType GX, or OpenType variation fonts. */
   FT_MM_Var *variations;
 
-  /** Character variation; 0=default, -1=min, +1=max. */
-  float char_weight;
-  float char_slant;
-  float char_width;
-  float char_spacing;
+  /** Character variations. */
+  int char_weight;    /* 100 - 900, 400 = normal. */
+  float char_slant;   /* Slant in clockwise degrees. 0.0 = upright. */
+  float char_width;   /* Factor of normal character width. 1.0 = normal. */
+  float char_spacing; /* Factor of normal normal spacing. 0.0 = normal. */
 
   /** Max texture size. */
   int tex_size_max;

@@ -885,6 +885,15 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->text_render |= USER_TEXT_RENDER_SUBPIXELAA;
   }
 
+  if (!USER_VERSION_ATLEAST(401, 3)) {
+    LISTBASE_FOREACH (uiStyle *, style, &userdef->uistyles) {
+      style->paneltitle.character_weight = 400;
+      style->grouplabel.character_weight = 400;
+      style->widgetlabel.character_weight = 400;
+      style->widget.character_weight = 400;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

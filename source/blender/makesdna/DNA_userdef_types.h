@@ -81,7 +81,8 @@ typedef struct uiFontStyle {
   float shadowalpha;
   /** 1 value, typically white or black anyway. */
   float shadowcolor;
-  char _pad2[4];
+  /** Weight class 100-900, 400 is normal. */
+  int character_weight;
 } uiFontStyle;
 
 /* this is fed to the layout engine and widget code */

@@ -1347,6 +1347,11 @@ static void blf_font_fill(FontBLF *font)
   font->clip_rec.ymax = 0;
   font->flags = 0;
   font->size = 0;
+  font->char_weight = 400;
+  font->char_slant = 0.0f;
+  font->char_width = 1.0f;
+  font->char_spacing = 0.0f;
+
   BLI_listbase_clear(&font->cache);
   font->kerning_cache = nullptr;
 #if BLF_BLUR_ENABLE
@@ -1372,7 +1377,6 @@ static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
   /* Members with non-zero defaults. */
   metrics->weight = 400;
   metrics->width = 1.0f;
-  metrics->spacing = 1.0f;
 
   TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
   if (os2_table) {
@@ -1624,6 +1628,11 @@ bool blf_ensure_face(FontBLF *font)
 
   blf_ensure_size(font);
   blf_font_metrics(font->face, &font->metrics);
+
+  font->char_weight = font->metrics.weight;
+  font->char_slant = font->metrics.slant;
+  font->char_width = font->metrics.width;
+  font->char_spacing = font->metrics.spacing;
 
   /* Save TrueType table with bits to quickly test most unicode block coverage. */
   TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
