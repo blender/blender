@@ -28,7 +28,11 @@ void read_recent_searches_file();
  */
 template<typename T> class StringSearch : public blender::string_search::StringSearch<T> {
  public:
-  StringSearch() : blender::string_search::StringSearch<T>(get_recent_cache_or_null()) {}
+  StringSearch(const blender::string_search::MainWordsHeuristic main_word_heuristic =
+                   blender::string_search::MainWordsHeuristic::LastGroup)
+      : blender::string_search::StringSearch<T>(get_recent_cache_or_null(), main_word_heuristic)
+  {
+  }
 };
 
 }  // namespace blender::ui::string_search

@@ -487,7 +487,24 @@ void StringSearchBase::add_impl(const StringRef str, void *user_data, const int 
   const int recent_time = recent_cache_ ?
                               recent_cache_->logical_time_by_str.lookup_default(str, -1) :
                               -1;
-  const int main_group_id = word_group_ids.is_empty() ? 0 : word_group_ids.last();
+  int main_group_id = 0;
+  if (!word_group_ids.is_empty()) {
+    switch (main_words_heuristic_) {
+      case MainWordsHeuristic::FirstGroup: {
+        main_group_id = 0;
+        break;
+      }
+      case MainWordsHeuristic::LastGroup: {
+        main_group_id = word_group_ids.last();
+        break;
+      }
+      case MainWordsHeuristic::All: {
+        main_group_id = 0;
+        word_group_ids.fill(0);
+        break;
+      }
+    }
+  }
 
   int main_group_length = 0;
   for (const int i : words.index_range()) {

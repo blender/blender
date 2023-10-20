@@ -453,7 +453,8 @@ static void id_search_cb_tagged(const bContext *C,
   ListBase *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
-  blender::string_search::StringSearch<ID> search;
+  blender::string_search::StringSearch<ID> search{nullptr,
+                                                  blender::string_search::MainWordsHeuristic::All};
 
   /* ID listbase */
   LISTBASE_FOREACH (ID *, id, lb) {
