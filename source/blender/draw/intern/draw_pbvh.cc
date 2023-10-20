@@ -479,7 +479,7 @@ struct PBVHBatches {
           face_no = convert_value<float3, short4>(args.face_normals[face_i]);
           last_face = face_i;
         }
-        std::fill(data, data + 3, face_no);
+        std::fill_n(data, 3, face_no);
         data += 3;
       }
       else {
@@ -738,7 +738,7 @@ struct PBVHBatches {
                 fset_color[0] = fset_color[1] = fset_color[2] = UCHAR_MAX;
               }
             }
-            std::fill(data, data + 3, fset_color);
+            std::fill_n(data, 3, fset_color);
             data += 3;
           }
         }
@@ -893,7 +893,7 @@ struct PBVHBatches {
             data++;
           }
           else {
-            std::fill(data, data + 3, convert_value<float3, short4>(f->no));
+            std::fill_n(data, 3, convert_value<float3, short4>(f->no));
             data += 3;
           }
         }
@@ -933,7 +933,7 @@ struct PBVHBatches {
               /* Skip for the default color face set to render it white. */
               fset_color[0] = fset_color[1] = fset_color[2] = UCHAR_MAX;
             }
-            std::fill(data, data + 3, fset_color);
+            std::fill_n(data, 3, fset_color);
             data += 3;
           }
         }
