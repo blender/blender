@@ -189,6 +189,29 @@ TEST(greasepencil, layer_tree_node_types)
   }
 }
 
+TEST(greasepencil, layer_tree_is_child_of)
+{
+  GreasePencilLayerTreeExample ex;
+
+  EXPECT_FALSE(ex.grease_pencil.root_group().is_child_of(ex.grease_pencil.root_group()));
+
+  const LayerGroup &group1 = *ex.grease_pencil.find_layer_group_by_name("Group1");
+  const LayerGroup &group2 = *ex.grease_pencil.find_layer_group_by_name("Group2");
+  const Layer &layer1 = *ex.grease_pencil.find_layer_by_name("Layer1");
+  const Layer &layer3 = *ex.grease_pencil.find_layer_by_name("Layer3");
+  const Layer &layer5 = *ex.grease_pencil.find_layer_by_name("Layer5");
+
+  EXPECT_TRUE(layer1.is_child_of(ex.grease_pencil.root_group()));
+  EXPECT_TRUE(layer1.is_child_of(group1));
+  EXPECT_TRUE(layer3.is_child_of(group1));
+  EXPECT_FALSE(layer5.is_child_of(group1));
+
+  EXPECT_TRUE(layer3.is_child_of(group2));
+  EXPECT_FALSE(layer1.is_child_of(group2));
+
+  EXPECT_TRUE(layer5.is_child_of(ex.grease_pencil.root_group()));
+}
+
 /* --------------------------------------------------------------------------------------------- */
 /* Frames Tests. */
 

@@ -148,7 +148,8 @@ class Layer;
   bool is_editable() const; \
   bool is_selected() const; \
   void set_selected(bool selected); \
-  bool use_onion_skinning() const;
+  bool use_onion_skinning() const; \
+  bool is_child_of(const LayerGroup &group) const;
 
 /* Implements the forwarding of the methods defined by #TREENODE_COMMON_METHODS. */
 #define TREENODE_COMMON_METHODS_FORWARD_IMPL(class_name) \
@@ -191,6 +192,10 @@ class Layer;
   inline bool class_name::use_onion_skinning() const \
   { \
     return this->as_node().use_onion_skinning(); \
+  } \
+  inline bool class_name::is_child_of(const LayerGroup &group) const \
+  { \
+    return this->as_node().is_child_of(group); \
   }
 
 /**
@@ -621,6 +626,16 @@ inline void TreeNode::set_selected(const bool selected)
 inline bool TreeNode::use_onion_skinning() const
 {
   return ((this->flag & GP_LAYER_TREE_NODE_USE_ONION_SKINNING) != 0);
+}
+inline bool TreeNode::is_child_of(const LayerGroup &group) const
+{
+  if (const LayerGroup *parent = this->parent_group()) {
+    if (parent == &group) {
+      return true;
+    }
+    return parent->is_child_of(group);
+  }
+  return false;
 }
 inline StringRefNull TreeNode::name() const
 {
