@@ -623,7 +623,7 @@ static Array<BMLoop *> pbvh_bmesh_edge_loops(BMEdge *e)
   if (LIKELY(BM_edge_loop_pair(e, &manifold_loops[0], &manifold_loops[1]))) {
     return Array<BMLoop *>(Span(manifold_loops));
   }
-  Array<BMLoop *> loops;
+  Array<BMLoop *> loops(BM_edge_face_count(e));
   BM_iter_as_array(
       nullptr, BM_LOOPS_OF_EDGE, e, reinterpret_cast<void **>(loops.data()), loops.size());
   return loops;
