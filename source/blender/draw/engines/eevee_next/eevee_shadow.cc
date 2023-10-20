@@ -1328,6 +1328,8 @@ void ShadowModule::set_view(View &view)
 
       shadow_multi_view_.compute_procedural_bounds();
 
+      statistics_buf_.current().async_flush_to_host();
+
       /* Isolate shadow update into own command buffer.
        * If parameter buffer exceeds limits, then other work will not be impacted.  */
       bool use_flush = (shadow_technique == ShadowTechnique::TILE_COPY) &&
