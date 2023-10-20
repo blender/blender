@@ -109,13 +109,14 @@ class ShadowPipeline {
 
   /* Shadow update pass. */
   PassMain render_ps_ = {"Shadow.Surface"};
-  /* Shadow surface render sub-pass. */
-  PassMain::Sub *surface_ps_ = nullptr;
+  /* Shadow surface render sub-passes. */
+  PassMain::Sub *surface_double_sided_ps_ = nullptr;
+  PassMain::Sub *surface_single_sided_ps_ = nullptr;
 
  public:
   ShadowPipeline(Instance &inst) : inst_(inst){};
 
-  PassMain::Sub *surface_material_add(GPUMaterial *gpumat);
+  PassMain::Sub *surface_material_add(::Material *material, GPUMaterial *gpumat);
 
   void sync();
 
@@ -668,7 +669,7 @@ class PipelineModule {
       case MAT_PIPE_FORWARD:
         return forward.material_opaque_add(blender_mat, gpumat);
       case MAT_PIPE_SHADOW:
-        return shadow.surface_material_add(gpumat);
+        return shadow.surface_material_add(blender_mat, gpumat);
       case MAT_PIPE_CAPTURE:
         return capture.surface_material_add(blender_mat, gpumat);
 

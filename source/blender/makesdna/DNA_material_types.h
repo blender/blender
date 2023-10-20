@@ -351,6 +351,7 @@ enum {
   MA_BL_CULL_BACKFACE = (1 << 2),
   MA_BL_TRANSLUCENCY = (1 << 3),
   MA_BL_CULL_BACKFACE_PROBE = (1 << 4),
+  MA_BL_CULL_BACKFACE_SHADOW = (1 << 5),
 };
 
 /** #Material::blend_shadow */

@@ -191,7 +191,9 @@ void ShadowPipeline::sync()
     }
     inst_.bind_uniform_data(&pass);
     inst_.sampling.bind_resources(pass);
-    surface_ps_ = &pass;
+    surface_double_sided_ps_ = &pass.sub("Shadow.Surface.Double-Sided");
+    surface_single_sided_ps_ = &pass.sub("Shadow.Surface.Single-Sided");
+    surface_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
   }
 
   if (shadow_update_tbdr) {
@@ -214,9 +216,12 @@ void ShadowPipeline::sync()
   }
 }
 
-PassMain::Sub *ShadowPipeline::surface_material_add(GPUMaterial *gpumat)
+PassMain::Sub *ShadowPipeline::surface_material_add(::Material *material, GPUMaterial *gpumat)
 {
-  return &surface_ps_->sub(GPU_material_get_name(gpumat));
+  PassMain::Sub *pass = (material->blend_flag & MA_BL_CULL_BACKFACE_SHADOW) ?
+                            surface_single_sided_ps_ :
+                            surface_double_sided_ps_;
+  return &pass->sub(GPU_material_get_name(gpumat));
 }
 
 void ShadowPipeline::render(View &view)

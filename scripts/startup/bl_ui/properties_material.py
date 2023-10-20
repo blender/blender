@@ -258,6 +258,7 @@ class EEVEE_NEXT_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
 
         col = layout.column(heading="Cull Backfaces")
         col.prop(mat, "use_backface_culling", text="Camera")
+        col.prop(mat, "use_backface_culling_shadow", text="Shadow")
         col.prop(mat, "use_backface_culling_probe", text="Probe Capture")
 
         layout.separator()

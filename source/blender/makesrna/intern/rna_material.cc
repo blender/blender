@@ -874,6 +874,11 @@ void RNA_def_material(BlenderRNA *brna)
       prop, "Backface Culling", "Use back face culling to hide the back side of faces");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
+  prop = RNA_def_property(srna, "use_backface_culling_shadow", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_CULL_BACKFACE_SHADOW);
+  RNA_def_property_ui_text(prop, "Shadow Backface Culling", "Use back faces for casting shadows");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
   prop = RNA_def_property(srna, "use_backface_culling_probe", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_CULL_BACKFACE_PROBE);
   RNA_def_property_ui_text(
