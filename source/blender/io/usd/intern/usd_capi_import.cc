@@ -112,6 +112,52 @@ static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings *r_setting
   copy_m4_m3(r_settings->conversion_mat, rmat);
 }
 
+/**
+ * Find the lowest level of Blender generated roots
+ * so that round tripping an export can be more invisible
+ */
+static void find_prefix_to_skip(pxr::UsdStageRefPtr stage, ImportSettings *r_settings)
+{
+  if (!stage) {
+    return;
+  }
+
+  pxr::TfToken generated_key("Blender:generated");
+  pxr::SdfPath path("/");
+  auto prim = stage->GetPseudoRoot();
+  while (true) {
+
+    uint32_t child_count = 0;
+    for (auto child : prim.GetChildren()) {
+      if (child_count == 0) {
+        prim = child.GetPrim();
+      }
+      ++child_count;
+    }
+
+    if (child_count != 1) {
+      /* Our blender write out only supports a single root chain,
+       * so whenever we encounter more than one child, we should
+       * early exit */
+      break;
+    }
+
+    /* We only care about prims that have the key and the value doesn't matter */
+    if (!prim.HasCustomDataKey(generated_key)) {
+      break;
+    }
+    path = path.AppendChild(prim.GetName());
+  }
+
+  /* Treat the root as empty */
+  auto path_string = path.GetString();
+  if (path == pxr::SdfPath("/")) {
+    path = pxr::SdfPath();
+  }
+
+  r_settings->skip_prefix = path;
+}
+
 enum {
   USD_NO_ERROR = 0,
   USD_ARCHIVE_FAIL,
@@ -234,6 +280,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   }
 
   convert_to_z_up(stage, &data->settings);
+  find_prefix_to_skip(stage, &data->settings);
   data->settings.stage_meters_per_unit = UsdGeomGetStageMetersPerUnit(stage);
 
   /* Set up the stage for animated data. */
@@ -608,7 +655,7 @@ CacheArchiveHandle *USD_create_handle(Main * /*bmain*/,
 
   blender::io::usd::ImportSettings settings{};
   convert_to_z_up(stage, &settings);
-
+  find_prefix_to_skip(stage, &settings);
   USDStageReader *stage_reader = new USDStageReader(stage, params, settings);
 
   if (object_paths) {

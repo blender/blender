@@ -11,6 +11,7 @@
 
 #include "WM_types.hh"
 
+#include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/prim.h>
 
 #include <map>
@@ -59,6 +60,8 @@ struct ImportSettings {
    * correct millimeter scale that Blender uses for camera parameters. */
   double stage_meters_per_unit;
 
+  pxr::SdfPath skip_prefix;
+
   ImportSettings()
       : do_convert_mat(false),
         from_up(0),
@@ -71,7 +74,8 @@ struct ImportSettings {
         read_flag(0),
         validate_meshes(false),
         cache_file(NULL),
-        stage_meters_per_unit(1.0)
+        stage_meters_per_unit(1.0),
+        skip_prefix(pxr::SdfPath{})
   {
   }
 };

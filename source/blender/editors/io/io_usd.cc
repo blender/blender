@@ -111,6 +111,13 @@ static void process_prim_path(char *prim_path)
   if (prim_path[0] == '/' && strlen(prim_path) == 1) {
     prim_path[0] = '\0';
   }
+
+  /* If a prim path doesn't start with a "/" it
+   * is invalid when creating the prim. */
+  if (prim_path[0] != '/') {
+    auto new_path = "/" + std::string(prim_path);
+    snprintf(prim_path, FILE_MAX, "%s", new_path.c_str());
+  }
 }
 
 static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
@@ -371,7 +378,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
   RNA_def_string(ot->srna,
                  "root_prim_path",
-                 nullptr,
+                 "/root",
                  FILE_MAX,
                  "Root Prim",
                  "If set, add a transform primitive with the given path to the stage "

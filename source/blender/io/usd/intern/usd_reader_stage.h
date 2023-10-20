@@ -117,7 +117,7 @@ class USDStageReader {
    */
   bool include_by_purpose(const pxr::UsdGeomImageable &imageable) const;
 
-  /*
+  /**
    * Returns true if the specified UsdPrim is a UsdGeom primitive,
    * procedural shape, such as UsdGeomCube.
    */

@@ -8,6 +8,7 @@
 #include "usd_hook.h"
 
 #include <pxr/base/plug/registry.h>
+#include <pxr/base/tf/token.h>
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/primRange.h>
@@ -135,7 +136,11 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
     return;
   }
 
-  pxr::UsdGeomXform::Define(stage, pxr::SdfPath(params.root_prim_path));
+  for (auto path : pxr::SdfPath(params.root_prim_path).GetPrefixes()) {
+    auto xform = pxr::UsdGeomXform::Define(stage, path);
+    /* Tag generated prims to allow filtering on import */
+    xform.GetPrim().SetCustomDataByKey(pxr::TfToken("Blender:generated"), pxr::VtValue(true));
+  }
 }
 
 static void report_job_duration(const ExportJobData *data)
