@@ -5621,7 +5621,8 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     Curve *cu;
     float location[3];
     const bool use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
-                           (vc.scene->toolsettings->snap_mode == SCE_SNAP_TO_FACE));
+                           (vc.scene->toolsettings->snap_mode &
+                            (SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_PROJECT)));
 
     Nurb *nu;
     BezTriple *bezt;
