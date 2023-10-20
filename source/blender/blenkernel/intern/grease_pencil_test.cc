@@ -195,11 +195,11 @@ TEST(greasepencil, layer_tree_is_child_of)
 
   EXPECT_FALSE(ex.grease_pencil.root_group().is_child_of(ex.grease_pencil.root_group()));
 
-  const LayerGroup &group1 = *ex.grease_pencil.find_layer_group_by_name("Group1");
-  const LayerGroup &group2 = *ex.grease_pencil.find_layer_group_by_name("Group2");
-  const Layer &layer1 = *ex.grease_pencil.find_layer_by_name("Layer1");
-  const Layer &layer3 = *ex.grease_pencil.find_layer_by_name("Layer3");
-  const Layer &layer5 = *ex.grease_pencil.find_layer_by_name("Layer5");
+  const LayerGroup &group1 = ex.grease_pencil.find_node_by_name("Group1")->as_group();
+  const LayerGroup &group2 = ex.grease_pencil.find_node_by_name("Group2")->as_group();
+  const Layer &layer1 = ex.grease_pencil.find_node_by_name("Layer1")->as_layer();
+  const Layer &layer3 = ex.grease_pencil.find_node_by_name("Layer3")->as_layer();
+  const Layer &layer5 = ex.grease_pencil.find_node_by_name("Layer5")->as_layer();
 
   EXPECT_TRUE(layer1.is_child_of(ex.grease_pencil.root_group()));
   EXPECT_TRUE(layer1.is_child_of(group1));

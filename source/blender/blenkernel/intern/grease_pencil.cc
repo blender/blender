@@ -103,8 +103,10 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
 
   /* Set active layer. */
   if (grease_pencil_src->has_active_layer()) {
-    grease_pencil_dst->set_active_layer(
-        grease_pencil_dst->find_layer_by_name(grease_pencil_src->active_layer->wrap().name()));
+    bke::greasepencil::TreeNode *active_node = grease_pencil_dst->find_node_by_name(
+        grease_pencil_src->active_layer->wrap().name());
+    BLI_assert(active_node && active_node->is_layer());
+    grease_pencil_dst->set_active_layer(&active_node->as_layer());
   }
 
   CustomData_copy(&grease_pencil_src->layers_data,
@@ -1006,41 +1008,21 @@ Span<LayerGroup *> LayerGroup::groups_for_write()
   return this->runtime->layer_group_cache_.as_span();
 }
 
-const Layer *LayerGroup::find_layer_by_name(const StringRefNull name) const
+const TreeNode *LayerGroup::find_node_by_name(const StringRefNull name) const
 {
-  for (const Layer *layer : this->layers()) {
-    if (StringRef(layer->name()) == StringRef(name)) {
-      return layer;
+  for (const TreeNode *node : this->nodes()) {
+    if (StringRef(node->name()) == StringRef(name)) {
+      return node;
     }
   }
   return nullptr;
 }
 
-Layer *LayerGroup::find_layer_by_name(const StringRefNull name)
+TreeNode *LayerGroup::find_node_by_name(const StringRefNull name)
 {
-  for (Layer *layer : this->layers_for_write()) {
-    if (StringRef(layer->name()) == StringRef(name)) {
-      return layer;
-    }
-  }
-  return nullptr;
-}
-
-const LayerGroup *LayerGroup::find_group_by_name(StringRefNull name) const
-{
-  for (const LayerGroup *group : this->groups()) {
-    if (StringRef(group->name()) == StringRef(name)) {
-      return group;
-    }
-  }
-  return nullptr;
-}
-
-LayerGroup *LayerGroup::find_group_by_name(StringRefNull name)
-{
-  for (LayerGroup *group : this->groups_for_write()) {
-    if (StringRef(group->name()) == StringRef(name)) {
-      return group;
+  for (TreeNode *node : this->nodes_for_write()) {
+    if (StringRef(node->name()) == StringRef(name)) {
+      return node;
     }
   }
   return nullptr;
@@ -2391,28 +2373,16 @@ void GreasePencil::move_node_into(blender::bke::greasepencil::TreeNode &node,
   parent_group.add_node(node);
 }
 
-const blender::bke::greasepencil::Layer *GreasePencil::find_layer_by_name(
+const blender::bke::greasepencil::TreeNode *GreasePencil::find_node_by_name(
     const blender::StringRefNull name) const
 {
-  return this->root_group().find_layer_by_name(name);
+  return this->root_group().find_node_by_name(name);
 }
 
-blender::bke::greasepencil::Layer *GreasePencil::find_layer_by_name(
+blender::bke::greasepencil::TreeNode *GreasePencil::find_node_by_name(
     const blender::StringRefNull name)
 {
-  return this->root_group().find_layer_by_name(name);
-}
-
-const blender::bke::greasepencil::LayerGroup *GreasePencil::find_layer_group_by_name(
-    blender::StringRefNull name) const
-{
-  return this->root_group().find_group_by_name(name);
-}
-
-blender::bke::greasepencil::LayerGroup *GreasePencil::find_layer_group_by_name(
-    blender::StringRefNull name)
-{
-  return this->root_group().find_group_by_name(name);
+  return this->root_group().find_node_by_name(name);
 }
 
 void GreasePencil::rename_node(blender::bke::greasepencil::TreeNode &node,

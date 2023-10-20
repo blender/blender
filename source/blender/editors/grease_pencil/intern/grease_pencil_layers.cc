@@ -141,8 +141,8 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
       op->ptr, "target_layer_name", nullptr, 0, &target_layer_name_length);
   const int reorder_location = RNA_enum_get(op->ptr, "location");
 
-  Layer *target_layer = grease_pencil.find_layer_by_name(target_layer_name);
-  if (!target_layer) {
+  TreeNode *target_node = grease_pencil.find_node_by_name(target_layer_name);
+  if (!target_node || !target_node->is_layer()) {
     MEM_SAFE_FREE(target_layer_name);
     return OPERATOR_CANCELLED;
   }
@@ -152,13 +152,13 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
     case LAYER_REORDER_ABOVE: {
       /* NOTE: The layers are stored from bottom to top, so inserting above (visually), means
        * inserting the link after the target. */
-      grease_pencil.move_node_after(active_layer.as_node(), target_layer->as_node());
+      grease_pencil.move_node_after(active_layer.as_node(), *target_node);
       break;
     }
     case LAYER_REORDER_BELOW: {
       /* NOTE: The layers are stored from bottom to top, so inserting below (visually), means
        * inserting the link before the target. */
-      grease_pencil.move_node_before(active_layer.as_node(), target_layer->as_node());
+      grease_pencil.move_node_before(active_layer.as_node(), *target_node);
       break;
     }
     default:
