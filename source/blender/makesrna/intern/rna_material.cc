@@ -793,10 +793,12 @@ void RNA_def_material(BlenderRNA *brna)
        0,
        "Accurate",
        "Faces are considered as medium interface only when they have different consecutive "
-       "facing. Gives correct results as long as the max ray depth is not exceeded"},
+       "facing. Gives correct results as long as the max ray depth is not exceeded. Have "
+       "significant memory overhead compared to the fast method"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+#  if 1 /* Delete this section once we remove old eevee. */
   static EnumPropertyItem prop_eevee_blend_items[] = {
       {MA_BM_SOLID, "OPAQUE", 0, "Opaque", "Render surface without transparency"},
       {MA_BM_CLIP,
@@ -832,6 +834,23 @@ void RNA_def_material(BlenderRNA *brna)
        "Use noise to dither the binary visibility and use filtering to reduce the noise"},
       {0, nullptr, 0, nullptr, nullptr},
   };
+#  endif
+
+  static EnumPropertyItem prop_eevee_surface_render_method_items[] = {
+      {MA_SURFACE_METHOD_DEFERRED,
+       "DITHERED",
+       0,
+       "Dithered",
+       "Allows for grayscale hashed transparency, and compatible with render passes and "
+       "raytracing. Also known as deferred rendering"},
+      {MA_SURFACE_METHOD_FORWARD,
+       "BLENDED",
+       0,
+       "Blended",
+       "Allows for colored transparency, but incompatible with render passes and raytracing. Also "
+       "known as forward rendering"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
   srna = RNA_def_struct(brna, "Material", "ID");
   RNA_def_struct_ui_text(
@@ -840,6 +859,14 @@ void RNA_def_material(BlenderRNA *brna)
       "Material data-block to define the appearance of geometric objects for rendering");
   RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
 
+  prop = RNA_def_property(srna, "surface_render_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_eevee_surface_render_method_items);
+  RNA_def_property_ui_text(prop,
+                           "Surface Render Method",
+                           "Controls the blending and the compatibility with certain features");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+#  if 1 /* Delete this section once we remove old eevee. */
   /* Blending (only Eevee for now) */
   prop = RNA_def_property(srna, "blend_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_eevee_blend_items);
@@ -859,7 +886,9 @@ void RNA_def_material(BlenderRNA *brna)
                            "Clip Threshold",
                            "A pixel is rendered only if its alpha value is above this threshold");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+#  endif
 
+  /* TODO(fclem): Should be renamed to use_transparency_overlap. */
   prop = RNA_def_property(srna, "show_transparent_back", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "blend_flag", MA_BL_HIDE_BACKFACE);
   RNA_def_property_ui_text(prop,
@@ -876,21 +905,32 @@ void RNA_def_material(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_backface_culling_shadow", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_CULL_BACKFACE_SHADOW);
-  RNA_def_property_ui_text(prop, "Shadow Backface Culling", "Use back faces for casting shadows");
-  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
-
-  prop = RNA_def_property(srna, "use_backface_culling_probe", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_CULL_BACKFACE_PROBE);
   RNA_def_property_ui_text(
-      prop, "Probe Capture Backface Culling", "Use back faces for probe captures");
+      prop, "Shadow Backface Culling", "Use back face culling when casting shadows");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
+  prop = RNA_def_property(srna, "lightprobe_volume_single_sided", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, nullptr, "blend_flag", MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED);
+  RNA_def_property_ui_text(
+      prop,
+      "Light Probe Volume Single Sided",
+      "Consider material single sided for light probe volume capture. "
+      "Additionnaly helps rejecting probes inside the object to avoid light leaks");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+  /* TODO(fclem): Should be renamed to use_raytraced_refraction. */
   prop = RNA_def_property(srna, "use_screen_refraction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_SS_REFRACTION);
   RNA_def_property_ui_text(
-      prop, "Screen Space Refraction", "Use raytraced screen space refractions");
+      prop,
+      "Raytrace Refraction",
+      "Use raytracing to determine refracted color instead of using only light probes. "
+      "This prevents the surface from contributing to the lighting of surfaces not using this "
+      "setting");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
+#  if 1 /* Delete this section once we remove old eevee. */
   prop = RNA_def_property(srna, "use_sss_translucency", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_TRANSLUCENCY);
   RNA_def_property_ui_text(
@@ -905,6 +945,7 @@ void RNA_def_material(BlenderRNA *brna)
                            "Approximate the thickness of the object to compute two refraction "
                            "events (0 is disabled)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+#  endif
 
   prop = RNA_def_property(srna, "volume_intersection_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_eevee_volume_isect_method_items);

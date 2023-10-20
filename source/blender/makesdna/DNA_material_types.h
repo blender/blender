@@ -214,8 +214,8 @@ typedef struct Material {
   /* Transparency. */
   float alpha_threshold;
   float refract_depth;
-  char blend_method;
-  char blend_shadow;
+  char blend_method; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
+  char blend_shadow; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
   char blend_flag;
 
   /* Volume. */
@@ -358,7 +358,7 @@ enum {
   MA_BL_SS_REFRACTION = (1 << 1),
   MA_BL_CULL_BACKFACE = (1 << 2),
   MA_BL_TRANSLUCENCY = (1 << 3),
-  MA_BL_CULL_BACKFACE_PROBE = (1 << 4),
+  MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED = (1 << 4),
   MA_BL_CULL_BACKFACE_SHADOW = (1 << 5),
 };
 
