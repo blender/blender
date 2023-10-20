@@ -33,11 +33,16 @@ void main()
 
   nodetree_surface();
 
+#  ifdef MAT_FORWARD
+  /* Prepass only allows fully opaque areas to cut through all transparent layers. */
+  float threshold = 0.0;
+#  else
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
-  float random_threshold = transparency_hashed_alpha_threshold(1.0, noise_offset, g_data.P);
+  float threshold = transparency_hashed_alpha_threshold(1.0, noise_offset, g_data.P);
+#  endif
 
   float transparency = average(g_transmittance);
-  if (transparency > random_threshold) {
+  if (transparency > threshold) {
     discard;
     return;
   }

@@ -331,6 +331,11 @@ PassMain::Sub *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
                                           prepass_single_sided_static_ps_) :
                             (has_motion ? prepass_double_sided_moving_ps_ :
                                           prepass_double_sided_static_ps_);
+
+  /* If material is fully additive or transparent, we can skip the opaque prepass. */
+  /* TODO(fclem): To skip it, we need to know if the transparent BSDF is fully white AND if there
+   * is no mix shader (could do better constant folding but that's expensive). */
+
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 

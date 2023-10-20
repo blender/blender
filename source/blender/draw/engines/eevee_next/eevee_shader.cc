@@ -346,7 +346,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_AO) &&
       ELEM(pipeline_type, MAT_PIPE_FORWARD, MAT_PIPE_DEFERRED) &&
-      ELEM(geometry_type, MAT_GEOM_MESH, MAT_GEOM_CURVES))
+      geometry_type_has_surface(geometry_type))
   {
     info.define("MAT_AMBIENT_OCCLUSION");
   }
@@ -354,9 +354,13 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
     info.define("MAT_TRANSPARENT");
     /* Transparent material do not have any velocity specific pipeline. */
-    if (pipeline_type == MAT_PIPE_FORWARD_PREPASS_VELOCITY) {
-      pipeline_type = MAT_PIPE_FORWARD_PREPASS;
+    if (pipeline_type == MAT_PIPE_PREPASS_FORWARD_VELOCITY) {
+      pipeline_type = MAT_PIPE_PREPASS_FORWARD;
     }
+  }
+
+  if (pipeline_type == MAT_PIPE_PREPASS_FORWARD) {
+    info.define("MAT_FORWARD");
   }
 
   bool supports_render_passes = (pipeline_type == MAT_PIPE_DEFERRED);
@@ -572,15 +576,16 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       break;
     default:
       switch (pipeline_type) {
-        case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
-        case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
+        case MAT_PIPE_PREPASS_FORWARD_VELOCITY:
+        case MAT_PIPE_PREPASS_DEFERRED_VELOCITY:
           info.additional_info("eevee_surf_depth", "eevee_velocity_geom");
           break;
-        case MAT_PIPE_FORWARD_PREPASS:
-        case MAT_PIPE_DEFERRED_PREPASS:
+        case MAT_PIPE_PREPASS_OVERLAP:
+        case MAT_PIPE_PREPASS_FORWARD:
+        case MAT_PIPE_PREPASS_DEFERRED:
           info.additional_info("eevee_surf_depth");
           break;
-        case MAT_PIPE_PLANAR_PREPASS:
+        case MAT_PIPE_PREPASS_PLANAR:
           info.additional_info("eevee_surf_depth", "eevee_clip_plane");
           break;
         case MAT_PIPE_SHADOW:

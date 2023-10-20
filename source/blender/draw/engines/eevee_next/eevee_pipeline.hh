@@ -632,7 +632,7 @@ class PipelineModule {
   {
     if (probe_capture == MAT_PROBE_REFLECTION) {
       switch (pipeline_type) {
-        case MAT_PIPE_DEFERRED_PREPASS:
+        case MAT_PIPE_PREPASS_DEFERRED:
           return probe.prepass_add(blender_mat, gpumat);
         case MAT_PIPE_DEFERRED:
           return probe.material_add(blender_mat, gpumat);
@@ -643,7 +643,7 @@ class PipelineModule {
     }
     if (probe_capture == MAT_PROBE_PLANAR) {
       switch (pipeline_type) {
-        case MAT_PIPE_PLANAR_PREPASS:
+        case MAT_PIPE_PREPASS_PLANAR:
           return planar.prepass_add(blender_mat, gpumat);
         case MAT_PIPE_DEFERRED:
           return planar.material_add(blender_mat, gpumat);
@@ -654,14 +654,17 @@ class PipelineModule {
     }
 
     switch (pipeline_type) {
-      case MAT_PIPE_DEFERRED_PREPASS:
+      case MAT_PIPE_PREPASS_DEFERRED:
         return deferred.prepass_add(blender_mat, gpumat, false);
-      case MAT_PIPE_FORWARD_PREPASS:
+      case MAT_PIPE_PREPASS_FORWARD:
         return forward.prepass_opaque_add(blender_mat, gpumat, false);
+      case MAT_PIPE_PREPASS_OVERLAP:
+        BLI_assert_msg(0, "Overlap prepass should register to the forward pipeline directly.");
+        return nullptr;
 
-      case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
+      case MAT_PIPE_PREPASS_DEFERRED_VELOCITY:
         return deferred.prepass_add(blender_mat, gpumat, true);
-      case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
+      case MAT_PIPE_PREPASS_FORWARD_VELOCITY:
         return forward.prepass_opaque_add(blender_mat, gpumat, true);
 
       case MAT_PIPE_DEFERRED:
@@ -678,7 +681,7 @@ class PipelineModule {
         BLI_assert_msg(0, "Volume shaders must register to the volume pipeline directly.");
         return nullptr;
 
-      case MAT_PIPE_PLANAR_PREPASS:
+      case MAT_PIPE_PREPASS_PLANAR:
         /* Should be handled by the `probe_capture == MAT_PROBE_PLANAR` case. */
         BLI_assert_unreachable();
         return nullptr;

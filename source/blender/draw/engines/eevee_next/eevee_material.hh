@@ -28,15 +28,18 @@ class Instance;
 enum eMaterialPipeline {
   MAT_PIPE_DEFERRED = 0,
   MAT_PIPE_FORWARD,
-  MAT_PIPE_DEFERRED_PREPASS,
-  MAT_PIPE_DEFERRED_PREPASS_VELOCITY,
-  MAT_PIPE_FORWARD_PREPASS,
-  MAT_PIPE_FORWARD_PREPASS_VELOCITY,
+  /* These all map to the depth shader. */
+  MAT_PIPE_PREPASS_DEFERRED,
+  MAT_PIPE_PREPASS_DEFERRED_VELOCITY,
+  MAT_PIPE_PREPASS_OVERLAP,
+  MAT_PIPE_PREPASS_FORWARD,
+  MAT_PIPE_PREPASS_FORWARD_VELOCITY,
+  MAT_PIPE_PREPASS_PLANAR,
+
   MAT_PIPE_VOLUME_MATERIAL,
   MAT_PIPE_VOLUME_OCCUPANCY,
   MAT_PIPE_SHADOW,
   MAT_PIPE_CAPTURE,
-  MAT_PIPE_PLANAR_PREPASS,
 };
 
 enum eMaterialGeometry {
@@ -52,6 +55,11 @@ enum eMaterialGeometry {
   MAT_GEOM_VOLUME_WORLD,
   MAT_GEOM_WORLD,
 };
+
+static inline bool geometry_type_has_surface(eMaterialGeometry geometry_type)
+{
+  return geometry_type < MAT_GEOM_VOLUME;
+}
 
 enum eMaterialProbe {
   MAT_PROBE_NONE = 0,
@@ -124,15 +132,17 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
   }
 }
 
-/** Unique key to identify each material in the hash-map. */
+/**
+ * Unique key to identify each material in the hash-map.
+ * This is above the shader binning.
+ */
 struct MaterialKey {
   ::Material *mat;
   uint64_t options;
 
-  MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline surface_pipeline)
-      : mat(mat_)
+  MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline pipeline) : mat(mat_)
   {
-    options = shader_uuid_from_material_type(surface_pipeline, geometry);
+    options = shader_uuid_from_material_type(pipeline, geometry);
   }
 
   uint64_t hash() const
@@ -159,21 +169,20 @@ struct MaterialKey {
  *
  * \{ */
 
+/**
+ * Key used to find the sub-pass that already renders objects with the same shader.
+ * This avoids the cost associated with shader switching.
+ * This is below the material binning.
+ * Should only include pipeline options that are not baked in the shader itself.
+ */
 struct ShaderKey {
   GPUShader *shader;
   uint64_t options;
 
-  ShaderKey(GPUMaterial *gpumat,
-            eMaterialGeometry geometry,
-            eMaterialPipeline pipeline,
-            char blend_flags,
-            eMaterialProbe probe_capture)
+  ShaderKey(GPUMaterial *gpumat, eMaterialProbe probe_capture)
   {
     shader = GPU_material_get_shader(gpumat);
-    options = blend_flags;
-    options = (options << 6u) | shader_uuid_from_material_type(pipeline, geometry);
-    options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
-    options = (options << 2u) | uint64_t(probe_capture);
+    options = uint64_t(probe_capture);
   }
 
   uint64_t hash() const
@@ -233,10 +242,12 @@ struct MaterialPass {
 
 struct Material {
   bool is_alpha_blend_transparent;
-  bool is_volume;
+  bool has_surface;
+  bool has_volume;
   MaterialPass shadow;
   MaterialPass shading;
   MaterialPass prepass;
+  MaterialPass overlap_masking;
   MaterialPass capture;
   MaterialPass reflection_probe_prepass;
   MaterialPass reflection_probe_shading;

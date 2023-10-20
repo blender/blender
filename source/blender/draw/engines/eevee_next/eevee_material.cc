@@ -76,8 +76,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     bNodeTree *ntree = bke::ntreeAddTreeEmbedded(
         nullptr, &diffuse_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     diffuse_mat->use_nodes = true;
-    /* To use the forward pipeline. */
-    diffuse_mat->blend_method = MA_BM_BLEND;
+    diffuse_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     bNode *bsdf = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_DIFFUSE);
     bNodeSocket *base_color = nodeFindSocket(bsdf, SOCK_IN, "Color");
@@ -98,8 +97,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     bNodeTree *ntree = bke::ntreeAddTreeEmbedded(
         nullptr, &glossy_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     glossy_mat->use_nodes = true;
-    /* To use the forward pipeline. */
-    glossy_mat->blend_method = MA_BM_BLEND;
+    glossy_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     bNode *bsdf = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_GLOSSY);
     bNodeSocket *base_color = nodeFindSocket(bsdf, SOCK_IN, "Color");
@@ -173,10 +171,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
       blender_mat, ntree, pipeline_type, geometry_type, use_deferred_compilation);
 
   const bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_OCCUPANCY, MAT_PIPE_VOLUME_MATERIAL);
-  const bool is_forward = ELEM(pipeline_type,
-                               MAT_PIPE_FORWARD,
-                               MAT_PIPE_FORWARD_PREPASS,
-                               MAT_PIPE_FORWARD_PREPASS_VELOCITY);
+  const bool is_forward = ELEM(pipeline_type, MAT_PIPE_FORWARD, MAT_PIPE_PREPASS_OVERLAP);
 
   switch (GPU_material_status(matpass.gpumat)) {
     case GPU_MAT_SUCCESS: {
@@ -214,8 +209,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
     matpass.sub_pass = nullptr;
   }
   else {
-    ShaderKey shader_key(
-        matpass.gpumat, geometry_type, pipeline_type, blender_mat->blend_flag, probe_capture);
+    ShaderKey shader_key(matpass.gpumat, probe_capture);
 
     PassMain::Sub *shader_sub = shader_map_.lookup_or_add_cb(shader_key, [&]() {
       /* First time encountering this shader. Create a sub that will contain materials using it. */
@@ -268,13 +262,17 @@ Material &MaterialModule::material_sync(Object *ob,
     return mat;
   }
 
-  eMaterialPipeline surface_pipe = (blender_mat->blend_method == MA_BM_BLEND) ? MAT_PIPE_FORWARD :
-                                                                                MAT_PIPE_DEFERRED;
-  eMaterialPipeline prepass_pipe = (blender_mat->blend_method == MA_BM_BLEND) ?
-                                       (has_motion ? MAT_PIPE_FORWARD_PREPASS_VELOCITY :
-                                                     MAT_PIPE_FORWARD_PREPASS) :
-                                       (has_motion ? MAT_PIPE_DEFERRED_PREPASS_VELOCITY :
-                                                     MAT_PIPE_DEFERRED_PREPASS);
+  const bool use_forward_pipeline = (blender_mat->surface_render_method ==
+                                     MA_SURFACE_METHOD_FORWARD);
+  eMaterialPipeline surface_pipe, prepass_pipe;
+  if (use_forward_pipeline) {
+    surface_pipe = MAT_PIPE_FORWARD;
+    prepass_pipe = has_motion ? MAT_PIPE_PREPASS_FORWARD_VELOCITY : MAT_PIPE_PREPASS_FORWARD;
+  }
+  else {
+    surface_pipe = MAT_PIPE_DEFERRED;
+    prepass_pipe = has_motion ? MAT_PIPE_PREPASS_DEFERRED_VELOCITY : MAT_PIPE_PREPASS_DEFERRED;
+  }
 
   MaterialKey material_key(blender_mat, geometry_type, surface_pipe);
 
@@ -286,39 +284,48 @@ Material &MaterialModule::material_sync(Object *ob,
        * to avoid this shader compilation in another context. */
       mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
       mat.capture = material_pass_get(ob, blender_mat, MAT_PIPE_CAPTURE, geometry_type);
+      mat.overlap_masking = MaterialPass();
       mat.reflection_probe_prepass = MaterialPass();
       mat.reflection_probe_shading = MaterialPass();
       mat.planar_probe_prepass = MaterialPass();
       mat.planar_probe_shading = MaterialPass();
       mat.volume_occupancy = MaterialPass();
       mat.volume_material = MaterialPass();
-      mat.is_volume = false;
+      mat.has_volume = false; /* TODO */
+      mat.has_surface = GPU_material_has_surface_output(mat.shading.gpumat);
     }
     else {
       /* Order is important for transparent. */
       mat.prepass = material_pass_get(ob, blender_mat, prepass_pipe, geometry_type);
       mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
+      mat.overlap_masking = MaterialPass();
       mat.capture = MaterialPass();
-      mat.reflection_probe_prepass = MaterialPass();
-      mat.reflection_probe_shading = MaterialPass();
-      mat.planar_probe_prepass = MaterialPass();
-      mat.planar_probe_shading = MaterialPass();
 
-      if (inst_.do_reflection_probe_sync()) {
+      if (inst_.do_reflection_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP)) {
         mat.reflection_probe_prepass = material_pass_get(
-            ob, blender_mat, MAT_PIPE_DEFERRED_PREPASS, geometry_type, MAT_PROBE_REFLECTION);
+            ob, blender_mat, MAT_PIPE_PREPASS_DEFERRED, geometry_type, MAT_PROBE_REFLECTION);
         mat.reflection_probe_shading = material_pass_get(
             ob, blender_mat, MAT_PIPE_DEFERRED, geometry_type, MAT_PROBE_REFLECTION);
       }
-      if (inst_.do_planar_probe_sync()) {
+      else {
+        mat.reflection_probe_prepass = MaterialPass();
+        mat.reflection_probe_shading = MaterialPass();
+      }
+
+      if (inst_.do_planar_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_PLANAR)) {
         mat.planar_probe_prepass = material_pass_get(
-            ob, blender_mat, MAT_PIPE_PLANAR_PREPASS, geometry_type, MAT_PROBE_PLANAR);
+            ob, blender_mat, MAT_PIPE_PREPASS_PLANAR, geometry_type, MAT_PROBE_PLANAR);
         mat.planar_probe_shading = material_pass_get(
             ob, blender_mat, MAT_PIPE_DEFERRED, geometry_type, MAT_PROBE_PLANAR);
       }
+      else {
+        mat.planar_probe_prepass = MaterialPass();
+        mat.planar_probe_shading = MaterialPass();
+      }
 
-      mat.is_volume = GPU_material_has_volume_output(mat.shading.gpumat);
-      if (mat.is_volume) {
+      mat.has_surface = GPU_material_has_surface_output(mat.shading.gpumat);
+      mat.has_volume = GPU_material_has_volume_output(mat.shading.gpumat);
+      if (mat.has_volume) {
         mat.volume_occupancy = material_pass_get(
             ob, blender_mat, MAT_PIPE_VOLUME_OCCUPANCY, geometry_type);
         mat.volume_material = material_pass_get(
@@ -330,35 +337,26 @@ Material &MaterialModule::material_sync(Object *ob,
       }
     }
 
-    if (blender_mat->blend_shadow == MA_BS_NONE) {
-      mat.shadow = MaterialPass();
-    }
-    else {
+    if (true /* TODO: Ray visibility. */) {
       mat.shadow = material_pass_get(ob, blender_mat, MAT_PIPE_SHADOW, geometry_type);
     }
 
-    mat.is_alpha_blend_transparent = (blender_mat->blend_method == MA_BM_BLEND) &&
+    mat.is_alpha_blend_transparent = use_forward_pipeline &&
                                      GPU_material_flag_get(mat.shading.gpumat,
                                                            GPU_MATFLAG_TRANSPARENT);
-    if (inst_.is_baking()) {
-      /* WORKAROUND(fclem): This is to request the shadow for the surfels. This will well
-       * over-request the number of shadow tiles. A better way would be to request from the surfels
-       * directly. */
-      mat.is_alpha_blend_transparent = true;
-    }
     return mat;
   });
 
   if (mat.is_alpha_blend_transparent) {
     /* Transparent needs to use one sub pass per object to support reordering.
      * NOTE: Pre-pass needs to be created first in order to be sorted first. */
-    mat.prepass.sub_pass = inst_.pipelines.forward.prepass_transparent_add(
+    mat.overlap_masking.sub_pass = inst_.pipelines.forward.prepass_transparent_add(
         ob, blender_mat, mat.shading.gpumat);
     mat.shading.sub_pass = inst_.pipelines.forward.material_transparent_add(
         ob, blender_mat, mat.shading.gpumat);
   }
 
-  if (mat.is_volume) {
+  if (mat.has_volume) {
     /* Volume needs to use one sub pass per object to support layering. */
     VolumeLayer *layer = inst_.pipelines.volume.register_and_get_layer(ob);
     if (layer) {
