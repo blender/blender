@@ -151,7 +151,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                            radius_field,
                                                            limit_radius,
                                                            propagation_info);
-      Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+      Curves *dst_curves_id = bke::curves_new_nomain(dst_curves);
       bke::curves_copy_parameters(curves_id, *dst_curves_id);
       geometry_set.replace_curves(dst_curves_id);
     }
