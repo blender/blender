@@ -59,14 +59,14 @@ static PyObject *pygpu_platform_version_get(PyObject * /*self*/)
   return PyUnicode_FromString(GPU_platform_version());
 }
 
-PyDoc_STRVAR(
-    pygpu_platform_device_type_get_doc,
-    ".. function:: device_type_get()\n"
-    "\n"
-    "   Get GPU device type.\n"
-    "\n"
-    "   :return: Device type ('APPLE', 'NVIDIA', 'AMD', 'INTEL', 'SOFTWARE', 'UNKNOWN').\n"
-    "   :rtype: str\n");
+PyDoc_STRVAR(pygpu_platform_device_type_get_doc,
+             ".. function:: device_type_get()\n"
+             "\n"
+             "   Get GPU device type.\n"
+             "\n"
+             "   :return: Device type ('APPLE', 'NVIDIA', 'AMD', 'INTEL', 'SOFTWARE', 'QUALCOMM', "
+             "'UNKNOWN').\n"
+             "   :rtype: str\n");
 static PyObject *pygpu_platform_device_type_get(PyObject * /*self*/)
 {
   const char *device;
@@ -84,6 +84,10 @@ static PyObject *pygpu_platform_device_type_get(PyObject * /*self*/)
   }
   else if (GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     device = "SOFTWARE";
+  }
+  /* Right now we can only detect Qualcomm GPUs on Windows, not other OSes */
+  else if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    device = "QUALCOMM";
   }
   else {
     device = "UNKNOWN";

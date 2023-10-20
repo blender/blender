@@ -86,6 +86,11 @@ const char *dirname(char *path);
 bool BLI_windows_is_store_install(void);
 bool BLI_windows_register_blend_extension(bool all_users);
 bool BLI_windows_unregister_blend_extension(bool all_users);
+/* Gets the version of the currently loaded DirectX driver for the first device that matches
+ * deviceString. This is required for Qualcomm devices which use Mesa's Gallium D2D12 layer for
+ * OpenGL functionality */
+bool BLI_windows_get_directx_driver_version(const wchar_t *deviceSubString,
+                                            long long *r_driverVersion);
 
 /**
  * Set the `root_dir` to the default root directory on MS-Windows,
