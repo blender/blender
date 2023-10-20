@@ -526,6 +526,60 @@ std::optional<eAttrDomain> AnonymousAttributeFieldInput::preferred_domain(
   return meta_data->domain;
 }
 
+GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
+    const bke::GeometryFieldContext &context, const IndexMask &mask) const
+{
+  using namespace bke::greasepencil;
+  const eAttrDomain domain = context.domain();
+  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_LAYER)) {
+    return {};
+  }
+
+  const GreasePencil &grease_pencil = *context.grease_pencil();
+  if (!context.grease_pencil()) {
+    return {};
+  }
+
+  IndexMaskMemory memory;
+  const IndexMask layer_indices = grease_pencil.layer_selection_by_name(layer_name_, memory);
+  if (layer_indices.is_empty()) {
+    return {};
+  }
+
+  if (domain == ATTR_DOMAIN_LAYER) {
+    Array<bool> selection(mask.min_array_size());
+    layer_indices.to_bools(selection);
+    return VArray<bool>::ForContainer(std::move(selection));
+  }
+
+  if (!layer_indices.contains(context.grease_pencil_layer_index())) {
+    return {};
+  }
+
+  return VArray<bool>::ForSingle(true, mask.min_array_size());
+}
+
+uint64_t NamedLayerSelectionFieldInput::hash() const
+{
+  return get_default_hash_2(layer_name_, type_);
+}
+
+bool NamedLayerSelectionFieldInput::is_equal_to(const fn::FieldNode &other) const
+{
+  if (const NamedLayerSelectionFieldInput *other_named_layer =
+          dynamic_cast<const NamedLayerSelectionFieldInput *>(&other))
+  {
+    return layer_name_ == other_named_layer->layer_name_;
+  }
+  return false;
+}
+
+std::optional<eAttrDomain> NamedLayerSelectionFieldInput::preferred_domain(
+    const bke::GeometryComponent & /*component*/) const
+{
+  return ATTR_DOMAIN_LAYER;
+}
+
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */

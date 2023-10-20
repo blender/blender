@@ -501,6 +501,8 @@ typedef struct GreasePencil {
   /* Search functions. */
   const blender::bke::greasepencil::TreeNode *find_node_by_name(blender::StringRefNull name) const;
   blender::bke::greasepencil::TreeNode *find_node_by_name(blender::StringRefNull name);
+  blender::IndexMask layer_selection_by_name(const blender::StringRefNull name,
+                                             blender::IndexMaskMemory &memory) const;
 
   void rename_node(blender::bke::greasepencil::TreeNode &node, blender::StringRefNull new_name);
 

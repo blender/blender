@@ -316,6 +316,25 @@ class AttributeExistsFieldInput final : public bke::GeometryFieldInput {
                                  const IndexMask &mask) const final;
 };
 
+class NamedLayerSelectionFieldInput final : public bke::GeometryFieldInput {
+ private:
+  std::string layer_name_;
+
+ public:
+  NamedLayerSelectionFieldInput(std::string layer_name)
+      : bke::GeometryFieldInput(CPPType::get<bool>(), "Named Layer node"),
+        layer_name_(std::move(layer_name))
+  {
+    category_ = Category::Generated;
+  }
+
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask &mask) const final;
+  uint64_t hash() const override;
+  bool is_equal_to(const fn::FieldNode &other) const override;
+  std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const override;
+};
+
 class IDAttributeFieldInput : public GeometryFieldInput {
  public:
   IDAttributeFieldInput() : GeometryFieldInput(CPPType::get<int>())

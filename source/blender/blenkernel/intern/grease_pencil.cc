@@ -2211,6 +2211,32 @@ blender::bke::greasepencil::TreeNode *GreasePencil::find_node_by_name(
   return this->root_group().find_node_by_name(name);
 }
 
+blender::IndexMask GreasePencil::layer_selection_by_name(const blender::StringRefNull name,
+                                                         blender::IndexMaskMemory &memory) const
+{
+  using namespace blender::bke::greasepencil;
+  const TreeNode *node = this->find_node_by_name(name);
+  if (!node) {
+    return {};
+  }
+
+  if (node->is_layer()) {
+    const int64_t index = this->layers().first_index(&node->as_layer());
+    return blender::IndexMask::from_indices(Span{index}, memory);
+  }
+  else if (node->is_group()) {
+    blender::Vector<int64_t> layer_indices;
+    for (const int64_t layer_index : this->layers().index_range()) {
+      const Layer &layer = *this->layers()[layer_index];
+      if (layer.is_child_of(node->as_group())) {
+        layer_indices.append(layer_index);
+      }
+    }
+    return blender::IndexMask::from_indices(layer_indices.as_span(), memory);
+  }
+  return {};
+}
+
 void GreasePencil::rename_node(blender::bke::greasepencil::TreeNode &node,
                                blender::StringRefNull new_name)
 {
