@@ -458,27 +458,25 @@ bool BLI_windows_get_directx_driver_version(const wchar_t *deviceSubString,
 {
   IDXGIFactory *pFactory = NULL;
   IDXGIAdapter *pAdapter = NULL;
-  if (CreateDXGIFactory(&IID_IDXGIFactory, (void **)&pFactory) == S_OK) {
-    for (UINT i = 0; IDXGIFactory_EnumAdapters(pFactory, i, &pAdapter) != DXGI_ERROR_NOT_FOUND;
-         ++i) {
+  if (CreateDXGIFactory(__uuidof(IDXGIFactory), (void **)&pFactory) == S_OK) {
+    for (UINT i = 0; pFactory->EnumAdapters(i, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
       LARGE_INTEGER version;
-      if (IDXGIAdapter_CheckInterfaceSupport(pAdapter, &IID_IDXGIDevice, &version) == S_OK) {
+      if (pAdapter->CheckInterfaceSupport(__uuidof(IDXGIDevice), &version) == S_OK) {
         DXGI_ADAPTER_DESC desc;
-        if (IDXGIAdapter_GetDesc(pAdapter, &desc) == S_OK) {
+        if (pAdapter->GetDesc(&desc) == S_OK) {
           if (wcsstr(desc.Description, deviceSubString)) {
             *r_driverVersion = version.QuadPart;
 
-            IDXGIAdapter_Release(pAdapter);
-            IDXGIFactory_Release(pFactory);
+            pAdapter->Release();
+            pFactory->Release();
             return true;
           }
         }
       }
 
-      IDXGIAdapter_Release(pAdapter);
+      pAdapter->Release();
     }
-
-    IDXGIFactory_Release(pFactory);
+    pFactory->Release();
   }
 
   return false;
