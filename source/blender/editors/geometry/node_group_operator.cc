@@ -450,7 +450,7 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
 
   node_tree->ensure_interface_cache();
   int input_index = 0;
-  for (bNodeTreeInterfaceSocket *io_socket : node_tree->interface_inputs()) {
+  for (const bNodeTreeInterfaceSocket *io_socket : node_tree->interface_inputs()) {
     draw_property_for_socket(
         *node_tree, layout, op->properties, &bmain_ptr, op->ptr, *io_socket, input_index);
     ++input_index;
