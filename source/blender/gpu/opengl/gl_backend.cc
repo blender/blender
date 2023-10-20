@@ -7,6 +7,9 @@
  */
 
 #include "BKE_global.h"
+#if defined(WIN32)
+#  include "BLI_winstuff.h"
+#endif
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -96,8 +99,15 @@ void GLBackend::platform_init()
     driver = GPU_DRIVER_SOFTWARE;
   }
   else if (strstr(vendor, "Microsoft")) {
-    device = GPU_DEVICE_SOFTWARE;
-    driver = GPU_DRIVER_SOFTWARE;
+    /* Qualcomm devices use Mesa's GLOn12, which claims to be vended by Microsoft */
+    if (strstr(renderer, "Qualcomm")) {
+      device = GPU_DEVICE_QUALCOMM;
+      driver = GPU_DRIVER_OFFICIAL;
+    }
+    else {
+      device = GPU_DEVICE_SOFTWARE;
+      driver = GPU_DRIVER_SOFTWARE;
+    }
   }
   else if (strstr(vendor, "Apple")) {
     /* Apple Silicon. */
@@ -124,6 +134,31 @@ void GLBackend::platform_init()
     support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
   }
   else {
+#if defined(WIN32)
+    long long driverVersion = 0;
+    if (device & GPU_DEVICE_QUALCOMM) {
+      if (BLI_windows_get_directx_driver_version(L"Qualcomm(R) Adreno(TM)", &driverVersion)) {
+        /* Parse out the driver version in format x.x.x.x */
+        WORD ver0 = (driverVersion >> 48) & 0xffff;
+        WORD ver1 = (driverVersion >> 32) & 0xffff;
+        WORD ver2 = (driverVersion >> 16) & 0xffff;
+
+        /* Any Qualcomm driver older than 30.x.x.x will never capable of running blender >= 4.0
+         * As due to an issue in D3D typed UAV load capabilities, Compute Shaders are not available
+         * 30.0.3820.x and above are capable of running blender >=4.0, but these drivers
+         * are only available on 8cx gen3 devices or newer */
+        if (ver0 < 30 || (ver0 == 30 && ver1 == 0 && ver2 < 3820)) {
+          std::cout
+              << "=====================================\n"
+              << "Qualcomm drivers older than 30.0.3820.x are not capable of running Blender 4.0\n"
+              << "If your device is older than an 8cx Gen3, you must use a 3.x LTS release.\n"
+              << "If you have an 8cx Gen3 or newer device, a driver update may be available.\n"
+              << "=====================================\n";
+          support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+        }
+      }
+    }
+#endif
     if ((device & GPU_DEVICE_INTEL) && (os & GPU_OS_WIN)) {
       /* Old Intel drivers with known bugs that cause material properties to crash.
        * Version Build 10.18.14.5067 is the latest available and appears to be working
@@ -433,6 +468,13 @@ static void detect_workarounds()
       GLContext::derivative_signs[0] = -1.0;
       GLContext::derivative_signs[1] = 1.0;
     }
+  }
+
+  /* Right now draw shader parameters are broken on Qualcomm devices
+   * regardless of driver version */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    GCaps.shader_draw_parameters_support = false;
+    GLContext::shader_draw_parameters_support = false;
   }
 
   /* Some Intel drivers have issues with using mips as frame-buffer targets if
