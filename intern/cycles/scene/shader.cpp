@@ -348,7 +348,7 @@ void Shader::tag_update(Scene *scene)
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
 
-  if (!has_surface) {
+  if (!has_surface && !has_volume) {
     /* If we need to output surface AOVs, add a Transparent BSDF so that the
      * surface shader runs. */
     foreach (ShaderNode *node, graph->nodes) {
