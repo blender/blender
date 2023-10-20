@@ -17,6 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
@@ -51,6 +52,8 @@
 
 /* Own include. */
 #include "transform_convert.hh"
+
+using namespace blender;
 
 bool transform_mode_use_local_origins(const TransInfo *t)
 {
@@ -173,6 +176,39 @@ static void sort_trans_data_selected_first(TransInfo *t)
   }
 }
 
+static float3 prop_dist_loc_get(const TransDataContainer *tc,
+                                const TransData *td,
+                                const bool use_island,
+                                const float proj_vec[3])
+{
+  float3 r_vec;
+
+  if (use_island) {
+    if (tc->use_local_mat) {
+      mul_v3_m4v3(r_vec, tc->mat, td->iloc);
+    }
+    else {
+      mul_v3_m3v3(r_vec, td->mtx, td->iloc);
+    }
+  }
+  else {
+    if (tc->use_local_mat) {
+      mul_v3_m4v3(r_vec, tc->mat, td->center);
+    }
+    else {
+      mul_v3_m3v3(r_vec, td->mtx, td->center);
+    }
+  }
+
+  if (proj_vec) {
+    float vec_p[3];
+    project_v3_v3v3(vec_p, r_vec, proj_vec);
+    sub_v3_v3(r_vec, vec_p);
+  }
+
+  return r_vec;
+}
+
 /**
  * Distance calculated from not-selected vertex to nearest selected vertex.
  */
@@ -223,31 +259,9 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     for (a = 0; a < tc->data_len; a++, td++) {
       if (td->flag & TD_SELECTED) {
         /* Initialize, it was malloced. */
-        float vec[3];
         td->rdist = 0.0f;
 
-        if (use_island) {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->iloc);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->iloc);
-          }
-        }
-        else {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->center);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->center);
-          }
-        }
-
-        if (proj_vec) {
-          float vec_p[3];
-          project_v3_v3v3(vec_p, vec, proj_vec);
-          sub_v3_v3(vec, vec_p);
-        }
+        const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
         BLI_kdtree_3d_insert(td_tree, td_table_index, vec);
         td_table[td_table_index++] = td;
@@ -267,30 +281,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     TransData *td = tc->data;
     for (a = 0; a < tc->data_len; a++, td++) {
       if ((td->flag & TD_SELECTED) == 0) {
-        float vec[3];
-
-        if (use_island) {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->iloc);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->iloc);
-          }
-        }
-        else {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->center);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->center);
-          }
-        }
-
-        if (proj_vec) {
-          float vec_p[3];
-          project_v3_v3v3(vec_p, vec, proj_vec);
-          sub_v3_v3(vec, vec_p);
-        }
+        const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
         KDTreeNearest_3d nearest;
         const int td_index = BLI_kdtree_3d_find_nearest(td_tree, vec, &nearest);
