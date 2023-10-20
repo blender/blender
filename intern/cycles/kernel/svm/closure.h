@@ -257,7 +257,7 @@ ccl_device
            * TIR is no concern here since we're always coming from the outside. */
           float cosNT = sqrtf(1.0f - sqr(1.0f / coat_ior) * (1 - sqr(cosNI)));
           float optical_depth = 1.0f / cosNT;
-          weight *= power(rgb_to_spectrum(coat_tint), coat_weight * optical_depth);
+          weight *= mix(one_spectrum(), power(rgb_to_spectrum(coat_tint), optical_depth), coat_weight);
         }
       }
 

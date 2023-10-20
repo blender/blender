@@ -121,18 +121,19 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
 
   if (CoatWeight > 1e-5) {
     float coat_ior = max(CoatIOR, 1.0);
+    float coat_weight = clamp(CoatWeight, 0.0, 1.0);
     if (CoatTint != color(1.0)) {
       float coat_neta = 1.0 / coat_ior;
       float cosNI = dot(I, CoatNormal);
       float cosNT = sqrt(1.0 - coat_neta * coat_neta * (1 - cosNI * cosNI));
-      BSDF *= pow(CoatTint, CoatWeight / cosNT);
+      BSDF *= mix(color(1.0), pow(CoatTint, 1.0 / cosNT), coat_weight);
     }
     float coat_r2 = clamp(CoatRoughness, 0.0, 1.0);
     coat_r2 = coat_r2 * coat_r2;
 
     closure color CoatBSDF = dielectric_bsdf(
         CoatNormal, vector(0.0), color(1.0), color(0.0), coat_r2, coat_r2, coat_ior, "ggx");
-    BSDF = layer(clamp(CoatWeight, 0.0, 1.0) * CoatBSDF, BSDF);
+    BSDF = layer(coat_weight * CoatBSDF, BSDF);
   }
 
   if (SheenWeight > 1e-5) {
