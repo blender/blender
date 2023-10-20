@@ -7677,7 +7677,6 @@ void GHOST_SystemWayland::ime_begin(
       (seat->ime.rect.h == h))        /* H. */
   {
     /* Only re-update the rectangle as needed. */
-    printf("DONT REPOSITION\n");
   }
   else {
     const int rect_x = wl_fixed_to_int(win->wl_fixed_from_window(wl_fixed_from_int(x)));
