@@ -849,12 +849,19 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
   if (scene->toolsettings->auto_normalize) {
     const int vgroup_num = BLI_listbase_count(&me->vertex_group_names);
+    bool *lock_flags = BKE_object_defgroup_lock_flags_get(ob, vgroup_num);
     bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
     if (vgroup_validmap != nullptr) {
       MDeformVert *dvert = dverts;
       for (int i = 0; i < me->totvert; i++) {
         if ((data.vert_cache->elem[i].flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) != 0) {
-          BKE_defvert_normalize_lock_single(&dvert[i], vgroup_validmap, vgroup_num, data.def_nr);
+          if (lock_flags != nullptr) {
+            BKE_defvert_normalize_lock_map(
+                &dvert[i], vgroup_validmap, vgroup_num, lock_flags, vgroup_num);
+          }
+          else {
+            BKE_defvert_normalize_lock_single(&dvert[i], vgroup_validmap, vgroup_num, data.def_nr);
+          }
         }
       }
       MEM_freeN(vgroup_validmap);
