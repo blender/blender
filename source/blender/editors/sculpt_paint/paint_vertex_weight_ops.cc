@@ -682,10 +682,6 @@ static void gradientVertUpdate__mapFunc(void *userData,
     return;
   }
 
-  if (grad_data->hide_vert[index]) {
-    return;
-  }
-
   gradientVert_update(grad_data, index);
 }
 
@@ -697,7 +693,9 @@ static void gradientVertInit__mapFunc(void *userData,
   WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(userData);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
-  if (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])) {
+  if (grad_data->hide_vert[index] ||
+      (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])))
+  {
     copy_v2_fl(vs->sco, FLT_MAX);
     return;
   }
