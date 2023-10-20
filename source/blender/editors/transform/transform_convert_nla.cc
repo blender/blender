@@ -637,7 +637,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 static void recalcData_nla(TransInfo *t)
 {
   SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
-  
+
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
   /* For each strip we've got, perform some additional validation of the values
