@@ -5814,6 +5814,10 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.operator("grease_pencil.stroke_smooth")
         layout.operator("grease_pencil.stroke_simplify")
 
+        layout.separator()
+        
+        layout.operator_enum("grease_pencil.cyclical_set", "type")
+
 
 class VIEW3D_MT_edit_curves(Menu):
     bl_label = "Curves"

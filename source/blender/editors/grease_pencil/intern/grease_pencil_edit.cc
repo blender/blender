@@ -852,6 +852,106 @@ static void GREASE_PENCIL_OT_stroke_change_color(wmOperatorType *ot)
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Cyclical Set Operator
+ * \{ */
+
+enum class CyclicalMode : int8_t {
+  /* Sets all strokes to cycle. */
+  CLOSE,
+  /* Sets all strokes to not cycle. */
+  OPEN,
+  /* Switchs the cyclic state of the strokes. */
+  TOGGLE,
+};
+
+static const EnumPropertyItem prop_cyclical_types[] = {
+    {int(CyclicalMode::CLOSE), "CLOSE", 0, "Close All", ""},
+    {int(CyclicalMode::OPEN), "OPEN", 0, "Open All", ""},
+    {int(CyclicalMode::TOGGLE), "TOGGLE", 0, "Toggle", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static int grease_pencil_cyclical_set_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const CyclicalMode mode = CyclicalMode(RNA_enum_get(op->ptr, "type"));
+
+  bool changed = false;
+  grease_pencil.foreach_editable_drawing(
+      scene->r.cfra, [&](int /*layer_index*/, bke::greasepencil::Drawing &drawing) {
+        bke::CurvesGeometry &curves = drawing.strokes_for_write();
+        if (curves.points_num() == 0) {
+          return;
+        }
+        if (!ed::curves::has_anything_selected(curves)) {
+          return;
+        }
+
+        /* Return to stop from creating unneeded attribute. */
+        if (mode == CyclicalMode::OPEN && !curves.attributes().contains("cyclic")) {
+          return;
+        }
+
+        MutableSpan<bool> cyclic = curves.cyclic_for_write();
+
+        IndexMaskMemory memory;
+        const IndexMask curve_selection = ed::curves::retrieve_selected_curves(curves, memory);
+
+        switch (mode) {
+          case CyclicalMode::CLOSE:
+            index_mask::masked_fill(cyclic, true, curve_selection);
+            break;
+          case CyclicalMode::OPEN:
+            index_mask::masked_fill(cyclic, false, curve_selection);
+            break;
+          case CyclicalMode::TOGGLE:
+            array_utils::invert_booleans(cyclic, curve_selection);
+            break;
+        }
+
+        /* Remove the attribute if it is empty. */
+        if (mode != CyclicalMode::CLOSE &&
+            !ed::curves::has_anything_selected(curves.cyclic(), curves.curves_range()))
+        {
+          curves.attributes_for_write().remove("cyclic");
+        }
+
+        changed = true;
+      });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_cyclical_set(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Cyclical State";
+  ot->idname = "GREASE_PENCIL_OT_cyclical_set";
+  ot->description = "Close or open the selected stroke adding a segment from last to first point";
+
+  /* Callbacks. */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = grease_pencil_cyclical_set_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Simplify parameters. */
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", prop_cyclical_types, int(CyclicalMode::TOGGLE), "Type", "");
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -862,6 +962,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_dissolve);
   WM_operatortype_append(GREASE_PENCIL_OT_delete_frame);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_change_color);
+  WM_operatortype_append(GREASE_PENCIL_OT_cyclical_set);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)

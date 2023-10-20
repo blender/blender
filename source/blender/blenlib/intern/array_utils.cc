@@ -85,6 +85,11 @@ void invert_booleans(MutableSpan<bool> span)
   });
 }
 
+void invert_booleans(MutableSpan<bool> span, const IndexMask &mask)
+{
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) { span[i] = !span[i]; });
+}
+
 BooleanMix booleans_mix_calc(const VArray<bool> &varray, const IndexRange range_to_check)
 {
   if (varray.is_empty()) {
