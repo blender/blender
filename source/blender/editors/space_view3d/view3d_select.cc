@@ -3107,18 +3107,19 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
       for (Base *base : bases.slice(range)) {
         Curves &curves_id = *static_cast<Curves *>(base->object->data);
         bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-        if (ed::curves::has_anything_selected(curves)) {
-          bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-              curves, selection_domain, CD_PROP_BOOL);
-          ed::curves::fill_selection_false(selection.span);
-          selection.finish();
-
-          deselected = true;
-          /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
-           * generic attribute for now. */
-          DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
-          WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
+        if (!ed::curves::has_anything_selected(curves)) {
+          continue;
         }
+        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+            curves, selection_domain, CD_PROP_BOOL);
+        ed::curves::fill_selection_false(selection.span);
+        selection.finish();
+
+        deselected = true;
+        /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+         * generic attribute for now. */
+        DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
+        WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
       }
     });
   }
@@ -3213,14 +3214,15 @@ static bool ed_grease_pencil_select_pick(bContext *C,
     threading::parallel_for(drawings.index_range(), 1L, [&](const IndexRange range) {
       for (const int i : range) {
         bke::CurvesGeometry &curves = drawings[i]->geometry.wrap();
-        if (ed::curves::has_anything_selected(curves)) {
-          bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-              curves, selection_domain, CD_PROP_BOOL);
-          ed::curves::fill_selection_false(selection.span);
-          selection.finish();
-
-          deselected = true;
+        if (!ed::curves::has_anything_selected(curves)) {
+          continue;
         }
+        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+            curves, selection_domain, CD_PROP_BOOL);
+        ed::curves::fill_selection_false(selection.span);
+        selection.finish();
+
+        deselected = true;
       }
     });
   }
