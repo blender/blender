@@ -1621,6 +1621,13 @@ static void draw_property_for_socket(const bContext &C,
       uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "images", name, ICON_IMAGE);
       break;
     }
+    case SOCK_BOOLEAN: {
+      if (is_layer_selection_field(socket)) {
+        uiItemR(row, md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+        break;
+      }
+      ATTR_FALLTHROUGH;
+    }
     default: {
       if (nodes::input_has_attribute_toggle(*nmd->node_group, socket_index)) {
         add_attribute_search_or_value_buttons(C, row, *nmd, md_ptr, socket);
@@ -1689,7 +1696,8 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     for (const int socket_index : nmd->node_group->interface_inputs().index_range()) {
       const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[socket_index];
-      if (!(socket->flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
+      if (is_layer_selection_field(*socket) ||
+          !(socket->flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
         draw_property_for_socket(*C, layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
       }
     }

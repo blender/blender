@@ -1523,11 +1523,20 @@ static void std_node_socket_interface_draw(ID *id,
   }
 
   if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
-    uiItemR(col, &ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, ICON_NONE);
+    if (U.experimental.use_grease_pencil_version3) {
+      if (type == SOCK_BOOLEAN) {
+        uiItemR(col, &ptr, "layer_selection_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
+      }
+    }
+    uiLayout *sub = uiLayoutColumn(col, false);
+    uiLayoutSetActive(sub, !is_layer_selection_field(*interface_socket));
+    uiItemR(sub, &ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, ICON_NONE);
     if (nodes::socket_type_supports_fields(type)) {
-      uiLayout *sub = uiLayoutColumn(col, false);
-      uiLayoutSetActive(sub, interface_socket->default_input == NODE_INPUT_DEFAULT_VALUE);
-      uiItemR(sub, &ptr, "force_non_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
+      uiLayout *sub_sub = uiLayoutColumn(col, false);
+      uiLayoutSetActive(sub_sub,
+                        (interface_socket->default_input == NODE_INPUT_DEFAULT_VALUE) &&
+                            !is_layer_selection_field(*interface_socket));
+      uiItemR(sub_sub, &ptr, "force_non_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
     }
   }
 }

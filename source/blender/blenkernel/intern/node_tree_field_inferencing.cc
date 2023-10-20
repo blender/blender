@@ -5,6 +5,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#include "NOD_geometry.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
@@ -505,6 +506,9 @@ static void determine_group_input_states(
         new_inferencing_interface.inputs[index] = InputSocketFieldType::None;
       }
       else if (group_input->default_input != NODE_INPUT_DEFAULT_VALUE) {
+        new_inferencing_interface.inputs[index] = InputSocketFieldType::Implicit;
+      }
+      else if (is_layer_selection_field(*group_input)) {
         new_inferencing_interface.inputs[index] = InputSocketFieldType::Implicit;
       }
       else if (group_input->flag & NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY) {
