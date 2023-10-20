@@ -85,3 +85,4 @@ void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,
                                     eSnapMode autosnap,
                                     float *r_val_final);
+bool transform_snap_nla_calc(TransInfo *t, float *vec);

@@ -68,6 +68,7 @@ static void snap_target_view3d_fn(TransInfo *t, float *vec);
 static void snap_target_uv_fn(TransInfo *t, float *vec);
 static void snap_target_node_fn(TransInfo *t, float *vec);
 static void snap_target_sequencer_fn(TransInfo *t, float *vec);
+static void snap_target_nla_fn(TransInfo *t, float *vec);
 
 static void snap_source_median_fn(TransInfo *t);
 static void snap_source_center_fn(TransInfo *t);
@@ -963,6 +964,11 @@ static void setSnappingCallback(TransInfo *t)
     /* The target is calculated along with the snap point. */
     return;
   }
+  else if (t->spacetype == SPACE_NLA) {
+    t->tsnap.snap_target_fn = snap_target_nla_fn;
+    /* The target is calculated along with the snap point. */
+    return;
+  }
   else {
     return;
   }
@@ -1193,6 +1199,17 @@ static void snap_target_sequencer_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_SEQ);
   if (transform_snap_sequencer_calc(t)) {
+    t->tsnap.status |= (SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
+  }
+  else {
+    t->tsnap.status &= ~(SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
+  }
+}
+
+static void snap_target_nla_fn(TransInfo *t, float *vec)
+{
+  BLI_assert(t->spacetype == SPACE_NLA);
+  if (transform_snap_nla_calc(t, vec)) {
     t->tsnap.status |= (SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
   }
   else {
