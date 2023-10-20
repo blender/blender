@@ -144,14 +144,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       const Curves &curves_id = *geometry_set.get_curves();
       const bke::CurvesGeometry &src_curves = curves_id.geometry.wrap();
       const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
-      const bke::CurvesGeometry &dst_curves = fillet_curve(src_curves,
-                                                           mode,
-                                                           field_context,
-                                                           count_field,
-                                                           radius_field,
-                                                           limit_radius,
-                                                           propagation_info);
-      Curves *dst_curves_id = bke::curves_new_nomain(dst_curves);
+      bke::CurvesGeometry dst_curves = fillet_curve(src_curves,
+                                                    mode,
+                                                    field_context,
+                                                    count_field,
+                                                    radius_field,
+                                                    limit_radius,
+                                                    propagation_info);
+      Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
       bke::curves_copy_parameters(curves_id, *dst_curves_id);
       geometry_set.replace_curves(dst_curves_id);
     }
