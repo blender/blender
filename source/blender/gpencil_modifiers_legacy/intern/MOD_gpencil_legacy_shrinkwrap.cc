@@ -206,7 +206,7 @@ static void update_depsgraph(GpencilModifierData *md,
   CustomData_MeshMasks mask = {0};
 
   if (BKE_shrinkwrap_needs_normals(mmd->shrink_type, mmd->shrink_mode)) {
-    mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
+    mask.lmask |= CD_MASK_CUSTOMLOOPNORMAL;
   }
 
   if (mmd->target != nullptr) {

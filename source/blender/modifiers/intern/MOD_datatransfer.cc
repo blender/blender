@@ -117,8 +117,6 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   if (dtmd->ob_source != nullptr) {
     CustomData_MeshMasks cddata_masks = {0};
     BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, &cddata_masks);
-    BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
-        dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode, &cddata_masks);
 
     DEG_add_object_relation(
         ctx->node, dtmd->ob_source, DEG_OB_COMP_GEOMETRY, "DataTransfer Modifier");
@@ -221,10 +219,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     const char *report_str = BKE_reports_string(&reports, RPT_ERROR);
     BKE_modifier_set_error(ctx->object, md, "%s", report_str);
     MEM_freeN((void *)report_str);
-  }
-  else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
-    BKE_modifier_set_error(
-        ctx->object, (ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
   }
 
   BKE_reports_free(&reports);

@@ -13,6 +13,7 @@
 
 #include "DNA_customdata_types.h"
 
+#include "BLI_math_base.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
@@ -23,6 +24,8 @@
 #  include "DNA_mesh_types.h"
 
 #  include "BKE_anim_data.h"
+#  include "BKE_attribute.hh"
+#  include "BKE_mesh.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_mapping.hh"
 #  include "BKE_mesh_runtime.hh"
@@ -46,17 +49,12 @@ static const char *rna_Mesh_unit_test_compare(Mesh *mesh, Mesh *mesh2, float thr
   return ret;
 }
 
-static void rna_Mesh_create_normals_split(Mesh *mesh)
+static void rna_Mesh_sharp_from_angle_set(Mesh *mesh, const float angle)
 {
-  if (!CustomData_has_layer(&mesh->loop_data, CD_NORMAL)) {
-    CustomData_add_layer(&mesh->loop_data, CD_NORMAL, CD_SET_DEFAULT, mesh->totloop);
-    CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-  }
-}
-
-static void rna_Mesh_free_normals_split(Mesh *mesh)
-{
-  CustomData_free_layers(&mesh->loop_data, CD_NORMAL, mesh->totloop);
+  mesh->attributes_for_write().remove("sharp_edge");
+  mesh->attributes_for_write().remove("sharp_face");
+  BKE_mesh_sharp_edges_set_from_angle(mesh, angle);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 }
 
 static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *uvmap)
@@ -72,11 +70,6 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
     r_looptangents = static_cast<float(*)[4]>(
         CustomData_add_layer(&mesh->loop_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->totloop));
     CustomData_set_layer_flag(&mesh->loop_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
-  }
-
-  /* Compute loop normals if needed. */
-  if (!CustomData_has_layer(&mesh->loop_data, CD_NORMAL)) {
-    BKE_mesh_calc_normals_split(mesh);
   }
 
   BKE_mesh_calc_loop_tangent_single(mesh, uvmap, r_looptangents, reports);
@@ -185,6 +178,7 @@ static void rna_Mesh_update(Mesh *mesh,
 
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  mesh->runtime->corner_normals_cache.tag_dirty();
 
   DEG_id_tag_update(&mesh->id, 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
@@ -230,15 +224,19 @@ void RNA_api_mesh(StructRNA *srna)
                                   "Invert winding of all polygons "
                                   "(clears tessellation, does not handle custom normals)");
 
-  func = RNA_def_function(srna, "create_normals_split", "rna_Mesh_create_normals_split");
-  RNA_def_function_ui_description(func, "Empty split vertex normals");
-
-  func = RNA_def_function(srna, "calc_normals_split", "BKE_mesh_calc_normals_split");
+  func = RNA_def_function(srna, "set_sharp_from_angle", "rna_Mesh_sharp_from_angle_set");
   RNA_def_function_ui_description(func,
-                                  "Calculate split vertex normals, which preserve sharp edges");
-
-  func = RNA_def_function(srna, "free_normals_split", "rna_Mesh_free_normals_split");
-  RNA_def_function_ui_description(func, "Free split vertex normals");
+                                  "Reset and fill the \"sharp_edge\" attribute based on the angle "
+                                  "of faces neighboring manifold edges");
+  RNA_def_float(func,
+                "angle",
+                M_PI,
+                0.0f,
+                M_PI,
+                "Angle",
+                "Angle between faces beyond which edges are marked sharp",
+                0.0f,
+                M_PI);
 
   func = RNA_def_function(srna, "split_faces", "ED_mesh_split_faces");
   RNA_def_function_ui_description(func, "Split faces based on the edge angle");

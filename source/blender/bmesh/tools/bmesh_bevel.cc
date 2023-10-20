@@ -378,8 +378,6 @@ struct BevelParams {
   int vmesh_method;
   /** Amount to spread when doing inside miter. */
   float spread;
-  /** Mesh's smoothresh, used if hardening. */
-  float smoothresh;
 };
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -2497,7 +2495,6 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
    * To get that to happen, we have to mark the sharpen the edges that are only sharp because
    * of the angle test -- otherwise would be smooth. */
   if (cd_clnors_offset == -1) {
-    BM_edges_sharp_from_angle_set(bm, bp->smoothresh);
     bevel_edges_sharp_boundary(bm, bp);
   }
 
@@ -7725,7 +7722,6 @@ void BM_mesh_bevel(BMesh *bm,
                    const int miter_outer,
                    const int miter_inner,
                    const float spread,
-                   const float smoothresh,
                    const CurveProfile *custom_profile,
                    const int vmesh_method)
 {
@@ -7762,7 +7758,6 @@ void BM_mesh_bevel(BMesh *bm,
   bp.miter_outer = miter_outer;
   bp.miter_inner = miter_inner;
   bp.spread = spread;
-  bp.smoothresh = smoothresh;
   bp.face_hash = nullptr;
   bp.profile_type = profile_type;
   bp.custom_profile = custom_profile;

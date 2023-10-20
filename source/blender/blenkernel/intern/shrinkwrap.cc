@@ -27,6 +27,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_attribute.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_lattice.h"
@@ -141,9 +142,8 @@ bool BKE_shrinkwrap_init_tree(
 
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
     data->face_normals = reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
-    if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
-      data->clnors = static_cast<const float(*)[3]>(
-          CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
+    if (mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner) {
+      data->clnors = reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data());
     }
   }
 

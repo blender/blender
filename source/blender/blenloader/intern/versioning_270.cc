@@ -529,9 +529,9 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 270, 2)) {
-    /* Mesh smoothresh deg->rad. */
+    /* Mesh smoothresh_legacy deg->rad. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      me->smoothresh = DEG2RADF(me->smoothresh);
+      me->smoothresh_legacy = DEG2RADF(me->smoothresh_legacy);
     }
   }
 

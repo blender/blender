@@ -635,7 +635,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 164) {
     Mesh *me = static_cast<Mesh *>(bmain->meshes.first);
     while (me) {
-      me->smoothresh = 30;
+      me->smoothresh_legacy = 30;
       me = static_cast<Mesh *>(me->id.next);
     }
   }

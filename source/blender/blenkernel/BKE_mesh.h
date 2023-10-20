@@ -77,6 +77,9 @@ void BKE_mesh_tag_topology_changed(struct Mesh *mesh);
  */
 void BKE_mesh_tag_edges_split(struct Mesh *mesh);
 
+/** Call when changing "sharp_face" or "sharp_edge" data. */
+void BKE_mesh_tag_sharpness_changed(struct Mesh *mesh);
+
 /**
  * Call when face vertex order has changed but positions and faces haven't changed
  */
@@ -224,7 +227,7 @@ bool BKE_mesh_material_index_used(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
 void BKE_mesh_smooth_flag_set(struct Mesh *me, bool use_smooth);
-void BKE_mesh_auto_smooth_flag_set(struct Mesh *me, bool use_auto_smooth, float auto_smooth_angle);
+void BKE_mesh_sharp_edges_set_from_angle(struct Mesh *me, float angle);
 
 /**
  * Used for unit testing; compares two meshes, checking only
@@ -327,11 +330,6 @@ bool BKE_mesh_vert_normals_are_dirty(const struct Mesh *mesh);
 
 /** Return true if the mesh face normals either are not stored or are dirty. */
 bool BKE_mesh_face_normals_are_dirty(const struct Mesh *mesh);
-
-/**
- * Called after calculating all modifiers.
- */
-void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
 
 /**
  * References a contiguous loop-fan with normal offset vars.
@@ -455,18 +453,6 @@ void BKE_mesh_normals_loop_to_vertex(int numVerts,
  * High-level custom normals functions.
  */
 bool BKE_mesh_has_custom_loop_normals(struct Mesh *me);
-
-void BKE_mesh_calc_normals_split(struct Mesh *mesh);
-/**
- * Compute 'split' (aka loop, or per face corner's) normals.
- *
- * \param r_lnors_spacearr: Allows to get computed loop normal space array.
- * That data, among other things, contains 'smooth fan' info, useful e.g.
- * to split geometry along sharp edges.
- */
-void BKE_mesh_calc_normals_split_ex(const struct Mesh *mesh,
-                                    struct MLoopNorSpaceArray *r_lnors_spacearr,
-                                    float (*r_corner_normals)[3]);
 
 /**
  * Higher level functions hiding most of the code needed around call to
@@ -650,8 +636,7 @@ void BKE_mesh_calc_edges(struct Mesh *mesh, bool keep_existing_edges, bool selec
 void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 
 /* In DerivedMesh.cc */
-void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval,
-                                              const struct CustomData_MeshMasks *cd_mask_finalize);
+void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval);
 
 /* **** Depsgraph evaluation **** */
 

@@ -773,8 +773,6 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
     return;
   }
 
-  mesh->flag |= ME_AUTOSMOOTH;
-
   long int loop_count = normals_.size();
 
   float(*lnors)[3] = static_cast<float(*)[3]>(
@@ -828,7 +826,6 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh)
     }
   }
 
-  mesh->flag |= ME_AUTOSMOOTH;
   BKE_mesh_set_custom_normals(mesh, lnors);
 
   MEM_freeN(lnors);

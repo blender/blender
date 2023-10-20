@@ -972,7 +972,6 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   /* Copy general settings. */
   me_dst->editflag = me_src->editflag;
   me_dst->flag = me_src->flag;
-  me_dst->smoothresh = me_src->smoothresh;
   me_dst->remesh_voxel_size = me_src->remesh_voxel_size;
   me_dst->remesh_voxel_adaptivity = me_src->remesh_voxel_adaptivity;
   me_dst->remesh_mode = me_src->remesh_mode;
@@ -1429,9 +1428,11 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
   if (use_smooth) {
+    attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
   }
   else {
+    attributes.remove("sharp_edge");
     SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
         "sharp_face", ATTR_DOMAIN_FACE);
     sharp_faces.span.fill(true);
@@ -1439,17 +1440,33 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   }
 }
 
-void BKE_mesh_auto_smooth_flag_set(Mesh *me,
-                                   const bool use_auto_smooth,
-                                   const float auto_smooth_angle)
+void BKE_mesh_sharp_edges_set_from_angle(Mesh *me, const float angle)
 {
-  if (use_auto_smooth) {
-    me->flag |= ME_AUTOSMOOTH;
-    me->smoothresh = auto_smooth_angle;
+  using namespace blender;
+  using namespace blender::bke;
+  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  if (angle >= M_PI) {
+    attributes.remove("sharp_edge");
+    attributes.remove("sharp_face");
+    return;
   }
-  else {
-    me->flag &= ~ME_AUTOSMOOTH;
+  if (angle == 0.0f) {
+    BKE_mesh_smooth_flag_set(me, false);
+    return;
   }
+  bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_edge", ATTR_DOMAIN_EDGE);
+  const bool *sharp_faces = static_cast<const bool *>(
+      CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
+  bke::mesh::edges_sharp_from_angle_set(me->faces(),
+                                        me->corner_verts(),
+                                        me->corner_edges(),
+                                        me->face_normals(),
+                                        me->corner_to_face_map(),
+                                        sharp_faces,
+                                        angle,
+                                        sharp_edges.span);
+  sharp_edges.finish();
 }
 
 void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
@@ -1506,20 +1523,6 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
     }
   }
 
-  /* don't update normals, caller can do this explicitly.
-   * We do update loop normals though, those may not be auto-generated
-   * (see e.g. STL import script)! */
-  float(*lnors)[3] = (float(*)[3])CustomData_get_layer_for_write(
-      &me->loop_data, CD_NORMAL, me->totloop);
-  if (lnors) {
-    float m3[3][3];
-
-    copy_m3_m4(m3, mat);
-    normalize_m3(m3);
-    for (int i = 0; i < me->totloop; i++, lnors++) {
-      mul_m3_v3(m3, *lnors);
-    }
-  }
   BKE_mesh_tag_positions_changed(me);
 }
 
@@ -1729,63 +1732,6 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
     mul_v3_m4v3(positions[i], mat, vert_coords[i]);
   }
   BKE_mesh_tag_positions_changed(mesh);
-}
-
-static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
-{
-  float(*r_loop_normals)[3];
-  if (CustomData_has_layer(&mesh.loop_data, CD_NORMAL)) {
-    r_loop_normals = (float(*)[3])CustomData_get_layer_for_write(
-        &mesh.loop_data, CD_NORMAL, mesh.totloop);
-    memset(r_loop_normals, 0, sizeof(float[3]) * mesh.totloop);
-  }
-  else {
-    r_loop_normals = (float(*)[3])CustomData_add_layer(
-        &mesh.loop_data, CD_NORMAL, CD_SET_DEFAULT, mesh.totloop);
-    CustomData_set_layer_flag(&mesh.loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-  }
-  return r_loop_normals;
-}
-
-void BKE_mesh_calc_normals_split_ex(const Mesh *mesh,
-                                    MLoopNorSpaceArray *r_lnors_spacearr,
-                                    float (*r_corner_normals)[3])
-{
-  /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
-   * However, we obviously only use the auto-smooth angle threshold
-   * only in case auto-smooth is enabled. */
-  const bool use_split_normals = (r_lnors_spacearr != nullptr) ||
-                                 ((mesh->flag & ME_AUTOSMOOTH) != 0);
-  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
-
-  const blender::short2 *clnors = static_cast<const blender::short2 *>(
-      CustomData_get_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL));
-  const bool *sharp_edges = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "sharp_edge"));
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
-
-  blender::bke::mesh::normals_calc_loop(
-      mesh->vert_positions(),
-      mesh->edges(),
-      mesh->faces(),
-      mesh->corner_verts(),
-      mesh->corner_edges(),
-      mesh->corner_to_face_map(),
-      mesh->vert_normals(),
-      mesh->face_normals(),
-      sharp_edges,
-      sharp_faces,
-      clnors,
-      use_split_normals,
-      split_angle,
-      nullptr,
-      {reinterpret_cast<float3 *>(r_corner_normals), mesh->totloop});
-}
-
-void BKE_mesh_calc_normals_split(Mesh *mesh)
-{
-  BKE_mesh_calc_normals_split_ex(mesh, nullptr, ensure_corner_normal_layer(*mesh));
 }
 
 /* **** Depsgraph evaluation **** */

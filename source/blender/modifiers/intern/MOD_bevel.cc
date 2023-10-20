@@ -193,13 +193,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  Object *ob = ctx->object;
-
-  if (harden_normals && (ob->type == OB_MESH) && !(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
-    BKE_modifier_set_error(ob, md, "Enable 'Auto Smooth' in Object Data Properties");
-    harden_normals = false;
-  }
-
   BM_mesh_bevel(bm,
                 value,
                 offset_type,
@@ -220,7 +213,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                 miter_outer,
                 miter_inner,
                 spread,
-                mesh->smoothresh,
                 bmd->custom_profile,
                 bmd->vmesh_method);
 

@@ -10,6 +10,7 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
+#include "BLI_array_utils.hh"
 #include "BLI_assert.h"
 #include "BLI_math_color.hh"
 #include "BLI_math_quaternion_types.hh"
@@ -648,42 +649,28 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
 void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
-  const float(*lnors)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
-  const OffsetIndices faces = mesh->faces();
-  const Span<int> corner_verts = mesh->corner_verts();
 
   pxr::VtVec3fArray loop_normals;
-  loop_normals.reserve(mesh->totloop);
+  loop_normals.resize(mesh->totloop);
 
-  if (lnors != nullptr) {
-    /* Export custom loop normals. */
-    for (int loop_idx = 0, totloop = mesh->totloop; loop_idx < totloop; ++loop_idx) {
-      loop_normals.push_back(pxr::GfVec3f(lnors[loop_idx]));
+  MutableSpan dst_normals(reinterpret_cast<float3 *>(loop_normals.data()), loop_normals.size());
+
+  switch (mesh->normals_domain()) {
+    case bke::MeshNormalDomain::Point: {
+      array_utils::gather(mesh->vert_normals(), mesh->corner_verts(), dst_normals);
+      break;
     }
-  }
-  else {
-    /* Compute the loop normals based on the 'smooth' flag. */
-    bke::AttributeAccessor attributes = mesh->attributes();
-    const Span<float3> vert_normals = mesh->vert_normals();
-    const Span<float3> face_normals = mesh->face_normals();
-    const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE, false);
-    for (const int i : faces.index_range()) {
-      const IndexRange face = faces[i];
-      if (sharp_faces[i]) {
-        /* Flat shaded, use common normal for all verts. */
-        pxr::GfVec3f pxr_normal(&face_normals[i].x);
-        for (int loop_idx = 0; loop_idx < face.size(); ++loop_idx) {
-          loop_normals.push_back(pxr_normal);
-        }
+    case bke::MeshNormalDomain::Face: {
+      const OffsetIndices faces = mesh->faces();
+      const Span<float3> face_normals = mesh->face_normals();
+      for (const int i : faces.index_range()) {
+        dst_normals.slice(faces[i]).fill(face_normals[i]);
       }
-      else {
-        /* Smooth shaded, use individual vert normals. */
-        for (const int vert : corner_verts.slice(face)) {
-          loop_normals.push_back(pxr::GfVec3f(&vert_normals[vert].x));
-        }
-      }
+      break;
+    }
+    case bke::MeshNormalDomain::Corner: {
+      array_utils::copy(mesh->corner_normals(), dst_normals);
+      break;
     }
   }
 

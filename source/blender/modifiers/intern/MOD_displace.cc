@@ -302,22 +302,15 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
-    CustomData *ldata = &mesh->loop_data;
-
-    if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
-      if (!CustomData_has_layer(ldata, CD_NORMAL)) {
-        BKE_mesh_calc_normals_split(mesh);
-      }
-
-      float(*clnors)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
+    if (CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL)) {
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
-      BKE_mesh_normals_loop_to_vertex(verts_num,
-                                      mesh->corner_verts().data(),
-                                      mesh->totloop,
-                                      (const float(*)[3])clnors,
-                                      vert_clnors);
+      BKE_mesh_normals_loop_to_vertex(
+          verts_num,
+          mesh->corner_verts().data(),
+          mesh->totloop,
+          reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
+          vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;

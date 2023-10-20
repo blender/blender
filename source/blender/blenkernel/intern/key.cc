@@ -2287,8 +2287,6 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         sharp_edges,
         sharp_faces,
         clnors,
-        (mesh->flag & ME_AUTOSMOOTH) != 0,
-        mesh->smoothresh,
         nullptr,
         {reinterpret_cast<blender::float3 *>(r_loop_normals), corner_verts.size()});
   }

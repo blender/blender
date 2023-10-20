@@ -816,9 +816,10 @@ static void create_mesh(Scene *scene,
   const blender::OffsetIndices faces = b_mesh.faces();
   const blender::Span<int> corner_verts = b_mesh.corner_verts();
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
+  const blender::bke::MeshNormalDomain normals_domain = b_mesh.normals_domain();
   int numfaces = (!subdivision) ? b_mesh.looptris().size() : faces.size();
 
-  bool use_loop_normals = (b_mesh.flag & ME_AUTOSMOOTH) &&
+  bool use_loop_normals = normals_domain == blender::bke::MeshNormalDomain::Corner &&
                           (mesh->get_subdivision_type() != Mesh::SUBDIVISION_CATMULL_CLARK);
 
   /* If no faces, create empty mesh. */
@@ -832,9 +833,7 @@ static void create_mesh(Scene *scene,
                                                                      ATTR_DOMAIN_FACE);
   blender::Span<blender::float3> corner_normals;
   if (use_loop_normals) {
-    corner_normals = {
-        static_cast<const blender::float3 *>(CustomData_get_layer(&b_mesh.loop_data, CD_NORMAL)),
-        corner_verts.size()};
+    corner_normals = b_mesh.corner_normals();
   }
 
   int numngons = 0;
@@ -939,7 +938,8 @@ static void create_mesh(Scene *scene,
       }
     }
     else {
-      std::fill(smooth, smooth + numtris, true);
+      /* If only face normals are needed, all faces are sharp. */
+      std::fill(smooth, smooth + numtris, normals_domain != blender::bke::MeshNormalDomain::Face);
     }
 
     if (use_loop_normals && !corner_normals.is_empty()) {

@@ -32,6 +32,7 @@ class AttributeAccessor;
 class MutableAttributeAccessor;
 struct LooseVertCache;
 struct LooseEdgeCache;
+enum class MeshNormalDomain : int8_t;
 }  // namespace bke
 }  // namespace blender
 using MeshRuntimeHandle = blender::bke::MeshRuntime;
@@ -149,10 +150,7 @@ typedef struct Mesh {
   /** Mostly more flags used when editing or displaying the mesh. */
   uint16_t flag;
 
-  /**
-   * The angle for auto smooth in radians. `M_PI` (180 degrees) causes all edges to be smooth.
-   */
-  float smoothresh;
+  float smoothresh_legacy DNA_DEPRECATED;
 
   /** Per-mesh settings for voxel remesh. */
   float remesh_voxel_size;
@@ -360,6 +358,17 @@ typedef struct Mesh {
   void tag_loose_verts_none() const;
 
   /**
+   * Returns the least complex attribute domain needed to store normals encoding all relevant mesh
+   * data. When all edges or faces are sharp, face normals are enough. When all are smooth, vertex
+   * normals are enough. With a combination of sharp and smooth, normals may be "split",
+   * requiring face corner storage.
+   *
+   * When possible, it's preferred to use face normals over vertex normals and vertex normals over
+   * face corner normals, since there is a 2-4x performance cost increase for each more complex
+   * domain.
+   */
+  blender::bke::MeshNormalDomain normals_domain() const;
+  /**
    * Normal direction of polygons, defined by positions and the winding direction of face corners.
    */
   blender::Span<blender::float3> face_normals() const;
@@ -368,6 +377,14 @@ typedef struct Mesh {
    * surrounding each vertex and the normalized position for loose vertices.
    */
   blender::Span<blender::float3> vert_normals() const;
+  /**
+   * Normal direction at each face corner. Defined by a combination of face normals, vertex
+   * normals, the `sharp_edge` and `sharp_face` attributes, and potentially by custom normals.
+   *
+   * \note Because of the large memory requirements of storing normals per face corner, prefer
+   * using #face_normals() or #vert_normals() when possible (see #normals_domain()).
+   */
+  blender::Span<blender::float3> corner_normals() const;
 #endif
 } Mesh;
 
@@ -422,9 +439,9 @@ enum {
   ME_FLAG_DEPRECATED_2 = 1 << 2, /* deprecated */
   ME_FLAG_UNUSED_3 = 1 << 3,     /* cleared */
   ME_FLAG_UNUSED_4 = 1 << 4,     /* cleared */
-  ME_AUTOSMOOTH = 1 << 5,
-  ME_FLAG_UNUSED_6 = 1 << 6, /* cleared */
-  ME_FLAG_UNUSED_7 = 1 << 7, /* cleared */
+  ME_AUTOSMOOTH_LEGACY = 1 << 5, /* deprecated */
+  ME_FLAG_UNUSED_6 = 1 << 6,     /* cleared */
+  ME_FLAG_UNUSED_7 = 1 << 7,     /* cleared */
   ME_REMESH_REPROJECT_VERTEX_COLORS = 1 << 8,
   ME_DS_EXPAND = 1 << 9,
   ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,

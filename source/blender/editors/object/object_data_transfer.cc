@@ -522,11 +522,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
                                         false,
                                         op->reports))
       {
-
-        if (data_type == DT_TYPE_LNOR && use_create) {
-          ((Mesh *)ob_dst->data)->flag |= ME_AUTOSMOOTH;
-        }
-
         DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
         changed = true;
       }
