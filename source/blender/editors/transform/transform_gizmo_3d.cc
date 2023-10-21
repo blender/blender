@@ -10,6 +10,7 @@
  * Used for 3D View
  */
 
+#include "BLI_array_utils.h"
 #include "BLI_function_ref.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -26,12 +27,12 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BLI_array_utils.h"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -41,6 +42,7 @@
 #include "ED_gizmo_library.hh"
 #include "ED_gizmo_utils.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_object.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
@@ -804,6 +806,35 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         selected_points.foreach_index([&](const int point_i) {
           run_coord_with_matrix(positions[point_i], use_mat_local, mat_local.ptr());
         });
+      }
+      FOREACH_EDIT_OBJECT_END();
+    }
+    else if (obedit->type == OB_GREASE_PENCIL) {
+      FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
+        GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_iter->data);
+
+        float4x4 mat_local;
+        if (use_mat_local) {
+          mat_local = float4x4(obedit->world_to_object) * float4x4(ob_iter->object_to_world);
+        }
+
+        grease_pencil.foreach_editable_drawing(
+            scene->r.cfra, [&](int layer_index, blender::bke::greasepencil::Drawing &drawing) {
+              const bke::CurvesGeometry &curves = drawing.strokes();
+
+              const bke::crazyspace::GeometryDeformation deformation =
+                  bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                      *depsgraph, *ob, layer_index);
+
+              IndexMaskMemory memory;
+              const IndexMask selected_points = ed::curves::retrieve_selected_points(curves,
+                                                                                     memory);
+              const Span<float3> positions = deformation.positions;
+              totsel += selected_points.size();
+              selected_points.foreach_index([&](const int point_i) {
+                run_coord_with_matrix(positions[point_i], use_mat_local, mat_local.ptr());
+              });
+            });
       }
       FOREACH_EDIT_OBJECT_END();
     }

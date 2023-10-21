@@ -32,6 +32,7 @@ set(SRC
   transform_convert_curves.cc
   transform_convert_gpencil_legacy.cc
   transform_convert_graph.cc
+  transform_convert_grease_pencil.cc
   transform_convert_lattice.cc
   transform_convert_mask.cc
   transform_convert_mball.cc

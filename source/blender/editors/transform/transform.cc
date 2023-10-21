@@ -426,11 +426,16 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
   if (t->options & CTX_GPENCIL_STROKES) {
-    bGPdata *gpd = ED_gpencil_data_get_active(C);
-    if (gpd) {
-      DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+    if (t->obedit_type == OB_GREASE_PENCIL) {
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
     }
-    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+    else if (t->obedit_type == OB_GPENCIL_LEGACY) {
+      bGPdata *gpd = ED_gpencil_data_get_active(C);
+      if (gpd) {
+        DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+      }
+      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+    }
   }
   else if (t->spacetype == SPACE_VIEW3D) {
     if (t->options & CTX_PAINT_CURVE) {
