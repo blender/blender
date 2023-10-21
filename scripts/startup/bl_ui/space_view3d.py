@@ -5823,7 +5823,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
-        layout.operator("grease_pencil.cyclical_set", text="Toggle Cyclic")
+        layout.operator("grease_pencil.cyclical_set", text="Toggle Cyclic").type='TOGGLE'
 
 
 class VIEW3D_MT_edit_curves(Menu):
