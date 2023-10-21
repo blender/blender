@@ -792,7 +792,7 @@ static void playanim_toscreen_on_load(GHOST_WindowHandle ghost_window,
   const bool *draw_flip = nullptr;
 
   playanim_toscreen_ex(
-      ghost_window, display_ctx, picture, ibuf, fstep, font_id, zoom, draw_flip, indicator_factor);
+      ghost_window, display_ctx, picture, ibuf, font_id, fstep, zoom, draw_flip, indicator_factor);
 }
 
 static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf *ibuf)
