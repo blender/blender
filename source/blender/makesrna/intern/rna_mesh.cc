@@ -583,8 +583,8 @@ static void rna_MeshPolygon_use_smooth_set(PointerRNA *ptr, bool value)
         &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, "sharp_face"));
   }
   const int index = rna_MeshPolygon_index_get(ptr);
-  if (value != sharp_faces[index]) {
-    sharp_faces[index] = value;
+  if (value == sharp_faces[index]) {
+    sharp_faces[index] = !value;
     BKE_mesh_tag_sharpness_changed(mesh);
   }
 }
