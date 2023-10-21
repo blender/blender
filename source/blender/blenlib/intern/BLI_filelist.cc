@@ -111,7 +111,7 @@ struct BuildDirCtx {
 static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 {
   DIR *dir = opendir(dirname);
-  if (UNLIKELY(dir == NULL)) {
+  if (UNLIKELY(dir == nullptr)) {
     fprintf(stderr,
             "Failed to open dir (%s): %s\n",
             errno ? strerror(errno) : "unknown error",
@@ -119,7 +119,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
     return;
   }
 
-  ListBase dirbase = {NULL, NULL};
+  ListBase dirbase = {nullptr, nullptr};
   int newnum = 0;
   const struct dirent *fname;
   bool has_current = false, has_parent = false;
@@ -135,9 +135,9 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
     dirname_with_slash[dirname_with_slash_len] = '\0';
   }
 
-  while ((fname = readdir(dir)) != NULL) {
-    struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-    if (dlink != NULL) {
+  while ((fname = readdir(dir)) != nullptr) {
+    struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(dirlink));
+    if (dlink != nullptr) {
       dlink->name = BLI_strdup(fname->d_name);
       if (FILENAME_IS_PARENT(dlink->name)) {
         has_parent = true;
@@ -155,8 +155,8 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 
     STRNCPY(pardir, dirname);
     if (BLI_path_parent_dir(pardir) && (BLI_access(pardir, R_OK) == 0)) {
-      struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-      if (dlink != NULL) {
+      struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(dirlink));
+      if (dlink != nullptr) {
         dlink->name = BLI_strdup(FILENAME_PARENT);
         BLI_addhead(&dirbase, dlink);
         newnum++;
@@ -164,8 +164,8 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
     }
   }
   if (!has_current) {
-    struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-    if (dlink != NULL) {
+    struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(dirlink));
+    if (dlink != nullptr) {
       dlink->name = BLI_strdup(FILENAME_CURRENT);
       BLI_addhead(&dirbase, dlink);
       newnum++;
@@ -175,30 +175,30 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
   if (newnum) {
     if (dir_ctx->files) {
       void *const tmp = MEM_reallocN(dir_ctx->files,
-                                     (dir_ctx->files_num + newnum) * sizeof(struct direntry));
+                                     (dir_ctx->files_num + newnum) * sizeof(direntry));
       if (tmp) {
-        dir_ctx->files = (struct direntry *)tmp;
+        dir_ctx->files = (direntry *)tmp;
       }
       else { /* Reallocation may fail. */
         MEM_freeN(dir_ctx->files);
-        dir_ctx->files = NULL;
+        dir_ctx->files = nullptr;
       }
     }
 
-    if (dir_ctx->files == NULL) {
-      dir_ctx->files = (struct direntry *)MEM_mallocN(newnum * sizeof(struct direntry), __func__);
+    if (dir_ctx->files == nullptr) {
+      dir_ctx->files = (struct direntry *)MEM_mallocN(newnum * sizeof(direntry), __func__);
     }
 
-    if (UNLIKELY(dir_ctx->files == NULL)) {
+    if (UNLIKELY(dir_ctx->files == nullptr)) {
       fprintf(stderr, "Couldn't get memory for dir: %s\n", dirname);
       dir_ctx->files_num = 0;
     }
     else {
-      struct dirlink *dlink = (struct dirlink *)dirbase.first;
+      struct dirlink *dlink = (dirlink *)dirbase.first;
       struct direntry *file = &dir_ctx->files[dir_ctx->files_num];
 
       while (dlink) {
-        memset(file, 0, sizeof(struct direntry));
+        memset(file, 0, sizeof(direntry));
         file->relname = dlink->name;
         file->path = BLI_string_joinN(dirname_with_slash, dlink->name);
         if (BLI_stat(file->path, &file->s) != -1) {
@@ -216,7 +216,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 
       qsort(dir_ctx->files,
             dir_ctx->files_num,
-            sizeof(struct direntry),
+            sizeof(direntry),
             (int (*)(const void *, const void *))direntry_cmp);
     }
 
@@ -231,7 +231,7 @@ uint BLI_filelist_dir_contents(const char *dirname, struct direntry **r_filelist
   struct BuildDirCtx dir_ctx;
 
   dir_ctx.files_num = 0;
-  dir_ctx.files = NULL;
+  dir_ctx.files = nullptr;
 
   bli_builddir(&dir_ctx, dirname);
 
@@ -258,7 +258,7 @@ void BLI_filelist_entry_size_to_string(const struct stat *st,
    * will buy us some time until files get bigger than 4GB or until
    * everyone starts using __USE_FILE_OFFSET64 or equivalent.
    */
-  double size = (double)(st ? st->st_size : st_size_fallback);
+  double size = double(st ? st->st_size : st_size_fallback);
 #ifdef WIN32
   BLI_str_format_byte_unit(r_size, size, false);
 #else
@@ -372,7 +372,7 @@ void BLI_filelist_entry_datetime_to_string(const struct stat *st,
   const time_t zero = 0;
 
   /* Prevent impossible dates in windows. */
-  if (tm == NULL) {
+  if (tm == nullptr) {
     tm = localtime(&zero);
   }
 
@@ -412,8 +412,8 @@ void BLI_filelist_duplicate(struct direntry **dest_filelist,
 {
   uint i;
 
-  *dest_filelist = static_cast<struct direntry *>(
-      MEM_mallocN(sizeof(**dest_filelist) * (size_t)(nrentries), __func__));
+  *dest_filelist = static_cast<direntry *>(
+      MEM_mallocN(sizeof(**dest_filelist) * size_t(nrentries), __func__));
   for (i = 0; i < nrentries; i++) {
     struct direntry *const src = &src_filelist[i];
     struct direntry *dst = &(*dest_filelist)[i];
@@ -438,7 +438,7 @@ void BLI_filelist_free(struct direntry *filelist, const uint nrentries)
     BLI_filelist_entry_free(&filelist[i]);
   }
 
-  if (filelist != NULL) {
+  if (filelist != nullptr) {
     MEM_freeN(filelist);
   }
 }

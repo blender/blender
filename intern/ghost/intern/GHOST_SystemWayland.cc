@@ -4565,7 +4565,7 @@ static CLG_LogRef LOG_WL_TEXT_INPUT = {"ghost.wl.handle.text_input"};
 #  define LOG (&LOG_WL_TEXT_INPUT)
 
 static void text_input_handle_enter(void *data,
-                                    struct zwp_text_input_v3 * /*zwp_text_input_v3*/,
+                                    zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                     struct wl_surface *surface)
 {
   if (!ghost_wl_surface_own(surface)) {
@@ -4577,7 +4577,7 @@ static void text_input_handle_enter(void *data,
 }
 
 static void text_input_handle_leave(void *data,
-                                    struct zwp_text_input_v3 * /*zwp_text_input_v3*/,
+                                    zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                     struct wl_surface *surface)
 {
   /* Can be null when closing a window. */
@@ -4592,7 +4592,7 @@ static void text_input_handle_leave(void *data,
 }
 
 static void text_input_handle_preedit_string(void *data,
-                                             struct zwp_text_input_v3 * /*zwp_text_input_v3*/,
+                                             zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                              const char *text,
                                              int32_t cursor_begin,
                                              int32_t cursor_end)
@@ -4629,7 +4629,7 @@ static void text_input_handle_preedit_string(void *data,
 }
 
 static void text_input_handle_commit_string(void *data,
-                                            struct zwp_text_input_v3 * /*zwp_text_input_v3*/,
+                                            zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                             const char *text)
 {
   CLOG_INFO(LOG, 2, "commit_string (text=\"%s\")", text ? text : "<null>");
@@ -4655,11 +4655,10 @@ static void text_input_handle_commit_string(void *data,
   seat->ime.has_commit_string_callback = true;
 }
 
-static void text_input_handle_delete_surrounding_text(
-    void * /*data*/,
-    struct zwp_text_input_v3 * /*zwp_text_input_v3*/,
-    uint32_t before_length,
-    uint32_t after_length)
+static void text_input_handle_delete_surrounding_text(void * /*data*/,
+                                                      zwp_text_input_v3 * /*zwp_text_input_v3*/,
+                                                      uint32_t before_length,
+                                                      uint32_t after_length)
 {
   CLOG_INFO(LOG,
             2,
@@ -4672,7 +4671,7 @@ static void text_input_handle_delete_surrounding_text(
 }
 
 static void text_input_handle_done(void *data,
-                                   struct zwp_text_input_v3 * /*zwp_text_input_v3*/,
+                                   zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                    uint32_t /*serial*/)
 {
   CLOG_INFO(LOG, 2, "done");

@@ -75,10 +75,10 @@ int BLI_path_sequence_decode(const char *path,
   bool found_digit = false;
   const char *const lslash = BLI_path_slash_rfind(path);
   const char *const extension = BLI_path_extension_or_end(lslash ? lslash : path);
-  const uint lslash_len = lslash != NULL ? (int)(lslash - path) : 0;
+  const uint lslash_len = lslash != nullptr ? int(lslash - path) : 0;
   const uint name_end = (uint)(extension - path);
 
-  for (i = name_end - 1; i >= (int)lslash_len; i--) {
+  for (i = name_end - 1; i >= int(lslash_len); i--) {
     if (isdigit(path[i])) {
       if (found_digit) {
         nums = i;
@@ -97,7 +97,7 @@ int BLI_path_sequence_decode(const char *path,
   }
 
   if (found_digit) {
-    const long long int ret = strtoll(&(path[nums]), NULL, 10);
+    const long long int ret = strtoll(&(path[nums]), nullptr, 10);
     if (ret >= INT_MIN && ret <= INT_MAX) {
       if (tail) {
         BLI_strncpy(tail, &path[nume + 1], tail_maxncpy);
@@ -277,7 +277,7 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
            (start_temp = ((start <= &path[path_len - 3]) &&
                           STREQ(&path[path_len - 3], SEP_STR "..")) ?
                              &path[path_len - 3] :
-                             NULL))
+                             nullptr))
     {
       start = start_temp + 1; /* Skip the `/`. */
       BLI_assert(start_base != start);
@@ -852,7 +852,7 @@ const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
   if ((p > path) && (p != path_end)) {
     return p;
   }
-  return NULL;
+  return nullptr;
 }
 
 bool BLI_path_parent_dir(char *path)
@@ -941,7 +941,7 @@ static bool path_frame_chars_find_range(const char *path, int *char_start, int *
 static void ensure_digits(char *path, int digits)
 {
   char *file = (char *)BLI_path_basename(path);
-  if (strrchr(file, '#') == NULL) {
+  if (strrchr(file, '#') == nullptr) {
     int len = strlen(file);
 
     while (digits--) {
@@ -1360,7 +1360,7 @@ void BLI_setenv(const char *env, const char *val)
 
 void BLI_setenv_if_new(const char *env, const char *val)
 {
-  if (BLI_getenv(env) == NULL) {
+  if (BLI_getenv(env) == nullptr) {
     BLI_setenv(env, val);
   }
 }
@@ -1517,7 +1517,7 @@ bool BLI_path_extension_replace(char *path, size_t path_maxncpy, const char *ext
 bool BLI_path_extension_strip(char *path)
 {
   char *path_ext = (char *)BLI_path_extension(path);
-  if (path_ext == NULL) {
+  if (path_ext == nullptr) {
     return false;
   }
   *path_ext = '\0';
@@ -1616,7 +1616,7 @@ const char *BLI_path_extension_or_end(const char *filepath)
    * Only using trailing extension characters has the advantage that stripping the extension
    * never leads to a blank string (which can't be used as a file path).
    * Matches Python's `os.path.splitext`. */
-  const char *ext = NULL;
+  const char *ext = nullptr;
   bool has_non_ext = false;
   const char *c = filepath;
   for (; *c; c++) {
@@ -1629,7 +1629,7 @@ const char *BLI_path_extension_or_end(const char *filepath)
       }
       case SEP:
       case ALTSEP: {
-        ext = NULL;
+        ext = nullptr;
         has_non_ext = false;
         break;
       }
@@ -1649,7 +1649,7 @@ const char *BLI_path_extension_or_end(const char *filepath)
 const char *BLI_path_extension(const char *filepath)
 {
   const char *ext = BLI_path_extension_or_end(filepath);
-  return *ext ? ext : NULL;
+  return *ext ? ext : nullptr;
 }
 
 size_t BLI_path_append(char *__restrict dst, const size_t dst_maxncpy, const char *__restrict file)

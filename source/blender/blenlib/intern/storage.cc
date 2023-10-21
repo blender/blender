@@ -100,7 +100,7 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
       memcpy(dir, pwd, srclen + 1);
       return dir;
     }
-    return NULL;
+    return nullptr;
   }
   return getcwd(dir, maxncpy);
 #  endif
@@ -172,7 +172,7 @@ double BLI_dir_free_space(const char *dir)
   }
 #  endif
 
-  return (((double)disk.f_bsize) * ((double)disk.f_bfree));
+  return ((double(disk.f_bsize)) * (double(disk.f_bfree)));
 #endif
 }
 
@@ -451,45 +451,45 @@ static void *file_read_data_as_mem_impl(FILE *fp,
 {
   BLI_stat_t st;
   if (BLI_fstat(fileno(fp), &st) == -1) {
-    return NULL;
+    return nullptr;
   }
   if (S_ISDIR(st.st_mode)) {
-    return NULL;
+    return nullptr;
   }
   if (BLI_fseek(fp, 0L, SEEK_END) == -1) {
-    return NULL;
+    return nullptr;
   }
   /* Don't use the 'st_size' because it may be the symlink. */
   const long int filelen = BLI_ftell(fp);
   if (filelen == -1) {
-    return NULL;
+    return nullptr;
   }
   if (BLI_fseek(fp, 0L, SEEK_SET) == -1) {
-    return NULL;
+    return nullptr;
   }
 
   void *mem = MEM_mallocN(filelen + pad_bytes, __func__);
-  if (mem == NULL) {
-    return NULL;
+  if (mem == nullptr) {
+    return nullptr;
   }
 
   const long int filelen_read = fread(mem, 1, filelen, fp);
   if ((filelen_read < 0) || ferror(fp)) {
     MEM_freeN(mem);
-    return NULL;
+    return nullptr;
   }
 
   if (read_size_exact) {
     if (filelen_read != filelen) {
       MEM_freeN(mem);
-      return NULL;
+      return nullptr;
     }
   }
   else {
     if (filelen_read < filelen) {
       mem = MEM_reallocN(mem, filelen_read + pad_bytes);
-      if (mem == NULL) {
-        return NULL;
+      if (mem == nullptr) {
+        return nullptr;
       }
     }
   }
@@ -502,7 +502,7 @@ static void *file_read_data_as_mem_impl(FILE *fp,
 void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
 {
   FILE *fp = BLI_fopen(filepath, "r");
-  void *mem = NULL;
+  void *mem = nullptr;
   if (fp) {
     mem = file_read_data_as_mem_impl(fp, false, pad_bytes, r_size);
     fclose(fp);
@@ -513,7 +513,7 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
 void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
 {
   FILE *fp = BLI_fopen(filepath, "rb");
-  void *mem = NULL;
+  void *mem = nullptr;
   if (fp) {
     mem = file_read_data_as_mem_impl(fp, true, pad_bytes, r_size);
     fclose(fp);
@@ -527,14 +527,14 @@ void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
                                                     size_t *r_size)
 {
   char *mem = static_cast<char *>(BLI_file_read_text_as_mem(filepath, pad_bytes, r_size));
-  if (mem != NULL) {
+  if (mem != nullptr) {
     char *mem_end = mem + *r_size;
     if (pad_bytes != 0) {
       *mem_end = '\0';
     }
     for (char *p = mem, *p_next; p != mem_end; p = p_next) {
       p_next = static_cast<char *>(memchr(p, '\n', mem_end - p));
-      if (p_next != NULL) {
+      if (p_next != nullptr) {
         if (trim_trailing_space) {
           for (char *p_trim = p_next - 1; p_trim > p && ELEM(*p_trim, ' ', '\t'); p_trim--) {
             *p_trim = '\0';
@@ -554,21 +554,21 @@ void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
 LinkNode *BLI_file_read_as_lines(const char *filepath)
 {
   FILE *fp = BLI_fopen(filepath, "r");
-  LinkNodePair lines = {NULL, NULL};
+  LinkNodePair lines = {nullptr, nullptr};
   char *buf;
   size_t size;
 
   if (!fp) {
-    return NULL;
+    return nullptr;
   }
 
   BLI_fseek(fp, 0, SEEK_END);
   size = (size_t)BLI_ftell(fp);
   BLI_fseek(fp, 0, SEEK_SET);
 
-  if (UNLIKELY(size == (size_t)-1)) {
+  if (UNLIKELY(size == size_t(-1))) {
     fclose(fp);
-    return NULL;
+    return nullptr;
   }
 
   buf = MEM_cnew_array<char>(size, "file_as_lines");

@@ -92,7 +92,7 @@ DynamicLibrary *BLI_dynlib_open(const char *name)
   void *handle = dlopen(name, RTLD_LAZY);
 
   if (!handle) {
-    return NULL;
+    return nullptr;
   }
 
   lib = MEM_cnew<DynamicLibrary>("Dynamic Library");

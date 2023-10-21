@@ -316,7 +316,7 @@ bool BLI_file_touch(const char *filepath)
 {
   FILE *f = BLI_fopen(filepath, "r+b");
 
-  if (f != NULL) {
+  if (f != nullptr) {
     int c = getc(f);
 
     if (c == EOF) {
@@ -822,7 +822,7 @@ static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, c
 {
   size_t len = strlen(dir) + strlen(file) + 1;
 
-  if (*dst == NULL) {
+  if (*dst == nullptr) {
     *dst = MEM_cnew_array<char>(len + 1, "join_dirfile_alloc path");
   }
   else if (*alloc_len < len) {
@@ -862,9 +862,9 @@ static int recursive_operation(const char *startfrom,
                                RecursiveOp_Callback callback_dir_post)
 {
   struct stat st;
-  char *from = NULL, *to = NULL;
-  char *from_path = NULL, *to_path = NULL;
-  struct dirent **dirlist = NULL;
+  char *from = NULL, *to = nullptr;
+  char *from_path = NULL, *to_path = nullptr;
+  struct dirent **dirlist = nullptr;
   size_t from_alloc_len = -1, to_alloc_len = -1;
   int i, n = 0, ret = 0;
 
@@ -884,7 +884,7 @@ static int recursive_operation(const char *startfrom,
     if (!S_ISDIR(st.st_mode)) {
       /* source isn't a directory, can't do recursive walking for it,
        * so just call file callback and leave */
-      if (callback_file != NULL) {
+      if (callback_file != nullptr) {
         ret = callback_file(from, to);
         if (ret != RecursiveOp_Callback_OK) {
           ret = -1;
@@ -893,7 +893,7 @@ static int recursive_operation(const char *startfrom,
       break;
     }
 
-    n = scandir(startfrom, &dirlist, NULL, alphasort);
+    n = scandir(startfrom, &dirlist, nullptr, alphasort);
     if (n < 0) {
       /* error opening directory for listing */
       perror("scandir");
@@ -901,7 +901,7 @@ static int recursive_operation(const char *startfrom,
       break;
     }
 
-    if (callback_dir_pre != NULL) {
+    if (callback_dir_pre != nullptr) {
       ret = callback_dir_pre(from, to);
       if (ret != RecursiveOp_Callback_OK) {
         if (ret == RecursiveOp_Callback_StopRecurs) {
@@ -946,7 +946,7 @@ static int recursive_operation(const char *startfrom,
         ret = recursive_operation(
             from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
       }
-      else if (callback_file != NULL) {
+      else if (callback_file != nullptr) {
         ret = callback_file(from_path, to_path);
         if (ret != RecursiveOp_Callback_OK) {
           ret = -1;
@@ -961,7 +961,7 @@ static int recursive_operation(const char *startfrom,
       break;
     }
 
-    if (callback_dir_post != NULL) {
+    if (callback_dir_post != nullptr) {
       ret = callback_dir_post(from, to);
       if (ret != RecursiveOp_Callback_OK) {
         ret = -1;
@@ -969,22 +969,22 @@ static int recursive_operation(const char *startfrom,
     }
   } while (false);
 
-  if (dirlist != NULL) {
+  if (dirlist != nullptr) {
     for (i = 0; i < n; i++) {
       free(dirlist[i]);
     }
     free(dirlist);
   }
-  if (from_path != NULL) {
+  if (from_path != nullptr) {
     MEM_freeN(from_path);
   }
-  if (to_path != NULL) {
+  if (to_path != nullptr) {
     MEM_freeN(to_path);
   }
-  if (from != NULL) {
+  if (from != nullptr) {
     MEM_freeN(from);
   }
-  if (to != NULL) {
+  if (to != nullptr) {
     MEM_freeN(to);
   }
 
@@ -1069,14 +1069,14 @@ static int delete_soft(const char *file, const char **error_message)
     args[1] = "move";
     args[2] = file;
     args[3] = "trash:/";
-    args[4] = NULL;
+    args[4] = nullptr;
     process_failed = "kioclient5 reported failure";
   }
   else {
     args[0] = "gio";
     args[1] = "trash";
     args[2] = file;
-    args[3] = NULL;
+    args[3] = nullptr;
     process_failed = "gio reported failure";
   }
 
@@ -1141,7 +1141,7 @@ int BLI_delete(const char *path, bool dir, bool recursive)
   BLI_assert(!BLI_path_is_rel(path));
 
   if (recursive) {
-    return recursive_operation(path, NULL, NULL, delete_single_file, delete_callback_post);
+    return recursive_operation(path, nullptr, nullptr, delete_single_file, delete_callback_post);
   }
   if (dir) {
     return rmdir(path);
@@ -1352,10 +1352,11 @@ static int move_single_file(const char *from, const char *to)
 
 int BLI_path_move(const char *path_src, const char *path_dst)
 {
-  int ret = recursive_operation(path_src, path_dst, move_callback_pre, move_single_file, NULL);
+  int ret = recursive_operation(path_src, path_dst, move_callback_pre, move_single_file, nullptr);
 
   if (ret && ret != -1) {
-    return recursive_operation(path_src, NULL, NULL, delete_single_file, delete_callback_post);
+    return recursive_operation(
+        path_src, nullptr, nullptr, delete_single_file, delete_callback_post);
   }
 
   return ret;
@@ -1390,7 +1391,7 @@ int BLI_copy(const char *path_src, const char *path_dst)
   int ret;
 
   ret = recursive_operation(
-      path_src, path_dst_with_filename, copy_callback_pre, copy_single_file, NULL);
+      path_src, path_dst_with_filename, copy_callback_pre, copy_single_file, nullptr);
 
   if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
     MEM_freeN((void *)path_dst_with_filename);

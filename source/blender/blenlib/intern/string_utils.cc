@@ -31,7 +31,7 @@ char *BLI_string_replaceN(const char *__restrict str,
                           const char *__restrict substr_old,
                           const char *__restrict substr_new)
 {
-  DynStr *ds = NULL;
+  DynStr *ds = nullptr;
   size_t len_old = strlen(substr_old);
   const char *match;
 
@@ -41,7 +41,7 @@ char *BLI_string_replaceN(const char *__restrict str,
    * keep dicing and replacing. */
   while ((match = strstr(str, substr_old))) {
     /* the assembly buffer only gets created when we actually need to rebuild the string */
-    if (ds == NULL) {
+    if (ds == nullptr) {
       ds = BLI_dynstr_new();
     }
 
@@ -50,7 +50,7 @@ char *BLI_string_replaceN(const char *__restrict str,
     if (str != match) {
       /* Add the segment of the string from `str` to match to the buffer,
        * then restore the value at match. */
-      BLI_dynstr_nappend(ds, str, (int)(match - str));
+      BLI_dynstr_nappend(ds, str, int(match - str));
 
       /* now our current position should be set on the start of the match */
       str = match;
@@ -121,17 +121,17 @@ size_t BLI_string_replace_range(
     /* Grow, first handle special cases. */
 
     /* Special case, the src_end is entirely clipped. */
-    if (UNLIKELY((int)string_maxncpy <= src_beg + dst_len)) {
+    if (UNLIKELY(int(string_maxncpy) <= src_beg + dst_len)) {
       /* There is only room for the destination. */
-      dst_len = ((int)string_maxncpy - src_beg) - 1;
+      dst_len = (int(string_maxncpy) - src_beg) - 1;
       string_len = src_end;
       string[string_len] = '\0';
     }
 
     const int ofs = dst_len - src_len;
     /* Clip the string when inserting the destination string exceeds `string_maxncpy`. */
-    if (string_len + ofs >= (int)string_maxncpy) {
-      string_len = ((int)string_maxncpy - ofs) - 1;
+    if (string_len + ofs >= int(string_maxncpy)) {
+      string_len = (int(string_maxncpy) - ofs) - 1;
       string[string_len] = '\0';
       BLI_assert(src_end <= string_len);
     }
@@ -151,7 +151,7 @@ size_t BLI_string_replace_range(
   }
 
   if (dst_len > 0) {
-    memcpy(string + src_beg, dst, (size_t)dst_len);
+    memcpy(string + src_beg, dst, size_t(dst_len));
   }
   BLI_assert(string[string_len] == '\0');
   return (size_t)string_len;
@@ -272,8 +272,8 @@ size_t BLI_string_flip_side_name(char *name_dst,
   char *prefix = static_cast<char *>(alloca(name_dst_maxncpy)); /* The part before the facing */
   char *suffix = static_cast<char *>(alloca(name_dst_maxncpy)); /* The part after the facing */
   char *number = static_cast<char *>(alloca(name_dst_maxncpy)); /* The number extension string */
-  const char *replace = NULL;
-  char *index = NULL;
+  const char *replace = nullptr;
+  char *index = nullptr;
   bool is_set = false;
 
   *prefix = *suffix = *number = '\0';
@@ -475,7 +475,7 @@ void BLI_uniquename(ListBase *list,
   BLI_assert(name_maxncpy > 1);
 
   /* See if we are given an empty string */
-  if (ELEM(NULL, vlink)) {
+  if (ELEM(nullptr, vlink)) {
     return;
   }
 

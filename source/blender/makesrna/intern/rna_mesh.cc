@@ -3014,7 +3014,7 @@ static void rna_def_mesh(BlenderRNA *brna)
       "Normal Domain",
       "The attribute domain that gives enough information to represent the mesh's normals");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_enum_funcs(prop, "rna_Mesh_normals_domain_get", NULL, NULL);
+  RNA_def_property_enum_funcs(prop, "rna_Mesh_normals_domain_get", nullptr, nullptr);
 
   prop = RNA_def_property(srna, "vertex_normals", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshNormalValue");
