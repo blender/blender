@@ -48,15 +48,14 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
       op->ptr, "new_layer_name", nullptr, 0, &new_layer_name_length);
 
   if (grease_pencil.has_active_layer()) {
-    LayerGroup &active_group = grease_pencil.get_active_layer()->parent_group();
-    Layer &new_layer = grease_pencil.add_layer(active_group, new_layer_name);
+    Layer &new_layer = grease_pencil.add_layer(new_layer_name);
     grease_pencil.move_node_after(new_layer.as_node(),
                                   grease_pencil.get_active_layer_for_write()->as_node());
     grease_pencil.set_active_layer(&new_layer);
     grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
   }
   else {
-    Layer &new_layer = grease_pencil.add_layer(grease_pencil.root_group(), new_layer_name);
+    Layer &new_layer = grease_pencil.add_layer(new_layer_name);
     grease_pencil.set_active_layer(&new_layer);
     grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
   }

@@ -64,8 +64,8 @@ TEST(greasepencil, remove_drawings)
   GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1));
   drawing->wrap().strokes_for_write().resize(0, 10);
 
-  Layer &layer1 = grease_pencil.add_layer(grease_pencil.root_group(), "Layer1");
-  Layer &layer2 = grease_pencil.add_layer(grease_pencil.root_group(), "Layer2");
+  Layer &layer1 = grease_pencil.add_layer("Layer1");
+  Layer &layer2 = grease_pencil.add_layer("Layer2");
 
   layer1.add_frame(0, 0);
   layer1.add_frame(10, 1);
@@ -144,7 +144,7 @@ struct GreasePencilLayerTreeExample {
     grease_pencil.add_layer(group2, names[4]);
     grease_pencil.add_layer(group2, names[5]);
 
-    grease_pencil.add_layer(grease_pencil.root_group(), names[6]);
+    grease_pencil.add_layer(names[6]);
   }
 };
 

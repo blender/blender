@@ -1180,7 +1180,7 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
   object.actcol = material_index + 1;
 
-  Layer &new_layer = grease_pencil.add_layer(grease_pencil.root_group(), DATA_("GP_Layer"));
+  Layer &new_layer = grease_pencil.add_layer(DATA_("GP_Layer"));
   grease_pencil.set_active_layer(&new_layer);
   grease_pencil.insert_blank_frame(new_layer, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 }
@@ -1199,8 +1199,8 @@ void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame
   add_material_from_template(bmain, object, gp_fill_material_grey);
   object.actcol = material_index + 1;
 
-  Layer &layer_lines = grease_pencil.add_layer(grease_pencil.root_group(), DATA_("Lines"));
-  Layer &layer_color = grease_pencil.add_layer(grease_pencil.root_group(), DATA_("Color"));
+  Layer &layer_lines = grease_pencil.add_layer(DATA_("Lines"));
+  Layer &layer_color = grease_pencil.add_layer(DATA_("Color"));
   grease_pencil.set_active_layer(&layer_lines);
 
   grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
@@ -1261,8 +1261,8 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
       color_skin_shadow,
   });
 
-  Layer &layer_fills = grease_pencil.add_layer(grease_pencil.root_group(), DATA_("Fills"));
-  Layer &layer_lines = grease_pencil.add_layer(grease_pencil.root_group(), DATA_("Lines"));
+  Layer &layer_fills = grease_pencil.add_layer(DATA_("Fills"));
+  Layer &layer_lines = grease_pencil.add_layer(DATA_("Lines"));
   grease_pencil.set_active_layer(&layer_lines);
 
   grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
