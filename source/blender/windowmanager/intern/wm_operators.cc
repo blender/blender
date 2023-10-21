@@ -2358,20 +2358,7 @@ static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, con
     d[1] *= zoom[1];
   }
   rc->scale_fac = 1.0f;
-  /* Grease pencil draw tool needs to re-scale the cursor size. If we don't do that
-   * the size of the radial is not equal to the actual stroke size. */
-  Object *object = CTX_data_active_object(C);
-  if (object->type == OB_GREASE_PENCIL && rc->prop == &rna_UnifiedPaintSettings_size) {
-    ToolSettings *ts = CTX_data_tool_settings(C);
-    const Brush &brush = *BKE_paint_brush_for_read(&ts->gp_paint->paint);
-    /* Only the draw brush needs the re-scaling. */
-    if (brush.gpencil_tool == GPAINT_TOOL_DRAW) {
-      float cursor_radius = blender::ed::greasepencil::brush_radius_world_space(
-          *C, event->mval[0], event->mval[1]);
-      rc->scale_fac = max_ff(cursor_radius, 1.0f) / max_ff(rc->initial_value, 1.0f);
-    }
-  }
-  else if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size)
+  if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size)
   {
     Brush *brush = reinterpret_cast<Brush *>(rc->ptr.owner_id);
     rc->scale_fac = ED_gpencil_radial_control_scale(C, brush, rc->initial_value, event->mval);
