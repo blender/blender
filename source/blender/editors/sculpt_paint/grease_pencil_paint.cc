@@ -242,6 +242,29 @@ struct PaintOperationExecutor {
     curves.curve_types_for_write().last() = CURVE_TYPE_POLY;
     curves.update_curve_types();
 
+    /* Initialize the rest of the attributes with default values. */
+    Set<std::string> attributes_to_skip{{"position",
+                                         "curve_type",
+                                         "material_index",
+                                         "cyclic",
+                                         "radius",
+                                         "opacity",
+                                         "vertex_color"}};
+    attributes.for_all(
+        [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+          if (attributes_to_skip.contains(id.name())) {
+            return true;
+          }
+          bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+          const CPPType &type = attribute.span.type();
+          GMutableSpan new_data = attribute.span.slice(attribute.domain == ATTR_DOMAIN_POINT ?
+                                                           curves.points_range().take_back(1) :
+                                                           curves.curves_range().take_back(1));
+          type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+          attribute.finish();
+          return true;
+        });
+
     drawing_->tag_topology_changed();
   }
 
@@ -354,6 +377,7 @@ struct PaintOperationExecutor {
     const ColorGeometry4f vertex_color = ColorGeometry4f(vertex_color_);
 
     bke::CurvesGeometry &curves = drawing_->strokes_for_write();
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
     const float2 prev_coords = self.screen_space_coords_.last();
     const float prev_radius = drawing_->radii().last();
@@ -408,12 +432,30 @@ struct PaintOperationExecutor {
       for (const int64_t i : new_screen_space_coords.index_range()) {
         positions_slice[i] = screen_space_to_drawing_plane(new_screen_space_coords[i]);
       }
-      return;
+    }
+    else {
+      /* Active smoothing is done in a window at the end of the new stroke. */
+      this->active_smoothing(
+          self, points, points.index_range().drop_front(self.active_smooth_index_));
     }
 
-    /* Active smoothing is done in a window at the end of the new stroke. */
-    this->active_smoothing(
-        self, points, points.index_range().drop_front(self.active_smooth_index_));
+    /* Initialize the rest of the attributes with default values. */
+    Set<std::string> attributes_to_skip{{"position", "radius", "opacity", "vertex_color"}};
+    attributes.for_all(
+        [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+          if (attributes_to_skip.contains(id.name())) {
+            return true;
+          }
+          bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+          if (attribute.domain != ATTR_DOMAIN_POINT) {
+            return true;
+          }
+          const CPPType &type = attribute.span.type();
+          GMutableSpan new_data = attribute.span.slice(new_range);
+          type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+          attribute.finish();
+          return true;
+        });
   }
 
   void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)
