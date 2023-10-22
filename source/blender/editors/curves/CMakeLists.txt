@@ -23,8 +23,8 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/attribute_set.cc
   intern/curves_add.cc
+  intern/curves_attribute_set.cc
   intern/curves_data.cc
   intern/curves_edit.cc
   intern/curves_masks.cc
