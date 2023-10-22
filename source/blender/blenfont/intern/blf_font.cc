@@ -75,6 +75,8 @@ static ft_pix blf_font_width_max_ft_pix(FontBLF *font);
 /** \name FreeType Caching
  * \{ */
 
+static bool blf_setup_face(FontBLF *font);
+
 /**
  * Called when a face is removed by the cache. FreeType will call #FT_Done_Face.
  */
@@ -112,6 +114,11 @@ static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
     font->face = *face;
     font->face->generic.data = font;
     font->face->generic.finalizer = blf_face_finalizer;
+
+    /* More FontBLF setup now that we have a face. */
+    if (!blf_setup_face(font)) {
+      err = FT_Err_Cannot_Open_Resource;
+    }
   }
   else {
     /* Clear this on error to avoid exception in FTC_Manager_LookupFace. */
@@ -1454,10 +1461,6 @@ static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
   metrics->underline_position = short(face->underline_position);
   metrics->underline_thickness = short(face->underline_thickness);
   metrics->num_glyphs = int(face->num_glyphs);
-  metrics->bounding_box.xmin = int(face->bbox.xMin);
-  metrics->bounding_box.xmax = int(face->bbox.xMax);
-  metrics->bounding_box.ymin = int(face->bbox.yMin);
-  metrics->bounding_box.ymax = int(face->bbox.yMax);
 
   if (metrics->cap_height == 0) {
     /* Calculate or guess cap height if it is not set in the font. */
@@ -1537,6 +1540,46 @@ static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
   if (metrics->superscript_yoffset == 0) {
     metrics->superscript_yoffset = short(float(metrics->units_per_EM) * 0.35f);
   }
+
+  metrics->valid = true;
+}
+
+/**
+ * Extra FontBLF setup needed after it gets a Face. Called from
+ * both blf_ensure_face and from the blf_cache_face_requester callback.
+ */
+static bool blf_setup_face(FontBLF *font)
+{
+  font->face_flags = font->face->face_flags;
+
+  if (FT_HAS_MULTIPLE_MASTERS(font) && !font->variations) {
+    FT_Get_MM_Var(font->face, &(font->variations));
+  }
+
+  if (!font->metrics.valid) {
+    blf_font_metrics(font->face, &font->metrics);
+    font->char_weight = font->metrics.weight;
+    font->char_slant = font->metrics.slant;
+    font->char_width = font->metrics.width;
+    font->char_spacing = font->metrics.spacing;
+  }
+
+  if (FT_IS_FIXED_WIDTH(font)) {
+    font->flags |= BLF_MONOSPACED;
+  }
+
+  if (FT_HAS_KERNING(font) && !font->kerning_cache) {
+    /* Create kerning cache table and fill with value indicating "unset". */
+    font->kerning_cache = static_cast<KerningCacheBLF *>(
+        MEM_mallocN(sizeof(KerningCacheBLF), __func__));
+    for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
+      for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
+        font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
+      }
+    }
+  }
+
+  return true;
 }
 
 bool blf_ensure_face(FontBLF *font)
@@ -1620,45 +1663,8 @@ bool blf_ensure_face(FontBLF *font)
     font->ft_size = font->face->size;
   }
 
-  font->face_flags = font->face->face_flags;
-
-  if (FT_HAS_MULTIPLE_MASTERS(font)) {
-    FT_Get_MM_Var(font->face, &(font->variations));
-  }
-
-  blf_ensure_size(font);
-  blf_font_metrics(font->face, &font->metrics);
-
-  font->char_weight = font->metrics.weight;
-  font->char_slant = font->metrics.slant;
-  font->char_width = font->metrics.width;
-  font->char_spacing = font->metrics.spacing;
-
-  /* Save TrueType table with bits to quickly test most unicode block coverage. */
-  TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
-  if (os2_table) {
-    font->unicode_ranges[0] = uint(os2_table->ulUnicodeRange1);
-    font->unicode_ranges[1] = uint(os2_table->ulUnicodeRange2);
-    font->unicode_ranges[2] = uint(os2_table->ulUnicodeRange3);
-    font->unicode_ranges[3] = uint(os2_table->ulUnicodeRange4);
-  }
-
-  if (FT_IS_FIXED_WIDTH(font)) {
-    font->flags |= BLF_MONOSPACED;
-  }
-
-  if (FT_HAS_KERNING(font) && !font->kerning_cache) {
-    /* Create kerning cache table and fill with value indicating "unset". */
-    font->kerning_cache = static_cast<KerningCacheBLF *>(
-        MEM_mallocN(sizeof(KerningCacheBLF), __func__));
-    for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
-      for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
-        font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
-      }
-    }
-  }
-
-  return true;
+  /* Setup Font details that require having a Face. */
+  return blf_setup_face(font);
 }
 
 struct FaceDetails {
@@ -1754,6 +1760,15 @@ static FontBLF *blf_font_new_impl(const char *filepath,
     if (!blf_ensure_face(font)) {
       blf_font_free(font);
       return nullptr;
+    }
+
+    /* Save TrueType table with bits to quickly test most unicode block coverage. */
+    TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
+    if (os2_table) {
+      font->unicode_ranges[0] = uint(os2_table->ulUnicodeRange1);
+      font->unicode_ranges[1] = uint(os2_table->ulUnicodeRange2);
+      font->unicode_ranges[2] = uint(os2_table->ulUnicodeRange3);
+      font->unicode_ranges[3] = uint(os2_table->ulUnicodeRange4);
     }
   }
 

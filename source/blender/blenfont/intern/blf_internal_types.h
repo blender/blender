@@ -210,6 +210,8 @@ typedef struct FontBufInfoBLF {
 } FontBufInfoBLF;
 
 typedef struct FontMetrics {
+  /** Indicate that these values have been properly loaded. */
+  bool valid;
   /** This font's default weight, 100-900, 400 is normal. */
   short weight;
   /** This font's default width, 1 is normal, 2 is twice as wide. */
@@ -232,11 +234,6 @@ typedef struct FontMetrics {
   /** Maximum Unicode index, or 0xFFFF if greater than. */
   short last_charindex;
 
-  /**
-   * Bounds that can contain every glyph in the font when in default positions. Can be used for
-   * maximum ascender, minimum descender. Can be out by a pixel when hinting. Does not change with
-   * variation axis changes. */
-  rcti bounding_box;
   /**
    * Positive number of font units from baseline to top of typical capitals. Can be slightly more
    * than cap height when head serifs, terminals, or apexes extend above cap line. */
