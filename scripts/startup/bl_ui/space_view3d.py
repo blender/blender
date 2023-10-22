@@ -5807,9 +5807,9 @@ class VIEW3D_MT_edit_greasepencil(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
-        
+
         layout.separator()
-        
+
         layout.menu("VIEW3D_MT_edit_greasepencil_delete")
 
 
@@ -5823,7 +5823,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
-        layout.operator("grease_pencil.cyclical_set", text="Toggle Cyclic").type='TOGGLE'
+        layout.operator("grease_pencil.cyclical_set", text="Toggle Cyclic").type = 'TOGGLE'
 
 
 class VIEW3D_MT_edit_curves(Menu):

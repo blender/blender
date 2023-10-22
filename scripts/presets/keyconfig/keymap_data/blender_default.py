@@ -4610,7 +4610,7 @@ def km_grease_pencil_edit(params):
          {"properties": [("type", "ALL_FRAMES")]}),
         # Keyframe Menu
         op_menu("VIEW3D_MT_edit_greasepencil_animation", {"type": 'I', "value": 'PRESS'}),
-        
+
         # Transform Actions.
         *_template_items_transform_actions(params, use_bend=True, use_mirror=True, use_tosphere=True, use_shear=True),
         ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
@@ -7277,6 +7277,7 @@ def km_3d_view_tool_shear(params):
         ]},
     )
 
+
 def km_3d_view_tool_bend(params):
     return (
         "3D View Tool: Bend",
@@ -7287,6 +7288,7 @@ def km_3d_view_tool_bend(params):
              {"properties": [("release_confirm", True)]}),
         ]},
     )
+
 
 def km_3d_view_tool_measure(params):
     return (
