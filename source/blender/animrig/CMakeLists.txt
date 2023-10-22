@@ -27,6 +27,7 @@ set(SRC
   intern/keyframing_auto.cc
   intern/visualkey.cc
 
+  ANIM_armature_iter.hh
   ANIM_bone_collections.h
   ANIM_bone_collections.hh
   ANIM_bonecolor.hh
