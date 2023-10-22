@@ -571,81 +571,66 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
                                 const rctf *canvas,
                                 const bool draw_flip[2])
 {
+  void *display_buffer;
+
   /* Format needs to be created prior to any #immBindShader call.
    * Do it here because OCIO binds its own shader. */
   eGPUTextureFormat format;
   eGPUDataFormat data;
   bool glsl_used = false;
+  GPUVertFormat *imm_format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint texCoord = GPU_vertformat_attr_add(
+      imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   void *buffer_cache_handle = nullptr;
-  void *display_buffer = ocio_transform_ibuf(
+  display_buffer = ocio_transform_ibuf(
       display_ctx, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
 
   GPUTexture *texture = GPU_texture_create_2d(
       "display_buf", ibuf->x, ibuf->y, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+  GPU_texture_update(texture, data, display_buffer);
+  GPU_texture_filter_mode(texture, false);
 
-  /* NOTE: This may fail, especially for large images that exceed the GPU's texture size limit.
-   * Large images could be supported although this isn't so common for animation playback. */
-  if (texture != nullptr) {
-    GPUVertFormat *imm_format = immVertexFormat();
-    const uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    const uint texCoord = GPU_vertformat_attr_add(
-        imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-    GPU_texture_update(texture, data, display_buffer);
-    GPU_texture_filter_mode(texture, false);
-
-    GPU_texture_bind(texture, 0);
-
-    if (!glsl_used) {
-      immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
-      immUniformColor3f(1.0f, 1.0f, 1.0f);
-    }
-
-    immBegin(GPU_PRIM_TRI_FAN, 4);
-
-    rctf preview;
-    BLI_rctf_init(&preview, 0.0f, 1.0f, 0.0f, 1.0f);
-    if (draw_flip) {
-      if (draw_flip[0]) {
-        SWAP(float, preview.xmin, preview.xmax);
-      }
-      if (draw_flip[1]) {
-        SWAP(float, preview.ymin, preview.ymax);
-      }
-    }
-
-    immAttr2f(texCoord, preview.xmin, preview.ymin);
-    immVertex2f(pos, canvas->xmin, canvas->ymin);
-
-    immAttr2f(texCoord, preview.xmin, preview.ymax);
-    immVertex2f(pos, canvas->xmin, canvas->ymax);
-
-    immAttr2f(texCoord, preview.xmax, preview.ymax);
-    immVertex2f(pos, canvas->xmax, canvas->ymax);
-
-    immAttr2f(texCoord, preview.xmax, preview.ymin);
-    immVertex2f(pos, canvas->xmax, canvas->ymin);
-
-    immEnd();
-
-    GPU_texture_unbind(texture);
-    GPU_texture_free(texture);
-  }
-  else {
-    /* Show a pink square, to show the texture failed to load. */
-    GPUVertFormat *imm_format = immVertexFormat();
-    const uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor3f(1.0f, 0.0f, 1.0f);
-    immRectf(pos, canvas->xmin, canvas->ymin, canvas->xmax, canvas->ymax);
-    immUnbindProgram();
-  }
+  GPU_texture_bind(texture, 0);
 
   if (!glsl_used) {
-    if (texture != nullptr) {
-      immUnbindProgram();
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
+    immUniformColor3f(1.0f, 1.0f, 1.0f);
+  }
+
+  immBegin(GPU_PRIM_TRI_FAN, 4);
+
+  rctf preview;
+  BLI_rctf_init(&preview, 0.0f, 1.0f, 0.0f, 1.0f);
+  if (draw_flip) {
+    if (draw_flip[0]) {
+      SWAP(float, preview.xmin, preview.xmax);
     }
+    if (draw_flip[1]) {
+      SWAP(float, preview.ymin, preview.ymax);
+    }
+  }
+
+  immAttr2f(texCoord, preview.xmin, preview.ymin);
+  immVertex2f(pos, canvas->xmin, canvas->ymin);
+
+  immAttr2f(texCoord, preview.xmin, preview.ymax);
+  immVertex2f(pos, canvas->xmin, canvas->ymax);
+
+  immAttr2f(texCoord, preview.xmax, preview.ymax);
+  immVertex2f(pos, canvas->xmax, canvas->ymax);
+
+  immAttr2f(texCoord, preview.xmax, preview.ymin);
+  immVertex2f(pos, canvas->xmax, canvas->ymin);
+
+  immEnd();
+
+  GPU_texture_unbind(texture);
+  GPU_texture_free(texture);
+
+  if (!glsl_used) {
+    immUnbindProgram();
   }
   else {
     IMB_colormanagement_finish_glsl_draw();
