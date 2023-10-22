@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Prepass that voxelizes an object on frustum aligned voxels.
+ * Pre-pass that voxelizes an object on frustum aligned voxels.
  *
  * There is two method available:
  *
@@ -18,8 +18,8 @@
  * - Accurate method:
  *   For each fragment we write the fragment depth
  *   in a list (contained in one array texture). This list
- *   is then processed by a fullscreen pass (see
- *   eevee_occupancy_convert_frag.glsl) that sorts and
+ *   is then processed by a full-screen pass (see
+ *   `eevee_occupancy_convert_frag.glsl`) that sorts and
  *   converts all the hits to the occupancy bits. This
  *   emulate Cycles behavior by considering only back-face
  *   hits as exit events and front-face hits as entry events.
@@ -57,7 +57,7 @@ void main()
     OccupancyBits occupancy_bits = occupancy_from_depth(volume_z, uniform_buf.volumes.tex_size.z);
     for (int i = 0; i < imageSize(occupancy_img).z; i++) {
       /* Negate occupancy bits before XORing so that meshes clipped by the near plane fill the
-       * space betwen the inner part of the mesh and the near plane.
+       * space between the inner part of the mesh and the near plane.
        * It doesn't change anything for closed meshes. */
       occupancy_bits.bits[i] = ~occupancy_bits.bits[i];
       if (occupancy_bits.bits[i] != 0u) {

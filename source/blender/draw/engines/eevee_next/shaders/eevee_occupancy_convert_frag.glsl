@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Convert hit list to occupancy bitfield for the material pass.
+ * Convert hit list to occupancy bit-field for the material pass.
  */
 
 #pragma BLENDER_REQUIRE(eevee_occupancy_lib.glsl)

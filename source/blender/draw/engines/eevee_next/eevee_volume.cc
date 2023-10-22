@@ -155,7 +155,7 @@ void VolumeModule::end_sync()
                          GPU_ATTACHMENT_TEXTURE_LAYER(prop_extinction_tx_, 0));
   }
   else {
-    /* Empty framebuffer. */
+    /* Empty frame-buffer. */
     occupancy_fb_.ensure(data_.tex_size.xy());
   }
 

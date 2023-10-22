@@ -34,7 +34,7 @@ void main()
   nodetree_surface();
 
 #  ifdef MAT_FORWARD
-  /* Prepass only allows fully opaque areas to cut through all transparent layers. */
+  /* Pre-pass only allows fully opaque areas to cut through all transparent layers. */
   float threshold = 0.0;
 #  else
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);

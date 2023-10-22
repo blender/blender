@@ -194,14 +194,14 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
     /* Check for overlong sequences for each different length */
     switch (ab) {
       case 1:
-        /* Check for xx00 000x */
+        /* Check for: XX00 000X. */
         if ((c & 0x3e) == 0) {
           goto utf8_error;
         }
         continue; /* We know there aren't any more bytes to check */
 
       case 2:
-        /* Check for 1110 0000, xx0x xxxx */
+        /* Check for: 1110 0000, XX0X XXXX. */
         if (c == 0xe0 && (*p & 0x20) == 0) {
           goto utf8_error;
         }
@@ -243,28 +243,28 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
         break;
 
       case 3:
-        /* Check for 1111 0000, xx00 xxxx */
+        /* Check for: 1111 0000, XX00 XXXX. */
         if (c == 0xf0 && (*p & 0x30) == 0) {
           goto utf8_error;
         }
         break;
 
       case 4:
-        /* Check for 1111 1000, xx00 0xxx */
+        /* Check for 1111 1000, XX00 0XXX. */
         if (c == 0xf8 && (*p & 0x38) == 0) {
           goto utf8_error;
         }
         break;
 
       case 5:
-        /* Check for 1111 1100, xx00 00xx */
+        /* Check for: 1111 1100, XX00 00XX. */
         if (c == 0xfc && (*p & 0x3c) == 0) {
           goto utf8_error;
         }
         break;
     }
 
-    /* Check for valid bytes after the 2nd, if any; all must start 10 */
+    /* Check for valid bytes after the 2nd, if any; all must start 10. */
     while (--ab > 0) {
       p++;
       length--;

@@ -251,7 +251,7 @@ struct Render;
  * the WorkScheduler controls the devices and selects the device where a
  * WorkPackage will be calculated.
  *
- * \subsection WS_Devices Workscheduler
+ * \subsection WS_Devices Work-scheduler
  * The WorkScheduler controls all Devices.
  * When initializing the compositor the WorkScheduler selects all
  * devices that will be used during compositor.

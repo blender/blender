@@ -859,7 +859,7 @@ enum class CyclicalMode : int8_t {
   CLOSE,
   /* Sets all strokes to not cycle. */
   OPEN,
-  /* Switchs the cyclic state of the strokes. */
+  /* Switches the cyclic state of the strokes. */
   TOGGLE,
 };
 

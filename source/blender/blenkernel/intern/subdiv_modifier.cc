@@ -134,7 +134,7 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const Scene *scene,
     return false;
   }
 
-  /* Deactivate GPU subdivision if autosmooth or custom split normals are used as those are
+  /* Deactivate GPU subdivision if auto-smooth or custom split normals are used as those are
    * complicated to support on GPU, and should really be separate workflows. */
   if (BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh)) {
     return false;

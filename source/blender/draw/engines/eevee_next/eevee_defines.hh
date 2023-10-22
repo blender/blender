@@ -186,7 +186,7 @@
 #define VOLUME_PROP_EMISSION_IMG_SLOT 2
 #define VOLUME_PROP_PHASE_IMG_SLOT 3
 #define VOLUME_OCCUPANCY_SLOT 4
-/* Only during volume prepass. */
+/* Only during volume pre-pass. */
 #define VOLUME_HIT_DEPTH_SLOT 0
 #define VOLUME_HIT_COUNT_SLOT 1
 /* Only during shadow rendering. */

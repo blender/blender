@@ -55,7 +55,7 @@ class VolumeModule {
   /**
    * Occupancy map that allows to fill froxels that are inside the geometry.
    * It is filled during a pre-pass using atomic operations.
-   * Using a 3D bitfield, we only allocate one bit per froxel.
+   * Using a 3D bit-field, we only allocate one bit per froxel.
    */
   Texture occupancy_tx_ = {"occupancy_tx"};
   /**
@@ -65,7 +65,7 @@ class VolumeModule {
    */
   Texture hit_count_tx_ = {"hit_count_tx"};
   Texture hit_depth_tx_ = {"hit_depth_tx"};
-  /** Empty framebuffer for occupancy pass. */
+  /** Empty frame-buffer for occupancy pass. */
   Framebuffer occupancy_fb_ = {"occupancy_fb"};
 
   /* Material Parameters */

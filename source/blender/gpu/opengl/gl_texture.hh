@@ -207,7 +207,7 @@ inline GLenum to_gl_internal_format(eGPUTextureFormat format)
       return GL_R16F;
     case GPU_R16:
       return GL_R16;
-    /* Special formats texture & renderbuffer */
+    /* Special formats texture & render-buffer. */
     case GPU_RGB10_A2:
       return GL_RGB10_A2;
     case GPU_RGB10_A2UI:
@@ -423,7 +423,7 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
     case GPU_R16UI:
     case GPU_R16I:
       return GL_RED_INTEGER;
-    /* Special formats texture & renderbuffer */
+    /* Special formats texture & render-buffer. */
     case GPU_RGB10_A2UI:
     case GPU_RGB10_A2:
     case GPU_SRGB8_A8:

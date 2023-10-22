@@ -894,7 +894,7 @@ static bool blf_glyph_set_variation_float(FontBLF *font,
 }
 
 /**
- * Set the "wght" (Weight) axis to a specific weight value.
+ * Set the #BLF_VARIATION_AXIS_WEIGHT (Weight) axis to a specific weight value.
  *
  * \param coords: Array of design coordinates, per axis.
  * \param weight: Weight class value (1-1000 allowed, 100-900 typical).
@@ -913,7 +913,7 @@ static float blf_glyph_set_variation_weight(FontBLF *font,
 }
 
 /**
- * Set the "slnt" (Slant) axis to a specific slant value.
+ * Set the #BLF_VARIATION_AXIS_SLANT (Slant) axis to a specific slant value.
  *
  * \param coords: Array of design coordinates, per axis.
  * \param degrees: Slant in clockwise (opposite to spec) degrees.
@@ -932,7 +932,7 @@ static float blf_glyph_set_variation_slant(FontBLF *font,
 }
 
 /**
- * Set the "wdth" (Width) axis to a specific width value.
+ * Set the #BLF_VARIATION_AXIS_WIDTH (Width) axis to a specific width value.
  *
  * \param coords: Array of design coordinates, per axis.
  * \param width: Glyph width value. 1.0 is normal, as per spec (which uses percent).
@@ -951,7 +951,7 @@ static float blf_glyph_set_variation_width(FontBLF *font,
 }
 
 /**
- * Set the proposed "spac" (Spacing) axis to a specific value.
+ * Set the proposed #BLF_VARIATION_AXIS_SPACING (Spacing) axis to a specific value.
  *
  * \param coords: Array of design coordinates, per axis.
  * \param spacing: Glyph spacing value. 0.0 is normal, as per spec.
@@ -970,7 +970,7 @@ static float blf_glyph_set_variation_spacing(FontBLF *font,
 }
 
 /**
- * Set the "opsz" (Optical Size) axis to a specific size value.
+ * Set the #BLF_VARIATION_AXIS_OPTSIZE (Optical Size) axis to a specific size value.
  *
  * \param coords: Array of design coordinates, per axis.
  * \param points: Non-zero size in typographic points.

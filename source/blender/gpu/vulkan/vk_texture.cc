@@ -421,7 +421,7 @@ static VkImageCreateFlagBits to_vk_image_create(const eGPUTextureType texture_ty
     result = static_cast<VkImageCreateFlagBits>(result | VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
   }
 
-  /* sRGB textures needs to be mutable as they can be used as non-sRGB framebuffer attachments. */
+  /* sRGB textures needs to be mutable as they can be used as non-sRGB frame-buffer attachments. */
   if (usage & GPU_TEXTURE_USAGE_ATTACHMENT && format_flag & GPU_FORMAT_SRGB) {
     result = static_cast<VkImageCreateFlagBits>(result | VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT);
   }

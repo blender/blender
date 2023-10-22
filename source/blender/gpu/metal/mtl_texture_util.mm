@@ -96,7 +96,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatR16Float;
     case GPU_R16:
       return MTLPixelFormatR16Unorm;
-    /* Special formats texture & renderbuffer */
+    /* Special formats texture & render-buffer. */
     case GPU_RGB10_A2:
       return MTLPixelFormatRGB10A2Unorm;
     case GPU_RGB10_A2UI:
