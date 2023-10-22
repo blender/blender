@@ -33,6 +33,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 #include "BKE_scene.h"
@@ -2178,6 +2179,17 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
         /* try to delete the layer's data and the layer itself */
         BKE_gpencil_layer_delete(gpd, gpl);
         ale->update = ANIM_UPDATE_DEPS;
+
+        /* Free Grease Pencil data block when last annotation layer is removed, see: #112683. */
+        if (gpd->flag & GP_DATA_ANNOTATIONS && gpd->layers.first == NULL) {
+          BKE_gpencil_free_data(gpd, true);
+
+          Scene *scene = CTX_data_scene(C);
+          scene->gpd = NULL;
+
+          Main *bmain = CTX_data_main(C);
+          BKE_id_free_us(bmain, gpd);
+        }
         break;
       }
       case ANIMTYPE_MASKLAYER: {

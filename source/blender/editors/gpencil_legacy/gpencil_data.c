@@ -342,6 +342,17 @@ static int gpencil_layer_remove_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, NULL);
 
+  /* Free Grease Pencil data block when last annotation layer is removed, see: #112683. */
+  if (is_annotation && gpd->layers.first == NULL) {
+    BKE_gpencil_free_data(gpd, true);
+
+    bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, NULL);
+    *gpd_ptr = NULL;
+
+    Main *bmain = CTX_data_main(C);
+    BKE_id_free_us(bmain, gpd);
+  }
+
   return OPERATOR_FINISHED;
 }
 
