@@ -979,10 +979,16 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
      * which isn't cheap to check. */
     uiLayout *sub = uiLayoutColumn(layout, true);
     uiLayoutSetEnabled(sub, !id->asset_data);
-    uiItemO(sub, IFACE_("Mark as Asset"), ICON_ASSET_MANAGER, "ASSET_OT_mark_single");
+    uiItemO(sub,
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark as Asset"),
+            ICON_ASSET_MANAGER,
+            "ASSET_OT_mark_single");
     sub = uiLayoutColumn(layout, true);
     uiLayoutSetEnabled(sub, id->asset_data);
-    uiItemO(sub, IFACE_("Clear Asset"), ICON_NONE, "ASSET_OT_clear_single");
+    uiItemO(sub,
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Asset"),
+            ICON_NONE,
+            "ASSET_OT_clear_single");
     uiItemS(layout);
   }
 

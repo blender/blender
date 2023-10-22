@@ -3485,6 +3485,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_anim_mode");
   RNA_def_property_enum_items(prop, rna_enum_snap_animation_element_items);
   RNA_def_property_ui_text(prop, "Snap Anim Element", "Type of element to snap to");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   /* image editor uses own set of snap modes */

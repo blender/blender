@@ -24,6 +24,10 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
+#include "BLI_string.h"
+
+#include "BLT_translation.h"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -241,6 +245,16 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int geometry_attribute_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  PropertyRNA *prop;
+  prop = RNA_struct_find_property(op->ptr, "name");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_string_set(op->ptr, prop, DATA_("Attribute"));
+  }
+  return WM_operator_props_popup_confirm(C, op, event);
+}
+
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
@@ -251,7 +265,7 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = geometry_attributes_poll;
   ot->exec = geometry_attribute_add_exec;
-  ot->invoke = WM_operator_props_popup_confirm;
+  ot->invoke = geometry_attribute_add_invoke;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -259,7 +273,10 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
 
-  prop = RNA_def_string(ot->srna, "name", "Attribute", MAX_NAME, "Name", "Name of new attribute");
+  /* The default name of the new attribute can be translated if new data translation is enabled,
+   * but since the user can choose it at invoke time, the translation happens in the invoke
+   * callback instead of here. */
+  prop = RNA_def_string(ot->srna, "name", nullptr, MAX_NAME, "Name", "Name of new attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_enum(ot->srna,
@@ -346,6 +363,16 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
   return OPERATOR_FINISHED;
+}
+
+static int geometry_color_attribute_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  PropertyRNA *prop;
+  prop = RNA_struct_find_property(op->ptr, "name");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_string_set(op->ptr, prop, DATA_("Color"));
+  }
+  return WM_operator_props_popup_confirm(C, op, event);
 }
 
 enum class ConvertAttributeMode {
@@ -454,7 +481,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = geometry_attributes_poll;
   ot->exec = geometry_color_attribute_add_exec;
-  ot->invoke = WM_operator_props_popup_confirm;
+  ot->invoke = geometry_color_attribute_add_invoke;
   ot->ui = geometry_color_attribute_add_ui;
 
   /* flags */
@@ -463,8 +490,11 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
 
+  /* The default name of the new attribute can be translated if new data translation is enabled,
+   * but since the user can choose it at invoke time, the translation happens in the invoke
+   * callback instead of here. */
   prop = RNA_def_string(
-      ot->srna, "name", "Color", MAX_NAME, "Name", "Name of new color attribute");
+      ot->srna, "name", nullptr, MAX_NAME, "Name", "Name of new color attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_enum(ot->srna,
