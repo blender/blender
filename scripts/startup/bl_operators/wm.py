@@ -1672,7 +1672,8 @@ class WM_OT_properties_edit(Operator):
             self.soft_max_float = rna_data["soft_max"]
             self.precision = rna_data["precision"]
             self.step_float = rna_data["step"]
-            self.subtype = rna_data["subtype"]
+            if rna_data["subtype"] in self.subtype_items_cb(None):
+                self.subtype = rna_data["subtype"]
             self.use_soft_limits = (
                 self.min_float != self.soft_min_float or
                 self.max_float != self.soft_max_float
