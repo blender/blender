@@ -283,7 +283,7 @@ IDTypeInfo IDType_ID_MC = {
     /*main_listbase_index*/ INDEX_ID_MC,
     /*struct_size*/ sizeof(MovieClip),
     /*name*/ "MovieClip",
-    /*name_plural*/ N_("movie clips"),
+    /*name_plural*/ N_("movieclips"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MOVIECLIP,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
