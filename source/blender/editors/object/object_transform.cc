@@ -1261,7 +1261,7 @@ enum {
   ORIGIN_TO_CENTER_OF_MASS_VOLUME,
 };
 
-static float3 calculate_mean(const blender::Span<blender::float3> values)
+static float3 arithmetic_mean(const blender::Span<blender::float3> values)
 {
   if (values.is_empty()) {
     return float3(0);
@@ -1706,7 +1706,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         cent = math::midpoint(bounds.min, bounds.max);
       }
       else if (around == V3D_AROUND_CENTER_MEDIAN) {
-        cent = calculate_mean(curves.positions());
+        cent = arithmetic_mean(curves.positions());
       }
 
       tot_change++;
@@ -1737,7 +1737,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
       }
       else if (around == V3D_AROUND_CENTER_MEDIAN) {
-        cent = calculate_mean(positions.span);
+        cent = arithmetic_mean(positions.span);
       }
 
       tot_change++;
