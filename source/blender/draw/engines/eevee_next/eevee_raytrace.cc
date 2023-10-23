@@ -393,10 +393,13 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   if (use_bilateral_denoise) {
     denoise_buf->denoised_bilateral_tx.acquire(extent, RAYTRACE_RADIANCE_FORMAT);
     denoised_bilateral_tx_ = denoise_buf->denoised_bilateral_tx;
+    /* Swap back for one last use. */
+    TextureFromPool::swap(tile_mask_tx_, denoise_buf->tilemask_history_tx);
 
     inst_.manager->submit(*denoise_bilateral_ps, render_view);
 
     /* Swap after last use. */
+    TextureFromPool::swap(tile_mask_tx_, denoise_buf->tilemask_history_tx);
     TextureFromPool::swap(denoise_buf->denoised_temporal_tx, denoise_buf->radiance_history_tx);
     TextureFromPool::swap(denoise_variance_tx_, denoise_buf->variance_history_tx);
 
