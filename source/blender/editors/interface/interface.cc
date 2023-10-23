@@ -2490,7 +2490,8 @@ bool ui_but_is_unit(const uiBut *but)
   }
 
   if (unit->system == USER_UNIT_NONE) {
-    if (unit_type != PROP_UNIT_ROTATION) {
+    /* These types have units irrespective of scene units. */
+    if (!ELEM(unit_type, PROP_UNIT_ROTATION, PROP_UNIT_TIME_ABSOLUTE)) {
       return false;
     }
   }
