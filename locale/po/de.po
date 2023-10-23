@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -40130,10 +40130,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Das UV-Layout in ein Bitmap-Bild exportieren"
 
 
-msgid "Modified"
-msgstr "Modifizieren"
-
-
 msgctxt "Operator"
 msgid "Follow Active Quads"
 msgstr "Aktiven Quads folgen"
@@ -61281,16 +61277,16 @@ msgid "No object to apply orientation on"
 msgstr "Keine Objekte um die Orientierung zu übernehmen"
 
 
-msgid "File path"
-msgstr "Dateipfad"
-
-
 msgid "Today"
 msgstr "Heute"
 
 
 msgid "Yesterday"
 msgstr "Gestern"
+
+
+msgid "File path"
+msgstr "Dateipfad"
 
 
 msgid "File does not exist"
@@ -63578,6 +63574,10 @@ msgstr "Datei kann nicht geöffnet werden"
 
 msgid "File Not Found"
 msgstr "Datei nicht gefunden"
+
+
+msgid "Modified"
+msgstr "Modifizieren"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"

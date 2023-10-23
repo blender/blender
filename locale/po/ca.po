@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2023-10-16 00:54+0000\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-23 02:54+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -688,7 +688,7 @@ msgstr "Lapse de fotogrames"
 
 
 msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
-msgstr "[Frame Step]: Nombre de fotogrames entre trajectes a visualitzar (no apte per al mètode de transparència «en fotofites» )"
+msgstr "[Frame Step]: Nombre de fotogrames entre trajectes a visualitzar (no apte per al mètode de pell de ceba «en fotofites» )"
 
 
 msgid "Has Motion Paths"
@@ -3961,7 +3961,7 @@ msgstr "Indicacions no editables d'operacions admeses"
 
 
 msgid "Has Overlay"
-msgstr "Té bambolina"
+msgstr "Té superposició"
 
 
 msgid "Has Random Texture Angle"
@@ -10873,7 +10873,7 @@ msgstr "OpenEXR"
 
 
 msgid "Output Path"
-msgstr "Camí d'egressions"
+msgstr "Ruta d'egressions"
 
 
 msgid "Directory to save the textures"
@@ -11918,7 +11918,7 @@ msgstr "Egressió sense pèrdua"
 
 
 msgid "Use lossless output for video streams"
-msgstr "[Lossless Output]: Genera fluxos de vídeo sense cap compressió ni pèrdua"
+msgstr "[Lossless Output]: Genera egressions de vídeo sense cap compressió ni pèrdua"
 
 
 msgid "Use Max B-Frames"
@@ -15068,7 +15068,7 @@ msgstr "[UV]: Utilitza la capa UV per a les coordenades de textura"
 
 
 msgid "Z-offset of texture mapping"
-msgstr "Desplaçament de Z en el mapejat de textura"
+msgstr "Desplaçament en Z del mapejat de textura"
 
 
 msgid "Size of texture mapping"
@@ -15516,7 +15516,7 @@ msgstr "Com a passada de revelat"
 
 
 msgid "Renders Freestyle output to a separate pass instead of overlaying it on the Combined pass"
-msgstr "[As Render Pass]: Revela l'egressió del Freestyle en una passada per separat en lloc de sobreposar-lo en la passada combinada"
+msgstr "[As Render Pass]: Revela l'egressió del Freestyle en una passada per separat en lloc de superposar-lo en la passada combinada"
 
 
 msgid "Crease Angle"
@@ -16068,7 +16068,7 @@ msgstr "[Use Mask]: La visibilitat dels dibuixos d'aquesta capa es veu afectada 
 
 
 msgid "Display onion skins before and after the current frame"
-msgstr "Mostrar en pells de ceba l'abans i després del fotograma actual"
+msgstr "Mostrar pells de ceba l'abans i després del fotograma actual"
 
 
 msgid "Solo Mode"
@@ -17911,7 +17911,7 @@ msgstr "El valor d'intensitat dels traços generats"
 
 
 msgid "Overscan"
-msgstr "Desbordament"
+msgstr "Margenar"
 
 
 msgid "A margin to prevent strokes from ending abruptly at the edge of the image"
@@ -18199,7 +18199,7 @@ msgstr "Retall de contorn d'imatge"
 
 
 msgid "Trim all edges right at the boundary of image (including overscan region)"
-msgstr "[Image Boundary Trimming]: Retalla totes les arestes just al contorn de la imatge (incloent-hi la regió de desbordament)"
+msgstr "[Image Boundary Trimming]: Retalla totes les arestes just al contorn de la imatge (incloent-hi la regió margenera)"
 
 
 msgid "Use Intersection"
@@ -18331,11 +18331,11 @@ msgstr "[Match Output]: Fa coincidir el grup de vèrtexs egressiu en base al nom
 
 
 msgid "Overlapping Edge Types"
-msgstr "Tipus d'arestes solapats"
+msgstr "Tipus d'arestes solapades"
 
 
 msgid "Allow an edge to have multiple overlapping types. This will create a separate stroke for each overlapping type"
-msgstr "[Overlapping Edge Types]: Permet que una aresta tingui múltiples tipus superposats. Això crearà un traç separat per a cada tipus de superposició"
+msgstr "[Overlapping Edge Types]: Permet que una aresta tingui múltiples tipus solapats. Això crearà un traç separat per a cada tipus de solapament"
 
 
 msgid "Use Shadow"
@@ -19319,7 +19319,7 @@ msgstr "Dades extraviades"
 
 
 msgid "This data-block is a place-holder for missing linked data (i.e. it is [an override of] a linked data that could not be found anymore)"
-msgstr "Aquest bloc de dades és un lloc-tinent de dades vinculades extraviades (és a dir, un [sobreseïment de] dades vinculades que ja no s'han pogut trobar)"
+msgstr "Aquest bloc de dades és un lloc-tinent de dades vinculades extraviades (és a dir, són [un sobreseïment de] dades vinculades que ja no s'han pogut trobar)"
 
 
 msgid "Runtime Data"
@@ -19736,7 +19736,7 @@ msgstr "Usar l'afegiment del mode de fusió mentre es pinta"
 
 
 msgid "Use Overlay blending mode while painting"
-msgstr "Usar el mode de fusió de sobreposició mentre es pinta"
+msgstr "Usar el mode de fusió de superposició mentre es pinta"
 
 
 msgid "Use Soft Light blending mode while painting"
@@ -20090,7 +20090,7 @@ msgstr "[Subtract Color]: Color del cursor en sostreure"
 
 
 msgid "Mask Texture Overlay Alpha"
-msgstr "Màscara alfa de sobrecobert de textura"
+msgstr "Màscara alfa de sobreimpressió de textura"
 
 
 msgid "Editable falloff curve"
@@ -21075,7 +21075,7 @@ msgstr "[Shape Preservation]: Fins a quin punt la forma original es conserva en 
 
 
 msgid "Texture Overlay Alpha"
-msgstr "Alfa de sobrecobert de textura"
+msgstr "Alfa de sobreimpressió de textura"
 
 
 msgid "Texture Sample Bias"
@@ -21255,7 +21255,7 @@ msgstr "[Connected Only]: Afecta només els elements connectats topològicament"
 
 
 msgid "Use Cursor Overlay"
-msgstr "Usar sobreposat de cursor"
+msgstr "Usar sobreimpressió de cursor"
 
 
 msgid "Show cursor in viewport"
@@ -21263,11 +21263,11 @@ msgstr "[Use Cursor Overlay]: Mostra el cursor al mirador"
 
 
 msgid "Override Overlay"
-msgstr "Sobreseure bambolina"
+msgstr "Sobreseure sobreimpressió"
 
 
 msgid "Don't show overlay during a stroke"
-msgstr "[Override Overlay]: No mostra la bambolina durant un traç"
+msgstr "[Override Overlay]: No mostra la sobreimpressió durant un traç"
 
 
 msgid "Define the stroke curve with a bezier curve. Dabs are separated according to spacing"
@@ -21539,7 +21539,7 @@ msgstr "[Strength Pressure]: Activa en la tauleta la sensibilitat a la pressió 
 
 
 msgid "Use Texture Overlay"
-msgstr "Usar bambolina de textura"
+msgstr "Usar sobreimpressió de textura"
 
 
 msgid "Show texture in viewport"
@@ -21998,7 +21998,7 @@ msgstr "Alfa del passepartout"
 
 
 msgid "Opacity (alpha) of the darkened overlay in Camera view"
-msgstr "[Passepartout Alpha]: Opacitat (alfa) de la bambolina enfosquida des de la vista de càmera"
+msgstr "[Passepartout Alpha]: Opacitat (alfa) de la sobreimpressió enfosquida des de la vista de càmera"
 
 
 msgid "Sensor Fit"
@@ -22154,7 +22154,7 @@ msgstr "Mostrar passepartout"
 
 
 msgid "Show a darkened overlay outside the image area in Camera view"
-msgstr "Mostra una bambolina fosca per fora de l'àrea de la imatge en la vista de càmera"
+msgstr "Mostra una sobreimpressió fosca per fora de l'àrea de la imatge en la vista de càmera"
 
 
 msgid "Show Safe Areas"
@@ -23782,11 +23782,11 @@ msgstr "Capes"
 
 
 msgid "Onion Opacity"
-msgstr "Opacitat de transparència"
+msgstr "Opacitat de la ceba"
 
 
 msgid "Change fade opacity of displayed onion frames"
-msgstr "[Onion Opacity]: Canvia l'opacitat de transparència dels fotogrames que es mostren"
+msgstr "[Onion Opacity]: Canvia l'opacitat de dels fotogrames que es mostren en pell de ceba"
 
 
 msgid "Filter by Type"
@@ -23918,7 +23918,7 @@ msgstr "[Multiframe]: Edita els traços de múltiples fotofites de llapis de gre
 
 
 msgid "Display onion keyframes with a fade in color transparency"
-msgstr "Mostrar fotofites de transparència amb un esvaïment en la transparència de color"
+msgstr "Mostrar fotofites de pell de ceba amb un esvaïment en la transparència de color"
 
 
 msgid "Show Start Frame"
@@ -23926,7 +23926,7 @@ msgstr "Mostrar fotograma d'inici"
 
 
 msgid "Display onion keyframes for looping animations"
-msgstr "[Show Start Frame]: Mostra fotofites de transparència per a les animacions en bucle"
+msgstr "[Show Start Frame]: Mostra fotofites de pell de ceba per a les animacions en bucle"
 
 
 msgid "Onion Skins"
@@ -30531,7 +30531,7 @@ msgstr "ID de biblioteca de sobreseïments"
 
 
 msgid "Struct gathering all data needed by overridden linked IDs"
-msgstr "Struct que recopila totes les dades necessàries per als ID vinculats sobreseguts"
+msgstr "Struct que recopila totes les dades necessàries per als IDs vinculats sobreseguts"
 
 
 msgid "Hierarchy Root ID"
@@ -34533,15 +34533,15 @@ msgstr "Calcular forats"
 
 
 msgid "Calculate holes when filling overlapping curves"
-msgstr "[Calculate Holes]: Calcula forats en emplenar corbes que se superposen"
+msgstr "[Calculate Holes]: Calcula forats en emplenar corbes que se solapen"
 
 
 msgid "Calculate Overlap"
-msgstr "Calcular superposició"
+msgstr "Calcular solapament"
 
 
 msgid "Calculate self intersections and overlap before filling"
-msgstr "[Calculate Overlap]: Calcula les autointerseccions i superposicions abans d'emplenar"
+msgstr "[Calculate Overlap]: Calcula les autointerseccions i solapament abans d'emplenar"
 
 
 msgid "Mask Layers"
@@ -34954,11 +34954,11 @@ msgstr "Suprimir el color de sota d'aquest traç utilitzant-lo com a màscara"
 
 
 msgid "Self Overlap"
-msgstr "Autosuperposició"
+msgstr "Autosolapament"
 
 
 msgid "Disable stencil and overlap self intersections with alpha materials"
-msgstr "[Self Overlap]: Desactiva autointerseccions de plantilles i superposicions amb materials alfa"
+msgstr "[Self Overlap]: Desactiva autointerseccions de plantilles i solapaments amb materials alfa"
 
 
 msgid "Material Line Art"
@@ -36073,11 +36073,11 @@ msgstr "[Distort Min]: Angle mínim per mostrar"
 
 
 msgid "Overhang Max"
-msgstr "Penjament màx"
+msgstr "Protrusió màx"
 
 
 msgid "Overhang Min"
-msgstr "Penjament mín"
+msgstr "Protrusió mín"
 
 
 msgid "Sharpness Max"
@@ -36117,7 +36117,7 @@ msgstr "Tipus de dades a visualitzar/comprovar"
 
 
 msgid "Overhang"
-msgstr "Penjament"
+msgstr "Protrusió"
 
 
 msgid "Intersect"
@@ -36337,7 +36337,7 @@ msgstr "A la gàbia"
 
 
 msgid "Adjust edit cage to modifier result"
-msgstr "[On Cage]: Ajusta l'edició de la gàbia d'edició al resultat modificador"
+msgstr "[On Cage]: Ajusta la gàbia d'edició al resultat modificador"
 
 
 msgid "Data Transfer"
@@ -37069,7 +37069,7 @@ msgstr "Retenir solapament"
 
 
 msgid "Clamp the width to avoid overlap"
-msgstr "[Clamp Overlap]: Reté l'amplada per evitar superposicions"
+msgstr "[Clamp Overlap]: Reté l'amplada per evitar solapaments"
 
 
 msgid "Vertex group name"
@@ -37141,7 +37141,7 @@ msgstr "Llindar de solapament"
 
 
 msgid "Threshold for checking overlapping geometry"
-msgstr "[Overlap threshold]: Llindar per comprovar la geometria que se superposa"
+msgstr "[Overlap threshold]: Llindar per comprovar la geometria que se solapa"
 
 
 msgid "Material Mode"
@@ -39208,7 +39208,7 @@ msgstr "Desplaçament de partícules"
 
 
 msgid "Relative offset of particles to use for instancing, to avoid overlap of multiple instances"
-msgstr "[Particle Offset]: Desplaçament relatiu de les partícules per la instanciació, per evitar la superposició de múltiples instàncies"
+msgstr "[Particle Offset]: Desplaçament relatiu de les partícules per la instanciació, per evitar el solapament de múltiples instàncies"
 
 
 msgid "Particle System Number"
@@ -42290,7 +42290,7 @@ msgstr "Autofosa d'entrada/sortida"
 
 
 msgid "Number of frames for Blending In/Out is automatically determined from overlapping strips"
-msgstr "[Auto Blend In/Out]: El nombre de fotogrames per a fosa d'entrada/sortida es determina automàticament a partir de la superposició de segments"
+msgstr "[Auto Blend In/Out]: El nombre de fotogrames per a fosa d'entrada/sortida es determina automàticament a partir del solapament de segments"
 
 
 msgid "NLA Strip is played back in reverse order (only when timing is automatically determined)"
@@ -43252,7 +43252,7 @@ msgstr "Criptoclapa (antic)"
 
 
 msgid "Add object or material to matte, by picking a color from the Pick output"
-msgstr "[Cryptomatte (Legacy)]: Afegir un objecte o material a la clapa, seleccionant un color del born de triar sortida"
+msgstr "[Cryptomatte (Legacy)]: Afegir un objecte o material a la clapa, seleccionant un color amb Selecció manual"
 
 
 msgid "Matte Objects"
@@ -43264,7 +43264,7 @@ msgstr "[Matte Objects]: Llista d'identificadors de criptoclapes d'objectes i ma
 
 
 msgid "Remove object or material from matte, by picking a color from the Pick output"
-msgstr "Suprimeix l'objecte o el material de la clapa, seleccionant un color del born de triar sortida"
+msgstr "Suprimeix l'objecte o el material de la clapa, seleccionant un color amb Selecció manual"
 
 
 msgid "Cryptomatte"
@@ -44469,7 +44469,7 @@ msgstr "Camí base"
 
 
 msgid "Base output path for the image"
-msgstr "[Base Path]: Camí base d'egressió per a la imatge"
+msgstr "[Base Path]: Ruta base d'egressió per a la imatge"
 
 
 msgid "File Slots"
@@ -50310,7 +50310,7 @@ msgstr "Mètode per fusionar fites enganxades i existents"
 
 
 msgid "Overlay existing with new keys"
-msgstr "Revestir fites existents amb les noves"
+msgstr "Superposar fites existents amb les noves"
 
 
 msgid "Overwrite All"
@@ -56047,10 +56047,6 @@ msgid "Apply sampling to all animations"
 msgstr "[Always Sample Animations]: Aplica el mostreig a totes les animacions"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "Egressa format i opcions d'incrustació. El binari és el més eficient, però JSON (incrustat o separat) pot ser més fàcil d'editar posteriorment"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "glTF binari (.glb)"
 
@@ -56067,14 +56063,6 @@ msgid "Exports multiple files, with separate JSON, binary and texture data. Easi
 msgstr "Exporta múltiples documents, amb dades JSON, binàries i de textura per separat. Més fàcil d'editar posteriorment"
 
 
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF incrustat (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "Exporta un sol document, amb totes les dades empaquetades en JSON. Menys eficient que el binari, però més fàcil d'editar posteriorment"
-
-
 msgid "Limit to Playback Range"
 msgstr "Limitar a interval de reproducció"
 
@@ -56087,10 +56075,6 @@ msgid "GPU Instances"
 msgstr "Instàncies de GPU"
 
 
-msgid "Export using EXT_mesh_gpu_instancing.Limited to children of a same Empty. multiple Materials might be omitted"
-msgstr "Exporta mitjançant EXT_mesh_gpu_instancing. Limitat a les filles d'un mateix trivi. Pot ser que s'ometin diversos materials"
-
-
 msgid "Flatten Bone Hierarchy"
 msgstr "Aplanar jerarquia d'ossos"
 
@@ -56099,20 +56083,8 @@ msgid "Flatten Bone Hierarchy. Useful in case of non decomposable transformation
 msgstr "[Flatten Bone Hierarchy]: Aplana la jerarquia d'ossos. Útil en el cas d'una matriu de transformació no descomponible"
 
 
-msgid "Create Webp"
-msgstr "Crear Webp"
-
-
-msgid "Creates webp textures for every textures. For already webp textures, nothing happen"
-msgstr "Crea textures webp per a cada textura. En el cas de textures ja webp, no hi fa res"
-
-
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "Format d'egressió per a les imatges. PNG és sense pèrdua i generalment preferible, però JPEG podria ser preferible per a aplicacions web a causa de la mida menor dels documents. Alternativament, es poden ometre si no són necessaris"
-
-
-msgid "Save PNGs as PNGs, JPEGs as JPEGs, WEBPs as WEBPs. If neither one, use PNG"
-msgstr "Desa els PNG com a PNG, els JPEG com a JPEG i els WEBP com a WWBP. Si no és cap d'ells, usa PNG"
 
 
 msgid "JPEG Format (.jpg)"
@@ -56121,14 +56093,6 @@ msgstr "Format JPEG (.jpg)"
 
 msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) Be aware of a possible loss in quality"
 msgstr "Desa les imatges com a JPEG. (Però les imatges que requereixen alfa es desen com a PNG.) Atenció a la possible pèrdua de qualitat"
-
-
-msgid "Webp Format"
-msgstr "Format Webp"
-
-
-msgid "Save images as WEBPs as main image (no fallback)"
-msgstr "Desar les imatges WEBP com a imatge principal (sense alternativa)"
 
 
 msgid "Don't export images"
@@ -56141,14 +56105,6 @@ msgstr "Qualitat d'imatge"
 
 msgid "Quality of image export"
 msgstr "Qualitat d'exportació d'imatge"
-
-
-msgid "Webp fallback"
-msgstr "Alternativa a Webp"
-
-
-msgid "For all webp textures, create a PNG fallback texture."
-msgstr "Per a totes les textures Webp, crear una textura PNG alternativa."
 
 
 msgid "Lighting Mode"
@@ -56385,10 +56341,6 @@ msgstr "Ometent l'accessor espars si les dades estan buides"
 
 msgid "Use Sparse Accessor if better"
 msgstr "Usar accessor espars si va millor"
-
-
-msgid "Try using Sparce Accessor if it save space"
-msgstr "Proveu d'utilitzar accessor espars si estalvia espai"
 
 
 msgid "+Y Up"
@@ -62137,10 +62089,6 @@ msgid "Blender (best for import/export round trip)"
 msgstr "Blender (millor per a importació/exportació reversible)"
 
 
-msgid "Good for re-importing glTFs exported from Blender, and re-exporting glTFs to glTFs after Blender editingBone tips are placed on their local +Y axis (in glTF space)"
-msgstr "Bo per reimportar glTF exportats des de Blender, i reexportar gITs a gITFs després que l'os en edició de Blender es col·loqui en el seu eix local +Y (en l'espai glTF)"
-
-
 msgid "Temperance (average)"
 msgstr "Temprança (mitjana)"
 
@@ -62183,14 +62131,6 @@ msgstr "Usar dades de normals"
 
 msgid "Flat Shading"
 msgstr "Aspecte aplanat"
-
-
-msgid "Import Webp textures"
-msgstr "Importar textures Webp"
-
-
-msgid "If a texture exists in webp format,loads the webp texture instead of the fallback png/jpg one"
-msgstr "Si existeix una textura en format webp, carrega la textura webp en lloc de la alternativa png/jpg"
 
 
 msgid "Log Level"
@@ -62929,7 +62869,7 @@ msgstr "[Bevel]: Secciona els elements seleccionats amb un angle per a crear bis
 
 
 msgid "Do not allow beveled edges/vertices to overlap each other"
-msgstr "No permetre que les arestes / vèrtexs bisellats se superposin entre si"
+msgstr "No permetre que les arestes / vèrtexs bisellats se solapin entre si"
 
 
 msgid "Face Strength Mode"
@@ -64855,11 +64795,11 @@ msgstr "Comprova que la geometria no presenti autointerseccions"
 
 msgctxt "Operator"
 msgid "3D-Print Check Overhang"
-msgstr "Impressió 3D-Comprovar penjaments"
+msgstr "Impressió 3D-Comprovar protrusions"
 
 
 msgid "Check faces don't overhang past a certain angle"
-msgstr "[3D-Print Check Overhang]: Comprova que les cares pengin més enllà d'un angle determinat"
+msgstr "[3D-Print Check Overhang]: Comprova que les no cares sobresurtin més enllà d'un angle determinat"
 
 
 msgctxt "Operator"
@@ -66650,7 +66590,7 @@ msgstr "Cerca un node per nom, l'enfoca i el selecciona"
 
 msgctxt "Operator"
 msgid "glTF Material Output"
-msgstr "Egressió de material glTF"
+msgstr "Sortida de material glTF"
 
 
 msgid "Add a node to the active tree for glTF export"
@@ -73691,7 +73631,7 @@ msgstr "Escriure imatge"
 
 
 msgid "Save rendered the image to the output path (used only when animation is disabled)"
-msgstr "Desa la imatge revelada al camí d'egressió (només usat quan l'animació està desactivada)"
+msgstr "Desa la imatge revelada a la ruta d'egressió (només usat quan l'animació està desactivada)"
 
 
 msgctxt "Operator"
@@ -74600,7 +74540,7 @@ msgstr "Tornar a pantalla anterior"
 
 
 msgid "Revert back to the original screen layout, before fullscreen area overlay"
-msgstr "Torna a la disposició de pantalla original, abans de l'ocupació de l'àrea en pantalla completa"
+msgstr "Torna a la disposició de pantalla original, abans de superposar l'àrea de pantalla completa"
 
 
 msgctxt "Operator"
@@ -74702,7 +74642,7 @@ msgstr "Regió alfa"
 
 
 msgid "Blend in and out overlapping region"
-msgstr "[Region Alpha]: Fusió d'entrada i de sortida de regions superposades"
+msgstr "[Region Alpha]: Fusió d'entrada i de sortida de regions solapades"
 
 
 msgctxt "Operator"
@@ -76124,7 +76064,7 @@ msgstr "Alfa per sota"
 
 
 msgid "Alpha Under effect strip type"
-msgstr "[Alpha Under]: Tipus de segment efecte alfa a sota"
+msgstr "[Alpha Under]: Tipus de segment efecte alfa per sota"
 
 
 msgctxt "Sequence"
@@ -76147,11 +76087,11 @@ msgstr "Tipus de segment efecte multiplicar"
 
 msgctxt "Sequence"
 msgid "Alpha Over Drop"
-msgstr "Alfa a sobre descendent"
+msgstr "Alfa per sobre descendent"
 
 
 msgid "Alpha Over Drop effect strip type"
-msgstr "[Alpha Over Drop]: Tipus de segment amb efecte alfa a sobre en descens"
+msgstr "[Alpha Over Drop]: Tipus de segment amb efecte alfa per sobre descendent"
 
 
 msgctxt "Sequence"
@@ -76327,7 +76267,7 @@ msgstr "Permetre solapament"
 
 
 msgid "Don't correct overlap on new sequence strips"
-msgstr "[Allow Overlap]: No es corregeix la superposició en segments de seqüència nous"
+msgstr "[Allow Overlap]: No es corregeix el solapament en segments de seqüència nous"
 
 
 msgid "Override Overlap Shuffle Behavior"
@@ -76418,7 +76358,7 @@ msgstr "Des del fotograma actual"
 
 
 msgid "Fade from the time cursor to the end of overlapping sequences"
-msgstr "Transició des del cursor de temps fins al final de les seqüències superposades"
+msgstr "Transició des del cursor de temps fins al final de les seqüències solapades"
 
 
 msgid "To Current Frame"
@@ -76902,11 +76842,11 @@ msgstr "[Effect/Linked]: Altres segments afectats per l'actiu (compartint algun 
 
 
 msgid "Overlap"
-msgstr "Superposició"
+msgstr "Solapat"
 
 
 msgid "Overlapping time"
-msgstr "[Overlap]: Temps de superposició"
+msgstr "[Overlap]: Temps de solapament"
 
 
 msgid "Same Channel"
@@ -78053,7 +77993,7 @@ msgstr "[Bend]: Doblega els elements seleccionats entre el cursor 3D i el ratol�
 
 
 msgid "Center Override"
-msgstr "Sobreseïment de centre"
+msgstr "Sobreseure centre"
 
 
 msgid "Force using this center value (when set)"
@@ -78841,7 +78781,7 @@ msgstr "Controlador de pipeta"
 
 
 msgid "Pick a property to use as a driver target"
-msgstr "Xucla una propietat per utilitzar-la com a referent del controlador"
+msgstr "Tria una propietat per utilitzar-la com a referent del controlador"
 
 
 msgid "Mapping Type"
@@ -78857,7 +78797,7 @@ msgstr "Tots des del referent"
 
 
 msgid "Drive all components of this property using the target picked"
-msgstr "[All from Target]: Condueix tots els components d'aquesta propietat usant el referent pescat"
+msgstr "[All from Target]: Condueix tots els components d'aquesta propietat usant el referent triat"
 
 
 msgid "Single from Target"
@@ -79499,10 +79439,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exporta la disposició UV a una imatge de mapa de bits"
 
 
-msgid "Modified"
-msgstr "Modificat"
-
-
 msgid "Exports UVs from the modified mesh"
 msgstr "Exporta UVs des de la malla modificada"
 
@@ -79623,7 +79559,7 @@ msgstr "Factor de fusió entre estirament minimitzat i original"
 
 
 msgid "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry"
-msgstr "Omplir els forats de la malla virtualment abans de desembolcallar, per evitar superposicions i preservar la simetria"
+msgstr "Omplir els forats de la malla virtualment abans de desembolcallar, per evitar solapaments i preservar la simetria"
 
 
 msgid "Number of iterations to run, 0 is unlimited when run interactively"
@@ -79668,11 +79604,11 @@ msgstr "Especificar una fracció precisa de l'egressió final d'UV"
 
 
 msgid "Merge Overlapping"
-msgstr "Fusionar superposades"
+msgstr "Fusionar solapades"
 
 
 msgid "Overlapping islands stick together"
-msgstr "Les illes sobreposades s'ajunten"
+msgstr "Les illes solapades s'ajunten"
 
 
 msgid "Lock Pinned Islands"
@@ -79995,11 +79931,11 @@ msgstr "Seleccionar més vèrtexs UV connectats a la selecció inicial"
 
 msgctxt "Operator"
 msgid "Select Overlap"
-msgstr "[Select Overlap]: Seleccionar superposició"
+msgstr "[Select Overlap]: Seleccionar solapament"
 
 
 msgid "Select all UV faces which overlap each other"
-msgstr "Selecciona totes les cares UV que se superposen entre elles"
+msgstr "Selecciona totes les cares UV que se solapin entre elles"
 
 
 msgctxt "Operator"
@@ -80013,26 +79949,6 @@ msgstr "Selecciona tots els vèrtexs UV fixats"
 
 msgid "Select similar UVs by property types"
 msgstr "Seleccionar UVs similars per tipus de propietat"
-
-
-msgid "Length 3D"
-msgstr "Llargada 3D"
-
-
-msgid "Area 3D"
-msgstr "Àrea 3D"
-
-
-msgid "Polygon Sides"
-msgstr "Costats de polígon"
-
-
-msgid "Winding"
-msgstr "Giratori"
-
-
-msgid "Amount of Faces in Island"
-msgstr "Quantitat de cares a l'illa"
 
 
 msgctxt "Operator"
@@ -84467,7 +84383,7 @@ msgstr "Simetria de vora difusa"
 
 
 msgid "Reduce the strength of the brush where it overlaps symmetrical daubs"
-msgstr "[Symmetry Feathering]: Redueix la força del pinzell on se superposa a pinzellades simètriques"
+msgstr "[Symmetry Feathering]: Redueix la força del pinzell on se solapi a pinzellades simètriques"
 
 
 msgid "Symmetry X"
@@ -85339,7 +85255,7 @@ msgstr "Eina activa"
 
 
 msgid "Overlays"
-msgstr "Bambolines"
+msgstr "Sobreimpressions"
 
 
 msgid "Guides"
@@ -85894,7 +85810,7 @@ msgstr "Paràmetres de simulació"
 
 
 msgid "Sequencer Overlays"
-msgstr "Bambolines de seqüenciador"
+msgstr "Superposicions de seqüenciador"
 
 
 msgid "Strip Cache"
@@ -86001,7 +85917,7 @@ msgstr "Tauleta"
 
 
 msgid "Touchpad"
-msgstr "Ratolí tàctil"
+msgstr "Estora tàctil"
 
 
 msgid "Editors"
@@ -88261,11 +88177,11 @@ msgstr "Alinea els nous objectes afegits a la rotació del cursor 3D"
 
 
 msgid "Sculpt/Paint Overlay Color"
-msgstr "Color bambolina esculpir/pintar"
+msgstr "Color superposició esculpir/pintar"
 
 
 msgid "Color of texture overlay"
-msgstr "Color de bambolina de textura"
+msgstr "Color de superposició de textura"
 
 
 msgid "Only Show Selected F-Curve Keyframes"
@@ -88557,11 +88473,11 @@ msgstr "Activar el codi base nou d'EEVEE, cal reiniciar"
 
 
 msgid "Overlay Next"
-msgstr "Overlay següent"
+msgstr "Superposició següent"
 
 
 msgid "Enable the new Overlay codebase, requires restart"
-msgstr "Activar el nou codi base d'Overlay, cal reiniciar"
+msgstr "Activar el nou codi base de Superposicions, cal reiniciar"
 
 
 msgid "Override Auto Resync"
@@ -88865,7 +88781,7 @@ msgstr "Directori d'egressió de revelat"
 
 
 msgid "The default directory for rendering output, for new scenes"
-msgstr "El directori predeterminat per a la sortida del revelat, per a escenes noves"
+msgstr "El directori predeterminat per a l'egressió del revelat, per a escenes noves"
 
 
 msgid "Save Versions"
@@ -89011,7 +88927,7 @@ msgstr "Llindar d'arrossegament del ratolí"
 
 
 msgid "Number of pixels to drag before a drag event is triggered for mouse/track-pad input (otherwise click events are detected)"
-msgstr "Nombre de píxels a arrossegar abans que s'activi una acció d'arrossegament per a la ingressió de ratolí normal/tàctil (en cas contrari es detecten esdeveniments de clic)"
+msgstr "Nombre de píxels a arrossegar abans que s'activi una acció d'arrossegament per a la ingressió de ratolí/estora tàctil (en cas contrari es detecten esdeveniments de clic)"
 
 
 msgid "Tablet Drag Threshold"
@@ -89311,7 +89227,7 @@ msgstr "Gestos multitàctils"
 
 
 msgid "Use multi-touch gestures for navigation with touchpad, instead of scroll wheel emulation"
-msgstr "[Multi-touch Gestures]: Usa gestos multitàctils per navegar amb ratolí tàctil, en lloc d'emular la roda de desplaçament"
+msgstr "[Multi-touch Gestures]: Usa gestos multitàctils per navegar amb estora tàctil, en lloc d'emular la roda de desplaçament"
 
 
 msgid "Default to Advanced Numeric Input"
@@ -89859,15 +89775,15 @@ msgstr "Activa l'acceleració de la GPU per avaluar els últims modificadors de 
 
 
 msgid "Overlay Smooth Wires"
-msgstr "Suavitzar cables amb bambolines"
+msgstr "Superposar Suavitzar cables"
 
 
 msgid "Enable overlay smooth wires, reducing aliasing"
-msgstr "Activa la suavització de cables amb bambolines, reduint l'aliàsing"
+msgstr "Activa la suavització de cables en superposició, reduint l'aliàsing"
 
 
 msgid "Region Overlap"
-msgstr "Superposar regió"
+msgstr "Solapat de regió"
 
 
 msgid "Display tool/property regions over the main region"
@@ -89875,7 +89791,7 @@ msgstr "Mostra faixes d'eines/propietats sobre la regió principal"
 
 
 msgid "GPU Depth Picking"
-msgstr "Selector de profunditat de GPU"
+msgstr "Seleccionar profunditat de GPU"
 
 
 msgid "When making a selection in 3D View, use the GPU depth buffer to ensure the frontmost object is selected first"
@@ -90502,7 +90418,7 @@ msgid ""
 "Enable a fresnel effect on edit mesh overlays.\n"
 "It improves shape readability of very dense meshes, but increases eye fatigue when modeling lower poly"
 msgstr ""
-"Activar un efecte Fresnel en l'edició de sobreposicions de malla.\n"
+"Activar un efecte Fresnel en l'edició de sobreimpressions de malla.\n"
 "Millora la llegibilitat de la forma en malles molt denses, però augmenta la fatiga ocular quan es modela un poli inferior"
 
 
@@ -90719,7 +90635,7 @@ msgstr "Propietat sobreseïble mitjançant RNA"
 
 
 msgid "Path Output"
-msgstr "Egressió de camí"
+msgstr "Egressió de ruta"
 
 
 msgid "Property is a filename, filepath or directory output"
@@ -92857,7 +92773,7 @@ msgstr "Copiar textures"
 
 
 msgid "Copy textures on export to the output path"
-msgstr "En exportar, copia les textures al camí d'egressió"
+msgstr "En exportar, copia les textures a la ruta d'egressió"
 
 
 msgid "Selected UV Element"
@@ -95237,11 +95153,11 @@ msgstr "[Motion steps]: Controla la precisió de la borra el moviment, més pass
 
 
 msgid "Overscan Size"
-msgstr "Mida de desbordament"
+msgstr "Mida de margenació"
 
 
 msgid "Percentage of render size to add as overscan to the internal render buffers"
-msgstr "[Overscan Size]: Percentatge de la mida de revelat que s'afegeix com a desbordament a les memòries intermèdies internes"
+msgstr "[Overscan Size]: Percentatge de la mida de revelat que s'afegeix com a margenació a les memòries intermèdies internes"
 
 
 msgid "Options Split"
@@ -95713,7 +95629,7 @@ msgstr "Transició gamma"
 
 
 msgid "Over Drop"
-msgstr "Des de sobre"
+msgstr "Per sobre descendent"
 
 
 msgid "Y position of the sequence strip"
@@ -95838,7 +95754,7 @@ msgstr "Trans"
 
 msgctxt "Sequence"
 msgid "Over Drop"
-msgstr "Des de sobre"
+msgstr "Per sobre descendent"
 
 
 msgid "Cache Composite"
@@ -96102,7 +96018,7 @@ msgstr "Multiplicar seqüència"
 
 
 msgid "Over Drop Sequence"
-msgstr "Seqüència des de sobre"
+msgstr "Seqüència per sobre descendent"
 
 
 msgid "SpeedControl Sequence"
@@ -96656,7 +96572,7 @@ msgstr "[Meta Stack]: Metaestiba de segments, l'última la que està en edició 
 
 
 msgid "Overlay Offset"
-msgstr "Desfasament de sobrecapa"
+msgstr "Desfasament de superposició"
 
 
 msgid "Number of frames to offset"
@@ -97071,7 +96987,7 @@ msgstr "Escalar seguint l'eix Y"
 
 
 msgid "Preview Overlay Settings"
-msgstr "Configuració de bambolina de previsualització"
+msgstr "Configuració de sobreimpressió de previsualització"
 
 
 msgid "Show Annotation"
@@ -97195,11 +97111,11 @@ msgstr "Paràmetres de l'eina del seqüenciador"
 
 
 msgid "Overlap Mode"
-msgstr "Mode de superposició"
+msgstr "Mode solapament"
 
 
 msgid "How to resolve overlap after transformation"
-msgstr "Com resoldre la superposició després de la transformació"
+msgstr "Com resoldre el solapament després de la transformació"
 
 
 msgid "Move strips so transformed strips fit"
@@ -97207,7 +97123,7 @@ msgstr "Moure els segments de forma que els segments transformats encaixin"
 
 
 msgid "Trim or split strips to resolve overlap"
-msgstr "Retallar o dividir segments per resoldre la superposició"
+msgstr "Retallar o dividir segments per resoldre el solapament"
 
 
 msgid "Shuffle"
@@ -97215,7 +97131,7 @@ msgstr "Redistribuir"
 
 
 msgid "Move transformed strips to nearest free space to resolve overlap"
-msgstr "Mou els segments transformats a l'espai lliure més proper per resoldre la superposició"
+msgstr "Mou els segments transformats a l'espai lliure més proper per resoldre el solapament"
 
 
 msgid "Rotation or scaling pivot point"
@@ -98038,7 +97954,7 @@ msgstr "Factor de fusió"
 
 
 msgid "Overlay blending factor of rasterized mask"
-msgstr "Factor de fusió per superposició de la màscara rasteritzada"
+msgstr "Factor de fusió de la superposició de la màscara rasteritzada"
 
 
 msgid "2D Cursor Location"
@@ -99093,7 +99009,7 @@ msgstr "Editar nodes d'aspecció des del lineament"
 
 
 msgid "Use active Viewer Node output as backdrop for compositing nodes"
-msgstr "Usar l'egressió del node de visualització actiu com a pla de fons per als nodes compositadors"
+msgstr "Usar la sortida del node de visualització actiu com a pla de fons per als nodes compositadors"
 
 
 msgid "Supports Previews"
@@ -99307,7 +99223,7 @@ msgstr "Mostrar sobreseïments del sistema"
 
 
 msgid "For libraries with overrides created, show the overridden values that are defined/controlled automatically (e.g. to make users of an overridden data-block point to the override data, not the original linked data)"
-msgstr "Per a biblioteques amb sobreseïments creats, mostra els valors sobreseguts que es defineixen/controlen automàticament (p. ex. per a fer que els usadors d'un de bloc de dades sobresegut apuntin a les dades sobresegudes, no a les dades vinculades originals)"
+msgstr "Per a biblioteques amb sobreseïments creats, mostra els valors sobreseguts que es defineixen/controlen automàticament (p. ex. per a fer que els usadors d'un bloc de dades sobresegut apuntin a les dades sobresegudes, no a les dades vinculades originals)"
 
 
 msgid "Filter Objects"
@@ -99634,7 +99550,7 @@ msgstr "Tipus de bambolina"
 
 
 msgid "Overlay display method"
-msgstr "[Overlay Type]: Mètode de visualització superposada"
+msgstr "[Overlay Type]: Mètode de visualització de bambolines"
 
 
 msgid "Show rectangle area overlay"
@@ -100010,7 +99926,7 @@ msgstr "Distància de segat de llunyania en la vista 3D"
 
 
 msgid "3D View near clipping distance (perspective view only)"
-msgstr "Distància de segat de proximitat en la vista 3d (només en visió de perspectiva)"
+msgstr "Distància de segat de proximitat en la vista 3d (només en vista de perspectiva)"
 
 
 msgid "Visibility Icon"
@@ -100410,7 +100326,7 @@ msgstr "Mostra el fons i marges de la graella"
 
 
 msgid "Display overlays like UV Maps and Metadata"
-msgstr "Mostrar superposicions com mapes UV i metadades"
+msgstr "Mostrar sobreimpressions com mapes UV i metadades"
 
 
 msgid "Get the node tree path as a string"
@@ -100454,7 +100370,7 @@ msgstr "Mostra quan els nodes usen atributs amb nom"
 
 
 msgid "Display overlays like colored or dashed wires"
-msgstr "Mostra superposicions com els cables de colors o guionets"
+msgstr "Mostra sobreimpressions com els cables de colors o guionets"
 
 
 msgid "Show Node Previews"
@@ -100624,7 +100540,7 @@ msgstr "Mostrar UVs de pintat de textura"
 
 
 msgid "Display overlay of texture paint UV layer"
-msgstr "Mostra la superposició de la capa UV de pintura de textura"
+msgstr "Mostra la sobreimpressió de la capa UV de pintura de textura"
 
 
 msgid "Tile Grid Shape"
@@ -101817,7 +101733,7 @@ msgstr "Interval de previsualització"
 
 
 msgid "Color of preview range overlay"
-msgstr "Color de la superposició de l'interval de vista prèvia"
+msgstr "Color de la sobreimpressió de l'interval de vista prèvia"
 
 
 msgid "Simulated Frames"
@@ -101853,7 +101769,7 @@ msgstr "Files alternatives"
 
 
 msgid "Overlay color on every other row"
-msgstr "Color de superposició de fila sí fila no"
+msgstr "Color de sobreimpressió de fila sí fila no"
 
 
 msgid "Selected File"
@@ -103086,7 +103002,7 @@ msgstr "Color per a indicar els objectes fotofita"
 
 
 msgid "View Overlay"
-msgstr "Bambolina de visualització"
+msgstr "Visualitzar sobreimpressió"
 
 
 msgid "Color for wireframe when in edit mode, but edge selection is active"
@@ -104612,11 +104528,11 @@ msgstr "[Retopology Offset]: Espai que sobresurt per mostrar la malla editada pe
 
 
 msgid "Curves Sculpt Cage Opacity"
-msgstr "Opacitat de la gàbia escultora de corbes"
+msgstr "Opacitat de la gàbia en escultura de corbes"
 
 
 msgid "Opacity of the cage overlay in curves sculpt mode"
-msgstr "[Grid Lines]: Opacitat de la sobreposició de gàbia en el mode d'escultura de corbes"
+msgstr "[Grid Lines]: Opacitat de la sobreimpressió de gàbia en el mode d'escultura de corbes"
 
 
 msgid "Sculpt Face Sets Opacity"
@@ -104664,7 +104580,7 @@ msgstr "Mostrar cursor 3D"
 
 
 msgid "Display 3D Cursor Overlay"
-msgstr "Mostra la superposició del cursor 3D"
+msgstr "Mostra la sobreimpressió del cursor 3D"
 
 
 msgid "Draw Normals"
@@ -104772,7 +104688,7 @@ msgstr "Orientació de cares"
 
 
 msgid "Show the Face Orientation Overlay"
-msgstr "Mostra la superposició d'orientació de cara"
+msgstr "Mostra la sobreimpressió de l'orientació de cara"
 
 
 msgid "Highlight selected faces"
@@ -104828,7 +104744,7 @@ msgstr "Mostra les esferes de previsualització d'HDRI"
 
 
 msgid "Show the Motion Paths Overlay"
-msgstr "Mostrar la superposició dels trajectes de moviment"
+msgstr "Mostrar la sobreimpressió dels trajectes de moviment"
 
 
 msgid "Object Origins"
@@ -104848,7 +104764,7 @@ msgstr "Mostra el punt d'origen central d'objecte de tots els objectes (seleccio
 
 
 msgid "Show the Onion Skinning Overlay"
-msgstr "Mostrar superposició de pells de ceba"
+msgstr "Mostrar sobreimpressió de pells de ceba"
 
 
 msgid "Display Grid"
@@ -104868,7 +104784,7 @@ msgstr "Mostra un ressaltat de contorn al voltant dels objectes seleccionats"
 
 
 msgid "Display overlays like gizmos and outlines"
-msgstr "Mostrar superposicions com flòstics i contorns"
+msgstr "Mostrar sobreimpressions com flòstics i contorns"
 
 
 msgid "Show Wire"
@@ -104920,7 +104836,7 @@ msgstr "Mostra les normals de vèrtex-per-cara com a línies"
 
 
 msgid "Display scene statistics overlay text"
-msgstr "Mostrar text sobreposat d'estadístiques d'escena"
+msgstr "Mostrar text sobreimprès d'estadístiques d'escena"
 
 
 msgid "Stat Vis"
@@ -104936,7 +104852,7 @@ msgstr "Mostrar text"
 
 
 msgid "Display overlay text"
-msgstr "Mostra el text superposat"
+msgstr "Mostra el text sobreimprès"
 
 
 msgid "Display Vertex Normals"
@@ -104948,7 +104864,7 @@ msgstr "Mostra les normals dels vèrtexs com a línies"
 
 
 msgid "Show attribute overlay for active viewer node"
-msgstr "Mostra superposició d'atributs per al node del visor actiu"
+msgstr "Mostra sobreimpressió d'atributs per al node del visor actiu"
 
 
 msgid "Show Weights"
@@ -104984,7 +104900,7 @@ msgstr "Opacitat de la plantilla màscara"
 
 
 msgid "Opacity of the texture paint mode stencil mask overlay"
-msgstr "Opacitat de la superposició de la plantilla màscara en mode pintat de textura"
+msgstr "Opacitat de la sobreimpressió de la plantilla màscara en mode pintat de textura"
 
 
 msgid "Freeze Culling"
@@ -105096,7 +105012,7 @@ msgstr "Opacitat de pintura de pesos"
 
 
 msgid "Opacity of the weight paint mode overlay"
-msgstr "Opacitat de la superposició en mode de pintura de pesos"
+msgstr "Opacitat de la sobreimpressió de mode de pintura de pesos"
 
 
 msgid "Wireframe Opacity"
@@ -105671,7 +105587,7 @@ msgstr "ID del node d'egressió repetida"
 
 
 msgid "Simulation Output Node ID"
-msgstr "ID de node de sortida de simulació"
+msgstr "ID de node d'egressió de simulació"
 
 
 msgid "Volume Display"
@@ -106641,11 +106557,11 @@ msgstr "[Show Controllers]: Mostra els controladors dRV (requereix accions d'RV 
 
 
 msgid "Show Custom Overlays"
-msgstr "Mostrar superposicions adaptades"
+msgstr "Mostrar superposicions personalitzades"
 
 
 msgid "Show custom VR overlays"
-msgstr "[Show Custom Overlays]: Mostra les superposicions d'RV adaptades"
+msgstr "[Show Custom Overlays]: Mostra les superposicions d'RV personalitzades"
 
 
 msgid "Show Object Extras"
@@ -107557,11 +107473,11 @@ msgstr "Cicla al llarg dels modes de desplaçament"
 
 msgctxt "WindowManager"
 msgid "Toggle Clamp Overlap"
-msgstr "Revessar superposició de retenció"
+msgstr "Revessar retenció de solapament"
 
 
 msgid "Toggle clamp overlap flag"
-msgstr "Revessa l'indicador de superposició de retenció"
+msgstr "Revessa l'indicador de retenció de solapament"
 
 
 msgctxt "WindowManager"
@@ -109554,7 +109470,7 @@ msgstr "Cantell agut: {}"
 
 
 msgid "Overhang Face: {}"
-msgstr "Cara penjada: {}"
+msgstr "Protrusió de cara: {}"
 
 
 msgid ", Clamping {}-Axis"
@@ -109610,7 +109526,7 @@ msgstr "Agudesa de cantell"
 
 msgctxt "Operator"
 msgid "Overhang"
-msgstr "Penjament"
+msgstr "Protrusió"
 
 
 msgctxt "Operator"
@@ -109964,7 +109880,7 @@ msgstr "Controladors"
 
 
 msgid "Custom Overlays"
-msgstr "Superposicions adaptades"
+msgstr "Superposicions personalitzades"
 
 
 msgid "Object Extras"
@@ -110206,7 +110122,7 @@ msgstr "NodesGeomètrics"
 
 
 msgid "Node group must have a geometry output"
-msgstr "El grup de nodes ha de tenir una sortida de geometria"
+msgstr "El grup de nodes ha de tenir una egressió de geometria"
 
 
 msgid "Image path not set"
@@ -110410,7 +110326,7 @@ msgstr "Seleccionar 2 segments de so"
 
 
 msgid "The selected strips don't overlap"
-msgstr "Els segments seleccionats no se superposen"
+msgstr "Els segments seleccionats no se solapen"
 
 
 msgid "No sequences selected"
@@ -111514,6 +111430,11 @@ msgstr "Llindar d'influència"
 
 msgid "Update on Edit"
 msgstr "Actualitzar en editar"
+
+
+msgctxt "Operator"
+msgid "Search..."
+msgstr "Cercar..."
 
 
 msgid "Distance Reference"
@@ -114022,7 +113943,7 @@ msgstr "Encabir"
 
 
 msgid "Node Editor Overlays"
-msgstr "Superposicions d'editor de nodes"
+msgstr "Sobreimpressions d'editor de nodes"
 
 
 msgid "Wire Colors"
@@ -114429,7 +114350,7 @@ msgstr "Emmagatzematge"
 
 msgctxt "Operator"
 msgid "Set Overlay Region"
-msgstr "Crear superposició"
+msgstr "Crear regió superposada"
 
 
 msgid "Muted Strips"
@@ -117733,7 +117654,7 @@ msgstr "Longitud focal de càmera: %.1f°"
 
 msgctxt "Operator"
 msgid "DOF Distance (Pick)"
-msgstr "Distància PDC (clic)"
+msgstr "Distància PDC (triar)"
 
 
 msgctxt "Operator"
@@ -118526,6 +118447,10 @@ msgid "Unable to pack file, source path '%s' not found"
 msgstr "No es pot empaquetar el document, camí d'origen '%s' il·localitzable"
 
 
+msgid "Unable to access the size of, source path '%s'"
+msgstr "No s'ha pogut accedir a la mida de, ruta de font '%s'"
+
+
 msgid "Image '%s' skipped, packing movies or image sequences not supported"
 msgstr "S'ha omès la imatge «%s», no suportat empaquetar pel·lícules o seqüències d'imatges"
 
@@ -119248,7 +119173,7 @@ msgstr "Els bucles no estan connectats per filat/arestes de contorn"
 
 
 msgid "Connecting edge loops overlap"
-msgstr "Superposició de bucles d'arestes connectades"
+msgstr "Solapament de bucles d'arestes connectades"
 
 
 msgid "Requires at least three vertices"
@@ -120370,6 +120295,10 @@ msgid "Cannot evaluate node group"
 msgstr "No es pot avaluar el grup de nodes"
 
 
+msgid "Node group must have a group output node"
+msgstr "El grup nodes ha de tenir un node de sortida de grup"
+
+
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
 msgstr "Anotació - Crear polígons: clicar BER per a col·locar el vèrtex següent del traç | ESC/Retorn per a finalitzar  (o clicar fora de l'àrea)"
 
@@ -121180,6 +121109,10 @@ msgstr "Valor"
 
 msgid "Redo"
 msgstr "Refer"
+
+
+msgid "Press spacebar to search..."
+msgstr "Pitjar barra d'espai per cercar..."
 
 
 msgid "Type to search..."
@@ -122049,7 +121982,7 @@ msgstr "Tipus d'intersecció"
 
 
 msgid "%s: Confirm, %s: Cancel, %s: Width Type (%s), %s: Width (%s), %s: Segments (%d), %s: Profile (%.3f), %s: Clamp Overlap (%s), %s: Affect (%s), %s: Outer Miter (%s), %s: Inner Miter (%s), %s: Harden Normals (%s), %s: Mark Seam (%s), %s: Mark Sharp (%s), %s: Profile Type (%s), %s: Intersection (%s)"
-msgstr "%s: Confirmar, %s: Cancel·lar, %s: Tipus d'amplada (%s), %s: Amplada (%s), %s: Segments (%d), %s: Perfil (%.3f), %s: Sobreposició de retenció (%s), %s: Afectació (%s), %s: Motllura enfora (%s), %s: Motllura endins (%s), %s: Endurir normals (%s), %s: Marcar costura (%s), %s: Marcar agut (%s), %s: Tipus de Perfil (%s), %s: Intersecció (%s)"
+msgstr "%s: Confirmar, %s: Cancel·lar, %s: Tipus d'amplada (%s), %s: Amplada (%s), %s: Segments (%d), %s: Perfil (%.3f), %s: Retenció de solapament (%s), %s: Afectació (%s), %s: Motllura enfora (%s), %s: Motllura endins (%s), %s: Endurir normals (%s), %s: Marcar costura (%s), %s: Marcar agut (%s), %s: Tipus de Perfil (%s), %s: Intersecció (%s)"
 
 
 msgid "LMB: Click and drag to draw cut line"
@@ -122555,7 +122488,7 @@ msgstr "L'objecte '%s' no té dades de corbes o malles avaluades"
 
 
 msgid "Cannot edit object '%s' as it is used by override collections"
-msgstr "No es pot editar l'objecte '%s' perquè s'utilitza en col·leccions de sobreseïment"
+msgstr "No es pot editar l'objecte '%s' perquè s'utilitza en col·leccions de sobreseïments"
 
 
 msgid "No active mesh object"
@@ -122631,7 +122564,7 @@ msgstr "No hi ha cap objecte gàbia vàlid"
 
 
 msgid "Invalid cage object, the cage mesh must have the same number of faces as the active object"
-msgstr "Objecte gàbia no vàlid, la malla de gàbia ha de tenir el mateix nombre de cares que l'objecte actiu"
+msgstr "Objecte gàbia no vàlid, la malla de la gàbia ha de tenir el mateix nombre de cares que l'objecte actiu"
 
 
 msgid "Error handling selected objects"
@@ -122867,7 +122800,7 @@ msgstr "L'operador està congelat, els canvis a la seva configuració no tindran
 
 
 msgid "Skipping object '%s', linked or override data '%s' cannot be modified"
-msgstr "Ometent l'objecte '%s', les dades vinculades o anul·lades '%s' no es poden modificar"
+msgstr "Ometent l'objecte '%s', les dades vinculades o sobresegudes '%s' no es poden modificar"
 
 
 msgid "Skipping object '%s', data '%s' has already been processed with a previous object"
@@ -124164,7 +124097,7 @@ msgstr "Manca un mapa UV per a adherir corbes en una superfície avaluada"
 
 
 msgid "Invalid UV map: UV islands must not overlap"
-msgstr "Mapa UV no vàlid: les illes UV no poden estar superposades"
+msgstr "Mapa UV no vàlid: les illes UV no poden estar solapades"
 
 
 msgid "Cursor must be over the surface mesh"
@@ -124719,6 +124652,14 @@ msgid "Move asset out of any catalog"
 msgstr "Moure recurs des de qualsevol catàleg"
 
 
+msgid "Today"
+msgstr "Avui"
+
+
+msgid "Yesterday"
+msgstr "Ahir"
+
+
 msgid "File path"
 msgstr "Ruta al document"
 
@@ -124737,14 +124678,6 @@ msgstr ""
 
 msgid "Unreadable Blender library file:"
 msgstr "Document de biblioteca Blender il·legible:"
-
-
-msgid "Today"
-msgstr "Avui"
-
-
-msgid "Yesterday"
-msgstr "Ahir"
 
 
 msgid "Could not rename: %s"
@@ -126273,7 +126206,7 @@ msgstr "Sobreseïment additiu"
 
 
 msgid "Subtractive override"
-msgstr "Sobreseïment subtractiu"
+msgstr "Sobreseïment substractiu"
 
 
 msgid "Multiplicative override"
@@ -126305,7 +126238,7 @@ msgstr "Afegir un segment que sostreu un efecte al seqüenciador"
 
 
 msgid "Add an alpha over effect strip to the sequencer"
-msgstr "Afegir un segment alfa per sobre l'efecte al seqüenciador"
+msgstr "Afegir un segment d'efecte alfa per sobre al seqüenciador"
 
 
 msgid "Add an alpha under effect strip to the sequencer"
@@ -126885,7 +126818,7 @@ msgstr "Capdamunt perspectiva"
 
 
 msgid "Bottom Orthographic"
-msgstr "Dessota ortogràfica"
+msgstr "Dessota ortogràfic"
 
 
 msgid "Bottom Perspective"
@@ -126893,7 +126826,7 @@ msgstr "Dessota perspectiva"
 
 
 msgid "Right Orthographic"
-msgstr "Dreta ortogràfica"
+msgstr "Dreta ortogràfic"
 
 
 msgid "Right Perspective"
@@ -126901,7 +126834,7 @@ msgstr "Dreta perspectiva"
 
 
 msgid "Left Orthographic"
-msgstr "Esquerra ortogràfica"
+msgstr "Esquerra ortogràfic"
 
 
 msgid "Left Perspective"
@@ -127671,7 +127604,7 @@ msgstr "Contorn de llum"
 
 
 msgid "Type overlapping cached"
-msgstr "Tipus en memòria cau superposada"
+msgstr "Tipus de superposició en memòria cau"
 
 
 msgid "Allow Overlapping Types"
@@ -127683,7 +127616,7 @@ msgstr "Càmera personalitzada"
 
 
 msgid "Overlapping Edges As Contour"
-msgstr "Arestes superposades com a contorn"
+msgstr "Arestes solapades com a contorn"
 
 
 msgid "Crease On Smooth"
@@ -128024,6 +127957,10 @@ msgid "USD Import: unable to open stage to read %s"
 msgstr "Importació USD: no s'ha pogut obrir l'etapa per a llegir %s"
 
 
+msgid "USD Import: unable to open cache reader for object %s"
+msgstr "Importació d'USD: no s'ha pogut obrir lector de memòria cau d'objecte %s"
+
+
 msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
 msgstr "S'ha produït una excepció en unvocar el ganxo USD '%s'.  Sisplau consulteu la consola per més detalls"
 
@@ -128221,7 +128158,7 @@ msgstr "Les dades del recurs no poden ser No-cap"
 
 
 msgid "Override template experimental feature is disabled"
-msgstr "El sobreseÏment experimental de plantilla està desactivat"
+msgstr "El sobreseïment experimental de plantilla està desactivat"
 
 
 msgid "Unable to create override template for linked data-blocks"
@@ -129933,16 +129870,12 @@ msgid "Node group's geometry input must be the first"
 msgstr "L'entrada de geometria del grup de nodes ha de ser la primera"
 
 
-msgid "Node group must have a group output node"
-msgstr "El grup nodes ha de tenir un node de sortida de grup"
-
-
 msgid "Node group must have an output socket"
 msgstr "El grup de nodes ha de tenir un born de sortida"
 
 
 msgid "Node group's first output must be a geometry"
-msgstr "La primera sortida del grup de nodes ha de ser una geometria"
+msgstr "La primera egressió del grup de nodes ha de ser una geometria"
 
 
 msgid "NormalEdit"
@@ -130113,7 +130046,7 @@ msgstr "El referent conté polígons còncaus"
 
 
 msgid "Target contains overlapping vertices"
-msgstr "El referent conté vèrtexs superposats"
+msgstr "El referent conté vèrtexs solapats"
 
 
 msgid "Target contains invalid polygons"
@@ -130638,7 +130571,7 @@ msgstr "Limitar radi"
 
 
 msgid "Limit the maximum value of the radius in order to avoid overlapping fillets"
-msgstr "[Limit Radius]: Limita el valor màxim del radi per tal d'evitar els carenats emplenats"
+msgstr "[Limit Radius]: Limita el valor màxim del radi per tal d'evitar els carenats solapats"
 
 
 msgid "Handle Type Selection node"
@@ -131920,7 +131853,7 @@ msgstr "És vàlid"
 
 
 msgid "The mesh UV map to sample. Should not have overlapping faces"
-msgstr "El mapa UV de malla a mostrejar. No hauria de tenir cares superposades"
+msgstr "El mapa UV de malla a mostrejar. No hauria de tenir cares solapades"
 
 
 msgid "The coordinates to sample within the UV map"
@@ -132296,7 +132229,7 @@ msgstr "Factor opcional per modular el primer rebot de llum a la superfície del
 
 
 msgid "Optional factor for modulating the transmission component. Picks up the color of the pigment inside the hair. Keep this 1.0 for physical correctness"
-msgstr "Factor opcional per modular el component de transmissió. Capta el color del pigment dins del pèl. Mantingueu-lo a 1.0 per a la correcció física"
+msgstr "Factor opcional per modular el component de transmissió. Recull el color del pigment dins del pèl. Mantingueu-lo a 1.0 per a la correcció física"
 
 
 msgid "Optional factor for modulating the component which is transmitted into the hair, reflected off the backside of the hair and then transmitted out of the hair. This component is oriented approximately around the incoming direction, and picks up the color of the pigment inside the hair. Keep this 1.0 for physical correctness"
@@ -132367,6 +132300,21 @@ msgid "Emission Strength"
 msgstr "Intensitat emissió"
 
 
+msgctxt "NodeTree"
+msgid "Specular Tint"
+msgstr "Tintat especular"
+
+
+msgctxt "NodeTree"
+msgid "Coat Tint"
+msgstr "Tintat de vernís"
+
+
+msgctxt "NodeTree"
+msgid "Sheen Tint"
+msgstr "Tintat de llustre"
+
+
 msgid "Blend between diffuse surface and subsurface scattering. Typically should be zero or one (either fully diffuse or subsurface)"
 msgstr "Fusió entre superfície difusiva i dispersió de subsuperfície. Típicanent hauria de ser zero o u (o bé difusiu del tot o de subsuperfície)"
 
@@ -132409,6 +132357,15 @@ msgstr "L'índex de refracció de la capa de vernís (n'afecta també la reflect
 
 msgid "Adds a colored tint to the coat layer by modeling absorption in the layer. Saturation increases at shallower angles, as the light travels farther through the medium (depending on the Coat IOR)"
 msgstr "Afegeix un tint de color a la capa de vernís mitjançant el modelatge de l'absorció de la capa. S'incrementa la saturació en els angles més superficials, car la llum es mou més ràpida en el medi (depenent del IDR de vernís)"
+
+
+msgid "IOR Level"
+msgstr "Nivell IDR"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "Tintat"
 
 
 msgid "Subsurface"
@@ -132973,6 +132930,10 @@ msgstr "no s'ha pogut obrir el document"
 
 msgid "File Not Found"
 msgstr "No s'ha trobat el document"
+
+
+msgid "Modified"
+msgstr "Modificat"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"
@@ -134223,6 +134184,14 @@ msgstr "Georgià (ქართული)"
 
 msgid "Tamil (தமிழ்)"
 msgstr "Tàmil (தமிழ்)"
+
+
+msgid "Khmer (ខ្មែរ)"
+msgstr "Khmer (ខ្មែរ)"
+
+
+msgid "Swahili (Kiswahili)"
+msgstr "Suahili (Kiswahili)"
 
 
 msgid "Complete"

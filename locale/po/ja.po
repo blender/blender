@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2023-10-13 15:14+0000\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-21 02:53+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -496,7 +496,7 @@ msgstr "複数のストリップの値がチャンネルタイプを元に，加
 
 
 msgid "Add"
-msgstr "追加"
+msgstr "加算"
 
 
 msgid "Weighted result of strip is added to the accumulated results"
@@ -1179,6 +1179,10 @@ msgstr "このアセットを含む .blend ファイルへの絶対パス"
 
 msgid "Full Path"
 msgstr "フルパス"
+
+
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "ファイル内部のアセットのパスを追加した，このアセットを含む .blend ファイルへの絶対パス"
 
 
 msgctxt "ID"
@@ -25235,12 +25239,20 @@ msgid "Clamp the indirect lighting intensity to reduce noise (0 to disable)"
 msgstr "ノイズを低減するため制限する間接光の強さ（０で無効）"
 
 
+msgid "Dilation Radius"
+msgstr "ダイレーション範囲"
+
+
 msgid "Radius in grid sample to search valid grid samples to copy into invalid grid samples"
-msgstr "有効なグリッドサンプルを探し，無効なグリッドサンプルにコピーするグリッドサンプルの半径"
+msgstr "有効なグリッドサンプルを探し，無効なグリッドサンプルにコピーするグリッドサンプルの範囲"
 
 
 msgid "Dilation Threshold"
-msgstr "ダイレーションのしきい値"
+msgstr "ダイレーションしきい値"
+
+
+msgid "Ratio of front-facing surface hits under which a grid sample will reuse neighbors grid sample lighting"
+msgstr "グリッドサンプルが近くのグリッドサンプルライティングを再利用する場合の，前向きの面のヒット率"
 
 
 msgid "Capture Escape Bias"
@@ -30009,7 +30021,7 @@ msgstr "FELINE"
 
 
 msgid "Area"
-msgstr "エリア"
+msgstr "面積"
 
 
 msgid "Invert Alpha"
@@ -30990,6 +31002,10 @@ msgstr "サブアイテムローカルID"
 
 msgid "Subitem Local Index"
 msgstr "サブアイテムローカルインデックス"
+
+
+msgid "Used to handle changes into collection"
+msgstr "コレクションへの変更処理に使用されます"
 
 
 msgid "Subitem Local Name"
@@ -56494,10 +56510,6 @@ msgid "Apply sampling to all animations"
 msgstr "全アニメーションにサンプリングを適用します"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "出力フォーマットと埋め込みオプション．バイナリが最も効率的ですが，JSON（Embedded または Separate）の方が後で編集しやすいです"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "glTFバイナリ (.glb)"
 
@@ -56516,16 +56528,6 @@ msgid "Exports multiple files, with separate JSON, binary and texture data. Easi
 msgstr "複数のファイルにエクスポートし，JSON，バイナリ，テクスチャデータになります．後での編集が最もしやすいです"
 
 
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF Embedded (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr ""
-"単一ファイルでエクスポートし，全データが JSON 内に同梱されます．\n"
-"バイナリに対し効率は劣りますが，後での編集が楽になります"
-
-
 msgid "Limit to Playback Range"
 msgstr "再生範囲に限定"
 
@@ -56538,12 +56540,6 @@ msgid "GPU Instances"
 msgstr "GPUインスタンス"
 
 
-msgid "Export using EXT_mesh_gpu_instancing.Limited to children of a same Empty. multiple Materials might be omitted"
-msgstr ""
-"EXT_mesh_gpu_instancing.Limited を使用し，同じエンプティの子にエクスポートします．\n"
-"複数のマテリアルはオミットされる可能性があります"
-
-
 msgid "Flatten Bone Hierarchy"
 msgstr "ボーン階層を平坦化"
 
@@ -56552,25 +56548,11 @@ msgid "Flatten Bone Hierarchy. Useful in case of non decomposable transformation
 msgstr "ボーン階層を平坦化します．トランスフォーム行列が分解できない場合に便利です"
 
 
-msgid "Create Webp"
-msgstr "Webpを作成"
-
-
-msgid "Creates webp textures for every textures. For already webp textures, nothing happen"
-msgstr "テクスチャ毎に Webp テクスチャを作成します．既存の Webp テクスチャには何もしません"
-
-
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr ""
 "画像用の出力フォーマット．PNG はロスレスで汎用，\n"
 "JPEG はファイルサイズが小さめで Web に適しています．\n"
 "不要な時は省略可能です"
-
-
-msgid "Save PNGs as PNGs, JPEGs as JPEGs, WEBPs as WEBPs. If neither one, use PNG"
-msgstr ""
-"PNG は PNG，JPEG は JPEG，WEBP は WEBP として保存します．\n"
-"どれでもない場合は PNG を使用します"
 
 
 msgid "JPEG Format (.jpg)"
@@ -56583,14 +56565,6 @@ msgstr ""
 "品質が低下する可能性があります"
 
 
-msgid "Webp Format"
-msgstr "Webpフォーマット"
-
-
-msgid "Save images as WEBPs as main image (no fallback)"
-msgstr "WEBP をメイン画像として画像を保存します（代替なし）"
-
-
 msgid "Don't export images"
 msgstr "画像をエクスポートしません"
 
@@ -56601,10 +56575,6 @@ msgstr "画質"
 
 msgid "Quality of image export"
 msgstr "画像エクスポートの品質"
-
-
-msgid "Webp fallback"
-msgstr "Webpの代替"
 
 
 msgid "Lighting Mode"
@@ -56863,10 +56833,6 @@ msgstr "データが空の場合，Sparse Accessor をオミットします"
 
 msgid "Use Sparse Accessor if better"
 msgstr "改善する場合は Sparse Accessor を使用します"
-
-
-msgid "Try using Sparce Accessor if it save space"
-msgstr "スペースが節約可能なら Sparse Accessor を使用しようとします"
 
 
 msgid "+Y Up"
@@ -62669,16 +62635,6 @@ msgstr "法線データを使用"
 
 msgid "Flat Shading"
 msgstr "フラットシェーディング"
-
-
-msgid "Import Webp textures"
-msgstr "Webp テクスチャをインポート"
-
-
-msgid "If a texture exists in webp format,loads the webp texture instead of the fallback png/jpg one"
-msgstr ""
-"Webp フォーマットのテクスチャがある場合は代替の png/jpg ではなく\n"
-"その Webp テクスチャを読み込みます"
 
 
 msgid "Log Level"
@@ -78310,7 +78266,7 @@ msgstr "次を検索"
 
 
 msgid "Find specified text"
-msgstr "指定文字列を検索"
+msgstr "指定の文字列を検索します"
 
 
 msgctxt "Operator"
@@ -78323,7 +78279,7 @@ msgstr "選択中の文字列を検索文字列として設定します"
 
 
 msgid "Indent selected text"
-msgstr "選択中の文をインデント"
+msgstr "選択テキストをインデントします"
 
 
 msgctxt "Operator"
@@ -78332,11 +78288,16 @@ msgstr "ジャンプ"
 
 
 msgid "Jump cursor to line"
-msgstr "行ジャンプ"
+msgstr "行にカーソルをジャンプします"
 
 
 msgid "Line number to jump to"
 msgstr "ジャンプ先の行番号"
+
+
+msgctxt "Operator"
+msgid "Jump to File at Point"
+msgstr "ファイルにジャンプ"
 
 
 msgid "Jump to a file for the text editor"
@@ -78567,7 +78528,7 @@ msgstr "テキストの行ごとにオブジェクトを作成します"
 
 
 msgid "Unindent selected text"
-msgstr "選択中の文字列のインデントを1つ解除"
+msgstr "選択テキストのインデントを解除します"
 
 
 msgid "Unlink active text data-block"
@@ -79754,6 +79715,10 @@ msgid "View Filter"
 msgstr "ビューフィルター"
 
 
+msgid "Start entering filter text for the data-set in focus"
+msgstr "フォーカス中のデータセットのフィルターテキストの入力を開始します"
+
+
 msgctxt "Operator"
 msgid "Align"
 msgstr "整列"
@@ -79776,15 +79741,19 @@ msgstr "両端を結ぶ直線に UV を揃えます"
 
 
 msgid "Straighten X"
-msgstr "X軸で整列"
+msgstr "直線で整列（X）"
+
+
+msgid "Align UV vertices, moving them horizontally to the line defined by the endpoints"
+msgstr "両端を結ぶ直線上に UV を水平移動します"
 
 
 msgid "Straighten Y"
-msgstr "Y軸で整列"
+msgstr "直線で整列（Y）"
 
 
 msgid "Align UV vertices, moving them vertically to the line defined by the endpoints"
-msgstr "両端を結ぶ直線の縦方向に UV を揃えます"
+msgstr "両端を結ぶ直線上に UV を垂直移動します"
 
 
 msgid "Align Auto"
@@ -80039,10 +80008,6 @@ msgstr "PNG画像 (.png)"
 
 msgid "Export the UV layout to a bitmap image"
 msgstr "UV配置をビットマップ画像にエクスポートします"
-
-
-msgid "Modified"
-msgstr "モディファイアー"
 
 
 msgid "Exports UVs from the modified mesh"
@@ -80555,26 +80520,6 @@ msgstr "ピン止めされた UV 頂点をすべて選択します"
 
 msgid "Select similar UVs by property types"
 msgstr "プロパティタイプで UV を類似選択します"
-
-
-msgid "Length 3D"
-msgstr "長さ（3D）"
-
-
-msgid "Area 3D"
-msgstr "面積（3D）"
-
-
-msgid "Polygon Sides"
-msgstr "辺の数"
-
-
-msgid "Winding"
-msgstr "面の向き"
-
-
-msgid "Amount of Faces in Island"
-msgstr "アイランド内の面数"
 
 
 msgctxt "Operator"
@@ -84191,6 +84136,10 @@ msgid "Set Tool by Name"
 msgstr "ツールを名前で設定"
 
 
+msgid "Set the tool by name (for key-maps)"
+msgstr "名前でツールを設定します（キーマップ用）"
+
+
 msgid "Set Fallback"
 msgstr "フォールバックを設定"
 
@@ -84214,6 +84163,10 @@ msgstr "ツールの識別子"
 msgctxt "Operator"
 msgid "Set Tool by Index"
 msgstr "ツールをインデックスで設定"
+
+
+msgid "Set the tool by index (for key-maps)"
+msgstr "インデックスでツールを設定します（キーマップ用）"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -88527,6 +88480,13 @@ msgid "Channel Matrix"
 msgstr "チャンネル行列"
 
 
+msgid "4×4 matrix of the bone's location/rotation/scale channels (including animation and drivers) and the effect of bone constraints"
+msgstr ""
+"ボーンの（アニメーションとドライバーを含む）\n"
+"位置・回転・スケールチャンネルの4×4行列と\n"
+"ボーンコンストレイントの影響"
+
+
 msgid "Parent of this pose bone"
 msgstr "このポーズボーンの親"
 
@@ -92393,6 +92353,10 @@ msgid "Type of the directional sampling used for guiding"
 msgstr "ガイドに使用する指向性サンプリングのタイプ"
 
 
+msgid "Guided diffuse BSDF component based on the incoming light distribution and the cosine product (closed form product)"
+msgstr "入射光の分布とそのコサイン積（閉じた形式の積）を元にした，ディフューズ BSDF 成分によるガイド"
+
+
 msgid "Re-sampled Importance Sampling"
 msgstr "リサンプル多重重点的サンプリング"
 
@@ -94830,6 +94794,10 @@ msgstr "ノードエディター内でソケットタイプに対応する色"
 
 msgid "Retiming Key"
 msgstr "リタイミングキー"
+
+
+msgid "Key mapped to particular frame that can be moved to change playback speed"
+msgstr "特定のフレームと関連付け，移動して再生速度を変更できるようにしたキー"
 
 
 msgid "Position of retiming key in timeline"
@@ -100094,6 +100062,10 @@ msgstr "メッシュオブジェクトを表示します"
 
 msgid "Show Other Objects"
 msgstr "他のオブジェクトも表示"
+
+
+msgid "Show curves, lattices, light probes, fonts, ..."
+msgstr "カーブ，ラティス，ライトプローブ，フォントなどを表示します"
 
 
 msgid "Show All View Layers"
@@ -109957,6 +109929,10 @@ msgid "Contributions"
 msgstr "寄与"
 
 
+msgid "Step Size Lightning"
+msgstr "ステップサイズ（ライティング）"
+
+
 msgid "Transparent Background"
 msgstr "背景を透過"
 
@@ -110049,6 +110025,10 @@ msgstr "「不透明」はアルファに対応していません"
 
 msgid "%s is not supported"
 msgstr "%s は未対応です"
+
+
+msgid "Please select at least an image."
+msgstr "画像を最低一つは選択してください"
 
 
 msgid "Cannot generate materials for unknown %s render engine"
@@ -110404,8 +110384,16 @@ msgid "Deselect Pose Bones"
 msgstr "ポーズボーンを選択解除"
 
 
+msgid "The pose library moved."
+msgstr "ポーズライブラリを移動しました．"
+
+
 msgid "Pose assets are now available"
 msgstr "ポーズアセットがアセットシェルフ内で"
+
+
+msgid "in the asset shelf."
+msgstr "利用可能です．"
 
 
 msgctxt "Operator"
@@ -110501,6 +110489,10 @@ msgid "Search *.blend recursively"
 msgstr "*.blendを再帰的に検索"
 
 
+msgid "Writes: %s config text"
+msgstr "書き込み：%s 設定テキスト"
+
+
 msgid "Generate Settings:"
 msgstr "全般設定："
 
@@ -110583,6 +110575,10 @@ msgstr "列挙アイテムチップ:"
 
 msgid "Could not write to po file ({})"
 msgstr "poファイルを保存できませんでした({})"
+
+
+msgid "WARNING: preferences are lost when add-on is disabled, be sure to use \"Save Persistent\" if you want to keep your settings!"
+msgstr "警告：アドオンを無効にすると設定が消えます．設定を保存したい時は「保存（設定引き継ぎ）」を使用してください！"
 
 
 msgctxt "Operator"
@@ -112226,6 +112222,11 @@ msgstr "強さのしきい値"
 
 msgid "Update on Edit"
 msgstr "編集時に更新"
+
+
+msgctxt "Operator"
+msgid "Search..."
+msgstr "検索…"
 
 
 msgid "Distance Reference"
@@ -119231,7 +119232,15 @@ msgstr "パックされた新規ファイルはありません"
 
 
 msgid "Unable to pack file, source path '%s' not found"
-msgstr "元ファイル「%s」が見つからないため，パックが不可能です"
+msgstr "元ファイル「%s」が見つからないため，パックできません"
+
+
+msgid "Unable to access the size of, source path '%s'"
+msgstr "ファイルサイズにアクセスできません（パス「%s」）"
+
+
+msgid "Unable to pack files over 2gb, source path '%s'"
+msgstr "ファイルが2GBを超えるため，パックできません（パス「%s」）"
 
 
 msgid "Image '%s' skipped, packing movies or image sequences not supported"
@@ -121074,6 +121083,10 @@ msgid "Cannot evaluate node group"
 msgstr "ノードグループが評価できません"
 
 
+msgid "Node group must have a group output node"
+msgstr "ノードグループにグループ出力ノードが必要です"
+
+
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
 msgstr "アノテーションポリ作成：左クリックで次のストローク頂点配置 | Esc/Enter（またはエリア外をクリック）で終了"
 
@@ -121156,6 +121169,10 @@ msgstr "そのビューレイヤーにアーマチュアオブジェクトがあ
 
 msgid "No Grease Pencil data to work on"
 msgstr "作業するグリースペンシルデータブロックなし"
+
+
+msgid "Current Grease Pencil strokes have no valid timing data, most timing options will be hidden!"
+msgstr "現在のグリースペンシルストロークに有効なタイミングデータがないため，大半のタイミングオプションは非表示です！"
 
 
 msgid "Object created"
@@ -121880,6 +121897,10 @@ msgstr "明度"
 
 msgid "Redo"
 msgstr "やり直す"
+
+
+msgid "Press spacebar to search..."
+msgstr "[スペース]キーで検索…"
 
 
 msgid "Type to search..."
@@ -125409,6 +125430,14 @@ msgid "Move asset out of any catalog"
 msgstr "アセットをカタログ外に移動します"
 
 
+msgid "Today"
+msgstr "今日"
+
+
+msgid "Yesterday"
+msgstr "昨日"
+
+
 msgid "File path"
 msgstr "ファイルパス"
 
@@ -125427,14 +125456,6 @@ msgstr ""
 
 msgid "Unreadable Blender library file:"
 msgstr "読込不可の Blender ライブラリファイル："
-
-
-msgid "Today"
-msgstr "今日"
-
-
-msgid "Yesterday"
-msgstr "昨日"
 
 
 msgid "Could not rename: %s"
@@ -130561,10 +130582,6 @@ msgid "Node group's geometry input must be the first"
 msgstr "ノードグループのジオメトリ入力は最初にしてください"
 
 
-msgid "Node group must have a group output node"
-msgstr "ノードグループにグループ出力ノードが必要です"
-
-
 msgid "Node group must have an output socket"
 msgstr "ノードグループに出力ソケットが必要です"
 
@@ -133005,6 +133022,21 @@ msgid "Emission Strength"
 msgstr "放射強度"
 
 
+msgctxt "NodeTree"
+msgid "Specular Tint"
+msgstr "スペキュラーチント"
+
+
+msgctxt "NodeTree"
+msgid "Coat Tint"
+msgstr "コートチント"
+
+
+msgctxt "NodeTree"
+msgid "Sheen Tint"
+msgstr "シーンチント"
+
+
 msgid "Blend between diffuse surface and subsurface scattering. Typically should be zero or one (either fully diffuse or subsurface)"
 msgstr ""
 "ディフューズサーフェスとサブサーフェス・スキャッタリングをブレンドします．\n"
@@ -133052,6 +133084,15 @@ msgstr ""
 "層内の吸収モデルで，色付きチントをコート層に追加します．\n"
 "浅い角度ではさらに内部を光が移動するため，飽和度が上がります\n"
 "（コート IOR に依存）"
+
+
+msgid "IOR Level"
+msgstr "IORレベル"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "チント"
 
 
 msgid "Subsurface"
@@ -133618,6 +133659,10 @@ msgid "File Not Found"
 msgstr "ファイルが見つかりません"
 
 
+msgid "Modified"
+msgstr "モディファイアー"
+
+
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "現在のファイルを指定の場所に保存しますが，保存ファイルをアクティブにしません"
 
@@ -133918,6 +133963,11 @@ msgstr "%d × %s: %.4f ms，平均: %.8f ms"
 msgctxt "WindowManager"
 msgid "Limited Platform Support"
 msgstr "一部プラットフォームのみ対応"
+
+
+msgctxt "WindowManager"
+msgid "Your graphics card or driver has limited support. It may work, but with issues."
+msgstr "このグラフィックスカードまたはドライバーの対応は限定的です．動作はしますが問題が発生するかもしれません."
 
 
 msgctxt "WindowManager"
@@ -134439,6 +134489,10 @@ msgid "View the viewport with virtual reality glasses (head-mounted displays)"
 msgstr "ビューポートを VR グラス（ヘッドマウントディスプレイ）で見ます"
 
 
+msgid "This is an early, limited preview of in development VR support for Blender."
+msgstr "まだ初期段階であり，Blender の VR 対応の開発のプレビューに限定しています"
+
+
 msgid "Copy Global Transform"
 msgstr "グローバルトランスフォームコピー"
 
@@ -134857,6 +134911,14 @@ msgstr "ジョージア語（ქართული）"
 
 msgid "Tamil (தமிழ்)"
 msgstr "タミル語 (தமிழ்)"
+
+
+msgid "Khmer (ខ្មែរ)"
+msgstr "クメール語 (ខ្មែរ)"
+
+
+msgid "Swahili (Kiswahili)"
+msgstr "スワヒリ語 (Kiswahili)"
 
 
 msgid "Complete"

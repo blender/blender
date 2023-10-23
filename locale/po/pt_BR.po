@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2023-09-28 03:54+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -48966,10 +48966,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exporta o esquema UV para uma imagem de bitmap."
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Exports UVs from the modified mesh"
 msgstr "Exporta as UVs a partir da malha modificada."
 
@@ -71438,12 +71434,12 @@ msgid "Some data failed to reconstruct (see console for details)"
 msgstr "Alguns dados falharam na reconstrução (veja o console para detalhes)."
 
 
-msgid "File path"
-msgstr "Caminho de arquivo"
-
-
 msgid "Yesterday"
 msgstr "Ontem"
+
+
+msgid "File path"
+msgstr "Caminho de arquivo"
 
 
 msgid "File does not exist"
@@ -73890,6 +73886,10 @@ msgstr "não foi possível abrir o arquivo"
 
 msgid "File Not Found"
 msgstr "Arquivo Não Encontrado"
+
+
+msgid "Modified"
+msgstr "Modificado"
 
 
 msgid "Save changes before closing?"

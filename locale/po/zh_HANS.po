@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2023-10-10 05:56+0000\n"
 "Last-Translator: maylog <maylog@126.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
@@ -53047,10 +53047,6 @@ msgid "Apply sampling to all animations"
 msgstr "应用采样到所有动画"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "输出格式和嵌入选项。二进制是最有效的，但 JSON(嵌入式或独立)可能更易于之后编辑"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "glTF二进制(.glb)"
 
@@ -53065,14 +53061,6 @@ msgstr "glTF分离(.gltf+.bin+纹理)"
 
 msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
 msgstr "区分JSON，二进制和纹理数据，导出多个文件，更易于之后编辑"
-
-
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF嵌入式(.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "将全部数据打包为JSON格式.，导出单个文件。比二进制低效, 但更易于之后编辑"
 
 
 msgid "Limit to Playback Range"
@@ -74654,10 +74642,6 @@ msgstr "PNG图像 (.png)"
 
 msgid "Export the UV layout to a bitmap image"
 msgstr "将 UV 布局图导出为位图"
-
-
-msgid "Modified"
-msgstr "修改器影响"
 
 
 msgid "Exports UVs from the modified mesh"
@@ -111903,6 +111887,10 @@ msgid "Cannot evaluate node group"
 msgstr "无法解算节点组"
 
 
+msgid "Node group must have a group output node"
+msgstr "节点组必须具有组输出节点"
+
+
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
 msgstr "标注创建多边形：鼠标左键点击放置下一个笔画点 | ESC/回车 结束操作  (或者在区域外单击)"
 
@@ -115756,6 +115744,14 @@ msgid "Move asset out of any catalog"
 msgstr "将资产从任何目录中移出"
 
 
+msgid "Today"
+msgstr "今天"
+
+
+msgid "Yesterday"
+msgstr "昨天"
+
+
 msgid "File path"
 msgstr "文件路径"
 
@@ -115770,14 +115766,6 @@ msgid ""
 msgstr ""
 "资产库是包含包含内部资产的 .blend 文件的本地目录。\n"
 "从偏好设置中的文件路径部分管理资产库"
-
-
-msgid "Today"
-msgstr "今天"
-
-
-msgid "Yesterday"
-msgstr "昨天"
 
 
 msgid "Unable to create configuration directory to write bookmarks"
@@ -119972,10 +119960,6 @@ msgid "Node group's geometry input must be the first"
 msgstr "节点组的几何输入必须是第一个"
 
 
-msgid "Node group must have a group output node"
-msgstr "节点组必须具有组输出节点"
-
-
 msgid "Node group must have an output socket"
 msgstr "节点组必须具有输出接口"
 
@@ -122384,6 +122368,10 @@ msgstr "无法打开文件"
 
 msgid "File Not Found"
 msgstr "文件未找到"
+
+
+msgid "Modified"
+msgstr "修改器影响"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"

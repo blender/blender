@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -51420,10 +51420,6 @@ msgid "Apply sampling to all animations"
 msgstr "Áp dụng lấy mẫu vật cho tất cả hoạt hình"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "Định dạng ngõ ra và tùy chọn nhét đồ. Nhị phận có hiệu qủa cao nhất, nhưng JSON (được nhét vào hay để riêng) có lẽ dễ biên tập hơn trong tương lai"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "Nhị Phận glTF (.glb)"
 
@@ -51438,14 +51434,6 @@ msgstr "Riêng glTF (.glb + .bin + chất liệu)"
 
 msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
 msgstr "Xuất nhiều tập tin, với dữ liệu JSON, nhị phận và chất liệu riêng. Dễ nhất để biên tập thời sau"
-
-
-msgid "glTF Embedded (.gltf)"
-msgstr "Nhét glTF (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "Xuất một tập tin, với tất cả dữ liệu được gói bằng JSON. Hiệu qủa thấp hơn so với nhị phận, nhưng biên tập dễ hơn thời sau"
 
 
 msgid "Limit to Playback Range"
@@ -72326,10 +72314,6 @@ msgstr "Ảnh PNG (.png)"
 
 msgid "Export the UV layout to a bitmap image"
 msgstr "Xuất cài đặt UV vào một mảng ảnh"
-
-
-msgid "Modified"
-msgstr "Đã Sửa Đổi"
 
 
 msgid "Exports UVs from the modified mesh"
@@ -111585,6 +111569,14 @@ msgid "Move asset out of any catalog"
 msgstr "Di chuyển tích sản ra khỏi bất cứ danh mục nào"
 
 
+msgid "Today"
+msgstr "Ngày nay"
+
+
+msgid "Yesterday"
+msgstr "Hôm qua"
+
+
 msgid "File path"
 msgstr "Đường dẫn tập tin"
 
@@ -111599,14 +111591,6 @@ msgid ""
 msgstr ""
 "Thư Viện Tích Sản là thư mục địa phương có thể chứa tập tin .blend có tích sản ở trong.\n"
 "Quản lý những Thư Viện Tích Sản từ phần Đường Dẫn trong Tùy Chọn"
-
-
-msgid "Today"
-msgstr "Ngày nay"
-
-
-msgid "Yesterday"
-msgstr "Hôm qua"
 
 
 msgid "File does not exist"
@@ -117447,6 +117431,10 @@ msgstr "không thể mở tập tin"
 
 msgid "File Not Found"
 msgstr "Không Tìm Được Tập Tin"
+
+
+msgid "Modified"
+msgstr "Đã Sửa Đổi"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"

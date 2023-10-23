@@ -1,20 +1,20 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2021-12-25 23:57-0800\n"
-"Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
-"Language-Team: Indonesian <>\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-20 06:07+0000\n"
+"Last-Translator: Yassir Amry Priyono <yassir_a_p@protonmail.com>\n"
+"Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Generator: Weblate 5.0.1\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,-1,-1,-1,4\n"
-"X-Generator: Poedit 2.4.3"
+"X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,-1,-1,-1,4"
 
 
 msgid "Shader AOV"
@@ -201,6 +201,14 @@ msgid "Action group is locked"
 msgstr "Kelompok aksi terkunci"
 
 
+msgid "Mute"
+msgstr "Bungkam"
+
+
+msgid "Action group is muted"
+msgstr "Kelompok aksi dibungkam"
+
+
 msgid "Select"
 msgstr "Seleksi"
 
@@ -297,6 +305,10 @@ msgid "Message"
 msgstr "Pesan"
 
 
+msgid "Compute Device Type"
+msgstr "Tipe Perangkat Komputasi"
+
+
 msgid "Device to use for computation (rendering with Cycles)"
 msgstr "Perangkat digunakan untuk komputasi (rendering dengan Cycles)"
 
@@ -317,12 +329,24 @@ msgid "Fribidi Library"
 msgstr "Perpustakaan Fribidi"
 
 
+msgid "Translation Root"
+msgstr "Direktori untuk Terjemahan"
+
+
 msgid "The bf-translation repository"
 msgstr "Repositori bf-translation"
 
 
 msgid "Import Paths"
 msgstr "Impor Jalur"
+
+
+msgid "Source Root"
+msgstr "Direktori Sumber"
+
+
+msgid "The Blender source root path"
+msgstr "Direktori Sumber Blender"
 
 
 msgid "Spell Cache"
@@ -485,6 +509,14 @@ msgid "NLA stack is evaluated when evaluating this block"
 msgstr "Tumpukan NLA dievaluasi ketika mengevaluasi blok ini"
 
 
+msgid "Use NLA Tweak Mode"
+msgstr "Gunakan Mode Tweak NLA"
+
+
+msgid "Whether to enable or disable tweak mode in NLA"
+msgstr "Apakah akan mengaktifkan atau menonaktifkan mode tweak di NLA"
+
+
 msgid "Collection of Driver F-Curves"
 msgstr "Koleksi Driver F-Kurva"
 
@@ -517,6 +549,10 @@ msgid "Bake Location"
 msgstr "Lokasi Bake"
 
 
+msgid "When calculating Bone Paths, use Head or Tips"
+msgstr "Saat menghitung Jalur Tulang, gunakan Kepala atau Ujung"
+
+
 msgid "Heads"
 msgstr "Kepala"
 
@@ -537,16 +573,32 @@ msgid "After Current"
 msgstr "Setelah sekarang"
 
 
+msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
+msgstr "Jumlah frame untuk ditampilkan setelah frame saat ini (hanya untuk metode onion-skinning 'Sekitar Frame Saat Ini')"
+
+
 msgid "Before Current"
 msgstr "Sebelum sekarang"
+
+
+msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
+msgstr "Jumlah frame untuk ditampilkan sebelum frame saat ini (hanya untuk metode Onion-skinning 'Sekitar Frame Saat Ini')"
 
 
 msgid "End Frame"
 msgstr "Akhir Frame"
 
 
+msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
+msgstr "Frame akhir dari rentang jalur untuk ditampilkan/dihitung (bukan untuk metode Onion-skinning 'Sekitar Frame Saat Ini)"
+
+
 msgid "Start Frame"
 msgstr "Mulai frame"
+
+
+msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
+msgstr "Frame awal dari rentang jalur untuk ditampilkan/dihitung (bukan untuk metode Onion-skinning 'Sekitar Frame Saat Ini')"
 
 
 msgid "Frame Step"
@@ -559,6 +611,14 @@ msgstr "Nomor frame diantara jalur yang ditampilkan (bukan untuk 'Di Keyframe' m
 
 msgid "Has Motion Paths"
 msgstr "Ada Jalur Gerakan"
+
+
+msgid "Type of range to calculate for Motion Paths"
+msgstr "Tipe rentang yang akan dihitung untuk Jalur Gerakan"
+
+
+msgid "Selected Keys"
+msgstr "Key yang Terpilih"
 
 
 msgid "Show Frame Numbers"

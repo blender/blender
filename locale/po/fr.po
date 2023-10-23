@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2023-10-10 16:11+0000\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-18 03:54+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -33459,7 +33459,7 @@ msgstr "Tableau complet"
 
 
 msgid "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used"
-msgstr "Quand un type « tableau/vecteur » est choisi (Position, Rotation, Couleur, etc.), l’ensemble entier sera utilisé"
+msgstr "Quand un type « tableau/vecteur » est choisi (Position, Rotation, Couleur, etc.), le tableau entier sera utilisé"
 
 
 msgid "Keying set paths"
@@ -56049,10 +56049,6 @@ msgid "Apply sampling to all animations"
 msgstr "Appliquer un échantillonnage à toutes les animations"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "Format de sortie et options d’incorporation. Binaire est le plus compact, mais JSON (incorporé ou séparé) peut être plus facile à éditer ultérieurement"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "glTF binaire (.glb)"
 
@@ -56069,14 +56065,6 @@ msgid "Exports multiple files, with separate JSON, binary and texture data. Easi
 msgstr "Exporter plusieurs fichiers, avec des données JSON, binaires, et textures séparées. Le plus facile à éditer ultérieurement"
 
 
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF incorporé (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "Exporter un seul fichier, comprenant toutes les données sous forme JSON. Moins compact que le binaire, mais plus facile à éditer ultérieurement"
-
-
 msgid "Limit to Playback Range"
 msgstr "Limiter à l’intervalle de lecture"
 
@@ -56089,10 +56077,6 @@ msgid "GPU Instances"
 msgstr "Instances GPU"
 
 
-msgid "Export using EXT_mesh_gpu_instancing.Limited to children of a same Empty. multiple Materials might be omitted"
-msgstr "Exporter en utilisant EXT_mesh_gpu_instancing. Limité aux enfants d’un même objet vide. Certains matériaux peuvent être omis"
-
-
 msgid "Flatten Bone Hierarchy"
 msgstr "Aplatir la hiérarchie d’os"
 
@@ -56101,20 +56085,8 @@ msgid "Flatten Bone Hierarchy. Useful in case of non decomposable transformation
 msgstr "Aplatir la hiérarchie d’os. Utile en cas de matrices de transformation non-décomposables"
 
 
-msgid "Create Webp"
-msgstr "Créer WebP"
-
-
-msgid "Creates webp textures for every textures. For already webp textures, nothing happen"
-msgstr "Créer des textures WebP pour chaque texture. Pour les textures déjà en WebP, ne rien faire"
-
-
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "Format de sortie pour les images. PNG est sans perte et généralement préféré, mais JPEG peut être préférable pour des applications web à cause de sa plus petite taille de fichiers. Elles peuvent également être omises si elles ne sont pas nécessaires"
-
-
-msgid "Save PNGs as PNGs, JPEGs as JPEGs, WEBPs as WEBPs. If neither one, use PNG"
-msgstr "Enregistrer les PNG en PNG, les JPEG en JPEG, et les WebP en WebP. Pour les autres formats, utiliser PNG"
 
 
 msgid "JPEG Format (.jpg)"
@@ -56123,14 +56095,6 @@ msgstr "Format JPEG (.jpg)"
 
 msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) Be aware of a possible loss in quality"
 msgstr "Enregistrer les images en JPEG. (Les images qui ont besoin d’alpha sont quand même enregistrées en PNG.) Attention : une perte de qualité est possible"
-
-
-msgid "Webp Format"
-msgstr "Format WebP"
-
-
-msgid "Save images as WEBPs as main image (no fallback)"
-msgstr "Enregistrer les images en WebP comme image principale (sans solution de repli)"
 
 
 msgid "Don't export images"
@@ -56143,14 +56107,6 @@ msgstr "Qualité d’image"
 
 msgid "Quality of image export"
 msgstr "Qualité de l’image exportée"
-
-
-msgid "Webp fallback"
-msgstr "Solution de repli de WebP"
-
-
-msgid "For all webp textures, create a PNG fallback texture."
-msgstr "Pour toutes les textures WebP, créer une texture PNG en solution de repli."
 
 
 msgid "Lighting Mode"
@@ -56387,10 +56343,6 @@ msgstr "Omettre l’accesseur sporadique si les données sont vides"
 
 msgid "Use Sparse Accessor if better"
 msgstr "Utiliser l’accesseur sporadique si c’est mieux"
-
-
-msgid "Try using Sparce Accessor if it save space"
-msgstr "Essayer d’utiliser l’accesseur sporadique si ça fait gagner de l’espace"
 
 
 msgid "+Y Up"
@@ -62139,10 +62091,6 @@ msgid "Blender (best for import/export round trip)"
 msgstr "Blender (idéal pour les aller-retours d’import-export)"
 
 
-msgid "Good for re-importing glTFs exported from Blender, and re-exporting glTFs to glTFs after Blender editingBone tips are placed on their local +Y axis (in glTF space)"
-msgstr "Utile pour réimporter les glTF exportés depuis Blender et les réexporter en glTF après édition dans Blender. Les extrémités des os sont placées sur leur axe local +Y (dans l’espace glTF)"
-
-
 msgid "Temperance (average)"
 msgstr "Tempérance (moyenne)"
 
@@ -62185,14 +62133,6 @@ msgstr "Utiliser les données de normales"
 
 msgid "Flat Shading"
 msgstr "Ombrage plat"
-
-
-msgid "Import Webp textures"
-msgstr "Import les textures WebP"
-
-
-msgid "If a texture exists in webp format,loads the webp texture instead of the fallback png/jpg one"
-msgstr "Si une texture existe au format WebP, la charger plutôt que sa solution de repli PNG ou JPG"
 
 
 msgid "Log Level"
@@ -79501,10 +79441,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exporter la disposition UV dans une image bitmap"
 
 
-msgid "Modified"
-msgstr "Modifiées"
-
-
 msgid "Exports UVs from the modified mesh"
 msgstr "Exporter les UV depuis le maillage modifié"
 
@@ -80015,26 +79951,6 @@ msgstr "Sélectionner tous les sommets UV épinglés"
 
 msgid "Select similar UVs by property types"
 msgstr "Sélectionner les UV similaires d’après un type de propriété"
-
-
-msgid "Length 3D"
-msgstr "Longueur 3D"
-
-
-msgid "Area 3D"
-msgstr "Aire 3D"
-
-
-msgid "Polygon Sides"
-msgstr "Côtés des polygones"
-
-
-msgid "Winding"
-msgstr "Enroulement"
-
-
-msgid "Amount of Faces in Island"
-msgstr "Nombre de faces dans l’îlot"
 
 
 msgctxt "Operator"
@@ -111518,6 +111434,11 @@ msgid "Update on Edit"
 msgstr "Mettre à jour à l’édition"
 
 
+msgctxt "Operator"
+msgid "Search..."
+msgstr "Rechercher…"
+
+
 msgid "Distance Reference"
 msgstr "Distance de référence"
 
@@ -118528,6 +118449,14 @@ msgid "Unable to pack file, source path '%s' not found"
 msgstr "Impossible d’empaqueter le fichier, le chemin de la source « %s » est introuvable"
 
 
+msgid "Unable to access the size of, source path '%s'"
+msgstr "Impossible d’accéder à la taille, chemin de la source « %s »"
+
+
+msgid "Unable to pack files over 2gb, source path '%s'"
+msgstr "Impossible d’empaqueter les fichiers de plus de 2 Go, chemin de la source « %s »"
+
+
 msgid "Image '%s' skipped, packing movies or image sequences not supported"
 msgstr "Image « %s » ignorée, l’empaquetage de vidéos et de séquences d’images n’est pas pris en charge"
 
@@ -120372,6 +120301,10 @@ msgid "Cannot evaluate node group"
 msgstr "Impossible d’évaluer le groupe de nœuds"
 
 
+msgid "Node group must have a group output node"
+msgstr "Le groupe de nœuds doit avoir un nœud de sortie"
+
+
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
 msgstr "Création de poly d’annotation : clic gauche pour placer le prochain sommet du trait | Échap/Entrée pour finaliser (ou cliquer en dehors de cette zone)"
 
@@ -121182,6 +121115,10 @@ msgstr "Valeur"
 
 msgid "Redo"
 msgstr "Refaire"
+
+
+msgid "Press spacebar to search..."
+msgstr "Appuyer sur la barre d’espace pour rechercher…"
 
 
 msgid "Type to search..."
@@ -124721,6 +124658,14 @@ msgid "Move asset out of any catalog"
 msgstr "Sortir l’asset de tout catalogue"
 
 
+msgid "Today"
+msgstr "Aujourd’hui"
+
+
+msgid "Yesterday"
+msgstr "Hier"
+
+
 msgid "File path"
 msgstr "Chemin de fichier"
 
@@ -124739,14 +124684,6 @@ msgstr ""
 
 msgid "Unreadable Blender library file:"
 msgstr "Fichier bibliothèque Blender illisible :"
-
-
-msgid "Today"
-msgstr "Aujourd’hui"
-
-
-msgid "Yesterday"
-msgstr "Hier"
 
 
 msgid "Could not rename: %s"
@@ -128026,6 +127963,10 @@ msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD : impossible d’ouvrir l’étage pour lire %s"
 
 
+msgid "USD Import: unable to open cache reader for object %s"
+msgstr "Import USD : impossible d’ouvrir le lecteur de cache pour l’objet %s"
+
+
 msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
 msgstr "Une exception a eu lieu à l’invocation du callback USD « %s ». Voir la console pour plus de détails"
 
@@ -129933,10 +129874,6 @@ msgstr "Le type de propriété ne correspond pas à la prise d’entrée « %s�
 
 msgid "Node group's geometry input must be the first"
 msgstr "L’entrée de géométrie du groupe de nœuds doit être en premier"
-
-
-msgid "Node group must have a group output node"
-msgstr "Le groupe de nœuds doit avoir un nœud de sortie"
 
 
 msgid "Node group must have an output socket"
@@ -132369,6 +132306,21 @@ msgid "Emission Strength"
 msgstr "Force d’émission"
 
 
+msgctxt "NodeTree"
+msgid "Specular Tint"
+msgstr "Teinte de spéculaire"
+
+
+msgctxt "NodeTree"
+msgid "Coat Tint"
+msgstr "Teinte de vernis"
+
+
+msgctxt "NodeTree"
+msgid "Sheen Tint"
+msgstr "Teinte de lustre"
+
+
 msgid "Blend between diffuse surface and subsurface scattering. Typically should be zero or one (either fully diffuse or subsurface)"
 msgstr "Fondu entre une surface diffuse et une dispersion subsurfacique. Une valeur typique devrait être de zéro ou un (soit complètement diffuse, soit subsurface)"
 
@@ -132411,6 +132363,15 @@ msgstr "Indice de réfraction de la couche de vernis (affecte sa réflectivité 
 
 msgid "Adds a colored tint to the coat layer by modeling absorption in the layer. Saturation increases at shallower angles, as the light travels farther through the medium (depending on the Coat IOR)"
 msgstr "Ajouter une teinte colorée à la couche de vernis en modélisant l’absorption dans la couche. La saturation augmente aux angles rasants, car la lumière voyage plus loin dans le médium (selon l’IDR de la couche)"
+
+
+msgid "IOR Level"
+msgstr "Niveau IDR"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "Teinte"
 
 
 msgid "Subsurface"
@@ -132975,6 +132936,10 @@ msgstr "impossible d’ouvrir le fichier"
 
 msgid "File Not Found"
 msgstr "Fichier introuvable"
+
+
+msgid "Modified"
+msgstr "Modifiées"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"
@@ -134225,6 +134190,14 @@ msgstr "Géorgien (ქართული)"
 
 msgid "Tamil (தமிழ்)"
 msgstr "Tamoul (தமிழ்)"
+
+
+msgid "Khmer (ខ្មែរ)"
+msgstr "Khmer (ខ្មែរ)"
+
+
+msgid "Swahili (Kiswahili)"
+msgstr "Swahili (Kiswahili)"
 
 
 msgid "Complete"
