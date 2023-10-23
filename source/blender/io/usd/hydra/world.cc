@@ -42,7 +42,6 @@ WorldData::WorldData(HydraSceneDelegate *scene_delegate, pxr::SdfPath const &pri
 void WorldData::init()
 {
   data_.clear();
-  data_[pxr::UsdLuxTokens->orientToStageUpAxis] = true;
 
   float intensity = 1.0f;
   float exposure = 1.0f;
@@ -58,6 +57,9 @@ void WorldData::init()
       /* TODO: Create nodes parsing system */
 
       bNode *output_node = ntreeShaderOutputNode(world->nodetree, SHD_OUTPUT_ALL);
+      if (!output_node) {
+        return;
+      }
       const Span<bNodeSocket *> input_sockets = output_node->input_sockets();
       bNodeSocket *input_socket = nullptr;
 
@@ -127,6 +129,7 @@ void WorldData::init()
     }
   }
 
+  data_[pxr::UsdLuxTokens->orientToStageUpAxis] = true;
   data_[pxr::HdLightTokens->intensity] = intensity;
   data_[pxr::HdLightTokens->exposure] = exposure;
   data_[pxr::HdLightTokens->color] = color;
@@ -138,9 +141,22 @@ void WorldData::init()
 void WorldData::update()
 {
   ID_LOG(1, "");
-  init();
-  scene_delegate_->GetRenderIndex().GetChangeTracker().MarkSprimDirty(prim_id,
-                                                                      pxr::HdLight::AllDirty);
+
+  if (!scene_delegate_->shading_settings.use_scene_world ||
+      (scene_delegate_->shading_settings.use_scene_world && scene_delegate_->scene->world))
+  {
+    init();
+    if (data_.empty()) {
+      remove();
+      return;
+    }
+    insert();
+    scene_delegate_->GetRenderIndex().GetChangeTracker().MarkSprimDirty(prim_id,
+                                                                        pxr::HdLight::AllDirty);
+  }
+  else {
+    remove();
+  }
 }
 
 void WorldData::write_transform()
