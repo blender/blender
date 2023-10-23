@@ -571,8 +571,6 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
                                 const rctf *canvas,
                                 const bool draw_flip[2])
 {
-  void *display_buffer;
-
   /* Format needs to be created prior to any #immBindShader call.
    * Do it here because OCIO binds its own shader. */
   eGPUTextureFormat format;
@@ -584,15 +582,20 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
       imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   void *buffer_cache_handle = nullptr;
-  display_buffer = ocio_transform_ibuf(
+  void *display_buffer = ocio_transform_ibuf(
       display_ctx, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
 
+  /* NOTE: This may fail, especially for large images that exceed the GPU's texture size limit.
+   * Large images could be supported although this isn't so common for animation playback. */
   GPUTexture *texture = GPU_texture_create_2d(
       "display_buf", ibuf->x, ibuf->y, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
-  GPU_texture_update(texture, data, display_buffer);
-  GPU_texture_filter_mode(texture, false);
 
-  GPU_texture_bind(texture, 0);
+  if (texture) {
+    GPU_texture_update(texture, data, display_buffer);
+    GPU_texture_filter_mode(texture, false);
+
+    GPU_texture_bind(texture, 0);
+  }
 
   if (!glsl_used) {
     immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
@@ -626,8 +629,10 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
 
   immEnd();
 
-  GPU_texture_unbind(texture);
-  GPU_texture_free(texture);
+  if (texture) {
+    GPU_texture_unbind(texture);
+    GPU_texture_free(texture);
+  }
 
   if (!glsl_used) {
     immUnbindProgram();
