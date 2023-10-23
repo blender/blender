@@ -380,6 +380,9 @@ void ED_asset_shelf_region_on_user_resize(const ARegion *region)
   const RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(
       *region);
   AssetShelf *active_shelf = shelf_regiondata->active_shelf;
+  if (!active_shelf) {
+    return;
+  }
 
   const int tile_height = current_tile_draw_height(region);
   active_shelf->preferred_row_count = calculate_row_count_from_tile_draw_height(
