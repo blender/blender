@@ -138,7 +138,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
 
 /**
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),
- * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
+ * incrementing its numeric suffix as necessary.
  *
  * \param unique_check: Return true if name is not unique
  * \param arg: Additional arg to unique_check--meaning is up to caller
@@ -155,7 +155,7 @@ void BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        size_t name_maxncpy) ATTR_NONNULL(1, 3, 5);
 /**
  * Ensures that the specified block has a unique name within the containing list,
- * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
+ * incrementing its numeric suffix as necessary.
  *
  * \param list: List containing the block
  * \param vlink: The block to check the name for
