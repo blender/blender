@@ -9853,7 +9853,7 @@ static int ui_handle_view_item_event(bContext *C,
                                      uiBut *active_but,
                                      ARegion *region)
 {
-  if (event->type == LEFTMOUSE) {
+  if ((event->type == LEFTMOUSE) && (event->val == KM_PRESS)) {
     /* Only bother finding the active view item button if the active button isn't already a view
      * item. */
     uiBut *view_but = (active_but && active_but->type == UI_BTYPE_VIEW_ITEM) ?
@@ -9861,8 +9861,7 @@ static int ui_handle_view_item_event(bContext *C,
                           ui_view_item_find_mouse_over(region, event->xy);
     /* Will free active button if there already is one. */
     if (view_but) {
-      ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
-      return ui_do_button(C, view_but->block, view_but, event);
+      UI_but_execute(C, region, view_but);
     }
   }
 
