@@ -1916,16 +1916,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   bool is_ortho = false;
   float winmat[4][4];
 
-  /* Determine desired offscreen format depending on HDR availability. */
-  bool use_hdr = false;
-  if (scene && ((scene->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0)) {
-    use_hdr = GPU_hdr_support();
-  }
-  eGPUTextureFormat desired_format = (use_hdr) ? GPU_RGBA16F : GPU_RGBA8;
+  /* Guess format based on output buffer. */
+  eGPUTextureFormat desired_format = (imbuf_flag & IB_rectfloat) ? GPU_RGBA16F : GPU_RGBA8;
 
-  if (ofs && ((GPU_offscreen_width(ofs) != sizex) || (GPU_offscreen_height(ofs) != sizey) ||
-              (GPU_offscreen_format(ofs) != desired_format)))
-  {
+  if (ofs && ((GPU_offscreen_width(ofs) != sizex) || (GPU_offscreen_height(ofs) != sizey))) {
+    /* If offscreen has already been created, recreate with the same format. */
+    desired_format = GPU_offscreen_format(ofs);
     /* sizes differ, can't reuse */
     ofs = nullptr;
   }

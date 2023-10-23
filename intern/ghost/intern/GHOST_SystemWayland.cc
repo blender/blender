@@ -3925,7 +3925,7 @@ static void keyboard_handle_keymap(void *data,
   if (seat->xkb.compose_state) {
     xkb_compose_state_reset(seat->xkb.compose_state);
   }
-  else {
+  else if (seat->xkb.compose_table) {
     seat->xkb.compose_state = xkb_compose_state_new(seat->xkb.compose_table,
                                                     XKB_COMPOSE_STATE_NO_FLAGS);
   }
