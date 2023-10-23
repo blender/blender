@@ -2637,6 +2637,7 @@ Object *BKE_object_duplicate(Main *bmain,
       }
       break;
     case OB_GPENCIL_LEGACY:
+    case OB_GREASE_PENCIL:
       if (dupflag & USER_DUP_GPENCIL) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
