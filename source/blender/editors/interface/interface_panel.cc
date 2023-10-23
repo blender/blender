@@ -2128,6 +2128,11 @@ PanelCategoryDyn *UI_panel_category_find(const ARegion *region, const char *idna
       BLI_findstring(&region->panels_category, idname, offsetof(PanelCategoryDyn, idname)));
 }
 
+int UI_panel_category_index_find(ARegion *region, const char *idname)
+{
+  return BLI_findstringindex(&region->panels_category, idname, offsetof(PanelCategoryDyn, idname));
+}
+
 PanelCategoryStack *UI_panel_category_active_find(ARegion *region, const char *idname)
 {
   return static_cast<PanelCategoryStack *>(BLI_findstring(
@@ -2176,6 +2181,17 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
 void UI_panel_category_active_set(ARegion *region, const char *idname)
 {
   ui_panel_category_active_set(region, idname, false);
+}
+
+void UI_panel_category_index_active_set(ARegion *region, const int index)
+{
+  PanelCategoryDyn *pc_dyn = static_cast<PanelCategoryDyn *>(
+      BLI_findlink(&region->panels_category, index));
+  if (!pc_dyn) {
+    return;
+  }
+
+  ui_panel_category_active_set(region, pc_dyn->idname, false);
 }
 
 void UI_panel_category_active_set_default(ARegion *region, const char *idname)

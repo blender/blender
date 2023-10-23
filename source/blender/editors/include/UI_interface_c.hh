@@ -1989,9 +1989,12 @@ bool UI_panel_can_be_pinned(const Panel *panel);
 bool UI_panel_category_is_visible(const ARegion *region);
 void UI_panel_category_add(ARegion *region, const char *name);
 PanelCategoryDyn *UI_panel_category_find(const ARegion *region, const char *idname);
+int UI_panel_category_index_find(ARegion *region, const char *idname);
 PanelCategoryStack *UI_panel_category_active_find(ARegion *region, const char *idname);
 const char *UI_panel_category_active_get(ARegion *region, bool set_fallback);
 void UI_panel_category_active_set(ARegion *region, const char *idname);
+/** \param index: index of item _in #ARegion.panels_category list_. */
+void UI_panel_category_index_active_set(ARegion *region, const int index);
 void UI_panel_category_active_set_default(ARegion *region, const char *idname);
 void UI_panel_category_clear_all(ARegion *region);
 /**
