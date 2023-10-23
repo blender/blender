@@ -5690,8 +5690,6 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
   bndv = bv->vmesh->boundstart;
   do {
     int i = bndv->index;
-    Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> bmedges;
-    Vector<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> bmfaces;
 
     /* Add the first corner vertex under this boundvert. */
     face_bmverts[0] = mesh_vert(bv->vmesh, i, 1, 0)->v;
@@ -5725,26 +5723,22 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
     bev_create_ngon(bm,
                     face_bmverts,
                     bp->seg + 2 + build_center_face,
-                    bmfaces.data(),
                     nullptr,
-                    bmedges.data(),
+                    nullptr,
+                    nullptr,
                     bp->mat_nr,
                     true);
   } while ((bndv = bndv->next) != bv->vmesh->boundstart);
 
   /* Create the bottom face if it should be built, reusing previous face_bmverts allocation. */
   if (build_center_face) {
-    Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> bmedges;
-    Vector<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> bmfaces;
-
     /* Add all of the corner vertices to this face. */
     for (int i = 0; i < n_bndv; i++) {
       /* Add verts from each cutoff face. */
       face_bmverts[i] = mesh_vert(bv->vmesh, i, 1, 0)->v;
     }
-    // BLI_array_append(bmfaces, repface);
-    bev_create_ngon(
-        bm, face_bmverts, n_bndv, bmfaces.data(), nullptr, bmedges.data(), bp->mat_nr, true);
+
+    bev_create_ngon(bm, face_bmverts, n_bndv, nullptr, nullptr, nullptr, bp->mat_nr, true);
   }
 }
 
