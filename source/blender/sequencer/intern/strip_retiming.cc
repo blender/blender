@@ -849,11 +849,17 @@ static void seq_retiming_transition_offset(const Scene *scene,
 {
   int clamped_offset = seq_retiming_clamp_transition_offset(key, offset);
   const int duration = key->original_strip_frame_index - key->strip_frame_index;
+  const bool was_selected = SEQ_retiming_selection_contains(SEQ_editing_get(scene), key);
 
   SeqRetimingKey *original_key = seq_retiming_remove_transition(scene, seq, key);
   original_key->strip_frame_index += clamped_offset;
 
-  SEQ_retiming_add_transition(scene, seq, original_key, duration);
+  SeqRetimingKey *transition_in = SEQ_retiming_add_transition(scene, seq, original_key, duration);
+
+  if (was_selected) {
+    SEQ_retiming_selection_append(transition_in);
+    SEQ_retiming_selection_append(transition_in + 1);
+  }
 }
 
 static int seq_retiming_clamp_timeline_frame(const Scene *scene,
