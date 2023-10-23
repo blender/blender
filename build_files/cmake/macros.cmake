@@ -1460,10 +1460,13 @@ macro(find_python_module_file
     )
     if(${out_var_abs})
       set(_${out_var_abs}_DEPS "${_python_mod_file_deps_test}" CACHE STRING "")
-      string(LENGTH "${_python_root}" _python_root_len)
-      string(SUBSTRING ${${out_var_abs}} ${_python_root_len} -1 ${out_var_rel})
-      unset(_python_root_len)
     endif()
+  endif()
+
+  if(${out_var_abs})
+    string(LENGTH "${_python_root}" _python_root_len)
+    string(SUBSTRING ${${out_var_abs}} ${_python_root_len} -1 ${out_var_rel})
+    unset(_python_root_len)
   endif()
 
   unset(_python_mod_file_deps_test)
