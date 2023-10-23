@@ -1471,7 +1471,7 @@ static void template_ID(const bContext *C,
         uiDefIconButO(block,
                       /* Using `_N` version allows us to get the 'active' state by default. */
                       UI_BTYPE_ICON_TOGGLE_N,
-                      "ASSET_OT_clear",
+                      "ASSET_OT_clear_single",
                       WM_OP_INVOKE_DEFAULT,
                       /* 'active' state of a toggle button uses icon + 1, so to get proper asset
                        * icon we need to pass its value - 1 here. */
