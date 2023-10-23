@@ -50,6 +50,11 @@ static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> d
   }
 }
 
+static float2 arithmetic_mean(Span<float2> values)
+{
+  return std::accumulate(values.begin(), values.end(), float2(0)) / values.size();
+}
+
 /** Sample a bezier curve at a fixed resolution and return the sampled points in an array. */
 static Array<float2> sample_curve_2d(Span<float2> positions, const int64_t resolution)
 {
@@ -99,10 +104,15 @@ static void morph_points_to_curve(Span<float2> src, Span<float2> target, Mutable
 
 class PaintOperation : public GreasePencilStrokeOperation {
  private:
-  Vector<float2> screen_space_coords_;
+  /* Screen space coordinates from input samples. */
+  Vector<float2> screen_space_coords_orig_;
+  /* Temporary vector of curve fitted screen space coordinates per input sample from the active
+   * smoothing window. */
   Vector<Vector<float2>> screen_space_curve_fitted_coords_;
+  /* Screen space coordinates after smoothing. */
   Vector<float2> screen_space_smoothed_coords_;
-  int64_t active_smooth_index_ = 0;
+  /* The start index of the smoothing window. */
+  int active_smooth_start_index_ = 0;
 
   friend struct PaintOperationExecutor;
 
@@ -214,7 +224,7 @@ struct PaintOperationExecutor {
     const float start_opacity = this->opacity_from_input_sample(start_sample);
     const ColorGeometry4f start_vertex_color = ColorGeometry4f(vertex_color_);
 
-    self.screen_space_coords_.append(start_coords);
+    self.screen_space_coords_orig_.append(start_coords);
     self.screen_space_curve_fitted_coords_.append(Vector<float2>({start_coords}));
     self.screen_space_smoothed_coords_.append(start_coords);
 
@@ -270,14 +280,10 @@ struct PaintOperationExecutor {
   }
 
   void active_smoothing(PaintOperation &self,
-                        const IndexRange points,
-                        const IndexRange smooth_window)
+                        const IndexRange smooth_window,
+                        MutableSpan<float3> curve_positions)
   {
-    /* We don't do active smoothing for when we have just 3 points or less. */
-    if (smooth_window.size() < 4) {
-      return;
-    }
-    Span<float2> screen_space_coords_smooth_slice = self.screen_space_coords_.as_span().slice(
+    const Span<float2> coords_to_smooth = self.screen_space_coords_orig_.as_span().slice(
         smooth_window);
 
     /* Detect corners in the current slice of coordinates. */
@@ -287,7 +293,7 @@ struct PaintOperationExecutor {
     const float corner_angle_threshold = 0.6f;
     IndexMaskMemory memory;
     const IndexMask corner_mask = ed::greasepencil::polyline_detect_corners(
-        screen_space_coords_smooth_slice.drop_front(1).drop_back(1),
+        coords_to_smooth.drop_front(1).drop_back(1),
         corner_min_radius_px,
         corner_max_radius_px,
         corner_max_samples,
@@ -297,7 +303,7 @@ struct PaintOperationExecutor {
     /* Pre-blur the coordinates for the curve fitting. This generally leads to a better fit. */
     Array<float2> coords_pre_blur(smooth_window.size());
     const int pre_blur_iterations = 3;
-    ed::greasepencil::gaussian_blur_1D(screen_space_coords_smooth_slice,
+    ed::greasepencil::gaussian_blur_1D(coords_to_smooth,
                                        pre_blur_iterations,
                                        1.0f,
                                        true,
@@ -315,31 +321,25 @@ struct PaintOperationExecutor {
     Array<float2> sampled_curve_points = sample_curve_2d(curve_points, sample_resolution);
 
     /* Morphing the coordinates onto the curve. Result is stored in a temporary array. */
-    Array<float2> coords_smoothed(screen_space_coords_smooth_slice.size());
-    morph_points_to_curve(screen_space_coords_smooth_slice, sampled_curve_points, coords_smoothed);
+    Array<float2> coords_smoothed(coords_to_smooth.size());
+    morph_points_to_curve(coords_to_smooth, sampled_curve_points, coords_smoothed);
 
-    MutableSpan<float2> smoothed_coords_slice =
-        self.screen_space_smoothed_coords_.as_mutable_span().slice(smooth_window);
-    MutableSpan<float3> positions_slice =
-        drawing_->strokes_for_write().positions_for_write().slice(points).slice(smooth_window);
+    MutableSpan<float2> window_coords = self.screen_space_smoothed_coords_.as_mutable_span().slice(
+        smooth_window);
+    MutableSpan<float3> positions_slice = curve_positions.slice(smooth_window);
     const float converging_threshold_px = 0.1f;
     bool stop_counting_converged = false;
     int num_converged = 0;
-    for (const int64_t i : smooth_window.index_range()) {
+    for (const int64_t window_i : smooth_window.index_range()) {
       /* Record the curve fitting of this point. */
-      self.screen_space_curve_fitted_coords_[i].append(coords_smoothed[i]);
-      Span<float2> smoothed_coords_point = self.screen_space_curve_fitted_coords_[i];
+      self.screen_space_curve_fitted_coords_[window_i].append(coords_smoothed[window_i]);
+      Span<float2> fit_coords = self.screen_space_curve_fitted_coords_[window_i];
 
-      /* Get the sum of all the curve fittings of this point. */
-      float2 sum = smoothed_coords_point[0];
-      for (const float2 v : smoothed_coords_point.drop_front(1).drop_back(1)) {
-        sum += v;
-      }
       /* We compare the previous arithmetic mean to the current. Going from the back to the front,
        * if a point hasn't moved by a minimum threshold, it counts as converged. */
-      float2 new_pos = (sum + smoothed_coords_point.last()) / smoothed_coords_point.size();
+      float2 new_pos = arithmetic_mean(fit_coords);
       if (!stop_counting_converged) {
-        float2 prev_pos = sum / (smoothed_coords_point.size() - 1);
+        float2 prev_pos = window_coords[window_i];
         if (math::distance(new_pos, prev_pos) < converging_threshold_px) {
           num_converged++;
         }
@@ -349,28 +349,20 @@ struct PaintOperationExecutor {
       }
 
       /* Update the positions in the current cache. */
-      smoothed_coords_slice[i] = new_pos;
-      positions_slice[i] = screen_space_to_drawing_plane(new_pos);
+      window_coords[window_i] = new_pos;
+      positions_slice[window_i] = screen_space_to_drawing_plane(new_pos);
     }
 
     /* Remove all the converged points from the active window and shrink the window accordingly. */
     if (num_converged > 0) {
-      self.active_smooth_index_ = math::min(self.active_smooth_index_ + int64_t(num_converged),
-                                            int64_t(drawing_->strokes().points_num() - 1));
-      const IndexRange new_smooth_window = points.drop_front(self.active_smooth_index_);
-      if (new_smooth_window.size() > 0) {
-        self.screen_space_curve_fitted_coords_.remove(0, num_converged);
-      }
-      else {
-        self.screen_space_curve_fitted_coords_.clear();
-      }
+      self.active_smooth_start_index_ += num_converged;
+      self.screen_space_curve_fitted_coords_.remove(0, num_converged);
     }
   }
 
   void process_extension_sample(PaintOperation &self,
                                 const bContext &C,
-                                const InputSample &extension_sample,
-                                const int curve_index)
+                                const InputSample &extension_sample)
   {
     const float2 coords = extension_sample.mouse_position;
     const float radius = this->radius_from_input_sample(C, extension_sample);
@@ -380,7 +372,7 @@ struct PaintOperationExecutor {
     bke::CurvesGeometry &curves = drawing_->strokes_for_write();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-    const float2 prev_coords = self.screen_space_coords_.last();
+    const float2 prev_coords = self.screen_space_coords_orig_.last();
     const float prev_radius = drawing_->radii().last();
     const float prev_opacity = drawing_->opacities().last();
     const ColorGeometry4f prev_vertex_color = drawing_->vertex_colors().last();
@@ -402,24 +394,26 @@ struct PaintOperationExecutor {
     }
 
     /* Resize the curves geometry. */
-    const int old_point_num = curves.points_num();
     curves.resize(curves.points_num() + new_points_num, curves.curves_num());
     curves.offsets_for_write().last() = curves.points_num();
+    const IndexRange curve_points = curves.points_by_curve()[curves.curves_range().last()];
 
-    /* Subdivide stroke in new_range. */
-    IndexRange new_range(old_point_num, new_points_num);
+    /* Subdivide stroke in new_points. */
+    const IndexRange new_points = curve_points.take_back(new_points_num);
     Array<float2> new_screen_space_coords(new_points_num);
-    MutableSpan<float> new_radii = drawing_->radii_for_write().slice(new_range);
-    MutableSpan<float> new_opacities = drawing_->opacities_for_write().slice(new_range);
+    MutableSpan<float3> positions = curves.positions_for_write();
+    MutableSpan<float3> new_positions = positions.slice(new_points);
+    MutableSpan<float> new_radii = drawing_->radii_for_write().slice(new_points);
+    MutableSpan<float> new_opacities = drawing_->opacities_for_write().slice(new_points);
     MutableSpan<ColorGeometry4f> new_vertex_colors = drawing_->vertex_colors_for_write().slice(
-        new_range);
+        new_points);
     linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords);
     linear_interpolation<float>(prev_radius, radius, new_radii);
     linear_interpolation<float>(prev_opacity, opacity, new_opacities);
     linear_interpolation<ColorGeometry4f>(prev_vertex_color, vertex_color, new_vertex_colors);
 
     /* Update screen space buffers with new points. */
-    self.screen_space_coords_.extend(new_screen_space_coords);
+    self.screen_space_coords_orig_.extend(new_screen_space_coords);
     self.screen_space_smoothed_coords_.extend(new_screen_space_coords);
     for (float2 new_position : new_screen_space_coords) {
       self.screen_space_curve_fitted_coords_.append(Vector<float2>({new_position}));
@@ -427,17 +421,16 @@ struct PaintOperationExecutor {
 
     /* Only start smoothing if there are enough points. */
     const int64_t min_active_smoothing_points_num = 8;
-    const IndexRange points = curves.points_by_curve()[curve_index];
-    if (points.size() < min_active_smoothing_points_num) {
-      MutableSpan<float3> positions_slice = curves.positions_for_write().slice(new_range);
+    const IndexRange smooth_window = self.screen_space_coords_orig_.index_range().drop_front(
+        self.active_smooth_start_index_);
+    if (smooth_window.size() < min_active_smoothing_points_num) {
       for (const int64_t i : new_screen_space_coords.index_range()) {
-        positions_slice[i] = screen_space_to_drawing_plane(new_screen_space_coords[i]);
+        new_positions[i] = screen_space_to_drawing_plane(new_screen_space_coords[i]);
       }
     }
     else {
       /* Active smoothing is done in a window at the end of the new stroke. */
-      this->active_smoothing(
-          self, points, points.index_range().drop_front(self.active_smooth_index_));
+      this->active_smoothing(self, smooth_window, positions.slice(curve_points));
     }
 
     /* Initialize the rest of the attributes with default values. */
@@ -448,7 +441,7 @@ struct PaintOperationExecutor {
       }
       bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
       const CPPType &type = attribute.span.type();
-      GMutableSpan new_data = attribute.span.slice(new_range);
+      GMutableSpan new_data = attribute.span.slice(new_points);
       type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
       attribute.finish();
       return true;
@@ -457,9 +450,7 @@ struct PaintOperationExecutor {
 
   void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)
   {
-    /* New curve was created in `process_start_sample`.*/
-    const int curve_index = drawing_->strokes().curves_range().last();
-    this->process_extension_sample(self, C, extension_sample, curve_index);
+    this->process_extension_sample(self, C, extension_sample);
     drawing_->tag_topology_changed();
   }
 };
