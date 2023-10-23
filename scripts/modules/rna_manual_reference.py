@@ -1335,6 +1335,7 @@ url_manual_mapping = (
     ("bpy.types.geometrynodeindexofnearest*", "modeling/geometry_nodes/geometry/sample/index_of_nearest.html#bpy-types-geometrynodeindexofnearest"),
     ("bpy.types.geometrynodeinputcurvetilt*", "modeling/geometry_nodes/curve/read/curve_tilt.html#bpy-types-geometrynodeinputcurvetilt"),
     ("bpy.types.geometrynodeinputscenetime*", "modeling/geometry_nodes/input/scene/scene_time.html#bpy-types-geometrynodeinputscenetime"),
+    ("bpy.types.geometrynodepointstocurves*", "modeling/geometry_nodes/point/points_to_curves.html#bpy-types-geometrynodepointstocurves"),
     ("bpy.types.geometrynodepointstovolume*", "modeling/geometry_nodes/point/points_to_volume.html#bpy-types-geometrynodepointstovolume"),
     ("bpy.types.geometrynodescaleinstances*", "modeling/geometry_nodes/instances/scale_instances.html#bpy-types-geometrynodescaleinstances"),
     ("bpy.types.geometrynodesetcurvenormal*", "modeling/geometry_nodes/curve/write/set_curve_normal.html#bpy-types-geometrynodesetcurvenormal"),
