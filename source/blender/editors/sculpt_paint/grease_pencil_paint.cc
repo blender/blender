@@ -175,10 +175,11 @@ struct PaintOperationExecutor {
   float3 screen_space_to_drawing_plane(const float2 co)
   {
     /* TODO: Use correct plane/projection. */
-    const float4 plane{0.0f, -1.0f, 0.0f, 0.0f};
+    float4 plane;
+    plane_from_point_normal_v3(
+        plane, transforms_.layer_space_to_world_space.location(), float3{0, -1, 0});
     float3 proj_point;
-    ED_view3d_win_to_3d_on_plane(
-        region_, transforms_.layer_space_to_world_space * plane, co, false, proj_point);
+    ED_view3d_win_to_3d_on_plane(region_, plane, co, false, proj_point);
     return math::transform_point(transforms_.world_space_to_layer_space, proj_point);
   }
 
