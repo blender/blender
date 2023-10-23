@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -43021,10 +43021,6 @@ msgid "Apply sampling to all animations"
 msgstr "Всегда выполнять сэмплирование для всех анимаций"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "Формат вывода и параметры встраивания. Двоичный формат является самым эффективным, но JSON (встроенный или отделённый) более удобный для редактирования"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "Бинарный glTF (.glb)"
 
@@ -43039,14 +43035,6 @@ msgstr "Разделённый glTF (.gltf + .bin + текстуры)"
 
 msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
 msgstr "Экспортировать несколько файлов с разделёнными JSON, двоичными и текстурными данными. Самый простой вариант для последующего изменения"
-
-
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF со встраиванием (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "Экспортировать одиночный файл со всеми данными, упакованными в JSON. Менее эффективно, чем в бинарном виде, но проще для последующего изменения"
 
 
 msgid "Limit to Playback Range"
@@ -59110,10 +59098,6 @@ msgstr "PNG изображение (.png)"
 
 msgid "Export the UV layout to a bitmap image"
 msgstr "Экспортировать UV-развёртку в растровое изображение"
-
-
-msgid "Modified"
-msgstr "С изменениями"
 
 
 msgid "Exports UVs from the modified mesh"
@@ -87710,16 +87694,16 @@ msgid "Some data failed to reconstruct (see console for details)"
 msgstr "Невозможно восстановить некоторые данные (дополнительная информация приведена в консоли)"
 
 
-msgid "File path"
-msgstr "Путь к файлу"
-
-
 msgid "Today"
 msgstr "Сегодня"
 
 
 msgid "Yesterday"
 msgstr "Вчера"
+
+
+msgid "File path"
+msgstr "Путь к файлу"
 
 
 msgid "File does not exist"
@@ -90690,6 +90674,10 @@ msgstr "Не сохранять"
 
 msgid "unable to open the file"
 msgstr "не удалось открыть файл"
+
+
+msgid "Modified"
+msgstr "С изменениями"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"

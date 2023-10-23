@@ -211,7 +211,7 @@ IDTypeInfo IDType_ID_PC = {
     /*main_listbase_index*/ INDEX_ID_PC,
     /*struct_size*/ sizeof(PaintCurve),
     /*name*/ "PaintCurve",
-    /*name_plural*/ N_("paint curves"),
+    /*name_plural*/ N_("paint_curves"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_PAINTCURVE,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ nullptr,

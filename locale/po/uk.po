@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -45071,10 +45071,6 @@ msgid "Apply sampling to all animations"
 msgstr "Застосовувати відбір для всіх анімацій"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "Формат виводу та опції вбудовування. Binary більш ефективний, але JSON (вбудовано або відокремлено) може бути легшим для подальшого редагування"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "glTF Двійково (.glb)"
 
@@ -45089,14 +45085,6 @@ msgstr "glTF Відокремлено (.gltf + .bin + текстури)"
 
 msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
 msgstr "Експортує багато файлів, окремо JSON, двійкові дані та текстури. Найлегше для подальшого редагування"
-
-
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF Вбудовано (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "Експортувати єдиний файл, з усіма даними, запакованими в JSON. Менш ефективно, ніж двійковий, але легше для подальшого редагування"
 
 
 msgid "Limit to Playback Range"
@@ -63985,10 +63973,6 @@ msgstr "Зображення PNG (.png)"
 
 msgid "Export the UV layout to a bitmap image"
 msgstr "Експортувати UV-розстановку у растрове зображення"
-
-
-msgid "Modified"
-msgstr "Змінено"
 
 
 msgid "Exports UVs from the modified mesh"
@@ -96862,16 +96846,16 @@ msgid "Average re-projection error: %.2f px"
 msgstr "Середня помилка перепроєктування: %.2f пікселів"
 
 
-msgid "File path"
-msgstr "Шлях файлу"
-
-
 msgid "Today"
 msgstr "Сьогодні"
 
 
 msgid "Yesterday"
 msgstr "Учора"
+
+
+msgid "File path"
+msgstr "Шлях файлу"
 
 
 msgid "File does not exist"
@@ -100264,6 +100248,10 @@ msgstr "неможливо відкрити файл"
 
 msgid "File Not Found"
 msgstr "Файл Не Знайдено"
+
+
+msgid "Modified"
+msgstr "Змінено"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"

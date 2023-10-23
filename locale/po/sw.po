@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2023-10-14 08:54+0000\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-19 17:54+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
 "Language: sw\n"
@@ -199,6 +199,10 @@ msgid "Action group is selected"
 msgstr "Kikundi cha vitendo kimechaguliwa"
 
 
+msgid "Expanded"
+msgstr "Imepanuliwa"
+
+
 msgid "Expanded in Graph Editor"
 msgstr "Imepanuliwa katika Kihariri cha Grafu"
 
@@ -389,6 +393,94 @@ msgstr "Onya Msgid Haina herufi kubwa"
 
 msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
 msgstr "Onya kuhusu barua pepe zisizoanza kwa herufi kubwa (pamoja na vighairi vichache vinavyoruhusiwa!)"
+
+
+msgid "Persistent Data Path"
+msgstr "Njia ya Data Inayoendelea"
+
+
+msgid "Animation Data"
+msgstr "Data ya Uhuishaji"
+
+
+msgid "Action"
+msgstr "Kitendo"
+
+
+msgid "Combine"
+msgstr "Unganisha"
+
+
+msgid "Add"
+msgstr "Ongeza"
+
+
+msgid "Subtract"
+msgstr "Ondoa"
+
+
+msgid "Multiply"
+msgstr "Zidisha"
+
+
+msgid "Nothing"
+msgstr "Hakuna"
+
+
+msgid "Hold"
+msgstr "Shikilia"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "Mipangilio ya taswira ya mwendo"
+
+
+msgid "Motion Paths"
+msgstr "Njia za Mwendo"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "Mipangilio ya Njia ya Mwendo kwa taswira"
+
+
+msgid "Motion Path Settings"
+msgstr "Mipangilio ya Njia ya Mwendo"
+
+
+msgid "Bake Location"
+msgstr "Oka Mahali"
+
+
+msgid "Heads"
+msgstr "Vichwa"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Hesabu njia za mfupa kutoka kwa vichwa"
+
+
+msgid "Tails"
+msgstr "Mikia"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Hesabu njia za mfupa kutoka kwa mikia"
+
+
+msgid "After Current"
+msgstr "Baada ya Sasa"
+
+
+msgid "Before Current"
+msgstr "Kabla ya Sasa"
+
+
+msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
+msgstr "Idadi ya fremu za kuonyesha kabla ya fremu ya sasa (kwa mbinu ya 'Kuzunguka Fremu ya Sasa' njia ya ngozi ya vitunguu)"
+
+
+msgid "End Frame"
+msgstr "Mwisho wa Fremu"
 
 
 msgid "Grease Pencil"

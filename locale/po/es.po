@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2023-10-13 23:54+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
@@ -54713,10 +54713,6 @@ msgid "Apply sampling to all animations"
 msgstr "Aplicar muestreo a todas las animaciones"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "Formato de salida y opciones de inserción. El formato binario es más eficiente, sin embargo el JSON (incorporado o separado) puede ser más sencillo de editar posteriormente"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "glTF binario (.glb)"
 
@@ -54731,14 +54727,6 @@ msgstr "glTF separado (.gltf + .bin + textures)"
 
 msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
 msgstr "Exporta varios archivos, con datos JSON, binarios y de texturas. Más sencillo de editar luego"
-
-
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF incorporado (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "Exporta un único archivo conteniendo todos los datos empacados en formato JSON. Es menos eficiente que el binario, pero más sencillo de editar luego"
 
 
 msgid "Limit to Playback Range"
@@ -77335,10 +77323,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exporta la organización de las UV a un archivo de imagen"
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Exports UVs from the modified mesh"
 msgstr "Exportar las UV de la malla modificada"
 
@@ -77849,26 +77833,6 @@ msgstr "Selecciona todos los vértices UV fijos"
 
 msgid "Select similar UVs by property types"
 msgstr "Selecciona UV similares por tipo de propiedad"
-
-
-msgid "Length 3D"
-msgstr "Longitud 3D"
-
-
-msgid "Area 3D"
-msgstr "Área 3D"
-
-
-msgid "Polygon Sides"
-msgstr "Lados del polígono"
-
-
-msgid "Winding"
-msgstr "Devanado"
-
-
-msgid "Amount of Faces in Island"
-msgstr "Cantidad de caras en la isla"
 
 
 msgctxt "Operator"
@@ -116478,6 +116442,10 @@ msgid "Cannot evaluate node group"
 msgstr "No es posible evaluar el grupo de nodos"
 
 
+msgid "Node group must have a group output node"
+msgstr "El grupo de nodos debe contener un nodo de salida"
+
+
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
 msgstr "Anotación - Línea poligonal: Clic Izq. para ubicar los puntos del trazo | Esc/Intro para finalizar  (o clic fuera de este área)"
 
@@ -120694,6 +120662,14 @@ msgid "Move asset out of any catalog"
 msgstr "Mover recurso fuera de cualquier catálogo"
 
 
+msgid "Today"
+msgstr "Hoy"
+
+
+msgid "Yesterday"
+msgstr "Ayer"
+
+
 msgid "File path"
 msgstr "Ruta del archivo"
 
@@ -120708,14 +120684,6 @@ msgid ""
 msgstr ""
 "Las bibliotecas de recursos son directorios locales que contienen archivos .blend con recursos dentro.\n"
 "Administrar las bibliotecas de recursos desde la sección Rutas de archivo en las Preferencias"
-
-
-msgid "Today"
-msgstr "Hoy"
-
-
-msgid "Yesterday"
-msgstr "Ayer"
 
 
 msgid "Could not rename: %s"
@@ -125536,10 +125504,6 @@ msgid "Node group's geometry input must be the first"
 msgstr "La entrada de geometría del grupo de nodos debe encontrarse en primer lugar"
 
 
-msgid "Node group must have a group output node"
-msgstr "El grupo de nodos debe contener un nodo de salida"
-
-
 msgid "Node group must have an output socket"
 msgstr "El grupo de nodos debe contener un conector de salida"
 
@@ -128318,6 +128282,10 @@ msgstr "no fue posible abrir el archivo"
 
 msgid "File Not Found"
 msgstr "Archivo no encontrado"
+
+
+msgid "Modified"
+msgstr "Modificado"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2023-10-12 15:54+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -21952,10 +21952,6 @@ msgid "glTF Binary (.glb)"
 msgstr "glTF Binary (.glb)"
 
 
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF Embedded (.gltf)"
-
-
 msgid "JPEG Format (.jpg)"
 msgstr "Formát JPEG (.jpg)"
 
@@ -30661,10 +30657,6 @@ msgstr "Obrázek PNG (.png)"
 
 msgid "Export the UV layout to a bitmap image"
 msgstr "Vybrat"
-
-
-msgid "Modified"
-msgstr "Modifikátory"
 
 
 msgid "Fill Opacity"
@@ -45719,16 +45711,16 @@ msgid "No object to apply orientation on"
 msgstr "Animace"
 
 
-msgid "File path"
-msgstr "Cesta souboru"
-
-
 msgid "Today"
 msgstr "Dnes"
 
 
 msgid "Yesterday"
 msgstr "Včera"
+
+
+msgid "File path"
+msgstr "Cesta souboru"
 
 
 msgid "No parent directory given"
@@ -46731,6 +46723,10 @@ msgstr "není možné otevřít soubor"
 
 msgid "File Not Found"
 msgstr "Soubor nebyl nalezen"
+
+
+msgid "Modified"
+msgstr "Modifikátory"
 
 
 msgid "Save changes before closing?"

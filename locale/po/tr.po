@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
 "PO-Revision-Date: 2023-07-02 21:35+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -8394,14 +8394,6 @@ msgstr "Döndürme Yöntemi"
 
 msgid "Pinned"
 msgstr "Sabitlendi"
-
-
-msgid "Length 3D"
-msgstr "3B Uzunluk"
-
-
-msgid "Area 3D"
-msgstr "3B Alan"
 
 
 msgctxt "Operator"

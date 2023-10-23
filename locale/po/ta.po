@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2023-10-16 00:54+0000\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-19 01:54+0000\n"
 "Last-Translator: saran <saranmurugappan2020@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
 "Language: ta\n"
@@ -373,6 +373,10 @@ msgstr "எழுத்துக்கள் சேகரிப்பு"
 
 msgid "Animation Data"
 msgstr "உயிர் ஊட்டு தகவல்கள்"
+
+
+msgid "Animation data for data-block"
+msgstr "தகவல்கள் தொகுதிக்கான உயிர் ஊட்டு தகவல்கள்"
 
 
 msgid "Action"

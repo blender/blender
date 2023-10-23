@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2023-10-14 21:54+0000\n"
-"Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-23 09:29+0000\n"
+"Last-Translator: Tiago Lauriano Copelli <tiagocopelli@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
@@ -3851,16 +3851,116 @@ msgid "Bones"
 msgstr "Ossos"
 
 
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronised when exiting edit mode"
+msgstr "Ossos adicionados a esta colecção de ossos. No modo de edição de armadura retorna sempre uma lista vazia, uma vez que a associação a colecções só é sincronizada quando se sai do modo de edição"
+
+
+msgid "Is Editable"
+msgstr "É Editável"
+
+
+msgid "This collection is owned by a local Armature, or was added via a library override in the current blend file"
+msgstr "Esta colecção pertence a uma Armadura local, ou foi adicionada através de uma revogação no actual ficheiro blend"
+
+
+msgid "Is Local Override"
+msgstr "É Revogação Local"
+
+
+msgid "This collection was added via a library override in the current blend file"
+msgstr "Esta colecção foi adicionada via revogação de biblioteca no actual ficheiro blend"
+
+
 msgid "Visible"
 msgstr "Visíveis"
+
+
+msgid "Bones in this collection will be visible in pose/object mode"
+msgstr "Ossos nesta colecção serão visíveis em modo de pose/objecto"
+
+
+msgid "Unique within the Armature"
+msgstr "Único dentro da Armação"
+
+
+msgid "Bone Collection Memberships"
+msgstr "Filiações em Colecções de Ossos"
+
+
+msgid "The Bone Collections that contain this Bone"
+msgstr "As Colecções de Ossos que contém este Osso"
+
+
+msgid "Armature Bone Collections"
+msgstr "Colecções de Ossos da Armação"
+
+
+msgid "The Bone Collections of this Armature"
+msgstr "As Colecções de Ossos desta Armação"
+
+
+msgid "Active Collection"
+msgstr "Colecção Activa"
+
+
+msgid "Armature's active bone collection"
+msgstr "Colecção de ossos activa da armação"
+
+
+msgid "Active Collection Index"
+msgstr "Índice da Colecção Activa"
+
+
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
+msgstr "O índice da colecção de ossos activa da Armação; -1 quando não há colecção activa"
+
+
+msgid "Active Collection Name"
+msgstr "Nome da Colecção Activa"
+
+
+msgid "The name of the Armature's active bone collection; empty when there is no active collection"
+msgstr "O nome da colecção de ossos activa da Armação; vazio quando não há colecção activa"
+
+
+msgid "Theme color or custom color of a bone"
+msgstr "Cor da paleta ou cor personalizada de um osso"
 
 
 msgid "Custom"
 msgstr "Personalizar"
 
 
+msgid "The custom bone colors, used when palette is 'CUSTOM'"
+msgstr "As cores personalizadas de ossos; utilizado quando a paleta é 'CUSTOM'"
+
+
+msgid "Use Custom Color"
+msgstr "Usar Cor Personalizada"
+
+
+msgid "A color palette is user-defined, instead of using a theme-defined one"
+msgstr "Uma paleta de cor é definida pelo utilizador, em vez de utilizar uma definida pelo tema"
+
+
+msgid "Color palette to use"
+msgstr "Paleta de cor a usar"
+
+
+msgid "Bool Attribute Value"
+msgstr "Valor do Atributo Bool"
+
+
+msgid "Bool value in geometry attribute"
+msgstr "Valor Bool no atributo de geometria"
+
+
 msgid "Brush Capabilities"
 msgstr "Capacidades do pincel"
+
+
+msgid "Read-only indications of supported operations"
+msgstr "Indicações apenas de leitura das operações suportadas"
 
 
 msgid "Has Overlay"
@@ -3887,6 +3987,10 @@ msgid "Has Accumulate"
 msgstr "Possui acumulado"
 
 
+msgid "Has Color"
+msgstr "Tem Cor"
+
+
 msgid "Has Radius"
 msgstr "Possui raio de ação"
 
@@ -3905,6 +4009,10 @@ msgstr "Indicações somente-leitura de quais operações de pincel são suporta
 
 msgid "Has Auto Smooth"
 msgstr "Possui suavização automática"
+
+
+msgid "Has Direction"
+msgstr "Tem Direcção"
 
 
 msgid "Has Gravity"
@@ -3951,16 +4059,148 @@ msgid "Has Strength Pressure"
 msgstr "Há força de pressão"
 
 
+msgid "Has Tilt"
+msgstr "Tem Inclinação"
+
+
+msgid "Has Topology Rake"
+msgstr "Tem Ancinho de Topologia"
+
+
+msgid "Vertex Paint Capabilities"
+msgstr "Funcionalidades de Pintura de Vértices"
+
+
+msgid "Weight Paint Capabilities"
+msgstr "Funcionalidades de Pintura de Pesos"
+
+
+msgid "Has Weight"
+msgstr "Tem Peso"
+
+
+msgid "Curves Sculpt Brush Settings"
+msgstr "Definições do Pincel de Esculpir Curvas"
+
+
 msgid "Count"
 msgstr "Contagem"
+
+
+msgid "Number of curves added by the Add brush"
+msgstr "Número de Curvas adicionadas pelo pincel Adicionar"
+
+
+msgid "Curve Length"
+msgstr "Comprimento da Curva"
+
+
+msgid "Length of newly added curves when it is not interpolated from other curves"
+msgstr "Comprimento das novas curvas adicionadas quando não interpoladas de outras curvas"
+
+
+msgid "Density Add Attempts"
+msgstr "Tentativas de Adição de Densidade"
+
+
+msgid "How many times the Density brush tries to add a new curve"
+msgstr "Quantas vezes o pincel Densidade tenta adicionar uma nova curva"
+
+
+msgid "Density Mode"
+msgstr "Modo de Densidade"
+
+
+msgid "Determines whether the brush adds or removes curves"
+msgstr "Determina se o pincel adiciona ou remove curvas"
+
+
+msgid "Either add or remove curves depending on the minimum distance of the curves under the cursor"
+msgstr "Adicionar ou remover curvas dependendo da distância mínima entre as curvas sob o cursor"
+
+
+msgid "Add new curves between existing curves, taking the minimum distance into account"
+msgstr "Adicionar novas curvas por entre curvas existentes, tendo em conta a distância mínima"
 
 
 msgid "Remove"
 msgstr "Remover"
 
 
+msgid "Remove curves whose root points are too close"
+msgstr "Remove curvas cujos pontos de raiz estão demasiado próximos"
+
+
+msgid "Interpolate Length"
+msgstr "Interpolar Comprimento"
+
+
+msgid "Use length of the curves in close proximity"
+msgstr "Usar comprimento de curvas em proximidade imediata"
+
+
+msgid "Interpolate Point Count"
+msgstr "Interpolar Contagem de Pontos"
+
+
+msgid "Use the number of points from the curves in close proximity"
+msgstr "Usar o número de pontos das curvas em proximidade imediata"
+
+
+msgid "Interpolate Shape"
+msgstr "Interpolar Forma"
+
+
+msgid "Use shape of the curves in close proximity"
+msgstr "Usar a form de curvas em proximidade imediata"
+
+
 msgid "Minimum Distance"
 msgstr "Distância mínima"
+
+
+msgid "Goal distance between curve roots for the Density brush"
+msgstr "Distância alvo entre raízes das curvas para o pincel Densidade"
+
+
+msgid "Minimum Length"
+msgstr "Comprimento Mínimo"
+
+
+msgid "Avoid shrinking curves shorter than this length"
+msgstr "Evitar encolher curvas mais curtas que este comprimento"
+
+
+msgid "Points per Curve"
+msgstr "Pontos por Curva"
+
+
+msgid "Number of control points in a newly added curve"
+msgstr "Número de pontos de controlo numa curva adicionada de novo"
+
+
+msgid "Scale Uniform"
+msgstr "Redimensionar Uniformemente"
+
+
+msgid "Grow or shrink curves by changing their size uniformly instead of using trimming or extrapolation"
+msgstr "Crescer ou encolher curvas alterando o seu tamanho de forma uniforme em vez de aparar ou extrapolar"
+
+
+msgid "Grease Pencil Brush Settings"
+msgstr "Definições de Pincéis do Grease Pencil"
+
+
+msgid "Settings for grease pencil brush"
+msgstr "Definições para pincéis do Grease Pencil"
+
+
+msgid "Active Smooth"
+msgstr "Suavização Activa"
+
+
+msgid "Amount of smoothing while drawing"
+msgstr "Quantidade de suavização ao desenhar"
 
 
 msgid "Angle"
@@ -3979,20 +4219,59 @@ msgid "Reduce brush thickness by this factor when stroke is perpendicular to 'An
 msgstr "Reduz a espessura do pincel por este fator quando os traços fores perpendiculares a direção do \"Ângulo\" definido."
 
 
+msgid "Aspect"
+msgstr "Proporção"
+
+
 msgid "Mode"
 msgstr "Modo"
+
+
+msgid "Preselected mode when using this brush"
+msgstr "Modo pré-selecionado ao usar este pincel"
 
 
 msgid "Active"
 msgstr "Ativo(a)"
 
 
+msgid "Use current mode"
+msgstr "Utilizar modo actual"
+
+
 msgid "Material"
 msgstr "Materiais"
 
 
+msgid "Use always material mode"
+msgstr "Utilizar sempre modo material"
+
+
 msgid "Vertex Color"
 msgstr "Cor dos vértices"
+
+
+msgid "Use always Vertex Color mode"
+msgstr "Utilizar sempre modo Cor de Vértices"
+
+
+msgctxt "GPencil"
+msgid "Caps Type"
+msgstr "Tipo de Ponta"
+
+
+msgid "The shape of the start and end of the stroke"
+msgstr "A forma do início e do fim do traço"
+
+
+msgctxt "GPencil"
+msgid "Round"
+msgstr "Redondo"
+
+
+msgctxt "GPencil"
+msgid "Flat"
+msgstr "Chato"
 
 
 msgid "Curve Jitter"
@@ -4001,6 +4280,14 @@ msgstr "Curva de tremulação"
 
 msgid "Curve used for the jitter effect"
 msgstr "A curva usada para o efeito de tremulação."
+
+
+msgid "Random Curve"
+msgstr "Curva Aleatória"
+
+
+msgid "Curve used for modulating effect"
+msgstr "Curva usada para regular o efeito"
 
 
 msgid "Curve Sensitivity"
@@ -4019,6 +4306,14 @@ msgid "Curve used for the strength"
 msgstr "A curva usada para a força."
 
 
+msgid "Dilate/Contract"
+msgstr "Dilatar/Contrair"
+
+
+msgid "Number of pixels to expand or contract fill area"
+msgstr "Número de pixeis para expandir ou contrair a área de preenchida"
+
+
 msgid "Direction"
 msgstr "Direção"
 
@@ -4031,24 +4326,92 @@ msgid "Subtract effect of brush"
 msgstr "Subtrai o efeito do pincel."
 
 
+msgid "Eraser Mode"
+msgstr "Modo da Borracha"
+
+
 msgid "Dissolve"
 msgstr "Dissolver"
+
+
+msgid "Erase strokes, fading their points strength and thickness"
+msgstr "Apagar traços, desvanecendo a força dos seus pontos e espessura"
+
+
+msgid "Erase stroke points"
+msgstr "Apagar pontos do traço"
 
 
 msgid "Stroke"
 msgstr "Traços"
 
 
+msgid "Erase entire strokes"
+msgstr "Apagar traços inteiros"
+
+
+msgid "Affect Stroke Strength"
+msgstr "Afectar Força do Traço"
+
+
+msgid "Amount of erasing for strength"
+msgstr "Quantidade de eliminação para a força"
+
+
+msgid "Affect Stroke Thickness"
+msgstr "Afectar Espessura do Traço"
+
+
+msgid "Amount of erasing for thickness"
+msgstr "Quantidade de eliminação para espessura"
+
+
+msgid "Closure Size"
+msgstr "Tamanho de Encerramento"
+
+
+msgid "Strokes end extension for closing gaps, use zero to disable"
+msgstr "Extensão do fim dos traços para fechar aberturas, utilizar zero para desactivar"
+
+
+msgid "Direction of the fill"
+msgstr "Direcção do preenchimento"
+
+
 msgid "Normal"
 msgstr "Normais"
+
+
+msgid "Fill internal area"
+msgstr "Preencher area interna"
+
+
+msgid "Inverted"
+msgstr "Invertido"
+
+
+msgid "Fill inverted area"
+msgstr "Preencher área invertida"
+
+
+msgid "Mode to draw boundary limits"
+msgstr "Modo para desenhar fronteiras dos limites"
 
 
 msgid "All"
 msgstr "Todos"
 
 
+msgid "Use both visible strokes and edit lines as fill boundary limits"
+msgstr "Usar não só traços visíveis como também linhas de edição como fronteiras dos limites de preenchimento"
+
+
 msgid "Strokes"
 msgstr "Traços"
+
+
+msgid "Use visible strokes as fill boundary limits"
+msgstr "Usar traços visíveis como fronteiras dos limites de preenchimento"
 
 
 msgid "Radius"
@@ -4059,12 +4422,76 @@ msgid "Precision"
 msgstr "Precisão"
 
 
+msgid "Only active layer"
+msgstr "Apenas a camada activa"
+
+
+msgid "Layer Above"
+msgstr "Camada Acima"
+
+
+msgid "Layer above active"
+msgstr "Camada acima da activa"
+
+
+msgid "Layer Below"
+msgstr "Camada Abaixo"
+
+
+msgid "Layer below active"
+msgstr "Camada abaixo da activa"
+
+
+msgid "All Above"
+msgstr "Todas Acima"
+
+
+msgid "All layers above active"
+msgstr "Todas as camadas acima da activa"
+
+
+msgid "All Below"
+msgstr "Todas Abaixo"
+
+
+msgid "All layers below active"
+msgstr "Todas as camadas abaixo da activa"
+
+
 msgid "Simplify"
 msgstr "Simplificar"
 
 
+msgid "Number of simplify steps (large values reduce fill accuracy)"
+msgstr "Número de passos de simplificação (valores altos reduzem a precisão de preenchimento)"
+
+
 msgid "Threshold"
 msgstr "Ajuste"
+
+
+msgid "Threshold to consider color transparent for filling"
+msgstr "Limite para considerar a cor transparente para preenchimento"
+
+
+msgid "Grease Pencil Icon"
+msgstr "Ícone Grease Pencil"
+
+
+msgid "Pencil"
+msgstr "Lápis"
+
+
+msgid "Ink"
+msgstr "Tinta"
+
+
+msgid "Ink Noise"
+msgstr "Tinta Irregular"
+
+
+msgid "Block"
+msgstr "Bloco"
 
 
 msgid "Marker"
@@ -4075,8 +4502,64 @@ msgid "Airbrush"
 msgstr "Aerógrafo"
 
 
+msgid "Chisel"
+msgstr "Cinzel"
+
+
 msgid "Fill"
 msgstr "Preencher"
+
+
+msgid "Eraser Soft"
+msgstr "Borracha Suave"
+
+
+msgid "Eraser Hard"
+msgstr "Borracha Dura"
+
+
+msgid "Eraser Stroke"
+msgstr "Borracha de Traços"
+
+
+msgctxt "GPencil"
+msgid "Grease Pencil Icon"
+msgstr "ícone Grease Pencil"
+
+
+msgctxt "GPencil"
+msgid "Thickness"
+msgstr "Espessura"
+
+
+msgctxt "GPencil"
+msgid "Strength"
+msgstr "Força"
+
+
+msgctxt "GPencil"
+msgid "Randomize"
+msgstr "Aleatorizar"
+
+
+msgctxt "GPencil"
+msgid "Grab"
+msgstr "Agarrar"
+
+
+msgctxt "GPencil"
+msgid "Twist"
+msgstr "Torcer"
+
+
+msgctxt "GPencil"
+msgid "Pinch"
+msgstr "Beliscar"
+
+
+msgctxt "GPencil"
+msgid "Clone"
+msgstr "Clonar"
 
 
 msgid "Draw"
@@ -4091,16 +4574,54 @@ msgid "Smear"
 msgstr "Besuntar"
 
 
+msgid "Hardness"
+msgstr "Dureza"
+
+
+msgid "Gradient from the center of Dot and Box strokes (set to 1 for a solid stroke)"
+msgstr "Gradiente do centro do traço tipo Ponto ou Caixa (definir como 1 para traço uniforme)"
+
+
 msgid "Input Samples"
 msgstr "Amostras de entrada"
+
+
+msgid "Generate intermediate points for very fast mouse movements. Set to 0 to disable"
+msgstr "Gerar pontos intermédios para movimentos de rato muito rápidos. Definir como 0 para desactivar"
+
+
+msgid "Material used for strokes drawn using this brush"
+msgstr "Material usado para traços desenhados usando este pincel"
+
+
+msgid "Material used for secondary uses for this brush"
+msgstr "Material usado para usos secundários deste pincel"
 
 
 msgid "Thickness"
 msgstr "Espessura"
 
 
+msgid "Thickness of the outline stroke relative to current brush thickness"
+msgstr "Espessura do traço de contorno relativo à actual espessura do pincel"
+
+
+msgctxt "Brush"
+msgid "Jitter"
+msgstr "Tremulação"
+
+
 msgid "Jitter factor for new strokes"
 msgstr "Fator de tremulação para os novos traços."
+
+
+msgctxt "Amount"
+msgid "Smooth"
+msgstr "Suavizar"
+
+
+msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
+msgstr "A quantidade de suavização a ser aplicada para os traços recém criados, para a redução de ruído/tremulação"
 
 
 msgid "Iterations"
@@ -45633,10 +46154,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exporta o esquema UV para uma imagem de bitmap."
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Exports UVs from the modified mesh"
 msgstr "Exporta as UVs a partir da malha modificada."
 
@@ -66618,6 +67135,10 @@ msgstr "Fonte fiável [Caminho não garantido]"
 
 msgid "unable to open the file"
 msgstr "Não foi possível abrir o ficheiro."
+
+
+msgid "Modified"
+msgstr "Modificado"
 
 
 msgid "Unable to create user config path"

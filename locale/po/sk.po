@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'ba3e9b352630')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-16 09:13:41\n"
-"PO-Revision-Date: 2023-10-16 06:48+0000\n"
+"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"PO-Revision-Date: 2023-10-20 06:21+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -16028,19 +16028,19 @@ msgstr "Hrúbka ťahov poznámky"
 
 
 msgid "Tint Color"
-msgstr "Farba zafarbenia"
+msgstr "Farba odtieňa"
 
 
 msgid "Color for tinting stroke colors"
-msgstr "Farba pre zafarbenie ťahu"
+msgstr "Farba pre odtieň ťahu"
 
 
 msgid "Tint Factor"
-msgstr "Faktor zafarbenia"
+msgstr "Faktor odtieňa"
 
 
 msgid "Factor of tinting color"
-msgstr "Faktor farby zafarbenia"
+msgstr "Faktor farby odtieňa"
 
 
 msgid "Onion Skinning"
@@ -17089,11 +17089,11 @@ msgstr "Nepriehľadnosť ťahov"
 
 
 msgid "Tint"
-msgstr "Zafarbenie"
+msgstr "Odtieň"
 
 
 msgid "Tint strokes with new color"
-msgstr "Zafarbenie ťahov novou farbou"
+msgstr "Zafarbí ťahy novou farbou"
 
 
 msgid "Armature Modifier"
@@ -19035,23 +19035,23 @@ msgstr "Synchronizácia koncovej snímky a presun na začiatok animácie pre zac
 
 
 msgid "Tint Modifier"
-msgstr "Modifikátor Vyfarbiť"
+msgstr "Modifikátor Odtieň"
 
 
 msgid "Tint modifier"
-msgstr "Modifikátor vyfarbenia"
+msgstr "Modifikátor odtieňa"
 
 
 msgid "Color used for tinting"
-msgstr "Farba použitá na zafarbenie"
+msgstr "Farba použitá pre odtieň"
 
 
 msgid "Color ramp used to define tinting colors"
-msgstr "Farebný spád použitý na definovanie farieb zafarbenia"
+msgstr "Farebný spád použitý na definovanie farieb odtieňa"
 
 
 msgid "Factor for tinting"
-msgstr "Faktor zafarbenia"
+msgstr "Faktor pre odtieň"
 
 
 msgid "Parent object to define the center of the effect"
@@ -19063,11 +19063,11 @@ msgstr "Definuje maximálnu vzdialenosť efektu"
 
 
 msgid "Tint Type"
-msgstr "Typ zafarbenia"
+msgstr "Typ odtieňa"
 
 
 msgid "Select type of tinting algorithm"
-msgstr "Vyberie typ algoritmu zafarbenia"
+msgstr "Vyberie typ algoritmu odtieňa"
 
 
 msgid "Use a custom curve to define vertex color effect along the strokes"
@@ -20397,11 +20397,11 @@ msgstr "Štetec sa používa na vymazanie ťahov"
 
 msgctxt "Brush"
 msgid "Tint"
-msgstr "Vyfarbiť"
+msgstr "Odtieň"
 
 
 msgid "The brush is of type used for tinting strokes"
-msgstr "Štetec je typ použitý pre zafarbenie ťahov"
+msgstr "Štetec je typ použitý pre odtieň ťahov"
 
 
 msgid "Grease Pencil Vertex Paint Tool"
@@ -56047,10 +56047,6 @@ msgid "Apply sampling to all animations"
 msgstr "Použije presnímkovanie na všetky animácie"
 
 
-msgid "Output format and embedding options. Binary is most efficient, but JSON (embedded or separate) may be easier to edit later"
-msgstr "Výstupný formát a možnosti vkladania. Binárny je najúčinnejší, ale JSON (vložený alebo oddelený) môže byť neskôr jednoduchšie upraviteľný"
-
-
 msgid "glTF Binary (.glb)"
 msgstr "glTF Binary (.glb)"
 
@@ -56067,14 +56063,6 @@ msgid "Exports multiple files, with separate JSON, binary and texture data. Easi
 msgstr "Exportuje viacero súborov, s oddeleným JSON, binárny a údajmi textúry. Najjednoduchšie na neskoršiu úpravu"
 
 
-msgid "glTF Embedded (.gltf)"
-msgstr "glTF ukladaný (.gltf)"
-
-
-msgid "Exports a single file, with all data packed in JSON. Less efficient than binary, but easier to edit later"
-msgstr "Exportuje jeden súbor so všetkými údajmi zabalenými v JSON. Menej efektívna ako binárne, ale neskôr jednoduchšie upraviteľné"
-
-
 msgid "Limit to Playback Range"
 msgstr "Limit rozsahu prehrávania"
 
@@ -56087,10 +56075,6 @@ msgid "GPU Instances"
 msgstr "Inštancie GPU"
 
 
-msgid "Export using EXT_mesh_gpu_instancing.Limited to children of a same Empty. multiple Materials might be omitted"
-msgstr "Export pomocou EXT_mesh_gpu_instancing. Obmedzené na potomkov toho istého prázdneho. Viaceré materiály môžu byť vynechané"
-
-
 msgid "Flatten Bone Hierarchy"
 msgstr "Zarovnať hierarchiu kostí"
 
@@ -56099,20 +56083,8 @@ msgid "Flatten Bone Hierarchy. Useful in case of non decomposable transformation
 msgstr "Zarovná hierarchiu kostí. Užitočné v prípade nerozložiteľnej transformačnej matrice"
 
 
-msgid "Create Webp"
-msgstr "Vytvoriť Webp"
-
-
-msgid "Creates webp textures for every textures. For already webp textures, nothing happen"
-msgstr "Vytvára textúry webp pre každú textúru. Pri už vytvorených textúrach webp sa nič nestane"
-
-
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "Výstupný formát pre obrázky. PNG je bezstratový a všeobecne sa uprednostňuje, ale JPEG môže byť vhodnejší pre webové aplikácie kvôli menšej veľkosti súboru. Prípadne sa môžu vynechať, ak nie sú potrebné"
-
-
-msgid "Save PNGs as PNGs, JPEGs as JPEGs, WEBPs as WEBPs. If neither one, use PNG"
-msgstr "Uloží súbory PNG ako súbory PNG, súbory JPEG ako súbory JPEG, súbory WEBP ako súbory WEBP. Ak ani jedno, použije PNG"
 
 
 msgid "JPEG Format (.jpg)"
@@ -56121,14 +56093,6 @@ msgstr "JPEG formát (.jpg)"
 
 msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) Be aware of a possible loss in quality"
 msgstr "Uloží obrázky vo formáte JPEG. (Obrázky, ktoré potrebujú alfa, sa však uložia ako PNG.) Uvedomte si možnú stratu kvality"
-
-
-msgid "Webp Format"
-msgstr "Formát Webp"
-
-
-msgid "Save images as WEBPs as main image (no fallback)"
-msgstr "Uloží obrázky ako WEBP ako hlavný obrázok (bez spätnej väzby)"
 
 
 msgid "Don't export images"
@@ -56141,14 +56105,6 @@ msgstr "Kvalita obrázku"
 
 msgid "Quality of image export"
 msgstr "Kvalita obrázku na export"
-
-
-msgid "Webp fallback"
-msgstr "Spätná väzba Webp"
-
-
-msgid "For all webp textures, create a PNG fallback texture."
-msgstr "Pre všetky textúry webp vytvorí záložnú textúru PNG."
 
 
 msgid "Lighting Mode"
@@ -56385,10 +56341,6 @@ msgstr "Vynechá zriedkavý prístupový prvok, ak sú údaje prázdne"
 
 msgid "Use Sparse Accessor if better"
 msgstr "Ak je to lepšie, použije zriedkavý prístupový prvok"
-
-
-msgid "Try using Sparce Accessor if it save space"
-msgstr "Pokúsi sa použiť zriedkavý prístupový prvok, ak to ušetrí miesto"
 
 
 msgid "+Y Up"
@@ -62137,10 +62089,6 @@ msgid "Blender (best for import/export round trip)"
 msgstr "Blender (najlepšie pre obojsmerný import/export)"
 
 
-msgid "Good for re-importing glTFs exported from Blender, and re-exporting glTFs to glTFs after Blender editingBone tips are placed on their local +Y axis (in glTF space)"
-msgstr "Dobré na opätovný import glTF exportovaných z Blenderu a opätovný export glTF do glTF po úprave hrotov kostí v Blenderi sú umiestnené na ich lokálnej osi +Y (v priestore glTF)"
-
-
 msgid "Temperance (average)"
 msgstr "Miernosť (priemer)"
 
@@ -62183,14 +62131,6 @@ msgstr "Použiť údaje normálov"
 
 msgid "Flat Shading"
 msgstr "Ploché tieňovanie"
-
-
-msgid "Import Webp textures"
-msgstr "Import webp textúr"
-
-
-msgid "If a texture exists in webp format,loads the webp texture instead of the fallback png/jpg one"
-msgstr "Ak existuje textúra vo formáte webp, načíta textúru webp namiesto náhradnej textúry png/jpg"
 
 
 msgid "Log Level"
@@ -79499,10 +79439,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exportovať UV rozmiestnenie na bitmapový obrázok"
 
 
-msgid "Modified"
-msgstr "Upravený"
-
-
 msgid "Exports UVs from the modified mesh"
 msgstr "Exportovať UV z upravenej povrchovej siete"
 
@@ -80013,26 +79949,6 @@ msgstr "Vyberie všetky pripnuté UV vrcholy"
 
 msgid "Select similar UVs by property types"
 msgstr "Vyberie podobné UV podľa typov vlastností"
-
-
-msgid "Length 3D"
-msgstr "Dĺžka 3D"
-
-
-msgid "Area 3D"
-msgstr "Oblasť 3D"
-
-
-msgid "Polygon Sides"
-msgstr "Strany mnohouholníka"
-
-
-msgid "Winding"
-msgstr "Natáčanie"
-
-
-msgid "Amount of Faces in Island"
-msgstr "Počet plôšok na ostrove"
 
 
 msgctxt "Operator"
@@ -86665,7 +86581,7 @@ msgstr "Zmazať"
 
 msgctxt "Operator"
 msgid "Tint"
-msgstr "Vyfarbiť"
+msgstr "Odtieň"
 
 
 msgctxt "Operator"
@@ -92165,7 +92081,7 @@ msgstr "Povolí vyradenie objektov na základe vzdialenosti od fotoaparátu"
 
 
 msgid "Approximate diffuse indirect light with background tinted ambient occlusion. This provides fast alternative to full global illumination, for interactive viewport rendering or final renders with reduced quality"
-msgstr "Približné rozptýlené nepriame svetlo s tónovaným pohltením. Poskytuje rýchlu alternatívu k úplnému globálnemu osvetleniu pre interaktívne prekresľovanie záberu alebo finálne prekreslenie so zníženou kvalitou"
+msgstr "Približné rozptýlené nepriame svetlo s odtieňom pohltenia okolím. Poskytuje rýchlu alternatívu k úplnému globálnemu osvetleniu pre interaktívne prekresľovanie záberu alebo finálne prekreslenie so zníženou kvalitou"
 
 
 msgid "Guiding"
@@ -93713,11 +93629,11 @@ msgstr "Zobrazí efekty tieňovačov"
 
 
 msgid "Layers Tinting"
-msgstr "Vrstvy zafarbenia"
+msgstr "Vrstvy odtieňov"
 
 
 msgid "Display layer tint"
-msgstr "Zobrazí vrstvy zafarbenia"
+msgstr "Zobrazí vrstvy odtieňov"
 
 
 msgid "Display fill strokes in the viewport"
@@ -108386,7 +108302,7 @@ msgstr "Ťah maľovania (mazanie) pastelkou"
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Paint (Tint)"
-msgstr "Ťah maľovania pastelkou (vyfarbenie)"
+msgstr "Ťah maľovania pastelkou (odtieň)"
 
 
 msgctxt "WindowManager"
@@ -111514,6 +111430,11 @@ msgstr "Prah vplyvu"
 
 msgid "Update on Edit"
 msgstr "Aktualizácia pri úprave"
+
+
+msgctxt "Operator"
+msgid "Search..."
+msgstr "Vyhľadať..."
 
 
 msgid "Distance Reference"
@@ -118526,6 +118447,14 @@ msgid "Unable to pack file, source path '%s' not found"
 msgstr "Súbor nemožno zbaliť. Zdrojová cesta %s sa nenašla"
 
 
+msgid "Unable to access the size of, source path '%s'"
+msgstr "Nemožno získať prístup k veľkosti, zdrojová cesta '%s'"
+
+
+msgid "Unable to pack files over 2gb, source path '%s'"
+msgstr "Nemožno zbaliť súbory s veľkosťou nad 2 GB, zdrojová cesta '%s'"
+
+
 msgid "Image '%s' skipped, packing movies or image sequences not supported"
 msgstr "Obrázok '%s' preskočený, balenie filmov alebo sekvencií obrázkov nie je podporované"
 
@@ -120370,6 +120299,10 @@ msgid "Cannot evaluate node group"
 msgstr "Skupina uzlov nemožno vyhodnotiť"
 
 
+msgid "Node group must have a group output node"
+msgstr "Skupina uzlov musí mať výstupný uzol skupiny"
+
+
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
 msgstr "Vytvorenie polygónu poznámky: Kliknite ĽTM na miesto ďalšieho vrcholu ťahu | ESC/Enter na ukončenie  (alebo kliknite mimo túto oblasť)"
 
@@ -121180,6 +121113,10 @@ msgstr "Hodnota"
 
 msgid "Redo"
 msgstr "Vpred"
+
+
+msgid "Press spacebar to search..."
+msgstr "Stlačením medzerníka na vyhľadávanie..."
 
 
 msgid "Type to search..."
@@ -124719,6 +124656,14 @@ msgid "Move asset out of any catalog"
 msgstr "Presunúť aktívum z akéhokoľvek katalógu"
 
 
+msgid "Today"
+msgstr "Dnes"
+
+
+msgid "Yesterday"
+msgstr "Včera"
+
+
 msgid "File path"
 msgstr "Cesta súboru"
 
@@ -124737,14 +124682,6 @@ msgstr ""
 
 msgid "Unreadable Blender library file:"
 msgstr "Nečitateľný súbor knižnice Blenderu:"
-
-
-msgid "Today"
-msgstr "Dnes"
-
-
-msgid "Yesterday"
-msgstr "Včera"
 
 
 msgid "Could not rename: %s"
@@ -128024,6 +127961,10 @@ msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD: nemožné otvoriť oblasť na čítanie %s"
 
 
+msgid "USD Import: unable to open cache reader for object %s"
+msgstr "Import USD: nemožno otvoriť čítačku zásobníka pre objekt %s"
+
+
 msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
 msgstr "Pri volaní háku USD '%s' došlo k výnimke.  Podrobnosti nájdete v konzole"
 
@@ -129931,10 +129872,6 @@ msgstr "Typ vlastnosti nezodpovedá vstupnej zásuvke \"(%s)\""
 
 msgid "Node group's geometry input must be the first"
 msgstr "Geometrický vstup skupiny uzlov musí byť prvý"
-
-
-msgid "Node group must have a group output node"
-msgstr "Skupina uzlov musí mať výstupný uzol skupiny"
 
 
 msgid "Node group must have an output socket"
@@ -132367,6 +132304,21 @@ msgid "Emission Strength"
 msgstr "Intenzita emisie"
 
 
+msgctxt "NodeTree"
+msgid "Specular Tint"
+msgstr "Zrkadlený odtieň"
+
+
+msgctxt "NodeTree"
+msgid "Coat Tint"
+msgstr "Odtieň plášťa"
+
+
+msgctxt "NodeTree"
+msgid "Sheen Tint"
+msgstr "Odtieň lesku"
+
+
 msgid "Blend between diffuse surface and subsurface scattering. Typically should be zero or one (either fully diffuse or subsurface)"
 msgstr "Prelínanie povrchového a podpovrchového rozptylu. Zvyčajne by mala byť nula alebo jedna (buď úplný rozptyl, alebo podpovrchový rozptyl)"
 
@@ -132409,6 +132361,15 @@ msgstr "Index lomu vrstvy plášťa (ovplyvňuje jeho odrazivosť, ako aj odtie�
 
 msgid "Adds a colored tint to the coat layer by modeling absorption in the layer. Saturation increases at shallower angles, as the light travels farther through the medium (depending on the Coat IOR)"
 msgstr "Pridáva farebný odtieň do vrstvy plášťa modelovaním absorpcie vo vrstve. Nasýtenie sa zvyšuje pri plytších uhloch, keď svetlo prechádza ďalej cez médium (v závislosti od IOR plášťa)"
+
+
+msgid "IOR Level"
+msgstr "Úroveň IOR"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "Odtieň"
 
 
 msgid "Subsurface"
@@ -132644,7 +132605,7 @@ msgstr "Intenzita čierneho telesa"
 
 
 msgid "Blackbody Tint"
-msgstr "Zafarbenie čierneho telesa"
+msgstr "Odtieň čierneho telesa"
 
 
 msgid "Temperature Attribute"
@@ -132973,6 +132934,10 @@ msgstr "súbor sa nedá otvoriť"
 
 msgid "File Not Found"
 msgstr "Súbor nenájdený"
+
+
+msgid "Modified"
+msgstr "Upravený"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"
@@ -134223,6 +134188,14 @@ msgstr "Gruzínčina (ქართული)"
 
 msgid "Tamil (தமிழ்)"
 msgstr "Tamilčina (தமிழ்)"
+
+
+msgid "Khmer (ខ្មែរ)"
+msgstr "Kmérčina (ខ្មែរ)"
+
+
+msgid "Swahili (Kiswahili)"
+msgstr "Swahilčina (Kiswahili)"
 
 
 msgid "Complete"
