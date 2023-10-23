@@ -2685,7 +2685,7 @@ class VIEW3D_MT_object(Menu):
     bl_context = "objectmode"
     bl_label = "Object"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         layout.menu("VIEW3D_MT_transform_object")
