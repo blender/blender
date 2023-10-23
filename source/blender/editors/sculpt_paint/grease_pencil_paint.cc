@@ -441,21 +441,17 @@ struct PaintOperationExecutor {
 
     /* Initialize the rest of the attributes with default values. */
     Set<std::string> attributes_to_skip{{"position", "radius", "opacity", "vertex_color"}};
-    attributes.for_all(
-        [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-          if (attributes_to_skip.contains(id.name())) {
-            return true;
-          }
-          bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-          if (attribute.domain != ATTR_DOMAIN_POINT) {
-            return true;
-          }
-          const CPPType &type = attribute.span.type();
-          GMutableSpan new_data = attribute.span.slice(new_range);
-          type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
-          attribute.finish();
-          return true;
-        });
+    attributes.for_all([&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+      if (attributes_to_skip.contains(id.name()) || meta_data.domain != ATTR_DOMAIN_POINT) {
+        return true;
+      }
+      bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+      const CPPType &type = attribute.span.type();
+      GMutableSpan new_data = attribute.span.slice(new_range);
+      type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+      attribute.finish();
+      return true;
+    });
   }
 
   void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)
