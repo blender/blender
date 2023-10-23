@@ -571,7 +571,7 @@ static void sequencer_preprocess_transform_crop(
   }
 }
 
-static void multibuf(ImBuf *ibuf, const float fmul)
+static void multibuf(ImBuf *ibuf, const float fmul, const bool multiply_alpha)
 {
   uchar *rt;
   float *rt_float;
@@ -588,6 +588,9 @@ static void multibuf(ImBuf *ibuf, const float fmul)
       rt[0] = min_ii((imul * rt[0]) >> 8, 255);
       rt[1] = min_ii((imul * rt[1]) >> 8, 255);
       rt[2] = min_ii((imul * rt[2]) >> 8, 255);
+      if (multiply_alpha) {
+        rt[3] = min_ii((imul * rt[3]) >> 8, 255);
+      }
 
       rt += 4;
     }
@@ -598,6 +601,9 @@ static void multibuf(ImBuf *ibuf, const float fmul)
       rt_float[0] *= fmul;
       rt_float[1] *= fmul;
       rt_float[2] *= fmul;
+      if (multiply_alpha) {
+        rt_float[3] *= fmul;
+      }
 
       rt_float += 4;
     }
@@ -669,7 +675,8 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   }
 
   if (mul != 1.0f) {
-    multibuf(preprocessed_ibuf, mul);
+    const bool multiply_alpha = (seq->flag & SEQ_MULTIPLY_ALPHA);
+    multibuf(preprocessed_ibuf, mul, multiply_alpha);
   }
 
   if (seq->modifiers.first) {

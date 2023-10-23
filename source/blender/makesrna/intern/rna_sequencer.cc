@@ -2625,6 +2625,11 @@ static void rna_def_filter_video(StructRNA *srna)
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
+  prop = RNA_def_property(srna, "multiply_alpha", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_MULTIPLY_ALPHA);
+  RNA_def_property_ui_text(prop, "Multiply Alpha", "Multiply alpha along with color channels");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+
   prop = RNA_def_property(srna, "color_saturation", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, nullptr, "sat");
   RNA_def_property_range(prop, 0.0f, 20.0f);
