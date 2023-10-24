@@ -9,8 +9,11 @@
  */
 
 #include <stdarg.h>
+#include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 struct ListBase;
@@ -153,6 +156,18 @@ void BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        char delim,
                        char *name,
                        size_t name_maxncpy) ATTR_NONNULL(1, 3, 5);
+
+/**
+ * Ensures name is unique (according to criteria specified by caller in unique_check callback),
+ * incrementing its numeric suffix as necessary.
+ *
+ * \param unique_check: Return true if name is not unique
+ * \param delim: Delimits numeric suffix in name
+ * \param name: Name to be ensured unique
+ */
+std::string BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRef)> unique_check,
+                              char delim,
+                              blender::StringRef name);
 /**
  * Ensures that the specified block has a unique name within the containing list,
  * incrementing its numeric suffix as necessary.

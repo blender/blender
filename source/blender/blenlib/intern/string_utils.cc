@@ -10,8 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <array>
+
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
@@ -422,6 +425,38 @@ void BLI_uniquename_cb(UniquenameCheckCallback unique_check,
 
     BLI_strncpy(name, tempname, name_maxncpy);
   }
+}
+
+std::string BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRef)> unique_check,
+                              const char delim,
+                              const blender::StringRef name)
+{
+  std::string new_name = name;
+
+  if (!unique_check(new_name)) {
+    return new_name;
+  }
+
+  int number;
+  blender::Array<char> left_buffer(new_name.size() + 1);
+  const size_t len = BLI_string_split_name_number(
+      new_name.c_str(), delim, left_buffer.data(), &number);
+
+  const std::string left = left_buffer.data();
+
+  do {
+    std::array<char, 16> num_str;
+    BLI_snprintf(num_str.data(), num_str.size(), "%c%03d", delim, ++number);
+
+    if (len == 0) {
+      new_name = num_str.data();
+    }
+    else {
+      new_name = left + num_str.data();
+    }
+  } while (unique_check(new_name));
+
+  return new_name;
 }
 
 /**
