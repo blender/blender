@@ -22,20 +22,28 @@
         </p>
     </description>
     <url type="homepage">https://www.blender.org</url>
+    <url type="bugtracker">https://projects.blender.org/blender/blender/issues?q=&labels=296</url>
+    <url type="faq">https://www.blender.org/support/faq/</url>
     <url type="help">https://www.blender.org/support/</url>
-    <url type="bugtracker">https://developer.blender.org</url>
-    <url type="donation">https://www.blender.org/foundation/donation-payment/</url>
+    <url type="donation">https://fund.blender.org/</url>
+    <url type="translate">https://wiki.blender.org/wiki/Process/Translate_Blender</url>
+    <url type="vcs-browser">https://projects.blender.org/blender/blender</url>
+    <url type="contribute">https://www.blender.org/get-involved/</url>
     <screenshots>
         <screenshot type="default">
+            <caption>Sculpt</caption>
             <image>https://download.blender.org/demo/screenshots/blender_screenshot_1.jpg</image>
         </screenshot>
         <screenshot>
+            <caption>Model</caption>
             <image>https://download.blender.org/demo/screenshots/blender_screenshot_2.jpg</image>
         </screenshot>
         <screenshot>
+            <caption>Animate</caption>
             <image>https://download.blender.org/demo/screenshots/blender_screenshot_3.jpg</image>
         </screenshot>
         <screenshot>
+            <caption>Edit &amp; Grade</caption>
             <image>https://download.blender.org/demo/screenshots/blender_screenshot_4.jpg</image>
         </screenshot>
     </screenshots>
@@ -377,5 +385,6 @@
                 </ul>
             </description>
         </release>
-  </releases>
+    </releases>
+    <content_rating type="oars-1.1" />
 </component>

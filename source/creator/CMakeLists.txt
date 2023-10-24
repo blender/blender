@@ -694,6 +694,10 @@ if(UNIX AND NOT APPLE)
       DESTINATION "./share/applications"
     )
     install(
+      FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/org.blender.Blender.metainfo.xml
+      DESTINATION "./share/metainfo"
+    )
+    install(
       FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
       DESTINATION "./share/icons/hicolor/scalable/apps"
     )
