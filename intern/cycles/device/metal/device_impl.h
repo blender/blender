@@ -26,6 +26,7 @@ class MetalDevice : public Device {
   id<MTLLibrary> mtlLibrary[PSO_NUM] = {nil};
   id<MTLArgumentEncoder> mtlBufferKernelParamsEncoder =
       nil; /* encoder used for fetching device pointers from MTLBuffers */
+  id<MTLCommandQueue> mtlComputeCommandQueue = nil;
   id<MTLCommandQueue> mtlGeneralCommandQueue = nil;
   id<MTLArgumentEncoder> mtlAncillaryArgEncoder =
       nil; /* encoder used for fetching device pointers from MTLBuffers */
