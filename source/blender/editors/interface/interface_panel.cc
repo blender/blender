@@ -754,7 +754,7 @@ void UI_panel_header_buttons_end(Panel *panel)
   /* Repurpose the first header button group if it is empty, in case the first button added to
    * the panel doesn't add a new group (if the button is created directly rather than through an
    * interface layout call). */
-  if (block->button_groups.size() > 0) {
+  if (block->button_groups.size() == 1 && button_group.buttons.is_empty()) {
     button_group.flag &= ~UI_BUTTON_GROUP_PANEL_HEADER;
   }
   else {
