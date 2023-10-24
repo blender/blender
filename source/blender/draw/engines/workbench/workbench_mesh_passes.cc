@@ -211,9 +211,12 @@ void OpaquePass::draw(Manager &manager,
     deferred_ps_stencil_tx = nullptr;
   }
 
-  deferred_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
-  deferred_fb.bind();
-  manager.submit(deferred_ps_, view);
+  if (!shadow_pass || !shadow_pass->is_debug()) {
+    /** Don't override the shadow debug output. */
+    deferred_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
+    deferred_fb.bind();
+    manager.submit(deferred_ps_, view);
+  }
 
   gbuffer_normal_tx.release();
   gbuffer_material_tx.release();

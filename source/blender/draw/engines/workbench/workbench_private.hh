@@ -391,6 +391,8 @@ class ShadowPass {
             GPUTexture &depth_stencil_tx,
             /* Needed when there are opaque "In Front" objects in the scene */
             bool force_fail_method);
+
+  bool is_debug();
 };
 
 class VolumePass {

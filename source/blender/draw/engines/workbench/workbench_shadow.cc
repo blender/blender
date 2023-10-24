@@ -480,4 +480,9 @@ void ShadowPass::draw(Manager &manager,
   manager.submit(forced_fail_ps_, view_);
 }
 
+bool ShadowPass::is_debug()
+{
+  return DEBUG_SHADOW_VOLUME;
+}
+
 }  // namespace blender::workbench

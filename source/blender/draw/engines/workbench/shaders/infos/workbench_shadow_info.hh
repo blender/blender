@@ -109,9 +109,7 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_no_debug)
     .fragment_source("gpu_shader_depth_only_frag.glsl");
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_debug)
-    .fragment_out(0, Type::VEC4, "materialData")
-    .fragment_out(1, Type::VEC4, "normalData")
-    .fragment_out(2, Type::UINT, "objectId")
+    .fragment_out(0, Type::VEC4, "out_debug_color")
     .fragment_source("workbench_shadow_debug_frag.glsl");
 
 /** \} */
