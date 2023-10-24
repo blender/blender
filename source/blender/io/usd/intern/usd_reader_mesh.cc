@@ -181,6 +181,12 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
     map.add_new(pxr::SdfValueTypeNames->TexCoord3fArray, CD_PROP_FLOAT2);
     map.add_new(pxr::SdfValueTypeNames->TexCoord3hArray, CD_PROP_FLOAT2);
     map.add_new(pxr::SdfValueTypeNames->Float3Array, CD_PROP_FLOAT3);
+    map.add_new(pxr::SdfValueTypeNames->Point3fArray, CD_PROP_FLOAT3);
+    map.add_new(pxr::SdfValueTypeNames->Point3dArray, CD_PROP_FLOAT3);
+    map.add_new(pxr::SdfValueTypeNames->Point3hArray, CD_PROP_FLOAT3);
+    map.add_new(pxr::SdfValueTypeNames->Normal3fArray, CD_PROP_FLOAT3);
+    map.add_new(pxr::SdfValueTypeNames->Normal3dArray, CD_PROP_FLOAT3);
+    map.add_new(pxr::SdfValueTypeNames->Normal3hArray, CD_PROP_FLOAT3);
     map.add_new(pxr::SdfValueTypeNames->Vector3fArray, CD_PROP_FLOAT3);
     map.add_new(pxr::SdfValueTypeNames->Vector3hArray, CD_PROP_FLOAT3);
     map.add_new(pxr::SdfValueTypeNames->Vector3dArray, CD_PROP_FLOAT3);
@@ -190,6 +196,8 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
     map.add_new(pxr::SdfValueTypeNames->StringArray, CD_PROP_STRING);
     map.add_new(pxr::SdfValueTypeNames->BoolArray, CD_PROP_BOOL);
     map.add_new(pxr::SdfValueTypeNames->QuatfArray, CD_PROP_QUATERNION);
+    map.add_new(pxr::SdfValueTypeNames->QuatdArray, CD_PROP_QUATERNION);
+    map.add_new(pxr::SdfValueTypeNames->QuathArray, CD_PROP_QUATERNION);
     return map;
   }();
 
@@ -902,6 +910,11 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
       continue;
     }
 
+    if (!pv.GetAttr().GetTypeName().IsArray()) {
+      /* Non-array attributes are technically improper USD. */
+      continue;
+    }
+
     const pxr::SdfValueTypeName type = pv.GetTypeName();
     const pxr::TfToken varying_type = pv.GetInterpolation();
     const pxr::TfToken name = pv.StripPrimvarsName(pv.GetPrimvarName());
@@ -911,6 +924,16 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
     if (!new_mesh && primvar_varying_map_.find(name) != primvar_varying_map_.end() &&
         !primvar_varying_map_.at(name))
     {
+      continue;
+    }
+
+    if (ELEM(type,
+             pxr::SdfValueTypeNames->StringArray,
+             pxr::SdfValueTypeNames->QuatfArray,
+             pxr::SdfValueTypeNames->QuatdArray,
+             pxr::SdfValueTypeNames->QuathArray))
+    {
+      /* Skip creating known unsupported types, and avoid spammy error prints. */
       continue;
     }
 
