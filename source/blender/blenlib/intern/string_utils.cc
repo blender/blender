@@ -438,7 +438,7 @@ std::string BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRef)> uni
   }
 
   int number;
-  blender::Array<char> left_buffer(new_name.size() + 1);
+  blender::Array<char> left_buffer(int64_t(new_name.size()) + 1);
   const size_t len = BLI_string_split_name_number(
       new_name.c_str(), delim, left_buffer.data(), &number);
 
