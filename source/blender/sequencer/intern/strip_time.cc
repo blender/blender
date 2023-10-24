@@ -504,8 +504,8 @@ int SEQ_time_strip_length_get(const Scene *scene, const Sequence *seq)
   if (SEQ_retiming_is_active(seq)) {
     const SeqRetimingKey *key_start = seq->retiming_keys;
     const SeqRetimingKey *key_end = seq->retiming_keys + (SEQ_retiming_keys_count(seq) - 1);
-    return key_end->strip_frame_index / seq_time_media_playback_rate_factor_get(scene, seq) -
-           (key_start->strip_frame_index) / seq_time_media_playback_rate_factor_get(scene, seq);
+    return (key_end->strip_frame_index + 1) / seq_time_media_playback_rate_factor_get(scene, seq) -
+           key_start->strip_frame_index / seq_time_media_playback_rate_factor_get(scene, seq);
   }
 
   return seq->len / seq_time_media_playback_rate_factor_get(scene, seq);

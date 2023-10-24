@@ -113,7 +113,7 @@ void SEQ_retiming_data_ensure(Sequence *seq)
 
   seq->retiming_keys = (SeqRetimingKey *)MEM_calloc_arrayN(2, sizeof(SeqRetimingKey), __func__);
   SeqRetimingKey *key = seq->retiming_keys + 1;
-  key->strip_frame_index = seq->len;
+  key->strip_frame_index = seq->len - 1;
   key->retiming_factor = 1.0f;
   seq->retiming_keys_num = 2;
 }
@@ -565,7 +565,7 @@ float SEQ_retiming_key_speed_get(const Sequence *seq, const SeqRetimingKey *key)
 
   const SeqRetimingKey *key_prev = key - 1;
 
-  const int frame_index_max = seq->len;
+  const int frame_index_max = seq->len - 1;
   const int frame_retimed_prev = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const int frame_index_prev = key_prev->strip_frame_index;
   const int frame_retimed = round_fl_to_int(key->retiming_factor * frame_index_max);
