@@ -147,7 +147,7 @@ static bool bke_id_attribute_rename_if_exists(ID *id,
                                               const char *new_name,
                                               ReportList *reports)
 {
-  CustomDataLayer *layer = BKE_id_attribute_search(
+  CustomDataLayer *layer = BKE_id_attribute_search_for_write(
       id, old_name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
   if (layer == nullptr) {
     return false;
@@ -183,7 +183,7 @@ bool BKE_id_attribute_rename(ID *id,
     }
   }
 
-  CustomDataLayer *layer = BKE_id_attribute_search(
+  CustomDataLayer *layer = BKE_id_attribute_search_for_write(
       id, old_name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
   if (layer == nullptr) {
     BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
@@ -372,7 +372,7 @@ CustomDataLayer *BKE_id_attribute_duplicate(ID *id, const char *name, ReportList
                                     BKE_uv_map_pin_name_get(uniquename, buffer_dst));
   }
 
-  return BKE_id_attribute_search(id, uniquename, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+  return BKE_id_attribute_search_for_write(id, uniquename, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
 }
 
 static int color_name_to_index(ID *id, const char *name)
@@ -529,10 +529,10 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return nullptr;
 }
 
-CustomDataLayer *BKE_id_attribute_search(ID *id,
-                                         const char *name,
-                                         const eCustomDataMask type_mask,
-                                         const eAttrDomainMask domain_mask)
+const CustomDataLayer *BKE_id_attribute_search(const ID *id,
+                                               const char *name,
+                                               const eCustomDataMask type_mask,
+                                               const eAttrDomainMask domain_mask)
 {
   if (!name) {
     return nullptr;
@@ -561,6 +561,28 @@ CustomDataLayer *BKE_id_attribute_search(ID *id,
   }
 
   return nullptr;
+}
+
+CustomDataLayer *BKE_id_attribute_search_for_write(ID *id,
+                                                   const char *name,
+                                                   const eCustomDataMask type_mask,
+                                                   const eAttrDomainMask domain_mask)
+{
+  /* Reuse the implementation of the const version.
+   * Implicit sharing for the layer's data is handled below. */
+  CustomDataLayer *layer = const_cast<CustomDataLayer *>(
+      BKE_id_attribute_search(id, name, type_mask, domain_mask));
+  if (!layer) {
+    return nullptr;
+  }
+
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+
+  const eAttrDomain domain = BKE_id_attribute_domain(id, layer);
+  CustomData_ensure_data_is_mutable(layer, info[domain].length);
+
+  return layer;
 }
 
 int BKE_id_attributes_length(const ID *id, eAttrDomainMask domain_mask, eCustomDataMask mask)
