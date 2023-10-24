@@ -557,64 +557,57 @@ int insert_vert_fcurve(
 /* ------------------ RNA Data-Access Functions ------------------ */
 
 /** Try to read value using RNA-properties obtained already. */
-float *ANIM_setting_get_rna_values(
-    PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count)
+blender::Vector<float> ANIM_setting_get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
 {
-  BLI_assert(buffer_size >= 1);
-
-  float *values = buffer;
-
+  blender::Vector<float> values;
   if (RNA_property_array_check(prop)) {
-    int length = *r_count = RNA_property_array_length(ptr, prop);
-    bool *tmp_bool;
-    int *tmp_int;
-
-    if (length > buffer_size) {
-      values = static_cast<float *>(MEM_malloc_arrayN(length, sizeof(float), __func__));
-    }
+    const int length = RNA_property_array_length(ptr, prop);
 
     switch (RNA_property_type(prop)) {
-      case PROP_BOOLEAN:
-        tmp_bool = static_cast<bool *>(MEM_malloc_arrayN(length, sizeof(*tmp_bool), __func__));
+      case PROP_BOOLEAN: {
+        bool *tmp_bool = static_cast<bool *>(MEM_malloc_arrayN(length, sizeof(bool), __func__));
         RNA_property_boolean_get_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
-          values[i] = float(tmp_bool[i]);
+          values.append(float(tmp_bool[i]));
         }
         MEM_freeN(tmp_bool);
         break;
-      case PROP_INT:
-        tmp_int = static_cast<int *>(MEM_malloc_arrayN(length, sizeof(*tmp_int), __func__));
+      }
+      case PROP_INT: {
+        int *tmp_int = static_cast<int *>(MEM_malloc_arrayN(length, sizeof(int), __func__));
         RNA_property_int_get_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
-          values[i] = float(tmp_int[i]);
+          values.append(float(tmp_int[i]));
         }
         MEM_freeN(tmp_int);
         break;
-      case PROP_FLOAT:
-        RNA_property_float_get_array(ptr, prop, values);
+      }
+      case PROP_FLOAT: {
+        values.reinitialize(length);
+        RNA_property_float_get_array(ptr, prop, &values[0]);
         break;
+      }
       default:
-        memset(values, 0, sizeof(float) * length);
+        values.reinitialize(length);
+        break;
     }
   }
   else {
-    *r_count = 1;
-
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
-        *values = float(RNA_property_boolean_get(ptr, prop));
+        values.append(float(RNA_property_boolean_get(ptr, prop)));
         break;
       case PROP_INT:
-        *values = float(RNA_property_int_get(ptr, prop));
+        values.append(float(RNA_property_int_get(ptr, prop)));
         break;
       case PROP_FLOAT:
-        *values = RNA_property_float_get(ptr, prop);
+        values.append(RNA_property_float_get(ptr, prop));
         break;
       case PROP_ENUM:
-        *values = float(RNA_property_enum_get(ptr, prop));
+        values.append(float(RNA_property_enum_get(ptr, prop)));
         break;
       default:
-        *values = 0.0f;
+        values.append(0.0f);
     }
   }
 
@@ -1619,16 +1612,11 @@ bool fcurve_is_changed(PointerRNA ptr,
   anim_rna.prop = prop;
   anim_rna.prop_index = fcu->array_index;
 
-  float buffer[RNA_MAX_ARRAY_LENGTH];
-  int count, index = fcu->array_index;
-  float *values = ANIM_setting_get_rna_values(&ptr, prop, buffer, RNA_MAX_ARRAY_LENGTH, &count);
+  int index = fcu->array_index;
+  blender::Vector<float> values = ANIM_setting_get_rna_values(&ptr, prop);
 
   float fcurve_val = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
-  float cur_val = (index >= 0 && index < count) ? values[index] : 0.0f;
-
-  if (values != buffer) {
-    MEM_freeN(values);
-  }
+  float cur_val = (index >= 0 && index < values.size()) ? values[index] : 0.0f;
 
   return !compare_ff_relative(fcurve_val, cur_val, FLT_EPSILON, 64);
 }

@@ -212,11 +212,9 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
  * In the event that it is not possible to perform visual keying, try to fall-back
  * to using the default method. Assumes that all data it has been passed is valid.
  */
-float *visualkey_get_values(
-    PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count)
+Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop)
 {
-  BLI_assert(buffer_size >= 4);
-
+  Vector<float> values;
   const char *identifier = RNA_property_identifier(prop);
   float tmat[4][4];
   int rotmode;
@@ -232,9 +230,8 @@ float *visualkey_get_values(
     Object *ob = static_cast<Object *>(ptr->data);
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
-      copy_v3_v3(buffer, ob->object_to_world[3]);
-      *r_count = 3;
-      return buffer;
+      values.extend({ob->object_to_world[3], 3});
+      return values;
     }
 
     copy_m4_m4(tmat, ob->object_to_world);
@@ -250,47 +247,42 @@ float *visualkey_get_values(
     if (strstr(identifier, "location")) {
       /* only use for non-connected bones */
       if ((pchan->bone->parent == nullptr) || !(pchan->bone->flag & BONE_CONNECTED)) {
-        copy_v3_v3(buffer, tmat[3]);
-        *r_count = 3;
-        return buffer;
+        values.extend({tmat[3], 3});
+        return values;
       }
     }
   }
   else {
-    return ANIM_setting_get_rna_values(ptr, prop, buffer, buffer_size, r_count);
+    return ANIM_setting_get_rna_values(ptr, prop);
   }
 
   /* Rot/Scale code are common! */
   if (strstr(identifier, "rotation_euler")) {
-    mat4_to_eulO(buffer, rotmode, tmat);
-
-    *r_count = 3;
-    return buffer;
+    values.resize(3);
+    mat4_to_eulO(values.data(), rotmode, tmat);
+    return values;
   }
 
   if (strstr(identifier, "rotation_quaternion")) {
-    mat4_to_quat(buffer, tmat);
-
-    *r_count = 4;
-    return buffer;
+    values.resize(4);
+    mat4_to_quat(values.data(), tmat);
+    return values;
   }
 
   if (strstr(identifier, "rotation_axis_angle")) {
     /* w = 0, x,y,z = 1,2,3 */
-    mat4_to_axis_angle(buffer + 1, buffer, tmat);
-
-    *r_count = 4;
-    return buffer;
+    values.resize(4);
+    mat4_to_axis_angle(&values[1], &values[0], tmat);
+    return values;
   }
 
   if (strstr(identifier, "scale")) {
-    mat4_to_size(buffer, tmat);
-
-    *r_count = 3;
-    return buffer;
+    values.resize(3);
+    mat4_to_size(values.data(), tmat);
+    return values;
   }
 
   /* as the function hasn't returned yet, read value from system in the default way */
-  return ANIM_setting_get_rna_values(ptr, prop, buffer, buffer_size, r_count);
+  return ANIM_setting_get_rna_values(ptr, prop);
 }
 }  // namespace blender::animrig

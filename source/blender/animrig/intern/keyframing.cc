@@ -137,41 +137,37 @@ static void get_keyframe_values_create_reports(ReportList *reports,
  * \param r_successful_remaps: Enables bits for indices which are both intended to be remapped and
  * were successfully remapped. Bitmap allocated so it must be freed afterward.
  */
-static float *get_keyframe_values(ReportList *reports,
-                                  PointerRNA ptr,
-                                  PropertyRNA *prop,
-                                  int index,
-                                  NlaKeyframingContext *nla_context,
-                                  eInsertKeyFlags flag,
-                                  float *buffer,
-                                  int buffer_size,
-                                  const AnimationEvalContext *anim_eval_context,
-                                  int *r_count,
-                                  bool *r_force_all,
-                                  BLI_bitmap **r_successful_remaps)
+static Vector<float> get_keyframe_values(ReportList *reports,
+                                         PointerRNA ptr,
+                                         PropertyRNA *prop,
+                                         int index,
+                                         NlaKeyframingContext *nla_context,
+                                         eInsertKeyFlags flag,
+                                         const AnimationEvalContext *anim_eval_context,
+                                         bool *r_force_all,
+                                         BLI_bitmap **r_successful_remaps)
 {
-  float *values;
+  Vector<float> values;
 
   if ((flag & INSERTKEY_MATRIX) && visualkey_can_use(&ptr, prop)) {
     /* visual-keying is only available for object and pchan datablocks, as
      * it works by keyframing using a value extracted from the final matrix
      * instead of using the kt system to extract a value.
      */
-    values = visualkey_get_values(&ptr, prop, buffer, buffer_size, r_count);
+    values = visualkey_get_values(&ptr, prop);
   }
   else {
     /* read value from system */
-    values = ANIM_setting_get_rna_values(&ptr, prop, buffer, buffer_size, r_count);
+    values = ANIM_setting_get_rna_values(&ptr, prop);
   }
 
-  *r_successful_remaps = BLI_BITMAP_NEW(*r_count, __func__);
+  *r_successful_remaps = BLI_BITMAP_NEW(values.size(), __func__);
 
   /* adjust the value for NLA factors */
   BKE_animsys_nla_remap_keyframe_values(nla_context,
                                         &ptr,
                                         prop,
-                                        values,
-                                        *r_count,
+                                        values.as_mutable_span(),
                                         index,
                                         anim_eval_context,
                                         r_force_all,
@@ -180,7 +176,7 @@ static float *get_keyframe_values(ReportList *reports,
                                      ptr,
                                      prop,
                                      index,
-                                     *r_count,
+                                     values.size(),
                                      r_force_all ? *r_force_all : false,
                                      *r_successful_remaps);
 
@@ -502,31 +498,21 @@ bool insert_keyframe_direct(ReportList *reports,
   update_autoflags_fcurve_direct(fcu, prop);
 
   /* Obtain the value to insert. */
-  float value_buffer[RNA_MAX_ARRAY_LENGTH];
-  int value_count;
   const int index = fcu->array_index;
-
   BLI_bitmap *successful_remaps = nullptr;
-  float *values = get_keyframe_values(reports,
-                                      ptr,
-                                      prop,
-                                      index,
-                                      nla_context,
-                                      flag,
-                                      value_buffer,
-                                      RNA_MAX_ARRAY_LENGTH,
-                                      anim_eval_context,
-                                      &value_count,
-                                      nullptr,
-                                      &successful_remaps);
+  Vector<float> values = get_keyframe_values(reports,
+                                             ptr,
+                                             prop,
+                                             index,
+                                             nla_context,
+                                             flag,
+                                             anim_eval_context,
+                                             nullptr,
+                                             &successful_remaps);
 
   float current_value = 0.0f;
-  if (index >= 0 && index < value_count) {
+  if (index >= 0 && index < values.size()) {
     current_value = values[index];
-  }
-
-  if (values != value_buffer) {
-    MEM_freeN(values);
   }
 
   const bool curval_valid = BLI_BITMAP_TEST_BOOL(successful_remaps, index);
@@ -666,23 +652,17 @@ int insert_keyframe(Main *bmain,
       anim_eval_context, &id_ptr, adt, act, &nla_cache, &nla_context);
 
   /* Obtain values to insert. */
-  float value_buffer[RNA_MAX_ARRAY_LENGTH];
-  int value_count;
   bool force_all;
-
   BLI_bitmap *successful_remaps = nullptr;
-  float *values = get_keyframe_values(reports,
-                                      ptr,
-                                      prop,
-                                      array_index,
-                                      nla_context,
-                                      flag,
-                                      value_buffer,
-                                      RNA_MAX_ARRAY_LENGTH,
-                                      anim_eval_context,
-                                      &value_count,
-                                      &force_all,
-                                      &successful_remaps);
+  Vector<float> values = get_keyframe_values(reports,
+                                             ptr,
+                                             prop,
+                                             array_index,
+                                             nla_context,
+                                             flag,
+                                             anim_eval_context,
+                                             &force_all,
+                                             &successful_remaps);
 
   /* Key the entire array. */
   int key_count = 0;
@@ -691,7 +671,7 @@ int insert_keyframe(Main *bmain,
     if (force_all && (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) != 0) {
       int exclude = -1;
 
-      for (array_index = 0; array_index < value_count; array_index++) {
+      for (array_index = 0; array_index < values.size(); array_index++) {
         if (!BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
           continue;
         }
@@ -718,7 +698,7 @@ int insert_keyframe(Main *bmain,
       if (exclude != -1) {
         flag &= ~(INSERTKEY_REPLACE | INSERTKEY_AVAILABLE);
 
-        for (array_index = 0; array_index < value_count; array_index++) {
+        for (array_index = 0; array_index < values.size(); array_index++) {
           if (!BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
             continue;
           }
@@ -742,7 +722,7 @@ int insert_keyframe(Main *bmain,
     }
     /* Simply insert all channels. */
     else {
-      for (array_index = 0; array_index < value_count; array_index++) {
+      for (array_index = 0; array_index < values.size(); array_index++) {
         if (!BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
           continue;
         }
@@ -764,7 +744,7 @@ int insert_keyframe(Main *bmain,
   }
   /* Key a single index. */
   else {
-    if (array_index >= 0 && array_index < value_count &&
+    if (array_index >= 0 && array_index < values.size() &&
         BLI_BITMAP_TEST_BOOL(successful_remaps, array_index))
     {
       key_count += insert_keyframe_fcurve_value(bmain,
@@ -780,10 +760,6 @@ int insert_keyframe(Main *bmain,
                                                 keytype,
                                                 flag);
     }
-  }
-
-  if (values != value_buffer) {
-    MEM_freeN(values);
   }
 
   MEM_freeN(successful_remaps);

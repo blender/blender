@@ -3709,13 +3709,13 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
 void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
                                            PointerRNA *prop_ptr,
                                            PropertyRNA *prop,
-                                           float *values,
-                                           int count,
+                                           const blender::MutableSpan<float> values,
                                            int index,
                                            const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
                                            BLI_bitmap *r_successful_remaps)
 {
+  const int count = values.size();
   BLI_bitmap_set_all(r_successful_remaps, false, count);
 
   if (r_force_all != nullptr) {
@@ -3782,7 +3782,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   }
 
   NlaEvalChannelSnapshot *blended_necs = nlaeval_snapshot_ensure_channel(&blended_snapshot, nec);
-  memcpy(blended_necs->values, values, sizeof(float) * count);
+  std::copy(values.begin(), values.end(), blended_necs->values);
 
   /* Force all channels to be remapped for quaternions in a Combine or Replace strip, otherwise it
    * will always fail. See nlaevalchan_combine_quaternion_handle_undefined_blend_values().

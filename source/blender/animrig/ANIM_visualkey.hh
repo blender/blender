@@ -8,13 +8,14 @@
  * \brief Functions to work with the visual keying system.
  */
 
+#include "BLI_vector.hh"
+
 struct PointerRNA;
 struct PropertyRNA;
 
 namespace blender::animrig {
 
 bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop);
-float *visualkey_get_values(
-    PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count);
+Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop);
 
 }  // namespace blender::animrig
