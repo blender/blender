@@ -366,11 +366,19 @@ void WM_init(bContext *C, int argc, const char **argv)
   STRNCPY(G.lib, BKE_main_blendfile_path_from_global());
 
   CTX_py_init_set(C, true);
+
+  /* Postpone updating the key-configuration until after add-ons have been registered,
+   * needed to properly load user-configured add-on key-maps, see: #113603. */
+  WM_keyconfig_update_postpone_begin();
+
   WM_keyconfig_init(C);
 
   /* Load add-ons after key-maps have been initialized (but before the blend file has been read),
    * important to guarantee default key-maps have been declared & before post-read handlers run. */
   wm_init_scripts_extensions_once(C);
+
+  WM_keyconfig_update_postpone_end();
+  WM_keyconfig_update(static_cast<wmWindowManager *>(G_MAIN->wm.first));
 
   wm_homefile_read_post(C, params_file_read_post);
 }

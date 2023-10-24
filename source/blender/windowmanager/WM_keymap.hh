@@ -40,6 +40,9 @@ void WM_keyconfig_update_operatortype();
 void WM_keyconfig_update_suppress_begin();
 void WM_keyconfig_update_suppress_end();
 
+void WM_keyconfig_update_postpone_begin();
+void WM_keyconfig_update_postpone_end();
+
 /* Keymap */
 
 /** Parameters for matching events, passed into functions that create key-map items. */
