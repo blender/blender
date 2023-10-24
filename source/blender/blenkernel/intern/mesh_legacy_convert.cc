@@ -21,6 +21,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_multi_value_map.hh"
@@ -2137,8 +2138,12 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain)
                                    "NodeSocketGeometry",
                                    NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
                                    nullptr);
-  group->tree_interface.add_socket(
-      DATA_("Angle"), "", "NodeSocketFloatAngle", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  bNodeTreeInterfaceSocket *angle_io_socket = group->tree_interface.add_socket(
+      DATA_("Angle"), "", "NodeSocketFloat", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  auto &angle_data = *static_cast<bNodeSocketValueFloat *>(angle_io_socket->socket_data);
+  angle_data.min = 0.0f;
+  angle_data.max = DEG2RADF(180.0f);
+  angle_data.subtype = PROP_ANGLE;
 
   bNode *group_output = nodeAddNode(nullptr, group, "NodeGroupOutput");
   group_output->locx = 480.0f;
@@ -2279,6 +2284,8 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
         bke::idprop::create(DATA_("Socket_1"), mesh->smoothresh_legacy).release();
     auto *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(IDP_ui_data_ensure(angle_prop));
     ui_data->base.rna_subtype = PROP_ANGLE;
+    ui_data->soft_min = 0.0f;
+    ui_data->soft_max = DEG2RADF(180.0f);
     IDP_AddToGroup(md->settings.properties, angle_prop);
     IDP_AddToGroup(md->settings.properties,
                    bke::idprop::create(DATA_("Input_1_use_attribute"), 0).release());
