@@ -507,7 +507,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
   if (unode->maxvert) {
     for (int i = 0; i < unode->totvert; i++) {
       const int vert_index = unode->index[i];
-      if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != hide_vert[vert_index]) {
+      if (unode->vert_hidden[i].test() != hide_vert[vert_index]) {
         unode->vert_hidden[i].set(!unode->vert_hidden[i].test());
         hide_vert[vert_index] = !hide_vert[vert_index];
         modified_vertices[vert_index] = true;
