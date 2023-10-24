@@ -128,6 +128,14 @@ static void gwl_round_int2_by(int value_p[2], const int round_value)
   value_p[1] = (value_p[1] / round_value) * round_value;
 }
 
+/**
+ * Return true if the value is already rounded by `round_value`.
+ */
+static bool gwl_round_int_test(int value, const int round_value)
+{
+  return value == ((value / round_value) * round_value);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1132,6 +1140,11 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
     const int fractional_scale = win->frame.fractional_scale ?
                                      win->frame.fractional_scale :
                                      win->libdecor->scale_fractional_from_output;
+    /* It's important `fractional_scale` has a fractional component or rounding up will fail
+     * to produce the correct whole-number scale. */
+    GHOST_ASSERT((fractional_scale == 0) ||
+                     (gwl_round_int_test(fractional_scale, FRACTIONAL_DENOMINATOR) == false),
+                 "Fractional scale has no fractional component!");
     /* The size from LIBDECOR wont use the GHOST windows buffer size.
      * so it's important to calculate the buffer size that would have been used
      * if fractional scaling wasn't supported. */
@@ -1228,6 +1241,11 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
     libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
     libdecor_frame_commit(frame, state, configuration);
     libdecor_state_free(state);
+
+    /* Only ever use this once, after initial creation:
+     * #wp_fractional_scale_v1_listener::preferred_scale provides fractional scaling values. */
+    decor.scale_fractional_from_output = 0;
+
     decor.initial_configure_seen = true;
   }
 }
@@ -1537,7 +1555,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
     WGL_LibDecor_Window &decor = *window_->libdecor;
-    if (fractional_scale_manager) {
+    if (fractional_scale_manager &&
+        (gwl_round_int_test(scale_fractional_from_output, FRACTIONAL_DENOMINATOR) == false))
+    {
       decor.scale_fractional_from_output = scale_fractional_from_output;
     }
 
