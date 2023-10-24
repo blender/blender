@@ -2048,6 +2048,82 @@ static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, Poin
   rna_iterator_array_begin(iter, begin, sizeof(bNodeLink), len, false, nullptr);
 }
 
+/**
+ * Forbid identifier lookup in nodes whose identifiers are likely to change soon because
+ * dynamically typed sockets are joined into one.
+ */
+static bool allow_identifier_lookup(const bNode &node)
+{
+  switch (node.type) {
+    case GEO_NODE_SWITCH:
+    case GEO_NODE_ACCUMULATE_FIELD:
+    case GEO_NODE_CAPTURE_ATTRIBUTE:
+    case GEO_NODE_ATTRIBUTE_STATISTIC:
+    case GEO_NODE_BLUR_ATTRIBUTE:
+    case GEO_NODE_SAMPLE_CURVE:
+    case GEO_NODE_EVALUATE_AT_INDEX:
+    case GEO_NODE_EVALUATE_ON_DOMAIN:
+    case GEO_NODE_INPUT_NAMED_ATTRIBUTE:
+    case GEO_NODE_RAYCAST:
+    case GEO_NODE_SAMPLE_INDEX:
+    case GEO_NODE_SAMPLE_NEAREST_SURFACE:
+    case FN_NODE_RANDOM_VALUE:
+    case GEO_NODE_SAMPLE_UV_SURFACE:
+    case GEO_NODE_STORE_NAMED_ATTRIBUTE:
+    case GEO_NODE_VIEWER:
+    case SH_NODE_MIX:
+    case FN_NODE_COMPARE:
+    case SH_NODE_MAP_RANGE:
+      return false;
+    default:
+      return true;
+  }
+}
+
+static bNodeSocket *find_socket_by_key(bNode &node,
+                                       const eNodeSocketInOut in_out,
+                                       const blender::StringRef key)
+{
+  ListBase *sockets = in_out == SOCK_IN ? &node.inputs : &node.outputs;
+  if (allow_identifier_lookup(node)) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+      if (socket->is_available()) {
+        if (socket->identifier == key) {
+          return socket;
+        }
+      }
+    }
+  }
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    if (socket->is_available()) {
+      if (socket->name == key) {
+        return socket;
+      }
+    }
+  }
+  return nullptr;
+}
+
+static int rna_NodeInputs_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  if (bNodeSocket *socket = find_socket_by_key(*node, SOCK_IN, key)) {
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, socket);
+    return true;
+  }
+  return false;
+}
+
+static int rna_NodeOutputs_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  if (bNodeSocket *socket = find_socket_by_key(*node, SOCK_OUT, key)) {
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, socket);
+    return true;
+  }
+  return false;
+}
+
 static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
@@ -9508,6 +9584,15 @@ static void rna_def_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "inputs", nullptr);
+  RNA_def_property_collection_funcs(prop,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    "rna_NodeInputs_lookup_string",
+                                    nullptr);
   RNA_def_property_struct_type(prop, "NodeSocket");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inputs", "");
@@ -9515,6 +9600,15 @@ static void rna_def_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "outputs", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "outputs", nullptr);
+  RNA_def_property_collection_funcs(prop,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    "rna_NodeOutputs_lookup_string",
+                                    nullptr);
   RNA_def_property_struct_type(prop, "NodeSocket");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Outputs", "");
