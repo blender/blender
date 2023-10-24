@@ -128,7 +128,7 @@ bool LookdevModule::sync_world()
     }
 
     parameters_ = new_parameters;
-    inst_.reflection_probes.sync_world_lookdev();
+    inst_.sampling.reset();
   }
 
   if (parameters_.show_scene_world) {
@@ -142,6 +142,15 @@ bool LookdevModule::sync_world()
                                                     MAT_PIPE_DEFERRED,
                                                     MAT_GEOM_WORLD,
                                                     true);
+
+  if (GPU_material_status(gpu_material_) == GPU_MAT_SUCCESS) {
+    inst_.reflection_probes.sync_world_lookdev();
+  }
+  else {
+    inst_.sampling.reset();
+    DRW_viewport_request_redraw();
+  }
+
   inst_.pipelines.world.sync(gpu_material_);
   inst_.pipelines.background.sync(gpu_material_, parameters_.background_opacity);
 

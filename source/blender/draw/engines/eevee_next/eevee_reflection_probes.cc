@@ -251,11 +251,15 @@ void ReflectionProbeModule::sync_world(::World *world, WorldHandle & /*ob_handle
 
 void ReflectionProbeModule::sync_world_lookdev()
 {
-  do_world_update_set(true);
-
-  if (!update_probes_this_sample_) {
-    update_probes_next_sample_ = true;
+  ReflectionProbe &probe = probes_.lookup(world_object_key_);
+  const eLightProbeResolution resolution = reflection_probe_resolution();
+  int layer_subdivision = layer_subdivision_for(max_resolution_, resolution);
+  if (layer_subdivision != probe.atlas_coord.layer_subdivision) {
+    probe.atlas_coord = find_empty_atlas_region(layer_subdivision);
   }
+  world_probe_coord_ = probe.atlas_coord;
+
+  do_world_update_set(true);
 }
 
 void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
@@ -343,6 +347,10 @@ void ReflectionProbeModule::end_sync()
 
   const bool do_update = instance_.do_reflection_probe_sync() || (only_world && world_updated);
   if (!do_update) {
+    /* World has changed this sample, but probe update isn't initialized this sample. */
+    if (world_updated && !only_world) {
+      update_probes_next_sample_ = true;
+    }
     if (update_probes_next_sample_ && !update_probes_this_sample_) {
       DRW_viewport_request_redraw();
     }
@@ -364,6 +372,10 @@ void ReflectionProbeModule::end_sync()
     probes_tx_.clear(float4(0.0f));
   }
 
+  /* Check reset probe updating as we will rendering probes. */
+  if (update_probes_this_sample_ || only_world) {
+    update_probes_next_sample_ = false;
+  }
   data_buf_.push_update();
 }
 
@@ -443,11 +455,6 @@ std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
     }
 
     return info;
-  }
-
-  /* Check reset probe updating as we completed rendering all Probes. */
-  if (probe_type == ReflectionProbe::Type::PROBE && update_probes_this_sample_) {
-    update_probes_next_sample_ = false;
   }
 
   return std::nullopt;
