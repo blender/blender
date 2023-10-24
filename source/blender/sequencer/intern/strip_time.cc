@@ -68,7 +68,7 @@ float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
   float frame_index;
   float sta = SEQ_time_start_frame_get(seq);
   float end = SEQ_time_content_end_frame_get(scene, seq) - 1;
-  const float length = seq->len;
+  const float frame_index_max = seq->len - 1;
 
   if (seq->type & SEQ_TYPE_EFFECT) {
     end = SEQ_time_right_handle_frame_get(scene, seq);
@@ -95,10 +95,10 @@ float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
 
   if (SEQ_retiming_is_active(seq)) {
     const float retiming_factor = seq_retiming_evaluate(seq, frame_index);
-    frame_index = retiming_factor * (length);
+    frame_index = retiming_factor * frame_index_max;
   }
   /* Clamp frame index to strip content frame range. */
-  frame_index = clamp_f(frame_index, 0, length);
+  frame_index = clamp_f(frame_index, 0, frame_index_max);
 
   if (seq->strobe < 1.0f) {
     seq->strobe = 1.0f;
@@ -504,8 +504,8 @@ int SEQ_time_strip_length_get(const Scene *scene, const Sequence *seq)
   if (SEQ_retiming_is_active(seq)) {
     const SeqRetimingKey *key_start = seq->retiming_keys;
     const SeqRetimingKey *key_end = seq->retiming_keys + (SEQ_retiming_keys_count(seq) - 1);
-    return key_end->strip_frame_index / seq_time_media_playback_rate_factor_get(scene, seq) -
-           (key_start->strip_frame_index) / seq_time_media_playback_rate_factor_get(scene, seq);
+    return (key_end->strip_frame_index + 1) / seq_time_media_playback_rate_factor_get(scene, seq) -
+           key_start->strip_frame_index / seq_time_media_playback_rate_factor_get(scene, seq);
   }
 
   return seq->len / seq_time_media_playback_rate_factor_get(scene, seq);

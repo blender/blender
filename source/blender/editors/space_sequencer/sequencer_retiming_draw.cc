@@ -71,6 +71,9 @@ static float strip_y_rescale(const Sequence *seq, const float y_value)
 
 static float key_x_get(const Scene *scene, const Sequence *seq, const SeqRetimingKey *key)
 {
+  if (SEQ_retiming_is_last_key(seq, key)) {
+    return SEQ_retiming_key_timeline_frame_get(scene, seq, key) + 1;
+  }
   return SEQ_retiming_key_timeline_frame_get(scene, seq, key);
 }
 
