@@ -1813,6 +1813,10 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     exit(EXIT_FAILURE);
   }
 
+  /* Select GPU backend. */
+  GPU_backend_type_selection_detect();
+
+  /* Init GHOST and open window. */
   GHOST_EventConsumerHandle ghost_event_consumer = nullptr;
   {
     ghost_event_consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
@@ -1840,7 +1844,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   // GHOST_ActivateWindowDrawingContext(ps.ghost_data.window);
 
-  /* Initialize GPU immediate mode. */
+  /* Init Blender GPU context. */
   ps.ghost_data.gpu_context = GPU_context_create(ps.ghost_data.window, nullptr);
   GPU_init();
 
