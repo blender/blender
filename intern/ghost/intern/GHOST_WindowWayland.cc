@@ -71,6 +71,8 @@ struct WGL_LibDecor_Window {
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
   bool initial_configure_seen = false;
+  /** The window state has been configured. */
+  bool initial_state_seen = false;
 };
 
 static void gwl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
@@ -1246,7 +1248,14 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
      * #wp_fractional_scale_v1_listener::preferred_scale provides fractional scaling values. */
     decor.scale_fractional_from_output = 0;
 
-    decor.initial_configure_seen = true;
+    if (decor.initial_configure_seen == false) {
+      decor.initial_configure_seen = true;
+    }
+    else {
+      if (decor.initial_state_seen == false) {
+        decor.initial_state_seen = true;
+      }
+    }
   }
 }
 
@@ -1573,6 +1582,12 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
     xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
     gwl_window_state_set_for_xdg(toplevel, state, gwl_window_state_get(window_));
+    /* Needed for maximize to use the size of the maximized frame instead of the size
+     * from `width` & `height`, see #113961 (follow up comments). */
+    while (!decor.initial_state_seen) {
+      wl_display_flush(system->wl_display_get());
+      wl_display_dispatch(system->wl_display_get());
+    }
   }
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
