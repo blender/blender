@@ -1614,7 +1614,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     }
 
     xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
-    gwl_window_state_set_for_xdg(toplevel, state, GHOST_kWindowStateNormal);
+    gwl_window_state_set_for_xdg(toplevel, state, gwl_window_state_get(window_));
   }
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
