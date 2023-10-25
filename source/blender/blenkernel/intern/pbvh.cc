@@ -805,16 +805,14 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   pbvh->looptri_faces = mesh->looptri_faces();
 
   if (!pbvh->deformed) {
-    /* Deformed positions not matching the original mesh are owned directly by the PBVH, and are
+    /* Deformed data not matching the original mesh are owned directly by the PBVH, and are
      * set separately by #BKE_pbvh_vert_coords_apply. */
     pbvh->vert_positions = mesh->vert_positions_for_write();
+    pbvh->vert_normals = mesh->vert_normals();
+    pbvh->face_normals = mesh->face_normals();
   }
 
   BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
-
-  /* Make sure cached normals start out calculated. */
-  pbvh->vert_normals = mesh->vert_normals();
-  pbvh->face_normals = mesh->face_normals();
 
   pbvh->vert_data = &mesh->vert_data;
   pbvh->loop_data = &mesh->loop_data;
@@ -1276,6 +1274,38 @@ static bool update_search(PBVHNode *node, const int flag)
   return true;
 }
 
+static void normals_calc_faces(const Span<float3> positions,
+                               const blender::OffsetIndices<int> faces,
+                               const Span<int> corner_verts,
+                               const Span<int> mask,
+                               MutableSpan<float3> face_normals)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  threading::parallel_for(mask.index_range(), 512, [&](const IndexRange range) {
+    for (const int i : mask.slice(range)) {
+      face_normals[i] = mesh::face_normal_calc(positions, corner_verts.slice(faces[i]));
+    }
+  });
+}
+
+static void normals_calc_verts_simple(const blender::GroupedSpan<int> vert_to_face_map,
+                                      const Span<float3> face_normals,
+                                      const Span<int> mask,
+                                      MutableSpan<float3> vert_normals)
+{
+  using namespace blender;
+  threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
+    for (const int vert : mask.slice(range)) {
+      float3 normal(0.0f);
+      for (const int face : vert_to_face_map[vert]) {
+        normal += face_normals[face];
+      }
+      vert_normals[vert] = math::normalize(normal);
+    }
+  });
+}
+
 static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &mesh)
 {
   using namespace blender;
@@ -1302,13 +1332,17 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &
   VectorSet<int> verts_to_update;
   threading::parallel_invoke(
       [&]() {
-        mesh.runtime->face_normals_cache.update([&](Vector<float3> &r_data) {
-          threading::parallel_for(faces_to_update.index_range(), 512, [&](const IndexRange range) {
-            for (const int i : faces_to_update.as_span().slice(range)) {
-              r_data[i] = mesh::face_normal_calc(positions, corner_verts.slice(faces[i]));
-            }
+        if (pbvh->deformed) {
+          normals_calc_faces(
+              positions, faces, corner_verts, faces_to_update, pbvh->face_normals_deformed);
+        }
+        else {
+          mesh.runtime->face_normals_cache.update([&](Vector<float3> &r_data) {
+            normals_calc_faces(positions, faces, corner_verts, faces_to_update, r_data);
           });
-        });
+          /* #SharedCache::update() reallocates cached vectors if they were shared initially. */
+          pbvh->face_normals = mesh.runtime->face_normals_cache.data();
+        }
       },
       [&]() {
         /* Update all normals connected to affected faces, even if not explicitly tagged. */
@@ -1325,22 +1359,16 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &
         }
       });
 
-  const Span<float3> face_normals = mesh.face_normals();
-  mesh.runtime->vert_normals_cache.update([&](Vector<float3> &r_data) {
-    threading::parallel_for(verts_to_update.index_range(), 1024, [&](const IndexRange range) {
-      for (const int vert : verts_to_update.as_span().slice(range)) {
-        float3 normal(0.0f);
-        for (const int face : pbvh->pmap[vert]) {
-          normal += face_normals[face];
-        }
-        r_data[vert] = math::normalize(normal);
-      }
+  if (pbvh->deformed) {
+    normals_calc_verts_simple(
+        pbvh->pmap, pbvh->face_normals, verts_to_update, pbvh->vert_normals_deformed);
+  }
+  else {
+    mesh.runtime->vert_normals_cache.update([&](Vector<float3> &r_data) {
+      normals_calc_verts_simple(pbvh->pmap, pbvh->face_normals, verts_to_update, r_data);
     });
-  });
-
-  /* #SharedCache::update() reallocates the cached vectors if they were shared initially. */
-  pbvh->face_normals = mesh.runtime->face_normals_cache.data();
-  pbvh->vert_normals = mesh.runtime->vert_normals_cache.data();
+    pbvh->vert_normals = mesh.runtime->vert_normals_cache.data();
+  }
 }
 
 static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
@@ -2967,14 +2995,21 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
 
   if (!pbvh->deformed) {
     if (!pbvh->vert_positions.is_empty()) {
-      /* if pbvh is not already deformed, verts/faces points to the */
-      /* original data and applying new coords to this arrays would lead to */
-      /* unneeded deformation -- duplicate verts/faces to avoid this */
-      pbvh->vert_positions_deformed = blender::Array<float3>(pbvh->vert_positions.as_span());
+      /* When the PBVH is deformed, it creates a separate vertex position array that it owns
+       * directly. Conceptually these copies often aren't and often adds extra indirection, but:
+       *  - Sculpting shape keys, the deformations are flushed back to the keys as a separate step.
+       *  - Sculpting on a deformed mesh, deformations are also flushed to original positions
+       *    separately.
+       *  - The PBVH currently always assumes we want to change positions, and has no way to avoid
+       *    calculating normals if it's only used for painting, for example. */
+      pbvh->vert_positions_deformed = pbvh->vert_positions.as_span();
       pbvh->vert_positions = pbvh->vert_positions_deformed;
 
-      /* No need to dupalloc pbvh->looptri, this one is 'totally owned' by pbvh,
-       * it's never some mesh data. */
+      pbvh->vert_normals_deformed = pbvh->vert_normals;
+      pbvh->vert_normals = pbvh->vert_normals_deformed;
+
+      pbvh->face_normals_deformed = pbvh->face_normals;
+      pbvh->face_normals = pbvh->face_normals_deformed;
 
       pbvh->deformed = true;
     }
