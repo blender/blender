@@ -59,7 +59,13 @@ struct EraseOperationExecutor {
   int2 mouse_position_pixels{};
   int64_t eraser_squared_radius_pixels{};
 
-  EraseOperationExecutor(const bContext & /*C*/) {}
+  bke::greasepencil::DrawingTransforms transforms_;
+
+  EraseOperationExecutor(const bContext &C)
+  {
+    Object *object = CTX_data_active_object(&C);
+    transforms_ = bke::greasepencil::DrawingTransforms(*object);
+  }
 
   /**
    * Computes the intersections between a 2D line segment and a circle with integer values.
@@ -759,10 +765,12 @@ struct EraseOperationExecutor {
       Array<float2> screen_space_positions(src.points_num());
       threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
         for (const int src_point : src_points) {
-          ED_view3d_project_float_global(region,
-                                         deformation.positions[src_point],
-                                         screen_space_positions[src_point],
-                                         V3D_PROJ_TEST_NOP);
+          ED_view3d_project_float_global(
+              region,
+              math::transform_point(transforms_.layer_space_to_world_space,
+                                    deformation.positions[src_point]),
+              screen_space_positions[src_point],
+              V3D_PROJ_TEST_NOP);
         }
       });
 
