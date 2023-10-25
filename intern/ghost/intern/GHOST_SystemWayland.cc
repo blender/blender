@@ -5998,7 +5998,9 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     /* NOTE(@ideasman42): it's important to write the XKB state back to #GWL_KeyboardDepressedState
      * otherwise changes to modifiers in the future wont generate events.
      * This can cause modifiers to be stuck when switching between windows in GNOME because
-     * window activation is handled before the keyboard enter callback runs, see: #107314. */
+     * window activation is handled before the keyboard enter callback runs, see: #107314.
+     * Now resolved upstream, keep this for GNOME 45 and older releases & misbehaving compositors
+     * as the workaround doesn't have significant down-sides. */
     int16_t &depressed_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_l)];
     int16_t &depressed_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_r)];
     bool val_l = depressed_l > 0;
