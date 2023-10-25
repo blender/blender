@@ -1582,11 +1582,19 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
     xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
     gwl_window_state_set_for_xdg(toplevel, state, gwl_window_state_get(window_));
+
     /* Needed for maximize to use the size of the maximized frame instead of the size
      * from `width` & `height`, see #113961 (follow up comments). */
+    int roundtrip_count = 0;
     while (!decor.initial_state_seen) {
-      wl_display_flush(system->wl_display_get());
-      wl_display_dispatch(system->wl_display_get());
+      /* Use round-trip so as not to block in the case setting
+       * the state is ignored by the compositor. */
+      wl_display_roundtrip(system_->wl_display_get());
+      /* Avoid waiting continuously if the requested state is ignored
+       * (2x round-trips should be enough). */
+      if (++roundtrip_count >= 2) {
+        break;
+      }
     }
   }
   else
