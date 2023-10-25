@@ -677,7 +677,9 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
 
   const int eval_frame = grease_pencil.runtime->eval_frame;
-  const int drawing_index = grease_pencil_orig.layers()[layer_index]->drawing_index_at(eval_frame);
+  const Span<const bke::greasepencil::Layer *> layers_orig = grease_pencil_orig.layers();
+  BLI_assert(layer_index >= 0 && layer_index < layers_orig.size());
+  const int drawing_index = layers_orig[layer_index]->drawing_index_at(eval_frame);
   if (drawing_index == -1) {
     return {};
   }
@@ -707,11 +709,12 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   if (edit_hints != nullptr && &edit_hints->grease_pencil_id_orig == &grease_pencil_orig &&
       edit_hints->drawing_hints.has_value())
   {
-    BLI_assert(edit_hints->drawing_hints->size() == grease_pencil_orig.layers().size());
+    BLI_assert(edit_hints->drawing_hints->size() == layers_orig.size());
     const GreasePencilDrawingEditHints &drawing_hints =
         edit_hints->drawing_hints.value()[layer_index];
     if (drawing_hints.positions.has_value()) {
       deformation.positions = *drawing_hints.positions;
+      return deformation;
     }
   }
 
@@ -721,18 +724,21 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   {
     if (const GreasePencil *grease_pencil_eval = grease_pencil_component_eval->get()) {
       Span<const bke::greasepencil::Layer *> layers_eval = grease_pencil_eval->layers();
-      const bke::greasepencil::Layer *layer_eval = layers_eval[layer_index];
-      const int drawing_index_eval = layer_eval->drawing_index_at(eval_frame);
-      if (drawing_index_eval != -1) {
-        const GreasePencilDrawingBase *drawing_base_eval = grease_pencil_eval->drawing(
-            drawing_index_eval);
-        if (drawing_base_eval->type != GP_DRAWING) {
-          return {};
-        }
-        const bke::greasepencil::Drawing &drawing_eval =
-            reinterpret_cast<const GreasePencilDrawing *>(drawing_base_eval)->wrap();
-        if (drawing_eval.strokes().points_num() == drawing_orig.strokes().points_num()) {
-          deformation.positions = drawing_eval.strokes().positions();
+      if (layers_eval.size() != layers_orig.size()) {
+        const bke::greasepencil::Layer *layer_eval = layers_eval[layer_index];
+        const int drawing_index_eval = layer_eval->drawing_index_at(eval_frame);
+        if (drawing_index_eval != -1) {
+          const GreasePencilDrawingBase *drawing_base_eval = grease_pencil_eval->drawing(
+              drawing_index_eval);
+          if (drawing_base_eval->type != GP_DRAWING) {
+            return deformation;
+          }
+          const bke::greasepencil::Drawing &drawing_eval =
+              reinterpret_cast<const GreasePencilDrawing *>(drawing_base_eval)->wrap();
+          if (drawing_eval.strokes().points_num() == drawing_orig.strokes().points_num()) {
+            deformation.positions = drawing_eval.strokes().positions();
+            return deformation;
+          }
         }
       }
     }
