@@ -747,12 +747,15 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
                         ao_accum);
       film_sample_accum_mist(src, mist_accum);
     }
+    /* Monochrome render passes that have colored outputs. Set alpha to 1. */
+    vec4 shadow_accum_color = vec4(vec3(shadow_accum), weight_accum);
+    vec4 ao_accum_color = vec4(vec3(ao_accum), weight_accum);
+
     film_store_color(dst, uniform_buf.film.diffuse_color_id, diffuse_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.specular_color_id, specular_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.environment_id, environment_accum, out_color);
-    film_store_color(dst, uniform_buf.film.shadow_id, vec4(vec3(shadow_accum), 1.0), out_color);
-    film_store_color(
-        dst, uniform_buf.film.ambient_occlusion_id, vec4(vec3(ao_accum), 1.0), out_color);
+    film_store_color(dst, uniform_buf.film.shadow_id, shadow_accum_color, out_color);
+    film_store_color(dst, uniform_buf.film.ambient_occlusion_id, ao_accum_color, out_color);
     film_store_value(dst, uniform_buf.film.mist_id, mist_accum, out_color);
   }
 
