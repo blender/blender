@@ -455,7 +455,8 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
     motion_blur = kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
     /* Only request generic kernels if they aren't cached in memory. */
-    if (make_source_and_check_if_compile_needed(PSO_GENERIC)) {
+    refresh_source_and_kernels_md5(PSO_GENERIC);
+    if (MetalDeviceKernels::should_load_kernels(this, PSO_GENERIC)) {
       /* If needed, load them asynchronously in order to responsively message progress to the user.
        */
       int this_device_id = this->device_id;
@@ -470,7 +471,7 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
   return true;
 }
 
-bool MetalDevice::make_source_and_check_if_compile_needed(MetalPipelineType pso_type)
+void MetalDevice::refresh_source_and_kernels_md5(MetalPipelineType pso_type)
 {
   string defines_md5 = preprocess_source(pso_type, kernel_features);
 
@@ -514,8 +515,6 @@ bool MetalDevice::make_source_and_check_if_compile_needed(MetalPipelineType pso_
     md5.append(string_printf("metalrt_features=%d", kernel_features & METALRT_FEATURE_MASK));
   }
   kernels_md5[pso_type] = md5.get_hex();
-
-  return MetalDeviceKernels::should_load_kernels(this, pso_type);
 }
 
 void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
@@ -540,7 +539,7 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
         return;
       }
 
-      if (!instance->make_source_and_check_if_compile_needed(pso_type)) {
+      if (!MetalDeviceKernels::should_load_kernels(instance, pso_type)) {
         /* We already have a full set of matching pipelines which are cached or queued. Return
          * early to avoid redundant MTLLibrary compilation. */
         metal_printf("Ignoreing %s compilation request - kernels already requested\n",
@@ -1041,6 +1040,11 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
   if (strcmp(name, "data") == 0) {
     assert(size == sizeof(KernelData));
     memcpy((uint8_t *)&launch_params.data, host, sizeof(KernelData));
+
+    /* Refresh the kernels_md5 checksums for specialized kernel sets. */
+    for (int level = 1; level <= int(kernel_specialization_level); level++) {
+      refresh_source_and_kernels_md5(MetalPipelineType(level));
+    }
     return;
   }
 

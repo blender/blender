@@ -122,7 +122,7 @@ class MetalDevice : public Device {
                            const uint kernel_features,
                            string *source = nullptr);
 
-  bool make_source_and_check_if_compile_needed(MetalPipelineType pso_type);
+  void refresh_source_and_kernels_md5(MetalPipelineType pso_type);
 
   void make_source(MetalPipelineType pso_type, const uint kernel_features);
 
