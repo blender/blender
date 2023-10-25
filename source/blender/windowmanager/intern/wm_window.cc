@@ -2111,6 +2111,70 @@ void WM_event_timer_remove_notifier(wmWindowManager *wm, wmWindow *win, wmTimer 
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Clipboard Wrappers
+ *
+ * GHOST function wrappers that support a "fake" clipboard used when simulating events.
+ * This is useful user actions can be simulated while the system is in use without the system's
+ * clipboard getting overwritten.
+ * \{ */
+
+struct {
+  char *buffers[2];
+} *g_wm_clipboard_text_simulate = nullptr;
+
+void wm_clipboard_free()
+{
+  if (g_wm_clipboard_text_simulate == nullptr) {
+    return;
+  }
+  for (int i = 0; i < ARRAY_SIZE(g_wm_clipboard_text_simulate->buffers); i++) {
+    char *buf = g_wm_clipboard_text_simulate->buffers[i];
+    if (buf) {
+      MEM_freeN(buf);
+    }
+  }
+  MEM_freeN(g_wm_clipboard_text_simulate);
+  g_wm_clipboard_text_simulate = nullptr;
+}
+
+static char *wm_clipboard_text_get_impl(bool selection)
+{
+  if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
+    if (g_wm_clipboard_text_simulate == nullptr) {
+      return nullptr;
+    }
+    const char *buf_src = g_wm_clipboard_text_simulate->buffers[int(selection)];
+    if (buf_src == nullptr) {
+      return nullptr;
+    }
+    size_t size = strlen(buf_src) + 1;
+    char *buf = static_cast<char *>(malloc(size));
+    memcpy(buf, buf_src, size);
+    return buf;
+  }
+
+  return GHOST_getClipboard(selection);
+}
+
+static void wm_clipboard_text_set_impl(const char *buf, bool selection)
+{
+  if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
+    if (g_wm_clipboard_text_simulate == nullptr) {
+      g_wm_clipboard_text_simulate = static_cast<decltype(g_wm_clipboard_text_simulate)>(
+          MEM_callocN(sizeof(*g_wm_clipboard_text_simulate), __func__));
+    }
+    char **buf_src_p = &(g_wm_clipboard_text_simulate->buffers[int(selection)]);
+    MEM_SAFE_FREE(*buf_src_p);
+    *buf_src_p = BLI_strdup(buf);
+    return;
+  }
+
+  GHOST_putClipboard(buf, selection);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Clipboard
  * \{ */
 
@@ -2124,7 +2188,7 @@ static char *wm_clipboard_text_get_ex(bool selection,
     return nullptr;
   }
 
-  char *buf = GHOST_getClipboard(selection);
+  char *buf = wm_clipboard_text_get_impl(selection);
   if (!buf) {
     *r_len = 0;
     return nullptr;
@@ -2213,10 +2277,10 @@ void WM_clipboard_text_set(const char *buf, bool selection)
     }
     *p2 = '\0';
 
-    GHOST_putClipboard(newbuf, selection);
+    wm_clipboard_text_set_impl(newbuf, selection);
     MEM_freeN(newbuf);
 #else
-    GHOST_putClipboard(buf, selection);
+    wm_clipboard_text_set_impl(buf, selection);
 #endif
   }
 }

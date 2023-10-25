@@ -616,6 +616,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   BKE_vfont_clipboard_free();
   ED_node_clipboard_free();
   UV_clipboard_free();
+  wm_clipboard_free();
 
 #ifdef WITH_COMPOSITOR_CPU
   COM_deinitialize();
