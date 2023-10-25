@@ -590,10 +590,11 @@ static void rna_AttributeGroup_update_active(Main *bmain, Scene *scene, PointerR
 static PointerRNA rna_AttributeGroup_active_color_get(PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  CustomDataLayer *layer = BKE_id_attribute_search(ptr->owner_id,
-                                                   BKE_id_attributes_active_color_name(id),
-                                                   CD_MASK_COLOR_ALL,
-                                                   ATTR_DOMAIN_MASK_COLOR);
+  CustomDataLayer *layer = BKE_id_attribute_search_for_write(
+      ptr->owner_id,
+      BKE_id_attributes_active_color_name(id),
+      CD_MASK_COLOR_ALL,
+      ATTR_DOMAIN_MASK_COLOR);
 
   PointerRNA attribute_ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return attribute_ptr;

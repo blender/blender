@@ -79,10 +79,15 @@ struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               eCustomDataType type,
                                               eAttrDomain domain);
 
-struct CustomDataLayer *BKE_id_attribute_search(struct ID *id,
-                                                const char *name,
-                                                eCustomDataMask type,
-                                                eAttrDomainMask domain_mask);
+const struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
+                                                      const char *name,
+                                                      eCustomDataMask type,
+                                                      eAttrDomainMask domain_mask);
+
+struct CustomDataLayer *BKE_id_attribute_search_for_write(struct ID *id,
+                                                          const char *name,
+                                                          eCustomDataMask type,
+                                                          eAttrDomainMask domain_mask);
 
 eAttrDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);
