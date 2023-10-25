@@ -37,6 +37,16 @@ else()
     PREFIX ${BUILD_DIR}/ssl
     CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ssl/src/external_ssl/ && ${SSL_CONFIGURE_COMMAND} --prefix=${LIBDIR}/ssl
       --openssldir=${LIBDIR}/ssl
+      # Without this: Python will use the build directories:
+      # To see these values in use, check the output of `ssl.get_default_verify_paths()`.
+      # This definition causes the following values to be set:
+      # - `capath='/etc/ssl/certs'`
+      # - `openssl_cafile='/etc/ssl/cert.pem'`
+      # - `openssl_capath='/etc/ssl/certs'`
+      # Note that the output from the command `openssl info -configdir` on the users system
+      # would be ideal but this is more involved.
+      # See #111132 & https://github.com/openssl/openssl/issues/20185 for details.
+      -DOPENSSLDIR=\\"/etc/ssl\\"
       no-shared
       no-idea no-mdc2 no-rc5 no-zlib no-ssl3 enable-unit-test no-ssl3-method enable-rfc3779 enable-cms
       --config=${CMAKE_CURRENT_SOURCE_DIR}/cmake/ssl.conf
