@@ -827,8 +827,6 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
   IDPropertyTemplate val = {0};
   IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 
-  CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
-
   PropertyRNA *iterprop = RNA_struct_iterator_property(op->type->srna);
 
   RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
@@ -854,6 +852,9 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
   }
   RNA_PROP_END;
 
+  if (changed) {
+    CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
+  }
   IDP_MergeGroup(op->properties, replaceprops, true);
   IDP_FreeProperty(replaceprops);
   return changed;
@@ -882,7 +883,9 @@ bool WM_operator_last_properties_store(wmOperator *op)
   }
 
   if (op->properties) {
-    CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
+    if (!BLI_listbase_is_empty(&op->properties->data.group)) {
+      CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
+    }
     op->type->last_properties = IDP_CopyProperty(op->properties);
   }
 
