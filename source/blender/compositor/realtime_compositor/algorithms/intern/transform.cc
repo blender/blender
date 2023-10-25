@@ -77,11 +77,10 @@ void transform(Context &context,
   }
   else {
     input.pass_through(output);
+    const float3x3 translation_matrix = math::from_location<float3x3>(translation);
+    output.transform(translation_matrix);
   }
 
-  /* Translation transformations are delayed and are only stored in the result. */
-  const float3x3 translation_matrix = math::from_location<float3x3>(translation);
-  output.transform(translation_matrix);
   output.get_realization_options().interpolation = interpolation;
 }
 
