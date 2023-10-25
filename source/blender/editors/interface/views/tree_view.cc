@@ -493,7 +493,7 @@ bool AbstractTreeViewItem::is_hovered() const
    * Get the matching button from the previous redraw instead. */
   uiButViewItem *old_item_but = ui_block_view_find_matching_view_item_but_in_old_block(
       view_item_but_->block, this_item_handle);
-  return old_item_but && (old_item_but->flag & UI_ACTIVE);
+  return old_item_but && (old_item_but->flag & UI_HOVER);
 }
 
 bool AbstractTreeViewItem::is_collapsed() const

@@ -1393,7 +1393,7 @@ static void widget_draw_icon(
     if (but->flag & UI_SELECT) {
       /* pass */
     }
-    else if (but->flag & UI_ACTIVE) {
+    else if (but->flag & UI_HOVER) {
       /* pass */
     }
     else {
@@ -1449,11 +1449,11 @@ static void widget_draw_icon(
     const bool has_theme = UI_icon_get_theme_color(icon, color);
 
     /* to indicate draggable */
-    if (ui_but_drag_is_draggable(but) && (but->flag & UI_ACTIVE)) {
+    if (ui_but_drag_is_draggable(but) && (but->flag & UI_HOVER)) {
       UI_icon_draw_ex(
           xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme, &but->icon_overlay_text);
     }
-    else if (but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW)) {
+    else if (but->flag & (UI_HOVER | UI_SELECT | UI_SELECT_DRAW)) {
       UI_icon_draw_ex(
           xs, ys, icon, aspect, alpha, 0.0f, color, has_theme, &but->icon_overlay_text);
     }
@@ -2624,8 +2624,8 @@ static void widget_state(uiWidgetType *wt, const uiWidgetStateInfo *state, eUIEm
     /* Add "hover" highlight. Ideally this could apply in all cases,
      * even if UI_SELECT. But currently this causes some flickering
      * as buttons can be created and updated without respect to mouse
-     * position and so can draw without UI_ACTIVE set.  See D6503. */
-    if (state->but_flag & UI_ACTIVE) {
+     * position and so can draw without UI_HOVER set.  See D6503. */
+    if (state->but_flag & UI_HOVER) {
       widget_active_color(&wt->wcol);
     }
   }
@@ -2747,8 +2747,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
 {
   wt->wcol = *(wt->wcol_theme);
 
-  /* active and disabled (not so common) */
-  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_ACTIVE)) {
+  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_HOVER)) {
     color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.5f);
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
@@ -2757,7 +2756,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
   }
   else {
     /* regular active */
-    if (state->but_flag & (UI_SELECT | UI_ACTIVE)) {
+    if (state->but_flag & (UI_SELECT | UI_HOVER)) {
       copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
     else if (state->but_flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
@@ -2768,7 +2767,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
     if (state->but_flag & UI_SELECT) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     }
-    else if (state->but_flag & UI_ACTIVE) {
+    else if (state->but_flag & UI_HOVER) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
     }
   }
@@ -2781,7 +2780,7 @@ static void widget_state_menu_item(uiWidgetType *wt,
 {
   wt->wcol = *(wt->wcol_theme);
 
-  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_ACTIVE)) {
+  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_HOVER)) {
     /* Hovering over disabled item. */
     wt->wcol.text[3] = 128;
     color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.5f);
@@ -2793,7 +2792,7 @@ static void widget_state_menu_item(uiWidgetType *wt,
   }
   else if (state->but_flag & UI_BUT_INACTIVE) {
     /* Inactive. */
-    if (state->but_flag & UI_ACTIVE) {
+    if (state->but_flag & UI_HOVER) {
       color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
       wt->wcol.inner[3] = 255;
     }
@@ -2811,7 +2810,7 @@ static void widget_state_menu_item(uiWidgetType *wt,
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
   }
-  else if (state->but_flag & UI_ACTIVE) {
+  else if (state->but_flag & UI_HOVER) {
     /* Regular hover. */
     color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
     copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
@@ -3445,7 +3444,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
   }
 
   /* decoration */
-  if ((state->but_flag & UI_ACTIVE) && !state->is_text_input) {
+  if ((state->but_flag & UI_HOVER) && !state->is_text_input) {
     uiWidgetColors wcol_zone;
     uiWidgetBase wtb_zone;
     rcti rect_zone;
@@ -3458,7 +3457,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (state->but_drawflag & UI_BUT_ACTIVE_LEFT) {
+    if (state->but_drawflag & UI_BUT_HOVER_LEFT) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3478,7 +3477,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (state->but_drawflag & UI_BUT_ACTIVE_RIGHT) {
+    if (state->but_drawflag & UI_BUT_HOVER_RIGHT) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3497,7 +3496,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (!(state->but_drawflag & (UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT))) {
+    if (!(state->but_drawflag & (UI_BUT_HOVER_LEFT | UI_BUT_HOVER_RIGHT))) {
       widget_active_color(&wcol_zone);
     }
 
@@ -4150,11 +4149,11 @@ static void widget_pulldownbut(uiWidgetColors *wcol,
   float back[4];
   UI_GetThemeColor4fv(TH_BACK, back);
 
-  if ((state->but_flag & UI_ACTIVE) || (back[3] < 1.0f)) {
+  if ((state->but_flag & UI_HOVER) || (back[3] < 1.0f)) {
     uiWidgetBase wtb;
     const float rad = widget_radius_from_zoom(zoom, wcol);
 
-    if (state->but_flag & UI_ACTIVE) {
+    if (state->but_flag & UI_HOVER) {
       copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
       copy_v3_v3_uchar(wcol->text, wcol->text_sel);
       copy_v3_v3_uchar(wcol->outline, wcol->inner);
@@ -4272,7 +4271,7 @@ static void widget_list_itembut(uiBut *but,
   const float rad = widget_radius_from_zoom(zoom, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, &draw_rect, rad);
 
-  if (state->but_flag & UI_ACTIVE && !(state->but_flag & UI_SELECT)) {
+  if (state->but_flag & UI_HOVER && !(state->but_flag & UI_SELECT)) {
     copy_v3_v3_uchar(wcol->inner, wcol->text);
     wcol->inner[3] = 20;
   }
@@ -5156,7 +5155,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
 
 #ifdef USE_UI_POPOVER_ONCE
   if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
-    if ((but->flag & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
+    if ((but->flag & UI_HOVER) && ui_but_is_popover_once_compat(but)) {
       state.but_flag |= UI_BUT_ACTIVE_DEFAULT;
     }
   }

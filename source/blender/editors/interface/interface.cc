@@ -1007,7 +1007,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
     /* Stupid special case: The active button may be inside (as in, overlapped on top) a row
      * button which we also want to keep highlighted then. */
     if (ELEM(but->type, UI_BTYPE_VIEW_ITEM, UI_BTYPE_LISTROW)) {
-      flag_copy |= UI_ACTIVE;
+      flag_copy |= UI_HOVER;
     }
 
     but->flag = (but->flag & ~flag_copy) | (oldbut->flag & flag_copy);

@@ -70,7 +70,14 @@ enum {
   UI_SELECT = (1 << 0),
   /** Temporarily hidden (scrolled out of the view). */
   UI_SCROLLED = (1 << 1),
-  UI_ACTIVE = (1 << 2),
+  /**
+   * The button is hovered by the mouse and should be drawn with a hover highlight. Also set
+   * sometimes to highlight buttons without actually hovering it (e.g. for arrow navigation in
+   * menus). UI handling code manages this mostly and usually does this together with making the
+   * button active/focused (see #uiBut::active). This means events will be forwarded to it and
+   * further handlers/shortcuts can be used while hovering it.
+   */
+  UI_HOVER = (1 << 2),
   UI_HAS_ICON = (1 << 3),
   UI_HIDDEN = (1 << 4),
   /** Display selected, doesn't impact interaction. */
@@ -283,7 +290,10 @@ struct uiBut {
   const ImBuf *imb = nullptr;
   float imb_scale = 0;
 
-  /** Active button data (set when the user is hovering or interacting with a button). */
+  /**
+   * Active button data, set when the user is hovering or interacting with a button (#UI_HOVER and
+   * #UI_SELECT state mostly).
+   */
   uiHandleButtonData *active = nullptr;
 
   /** Custom button data (borrowed, not owned). */
@@ -1215,7 +1225,7 @@ enum uiMenuItemSeparatorType {
  * Helper call to draw a menu item without a button.
  *
  * \param but_flag: Button flags (#uiBut.flag) indicating the state of the item, typically
- *                  #UI_ACTIVE, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
+ *                  #UI_HOVER, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
  * \param separator_type: The kind of separator which controls if and how the string is clipped.
  * \param r_xmax: The right hand position of the text, this takes into the icon, padding and text
  *                clipping when there is not enough room to display the full text.

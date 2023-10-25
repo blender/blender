@@ -343,10 +343,10 @@ enum {
   /** This but is "inside" a box item (currently used to change theme colors). */
   UI_BUT_BOX_ITEM = 1 << 20,
 
-  /** Active left part of number button */
-  UI_BUT_ACTIVE_LEFT = 1 << 21,
-  /** Active right part of number button */
-  UI_BUT_ACTIVE_RIGHT = 1 << 22,
+  /** Mouse is hovering left part of number button */
+  UI_BUT_HOVER_LEFT = 1 << 21,
+  /** Mouse is hovering right part of number button */
+  UI_BUT_HOVER_RIGHT = 1 << 22,
 
   /** Reverse order of consecutive off/on icons */
   UI_BUT_ICON_REVERSE = 1 << 23,
