@@ -22,10 +22,10 @@ file(MAKE_DIRECTORY ${TEST_OUT_DIR}/blendfile_io)
 # endif()
 
 # Run Blender command with parameters.
-function(add_blender_test testname)
+function(add_blender_test_impl testname exe)
   add_test(
     NAME ${testname}
-    COMMAND "${TEST_BLENDER_EXE}" ${TEST_BLENDER_EXE_PARAMS} ${ARGN}
+    COMMAND ${exe} ${ARGN}
   )
 
   # Don't fail tests on leaks since these often happen in external libraries that we can't fix.
@@ -40,6 +40,68 @@ function(add_blender_test testname)
     set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${PLATFORM_ENV_INSTALL}")
   endif()
 endfunction()
+
+function(add_blender_test testname)
+  add_blender_test_impl(
+    "${testname}"
+    "${TEST_BLENDER_EXE}"
+    ${TEST_BLENDER_EXE_PARAMS}
+    ${ARGN}
+  )
+endfunction()
+
+if(WITH_UI_TESTS)
+  set(_blender_headless_env_vars "BLENDER_BIN=${TEST_BLENDER_EXE}")
+
+  # Currently only WAYLAND is supported, support for others may be added later.
+  # In this case none of the WESTON environment variables will be used.
+  if(WITH_GHOST_WAYLAND)
+    set(_weston_bin_in_libdir OFF)
+    if(DEFINED LIBDIR)
+      set(_weston_bin_default "${LIBDIR}/wayland_weston/bin/weston")
+    else()
+      set(_weston_bin_default "weston")
+    endif()
+    set(WESTON_BIN "${_weston_bin_default}" CACHE STRING "\
+The location of weston, leave blank for the default location."
+    )
+    mark_as_advanced(WESTON_BIN)
+    if((DEFINED LIBDIR) AND ("${WESTON_BIN}" STREQUAL "${_weston_bin_default}"))
+      set(_weston_bin_in_libdir ON)
+    endif()
+
+    list(APPEND _blender_headless_env_vars
+      "WESTON_BIN=${WESTON_BIN}"
+    )
+
+    if(_weston_bin_in_libdir)
+      list(APPEND _blender_headless_env_vars
+        "WAYLAND_ROOT_DIR=${LIBDIR}/wayland"
+        "WESTON_ROOT_DIR=${LIBDIR}/wayland_weston"
+      )
+    endif()
+  endif()
+
+  function(add_blender_test_headless testname)
+    # Remove `--background` so headless execution uses a GUI
+    # (within a headless graphical environment).
+    set(EXE_PARAMS ${TEST_BLENDER_EXE_PARAMS})
+    list(REMOVE_ITEM EXE_PARAMS --background)
+    add_blender_test_impl(
+      "${testname}"
+      "${TEST_PYTHON_EXE}"
+      "${CMAKE_SOURCE_DIR}/tests/utils/blender_headless.py"
+      # NOTE: attempting to maximize the window causes problems with a headless `weston`,
+      # while this could be investigated, use windowed mode instead.
+      # Use a window size that balances software GPU rendering with enough room to use the UI.
+      --factory-startup
+      -p 0 0 800 600
+      "${EXE_PARAMS}"
+      "${ARGN}"
+    )
+    set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${_blender_headless_env_vars}")
+  endfunction()
+endif()
 
 # Run Python script outside Blender.
 function(add_python_test testname testscript)
@@ -997,6 +1059,42 @@ else()
       -outdir "${TEST_OUT_DIR}/sequence_editing"
     )
   endforeach()
+endif()
+
+
+# ------------------------------------------------------------------------------
+# Headless GUI Tests
+
+if(WITH_UI_TESTS)
+  # This could be generated with:
+  # `"${TEST_PYTHON_EXE}" "${TEST_SRC_DIR}/ui_simulate/run.py" --list-tests`
+  # list explicitly so changes bisecting/updated are sure to re-run CMake.
+  set(_undo_tests
+    test_undo.text_editor_edit_mode_mix
+    test_undo.text_editor_simple
+    test_undo.view3d_edit_mode_multi_window
+    test_undo.view3d_font_edit_mode_simple
+    test_undo.view3d_mesh_edit_separate
+    test_undo.view3d_mesh_particle_edit_mode_simple
+    test_undo.view3d_multi_mode_multi_window
+    test_undo.view3d_multi_mode_select
+    test_undo.view3d_sculpt_dyntopo_and_edit
+    test_undo.view3d_sculpt_dyntopo_simple
+    test_undo.view3d_sculpt_with_memfile_step
+    test_undo.view3d_simple
+    test_undo.view3d_texture_paint_complex
+    test_undo.view3d_texture_paint_simple
+  )
+  foreach(ui_test ${_undo_tests})
+    add_blender_test_headless(
+      "bf_ui_${ui_test}"
+      --enable-event-simulate
+      --python "${TEST_SRC_DIR}/ui_simulate/run_blender_setup.py"
+      --
+      --tests "${ui_test}"
+    )
+  endforeach()
+  unset(_undo_tests)
 endif()
 
 
