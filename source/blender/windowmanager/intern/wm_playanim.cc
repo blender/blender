@@ -636,6 +636,8 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
                                  const float indicator_factor)
 {
   GHOST_ActivateWindowDrawingContext(ghost_window);
+  GPU_render_begin();
+  GPU_render_step();
 
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -736,6 +738,7 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
   }
 
   GHOST_SwapWindowBuffers(ghost_window);
+  GPU_render_end();
 }
 
 static void playanim_toscreen_on_load(GHOST_WindowHandle ghost_window,
@@ -1805,6 +1808,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   ps.display_ctx.size[0] = ps.ibufx;
   ps.display_ctx.size[1] = ps.ibufy;
 
+  GPU_render_begin();
+  GPU_render_step();
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
   {
@@ -1816,6 +1821,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   }
 
   GHOST_SwapWindowBuffers(ps.ghost_data.window);
+  GPU_render_end();
 
   if (sfra == -1 || efra == -1) {
     /* one of the frames was invalid, just use all images */
