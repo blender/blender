@@ -4627,9 +4627,8 @@ def km_grease_pencil_edit(params):
         ("grease_pencil.cyclical_set", {"type": 'C', "value": 'PRESS',
          "alt": True}, {"properties": [("type", "TOGGLE")]}),
 
-         # Context menu
-         *_template_items_context_menu("VIEW3D_MT_greasepencil_edit_context_menu", params.context_menu_event),
-         
+        # Context menu
+        *_template_items_context_menu("VIEW3D_MT_greasepencil_edit_context_menu", params.context_menu_event),
     ])
 
     return keymap

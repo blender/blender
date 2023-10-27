@@ -5832,6 +5832,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.operator("grease_pencil.cyclical_set", text="Toggle Cyclic").type = 'TOGGLE'
 
+
 class VIEW3D_MT_edit_greasepencil_point(Menu):
     bl_label = "Point"
 
@@ -8105,7 +8106,6 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             col.menu("VIEW3D_MT_mirror")
-
 
 
 def draw_gpencil_layer_active(context, layout):
