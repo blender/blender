@@ -37,7 +37,7 @@ vec4 film_texelfetch_as_YCoCg_opacity(sampler2D tx, ivec2 texel)
 /* Returns a weight based on Luma to reduce the flickering introduced by high energy pixels. */
 float film_luma_weight(float luma)
 {
-  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014. */
+  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
   return 1.0 / (4.0 + luma * uniform_buf.film.exposure_scale);
 }
@@ -223,7 +223,7 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
 {
   /**
    * Dilate velocity by using the nearest pixel in a cross pattern.
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 27)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
   const ivec2 corners[4] = ivec2[4](ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
   float min_depth = texelFetch(depth_tx, texel_sample, 0).x;
@@ -291,7 +291,7 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
   /**
    * Use optimized version by leveraging bilinear filtering from hardware sampler and by removing
    * corner taps.
-   * From "Filmic SMAA" by Jorge Jimenez at Siggraph 2016
+   * From "Filmic SMAA" by Jorge Jimenez at SIGGRAPH 2016
    * http://advances.realtimerendering.com/s2016/Filmic%20SMAA%20v7.pptx
    */
   center_texel += 0.5;
@@ -359,7 +359,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
 #else
   /**
    * Simple bounding box calculation in YCoCg as described in:
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
    */
   min_c = vec4(1e16);
   max_c = vec4(-1e16);
@@ -422,7 +422,7 @@ float film_history_blend_factor(float velocity,
   /* Blend less history if the pixel has substantial velocity. */
   blend = mix(blend, 0.20, saturate(velocity * 0.02));
   /**
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
   float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));

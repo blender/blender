@@ -357,7 +357,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
   }
 
   if (!is_set && len > 5) {
-    /* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
+    /* Test for a separator to apply the rule: ultimate left or right. */
     if (((index = BLI_strcasestr(prefix, "right")) == prefix) || (index == prefix + len - 5)) {
       is_set = true;
       if (index[0] == 'r') {

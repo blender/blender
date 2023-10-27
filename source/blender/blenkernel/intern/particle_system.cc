@@ -1573,8 +1573,7 @@ static void integrate_particle(
  * Authors: Simon Clavet, Philippe Beaudoin and Pierre Poulin
  * Website: http://www.iro.umontreal.ca/labs/infographie/papers/Clavet-2005-PVFS/
  *
- * Presented at Siggraph, (2005)
- *
+ * Presented at SIGGRAPH, (2005)
  * \{ */
 
 #define PSYS_FLUID_SPRINGS_INITIAL_SIZE 256

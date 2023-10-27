@@ -262,12 +262,12 @@ bool BLI_file_magic_is_gzip(const char header[4])
 
 bool BLI_file_magic_is_zstd(const char header[4])
 {
-  /* ZSTD files consist of concatenated frames, each either a Zstd frame or a skippable frame.
-   * Both types of frames start with a magic number: 0xFD2FB528 for Zstd frames and 0x184D2A5*
+  /* ZSTD files consist of concatenated frames, each either a ZSTD frame or a skippable frame.
+   * Both types of frames start with a magic number: `0xFD2FB528` for ZSTD frames and `0x184D2A5`
    * for skippable frames, with the * being anything from 0 to F.
    *
-   * To check whether a file is Zstd-compressed, we just check whether the first frame matches
-   * either. Seeking through the file until a Zstd frame is found would make things more
+   * To check whether a file is ZSTD-compressed, we just check whether the first frame matches
+   * either. Seeking through the file until a ZSTD frame is found would make things more
    * complicated and the probability of a false positive is rather low anyways.
    *
    * Note that LZ4 uses a compatible format, so even though its compressed frames have a

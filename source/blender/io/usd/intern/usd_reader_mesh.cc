@@ -933,7 +933,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
              pxr::SdfValueTypeNames->QuatdArray,
              pxr::SdfValueTypeNames->QuathArray))
     {
-      /* Skip creating known unsupported types, and avoid spammy error prints. */
+      /* Skip creating known unsupported types, and avoid noisy error prints. */
       continue;
     }
 

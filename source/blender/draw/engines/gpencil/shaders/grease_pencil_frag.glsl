@@ -121,7 +121,7 @@ void main()
     return;
   }
 
-  /* FIXME(fclem): Grrr. This is bad for performance but it's the easiest way to not get
+  /* FIXME(@fclem): Alas. This is bad for performance but it's the easiest way to not get
    * depth written where the mask obliterate the layer. */
   float mask = texture(gpMaskTexture, uvs).r;
   if (mask < 0.001) {

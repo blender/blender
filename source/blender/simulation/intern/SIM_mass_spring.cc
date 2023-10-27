@@ -244,7 +244,7 @@ void SIM_cloth_solver_set_volume(ClothModifierData *clmd)
 
 /* Init constraint matrix
  * This is part of the modified CG method suggested by Baraff/Witkin in
- * "Large Steps in Cloth Simulation" (Siggraph 1998)
+ * "Large Steps in Cloth Simulation" (SIGGRAPH 1998)
  */
 static void cloth_setup_constraints(ClothModifierData *clmd)
 {

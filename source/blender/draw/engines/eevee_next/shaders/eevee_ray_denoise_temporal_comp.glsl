@@ -56,7 +56,7 @@ LocalStatistics local_statistics_get(ivec2 texel, vec3 center_radiance)
       }
 
       /* Weight corners less to avoid box artifacts.
-       * Same idea as in "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014
+       * Same idea as in "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
        * (Slide 32) Simple clamp to min/max of 8 neighbors results in 3x3 box artifacts. */
       float weight = (x == y) ? 0.25 : 1.0;
       /* Use YCoCg for clamping and accumulation to avoid color shift artifacts. */

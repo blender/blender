@@ -621,7 +621,7 @@ static inline float regular_polygon_side_length(float sides_count)
  * Start first corners at theta == 0. */
 static inline float circle_to_polygon_radius(float sides_count, float theta)
 {
-  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide 36). */
+  /* From Graphics Gems from CryENGINE 3 (SIGGRAPH 2013) by Tiago Sousa (slide 36). */
   float side_angle = (2.0f * M_PI) / sides_count;
   return cosf(side_angle * 0.5f) /
          cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
