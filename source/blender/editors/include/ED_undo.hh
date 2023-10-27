@@ -21,6 +21,7 @@ struct ViewLayer;
 struct bContext;
 struct wmOperator;
 struct wmOperatorType;
+struct wmWindowManager;
 
 /* undo.c */
 
@@ -73,9 +74,29 @@ bool ED_undo_is_memfile_compatible(const bContext *C);
 bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id);
 
 /**
+ * This function addresses the problem of restoring undo steps when multiple windows are used.
+ * Since undo steps don't track the full context that created them it's possible an edit-mode
+ * undo step will attempt to restore edit-mode into a different window, scene or view-layer.
+ *
+ * Values `scene_p` & `view_layer_p` (typically initialized from the context)
+ * are updated from the visible windows using `scene_ref` as a reference.
+ * If the no window can be found, the values are left as-is.
+ *
+ * Since users may close windows before undoing, it's expected the window may be unavailable.
+ * When this happens the edit-mode objects wont be restored into edit-mode by
+ * #ED_undo_object_editmode_restore_helper which is acceptable since objects
+ * which aren't visible in any window don't need to enter edit-mode.
+ */
+void ED_undo_object_editmode_validate_scene_from_windows(wmWindowManager *wm,
+                                                         const Scene *scene_ref,
+                                                         Scene **scene_p,
+                                                         ViewLayer **view_layer_p);
+
+/**
  * Load all our objects from `object_array` into edit-mode, clear everything else.
  */
-void ED_undo_object_editmode_restore_helper(bContext *C,
+void ED_undo_object_editmode_restore_helper(Scene *scene,
+                                            ViewLayer *view_layer,
                                             Object **object_array,
                                             uint object_array_len,
                                             uint object_array_stride);
