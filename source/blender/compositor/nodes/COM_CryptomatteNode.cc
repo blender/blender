@@ -104,6 +104,9 @@ void CryptomatteNode::input_operations_from_render_source(
   RenderResult *render_result = render ? RE_AcquireResultRead(render) : nullptr;
 
   if (!render_result) {
+    if (render) {
+      RE_ReleaseResult(render);
+    }
     return;
   }
 
