@@ -164,9 +164,14 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     texture_bindings_3d = [mtlDevice newBufferWithLength:8192 options:default_storage_mode];
     stats.mem_alloc(buffer_bindings_1d.allocatedSize + texture_bindings_2d.allocatedSize +
                     texture_bindings_3d.allocatedSize);
-    /* command queue for path-tracing work on the GPU */
+
+    /* Command queue for path-tracing work on the GPU. In a situation where multiple
+     * MetalDeviceQueues are spawned from one MetalDevice, they share the same MTLCommandQueue.
+     * This is thread safe and just as performant as each having their own instance. It also
+     * adheres to best practices of maximizing the lifetime of each MTLCommandQueue. */
     mtlComputeCommandQueue = [mtlDevice newCommandQueue];
-    /* command queue for non-tracing work on the GPU */
+
+    /* Command queue for non-tracing work on the GPU. */
     mtlGeneralCommandQueue = [mtlDevice newCommandQueue];
 
     /* Acceleration structure arg encoder, if needed */
