@@ -159,7 +159,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
                       icon='MOD_MASK' if gpl.use_mask_layer else 'LAYER_ACTIVE')
 
             srow = col.row(align=True)
-            srow.prop(gpl, "use_lights")
+            srow.prop(gpl, "use_lights", text="Lights")
 
         col = row.column()
 

@@ -841,7 +841,7 @@ class DOPESHEET_PT_gpencil_mode(LayersDopeSheetPanel, Panel):
             row.prop(gpl, "opacity", text="Opacity", slider=True)
 
             row = layout.row(align=True)
-            row.prop(gpl, "use_lights")
+            row.prop(gpl, "use_lights", text="Lights")
 
 
 class DOPESHEET_PT_gpencil_layer_masks(LayersDopeSheetPanel, GreasePencilLayerMasksPanel, Panel):

@@ -170,7 +170,7 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
             col.prop(gpl, "opacity", text="Opacity", slider=True)
 
             col = layout.row(align=True)
-            col.prop(gpl, "use_lights")
+            col.prop(gpl, "use_lights", text="Lights")
 
 
 class DATA_PT_gpencil_layer_masks(LayerDataButtonsPanel, GreasePencilLayerMasksPanel, Panel):
