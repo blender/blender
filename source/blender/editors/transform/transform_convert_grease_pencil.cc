@@ -26,11 +26,24 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 {
   Scene *scene = CTX_data_scene(C);
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
-  IndexMaskMemory memory;
-  Array<IndexMask> selection_per_layer_per_object(t->data_container_len);
   const bool use_proportional_edit = (t->flag & T_PROP_EDIT_ALL) != 0;
   const bool use_connected_only = (t->flag & T_PROP_CONNECTED) != 0;
+
+  int number_of_layers_total = 0;
+  /* Count the number layers in all objects. */
+  for (const int i : trans_data_contrainers.index_range()) {
+    TransDataContainer &tc = trans_data_contrainers[i];
+    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
+
+    grease_pencil.foreach_editable_drawing(
+        scene->r.cfra, [&](int /*layer_index*/, bke::greasepencil::Drawing & /*drawing*/) {
+          number_of_layers_total++;
+        });
+  }
+
   int layer_offset = 0;
+  IndexMaskMemory memory;
+  Array<IndexMask> selection_per_layer_per_object(number_of_layers_total);
 
   /* Count selected elements per layer per object and create TransData structs. */
   for (const int i : trans_data_contrainers.index_range()) {
@@ -38,16 +51,16 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
 
     grease_pencil.foreach_editable_drawing(
-        scene->r.cfra, [&](int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        scene->r.cfra, [&](int /*layer_index*/, bke::greasepencil::Drawing &drawing) {
           const bke::CurvesGeometry &curves = drawing.strokes();
 
           if (use_proportional_edit) {
             tc.data_len += curves.point_num;
           }
           else {
-            selection_per_layer_per_object[i + layer_offset] =
-                ed::curves::retrieve_selected_points(curves, memory);
-            tc.data_len += selection_per_layer_per_object[i + layer_offset].size();
+            selection_per_layer_per_object[layer_offset] = ed::curves::retrieve_selected_points(
+                curves, memory);
+            tc.data_len += selection_per_layer_per_object[layer_offset].size();
           }
 
           layer_offset++;
@@ -76,13 +89,11 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     int layer_points_offset = 0;
 
     grease_pencil.foreach_editable_drawing(
-        scene->r.cfra, [&](int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        scene->r.cfra, [&](int /*layer_index*/, bke::greasepencil::Drawing &drawing) {
           bke::CurvesGeometry &curves = drawing.strokes_for_write();
-
-          const IndexMask selected_indices = selection_per_layer_per_object[i + layer_offset];
+          const IndexMask selected_indices = selection_per_layer_per_object[layer_offset];
 
           std::optional<MutableSpan<float>> value_attribute;
-
           if (t->mode == TFM_CURVE_SHRINKFATTEN) {
             MutableSpan<float> radii = drawing.radii_for_write();
             value_attribute = radii;
