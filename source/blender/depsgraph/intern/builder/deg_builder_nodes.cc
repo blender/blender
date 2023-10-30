@@ -544,7 +544,7 @@ void DepsgraphNodeBuilder::end_build()
   update_invalid_cow_pointers();
 }
 
-void DepsgraphNodeBuilder::build_id(ID *id)
+void DepsgraphNodeBuilder::build_id(ID *id, const bool force_be_visible)
 {
   if (id == nullptr) {
     return;
@@ -575,7 +575,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
        * If this happened to be affecting visible object, then it is up to
        * deg_graph_build_flush_visibility() to ensure visibility of the
        * object is true. */
-      build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, false);
+      build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, force_be_visible);
       break;
     case ID_KE:
       build_shapekeys((Key *)id);
