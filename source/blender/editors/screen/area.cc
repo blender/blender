@@ -1708,8 +1708,10 @@ static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
   area->winy = BLI_rcti_size_y(&area->totrct) + 1;
 }
 
-/* used for area initialize below */
-static void region_subwindow(ARegion *region)
+/**
+ * Update the `ARegion::visible` flag.
+ */
+static void region_evaulate_visibility(ARegion *region)
 {
   bool hidden = (region->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) !=
                 0;
@@ -2008,7 +2010,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
   area_azone_init(win, screen, area);
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region_subwindow(region);
+    region_evaulate_visibility(region);
 
     /* region size may have changed, init does necessary adjustments */
     if (region->type->init) {
@@ -2112,7 +2114,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 
   /* region windows, default and own handlers */
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region_subwindow(region);
+    region_evaulate_visibility(region);
 
     if (region->visible) {
       /* default region handlers */
@@ -2224,7 +2226,7 @@ void ED_region_floating_init(ARegion *region)
   BLI_assert(region->alignment == RGN_ALIGN_FLOAT);
 
   /* refresh can be called before window opened */
-  region_subwindow(region);
+  region_evaulate_visibility(region);
 
   region_update_rect(region);
 }
