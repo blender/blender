@@ -7,13 +7,11 @@
  */
 
 #include "BLI_assert.h"
-#include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -55,12 +53,15 @@ class RotateOperation : public NodeOperation {
   void execute() override
   {
     Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &result = get_result("Image");
+    input.pass_through(result);
 
     const math::AngleRadian rotation = get_input("Degr").get_float_value_default(0.0f);
+
     const float3x3 transformation = math::from_rotation<float3x3>(rotation);
 
-    transform(context(), input, output, transformation, get_interpolation());
+    result.transform(transformation);
+    result.get_realization_options().interpolation = get_interpolation();
   }
 
   Interpolation get_interpolation()

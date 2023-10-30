@@ -2,11 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 
 vec3 g_emission;
 vec3 g_transmittance;
@@ -232,12 +230,12 @@ float ambient_occlusion_eval(vec3 normal,
   // clang-format off
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && !defined(MAT_SHADOW)
   // clang-format on
-  vec3 vP = drw_point_world_to_view(g_data.P);
+  vec3 vP = transform_point(ViewMatrix, g_data.P);
   ivec2 texel = ivec2(gl_FragCoord.xy);
   OcclusionData data = ambient_occlusion_search(
       vP, hiz_tx, texel, max_distance, inverted, sample_count);
 
-  vec3 V = drw_world_incident_vector(g_data.P);
+  vec3 V = cameraVec(g_data.P);
   vec3 N = g_data.N;
   vec3 Ng = g_data.Ng;
 
@@ -284,7 +282,7 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
   vec3 Favg = f0 + (f90 - f0) / 21.0;
 
   /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
-   * "A Journey Through Implementing Multi-scattering BRDFs and Area Lights" by Steve McAuley
+   * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
    * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparable quality.
    * We handle `radiance` outside of this function, so the result simplifies to:
    * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.
@@ -312,7 +310,7 @@ void brdf_f82_tint_lut(vec3 F0,
 #ifdef EEVEE_UTILITY_TX
   vec3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
 #else
-  vec3 split_sum = vec3(1.0, 0.0, 0.0);
+  vec3 split_sum = vec2(1.0, 0.0, 0.0);
 #endif
 
   reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :
@@ -340,7 +338,7 @@ vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
   float critical_cos = sqrt(1.0 - ior * ior);
 
   vec3 coords;
-  coords.x = square(ior);
+  coords.x = sqr(ior);
   coords.y = cos_theta;
   coords.y -= critical_cos;
   coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
@@ -508,9 +506,9 @@ vec3 coordinate_camera(vec3 P)
   }
   else {
 #ifdef MAT_WORLD
-    vP = drw_normal_world_to_view(P);
+    vP = transform_direction(ViewMatrix, P);
 #else
-    vP = drw_point_world_to_view(P);
+    vP = transform_point(ViewMatrix, P);
 #endif
   }
   vP.z = -vP.z;
@@ -526,7 +524,7 @@ vec3 coordinate_screen(vec3 P)
   }
   else {
     /* TODO(fclem): Actual camera transform. */
-    window.xy = drw_point_world_to_screen(P).xy;
+    window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
     window.xy = window.xy * uniform_buf.camera.uv_scale + uniform_buf.camera.uv_bias;
   }
   return window;
@@ -537,7 +535,7 @@ vec3 coordinate_reflect(vec3 P, vec3 N)
 #ifdef MAT_WORLD
   return N;
 #else
-  return -reflect(drw_world_incident_vector(P), N);
+  return -reflect(cameraVec(P), N);
 #endif
 }
 
@@ -546,7 +544,7 @@ vec3 coordinate_incoming(vec3 P)
 #ifdef MAT_WORLD
   return -P;
 #else
-  return drw_world_incident_vector(P);
+  return cameraVec(P);
 #endif
 }
 

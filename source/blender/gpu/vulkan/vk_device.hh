@@ -28,18 +28,6 @@ struct VKWorkarounds {
    * If set to true we should work around this issue by using a different texture format.
    */
   bool not_aligned_pixel_formats = false;
-
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceVulkan12Features::shaderOutputViewportIndex enabled.
-   */
-  bool shader_output_viewport_index = false;
-
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceVulkan12Features::shaderOutputLayer enabled.
-   */
-  bool shader_output_layer = false;
 };
 
 class VKDevice : public NonCopyable {
@@ -75,7 +63,6 @@ class VKDevice : public NonCopyable {
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
-  VkPhysicalDeviceVulkan12Features vk_physical_device_vulkan_12_features_ = {};
 
   /** Functions of vk_ext_debugutils for this device/instance. */
   debug::VKDebuggingTools debugging_tools_;
@@ -85,7 +72,6 @@ class VKDevice : public NonCopyable {
 
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer_;
-  std::optional<std::reference_wrapper<VKTexture>> dummy_color_attachment_;
 
   Vector<std::pair<VkImage, VmaAllocation>> discarded_images_;
   Vector<std::pair<VkBuffer, VmaAllocation>> discarded_buffers_;
@@ -112,11 +98,6 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceVulkan11Features &physical_device_vulkan_11_features_get() const
   {
     return vk_physical_device_vulkan_11_features_;
-  }
-
-  const VkPhysicalDeviceVulkan12Features &physical_device_vulkan_12_features_get() const
-  {
-    return vk_physical_device_vulkan_12_features_;
   }
 
   VkInstance instance_get() const
@@ -177,7 +158,6 @@ class VKDevice : public NonCopyable {
    * Dummy buffer can only be initialized after the command buffer of the context is retrieved.
    */
   void init_dummy_buffer(VKContext &context);
-  void init_dummy_color_attachment();
   void deinit();
 
   eGPUDeviceType device_type() const;
@@ -201,12 +181,6 @@ class VKDevice : public NonCopyable {
   const VKBuffer &dummy_buffer_get() const
   {
     return dummy_buffer_;
-  }
-
-  VKTexture &dummy_color_attachment_get() const
-  {
-    BLI_assert(dummy_color_attachment_.has_value());
-    return (*dummy_color_attachment_).get();
   }
 
   void discard_image(VkImage vk_image, VmaAllocation vma_allocation);

@@ -39,7 +39,6 @@
 #include "RNA_prototypes.h"
 
 #include "ANIM_bone_collections.h"
-#include "ANIM_keyframing.hh"
 
 #include "transform.hh"
 #include "transform_orientations.hh"
@@ -64,7 +63,7 @@ struct BoneInitData {
  * and we will insert a keyframe at the end of transform. */
 static bool motionpath_need_update_pose(Scene *scene, Object *ob)
 {
-  if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+  if (autokeyframe_cfra_can_key(scene, &ob->id)) {
     return (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
   }
 
@@ -90,13 +89,14 @@ static void autokeyframe_pose(
   bAction *act = (adt) ? adt->action : nullptr;
   bPose *pose = ob->pose;
 
-  if (!blender::animrig::autokeyframe_cfra_can_key(scene, id)) {
+  if (!autokeyframe_cfra_can_key(scene, id)) {
     return;
   }
 
   ReportList *reports = CTX_wm_reports(C);
   ToolSettings *ts = scene->toolsettings;
   KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
+  ListBase nla_cache = {nullptr, nullptr};
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       depsgraph, BKE_scene_frame_get(scene));
@@ -120,18 +120,19 @@ static void autokeyframe_pose(
       continue;
     }
 
-    blender::Vector<PointerRNA> sources;
+    ListBase dsources = {nullptr, nullptr};
+
     /* Add data-source override for the camera object. */
-    ANIM_relative_keyingset_add_source(sources, id, &RNA_PoseBone, pchan);
+    ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan);
 
     /* only insert into active keyingset? */
-    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
+    if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
       /* Run the active Keying Set on the current data-source. */
       ANIM_apply_keyingset(
-          C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+          C, &dsources, nullptr, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     /* only insert into available channels? */
-    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
+    else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
       if (act) {
         LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
           /* only insert keyframes for this F-Curve if it affects the current bone */
@@ -144,22 +145,23 @@ static void autokeyframe_pose(
            * NOTE: this will do constraints too, but those are ok to do here too?
            */
           if (STREQ(pchan_name, pchan->name)) {
-            blender::animrig::insert_keyframe(bmain,
-                                              reports,
-                                              id,
-                                              act,
-                                              ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
-                                              fcu->rna_path,
-                                              fcu->array_index,
-                                              &anim_eval_context,
-                                              eBezTriple_KeyframeType(ts->keyframe_type),
-                                              flag);
+            insert_keyframe(bmain,
+                            reports,
+                            id,
+                            act,
+                            ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                            fcu->rna_path,
+                            fcu->array_index,
+                            &anim_eval_context,
+                            eBezTriple_KeyframeType(ts->keyframe_type),
+                            &nla_cache,
+                            flag);
           }
         }
       }
     }
     /* only insert keyframe if needed? */
-    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+    else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
       bool do_loc = false, do_rot = false, do_scale = false;
 
       /* Filter the conditions when this happens
@@ -194,24 +196,33 @@ static void autokeyframe_pose(
       }
 
       if (do_loc) {
-        KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOCATION_ID);
-        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOCATION_ID);
+        ANIM_apply_keyingset(
+            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
       if (do_rot) {
-        KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_ROTATION_ID);
-        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_ROTATION_ID);
+        ANIM_apply_keyingset(
+            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
       if (do_scale) {
-        KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_SCALING_ID);
-        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_SCALING_ID);
+        ANIM_apply_keyingset(
+            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
     }
     /* insert keyframe in all (transform) channels */
     else {
-      KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOC_ROT_SCALE_ID);
-      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOC_ROT_SCALE_ID);
+      ANIM_apply_keyingset(
+          C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
+
+    /* free temp info */
+    BLI_freelistN(&dsources);
   }
+
+  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 }
 
 static bConstraint *add_temporary_ik_constraint(bPoseChannel *pchan,
@@ -1464,7 +1475,7 @@ static void recalcData_pose(TransInfo *t)
 
       /* TODO: autokeyframe calls need some setting to specify to add samples
        * (FPoints) instead of keyframes? */
-      if ((t->animtimer) && (t->context) && blender::animrig::is_autokey_on(t->scene)) {
+      if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
 
         /* XXX: this currently doesn't work, since flags aren't set yet! */
         int targetless_ik = (t->flag & T_AUTOIK);

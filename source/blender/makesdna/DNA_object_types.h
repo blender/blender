@@ -317,10 +317,7 @@ typedef struct Object {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
-  /**
-   * Engines draw data, must be immediately after AnimData. See IdDdtTemplate and
-   * DRW_drawdatalist_from_id to understand this requirement.
-   */
+  /** Runtime (must be immediately after id for utilities to use it). */
   struct DrawDataList drawdata;
 
   struct SculptSession *sculpt;
@@ -814,7 +811,6 @@ enum {
   OB_SHADOW_CATCHER = 1 << 10,
   OB_HIDE_PROBE_VOLUME = 1 << 11,
   OB_HIDE_PROBE_CUBEMAP = 1 << 12,
-  OB_HIDE_PROBE_PLANAR = 1 << 13,
 };
 
 /** #Object.shapeflag */

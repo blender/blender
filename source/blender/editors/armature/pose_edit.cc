@@ -51,7 +51,6 @@
 #include "ED_view3d.hh"
 
 #include "ANIM_bone_collections.h"
-#include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"
 
@@ -809,7 +808,7 @@ void POSE_OT_reveal(wmOperatorType *ot)
 static int pose_flip_quats_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
-  KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOC_ROT_SCALE_ID);
+  KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOC_ROT_SCALE_ID);
 
   bool changed_multi = false;
 
@@ -825,7 +824,7 @@ static int pose_flip_quats_exec(bContext *C, wmOperator * /*op*/)
         /* quaternions have 720 degree range */
         negate_v4(pchan->quat);
 
-        blender::animrig::autokeyframe_pchan(C, scene, ob_iter, pchan, ks);
+        ED_autokeyframe_pchan(C, scene, ob_iter, pchan, ks);
       }
     }
     FOREACH_PCHAN_SELECTED_IN_OBJECT_END;

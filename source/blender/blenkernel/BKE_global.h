@@ -37,9 +37,9 @@ typedef struct Global {
   struct Main *pr_main;
 
   /** Last saved location for images. */
-  char filepath_last_image[/*FILE_MAX*/ 1024];
+  char ima[1024]; /* 1024 = FILE_MAX */
   /** Last used location for library link/append. */
-  char filepath_last_library[/*FILE_MAX*/ 1024];
+  char lib[1024];
 
   /**
    * Strings of recently opened files to show in the file menu.

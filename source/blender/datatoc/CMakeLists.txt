@@ -28,12 +28,12 @@ if(NOT WITH_HEADLESS)
       ../../../intern/utfconv
     )
 
-    # for winstuff_dir.cc
+    # for winstuff_dir.c
     add_definitions(-DUSE_STANDALONE)
 
     list(APPEND SRC
-      ../blenlib/intern/winstuff_dir.cc
-      ../../../intern/utfconv/utfconv.cc
+      ../blenlib/intern/winstuff_dir.c
+      ../../../intern/utfconv/utfconv.c
     )
 
   endif()

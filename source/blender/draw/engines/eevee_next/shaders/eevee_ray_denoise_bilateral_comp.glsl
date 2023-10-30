@@ -15,10 +15,11 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 
@@ -29,7 +30,7 @@ float bilateral_depth_weight(vec3 center_N, vec3 center_P, vec3 sample_P)
   float depth_delta = dot(center_plane_eq, vec4(sample_P, 1.0));
   /* TODO(fclem): Scene parameter. This is dependent on scene scale. */
   const float scale = 10000.0;
-  float weight = exp2(-scale * square(depth_delta));
+  float weight = exp2(-scale * sqr(depth_delta));
   return weight;
 }
 
@@ -104,7 +105,7 @@ void main()
   vec2 center_uv = vec2(texel_fullres) * uniform_buf.raytrace.full_resolution_inv;
 
   float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
-  vec3 center_P = drw_point_screen_to_world(vec3(center_uv, center_depth));
+  vec3 center_P = get_world_space_from_depth(center_uv, center_depth);
 
 #if defined(RAYTRACE_DIFFUSE)
   ClosureDiffuse sample_closure, center_closure;
@@ -164,7 +165,7 @@ void main()
 
     float sample_depth = texelFetch(depth_tx, sample_texel, 0).r;
     vec2 sample_uv = vec2(sample_texel) * uniform_buf.raytrace.full_resolution_inv;
-    vec3 sample_P = drw_point_screen_to_world(vec3(sample_uv, sample_depth));
+    vec3 sample_P = get_world_space_from_depth(sample_uv, sample_depth);
 
     /* Background case. */
     if (sample_depth == 0.0) {

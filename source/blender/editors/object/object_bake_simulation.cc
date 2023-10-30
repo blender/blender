@@ -12,7 +12,7 @@
 #include "BLI_path_util.h"
 #include "BLI_serialize.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_vector.hh"
 
 #include "PIL_time.h"
@@ -82,7 +82,10 @@ struct CalculateSimulationJob {
   int end_frame;
 };
 
-static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void calculate_simulation_job_startjob(void *customdata,
+                                              bool *stop,
+                                              bool *do_update,
+                                              float *progress)
 {
   CalculateSimulationJob &job = *static_cast<CalculateSimulationJob *>(customdata);
   G.is_rendering = true;
@@ -111,8 +114,8 @@ static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatu
     objects_to_calc.append(object);
   }
 
-  worker_status->progress = 0.0f;
-  worker_status->do_update = true;
+  *progress = 0.0f;
+  *do_update = true;
 
   const float frame_step_size = 1.0f;
   const float progress_per_frame = 1.0f /
@@ -122,7 +125,7 @@ static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatu
   for (float frame_f = job.start_frame; frame_f <= job.end_frame; frame_f += frame_step_size) {
     const SubFrame frame{frame_f};
 
-    if (G.is_break || worker_status->stop) {
+    if (G.is_break || (stop != nullptr && *stop)) {
       break;
     }
 
@@ -131,15 +134,15 @@ static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatu
 
     BKE_scene_graph_update_for_newframe(job.depsgraph);
 
-    worker_status->progress += progress_per_frame;
-    worker_status->do_update = true;
+    *progress += progress_per_frame;
+    *do_update = true;
   }
 
   job.scene->r.cfra = old_frame;
   DEG_time_tag_update(job.bmain);
 
-  worker_status->progress = 1.0f;
-  worker_status->do_update = true;
+  *progress = 1.0f;
+  *do_update = true;
 }
 
 static void calculate_simulation_job_endjob(void *customdata)
@@ -247,7 +250,10 @@ struct BakeSimulationJob {
   Vector<ObjectBakeData> objects;
 };
 
-static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void bake_simulation_job_startjob(void *customdata,
+                                         bool *stop,
+                                         bool *do_update,
+                                         float *progress)
 {
   BakeSimulationJob &job = *static_cast<BakeSimulationJob *>(customdata);
   G.is_rendering = true;
@@ -266,8 +272,8 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
     }
   }
 
-  worker_status->progress = 0.0f;
-  worker_status->do_update = true;
+  *progress = 0.0f;
+  *do_update = true;
 
   const int frames_to_bake = global_bake_end_frame - global_bake_start_frame + 1;
 
@@ -280,7 +286,7 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
   {
     const SubFrame frame{frame_f};
 
-    if (G.is_break || worker_status->stop) {
+    if (G.is_break || (stop != nullptr && *stop)) {
       break;
     }
 
@@ -332,8 +338,8 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
       }
     }
 
-    worker_status->progress += progress_per_frame;
-    worker_status->do_update = true;
+    *progress += progress_per_frame;
+    *do_update = true;
   }
 
   for (ObjectBakeData &object_bake_data : job.objects) {
@@ -357,8 +363,8 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
   job.scene->r.cfra = old_frame;
   DEG_time_tag_update(job.bmain);
 
-  worker_status->progress = 1.0f;
-  worker_status->do_update = true;
+  *progress = 1.0f;
+  *do_update = true;
 }
 
 static void bake_simulation_job_endjob(void *customdata)

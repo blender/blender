@@ -250,25 +250,6 @@ struct ScheduledNodes {
   {
     return this->priority_.is_empty() && this->normal_.is_empty();
   }
-
-  int64_t nodes_num() const
-  {
-    return priority_.size() + normal_.size();
-  }
-
-  /**
-   * Split up the scheduled nodes into two groups that can be worked on in parallel.
-   */
-  void split_into(ScheduledNodes &other)
-  {
-    BLI_assert(this != &other);
-    const int64_t priority_split = priority_.size() / 2;
-    const int64_t normal_split = normal_.size() / 2;
-    other.priority_.extend(priority_.as_span().drop_front(priority_split));
-    other.normal_.extend(normal_.as_span().drop_front(normal_split));
-    priority_.resize(priority_split);
-    normal_.resize(normal_split);
-  }
 };
 
 struct CurrentTask {
@@ -813,16 +794,6 @@ class Executor {
         current_task.has_scheduled_nodes.store(false, std::memory_order_relaxed);
       }
       this->run_node_task(*node, current_task, local_data);
-
-      /* If there are many nodes scheduled at the same time, it's beneficial to let multiple
-       * threads work on those. */
-      if (current_task.scheduled_nodes.nodes_num() > 128) {
-        if (this->try_enable_multi_threading()) {
-          std::unique_ptr<ScheduledNodes> split_nodes = std::make_unique<ScheduledNodes>();
-          current_task.scheduled_nodes.split_into(*split_nodes);
-          this->push_to_task_pool(std::move(split_nodes));
-        }
-      }
     }
   }
 
@@ -1258,10 +1229,10 @@ class Executor {
   /**
    * Allow other threads to steal all the nodes that are currently scheduled on this thread.
    */
-  void push_all_scheduled_nodes_to_task_pool(CurrentTask &current_task)
+  void move_scheduled_nodes_to_task_pool(CurrentTask &current_task)
   {
     BLI_assert(this->use_multi_threading());
-    std::unique_ptr<ScheduledNodes> scheduled_nodes = std::make_unique<ScheduledNodes>();
+    ScheduledNodes *scheduled_nodes = MEM_new<ScheduledNodes>(__func__);
     {
       std::lock_guard lock{current_task.mutex};
       if (current_task.scheduled_nodes.is_empty()) {
@@ -1270,11 +1241,6 @@ class Executor {
       *scheduled_nodes = std::move(current_task.scheduled_nodes);
       current_task.has_scheduled_nodes.store(false, std::memory_order_relaxed);
     }
-    this->push_to_task_pool(std::move(scheduled_nodes));
-  }
-
-  void push_to_task_pool(std::unique_ptr<ScheduledNodes> scheduled_nodes)
-  {
     /* All nodes are pushed as a single task in the pool. This avoids unnecessary threading
      * overhead when the nodes are fast to compute. */
     BLI_task_pool_push(
@@ -1288,9 +1254,9 @@ class Executor {
           const LocalData local_data = executor.get_local_data();
           executor.run_task(new_current_task, local_data);
         },
-        scheduled_nodes.release(),
+        scheduled_nodes,
         true,
-        [](TaskPool * /*pool*/, void *data) { delete static_cast<ScheduledNodes *>(data); });
+        [](TaskPool * /*pool*/, void *data) { MEM_delete(static_cast<ScheduledNodes *>(data)); });
   }
 
   LocalData get_local_data()
@@ -1444,7 +1410,7 @@ inline void Executor::execute_node(const FunctionNode &node,
     if (!this->try_enable_multi_threading()) {
       return;
     }
-    this->push_all_scheduled_nodes_to_task_pool(current_task);
+    this->move_scheduled_nodes_to_task_pool(current_task);
   };
 
   lazy_threading::HintReceiver blocking_hint_receiver{blocking_hint_fn};

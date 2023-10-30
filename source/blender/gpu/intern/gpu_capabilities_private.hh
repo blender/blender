@@ -38,7 +38,6 @@ struct GPUCapabilities {
   int max_varying_floats = 0;
   int max_shader_storage_buffer_bindings = 0;
   int max_compute_shader_storage_blocks = 0;
-  size_t max_storage_buffer_size = 0;
   int extensions_len = 0;
   const char *(*extension_get)(int);
 

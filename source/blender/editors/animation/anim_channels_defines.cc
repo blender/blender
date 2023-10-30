@@ -8,8 +8,6 @@
 
 #include <cstdio>
 
-#include "ANIM_keyframing.hh"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -5034,14 +5032,14 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
     }
 
     /* insert a keyframe for this F-Curve */
-    done = blender::animrig::insert_keyframe_direct(reports,
-                                                    ptr,
-                                                    prop,
-                                                    fcu,
-                                                    &anim_eval_context,
-                                                    eBezTriple_KeyframeType(ts->keyframe_type),
-                                                    nla_context,
-                                                    flag);
+    done = insert_keyframe_direct(reports,
+                                  ptr,
+                                  prop,
+                                  fcu,
+                                  &anim_eval_context,
+                                  eBezTriple_KeyframeType(ts->keyframe_type),
+                                  nla_context,
+                                  flag);
 
     if (done) {
       if (adt->action != nullptr) {
@@ -5104,14 +5102,14 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
     /* insert a keyframe for this F-Curve */
     const AnimationEvalContext remapped_anim_eval_context = BKE_animsys_eval_context_construct_at(
         &anim_eval_context, remapped_frame);
-    done = blender::animrig::insert_keyframe_direct(reports,
-                                                    ptr,
-                                                    prop,
-                                                    fcu,
-                                                    &remapped_anim_eval_context,
-                                                    eBezTriple_KeyframeType(ts->keyframe_type),
-                                                    nla_context,
-                                                    flag);
+    done = insert_keyframe_direct(reports,
+                                  ptr,
+                                  prop,
+                                  fcu,
+                                  &remapped_anim_eval_context,
+                                  eBezTriple_KeyframeType(ts->keyframe_type),
+                                  nla_context,
+                                  flag);
 
     if (done) {
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
@@ -5163,14 +5161,14 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void * /*id_poin*/
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                       cfra);
-    done = blender::animrig::insert_keyframe_direct(reports,
-                                                    ptr,
-                                                    prop,
-                                                    fcu,
-                                                    &anim_eval_context,
-                                                    eBezTriple_KeyframeType(ts->keyframe_type),
-                                                    nullptr,
-                                                    flag);
+    done = insert_keyframe_direct(reports,
+                                  ptr,
+                                  prop,
+                                  fcu,
+                                  &anim_eval_context,
+                                  eBezTriple_KeyframeType(ts->keyframe_type),
+                                  nullptr,
+                                  flag);
 
     if (done) {
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);

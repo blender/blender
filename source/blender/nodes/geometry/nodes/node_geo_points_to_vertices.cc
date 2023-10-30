@@ -13,6 +13,8 @@
 
 namespace blender::nodes::node_geo_points_to_vertices_cc {
 
+using blender::Array;
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Points").supported_type(GeometryComponent::Type::PointCloud);

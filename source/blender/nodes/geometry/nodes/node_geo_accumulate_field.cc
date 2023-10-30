@@ -230,7 +230,8 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
       return {};
     }
 
-    const bke::GeometryFieldContext source_context{context, source_domain_};
+    const bke::GeometryFieldContext source_context{
+        context.geometry(), context.type(), source_domain_};
     fn::FieldEvaluator evaluator{source_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
@@ -335,7 +336,8 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
       return {};
     }
 
-    const bke::GeometryFieldContext source_context{context, source_domain_};
+    const bke::GeometryFieldContext source_context{
+        context.geometry(), context.type(), source_domain_};
     fn::FieldEvaluator evaluator{source_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
@@ -419,7 +421,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     using T = decltype(dummy);
     if constexpr (is_same_any_v<T, int, float, float3>) {
       const std::string suffix = " " + identifier_suffix<T>();
-      GField input_field = params.extract_input<GField>("Value" + suffix);
+      Field<T> input_field = params.extract_input<Field<T>>("Value" + suffix);
       if (params.output_is_required("Leading" + suffix)) {
         params.set_output(
             "Leading" + suffix,
@@ -464,8 +466,7 @@ static void node_rna(StructRNA *srna)
                     "",
                     rna_enum_attribute_domain_items,
                     NOD_storage_enum_accessors(domain),
-                    ATTR_DOMAIN_POINT,
-                    enums::domain_experimental_grease_pencil_version3_fn);
+                    ATTR_DOMAIN_POINT);
 }
 
 static void node_register()

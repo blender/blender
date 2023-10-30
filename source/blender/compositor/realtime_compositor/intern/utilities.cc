@@ -129,6 +129,12 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   input_descriptor.realization_options.realize_on_operation_domain = bool(
       socket_declaration->compositor_realization_options() &
       CompositorInputRealizationOptions::RealizeOnOperationDomain);
+  input_descriptor.realization_options.realize_rotation = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeRotation);
+  input_descriptor.realization_options.realize_scale = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeScale);
 
   return input_descriptor;
 }

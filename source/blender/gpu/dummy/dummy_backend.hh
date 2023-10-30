@@ -30,8 +30,7 @@ class DummyBackend : public GPUBackend {
              GPU_BACKEND_NONE,
              "Unknown",
              "",
-             "",
-             GPU_ARCHITECTURE_IMR);
+             "");
   }
   void delete_resources() override {}
   void samplers_update() override {}

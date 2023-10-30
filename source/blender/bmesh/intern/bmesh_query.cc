@@ -1618,7 +1618,7 @@ BMLoop *BM_edge_find_first_loop_visible(BMEdge *e)
   return nullptr;
 }
 
-BMFace *BM_face_exists(BMVert *const *varr, int len)
+BMFace *BM_face_exists(BMVert **varr, int len)
 {
   if (varr[0]->e) {
     BMEdge *e_iter, *e_first;

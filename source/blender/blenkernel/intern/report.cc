@@ -10,14 +10,12 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <mutex>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -62,20 +60,6 @@ void BKE_reports_init(ReportList *reports, int flag)
   reports->storelevel = RPT_INFO;
   reports->printlevel = RPT_ERROR;
   reports->flag = flag;
-
-  reports->lock = MEM_new<std::mutex>(__func__);
-}
-
-void BKE_reports_free(ReportList *reports)
-{
-  if (!reports) {
-    return;
-  }
-
-  BKE_reports_clear(reports);
-
-  MEM_delete(reports->lock);
-  reports->lock = nullptr;
 }
 
 void BKE_reports_clear(ReportList *reports)
@@ -85,8 +69,6 @@ void BKE_reports_clear(ReportList *reports)
   if (!reports) {
     return;
   }
-
-  std::scoped_lock lock(*reports->lock);
 
   report = static_cast<Report *>(reports->list.first);
 
@@ -98,28 +80,6 @@ void BKE_reports_clear(ReportList *reports)
   }
 
   BLI_listbase_clear(&reports->list);
-}
-
-void BKE_reports_lock(ReportList *reports)
-{
-  reports->lock->lock();
-}
-
-void BKE_reports_unlock(ReportList *reports)
-{
-  reports->lock->unlock();
-}
-
-void BKE_reports_move_to_reports(ReportList *reports_dst, ReportList *reports_src)
-{
-  BLI_assert(reports_dst);
-  if (!reports_src) {
-    return;
-  }
-
-  std::scoped_lock lock(*reports_src->lock, *reports_dst->lock);
-
-  BLI_movelisttolist(&reports_dst->list, &reports_src->list);
 }
 
 void BKE_report(ReportList *reports, eReportType type, const char *_message)
@@ -134,8 +94,6 @@ void BKE_report(ReportList *reports, eReportType type, const char *_message)
   }
 
   if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
-    std::scoped_lock lock(*reports->lock);
-
     char *message_alloc;
     report = static_cast<Report *>(MEM_callocN(sizeof(Report), "Report"));
     report->type = type;
@@ -166,8 +124,6 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
   }
 
   if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
-    std::scoped_lock lock(*reports->lock);
-
     report = static_cast<Report *>(MEM_callocN(sizeof(Report), "Report"));
 
     va_start(args, _format);
@@ -189,9 +145,6 @@ static void reports_prepend_impl(ReportList *reports, const char *prepend)
 {
   /* Caller must ensure. */
   BLI_assert(reports && reports->list.first);
-
-  std::scoped_lock lock(*reports->lock);
-
   const size_t prefix_len = strlen(prepend);
   LISTBASE_FOREACH (Report *, report, &reports->list) {
     char *message = BLI_string_joinN(prepend, report->message);
@@ -240,8 +193,6 @@ void BKE_report_print_level_set(ReportList *reports, eReportType level)
     return;
   }
 
-  std::scoped_lock lock(*reports->lock);
-
   reports->printlevel = level;
 }
 
@@ -260,8 +211,6 @@ void BKE_report_store_level_set(ReportList *reports, eReportType level)
     return;
   }
 
-  std::scoped_lock lock(*reports->lock);
-
   reports->storelevel = level;
 }
 
@@ -273,8 +222,6 @@ char *BKE_reports_string(ReportList *reports, eReportType level)
   if (!reports || !reports->list.first) {
     return nullptr;
   }
-
-  std::scoped_lock lock(*reports->lock);
 
   ds = BLI_dynstr_new();
   LISTBASE_FOREACH (Report *, report, &reports->list) {
@@ -327,8 +274,6 @@ void BKE_reports_print(ReportList *reports, eReportType level)
 
 Report *BKE_reports_last_displayable(ReportList *reports)
 {
-  std::scoped_lock lock(*reports->lock);
-
   LISTBASE_FOREACH_BACKWARD (Report *, report, &reports->list) {
     if (ELEM(report->type, RPT_ERROR, RPT_WARNING, RPT_INFO)) {
       return report;
@@ -341,8 +286,6 @@ Report *BKE_reports_last_displayable(ReportList *reports)
 bool BKE_reports_contain(ReportList *reports, eReportType level)
 {
   if (reports != nullptr) {
-    std::scoped_lock lock(*reports->lock);
-
     LISTBASE_FOREACH (Report *, report, &reports->list) {
       if (report->type >= level) {
         return true;
@@ -357,8 +300,6 @@ bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)
   if (header) {
     fputs(header, fp);
   }
-
-  std::scoped_lock lock(*reports->lock);
 
   LISTBASE_FOREACH (Report *, report, &reports->list) {
     fprintf((FILE *)fp, "%s  # %s\n", report->message, report->typestr);

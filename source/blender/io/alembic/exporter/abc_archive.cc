@@ -19,7 +19,7 @@
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
-#  include "utfconv.hh"
+#  include "utfconv.h"
 #endif
 
 namespace blender::io::alembic {

@@ -22,9 +22,63 @@
 
 namespace blender::eevee {
 
+bool VolumeModule::GridAABB::init(Object *ob, const Camera &camera, const VolumesInfoData &data)
+{
+  /* Returns the unified volume grid cell index of a world space coordinate. */
+  auto to_global_grid_coords = [&](float3 wP) -> int3 {
+    const float4x4 &view_matrix = camera.data_get().viewmat;
+    const float4x4 &projection_matrix = camera.data_get().winmat;
+
+    float3 ndc_coords = math::project_point(projection_matrix * view_matrix, wP);
+    ndc_coords = (ndc_coords * 0.5f) + float3(0.5f);
+
+    float3 grid_coords = ndc_to_volume(projection_matrix,
+                                       data.depth_near,
+                                       data.depth_far,
+                                       data.depth_distribution,
+                                       data.coord_scale,
+                                       ndc_coords);
+
+    return int3(grid_coords * float3(data.tex_size));
+  };
+
+  const BoundBox &bbox = *BKE_object_boundbox_get(ob);
+  min = int3(INT32_MAX);
+  max = int3(INT32_MIN);
+
+  for (float3 corner : bbox.vec) {
+    corner = math::transform_point(float4x4(ob->object_to_world), corner);
+    int3 grid_coord = to_global_grid_coords(corner);
+    min = math::min(min, grid_coord);
+    max = math::max(max, grid_coord);
+  }
+
+  bool is_visible = false;
+  for (int i : IndexRange(3)) {
+    is_visible = is_visible || (min[i] >= 0 && min[i] < data.tex_size[i]);
+    is_visible = is_visible || (max[i] >= 0 && max[i] < data.tex_size[i]);
+  }
+
+  min = math::clamp(min, int3(0), data.tex_size);
+  max = math::clamp(max, int3(0), data.tex_size);
+
+  return is_visible;
+}
+
+bool VolumeModule::GridAABB::overlaps(const GridAABB &aabb)
+{
+  for (int i : IndexRange(3)) {
+    if (min[i] > aabb.max[i] || max[i] < aabb.min[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void VolumeModule::init()
 {
   enabled_ = false;
+  subpass_aabbs_.clear();
 
   const Scene *scene_eval = inst_.scene;
 
@@ -98,12 +152,72 @@ void VolumeModule::begin_sync()
   enabled_ = inst_.world.has_volume();
 }
 
+void VolumeModule::sync_object(Object *ob,
+                               ObjectHandle & /*ob_handle*/,
+                               ResourceHandle res_handle,
+                               MaterialPass *material_pass /*=nullptr*/)
+{
+  float3 size = math::to_scale(float4x4(ob->object_to_world));
+  /* Check if any of the axes have 0 length. (see #69070) */
+  const float epsilon = 1e-8f;
+  if (size.x < epsilon || size.y < epsilon || size.z < epsilon) {
+    return;
+  }
+
+  if (material_pass == nullptr) {
+    Material material = inst_.materials.material_get(
+        ob, false, VOLUME_MATERIAL_NR, MAT_GEOM_VOLUME_OBJECT);
+    material_pass = &material.volume;
+  }
+
+  /* If shader failed to compile or is currently compiling. */
+  if (material_pass->gpumat == nullptr) {
+    return;
+  }
+
+  GPUShader *shader = GPU_material_get_shader(material_pass->gpumat);
+  if (shader == nullptr) {
+    return;
+  }
+
+  GridAABB aabb;
+  if (!aabb.init(ob, inst_.camera, data_)) {
+    return;
+  }
+
+  PassMain::Sub *object_pass = volume_sub_pass(
+      *material_pass->sub_pass, inst_.scene, ob, material_pass->gpumat);
+  if (object_pass) {
+    enabled_ = true;
+
+    /* Add a barrier at the start of a subpass or when 2 volumes overlaps. */
+    if (!subpass_aabbs_.contains_as(shader)) {
+      object_pass->barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      subpass_aabbs_.add(shader, {aabb});
+    }
+    else {
+      Vector<GridAABB> &aabbs = subpass_aabbs_.lookup(shader);
+      for (GridAABB &_aabb : aabbs) {
+        if (aabb.overlaps(_aabb)) {
+          object_pass->barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+          aabbs.clear();
+          break;
+        }
+      }
+      aabbs.append(aabb);
+    }
+
+    int3 grid_size = aabb.max - aabb.min + int3(1);
+
+    object_pass->push_constant("drw_ResourceID", int(res_handle.resource_index()));
+    object_pass->push_constant("grid_coords_min", aabb.min);
+    object_pass->dispatch(math::divide_ceil(grid_size, int3(VOLUME_GROUP_SIZE)));
+  }
+}
+
 void VolumeModule::end_sync()
 {
-  enabled_ = enabled_ || inst_.pipelines.volume.is_enabled();
-
   if (!enabled_) {
-    occupancy_tx_.free();
     prop_scattering_tx_.free();
     prop_extinction_tx_.free();
     prop_emission_tx_.free();
@@ -127,38 +241,6 @@ void VolumeModule::end_sync()
   prop_emission_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
   prop_phase_tx_.ensure_3d(GPU_RG16F, data_.tex_size, usage);
 
-  int occupancy_layers = divide_ceil_u(data_.tex_size.z, 32u);
-  eGPUTextureUsage occupancy_usage = GPU_TEXTURE_USAGE_SHADER_READ |
-                                     GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_ATOMIC;
-  occupancy_tx_.ensure_3d(GPU_R32UI, int3(data_.tex_size.xy(), occupancy_layers), occupancy_usage);
-
-  {
-    eGPUTextureUsage hit_count_usage = GPU_TEXTURE_USAGE_SHADER_READ |
-                                       GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_ATOMIC;
-    eGPUTextureUsage hit_depth_usage = GPU_TEXTURE_USAGE_SHADER_READ |
-                                       GPU_TEXTURE_USAGE_SHADER_WRITE;
-    int2 hit_list_size = int2(1);
-    int hit_list_layer = 1;
-    if (inst_.pipelines.volume.use_hit_list()) {
-      hit_list_layer = clamp_i(inst_.scene->eevee.volumetric_ray_depth, 1, 16);
-      hit_list_size = data_.tex_size.xy();
-    }
-    hit_depth_tx_.ensure_3d(GPU_R32F, int3(hit_list_size, hit_list_layer), hit_depth_usage);
-    if (hit_count_tx_.ensure_2d(GPU_R32UI, hit_list_size, hit_count_usage)) {
-      hit_count_tx_.clear(uint4(0u));
-    }
-  }
-
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    /* Metal requires a dummy attachment. */
-    occupancy_fb_.ensure(GPU_ATTACHMENT_NONE,
-                         GPU_ATTACHMENT_TEXTURE_LAYER(prop_extinction_tx_, 0));
-  }
-  else {
-    /* Empty frame-buffer. */
-    occupancy_fb_.ensure(data_.tex_size.xy());
-  }
-
   if (!inst_.pipelines.world_volume.is_valid()) {
     prop_scattering_tx_.clear(float4(0.0f));
     prop_extinction_tx_.clear(float4(0.0f));
@@ -178,11 +260,10 @@ void VolumeModule::end_sync()
   scatter_ps_.init();
   scatter_ps_.shader_set(inst_.shaders.static_shader_get(
       data_.use_lights ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
-  inst_.lights.bind_resources(scatter_ps_);
-  inst_.reflection_probes.bind_resources(scatter_ps_);
-  inst_.irradiance_cache.bind_resources(scatter_ps_);
-  inst_.shadows.bind_resources(scatter_ps_);
-  inst_.sampling.bind_resources(scatter_ps_);
+  inst_.lights.bind_resources(&scatter_ps_);
+  inst_.irradiance_cache.bind_resources(&scatter_ps_);
+  inst_.shadows.bind_resources(&scatter_ps_);
+  inst_.sampling.bind_resources(&scatter_ps_);
   scatter_ps_.bind_image("in_scattering_img", &prop_scattering_tx_);
   scatter_ps_.bind_image("in_extinction_img", &prop_extinction_tx_);
   scatter_ps_.bind_texture("extinction_tx", &prop_extinction_tx_);
@@ -190,7 +271,6 @@ void VolumeModule::end_sync()
   scatter_ps_.bind_image("in_phase_img", &prop_phase_tx_);
   scatter_ps_.bind_image("out_scattering_img", &scatter_tx_);
   scatter_ps_.bind_image("out_extinction_img", &extinction_tx_);
-  scatter_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
   /* Sync with the property pass. */
   scatter_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   scatter_ps_.dispatch(math::divide_ceil(data_.tex_size, int3(VOLUME_GROUP_SIZE)));
@@ -214,7 +294,6 @@ void VolumeModule::end_sync()
   bind_resources(resolve_ps_);
   resolve_ps_.bind_texture("depth_tx", &inst_.render_buffers.depth_tx);
   resolve_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-  resolve_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
   /* Sync with the integration pass. */
   resolve_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
   resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
@@ -226,26 +305,8 @@ void VolumeModule::draw_prepass(View &view)
     return;
   }
 
-  DRW_stats_group_start("Volumes");
   inst_.pipelines.world_volume.render(view);
-
-  float left, right, bottom, top, near, far;
-  float4x4 winmat = view.winmat();
-  projmat_dimensions(winmat.ptr(), &left, &right, &bottom, &top, &near, &far);
-
-  float4x4 winmat_infinite = view.is_persp() ?
-                                 math::projection::perspective_infinite(
-                                     left, right, bottom, top, near) :
-                                 math::projection::orthographic_infinite(left, right, bottom, top);
-
-  View volume_view = {"Volume View"};
-  volume_view.sync(view.viewmat(), winmat_infinite);
-
-  if (inst_.pipelines.volume.is_enabled()) {
-    occupancy_fb_.bind();
-    inst_.pipelines.volume.render(volume_view, occupancy_tx_);
-  }
-  DRW_stats_group_end();
+  inst_.pipelines.volume.render(view);
 }
 
 void VolumeModule::draw_compute(View &view)

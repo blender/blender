@@ -26,7 +26,6 @@ struct ResampleCurvesOutputAttributeIDs {
  * \note The values provided by the #count_field are clamped to 1 or greater.
  */
 CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
-                                 const fn::FieldContext &field_context,
                                  const fn::Field<bool> &selection_field,
                                  const fn::Field<int> &count_field,
                                  const ResampleCurvesOutputAttributeIDs &output_ids = {});
@@ -37,7 +36,6 @@ CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
  * The accuracy will depend on the curve's resolution parameter.
  */
 CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
-                                  const fn::FieldContext &field_context,
                                   const fn::Field<bool> &selection_field,
                                   const fn::Field<float> &segment_length_field,
                                   const ResampleCurvesOutputAttributeIDs &output_ids = {});
@@ -46,7 +44,6 @@ CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
  * Evaluate each selected curve to its implicit evaluated points.
  */
 CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
-                                     const fn::FieldContext &field_context,
                                      const fn::Field<bool> &selection_field,
                                      const ResampleCurvesOutputAttributeIDs &output_ids = {});
 

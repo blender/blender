@@ -671,12 +671,12 @@ static void eevee_lightbake_count_probes(EEVEE_LightBake *lbake)
     if (ob->type == OB_LIGHTPROBE) {
       LightProbe *prb = (LightProbe *)ob->data;
 
-      if (prb->type == LIGHTPROBE_TYPE_VOLUME) {
+      if (prb->type == LIGHTPROBE_TYPE_GRID) {
         lbake->total_irr_samples += prb->grid_resolution_x * prb->grid_resolution_y *
                                     prb->grid_resolution_z;
         lbake->grid_len++;
       }
-      else if (prb->type == LIGHTPROBE_TYPE_SPHERE && lbake->cube_len < EEVEE_PROBE_MAX) {
+      else if (prb->type == LIGHTPROBE_TYPE_CUBE && lbake->cube_len < EEVEE_PROBE_MAX) {
         lbake->cube_len++;
       }
     }
@@ -1334,12 +1334,12 @@ static void eevee_lightbake_gather_probes(EEVEE_LightBake *lbake)
     if (ob->type == OB_LIGHTPROBE) {
       LightProbe *prb = (LightProbe *)ob->data;
 
-      if (prb->type == LIGHTPROBE_TYPE_VOLUME) {
+      if (prb->type == LIGHTPROBE_TYPE_GRID) {
         lbake->grid_prb[grid_len] = prb;
         EEVEE_LightGrid *egrid = &lcache->grid_data[grid_len++];
         EEVEE_lightprobes_grid_data_from_object(ob, egrid, &total_irr_samples);
       }
-      else if (prb->type == LIGHTPROBE_TYPE_SPHERE && cube_len < EEVEE_PROBE_MAX) {
+      else if (prb->type == LIGHTPROBE_TYPE_CUBE && cube_len < EEVEE_PROBE_MAX) {
         lbake->cube_prb[cube_len] = prb;
         EEVEE_LightProbe *eprobe = &lcache->cube_data[cube_len++];
         EEVEE_lightprobes_cube_data_from_object(ob, eprobe);
@@ -1402,7 +1402,7 @@ static bool lightbake_do_sample(EEVEE_LightBake *lbake,
   return true;
 }
 
-void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
+void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *progress)
 {
   EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
   Depsgraph *depsgraph = lbake->depsgraph;
@@ -1411,9 +1411,9 @@ void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
   DEG_evaluate_on_framechange(depsgraph, lbake->frame);
 
   lbake->view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  lbake->stop = &worker_status->stop;
-  lbake->do_update = &worker_status->do_update;
-  lbake->progress = &worker_status->progress;
+  lbake->stop = stop;
+  lbake->do_update = do_update;
+  lbake->progress = progress;
 
   if (G.background) {
     /* Make sure to init GL capabilities before counting probes. */

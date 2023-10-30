@@ -647,20 +647,6 @@ template<typename T> class VArrayCommon {
     }
     return impl_->size();
   }
-  /**
-   * Get the first element.
-   */
-  T first() const
-  {
-    return (*this)[0];
-  }
-  /**
-   * Get the nth last element.
-   */
-  T last(const int64_t n = 0) const
-  {
-    return (*this)[this->size() - 1 - n];
-  }
 
   /** True when the size is zero or when there is no virtual array. */
   bool is_empty() const

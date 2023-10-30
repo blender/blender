@@ -87,7 +87,8 @@ void ED_mball_editmball_load(Object * /*obedit*/) {}
 bool ED_mball_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
@@ -770,12 +771,13 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
                                           uint *r_selmask)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
   int a, hits;
   GPUSelectResult buffer[MAXPICKELEMS];
   rcti rect;
   bool found = false;
 
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   BLI_rcti_init_pt_radius(&rect, mval, 12);
 

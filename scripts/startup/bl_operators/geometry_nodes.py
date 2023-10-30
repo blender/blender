@@ -68,7 +68,7 @@ def geometry_modifier_poll(context):
     ob = context.object
 
     # Test object support for geometry node modifier
-    if not ob or ob.type not in {'MESH', 'POINTCLOUD', 'VOLUME', 'CURVE', 'FONT', 'CURVES', 'GREASEPENCIL'}:
+    if not ob or ob.type not in {'MESH', 'POINTCLOUD', 'VOLUME', 'CURVE', 'FONT', 'CURVES'}:
         return False
 
     return True
@@ -311,7 +311,10 @@ class NewGeometryNodeGroupTool(Operator):
         return {'FINISHED'}
 
 
-class ZoneOperator:
+class SimulationZoneOperator:
+    input_node_type = 'GeometryNodeSimulationInput'
+    output_node_type = 'GeometryNodeSimulationOutput'
+
     @classmethod
     def get_output_node(cls, context):
         node = context.active_node
@@ -334,50 +337,57 @@ class ZoneOperator:
         return True
 
 
-class ZoneItemAddOperator:
-    items_name = None
-    active_index_name = None
+class SimulationZoneItemAddOperator(SimulationZoneOperator, Operator):
+    """Add a state item to the simulation zone"""
+    bl_idname = "node.simulation_zone_item_add"
+    bl_label = "Add State Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
     default_socket_type = 'GEOMETRY'
 
     def execute(self, context):
         node = self.get_output_node(context)
-        items = getattr(node, self.items_name)
+        state_items = node.state_items
+
         # Remember index to move the item.
-        old_active_index = getattr(node, self.active_index_name)
-        if 0 <= old_active_index < len(items):
-            old_active_item = items[old_active_index]
-            dst_index = old_active_index + 1
-            dst_type = old_active_item.socket_type
-            dst_name = old_active_item.name
+        if node.active_item:
+            dst_index = node.active_index + 1
+            dst_type = node.active_item.socket_type
+            dst_name = node.active_item.name
         else:
-            dst_index = len(items)
+            dst_index = len(state_items)
             dst_type = self.default_socket_type
             # Empty name so it is based on the type.
             dst_name = ""
-        items.new(dst_type, dst_name)
-        items.move(len(items) - 1, dst_index)
-        setattr(node, self.active_index_name, dst_index)
+        state_items.new(dst_type, dst_name)
+        state_items.move(len(state_items) - 1, dst_index)
+        node.active_index = dst_index
+
         return {'FINISHED'}
 
 
-class ZoneItemRemoveOperator:
-    items_name = None
-    active_index_name = None
+class SimulationZoneItemRemoveOperator(SimulationZoneOperator, Operator):
+    """Remove a state item from the simulation zone"""
+    bl_idname = "node.simulation_zone_item_remove"
+    bl_label = "Remove State Item"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         node = self.get_output_node(context)
-        items = getattr(node, self.items_name)
-        old_active_index = getattr(node, self.active_index_name)
+        state_items = node.state_items
 
-        if 0 <= old_active_index < len(items):
-            items.remove(items[old_active_index])
+        if node.active_item:
+            state_items.remove(node.active_item)
+            node.active_index = min(node.active_index, len(state_items) - 1)
 
         return {'FINISHED'}
 
 
-class ZoneMoveItemOperator:
-    items_name = None
-    active_index_name = None
+class SimulationZoneItemMoveOperator(SimulationZoneOperator, Operator):
+    """Move a simulation state item up or down in the list"""
+    bl_idname = "node.simulation_zone_item_move"
+    bl_label = "Move State Item"
+    bl_options = {'REGISTER', 'UNDO'}
 
     direction: EnumProperty(
         name="Direction",
@@ -387,75 +397,115 @@ class ZoneMoveItemOperator:
 
     def execute(self, context):
         node = self.get_output_node(context)
-        items = getattr(node, self.items_name)
-        old_active_index = getattr(node, self.active_index_name)
+        state_items = node.state_items
 
-        if self.direction == 'UP' and old_active_index > 0:
-            items.move(old_active_index, old_active_index - 1)
-            setattr(node, self.active_index_name, old_active_index - 1)
-        elif self.direction == 'DOWN' and old_active_index < len(items) - 1:
-            items.move(old_active_index, old_active_index + 1)
-            setattr(node, self.active_index_name, old_active_index + 1)
+        if self.direction == 'UP' and node.active_index > 0:
+            state_items.move(node.active_index, node.active_index - 1)
+            node.active_index = node.active_index - 1
+        elif self.direction == 'DOWN' and node.active_index < len(state_items) - 1:
+            state_items.move(node.active_index, node.active_index + 1)
+            node.active_index = node.active_index + 1
 
         return {'FINISHED'}
 
 
-class SimulationZoneOperator(ZoneOperator):
-    input_node_type = 'GeometryNodeSimulationInput'
-    output_node_type = 'GeometryNodeSimulationOutput'
-
-    items_name = "state_items"
-    active_index_name = "active_index"
-
-
-class SimulationZoneItemAddOperator(SimulationZoneOperator, ZoneItemAddOperator, Operator):
-    """Add a state item to the simulation zone"""
-    bl_idname = "node.simulation_zone_item_add"
-    bl_label = "Add State Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class SimulationZoneItemRemoveOperator(SimulationZoneOperator, ZoneItemRemoveOperator, Operator):
-    """Remove a state item from the simulation zone"""
-    bl_idname = "node.simulation_zone_item_remove"
-    bl_label = "Remove State Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class SimulationZoneItemMoveOperator(SimulationZoneOperator, ZoneMoveItemOperator, Operator):
-    """Move a simulation state item up or down in the list"""
-    bl_idname = "node.simulation_zone_item_move"
-    bl_label = "Move State Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class RepeatZoneOperator(ZoneOperator):
+class RepeatZoneOperator:
     input_node_type = 'GeometryNodeRepeatInput'
     output_node_type = 'GeometryNodeRepeatOutput'
 
-    items_name = "repeat_items"
-    active_index_name = "active_index"
+    @classmethod
+    def get_output_node(cls, context):
+        node = context.active_node
+        if node.bl_idname == cls.input_node_type:
+            return node.paired_output
+        if node.bl_idname == cls.output_node_type:
+            return node
+        return None
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        # Needs active node editor and a tree.
+        if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or space.edit_tree.library:
+            return False
+        node = context.active_node
+        if node is None or node.bl_idname not in [cls.input_node_type, cls.output_node_type]:
+            return False
+        if cls.get_output_node(context) is None:
+            return False
+        return True
 
 
-class RepeatZoneItemAddOperator(RepeatZoneOperator, ZoneItemAddOperator, Operator):
+class RepeatZoneItemAddOperator(RepeatZoneOperator, Operator):
     """Add a repeat item to the repeat zone"""
     bl_idname = "node.repeat_zone_item_add"
     bl_label = "Add Repeat Item"
     bl_options = {'REGISTER', 'UNDO'}
 
+    default_socket_type = 'GEOMETRY'
 
-class RepeatZoneItemRemoveOperator(RepeatZoneOperator, ZoneItemRemoveOperator, Operator):
+    def execute(self, context):
+        node = self.get_output_node(context)
+        repeat_items = node.repeat_items
+
+        # Remember index to move the item.
+        if node.active_item:
+            dst_index = node.active_index + 1
+            dst_type = node.active_item.socket_type
+            dst_name = node.active_item.name
+        else:
+            dst_index = len(repeat_items)
+            dst_type = self.default_socket_type
+            # Empty name so it is based on the type.
+            dst_name = ""
+        repeat_items.new(dst_type, dst_name)
+        repeat_items.move(len(repeat_items) - 1, dst_index)
+        node.active_index = dst_index
+
+        return {'FINISHED'}
+
+
+class RepeatZoneItemRemoveOperator(RepeatZoneOperator, Operator):
     """Remove a repeat item from the repeat zone"""
     bl_idname = "node.repeat_zone_item_remove"
     bl_label = "Remove Repeat Item"
     bl_options = {'REGISTER', 'UNDO'}
 
+    def execute(self, context):
+        node = self.get_output_node(context)
+        repeat_items = node.repeat_items
 
-class RepeatZoneItemMoveOperator(RepeatZoneOperator, ZoneMoveItemOperator, Operator):
+        if node.active_item:
+            repeat_items.remove(node.active_item)
+            node.active_index = min(node.active_index, len(repeat_items) - 1)
+
+        return {'FINISHED'}
+
+
+class RepeatZoneItemMoveOperator(RepeatZoneOperator, Operator):
     """Move a repeat item up or down in the list"""
     bl_idname = "node.repeat_zone_item_move"
     bl_label = "Move Repeat Item"
     bl_options = {'REGISTER', 'UNDO'}
+
+    direction: EnumProperty(
+        name="Direction",
+        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
+        default='UP',
+    )
+
+    def execute(self, context):
+        node = self.get_output_node(context)
+        repeat_items = node.repeat_items
+
+        if self.direction == 'UP' and node.active_index > 0:
+            repeat_items.move(node.active_index, node.active_index - 1)
+            node.active_index = node.active_index - 1
+        elif self.direction == 'DOWN' and node.active_index < len(repeat_items) - 1:
+            repeat_items.move(node.active_index, node.active_index + 1)
+            node.active_index = node.active_index + 1
+
+        return {'FINISHED'}
 
 
 classes = (

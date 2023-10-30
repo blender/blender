@@ -2956,15 +2956,17 @@ void BKE_pchan_minmax(const Object *ob,
   const bArmature *arm = static_cast<const bArmature *>(ob->data);
   Object *ob_custom = (arm->flag & ARM_NO_CUSTOM) ? nullptr : pchan->custom;
   const bPoseChannel *pchan_tx = (ob_custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
+  const BoundBox *bb_custom = nullptr;
+  BoundBox bb_custom_buf;
 
-  std::optional<BoundBox> bb_custom;
   if (ob_custom) {
     float min[3], max[3];
     if (use_empty_drawtype && (ob_custom->type == OB_EMPTY) &&
         BKE_object_minmax_empty_drawtype(ob_custom, min, max))
     {
-      bb_custom.emplace();
-      BKE_boundbox_init_from_minmax(&bb_custom.value(), min, max);
+      memset(&bb_custom_buf, 0x0, sizeof(bb_custom_buf));
+      BKE_boundbox_init_from_minmax(&bb_custom_buf, min, max);
+      bb_custom = &bb_custom_buf;
     }
     else {
       bb_custom = BKE_object_boundbox_get(ob_custom);
@@ -2982,7 +2984,7 @@ void BKE_pchan_minmax(const Object *ob,
                  pchan->custom_translation[1],
                  pchan->custom_translation[2]);
     mul_m4_series(mat, ob->object_to_world, tmp, rmat, smat);
-    BKE_boundbox_minmax(&bb_custom.value(), mat, r_min, r_max);
+    BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
   }
   else {
     float vec[3];

@@ -20,7 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -255,7 +255,7 @@ void BKE_keyingsets_foreach_id(LibraryForeachIDData *data, const ListBase *keyin
 
 /* Freeing Tools --------------------------- */
 
-void BKE_keyingset_free_paths(KeyingSet *ks)
+void BKE_keyingset_free(KeyingSet *ks)
 {
   KS_Path *ksp, *kspn;
 
@@ -281,11 +281,11 @@ void BKE_keyingsets_free(ListBase *list)
   }
 
   /* loop over KeyingSets freeing them
-   * - BKE_keyingset_free_paths() doesn't free the set itself, but it frees its sub-data
+   * - BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
    */
   for (ks = static_cast<KeyingSet *>(list->first); ks; ks = ksn) {
     ksn = ks->next;
-    BKE_keyingset_free_paths(ks);
+    BKE_keyingset_free(ks);
     BLI_freelinkN(list, ks);
   }
 }
@@ -3709,13 +3709,13 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
 void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
                                            PointerRNA *prop_ptr,
                                            PropertyRNA *prop,
-                                           const blender::MutableSpan<float> values,
+                                           float *values,
+                                           int count,
                                            int index,
                                            const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
                                            BLI_bitmap *r_successful_remaps)
 {
-  const int count = values.size();
   BLI_bitmap_set_all(r_successful_remaps, false, count);
 
   if (r_force_all != nullptr) {
@@ -3782,7 +3782,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   }
 
   NlaEvalChannelSnapshot *blended_necs = nlaeval_snapshot_ensure_channel(&blended_snapshot, nec);
-  std::copy(values.begin(), values.end(), blended_necs->values);
+  memcpy(blended_necs->values, values, sizeof(float) * count);
 
   /* Force all channels to be remapped for quaternions in a Combine or Replace strip, otherwise it
    * will always fail. See nlaevalchan_combine_quaternion_handle_undefined_blend_values().

@@ -677,7 +677,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
       });
     };
     auto evaluate_poly = [&](const IndexMask &selection) {
-      array_utils::copy_group_to_group(
+      curves::copy_point_data(
           points_by_curve, evaluated_points_by_curve, selection, positions, evaluated_positions);
     };
     auto evaluate_bezier = [&](const IndexMask &selection) {

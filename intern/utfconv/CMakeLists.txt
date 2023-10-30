@@ -11,9 +11,9 @@ set(INC_SYS
 )
 
 set(SRC
-  utfconv.cc
+  utfconv.c
 
-  utfconv.hh
+  utfconv.h
 )
 
 set(LIB
@@ -24,8 +24,8 @@ set(LIB
 # ... because one day we might want to use it on other platforms.
 if(WIN32)
   list(APPEND SRC
-    utf_winfunc.cc
-    utf_winfunc.hh
+    utf_winfunc.c
+    utf_winfunc.h
   )
 endif()
 

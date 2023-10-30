@@ -16,7 +16,6 @@ struct CacheArchiveHandle;
 struct CacheReader;
 struct Object;
 struct bContext;
-struct wmJobWorkerStatus;
 
 /* Behavior when the name of an imported material
  * conflicts with an existing material. */
@@ -56,10 +55,6 @@ struct USDExportParams {
   bool overwrite_textures = true;
   bool relative_paths = true;
   char root_prim_path[1024] = ""; /* FILE_MAX */
-
-  /** Communication structure between the wmJob management code and the worker code. Currently used
-   * to generate safely reports from the worker thread. */
-  wmJobWorkerStatus *worker_status;
 };
 
 struct USDImportParams {
@@ -96,10 +91,6 @@ struct USDImportParams {
   char import_textures_dir[768]; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
-
-  /** Communication structure between the wmJob management code and the worker code. Currently used
-   * to generate safely reports from the worker thread. */
-  wmJobWorkerStatus *worker_status;
 };
 
 /* This struct is in place to store the mesh sequence parameters needed when reading a data from a
@@ -124,14 +115,12 @@ USDMeshReadParams create_mesh_read_params(double motion_sample_time, int read_fl
 bool USD_export(struct bContext *C,
                 const char *filepath,
                 const struct USDExportParams *params,
-                bool as_background_job,
-                ReportList *reports);
+                bool as_background_job);
 
 bool USD_import(struct bContext *C,
                 const char *filepath,
                 const struct USDImportParams *params,
-                bool as_background_job,
-                ReportList *reports);
+                bool as_background_job);
 
 int USD_get_version(void);
 

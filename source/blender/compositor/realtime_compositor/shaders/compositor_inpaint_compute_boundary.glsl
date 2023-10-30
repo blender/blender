@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* The in-paint operation uses a jump flood algorithm to flood the region to be inpainted with the
+/* The inpaint operation uses a jump flood algorithm to flood the region to be inpainted with the
  * pixels at its boundary. The algorithms expects an input image whose values are those returned by
  * the initialize_jump_flooding_value function, given the texel location and a boolean specifying
  * if the pixel is a boundary one.
@@ -39,7 +39,7 @@ void main()
   bool is_boundary_pixel = is_opaque && has_transparent_neighbours;
 
   /* Encode the boundary information in the format expected by the jump flooding algorithm. */
-  ivec2 jump_flooding_value = initialize_jump_flooding_value(texel, is_boundary_pixel);
+  vec4 jump_flooding_value = initialize_jump_flooding_value(texel, is_boundary_pixel);
 
-  imageStore(boundary_img, texel, ivec4(jump_flooding_value, ivec2(0)));
+  imageStore(boundary_img, texel, jump_flooding_value);
 }

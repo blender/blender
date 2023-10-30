@@ -23,7 +23,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiLayout *split, *row;
+
+  split = uiLayoutSplit(layout, 0.0f, false);
+
+  uiItemR(split, ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+
+  row = uiLayoutRow(split, false);
 
   if (RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -34,15 +40,14 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
       PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
-      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
+      uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
     }
     else {
-      uiItemR(layout, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
+      uiItemR(row, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
     }
   }
   else {
-    uiItemR(
-        layout, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   }
 }
 

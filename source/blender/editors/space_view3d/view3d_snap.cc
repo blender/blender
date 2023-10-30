@@ -11,10 +11,10 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_array.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-#include "BLI_vector.hh"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -43,11 +43,8 @@
 #include "ED_transverts.hh"
 
 #include "ANIM_bone_collections.h"
-#include "ANIM_keyframing.hh"
 
 #include "view3d_intern.h"
-
-using blender::Vector;
 
 static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_cursor[3]);
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3]);
@@ -158,7 +155,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
               }
 
               /* auto-keyframing */
-              blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
+              ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
             }
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
@@ -186,32 +183,40 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
     XFormObjectData_Container *xds = nullptr;
 
     /* Build object array. */
-    Vector<Object *> objects_eval;
+    Object **objects_eval = nullptr;
+    uint objects_eval_len;
     {
+      BLI_array_declare(objects_eval);
       FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer_eval, v3d, ob_eval) {
-        objects_eval.append(ob_eval);
+        BLI_array_append(objects_eval, ob_eval);
       }
       FOREACH_SELECTED_EDITABLE_OBJECT_END;
+      objects_eval_len = BLI_array_len(objects_eval);
     }
 
     if (use_transform_skip_children) {
       ViewLayer *view_layer = CTX_data_view_layer(C);
 
-      Vector<Object *> objects(objects_eval.size());
-      for (Object *ob_eval : objects_eval) {
-        objects.append_unchecked(DEG_get_original_object(ob_eval));
+      Object **objects = static_cast<Object **>(
+          MEM_malloc_arrayN(objects_eval_len, sizeof(*objects), __func__));
+
+      for (int ob_index = 0; ob_index < objects_eval_len; ob_index++) {
+        Object *ob_eval = objects_eval[ob_index];
+        objects[ob_index] = DEG_get_original_object(ob_eval);
       }
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xcs = ED_object_xform_skip_child_container_create();
       ED_object_xform_skip_child_container_item_ensure_from_array(
-          xcs, scene, view_layer, objects.data(), objects.size());
+          xcs, scene, view_layer, objects, objects_eval_len);
+      MEM_freeN(objects);
     }
     if (use_transform_data_origin) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xds = ED_object_data_xform_container_create();
     }
 
-    for (Object *ob_eval : objects_eval) {
+    for (int ob_index = 0; ob_index < objects_eval_len; ob_index++) {
+      Object *ob_eval = objects_eval[ob_index];
       Object *ob = DEG_get_original_object(ob_eval);
       vec[0] = -ob_eval->object_to_world[3][0] +
                gridf * floorf(0.5f + ob_eval->object_to_world[3][0] / gridf);
@@ -238,13 +243,17 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
       }
 
       /* auto-keyframing */
-      blender::animrig::autokeyframe_object(C, scene, ob, ks);
+      ED_autokeyframe_object(C, scene, ob, ks);
 
       if (use_transform_data_origin) {
         ED_object_data_xform_container_item_ensure(xds, ob);
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    }
+
+    if (objects_eval) {
+      MEM_freeN(objects_eval);
     }
 
     if (use_transform_skip_children) {
@@ -431,7 +440,7 @@ static bool snap_selected_to_location(bContext *C,
             }
 
             /* auto-keyframing */
-            blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
+            ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
           }
           else {
             copy_v3_v3(pchan->loc, cursor_pose);
@@ -463,13 +472,16 @@ static bool snap_selected_to_location(bContext *C,
 
     /* Build object array, tag objects we're transforming. */
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Vector<Object *> objects;
+    Object **objects = nullptr;
+    uint objects_len;
     {
+      BLI_array_declare(objects);
       FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer, v3d, ob) {
-        objects.append(ob);
+        BLI_array_append(objects, ob);
         ob->flag |= OB_DONE;
       }
       FOREACH_SELECTED_EDITABLE_OBJECT_END;
+      objects_len = BLI_array_len(objects);
     }
 
     const bool use_transform_skip_children = use_toolsettings &&
@@ -485,7 +497,7 @@ static bool snap_selected_to_location(bContext *C,
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xcs = ED_object_xform_skip_child_container_create();
       ED_object_xform_skip_child_container_item_ensure_from_array(
-          xcs, scene, view_layer, objects.data(), objects.size());
+          xcs, scene, view_layer, objects, objects_len);
     }
     if (use_transform_data_origin) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -493,12 +505,14 @@ static bool snap_selected_to_location(bContext *C,
 
       /* Initialize the transform data in a separate loop because the depsgraph
        * may be evaluated while setting the locations. */
-      for (Object *ob : objects) {
+      for (int ob_index = 0; ob_index < objects_len; ob_index++) {
+        Object *ob = objects[ob_index];
         ED_object_data_xform_container_item_ensure(xds, ob);
       }
     }
 
-    for (Object *ob : objects) {
+    for (int ob_index = 0; ob_index < objects_len; ob_index++) {
+      Object *ob = objects[ob_index];
       if (ob->parent && BKE_object_flag_test_recursive(ob->parent, OB_DONE)) {
         continue;
       }
@@ -538,13 +552,17 @@ static bool snap_selected_to_location(bContext *C,
         }
 
         /* auto-keyframing */
-        blender::animrig::autokeyframe_object(C, scene, ob, ks);
+        ED_autokeyframe_object(C, scene, ob, ks);
       }
       else {
         add_v3_v3(ob->loc, cursor_parent);
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    }
+
+    if (objects) {
+      MEM_freeN(objects);
     }
 
     if (use_transform_skip_children) {

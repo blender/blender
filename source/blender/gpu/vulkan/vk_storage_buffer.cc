@@ -86,21 +86,17 @@ void VKStorageBuffer::copy_sub(VertBuf *src, uint dst_offset, uint src_offset, u
   region.size = copy_size;
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.copy(buffer_, src_vertex_buffer.vk_handle(), Span<VkBufferCopy>(&region, 1));
-  context.flush();
-}
-
-void VKStorageBuffer::async_flush_to_host()
-{
-  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.copy(buffer_, src_vertex_buffer.vk_handle(), Span<VkBufferCopy>(&region, 1));
+  command_buffer.submit();
 }
 
 void VKStorageBuffer::read(void *data)
 {
   ensure_allocated();
   VKContext &context = *VKContext::get();
-  context.flush();
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.submit();
 
   buffer_.read(data);
 }

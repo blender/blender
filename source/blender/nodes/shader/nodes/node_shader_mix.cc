@@ -41,15 +41,15 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
    * Input socket indices must be kept in sync with ntree_shader_disconnect_inactive_mix_branches
    */
   b.add_input<decl::Float>("Factor", "Factor_Float")
+      .no_muted_links()
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
-      .subtype(PROP_FACTOR)
-      .no_muted_links();
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>("Factor", "Factor_Vector")
+      .no_muted_links()
       .default_value(float3(0.5f))
-      .subtype(PROP_FACTOR)
-      .no_muted_links();
+      .subtype(PROP_FACTOR);
 
   b.add_input<decl::Float>("A", "A_Float")
       .min(-10000.0f)

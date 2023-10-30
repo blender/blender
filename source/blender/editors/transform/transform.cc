@@ -35,8 +35,6 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "ANIM_keyframing.hh"
-
 #include "SEQ_transform.h"
 
 #include "WM_api.hh"
@@ -426,16 +424,11 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
   if (t->options & CTX_GPENCIL_STROKES) {
-    if (t->obedit_type == OB_GREASE_PENCIL) {
-      WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
+    bGPdata *gpd = ED_gpencil_data_get_active(C);
+    if (gpd) {
+      DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     }
-    else if (t->obedit_type == OB_GPENCIL_LEGACY) {
-      bGPdata *gpd = ED_gpencil_data_get_active(C);
-      if (gpd) {
-        DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
-      }
-      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
-    }
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
   }
   else if (t->spacetype == SPACE_VIEW3D) {
     if (t->options & CTX_PAINT_CURVE) {
@@ -453,7 +446,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 
       /* For real-time animation record - send notifiers recognized by animation editors */
       /* XXX: is this notifier a lame duck? */
-      if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
+      if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
         WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, nullptr);
       }
     }
@@ -529,7 +522,7 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* if autokeying is enabled, send notifiers that keyframes were added */
-    if (blender::animrig::is_autokey_on(t->scene)) {
+    if (IS_AUTOKEY_ON(t->scene)) {
       WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
     }
 
@@ -1587,7 +1580,7 @@ static void drawTransformPixel(const bContext * /*C*/, ARegion *region, void *ar
     if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
       if (region == t->region) {
         if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
-          if (ob && blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+          if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
             drawAutoKeyWarning(t, region);
           }
         }
@@ -1963,7 +1956,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
    *
    * By definition transform-data has selected items in beginning,
    * so only the first item in each container needs to be checked
-   * when looking for the presence of selected data. */
+   * when looking  for the presence of selected data. */
   if (t->flag & T_PROP_EDIT) {
     bool has_selected_any = false;
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -2099,30 +2092,32 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
 
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BMEditMesh *em = nullptr; /* BKE_editmesh_from_object(t->obedit); */
-        bool do_skip = false;
+        if (((Mesh *)(tc->obedit->data))->flag & ME_AUTOSMOOTH) {
+          BMEditMesh *em = nullptr; /* BKE_editmesh_from_object(t->obedit); */
+          bool do_skip = false;
 
-        /* Currently only used for two of three most frequent transform ops,
-         * can include more ops.
-         * Note that scaling cannot be included here,
-         * non-uniform scaling will affect normals. */
-        if (ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION)) {
-          if (em->bm->totvertsel == em->bm->totvert) {
-            /* No need to invalidate if whole mesh is selected. */
-            do_skip = true;
+          /* Currently only used for two of three most frequent transform ops,
+           * can include more ops.
+           * Note that scaling cannot be included here,
+           * non-uniform scaling will affect normals. */
+          if (ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION)) {
+            if (em->bm->totvertsel == em->bm->totvert) {
+              /* No need to invalidate if whole mesh is selected. */
+              do_skip = true;
+            }
           }
-        }
 
-        if (t->flag & T_MODAL) {
-          RNA_property_boolean_set(op->ptr, prop, false);
-        }
-        else if (!do_skip) {
-          const bool preserve_clnor = RNA_property_boolean_get(op->ptr, prop);
-          if (preserve_clnor) {
-            BKE_editmesh_lnorspace_update(em);
-            t->flag |= T_CLNOR_REBUILD;
+          if (t->flag & T_MODAL) {
+            RNA_property_boolean_set(op->ptr, prop, false);
           }
-          BM_lnorspace_invalidate(em->bm, true);
+          else if (!do_skip) {
+            const bool preserve_clnor = RNA_property_boolean_get(op->ptr, prop);
+            if (preserve_clnor) {
+              BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(tc->obedit->data));
+              t->flag |= T_CLNOR_REBUILD;
+            }
+            BM_lnorspace_invalidate(em->bm, true);
+          }
         }
       }
     }

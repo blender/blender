@@ -126,11 +126,8 @@ class MovieClipOperation : public NodeOperation {
                            GPU_texture_height(movie_clip_texture));
     result.allocate_texture(Domain(size));
 
-    GPUShader *shader = shader_manager().get("compositor_read_input_color");
+    GPUShader *shader = shader_manager().get("compositor_convert_color_to_half_color");
     GPU_shader_bind(shader);
-
-    const int2 lower_bound = int2(0);
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
     const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(movie_clip_texture, input_unit);
@@ -163,11 +160,8 @@ class MovieClipOperation : public NodeOperation {
                            GPU_texture_height(movie_clip_texture));
     result.allocate_texture(Domain(size));
 
-    GPUShader *shader = shader_manager().get("compositor_read_input_alpha");
+    GPUShader *shader = shader_manager().get("compositor_extract_alpha_from_color");
     GPU_shader_bind(shader);
-
-    const int2 lower_bound = int2(0);
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
     const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(movie_clip_texture, input_unit);

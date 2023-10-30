@@ -21,7 +21,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_mempool.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -2527,14 +2527,14 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_LP: {
       const LightProbe *lp = (LightProbe *)id;
       switch (lp->type) {
-        case LIGHTPROBE_TYPE_SPHERE:
-          return ICON_LIGHTPROBE_SPHERE;
-        case LIGHTPROBE_TYPE_PLANE:
-          return ICON_LIGHTPROBE_PLANE;
-        case LIGHTPROBE_TYPE_VOLUME:
-          return ICON_LIGHTPROBE_VOLUME;
+        case LIGHTPROBE_TYPE_CUBE:
+          return ICON_LIGHTPROBE_CUBEMAP;
+        case LIGHTPROBE_TYPE_PLANAR:
+          return ICON_LIGHTPROBE_PLANAR;
+        case LIGHTPROBE_TYPE_GRID:
+          return ICON_LIGHTPROBE_GRID;
         default:
-          return ICON_LIGHTPROBE_SPHERE;
+          return ICON_LIGHTPROBE_CUBEMAP;
       }
     }
     case ID_BR:

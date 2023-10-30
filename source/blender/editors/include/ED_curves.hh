@@ -71,14 +71,6 @@ bool curves_poll(bContext *C);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Operators
- * \{ */
-
-void CURVES_OT_attribute_set(wmOperatorType *ot);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Mask Functions
  * \{ */
 
@@ -142,7 +134,6 @@ bool has_anything_selected(const VArray<bool> &varray, IndexRange range_to_check
  * Find curves that have any point selected (a selection factor greater than zero),
  * or curves that have their own selection factor greater than zero.
  */
-IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
 IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &memory);
 
 /**

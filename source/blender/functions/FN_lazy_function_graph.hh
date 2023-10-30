@@ -239,9 +239,6 @@ class Graph : NonCopyable, NonMovable {
   Span<const FunctionNode *> function_nodes() const;
   Span<FunctionNode *> function_nodes();
 
-  Span<GraphInputSocket *> graph_inputs();
-  Span<GraphOutputSocket *> graph_outputs();
-
   Span<const GraphInputSocket *> graph_inputs() const;
   Span<const GraphOutputSocket *> graph_outputs() const;
 
@@ -507,16 +504,6 @@ inline Span<const FunctionNode *> Graph::function_nodes() const
 inline Span<FunctionNode *> Graph::function_nodes()
 {
   return nodes_.as_span().drop_front(2).cast<FunctionNode *>();
-}
-
-inline Span<GraphInputSocket *> Graph::graph_inputs()
-{
-  return graph_inputs_;
-}
-
-inline Span<GraphOutputSocket *> Graph::graph_outputs()
-{
-  return graph_outputs_;
 }
 
 inline Span<const GraphInputSocket *> Graph::graph_inputs() const

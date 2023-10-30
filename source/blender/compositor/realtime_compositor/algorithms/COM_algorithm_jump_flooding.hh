@@ -10,20 +10,22 @@
 namespace blender::realtime_compositor {
 
 /* Computes a jump flooding table from the given input and writes the result to the output. A jump
- * flooding table computes for each pixel the texel location of the closest "seed pixel". A seed
- * pixel is a pixel that is marked as such in the input, more on this later. This table is useful
- * to compute a Voronoi diagram where the centroids are the seed pixels, it can be used to
- * accurately approximate an euclidean distance transform, finally, it can be used to flood fill
- * regions of an image.
+ * flooding table computes for each pixel the location of the closest "seed pixel" as well as the
+ * distance to it. A seed pixel is a pixel that is marked as such in the input, more on this later.
+ * This table is useful to compute a Voronoi diagram where the centroids are the seed pixels, it
+ * can be used to accurately approximate an euclidean distance transform, finally, it can be used
+ * to flood fill regions of an image.
  *
  * The input is expected to be initialized by the initialize_jump_flooding_value function from the
  * gpu_shader_compositor_jump_flooding_lib.glsl library. Seed pixels should specify true for the
  * is_seed argument, and false otherwise. The texel input should be the texel location of the
- * pixel. Both the input and output results should be of type ResultType::Int2.
+ * pixel.
  *
  * To compute a Voronoi diagram, the pixels lying at the centroid of the Voronoi cell should be
  * marked as seed pixels. To compute an euclidean distance transform of a region or flood fill a
- * region, the boundary pixels of the region should be marked as seed.
+ * region, the boundary pixels of the region should be marked as seed. The closest seed pixel and
+ * the distance to it can be retrieved from the table using the extract_jump_flooding_* functions
+ * from the gpu_shader_compositor_jump_flooding_lib.glsl library.
  *
  * The algorithm is based on the paper:
  *

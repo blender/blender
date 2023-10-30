@@ -134,17 +134,3 @@ void register_node_tree_type_geo()
 
   ntreeTypeAdd(tt);
 }
-
-bool is_layer_selection_field(const bNodeTreeInterfaceSocket &socket)
-{
-  if (!U.experimental.use_grease_pencil_version3) {
-    return false;
-  }
-  const bNodeSocketType *typeinfo = socket.socket_typeinfo();
-  BLI_assert(typeinfo != nullptr);
-
-  if (typeinfo->type != SOCK_BOOLEAN) {
-    return false;
-  }
-  return (socket.flag & NODE_INTERFACE_SOCKET_LAYER_SELECTION) != 0;
-}

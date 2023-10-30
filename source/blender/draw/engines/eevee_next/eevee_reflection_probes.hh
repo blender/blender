@@ -28,15 +28,14 @@ struct ReflectionProbeUpdateInfo;
 /** \name Reflection Probe
  * \{ */
 
-struct ReflectionProbe : ReflectionProbeData {
-  enum class Type {
-    WORLD,
-    PROBE,
-  } type;
+struct ReflectionProbe {
+  enum Type { Unused, World, Probe };
 
-  /* Used to sort the probes by priority. */
-  float volume;
+  Type type = Type::Unused;
 
+  /* Probe data needs to be updated.
+   * TODO: Remove this flag? */
+  bool do_update_data = false;
   /* Should the area in the probes_tx_ be updated? */
   bool do_render = false;
   bool do_world_irradiance_update = false;
@@ -49,23 +48,30 @@ struct ReflectionProbe : ReflectionProbeData {
   bool is_probe_used = false;
 
   /**
+   * Index into ReflectionProbeDataBuf.
+   * -1 = not added yet
+   */
+  int index = -1;
+
+  /**
    * Far and near clipping distances for rendering
    */
   float2 clipping_distances;
 
-  ReflectionProbe()
+  /**
+   * Check if the probe needs to be updated during this sample.
+   */
+  bool needs_update() const
   {
-    this->atlas_coord.layer_subdivision = -1;
-    this->atlas_coord.layer = -1;
-    this->atlas_coord.area_index = -1;
-  }
-
-  void recalc_lod_factors(int atlas_resolution)
-  {
-    const float probe_resolution = atlas_resolution >> atlas_coord.layer_subdivision;
-    const float bias = 0.0;
-    const float lod_factor = bias + 0.5 * log(float(square_i(probe_resolution))) / log(2.0);
-    this->lod_factor = lod_factor;
+    switch (type) {
+      case Type::Unused:
+        return false;
+      case Type::World:
+        return do_update_data || do_render;
+      case Type::Probe:
+        return (do_update_data || do_render) && is_probe_used;
+    }
+    return false;
   }
 };
 
@@ -76,9 +82,10 @@ struct ReflectionProbe : ReflectionProbeData {
  * \{ */
 
 class ReflectionProbeModule {
-  using ReflectionProbes = Map<uint64_t, ReflectionProbe>;
-
  private:
+  /** The max number of probes to initially allocate. */
+  static constexpr int init_num_probes_ = 1;
+
   /**
    * The maximum resolution of a cube-map side.
    *
@@ -88,22 +95,17 @@ class ReflectionProbeModule {
 
   static constexpr uint64_t world_object_key_ = 0;
 
-  bool is_initialized = false;
   Instance &instance_;
   ReflectionProbeDataBuf data_buf_;
-  ReflectionProbes probes_;
-
-  ReflectionProbe world_probe_data;
+  Map<uint64_t, ReflectionProbe> probes_;
 
   /** Probes texture stored in octahedral mapping. */
   Texture probes_tx_ = {"Probes"};
 
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
   PassSimple update_irradiance_ps_ = {"Probe.UpdateIrradiance"};
-  PassSimple select_ps_ = {"Probe.Select"};
 
-  int3 dispatch_probe_pack_ = int3(1);
-  int3 dispatch_probe_select_ = int3(1);
+  int3 dispatch_probe_pack_ = int3(0);
 
   /**
    * Texture containing a cube-map where the probe should be rendering to.
@@ -113,12 +115,6 @@ class ReflectionProbeModule {
   Texture cubemap_tx_ = {"Probe.Cubemap"};
   /** Index of the probe being updated. */
   int reflection_probe_index_ = 0;
-  /** Updated Probe coordinates in the atlas. */
-  ReflectionProbeAtlasCoordinate reflection_probe_coord_;
-  /** World coordinates in the atlas. */
-  ReflectionProbeAtlasCoordinate world_probe_coord_;
-  /** Number of the probe to process in the select phase. */
-  int reflection_probe_count_ = 0;
 
   bool update_probes_next_sample_ = false;
   bool update_probes_this_sample_ = false;
@@ -129,56 +125,65 @@ class ReflectionProbeModule {
   void init();
   void begin_sync();
   void sync_world(::World *world, WorldHandle &ob_handle);
-  void sync_world_lookdev();
   void sync_object(Object *ob, ObjectHandle &ob_handle);
   void end_sync();
 
-  template<typename PassType> void bind_resources(PassType &pass)
+  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
   {
-    pass.bind_texture(REFLECTION_PROBE_TEX_SLOT, &probes_tx_);
-    pass.bind_ubo(REFLECTION_PROBE_BUF_SLOT, &data_buf_);
+    pass->bind_texture(REFLECTION_PROBE_TEX_SLOT, &probes_tx_);
+    pass->bind_ubo(REFLECTION_PROBE_BUF_SLOT, &data_buf_);
   }
 
   bool do_world_update_get() const;
   void do_world_update_set(bool value);
   void do_world_update_irradiance_set(bool value);
 
-  void set_view(View &view);
-
   void debug_print() const;
 
-  ReflectionProbeAtlasCoordinate world_atlas_coord_get() const;
-
  private:
+  ReflectionProbe &find_or_insert(ObjectHandle &ob_handle, int subdivision_level);
+
   /** Get the number of layers that is needed to store probes. */
   int needed_layers_get() const;
 
-  bool remove_unused_probes();
+  void remove_unused_probes();
+  void recalc_lod_factors();
+
+  /* TODO: also add _len() which is a max + 1. */
+  /* Get the number of reflection probe data elements. */
+  int reflection_probe_data_index_max() const;
+
+  /**
+   * Remove reflection probe data from the module.
+   * Ensures that data_buf is sequential and cube-maps are relinked to its corresponding data.
+   */
+  void remove_reflection_probe_data(int reflection_probe_data_index);
 
   /**
    * Create a reflection probe data element that points to an empty spot in the cubemap that can
    * hold a texture with the given subdivision_level.
    */
-  ReflectionProbeAtlasCoordinate find_empty_atlas_region(int subdivision_level) const;
+  ReflectionProbeData find_empty_reflection_probe_data(int subdivision_level) const;
 
   /**
    * Pop the next reflection probe that requires to be updated.
    */
   std::optional<ReflectionProbeUpdateInfo> update_info_pop(ReflectionProbe::Type probe_type);
-
-  void remap_to_octahedral_projection(const ReflectionProbeAtlasCoordinate &atlas_coord);
+  void remap_to_octahedral_projection(uint64_t object_key);
   void update_probes_texture_mipmaps();
   void update_world_irradiance();
 
   bool has_only_world_probe() const;
-
-  eLightProbeResolution reflection_probe_resolution() const;
 
   /* Capture View requires access to the cube-maps texture for frame-buffer configuration. */
   friend class CaptureView;
   /* Instance requires access to #update_probes_this_sample_ */
   friend class Instance;
 };
+
+std::ostream &operator<<(std::ostream &os, const ReflectionProbeModule &module);
+std::ostream &operator<<(std::ostream &os, const ReflectionProbeData &probe_data);
+std::ostream &operator<<(std::ostream &os, const ReflectionProbe &probe);
 
 /** \} */
 
@@ -195,8 +200,7 @@ struct ReflectionProbeUpdateInfo {
   int resolution;
 
   float2 clipping_distances;
-
-  ReflectionProbeAtlasCoordinate atlas_coord;
+  uint64_t object_key;
 
   bool do_render;
   bool do_world_irradiance_update;

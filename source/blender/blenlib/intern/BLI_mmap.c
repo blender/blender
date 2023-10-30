@@ -213,11 +213,6 @@ void *BLI_mmap_get_pointer(BLI_mmap_file *file)
   return file->memory;
 }
 
-size_t BLI_mmap_get_length(const BLI_mmap_file *file)
-{
-  return file->length;
-}
-
 void BLI_mmap_free(BLI_mmap_file *file)
 {
 #ifndef WIN32

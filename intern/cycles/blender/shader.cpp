@@ -1551,7 +1551,6 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       PointerRNA cmat = RNA_pointer_get(&b_mat.ptr, "cycles");
       shader->set_emission_sampling_method(get_emission_sampling(cmat));
       shader->set_use_transparent_shadow(get_boolean(cmat, "use_transparent_shadow"));
-      shader->set_use_bump_map_correction(get_boolean(cmat, "use_bump_map_correction"));
       shader->set_heterogeneous_volume(!get_boolean(cmat, "homogeneous_volume"));
       shader->set_volume_sampling_method(get_volume_sampling(cmat));
       shader->set_volume_interpolation_method(get_volume_interpolation(cmat));

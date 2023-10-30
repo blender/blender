@@ -280,7 +280,7 @@ typedef struct Curve {
   struct CharInfo curinfo;
   /* font part end */
 
-  /** Current evaluation-time, for use by Objects parented to curves. */
+  /** Current evaltime - for use by Objects parented to curves. */
   float ctime;
   float bevfac1, bevfac2;
   char bevfac1_mapping, bevfac2_mapping;

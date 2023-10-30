@@ -210,7 +210,7 @@ static void do_enhance_details_brush_task(Object *ob,
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask,
+                                                                vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -285,20 +285,21 @@ static void do_smooth_brush_task(Object *ob,
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
-    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                brush,
-                                                                vd.co,
-                                                                sqrtf(test.dist),
-                                                                vd.no,
-                                                                vd.fno,
-                                                                smooth_mask ? 0.0f : vd.mask,
-                                                                vd.vertex,
-                                                                thread_id,
-                                                                &automask_data);
+    const float fade = bstrength * SCULPT_brush_strength_factor(
+                                       ss,
+                                       brush,
+                                       vd.co,
+                                       sqrtf(test.dist),
+                                       vd.no,
+                                       vd.fno,
+                                       smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
+                                       vd.vertex,
+                                       thread_id,
+                                       &automask_data);
     if (smooth_mask) {
-      float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - vd.mask;
+      float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - *vd.mask;
       val *= fade * bstrength;
-      float new_mask = vd.mask + val;
+      float new_mask = *vd.mask + val;
       CLAMP(new_mask, 0.0f, 1.0f);
 
       SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, new_mask, vd);
@@ -454,7 +455,7 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask,
+                                                                vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -498,7 +499,7 @@ static void do_surface_smooth_brush_displace_task(Object *ob, const Brush *brush
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask,
+                                                                vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);

@@ -672,7 +672,7 @@ static void calc_solidify_normals(BMesh *bm)
       continue;
     }
 
-    i = edge_face_count[BM_elem_index_get(e)];
+    i = edge_face_count[BM_elem_index_get(e)]++;
 
     if (i == 0 || i > 2) {
       /* Edge & vertices are non-manifold even when considering

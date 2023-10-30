@@ -42,16 +42,16 @@ static void proxy_freejob(void *pjv)
 }
 
 /* Only this runs inside thread. */
-static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
+static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
 
   LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
     SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
 
-    SEQ_proxy_rebuild(context, worker_status);
+    SEQ_proxy_rebuild(context, stop, do_update, progress);
 
-    if (worker_status->stop) {
+    if (*stop) {
       pj->stop = true;
       fprintf(stderr, "Canceling proxy rebuild on users request...\n");
       break;

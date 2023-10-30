@@ -111,7 +111,7 @@ class AssetCatalogDropTarget : public ui::TreeViewItemDropTarget {
   AssetCatalogTreeItem &catalog_item_;
 
  public:
-  AssetCatalogDropTarget(AssetCatalogTreeViewItem &item, AssetCatalogTreeItem &catalog_item);
+  AssetCatalogDropTarget(AssetCatalogTreeView &tree_view, AssetCatalogTreeItem &catalog_item);
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
   std::string drop_tooltip(const ui::DragInfo &drag_info) const override;
@@ -149,7 +149,7 @@ class AssetCatalogTreeViewAllItem : public ui::BasicTreeViewItem {
   void build_row(uiLayout &row) override;
 
   struct DropTarget : public ui::TreeViewItemDropTarget {
-    DropTarget(AssetCatalogTreeViewAllItem &item);
+    DropTarget(AssetCatalogTreeView &tree_view);
 
     bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
     std::string drop_tooltip(const ui::DragInfo &drag_info) const override;
@@ -163,7 +163,7 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
   using BasicTreeViewItem::BasicTreeViewItem;
 
   struct DropTarget : public ui::TreeViewItemDropTarget {
-    DropTarget(AssetCatalogTreeViewUnassignedItem &item);
+    DropTarget(AssetCatalogTreeView &tree_view);
 
     bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
     std::string drop_tooltip(const ui::DragInfo &drag_info) const override;
@@ -343,7 +343,8 @@ bool AssetCatalogTreeViewItem::rename(const bContext &C, StringRefNull new_name)
 
 std::unique_ptr<ui::TreeViewItemDropTarget> AssetCatalogTreeViewItem::create_drop_target()
 {
-  return std::make_unique<AssetCatalogDropTarget>(*this, catalog_item_);
+  return std::make_unique<AssetCatalogDropTarget>(
+      static_cast<AssetCatalogTreeView &>(get_tree_view()), catalog_item_);
 }
 
 std::unique_ptr<ui::AbstractViewItemDragController> AssetCatalogTreeViewItem::
@@ -355,9 +356,9 @@ std::unique_ptr<ui::AbstractViewItemDragController> AssetCatalogTreeViewItem::
 
 /* ---------------------------------------------------------------------- */
 
-AssetCatalogDropTarget::AssetCatalogDropTarget(AssetCatalogTreeViewItem &item,
+AssetCatalogDropTarget::AssetCatalogDropTarget(AssetCatalogTreeView &tree_view,
                                                AssetCatalogTreeItem &catalog_item)
-    : ui::TreeViewItemDropTarget(item), catalog_item_(catalog_item)
+    : ui::TreeViewItemDropTarget(tree_view), catalog_item_(catalog_item)
 {
 }
 
@@ -584,11 +585,12 @@ void AssetCatalogTreeViewAllItem::build_row(uiLayout &row)
 
 std::unique_ptr<ui::TreeViewItemDropTarget> AssetCatalogTreeViewAllItem::create_drop_target()
 {
-  return std::make_unique<AssetCatalogTreeViewAllItem::DropTarget>(*this);
+  return std::make_unique<AssetCatalogTreeViewAllItem::DropTarget>(
+      static_cast<AssetCatalogTreeView &>(get_tree_view()));
 }
 
-AssetCatalogTreeViewAllItem::DropTarget::DropTarget(AssetCatalogTreeViewAllItem &item)
-    : ui::TreeViewItemDropTarget(item)
+AssetCatalogTreeViewAllItem::DropTarget::DropTarget(AssetCatalogTreeView &tree_view)
+    : ui::TreeViewItemDropTarget(tree_view)
 {
 }
 
@@ -639,12 +641,12 @@ bool AssetCatalogTreeViewAllItem::DropTarget::on_drop(bContext * /*C*/,
 std::unique_ptr<ui::TreeViewItemDropTarget> AssetCatalogTreeViewUnassignedItem::
     create_drop_target()
 {
-  return std::make_unique<AssetCatalogTreeViewUnassignedItem::DropTarget>(*this);
+  return std::make_unique<AssetCatalogTreeViewUnassignedItem::DropTarget>(
+      static_cast<AssetCatalogTreeView &>(get_tree_view()));
 }
 
-AssetCatalogTreeViewUnassignedItem::DropTarget::DropTarget(
-    AssetCatalogTreeViewUnassignedItem &item)
-    : ui::TreeViewItemDropTarget(item)
+AssetCatalogTreeViewUnassignedItem::DropTarget::DropTarget(AssetCatalogTreeView &tree_view)
+    : ui::TreeViewItemDropTarget(tree_view)
 {
 }
 

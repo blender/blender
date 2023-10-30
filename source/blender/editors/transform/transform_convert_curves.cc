@@ -6,8 +6,6 @@
  * \ingroup edtransform
  */
 
-#include <optional>
-
 #include "BLI_array.hh"
 #include "BLI_inplace_priority_queue.hh"
 #include "BLI_math_matrix.h"
@@ -97,14 +95,82 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
-    curve_populate_trans_data_structs(
-        tc,
-        curves,
-        {} /* Currently no transform for attributes other than position. */,
-        selection_per_object[i],
-        use_proportional_edit,
-        use_connected_only,
-        0 /* No data offset for curves. */);
+    float mtx[3][3], smtx[3][3];
+    copy_m3_m4(mtx, tc.obedit->object_to_world);
+    pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+
+    MutableSpan<float3> positions = curves.positions_for_write();
+    if (use_proportional_edit) {
+      const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+      const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
+          ".selection", ATTR_DOMAIN_POINT, true);
+      threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
+        Vector<float> closest_distances;
+        for (const int curve_i : range) {
+          const IndexRange points = points_by_curve[curve_i];
+          const bool has_any_selected = ed::curves::has_anything_selected(selection, points);
+          if (!has_any_selected && use_connected_only) {
+            for (const int point_i : points) {
+              TransData &td = tc.data[point_i];
+              td.flag |= TD_SKIP;
+            }
+            continue;
+          }
+
+          closest_distances.reinitialize(points.size());
+          closest_distances.fill(std::numeric_limits<float>::max());
+
+          for (const int i : IndexRange(points.size())) {
+            const int point_i = points[i];
+            TransData &td = tc.data[point_i];
+            float3 *elem = &positions[point_i];
+
+            copy_v3_v3(td.iloc, *elem);
+            copy_v3_v3(td.center, td.iloc);
+            td.loc = *elem;
+
+            td.flag = 0;
+            if (selection[point_i]) {
+              closest_distances[i] = 0.0f;
+              td.flag = TD_SELECTED;
+            }
+
+            td.ext = nullptr;
+
+            copy_m3_m3(td.smtx, smtx);
+            copy_m3_m3(td.mtx, mtx);
+          }
+
+          if (use_connected_only) {
+            calculate_curve_point_distances_for_proportional_editing(
+                positions.slice(points), closest_distances.as_mutable_span());
+            for (const int i : IndexRange(points.size())) {
+              TransData &td = tc.data[points[i]];
+              td.dist = closest_distances[i];
+            }
+          }
+        }
+      });
+    }
+    else {
+      const IndexMask selected_indices = selection_per_object[i];
+      threading::parallel_for(selected_indices.index_range(), 1024, [&](const IndexRange range) {
+        for (const int selection_i : range) {
+          TransData *td = &tc.data[selection_i];
+          float3 *elem = &positions[selected_indices[selection_i]];
+
+          copy_v3_v3(td->iloc, *elem);
+          copy_v3_v3(td->center, td->iloc);
+          td->loc = *elem;
+
+          td->flag = TD_SELECTED;
+          td->ext = nullptr;
+
+          copy_m3_m3(td->smtx, smtx);
+          copy_m3_m3(td->mtx, mtx);
+        }
+      });
+    }
   }
 }
 
@@ -122,106 +188,6 @@ static void recalcData_curves(TransInfo *t)
 }
 
 }  // namespace blender::ed::transform::curves
-
-void curve_populate_trans_data_structs(TransDataContainer &tc,
-                                       blender::bke::CurvesGeometry &curves,
-                                       std::optional<blender::MutableSpan<float>> value_attribute,
-                                       const blender::IndexMask &selected_indices,
-                                       bool use_proportional_edit,
-                                       bool use_connected_only,
-                                       int trans_data_offset)
-{
-  using namespace blender;
-
-  float mtx[3][3], smtx[3][3];
-  copy_m3_m4(mtx, tc.obedit->object_to_world);
-  pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
-  MutableSpan<float3> positions = curves.positions_for_write();
-  if (use_proportional_edit) {
-    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-    const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
-        ".selection", ATTR_DOMAIN_POINT, true);
-    threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
-      Vector<float> closest_distances;
-      for (const int curve_i : range) {
-        const IndexRange points = points_by_curve[curve_i];
-        const bool has_any_selected = ed::curves::has_anything_selected(selection, points);
-        if (!has_any_selected && use_connected_only) {
-          for (const int point_i : points) {
-            TransData &td = tc.data[point_i + trans_data_offset];
-            td.flag |= TD_SKIP;
-          }
-          continue;
-        }
-
-        closest_distances.reinitialize(points.size());
-        closest_distances.fill(std::numeric_limits<float>::max());
-
-        for (const int i : IndexRange(points.size())) {
-          const int point_i = points[i];
-          TransData &td = tc.data[point_i + trans_data_offset];
-          float3 *elem = &positions[point_i];
-
-          copy_v3_v3(td.iloc, *elem);
-          copy_v3_v3(td.center, td.iloc);
-          td.loc = *elem;
-
-          td.flag = 0;
-          if (selection[point_i]) {
-            closest_distances[i] = 0.0f;
-            td.flag = TD_SELECTED;
-          }
-
-          if (value_attribute) {
-            float *value = &((*value_attribute)[point_i]);
-            td.val = value;
-            td.ival = *value;
-          }
-
-          td.ext = nullptr;
-
-          copy_m3_m3(td.smtx, smtx);
-          copy_m3_m3(td.mtx, mtx);
-        }
-
-        if (use_connected_only) {
-          blender::ed::transform::curves::calculate_curve_point_distances_for_proportional_editing(
-              positions.slice(points), closest_distances.as_mutable_span());
-          for (const int i : IndexRange(points.size())) {
-            TransData &td = tc.data[points[i] + trans_data_offset];
-            td.dist = closest_distances[i];
-          }
-        }
-      }
-    });
-  }
-  else {
-    threading::parallel_for(selected_indices.index_range(), 1024, [&](const IndexRange range) {
-      for (const int selection_i : range) {
-        TransData *td = &tc.data[selection_i + trans_data_offset];
-        const int point_i = selected_indices[selection_i];
-        float3 *elem = &positions[point_i];
-
-        copy_v3_v3(td->iloc, *elem);
-        copy_v3_v3(td->center, td->iloc);
-        td->loc = *elem;
-
-        if (value_attribute) {
-          float *value = &((*value_attribute)[point_i]);
-          td->val = value;
-          td->ival = *value;
-        }
-
-        td->flag = TD_SELECTED;
-        td->ext = nullptr;
-
-        copy_m3_m3(td->smtx, smtx);
-        copy_m3_m3(td->mtx, mtx);
-      }
-    });
-  }
-}
 
 /** \} */
 

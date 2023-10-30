@@ -8,24 +8,20 @@
  * Edge based subdivision with various subdivision patterns.
  */
 
-#include <array>
-
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_noise.h"
 #include "BLI_rand.h"
 #include "BLI_stack.h"
-#include "BLI_vector.hh"
 
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_operators_private.h"
 #include "intern/bmesh_private.h"
-
-using blender::Vector;
 
 struct SubDParams {
   int numcuts;
@@ -915,10 +911,17 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
   SubDParams params;
   BLI_Stack *facedata;
   BMIter viter, fiter, liter;
-  BMVert *v;
+  BMVert *v, **verts = nullptr;
   BMEdge *edge;
+  BMEdge **edges = nullptr;
+  BLI_array_declare(edges);
+  BMLoop *(*loops_split)[2] = nullptr;
+  BLI_array_declare(loops_split);
+  BMLoop **loops = nullptr;
+  BLI_array_declare(loops);
   BMLoop *l_new, *l;
   BMFace *face;
+  BLI_array_declare(verts);
   float smooth, fractal, along_normal;
   bool use_sphere, use_single_edge, use_grid_fill, use_only_quads;
   int cornertype, seed, i, j, a, b, numcuts, totesel, smooth_falloff;
@@ -1014,9 +1017,6 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
   facedata = BLI_stack_new(sizeof(SubDFaceData), __func__);
 
-  Vector<BMVert *, BM_DEFAULT_ITER_STACK_SIZE> verts;
-  Vector<BMEdge *, BM_DEFAULT_ITER_STACK_SIZE> edges;
-
   BM_ITER_MESH (face, &fiter, bm, BM_FACES_OF_MESH) {
     BMEdge *e1 = nullptr, *e2 = nullptr;
     float vec1[3], vec2[3];
@@ -1028,8 +1028,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
     }
 
     /* figure out which pattern to use */
-    verts.reinitialize(face->len);
-    edges.reinitialize(face->len);
+
+    BLI_array_clear(edges);
+    BLI_array_clear(verts);
+
+    BLI_array_grow_items(edges, face->len);
+    BLI_array_grow_items(verts, face->len);
 
     totesel = 0;
     BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, i) {
@@ -1153,27 +1157,30 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
     copy_v3_v3(v->co, co);
   }
 
-  using LoopPair = std::array<BMLoop *, 2>;
-  Vector<BMLoop *, BM_DEFAULT_ITER_STACK_SIZE> loops;
-  Vector<LoopPair, BM_DEFAULT_ITER_STACK_SIZE> loops_split;
   for (; !BLI_stack_is_empty(facedata); BLI_stack_discard(facedata)) {
     SubDFaceData *fd = static_cast<SubDFaceData *>(BLI_stack_peek(facedata));
 
     face = fd->face;
 
     /* figure out which pattern to use */
+    BLI_array_clear(verts);
+
     pat = fd->pat;
 
     if (!pat && fd->totedgesel == 2) {
+      int vlen;
+
       /* ok, no pattern.  we still may be able to do something */
+      BLI_array_clear(loops);
+      BLI_array_clear(loops_split);
 
       /* for case of two edges, connecting them shouldn't be too hard */
-      loops.reinitialize(face->len);
+      BLI_array_grow_items(loops, face->len);
       BM_ITER_ELEM_INDEX (l, &liter, face, BM_LOOPS_OF_FACE, a) {
         loops[a] = l;
       }
 
-      const int64_t vlen = loops.size();
+      vlen = BLI_array_len(loops);
 
       /* find the boundary of one of the split edges */
       for (a = 0; a < vlen; a++) {
@@ -1203,7 +1210,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
       b += numcuts - 1;
 
-      loops_split.reinitialize(numcuts);
+      BLI_array_grow_items(loops_split, numcuts);
       for (j = 0; j < numcuts; j++) {
         bool ok = true;
 
@@ -1255,11 +1262,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
        */
       //          BM_face_splits_check_legal(bm, face, loops_split, BLI_array_len(loops_split));
 
-      for (const LoopPair &loop_split : loops_split) {
-        if (loop_split[0]) {
+      for (j = 0; j < BLI_array_len(loops_split); j++) {
+        if (loops_split[j][0]) {
           BMFace *f_new;
-          BLI_assert(BM_edge_exists(loop_split[0]->v, loop_split[1]->v) == nullptr);
-          f_new = BM_face_split(bm, face, loop_split[0], loop_split[1], &l_new, nullptr, false);
+          BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == nullptr);
+          f_new = BM_face_split(
+              bm, face, loops_split[j][0], loops_split[j][1], &l_new, nullptr, false);
           if (f_new) {
             BMO_edge_flag_enable(bm, l_new->e, ELE_INNER);
           }
@@ -1280,14 +1288,15 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
       }
     }
 
-    verts.reinitialize(face->len);
+    BLI_array_grow_items(verts, face->len);
+
     BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, j) {
       b = (j - a + face->len) % face->len;
       verts[b] = l_new->v;
     }
 
     BM_CHECK_ELEMENT(face);
-    pat->connectexec(bm, face, verts.data(), &params);
+    pat->connectexec(bm, face, verts, &params);
   }
 
   /* copy original-geometry displacements to current coordinates */
@@ -1300,6 +1309,14 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
   BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, params.shape_info.tmpkey);
 
   BLI_stack_free(facedata);
+  if (edges) {
+    BLI_array_free(edges);
+  }
+  if (verts) {
+    BLI_array_free(verts);
+  }
+  BLI_array_free(loops_split);
+  BLI_array_free(loops);
 
   BMO_slot_buffer_from_enabled_flag(
       bm, op, op->slots_out, "geom_inner.out", BM_ALL_NOLOOP, ELE_INNER);

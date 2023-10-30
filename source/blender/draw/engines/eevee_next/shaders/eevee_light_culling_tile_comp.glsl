@@ -8,7 +8,7 @@
  * Dispatch one thread per word.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 
@@ -148,10 +148,10 @@ void main()
     LightData light = light_buf[l_idx];
 
     /* Culling in view space for precision and simplicity. */
-    vec3 vP = drw_point_world_to_view(light._position);
-    vec3 v_right = drw_normal_world_to_view(light._right);
-    vec3 v_up = drw_normal_world_to_view(light._up);
-    vec3 v_back = drw_normal_world_to_view(light._back);
+    vec3 vP = transform_point(ViewMatrix, light._position);
+    vec3 v_right = transform_direction(ViewMatrix, light._right);
+    vec3 v_up = transform_direction(ViewMatrix, light._up);
+    vec3 v_back = transform_direction(ViewMatrix, light._back);
     float radius = light.influence_radius_max;
 
     Sphere sphere = shape_sphere(vP, radius);

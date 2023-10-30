@@ -381,9 +381,8 @@ BLI_INLINE float noise_grad(uint32_t hash, float x, float y, float z, float w)
 
 BLI_INLINE float floor_fraction(float x, int &i)
 {
-  float x_floor = math::floor(x);
-  i = int(x_floor);
-  return x - x_floor;
+  i = int(x) - ((x < 0) ? 1 : 0);
+  return x - i;
 }
 
 BLI_INLINE float perlin_noise(float position)

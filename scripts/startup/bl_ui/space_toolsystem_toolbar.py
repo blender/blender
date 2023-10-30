@@ -367,16 +367,6 @@ class _defs_transform:
         )
 
     @ToolDef.from_fn
-    def bend():
-        return dict(
-            idname="builtin.bend",
-            label="Bend",
-            icon="ops.gpencil.edit_bend",
-            widget=None,
-            keymap="3D View Tool: Bend",
-        )
-
-    @ToolDef.from_fn
     def transform():
         def draw_settings(context, layout, tool):
             if layout.use_property_split:
@@ -1754,11 +1744,21 @@ class _defs_paint_grease_pencil:
 
     @ToolDef.from_fn
     def erase():
+        def draw_settings(context, layout, _tool):
+            paint = context.tool_settings.gpencil_paint
+            brush = paint.brush
+            if not brush:
+                return
+            layout.prop(brush.gpencil_settings, "eraser_mode", expand=True)
+            if brush.gpencil_settings.eraser_mode == 'HARD':
+                layout.prop(brush.gpencil_settings, "use_keep_caps_eraser")
+            layout.prop(brush.gpencil_settings, "use_active_layer_only")
         return dict(
             idname="builtin_brush.Erase",
             label="Erase",
             icon="brush.gpencil_draw.erase",
             data_block='ERASE',
+            draw_settings=draw_settings,
         )
 
 
@@ -3022,18 +3022,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'EDIT_GREASE_PENCIL': [
             *_tools_select,
-            _defs_view3d_generic.cursor,
-            None,
-            *_tools_transform,
-            None,
-            _defs_edit_curve.curve_radius,
-            _defs_transform.bend,
-            (
-                _defs_transform.shear,
-                _defs_edit_mesh.tosphere,
-            ),
-            None,
-            *_tools_annotate,
         ],
         'PARTICLE': [
             *_tools_select,

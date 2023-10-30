@@ -98,8 +98,8 @@ void VKBuffer::update(const void *data) const
 
 void VKBuffer::clear(VKContext &context, uint32_t clear_value)
 {
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.fill(*this, clear_value);
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.fill(*this, clear_value);
 }
 
 void VKBuffer::read(void *data) const

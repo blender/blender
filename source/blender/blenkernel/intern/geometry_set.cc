@@ -240,9 +240,6 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
     parts.append(std::to_string(curves->geometry.point_num) + " control points");
     parts.append(std::to_string(curves->geometry.curve_num) + " curves");
   }
-  if (const GreasePencil *grease_pencil = geometry_set.get_grease_pencil()) {
-    parts.append(std::to_string(grease_pencil->layers().size()) + " grease pencil layers");
-  }
   if (const PointCloud *point_cloud = geometry_set.get_pointcloud()) {
     parts.append(std::to_string(point_cloud->totpoint) + " points");
   }
@@ -603,33 +600,6 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> componen
       instance_geometry_set.attribute_foreach(component_types, include_instances, callback);
     });
   }
-}
-
-void GeometrySet::propagate_attributes_from_layer_to_instances(
-    const AttributeAccessor src_attributes,
-    MutableAttributeAccessor dst_attributes,
-    const AnonymousAttributePropagationInfo &propagation_info)
-{
-  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
-      return true;
-    }
-    const GAttributeReader src = src_attributes.lookup(id, ATTR_DOMAIN_LAYER);
-    if (src.sharing_info && src.varray.is_span()) {
-      const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
-      if (dst_attributes.add(id, ATTR_DOMAIN_INSTANCE, meta_data.data_type, init)) {
-        return true;
-      }
-    }
-    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, ATTR_DOMAIN_INSTANCE, meta_data.data_type);
-    if (!dst) {
-      return true;
-    }
-    array_utils::copy(src.varray, dst.span);
-    dst.finish();
-    return true;
-  });
 }
 
 void GeometrySet::gather_attributes_for_propagation(

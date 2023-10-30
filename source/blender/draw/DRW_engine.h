@@ -42,6 +42,7 @@ struct bContext;
 struct rcti;
 
 void DRW_engines_register(void);
+void DRW_engines_register_experimental(void);
 void DRW_engines_free(void);
 
 bool DRW_engine_render_support(struct DrawEngineType *draw_engine_type);
@@ -141,7 +142,10 @@ void DRW_draw_depth_object(struct Scene *scene,
                            struct View3D *v3d,
                            struct GPUViewport *viewport,
                            struct Object *object);
-void DRW_draw_select_id(struct Depsgraph *depsgraph, struct ARegion *region, struct View3D *v3d);
+void DRW_draw_select_id(struct Depsgraph *depsgraph,
+                        struct ARegion *region,
+                        struct View3D *v3d,
+                        const struct rcti *rect);
 
 /* Grease pencil render. */
 

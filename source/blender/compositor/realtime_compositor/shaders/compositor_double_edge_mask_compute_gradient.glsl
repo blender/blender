@@ -38,11 +38,11 @@ void main()
     return;
   }
 
-  /* Compute the distances to the inner and outer boundaries from the jump flooding tables. */
-  ivec2 inner_boundary_texel = texture_load(flooded_inner_boundary_tx, texel).xy;
-  ivec2 outer_boundary_texel = texture_load(flooded_outer_boundary_tx, texel).xy;
-  float distance_to_inner = distance(vec2(texel), vec2(inner_boundary_texel));
-  float distance_to_outer = distance(vec2(texel), vec2(outer_boundary_texel));
+  /* Extract the distances to the inner and outer boundaries from the jump flooding tables. */
+  vec4 inner_flooding_value = texture_load(flooded_inner_boundary_tx, texel);
+  vec4 outer_flooding_value = texture_load(flooded_outer_boundary_tx, texel);
+  float distance_to_inner = extract_jump_flooding_distance_to_closest_seed(inner_flooding_value);
+  float distance_to_outer = extract_jump_flooding_distance_to_closest_seed(outer_flooding_value);
 
   float gradient = distance_to_outer / (distance_to_outer + distance_to_inner);
 

@@ -23,31 +23,11 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.hh"
+#include "DRW_select_buffer.h"
 
 #include "draw_manager.h"
 
-#include "../engines/select/select_engine.hh"
-
-bool SELECTID_Context::is_dirty(RegionView3D *rv3d)
-{
-  /* Check if the viewport has changed. */
-  float(*persmat)[4] = rv3d->persmat;
-  bool is_dirty = !compare_m4m4(this->persmat, persmat, FLT_EPSILON);
-
-  if (!is_dirty) {
-    /* Check if any of the drawn objects have been transformed. */
-    for (Object *obj_eval : this->objects) {
-      DrawData *data = DRW_drawdata_get(&obj_eval->id, &draw_engine_select_type);
-      if (!data || (data->recalc & ID_RECALC_TRANSFORM)) {
-        is_dirty = true;
-        break;
-      }
-    }
-  }
-
-  return is_dirty;
-}
+#include "../engines/select/select_engine.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Buffer of select ID's
@@ -71,14 +51,10 @@ uint *DRW_select_buffer_read(
   rcti rect_clamp = *rect;
   if (BLI_rcti_isect(&r, &rect_clamp, &rect_clamp)) {
     SELECTID_Context *select_ctx = DRW_select_engine_context_get();
-    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
     DRW_gpu_context_enable();
-
-    if (select_ctx->is_dirty(rv3d)) {
-      /* Update drawing. */
-      DRW_draw_select_id(depsgraph, region, v3d);
-    }
+    /* Update the drawing. */
+    DRW_draw_select_id(depsgraph, region, v3d, rect);
 
     if (select_ctx->index_drawn_len > 1) {
       BLI_assert(region->winx == GPU_texture_width(DRW_engine_select_texture_get()) &&
@@ -101,7 +77,7 @@ uint *DRW_select_buffer_read(
                                  r_buf);
 
       if (!BLI_rcti_compare(rect, &rect_clamp)) {
-        /* The rect has been clamped so we need to realign the buffer and fill in the blanks */
+        /* The rect has been clamped so you need to realign the buffer and fill in the blanks */
         GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
       }
     }
@@ -399,7 +375,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
   uint elem_id = 0;
   uint base_index = 0;
 
-  for (; base_index < select_ctx->objects.size(); base_index++) {
+  for (; base_index < select_ctx->objects_drawn_len; base_index++) {
     ObjectOffsets *base_ofs = &select_ctx->index_offsets[base_index];
 
     if (base_ofs->face > sel_id) {
@@ -419,14 +395,15 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
     }
   }
 
-  if (base_index == select_ctx->objects.size()) {
+  if (base_index == select_ctx->objects_drawn_len) {
     return false;
   }
 
   *r_elem = elem_id;
 
   if (r_base_index) {
-    *r_base_index = base_index;
+    Object *obj_orig = DEG_get_original_object(select_ctx->objects_drawn[base_index]);
+    *r_base_index = obj_orig->runtime.select_id;
   }
 
   if (r_elem_type) {
@@ -447,7 +424,7 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
   SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
       &ob_eval->id, &draw_engine_select_type);
 
-  if (!sel_data) {
+  if (!sel_data || !sel_data->is_drawn) {
     return 0;
   }
 
@@ -472,21 +449,28 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
 /** \name Context
  * \{ */
 
-void DRW_select_buffer_context_create(Depsgraph *depsgraph,
-                                      Base **bases,
-                                      const uint bases_len,
-                                      short select_mode)
+void DRW_select_buffer_context_create(Base **bases, const uint bases_len, short select_mode)
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
-  select_ctx->objects.reinitialize(bases_len);
-  select_ctx->index_offsets.reinitialize(bases_len);
+  select_ctx->objects = static_cast<Object **>(
+      MEM_reallocN(select_ctx->objects, sizeof(*select_ctx->objects) * bases_len));
+
+  select_ctx->index_offsets = static_cast<ObjectOffsets *>(
+      MEM_reallocN(select_ctx->index_offsets, sizeof(*select_ctx->index_offsets) * bases_len));
+
+  select_ctx->objects_drawn = static_cast<Object **>(
+      MEM_reallocN(select_ctx->objects_drawn, sizeof(*select_ctx->objects_drawn) * bases_len));
 
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     Object *obj = bases[base_index]->object;
-    select_ctx->objects[base_index] = DEG_get_evaluated_object(depsgraph, obj);
+    select_ctx->objects[base_index] = obj;
+
+    /* Weak but necessary for `DRW_select_buffer_elem_get`. */
+    obj->runtime.select_id = base_index;
   }
 
+  select_ctx->objects_len = bases_len;
   select_ctx->select_mode = select_mode;
   memset(select_ctx->persmat, 0, sizeof(select_ctx->persmat));
 }

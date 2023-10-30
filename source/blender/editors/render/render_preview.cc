@@ -1478,15 +1478,18 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 /* use same function for icon & shader, so the job manager
  * does not run two of them at the same time. */
 
-static void common_preview_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void common_preview_startjob(void *customdata,
+                                    bool *stop,
+                                    bool *do_update,
+                                    float * /*progress*/)
 {
   ShaderPreview *sp = static_cast<ShaderPreview *>(customdata);
 
   if (ELEM(sp->pr_method, PR_ICON_RENDER, PR_ICON_DEFERRED)) {
-    icon_preview_startjob(customdata, &worker_status->stop, &worker_status->do_update);
+    icon_preview_startjob(customdata, stop, do_update);
   }
   else {
-    shader_preview_startjob(customdata, &worker_status->stop, &worker_status->do_update);
+    shader_preview_startjob(customdata, stop, do_update);
   }
 }
 
@@ -1497,7 +1500,9 @@ static void common_preview_startjob(void *customdata, wmJobWorkerStatus *worker_
 static void other_id_types_preview_render(IconPreview *ip,
                                           IconPreviewSize *cur_size,
                                           const ePreviewRenderMethod pr_method,
-                                          wmJobWorkerStatus *worker_status)
+                                          bool *stop,
+                                          bool *do_update,
+                                          float *progress)
 {
   ShaderPreview *sp = MEM_cnew<ShaderPreview>("Icon ShaderPreview");
 
@@ -1533,7 +1538,7 @@ static void other_id_types_preview_render(IconPreview *ip,
     }
   }
 
-  common_preview_startjob(sp, worker_status);
+  common_preview_startjob(sp, stop, do_update, progress);
   shader_preview_free(sp);
 }
 
@@ -1555,7 +1560,10 @@ static int icon_previewimg_size_index_get(const IconPreviewSize *icon_size,
   return -1;
 }
 
-static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus *worker_status)
+static void icon_preview_startjob_all_sizes(void *customdata,
+                                            bool *stop,
+                                            bool *do_update,
+                                            float *progress)
 {
   IconPreview *ip = (IconPreview *)customdata;
 
@@ -1565,7 +1573,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
     const ePreviewRenderMethod pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED :
                                                                            PR_ICON_RENDER;
 
-    if (worker_status->stop) {
+    if (*stop) {
       break;
     }
 
@@ -1625,7 +1633,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
           break;
       }
     }
-    other_id_types_preview_render(ip, cur_size, pr_method, worker_status);
+    other_id_types_preview_render(ip, cur_size, pr_method, stop, do_update, progress);
   }
 }
 
@@ -1725,7 +1733,7 @@ class PreviewLoadJob {
   void push_load_request(PreviewImage *preview, eIconSizes icon_size);
 
  private:
-  static void run_fn(void *customdata, wmJobWorkerStatus *worker_status);
+  static void run_fn(void *customdata, bool *stop, bool *do_update, float *progress);
   static void update_fn(void *customdata);
   static void end_fn(void *customdata);
   static void free_fn(void *customdata);
@@ -1765,8 +1773,9 @@ void PreviewLoadJob::load_jobless(PreviewImage *preview, const eIconSizes icon_s
 
   job_data.push_load_request(preview, icon_size);
 
-  wmJobWorkerStatus worker_status = {};
-  run_fn(&job_data, &worker_status);
+  bool stop = false, do_update = false;
+  float progress = 0;
+  run_fn(&job_data, &stop, &do_update, &progress);
   update_fn(&job_data);
   end_fn(&job_data);
 }
@@ -1786,7 +1795,7 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
   BLI_thread_queue_push(todo_queue_, &requested_previews_.back());
 }
 
-void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
+void PreviewLoadJob::run_fn(void *customdata, bool *stop, bool *do_update, float * /*progress*/)
 {
   PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
@@ -1795,7 +1804,7 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
   while (RequestedPreview *request = static_cast<RequestedPreview *>(
              BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100)))
   {
-    if (worker_status->stop) {
+    if (*stop) {
       break;
     }
 
@@ -1825,7 +1834,7 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
       IMB_freeImBuf(thumb);
     }
 
-    worker_status->do_update = true;
+    *do_update = true;
   }
 
   IMB_thumb_locks_release();
@@ -1929,6 +1938,8 @@ void ED_preview_icon_render(
   }
 
   IconPreview ip = {nullptr};
+  bool stop = false, update = false;
+  float progress = 0.0f;
 
   ED_preview_ensure_dbase(true);
 
@@ -1947,8 +1958,7 @@ void ED_preview_icon_render(
   icon_preview_add_size(
       &ip, prv_img->rect[icon_size], prv_img->w[icon_size], prv_img->h[icon_size]);
 
-  wmJobWorkerStatus worker_status = {};
-  icon_preview_startjob_all_sizes(&ip, &worker_status);
+  icon_preview_startjob_all_sizes(&ip, &stop, &update, &progress);
 
   icon_preview_endjob(&ip);
 

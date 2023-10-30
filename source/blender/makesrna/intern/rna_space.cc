@@ -85,11 +85,6 @@ const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
      ICON_EMPTY_AXIS,
      "Instances",
      "Instances of objects or collections"},
-    {int(blender::bke::GeometryComponent::Type::GreasePencil),
-     "GREASEPENCIL",
-     ICON_GREASEPENCIL,
-     "Grease Pencil",
-     "Grease Pencil component containing layers and curves data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -3322,9 +3317,6 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
         continue;
       }
     }
-    if (!U.experimental.use_grease_pencil_version3 && item->value == ATTR_DOMAIN_LAYER) {
-      continue;
-    }
     if (item->value == ATTR_DOMAIN_POINT &&
         component_type == blender::bke::GeometryComponent::Type::Mesh)
     {
@@ -5470,7 +5462,7 @@ static void rna_def_space_properties(BlenderRNA *brna)
       prop, "Tab Search Results", "Whether or not each visible tab has a search result");
 
   prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
-  /* The search filter is stored in the property editor's runtime which
+  /* The search filter is stored in the property editor's runtime  which
    * is only defined in an internal header, so use the getter / setter here. */
   RNA_def_property_string_funcs(prop,
                                 "rna_SpaceProperties_search_filter_get",

@@ -6613,7 +6613,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 #ifdef DEBUG_STRING_FREE
 #  if 0
   if (PyList_GET_SIZE(string_free_ls)) {
-    printf("%.200s.%.200s(): has %d strings\n",
+    printf("%.200s.%.200s():  has %d strings\n",
            RNA_struct_identifier(self_ptr->type),
            RNA_function_identifier(self_func),
            int(PyList_GET_SIZE(string_free_ls)));
@@ -8710,7 +8710,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (ret_len == 1) {
       err = pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
 
-      /* When calling operator functions only gives `Function.result` with no line number
+      /* When calling operator functions only gives `Function.result` with  no line number
        * since the function has finished calling on error, re-raise the exception with more
        * information since it would be slow to create prefix on every call
        * (when there are no errors). */
@@ -8792,8 +8792,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       BKE_reports_init(&reports_temp, reports->flag | RPT_PRINT_HANDLED_BY_OWNER);
       reports_temp.storelevel = reports->storelevel;
       BPy_errors_to_report(&reports_temp);
-      BKE_reports_move_to_reports(reports, &reports_temp);
-      BKE_reports_free(&reports_temp);
+      BLI_movelisttolist(&reports->list, &reports_temp.list);
     }
 
     /* Also print in the console for Python. */
@@ -9007,12 +9006,11 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     if (!has_error) {
       BPy_reports_write_stdout(&reports, error_prefix);
     }
+    BKE_reports_clear(&reports);
     if (has_error) {
-      BKE_reports_free(&reports);
       return nullptr;
     }
   }
-  BKE_reports_free(&reports);
 
   /* Python errors validating are not converted into reports so the check above will fail.
    * the cause for returning nullptr will be printed as an error */

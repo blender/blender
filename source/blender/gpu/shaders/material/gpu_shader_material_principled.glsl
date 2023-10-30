@@ -2,9 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math.glsl)
-
 vec3 tint_from_color(vec3 color)
 {
   float lum = dot(color, vec3(0.3, 0.6, 0.1));  /* luminance approx. */
@@ -82,7 +79,7 @@ void node_bsdf_principled(vec4 base_color,
 
   N = safe_normalize(N);
   CN = safe_normalize(CN);
-  vec3 V = coordinate_incoming(g_data.P);
+  vec3 V = cameraVec(g_data.P);
   float NV = dot(N, V);
 
   ClosureTransparency transparency_data;
@@ -100,7 +97,7 @@ void node_bsdf_principled(vec4 base_color,
     vec3 sheen_color = sheen_weight * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
     diffuse_data.color = weight * sheen_color;
     /* Attenuate lower layers */
-    weight *= (1.0 - math_reduce_max(sheen_color));
+    weight *= (1.0 - max_v3(sheen_color));
   }
   else {
     diffuse_data.color = vec3(0.0);
@@ -121,7 +118,7 @@ void node_bsdf_principled(vec4 base_color,
 
     if (!all(equal(coat_tint.rgb, vec3(1.0)))) {
       float coat_neta = 1.0 / coat_ior;
-      float NT = sqrt_fast(1.0 - coat_neta * coat_neta * (1 - NV * NV));
+      float NT = fast_sqrt(1.0 - coat_neta * coat_neta * (1 - NV * NV));
       /* Tint lower layers. */
       coat_tint.rgb = mix(vec3(1.0), pow(coat_tint.rgb, vec3(1.0 / NT)), coat_weight);
     }
@@ -205,7 +202,7 @@ void node_bsdf_principled(vec4 base_color,
 
     reflection_data.color += weight * reflectance;
     /* Attenuate lower layers */
-    weight *= (1.0 - math_reduce_max(reflectance));
+    weight *= (1.0 - max_v3(reflectance));
   }
 
   /* Diffuse component */
@@ -217,10 +214,10 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Adjust the weight of picking the closure. */
   reflection_data.color *= coat_tint.rgb;
-  reflection_data.weight = math_average(reflection_data.color);
+  reflection_data.weight = avg(reflection_data.color);
   reflection_data.color *= safe_rcp(reflection_data.weight);
 
-  diffuse_data.weight = math_average(diffuse_data.color);
+  diffuse_data.weight = avg(diffuse_data.color);
   diffuse_data.color *= safe_rcp(diffuse_data.weight);
 
   /* Ref. #98190: Defines are optimizations for old compilers.

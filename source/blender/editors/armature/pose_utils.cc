@@ -37,8 +37,6 @@
 #include "ED_armature.hh"
 #include "ED_keyframing.hh"
 
-#include "ANIM_keyframing.hh"
-
 #include "armature_intern.h"
 
 /* *********************************************** */
@@ -263,7 +261,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
       continue;
     }
 
-    if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+    if (autokeyframe_cfra_can_key(scene, &ob->id)) {
       ob->id.tag |= LIB_TAG_DOIT;
       skip = false;
     }
@@ -276,7 +274,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
 
   /* Insert keyframes as necessary if auto-key-framing. */
   KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
-  blender::Vector<PointerRNA> sources;
+  ListBase dsources = {nullptr, nullptr};
 
   /* iterate over each pose-channel affected, tagging bones to be keyed */
   /* XXX: here we already have the information about what transforms exist, though
@@ -290,11 +288,12 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
     }
 
     /* Add data-source override for the PoseChannel, to be used later. */
-    ANIM_relative_keyingset_add_source(sources, &pfl->ob->id, &RNA_PoseBone, pchan);
+    ANIM_relative_keyingset_add_source(&dsources, &pfl->ob->id, &RNA_PoseBone, pchan);
   }
 
   /* insert keyframes for all relevant bones in one go */
-  ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, cframe);
+  ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, cframe);
+  BLI_freelistN(&dsources);
 
   /* do the bone paths
    * - only do this if keyframes should have been added

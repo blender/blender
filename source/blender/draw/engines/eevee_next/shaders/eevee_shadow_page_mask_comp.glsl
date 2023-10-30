@@ -36,21 +36,12 @@ void main()
       if (thread_active) {
         int tile_offset = shadow_tile_offset(tile_co, tilemap.tiles_index, lod);
         tile = shadow_tile_unpack(tiles_buf[tile_offset]);
-#ifdef SHADOW_FORCE_LOD0
-        if (lod == 0) {
-          tiles_buf[tile_offset] |= SHADOW_IS_USED;
-        }
-        else {
-          tiles_buf[tile_offset] &= ~SHADOW_IS_USED;
-        }
-#else
         if (lod > 0 && usage_grid[tile_co.y][tile_co.x] == 4u) {
           /* Remove the usage flag as this tile is completely covered by higher LOD tiles. */
           tiles_buf[tile_offset] &= ~SHADOW_IS_USED;
           /* Consider this tile occluding lower levels. */
           tile.is_used = true;
         }
-#endif
         /* Reset count for next level. */
         usage_grid[tile_co.y / 2][tile_co.x / 2] = 0u;
       }

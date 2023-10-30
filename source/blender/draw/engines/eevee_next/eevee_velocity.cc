@@ -154,7 +154,7 @@ bool VelocityModule::step_object_sync(Object *ob,
   VelocityObjectData &vel = velocity_map.lookup_or_add_default(object_key);
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
   vel.obj.resource_id = resource_handle.resource_index();
-  vel.id = object_key.hash();
+  vel.id = object_key.hash_value;
   object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = float4x4_view(ob->object_to_world);
   if (step_ == STEP_CURRENT) {
     /* Replace invalid steps. Can happen if object was hidden in one of those steps. */
@@ -327,7 +327,7 @@ void VelocityModule::end_sync()
 {
   Vector<ObjectKey, 0> deleted_obj;
 
-  uint32_t max_resource_id_ = 0u;
+  uint32_t max_resource_id_ = 1u;
 
   for (MapItem<ObjectKey, VelocityObjectData> item : velocity_map.items()) {
     if (item.value.obj.resource_id == uint32_t(-1)) {
@@ -350,7 +350,7 @@ void VelocityModule::end_sync()
     velocity_map.remove(key);
   }
 
-  indirection_buf.resize(ceil_to_multiple_u(max_resource_id_ + 1, 128));
+  indirection_buf.resize(ceil_to_multiple_u(max_resource_id_, 128));
 
   /* Avoid uploading more data to the GPU as well as an extra level of
    * indirection on the GPU by copying back offsets the to VelocityIndex. */

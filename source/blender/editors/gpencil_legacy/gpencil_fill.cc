@@ -40,11 +40,10 @@
 #include "BKE_screen.hh"
 
 #include "ED_gpencil_legacy.hh"
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_view3d.hh"
-
-#include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -1125,7 +1124,7 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
     if (gpl == tgpf->gpl) {
       if ((gpl->actframe == nullptr) || (gpl->actframe->framenum != tgpf->active_cfra)) {
         short add_frame_mode;
-        if (blender::animrig::is_autokey_on(tgpf->scene)) {
+        if (IS_AUTOKEY_ON(tgpf->scene)) {
           if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
             add_frame_mode = GP_GETFRAME_ADD_COPY;
           }
@@ -2161,10 +2160,10 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   tgpf->done = true;
 
   /* Get frame or create a new one. */
-  tgpf->gpf = BKE_gpencil_layer_frame_get(
-      tgpf->gpl,
-      tgpf->active_cfra,
-      blender::animrig::is_autokey_on(tgpf->scene) ? GP_GETFRAME_ADD_NEW : GP_GETFRAME_USE_PREV);
+  tgpf->gpf = BKE_gpencil_layer_frame_get(tgpf->gpl,
+                                          tgpf->active_cfra,
+                                          IS_AUTOKEY_ON(tgpf->scene) ? GP_GETFRAME_ADD_NEW :
+                                                                       GP_GETFRAME_USE_PREV);
 
   /* Set frame as selected. */
   tgpf->gpf->flag |= GP_FRAME_SELECT;
@@ -2836,9 +2835,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
       estate = OPERATOR_CANCELLED;
       break;
     case LEFTMOUSE:
-      if (!blender::animrig::is_autokey_on(tgpf->scene) && (!is_multiedit) &&
-          (tgpf->gpl->actframe == nullptr))
-      {
+      if (!IS_AUTOKEY_ON(tgpf->scene) && (!is_multiedit) && (tgpf->gpl->actframe == nullptr)) {
         BKE_report(op->reports, RPT_INFO, "No available frame for creating stroke");
         estate = OPERATOR_CANCELLED;
         break;
@@ -2882,8 +2879,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
               tgpf->gpf = BKE_gpencil_layer_frame_get(
                   tgpf->gpl,
                   tgpf->active_cfra,
-                  blender::animrig::is_autokey_on(tgpf->scene) ? GP_GETFRAME_ADD_NEW :
-                                                                 GP_GETFRAME_USE_PREV);
+                  IS_AUTOKEY_ON(tgpf->scene) ? GP_GETFRAME_ADD_NEW : GP_GETFRAME_USE_PREV);
               tgpf->gpf->flag |= GP_FRAME_SELECT;
 
               BLI_ghash_insert(

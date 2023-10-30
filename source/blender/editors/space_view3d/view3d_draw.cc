@@ -15,7 +15,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 
 #include "BKE_armature.h"
@@ -48,7 +48,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.hh"
+#include "DRW_select_buffer.h"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_info.hh"
@@ -2234,7 +2234,7 @@ static void validate_object_select_id(Depsgraph *depsgraph,
   if (obact_eval && ((obact_eval->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0)) {
     BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, obact);
-    DRW_select_buffer_context_create(depsgraph, &base, 1, -1);
+    DRW_select_buffer_context_create(&base, 1, -1);
   }
 
   v3d->runtime.flag |= V3D_RUNTIME_DEPTHBUF_OVERRIDDEN;

@@ -20,10 +20,8 @@ void wayland_dynload_client_exit(void);
 bool wayland_dynload_cursor_init(bool verbose);
 void wayland_dynload_cursor_exit(void);
 
-#ifdef WITH_OPENGL_BACKEND
 bool wayland_dynload_egl_init(bool verbose);
 void wayland_dynload_egl_exit(void);
-#endif
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 bool wayland_dynload_libdecor_init(bool verbose);

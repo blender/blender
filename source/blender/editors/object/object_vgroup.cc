@@ -22,6 +22,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_array.h"
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"

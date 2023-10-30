@@ -6,7 +6,6 @@
 
 #include <optional>
 
-#include "BLI_compute_context.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -76,14 +75,5 @@ enum class UpdateActiveGeometryNodesViewerResult {
  */
 UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const bContext &C,
                                                                           ViewerPath &viewer_path);
-
-/**
- * Some viewer path elements correspond to compute-contexts. This function converts from the viewer
- * path element to the corresponding compute context if possible.
- *
- * \return False, there is no matching compute context.
- */
-[[nodiscard]] bool add_compute_context_for_viewer_path_elem(
-    const ViewerPathElem &elem, ComputeContextBuilder &compute_context_builder);
 
 }  // namespace blender::ed::viewer_path

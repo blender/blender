@@ -65,7 +65,7 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "NOD_composite.hh"
+#include "NOD_composite.h"
 #include "NOD_geometry.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.hh"
@@ -267,7 +267,12 @@ static void compo_progressjob(void *cjv, float progress)
 }
 
 /* Only this runs inside thread. */
-static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
+static void compo_startjob(void *cjv,
+                           /* Cannot be const, this function implements wm_jobs_start_callback.
+                            * NOLINTNEXTLINE: readability-non-const-parameter. */
+                           bool *stop,
+                           bool *do_update,
+                           float *progress)
 {
   CompoJob *cj = (CompoJob *)cjv;
   bNodeTree *ntree = cj->localtree;
@@ -277,9 +282,9 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
     return;
   }
 
-  cj->stop = &worker_status->stop;
-  cj->do_update = &worker_status->do_update;
-  cj->progress = &worker_status->progress;
+  cj->stop = stop;
+  cj->do_update = do_update;
+  cj->progress = progress;
 
   ntree->runtime->test_break = compo_breakjob;
   ntree->runtime->tbh = cj;
@@ -846,9 +851,9 @@ namespace blender::ed::space_node {
 
 static bool socket_is_occluded(const float2 &location,
                                const bNode &node_the_socket_belongs_to,
-                               const Span<bNode *> sorted_nodes)
+                               const SpaceNode &snode)
 {
-  for (bNode *node : sorted_nodes) {
+  LISTBASE_FOREACH_BACKWARD (bNode *, node, &snode.edittree->nodes) {
     if (node == &node_the_socket_belongs_to) {
       /* Nodes after this one are underneath and can't occlude the socket. */
       return false;
@@ -1168,14 +1173,13 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
   bNodeTree &node_tree = *snode.edittree;
   node_tree.ensure_topology_cache();
-
-  const Array<bNode *> sorted_nodes = tree_draw_order_calc_nodes_reversed(*snode.edittree);
-  if (sorted_nodes.is_empty()) {
+  const Span<bNode *> nodes = node_tree.all_nodes();
+  if (nodes.is_empty()) {
     return nullptr;
   }
 
-  for (const int i : sorted_nodes.index_range()) {
-    bNode &node = *sorted_nodes[i];
+  for (int i = nodes.index_range().last(); i >= 0; i--) {
+    bNode &node = *nodes[i];
 
     BLI_rctf_init_pt_radius(&rect, cursor, size_sock_padded);
     if (!(node.flag & NODE_HIDDEN)) {
@@ -1196,13 +1200,13 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
           const float2 location = sock->runtime->location;
           if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
-              if (!socket_is_occluded(location, node, sorted_nodes)) {
+              if (!socket_is_occluded(location, node, snode)) {
                 return sock;
               }
             }
           }
           else if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, sorted_nodes)) {
+            if (!socket_is_occluded(location, node, snode)) {
               return sock;
             }
           }
@@ -1214,7 +1218,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
         if (node.is_socket_icon_drawn(*sock)) {
           const float2 location = sock->runtime->location;
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, sorted_nodes)) {
+            if (!socket_is_occluded(location, node, snode)) {
               return sock;
             }
           }

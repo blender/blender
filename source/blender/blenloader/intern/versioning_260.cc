@@ -47,7 +47,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -78,7 +78,7 @@
 #include "IMB_imbuf.h" /* for proxy / time-code versioning stuff. */
 
 #include "NOD_common.h"
-#include "NOD_composite.hh"
+#include "NOD_composite.h"
 #include "NOD_texture.h"
 
 #include "BLO_readfile.h"

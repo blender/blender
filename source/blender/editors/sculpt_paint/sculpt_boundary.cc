@@ -684,7 +684,7 @@ static void do_boundary_brush_bend_task(Object *ob, const Brush *brush, PBVHNode
       continue;
     }
 
-    const float mask = 1.0f - vd.mask;
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float t_orig_co[3];
@@ -732,7 +732,7 @@ static void do_boundary_brush_slide_task(Object *ob, const Brush *brush, PBVHNod
       continue;
     }
 
-    const float mask = 1.0f - vd.mask;
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
@@ -778,7 +778,7 @@ static void do_boundary_brush_inflate_task(Object *ob, const Brush *brush, PBVHN
       continue;
     }
 
-    const float mask = 1.0f - vd.mask;
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
@@ -822,7 +822,7 @@ static void do_boundary_brush_grab_task(Object *ob, const Brush *brush, PBVHNode
       continue;
     }
 
-    const float mask = 1.0f - vd.mask;
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
@@ -873,7 +873,7 @@ static void do_boundary_brush_twist_task(Object *ob, const Brush *brush, PBVHNod
       continue;
     }
 
-    const float mask = 1.0f - vd.mask;
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float t_orig_co[3];
@@ -933,7 +933,7 @@ static void do_boundary_brush_smooth_task(Object *ob, const Brush *brush, PBVHNo
     }
     float disp[3];
     float avg[3];
-    const float mask = 1.0f - vd.mask;
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     mul_v3_v3fl(avg, coord_accum, 1.0f / total_neighbors);
     sub_v3_v3v3(disp, avg, vd.co);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);

@@ -703,12 +703,13 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
   BMVert *v1;
   BMIter iter;
   float center[3];
   uint verts_len;
 
-  ViewContext vc = em_setup_viewcontext(C);
+  em_setup_viewcontext(C, &vc);
   const Object *object_active = vc.obact;
 
   const bool rot_src = RNA_boolean_get(op->ptr, "rotate_source");

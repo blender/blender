@@ -432,13 +432,13 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
   ED_update_for_newframe(job->bmain, job->depsgraph);
 }
 
-static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void dpaint_bake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   DynamicPaintBakeJob *job = static_cast<DynamicPaintBakeJob *>(customdata);
 
-  job->stop = &worker_status->stop;
-  job->do_update = &worker_status->do_update;
-  job->progress = &worker_status->progress;
+  job->stop = stop;
+  job->do_update = do_update;
+  job->progress = progress;
   job->start = PIL_check_seconds_timer();
   job->success = 1;
 
@@ -452,8 +452,8 @@ static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_sta
 
   dynamicPaint_bakeImageSequence(job);
 
-  worker_status->do_update = true;
-  worker_status->stop = false;
+  *do_update = true;
+  *stop = false;
 }
 
 /*

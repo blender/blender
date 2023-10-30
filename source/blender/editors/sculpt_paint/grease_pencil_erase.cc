@@ -59,13 +59,7 @@ struct EraseOperationExecutor {
   int2 mouse_position_pixels{};
   int64_t eraser_squared_radius_pixels{};
 
-  bke::greasepencil::DrawingTransforms transforms_;
-
-  EraseOperationExecutor(const bContext &C)
-  {
-    Object *object = CTX_data_active_object(&C);
-    transforms_ = bke::greasepencil::DrawingTransforms(*object);
-  }
+  EraseOperationExecutor(const bContext & /*C*/) {}
 
   /**
    * Computes the intersections between a 2D line segment and a circle with integer values.
@@ -753,24 +747,22 @@ struct EraseOperationExecutor {
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
 
     bool changed = false;
-    const auto execute_eraser_on_drawing = [&](const int layer_index, Drawing &drawing) {
+    const auto execute_eraser_on_drawing = [&](int drawing_index, Drawing &drawing) {
       const bke::CurvesGeometry &src = drawing.strokes();
 
       /* Evaluated geometry. */
       bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              ob_eval, *obact, layer_index);
+              ob_eval, *obact, drawing_index);
 
       /* Compute screen space positions. */
       Array<float2> screen_space_positions(src.points_num());
       threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
         for (const int src_point : src_points) {
-          ED_view3d_project_float_global(
-              region,
-              math::transform_point(transforms_.layer_space_to_world_space,
-                                    deformation.positions[src_point]),
-              screen_space_positions[src_point],
-              V3D_PROJ_TEST_NOP);
+          ED_view3d_project_float_global(region,
+                                         deformation.positions[src_point],
+                                         screen_space_positions[src_point],
+                                         V3D_PROJ_TEST_NOP);
         }
       });
 

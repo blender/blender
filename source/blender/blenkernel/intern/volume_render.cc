@@ -385,20 +385,14 @@ static void grow_triangles(blender::MutableSpan<blender::float3> verts,
   /* Compute the offset for every vertex based on the connected edges.
    * This formula simply tries increases the length of all edges. */
   blender::Array<blender::float3> offsets(verts.size(), {0, 0, 0});
-  blender::Array<float> weights(verts.size(), 0.0f);
   for (const std::array<int, 3> &tri : tris) {
     offsets[tri[0]] += factor * (2 * verts[tri[0]] - verts[tri[1]] - verts[tri[2]]);
     offsets[tri[1]] += factor * (2 * verts[tri[1]] - verts[tri[0]] - verts[tri[2]]);
     offsets[tri[2]] += factor * (2 * verts[tri[2]] - verts[tri[0]] - verts[tri[1]]);
-    weights[tri[0]] += 1.0;
-    weights[tri[1]] += 1.0;
-    weights[tri[2]] += 1.0;
   }
   /* Apply the computed offsets. */
   for (const int i : verts.index_range()) {
-    if (weights[i] > 0.0f) {
-      verts[i] += offsets[i] / weights[i];
-    }
+    verts[i] += offsets[i];
   }
 }
 #endif /* WITH_OPENVDB */

@@ -620,19 +620,22 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   const Span<float3> vert_normals = me->vert_normals();
   const blender::OffsetIndices faces = me->faces();
   const Span<int> corner_verts = me->corner_verts();
+  const float(*lnors)[3] = nullptr;
+  bool use_custom_normals = false;
 
   const bke::AttributeAccessor attributes = me->attributes();
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 
-  blender::Span<blender::float3> corner_normals;
-  if (me->normals_domain() == blender::bke::MeshNormalDomain::Corner) {
-    corner_normals = me->corner_normals();
+  BKE_mesh_calc_normals_split(me);
+  if (CustomData_has_layer(&me->loop_data, CD_NORMAL)) {
+    lnors = (float(*)[3])CustomData_get_layer(&me->loop_data, CD_NORMAL);
+    use_custom_normals = true;
   }
 
   for (const int face_index : faces.index_range()) {
     const IndexRange face = faces[face_index];
-    bool use_vert_normals = !corner_normals.is_empty() || !sharp_faces[face_index];
+    bool use_vert_normals = use_custom_normals || !sharp_faces[face_index];
 
     if (!use_vert_normals) {
       /* For flat faces use face normal as vertex normal: */
@@ -650,8 +653,8 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
       if (use_vert_normals) {
         float normalized[3];
 
-        if (!corner_normals.is_empty()) {
-          normalize_v3_v3(normalized, corner_normals[corner]);
+        if (use_custom_normals) {
+          normalize_v3_v3(normalized, lnors[corner]);
         }
         else {
           copy_v3_v3(normalized, vert_normals[corner_verts[corner]]);

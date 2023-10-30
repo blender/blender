@@ -11,7 +11,7 @@
 #  include "GHOST_ImeWin32.hh"
 #  include "GHOST_C-api.h"
 #  include "GHOST_WindowWin32.hh"
-#  include "utfconv.hh"
+#  include "utfconv.h"
 
 /* ISO_639-1 2-Letter Abbreviations. */
 #  define IMELANG_ENGLISH "en"

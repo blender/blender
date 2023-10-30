@@ -8,7 +8,6 @@
 #include "BLI_math_quaternion_types.hh"
 
 #include "FN_field.hh"
-#include "FN_field_cpp_type.hh"
 #include "FN_lazy_function.hh"
 #include "FN_multi_function_builder.hh"
 
@@ -40,7 +39,6 @@ using bke::GAttributeWriter;
 using bke::GeometryComponent;
 using bke::GeometryComponentEditData;
 using bke::GeometrySet;
-using bke::GreasePencilComponent;
 using bke::GSpanAttributeWriter;
 using bke::InstancesComponent;
 using bke::MeshComponent;
@@ -104,14 +102,6 @@ class GeoNodeExecParams {
       ValueOrField<BaseType> value_or_field = this->extract_input<ValueOrField<BaseType>>(
           identifier);
       return value_or_field.as_field();
-    }
-    else if constexpr (std::is_same_v<std::decay_t<T>, GField>) {
-      const int index = this->get_input_index(identifier);
-      const bNodeSocket &input_socket = node_.input_by_identifier(identifier);
-      const CPPType &value_type = *input_socket.typeinfo->geometry_nodes_cpp_type;
-      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
-          value_type);
-      return value_or_field_type.as_field(params_.try_get_input_data_ptr(index));
     }
     else {
 #ifdef DEBUG

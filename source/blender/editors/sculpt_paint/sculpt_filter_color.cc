@@ -94,7 +94,7 @@ static void color_filter_task(Object *ob,
     float orig_color[3], final_color[4], hsv_color[3];
     int hue;
     float brightness, contrast, gain, delta, offset;
-    float fade = vd.mask;
+    float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= filter_strength;
     fade *= SCULPT_automasking_factor_get(

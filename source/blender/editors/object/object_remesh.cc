@@ -839,13 +839,13 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
   return mesh_mirror;
 }
 
-static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_status)
+static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
-  qj->stop = &worker_status->stop;
-  qj->do_update = &worker_status->do_update;
-  qj->progress = &worker_status->progress;
+  qj->stop = stop;
+  qj->do_update = do_update;
+  qj->progress = progress;
   qj->success = 1;
 
   if (qj->is_nonblocking_job) {
@@ -886,8 +886,8 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   BKE_id_free(nullptr, bisect_mesh);
 
   if (new_mesh == nullptr) {
-    worker_status->do_update = true;
-    worker_status->stop = false;
+    *do_update = true;
+    *stop = false;
     if (qj->success == 1) {
       /* This is not a user cancellation event. */
       qj->success = 0;
@@ -916,8 +916,8 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
 
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
 
-  worker_status->do_update = true;
-  worker_status->stop = false;
+  *do_update = true;
+  *stop = false;
 }
 
 static void quadriflow_end_job(void *customdata)
@@ -992,8 +992,9 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   if (op->flag == 0) {
     /* This is called directly from the exec operator, this operation is now blocking */
     job->is_nonblocking_job = false;
-    wmJobWorkerStatus worker_status = {};
-    quadriflow_start_job(job, &worker_status);
+    bool stop = false, do_update = true;
+    float progress;
+    quadriflow_start_job(job, &stop, &do_update, &progress);
     quadriflow_end_job(job);
     quadriflow_free_job(job);
   }

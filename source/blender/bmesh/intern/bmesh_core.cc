@@ -11,10 +11,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines_stack.h"
-#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -25,8 +25,6 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
-
-using blender::Vector;
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
@@ -400,8 +398,8 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 }
 
 BMFace *BM_face_create(BMesh *bm,
-                       BMVert *const *verts,
-                       BMEdge *const *edges,
+                       BMVert **verts,
+                       BMEdge **edges,
                        const int len,
                        const BMFace *f_example,
                        const eBMCreateFlag create_flag)
@@ -1141,6 +1139,12 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 #endif
   BMLoop *l_iter;
   BMLoop *l_first;
+  BMEdge **edges = nullptr;
+  BMEdge **deledges = nullptr;
+  BMVert **delverts = nullptr;
+  BLI_array_staticdeclare(edges, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(deledges, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(delverts, BM_DEFAULT_NGON_STACK_SIZE);
   BMVert *v1 = nullptr, *v2 = nullptr;
   int i;
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -1156,10 +1160,6 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 
   bm_elements_systag_enable(faces, totface, _FLAG_JF);
 
-  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges;
-  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> deledges;
-  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> delverts;
-
   for (i = 0; i < totface; i++) {
     f = faces[i];
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -1171,7 +1171,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
         goto error;
       }
       else if (rlen == 1) {
-        edges.append(l_iter->e);
+        BLI_array_append(edges, l_iter->e);
 
         if (!v1) {
           v1 = l_iter->v;
@@ -1187,7 +1187,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
            * else this will remove the face as well - campbell */
           if (!BM_edge_face_count_is_over(l_iter->e, 2)) {
             if (do_del) {
-              deledges.append(l_iter->e);
+              BLI_array_append(deledges, l_iter->e);
             }
             BM_ELEM_API_FLAG_ENABLE(l_iter->e, _FLAG_JF);
           }
@@ -1195,14 +1195,14 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
         else {
           if (d1 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v1, _FLAG_JF)) {
             if (do_del) {
-              delverts.append(l_iter->e->v1);
+              BLI_array_append(delverts, l_iter->e->v1);
             }
             BM_ELEM_API_FLAG_ENABLE(l_iter->e->v1, _FLAG_JF);
           }
 
           if (d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v2, _FLAG_JF)) {
             if (do_del) {
-              delverts.append(l_iter->e->v2);
+              BLI_array_append(delverts, l_iter->e->v2);
             }
             BM_ELEM_API_FLAG_ENABLE(l_iter->e->v2, _FLAG_JF);
           }
@@ -1223,9 +1223,9 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
   }
 
   /* create region face */
-  f_new = !edges.is_empty() ?
+  f_new = BLI_array_len(edges) ?
               BM_face_create_ngon(
-                  bm, v1, v2, edges.data(), edges.size(), faces[0], BM_CREATE_NOP) :
+                  bm, v1, v2, edges, BLI_array_len(edges), faces[0], BM_CREATE_NOP) :
               nullptr;
   if (UNLIKELY(f_new == nullptr)) {
     /* Invalid boundary region to join faces */
@@ -1292,12 +1292,12 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 
   /* delete old geometry */
   if (do_del) {
-    for (BMEdge *edge : deledges) {
-      BM_edge_kill(bm, edge);
+    for (i = 0; i < BLI_array_len(deledges); i++) {
+      BM_edge_kill(bm, deledges[i]);
     }
 
-    for (BMVert *vert : delverts) {
-      BM_vert_kill(bm, vert);
+    for (i = 0; i < BLI_array_len(delverts); i++) {
+      BM_vert_kill(bm, delverts[i]);
     }
   }
   else {
@@ -1307,11 +1307,18 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
     }
   }
 
+  BLI_array_free(edges);
+  BLI_array_free(deledges);
+  BLI_array_free(delverts);
+
   BM_CHECK_ELEMENT(f_new);
   return f_new;
 
 error:
   bm_elements_systag_disable(faces, totface, _FLAG_JF);
+  BLI_array_free(edges);
+  BLI_array_free(deledges);
+  BLI_array_free(delverts);
 
   return nullptr;
 }

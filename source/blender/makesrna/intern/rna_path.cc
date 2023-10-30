@@ -1098,13 +1098,7 @@ static char *rna_path_from_ptr_to_property_index_ex(
   }
   else {
     if (is_rna) {
-      if (index_dim == 0) {
-        /* Use direct duplication instead of #BLI_sprintfN because it's faster. */
-        path = BLI_strdup(propname);
-      }
-      else {
-        path = BLI_sprintfN("%s%s", propname, index_str);
-      }
+      path = BLI_sprintfN("%s%s", propname, index_str);
     }
     else {
       char propname_esc[MAX_IDPROP_NAME * 2];

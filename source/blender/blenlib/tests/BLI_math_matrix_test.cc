@@ -274,15 +274,6 @@ TEST(math_matrix, MatrixInit)
                     {-1.10289, 2.70714, -0.674535, 0},
                     {1, 2, 3, 1});
   EXPECT_TRUE(is_equal(m, expect, 0.00001f));
-
-  float3 up = normalize(float3(1, 2, 3));
-  m = from_up_axis<float4x4>(up);
-  /* Output is not expected to be stable. Just test if they satisfy the expectations. */
-  EXPECT_EQ(m.z_axis(), up);
-  EXPECT_LE(abs(dot(m.z_axis(), m.x_axis())), 0.000001f);
-  EXPECT_LE(abs(dot(m.y_axis(), m.x_axis())), 0.000001f);
-  EXPECT_LE(abs(dot(m.z_axis(), m.y_axis())), 0.000001f);
-  EXPECT_NEAR(1.0f, determinant(m), 1e-6);
 }
 
 TEST(math_matrix, MatrixModify)

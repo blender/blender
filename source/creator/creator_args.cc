@@ -1224,23 +1224,26 @@ static int arg_handle_debug_gpu_renderdoc_set(int /*argc*/,
 static const char arg_handle_gpu_backend_set_doc_all[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
-    "'vulkan' (experimental),  "
+    "'vulkan',  "
     "'metal',  "
     "'opengl'.";
 static const char arg_handle_gpu_backend_set_doc[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
-#  ifdef WITH_OPENGL_BACKEND
-    "'opengl'"
-#    if defined(WITH_VULKAN_BACKEND)
-    " or "
-#    endif
-#  endif
 #  ifdef WITH_VULKAN_BACKEND
-    "'vulkan' (experimental)"
+    "'vulkan'"
+#    if defined(WITH_METAL_BACKEND) || defined(WITH_OPENGL_BACKEND)
+    ",  "
+#    endif
 #  endif
 #  ifdef WITH_METAL_BACKEND
     "'metal'"
+#    if defined(WITH_OPENGL_BACKEND)
+    ",  "
+#    endif
+#  endif
+#  ifdef WITH_OPENGL_BACKEND
+    "'opengl'"
 #  endif
     ".";
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data*/)
@@ -1394,8 +1397,8 @@ static int arg_handle_playback_mode(int argc, const char **argv, void * /*data*/
     IMB_ffmpeg_init();
 #  endif
 
-    /* Skip this argument (`-a`). */
-    WM_main_playanim(argc - 1, argv + 1);
+    /* This function knows to skip this argument ('-a'). */
+    WM_main_playanim(argc, argv);
 
     exit(EXIT_SUCCESS);
   }
@@ -1815,7 +1818,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
         }
       }
       RE_SetReports(re, nullptr);
-      BKE_reports_free(&reports);
+      BKE_reports_clear(&reports);
       MEM_freeN(frame_range_arr);
       return 1;
     }
@@ -1842,7 +1845,7 @@ static int arg_handle_render_animation(int /*argc*/, const char ** /*argv*/, voi
     RE_RenderAnim(
         re, bmain, scene, nullptr, nullptr, scene->r.sfra, scene->r.efra, scene->r.frame_step);
     RE_SetReports(re, nullptr);
-    BKE_reports_free(&reports);
+    BKE_reports_clear(&reports);
   }
   else {
     fprintf(stderr, "\nError: no blend loaded. cannot use '-a'.\n");
@@ -2180,7 +2183,7 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
   BKE_reports_init(&reports, RPT_PRINT);
   WM_file_autoexec_init(filepath);
   const bool success = WM_file_read(C, filepath, &reports);
-  BKE_reports_free(&reports);
+  BKE_reports_clear(&reports);
 
   if (success) {
     if (G.background) {

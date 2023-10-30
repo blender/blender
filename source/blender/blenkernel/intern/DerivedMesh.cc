@@ -20,6 +20,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_array.h"
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
@@ -89,8 +90,10 @@ using blender::bke::MeshComponent;
 #endif
 
 static void mesh_init_origspace(Mesh *mesh);
-static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final);
-static void editbmesh_calc_modifier_final_normals_or_defer(Mesh *mesh_final);
+static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
+                                                  const CustomData_MeshMasks *final_datamask);
+static void editbmesh_calc_modifier_final_normals_or_defer(
+    Mesh *mesh_final, const CustomData_MeshMasks *final_datamask);
 
 /* -------------------------------------------------------------------- */
 
@@ -446,6 +449,60 @@ static void add_orco_mesh(
   }
 }
 
+static bool mesh_has_modifier_final_normals(const Mesh *mesh_input,
+                                            const CustomData_MeshMasks *final_datamask,
+                                            Mesh *mesh_final)
+{
+  /* Test if mesh has the required loop normals, in case an additional modifier
+   * evaluation from another instance or from an operator requests it but the
+   * initial normals were not loop normals. */
+  const bool calc_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
+                                  (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+
+  return (!calc_loop_normals || CustomData_has_layer(&mesh_final->loop_data, CD_NORMAL));
+}
+
+static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
+                                             const CustomData_MeshMasks *final_datamask,
+                                             const bool sculpt_dyntopo,
+                                             Mesh *mesh_final)
+{
+  /* Compute normals. */
+  const bool calc_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
+                                  (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+
+  /* Needed as `final_datamask` is not preserved outside modifier stack evaluation. */
+  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime->subsurf_runtime_data;
+  if (subsurf_runtime_data) {
+    subsurf_runtime_data->calc_loop_normals = calc_loop_normals;
+  }
+
+  if (calc_loop_normals) {
+    /* Compute loop normals (NOTE: will compute face and vert normals as well, if needed!). In case
+     * of deferred CPU subdivision, this will be computed when the wrapper is generated. */
+    if (!subsurf_runtime_data || subsurf_runtime_data->resolution == 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
+    }
+  }
+  else {
+    if (sculpt_dyntopo == false) {
+      /* without this, drawing ngon tri's faces will show ugly tessellated face
+       * normals and will also have to calculate normals on the fly, try avoid
+       * this where possible since calculating face normals isn't fast,
+       * note that this isn't a problem for subsurf (only quads) or edit-mode
+       * which deals with drawing differently. */
+      BKE_mesh_ensure_normals_for_display(mesh_final);
+    }
+
+    /* Some modifiers, like data-transfer, may generate those data as temp layer,
+     * we do not want to keep them, as they are used by display code when available
+     * (i.e. even if auto-smooth is disabled). */
+    if (CustomData_has_layer(&mesh_final->loop_data, CD_NORMAL)) {
+      CustomData_free_layers(&mesh_final->loop_data, CD_NORMAL, mesh_final->totloop);
+    }
+  }
+}
+
 /* Does final touches to the final evaluated mesh, making sure it is perfectly usable.
  *
  * This is needed because certain information is not passed along intermediate meshes allocated
@@ -460,10 +517,11 @@ static void mesh_calc_finalize(const Mesh *mesh_input, Mesh *mesh_eval)
   mesh_eval->edit_mesh = mesh_input->edit_mesh;
 }
 
-void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *me_eval)
+void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *me_eval,
+                                              const CustomData_MeshMasks *cd_mask_finalize)
 {
   if (me_eval->runtime->wrapper_type_finalize & (1 << ME_WRAPPER_TYPE_BMESH)) {
-    editbmesh_calc_modifier_final_normals(me_eval);
+    editbmesh_calc_modifier_final_normals(me_eval, cd_mask_finalize);
     me_eval->runtime->wrapper_type_finalize = eMeshWrapperType(
         me_eval->runtime->wrapper_type_finalize & ~(1 << ME_WRAPPER_TYPE_BMESH));
   }
@@ -967,6 +1025,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
 
   /* Compute normals. */
   if (is_own_mesh) {
+    mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
     mesh_calc_finalize(mesh_input, mesh_final);
   }
   else {
@@ -978,6 +1037,8 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
          * Isolate since computing normals is multithreaded and we are holding a lock. */
         blender::threading::isolate_task([&] {
           mesh_final = BKE_mesh_copy_for_eval(mesh_input);
+          mesh_calc_modifier_final_normals(
+              mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
           mesh_calc_finalize(mesh_input, mesh_final);
           runtime->mesh_eval = mesh_final;
         });
@@ -986,6 +1047,13 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
         /* Already finalized by another instance, reuse. */
         mesh_final = runtime->mesh_eval;
       }
+    }
+    else if (!mesh_has_modifier_final_normals(mesh_input, &final_datamask, runtime->mesh_eval)) {
+      /* Modifier stack was (re-)evaluated with a request for additional normals
+       * different than the instanced mesh, can't instance anymore now. */
+      mesh_final = BKE_mesh_copy_for_eval(mesh_input);
+      mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
+      mesh_calc_finalize(mesh_input, mesh_final);
     }
     else {
       /* Already finalized by another instance, reuse. */
@@ -1035,25 +1103,39 @@ bool editbmesh_modifier_is_enabled(const Scene *scene,
   return true;
 }
 
-static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final)
+static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
+                                                  const CustomData_MeshMasks *final_datamask)
 {
-  switch (mesh_final->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      break;
-    case ME_WRAPPER_TYPE_BMESH: {
-      BMEditMesh *em = mesh_final->edit_mesh;
-      blender::bke::EditMeshData *emd = mesh_final->runtime->edit_data;
-      if (!emd->vertexCos.is_empty()) {
-        BKE_editmesh_cache_ensure_vert_normals(em, emd);
-        BKE_editmesh_cache_ensure_face_normals(em, emd);
-      }
-      return;
+  const bool calc_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
+                                  (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+
+  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime->subsurf_runtime_data;
+  if (subsurf_runtime_data) {
+    subsurf_runtime_data->calc_loop_normals = calc_loop_normals;
+  }
+
+  if (calc_loop_normals) {
+    /* Compute loop normals. In case of deferred CPU subdivision, this will be computed when the
+     * wrapper is generated. */
+    if (!subsurf_runtime_data || subsurf_runtime_data->resolution == 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
+    }
+  }
+  else {
+    /* Same as #mesh_calc_modifiers.
+     * If using loop normals, face normals have already been computed. */
+    BKE_mesh_ensure_normals_for_display(mesh_final);
+
+    /* Some modifiers, like data-transfer, may generate those data, we do not want to keep them,
+     * as they are used by display code when available (i.e. even if auto-smooth is disabled). */
+    if (CustomData_has_layer(&mesh_final->loop_data, CD_NORMAL)) {
+      CustomData_free_layers(&mesh_final->loop_data, CD_NORMAL, mesh_final->totloop);
     }
   }
 }
 
-static void editbmesh_calc_modifier_final_normals_or_defer(Mesh *mesh_final)
+static void editbmesh_calc_modifier_final_normals_or_defer(
+    Mesh *mesh_final, const CustomData_MeshMasks *final_datamask)
 {
   if (mesh_final->runtime->wrapper_type != ME_WRAPPER_TYPE_MDATA) {
     /* Generated at draw time. */
@@ -1062,7 +1144,7 @@ static void editbmesh_calc_modifier_final_normals_or_defer(Mesh *mesh_final)
     return;
   }
 
-  editbmesh_calc_modifier_final_normals(mesh_final);
+  editbmesh_calc_modifier_final_normals(mesh_final, final_datamask);
 }
 
 static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
@@ -1280,9 +1362,9 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
   }
 
   /* Compute normals. */
-  editbmesh_calc_modifier_final_normals_or_defer(mesh_final);
+  editbmesh_calc_modifier_final_normals_or_defer(mesh_final, &final_datamask);
   if (mesh_cage && (mesh_cage != mesh_final)) {
-    editbmesh_calc_modifier_final_normals_or_defer(mesh_cage);
+    editbmesh_calc_modifier_final_normals_or_defer(mesh_cage, &final_datamask);
   }
 
   /* Return final mesh. */

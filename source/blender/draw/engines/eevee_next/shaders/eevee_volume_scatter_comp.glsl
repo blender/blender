@@ -9,6 +9,7 @@
  * Also do the temporal reprojection to fight aliasing artifacts. */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 /* Included here to avoid requiring lightprobe resources for all volume lib users. */
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
@@ -25,30 +26,27 @@ vec3 volume_scatter_light_eval(
 {
   LightData light = light_buf[l_idx];
 
-  if (light.power[LIGHT_VOLUME] == 0.0) {
+  if (light.volume_power == 0.0) {
     return vec3(0);
   }
 
-  LightVector lv = light_shape_vector_get(light, is_directional, P);
+  vec3 L;
+  float l_dist;
+  light_shape_vector_get(light, P, L, l_dist);
 
-  float attenuation = light_attenuation_volume(light, is_directional, lv);
-  if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
+  float visibility = light_attenuation(light, L, l_dist);
+  if (light.tilemap_index != LIGHT_NO_SHADOW && (visibility > 0.0)) {
+    ShadowEvalResult samp = shadow_sample(
+        is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P);
+    visibility *= samp.surface_light_visibilty;
+  }
+
+  if (visibility < 1e-4) {
     return vec3(0);
   }
 
-  float visibility = attenuation;
-  if (light.tilemap_index != LIGHT_NO_SHADOW) {
-    visibility *= shadow_sample(is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P)
-                      .light_visibilty;
-  }
-
-  if (visibility < LIGHT_ATTENUATION_THRESHOLD) {
-    return vec3(0);
-  }
-
-  vec3 Li = volume_light(light, is_directional, lv) *
-            volume_shadow(light, is_directional, P, lv, extinction_tx);
-  return Li * visibility * volume_phase_function(-V, lv.L, s_anisotropy);
+  vec3 Li = volume_light(light, L, l_dist) * volume_shadow(light, P, L, l_dist, extinction_tx);
+  return Li * visibility * volume_phase_function(-V, L, s_anisotropy);
 }
 
 #endif
@@ -67,11 +65,10 @@ void main()
   vec3 s_scattering = imageLoad(in_scattering_img, froxel).rgb;
 
   vec3 jitter = sampling_rng_3D_get(SAMPLING_VOLUME_U);
-  vec3 volume_screen = volume_to_screen((vec3(froxel) + jitter) *
-                                        uniform_buf.volumes.inv_tex_size);
-  vec3 vP = drw_point_screen_to_view(volume_screen);
-  vec3 P = drw_point_view_to_world(vP);
-  vec3 V = drw_world_incident_vector(P);
+  vec3 volume_ndc = volume_to_ndc((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
+  vec3 vP = get_view_space_from_depth(volume_ndc.xy, volume_ndc.z);
+  vec3 P = point_view_to_world(vP);
+  vec3 V = cameraVec(P);
 
   vec2 phase = imageLoad(in_phase_img, froxel).rg;
   /* Divide by phase total weight, to compute the mean anisotropy. */

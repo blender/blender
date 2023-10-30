@@ -31,7 +31,6 @@ struct uiList;
 struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
-struct Panel_Runtime;
 
 /* TODO: Doing this is quite ugly :)
  * Once the top-bar is merged bScreen should be refactored to use ScrAreaMap. */
@@ -121,6 +120,29 @@ typedef struct ScrAreaMap {
   ListBase areabase;
 } ScrAreaMap;
 
+typedef struct Panel_Runtime {
+  /* Applied to Panel.ofsx, but saved separately so we can track changes between redraws. */
+  int region_ofsx;
+
+  char _pad[4];
+
+  /**
+   * Pointer for storing which data the panel corresponds to.
+   * Useful when there can be multiple instances of the same panel type.
+   *
+   * \note A panel and its sub-panels share the same custom data pointer.
+   * This avoids freeing the same pointer twice when panels are removed.
+   */
+  struct PointerRNA *custom_data_ptr;
+
+  /* Pointer to the panel's block. Useful when changes to panel #uiBlocks
+   * need some context from traversal of the panel "tree". */
+  struct uiBlock *block;
+
+  /* Non-owning pointer. The context is stored in the block. */
+  struct bContextStore *context;
+} Panel_Runtime;
+
 /** The part from uiBlock that needs saved in file. */
 typedef struct Panel {
   struct Panel *next, *prev;
@@ -150,7 +172,7 @@ typedef struct Panel {
   /** Sub panels. */
   ListBase children;
 
-  struct Panel_Runtime *runtime;
+  Panel_Runtime runtime;
 } Panel;
 
 /**

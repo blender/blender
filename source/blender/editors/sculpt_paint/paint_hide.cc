@@ -76,9 +76,11 @@ static void partialvis_update_mesh(Object *ob,
   Mesh *me = static_cast<Mesh *>(ob->data);
   const float(*positions)[3] = BKE_pbvh_get_vert_positions(pbvh);
   const float *paint_mask;
+  int totvert, i;
   bool any_changed = false, any_visible = false;
 
-  const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+  BKE_pbvh_node_num_verts(pbvh, node, nullptr, &totvert);
+  const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
   paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
 
   bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
@@ -90,16 +92,16 @@ static void partialvis_update_mesh(Object *ob,
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-  for (const int vert : verts) {
-    float vmask = paint_mask ? paint_mask[vert] : 0;
+  for (i = 0; i < totvert; i++) {
+    float vmask = paint_mask ? paint_mask[vert_indices[i]] : 0;
 
     /* Hide vertex if in the hide volume. */
-    if (is_effected(area, planes, positions[vert], vmask)) {
-      hide_vert[vert] = (action == PARTIALVIS_HIDE);
+    if (is_effected(area, planes, positions[vert_indices[i]], vmask)) {
+      hide_vert[vert_indices[i]] = (action == PARTIALVIS_HIDE);
       any_changed = true;
     }
 
-    if (!hide_vert[vert]) {
+    if (!hide_vert[vert_indices[i]]) {
       any_visible = true;
     }
   }
@@ -198,14 +200,17 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
-                                          const blender::Set<BMVert *, 0> &verts,
+                                          GSet *verts,
                                           PartialVisAction action,
                                           PartialVisArea area,
                                           float planes[4][4],
                                           bool *any_changed,
                                           bool *any_visible)
 {
-  for (BMVert *v : verts) {
+  GSetIterator gs_iter;
+
+  GSET_ITER (gs_iter, verts) {
+    BMVert *v = static_cast<BMVert *>(BLI_gsetIterator_getKey(&gs_iter));
     float *vmask = static_cast<float *>(
         CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK));
 
@@ -226,9 +231,13 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
   }
 }
 
-static void partialvis_update_bmesh_faces(const blender::Set<BMFace *, 0> &faces)
+static void partialvis_update_bmesh_faces(GSet *faces)
 {
-  for (BMFace *f : faces) {
+  GSetIterator gs_iter;
+
+  GSET_ITER (gs_iter, faces) {
+    BMFace *f = static_cast<BMFace *>(BLI_gsetIterator_getKey(&gs_iter));
+
     if (paint_is_bmesh_face_hidden(f)) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
     }
@@ -246,25 +255,22 @@ static void partialvis_update_bmesh(Object *ob,
                                     float planes[4][4])
 {
   BMesh *bm;
+  GSet *unique, *other, *faces;
   bool any_changed = false, any_visible = false;
 
   bm = BKE_pbvh_get_bmesh(pbvh);
+  unique = BKE_pbvh_bmesh_node_unique_verts(node);
+  other = BKE_pbvh_bmesh_node_other_verts(node);
+  faces = BKE_pbvh_bmesh_node_faces(node);
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-  partialvis_update_bmesh_verts(bm,
-                                BKE_pbvh_bmesh_node_unique_verts(node),
-                                action,
-                                area,
-                                planes,
-                                &any_changed,
-                                &any_visible);
+  partialvis_update_bmesh_verts(bm, unique, action, area, planes, &any_changed, &any_visible);
 
-  partialvis_update_bmesh_verts(
-      bm, BKE_pbvh_bmesh_node_other_verts(node), action, area, planes, &any_changed, &any_visible);
+  partialvis_update_bmesh_verts(bm, other, action, area, planes, &any_changed, &any_visible);
 
   /* Finally loop over node faces and tag the ones that are fully hidden. */
-  partialvis_update_bmesh_faces(BKE_pbvh_bmesh_node_faces(node));
+  partialvis_update_bmesh_faces(faces);
 
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);
@@ -285,10 +291,11 @@ static void clip_planes_from_rect(bContext *C,
                                   float clip_planes[4][4],
                                   const rcti *rect)
 {
+  ViewContext vc;
   BoundBox bb;
 
   view3d_operator_needs_opengl(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, rect);
 }
 

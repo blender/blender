@@ -179,11 +179,6 @@ class LightBake {
             }
           });
 
-      if (instance_->info != "") {
-        /** TODO: Print to the Status Bar UI. */
-        printf("%s\n", instance_->info.c_str());
-      }
-
       if ((G.is_break == true) || (stop != nullptr && *stop == true)) {
         break;
       }
@@ -302,7 +297,7 @@ wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
   }
 
   /* Stop existing baking job. */
-  WM_jobs_stop(wm, nullptr, EEVEE_NEXT_lightbake_job);
+  WM_jobs_stop(wm, nullptr, (void *)EEVEE_NEXT_lightbake_job);
 
   wmJob *wm_job = WM_jobs_get(wm,
                               win,
@@ -349,10 +344,9 @@ void EEVEE_NEXT_lightbake_update(void *job_data)
   static_cast<LightBake *>(job_data)->update();
 }
 
-void EEVEE_NEXT_lightbake_job(void *job_data, wmJobWorkerStatus *worker_status)
+void EEVEE_NEXT_lightbake_job(void *job_data, bool *stop, bool *do_update, float *progress)
 {
-  static_cast<LightBake *>(job_data)->run(
-      &worker_status->stop, &worker_status->do_update, &worker_status->progress);
+  static_cast<LightBake *>(job_data)->run(stop, do_update, progress);
 }
 
 /** \} */

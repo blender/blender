@@ -15,7 +15,7 @@
 
 namespace blender::gpu {
 class VKContext;
-class VKCommandBuffers;
+class VKCommandBuffer;
 
 /**
  * In vulkan multiple commands can be in flight simultaneously.
@@ -81,7 +81,7 @@ struct VKSubmissionID {
     return id_ != other.id_;
   }
 
-  friend class VKCommandBuffers;
+  friend class VKCommandBuffer;
 };
 
 /**

@@ -282,7 +282,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
   lcd = static_cast<RingSelOpData *>(
       op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data"));
 
-  lcd->vc = em_setup_viewcontext(C);
+  em_setup_viewcontext(C, &lcd->vc);
 
   lcd->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -554,7 +554,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
   bool show_cuts = false;
   const bool has_numinput = hasNumInput(&lcd->num);
 
-  lcd->vc = em_setup_viewcontext(C);
+  em_setup_viewcontext(C, &lcd->vc);
   lcd->region = lcd->vc.region;
 
   view3d_operator_needs_opengl(C);

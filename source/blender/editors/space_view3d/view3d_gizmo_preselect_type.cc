@@ -141,7 +141,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     }
   }
 
-  ViewContext vc = em_setup_viewcontext(C);
+  ViewContext vc;
+  em_setup_viewcontext(C, &vc);
   copy_v2_v2_int(vc.mval, mval);
 
   {
@@ -370,7 +371,8 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     }
   }
 
-  ViewContext vc = em_setup_viewcontext(C);
+  ViewContext vc;
+  em_setup_viewcontext(C, &vc);
   copy_v2_v2_int(vc.mval, mval);
 
   uint base_index;

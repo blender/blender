@@ -147,8 +147,13 @@ void GLImmediate::end()
     /* Update matrices. */
     GPU_shader_bind(shader);
 
+#ifdef __APPLE__
+    glDisable(GL_PRIMITIVE_RESTART);
+#endif
     glDrawArrays(to_gl(prim_type), 0, vertex_len);
-
+#ifdef __APPLE__
+    glEnable(GL_PRIMITIVE_RESTART);
+#endif
     /* These lines are causing crash on startup on some old GPU + drivers.
      * They are not required so just comment them. (#55722) */
     // glBindBuffer(GL_ARRAY_BUFFER, 0);

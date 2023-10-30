@@ -102,10 +102,10 @@ void ShadingView::render()
 
   update_view();
 
+  inst_.hiz_buffer.set_dirty();
+
   DRW_stats_group_start(name_);
   DRW_view_set_active(render_view_);
-
-  inst_.planar_probes.set_view(render_view_new_, extent_);
 
   /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
    * precision issue by setting the motion of all static geometry to 0. */
@@ -118,14 +118,12 @@ void ShadingView::render()
   GPU_framebuffer_bind(combined_fb_);
   GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
 
-  inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.hiz_buffer.set_dirty();
 
   inst_.pipelines.background.render(render_view_new_);
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_new_, extent_);
-  inst_.reflection_probes.set_view(render_view_new_);
 
   inst_.volume.draw_prepass(render_view_new_);
 
@@ -214,7 +212,7 @@ void ShadingView::update_view()
 void CaptureView::render_world()
 {
   const std::optional<ReflectionProbeUpdateInfo> update_info =
-      inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::WORLD);
+      inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::World);
   if (!update_info.has_value()) {
     return;
   }
@@ -240,7 +238,7 @@ void CaptureView::render_world()
       inst_.pipelines.world.render(view);
     }
 
-    inst_.reflection_probes.remap_to_octahedral_projection(update_info->atlas_coord);
+    inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
     inst_.reflection_probes.update_probes_texture_mipmaps();
   }
 
@@ -257,7 +255,7 @@ void CaptureView::render_probes()
   View view = {"Capture.View"};
   bool do_update_mipmap_chain = false;
   while (const std::optional<ReflectionProbeUpdateInfo> update_info =
-             inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::PROBE))
+             inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::Probe))
   {
     GPU_debug_group_begin("Probe.Capture");
     do_update_mipmap_chain = true;
@@ -291,11 +289,12 @@ void CaptureView::render_probes()
 
     inst_.render_buffers.release();
     GPU_debug_group_end();
-    inst_.reflection_probes.remap_to_octahedral_projection(update_info->atlas_coord);
+    inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
   }
 
   if (do_update_mipmap_chain) {
     /* TODO: only update the regions that have been updated. */
+    /* TODO: Composite world into the probes. */
     inst_.reflection_probes.update_probes_texture_mipmaps();
   }
 }

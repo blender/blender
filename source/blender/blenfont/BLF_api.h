@@ -85,11 +85,6 @@ void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
 void BLF_size(int fontid, float size);
 
-/**
- * Weight class: 100 (Thin) - 400 (Normal) - 900 (Heavy).
- */
-void BLF_character_weight(int fontid, int weight);
-
 /* Goal: small but useful color API. */
 
 void BLF_color4ubv(int fontid, const unsigned char rgba[4]);
@@ -106,10 +101,10 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
 
 /**
  * Set a 4x4 matrix to be multiplied before draw the text.
- * Remember that you need call `BLF_enable(BLF_MATRIX)`
+ * Remember that you need call BLF_enable(BLF_MATRIX)
  * to enable this.
  *
- * The order of the matrix is column major (following the GPU module):
+ * The order of the matrix is like GL:
  * \code{.unparsed}
  *  | m[0]  m[4]  m[8]  m[12] |
  *  | m[1]  m[5]  m[9]  m[13] |

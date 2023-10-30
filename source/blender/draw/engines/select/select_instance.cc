@@ -10,7 +10,7 @@
 
 #include "GPU_capabilities.h"
 
-#include "select_engine.hh"
+#include "select_engine.h"
 
 #include "../overlay/overlay_next_instance.hh"
 #include "select_instance.hh"

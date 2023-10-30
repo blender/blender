@@ -60,9 +60,9 @@ void main()
   bool is_outer_boundary = is_outer_masked && has_outer_non_masked_neighbours;
 
   /* Encode the boundary information in the format expected by the jump flooding algorithm. */
-  ivec2 inner_jump_flooding_value = initialize_jump_flooding_value(texel, is_inner_boundary);
-  ivec2 outer_jump_flooding_value = initialize_jump_flooding_value(texel, is_outer_boundary);
+  vec4 inner_jump_flooding_value = initialize_jump_flooding_value(texel, is_inner_boundary);
+  vec4 outer_jump_flooding_value = initialize_jump_flooding_value(texel, is_outer_boundary);
 
-  imageStore(inner_boundary_img, texel, ivec4(inner_jump_flooding_value, ivec2(0)));
-  imageStore(outer_boundary_img, texel, ivec4(outer_jump_flooding_value, ivec2(0)));
+  imageStore(inner_boundary_img, texel, inner_jump_flooding_value);
+  imageStore(outer_boundary_img, texel, outer_jump_flooding_value);
 }

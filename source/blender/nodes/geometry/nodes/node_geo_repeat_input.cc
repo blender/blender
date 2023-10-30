@@ -12,7 +12,6 @@
 
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
-#include "NOD_zone_socket_items.hh"
 
 #include "node_geometry_util.hh"
 
@@ -20,37 +19,20 @@ namespace blender::nodes::node_geo_repeat_input_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryRepeatInput);
 
-static void node_declare(NodeDeclarationBuilder &b)
+static void node_declare_dynamic(const bNodeTree &tree,
+                                 const bNode &node,
+                                 NodeDeclaration &r_declaration)
 {
+  NodeDeclarationBuilder b{r_declaration};
   b.add_input<decl::Int>("Iterations").min(0).default_value(1);
 
-  const bNode *node = b.node_or_null();
-  const bNodeTree *tree = b.tree_or_null();
-  if (ELEM(nullptr, node, tree)) {
-    return;
+  const NodeGeometryRepeatInput &storage = node_storage(node);
+  const bNode *output_node = tree.node_by_id(storage.output_node_id);
+  if (output_node != nullptr) {
+    const NodeGeometryRepeatOutput &output_storage =
+        *static_cast<const NodeGeometryRepeatOutput *>(output_node->storage);
+    socket_declarations_for_repeat_items(output_storage.items_span(), r_declaration);
   }
-
-  const NodeGeometryRepeatInput &storage = node_storage(*node);
-  const bNode *output_node = tree->node_by_id(storage.output_node_id);
-  if (output_node == nullptr) {
-    return;
-  }
-  const auto &output_storage = *static_cast<const NodeGeometryRepeatOutput *>(
-      output_node->storage);
-  for (const int i : IndexRange(output_storage.items_num)) {
-    const NodeRepeatItem &item = output_storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
-    const StringRef name = item.name ? item.name : "";
-    const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
-    auto &input_decl = b.add_input(socket_type, name, identifier);
-    auto &output_decl = b.add_output(socket_type, name, identifier);
-    if (socket_type_supports_fields(socket_type)) {
-      input_decl.supports_field();
-      output_decl.dependent_field({input_decl.input_index()});
-    }
-  }
-  b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -63,12 +45,40 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
-  bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
+  const bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
   if (!output_node) {
     return true;
   }
-  return socket_items::try_add_item_via_any_extend_socket<RepeatItemsAccessor>(
-      *ntree, *node, *output_node, *link);
+  auto &storage = *static_cast<NodeGeometryRepeatOutput *>(output_node->storage);
+  if (link->tonode == node) {
+    if (link->tosock->identifier == StringRef("__extend__")) {
+      if (const NodeRepeatItem *item = storage.add_item(link->fromsock->name,
+                                                        eNodeSocketDatatype(link->fromsock->type)))
+      {
+        update_node_declaration_and_sockets(*ntree, *node);
+        link->tosock = nodeFindSocket(node, SOCK_IN, item->identifier_str().c_str());
+        return true;
+      }
+    }
+    else {
+      return true;
+    }
+  }
+  if (link->fromnode == node) {
+    if (link->fromsock->identifier == StringRef("__extend__")) {
+      if (const NodeRepeatItem *item = storage.add_item(link->tosock->name,
+                                                        eNodeSocketDatatype(link->tosock->type)))
+      {
+        update_node_declaration_and_sockets(*ntree, *node);
+        link->fromsock = nodeFindSocket(node, SOCK_OUT, item->identifier_str().c_str());
+        return true;
+      }
+    }
+    else {
+      return true;
+    }
+  }
+  return false;
 }
 
 static void node_register()
@@ -76,7 +86,7 @@ static void node_register()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
-  ntype.declare = node_declare;
+  ntype.declare_dynamic = node_declare_dynamic;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   node_type_storage(

@@ -35,7 +35,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 
-#include "NOD_composite.hh"
+#include "NOD_composite.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

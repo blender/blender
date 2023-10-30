@@ -12,7 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 
 #include "DNA_fluid_types.h"
 #include "DNA_object_force_types.h"

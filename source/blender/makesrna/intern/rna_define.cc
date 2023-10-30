@@ -967,10 +967,10 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
     }
     else {
       if (srnafrom->flag & STRUCT_PUBLIC_NAMESPACE_INHERIT) {
-        RNA_def_struct_flag(srna, STRUCT_PUBLIC_NAMESPACE | STRUCT_PUBLIC_NAMESPACE_INHERIT);
+        srna->flag |= STRUCT_PUBLIC_NAMESPACE | STRUCT_PUBLIC_NAMESPACE_INHERIT;
       }
       else {
-        RNA_def_struct_clear_flag(srna, STRUCT_PUBLIC_NAMESPACE | STRUCT_PUBLIC_NAMESPACE_INHERIT);
+        srna->flag &= ~(STRUCT_PUBLIC_NAMESPACE | STRUCT_PUBLIC_NAMESPACE_INHERIT);
       }
     }
   }
@@ -982,11 +982,11 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
   srna->translation_context = BLT_I18NCONTEXT_DEFAULT_BPYRNA;
   if (!srnafrom) {
     srna->icon = ICON_DOT;
-    RNA_def_struct_flag(srna, STRUCT_UNDO);
+    srna->flag |= STRUCT_UNDO;
   }
 
   if (DefRNA.preprocess) {
-    RNA_def_struct_flag(srna, STRUCT_PUBLIC_NAMESPACE);
+    srna->flag |= STRUCT_PUBLIC_NAMESPACE;
   }
 
   rna_brna_structs_add(brna, srna);
@@ -1006,7 +1006,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
     RNA_def_struct_sdna(srna, srna->identifier);
   }
   else {
-    RNA_def_struct_flag(srna, STRUCT_RUNTIME);
+    srna->flag |= STRUCT_RUNTIME;
   }
 
   if (srnafrom) {
@@ -1395,16 +1395,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
     }
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
-      /* By default don't allow nullptr string args, callers may clear.
-       * Used so generated 'get/length/set' functions skip a nullptr check
-       * in some cases we want it */
+      /* By default don't allow nullptr string args, callers may clear. */
       RNA_def_property_flag(prop, PROP_NEVER_NULL);
       sprop->defaultvalue = "";
       break;
     }
     case PROP_POINTER:
-      /* needed for default behavior when PARM_RNAPTR is set */
-      RNA_def_property_flag(prop, PROP_THICK_WRAP);
+      prop->flag |= PROP_THICK_WRAP; /* needed for default behavior when PARM_RNAPTR is set */
       break;
     case PROP_ENUM:
     case PROP_COLLECTION:
@@ -1431,14 +1428,14 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
   prop->rawtype = RawPropertyType(-1);
 
   if (!ELEM(type, PROP_COLLECTION, PROP_POINTER)) {
-    RNA_def_property_flag(prop, PROP_EDITABLE);
+    prop->flag = PROP_EDITABLE;
 
     if (type != PROP_STRING) {
 #ifdef RNA_RUNTIME
-      RNA_def_property_flag(prop, PROP_ANIMATABLE);
+      prop->flag |= PROP_ANIMATABLE;
 #else
       if (DefRNA.animate) {
-        RNA_def_property_flag(prop, PROP_ANIMATABLE);
+        prop->flag |= PROP_ANIMATABLE;
       }
 #endif
     }
@@ -1446,9 +1443,15 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 
 #ifndef RNA_RUNTIME
   if (DefRNA.make_overridable) {
-    RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+    prop->flag_override |= PROPOVERRIDE_OVERRIDABLE_LIBRARY;
   }
 #endif
+
+  if (type == PROP_STRING) {
+    /* used so generated 'get/length/set' functions skip a nullptr check
+     * in some cases we want it */
+    RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  }
 
   if (DefRNA.preprocess) {
     switch (type) {
@@ -1493,7 +1496,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
     }
   }
   else {
-    RNA_def_property_flag(prop, PROP_IDPROPERTY);
+    prop->flag |= PROP_IDPROPERTY;
     prop->flag_internal |= PROP_INTERN_RUNTIME;
 #ifdef RNA_RUNTIME
     if (cont->prophash) {
@@ -1688,10 +1691,10 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
 {
   prop->icon = icon;
   if (consecutive != 0) {
-    RNA_def_property_flag(prop, PROP_ICONS_CONSECUTIVE);
+    prop->flag |= PROP_ICONS_CONSECUTIVE;
   }
   if (consecutive < 0) {
-    RNA_def_property_flag(prop, PROP_ICONS_REVERSE);
+    prop->flag |= PROP_ICONS_REVERSE;
   }
 }
 
@@ -1862,7 +1865,7 @@ void RNA_def_property_struct_runtime(StructOrFunctionRNA *cont, PropertyRNA *pro
       }
 
       if (type && (type->flag & STRUCT_ID_REFCOUNT)) {
-        RNA_def_property_flag(prop, PROP_ID_REFCOUNT);
+        prop->flag |= PROP_ID_REFCOUNT;
       }
 
       break;
@@ -1882,7 +1885,7 @@ void RNA_def_property_struct_runtime(StructOrFunctionRNA *cont, PropertyRNA *pro
   }
 
   if (is_id_type) {
-    RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+    prop->flag |= PROP_PTR_NO_OWNERSHIP;
   }
 }
 
@@ -3114,10 +3117,10 @@ void RNA_def_property_boolean_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -3137,10 +3140,10 @@ void RNA_def_property_boolean_array_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -3208,10 +3211,10 @@ void RNA_def_property_int_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -3235,10 +3238,10 @@ void RNA_def_property_int_array_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -3306,10 +3309,10 @@ void RNA_def_property_float_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -3333,10 +3336,10 @@ void RNA_def_property_float_array_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -3394,10 +3397,10 @@ void RNA_def_property_enum_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -3482,10 +3485,10 @@ void RNA_def_property_string_funcs_runtime(PropertyRNA *prop,
 
   if (getfunc || setfunc) {
     /* don't save in id properties */
-    RNA_def_property_clear_flag(prop, PROP_IDPROPERTY);
+    prop->flag &= ~PROP_IDPROPERTY;
 
     if (!setfunc) {
-      RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+      prop->flag &= ~PROP_EDITABLE;
     }
   }
 }
@@ -4315,7 +4318,7 @@ PropertyRNA *RNA_def_pointer_runtime(StructOrFunctionRNA *cont_,
   prop = RNA_def_property(cont, identifier, PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_runtime(cont, prop, type);
   if ((type->flag & STRUCT_ID) != 0) {
-    RNA_def_property_flag(prop, PROP_EDITABLE);
+    prop->flag |= PROP_EDITABLE;
   }
   RNA_def_property_ui_text(prop, ui_name, ui_description);
 
@@ -4383,7 +4386,7 @@ static FunctionRNA *rna_def_function(StructRNA *srna, const char *identifier)
     dfunc->func = func;
   }
   else {
-    RNA_def_function_flag(func, FUNC_RUNTIME);
+    func->flag |= FUNC_RUNTIME;
   }
 
   return func;
@@ -4628,7 +4631,7 @@ void RNA_def_struct_duplicate_pointers(BlenderRNA *brna, StructRNA *srna)
     srna->description = BLI_strdup(srna->description);
   }
 
-  RNA_def_struct_flag(srna, STRUCT_FREE_POINTERS);
+  srna->flag |= STRUCT_FREE_POINTERS;
 }
 
 void RNA_def_struct_free_pointers(BlenderRNA *brna, StructRNA *srna)
@@ -4660,7 +4663,7 @@ void RNA_def_func_duplicate_pointers(FunctionRNA *func)
     func->description = BLI_strdup(func->description);
   }
 
-  RNA_def_function_flag(func, FUNC_FREE_POINTERS);
+  func->flag |= FUNC_FREE_POINTERS;
 }
 
 void RNA_def_func_free_pointers(FunctionRNA *func)

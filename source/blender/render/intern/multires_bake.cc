@@ -519,7 +519,6 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
   if (require_tangent) {
     if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
-      const blender::Span<blender::float3> corner_normals = temp_mesh->corner_normals();
       BKE_mesh_calc_loop_tangent_ex(
           reinterpret_cast<const float(*)[3]>(positions.data()),
           faces,
@@ -535,7 +534,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
           0,
           reinterpret_cast<const float(*)[3]>(vert_normals.data()),
           reinterpret_cast<const float(*)[3]>(face_normals.data()),
-          reinterpret_cast<const float(*)[3]>(corner_normals.data()),
+          (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
           (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* May be nullptr. */
           /* result */
           &dm->loopData,

@@ -37,12 +37,10 @@
 #  include <wayland_dynload_API.h> /* For `ghost_wl_dynload_libraries`. */
 #endif
 
-#ifdef WITH_OPENGL_BACKEND
-#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
-#    include <wayland_dynload_egl.h>
-#  endif
-#  include <wayland-egl.h>
-#endif /* WITH_OPENGL_BACKEND */
+#ifdef WITH_GHOST_WAYLAND_DYNLOAD
+#  include <wayland_dynload_egl.h>
+#endif
+#include <wayland-egl.h>
 
 #include <algorithm>
 #include <atomic>
@@ -55,6 +53,8 @@
 #  include <wayland_dynload_cursor.h>
 #endif
 #include <wayland-cursor.h>
+
+#include "GHOST_WaylandCursorSettings.hh"
 
 #include <xkbcommon/xkbcommon-compose.h>
 #include <xkbcommon/xkbcommon.h>
@@ -69,9 +69,6 @@
 #include <viewporter-client-protocol.h>
 #include <xdg-activation-v1-client-protocol.h>
 #include <xdg-output-unstable-v1-client-protocol.h>
-#ifdef WITH_INPUT_IME
-#  include <text-input-unstable-v3-client-protocol.h>
-#endif
 
 /* Decorations `xdg_decor`. */
 #include <xdg-decoration-unstable-v1-client-protocol.h>
@@ -396,7 +393,7 @@ struct GWL_Cursor {
   /** The size of `custom_data` in bytes. */
   size_t custom_data_size = 0;
   /**
-   * The name of the theme (set by an environment variable).
+   * The name of the theme (loaded by DBUS, depends on #WITH_GHOST_WAYLAND_DBUS).
    * When disabled, leave as an empty string and the default theme will be used.
    */
   std::string theme_name;
@@ -724,51 +721,6 @@ static void gwl_primary_selection_discard_source(GWL_PrimarySelection *primary)
   primary->data_source = nullptr;
 }
 
-#ifdef WITH_INPUT_IME
-struct GWL_SeatIME {
-  struct wl_surface *surface_window = nullptr;
-  GHOST_TEventImeData event_ime_data = {
-      /*result_len*/ nullptr,
-      /*composite_len*/ nullptr,
-      /*result*/ nullptr,
-      /*composite*/ nullptr,
-      /*cursor_position*/ -1,
-      /*target_start*/ -1,
-      /*target_end*/ -1,
-  };
-  /** When true, the client has indicated that IME input should be activated on text entry. */
-  bool is_enabled = false;
-  /**
-   * When true, some pre-edit text has been entered
-   * (an IME popup may be showing however this isn't known).
-   */
-  bool has_preedit = false;
-
-  /** Storage for #GHOST_TEventImeData::result (the result of the `commit_string` callback). */
-  std::string result;
-  /** Storage for #GHOST_TEventImeData::composite (the result of the `preedit_string` callback). */
-  std::string composite;
-
-  /** #zwp_text_input_v3_listener::commit_string was called with a null text argument. */
-  bool result_is_null = false;
-  /** #zwp_text_input_v3_listener::preedit_string was called with a null text argument. */
-  bool composite_is_null = false;
-
-  /** #zwp_text_input_v3_listener::preedit_string was called. */
-  bool has_preedit_string_callback = false;
-  /** #zwp_text_input_v3_listener::commit_string was called. */
-  bool has_commit_string_callback = false;
-
-  /** Bounds (use for comparison). */
-  struct {
-    int x = -1;
-    int y = -1;
-    int w = -1;
-    int h = -1;
-  } rect;
-};
-#endif /* WITH_INPUT_IME */
-
 struct GWL_Seat {
 
   /** Wayland core types. */
@@ -804,10 +756,6 @@ struct GWL_Seat {
 
     /** All currently active tablet tools (needed for changing the cursor). */
     std::unordered_set<zwp_tablet_tool_v2 *> tablet_tools;
-
-#ifdef WITH_INPUT_IME
-    struct zwp_text_input_v3 *text_input = nullptr;
-#endif
   } wp;
 
   /** XKB native types. */
@@ -838,10 +786,6 @@ struct GWL_Seat {
     xkb_state *state_empty_with_numlock = nullptr;
 
   } xkb;
-
-#ifdef WITH_INPUT_IME
-  GWL_SeatIME ime;
-#endif
 
   GHOST_SystemWayland *system = nullptr;
 
@@ -977,60 +921,6 @@ static void gwl_seat_key_repeat_timer_remove(GWL_Seat *seat)
   seat->key_repeat.timer = nullptr;
 }
 
-#ifdef WITH_INPUT_IME
-
-static void gwl_seat_ime_full_reset(GWL_Seat *seat)
-{
-  const GWL_SeatIME ime_default{};
-  /* Preserve the following members since they represent the state of the connection to Wayland.
-   * or which callbacks have run (which shouldn't be reset). */
-  wl_surface *surface_window = seat->ime.surface_window;
-  const bool is_enabled = seat->ime.is_enabled;
-  const bool has_preedit_string_callback = seat->ime.has_preedit_string_callback;
-  const bool has_commit_string_callback = seat->ime.has_commit_string_callback;
-
-  seat->ime = ime_default;
-
-  seat->ime.surface_window = surface_window;
-  seat->ime.is_enabled = is_enabled;
-  seat->ime.has_preedit_string_callback = has_preedit_string_callback;
-  seat->ime.has_commit_string_callback = has_commit_string_callback;
-}
-
-static void gwl_seat_ime_result_reset(GWL_Seat *seat)
-{
-  seat->ime.result.clear();
-  seat->ime.result_is_null = false;
-
-  GHOST_TEventImeData &event_ime_data = seat->ime.event_ime_data;
-  event_ime_data.result_len = nullptr;
-  event_ime_data.result = nullptr;
-}
-
-static void gwl_seat_ime_preedit_reset(GWL_Seat *seat)
-{
-  seat->ime.composite.clear();
-  seat->ime.composite_is_null = false;
-
-  GHOST_TEventImeData &event_ime_data = seat->ime.event_ime_data;
-  event_ime_data.composite_len = nullptr;
-  event_ime_data.composite = nullptr;
-
-  event_ime_data.cursor_position = -1;
-  event_ime_data.target_start = -1;
-  event_ime_data.target_end = -1;
-}
-
-static void gwl_seat_ime_rect_reset(GWL_Seat *seat)
-{
-  seat->ime.rect.x = -1;
-  seat->ime.rect.y = -1;
-  seat->ime.rect.w = -1;
-  seat->ime.rect.h = -1;
-}
-
-#endif /* WITH_INPUT_IME */
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1062,9 +952,6 @@ struct GWL_Display {
     wp_viewporter *viewporter = nullptr;
     zwp_pointer_constraints_v1 *pointer_constraints = nullptr;
     zwp_pointer_gestures_v1 *pointer_gestures = nullptr;
-#ifdef WITH_INPUT_IME
-    struct zwp_text_input_manager_v3 *text_input_manager = nullptr;
-#endif
   } wp;
 
   /** Wayland XDG types. */
@@ -1125,7 +1012,7 @@ struct GWL_Display {
    * Events added from the event reading thread.
    * Added into the main event queue when on #GHOST_SystemWayland::processEvents.
    */
-  std::vector<const GHOST_IEvent *> events_pending;
+  std::vector<GHOST_IEvent *> events_pending;
   /** Guard against multiple threads accessing `events_pending` at once. */
   std::mutex events_pending_mutex;
 
@@ -1201,7 +1088,7 @@ static void gwl_display_destroy(GWL_Display *display)
     display->ghost_timer_manager = nullptr;
   }
   /* Pending events may be left unhandled. */
-  for (const GHOST_IEvent *event : display->events_pending) {
+  for (GHOST_IEvent *event : display->events_pending) {
     delete event;
   }
 
@@ -4541,228 +4428,6 @@ static const zwp_primary_selection_source_v1_listener primary_selection_source_l
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Listener (Text Input), #zwp_text_input_manager_v3
- * \{ */
-
-#ifdef WITH_INPUT_IME
-
-class GHOST_EventIME : public GHOST_Event {
- public:
-  /**
-   * Constructor.
-   * \param msec: The time this event was generated.
-   * \param type: The type of key event.
-   * \param key: The key code of the key.
-   */
-  GHOST_EventIME(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, void *customdata)
-      : GHOST_Event(msec, type, window)
-  {
-    this->m_data = customdata;
-  }
-};
-
-static CLG_LogRef LOG_WL_TEXT_INPUT = {"ghost.wl.handle.text_input"};
-#  define LOG (&LOG_WL_TEXT_INPUT)
-
-static void text_input_handle_enter(void *data,
-                                    zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                    struct wl_surface *surface)
-{
-  if (!ghost_wl_surface_own(surface)) {
-    return;
-  }
-  CLOG_INFO(LOG, 2, "enter");
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  seat->ime.surface_window = surface;
-}
-
-static void text_input_handle_leave(void *data,
-                                    zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                    struct wl_surface *surface)
-{
-  /* Can be null when closing a window. */
-  if (!ghost_wl_surface_own_with_null_check(surface)) {
-    return;
-  }
-  CLOG_INFO(LOG, 2, "leave");
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  if (seat->ime.surface_window == surface) {
-    seat->ime.surface_window = nullptr;
-  }
-}
-
-static void text_input_handle_preedit_string(void *data,
-                                             zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                             const char *text,
-                                             int32_t cursor_begin,
-                                             int32_t cursor_end)
-{
-  CLOG_INFO(LOG,
-            2,
-            "preedit_string (text=\"%s\", cursor_begin=%d, cursor_end=%d)",
-            text ? text : "<null>",
-            cursor_begin,
-            cursor_end);
-
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  if (UNLIKELY(seat->ime.surface_window == nullptr)) {
-    return;
-  }
-
-  if (seat->ime.has_preedit == false) {
-    /* Starting IME input. */
-    gwl_seat_ime_full_reset(seat);
-  }
-
-  seat->ime.composite_is_null = (text == nullptr);
-  if (!seat->ime.composite_is_null) {
-    seat->ime.composite = text;
-    seat->ime.event_ime_data.composite = (void *)seat->ime.composite.c_str();
-    seat->ime.event_ime_data.composite_len = (void *)seat->ime.composite.size();
-
-    seat->ime.event_ime_data.cursor_position = cursor_begin;
-    seat->ime.event_ime_data.target_start = cursor_begin;
-    seat->ime.event_ime_data.target_end = cursor_end;
-  }
-
-  seat->ime.has_preedit_string_callback = true;
-}
-
-static void text_input_handle_commit_string(void *data,
-                                            zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                            const char *text)
-{
-  CLOG_INFO(LOG, 2, "commit_string (text=\"%s\")", text ? text : "<null>");
-
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  if (UNLIKELY(seat->ime.surface_window == nullptr)) {
-    return;
-  }
-
-  seat->ime.result_is_null = (text == nullptr);
-  if (seat->ime.result_is_null) {
-    seat->ime.result = "";
-  }
-  else {
-    seat->ime.result = text;
-  }
-
-  seat->ime.result_is_null = (text == nullptr);
-  seat->ime.event_ime_data.result = (void *)seat->ime.result.c_str();
-  seat->ime.event_ime_data.result_len = (void *)seat->ime.result.size();
-  seat->ime.event_ime_data.cursor_position = seat->ime.result.size();
-
-  seat->ime.has_commit_string_callback = true;
-}
-
-static void text_input_handle_delete_surrounding_text(void * /*data*/,
-                                                      zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                                      uint32_t before_length,
-                                                      uint32_t after_length)
-{
-  CLOG_INFO(LOG,
-            2,
-            "delete_surrounding_text (before_length=%u, after_length=%u)",
-            before_length,
-            after_length);
-
-  /* NOTE: Currently unused, do we care about this event?
-   * SDL ignores this event. */
-}
-
-static void text_input_handle_done(void *data,
-                                   zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                   uint32_t /*serial*/)
-{
-  CLOG_INFO(LOG, 2, "done");
-
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  GHOST_SystemWayland *system = seat->system;
-
-  GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->ime.surface_window);
-  if (seat->ime.has_commit_string_callback) {
-    if (seat->ime.has_preedit) {
-      const bool is_end = seat->ime.composite_is_null;
-      if (is_end) {
-        seat->ime.has_preedit = false;
-        /* `commit_string` (end). */
-        system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                           GHOST_kEventImeComposition,
-                                                           win,
-                                                           &seat->ime.event_ime_data));
-        system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                           GHOST_kEventImeCompositionEnd,
-                                                           win,
-                                                           &seat->ime.event_ime_data));
-      }
-      else {
-        /* `commit_string` (continues). */
-        system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                           GHOST_kEventImeComposition,
-                                                           win,
-                                                           &seat->ime.event_ime_data));
-      }
-    }
-    else {
-      /* `commit_string` ran with no active IME popup, start & end to insert text. */
-      system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                         GHOST_kEventImeCompositionStart,
-                                                         win,
-                                                         &seat->ime.event_ime_data));
-      system->pushEvent_maybe_pending(new GHOST_EventIME(
-          system->getMilliSeconds(), GHOST_kEventImeComposition, win, &seat->ime.event_ime_data));
-      system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                         GHOST_kEventImeCompositionEnd,
-                                                         win,
-                                                         &seat->ime.event_ime_data));
-    }
-
-    if (seat->ime.has_preedit == false) {
-      gwl_seat_ime_preedit_reset(seat);
-    }
-  }
-  else if (seat->ime.has_preedit_string_callback) {
-    const bool is_end = seat->ime.composite_is_null;
-    if (is_end) {
-      /* `preedit_string` (end). */
-      seat->ime.has_preedit = false;
-      system->pushEvent_maybe_pending(new GHOST_EventIME(seat->system->getMilliSeconds(),
-                                                         GHOST_kEventImeCompositionEnd,
-                                                         win,
-                                                         &seat->ime.event_ime_data));
-    }
-    else {
-      const bool is_start = seat->ime.has_preedit == false;
-      /* `preedit_string` (start or continue). */
-      seat->ime.has_preedit = true;
-      system->pushEvent_maybe_pending(new GHOST_EventIME(
-          seat->system->getMilliSeconds(),
-          is_start ? GHOST_kEventImeCompositionStart : GHOST_kEventImeComposition,
-          win,
-          &seat->ime.event_ime_data));
-    }
-  }
-
-  seat->ime.has_preedit_string_callback = false;
-  seat->ime.has_commit_string_callback = false;
-}
-
-static struct zwp_text_input_v3_listener text_input_listener = {
-    /*enter*/ text_input_handle_enter,
-    /*leave*/ text_input_handle_leave,
-    /*preedit_string*/ text_input_handle_preedit_string,
-    /*commit_string*/ text_input_handle_commit_string,
-    /*delete_surrounding_text*/ text_input_handle_delete_surrounding_text,
-    /*done*/ text_input_handle_done,
-};
-
-#  undef LOG
-
-#endif /* WITH_INPUT_IME. */
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Listener (Seat), #wl_seat_listener
  * \{ */
 
@@ -4778,7 +4443,7 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
   seat->cursor.wl.surface_cursor = wl_compositor_create_surface(seat->system->wl_compositor_get());
   seat->cursor.visible = true;
   seat->cursor.wl.buffer = nullptr;
-  {
+  if (!get_cursor_settings(seat->cursor.theme_name, seat->cursor.theme_size)) {
     /* Use environment variables, falling back to defaults.
      * These environment variables are used by enough WAYLAND applications
      * that it makes sense to check them (see `Xcursor` man page). */
@@ -5459,20 +5124,6 @@ static void gwl_registry_wl_seat_update(GWL_Display *display,
   else {
     seat->wp.primary_selection_device = nullptr;
   }
-
-#ifdef WITH_INPUT_IME
-  if (display->wp.text_input_manager) {
-    if (seat->wp.text_input == nullptr) {
-      seat->wp.text_input = zwp_text_input_manager_v3_get_text_input(
-          display->wp.text_input_manager, seat->wl.seat);
-      zwp_text_input_v3_set_user_data(seat->wp.text_input, seat);
-      zwp_text_input_v3_add_listener(seat->wp.text_input, &text_input_listener, seat);
-    }
-  }
-  else {
-    seat->wp.text_input = nullptr;
-  }
-#endif /* WITH_INPUT_IME */
 }
 static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, const bool on_exit)
 {
@@ -5758,28 +5409,6 @@ static void gwl_registry_wp_primary_selection_device_manager_remove(GWL_Display 
   *value_p = nullptr;
 }
 
-#ifdef WITH_INPUT_IME
-
-/* #GWL_Display.wp_text_input_manager */
-
-static void gwl_registry_wp_text_input_manager_add(GWL_Display *display,
-                                                   const GWL_RegisteryAdd_Params *params)
-{
-  display->wp.text_input_manager = static_cast<zwp_text_input_manager_v3 *>(wl_registry_bind(
-      display->wl.registry, params->name, &zwp_text_input_manager_v3_interface, 1));
-  gwl_registry_entry_add(display, params, nullptr);
-}
-static void gwl_registry_wp_text_input_manager_remove(GWL_Display *display,
-                                                      void * /*user_data*/,
-                                                      const bool /*on_exit*/)
-{
-  struct zwp_text_input_manager_v3 **value_p = &display->wp.text_input_manager;
-  zwp_text_input_manager_v3_destroy(*value_p);
-  *value_p = nullptr;
-}
-
-#endif /* WITH_INPUT_IME */
-
 /**
  * Map interfaces to initialization functions.
  *
@@ -5847,14 +5476,6 @@ static const GWL_RegistryHandler gwl_registry_handlers[] = {
         /*update_fn*/ nullptr,
         /*remove_fn*/ gwl_registry_wp_relative_pointer_manager_remove,
     },
-#ifdef WITH_INPUT_IME
-    {
-        /*interface_p*/ &zwp_text_input_manager_v3_interface.name,
-        /*add_fn*/ gwl_registry_wp_text_input_manager_add,
-        /*update_fn*/ nullptr,
-        /*remove_fn*/ gwl_registry_wp_text_input_manager_remove,
-    },
-#endif
     /* Higher level interfaces. */
     {
         /*interface_p*/ &zwp_pointer_constraints_v1_interface.name,
@@ -6242,7 +5863,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 
   {
     std::lock_guard lock{display_->events_pending_mutex};
-    for (const GHOST_IEvent *event : display_->events_pending) {
+    for (GHOST_IEvent *event : display_->events_pending) {
 
       /* Perform actions that aren't handled in a thread. */
       switch (event->getType()) {
@@ -6853,7 +6474,9 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
   const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
+#endif
 
   switch (gpuSettings.context_type) {
 
@@ -6868,7 +6491,6 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
                                                    nullptr,
                                                    wl_surface,
                                                    display_->wl.display,
-                                                   nullptr,
                                                    1,
                                                    2,
                                                    debug_context);
@@ -6894,18 +6516,16 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
 
       for (int minor = 6; minor >= 3; --minor) {
         /* Caller must lock `system->server_mutex`. */
-        GHOST_Context *context = new GHOST_ContextEGL(
-            this,
-            false,
-            EGLNativeWindowType(egl_window),
-            EGLNativeDisplayType(display_->wl.display),
-            EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-            4,
-            minor,
-            GHOST_OPENGL_EGL_CONTEXT_FLAGS |
-                (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
-            GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-            EGL_OPENGL_API);
+        GHOST_Context *context = new GHOST_ContextEGL(this,
+                                                      false,
+                                                      EGLNativeWindowType(egl_window),
+                                                      EGLNativeDisplayType(display_->wl.display),
+                                                      EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                                      4,
+                                                      minor,
+                                                      GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                                      GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                                      EGL_OPENGL_API);
 
         if (context->initializeDrawingContext()) {
           wl_surface_set_user_data(wl_surface, egl_window);
@@ -6937,38 +6557,17 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
-
-  GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone;
-#ifdef WITH_OPENGL_BACKEND
-  if (dynamic_cast<GHOST_ContextEGL *>(context)) {
-    type = GHOST_kDrawingContextTypeOpenGL;
-  }
-#endif /* WITH_OPENGL_BACKEND */
-#ifdef WITH_VULKAN_BACKEND
-  if (dynamic_cast<GHOST_ContextVK *>(context)) {
-    type = GHOST_kDrawingContextTypeVulkan;
-  }
-#endif /* WITH_VULKAN_BACKEND */
-
   wl_surface *wl_surface = static_cast<struct wl_surface *>(
       (static_cast<GHOST_Context *>(context))->getUserData());
-
   /* Delete the context before the window so the context is able to release
    * native resources (such as the #EGLSurface) before WAYLAND frees them. */
   delete context;
 
-#ifdef WITH_OPENGL_BACKEND
-  if (type == GHOST_kDrawingContextTypeOpenGL) {
-    wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
-    if (egl_window != nullptr) {
-      wl_egl_window_destroy(egl_window);
-    }
+  wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
+  if (egl_window != nullptr) {
+    wl_egl_window_destroy(egl_window);
   }
-#endif /* WITH_OPENGL_BACKEND */
-
   wl_surface_destroy(wl_surface);
-
-  (void)type; /* Maybe unused. */
 
   return GHOST_kSuccess;
 }
@@ -6997,8 +6596,7 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
       gpuSettings.context_type,
       is_dialog,
       ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
-      exclusive,
-      (gpuSettings.flags & GHOST_gpuDebugContext) != 0);
+      exclusive);
 
   if (window) {
     if (window->getValid()) {
@@ -7622,104 +7220,6 @@ GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Public WAYLAND Text Input (IME) Functions
- *
- * Functionality only used for the WAYLAND implementation.
- * \{ */
-
-#ifdef WITH_INPUT_IME
-
-void GHOST_SystemWayland::ime_begin(
-    GHOST_WindowWayland *win, int32_t x, int32_t y, int32_t w, int32_t h, bool completed) const
-{
-  GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
-    return;
-  }
-  if (seat->wp.text_input == nullptr) {
-    return;
-  }
-
-  /* Prevent a feedback loop because the commits from this function cause
-   * #zwp_text_input_v3_listener::preedit_string to run again which sends an event,
-   * refreshing the position, running this function again. */
-  gwl_seat_ime_result_reset(seat);
-
-  /* Don't re-enable if we're already enabled. */
-  if (seat->ime.is_enabled && completed) {
-    return;
-  }
-
-  bool force_rect_update = false;
-  if (seat->ime.is_enabled == false) {
-    seat->ime.has_preedit = false;
-    seat->ime.is_enabled = true;
-
-    /* NOTE(@flibit): For some reason this has to be done twice,
-     * it appears to be a bug in mutter? Maybe? */
-    zwp_text_input_v3_enable(seat->wp.text_input);
-    zwp_text_input_v3_commit(seat->wp.text_input);
-    zwp_text_input_v3_enable(seat->wp.text_input);
-    zwp_text_input_v3_commit(seat->wp.text_input);
-
-    /* Now that it's enabled, set the input properties. */
-    zwp_text_input_v3_set_content_type(seat->wp.text_input,
-                                       ZWP_TEXT_INPUT_V3_CONTENT_HINT_NONE,
-                                       ZWP_TEXT_INPUT_V3_CONTENT_PURPOSE_NORMAL);
-
-    gwl_seat_ime_rect_reset(seat);
-    force_rect_update = true;
-  }
-
-  if ((force_rect_update == false) && /* Was just created, always update. */
-      (seat->ime.rect.x == x) &&      /* X. */
-      (seat->ime.rect.y == y) &&      /* Y. */
-      (seat->ime.rect.w == w) &&      /* W. */
-      (seat->ime.rect.h == h))        /* H. */
-  {
-    /* Only re-update the rectangle as needed. */
-  }
-  else {
-    const int rect_x = wl_fixed_to_int(win->wl_fixed_from_window(wl_fixed_from_int(x)));
-    const int rect_y = wl_fixed_to_int(win->wl_fixed_from_window(wl_fixed_from_int(y)));
-    const int rect_w = wl_fixed_to_int(win->wl_fixed_from_window(wl_fixed_from_int(w))) + 1;
-    const int rect_h = wl_fixed_to_int(win->wl_fixed_from_window(wl_fixed_from_int(h))) + 1;
-
-    zwp_text_input_v3_set_cursor_rectangle(seat->wp.text_input, rect_x, rect_y, rect_w, rect_h);
-
-    zwp_text_input_v3_commit(seat->wp.text_input);
-
-    seat->ime.rect.x = x;
-    seat->ime.rect.y = y;
-    seat->ime.rect.w = w;
-    seat->ime.rect.h = h;
-  }
-}
-
-void GHOST_SystemWayland::ime_end(GHOST_WindowWayland * /*window*/) const
-{
-  GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
-    return;
-  }
-
-  seat->ime.is_enabled = false;
-
-  gwl_seat_ime_rect_reset(seat);
-
-  if (seat->wp.text_input == nullptr) {
-    return;
-  }
-
-  zwp_text_input_v3_disable(seat->wp.text_input);
-  zwp_text_input_v3_commit(seat->wp.text_input);
-}
-
-#endif /* WITH_INPUT_IME */
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Public WAYLAND Query Access
  * \{ */
 
@@ -7791,9 +7291,6 @@ bool GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
     SURFACE_CLEAR_PTR(seat->tablet.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->keyboard.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->wl.surface_window_focus_dnd);
-#ifdef WITH_INPUT_IME
-    SURFACE_CLEAR_PTR(seat->ime.surface_window);
-#endif
   }
 #undef SURFACE_CLEAR_PTR
 
@@ -7881,16 +7378,16 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 
   /* Ignore, if the required protocols are not supported. */
   if (UNLIKELY(!display_->wp.relative_pointer_manager || !display_->wp.pointer_constraints)) {
-    return false;
+    return GHOST_kFailure;
   }
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
-    return false;
+    return GHOST_kFailure;
   }
   /* No change, success. */
   if (mode == mode_current) {
-    return true;
+    return GHOST_kSuccess;
   }
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -8057,7 +7554,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   seat->use_pointer_software_confine = use_software_confine;
 #endif
 
-  return true;
+  return GHOST_kSuccess;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -8081,11 +7578,7 @@ bool ghost_wl_dynload_libraries_init()
 
   if (wayland_dynload_client_init(verbose) && /* `libwayland-client`. */
       wayland_dynload_cursor_init(verbose) && /* `libwayland-cursor`. */
-#  ifdef WITH_OPENGL_BACKEND
-      wayland_dynload_egl_init(verbose) /* `libwayland-egl`. */
-#  else
-      true
-#  endif
+      wayland_dynload_egl_init(verbose)       /* `libwayland-egl`. */
   )
   {
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -8096,9 +7589,7 @@ bool ghost_wl_dynload_libraries_init()
 
   wayland_dynload_client_exit();
   wayland_dynload_cursor_exit();
-#  ifdef WITH_OPENGL_BACKEND
   wayland_dynload_egl_exit();
-#  endif
 
   return false;
 }
@@ -8107,9 +7598,7 @@ void ghost_wl_dynload_libraries_exit()
 {
   wayland_dynload_client_exit();
   wayland_dynload_cursor_exit();
-#  ifdef WITH_OPENGL_BACKEND
   wayland_dynload_egl_exit();
-#  endif
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
   wayland_dynload_libdecor_exit();
 #  endif

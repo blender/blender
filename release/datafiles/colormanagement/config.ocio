@@ -642,7 +642,7 @@ looks:
           contrast: {rgb: [0.7, 0.7, 0.7], master: 1}
           saturation: 1.15
           pivot: {contrast: -0.2}
-
+          
   - !<Look>
     name: False Color - Punchy
     process_space: AgX Log

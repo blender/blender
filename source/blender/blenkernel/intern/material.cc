@@ -53,7 +53,6 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_grease_pencil.hh"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -1112,9 +1111,6 @@ void BKE_object_material_remap(Object *ob, const uint *remap)
   }
   else if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_material_remap(static_cast<bGPdata *>(ob->data), remap, ob->totcol);
-  }
-  else if (ob->type == OB_GREASE_PENCIL) {
-    BKE_grease_pencil_material_remap(static_cast<GreasePencil *>(ob->data), remap, ob->totcol);
   }
   else {
     /* add support for this object data! */

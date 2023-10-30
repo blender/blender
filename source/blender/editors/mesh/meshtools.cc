@@ -47,7 +47,7 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_select_buffer.hh"
+#include "DRW_select_buffer.h"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
@@ -1164,6 +1164,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
 bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {
+  ViewContext vc;
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
@@ -1173,7 +1174,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   if (dist_px) {
@@ -1335,6 +1336,7 @@ static void ed_mesh_pick_vert__mapFunc(void *user_data,
 bool ED_mesh_pick_vert(
     bContext *C, Object *ob, const int mval[2], uint dist_px, bool use_zbuf, uint *r_index)
 {
+  ViewContext vc;
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
@@ -1344,7 +1346,7 @@ bool ED_mesh_pick_vert(
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   if (use_zbuf) {

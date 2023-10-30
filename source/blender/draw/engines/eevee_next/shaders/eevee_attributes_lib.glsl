@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 
 #define EEVEE_ATTRIBUTE_LIB
@@ -33,7 +33,7 @@ vec3 attr_load_orco(vec4 orco)
 #  endif
 vec4 attr_load_tangent(vec4 tangent)
 {
-  tangent.xyz = safe_normalize(drw_normal_object_to_world(tangent.xyz));
+  tangent.xyz = safe_normalize(normal_object_to_world(tangent.xyz));
   return tangent;
 }
 vec4 attr_load_vec4(vec4 attr)
@@ -187,7 +187,7 @@ int g_curves_attr_id = 0;
  * based on the attribute scope (point or spline). */
 int curves_attribute_element_id()
 {
-  int id = curve_interp_flat.strand_id;
+  int id = interp_flat.curves_strand_id;
   if (drw_curves.is_point_attribute[g_curves_attr_id][0] != 0u) {
 #  ifdef COMMON_HAIR_LIB
     id = hair_get_base_id();
@@ -205,11 +205,11 @@ vec4 attr_load_tangent(samplerBuffer cd_buf)
 }
 vec3 attr_load_uv(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, curve_interp_flat.strand_id).rgb;
+  return texelFetch(cd_buf, interp_flat.curves_strand_id).rgb;
 }
 vec4 attr_load_color(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, curve_interp_flat.strand_id).rgba;
+  return texelFetch(cd_buf, interp_flat.curves_strand_id).rgba;
 }
 vec4 attr_load_vec4(samplerBuffer cd_buf)
 {
@@ -230,7 +230,7 @@ float attr_load_float(samplerBuffer cd_buf)
 
 /** \} */
 
-#elif defined(MAT_GEOM_VOLUME) || defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
+#elif defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
 
 /* -------------------------------------------------------------------- */
 /** \name Volume

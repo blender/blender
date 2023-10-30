@@ -61,7 +61,7 @@ class GHOST_EventDragnDrop : public GHOST_Event {
                        GHOST_IWindow *window,
                        int x,
                        int y,
-                       GHOST_TDragnDropDataPtr data)
+                       GHOST_TEventDataPtr data)
       : GHOST_Event(time, type, window)
   {
     m_dragnDropEventData.x = x;

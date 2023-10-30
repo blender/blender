@@ -8,7 +8,7 @@
  * \brief Contains procedural GPU hair drawing methods.
  */
 
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_curves_types.h"

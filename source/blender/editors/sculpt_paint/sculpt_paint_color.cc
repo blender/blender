@@ -63,7 +63,7 @@ static void do_color_smooth_task(Object *ob, const Brush *brush, PBVHNode *node)
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask,
+                                                                vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -157,7 +157,7 @@ static void do_paint_brush_task(Object *ob,
                                                           distance_to_stroke_location,
                                                           vd.no,
                                                           vd.fno,
-                                                          vd.mask,
+                                                          vd.mask ? *vd.mask : 0.0f,
                                                           vd.vertex,
                                                           thread_id,
                                                           &automask_data);
@@ -367,7 +367,7 @@ static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask,
+                                                                vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);

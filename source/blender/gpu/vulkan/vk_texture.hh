@@ -56,7 +56,6 @@ class VKTexture : public Texture, public VKBindableResource {
 
   void generate_mipmap() override;
   void copy_to(Texture *tex) override;
-  void copy_to(VKTexture &dst_texture, VkImageAspectFlagBits vk_image_aspect);
   void clear(eGPUDataFormat format, const void *data) override;
   void clear_depth_stencil(const eGPUFrameBufferBits buffer,
                            float clear_depth,
@@ -86,6 +85,8 @@ class VKTexture : public Texture, public VKBindableResource {
     return vk_image_;
   }
 
+  void ensure_allocated();
+
  protected:
   bool init_internal() override;
   bool init_internal(GPUVertBuf *vbo) override;
@@ -94,6 +95,9 @@ class VKTexture : public Texture, public VKBindableResource {
  private:
   /** Is this texture a view of another texture. */
   bool is_texture_view() const;
+
+  /** Is this texture already allocated on device. */
+  bool is_allocated() const;
 
   /**
    * Allocate the texture of the device. Result is `true` when texture is successfully allocated

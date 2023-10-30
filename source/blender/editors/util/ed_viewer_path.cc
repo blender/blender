@@ -5,7 +5,6 @@
 #include "ED_viewer_path.hh"
 #include "ED_screen.hh"
 
-#include "BKE_compute_contexts.hh"
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_node_runtime.hh"
@@ -453,39 +452,6 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
     return possible_viewer;
   }
   return nullptr;
-}
-
-[[nodiscard]] bool add_compute_context_for_viewer_path_elem(
-    const ViewerPathElem &elem_generic, ComputeContextBuilder &compute_context_builder)
-{
-  switch (ViewerPathElemType(elem_generic.type)) {
-    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
-    case VIEWER_PATH_ELEM_TYPE_ID: {
-      return false;
-    }
-    case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-      const auto &elem = reinterpret_cast<const ModifierViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::ModifierComputeContext>(elem.modifier_name);
-      return true;
-    }
-    case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
-      const auto &elem = reinterpret_cast<const GroupNodeViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::NodeGroupComputeContext>(elem.node_id);
-      return true;
-    }
-    case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
-      const auto &elem = reinterpret_cast<const SimulationZoneViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::SimulationZoneComputeContext>(elem.sim_output_node_id);
-      return true;
-    }
-    case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
-      const auto &elem = reinterpret_cast<const RepeatZoneViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::RepeatZoneComputeContext>(elem.repeat_output_node_id,
-                                                                  elem.iteration);
-      return true;
-    }
-  }
-  return false;
 }
 
 }  // namespace blender::ed::viewer_path

@@ -10,7 +10,7 @@
 #include <cstring>
 
 #ifdef WIN32
-#  include "utfconv.hh"
+#  include "utfconv.h"
 #  include <windows.h>
 #endif
 
@@ -535,6 +535,9 @@ int main(int argc,
 #endif
 
   WM_init(C, argc, (const char **)argv);
+
+  /* Need to be after WM init so that userpref are loaded. */
+  RE_engines_init_experimental();
 
 #ifndef WITH_PYTHON
   printf(

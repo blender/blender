@@ -9,7 +9,7 @@
 #include "DRW_render.h"
 
 #include "BLI_rand.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_image_types.h"
@@ -417,7 +417,7 @@ static bool eevee_lightprobes_culling_test(Object *ob)
   LightProbe *probe = (LightProbe *)ob->data;
 
   switch (probe->type) {
-    case LIGHTPROBE_TYPE_PLANE: {
+    case LIGHTPROBE_TYPE_PLANAR: {
       /* See if this planar probe is inside the view frustum. If not, no need to update it. */
       /* NOTE: this could be bypassed if we want feedback loop mirrors for rendering. */
       BoundBox bbox;
@@ -436,9 +436,9 @@ static bool eevee_lightprobes_culling_test(Object *ob)
       const DRWView *default_view = DRW_view_default_get();
       return DRW_culling_box_test(default_view, &bbox);
     }
-    case LIGHTPROBE_TYPE_SPHERE:
+    case LIGHTPROBE_TYPE_CUBE:
       return true; /* TODO */
-    case LIGHTPROBE_TYPE_VOLUME:
+    case LIGHTPROBE_TYPE_GRID:
       return true; /* TODO */
   }
   BLI_assert(0);
@@ -450,15 +450,15 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
   LightProbe *probe = (LightProbe *)ob->data;
 
-  if ((probe->type == LIGHTPROBE_TYPE_SPHERE && pinfo->num_cube >= EEVEE_PROBE_MAX) ||
-      (probe->type == LIGHTPROBE_TYPE_VOLUME && pinfo->num_grid >= EEVEE_PROBE_MAX) ||
-      (probe->type == LIGHTPROBE_TYPE_PLANE && pinfo->num_planar >= MAX_PLANAR))
+  if ((probe->type == LIGHTPROBE_TYPE_CUBE && pinfo->num_cube >= EEVEE_PROBE_MAX) ||
+      (probe->type == LIGHTPROBE_TYPE_GRID && pinfo->num_grid >= EEVEE_PROBE_MAX) ||
+      (probe->type == LIGHTPROBE_TYPE_PLANAR && pinfo->num_planar >= MAX_PLANAR))
   {
     printf("Too many probes in the view !!!\n");
     return;
   }
 
-  if (probe->type == LIGHTPROBE_TYPE_PLANE) {
+  if (probe->type == LIGHTPROBE_TYPE_PLANAR) {
     /* TODO(fclem): Culling should be done after cache generation.
      * This is needed for future draw cache persistence. */
     if (!eevee_lightprobes_culling_test(ob)) {
@@ -477,7 +477,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   else {
     EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
     if (ped->need_update) {
-      if (probe->type == LIGHTPROBE_TYPE_VOLUME) {
+      if (probe->type == LIGHTPROBE_TYPE_GRID) {
         pinfo->do_grid_update = true;
       }
       else {

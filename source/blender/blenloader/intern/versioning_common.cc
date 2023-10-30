@@ -25,7 +25,6 @@
 #include "BKE_lib_override.hh"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
-#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
@@ -526,9 +525,5 @@ void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 302, 3)) {
     /* Does not add any new IDs, but needs the full Main data-base. */
     BKE_lib_override_library_main_hierarchy_root_ensure(new_bmain);
-  }
-
-  if (!blendfile_or_libraries_versions_atleast(new_bmain, 401, 2)) {
-    BKE_main_mesh_legacy_convert_auto_smooth(*new_bmain);
   }
 }

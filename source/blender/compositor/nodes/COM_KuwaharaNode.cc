@@ -24,10 +24,10 @@ void KuwaharaNode::convert_to_operations(NodeConverter &converter,
   switch (data->variation) {
     case CMP_NODE_KUWAHARA_CLASSIC: {
       KuwaharaClassicOperation *operation = new KuwaharaClassicOperation();
+      operation->set_kernel_size(data->size);
 
       converter.add_operation(operation);
       converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
-      converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
       converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
       break;
     }
@@ -68,10 +68,8 @@ void KuwaharaNode::convert_to_operations(NodeConverter &converter,
       converter.add_operation(kuwahara_anisotropic_operation);
       converter.map_input_socket(get_input_socket(0),
                                  kuwahara_anisotropic_operation->get_input_socket(0));
-      converter.map_input_socket(get_input_socket(1),
-                                 kuwahara_anisotropic_operation->get_input_socket(1));
       converter.add_link(blur_y_operation->get_output_socket(0),
-                         kuwahara_anisotropic_operation->get_input_socket(2));
+                         kuwahara_anisotropic_operation->get_input_socket(1));
 
       converter.map_output_socket(get_output_socket(0),
                                   kuwahara_anisotropic_operation->get_output_socket(0));

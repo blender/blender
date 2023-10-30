@@ -181,7 +181,7 @@ void BKE_blender_globals_init()
 
   BKE_blender_globals_main_replace(BKE_main_new());
 
-  STRNCPY(G.filepath_last_image, "//");
+  STRNCPY(G.ima, "//");
 
 #ifndef WITH_PYTHON_SECURITY /* default */
   G.f |= G_FLAG_SCRIPT_AUTOEXEC;

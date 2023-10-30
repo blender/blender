@@ -23,7 +23,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -83,17 +82,17 @@ class Stabilize2DOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &input_image = get_input("Image");
+    Result &output_image = get_result("Image");
+    input_image.pass_through(output_image);
 
     MovieClip *movie_clip = get_movie_clip();
-    if (input.is_single_value() || !movie_clip) {
-      input.pass_through(output);
+    if (input_image.is_single_value() || !movie_clip) {
       return;
     }
 
-    const int width = input.domain().size.x;
-    const int height = input.domain().size.y;
+    const int width = input_image.domain().size.x;
+    const int height = input_image.domain().size.y;
     const int frame_number = BKE_movieclip_remap_scene_to_clip_frame(movie_clip,
                                                                      context().get_frame_number());
 
@@ -108,7 +107,8 @@ class Stabilize2DOperation : public NodeOperation {
       transformation = math::invert(transformation);
     }
 
-    transform(context(), input, output, transformation, get_interpolation());
+    output_image.transform(transformation);
+    output_image.get_realization_options().interpolation = get_interpolation();
   }
 
   Interpolation get_interpolation()

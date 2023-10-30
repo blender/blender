@@ -89,6 +89,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       children_objects.append(collection_object->ob);
     }
 
+    instances->reserve(children_collections.size() + children_objects.size());
     Vector<InstanceListEntry> entries;
     entries.reserve(children_collections.size() + children_objects.size());
 

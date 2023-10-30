@@ -1855,7 +1855,6 @@ typedef struct SceneEEVEE {
   float volumetric_sample_distribution;
   float volumetric_light_clamp;
   int volumetric_shadow_samples;
-  int volumetric_ray_depth;
 
   float gtao_distance;
   float gtao_factor;
@@ -1888,6 +1887,7 @@ typedef struct SceneEEVEE {
   int shadow_ray_count;
   int shadow_step_count;
   float shadow_normal_bias;
+  char _pad[4];
 
   int ray_split_settings;
   int ray_tracing_method;
@@ -1946,10 +1946,7 @@ typedef struct Scene {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
-  /**
-   * Engines draw data, must be immediately after AnimData. See IdDdtTemplate and
-   * DRW_drawdatalist_from_id to understand this requirement.
-   */
+  /** Runtime (must be immediately after id for utilities to use it). */
   DrawDataList drawdata;
 
   struct Object *camera;
@@ -2246,7 +2243,6 @@ enum {
 
 /** #RenderData::engine (scene.cc) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
-extern const char *RE_engine_id_BLENDER_EEVEE_NEXT;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;
 extern const char *RE_engine_id_CYCLES;
 

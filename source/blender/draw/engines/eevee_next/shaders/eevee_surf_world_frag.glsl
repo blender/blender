@@ -8,16 +8,12 @@
  * Outputs shading parameter per pixel using a set of randomized BSDFs.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-
-vec4 closure_to_rgba(Closure cl)
-{
-  return vec4(0.0);
-}
+#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 
 void main()
 {
@@ -26,7 +22,7 @@ void main()
 
   init_globals();
   /* View position is passed to keep accuracy. */
-  g_data.N = drw_normal_view_to_world(drw_view_incident_vector(interp.P));
+  g_data.N = normal_view_to_world(viewCameraVec(interp.P));
   g_data.Ng = g_data.N;
   g_data.P = -g_data.N;
   attrib_load();
@@ -35,13 +31,12 @@ void main()
 
   g_holdout = saturate(g_holdout);
 
-  out_background.rgb = colorspace_safe_color(g_emission) * (1.0 - g_holdout);
-  out_background.a = saturate(average(g_transmittance)) * g_holdout;
+  out_background.rgb = safe_color(g_emission) * (1.0 - g_holdout);
+  out_background.a = saturate(avg(g_transmittance)) * g_holdout;
 
   /* World opacity. */
   out_background = mix(vec4(0.0, 0.0, 0.0, 1.0), out_background, world_opacity_fade);
 
-#ifdef MAT_RENDER_PASS_SUPPORT
   /* Clear Render Buffers. */
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
@@ -61,5 +56,4 @@ void main()
   output_renderpass_value(uniform_buf.render_pass.shadow_id, 1.0);
   /** NOTE: AO is done on its own pass. */
   imageStore(rp_cryptomatte_img, texel, vec4(0.0));
-#endif
 }

@@ -15,10 +15,6 @@
 
 #include "eevee_shader.hh"
 
-#include "eevee_shadow.hh"
-
-#include "BLI_assert.h"
-
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
@@ -98,14 +94,10 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_deferred_light";
     case DEFERRED_CAPTURE_EVAL:
       return "eevee_deferred_capture_eval";
-    case DEFERRED_PLANAR_EVAL:
-      return "eevee_deferred_planar_eval";
     case HIZ_DEBUG:
       return "eevee_hiz_debug";
     case HIZ_UPDATE:
       return "eevee_hiz_update";
-    case HIZ_UPDATE_LAYER:
-      return "eevee_hiz_update_layer";
     case MOTION_BLUR_GATHER:
       return "eevee_motion_blur_gather";
     case MOTION_BLUR_TILE_DILATE:
@@ -186,8 +178,6 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_ray_generate_refract";
     case RAY_TRACE_FALLBACK:
       return "eevee_ray_trace_fallback";
-    case RAY_TRACE_PLANAR:
-      return "eevee_ray_trace_planar";
     case RAY_TRACE_SCREEN_DIFFUSE:
       return "eevee_ray_trace_screen_diffuse";
     case RAY_TRACE_SCREEN_REFLECT:
@@ -210,8 +200,6 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_reflection_probe_remap";
     case REFLECTION_PROBE_UPDATE_IRRADIANCE:
       return "eevee_reflection_probe_update_irradiance";
-    case REFLECTION_PROBE_SELECT:
-      return "eevee_reflection_probe_select";
     case SHADOW_CLIPMAP_CLEAR:
       return "eevee_shadow_clipmap_clear";
     case SHADOW_DEBUG:
@@ -240,10 +228,6 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_tag_usage_surfels";
     case SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT:
       return "eevee_shadow_tag_usage_transparent";
-    case SHADOW_PAGE_TILE_CLEAR:
-      return "eevee_shadow_page_tile_clear";
-    case SHADOW_PAGE_TILE_STORE:
-      return "eevee_shadow_page_tile_store";
     case SHADOW_TILEMAP_TAG_USAGE_VOLUME:
       return "eevee_shadow_tag_usage_volume";
     case SUBSURFACE_CONVOLVE:
@@ -262,8 +246,6 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_surfel_ray";
     case VOLUME_INTEGRATION:
       return "eevee_volume_integration";
-    case VOLUME_OCCUPANCY_CONVERT:
-      return "eevee_volume_occupancy_convert";
     case VOLUME_RESOLVE:
       return "eevee_volume_resolve";
     case VOLUME_SCATTER:
@@ -344,9 +326,14 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     }
   }
 
+  /* WORKAROUND: Needed because node_tree isn't present in test shaders. */
+  if (pipeline_type == MAT_PIPE_DEFERRED) {
+    info.additional_info("eevee_render_pass_out");
+  }
+
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_AO) &&
       ELEM(pipeline_type, MAT_PIPE_FORWARD, MAT_PIPE_DEFERRED) &&
-      geometry_type_has_surface(geometry_type))
+      ELEM(geometry_type, MAT_GEOM_MESH, MAT_GEOM_CURVES))
   {
     info.define("MAT_AMBIENT_OCCLUSION");
   }
@@ -354,23 +341,15 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
     info.define("MAT_TRANSPARENT");
     /* Transparent material do not have any velocity specific pipeline. */
-    if (pipeline_type == MAT_PIPE_PREPASS_FORWARD_VELOCITY) {
-      pipeline_type = MAT_PIPE_PREPASS_FORWARD;
+    if (pipeline_type == MAT_PIPE_FORWARD_PREPASS_VELOCITY) {
+      pipeline_type = MAT_PIPE_FORWARD_PREPASS;
     }
   }
 
-  if (pipeline_type == MAT_PIPE_PREPASS_FORWARD) {
-    info.define("MAT_FORWARD");
-  }
-
-  bool supports_render_passes = (pipeline_type == MAT_PIPE_DEFERRED);
-  /* Opaque forward do support AOVs and render pass if not using transparency. */
-  if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) &&
-      (pipeline_type == MAT_PIPE_FORWARD)) {
-    supports_render_passes = true;
-  }
-
-  if (supports_render_passes) {
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false &&
+      pipeline_type == MAT_PIPE_FORWARD)
+  {
+    /* Opaque forward do support AOVs and render pass if not using transparency. */
     info.additional_info("eevee_render_pass_out");
     info.additional_info("eevee_cryptomatte_out");
   }
@@ -432,7 +411,6 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       }
       info.vertex_inputs_.clear();
       break;
-    case MAT_GEOM_VOLUME:
     case MAT_GEOM_VOLUME_OBJECT:
     case MAT_GEOM_VOLUME_WORLD:
       /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
@@ -443,11 +421,8 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       break;
   }
 
-  const bool do_vertex_attrib_load = !ELEM(geometry_type,
-                                           MAT_GEOM_WORLD,
-                                           MAT_GEOM_VOLUME_WORLD,
-                                           MAT_GEOM_VOLUME_OBJECT,
-                                           MAT_GEOM_VOLUME);
+  const bool do_vertex_attrib_load = !ELEM(
+      geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME_WORLD, MAT_GEOM_VOLUME_OBJECT);
 
   if (!do_vertex_attrib_load && !info.vertex_out_interfaces_.is_empty()) {
     /* Codegen outputs only one interface. */
@@ -471,7 +446,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
   std::stringstream vert_gen, frag_gen, comp_gen;
 
-  bool is_compute = pipeline_type == MAT_PIPE_VOLUME_MATERIAL;
+  bool is_compute = pipeline_type == MAT_PIPE_VOLUME;
 
   if (do_vertex_attrib_load) {
     vert_gen << global_vars.str() << attr_load.str();
@@ -484,12 +459,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (!is_compute) {
-    if (!ELEM(geometry_type,
-              MAT_GEOM_WORLD,
-              MAT_GEOM_VOLUME_WORLD,
-              MAT_GEOM_VOLUME_OBJECT,
-              MAT_GEOM_VOLUME))
-    {
+    if (!ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME_WORLD, MAT_GEOM_VOLUME_OBJECT)) {
       vert_gen << "vec3 nodetree_displacement()\n";
       vert_gen << "{\n";
       vert_gen << ((codegen.displacement) ? codegen.displacement : "return vec3(0);\n");
@@ -562,9 +532,6 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     case MAT_GEOM_POINT_CLOUD:
       info.additional_info("eevee_geom_point_cloud");
       break;
-    case MAT_GEOM_VOLUME:
-      info.additional_info("eevee_geom_volume");
-      break;
   }
   /* Pipeline Info. */
   switch (geometry_type) {
@@ -576,34 +543,16 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       break;
     default:
       switch (pipeline_type) {
-        case MAT_PIPE_PREPASS_FORWARD_VELOCITY:
-        case MAT_PIPE_PREPASS_DEFERRED_VELOCITY:
+        case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
+        case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
           info.additional_info("eevee_surf_depth", "eevee_velocity_geom");
           break;
-        case MAT_PIPE_PREPASS_OVERLAP:
-        case MAT_PIPE_PREPASS_FORWARD:
-        case MAT_PIPE_PREPASS_DEFERRED:
+        case MAT_PIPE_FORWARD_PREPASS:
+        case MAT_PIPE_DEFERRED_PREPASS:
           info.additional_info("eevee_surf_depth");
           break;
-        case MAT_PIPE_PREPASS_PLANAR:
-          info.additional_info("eevee_surf_depth", "eevee_clip_plane");
-          break;
         case MAT_PIPE_SHADOW:
-          /* Determine surface shadow shader depending on used update technique. */
-          switch (ShadowModule::shadow_technique) {
-            case ShadowTechnique::ATOMIC_RASTER: {
-              info.additional_info("eevee_surf_shadow_atomic");
-            } break;
-            case ShadowTechnique::TILE_COPY: {
-              info.additional_info("eevee_surf_shadow_tbdr");
-            } break;
-            default: {
-              BLI_assert_unreachable();
-            } break;
-          }
-          break;
-        case MAT_PIPE_VOLUME_OCCUPANCY:
-          info.additional_info("eevee_surf_occupancy");
+          info.additional_info("eevee_surf_shadow");
           break;
         case MAT_PIPE_CAPTURE:
           info.additional_info("eevee_surf_capture");
@@ -635,7 +584,7 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
                                                eMaterialGeometry geometry_type,
                                                bool deferred_compilation)
 {
-  bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
+  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME);
 
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
@@ -647,7 +596,7 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
                                             bNodeTree *nodetree,
                                             eMaterialPipeline pipeline_type)
 {
-  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL);
+  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME);
   bool defer_compilation = is_volume;
 
   eMaterialGeometry geometry_type = is_volume ? MAT_GEOM_VOLUME_WORLD : MAT_GEOM_WORLD;
@@ -669,7 +618,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
 {
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
-  bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
+  bool is_volume = (pipeline_type == MAT_PIPE_VOLUME);
 
   GPUMaterial *gpumat = GPU_material_from_nodetree(nullptr,
                                                    nullptr,

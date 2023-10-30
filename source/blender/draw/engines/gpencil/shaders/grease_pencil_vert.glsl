@@ -8,7 +8,7 @@ void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, f
 {
   /* Mix stroke with other colors. */
   vec4 mixed_col = stroke_col;
-  mixed_col.rgb = mix(mixed_col.rgb, vert_col.rgb, vert_col.a);
+  mixed_col.rgb = mix(mixed_col.rgb, vert_col.rgb, vert_col.a * gpVertexColorOpacity);
   mixed_col.rgb = mix(mixed_col.rgb, gpLayerTint.rgb, gpLayerTint.a);
   mixed_col.a *= vert_strength * gpLayerOpacity;
   /**

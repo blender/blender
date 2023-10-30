@@ -75,8 +75,6 @@ static ft_pix blf_font_width_max_ft_pix(FontBLF *font);
 /** \name FreeType Caching
  * \{ */
 
-static bool blf_setup_face(FontBLF *font);
-
 /**
  * Called when a face is removed by the cache. FreeType will call #FT_Done_Face.
  */
@@ -114,11 +112,6 @@ static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
     font->face = *face;
     font->face->generic.data = font;
     font->face->generic.finalizer = blf_face_finalizer;
-
-    /* More FontBLF setup now that we have a face. */
-    if (!blf_setup_face(font)) {
-      err = FT_Err_Cannot_Open_Resource;
-    }
   }
   else {
     /* Clear this on error to avoid exception in FTC_Manager_LookupFace. */
@@ -1354,11 +1347,6 @@ static void blf_font_fill(FontBLF *font)
   font->clip_rec.ymax = 0;
   font->flags = 0;
   font->size = 0;
-  font->char_weight = 400;
-  font->char_slant = 0.0f;
-  font->char_width = 1.0f;
-  font->char_spacing = 0.0f;
-
   BLI_listbase_clear(&font->cache);
   font->kerning_cache = nullptr;
 #if BLF_BLUR_ENABLE
@@ -1375,211 +1363,6 @@ static void blf_font_fill(FontBLF *font)
   font->buf_info.col_init[1] = 0;
   font->buf_info.col_init[2] = 0;
   font->buf_info.col_init[3] = 0;
-}
-
-/* Note that the data the following function creates is not yet used.
- * But do not remove it as it will be used in the near future - Harley */
-static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
-{
-  /* Members with non-zero defaults. */
-  metrics->weight = 400;
-  metrics->width = 1.0f;
-
-  TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
-  if (os2_table) {
-    /* The default (resting) font weight. */
-    if (os2_table->usWeightClass >= 1 && os2_table->usWeightClass <= 1000) {
-      metrics->weight = short(os2_table->usWeightClass);
-    }
-
-    /* Width value is one of integers 1-9 with known values. */
-    if (os2_table->usWidthClass >= 1 && os2_table->usWidthClass <= 9) {
-      switch (os2_table->usWidthClass) {
-        case 1:
-          metrics->width = 0.5f;
-          break;
-        case 2:
-          metrics->width = 0.625f;
-          break;
-        case 3:
-          metrics->width = 0.75f;
-          break;
-        case 4:
-          metrics->width = 0.875f;
-          break;
-        case 5:
-          metrics->width = 1.0f;
-          break;
-        case 6:
-          metrics->width = 1.125f;
-          break;
-        case 7:
-          metrics->width = 1.25f;
-          break;
-        case 8:
-          metrics->width = 1.5f;
-          break;
-        case 9:
-          metrics->width = 2.0f;
-          break;
-      }
-    }
-
-    metrics->strikeout_position = short(os2_table->yStrikeoutPosition);
-    metrics->strikeout_thickness = short(os2_table->yStrikeoutSize);
-    metrics->subscript_size = short(os2_table->ySubscriptYSize);
-    metrics->subscript_xoffset = short(os2_table->ySubscriptXOffset);
-    metrics->subscript_yoffset = short(os2_table->ySubscriptYOffset);
-    metrics->superscript_size = short(os2_table->ySuperscriptYSize);
-    metrics->superscript_xoffset = short(os2_table->ySuperscriptXOffset);
-    metrics->superscript_yoffset = short(os2_table->ySuperscriptYOffset);
-    metrics->family_class = short(os2_table->sFamilyClass);
-    metrics->selection_flags = short(os2_table->fsSelection);
-    metrics->first_charindex = short(os2_table->usFirstCharIndex);
-    metrics->last_charindex = short(os2_table->usLastCharIndex);
-    if (os2_table->version > 1) {
-      metrics->cap_height = short(os2_table->sCapHeight);
-      metrics->x_height = short(os2_table->sxHeight);
-    }
-  }
-
-  /* The Post table usually contains a slant value, but in counter-clockwise degrees. */
-  TT_Postscript *post_table = (TT_Postscript *)FT_Get_Sfnt_Table(face, FT_SFNT_POST);
-  if (post_table) {
-    if (post_table->italicAngle != 0) {
-      metrics->slant = float(post_table->italicAngle) / -65536.0f;
-    }
-  }
-
-  /* Metrics copied from those gathered by FreeType. */
-  metrics->units_per_EM = short(face->units_per_EM);
-  metrics->ascender = short(face->ascender);
-  metrics->descender = short(face->descender);
-  metrics->line_height = short(face->height);
-  metrics->max_advance_width = short(face->max_advance_width);
-  metrics->max_advance_height = short(face->max_advance_height);
-  metrics->underline_position = short(face->underline_position);
-  metrics->underline_thickness = short(face->underline_thickness);
-  metrics->num_glyphs = int(face->num_glyphs);
-
-  if (metrics->cap_height == 0) {
-    /* Calculate or guess cap height if it is not set in the font. */
-    FT_UInt gi = FT_Get_Char_Index(face, uint('H'));
-    if (gi && FT_Load_Glyph(face, gi, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == FT_Err_Ok) {
-      metrics->cap_height = short(face->glyph->metrics.height);
-    }
-    else {
-      metrics->cap_height = short(float(metrics->units_per_EM) * 0.7f);
-    }
-  }
-
-  if (metrics->x_height == 0) {
-    /* Calculate or guess x-height if it is not set in the font. */
-    FT_UInt gi = FT_Get_Char_Index(face, uint('x'));
-    if (gi && FT_Load_Glyph(face, gi, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == FT_Err_Ok) {
-      metrics->x_height = short(face->glyph->metrics.height);
-    }
-    else {
-      metrics->x_height = short(float(metrics->units_per_EM) * 0.5f);
-    }
-  }
-
-  FT_UInt gi = FT_Get_Char_Index(face, uint('o'));
-  if (gi && FT_Load_Glyph(face, gi, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == FT_Err_Ok) {
-    metrics->o_proportion = float(face->glyph->metrics.width) / float(face->glyph->metrics.height);
-  }
-
-  if (metrics->ascender == 0) {
-    /* Set a sane value for ascender if not set in the font. */
-    metrics->ascender = short(float(metrics->units_per_EM) * 0.8f);
-  }
-
-  if (metrics->descender == 0) {
-    /* Set a sane value for descender if not set in the font. */
-    metrics->descender = metrics->ascender - metrics->units_per_EM;
-  }
-
-  if (metrics->weight == 400 && face->style_flags & FT_STYLE_FLAG_BOLD) {
-    /* Normal weight yet this is an bold font, so set a sane weight value. */
-    metrics->weight = 700;
-  }
-
-  if (metrics->slant == 0.0f && face->style_flags & FT_STYLE_FLAG_ITALIC) {
-    /* No slant yet this is an italic font, so set a sane slant value. */
-    metrics->slant = 8.0f;
-  }
-
-  if (metrics->underline_position == 0) {
-    metrics->underline_position = short(float(metrics->units_per_EM) * -0.2f);
-  }
-
-  if (metrics->underline_thickness == 0) {
-    metrics->underline_thickness = short(float(metrics->units_per_EM) * 0.07f);
-  }
-
-  if (metrics->strikeout_position == 0) {
-    metrics->strikeout_position = short(float(metrics->x_height) * 0.6f);
-  }
-
-  if (metrics->strikeout_thickness == 0) {
-    metrics->strikeout_thickness = metrics->underline_thickness;
-  }
-
-  if (metrics->subscript_size == 0) {
-    metrics->subscript_size = short(float(metrics->units_per_EM) * 0.6f);
-  }
-
-  if (metrics->subscript_yoffset == 0) {
-    metrics->subscript_yoffset = short(float(metrics->units_per_EM) * 0.075f);
-  }
-
-  if (metrics->superscript_size == 0) {
-    metrics->superscript_size = short(float(metrics->units_per_EM) * 0.6f);
-  }
-
-  if (metrics->superscript_yoffset == 0) {
-    metrics->superscript_yoffset = short(float(metrics->units_per_EM) * 0.35f);
-  }
-
-  metrics->valid = true;
-}
-
-/**
- * Extra FontBLF setup needed after it gets a Face. Called from
- * both blf_ensure_face and from the blf_cache_face_requester callback.
- */
-static bool blf_setup_face(FontBLF *font)
-{
-  font->face_flags = font->face->face_flags;
-
-  if (FT_HAS_MULTIPLE_MASTERS(font) && !font->variations) {
-    FT_Get_MM_Var(font->face, &(font->variations));
-  }
-
-  if (!font->metrics.valid) {
-    blf_font_metrics(font->face, &font->metrics);
-    font->char_weight = font->metrics.weight;
-    font->char_slant = font->metrics.slant;
-    font->char_width = font->metrics.width;
-    font->char_spacing = font->metrics.spacing;
-  }
-
-  if (FT_IS_FIXED_WIDTH(font)) {
-    font->flags |= BLF_MONOSPACED;
-  }
-
-  if (FT_HAS_KERNING(font) && !font->kerning_cache) {
-    /* Create kerning cache table and fill with value indicating "unset". */
-    font->kerning_cache = static_cast<KerningCacheBLF *>(
-        MEM_mallocN(sizeof(KerningCacheBLF), __func__));
-    for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
-      for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
-        font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
-      }
-    }
-  }
-
-  return true;
 }
 
 bool blf_ensure_face(FontBLF *font)
@@ -1663,8 +1446,37 @@ bool blf_ensure_face(FontBLF *font)
     font->ft_size = font->face->size;
   }
 
-  /* Setup Font details that require having a Face. */
-  return blf_setup_face(font);
+  font->face_flags = font->face->face_flags;
+
+  if (FT_HAS_MULTIPLE_MASTERS(font)) {
+    FT_Get_MM_Var(font->face, &(font->variations));
+  }
+
+  /* Save TrueType table with bits to quickly test most unicode block coverage. */
+  TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
+  if (os2_table) {
+    font->unicode_ranges[0] = uint(os2_table->ulUnicodeRange1);
+    font->unicode_ranges[1] = uint(os2_table->ulUnicodeRange2);
+    font->unicode_ranges[2] = uint(os2_table->ulUnicodeRange3);
+    font->unicode_ranges[3] = uint(os2_table->ulUnicodeRange4);
+  }
+
+  if (FT_IS_FIXED_WIDTH(font)) {
+    font->flags |= BLF_MONOSPACED;
+  }
+
+  if (FT_HAS_KERNING(font) && !font->kerning_cache) {
+    /* Create kerning cache table and fill with value indicating "unset". */
+    font->kerning_cache = static_cast<KerningCacheBLF *>(
+        MEM_mallocN(sizeof(KerningCacheBLF), __func__));
+    for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
+      for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
+        font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
+      }
+    }
+  }
+
+  return true;
 }
 
 struct FaceDetails {
@@ -1760,15 +1572,6 @@ static FontBLF *blf_font_new_impl(const char *filepath,
     if (!blf_ensure_face(font)) {
       blf_font_free(font);
       return nullptr;
-    }
-
-    /* Save TrueType table with bits to quickly test most unicode block coverage. */
-    TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
-    if (os2_table) {
-      font->unicode_ranges[0] = uint(os2_table->ulUnicodeRange1);
-      font->unicode_ranges[1] = uint(os2_table->ulUnicodeRange2);
-      font->unicode_ranges[2] = uint(os2_table->ulUnicodeRange3);
-      font->unicode_ranges[3] = uint(os2_table->ulUnicodeRange4);
     }
   }
 

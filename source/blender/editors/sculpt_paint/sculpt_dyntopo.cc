@@ -163,6 +163,10 @@ static void SCULPT_dynamic_topology_disable_ex(
   else {
     BKE_sculptsession_bm_to_me(ob, true);
 
+    /* Reset Face Sets as they are no longer valid. */
+    CustomData_free_layer_named(&me->face_data, ".sculpt_face_set", me->faces_num);
+    me->face_sets_color_default = 1;
+
     /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
         &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert);

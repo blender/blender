@@ -23,17 +23,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Voxel Size").default_value(0.2f).min(0.01f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Half-Band Width")
+      .description("Half the width of the narrow band in voxel units")
       .default_value(3.0f)
       .min(1.01f)
-      .max(10.0f)
-      .description("Half the width of the narrow band in voxel units");
+      .max(10.0f);
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
   if (U.experimental.use_new_volume_nodes) {
-    nodes::search_link_ops_for_basic_node(params);
+    blender::nodes::search_link_ops_for_basic_node(params);
   }
 }
 

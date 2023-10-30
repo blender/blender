@@ -37,10 +37,3 @@
 #define DRW_FINALIZE_GROUP_SIZE 64
 /* Must be multiple of 32. Set to 32 for shader simplicity. */
 #define DRW_VISIBILITY_GROUP_SIZE 32
-
-/**
- * The maximum of indexable views is dictated by:
- * - The UBO limit (16KiB) of the ViewMatrices container.
- * - The maximum resource index supported for shaders using multi-view (see DRW_VIEW_SHIFT).
- */
-#define DRW_VIEW_MAX 64

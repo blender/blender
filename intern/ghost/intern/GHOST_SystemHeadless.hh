@@ -14,7 +14,7 @@
 #include "GHOST_System.hh"
 #include "GHOST_WindowNULL.hh"
 
-#if defined(WITH_OPENGL_BACKEND) && defined(__linux__)
+#ifdef __linux__
 #  include "GHOST_ContextEGL.hh"
 #endif
 #include "GHOST_ContextNone.hh"
@@ -51,7 +51,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                                  ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
                                    GHOST_kCapabilityPrimaryClipboard |
                                    GHOST_kCapabilityDesktopSample |
-                                   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME));
+                                   GHOST_kCapabilityClipboardImages));
   }
   char *getClipboard(bool /*selection*/) const override
   {
@@ -84,7 +84,7 @@ class GHOST_SystemHeadless : public GHOST_System {
   }
   GHOST_IContext *createOffscreenContext(GHOST_GPUSettings /*gpuSettings*/) override
   {
-#if defined(WITH_OPENGL_BACKEND) && defined(__linux__)
+#ifdef __linux__
     GHOST_Context *context;
     for (int minor = 6; minor >= 3; --minor) {
       context = new GHOST_ContextEGL((GHOST_System *)this,

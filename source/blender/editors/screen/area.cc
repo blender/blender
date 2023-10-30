@@ -16,7 +16,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_rand.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -1708,10 +1708,8 @@ static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
   area->winy = BLI_rcti_size_y(&area->totrct) + 1;
 }
 
-/**
- * Update the `ARegion::visible` flag.
- */
-static void region_evaulate_visibility(ARegion *region)
+/* used for area initialize below */
+static void region_subwindow(ARegion *region)
 {
   bool hidden = (region->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) !=
                 0;
@@ -2010,7 +2008,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
   area_azone_init(win, screen, area);
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region_evaulate_visibility(region);
+    region_subwindow(region);
 
     /* region size may have changed, init does necessary adjustments */
     if (region->type->init) {
@@ -2114,7 +2112,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 
   /* region windows, default and own handlers */
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region_evaulate_visibility(region);
+    region_subwindow(region);
 
     if (region->visible) {
       /* default region handlers */
@@ -2182,8 +2180,7 @@ static void area_offscreen_exit(wmWindowManager *wm, wmWindow *win, ScrArea *are
     }
 
     WM_event_modal_handler_region_replace(win, region, nullptr);
-    WM_draw_region_free(region);
-    region->visible = false;
+    WM_draw_region_free(region, true);
 
     MEM_SAFE_FREE(region->headerstr);
 
@@ -2227,7 +2224,7 @@ void ED_region_floating_init(ARegion *region)
   BLI_assert(region->alignment == RGN_ALIGN_FLOAT);
 
   /* refresh can be called before window opened */
-  region_evaulate_visibility(region);
+  region_subwindow(region);
 
   region_update_rect(region);
 }

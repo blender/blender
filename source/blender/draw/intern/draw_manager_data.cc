@@ -730,7 +730,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
 
 static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
 {
-  std::optional<BoundBox> bbox;
+  const BoundBox *bbox;
   if (ob != nullptr && (bbox = BKE_object_boundbox_get(ob))) {
     float corner[3];
     /* Get BoundSphere center and radius from the BoundBox. */
@@ -1361,8 +1361,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   Mesh *mesh = static_cast<Mesh *>(scd->ob->data);
   BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg);
 
-  BKE_pbvh_draw_cb(*mesh,
-                   pbvh,
+  BKE_pbvh_draw_cb(pbvh,
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
@@ -1403,15 +1402,15 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   int attrs_num = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_CO_TYPE));
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_NO_TYPE));
+  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
+  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
 
   if (use_mask) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_MASK_TYPE));
+    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_MASK_TYPE;
   }
 
   if (use_fset) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_FACE, eCustomDataType(CD_PBVH_FSET_TYPE));
+    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_FSET_TYPE;
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);

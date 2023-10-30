@@ -19,9 +19,8 @@
 
 #include "ED_clip.hh"
 #include "ED_image.hh"
+#include "ED_keyframing.hh"
 #include "ED_mask.hh"
-
-#include "ANIM_keyframing.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -454,7 +453,7 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   }
 
   /* TODO: don't key all masks. */
-  if (blender::animrig::is_autokey_on(t->scene)) {
+  if (IS_AUTOKEY_ON(t->scene)) {
     Scene *scene = t->scene;
 
     if (ED_mask_layer_shape_auto_key_select(mask, scene->r.cfra)) {

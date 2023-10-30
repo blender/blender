@@ -391,10 +391,8 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
                       SCE_SNAP_TO_NONE,
                       "Snap Source Type",
                       "Snap Source type (influences drawing)");
-  RNA_def_property_enum_funcs_runtime(prop,
-                                      gizmo_snap_rna_snap_srouce_type_get_fn,
-                                      gizmo_snap_rna_snap_srouce_type_set_fn,
-                                      nullptr);
+  RNA_def_property_enum_funcs_runtime(
+      prop, gizmo_snap_rna_snap_srouce_type_get_fn, gizmo_snap_rna_snap_srouce_type_set_fn, NULL);
 }
 
 void ED_gizmotypes_snap_3d()

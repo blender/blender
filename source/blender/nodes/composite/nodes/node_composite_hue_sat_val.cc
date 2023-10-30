@@ -34,11 +34,11 @@ static void cmp_node_huesatval_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .compositor_domain_priority(2);
   b.add_input<decl::Float>("Value")
+      .translation_context(BLT_I18NCONTEXT_COLOR)
       .default_value(1.0f)
       .min(0.0f)
       .max(2.0f)
       .subtype(PROP_FACTOR)
-      .translation_context(BLT_I18NCONTEXT_COLOR)
       .compositor_domain_priority(3);
   b.add_input<decl::Float>("Fac")
       .default_value(1.0f)

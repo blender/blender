@@ -130,15 +130,14 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
           me->vert_positions_for_write().copy_from(edit_data->vertexCos);
           me->runtime->is_original_bmesh = false;
         }
-
-        if (me->runtime->wrapper_type_finalize) {
-          BKE_mesh_wrapper_deferred_finalize_mdata(me);
-        }
-
         MEM_delete(me->runtime->edit_data);
         me->runtime->edit_data = nullptr;
         break;
       }
+    }
+
+    if (me->runtime->wrapper_type_finalize) {
+      BKE_mesh_wrapper_deferred_finalize_mdata(me, &me->runtime->cd_mask_extra);
     }
 
     /* Keep type assignment last, so that read-only access only uses the mdata code paths after all
@@ -385,17 +384,22 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
   if (use_clnors) {
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
-    void *data = CustomData_add_layer(&me->loop_data, CD_NORMAL, CD_CONSTRUCT, me->totloop);
-    memcpy(data, me->corner_normals().data(), me->corner_normals().size_in_bytes());
+    BKE_mesh_calc_normals_split(me);
+    CustomData_clear_layer_flag(&me->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
 
   Mesh *subdiv_mesh = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me);
 
   if (use_clnors) {
-    BKE_mesh_set_custom_normals(subdiv_mesh,
-                                static_cast<float(*)[3]>(CustomData_get_layer_for_write(
-                                    &subdiv_mesh->loop_data, CD_NORMAL, me->totloop)));
-    CustomData_free_layers(&subdiv_mesh->loop_data, CD_NORMAL, me->totloop);
+    float(*lnors)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer_for_write(&subdiv_mesh->loop_data, CD_NORMAL, subdiv_mesh->totloop));
+    BLI_assert(lnors != nullptr);
+    BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
+    CustomData_set_layer_flag(&me->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&subdiv_mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+  }
+  else if (runtime_data->calc_loop_normals) {
+    BKE_mesh_calc_normals_split(subdiv_mesh);
   }
 
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {

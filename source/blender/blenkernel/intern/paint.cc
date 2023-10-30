@@ -1085,8 +1085,6 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
       return OB_MODE_EDIT;
     case PAINT_MODE_SCULPT_CURVES:
       return OB_MODE_SCULPT_CURVES;
-    case PAINT_MODE_GPENCIL:
-      return OB_MODE_PAINT_GREASE_PENCIL;
     case PAINT_MODE_INVALID:
     default:
       return OB_MODE_OBJECT;

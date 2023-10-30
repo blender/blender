@@ -33,7 +33,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_string_utils.hh"
+#  include "BLI_string_utils.h"
 
 #  include "WM_api.hh"
 

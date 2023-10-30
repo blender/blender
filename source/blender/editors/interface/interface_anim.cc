@@ -34,8 +34,6 @@
 
 #include "ED_keyframing.hh"
 
-#include "ANIM_keyframing.hh"
-
 #include "UI_interface.hh"
 
 #include "RNA_access.hh"
@@ -302,8 +300,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
 void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 {
-  blender::animrig::autokeyframe_property(
-      C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
+  ED_autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
 }
 
 void ui_but_anim_copy_driver(bContext *C)

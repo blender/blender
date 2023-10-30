@@ -801,7 +801,7 @@ void uiTemplateImage(uiLayout *layout,
       const float dpi_fac = UI_SCALE_FAC;
       const int menus_width = 230 * dpi_fac;
 
-      /* Use #BKE_image_acquire_renderresult so we get the correct slot in the menu. */
+      /* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
       rr = BKE_image_acquire_renderresult(scene, ima);
       uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
       BKE_image_release_renderresult(scene, ima);

@@ -16,7 +16,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -29,7 +28,6 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_grease_pencil.hh"
 #include "BKE_image.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
@@ -43,7 +41,6 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_grease_pencil.hh"
 #include "ED_image.hh"
 #include "ED_view3d.hh"
 
@@ -1065,14 +1062,14 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
                                        Object *ob,
                                        const float radius)
 {
-  const BoundBox bb = *BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   float orgLoc[3], location[3];
   int tile_pass = 0;
   int start[3];
   int end[3];
   int cur[3];
-  const float *bbMin = bb.vec[0];
-  const float *bbMax = bb.vec[6];
+  const float *bbMin = bb->vec[0];
+  const float *bbMax = bb->vec[6];
   const float *step = sd->paint.tile_offset;
 
   copy_v3_v3(orgLoc, true_location);
@@ -1206,24 +1203,10 @@ static void SCULPT_layer_brush_height_preview_draw(const uint gpuattr,
 
 static bool paint_use_2d_cursor(ePaintMode mode)
 {
-  switch (mode) {
-    case PAINT_MODE_SCULPT:
-    case PAINT_MODE_VERTEX:
-    case PAINT_MODE_WEIGHT:
-      return false;
-    case PAINT_MODE_TEXTURE_3D:
-    case PAINT_MODE_TEXTURE_2D:
-    case PAINT_MODE_SCULPT_UV:
-    case PAINT_MODE_VERTEX_GPENCIL:
-    case PAINT_MODE_SCULPT_GPENCIL:
-    case PAINT_MODE_WEIGHT_GPENCIL:
-    case PAINT_MODE_SCULPT_CURVES:
-    case PAINT_MODE_GPENCIL:
-      return true;
-    case PAINT_MODE_INVALID:
-      BLI_assert_unreachable();
+  if (mode >= PAINT_MODE_TEXTURE_3D) {
+    return true;
   }
-  return true;
+  return false;
 }
 
 enum PaintCursorDrawingType {
@@ -1307,7 +1290,7 @@ static bool paint_cursor_context_init(bContext *C,
   }
   pcontext->mode = BKE_paintmode_get_active_from_context(C);
 
-  pcontext->vc = ED_view3d_viewcontext_init(C, pcontext->depsgraph);
+  ED_view3d_viewcontext_init(C, &pcontext->vc, pcontext->depsgraph);
 
   if (pcontext->brush->flag & BRUSH_CURVE) {
     pcontext->cursor_type = PAINT_CURSOR_CURVE;
@@ -1439,15 +1422,10 @@ static void paint_update_mouse_cursor(PaintCursorContext *pcontext)
      * with the UI (dragging a number button for e.g.), see: #102792. */
     return;
   }
-  if (pcontext->mode == PAINT_MODE_GPENCIL) {
-    WM_cursor_set(pcontext->win, WM_CURSOR_DOT);
-  }
-  else {
-    WM_cursor_set(pcontext->win, WM_CURSOR_PAINT);
-  }
+  WM_cursor_set(pcontext->win, WM_CURSOR_PAINT);
 }
 
-static void paint_draw_2D_view_brush_cursor_default(PaintCursorContext *pcontext)
+static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
 {
   immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
 
@@ -1468,147 +1446,6 @@ static void paint_draw_2D_view_brush_cursor_default(PaintCursorContext *pcontext
                           pcontext->translation[1],
                           pcontext->final_radius,
                           40);
-}
-
-static void grease_pencil_eraser_draw(PaintCursorContext *pcontext)
-{
-  float radius = static_cast<float>(BKE_brush_size_get(pcontext->scene, pcontext->brush));
-
-  /* Red-ish color with alpha. */
-  immUniformColor4ub(255, 100, 100, 20);
-  imm_draw_circle_fill_2d(pcontext->pos, pcontext->x, pcontext->y, radius, 40);
-
-  immUnbindProgram();
-
-  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
-
-  float viewport_size[4];
-  GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
-
-  immUniformColor4f(1.0f, 0.39f, 0.39f, 0.78f);
-  immUniform1i("colors_len", 0); /* "simple" mode */
-  immUniform1f("dash_width", 12.0f);
-  immUniform1f("udash_factor", 0.5f);
-
-  /* XXX Dashed shader gives bad results with sets of small segments
-   * currently, temp hack around the issue. :( */
-  const int nsegments = max_ii(8, radius / 2);
-  imm_draw_circle_wire_2d(pcontext->pos, pcontext->x, pcontext->y, radius, nsegments);
-}
-
-static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
-{
-  using namespace blender;
-  if ((pcontext->region) && (pcontext->region->regiontype != RGN_TYPE_WINDOW)) {
-    return;
-  }
-  if (pcontext->region && !BLI_rcti_isect_pt(&pcontext->region->winrct, pcontext->x, pcontext->y))
-  {
-    return;
-  }
-
-  Object *object = CTX_data_active_object(pcontext->C);
-  if (object->type != OB_GREASE_PENCIL) {
-    return;
-  }
-
-  /* default radius and color */
-  float color[3] = {1.0f, 1.0f, 1.0f};
-  float darkcolor[3];
-  float radius = 2.0f;
-
-  const int x = pcontext->x;
-  const int y = pcontext->y;
-
-  /* for paint use paint brush size and color */
-  if (pcontext->mode == PAINT_MODE_GPENCIL) {
-    Paint *paint = pcontext->paint;
-    Brush *brush = pcontext->brush;
-    if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
-      return;
-    }
-
-    if ((paint->flags & PAINT_SHOW_BRUSH) == 0) {
-      return;
-    }
-
-    /* Eraser has a special shape and use a different shader program. */
-    if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
-      grease_pencil_eraser_draw(pcontext);
-      return;
-    }
-
-    /* Note: For now, there is only as screen space sized cursor. */
-    radius = BKE_brush_size_get(pcontext->scene, brush);
-
-    /* Get current drawing material. */
-    Material *ma = BKE_grease_pencil_object_material_from_brush_get(object, brush);
-    if (ma) {
-      MaterialGPencilStyle *gp_style = ma->gp_style;
-
-      /* Follow user settings for the size of the draw cursor:
-       * - Fixed size, or
-       * - Brush size (i.e. stroke thickness)
-       */
-      if ((gp_style) && ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-          ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-          (brush->gpencil_tool == GPAINT_TOOL_DRAW))
-      {
-
-        const bool use_vertex_color = (pcontext->scene->toolsettings->gp_paint->mode ==
-                                       GPPAINT_FLAG_USE_VERTEXCOLOR);
-        const bool use_vertex_color_stroke = use_vertex_color &&
-                                             ELEM(brush->gpencil_settings->vertex_mode,
-                                                  GPPAINT_MODE_STROKE,
-                                                  GPPAINT_MODE_BOTH);
-
-        copy_v3_v3(color, use_vertex_color_stroke ? brush->rgb : gp_style->stroke_rgba);
-      }
-    }
-  }
-
-  GPU_line_width(1.0f);
-  /* Inner Ring: Color from UI panel */
-  immUniformColor4f(color[0], color[1], color[2], 0.8f);
-  imm_draw_circle_wire_2d(pcontext->pos, x, y, radius, 32);
-
-  /* Outer Ring: Dark color for contrast on light backgrounds (e.g. gray on white) */
-  mul_v3_v3fl(darkcolor, color, 0.40f);
-  immUniformColor4f(darkcolor[0], darkcolor[1], darkcolor[2], 0.8f);
-  imm_draw_circle_wire_2d(pcontext->pos, x, y, radius + 1, 32);
-
-  /* Draw line for lazy mouse */
-  /* TODO: No stabilize mode yet. */
-  // if ((last_mouse_position) &&
-  //     (pcontext->xbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP))
-  // {
-  //   GPU_line_smooth(true);
-  //   GPU_blend(GPU_BLEND_ALPHA);
-
-  //   copy_v3_v3(color, pcontext->brush->add_col);
-  //   immUniformColor4f(color[0], color[1], color[2], 0.8f);
-
-  //   immBegin(GPU_PRIM_LINES, 2);
-  //   immVertex2f(pos, x, y);
-  //   immVertex2f(pos,
-  //               last_mouse_position[0] + pcontext->region->winrct.xmin,
-  //               last_mouse_position[1] + pcontext->region->winrct.ymin);
-  //   immEnd();
-  // }
-}
-
-static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
-{
-  switch (pcontext->mode) {
-    case PAINT_MODE_GPENCIL: {
-      grease_pencil_brush_cursor_draw(pcontext);
-      break;
-    }
-    default: {
-      paint_draw_2D_view_brush_cursor_default(pcontext);
-    }
-  }
 }
 
 static void paint_draw_legacy_3D_view_brush_cursor(PaintCursorContext *pcontext)
@@ -2105,8 +1942,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
       paint_draw_curve_cursor(pcontext.brush, &pcontext.vc);
       break;
     case PAINT_CURSOR_2D:
-      paint_update_mouse_cursor(&pcontext);
-
       paint_cursor_update_rake_rotation(&pcontext);
       paint_cursor_check_and_draw_alpha_overlays(&pcontext);
       paint_cursor_update_anchored_location(&pcontext);

@@ -21,11 +21,11 @@ void main()
     return;
   }
 
-  ivec2 closest_boundary_texel = texture_load(flooded_boundary_tx, texel).xy;
-  float distance_to_boundary = distance(vec2(texel), vec2(closest_boundary_texel));
+  vec4 flooding_value = texture_load(flooded_boundary_tx, texel);
+  float distance_to_boundary = extract_jump_flooding_distance_to_closest_seed(flooding_value);
 
   /* Further than the user supplied distance, write a transparent color. */
-  if (distance_to_boundary > max_distance) {
+  if (distance_to_boundary > distance) {
     imageStore(output_img, texel, vec4(0.0));
     return;
   }
@@ -45,7 +45,8 @@ void main()
     float weight = texture(gaussian_weights_tx, float(i / (blur_radius - 1))).x;
 
     {
-      ivec2 boundary_texel = texture_load(flooded_boundary_tx, ivec2(left_texel)).xy;
+      vec4 flooding_value = texture_load(flooded_boundary_tx, ivec2(left_texel));
+      ivec2 boundary_texel = extract_jump_flooding_closest_seed_texel(flooding_value);
       accumulated_color += texture_load(input_tx, boundary_texel) * weight;
       accumulated_weight += weight;
 
@@ -56,7 +57,8 @@ void main()
     /* When i is zero, we are accumulating the center pixel, which was already accumulated as the
      * left texel above, so no need to accumulate it again. */
     if (i != 0) {
-      ivec2 boundary_texel = texture_load(flooded_boundary_tx, ivec2(right_texel)).xy;
+      vec4 flooding_value = texture_load(flooded_boundary_tx, ivec2(right_texel));
+      ivec2 boundary_texel = extract_jump_flooding_closest_seed_texel(flooding_value);
       accumulated_color += texture_load(input_tx, boundary_texel) * weight;
       accumulated_weight += weight;
 

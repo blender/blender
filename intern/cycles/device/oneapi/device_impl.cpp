@@ -853,11 +853,11 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
-static const int lowest_supported_driver_version_win = 1014824;
+static const int lowest_supported_driver_version_win = 1014644;
 #  ifdef _WIN32
-/* For Windows driver 101.4824, compute-runtime version is 26957.
+/* For Windows driver 101.4644, compute-runtime version is 26771.
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`.*/
-static const int lowest_supported_driver_version_neo = 26957;
+static const int lowest_supported_driver_version_neo = 26771;
 #  else
 static const int lowest_supported_driver_version_neo = 25812;
 #  endif

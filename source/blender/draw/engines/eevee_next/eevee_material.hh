@@ -28,43 +28,23 @@ class Instance;
 enum eMaterialPipeline {
   MAT_PIPE_DEFERRED = 0,
   MAT_PIPE_FORWARD,
-  /* These all map to the depth shader. */
-  MAT_PIPE_PREPASS_DEFERRED,
-  MAT_PIPE_PREPASS_DEFERRED_VELOCITY,
-  MAT_PIPE_PREPASS_OVERLAP,
-  MAT_PIPE_PREPASS_FORWARD,
-  MAT_PIPE_PREPASS_FORWARD_VELOCITY,
-  MAT_PIPE_PREPASS_PLANAR,
-
-  MAT_PIPE_VOLUME_MATERIAL,
-  MAT_PIPE_VOLUME_OCCUPANCY,
+  MAT_PIPE_DEFERRED_PREPASS,
+  MAT_PIPE_DEFERRED_PREPASS_VELOCITY,
+  MAT_PIPE_FORWARD_PREPASS,
+  MAT_PIPE_FORWARD_PREPASS_VELOCITY,
+  MAT_PIPE_VOLUME,
   MAT_PIPE_SHADOW,
   MAT_PIPE_CAPTURE,
 };
 
 enum eMaterialGeometry {
-  /* These maps directly to object types. */
   MAT_GEOM_MESH = 0,
   MAT_GEOM_POINT_CLOUD,
   MAT_GEOM_CURVES,
   MAT_GEOM_GPENCIL,
-  MAT_GEOM_VOLUME,
-
-  /* These maps to special shader. */
   MAT_GEOM_VOLUME_OBJECT,
   MAT_GEOM_VOLUME_WORLD,
   MAT_GEOM_WORLD,
-};
-
-static inline bool geometry_type_has_surface(eMaterialGeometry geometry_type)
-{
-  return geometry_type < MAT_GEOM_VOLUME;
-}
-
-enum eMaterialProbe {
-  MAT_PROBE_NONE = 0,
-  MAT_PROBE_REFLECTION,
-  MAT_PROBE_PLANAR,
 };
 
 static inline void material_type_from_shader_uuid(uint64_t shader_uuid,
@@ -80,7 +60,6 @@ static inline void material_type_from_shader_uuid(uint64_t shader_uuid,
 static inline uint64_t shader_uuid_from_material_type(eMaterialPipeline pipeline_type,
                                                       eMaterialGeometry geometry_type)
 {
-  BLI_assert(geometry_type < (1 << 4));
   return geometry_type | (pipeline_type << 4);
 }
 
@@ -122,7 +101,7 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
     case OB_CURVES:
       return MAT_GEOM_CURVES;
     case OB_VOLUME:
-      return MAT_GEOM_VOLUME;
+      return MAT_GEOM_VOLUME_OBJECT;
     case OB_GPENCIL_LEGACY:
       return MAT_GEOM_GPENCIL;
     case OB_POINTCLOUD:
@@ -132,17 +111,15 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
   }
 }
 
-/**
- * Unique key to identify each material in the hash-map.
- * This is above the shader binning.
- */
+/** Unique key to identify each material in the hash-map. */
 struct MaterialKey {
   ::Material *mat;
   uint64_t options;
 
-  MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline pipeline) : mat(mat_)
+  MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline surface_pipeline)
+      : mat(mat_)
   {
-    options = shader_uuid_from_material_type(pipeline, geometry);
+    options = shader_uuid_from_material_type(surface_pipeline, geometry);
   }
 
   uint64_t hash() const
@@ -169,20 +146,21 @@ struct MaterialKey {
  *
  * \{ */
 
-/**
- * Key used to find the sub-pass that already renders objects with the same shader.
- * This avoids the cost associated with shader switching.
- * This is below the material binning.
- * Should only include pipeline options that are not baked in the shader itself.
- */
 struct ShaderKey {
   GPUShader *shader;
   uint64_t options;
 
-  ShaderKey(GPUMaterial *gpumat, eMaterialProbe probe_capture)
+  ShaderKey(GPUMaterial *gpumat,
+            eMaterialGeometry geometry,
+            eMaterialPipeline pipeline,
+            char blend_flags,
+            bool probe_capture)
   {
     shader = GPU_material_get_shader(gpumat);
-    options = uint64_t(probe_capture);
+    options = blend_flags;
+    options = (options << 6u) | shader_uuid_from_material_type(pipeline, geometry);
+    options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
+    options = (options << 1u) | uint64_t(probe_capture);
   }
 
   uint64_t hash() const
@@ -242,19 +220,7 @@ struct MaterialPass {
 
 struct Material {
   bool is_alpha_blend_transparent;
-  bool has_surface;
-  bool has_volume;
-  MaterialPass shadow;
-  MaterialPass shading;
-  MaterialPass prepass;
-  MaterialPass overlap_masking;
-  MaterialPass capture;
-  MaterialPass reflection_probe_prepass;
-  MaterialPass reflection_probe_shading;
-  MaterialPass planar_probe_prepass;
-  MaterialPass planar_probe_shading;
-  MaterialPass volume_occupancy;
-  MaterialPass volume_material;
+  MaterialPass shadow, shading, prepass, capture, probe_prepass, probe_shading, volume;
 };
 
 struct MaterialArray {
@@ -310,7 +276,7 @@ class MaterialModule {
                                  ::Material *blender_mat,
                                  eMaterialPipeline pipeline_type,
                                  eMaterialGeometry geometry_type,
-                                 eMaterialProbe probe_capture = MAT_PROBE_NONE);
+                                 bool probe_capture = false);
 };
 
 /** \} */

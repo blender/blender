@@ -12,9 +12,9 @@
 
 #  include "MEM_guardedalloc.h"
 
+#  include "BLI_array.h"
 #  include "BLI_listbase.h"
 #  include "BLI_math_geom.h"
-#  include "BLI_vector.hh"
 
 #  include "RBI_hull_api.h"
 
@@ -24,8 +24,6 @@
 #  include "bmesh.h"
 
 #  include "intern/bmesh_operators_private.h" /* own include */
-
-using blender::Vector;
 
 /* Internal operator flags */
 enum {
@@ -466,6 +464,9 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
 
 static void hull_from_bullet(BMesh *bm, BMOperator *op, BLI_mempool *hull_triangles)
 {
+  int *fvi = nullptr;
+  BLI_array_declare(fvi);
+
   BMVert **input_verts;
   float(*coords)[3];
   BMVert **hull_verts;
@@ -482,7 +483,6 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op, BLI_mempool *hull_triang
   hull_verts = hull_verts_from_bullet(hull, input_verts, num_input_verts);
 
   count = plConvexHullNumFaces(hull);
-  Vector<int> fvi;
   for (i = 0; i < count; i++) {
     const int len = plConvexHullGetFaceSize(hull, i);
 
@@ -491,8 +491,9 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op, BLI_mempool *hull_triang
       int j;
 
       /* Get face vertex indices */
-      fvi.reinitialize(len);
-      plConvexHullGetFaceVertices(hull, i, fvi.data());
+      BLI_array_clear(fvi);
+      BLI_array_grow_items(fvi, len);
+      plConvexHullGetFaceVertices(hull, i, fvi);
 
       /* NOTE: here we throw away any NGons from Bullet and turn
        * them into triangle fans. Would be nice to use these
@@ -507,6 +508,8 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op, BLI_mempool *hull_triang
       }
     }
   }
+
+  BLI_array_free(fvi);
 
   plConvexHullDelete(hull);
 

@@ -304,6 +304,7 @@ void GLContext::vao_cache_unregister(GLVaoCache *cache)
 
 void GLContext::memory_statistics_get(int *r_total_mem, int *r_free_mem)
 {
+  /* TODO(merwin): use Apple's platform API to get this info. */
   if (epoxy_has_gl_extension("GL_NVX_gpu_memory_info")) {
     /* Returned value in Kb. */
     glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, r_total_mem);

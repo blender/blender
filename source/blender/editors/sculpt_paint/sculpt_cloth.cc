@@ -513,7 +513,7 @@ static void do_cloth_brush_apply_forces_task(Object *ob,
                                                     dist,
                                                     vd.no,
                                                     vd.fno,
-                                                    vd.mask,
+                                                    vd.mask ? *vd.mask : 0.0f,
                                                     vd.vertex,
                                                     thread_id,
                                                     &automask_data);
@@ -761,7 +761,7 @@ static void do_cloth_brush_solve_simulation_task(Object *ob,
     sub_v3_v3v3(pos_diff, cloth_sim->pos[i], cloth_sim->prev_pos[i]);
     mul_v3_fl(pos_diff, (1.0f - cloth_sim->damping) * sim_factor);
 
-    const float mask_v = (1.0f - (vd.mask)) *
+    const float mask_v = (1.0f - (vd.mask ? *vd.mask : 0.0f)) *
                          SCULPT_automasking_factor_get(automasking, ss, vd.vertex, &automask_data);
 
     madd_v3_v3fl(cloth_sim->pos[i], pos_diff, mask_v);
@@ -1384,7 +1384,7 @@ static void cloth_filter_apply_forces_task(Object *ob,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
-    float fade = vd.mask;
+    float fade = vd.mask ? *vd.mask : 0.0f;
     fade *= SCULPT_automasking_factor_get(
         ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
     fade = 1.0f - fade;

@@ -11,15 +11,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_math_vector.h"
-#include "BLI_vector.hh"
 
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
-
-using blender::Vector;
 
 bool BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
@@ -363,15 +361,16 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
 
   if (join_faces) {
     BMIter fiter;
+    BMFace **faces = nullptr;
     BMFace *f;
+    BLI_array_staticdeclare(faces, BM_DEFAULT_ITER_STACK_SIZE);
 
-    Vector<BMFace *, BM_DEFAULT_ITER_STACK_SIZE> faces;
     BM_ITER_ELEM (f, &fiter, v_kill, BM_FACES_OF_VERT) {
-      faces.append(f);
+      BLI_array_append(faces, f);
     }
 
-    if (faces.size() >= 2) {
-      BMFace *f2 = BM_faces_join(bm, faces.data(), faces.size(), true);
+    if (BLI_array_len(faces) >= 2) {
+      BMFace *f2 = BM_faces_join(bm, faces, BLI_array_len(faces), true);
       if (f2) {
         BMLoop *l_a, *l_b;
 
@@ -384,6 +383,10 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
         }
       }
     }
+
+    BLI_assert(BLI_array_len(faces) < 8);
+
+    BLI_array_free(faces);
   }
   else {
     /* single face or no faces */
@@ -448,8 +451,8 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 {
   BMVert *v_new, *v_other;
   BMEdge *e_new;
-
-  Vector<BMFace *, 32> oldfaces;
+  BMFace **oldfaces = nullptr;
+  BLI_array_staticdeclare(oldfaces, 32);
   const int cd_loop_mdisp_offset = BM_edge_is_wire(e) ?
                                        -1 :
                                        CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -458,14 +461,17 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 
   /* do we have a multi-res layer? */
   if (cd_loop_mdisp_offset != -1) {
-    BMLoop *l = e->l;
+    BMLoop *l;
+    int i;
+
+    l = e->l;
     do {
-      oldfaces.append(l->f);
+      BLI_array_append(oldfaces, l->f);
       l = l->radial_next;
     } while (l != e->l);
 
     /* flag existing faces so we can differentiate oldfaces from new faces */
-    for (int64_t i = 0; i < oldfaces.size(); i++) {
+    for (i = 0; i < BLI_array_len(oldfaces); i++) {
       BM_ELEM_API_FLAG_ENABLE(oldfaces[i], _FLAG_OVERLAP);
       oldfaces[i] = BM_face_copy(bm, bm, oldfaces[i], true, true);
       BM_ELEM_API_FLAG_DISABLE(oldfaces[i], _FLAG_OVERLAP);
@@ -493,15 +499,19 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
   BM_data_interp_from_verts(bm, v, v_other, v_new, fac);
 
   if (cd_loop_mdisp_offset != -1) {
+    int i, j;
+
     /* interpolate new/changed loop data from copied old faces */
-    for (BMFace *oldface : oldfaces) {
+    for (i = 0; i < BLI_array_len(oldfaces); i++) {
       float f_center_old[3];
 
-      BM_face_calc_center_median(oldface, f_center_old);
+      BM_face_calc_center_median(oldfaces[i], f_center_old);
 
-      for (int j = 0; j < 2; j++) {
+      for (j = 0; j < 2; j++) {
         BMEdge *e1 = j ? e_new : e;
-        BMLoop *l = e1->l;
+        BMLoop *l;
+
+        l = e1->l;
 
         if (UNLIKELY(!l)) {
           BMESH_ASSERT(0);
@@ -515,7 +525,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 
             BM_face_calc_center_median(l->f, f_center);
             BM_face_interp_multires_ex(
-                bm, l->f, oldface, f_center, f_center_old, cd_loop_mdisp_offset);
+                bm, l->f, oldfaces[i], f_center, f_center_old, cd_loop_mdisp_offset);
           }
           l = l->radial_next;
         } while (l != e1->l);
@@ -523,13 +533,13 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
     }
 
     /* destroy the old faces */
-    for (BMFace *oldface : oldfaces) {
-      BM_face_verts_kill(bm, oldface);
+    for (i = 0; i < BLI_array_len(oldfaces); i++) {
+      BM_face_verts_kill(bm, oldfaces[i]);
     }
 
 /* fix boundaries a bit, doesn't work too well quite yet */
 #if 0
-    for (int j = 0; j < 2; j++) {
+    for (j = 0; j < 2; j++) {
       BMEdge *e1 = j ? e_new : e;
       BMLoop *l, *l2;
 
@@ -545,6 +555,8 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
       } while (l != e1->l);
     }
 #endif
+
+    BLI_array_free(oldfaces);
   }
 
   return v_new;
@@ -572,6 +584,55 @@ void BM_edge_verts_swap(BMEdge *e)
   SWAP(BMVert *, e->v1, e->v2);
   SWAP(BMDiskLink, e->v1_disk_link, e->v2_disk_link);
 }
+
+#if 0
+/**
+ * Checks if a face is valid in the data structure
+ */
+bool BM_face_validate(BMFace *face, FILE *err)
+{
+  BMIter iter;
+  BLI_array_declare(verts);
+  BMVert **verts = nullptr;
+  BMLoop *l;
+  int i, j;
+  bool ret = true;
+
+  if (face->len == 2) {
+    fprintf(err, "WARNING: found two-edged face. face ptr: %p\n", face);
+    fflush(err);
+  }
+
+  BLI_array_grow_items(verts, face->len);
+  BM_ITER_ELEM_INDEX (l, &iter, face, BM_LOOPS_OF_FACE, i) {
+    verts[i] = l->v;
+    if (l->e->v1 == l->e->v2) {
+      fprintf(err, "Found bmesh edge with identical verts!\n");
+      fprintf(err, "  edge ptr: %p, vert: %p\n", l->e, l->e->v1);
+      fflush(err);
+      ret = false;
+    }
+  }
+
+  for (i = 0; i < face->len; i++) {
+    for (j = 0; j < face->len; j++) {
+      if (j == i) {
+        continue;
+      }
+
+      if (verts[i] == verts[j]) {
+        fprintf(err, "Found duplicate verts in bmesh face!\n");
+        fprintf(err, "  face ptr: %p, vert: %p\n", face, verts[i]);
+        fflush(err);
+        ret = false;
+      }
+    }
+  }
+
+  BLI_array_free(verts);
+  return ret;
+}
+#endif
 
 void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2)
 {

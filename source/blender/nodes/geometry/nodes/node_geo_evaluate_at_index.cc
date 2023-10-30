@@ -37,7 +37,8 @@ GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldCon
     return {};
   }
 
-  const bke::GeometryFieldContext value_context{context, value_field_domain_};
+  const bke::GeometryFieldContext value_context{
+      context.geometry(), context.type(), value_field_domain_};
   FieldEvaluator value_evaluator{value_context, attributes->domain_size(value_field_domain_)};
   value_evaluator.add(value_field_);
   value_evaluator.evaluate();
@@ -125,7 +126,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     params.add_item(IFACE_("Value"), [node_type, type](LinkSearchOpParams &params) {
@@ -190,8 +191,7 @@ static void node_rna(StructRNA *srna)
                     "Domain the field is evaluated in",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom1),
-                    ATTR_DOMAIN_POINT,
-                    enums::domain_experimental_grease_pencil_version3_fn);
+                    ATTR_DOMAIN_POINT);
 
   RNA_def_node_enum(srna,
                     "data_type",

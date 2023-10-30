@@ -108,7 +108,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   CustomData_MeshMasks mask = {0};
 
   if (BKE_shrinkwrap_needs_normals(smd->shrinkType, smd->shrinkMode)) {
-    mask.lmask |= CD_MASK_CUSTOMLOOPNORMAL;
+    mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
   }
 
   if (smd->target != nullptr) {

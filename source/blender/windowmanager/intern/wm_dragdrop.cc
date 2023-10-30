@@ -312,8 +312,8 @@ void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
 
 void WM_drag_free(wmDrag *drag)
 {
-  if (drag->drop_state.active_dropbox && drag->drop_state.active_dropbox->on_exit) {
-    drag->drop_state.active_dropbox->on_exit(drag->drop_state.active_dropbox, drag);
+  if (drag->drop_state.active_dropbox && drag->drop_state.active_dropbox->draw_deactivate) {
+    drag->drop_state.active_dropbox->draw_deactivate(drag->drop_state.active_dropbox, drag);
   }
   if (drag->flags & WM_DRAG_FREE_DATA) {
     WM_drag_data_free(drag->type, drag->poin);
@@ -447,12 +447,12 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
   wmDropBox *drop_prev = drag->drop_state.active_dropbox;
   wmDropBox *drop = wm_dropbox_active(C, drag, event);
   if (drop != drop_prev) {
-    if (drop_prev && drop_prev->on_exit) {
-      drop_prev->on_exit(drop_prev, drag);
+    if (drop_prev && drop_prev->draw_deactivate) {
+      drop_prev->draw_deactivate(drop_prev, drag);
       BLI_assert(drop_prev->draw_data == nullptr);
     }
-    if (drop && drop->on_enter) {
-      drop->on_enter(drop, drag);
+    if (drop && drop->draw_activate) {
+      drop->draw_activate(drop, drag);
     }
     drag->drop_state.active_dropbox = drop;
     drag->drop_state.area_from = drop ? CTX_wm_area(C) : nullptr;

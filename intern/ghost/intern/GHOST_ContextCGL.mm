@@ -20,6 +20,8 @@
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
 
+#include <epoxy/gl.h>
+
 #include <cassert>
 #include <vector>
 
@@ -41,6 +43,7 @@ static void ghost_fatal_error_dialog(const char *msg)
   exit(1);
 }
 
+NSOpenGLContext *GHOST_ContextCGL::s_sharedOpenGLContext = nil;
 MTLCommandQueue *GHOST_ContextCGL::s_sharedMetalCommandQueue = nil;
 int GHOST_ContextCGL::s_sharedCount = 0;
 

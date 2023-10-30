@@ -120,7 +120,7 @@ class ColorBuilder;
 
 class Color : public SocketDeclaration {
  public:
-  ColorGeometry4f default_value{0.8f, 0.8f, 0.8f, 1.0f};
+  ColorGeometry4f default_value;
 
   friend ColorBuilder;
 

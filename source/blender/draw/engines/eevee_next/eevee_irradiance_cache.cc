@@ -653,8 +653,8 @@ void IrradianceBake::sync()
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    inst_.lights.bind_resources(pass);
-    inst_.shadows.bind_resources(pass);
+    inst_.lights.bind_resources(&pass);
+    inst_.shadows.bind_resources(&pass);
     /* Sync with the surfel creation stage. */
     pass.barrier(GPU_BARRIER_SHADER_STORAGE);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -704,7 +704,7 @@ void IrradianceBake::sync()
       sub.shader_set(inst_.shaders.static_shader_get(SURFEL_RAY));
       sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
       sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
-      inst_.reflection_probes.bind_resources(sub);
+      inst_.reflection_probes.bind_resources(&sub);
       sub.push_constant("radiance_src", &radiance_src_);
       sub.push_constant("radiance_dst", &radiance_dst_);
       sub.barrier(GPU_BARRIER_SHADER_STORAGE);
@@ -717,7 +717,7 @@ void IrradianceBake::sync()
     pass.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_RAY));
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
-    inst_.reflection_probes.bind_resources(pass);
+    inst_.reflection_probes.bind_resources(&pass);
     pass.bind_ssbo("list_start_buf", &list_start_buf_);
     pass.bind_ssbo("list_info_buf", &list_info_buf_);
     pass.push_constant("radiance_src", &radiance_src_);
@@ -828,9 +828,6 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   capture_info_buf_.capture_indirect = capture_indirect_;
   capture_info_buf_.capture_emission = capture_emission_;
 
-  ReflectionProbeAtlasCoordinate atlas_coord = inst_.reflection_probes.world_atlas_coord_get();
-  capture_info_buf_.world_atlas_coord = *reinterpret_cast<int4 *>(&atlas_coord);
-
   dispatch_per_grid_sample_ = math::divide_ceil(grid_resolution, int3(IRRADIANCE_GRID_GROUP_SIZE));
   capture_info_buf_.irradiance_grid_size = grid_resolution;
   capture_info_buf_.irradiance_grid_local_to_world = grid_local_to_world;
@@ -863,22 +860,13 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   irradiance_L1_b_tx_.ensure_3d(GPU_RGBA32F, grid_resolution, texture_usage);
   irradiance_L1_c_tx_.ensure_3d(GPU_RGBA32F, grid_resolution, texture_usage);
   validity_tx_.ensure_3d(GPU_R32F, grid_resolution, texture_usage);
-  virtual_offset_tx_.ensure_3d(GPU_RGBA16F, grid_resolution, texture_usage);
-
-  if (!irradiance_L0_tx_.is_valid() || !irradiance_L1_a_tx_.is_valid() ||
-      !irradiance_L1_b_tx_.is_valid() || !irradiance_L1_c_tx_.is_valid() ||
-      !validity_tx_.is_valid() || !virtual_offset_tx_.is_valid())
-  {
-    inst_.info = "Error: Not enough memory to bake " + std::string(probe_object.id.name) + ".";
-    do_break_ = true;
-    return;
-  }
-
   irradiance_L0_tx_.clear(float4(0.0f));
   irradiance_L1_a_tx_.clear(float4(0.0f));
   irradiance_L1_b_tx_.clear(float4(0.0f));
   irradiance_L1_c_tx_.clear(float4(0.0f));
   validity_tx_.clear(float4(0.0f));
+
+  virtual_offset_tx_.ensure_3d(GPU_RGBA16F, grid_resolution, texture_usage);
   virtual_offset_tx_.clear(float4(0.0f));
 
   DRW_stats_group_start("IrradianceBake.SceneBounds");
@@ -959,28 +947,10 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   capture_info_buf_.read();
   if (capture_info_buf_.surfel_len == 0) {
     /* No surfel to allocated. */
-    do_break_ = true;
     return;
   }
 
-  if (capture_info_buf_.surfel_len > surfels_buf_.size()) {
-    size_t max_size = GPU_max_storage_buffer_size();
-    if (GPU_mem_stats_supported()) {
-      int total_mem_kb, free_mem_kb;
-      GPU_mem_stats_get(&total_mem_kb, &free_mem_kb);
-      max_size = min(max_size, size_t(free_mem_kb) * 1024);
-    }
-
-    size_t required_mem = sizeof(Surfel) * (capture_info_buf_.surfel_len - surfels_buf_.size());
-    if (required_mem > max_size) {
-      capture_info_buf_.surfel_len = 0u;
-      capture_info_buf_.push_update();
-      inst_.info = "Error: Not enough memory to bake " + std::string(probe_object.id.name) + ".";
-      do_break_ = true;
-      return;
-    }
-  }
-
+  /* TODO(fclem): Check for GL limit and abort if the surfel cache doesn't fit the GPU memory. */
   surfels_buf_.resize(capture_info_buf_.surfel_len);
   surfels_buf_.clear_to_zero();
 
@@ -1014,9 +984,6 @@ void IrradianceBake::surfels_lights_eval()
   /* Use the last setup view. This should work since the view is orthographic. */
   /* TODO(fclem): Remove this. It is only present to avoid crash inside `shadows.set_view` */
   inst_.render_buffers.acquire(int2(1));
-  inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
-  inst_.hiz_buffer.set_dirty();
-
   inst_.lights.set_view(view_z_, grid_pixel_extent_.xy());
   inst_.shadows.set_view(view_z_);
   inst_.render_buffers.release();

@@ -6,7 +6,6 @@
 
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_octahedron_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
 void atlas_store(vec4 sh_coefficient, ivec2 atlas_coord, int layer)
@@ -33,10 +32,10 @@ void main()
   cooef.L1.M0 = vec4(0.0);
   cooef.L1.Mp1 = vec4(0.0);
 
-  ReflectionProbeAtlasCoordinate atlas_coord = reinterpret_as_atlas_coord(world_coord_packed);
+  ReflectionProbeData probe_data = reflection_probe_buf[reflection_probe_index];
   const int subdivision_64 = 5;
   float layer_mipmap = clamp(
-      subdivision_64 - atlas_coord.layer_subdivision, 0, REFLECTION_PROBE_MIPMAP_LEVELS);
+      subdivision_64 - probe_data.layer_subdivision, 0, REFLECTION_PROBE_MIPMAP_LEVELS);
 
   /* Perform multiple sample. */
   uint store_index = gl_LocalInvocationID.x;
@@ -47,7 +46,7 @@ void main()
   {
     vec2 rand = fract(hammersley_2d(sample_index + sample_offset, total_samples));
     vec3 direction = sample_sphere(rand);
-    vec4 light = reflection_probes_sample(direction, layer_mipmap, atlas_coord);
+    vec4 light = reflection_probes_sample(direction, layer_mipmap, probe_data);
     spherical_harmonics_encode_signal_sample(direction, light * sample_weight, cooef);
   }
   cooefs[store_index][0] = cooef.L0.M0;

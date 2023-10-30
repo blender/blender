@@ -3309,20 +3309,20 @@ static void oceanbake_update(void *customdata, float progress, int *cancel)
   *(oj->progress) = progress;
 }
 
-static void oceanbake_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void oceanbake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   OceanBakeJob *oj = static_cast<OceanBakeJob *>(customdata);
 
-  oj->stop = &worker_status->stop;
-  oj->do_update = &worker_status->do_update;
-  oj->progress = &worker_status->progress;
+  oj->stop = stop;
+  oj->do_update = do_update;
+  oj->progress = progress;
 
   G.is_break = false; /* XXX shared with render - replace with job 'stop' switch */
 
   BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 
-  worker_status->do_update = true;
-  worker_status->stop = false;
+  *do_update = true;
+  *stop = false;
 }
 
 static void oceanbake_endjob(void *customdata)

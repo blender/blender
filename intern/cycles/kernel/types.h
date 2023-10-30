@@ -836,8 +836,6 @@ enum ShaderDataFlag {
 
   /* Shader flags. */
 
-  /* Apply a correction term to smooth illumination on grazing angles when using bump mapping.. */
-  SD_USE_BUMP_MAP_CORRECTION = (1 << 15),
   /* Use front side for direct light sampling. */
   SD_MIS_FRONT = (1 << 16),
   /* Has transparent shadow. */

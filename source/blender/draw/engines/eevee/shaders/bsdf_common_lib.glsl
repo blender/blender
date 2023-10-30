@@ -86,7 +86,7 @@ vec3 F_brdf_multi_scatter(vec3 F0, vec3 F90, vec2 lut)
   vec3 Favg = F0 + (F90 - F0) / 21.0;
 
   /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
-   * "A Journey Through Implementing Multi-scattering BRDFs and Area Lights" by Steve McAuley
+   * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
    * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparable quality.
    * We handle `radiance` outside of this function, so the result simplifies to:
    * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.

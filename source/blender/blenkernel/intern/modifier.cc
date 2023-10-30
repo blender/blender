@@ -39,7 +39,7 @@
 #include "BLI_session_uuid.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -225,14 +225,15 @@ void BKE_modifier_session_uuid_generate(ModifierData *md)
   md->session_uuid = BLI_session_uuid_generate();
 }
 
-void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md)
+bool BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md)
 {
   if (modifiers && md) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-    BLI_uniquename(
+    return BLI_uniquename(
         modifiers, md, DATA_(mti->name), '.', offsetof(ModifierData, name), sizeof(md->name));
   }
+  return false;
 }
 
 bool BKE_modifier_depends_ontime(Scene *scene, ModifierData *md)

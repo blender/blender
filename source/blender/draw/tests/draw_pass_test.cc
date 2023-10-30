@@ -29,7 +29,6 @@ static void test_draw_pass_all_commands()
   /* Won't be dereferenced. */
   GPUVertBuf *vbo = (GPUVertBuf *)1;
   GPUIndexBuf *ibo = (GPUIndexBuf *)1;
-  GPUFrameBuffer *fb = nullptr;
 
   float4 color(1.0f, 1.0f, 1.0f, 0.0f);
   int3 dispatch_size(1);
@@ -43,8 +42,6 @@ static void test_draw_pass_all_commands()
   const int color_location = GPU_shader_get_uniform(sh, "color");
   const int mvp_location = GPU_shader_get_uniform(sh, "ModelViewProjectionMatrix");
   pass.shader_set(sh);
-  pass.framebuffer_set(&fb);
-  pass.subpass_transition(GPU_ATTACHEMENT_IGNORE, {GPU_ATTACHEMENT_WRITE, GPU_ATTACHEMENT_READ});
   pass.bind_texture("image", tex);
   pass.bind_texture("image", &tex);
   pass.bind_image("missing_image", tex);       /* Should not crash. */
@@ -83,18 +80,6 @@ static void test_draw_pass_all_commands()
       << "  .stencil_set(write_mask=0b10000000, reference=0b00001111, compare_mask=0b10001111)"
       << std::endl;
   expected << "  .shader_bind(gpu_shader_3D_image_color)" << std::endl;
-  expected << "  .framebuffer_bind(nullptr)" << std::endl;
-  expected << "  .subpass_transition(" << std::endl;
-  expected << "depth=ignore," << std::endl;
-  expected << "color0=write," << std::endl;
-  expected << "color1=read," << std::endl;
-  expected << "color2=ignore," << std::endl;
-  expected << "color3=ignore," << std::endl;
-  expected << "color4=ignore," << std::endl;
-  expected << "color5=ignore," << std::endl;
-  expected << "color6=ignore," << std::endl;
-  expected << "color7=ignore" << std::endl;
-  expected << ")" << std::endl;
   expected << "  .bind_texture(0, sampler=internal)" << std::endl;
   expected << "  .bind_texture_ref(0, sampler=internal)" << std::endl;
   expected << "  .bind_image(-1)" << std::endl;

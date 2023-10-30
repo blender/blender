@@ -12,7 +12,7 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -518,7 +518,10 @@ struct DropJobData {
   float scene_fps;
 };
 
-static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_status*/)
+static void prefetch_data_fn(void *custom_data,
+                             bool * /*stop*/,
+                             bool * /*do_update*/,
+                             float * /*progress*/)
 {
   DropJobData *job_data = (DropJobData *)custom_data;
 
@@ -613,21 +616,21 @@ static void audio_prefetch(bContext *C, wmDrag *drag)
   }
 }
 
-static void movie_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
+static void movie_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
   }
 }
 
-static void sound_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
+static void sound_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
   }
 }
 
-static void image_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
+static void image_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
@@ -638,7 +641,7 @@ static void image_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
   coords->channel_len = 1;
 }
 
-static void sequencer_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)
+static void sequencer_drop_draw_deactivate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   if (coords) {
@@ -666,8 +669,8 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
       lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
-  drop->on_enter = image_drop_on_enter;
-  drop->on_exit = sequencer_drop_on_exit;
+  drop->draw_activate = image_drop_draw_activate;
+  drop->draw_deactivate = sequencer_drop_draw_deactivate;
 
   drop->on_drag_start = audio_prefetch;
 
@@ -675,8 +678,8 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
       lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
-  drop->on_enter = movie_drop_on_enter;
-  drop->on_exit = sequencer_drop_on_exit;
+  drop->draw_activate = movie_drop_draw_activate;
+  drop->draw_deactivate = sequencer_drop_draw_deactivate;
 
   drop->on_drag_start = video_prefetch;
 
@@ -684,8 +687,8 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
       lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
-  drop->on_enter = sound_drop_on_enter;
-  drop->on_exit = sequencer_drop_on_exit;
+  drop->draw_activate = sound_drop_draw_activate;
+  drop->draw_deactivate = sequencer_drop_draw_deactivate;
 }
 
 static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)

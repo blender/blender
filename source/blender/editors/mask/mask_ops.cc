@@ -28,11 +28,10 @@
 
 #include "ED_clip.hh"
 #include "ED_image.hh"
+#include "ED_keyframing.hh"
 #include "ED_mask.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
-
-#include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -868,7 +867,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         /* Don't key sliding feather UW's. */
         if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == false) {
-          if (blender::animrig::is_autokey_on(scene)) {
+          if (IS_AUTOKEY_ON(scene)) {
             ED_mask_layer_shape_auto_key(data->mask_layer, scene->r.cfra);
           }
         }
@@ -1278,7 +1277,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
     case RIGHTMOUSE:
       if (event->type == slide_data->event_invoke_type && event->val == KM_RELEASE) {
         /* Don't key sliding feather UW's. */
-        if (blender::animrig::is_autokey_on(scene)) {
+        if (IS_AUTOKEY_ON(scene)) {
           ED_mask_layer_shape_auto_key(slide_data->mask_layer, scene->r.cfra);
         }
 
@@ -1542,7 +1541,7 @@ static int mask_switch_direction_exec(bContext *C, wmOperator * /*op*/)
     }
 
     if (changed_layer) {
-      if (blender::animrig::is_autokey_on(scene)) {
+      if (IS_AUTOKEY_ON(scene)) {
         ED_mask_layer_shape_auto_key(mask_layer, scene->r.cfra);
       }
     }
@@ -1604,7 +1603,7 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator * /*op*/)
     }
 
     if (changed_layer) {
-      if (blender::animrig::is_autokey_on(scene)) {
+      if (IS_AUTOKEY_ON(scene)) {
         ED_mask_layer_shape_auto_key(mask_layer, scene->r.cfra);
       }
     }

@@ -17,7 +17,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -316,11 +316,12 @@ static void *ed_armature_pick_bone_impl(
     const bool is_editmode, bContext *C, const int xy[2], bool findunsel, Base **r_base)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
   rcti rect;
   GPUSelectResult buffer[MAXPICKELEMS];
   short hits;
 
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   BLI_assert((vc.obedit != nullptr) == is_editmode);
 
   BLI_rcti_init_pt_radius(&rect, xy, 0);
@@ -949,7 +950,8 @@ bool ED_armature_edit_deselect_all_visible_multi_ex(Base **bases, uint bases_len
 bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
@@ -1141,11 +1143,12 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPi
 
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
   EditBone *nearBone = nullptr;
   int selmask;
   Base *basact = nullptr;
 
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   vc.mval[0] = mval[0];
   vc.mval[1] = mval[1];
 

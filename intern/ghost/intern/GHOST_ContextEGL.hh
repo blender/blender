@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifndef WITH_OPENGL_BACKEND
-#  error "ContextEGL requires WITH_OPENGL_BACKEND"
-#endif
-
 #include "GHOST_Context.hh"
 #include "GHOST_System.hh"
 

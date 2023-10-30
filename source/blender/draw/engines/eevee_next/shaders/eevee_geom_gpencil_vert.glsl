@@ -2,9 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
-/* Grease pencil includes commmon_view_lib. */
-// #pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
+#pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
@@ -39,7 +38,7 @@ void main()
       hardness);
 #ifdef MAT_VELOCITY
   /* GPencil do not support deformation motion blur. */
-  vec3 lP_curr = drw_point_world_to_object(interp.P);
+  vec3 lP_curr = transform_point(ModelMatrixInverse, interp.P);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
    * would require evaluating the node-tree multiple time with different node-tree UBOs evaluated
@@ -52,8 +51,4 @@ void main()
   attrib_load();
 
   interp.P += nodetree_displacement();
-
-#ifdef MAT_CLIP_PLANE
-  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
-#endif
 }

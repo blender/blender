@@ -69,7 +69,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->paneltitle.uifont_id = uifont_id;
   style->paneltitle.points = UI_DEFAULT_TITLE_POINTS;
-  style->paneltitle.character_weight = 400;
   style->paneltitle.shadow = 3;
   style->paneltitle.shadx = 0;
   style->paneltitle.shady = -1;
@@ -78,7 +77,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->grouplabel.uifont_id = uifont_id;
   style->grouplabel.points = UI_DEFAULT_TITLE_POINTS;
-  style->grouplabel.character_weight = 400;
   style->grouplabel.shadow = 3;
   style->grouplabel.shadx = 0;
   style->grouplabel.shady = -1;
@@ -87,7 +85,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->widgetlabel.uifont_id = uifont_id;
   style->widgetlabel.points = UI_DEFAULT_TEXT_POINTS;
-  style->widgetlabel.character_weight = 400;
   style->widgetlabel.shadow = 3;
   style->widgetlabel.shadx = 0;
   style->widgetlabel.shady = -1;
@@ -96,7 +93,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->widget.uifont_id = uifont_id;
   style->widget.points = UI_DEFAULT_TEXT_POINTS;
-  style->widget.character_weight = 400;
   style->widget.shadow = 1;
   style->widget.shady = -1;
   style->widget.shadowalpha = 0.5f;
@@ -496,7 +492,6 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac)
   uiFont *font = uifont_to_blfont(fs->uifont_id);
 
   BLF_size(font->blf_id, fs->points * dpi_fac);
-  BLF_character_weight(fs->uifont_id, fs->character_weight);
 }
 
 void UI_fontstyle_set(const uiFontStyle *fs)

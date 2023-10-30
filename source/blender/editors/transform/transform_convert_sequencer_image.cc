@@ -28,8 +28,6 @@
 
 #include "ED_keyframing.hh"
 
-#include "ANIM_keyframing.hh"
-
 #include "UI_view2d.hh"
 
 #include "RNA_access.hh"
@@ -179,24 +177,19 @@ static bool autokeyframe_sequencer_image(bContext *C,
   bool changed = false;
   if (do_rot) {
     prop = RNA_struct_find_property(&ptr, "rotation");
-    changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_loc) {
     prop = RNA_struct_find_property(&ptr, "offset_x");
-    changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "offset_y");
-    changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_scale) {
     prop = RNA_struct_find_property(&ptr, "scale_x");
-    changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "scale_y");
-    changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
 
   return changed;
@@ -254,7 +247,7 @@ static void recalcData_sequencer_image(TransInfo *t)
       transform->rotation = tdseq->orig_rotation - t->values_final[0];
     }
 
-    if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
+    if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
       animrecord_check_state(t, &t->scene->id);
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
@@ -282,7 +275,7 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
       continue;
     }
 
-    if (blender::animrig::is_autokey_on(t->scene)) {
+    if (IS_AUTOKEY_ON(t->scene)) {
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
   }

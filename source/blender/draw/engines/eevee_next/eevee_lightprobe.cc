@@ -67,13 +67,13 @@ void LightProbeModule::sync_probe(const Object *ob, ObjectHandle &handle)
 {
   const ::LightProbe *lightprobe = static_cast<const ::LightProbe *>(ob->data);
   switch (lightprobe->type) {
-    case LIGHTPROBE_TYPE_SPHERE:
+    case LIGHTPROBE_TYPE_CUBE:
       sync_cube(handle);
       return;
-    case LIGHTPROBE_TYPE_PLANE:
+    case LIGHTPROBE_TYPE_PLANAR:
       /* TODO(fclem): Remove support? Add support? */
       return;
-    case LIGHTPROBE_TYPE_VOLUME:
+    case LIGHTPROBE_TYPE_GRID:
       sync_grid(ob, handle);
       return;
   }

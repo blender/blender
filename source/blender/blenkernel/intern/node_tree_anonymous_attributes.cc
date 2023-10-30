@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "NOD_node_declaration.hh"
-#include "NOD_socket.hh"
 
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
@@ -21,6 +20,11 @@
 namespace blender::bke::anonymous_attribute_inferencing {
 namespace aal = nodes::aal;
 using nodes::NodeDeclaration;
+
+bool is_possible_field_socket(const eNodeSocketDatatype type)
+{
+  return ELEM(type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT, SOCK_ROTATION);
+}
 
 static bool socket_is_field(const bNodeSocket &socket)
 {
@@ -185,7 +189,7 @@ class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeTo
       ss << "]";
       return ss.str();
     }
-    else if (nodes::socket_type_supports_fields(eNodeSocketDatatype(socket.type))) {
+    else if (is_possible_field_socket(eNodeSocketDatatype(socket.type))) {
       std::stringstream ss;
       ss << socket.identifier << " [";
       bits::foreach_1_index(result_.propagated_fields_by_socket[socket.index_in_tree()],
@@ -268,7 +272,7 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
     if (type == SOCK_GEOMETRY) {
       all_geometry_sources.append_and_get_index({InputGeometrySource{i}});
     }
-    else if (nodes::socket_type_supports_fields(type)) {
+    else if (is_possible_field_socket(type)) {
       all_field_sources.append_and_get_index({InputFieldSource{i}});
     }
   }
@@ -484,7 +488,7 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
             for (const int field_source_index : geometry_source.field_sources) {
               for (const bNodeSocket *other_socket :
                    group_output_node->input_sockets().drop_back(1)) {
-                if (!nodes::socket_type_supports_fields(eNodeSocketDatatype(other_socket->type))) {
+                if (!is_possible_field_socket(eNodeSocketDatatype(other_socket->type))) {
                   continue;
                 }
                 if (propagated_fields_by_socket[other_socket->index_in_tree()][field_source_index]
@@ -499,7 +503,7 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
           }
         });
       }
-      else if (nodes::socket_type_supports_fields(eNodeSocketDatatype(socket->type))) {
+      else if (is_possible_field_socket(eNodeSocketDatatype(socket->type))) {
         const BoundedBitSpan propagated_fields =
             propagated_fields_by_socket[socket->index_in_tree()];
         bits::foreach_1_index(propagated_fields, [&](const int field_source_index) {

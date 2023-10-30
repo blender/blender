@@ -17,8 +17,6 @@
 
 #include <cstdio>
 
-/* For now only used with NDOF. */
-#ifdef WITH_INPUT_NDOF
 static const char *getButtonActionString(const GHOST_TButtonAction action)
 {
   switch (action) {
@@ -29,9 +27,8 @@ static const char *getButtonActionString(const GHOST_TButtonAction action)
   }
   return "Unknown";
 }
-#endif /* WITH_INPUT_NDOF */
 
-bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
+bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 {
   bool handled = false;
 
@@ -40,9 +37,6 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
   if (event->getType() == GHOST_kEventWindowUpdate) {
     return false;
   }
-
-  GHOST_TEventDataPtr data = event->getData();
-
   std::cout << "GHOST_EventPrinter::processEvent, time: " << int32_t(event->getTime())
             << ", type: ";
 
@@ -62,26 +56,30 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
       break;
     }
     case GHOST_kEventCursorMove: {
-      const GHOST_TEventCursorData *cursorData = static_cast<const GHOST_TEventCursorData *>(data);
+      GHOST_TEventCursorData *cursorData =
+          (GHOST_TEventCursorData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventCursorMove, (x,y): (" << cursorData->x << "," << cursorData->y
                 << ")";
       handled = true;
       break;
     }
     case GHOST_kEventButtonDown: {
-      const GHOST_TEventButtonData *buttonData = static_cast<const GHOST_TEventButtonData *>(data);
+      GHOST_TEventButtonData *buttonData =
+          (GHOST_TEventButtonData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventButtonDown, button: " << buttonData->button;
       handled = true;
       break;
     }
     case GHOST_kEventButtonUp: {
-      const GHOST_TEventButtonData *buttonData = static_cast<const GHOST_TEventButtonData *>(data);
+      GHOST_TEventButtonData *buttonData =
+          (GHOST_TEventButtonData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventCursorButtonUp, button: " << buttonData->button;
       handled = true;
       break;
     }
     case GHOST_kEventWheel: {
-      const GHOST_TEventWheelData *wheelData = static_cast<const GHOST_TEventWheelData *>(data);
+      GHOST_TEventWheelData *wheelData =
+          (GHOST_TEventWheelData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventWheel, z: " << wheelData->z;
       handled = true;
       break;
@@ -92,7 +90,7 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
 #ifdef WITH_INPUT_NDOF
     case GHOST_kEventNDOFMotion: {
       const GHOST_TEventNDOFMotionData *ndof_motion =
-          static_cast<const GHOST_TEventNDOFMotionData *>(data);
+          (GHOST_TEventNDOFMotionData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventNDOFMotion: ";
       std::cout << std::fixed << std::setprecision(2) <<
           /* Translation. */
@@ -105,7 +103,7 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
     }
     case GHOST_kEventNDOFButton: {
       const GHOST_TEventNDOFButtonData *ndof_button =
-          static_cast<const GHOST_TEventNDOFButtonData *>(data);
+          (GHOST_TEventNDOFButtonData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventNDOFButton: " << getButtonActionString(ndof_button->action)
                 << " button=" << ndof_button->button;
       handled = true;
@@ -114,13 +112,13 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
 #endif /* WITH_INPUT_NDOF */
 
     case GHOST_kEventKeyDown: {
-      const GHOST_TEventKeyData *keyData = static_cast<const GHOST_TEventKeyData *>(data);
+      GHOST_TEventKeyData *keyData = (GHOST_TEventKeyData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventKeyDown, key: " << getKeyString(keyData->key);
       handled = true;
       break;
     }
     case GHOST_kEventKeyUp: {
-      const GHOST_TEventKeyData *keyData = static_cast<const GHOST_TEventKeyData *>(data);
+      GHOST_TEventKeyData *keyData = (GHOST_TEventKeyData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventKeyUp, key: " << getKeyString(keyData->key);
       handled = true;
       break;
@@ -137,8 +135,8 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
       CASE_TYPE(GHOST_kEventWindowDPIHintChanged);
 
     case GHOST_kEventDraggingEntered: {
-      const GHOST_TEventDragnDropData *dragnDropData =
-          static_cast<const GHOST_TEventDragnDropData *>(data);
+      GHOST_TEventDragnDropData *dragnDropData =
+          (GHOST_TEventDragnDropData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventDraggingEntered, dragged object type : "
                 << dragnDropData->dataType;
       std::cout << " mouse at x=" << dragnDropData->x << " y=" << dragnDropData->y;
@@ -146,8 +144,8 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
       break;
     }
     case GHOST_kEventDraggingUpdated: {
-      const GHOST_TEventDragnDropData *dragnDropData =
-          static_cast<const GHOST_TEventDragnDropData *>(data);
+      GHOST_TEventDragnDropData *dragnDropData =
+          (GHOST_TEventDragnDropData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventDraggingUpdated, dragged object type : "
                 << dragnDropData->dataType;
       std::cout << " mouse at x=" << dragnDropData->x << " y=" << dragnDropData->y;
@@ -155,15 +153,15 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
       break;
     }
     case GHOST_kEventDraggingExited: {
-      const GHOST_TEventDragnDropData *dragnDropData =
-          static_cast<const GHOST_TEventDragnDropData *>(data);
+      GHOST_TEventDragnDropData *dragnDropData =
+          (GHOST_TEventDragnDropData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventDraggingExited, dragged object type : " << dragnDropData->dataType;
       handled = true;
       break;
     }
     case GHOST_kEventDraggingDropDone: {
-      const GHOST_TEventDragnDropData *dragnDropData =
-          static_cast<const GHOST_TEventDragnDropData *>(data);
+      GHOST_TEventDragnDropData *dragnDropData =
+          (GHOST_TEventDragnDropData *)((GHOST_IEvent *)event)->getData();
       std::cout << "GHOST_kEventDraggingDropDone,";
       std::cout << " mouse at x=" << dragnDropData->x << " y=" << dragnDropData->y;
       switch (dragnDropData->dataType) {
@@ -191,8 +189,10 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
       break;
     }
     case GHOST_kEventOpenMainFile: {
-      if (data) {
-        std::cout << "GHOST_kEventOpenMainFile for path: " << static_cast<const char *>(data);
+      GHOST_TEventDataPtr eventData = ((GHOST_IEvent *)event)->getData();
+
+      if (eventData) {
+        std::cout << "GHOST_kEventOpenMainFile for path : " << (char *)eventData;
       }
       else {
         std::cout << "GHOST_kEventOpenMainFile with no path specified!!";
@@ -202,6 +202,8 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
     }
 
       CASE_TYPE(GHOST_kEventNativeResolutionChange);
+
+      CASE_TYPE(GHOST_kEventTimer);
 
       CASE_TYPE(GHOST_kEventImeCompositionStart);
       CASE_TYPE(GHOST_kEventImeComposition);

@@ -110,139 +110,9 @@ static const char *to_string(const Type &type)
       return "ivec4";
     case Type::BOOL:
       return "bool";
-    /* Alias special types. */
-    case Type::UCHAR:
-    case Type::USHORT:
-      return "uint";
-    case Type::UCHAR2:
-    case Type::USHORT2:
-      return "uvec2";
-    case Type::UCHAR3:
-    case Type::USHORT3:
-      return "uvec3";
-    case Type::UCHAR4:
-    case Type::USHORT4:
-      return "uvec4";
-    case Type::CHAR:
-    case Type::SHORT:
-      return "int";
-    case Type::CHAR2:
-    case Type::SHORT2:
-      return "ivec2";
-    case Type::CHAR3:
-    case Type::SHORT3:
-      return "ivec3";
-    case Type::CHAR4:
-    case Type::SHORT4:
-      return "ivec4";
-    case Type::VEC3_101010I2:
-      return "vec3";
+    default:
+      return "unknown";
   }
-  BLI_assert_unreachable();
-  return "unknown";
-}
-
-static const int to_component_count(const Type &type)
-{
-  switch (type) {
-    case Type::FLOAT:
-    case Type::UINT:
-    case Type::INT:
-    case Type::BOOL:
-      return 1;
-    case Type::VEC2:
-    case Type::UVEC2:
-    case Type::IVEC2:
-      return 2;
-    case Type::VEC3:
-    case Type::UVEC3:
-    case Type::IVEC3:
-      return 3;
-    case Type::VEC4:
-    case Type::UVEC4:
-    case Type::IVEC4:
-      return 4;
-    case Type::MAT3:
-      return 9;
-    case Type::MAT4:
-      return 16;
-    /* Alias special types. */
-    case Type::UCHAR:
-    case Type::USHORT:
-      return 1;
-    case Type::UCHAR2:
-    case Type::USHORT2:
-      return 2;
-    case Type::UCHAR3:
-    case Type::USHORT3:
-      return 3;
-    case Type::UCHAR4:
-    case Type::USHORT4:
-      return 4;
-    case Type::CHAR:
-    case Type::SHORT:
-      return 1;
-    case Type::CHAR2:
-    case Type::SHORT2:
-      return 2;
-    case Type::CHAR3:
-    case Type::SHORT3:
-      return 3;
-    case Type::CHAR4:
-    case Type::SHORT4:
-      return 4;
-    case Type::VEC3_101010I2:
-      return 3;
-  }
-  BLI_assert_unreachable();
-  return -1;
-}
-
-static const Type to_component_type(const Type &type)
-{
-  switch (type) {
-    case Type::FLOAT:
-    case Type::VEC2:
-    case Type::VEC3:
-    case Type::VEC4:
-    case Type::MAT3:
-    case Type::MAT4:
-      return Type::FLOAT;
-    case Type::UINT:
-    case Type::UVEC2:
-    case Type::UVEC3:
-    case Type::UVEC4:
-      return Type::UINT;
-    case Type::INT:
-    case Type::IVEC2:
-    case Type::IVEC3:
-    case Type::IVEC4:
-    case Type::BOOL:
-      return Type::INT;
-    /* Alias special types. */
-    case Type::UCHAR:
-    case Type::UCHAR2:
-    case Type::UCHAR3:
-    case Type::UCHAR4:
-    case Type::USHORT:
-    case Type::USHORT2:
-    case Type::USHORT3:
-    case Type::USHORT4:
-      return Type::UINT;
-    case Type::CHAR:
-    case Type::CHAR2:
-    case Type::CHAR3:
-    case Type::CHAR4:
-    case Type::SHORT:
-    case Type::SHORT2:
-    case Type::SHORT3:
-    case Type::SHORT4:
-      return Type::INT;
-    case Type::VEC3_101010I2:
-      return Type::FLOAT;
-  }
-  BLI_assert_unreachable();
-  return Type::FLOAT;
 }
 
 static const char *to_string(const eGPUTextureFormat &type)
@@ -670,6 +540,12 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
     }
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
   }
+  /* NOTE(D4490): Fix a bug where shader without any vertex attributes do not behave correctly. */
+  if (GPU_type_matches_ex(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) &&
+      info.vertex_inputs_.is_empty())
+  {
+    ss << "in float gpu_dummy_workaround;\n";
+  }
   ss << "\n/* Interfaces. */\n";
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     print_interface(ss, "out", *iface);
@@ -705,7 +581,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
 std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
-  std::string pre_main, post_main;
+  std::string pre_main;
 
   ss << "\n/* Interfaces. */\n";
   const Vector<StageInterfaceInfo *> &in_interfaces = info.geometry_source_.is_empty() ?
@@ -729,6 +605,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
     }
     else if (epoxy_has_gl_extension("GL_AMD_shader_explicit_vertex_parameter")) {
+      std::cout << "native" << std::endl;
       /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
        * shader workaround if this extension/feature is detected. */
       ss << "\n/* Stable Barycentric Coordinates. */\n";
@@ -761,63 +638,12 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
-
   ss << "\n/* Sub-pass Inputs. */\n";
   for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
-    if (GLContext::framebuffer_fetch_support) {
-      /* Declare as inout but do not write to it. */
-      ss << "layout(location = " << std::to_string(input.index) << ") inout "
-         << to_string(input.type) << " " << input.name << ";\n";
-    }
-    else {
-      std::string image_name = "gpu_subpass_img_";
-      image_name += std::to_string(input.index);
-
-      /* Declare global for input. */
-      ss << to_string(input.type) << " " << input.name << ";\n";
-
-      /* IMPORTANT: We assume that the frame-buffer will be layered or not based on the layer
-       * built-in flag. */
-      bool is_layered_fb = bool(info.builtins_ & BuiltinBits::LAYER);
-
-      /* Start with invalid value to detect failure cases. */
-      ImageType image_type = ImageType::FLOAT_BUFFER;
-      switch (to_component_type(input.type)) {
-        case Type::FLOAT:
-          image_type = is_layered_fb ? ImageType::FLOAT_2D_ARRAY : ImageType::FLOAT_2D;
-          break;
-        case Type::INT:
-          image_type = is_layered_fb ? ImageType::INT_2D_ARRAY : ImageType::INT_2D;
-          break;
-        case Type::UINT:
-          image_type = is_layered_fb ? ImageType::UINT_2D_ARRAY : ImageType::UINT_2D;
-          break;
-        default:
-          break;
-      }
-      /* Declare image. */
-      using Resource = ShaderCreateInfo::Resource;
-      /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might
-       * collide with other resources. */
-      Resource res(Resource::BindType::SAMPLER, input.index);
-      res.sampler.type = image_type;
-      res.sampler.sampler = GPUSamplerState::default_sampler();
-      res.sampler.name = image_name;
-      print_resource(ss, res, false);
-
-      char swizzle[] = "xyzw";
-      swizzle[to_component_count(input.type)] = '\0';
-
-      std::string texel_co = (is_layered_fb) ? "ivec3(gl_FragCoord.xy, gpu_Layer)" :
-                                               "ivec2(gl_FragCoord.xy)";
-
-      std::stringstream ss_pre;
-      /* Populate the global before main using imageLoad. */
-      ss_pre << "  " << input.name << " = texelFetch(" << image_name << ", " << texel_co << ", 0)."
-             << swizzle << ";\n";
-
-      pre_main += ss_pre.str();
-    }
+    /* TODO(fclem): Add GL_EXT_shader_framebuffer_fetch support and fallback using imageLoad.
+     * For now avoid compilation failure. */
+    ss << "const " << to_string(input.type) << " " << input.name << " = " << to_string(input.type)
+       << "(0);\n";
   }
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
@@ -837,7 +663,8 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   }
   ss << "\n";
 
-  if (!pre_main.empty() || !post_main.empty()) {
+  if (pre_main.empty() == false) {
+    std::string post_main;
     ss << main_function_wrapper(pre_main, post_main);
   }
   return ss.str();
@@ -1063,9 +890,6 @@ static char *glsl_patch_default_get()
   }
   if (GLContext::native_barycentric_support) {
     STR_CONCAT(patch, slen, "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n");
-  }
-  if (GLContext::framebuffer_fetch_support) {
-    STR_CONCAT(patch, slen, "#extension GL_EXT_shader_framebuffer_fetch: enable\n");
   }
 
   /* Fallbacks. */

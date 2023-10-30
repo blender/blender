@@ -10,8 +10,8 @@
 #include "GHOST_Debug.hh"
 #include <shellapi.h>
 
-#include "utf_winfunc.hh"
-#include "utfconv.hh"
+#include "utf_winfunc.h"
+#include "utfconv.h"
 
 #ifdef WITH_GHOST_DEBUG
 /* utility */

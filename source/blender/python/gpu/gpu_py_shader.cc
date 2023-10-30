@@ -251,7 +251,7 @@ PyDoc_STRVAR(pygpu_shader_uniform_vector_float_doc,
              "\n"
              "   :arg location: Location of the uniform variable to be modified.\n"
              "   :type location: int\n"
-             "   :arg buffer: The data that should be set. Can support the buffer protocol.\n"
+             "   :arg buffer:  The data that should be set. Can support the buffer protocol.\n"
              "   :type buffer: sequence of floats\n"
              "   :arg length: Size of the uniform data type:\n\n"
              "      - 1: float\n"

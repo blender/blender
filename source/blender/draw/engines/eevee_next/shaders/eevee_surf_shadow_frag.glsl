@@ -11,18 +11,14 @@
  * the destination texel.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_transparency_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
-
-vec4 closure_to_rgba(Closure cl)
-{
-  return vec4(0.0);
-}
 
 void main()
 {
@@ -34,16 +30,14 @@ void main()
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
   float random_threshold = transparency_hashed_alpha_threshold(1.0, noise_offset, g_data.P);
 
-  float transparency = average(g_transmittance);
+  float transparency = avg(g_transmittance);
   if (transparency > random_threshold) {
     discard;
     return;
   }
 #endif
 
-  float f_depth = gl_FragCoord.z + fwidth(gl_FragCoord.z);
-
-#ifdef SHADOW_UPDATE_ATOMIC_RASTER
+#ifdef USE_ATOMIC
   ivec2 texel_co = ivec2(gl_FragCoord.xy);
 
   /* Using bitwise ops is way faster than integer ops. */
@@ -60,16 +54,9 @@ void main()
 
   ivec3 page = ivec3(shadow_page_unpack(page_packed));
   ivec3 out_texel = ivec3((page.xy << page_shift) | texel_page, page.z);
-
-  uint u_depth = floatBitsToUint(f_depth);
+  uint u_depth = floatBitsToUint(gl_FragCoord.z + fwidth(gl_FragCoord.z));
   /* Quantization bias. Equivalent to `nextafter()` in C without all the safety. */
   u_depth += 2;
   imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
-#endif
-
-#ifdef SHADOW_UPDATE_TBDR
-  /* Store output depth in tile memory using F32 attachment. NOTE: As depth testing is enabled,
-   * only the closest fragment will store the result. */
-  out_depth = f_depth;
 #endif
 }

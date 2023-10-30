@@ -34,8 +34,6 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "WM_types.hh"
-
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -510,7 +508,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
   return true;
 }
 
-void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_status)
+void SEQ_proxy_rebuild(SeqIndexBuildContext *context, bool *stop, bool *do_update, float *progress)
 {
   const bool overwrite = context->overwrite;
   SeqRenderData render_context;
@@ -521,10 +519,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_
 
   if (seq->type == SEQ_TYPE_MOVIE) {
     if (context->index_context) {
-      IMB_anim_index_rebuild(context->index_context,
-                             &worker_status->stop,
-                             &worker_status->do_update,
-                             &worker_status->progress);
+      IMB_anim_index_rebuild(context->index_context, stop, do_update, progress);
     }
 
     return;
@@ -570,12 +565,12 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_
       seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 100, overwrite);
     }
 
-    worker_status->progress = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq)) /
-                              (SEQ_time_right_handle_frame_get(scene, seq) -
-                               SEQ_time_left_handle_frame_get(scene, seq));
-    worker_status->do_update = true;
+    *progress = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq)) /
+                (SEQ_time_right_handle_frame_get(scene, seq) -
+                 SEQ_time_left_handle_frame_get(scene, seq));
+    *do_update = true;
 
-    if (worker_status->stop || G.is_break) {
+    if (*stop || G.is_break) {
       break;
     }
   }

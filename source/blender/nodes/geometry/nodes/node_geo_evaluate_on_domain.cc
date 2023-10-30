@@ -10,7 +10,6 @@
 #include "UI_resources.hh"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_grease_pencil.hh"
 
 #include "BLI_task.hh"
 
@@ -85,7 +84,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     params.add_item(IFACE_("Value"), [node_type, type](LinkSearchOpParams &params) {
@@ -112,43 +111,17 @@ class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask & /*mask*/) const final
   {
-    const eAttrDomain dst_domain = context.domain();
-    const int dst_domain_size = context.attributes()->domain_size(dst_domain);
-    const CPPType &cpp_type = src_field_.cpp_type();
-
-    if (context.type() == GeometryComponent::Type::GreasePencil &&
-        (src_domain_ == ATTR_DOMAIN_LAYER) != (dst_domain == ATTR_DOMAIN_LAYER))
-    {
-      /* Evaluate field just for the current layer. */
-      if (src_domain_ == ATTR_DOMAIN_LAYER) {
-        const bke::GeometryFieldContext src_domain_context{context, ATTR_DOMAIN_LAYER};
-        const int layer_index = context.grease_pencil_layer_index();
-
-        const IndexMask single_layer_mask = IndexRange(layer_index, 1);
-        FieldEvaluator value_evaluator{src_domain_context, &single_layer_mask};
-        value_evaluator.add(src_field_);
-        value_evaluator.evaluate();
-
-        const GVArray &values = value_evaluator.get_evaluated(0);
-
-        BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, value);
-        BLI_SCOPED_DEFER([&]() { cpp_type.destruct(value); });
-        values.get_to_uninitialized(layer_index, value);
-        return GVArray::ForSingle(cpp_type, dst_domain_size, value);
-      }
-      /* We don't adapt from curve to layer domain currently. */
-      return GVArray::ForSingleDefault(cpp_type, dst_domain_size);
-    }
-
     const bke::AttributeAccessor attributes = *context.attributes();
 
-    const bke::GeometryFieldContext other_domain_context{context, src_domain_};
+    const bke::GeometryFieldContext other_domain_context{
+        context.geometry(), context.type(), src_domain_};
     const int64_t src_domain_size = attributes.domain_size(src_domain_);
-    GArray<> values(cpp_type, src_domain_size);
+    GArray<> values(src_field_.cpp_type(), src_domain_size);
     FieldEvaluator value_evaluator{other_domain_context, src_domain_size};
     value_evaluator.add_with_destination(src_field_, values.as_mutable_span());
     value_evaluator.evaluate();
-    return attributes.adapt_domain(GVArray::ForGArray(std::move(values)), src_domain_, dst_domain);
+    return attributes.adapt_domain(
+        GVArray::ForGArray(std::move(values)), src_domain_, context.domain());
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -207,8 +180,7 @@ static void node_rna(StructRNA *srna)
                     "Domain the field is evaluated in",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom1),
-                    ATTR_DOMAIN_POINT,
-                    enums::domain_experimental_grease_pencil_version3_fn);
+                    ATTR_DOMAIN_POINT);
 
   RNA_def_node_enum(srna,
                     "data_type",

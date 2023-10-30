@@ -1311,7 +1311,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
       prop, "B-Bone Segments", "Number of subdivisions of bone (for B-Bones only)");
 
   prop = RNA_def_property(srna, "bbone_mapping_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "bbone_mapping_mode");
+  RNA_def_property_enum_sdna(prop, NULL, "bbone_mapping_mode");
   RNA_def_property_enum_items(prop, prop_bbone_mapping_mode);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(

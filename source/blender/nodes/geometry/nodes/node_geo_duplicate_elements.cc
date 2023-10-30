@@ -33,7 +33,7 @@ NODE_STORAGE_FUNCS(NodeGeometryDuplicateElements);
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Bool>("Selection").hide_value().default_value(true).field_on_all();
   b.add_input<decl::Int>("Amount").min(0).default_value(1).field_on_all().description(
       "The number of duplicates to create for each element");
 
@@ -291,7 +291,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
     return;
   }
   geometry_set.keep_only_during_modify({GeometryComponent::Type::Curve});
-  GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
+  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
   const Curves &curves_id = *geometry_set.get_curves();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
@@ -536,8 +536,8 @@ static void duplicate_faces(GeometrySet &geometry_set,
       face_index++;
     }
   });
-  array_utils::fill_index_range<int>(new_corner_verts);
-  array_utils::fill_index_range<int>(new_corner_edges);
+  std::iota(new_corner_verts.begin(), new_corner_verts.end(), 0);
+  std::iota(new_corner_edges.begin(), new_corner_edges.end(), 0);
 
   new_mesh->tag_loose_verts_none();
   new_mesh->tag_loose_edges_none();
@@ -762,7 +762,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   bke::curves_copy_parameters(src_curves_id, *new_curves_id);
   bke::CurvesGeometry &new_curves = new_curves_id->geometry.wrap();
   MutableSpan<int> new_curve_offsets = new_curves.offsets_for_write();
-  array_utils::fill_index_range(new_curve_offsets);
+  std::iota(new_curve_offsets.begin(), new_curve_offsets.end(), 0);
 
   for (auto &attribute : bke::retrieve_attributes_for_transfer(src_curves.attributes(),
                                                                new_curves.attributes_for_write(),

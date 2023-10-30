@@ -308,7 +308,7 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
   }
   else {
     /* If we are moving from an 1-channel format to n-channel we need to
-     * ensure the original data is copied into the higher channels. */
+     * ensure the orignal data is copied into the higher channels. */
     if (ctx.ibuf->channels == 1 && file_spec.nchannels > 1) {
       final_buf = ImageBuf(file_spec, InitializePixels::No);
       ImageBufAlgo::paste(final_buf, 0, 0, 0, 0, orig_buf);

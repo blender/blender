@@ -12,7 +12,7 @@
 
 #include "COM_ExecutionSystem.h"
 #include "COM_WorkScheduler.h"
-#include "COM_compositor.hh"
+#include "COM_compositor.h"
 
 #include "RE_compositor.hh"
 

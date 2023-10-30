@@ -267,7 +267,7 @@ GHOST_TSuccess GHOST_System::removeEventConsumer(GHOST_IEventConsumer *consumer)
   return success;
 }
 
-GHOST_TSuccess GHOST_System::pushEvent(const GHOST_IEvent *event)
+GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent *event)
 {
   GHOST_TSuccess success;
   if (m_eventManager) {

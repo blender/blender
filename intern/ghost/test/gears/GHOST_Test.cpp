@@ -443,7 +443,7 @@ Application::~Application()
   }
 }
 
-bool Application::processEvent(const GHOST_IEvent *event)
+bool Application::processEvent(GHOST_IEvent *event)
 {
   GHOST_IWindow *window = event->getWindow();
   bool handled = true;

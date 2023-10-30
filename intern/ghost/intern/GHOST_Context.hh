@@ -187,9 +187,7 @@ class GHOST_Context : public GHOST_IContext {
   /** Caller specified, not for internal use. */
   void *m_user_data = nullptr;
 
-#ifdef WITH_OPENGL_BACKEND
   static void initClearGL();
-#endif
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_Context")

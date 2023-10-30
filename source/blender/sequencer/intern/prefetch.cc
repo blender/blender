@@ -580,9 +580,10 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
     bool running = seq_prefetch_job_is_running(scene);
     seq_prefetch_resume(scene);
     /* conditions to start:
-     * prefetch enabled, prefetch not running, not scrubbing, not playing,
+     * prefetch enabled, prefetch not running, not scrubbing,  not playing,
      * cache storage enabled, has strips to render, not rendering, not doing modal transform -
-     * important, see D7820. */
+     * important, see D7820.
+     */
     if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing && !playing &&
         ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving)
     {

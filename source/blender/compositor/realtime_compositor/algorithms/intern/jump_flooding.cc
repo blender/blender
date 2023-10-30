@@ -4,7 +4,6 @@
 
 #include <utility>
 
-#include "BLI_assert.h"
 #include "BLI_math_base.h"
 #include "BLI_math_base.hh"
 
@@ -37,18 +36,15 @@ static void jump_flooding_pass(Context &context, Result &input, Result &output, 
 
 void jump_flooding(Context &context, Result &input, Result &output)
 {
-  BLI_assert(input.type() == ResultType::Int2);
-  BLI_assert(output.type() == ResultType::Int2);
-
   /* First, run a jump flooding pass with a step size of 1. This initial pass is proposed by the
    * 1+FJA variant to improve accuracy. */
-  Result initial_flooded_result = Result::Temporary(ResultType::Int2, context.texture_pool());
+  Result initial_flooded_result = Result::Temporary(ResultType::Color, context.texture_pool());
   initial_flooded_result.allocate_texture(input.domain());
   jump_flooding_pass(context, input, initial_flooded_result, 1);
 
   /* We compute the result using a ping-pong buffer, so create an intermediate result. */
   Result *result_to_flood = &initial_flooded_result;
-  Result intermediate_result = Result::Temporary(ResultType::Int2, context.texture_pool());
+  Result intermediate_result = Result::Temporary(ResultType::Color, context.texture_pool());
   intermediate_result.allocate_texture(input.domain());
   Result *result_after_flooding = &intermediate_result;
 

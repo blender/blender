@@ -619,7 +619,7 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
   int scissor[4];
   float colors[3][3];
   const float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
-  /* Colors pre-multiplied by alpha for speed up. */
+  /* colors  pre multiplied by alpha for speed up */
   float colors_alpha[3][3], colorsycc_alpha[3][3];
   float min, max;
 

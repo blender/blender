@@ -607,7 +607,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 {
   /* pointers to modifier data for unwrap control */
   SubsurfModifierData *smd_real;
-  /* Modifier initialization data, will control what type of subdivision will happen. */
+  /* Modifier initialization data, will  control what type of subdivision will happen. */
   SubsurfModifierData smd = {{nullptr}};
 
   /* Holds a map to edit-faces for every subdivision-surface face.
@@ -1403,15 +1403,17 @@ struct UVPackIslandsData {
   blender::geometry::UVPackIsland_Params pack_island_params;
 };
 
-static void pack_islands_startjob(void *pidv, wmJobWorkerStatus *worker_status)
+static void pack_islands_startjob(void *pidv, bool *stop, bool *do_update, float *progress)
 {
-  worker_status->progress = 0.02f;
+  if (progress != nullptr) {
+    *progress = 0.02f;
+  }
 
   UVPackIslandsData *pid = static_cast<UVPackIslandsData *>(pidv);
 
-  pid->pack_island_params.stop = &worker_status->stop;
-  pid->pack_island_params.do_update = &worker_status->do_update;
-  pid->pack_island_params.progress = &worker_status->progress;
+  pid->pack_island_params.stop = stop;
+  pid->pack_island_params.do_update = do_update;
+  pid->pack_island_params.progress = progress;
 
   uvedit_pack_islands_multi(pid->scene,
                             pid->objects,
@@ -1422,8 +1424,12 @@ static void pack_islands_startjob(void *pidv, wmJobWorkerStatus *worker_status)
                             !pid->use_job,
                             &pid->pack_island_params);
 
-  worker_status->progress = 0.99f;
-  worker_status->do_update = true;
+  if (progress != nullptr) {
+    *progress = 0.99f;
+  }
+  if (do_update != nullptr) {
+    *do_update = true;
+  }
 }
 
 static void pack_islands_endjob(void *pidv)
@@ -1548,8 +1554,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  wmJobWorkerStatus worker_status = {};
-  pack_islands_startjob(pid, &worker_status);
+  pack_islands_startjob(pid, nullptr, nullptr, nullptr);
   pack_islands_endjob(pid);
   pack_islands_freejob(pid);
 

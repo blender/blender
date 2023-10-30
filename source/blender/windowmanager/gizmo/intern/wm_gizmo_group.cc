@@ -102,7 +102,7 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
 #endif
 
   if (gzgroup->reports && (gzgroup->reports->flag & RPT_FREE)) {
-    BKE_reports_free(gzgroup->reports);
+    BKE_reports_clear(gzgroup->reports);
     MEM_freeN(gzgroup->reports);
   }
 

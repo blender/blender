@@ -338,36 +338,15 @@ static void compute_normal_outputs(const Mesh &mesh,
                                    const Span<int> looptri_indices,
                                    MutableSpan<float3> r_normals)
 {
-  switch (mesh.normals_domain()) {
-    case bke::MeshNormalDomain::Point: {
-      const Span<int> corner_verts = mesh.corner_verts();
-      const Span<MLoopTri> looptris = mesh.looptris();
-      const Span<float3> vert_normals = mesh.vert_normals();
-      threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
-        bke::mesh_surface_sample::sample_point_normals(
-            corner_verts, looptris, looptri_indices, bary_coords, vert_normals, range, r_normals);
-      });
-      break;
-    }
-    case bke::MeshNormalDomain::Face: {
-      const Span<int> looptri_faces = mesh.looptri_faces();
-      VArray<float3> face_normals = VArray<float3>::ForSpan(mesh.face_normals());
-      threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
-        bke::mesh_surface_sample::sample_face_attribute(
-            looptri_faces, looptri_indices, face_normals, range, r_normals);
-      });
-      break;
-    }
-    case bke::MeshNormalDomain::Corner: {
-      const Span<MLoopTri> looptris = mesh.looptris();
-      const Span<float3> corner_normals = mesh.corner_normals();
-      threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
-        bke::mesh_surface_sample::sample_corner_normals(
-            looptris, looptri_indices, bary_coords, corner_normals, range, r_normals);
-      });
-      break;
-    }
-  }
+  Array<float3> corner_normals(mesh.totloop);
+  BKE_mesh_calc_normals_split_ex(
+      &mesh, nullptr, reinterpret_cast<float(*)[3]>(corner_normals.data()));
+
+  const Span<MLoopTri> looptris = mesh.looptris();
+  threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
+    bke::mesh_surface_sample::sample_corner_normals(
+        looptris, looptri_indices, bary_coords, corner_normals, range, r_normals);
+  });
 }
 
 static void compute_legacy_normal_outputs(const Mesh &mesh,

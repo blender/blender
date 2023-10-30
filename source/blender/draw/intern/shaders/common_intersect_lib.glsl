@@ -129,7 +129,7 @@ IsectFrustum isect_data_setup(Frustum shape)
 /** \name View Intersection functions.
  * \{ */
 
-#ifdef DRW_VIEW_CULLING_INFO
+#ifdef COMMON_VIEW_LIB_GLSL
 
 bool intersect_view(Pyramid pyramid)
 {

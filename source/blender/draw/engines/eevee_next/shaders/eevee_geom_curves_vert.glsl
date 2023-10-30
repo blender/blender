@@ -2,12 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
+#pragma BLENDER_REQUIRE(common_hair_lib.glsl) /* TODO rename to curve. */
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
-#pragma BLENDER_REQUIRE(common_hair_lib.glsl) /* TODO rename to curve. */
 
 void main()
 {
@@ -24,15 +25,15 @@ void main()
                               ViewMatrixInverse[3].xyz,
                               ViewMatrixInverse[2].xyz,
                               interp.P,
-                              curve_interp.tangent,
-                              curve_interp.binormal,
-                              curve_interp.time,
-                              curve_interp.thickness,
-                              curve_interp.time_width);
+                              interp.curves_tangent,
+                              interp.curves_binormal,
+                              interp.curves_time,
+                              interp.curves_thickness,
+                              interp.curves_time_width);
 
-  interp.N = cross(curve_interp.tangent, curve_interp.binormal);
-  curve_interp_flat.strand_id = hair_get_strand_id();
-  curve_interp.barycentric_coords = hair_get_barycentric();
+  interp.N = cross(interp.curves_tangent, interp.curves_binormal);
+  interp_flat.curves_strand_id = hair_get_strand_id();
+  interp.barycentric_coords = hair_get_barycentric();
 #ifdef MAT_VELOCITY
   /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve
    * strand, not its cylinder. Otherwise we would add the rotation velocity. */
@@ -53,9 +54,5 @@ void main()
 
   interp.P += nodetree_displacement();
 
-#ifdef MAT_CLIP_PLANE
-  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
-#endif
-
-  gl_Position = drw_point_world_to_homogenous(interp.P);
+  gl_Position = point_world_to_ndc(interp.P);
 }

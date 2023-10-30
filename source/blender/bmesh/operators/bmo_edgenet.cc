@@ -10,15 +10,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_math_vector.h"
-#include "BLI_vector.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
-
-using blender::Vector;
 
 #define EDGE_MARK 1
 #define EDGE_VIS 2
@@ -98,6 +96,10 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter siter;
   BMEdge *e;
+  BMEdge **edges1 = nullptr, **edges2 = nullptr, **edges;
+  BLI_array_declare(edges1);
+  BLI_array_declare(edges2);
+  BLI_array_declare(edges);
   bool ok = true;
   int i, count;
 
@@ -124,10 +126,6 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     return;
   }
 
-  Vector<BMEdge *> edges1;
-  Vector<BMEdge *> edges2;
-  Vector<BMEdge *> *edges;
-
   /* find connected loops within the input edge */
   count = 0;
   while (true) {
@@ -146,10 +144,10 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     }
 
     if (!count) {
-      edges = &edges1;
+      edges = edges1;
     }
     else if (count == 1) {
-      edges = &edges2;
+      edges = edges2;
     }
     else {
       break;
@@ -158,50 +156,69 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     i = 0;
     while (e) {
       BMO_edge_flag_enable(bm, e, EDGE_VIS);
-      edges->append(e);
+      BLI_array_grow_one(edges);
+      edges[i] = e;
 
       e = edge_next(bm, e);
       i++;
     }
 
+    if (!count) {
+      edges1 = edges;
+      BLI_array_len_set(edges1, BLI_array_len(edges));
+    }
+    else {
+      edges2 = edges;
+      BLI_array_len_set(edges2, BLI_array_len(edges));
+    }
+
+    BLI_array_clear(edges);
     count++;
   }
 
-  if (edges1.size() > 2 && BM_edge_share_vert_check(edges1.first(), edges1.last())) {
-    if (edges2.size() > 2 && BM_edge_share_vert_check(edges2.first(), edges2.last())) {
+  if (edges1 && BLI_array_len(edges1) > 2 &&
+      BM_edge_share_vert_check(edges1[0], edges1[BLI_array_len(edges1) - 1]))
+  {
+    if (edges2 && BLI_array_len(edges2) > 2 &&
+        BM_edge_share_vert_check(edges2[0], edges2[BLI_array_len(edges2) - 1]))
+    {
+      BLI_array_free(edges1);
+      BLI_array_free(edges2);
       return;
     }
     edges1 = edges2;
-    edges2.clear();
+    edges2 = nullptr;
   }
 
-  if (edges2.size() > 2 && BM_edge_share_vert_check(edges2.first(), edges2.last())) {
-    edges2.clear();
+  if (edges2 && BLI_array_len(edges2) > 2 &&
+      BM_edge_share_vert_check(edges2[0], edges2[BLI_array_len(edges2) - 1]))
+  {
+    edges2 = nullptr;
   }
 
   /* two unconnected loops, connect the */
-  if (!edges1.is_empty() && !edges2.is_empty()) {
+  if (edges1 && edges2) {
     BMVert *v1, *v2, *v3, *v4;
     float dvec1[3];
     float dvec2[3];
 
-    if (edges1.size() == 1) {
+    if (BLI_array_len(edges1) == 1) {
       v1 = edges1[0]->v1;
       v2 = edges1[0]->v2;
     }
     else {
       v1 = BM_vert_in_edge(edges1[1], edges1[0]->v1) ? edges1[0]->v2 : edges1[0]->v1;
-      i = edges1.size() - 1;
+      i = BLI_array_len(edges1) - 1;
       v2 = BM_vert_in_edge(edges1[i - 1], edges1[i]->v1) ? edges1[i]->v2 : edges1[i]->v1;
     }
 
-    if (edges2.size() == 1) {
+    if (BLI_array_len(edges2) == 1) {
       v3 = edges2[0]->v1;
       v4 = edges2[0]->v2;
     }
     else {
       v3 = BM_vert_in_edge(edges2[1], edges2[0]->v1) ? edges2[0]->v2 : edges2[0]->v1;
-      i = edges2.size() - 1;
+      i = BLI_array_len(edges2) - 1;
       v4 = BM_vert_in_edge(edges2[i - 1], edges2[i]->v1) ? edges2[i]->v2 : edges2[i]->v1;
     }
 
@@ -229,12 +246,12 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     e = BM_edge_create(bm, v2, v4, nullptr, BM_CREATE_NO_DOUBLE);
     BMO_edge_flag_enable(bm, e, ELE_NEW);
   }
-  else if (!edges1.is_empty()) {
+  else if (edges1) {
     BMVert *v1, *v2;
 
-    if (edges1.size() > 1) {
+    if (BLI_array_len(edges1) > 1) {
       v1 = BM_vert_in_edge(edges1[1], edges1[0]->v1) ? edges1[0]->v2 : edges1[0]->v1;
-      i = edges1.size() - 1;
+      i = BLI_array_len(edges1) - 1;
       v2 = BM_vert_in_edge(edges1[i - 1], edges1[i]->v1) ? edges1[i]->v2 : edges1[i]->v1;
       e = BM_edge_create(bm, v1, v2, nullptr, BM_CREATE_NO_DOUBLE);
       BMO_edge_flag_enable(bm, e, ELE_NEW);
@@ -242,4 +259,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
   }
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_NEW);
+
+  BLI_array_free(edges1);
+  BLI_array_free(edges2);
 }

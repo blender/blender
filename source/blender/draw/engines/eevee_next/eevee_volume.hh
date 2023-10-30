@@ -40,33 +40,14 @@
 namespace blender::eevee {
 
 class Instance;
-class VolumePipeline;
 
 class VolumeModule {
-  friend VolumePipeline;
-
  private:
   Instance &inst_;
 
   bool enabled_;
 
   VolumesInfoData &data_;
-
-  /**
-   * Occupancy map that allows to fill froxels that are inside the geometry.
-   * It is filled during a pre-pass using atomic operations.
-   * Using a 3D bit-field, we only allocate one bit per froxel.
-   */
-  Texture occupancy_tx_ = {"occupancy_tx"};
-  /**
-   * List of surface hit for correct occupancy determination.
-   * One texture holds the number of hit count and the other the depth and
-   * the facing of each hit.
-   */
-  Texture hit_count_tx_ = {"hit_count_tx"};
-  Texture hit_depth_tx_ = {"hit_depth_tx"};
-  /** Empty frame-buffer for occupancy pass. */
-  Framebuffer occupancy_fb_ = {"occupancy_fb"};
 
   /* Material Parameters */
   Texture prop_scattering_tx_;
@@ -95,6 +76,21 @@ class VolumeModule {
   Texture dummy_scatter_tx_;
   Texture dummy_transmit_tx_;
 
+  /* Axis aligned bounding box in the volume grid.
+   * Used for frustum culling and volumes overlapping detection. */
+  struct GridAABB {
+    int3 min, max;
+
+    /* Returns true if visible. */
+    bool init(Object *ob, const Camera &camera, const VolumesInfoData &data);
+
+    bool overlaps(const GridAABB &aabb);
+  };
+  /* Stores a vector of volume AABBs for each material pass,
+   * so we can detect overlapping volumes and place GPU barriers where needed
+   * (Only stores the AABBs for the volumes rendered since the last barrier). */
+  Map<GPUShader *, Vector<GridAABB>> subpass_aabbs_;
+
  public:
   VolumeModule(Instance &inst, VolumesInfoData &data) : inst_(inst), data_(data)
   {
@@ -105,27 +101,19 @@ class VolumeModule {
   ~VolumeModule(){};
 
   /* Bind resources needed by external passes to perform their own resolve. */
-  template<typename PassType> void bind_resources(PassType &pass)
+  template<typename PassType> void bind_resources(PassType &ps)
   {
-    pass.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &transparent_pass_scatter_tx_);
-    pass.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transparent_pass_transmit_tx_);
+    ps.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &transparent_pass_scatter_tx_);
+    ps.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transparent_pass_transmit_tx_);
   }
 
   /* Bind the common resources needed by all volumetric passes. */
-  template<typename PassType> void bind_properties_buffers(PassType &pass)
+  template<typename PassType> void bind_properties_buffers(PassType &ps)
   {
-    pass.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &prop_scattering_tx_);
-    pass.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
-    pass.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);
-    pass.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
-    pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
-  }
-
-  template<typename PassType> void bind_occupancy_buffers(PassType &pass)
-  {
-    pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
-    pass.bind_image(VOLUME_HIT_DEPTH_SLOT, &hit_depth_tx_);
-    pass.bind_image(VOLUME_HIT_COUNT_SLOT, &hit_count_tx_);
+    ps.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &prop_scattering_tx_);
+    ps.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
+    ps.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);
+    ps.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
   }
 
   bool needs_shadow_tagging()
@@ -143,8 +131,10 @@ class VolumeModule {
   void begin_sync();
 
   void sync_world();
-
-  void material_call(MaterialPass &material_pass, Object *ob, ResourceHandle res_handle);
+  void sync_object(Object *ob,
+                   ObjectHandle &ob_handle,
+                   ResourceHandle res_handle,
+                   MaterialPass *material_pass = nullptr);
 
   void end_sync();
 

@@ -5,6 +5,7 @@
 #include "testing/testing.h"
 #include <cstring>
 
+#include "BLI_array.h"
 #include "BLI_stack.h"
 #include "BLI_utildefines.h"
 

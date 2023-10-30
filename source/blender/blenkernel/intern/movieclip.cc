@@ -66,8 +66,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_engine.h"
-
 #include "GPU_texture.h"
 
 #include "BLO_read_write.hh"
@@ -101,8 +99,6 @@ static void movie_clip_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src,
   BKE_tracking_copy(&movie_clip_dst->tracking, &movie_clip_src->tracking, flag_subdata);
   movie_clip_dst->tracking_context = nullptr;
 
-  BLI_listbase_clear((ListBase *)&movie_clip_dst->drawdata);
-
   BKE_color_managed_colorspace_settings_copy(&movie_clip_dst->colorspace_settings,
                                              &movie_clip_src->colorspace_settings);
 }
@@ -115,7 +111,6 @@ static void movie_clip_free_data(ID *id)
   free_buffers(movie_clip);
 
   BKE_tracking_free(&movie_clip->tracking);
-  DRW_drawdata_free(id);
 }
 
 static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)

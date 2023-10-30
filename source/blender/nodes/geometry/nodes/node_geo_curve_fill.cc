@@ -10,8 +10,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_curves.hh"
-#include "BKE_grease_pencil.hh"
-#include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 
 #include "BLI_task.hh"
@@ -29,8 +27,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveFill)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(
-      {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
+  b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
   b.add_output<decl::Geometry>("Mesh");
 }
 
@@ -113,60 +110,26 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
 
 static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCurveFillMode mode)
 {
+  if (!geometry_set.has_curves()) {
+    return;
+  }
+
+  const Curves &curves_id = *geometry_set.get_curves();
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  if (curves.curves_num() == 0) {
+    geometry_set.replace_curves(nullptr);
+    return;
+  }
+
   const CDT_output_type output_type = (mode == GEO_NODE_CURVE_FILL_MODE_NGONS) ?
                                           CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
                                           CDT_INSIDE_WITH_HOLES;
-  if (geometry_set.has_curves()) {
-    const Curves &curves_id = *geometry_set.get_curves();
-    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    if (curves.curves_num() > 0) {
-      const meshintersect::CDT_result<double> results = do_cdt(curves, output_type);
-      Mesh *mesh = cdt_to_mesh(results);
-      geometry_set.replace_mesh(mesh);
-    }
-    geometry_set.replace_curves(nullptr);
-  }
 
-  if (geometry_set.has_grease_pencil()) {
-    using namespace blender::bke::greasepencil;
-    const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
-    Vector<Mesh *> mesh_by_layer(grease_pencil.layers().size(), nullptr);
-    for (const int layer_index : grease_pencil.layers().index_range()) {
-      const Drawing *drawing = get_eval_grease_pencil_layer_drawing(grease_pencil, layer_index);
-      if (drawing == nullptr) {
-        continue;
-      }
-      const bke::CurvesGeometry &src_curves = drawing->strokes();
-      if (src_curves.curves_num() == 0) {
-        continue;
-      }
-      const meshintersect::CDT_result<double> results = do_cdt(src_curves, output_type);
-      mesh_by_layer[layer_index] = cdt_to_mesh(results);
-    }
-    if (!mesh_by_layer.is_empty()) {
-      InstancesComponent &instances_component =
-          geometry_set.get_component_for_write<InstancesComponent>();
-      bke::Instances *instances = instances_component.get_for_write();
-      if (instances == nullptr) {
-        instances = new bke::Instances();
-        instances_component.replace(instances);
-      }
-      for (Mesh *mesh : mesh_by_layer) {
-        if (!mesh) {
-          /* Add an empty reference so the number of layers and instances match.
-           * This makes it easy to reconstruct the layers afterwards and keep their attributes.
-           * Although in this particular case we don't propagate the attributes. */
-          const int handle = instances->add_reference(bke::InstanceReference());
-          instances->add_instance(handle, float4x4::identity());
-          continue;
-        }
-        GeometrySet temp_set = GeometrySet::from_mesh(mesh);
-        const int handle = instances->add_reference(bke::InstanceReference{temp_set});
-        instances->add_instance(handle, float4x4::identity());
-      }
-    }
-    geometry_set.replace_grease_pencil(nullptr);
-  }
+  const meshintersect::CDT_result<double> results = do_cdt(curves, output_type);
+  Mesh *mesh = cdt_to_mesh(results);
+
+  geometry_set.replace_mesh(mesh);
+  geometry_set.replace_curves(nullptr);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

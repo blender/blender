@@ -338,14 +338,14 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 
 #define FIRSTFILEBUFLG 512
 static bool g_hasFirstFile = false;
-static char g_firstFileBuf[FIRSTFILEBUFLG];
+static char g_firstFileBuf[512];
 
-/* TODO: Need to investigate this.
- * Function called too early in creator.c to have g_hasFirstFile == true */
+// TODO: Need to investigate this.
+// Function called too early in creator.c to have g_hasFirstFile == true
 extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 {
   if (g_hasFirstFile) {
-    memcpy(buf, g_firstFileBuf, FIRSTFILEBUFLG);
+    strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
     buf[FIRSTFILEBUFLG - 1] = '\0';
     return 1;
   }
@@ -1219,7 +1219,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
       NSArray *droppedArray;
       size_t pastedTextSize;
       NSString *droppedStr;
-      GHOST_TDragnDropDataPtr eventData;
+      GHOST_TEventDataPtr eventData;
       int i;
 
       if (!data) {
@@ -1254,14 +1254,15 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
               break;
             }
 
-            memcpy(
-                temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
+            strncpy((char *)temp_buff,
+                    [droppedStr cStringUsingEncoding:NSUTF8StringEncoding],
+                    pastedTextSize);
             temp_buff[pastedTextSize] = '\0';
 
             strArray->strings[i] = temp_buff;
           }
 
-          eventData = (GHOST_TDragnDropDataPtr)strArray;
+          eventData = (GHOST_TEventDataPtr)strArray;
           break;
 
         case GHOST_kDragnDropTypeString:
@@ -1274,11 +1275,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             return GHOST_kFailure;
           }
 
-          memcpy(
-              temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
+          strncpy((char *)temp_buff,
+                  [droppedStr cStringUsingEncoding:NSUTF8StringEncoding],
+                  pastedTextSize);
+
           temp_buff[pastedTextSize] = '\0';
 
-          eventData = (GHOST_TDragnDropDataPtr)temp_buff;
+          eventData = (GHOST_TEventDataPtr)temp_buff;
           break;
 
         case GHOST_kDragnDropTypeBitmap: {
@@ -1410,7 +1413,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [droppedImg release];
           }
 
-          eventData = (GHOST_TDragnDropDataPtr)ibuf;
+          eventData = (GHOST_TEventDataPtr)ibuf;
 
           break;
         }
@@ -1481,7 +1484,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
     return GHOST_kFailure;
   }
 
-  memcpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
+  strncpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
   temp_buff[filenameTextSize] = '\0';
 
   pushEvent(new GHOST_EventString(
@@ -2036,7 +2039,8 @@ char *GHOST_SystemCocoa::getClipboard(bool /*selection*/) const
       return nullptr;
     }
 
-    memcpy(temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
+    strncpy(temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
+
     temp_buff[pastedTextSize] = '\0';
 
     if (temp_buff) {

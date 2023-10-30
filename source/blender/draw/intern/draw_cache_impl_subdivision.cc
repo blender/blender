@@ -23,7 +23,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_virtual_array.hh"
 
 #include "PIL_time.h"
@@ -2152,8 +2152,9 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   runtime_data->stats_totloop = draw_cache.num_subdiv_loops;
 
   draw_cache.use_custom_loop_normals = (runtime_data->use_loop_normals) &&
-                                       mesh_eval->normals_domain() ==
-                                           blender::bke::MeshNormalDomain::Corner;
+                                       (mesh_eval->flag & ME_AUTOSMOOTH) &&
+                                       CustomData_has_layer(&mesh_eval->loop_data,
+                                                            CD_CUSTOMLOOPNORMAL);
 
   if (DRW_ibo_requested(mbc.buff.ibo.tris)) {
     draw_subdiv_cache_ensure_mat_offsets(draw_cache, mesh_eval, batch_cache.mat_len);

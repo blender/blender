@@ -12,6 +12,7 @@
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
 shared int rect_min_x;
@@ -159,14 +160,9 @@ void main()
         if (do_page_render) {
           /* Tag tile as rendered. There is a barrier after the read. So it is safe. */
           tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
-          /* Add page to clear dispatch. */
-          uint page_index = atomicAdd(clear_dispatch_buf.num_groups_z, 1u);
-          /* Add page to tile processing. */
-          atomicAdd(tile_draw_buf.vertex_len, 6u);
-          /* Add page mapping for indexing the page position in atlas and in the frame-buffer. */
-          dst_coord_buf[page_index] = page_packed;
-          src_coord_buf[page_index] = packUvec4x8(
-              uvec4(relative_tile_co.x, relative_tile_co.y, view_index, 0));
+          /* Add page to clear list. */
+          uint clear_page_index = atomicAdd(clear_dispatch_buf.num_groups_z, 1u);
+          clear_list_buf[clear_page_index] = page_packed;
           /* Statistics. */
           atomicAdd(statistics_buf.page_rendered_count, 1);
         }

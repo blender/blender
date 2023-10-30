@@ -125,7 +125,7 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  const NodeDeclaration &declaration = *params.node_type().static_declaration;
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(2));
 
   const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());
@@ -407,8 +407,7 @@ static void node_rna(StructRNA *srna)
                     "Which domain to read the data from",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom2),
-                    ATTR_DOMAIN_POINT,
-                    enums::domain_experimental_grease_pencil_version3_fn);
+                    ATTR_DOMAIN_POINT);
 }
 
 static void node_register()

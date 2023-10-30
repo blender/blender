@@ -252,9 +252,33 @@ float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3]
   return BM_mesh_vert_coords_alloc(em->bm, r_vert_len);
 }
 
-void BKE_editmesh_lnorspace_update(BMEditMesh *em)
+void BKE_editmesh_lnorspace_update(BMEditMesh *em, Mesh *me)
 {
-  BM_lnorspace_update(em->bm);
+  BMesh *bm = em->bm;
+
+  /* We need to create custom-loop-normals (CLNORS) data if none exist yet,
+   * otherwise there is no way to edit them.
+   * Similar code to #MESH_OT_customdata_custom_splitnormals_add operator,
+   * we want to keep same shading in case we were using auto-smooth so far.
+   * NOTE: there is a problem here, which is that if someone starts a normal editing operation on
+   * previously auto-smooth-ed mesh, and cancel that operation, generated CLNORS data remain,
+   * with related sharp edges (and hence auto-smooth is 'lost').
+   * Not sure how critical this is, and how to fix that issue? */
+  if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+    if (me->flag & ME_AUTOSMOOTH) {
+      BM_edges_sharp_from_angle_set(bm, me->smoothresh);
+    }
+  }
+
+  BM_lnorspace_update(bm);
+}
+
+void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, Mesh *me)
+{
+  if (!(me->flag & ME_AUTOSMOOTH)) {
+    me->flag |= ME_AUTOSMOOTH;
+    BKE_editmesh_lnorspace_update(em, me);
+  }
 }
 
 BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh * /*em*/)

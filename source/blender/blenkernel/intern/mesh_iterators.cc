@@ -167,7 +167,9 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     /* XXX: investigate using EditMesh data. */
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      corner_normals = mesh->corner_normals();
+      corner_normals = {
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
+          mesh->totloop};
     }
 
     int f_idx;
@@ -192,7 +194,9 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
   else {
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      corner_normals = mesh->corner_normals();
+      corner_normals = {
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
+          mesh->totloop};
     }
 
     const blender::Span<blender::float3> positions = mesh->vert_positions();

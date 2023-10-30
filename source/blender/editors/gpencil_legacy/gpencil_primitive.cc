@@ -58,12 +58,11 @@
 #include "RNA_enum_types.hh"
 
 #include "ED_gpencil_legacy.hh"
+#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_view3d.hh"
-
-#include "ANIM_keyframing.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -1265,7 +1264,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
   bGPdata *gpd = CTX_data_gpencil_data(C);
   tGPDprimitive *tgpi = nullptr;
 
-  if (!blender::animrig::is_autokey_on(scene)) {
+  if (!IS_AUTOKEY_ON(scene)) {
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
     if ((gpl == nullptr) || (gpl->actframe == nullptr)) {
       BKE_report(op->reports, RPT_INFO, "No available frame for creating stroke");
@@ -1327,7 +1326,7 @@ static void gpencil_primitive_interaction_end(bContext *C,
 
   /* insert keyframes as required... */
   short add_frame_mode;
-  if (blender::animrig::is_autokey_on(tgpi->scene)) {
+  if (IS_AUTOKEY_ON(tgpi->scene)) {
     if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
       add_frame_mode = GP_GETFRAME_ADD_COPY;
     }

@@ -151,7 +151,7 @@ static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float *start_co;
     float transformed_co[3], orig_co[3], disp[3];
-    float fade = vd.mask;
+    float fade = vd.mask ? *vd.mask : 0.0f;
     copy_v3_v3(orig_co, orig_data.co);
     char symm_area = SCULPT_get_vertex_symm_area(orig_co);
 
@@ -227,7 +227,7 @@ static void sculpt_elastic_transform_task(Object *ob,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float transformed_co[3], orig_co[3], disp[3];
-    const float fade = vd.mask;
+    const float fade = vd.mask ? *vd.mask : 0.0f;
     copy_v3_v3(orig_co, orig_data.co);
 
     copy_v3_v3(transformed_co, vd.co);
@@ -315,7 +315,9 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
         transform_radius = BKE_brush_unprojected_radius_get(scene, brush);
       }
       else {
-        ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+        ViewContext vc;
+
+        ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
         transform_radius = paint_calc_object_space_radius(
             &vc, ss->init_pivot_pos, BKE_brush_size_get(scene, brush));
@@ -426,7 +428,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          const float mask = vd.mask;
+          const float mask = (vd.mask) ? *vd.mask : 0.0f;
           if (mask < 1.0f) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
               add_v3_v3(avg, vd.co);
@@ -444,7 +446,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          const float mask = vd.mask;
+          const float mask = (vd.mask) ? *vd.mask : 0.0f;
           if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
               add_v3_v3(avg, vd.co);

@@ -422,7 +422,14 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
   blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
   const blender::Span<int> looptri_faces = me->looptri_faces();
-  const blender::Span<blender::float3> lnors = me->corner_normals();
+
+  // Compute loop normals
+  BKE_mesh_calc_normals_split(me);
+  const float(*lnors)[3] = nullptr;
+
+  if (CustomData_has_layer(&me->loop_data, CD_NORMAL)) {
+    lnors = (const float(*)[3])CustomData_get_layer(&me->loop_data, CD_NORMAL);
+  }
 
   // Get other mesh data
   const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edge_data,
@@ -539,7 +546,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     v2[2] += _z_offset;
     v3[2] += _z_offset;
 
-    if (_smooth && (!sharp_faces[poly_i])) {
+    if (_smooth && (!sharp_faces[poly_i]) && lnors) {
       copy_v3_v3(n1, lnors[lt->tri[0]]);
       copy_v3_v3(n2, lnors[lt->tri[1]]);
       copy_v3_v3(n3, lnors[lt->tri[2]]);

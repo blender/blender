@@ -713,9 +713,10 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
   BMEdge *eed = nullptr;
   BMFace *efa = nullptr;
 
+  ViewContext vc;
   bool track_active = true;
 
-  ViewContext vc = em_setup_viewcontext(C);
+  em_setup_viewcontext(C, &vc);
   copy_v2_v2_int(vc.mval, event->mval);
   BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
   Base *basact = BKE_view_layer_active_base_get(vc.view_layer);

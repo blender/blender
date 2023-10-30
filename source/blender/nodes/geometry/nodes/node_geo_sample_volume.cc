@@ -31,8 +31,8 @@ NODE_STORAGE_FUNCS(NodeGeometrySampleVolume)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .supported_type(GeometryComponent::Type::Volume)
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+      .translation_context(BLT_I18NCONTEXT_ID_ID)
+      .supported_type(GeometryComponent::Type::Volume);
 
   std::string grid_socket_description = N_(
       "Expects a Named Attribute with the name of a Grid in the Volume");
@@ -85,7 +85,7 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
   if (!U.experimental.use_new_volume_nodes) {
     return;
   }
-  const NodeDeclaration &declaration = *params.node_type().static_declaration;
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 

@@ -1854,7 +1854,7 @@ static bool save_image_op(
   WM_cursor_wait(false);
 
   /* Remember file path for next save. */
-  STRNCPY(G.filepath_last_image, opts->filepath);
+  STRNCPY(G.ima, opts->filepath);
 
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, ima);
 
@@ -2336,7 +2336,7 @@ bool ED_image_should_save_modified(const Main *bmain)
   uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
   bool should_save = modified_images_count || !BLI_listbase_is_empty(&reports.list);
 
-  BKE_reports_free(&reports);
+  BKE_reports_clear(&reports);
 
   return should_save;
 }
@@ -3334,10 +3334,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 /** \name Sample Image Operator
  * \{ */
 
-bool ED_space_image_get_position(SpaceImage *sima,
-                                 ARegion *region,
-                                 const int mval[2],
-                                 float r_fpos[2])
+bool ED_space_image_get_position(SpaceImage *sima, ARegion *region, int mval[2], float fpos[2])
 {
   void *lock;
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
@@ -3347,7 +3344,7 @@ bool ED_space_image_get_position(SpaceImage *sima,
     return false;
   }
 
-  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &r_fpos[0], &r_fpos[1]);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &fpos[0], &fpos[1]);
 
   ED_space_image_release_buffer(sima, ibuf, lock);
   return true;

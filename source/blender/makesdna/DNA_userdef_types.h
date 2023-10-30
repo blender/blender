@@ -81,8 +81,7 @@ typedef struct uiFontStyle {
   float shadowalpha;
   /** 1 value, typically white or black anyway. */
   float shadowcolor;
-  /** Weight class 100-900, 400 is normal. */
-  int character_weight;
+  char _pad2[4];
 } uiFontStyle;
 
 /* this is fed to the layout engine and widget code */
@@ -705,6 +704,7 @@ typedef struct UserDef_Experimental {
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
   char use_override_templates;
+  char enable_eevee_next;
   char use_sculpt_texture_paint;
   char use_grease_pencil_version3;
   char enable_overlay_next;
@@ -712,7 +712,7 @@ typedef struct UserDef_Experimental {
   char use_shader_node_previews;
   char use_extension_repos;
 
-  char _pad[3];
+  char _pad[2];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -1281,6 +1281,7 @@ typedef enum eZoomFrame_Mode {
  * Auto-Keying flag
  * #UserDef.autokey_flag (not strictly used when autokeying only -
  * is also used when keyframing these days).
+ * \note #eAutokey_Flag is used with a macro, search for lines like IS_AUTOKEY_FLAG(INSERTAVAIL).
  */
 typedef enum eAutokey_Flag {
   AUTOKEY_FLAG_INSERTAVAIL = (1 << 0),

@@ -29,6 +29,5 @@ void register_standard_node_socket_types();
 namespace blender::nodes {
 
 void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node);
-bool socket_type_supports_fields(eNodeSocketDatatype socket_type);
 
 }  // namespace blender::nodes

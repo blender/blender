@@ -411,7 +411,8 @@ bool ED_pose_deselect_all_multi_ex(Base **bases,
 bool ED_pose_deselect_all_multi(bContext *C, int select_mode, const bool ignore_visibility)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
 
   Base **bases = BKE_object_pose_base_array_get_unique(

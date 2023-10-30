@@ -14,7 +14,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -421,18 +421,19 @@ void BKE_gpencil_modifier_free(GpencilModifierData *md)
   BKE_gpencil_modifier_free_ex(md, 0);
 }
 
-void BKE_gpencil_modifier_unique_name(ListBase *modifiers, GpencilModifierData *gmd)
+bool BKE_gpencil_modifier_unique_name(ListBase *modifiers, GpencilModifierData *gmd)
 {
   if (modifiers && gmd) {
     const GpencilModifierTypeInfo *gmti = BKE_gpencil_modifier_get_info(
         GpencilModifierType(gmd->type));
-    BLI_uniquename(modifiers,
-                   gmd,
-                   DATA_(gmti->name),
-                   '.',
-                   offsetof(GpencilModifierData, name),
-                   sizeof(gmd->name));
+    return BLI_uniquename(modifiers,
+                          gmd,
+                          DATA_(gmti->name),
+                          '.',
+                          offsetof(GpencilModifierData, name),
+                          sizeof(gmd->name));
   }
+  return false;
 }
 
 bool BKE_gpencil_modifier_depends_ontime(GpencilModifierData *md)

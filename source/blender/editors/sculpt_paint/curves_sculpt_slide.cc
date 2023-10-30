@@ -99,7 +99,7 @@ struct SlideOperationExecutor {
   CurvesGeometry *curves_orig_ = nullptr;
 
   Object *surface_ob_orig_ = nullptr;
-  const Mesh *surface_orig_ = nullptr;
+  Mesh *surface_orig_ = nullptr;
   Span<MLoopTri> surface_looptris_orig_;
   VArraySpan<float2> surface_uv_map_orig_;
   Span<float3> corner_normals_orig_su_;
@@ -166,19 +166,25 @@ struct SlideOperationExecutor {
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
     surface_ob_orig_ = curves_id_orig_->surface;
-    surface_orig_ = static_cast<const Mesh *>(surface_ob_orig_->data);
+    surface_orig_ = static_cast<Mesh *>(surface_ob_orig_->data);
     if (surface_orig_->faces_num == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;
     }
     surface_looptris_orig_ = surface_orig_->looptris();
-    corner_normals_orig_su_ = surface_orig_->corner_normals();
     surface_uv_map_orig_ = *surface_orig_->attributes().lookup<float2>(uv_map_name,
                                                                        ATTR_DOMAIN_CORNER);
     if (surface_uv_map_orig_.is_empty()) {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
     }
+    if (!CustomData_has_layer(&surface_orig_->loop_data, CD_NORMAL)) {
+      BKE_mesh_calc_normals_split(surface_orig_);
+    }
+    corner_normals_orig_su_ = {reinterpret_cast<const float3 *>(
+                                   CustomData_get_layer(&surface_orig_->loop_data, CD_NORMAL)),
+                               surface_orig_->totloop};
+
     surface_ob_eval_ = DEG_get_evaluated_object(ctx_.depsgraph, surface_ob_orig_);
     if (surface_ob_eval_ == nullptr) {
       return;
@@ -212,7 +218,7 @@ struct SlideOperationExecutor {
       self_->initial_positions_cu_ = curves_orig_->positions();
       self_->initial_deformed_positions_cu_ = deformation.positions;
 
-      /* First find all curves to slide. When the mouse moves, only those curves will be moved. */
+      /* First find all curves to slide. When the mouse moves, only those curves  will be moved. */
       this->find_curves_to_slide_with_symmetry();
       return;
     }

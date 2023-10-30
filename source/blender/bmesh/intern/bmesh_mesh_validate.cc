@@ -13,7 +13,6 @@
 
 #  include "BLI_map.hh"
 #  include "BLI_ordered_edge.hh"
-#  include "BLI_set.hh"
 #  include "BLI_utildefines.h"
 
 #  include "bmesh.h"
@@ -36,17 +35,6 @@
       } \
       (void)0
 #  endif
-
-template<> struct blender::DefaultHash<blender::Set<const BMVert *>> {
-  uint64_t operator()(const blender::Set<const BMVert *> &value) const
-  {
-    uint64_t hash = 0;
-    for (const BMVert *vert : value) {
-      hash = get_default_hash_2(hash, vert);
-    }
-    return hash;
-  }
-};
 
 bool BM_mesh_validate(BMesh *bm)
 {
@@ -131,7 +119,6 @@ bool BM_mesh_validate(BMesh *bm)
   }
 
   /* face structure */
-  blender::Map<blender::Set<const BMVert *>, int> face_map;
   BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
     BMLoop *l_iter;
     BMLoop *l_first;
@@ -150,8 +137,6 @@ bool BM_mesh_validate(BMesh *bm)
     } while ((l_iter = l_iter->next) != l_first);
 
     j = 0;
-
-    blender::Set<const BMVert *> face_verts;
 
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
     do {
@@ -190,16 +175,8 @@ bool BM_mesh_validate(BMesh *bm)
       BM_elem_flag_enable(l_iter, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_enable(l_iter->v, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_enable(l_iter->e, BM_ELEM_INTERNAL_TAG);
-
-      face_verts.add(l_iter->v);
-
       j++;
     } while ((l_iter = l_iter->next) != l_first);
-
-    face_map.add_or_modify(
-        std::move(face_verts),
-        [&](int *value) { *value = i; },
-        [&](int *value) { ERRMSG("face %d: duplicate of %d", i, *value); });
 
     if (j != f->len) {
       ERRMSG("face %d: has length of %d but should be %d", i, f->len, j);

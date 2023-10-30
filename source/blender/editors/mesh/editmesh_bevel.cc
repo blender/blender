@@ -336,13 +336,20 @@ static bool edbm_bevel_calc(wmOperator *op)
 
     const int material = CLAMPIS(material_init, -1, obedit->totcol - 1);
 
+    Mesh *me = static_cast<Mesh *>(obedit->data);
+
+    if (harden_normals && !(me->flag & ME_AUTOSMOOTH)) {
+      /* `harden_normals` only has a visible effect if auto-smooth is on, so turn it on. */
+      me->flag |= ME_AUTOSMOOTH;
+    }
+
     EDBM_op_init(em,
                  &bmop,
                  op,
                  "bevel geom=%hev offset=%f segments=%i affect=%i offset_type=%i "
                  "profile_type=%i profile=%f clamp_overlap=%b material=%i loop_slide=%b "
                  "mark_seam=%b mark_sharp=%b harden_normals=%b face_strength_mode=%i "
-                 "miter_outer=%i miter_inner=%i spread=%f custom_profile=%p "
+                 "miter_outer=%i miter_inner=%i spread=%f smoothresh=%f custom_profile=%p "
                  "vmesh_method=%i",
                  BM_ELEM_SELECT,
                  offset,
@@ -361,6 +368,7 @@ static bool edbm_bevel_calc(wmOperator *op)
                  miter_outer,
                  miter_inner,
                  spread,
+                 me->smoothresh,
                  opdata->custom_profile,
                  vmesh_method);
 

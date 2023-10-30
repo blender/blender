@@ -100,7 +100,6 @@ enum class Type : uint8_t {
   PushConstant,
   ResourceBind,
   ShaderBind,
-  SubPassTransition,
   StateSet,
   StencilSet,
 
@@ -130,16 +129,6 @@ struct ShaderBind {
 
 struct FramebufferBind {
   GPUFrameBuffer **framebuffer;
-
-  void execute() const;
-  std::string serialize() const;
-};
-
-struct SubPassTransition {
-  /** \note uint8_t storing `GPUAttachmentState` for compactness. */
-  uint8_t depth_state;
-  /** \note 8 is GPU_FB_MAX_COLOR_ATTACHMENT. */
-  uint8_t color_states[8];
 
   void execute() const;
   std::string serialize() const;
@@ -401,7 +390,6 @@ union Undetermined {
   ShaderBind shader_bind;
   ResourceBind resource_bind;
   FramebufferBind framebuffer_bind;
-  SubPassTransition subpass_transition;
   PushConstant push_constant;
   Draw draw;
   DrawMulti draw_multi;

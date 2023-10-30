@@ -60,7 +60,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BLI_ghash.h"
-#  include "BLI_string_utils.hh"
+#  include "BLI_string_utils.h"
 
 #  include "BIK_api.h"
 #  include "BKE_action.h"

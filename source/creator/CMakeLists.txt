@@ -897,13 +897,6 @@ elseif(WIN32)
     ALL
   )
 
- if(WITH_VULKAN_BACKEND)
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/vulkan/bin/vulkan-1.dll
-      ALL
-    )
-  endif()
-
   if(WITH_OPENMP AND MSVC_CLANG)
     windows_install_shared_manifest(
       FILES ${CLANG_OPENMP_DLL}

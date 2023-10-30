@@ -1697,12 +1697,14 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                const float (*vnos)[3],
                                const float (*fnos)[3],
                                const bool use_split_normals,
+                               const float split_angle,
                                float (*r_lnos)[3],
                                MLoopNorSpaceArray *r_lnors_spacearr,
                                short (*clnors_data)[2],
                                const int cd_loop_clnors_offset,
                                const bool do_rebuild)
 {
+  const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
 
   if (use_split_normals) {
     bm_mesh_loops_calc_normals(bm,
@@ -1713,7 +1715,7 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                clnors_data,
                                cd_loop_clnors_offset,
                                do_rebuild,
-                               -1.0f);
+                               has_clnors ? -1.0f : cosf(split_angle));
   }
   else {
     BLI_assert(!r_lnors_spacearr);
@@ -1742,6 +1744,7 @@ void BM_lnorspacearr_store(BMesh *bm, float (*r_lnors)[3])
                             nullptr,
                             nullptr,
                             true,
+                            M_PI,
                             r_lnors,
                             bm->lnor_spacearr,
                             nullptr,
@@ -1868,6 +1871,7 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
                             nullptr,
                             nullptr,
                             true,
+                            M_PI,
                             r_lnors,
                             bm->lnor_spacearr,
                             nullptr,
@@ -1943,8 +1947,17 @@ void BM_lnorspace_err(BMesh *bm)
 
   int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
   float(*lnors)[3] = static_cast<float(*)[3]>(MEM_callocN(sizeof(*lnors) * bm->totloop, __func__));
-  BM_loops_calc_normal_vcos(
-      bm, nullptr, nullptr, nullptr, true, lnors, temp, nullptr, cd_loop_clnors_offset, true);
+  BM_loops_calc_normal_vcos(bm,
+                            nullptr,
+                            nullptr,
+                            nullptr,
+                            true,
+                            M_PI,
+                            lnors,
+                            temp,
+                            nullptr,
+                            cd_loop_clnors_offset,
+                            true);
 
   for (int i = 0; i < bm->totloop; i++) {
     int j = 0;

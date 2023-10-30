@@ -99,7 +99,7 @@ static Curves *curve_from_points(const AttributeAccessor attributes,
     return curves_id;
   }
   Array<int> indices(domain_size);
-  array_utils::fill_index_range<int>(indices);
+  std::iota(indices.begin(), indices.end(), 0);
   const VArraySpan<float> weights(weights_varray);
   grouped_sort(OffsetIndices<int>({0, domain_size}), weights, indices);
   bke::gather_attributes(

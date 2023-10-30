@@ -4,7 +4,6 @@
 
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_report.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -13,10 +12,9 @@
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
+#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
-
-#include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -117,48 +115,14 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
   GreasePencilStrokeOperation *operation = static_cast<GreasePencilStrokeOperation *>(
       paint_stroke_mode_data(stroke));
   operation->on_stroke_done(*C);
-  operation->~GreasePencilStrokeOperation();
 }
 
 static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const Scene *scene = CTX_data_scene(C);
-  const Object *object = CTX_data_active_object(C);
-  if (!object || object->type != OB_GREASE_PENCIL) {
-    return OPERATOR_CANCELLED;
-  }
-
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  if (!grease_pencil.has_active_layer()) {
-    BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
-    return OPERATOR_CANCELLED;
-  }
-
   const Paint *paint = BKE_paint_get_active_from_context(C);
   const Brush *brush = BKE_paint_brush_for_read(paint);
   if (brush == nullptr) {
     return OPERATOR_CANCELLED;
-  }
-
-  const int current_frame = scene->r.cfra;
-
-  if (!grease_pencil.get_active_layer()->frames().contains(current_frame)) {
-    if (!blender::animrig::is_autokey_on(scene)) {
-      BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
-      return OPERATOR_CANCELLED;
-    }
-    const ToolSettings *ts = CTX_data_tool_settings(C);
-    bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer_for_write();
-    if ((ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) {
-      /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
-       * current frame. */
-      grease_pencil.insert_duplicate_frame(
-          active_layer, active_layer.frame_key_at(current_frame), current_frame, false);
-    }
-    else {
-      /* Otherwise we just insert a blank keyframe. */
-      grease_pencil.insert_blank_frame(active_layer, current_frame, 0, BEZT_KEYTYPE_KEYFRAME);
-    }
   }
 
   op->customdata = paint_stroke_new(C,

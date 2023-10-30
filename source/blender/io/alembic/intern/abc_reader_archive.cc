@@ -16,7 +16,7 @@
 #include "BLI_string.h"
 
 #ifdef WIN32
-#  include "utfconv.hh"
+#  include "utfconv.h"
 #endif
 
 #include <fstream>

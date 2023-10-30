@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include <numeric>
-
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
@@ -149,26 +146,6 @@ inline void gather(const VArray<T> &src,
 }
 
 /**
- * Copy the \a src data from the groups defined by \a src_offsets to the groups in \a dst defined
- * by \a dst_offsets. Groups to use are masked by \a selection, and it is assumed that the
- * corresponding groups have the same size.
- */
-void copy_group_to_group(OffsetIndices<int> src_offsets,
-                         OffsetIndices<int> dst_offsets,
-                         const IndexMask &selection,
-                         GSpan src,
-                         GMutableSpan dst);
-template<typename T>
-void copy_group_to_group(OffsetIndices<int> src_offsets,
-                         OffsetIndices<int> dst_offsets,
-                         const IndexMask &selection,
-                         Span<T> src,
-                         MutableSpan<T> dst)
-{
-  copy_group_to_group(src_offsets, dst_offsets, selection, GSpan(src), GMutableSpan(dst));
-}
-
-/**
  * Count the number of occurrences of each index.
  * \param indices: The indices to count.
  * \param counts: The number of occurrences of each index. Typically initialized to zero.
@@ -179,9 +156,6 @@ void copy_group_to_group(OffsetIndices<int> src_offsets,
 void count_indices(Span<int> indices, MutableSpan<int> counts);
 
 void invert_booleans(MutableSpan<bool> span);
-void invert_booleans(MutableSpan<bool> span, const IndexMask &mask);
-
-int64_t count_booleans(const VArray<bool> &varray);
 
 enum class BooleanMix {
   None,
@@ -218,15 +192,6 @@ template<typename T> inline Vector<IndexRange> find_all_ranges(const Span<T> spa
     ranges.append(IndexRange(span.size() - length, length));
   }
   return ranges;
-}
-
-/**
- * Fill the span with increasing indices: 0, 1, 2, ...
- * Optionally, the start value can be provided.
- */
-template<typename T> inline void fill_index_range(MutableSpan<T> span, const T start = 0)
-{
-  std::iota(span.begin(), span.end(), start);
 }
 
 }  // namespace blender::array_utils

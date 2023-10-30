@@ -161,22 +161,4 @@ class CaptureView {
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Capture Planar View
- *
- * View for capturing planar probes outside a ShadingView.
- * \{ */
-
-class CapturePlanarView {
- private:
-  Instance &inst_;
-  Framebuffer capture_fb_ = {"Planar.Capture"};
-
- public:
-  CapturePlanarView(Instance &inst) : inst_(inst) {}
-  void render_probes();
-};
-
-/** \} */
-
 }  // namespace blender::eevee

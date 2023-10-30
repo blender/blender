@@ -29,7 +29,6 @@
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
 #include "eevee_pipeline.hh"
-#include "eevee_planar_probes.hh"
 #include "eevee_raytrace.hh"
 #include "eevee_reflection_probes.hh"
 #include "eevee_renderbuffers.hh"
@@ -65,7 +64,6 @@ class Instance {
   AmbientOcclusion ambient_occlusion;
   RayTraceModule raytracing;
   ReflectionProbeModule reflection_probes;
-  PlanarProbeModule planar_probes;
   VelocityModule velocity;
   MotionBlurModule motion_blur;
   DepthOfField depth_of_field;
@@ -123,7 +121,6 @@ class Instance {
         ambient_occlusion(*this, global_ubo_.ao),
         raytracing(*this, global_ubo_.raytrace),
         reflection_probes(*this),
-        planar_probes(*this),
         velocity(*this),
         motion_blur(*this),
         depth_of_field(*this),
@@ -161,8 +158,7 @@ class Instance {
   /**
    * Return true when probe pipeline is used during this sample.
    */
-  bool do_reflection_probe_sync() const;
-  bool do_planar_probe_sync() const;
+  bool do_probe_sync() const;
 
   /* Render. */
 

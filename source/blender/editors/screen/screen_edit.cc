@@ -805,9 +805,7 @@ void ED_region_exit(bContext *C, ARegion *region)
 
   WM_event_remove_handlers(C, &region->handlers);
   WM_event_modal_handler_region_replace(win, region, nullptr);
-  WM_draw_region_free(region);
-  /* The region is not in a state that it can be visible in anymore. Reinitializing is needed. */
-  region->visible = false;
+  WM_draw_region_free(region, true);
 
   MEM_SAFE_FREE(region->headerstr);
 

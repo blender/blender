@@ -34,10 +34,10 @@ static int select_all_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](const int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
         blender::ed::curves::select_all(drawing.strokes_for_write(), selection_domain, action);
       });
 
@@ -70,7 +70,7 @@ static int select_more_exec(bContext *C, wmOperator * /*op*/)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](const int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
         blender::ed::curves::select_adjacent(drawing.strokes_for_write(), false);
       });
 
@@ -101,7 +101,7 @@ static int select_less_exec(bContext *C, wmOperator * /*op*/)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](const int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
         blender::ed::curves::select_adjacent(drawing.strokes_for_write(), true);
       });
 
@@ -132,7 +132,7 @@ static int select_linked_exec(bContext *C, wmOperator * /*op*/)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](const int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
         blender::ed::curves::select_linked(drawing.strokes_for_write());
       });
 
@@ -164,17 +164,17 @@ static int select_random_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](const int layer_index, bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [&](int drawing_index, bke::greasepencil::Drawing &drawing) {
         bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
         IndexMaskMemory memory;
         const IndexMask random_elements = ed::curves::random_mask(
             curves,
             selection_domain,
-            blender::get_default_hash_2<int>(seed, layer_index),
+            blender::get_default_hash_2<int>(seed, drawing_index),
             ratio,
             memory);
 
@@ -219,7 +219,7 @@ static int select_alternate_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](const int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
         blender::ed::curves::select_alternate(drawing.strokes_for_write(), deselect_ends);
       });
 
@@ -258,7 +258,7 @@ static int select_ends_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](const int /*layer_index*/, blender::bke::greasepencil::Drawing &drawing) {
+      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
         bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
         IndexMaskMemory memory;
@@ -327,15 +327,14 @@ static int select_set_mode_exec(bContext *C, wmOperator *op)
   /* Set new selection mode. */
   const int mode_new = RNA_enum_get(op->ptr, "mode");
   ToolSettings *ts = CTX_data_tool_settings(C);
-
-  bool changed = (mode_new != ts->gpencil_selectmode_edit);
   ts->gpencil_selectmode_edit = mode_new;
 
   /* Convert all drawings of the active GP to the new selection domain. */
-  const eAttrDomain domain = ED_grease_pencil_selection_domain_get(ts);
+  const eAttrDomain domain = ED_grease_pencil_selection_domain_get(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   Span<GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
+  bool changed = false;
 
   for (const int index : drawings.index_range()) {
     GreasePencilDrawingBase *drawing_base = drawings[index];
@@ -418,9 +417,11 @@ static void GREASE_PENCIL_OT_set_selection_mode(wmOperatorType *ot)
 
 }  // namespace blender::ed::greasepencil
 
-eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings)
+eAttrDomain ED_grease_pencil_selection_domain_get(bContext *C)
 {
-  switch (tool_settings->gpencil_selectmode_edit) {
+  ToolSettings *ts = CTX_data_tool_settings(C);
+
+  switch (ts->gpencil_selectmode_edit) {
     case GP_SELECTMODE_POINT:
       return ATTR_DOMAIN_POINT;
       break;

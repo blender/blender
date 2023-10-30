@@ -222,9 +222,11 @@ static bool panels_need_realign(const ScrArea *area, ARegion *region, Panel **r_
 
 static Panel *panel_add_instanced(ListBase *panels, PanelType *panel_type, PointerRNA *custom_data)
 {
-  Panel *panel = BKE_panel_new(panel_type);
+  Panel *panel = MEM_cnew<Panel>(__func__);
+  panel->type = panel_type;
+  STRNCPY(panel->panelname, panel_type->idname);
 
-  panel->runtime->custom_data_ptr = custom_data;
+  panel->runtime.custom_data_ptr = custom_data;
   panel->runtime_flag |= PANEL_NEW_ADDED;
 
   /* Add the panel's children too. Although they aren't instanced panels, we can still use this
@@ -299,7 +301,11 @@ static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, P
   BLI_freelistN(&panel->children);
 
   BLI_remlink(panels, panel);
-  BKE_panel_free(panel);
+  if (panel->activedata) {
+    MEM_freeN(panel->activedata);
+  }
+  MEM_SAFE_FREE(panel->drawname);
+  MEM_freeN(panel);
 }
 
 void UI_panels_free_instanced(const bContext *C, ARegion *region)
@@ -313,8 +319,8 @@ void UI_panels_free_instanced(const bContext *C, ARegion *region)
       }
 
       /* Free panel's custom data. */
-      if (panel->runtime->custom_data_ptr != nullptr) {
-        MEM_freeN(panel->runtime->custom_data_ptr);
+      if (panel->runtime.custom_data_ptr != nullptr) {
+        MEM_freeN(panel->runtime.custom_data_ptr);
       }
 
       /* Free the panel and its sub-panels. */
@@ -440,7 +446,7 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
   /* Set the bit to tell the interface to instanced the list. */
   drag_panel->flag |= PNL_INSTANCED_LIST_ORDER_CHANGED;
 
-  CTX_store_set(C, drag_panel->runtime->context);
+  CTX_store_set(C, drag_panel->runtime.context);
 
   /* Finally, move this panel's list item to the new index in its list. */
   drag_panel->type->reorder(C, drag_panel, move_to_index);
@@ -660,10 +666,13 @@ Panel *UI_panel_begin(
 {
   Panel *panel_last;
   const char *drawname = CTX_IFACE_(pt->translation_context, pt->label);
+  const char *idname = pt->idname;
   const bool newpanel = (panel == nullptr);
 
   if (newpanel) {
-    panel = BKE_panel_new(pt);
+    panel = MEM_cnew<Panel>(__func__);
+    panel->type = pt;
+    STRNCPY(panel->panelname, idname);
 
     if (pt->flag & PANEL_TYPE_DEFAULT_CLOSED) {
       panel->flag |= PNL_CLOSED;
@@ -685,7 +694,7 @@ Panel *UI_panel_begin(
     panel->type = pt;
   }
 
-  panel->runtime->block = block;
+  panel->runtime.block = block;
 
   UI_panel_drawname_set(panel, drawname);
 
@@ -727,14 +736,14 @@ Panel *UI_panel_begin(
 
 void UI_panel_header_buttons_begin(Panel *panel)
 {
-  uiBlock *block = panel->runtime->block;
+  uiBlock *block = panel->runtime.block;
 
   ui_block_new_button_group(block, UI_BUTTON_GROUP_LOCK | UI_BUTTON_GROUP_PANEL_HEADER);
 }
 
 void UI_panel_header_buttons_end(Panel *panel)
 {
-  uiBlock *block = panel->runtime->block;
+  uiBlock *block = panel->runtime.block;
 
   /* A button group should always be created in #UI_panel_header_buttons_begin. */
   BLI_assert(!block->button_groups.is_empty());
@@ -792,7 +801,7 @@ static void panel_calculate_size_recursive(ARegion *region, Panel *panel)
   }
   else {
     const int old_sizex = panel->sizex, old_sizey = panel->sizey;
-    const int old_region_ofsx = panel->runtime->region_ofsx;
+    const int old_region_ofsx = panel->runtime.region_ofsx;
 
     /* Update width/height if non-zero. */
     if (width != 0) {
@@ -808,8 +817,8 @@ static void panel_calculate_size_recursive(ARegion *region, Panel *panel)
       panel->ofsy += old_sizey - panel->sizey;
     }
 
-    panel->runtime->region_ofsx = panel_region_offset_x_get(region);
-    if (old_region_ofsx != panel->runtime->region_ofsx) {
+    panel->runtime.region_ofsx = panel_region_offset_x_get(region);
+    if (old_region_ofsx != panel->runtime.region_ofsx) {
       panel->runtime_flag |= PANEL_ANIM_ALIGN;
     }
   }
@@ -913,7 +922,7 @@ static void region_panels_set_expansion_from_search_filter(const bContext *C,
  */
 static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *parent_panel)
 {
-  uiBlock *block = panel->runtime->block;
+  uiBlock *block = panel->runtime.block;
   BLI_assert(block != nullptr);
   BLI_assert(block->active);
   if (parent_panel != nullptr && UI_panel_is_closed(parent_panel)) {
@@ -939,7 +948,7 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
 
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
     if (child_panel->runtime_flag & PANEL_ACTIVE) {
-      BLI_assert(child_panel->runtime->block != nullptr);
+      BLI_assert(child_panel->runtime.block != nullptr);
       panel_remove_invisible_layouts_recursive(child_panel, panel);
     }
   }
@@ -949,7 +958,7 @@ static void region_panels_remove_invisible_layouts(ARegion *region)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->runtime_flag & PANEL_ACTIVE) {
-      BLI_assert(panel->runtime->block != nullptr);
+      BLI_assert(panel->runtime.block != nullptr);
       panel_remove_invisible_layouts_recursive(panel, nullptr);
     }
   }
@@ -1049,7 +1058,7 @@ static void panel_draw_highlight_border(const Panel *panel,
   }
 
   const bTheme *btheme = UI_GetTheme();
-  const float aspect = panel->runtime->block->aspect;
+  const float aspect = panel->runtime.block->aspect;
   const float radius = (btheme->tui.panel_roundness * U.widget_unit * 0.5f) / aspect;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
@@ -1168,7 +1177,7 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
   }
 
   const bTheme *btheme = UI_GetTheme();
-  const float aspect = panel->runtime->block->aspect;
+  const float aspect = panel->runtime.block->aspect;
   const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f / aspect;
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -1660,7 +1669,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   for (int i = 0; i < active_panels_len; i++) {
     PanelSort *ps = &panel_sort[i];
     const bool show_background = UI_panel_should_show_background(region, ps->panel->type);
-    ps->panel->runtime->region_ofsx = region_offset_x;
+    ps->panel->runtime.region_ofsx = region_offset_x;
     ps->new_offset_x = region_offset_x + (show_background ? UI_PANEL_MARGIN_X : 0);
   }
 
@@ -1819,7 +1828,7 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->runtime_flag & PANEL_ACTIVE) {
-      BLI_assert(panel->runtime->block != nullptr);
+      BLI_assert(panel->runtime.block != nullptr);
       panel_calculate_size_recursive(region, panel);
     }
   }
@@ -2391,7 +2400,7 @@ int ui_handler_panel_region(bContext *C,
 
 static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_data)
 {
-  panel->runtime->custom_data_ptr = custom_data;
+  panel->runtime.custom_data_ptr = custom_data;
 
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
     ui_panel_custom_data_set_recursive(child_panel, custom_data);
@@ -2401,7 +2410,7 @@ static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_
 void UI_panel_context_pointer_set(Panel *panel, const char *name, PointerRNA *ptr)
 {
   uiLayoutSetContextPointer(panel->layout, name, ptr);
-  panel->runtime->context = uiLayoutGetContextStore(panel->layout);
+  panel->runtime.context = uiLayoutGetContextStore(panel->layout);
 }
 
 void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
@@ -2409,8 +2418,8 @@ void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
   BLI_assert(panel->type != nullptr);
 
   /* Free the old custom data, which should be shared among all of the panel's sub-panels. */
-  if (panel->runtime->custom_data_ptr != nullptr) {
-    MEM_freeN(panel->runtime->custom_data_ptr);
+  if (panel->runtime.custom_data_ptr != nullptr) {
+    MEM_freeN(panel->runtime.custom_data_ptr);
   }
 
   ui_panel_custom_data_set_recursive(panel, custom_data);
@@ -2418,7 +2427,7 @@ void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
 
 PointerRNA *UI_panel_custom_data_get(const Panel *panel)
 {
-  return panel->runtime->custom_data_ptr;
+  return panel->runtime.custom_data_ptr;
 }
 
 PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wmEvent *event)

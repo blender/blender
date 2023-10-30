@@ -176,7 +176,7 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
       mul_v3_fl(disp, segments[ik].weights[vd.index]);
 
       /* Apply the vertex mask to the displacement. */
-      const float mask = 1.0f - vd.mask;
+      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
       const float automask = SCULPT_automasking_factor_get(
           ss->cache->automasking, ss, vd.vertex, &automask_data);
       mul_v3_fl(disp, mask * automask);

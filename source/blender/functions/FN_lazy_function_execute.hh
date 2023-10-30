@@ -46,34 +46,6 @@ class BasicParams : public Params {
   bool try_enable_multi_threading_impl() override;
 };
 
-/**
- * Wraps an existing #Params. This should be used when a lazy-function internally contains another
- * lazy-function that handles a subset or the inputs and outputs.
- */
-class RemappedParams : public Params {
- private:
-  Params &base_params_;
-  Span<int> input_map_;
-  Span<int> output_map_;
-  bool &multi_threading_enabled_;
-
- public:
-  RemappedParams(const LazyFunction &fn,
-                 Params &base_params,
-                 Span<int> input_map,
-                 Span<int> output_map,
-                 bool &multi_threading_enabled);
-
-  void *try_get_input_data_ptr_impl(const int index) const override;
-  void *try_get_input_data_ptr_or_request_impl(const int index) override;
-  void *get_output_data_ptr_impl(const int index) override;
-  void output_set_impl(const int index) override;
-  bool output_was_set_impl(const int index) const override;
-  ValueUsage get_output_usage_impl(const int index) const override;
-  void set_input_unused_impl(const int index) override;
-  bool try_enable_multi_threading_impl() override;
-};
-
 namespace detail {
 
 /**

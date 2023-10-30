@@ -33,7 +33,7 @@ uchar *VKImmediate::begin()
 void VKImmediate::end()
 {
   BLI_assert_msg(prim_type != GPU_PRIM_NONE, "Illegal state: not between an immBegin/End pair.");
-  if (vertex_idx == 0) {
+  if (vertex_len == 0) {
     return;
   }
 
@@ -44,7 +44,7 @@ void VKImmediate::end()
      */
     uchar *data = static_cast<uchar *>(active_resource()->mapped_memory_get()) +
                   subbuffer_offset_get();
-    convert_in_place(data, vertex_format, vertex_idx);
+    convert_in_place(data, vertex_format, vertex_len);
   }
 
   VKContext &context = *VKContext::get();
@@ -56,7 +56,8 @@ void VKImmediate::end()
   context.bind_graphics_pipeline(prim_type, vertex_attributes_);
   vertex_attributes_.bind(context);
 
-  context.command_buffers_get().draw(0, vertex_idx, 0, 1);
+  context.command_buffer_get().draw(0, vertex_len, 0, 1);
+  context.command_buffer_get().submit();
 
   buffer_offset_ += current_subbuffer_len_;
   current_subbuffer_len_ = 0;

@@ -40,7 +40,7 @@ GLTexture::GLTexture(const char *name) : Texture(name)
 GLTexture::~GLTexture()
 {
   if (framebuffer_) {
-    GPU_framebuffer_free(wrap(framebuffer_));
+    GPU_framebuffer_free(framebuffer_);
   }
   GLContext *ctx = GLContext::get();
   if (ctx != nullptr && is_bound_) {
@@ -400,7 +400,7 @@ void GLTexture::clear(eGPUDataFormat data_format, const void *data)
     /* Fallback for older GL. */
     GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
-    FrameBuffer *fb = this->framebuffer_get();
+    FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(this->framebuffer_get());
     fb->bind(true);
     fb->clear_attachment(this->attachment_type(0), data_format, data);
 
@@ -431,11 +431,8 @@ void GLTexture::copy_to(Texture *dst_)
   }
   else {
     /* Fallback for older GL. */
-    GPU_framebuffer_blit(wrap(src->framebuffer_get()),
-                         0,
-                         wrap(dst->framebuffer_get()),
-                         0,
-                         to_framebuffer_bits(format_));
+    GPU_framebuffer_blit(
+        src->framebuffer_get(), 0, dst->framebuffer_get(), 0, to_framebuffer_bits(format_));
   }
 
   has_pixels_ = true;
@@ -531,14 +528,16 @@ void GLTexture::mip_range_set(int min, int max)
   }
 }
 
-FrameBuffer *GLTexture::framebuffer_get()
+GPUFrameBuffer *GLTexture::framebuffer_get()
 {
   if (framebuffer_) {
     return framebuffer_;
   }
-  BLI_assert(!(type_ & GPU_TEXTURE_1D));
-  framebuffer_ = unwrap(GPU_framebuffer_create(name_));
-  framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE(wrap(this)));
+  BLI_assert(!(type_ & (GPU_TEXTURE_ARRAY | GPU_TEXTURE_CUBE | GPU_TEXTURE_1D | GPU_TEXTURE_3D)));
+  /* TODO(fclem): cleanup this. Don't use GPU object but blender::gpu ones. */
+  GPUTexture *gputex = reinterpret_cast<GPUTexture *>(static_cast<Texture *>(this));
+  framebuffer_ = GPU_framebuffer_create(name_);
+  GPU_framebuffer_texture_attach(framebuffer_, gputex, 0, 0);
   has_pixels_ = true;
   return framebuffer_;
 }
@@ -736,6 +735,7 @@ bool GLTexture::proxy_check(int mip)
   }
 
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY) ||
+      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL))
   {
     /* Some AMD drivers have a faulty `GL_PROXY_TEXTURE_..` check.
@@ -744,6 +744,13 @@ bool GLTexture::proxy_check(int mip)
      * it just states that the OGL implementation can support the texture.
      * So we already manually check the maximum size and maximum number of layers.
      * Same thing happens on Nvidia/macOS 10.15 (#78175). */
+    return true;
+  }
+
+  if ((type_ == GPU_TEXTURE_CUBE_ARRAY) &&
+      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY))
+  {
+    /* Special fix for #79703. */
     return true;
   }
 
@@ -810,10 +817,7 @@ void GLTexture::check_feedback_loop()
     if (fb_[i] == fb) {
       GPUAttachmentType type = fb_attachment_[i];
       GPUAttachment attachment = fb->attachments_[type];
-      /* Check for when texture is used with texture barrier. */
-      GPUAttachment attachment_read = fb->tmp_detached_[type];
-      if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_ &&
-          attachment_read.tex == nullptr) {
+      if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_) {
         char msg[256];
         SNPRINTF(msg,
                  "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "

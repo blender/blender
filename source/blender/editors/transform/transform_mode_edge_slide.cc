@@ -241,7 +241,7 @@ static BMLoop *get_next_loop(
           BM_loop_calc_face_direction(l_tmp, tdir);
           cross_v3_v3v3(vec_accum, l_tmp->f->no, tdir);
 #if 0
-          /* Rough guess, we can do better! */
+          /* rough guess, we can  do better! */
           normalize_v3_length(vec_accum,
                               (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
 #else

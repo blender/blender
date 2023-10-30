@@ -40,8 +40,6 @@ template<typename T> static inline T decltype_helper(T x)
 
 #if defined(__GNUC__)
 #  define BLI_NOINLINE __attribute__((noinline))
-#elif defined(_MSC_VER)
-#  define BLI_NOINLINE __declspec(noinline)
 #else
 #  define BLI_NOINLINE
 #endif

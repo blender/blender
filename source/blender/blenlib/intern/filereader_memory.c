@@ -120,7 +120,7 @@ FileReader *BLI_filereader_new_mmap(int filedes)
   MemoryReader *mem = MEM_callocN(sizeof(MemoryReader), __func__);
 
   mem->mmap = mmap;
-  mem->length = BLI_mmap_get_length(mmap);
+  mem->length = BLI_lseek(filedes, 0, SEEK_END);
 
   mem->reader.read = memory_read_mmap;
   mem->reader.seek = memory_seek;

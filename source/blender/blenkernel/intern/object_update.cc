@@ -243,11 +243,13 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 /** Bounding box from evaluated geometry. */
 static void object_sync_boundbox_to_original(Object *object_orig, Object *object_eval)
 {
-  if (!object_eval->runtime.bb || (object_eval->runtime.bb->flag & BOUNDBOX_DIRTY)) {
+  const BoundBox *bb = object_eval->runtime.bb;
+  if (!bb || (bb->flag & BOUNDBOX_DIRTY)) {
     BKE_object_boundbox_calc_from_evaluated_geometry(object_eval);
   }
 
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(object_eval)) {
+  bb = BKE_object_boundbox_get(object_eval);
+  if (bb != nullptr) {
     if (object_orig->runtime.bb == nullptr) {
       object_orig->runtime.bb = MEM_new<BoundBox>(__func__);
     }

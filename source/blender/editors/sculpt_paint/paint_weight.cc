@@ -932,7 +932,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   /* make mode data storage */
   wpd = (WPaintData *)MEM_callocN(sizeof(WPaintData), "WPaintData");
   paint_stroke_set_mode_data(stroke, wpd);
-  wpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &wpd->vc, depsgraph);
   vwpaint::view_angle_limits_init(&wpd->normal_angle_precalc,
                                   vp->paint.brush->falloff_angle,
                                   (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);

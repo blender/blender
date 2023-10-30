@@ -344,10 +344,8 @@ class CurvesGeometry : public ::CurvesGeometry {
 
  public:
   /**
-   * Change the number of curves and/or points.
-   *
-   * \warning To avoid redundant writes, newly created attribute values are not initialized.
-   * They must be initialized by the caller afterwards.
+   * Change the number of elements. New values for existing attributes should be properly
+   * initialized afterwards.
    */
   void resize(int points_num, int curves_num);
 
@@ -656,9 +654,11 @@ void set_handle_position(const float3 &position,
  * points are referred to as the control points, and the middle points are the corresponding
  * handles.
  */
-template<typename T>
-void evaluate_segment(
-    const T &point_0, const T &point_1, const T &point_2, const T &point_3, MutableSpan<T> result);
+void evaluate_segment(const float3 &point_0,
+                      const float3 &point_1,
+                      const float3 &point_2,
+                      const float3 &point_3,
+                      MutableSpan<float3> result);
 
 /**
  * Calculate all evaluated points for the Bezier curve.

@@ -959,7 +959,7 @@ static VPaintData *vpaint_init_vpaint(bContext *C,
   vpd->type = type;
   vpd->domain = domain;
 
-  vpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vpd->vc, depsgraph);
   vwpaint::view_angle_limits_init(&vpd->normal_angle_precalc,
                                   vp->paint.brush->falloff_angle,
                                   (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);

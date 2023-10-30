@@ -75,10 +75,9 @@ class Context {
    * the composite output node to get its target texture. */
   virtual GPUTexture *get_output_texture() = 0;
 
-  /* Get the texture where the result of the compositor viewer should be written, given the size of
-   * the result to be viewed. This should be called by viewer output nodes to get their target
-   * texture. */
-  virtual GPUTexture *get_viewer_output_texture(int2 size) = 0;
+  /* Get the texture where the result of the compositor viewer should be written. This should be
+   * called by viewer output nodes to get their target texture. */
+  virtual GPUTexture *get_viewer_output_texture() = 0;
 
   /* Get the texture where the given render pass is stored. This should be called by the Render
    * Layer node to populate its outputs. */

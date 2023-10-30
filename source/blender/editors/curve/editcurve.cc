@@ -4792,6 +4792,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
                                    const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
   Nurb *nu;
   BezTriple *bezt = nullptr;
   BPoint *bp = nullptr;
@@ -4800,7 +4801,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   bool changed = false;
 
   view3d_operator_needs_opengl(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
   const bool use_handle_select = (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
@@ -5615,7 +5616,9 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ViewContext vc;
+
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   if (vc.rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
     Curve *cu;

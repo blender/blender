@@ -7,14 +7,12 @@
  */
 
 #include "BLI_assert.h"
-#include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -58,6 +56,7 @@ static void node_composit_buts_transform(uiLayout *layout, bContext * /*C*/, Poi
 }
 
 using namespace blender::realtime_compositor;
+using namespace blender::math;
 
 class TransformOperation : public NodeOperation {
  public:
@@ -66,16 +65,18 @@ class TransformOperation : public NodeOperation {
   void execute() override
   {
     Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &result = get_result("Image");
+    input.pass_through(result);
 
     const float2 translation = float2(get_input("X").get_float_value_default(0.0f),
                                       get_input("Y").get_float_value_default(0.0f));
-    const math::AngleRadian rotation = get_input("Angle").get_float_value_default(0.0f);
+    const AngleRadian rotation = AngleRadian(get_input("Angle").get_float_value_default(0.0f));
     const float2 scale = float2(get_input("Scale").get_float_value_default(1.0f));
-    const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
-        translation, rotation, scale);
 
-    transform(context(), input, output, transformation, get_interpolation());
+    const float3x3 transformation = from_loc_rot_scale<float3x3>(translation, rotation, scale);
+
+    result.transform(transformation);
+    result.get_realization_options().interpolation = get_interpolation();
   }
 
   Interpolation get_interpolation()

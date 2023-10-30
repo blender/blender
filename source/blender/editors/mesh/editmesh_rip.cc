@@ -10,10 +10,9 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_array.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
-#include "BLI_span.hh"
-#include "BLI_vector.hh"
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
@@ -36,9 +35,6 @@
 #include "bmesh_tools.h"
 
 #include "mesh_intern.h" /* own include */
-
-using blender::Span;
-using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -225,7 +221,7 @@ struct EdgeLoopPair {
   BMLoop *l_b;
 };
 
-static Vector<EdgeLoopPair> edbm_ripsel_looptag_helper(BMesh *bm)
+static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 {
   BMIter fiter;
   BMIter liter;
@@ -237,6 +233,10 @@ static Vector<EdgeLoopPair> edbm_ripsel_looptag_helper(BMesh *bm)
   int uid_end;
   int uid = bm->totedge; /* can start anywhere */
 
+  EdgeLoopPair *eloop_pairs = nullptr;
+  BLI_array_declare(eloop_pairs);
+  EdgeLoopPair *lp;
+
   /* initialize loops with dummy invalid index values */
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
@@ -244,8 +244,6 @@ static Vector<EdgeLoopPair> edbm_ripsel_looptag_helper(BMesh *bm)
     }
   }
   bm->elem_index_dirty |= BM_LOOP;
-
-  Vector<EdgeLoopPair> eloop_pairs;
 
   /* set contiguous loops ordered 'uid' values for walking after split */
   while (true) {
@@ -301,10 +299,9 @@ static Vector<EdgeLoopPair> edbm_ripsel_looptag_helper(BMesh *bm)
     uid_start = uid;
     uid = uid_end + bm->totedge;
 
+    lp = BLI_array_append_ret(eloop_pairs);
     /* no need to check, we know this will be true */
-    EdgeLoopPair lp;
-    BM_edge_loop_pair(e_last, &lp.l_a, &lp.l_b);
-    eloop_pairs.append(lp);
+    BM_edge_loop_pair(e_last, &lp->l_a, &lp->l_b);
 
     BLI_assert(tot == uid_end - uid_start);
     UNUSED_VARS_NDEBUG(tot);
@@ -313,6 +310,10 @@ static Vector<EdgeLoopPair> edbm_ripsel_looptag_helper(BMesh *bm)
     printf("%s: found contiguous edge loop of (%d)\n", __func__, uid_end - uid_start);
 #endif
   }
+
+  /* null terminate */
+  lp = BLI_array_append_ret(eloop_pairs);
+  lp->l_a = lp->l_b = nullptr;
 
   return eloop_pairs;
 }
@@ -347,30 +348,32 @@ static BMVert *edbm_ripsel_edloop_pair_start_vert(BMEdge *e)
 }
 
 static void edbm_ripsel_deselect_helper(BMesh *bm,
-                                        const Span<EdgeLoopPair> eloop_pairs,
+                                        EdgeLoopPair *eloop_pairs,
                                         ARegion *region,
                                         float projectMat[4][4],
                                         const float fmval[2])
 {
-  for (const EdgeLoopPair &lp : eloop_pairs) {
+  EdgeLoopPair *lp;
+
+  for (lp = eloop_pairs; lp->l_a; lp++) {
     BMEdge *e;
     BMVert *v_prev;
 
     float score_a = 0.0f;
     float score_b = 0.0f;
 
-    e = lp.l_a->e;
+    e = lp->l_a->e;
     v_prev = edbm_ripsel_edloop_pair_start_vert(e);
     for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
       score_a += edbm_rip_edge_side_measure(e, e->l, region, projectMat, fmval);
     }
-    e = lp.l_b->e;
+    e = lp->l_b->e;
     v_prev = edbm_ripsel_edloop_pair_start_vert(e);
     for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
       score_b += edbm_rip_edge_side_measure(e, e->l, region, projectMat, fmval);
     }
 
-    e = (score_a > score_b) ? lp.l_a->e : lp.l_b->e;
+    e = (score_a > score_b) ? lp->l_a->e : lp->l_b->e;
     v_prev = edbm_ripsel_edloop_pair_start_vert(e);
     for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
       BM_edge_select_set(bm, e, false);
@@ -900,10 +903,12 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
   const int totedge_orig = bm->totedge;
   float projectMat[4][4], fmval[3] = {float(event->mval[0]), float(event->mval[1])};
 
+  EdgeLoopPair *eloop_pairs;
+
   ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
   /* important this runs on the original selection, before tampering with tagging */
-  Vector<EdgeLoopPair> eloop_pairs = edbm_ripsel_looptag_helper(bm);
+  eloop_pairs = edbm_ripsel_looptag_helper(bm);
 
   /* expand edge selection */
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -993,6 +998,7 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
    * as expected (but not crash), however there are checks to ensure
    * tagged edges will split. So far its not been an issue. */
   edbm_ripsel_deselect_helper(bm, eloop_pairs, region, projectMat, fmval);
+  MEM_freeN(eloop_pairs);
 
   /* deselect loose verts */
   BM_mesh_select_mode_clean_ex(bm, SCE_SELECT_EDGE);

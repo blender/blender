@@ -95,6 +95,54 @@
 
 /* ******************** manage regions ********************* */
 
+RegionView3D *ED_view3d_context_rv3d(bContext *C)
+{
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+
+  if (rv3d == nullptr) {
+    ScrArea *area = CTX_wm_area(C);
+    if (area && area->spacetype == SPACE_VIEW3D) {
+      ARegion *region = BKE_area_find_region_active_win(area);
+      if (region) {
+        rv3d = static_cast<RegionView3D *>(region->regiondata);
+      }
+    }
+  }
+  return rv3d;
+}
+
+bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_region)
+{
+  ScrArea *area = CTX_wm_area(C);
+
+  *r_v3d = nullptr;
+  *r_region = nullptr;
+
+  if (area && area->spacetype == SPACE_VIEW3D) {
+    ARegion *region = CTX_wm_region(C);
+    View3D *v3d = (View3D *)area->spacedata.first;
+
+    if (region) {
+      RegionView3D *rv3d;
+      if ((region->regiontype == RGN_TYPE_WINDOW) &&
+          (rv3d = static_cast<RegionView3D *>(region->regiondata)) &&
+          (rv3d->viewlock & RV3D_LOCK_ROTATION) == 0)
+      {
+        *r_v3d = v3d;
+        *r_region = region;
+        return true;
+      }
+
+      if (ED_view3d_area_user_region(area, v3d, r_region)) {
+        *r_v3d = v3d;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion **r_region)
 {
   RegionView3D *rv3d = nullptr;
@@ -186,7 +234,7 @@ void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *region)
   }
 
   /* A bit overkill but this make sure the viewport is reset completely. (fclem) */
-  WM_draw_region_free(region);
+  WM_draw_region_free(region, false);
 }
 
 void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area)
@@ -491,7 +539,7 @@ static bool view3d_drop_id_in_main_region_poll(bContext *C,
   return WM_drag_is_ID_type(drag, id_type);
 }
 
-static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
+static void view3d_ob_drop_draw_activate(wmDropBox *drop, wmDrag *drag)
 {
   V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (state) {
@@ -528,7 +576,7 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
   }
 }
 
-static void view3d_ob_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)
+static void view3d_ob_drop_draw_deactivate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (state) {
@@ -749,9 +797,10 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   mat4_to_size(scale, ob->object_to_world);
   rescale_m4(obmat_final, scale);
 
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  if (bb) {
     float offset[3];
-    BKE_boundbox_calc_center_aabb(&bb.value(), offset);
+    BKE_boundbox_calc_center_aabb(bb, offset);
     offset[2] = bb->vec[0][2];
     mul_mat3_m4_v3(obmat_final, offset);
     sub_v3_v3(obmat_final[3], offset);
@@ -934,8 +983,8 @@ static void view3d_dropboxes()
                         nullptr);
 
   drop->draw_droptip = WM_drag_draw_item_name_fn;
-  drop->on_enter = view3d_ob_drop_on_enter;
-  drop->on_exit = view3d_ob_drop_on_exit;
+  drop->draw_activate = view3d_ob_drop_draw_activate;
+  drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
 
   drop = WM_dropbox_add(lb,
                         "OBJECT_OT_transform_to_mouse",
@@ -945,8 +994,8 @@ static void view3d_dropboxes()
                         nullptr);
 
   drop->draw_droptip = WM_drag_draw_item_name_fn;
-  drop->on_enter = view3d_ob_drop_on_enter;
-  drop->on_exit = view3d_ob_drop_on_exit;
+  drop->draw_activate = view3d_ob_drop_draw_activate;
+  drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
 
   WM_dropbox_add(lb,
                  "OBJECT_OT_collection_external_asset_drop",
@@ -1991,6 +2040,65 @@ static void space_view3d_refresh(const bContext *C, ScrArea *area)
 
   View3D *v3d = (View3D *)area->spacedata.first;
   MEM_SAFE_FREE(v3d->runtime.local_stats);
+}
+
+const char *view3d_context_dir[] = {
+    "active_object",
+    "selected_ids",
+    nullptr,
+};
+
+static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
+{
+  /* fallback to the scene layer,
+   * allows duplicate and other object operators to run outside the 3d view */
+
+  if (CTX_data_dir(member)) {
+    CTX_data_dir_set(result, view3d_context_dir);
+    return CTX_RESULT_OK;
+  }
+  if (CTX_data_equals(member, "active_object")) {
+    /* In most cases the active object is the `view_layer->basact->object`.
+     * For the 3D view however it can be nullptr when hidden.
+     *
+     * This is ignored in the case the object is in any mode (besides object-mode),
+     * since the object's mode impacts the current tool, cursor, gizmos etc.
+     * If we didn't have this exception, changing visibility would need to perform
+     * many of the same updates as changing the objects mode.
+     *
+     * Further, there are multiple ways to hide objects - by collection, by object type, etc.
+     * it's simplest if all these methods behave consistently - respecting the object-mode
+     * without showing the object.
+     *
+     * See #85532 for alternatives that were considered. */
+    const Scene *scene = CTX_data_scene(C);
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Base *base = BKE_view_layer_active_base_get(view_layer);
+    if (base) {
+      Object *ob = base->object;
+      /* if hidden but in edit mode, we still display, can happen with animation */
+      if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0 ||
+          (ob->mode != OB_MODE_OBJECT)) {
+        CTX_data_id_pointer_set(result, &ob->id);
+      }
+    }
+
+    return CTX_RESULT_OK;
+  }
+  if (CTX_data_equals(member, "selected_ids")) {
+    ListBase selected_objects;
+    CTX_data_selected_objects(C, &selected_objects);
+    LISTBASE_FOREACH (CollectionPointerLink *, object_ptr_link, &selected_objects) {
+      ID *selected_id = object_ptr_link->ptr.owner_id;
+      CTX_data_id_list_add(result, selected_id);
+    }
+    BLI_freelistN(&selected_objects);
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    return CTX_RESULT_OK;
+  }
+
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const IDRemapper *mappings)

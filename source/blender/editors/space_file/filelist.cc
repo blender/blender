@@ -38,7 +38,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
 #include "BLI_stack.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -4049,7 +4049,7 @@ static bool filelist_readjob_is_partial_read(const FileListReadJob *read_job)
  *       some current entries are kept and we just call the readjob to update the main files (see
  *       #FileListReadJob.only_main_data).
  */
-static void filelist_readjob_startjob(void *flrjv, wmJobWorkerStatus *worker_status)
+static void filelist_readjob_startjob(void *flrjv, bool *stop, bool *do_update, float *progress)
 {
   FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
 
@@ -4082,8 +4082,7 @@ static void filelist_readjob_startjob(void *flrjv, wmJobWorkerStatus *worker_sta
 
   BLI_mutex_unlock(&flrj->lock);
 
-  flrj->tmp_filelist->read_job_fn(
-      flrj, &worker_status->stop, &worker_status->do_update, &worker_status->progress);
+  flrj->tmp_filelist->read_job_fn(flrj, stop, do_update, progress);
 }
 
 /**
@@ -4198,9 +4197,12 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   const bool no_threads = (filelist->tags & FILELIST_TAGS_NO_THREADS) || flrj->only_main_data;
 
   if (no_threads) {
+    bool dummy_stop = false;
+    bool dummy_do_update = false;
+    float dummy_progress = 0.0f;
+
     /* Single threaded execution. Just directly call the callbacks. */
-    wmJobWorkerStatus worker_status = {};
-    filelist_readjob_startjob(flrj, &worker_status);
+    filelist_readjob_startjob(flrj, &dummy_stop, &dummy_do_update, &dummy_progress);
     filelist_readjob_endjob(flrj);
     filelist_readjob_free(flrj);
 

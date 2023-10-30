@@ -94,8 +94,7 @@ void World::sync()
   bNodeTree *ntree;
   world_and_ntree_get(bl_world, ntree);
 
-  GPUMaterial *volume_gpumat = inst_.shaders.world_shader_get(
-      bl_world, ntree, MAT_PIPE_VOLUME_MATERIAL);
+  GPUMaterial *volume_gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_VOLUME);
   inst_.pipelines.world_volume.sync(volume_gpumat);
 
   if (inst_.lookdev.sync_world()) {
@@ -129,7 +128,7 @@ bool World::has_volume()
   bNodeTree *ntree;
   world_and_ntree_get(bl_world, ntree);
 
-  GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_VOLUME_MATERIAL);
+  GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_VOLUME);
   return GPU_material_has_volume_output(gpumat);
 }
 

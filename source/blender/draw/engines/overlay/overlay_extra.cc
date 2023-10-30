@@ -360,21 +360,21 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
     return;
   }
 
-  std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   BoundBox bb_local;
-  if (!bb) {
+  if (bb == nullptr) {
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
     BKE_boundbox_init_from_minmax(&bb_local, min, max);
-    bb.emplace(bb_local);
+    bb = &bb_local;
   }
 
-  BKE_boundbox_calc_size_aabb(&*bb, size);
+  BKE_boundbox_calc_size_aabb(bb, size);
 
   if (around_origin) {
     zero_v3(center);
   }
   else {
-    BKE_boundbox_calc_center_aabb(&*bb, center);
+    BKE_boundbox_calc_center_aabb(bb, center);
   }
 
   switch (boundtype) {
@@ -737,7 +737,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
   copy_m4_m4(instdata.mat, ob->object_to_world);
 
   switch (prb->type) {
-    case LIGHTPROBE_TYPE_SPHERE:
+    case LIGHTPROBE_TYPE_CUBE:
       instdata.clip_sta = show_clipping ? prb->clipsta : -1.0;
       instdata.clip_end = show_clipping ? prb->clipend : -1.0;
       DRW_buffer_add_entry(cb->probe_cube, color_p, &instdata);
@@ -757,7 +757,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
         OVERLAY_empty_shape(cb, ob->object_to_world, dist, shape, color_p);
       }
       break;
-    case LIGHTPROBE_TYPE_VOLUME:
+    case LIGHTPROBE_TYPE_GRID:
       instdata.clip_sta = show_clipping ? prb->clipsta : -1.0;
       instdata.clip_end = show_clipping ? prb->clipend : -1.0;
       DRW_buffer_add_entry(cb->probe_grid, color_p, &instdata);
@@ -787,7 +787,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
         DRW_shgroup_call_procedural_points(grp, nullptr, cell_count);
       }
       break;
-    case LIGHTPROBE_TYPE_PLANE:
+    case LIGHTPROBE_TYPE_PLANAR:
       DRW_buffer_add_entry(cb->probe_planar, color_p, &instdata);
 
       if (DRW_state_is_select() && (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {

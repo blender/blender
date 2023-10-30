@@ -230,11 +230,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->options |= CTX_GPENCIL_STROKES;
   }
 
-  /* Grease Pencil editing context */
-  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT) {
-    t->options |= CTX_GPENCIL_STROKES;
-  }
-
   /* Assign the space type, some exceptions for running in different mode */
   if (area == nullptr) {
     /* background mode */

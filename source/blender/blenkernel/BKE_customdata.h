@@ -197,10 +197,7 @@ bool CustomData_merge_layout(const struct CustomData *source,
  * the #CD_CONSTRUCT behavior, so trivial types must be initialized by the caller. After being
  * resized, the #CustomData does not contain any referenced layers.
  */
-void CustomData_realloc(struct CustomData *data,
-                        int old_size,
-                        int new_size,
-                        eCDAllocType alloctype = CD_CONSTRUCT);
+void CustomData_realloc(struct CustomData *data, int old_size, int new_size);
 
 /**
  * BMesh version of CustomData_merge_layout; merges the layouts of source and `dest`,

@@ -48,13 +48,11 @@ GPU_SHADER_CREATE_INFO(draw_resource_handle)
 
 GPU_SHADER_CREATE_INFO(draw_view)
     .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewMatrices", "drw_view_[DRW_VIEW_LEN]", Frequency::PASS)
-    .define("DRAW_VIEW_CREATE_INFO")
     .define("drw_view", "drw_view_[drw_view_id]")
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_view_culling)
     .uniform_buf(DRW_VIEW_CULLING_UBO_SLOT, "ViewCullingData", "drw_view_culling_[DRW_VIEW_LEN]")
-    .define("DRW_VIEW_CULLING_INFO")
     .define("drw_view_culling", "drw_view_culling_[drw_view_id]")
     .typedef_source("draw_shader_shared.h");
 
@@ -171,8 +169,11 @@ GPU_SHADER_CREATE_INFO(draw_gpencil_new)
     .sampler(0, ImageType::FLOAT_BUFFER, "gp_pos_tx")
     .sampler(1, ImageType::FLOAT_BUFFER, "gp_col_tx")
     /* Per Object */
-    .define("gpThicknessScale", "1.0") /* TODO(fclem): Replace with object info. */
+    .define("gpThicknessScale", "1.0")               /* TODO(fclem): Replace with object info. */
+    .define("gpThicknessWorldScale", "1.0 / 2000.0") /* TODO(fclem): Same as above. */
+    .define("gpThicknessIsScreenSpace", "(gpThicknessWorldScale < 0.0)")
     /* Per Layer */
+    .define("gpThicknessOffset", "0.0") /* TODO(fclem): Remove. */
     .additional_info("draw_modelmat_new",
                      "draw_resource_id_varying",
                      "draw_view",
@@ -197,8 +198,8 @@ GPU_SHADER_CREATE_INFO(draw_resource_finalize)
 
 GPU_SHADER_CREATE_INFO(draw_view_finalize)
     .do_static_compilation(true)
-    .local_group_size(DRW_VIEW_MAX)
-    .define("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
+    .local_group_size(64) /* DRW_VIEW_MAX */
+    .define("DRW_VIEW_LEN", "64")
     .storage_buf(0, Qualifier::READ_WRITE, "ViewCullingData", "view_culling_buf[DRW_VIEW_LEN]")
     .compute_source("draw_view_finalize_comp.glsl")
     .additional_info("draw_view");
@@ -206,7 +207,7 @@ GPU_SHADER_CREATE_INFO(draw_view_finalize)
 GPU_SHADER_CREATE_INFO(draw_visibility_compute)
     .do_static_compilation(true)
     .local_group_size(DRW_VISIBILITY_GROUP_SIZE)
-    .define("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
+    .define("DRW_VIEW_LEN", "64")
     .storage_buf(0, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
     .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
     .push_constant(Type::INT, "resource_len")
@@ -278,7 +279,6 @@ GPU_SHADER_CREATE_INFO(draw_resource_handle_new).define("resource_handle", "drw_
 GPU_SHADER_CREATE_INFO(draw_modelmat_new_common)
     .typedef_source("draw_shader_shared.h")
     .storage_buf(DRW_OBJ_MAT_SLOT, Qualifier::READ, "ObjectMatrices", "drw_matrix_buf[]")
-    .define("DRAW_MODELMAT_CREATE_INFO")
     .define("drw_ModelMatrixInverse", "drw_matrix_buf[resource_id].model_inverse")
     .define("drw_ModelMatrix", "drw_matrix_buf[resource_id].model")
     /* TODO For compatibility with old shaders. To be removed. */

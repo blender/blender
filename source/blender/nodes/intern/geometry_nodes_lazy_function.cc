@@ -25,7 +25,6 @@
 #include "NOD_multi_function.hh"
 #include "NOD_node_declaration.hh"
 
-#include "BLI_array_utils.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_cpp_types.hh"
@@ -107,7 +106,7 @@ static void lazy_function_interface_from_node(const bNode &node,
       type = get_vector_type(*type);
     }
     r_lf_index_by_bsocket[socket->index_in_tree()] = r_inputs.append_and_get_index_as(
-        socket->name, *type, input_usage);
+        socket->identifier, *type, input_usage);
   }
   for (const bNodeSocket *socket : node.output_sockets()) {
     if (!socket->is_available()) {
@@ -118,7 +117,7 @@ static void lazy_function_interface_from_node(const bNode &node,
       continue;
     }
     r_lf_index_by_bsocket[socket->index_in_tree()] = r_outputs.append_and_get_index_as(
-        socket->name, *type);
+        socket->identifier, *type);
   }
 }
 
@@ -361,7 +360,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
             own_lf_graph_info_.mapping
                 .lf_input_index_for_output_bsocket_usage[bsocket->index_in_all_outputs()];
         if (index == lf_index) {
-          return StringRef("Use Output '") + bsocket->name + "'";
+          return StringRef("Use Output '") + bsocket->identifier + "'";
         }
       }
       {
@@ -369,7 +368,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
             own_lf_graph_info_.mapping.lf_input_index_for_attribute_propagation_to_output
                 [bsocket->index_in_all_outputs()];
         if (index == lf_index) {
-          return StringRef("Propagate to '") + bsocket->name + "'";
+          return StringRef("Propagate to '") + bsocket->identifier + "'";
         }
       }
     }
@@ -1479,8 +1478,73 @@ struct RepeatEvalStorage {
   std::optional<lf::GraphExecutor> graph_executor;
   void *graph_executor_storage = nullptr;
   bool multi_threading_enabled = false;
-  Vector<int> input_index_map;
+  IndexRange input_index_map;
   Vector<int> output_index_map;
+};
+
+class ParamsForRepeatZoneGraph : public lf::Params {
+ private:
+  lf::Params &zone_params_;
+  RepeatEvalStorage &eval_storage_;
+
+ public:
+  ParamsForRepeatZoneGraph(RepeatEvalStorage &eval_storage, lf::Params &zone_params)
+      : lf::Params(*eval_storage.graph_executor, eval_storage.multi_threading_enabled),
+        zone_params_{zone_params},
+        eval_storage_(eval_storage)
+  {
+  }
+
+  int map_input_index(const int index) const
+  {
+    return eval_storage_.input_index_map[index];
+  }
+
+  int map_output_index(const int index) const
+  {
+    return eval_storage_.output_index_map[index];
+  }
+
+  void *try_get_input_data_ptr_impl(const int index) const
+  {
+    return zone_params_.try_get_input_data_ptr(this->map_input_index(index));
+  }
+
+  void *try_get_input_data_ptr_or_request_impl(const int index)
+  {
+    return zone_params_.try_get_input_data_ptr_or_request(this->map_input_index(index));
+  }
+  void *get_output_data_ptr_impl(const int index)
+  {
+    return zone_params_.get_output_data_ptr(this->map_output_index(index));
+  }
+  void output_set_impl(const int index)
+  {
+    return zone_params_.output_set(this->map_output_index(index));
+  }
+  bool output_was_set_impl(const int index) const
+  {
+    return zone_params_.output_was_set(this->map_output_index(index));
+  }
+  lf::ValueUsage get_output_usage_impl(const int index) const
+  {
+    return zone_params_.get_output_usage(this->map_output_index(index));
+  }
+  void set_input_unused_impl(const int index)
+  {
+    return zone_params_.set_input_unused(this->map_input_index(index));
+  }
+  bool try_enable_multi_threading_impl()
+  {
+    if (eval_storage_.multi_threading_enabled) {
+      return true;
+    }
+    if (zone_params_.try_enable_multi_threading()) {
+      eval_storage_.multi_threading_enabled = true;
+      return true;
+    }
+    return false;
+  }
 };
 
 class LazyFunctionForRepeatZone : public LazyFunction {
@@ -1585,11 +1649,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     }
 
     /* Execute the graph for the repeat zone. */
-    lf::RemappedParams eval_graph_params{*eval_storage.graph_executor,
-                                         params,
-                                         eval_storage.input_index_map,
-                                         eval_storage.output_index_map,
-                                         eval_storage.multi_threading_enabled};
+    ParamsForRepeatZoneGraph eval_graph_params{eval_storage, params};
     lf::Context eval_graph_context{
         eval_storage.graph_executor_storage, context.user_data, context.local_user_data};
     eval_storage.graph_executor->execute(eval_graph_params, eval_graph_context);
@@ -1754,18 +1814,17 @@ class LazyFunctionForRepeatZone : public LazyFunction {
      * zone. The main complexity below stems from the fact that the iterations input is handled
      * outside of this graph. */
     eval_storage.output_index_map.reinitialize(outputs_.size() - 1);
-    eval_storage.input_index_map.resize(inputs_.size() - 1);
-    array_utils::fill_index_range<int>(eval_storage.input_index_map, 1);
 
+    eval_storage.input_index_map = inputs_.index_range().drop_front(1);
     Vector<const lf::GraphInputSocket *> lf_graph_inputs = lf_inputs.as_span().drop_front(1);
 
     const int iteration_usage_index = zone_info_.indices.outputs.input_usages[0];
-    array_utils::fill_index_range<int>(
-        eval_storage.output_index_map.as_mutable_span().take_front(iteration_usage_index));
-    array_utils::fill_index_range<int>(
-        eval_storage.output_index_map.as_mutable_span().drop_front(iteration_usage_index),
-        iteration_usage_index + 1);
-
+    std::iota(eval_storage.output_index_map.begin(),
+              eval_storage.output_index_map.begin() + iteration_usage_index,
+              0);
+    std::iota(eval_storage.output_index_map.begin() + iteration_usage_index,
+              eval_storage.output_index_map.end(),
+              iteration_usage_index + 1);
     Vector<const lf::GraphOutputSocket *> lf_graph_outputs = lf_outputs.as_span().take_front(
         iteration_usage_index);
     lf_graph_outputs.extend(lf_outputs.as_span().drop_front(iteration_usage_index + 1));
@@ -2077,7 +2136,7 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     /* Build nested zones first. */
     Array<int> zone_build_order(tree_zones_->zones.size());
-    array_utils::fill_index_range<int>(zone_build_order);
+    std::iota(zone_build_order.begin(), zone_build_order.end(), 0);
     std::sort(
         zone_build_order.begin(), zone_build_order.end(), [&](const int zone_a, const int zone_b) {
           return tree_zones_->zones[zone_a]->depth > tree_zones_->zones[zone_b]->depth;
@@ -2277,9 +2336,9 @@ struct GeometryNodesLazyFunctionBuilder {
 
     for (const bNodeSocket *bsocket : zone.input_node->output_sockets().drop_back(1)) {
       lf::GraphInputSocket &lf_input = lf_body_graph.add_input(
-          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name);
+          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->identifier);
       lf::GraphOutputSocket &lf_input_usage = lf_body_graph.add_output(
-          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name));
+          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->identifier));
       lf_main_inputs.append(&lf_input);
       lf_main_input_usages.append(&lf_input_usage);
       graph_params.lf_output_by_bsocket.add_new(bsocket, &lf_input);
@@ -2297,9 +2356,9 @@ struct GeometryNodesLazyFunctionBuilder {
 
     for (const bNodeSocket *bsocket : zone.output_node->input_sockets().drop_back(1)) {
       lf::GraphOutputSocket &lf_output = lf_body_graph.add_output(
-          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name);
+          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->identifier);
       lf::GraphInputSocket &lf_output_usage = lf_body_graph.add_input(
-          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name));
+          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->identifier));
       graph_params.lf_inputs_by_bsocket.add(bsocket, &lf_output);
       graph_params.usage_by_bsocket.add(bsocket, &lf_output_usage);
       lf_main_outputs.append(&lf_output);
@@ -2397,7 +2456,7 @@ struct GeometryNodesLazyFunctionBuilder {
     for (const bNodeLink *border_link : zone.border_links) {
       lf_graph_inputs.append(
           &lf_graph.add_input(*border_link->tosock->typeinfo->geometry_nodes_cpp_type,
-                              StringRef("Link from ") + border_link->fromsock->name));
+                              StringRef("Link from ") + border_link->fromsock->identifier));
     }
     return lf_graph_inputs;
   }
@@ -2407,8 +2466,9 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     Vector<lf::GraphOutputSocket *> lf_graph_outputs;
     for (const bNodeLink *border_link : zone.border_links) {
-      lf_graph_outputs.append(&lf_graph.add_output(
-          CPPType::get<bool>(), StringRef("Usage: Link from ") + border_link->fromsock->name));
+      lf_graph_outputs.append(&lf_graph.add_output(CPPType::get<bool>(),
+                                                   StringRef("Usage: Link from ") +
+                                                       border_link->fromsock->identifier));
     }
     return lf_graph_outputs;
   }
@@ -3412,7 +3472,7 @@ struct GeometryNodesLazyFunctionBuilder {
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
 
-    mapping_->possible_side_effect_node_map.add(&bnode, &lf_viewer_node);
+    mapping_->viewer_node_map.add(&bnode, &lf_viewer_node);
 
     {
       auto &usage_lazy_function = scope_.construct<LazyFunctionForViewerInputUsage>(
@@ -3765,7 +3825,7 @@ struct GeometryNodesLazyFunctionBuilder {
     if (socket_decl->input_field_type != InputSocketFieldType::Implicit) {
       return false;
     }
-    const ImplicitInputValueFn *implicit_input_fn = socket_decl->implicit_input_fn.get();
+    const ImplicitInputValueFn *implicit_input_fn = socket_decl->implicit_input_fn();
     if (implicit_input_fn == nullptr) {
       return false;
     }

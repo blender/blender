@@ -227,6 +227,15 @@ extern "C" void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Stubs of bmesh.h
+ * \{ */
+extern "C" void BM_face_as_array_vert_tri(BMFace * /*f*/, BMVert *[3] /*r_verts*/)
+{
+  BLI_assert_unreachable();
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Stubs of DRW_engine.h
  * \{ */
 extern "C" void DRW_deferred_shader_remove(struct GPUMaterial * /*mat*/)

@@ -1409,14 +1409,8 @@ rna_custom_property_subtype_vector_items = (
     rna_custom_property_subtype_none_item,
     ('COLOR', "Linear Color", "Color in the linear space"),
     ('COLOR_GAMMA', "Gamma-Corrected Color", "Color in the gamma corrected space"),
-    ('TRANSLATION', "Translation", ""),
-    ('DIRECTION', "Direction", ""),
-    ('VELOCITY', "Velocity", ""),
-    ('ACCELERATION', "Acceleration", ""),
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
-    ('AXISANGLE', "Axis-Angle", "Angle and axis to rotate around"),
-    ('XYZ', "XYZ", ""),
 )
 
 rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
@@ -2689,9 +2683,6 @@ class WM_OT_batch_rename(Operator):
             ('NODE', "Nodes", ""),
             ('SEQUENCE_STRIP', "Sequence Strips", ""),
             ('ACTION_CLIP', "Action Clips", ""),
-            None,
-            ('SCENE', "Scenes", ""),
-            ('BRUSH', "Brushes", ""),
         ),
         description="Type of data to rename",
     )
@@ -2887,26 +2878,6 @@ class WM_OT_batch_rename(Operator):
                     [id for id in bpy.data.actions if id.library is None],
                     "name",
                     iface_("Action(s)"),
-                )
-            elif data_type == 'SCENE':
-                data = (
-                    (
-                        # Outliner.
-                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Scene)
-                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.scenes if id.library is None]
-                    ),
-                    "name",
-                    iface_("Scene(s)"),
-                )
-            elif data_type == 'BRUSH':
-                data = (
-                    (
-                        # Outliner.
-                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Brush)
-                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.brushes if id.library is None]
-                    ),
-                    "name",
-                    iface_("Brush(es)"),
                 )
             elif data_type in object_data_type_attrs_map.keys():
                 attr, descr, ty = object_data_type_attrs_map[data_type]

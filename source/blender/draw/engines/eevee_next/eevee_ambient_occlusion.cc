@@ -55,8 +55,8 @@ void AmbientOcclusion::sync()
 
   render_pass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, &inst_.pipelines.utility_tx);
   inst_.bind_uniform_data(&render_pass_ps_);
-  inst_.sampling.bind_resources(render_pass_ps_);
-  inst_.hiz_buffer.bind_resources(render_pass_ps_);
+  inst_.sampling.bind_resources(&render_pass_ps_);
+  inst_.hiz_buffer.bind_resources(&render_pass_ps_);
 
   render_pass_ps_.bind_image("in_normal_img", &inst_.render_buffers.rp_color_tx);
   render_pass_ps_.push_constant("in_normal_img_layer_index", &inst_.render_buffers.data.normal_id);

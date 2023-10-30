@@ -35,7 +35,7 @@ class GHOST_EventString : public GHOST_Event {
   ~GHOST_EventString()
   {
     if (m_data) {
-      free((void *)m_data);
+      free(m_data);
     }
   }
 };

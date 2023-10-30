@@ -16,13 +16,13 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
-#include "BLI_vector.hh"
 
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.h"
@@ -35,8 +35,6 @@
 #include "bmesh_bevel.h" /* own include */
 
 #include "./intern/bmesh_private.h"
-
-using blender::Vector;
 
 // #define BEVEL_DEBUG_TIME
 #ifdef BEVEL_DEBUG_TIME
@@ -378,6 +376,8 @@ struct BevelParams {
   int vmesh_method;
   /** Amount to spread when doing inside miter. */
   float spread;
+  /** Mesh's smoothresh, used if hardening. */
+  float smoothresh;
 };
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -2495,6 +2495,7 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
    * To get that to happen, we have to mark the sharpen the edges that are only sharp because
    * of the angle test -- otherwise would be smooth. */
   if (cd_clnors_offset == -1) {
+    BM_edges_sharp_from_angle_set(bm, bp->smoothresh);
     bevel_edges_sharp_boundary(bm, bp);
   }
 
@@ -4923,9 +4924,12 @@ static BMFace *frep_for_center_poly(BevelParams *bp, BevVert *bv)
 static void build_center_ngon(BevelParams *bp, BMesh *bm, BevVert *bv, int mat_nr)
 {
   VMesh *vm = bv->vmesh;
-  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vv;
-  Vector<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> vf;
-  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> ve;
+  BMVert **vv = nullptr;
+  BMFace **vf = nullptr;
+  BMEdge **ve = nullptr;
+  BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(vf, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(ve, BM_DEFAULT_NGON_STACK_SIZE);
 
   int ns2 = vm->seg / 2;
   BMFace *frep;
@@ -4943,24 +4947,28 @@ static void build_center_ngon(BevelParams *bp, BMesh *bm, BevVert *bv, int mat_n
   BoundVert *v = vm->boundstart;
   do {
     int i = v->index;
-    vv.append(mesh_vert(vm, i, ns2, ns2)->v);
+    BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
     if (frep) {
-      vf.append(frep);
+      BLI_array_append(vf, frep);
       if (ELEM(v, frep_unsnapped[0], frep_unsnapped[1], frep_unsnapped[2])) {
-        ve.append(nullptr);
+        BLI_array_append(ve, nullptr);
       }
       else {
         BMEdge *frep_e = find_closer_edge(mesh_vert(vm, i, ns2, ns2)->v->co, frep_e1, frep_e2);
-        ve.append(frep_e);
+        BLI_array_append(ve, frep_e);
       }
     }
     else {
-      vf.append(boundvert_rep_face(v, nullptr));
-      ve.append(nullptr);
+      BLI_array_append(vf, boundvert_rep_face(v, nullptr));
+      BLI_array_append(ve, nullptr);
     }
   } while ((v = v->next) != vm->boundstart);
-  BMFace *f = bev_create_ngon(bm, vv.data(), vv.size(), vf.data(), frep, ve.data(), mat_nr, true);
+  BMFace *f = bev_create_ngon(bm, vv, BLI_array_len(vv), vf, frep, ve, mat_nr, true);
   record_face_kind(bp, f, F_VERT);
+
+  BLI_array_free(vv);
+  BLI_array_free(vf);
+  BLI_array_free(ve);
 }
 
 /**
@@ -5690,6 +5698,10 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
   bndv = bv->vmesh->boundstart;
   do {
     int i = bndv->index;
+    BMEdge **bmedges = nullptr;
+    BMFace **bmfaces = nullptr;
+    BLI_array_staticdeclare(bmedges, BM_DEFAULT_NGON_STACK_SIZE);
+    BLI_array_staticdeclare(bmfaces, BM_DEFAULT_NGON_STACK_SIZE);
 
     /* Add the first corner vertex under this boundvert. */
     face_bmverts[0] = mesh_vert(bv->vmesh, i, 1, 0)->v;
@@ -5723,31 +5735,45 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
     bev_create_ngon(bm,
                     face_bmverts,
                     bp->seg + 2 + build_center_face,
+                    bmfaces,
                     nullptr,
-                    nullptr,
-                    nullptr,
+                    bmedges,
                     bp->mat_nr,
                     true);
+
+    BLI_array_free(bmedges);
+    BLI_array_free(bmfaces);
   } while ((bndv = bndv->next) != bv->vmesh->boundstart);
 
   /* Create the bottom face if it should be built, reusing previous face_bmverts allocation. */
   if (build_center_face) {
+    BMEdge **bmedges = nullptr;
+    BMFace **bmfaces = nullptr;
+    BLI_array_staticdeclare(bmedges, BM_DEFAULT_NGON_STACK_SIZE);
+    BLI_array_staticdeclare(bmfaces, BM_DEFAULT_NGON_STACK_SIZE);
+
     /* Add all of the corner vertices to this face. */
     for (int i = 0; i < n_bndv; i++) {
       /* Add verts from each cutoff face. */
       face_bmverts[i] = mesh_vert(bv->vmesh, i, 1, 0)->v;
     }
+    // BLI_array_append(bmfaces, repface);
+    bev_create_ngon(bm, face_bmverts, n_bndv, bmfaces, nullptr, bmedges, bp->mat_nr, true);
 
-    bev_create_ngon(bm, face_bmverts, n_bndv, nullptr, nullptr, nullptr, bp->mat_nr, true);
+    BLI_array_free(bmedges);
+    BLI_array_free(bmfaces);
   }
 }
 
 static BMFace *bevel_build_poly(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
   VMesh *vm = bv->vmesh;
-  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> bmverts;
-  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> bmedges;
-  Vector<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> bmfaces;
+  BMVert **bmverts = nullptr;
+  BMEdge **bmedges = nullptr;
+  BMFace **bmfaces = nullptr;
+  BLI_array_staticdeclare(bmverts, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(bmedges, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(bmfaces, BM_DEFAULT_NGON_STACK_SIZE);
 
   BMFace *repface;
   BMEdge *repface_e1, *repface_e2;
@@ -5766,34 +5792,34 @@ static BMFace *bevel_build_poly(BevelParams *bp, BMesh *bm, BevVert *bv)
   do {
     /* Accumulate vertices for vertex ngon. */
     /* Also accumulate faces in which uv interpolation is to happen for each. */
-    bmverts.append(bndv->nv.v);
+    BLI_array_append(bmverts, bndv->nv.v);
     if (repface) {
-      bmfaces.append(repface);
+      BLI_array_append(bmfaces, repface);
       if (ELEM(bndv, unsnapped[0], unsnapped[1], unsnapped[2])) {
-        bmedges.append(nullptr);
+        BLI_array_append(bmedges, nullptr);
       }
       else {
         BMEdge *frep_e = find_closer_edge(bndv->nv.v->co, repface_e1, repface_e2);
-        bmedges.append(frep_e);
+        BLI_array_append(bmedges, frep_e);
       }
     }
     else {
-      bmfaces.append(boundvert_rep_face(bndv, nullptr));
-      bmedges.append(nullptr);
+      BLI_array_append(bmfaces, boundvert_rep_face(bndv, nullptr));
+      BLI_array_append(bmedges, nullptr);
     }
     n++;
     if (bndv->ebev && bndv->ebev->seg > 1) {
       for (int k = 1; k < bndv->ebev->seg; k++) {
-        bmverts.append(mesh_vert(vm, bndv->index, 0, k)->v);
+        BLI_array_append(bmverts, mesh_vert(vm, bndv->index, 0, k)->v);
         if (repface) {
-          bmfaces.append(repface);
+          BLI_array_append(bmfaces, repface);
           BMEdge *frep_e = find_closer_edge(
               mesh_vert(vm, bndv->index, 0, k)->v->co, repface_e1, repface_e2);
-          bmedges.append(k < bndv->ebev->seg / 2 ? nullptr : frep_e);
+          BLI_array_append(bmedges, k < bndv->ebev->seg / 2 ? nullptr : frep_e);
         }
         else {
-          bmfaces.append(boundvert_rep_face(bndv, nullptr));
-          bmedges.append(nullptr);
+          BLI_array_append(bmfaces, boundvert_rep_face(bndv, nullptr));
+          BLI_array_append(bmedges, nullptr);
         }
         n++;
       }
@@ -5802,13 +5828,15 @@ static BMFace *bevel_build_poly(BevelParams *bp, BMesh *bm, BevVert *bv)
 
   BMFace *f;
   if (n > 2) {
-    f = bev_create_ngon(
-        bm, bmverts.data(), n, bmfaces.data(), repface, bmedges.data(), bp->mat_nr, true);
+    f = bev_create_ngon(bm, bmverts, n, bmfaces, repface, bmedges, bp->mat_nr, true);
     record_face_kind(bp, f, F_VERT);
   }
   else {
     f = nullptr;
   }
+  BLI_array_free(bmverts);
+  BLI_array_free(bmedges);
+  BLI_array_free(bmfaces);
   return f;
 }
 
@@ -6080,8 +6108,10 @@ static float edge_face_angle(EdgeHalf *e)
  */
 static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
 {
-  Vector<BMEdge *, 4> sucs; /* Likely very few faces attached to same edge. */
-  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> save_path;
+  BMEdge **sucs = nullptr;
+  BMEdge **save_path = nullptr;
+  BLI_array_staticdeclare(sucs, 4); /* Likely very few faces attached to same edge. */
+  BLI_array_staticdeclare(save_path, BM_DEFAULT_NGON_STACK_SIZE);
 
   /* Fill sucs with all unmarked edges of bmesh. */
   BMEdge *bme = bv->edges[i].e;
@@ -6090,10 +6120,10 @@ static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
   BM_ITER_ELEM (l, &iter, bme, BM_LOOPS_OF_EDGE) {
     BMEdge *bme2 = (l->v == bv->v) ? l->prev->e : l->next->e;
     if (!BM_BEVEL_EDGE_TAG_TEST(bme2)) {
-      sucs.append(bme2);
+      BLI_array_append(sucs, bme2);
     }
   }
-  const int64_t nsucs = sucs.size();
+  int nsucs = BLI_array_len(sucs);
 
   int bestj = i;
   int j = i;
@@ -6109,9 +6139,9 @@ static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
         (tryj == bestj && edges_face_connected_at_vert(bv->edges[tryj].e, bv->edges[0].e)))
     {
       bestj = tryj;
-      save_path.clear();
+      BLI_array_clear(save_path);
       for (int k = j + 1; k <= bestj; k++) {
-        save_path.append(bv->edges[k].e);
+        BLI_array_append(save_path, bv->edges[k].e);
       }
     }
     /* Now reset to path only-going-to-j state. */
@@ -6130,6 +6160,8 @@ static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
       BM_BEVEL_EDGE_TAG_ENABLE(bv->edges[k].e);
     }
   }
+  BLI_array_free(sucs);
+  BLI_array_free(save_path);
   return bestj;
 }
 
@@ -6589,9 +6621,12 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 {
   bool do_rebuild = false;
-  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vv;
-  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vv_fix;
-  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> ee;
+  BMVert **vv = nullptr;
+  BMVert **vv_fix = nullptr;
+  BMEdge **ee = nullptr;
+  BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(vv_fix, BM_DEFAULT_NGON_STACK_SIZE);
+  BLI_array_staticdeclare(ee, BM_DEFAULT_NGON_STACK_SIZE);
 
   BMIter liter;
   BMLoop *l;
@@ -6654,8 +6689,8 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
       BLI_assert(vstart != nullptr && vend != nullptr);
       BoundVert *v = vstart;
       if (!on_profile_start) {
-        vv.append(v->nv.v);
-        ee.append(bme);
+        BLI_array_append(vv, v->nv.v);
+        BLI_array_append(ee, bme);
       }
       while (v != vend) {
         /* Check for special case: multi-segment 3rd face opposite a beveled edge with no vmesh. */
@@ -6679,10 +6714,10 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
           for (int k = kstart; k <= kend; k++) {
             BMVert *bmv = mesh_vert(vm, i, 0, k)->v;
             if (bmv) {
-              vv.append(bmv);
-              ee.append(bme); /* TODO: Maybe better edge here. */
+              BLI_array_append(vv, bmv);
+              BLI_array_append(ee, bme); /* TODO: Maybe better edge here. */
               if (corner3special && v->ebev && !bv->any_seam && k != vm->seg) {
-                vv_fix.append(bmv);
+                BLI_array_append(vv_fix, bmv);
               }
             }
           }
@@ -6708,10 +6743,10 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
           for (int k = kstart; k >= kend; k--) {
             BMVert *bmv = mesh_vert(vm, i, 0, k)->v;
             if (bmv) {
-              vv.append(bmv);
-              ee.append(bme);
+              BLI_array_append(vv, bmv);
+              BLI_array_append(ee, bme);
               if (corner3special && v->ebev && !bv->any_seam && k != 0) {
-                vv_fix.append(bmv);
+                BLI_array_append(vv_fix, bmv);
               }
             }
           }
@@ -6721,20 +6756,20 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
       do_rebuild = true;
     }
     else {
-      vv.append(l->v);
-      ee.append(l->e);
+      BLI_array_append(vv, l->v);
+      BLI_array_append(ee, l->e);
     }
   }
   if (do_rebuild) {
-    const int64_t n = vv.size();
-    BMFace *f_new = bev_create_ngon(bm, vv.data(), n, nullptr, f, nullptr, -1, true);
+    int n = BLI_array_len(vv);
+    BMFace *f_new = bev_create_ngon(bm, vv, n, nullptr, f, nullptr, -1, true);
 
-    for (int64_t k = 0; k < vv_fix.size(); k++) {
+    for (int k = 0; k < BLI_array_len(vv_fix); k++) {
       bev_merge_uvs(bm, vv_fix[k]);
     }
 
     /* Copy attributes from old edges. */
-    BLI_assert(n == ee.size());
+    BLI_assert(n == BLI_array_len(ee));
     BMEdge *bme_prev = ee[n - 1];
     for (int k = 0; k < n; k++) {
       BMEdge *bme_new = BM_edge_exists(vv[k], vv[(k + 1) % n]);
@@ -6784,6 +6819,9 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
     }
   }
 
+  BLI_array_free(vv);
+  BLI_array_free(vv_fix);
+  BLI_array_free(ee);
   return do_rebuild;
 }
 
@@ -7716,6 +7754,7 @@ void BM_mesh_bevel(BMesh *bm,
                    const int miter_outer,
                    const int miter_inner,
                    const float spread,
+                   const float smoothresh,
                    const CurveProfile *custom_profile,
                    const int vmesh_method)
 {
@@ -7752,6 +7791,7 @@ void BM_mesh_bevel(BMesh *bm,
   bp.miter_outer = miter_outer;
   bp.miter_inner = miter_inner;
   bp.spread = spread;
+  bp.smoothresh = smoothresh;
   bp.face_hash = nullptr;
   bp.profile_type = profile_type;
   bp.custom_profile = custom_profile;

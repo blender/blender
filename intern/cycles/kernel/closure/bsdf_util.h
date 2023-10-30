@@ -191,9 +191,6 @@ ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N
  * normal and the shading normal is the same. */
 ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd, float3 N)
 {
-  if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
-    return N;
-  }
   if ((sd->type & PRIMITIVE_CURVE) || isequal(sd->Ng, N)) {
     return N;
   }

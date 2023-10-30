@@ -37,7 +37,7 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
       PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
-      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
+      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
     }
     else {
       uiItemR(layout, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);

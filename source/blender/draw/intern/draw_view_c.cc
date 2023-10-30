@@ -97,53 +97,51 @@ void DRW_draw_cursor()
   ARegion *region = draw_ctx->region;
   Scene *scene = draw_ctx->scene;
   ViewLayer *view_layer = draw_ctx->view_layer;
-  if (!is_cursor_visible(draw_ctx, scene, view_layer)) {
-    return;
-  }
 
   GPU_color_mask(true, true, true, true);
   GPU_depth_mask(false);
   GPU_depth_test(GPU_DEPTH_NONE);
 
-  /* Get cursor data into quaternion form */
-  const View3DCursor *cursor = &scene->cursor;
+  if (is_cursor_visible(draw_ctx, scene, view_layer)) {
+    int co[2];
 
-  int co[2];
-  if (ED_view3d_project_int_global(
-          region, cursor->location, co, V3D_PROJ_TEST_NOP | V3D_PROJ_TEST_CLIP_NEAR) !=
-      V3D_PROJ_RET_OK)
-  {
-    return;
-  }
+    /* Get cursor data into quaternion form */
+    const View3DCursor *cursor = &scene->cursor;
 
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+    if (ED_view3d_project_int_global(
+            region, cursor->location, co, V3D_PROJ_TEST_NOP | V3D_PROJ_TEST_CLIP_NEAR) ==
+        V3D_PROJ_RET_OK)
+    {
+      RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  float cursor_quat[4];
-  BKE_scene_cursor_rot_to_quat(cursor, cursor_quat);
+      float cursor_quat[4];
+      BKE_scene_cursor_rot_to_quat(cursor, cursor_quat);
 
-  /* Draw nice Anti Aliased cursor. */
-  GPU_line_width(1.0f);
-  GPU_blend(GPU_BLEND_ALPHA);
-  GPU_line_smooth(true);
+      /* Draw nice Anti Aliased cursor. */
+      GPU_line_width(1.0f);
+      GPU_blend(GPU_BLEND_ALPHA);
+      GPU_line_smooth(true);
 
-  float eps = 1e-5f;
-  rv3d->viewquat[0] = -rv3d->viewquat[0];
-  bool is_aligned = compare_v4v4(cursor_quat, rv3d->viewquat, eps);
-  if (is_aligned == false) {
-    float tquat[4];
-    rotation_between_quats_to_quat(tquat, rv3d->viewquat, cursor_quat);
-    is_aligned = tquat[0] - eps < -1.0f;
-  }
-  rv3d->viewquat[0] = -rv3d->viewquat[0];
+      float eps = 1e-5f;
+      rv3d->viewquat[0] = -rv3d->viewquat[0];
+      bool is_aligned = compare_v4v4(cursor_quat, rv3d->viewquat, eps);
+      if (is_aligned == false) {
+        float tquat[4];
+        rotation_between_quats_to_quat(tquat, rv3d->viewquat, cursor_quat);
+        is_aligned = tquat[0] - eps < -1.0f;
+      }
+      rv3d->viewquat[0] = -rv3d->viewquat[0];
 
-  /* Draw lines */
-  if (is_aligned == false) {
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformThemeColor3(TH_VIEW_OVERLAY);
-    immBegin(GPU_PRIM_LINES, 12);
+      /* Draw lines */
+      if (is_aligned == false) {
+        uint pos = GPU_vertformat_attr_add(
+            immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+        immUniformThemeColor3(TH_VIEW_OVERLAY);
+        immBegin(GPU_PRIM_LINES, 12);
 
-    const float scale = ED_view3d_pixel_size_no_ui_scale(rv3d, cursor->location) * U.widget_unit;
+        const float scale = ED_view3d_pixel_size_no_ui_scale(rv3d, cursor->location) *
+                            U.widget_unit;
 
 #define CURSOR_VERT(axis_vec, axis, fac) \
   immVertex3f(pos, \
@@ -158,38 +156,40 @@ void DRW_draw_cursor()
   } \
   ((void)0)
 
-    for (int axis = 0; axis < 3; axis++) {
-      float axis_vec[3] = {0};
-      axis_vec[axis] = scale;
-      mul_qt_v3(cursor_quat, axis_vec);
-      CURSOR_EDGE(axis_vec, axis, +);
-      CURSOR_EDGE(axis_vec, axis, -);
-    }
+        for (int axis = 0; axis < 3; axis++) {
+          float axis_vec[3] = {0};
+          axis_vec[axis] = scale;
+          mul_qt_v3(cursor_quat, axis_vec);
+          CURSOR_EDGE(axis_vec, axis, +);
+          CURSOR_EDGE(axis_vec, axis, -);
+        }
 
 #undef CURSOR_VERT
 #undef CURSOR_EDGE
 
-    immEnd();
-    immUnbindProgram();
+        immEnd();
+        immUnbindProgram();
+      }
+
+      float original_proj[4][4];
+      GPU_matrix_projection_get(original_proj);
+      GPU_matrix_push();
+      ED_region_pixelspace(region);
+      GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
+      GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
+
+      GPUBatch *cursor_batch = DRW_cache_cursor_get(is_aligned);
+      GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
+      GPU_batch_set_shader(cursor_batch, shader);
+
+      GPU_batch_draw(cursor_batch);
+
+      GPU_blend(GPU_BLEND_NONE);
+      GPU_line_smooth(false);
+      GPU_matrix_pop();
+      GPU_matrix_projection_set(original_proj);
+    }
   }
-
-  float original_proj[4][4];
-  GPU_matrix_projection_get(original_proj);
-  GPU_matrix_push();
-  ED_region_pixelspace(region);
-  GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
-  GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
-
-  GPUBatch *cursor_batch = DRW_cache_cursor_get(is_aligned);
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
-  GPU_batch_set_shader(cursor_batch, shader);
-
-  GPU_batch_draw(cursor_batch);
-
-  GPU_blend(GPU_BLEND_NONE);
-  GPU_line_smooth(false);
-  GPU_matrix_pop();
-  GPU_matrix_projection_set(original_proj);
 }
 
 /* -------------------------------------------------------------------- */

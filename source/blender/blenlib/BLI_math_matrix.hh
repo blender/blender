@@ -231,23 +231,11 @@ template<typename MatT, typename VectorT>
                                          const VectorT up);
 
 /**
- * Create a rotation matrix from only one \a up axis.
- * The other axes are chosen to always be orthogonal. The resulting matrix is a basis matrix.
- * \note `up` must be normalized.
- * \note This can be used to create a tangent basis from a normal vector.
- * \note The output of this function is not given to be same across blender version. Prefer using
- * `from_orthonormal_axes` for more stable output.
- */
-template<typename MatT, typename VectorT> [[nodiscard]] MatT from_up_axis(const VectorT up);
-
-/**
  * This returns a version of \a mat with orthonormal basis axes.
  * This leaves the given \a axis untouched.
  *
  * In other words this removes the shear of the matrix. However this doesn't properly account for
  * volume preservation, and so, the axes keep their respective length.
- *
- * \note Prefer using `from_up_axis` to create a orthogonal basis around a vector.
  */
 template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis);
 
@@ -406,15 +394,6 @@ template<typename T>
     T left, T right, T bottom, T top, T near_clip, T far_clip);
 
 /**
- * \brief Create an orthographic projection matrix using OpenGL coordinate convention:
- * Maps each axis range to [-1..1] range for all axes except Z.
- * The Z axis is collapsed to 0 which eliminates the depth component. So it cannot be used with
- * depth testing.
- * The resulting matrix can be used with either #project_point or #transform_point.
- */
-template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top);
-
-/**
  * \brief Create a perspective projection matrix using OpenGL coordinate convention:
  * Maps each axis range to [-1..1] range for all axes.
  * `left`, `right`, `bottom`, `top` are frustum side distances at `z=near_clip`.
@@ -433,16 +412,6 @@ template<typename T>
 template<typename T>
 [[nodiscard]] MatBase<T, 4, 4> perspective_fov(
     T angle_left, T angle_right, T angle_bottom, T angle_top, T near_clip, T far_clip);
-
-/**
- * \brief Create a perspective projection matrix using OpenGL coordinate convention:
- * Maps each axis range to [-1..1] range for all axes except for the Z where [near_clip..inf] is
- * mapped to [-1..1].
- * `left`, `right`, `bottom`, `top` are frustum side distances at `z=near_clip`.
- * The resulting matrix can be used with #project_point.
- */
-template<typename T>
-[[nodiscard]] MatBase<T, 4, 4> perspective_infinite(T left, T right, T bottom, T top, T near_clip);
 
 }  // namespace projection
 
@@ -1395,23 +1364,6 @@ template<typename MatT, typename VectorT>
   return matrix;
 }
 
-template<typename MatT, typename VectorT> [[nodiscard]] MatT from_up_axis(const VectorT up)
-{
-  BLI_assert(is_unit_scale(up));
-  using T = typename MatT::base_type;
-  using Vec3T = VecBase<T, 3>;
-  /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
-  T sign = math::sign(up.z);
-  T a = T(-1) / (sign + up.z);
-  T b = up.x * up.y * a;
-
-  MatBase<T, 3, 3> basis;
-  basis.x_axis() = Vec3T(1.0f + sign * square(up.x) * a, sign * b, -sign * up.x);
-  basis.y_axis() = Vec3T(b, sign + square(up.y) * a, -up.y);
-  basis.z_axis() = up;
-  return MatT(basis);
-}
-
 template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis)
 {
   using T = typename MatT::base_type;
@@ -1573,23 +1525,6 @@ MatBase<T, 4, 4> orthographic(T left, T right, T bottom, T top, T near_clip, T f
   return mat;
 }
 
-template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top)
-{
-  const T x_delta = right - left;
-  const T y_delta = top - bottom;
-
-  MatBase<T, 4, 4> mat = MatBase<T, 4, 4>::identity();
-  if (x_delta != 0 && y_delta != 0) {
-    mat[0][0] = T(2.0) / x_delta;
-    mat[3][0] = -(right + left) / x_delta;
-    mat[1][1] = T(2.0) / y_delta;
-    mat[3][1] = -(top + bottom) / y_delta;
-    mat[2][2] = 0.0f;
-    mat[3][2] = 0.0f;
-  }
-  return mat;
-}
-
 template<typename T>
 MatBase<T, 4, 4> perspective(T left, T right, T bottom, T top, T near_clip, T far_clip)
 {
@@ -1606,29 +1541,6 @@ MatBase<T, 4, 4> perspective(T left, T right, T bottom, T top, T near_clip, T fa
     mat[2][2] = -(far_clip + near_clip) / z_delta;
     mat[2][3] = -1.0f;
     mat[3][2] = (-2.0f * near_clip * far_clip) / z_delta;
-    mat[3][3] = 0.0f;
-  }
-  return mat;
-}
-
-template<typename T>
-MatBase<T, 4, 4> perspective_infinite(T left, T right, T bottom, T top, T near_clip)
-{
-  const T x_delta = right - left;
-  const T y_delta = top - bottom;
-
-  /* From "Projection Matrix Tricks" by Eric Lengyel GDC 2007. */
-  MatBase<T, 4, 4> mat = MatBase<T, 4, 4>::identity();
-  if (x_delta != 0 && y_delta != 0) {
-    mat[0][0] = near_clip * T(2.0) / x_delta;
-    mat[1][1] = near_clip * T(2.0) / y_delta;
-    mat[2][0] = (right + left) / x_delta; /* NOTE: negate Z. */
-    mat[2][1] = (top + bottom) / y_delta;
-    /* Page 17. Choosing an epsilon for 32 bit floating-point precision. */
-    constexpr float eps = 2.4e-7f;
-    mat[2][2] = -1.0f;
-    mat[2][3] = (eps - 1.0f);
-    mat[3][2] = (eps - 2.0f) * near_clip;
     mat[3][3] = 0.0f;
   }
   return mat;

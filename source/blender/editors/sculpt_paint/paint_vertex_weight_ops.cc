@@ -170,10 +170,11 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
   Mesh *me;
   bool changed = false;
 
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   me = BKE_mesh_from_object(vc.obact);
   const MDeformVert *dvert = BKE_mesh_deform_verts(me);
 
@@ -316,7 +317,8 @@ static bool weight_paint_sample_mark_groups(const MDeformVert *dvert,
 static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   BLI_assert(vc.v3d && vc.rv3d); /* Ensured by poll. */
 
   Mesh *me = BKE_mesh_from_object(vc.obact);

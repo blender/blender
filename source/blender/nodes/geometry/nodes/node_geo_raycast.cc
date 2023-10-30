@@ -108,12 +108,12 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().static_declaration;
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
   search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(4));
 
-  const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
@@ -246,32 +246,32 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
   switch (data_type) {
     case CD_PROP_FLOAT:
       if (params.output_is_required("Attribute_001")) {
-        return params.extract_input<GField>("Attribute_001");
+        return params.extract_input<Field<float>>("Attribute_001");
       }
       break;
     case CD_PROP_FLOAT3:
       if (params.output_is_required("Attribute")) {
-        return params.extract_input<GField>("Attribute");
+        return params.extract_input<Field<float3>>("Attribute");
       }
       break;
     case CD_PROP_COLOR:
       if (params.output_is_required("Attribute_002")) {
-        return params.extract_input<GField>("Attribute_002");
+        return params.extract_input<Field<ColorGeometry4f>>("Attribute_002");
       }
       break;
     case CD_PROP_BOOL:
       if (params.output_is_required("Attribute_003")) {
-        return params.extract_input<GField>("Attribute_003");
+        return params.extract_input<Field<bool>>("Attribute_003");
       }
       break;
     case CD_PROP_INT32:
       if (params.output_is_required("Attribute_004")) {
-        return params.extract_input<GField>("Attribute_004");
+        return params.extract_input<Field<int>>("Attribute_004");
       }
       break;
     case CD_PROP_QUATERNION:
       if (params.output_is_required("Attribute_005")) {
-        return params.extract_input<GField>("Attribute_005");
+        return params.extract_input<Field<math::Quaternion>>("Attribute_005");
       }
       break;
     default:
@@ -413,7 +413,7 @@ static void node_register()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
-  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = node_init;
   ntype.updatefunc = node_update;
   node_type_storage(

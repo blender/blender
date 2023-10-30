@@ -6,7 +6,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.hh"
-#include "BKE_report.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_mesh_types.h"
@@ -119,11 +118,10 @@ bool USDShapeReader::read_mesh_values(double motionSampleTime,
     return true;
   }
 
-  BKE_reportf(reports(),
-              RPT_ERROR,
-              "Unhandled Gprim type: %s (%s)",
-              prim_.GetTypeName().GetText(),
-              prim_.GetPath().GetText());
+  WM_reportf(RPT_ERROR,
+             "Unhandled Gprim type: %s (%s)",
+             prim_.GetTypeName().GetText(),
+             prim_.GetPath().GetText());
   return false;
 }
 
@@ -232,11 +230,10 @@ bool USDShapeReader::is_time_varying()
     return geom.GetRadiusAttr().ValueMightBeTimeVarying();
   }
 
-  BKE_reportf(reports(),
-              RPT_ERROR,
-              "Unhandled Gprim type: %s (%s)",
-              prim_.GetTypeName().GetText(),
-              prim_.GetPath().GetText());
+  WM_reportf(RPT_ERROR,
+             "Unhandled Gprim type: %s (%s)",
+             prim_.GetTypeName().GetText(),
+             prim_.GetPath().GetText());
   return false;
 }
 

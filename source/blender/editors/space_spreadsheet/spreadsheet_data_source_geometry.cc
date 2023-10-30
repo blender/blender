@@ -11,9 +11,7 @@
 #include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
-#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
-#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
@@ -175,11 +173,12 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
 void GeometryDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  std::optional<const bke::AttributeAccessor> attributes = this->get_component_attributes();
-  if (!attributes.has_value()) {
+  if (!component_->attributes().has_value()) {
     return;
   }
-  if (attributes->domain_size(domain_) == 0) {
+  const bke::AttributeAccessor attributes = *component_->attributes();
+
+  if (attributes.domain_size(domain_) == 0) {
     return;
   }
 
@@ -187,13 +186,9 @@ void GeometryDataSource::foreach_default_column_ids(
     fn({(char *)"Name"}, false);
   }
 
-  if (component_->type() == bke::GeometryComponent::Type::GreasePencil) {
-    fn({(char *)"Name"}, false);
-  }
-
   extra_columns_.foreach_default_column_ids(fn);
 
-  attributes->for_all(
+  attributes.for_all(
       [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
         if (meta_data.domain != domain_) {
           return true;
@@ -226,11 +221,11 @@ void GeometryDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  std::optional<const bke::AttributeAccessor> attributes = this->get_component_attributes();
-  if (!attributes.has_value()) {
+  if (!component_->attributes().has_value()) {
     return {};
   }
-  const int domain_num = attributes->domain_size(domain_);
+  const bke::AttributeAccessor attributes = *component_->attributes();
+  const int domain_num = attributes.domain_size(domain_);
   if (domain_num == 0) {
     return {};
   }
@@ -271,19 +266,6 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       }
     }
   }
-  else if (component_->type() == bke::GeometryComponent::Type::GreasePencil) {
-    if (const GreasePencil *grease_pencil =
-            static_cast<const bke::GreasePencilComponent &>(*component_).get())
-    {
-      if (domain_ == ATTR_DOMAIN_LAYER && STREQ(column_id.name, "Name")) {
-        const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
-        return std::make_unique<ColumnValues>(
-            column_id.name, VArray<std::string>::ForFunc(domain_num, [layers](int64_t index) {
-              return std::string(layers[index]->name());
-            }));
-      }
-    }
-  }
   else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
     const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
     if (const Mesh *mesh = component.get()) {
@@ -295,7 +277,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     }
   }
 
-  bke::GAttributeReader attribute = attributes->lookup(column_id.name);
+  bke::GAttributeReader attribute = attributes.lookup(column_id.name);
   if (!attribute) {
     return {};
   }
@@ -314,11 +296,11 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
 int GeometryDataSource::tot_rows() const
 {
-  std::optional<const bke::AttributeAccessor> attributes = this->get_component_attributes();
-  if (!attributes.has_value()) {
+  if (!component_->attributes().has_value()) {
     return {};
   }
-  return attributes->domain_size(domain_);
+  const bke::AttributeAccessor attributes = *component_->attributes();
+  return attributes.domain_size(domain_);
 }
 
 bool GeometryDataSource::has_selection_filter() const
@@ -439,28 +421,6 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
   }
 }
 
-std::optional<const bke::AttributeAccessor> GeometryDataSource::get_component_attributes() const
-{
-  if (component_->type() != bke::GeometryComponent::Type::GreasePencil) {
-    return component_->attributes();
-  }
-  const GreasePencil *grease_pencil = geometry_set_.get_grease_pencil();
-  if (!grease_pencil) {
-    return {};
-  }
-  if (domain_ == ATTR_DOMAIN_LAYER) {
-    return grease_pencil->attributes();
-  }
-  if (layer_index_ >= 0 && layer_index_ < grease_pencil->layers().size()) {
-    if (const bke::greasepencil::Drawing *drawing =
-            bke::greasepencil::get_eval_grease_pencil_layer_drawing(*grease_pencil, layer_index_))
-    {
-      return drawing->strokes().attributes();
-    }
-  }
-  return {};
-}
-
 void VolumeDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
@@ -564,11 +524,6 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
       geometry_set.replace_curves(&const_cast<Curves &>(curves_id),
                                   bke::GeometryOwnershipType::ReadOnly);
     }
-    else if (object_orig->type == OB_GREASE_PENCIL) {
-      const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object_orig->data);
-      geometry_set.replace_grease_pencil(&const_cast<GreasePencil &>(grease_pencil),
-                                         bke::GeometryOwnershipType::ReadOnly);
-    }
   }
   else {
     if (BLI_listbase_is_single(&sspreadsheet->viewer_path.path)) {
@@ -600,7 +555,6 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
   const auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
-  const int active_layer_index = sspreadsheet->active_layer_index;
   bke::GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
   if (!geometry_set.has(component_type)) {
     return {};
@@ -610,7 +564,7 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
     return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
   return std::make_unique<GeometryDataSource>(
-      object_eval, std::move(geometry_set), component_type, domain, active_layer_index);
+      object_eval, std::move(geometry_set), component_type, domain);
 }
 
 }  // namespace blender::ed::spreadsheet

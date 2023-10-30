@@ -20,15 +20,12 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "BLI_array.hh"
-#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_generic_array.hh"
 #include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
-#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
@@ -180,30 +177,30 @@ struct SculptUndoNode {
   char idname[MAX_ID_NAME]; /* Name instead of pointer. */
   void *node;               /* only during push, not valid afterwards! */
 
-  blender::Array<blender::float3> co;
-  blender::Array<blender::float3> orig_co;
-  blender::Array<blender::float3> no;
-  blender::Array<blender::float4> col;
-  blender::Array<float> mask;
+  float (*co)[3];
+  float (*orig_co)[3];
+  float (*no)[3];
+  float (*col)[4];
+  float *mask;
   int totvert;
 
-  blender::Array<blender::float4> loop_col;
-  blender::Array<blender::float4> orig_loop_col;
+  float (*loop_col)[4];
+  float (*orig_loop_col)[4];
   int totloop;
 
   /* non-multires */
-  int maxvert;               /* to verify if totvert it still the same */
-  blender::Array<int> index; /* Unique vertex indices, to restore into right location */
+  int maxvert; /* to verify if totvert it still the same */
+  int *index;  /* Unique vertex indices, to restore into right location */
   int maxloop;
-  blender::Array<int> loop_index;
+  int *loop_index;
 
-  blender::BitVector<> vert_hidden;
+  BLI_bitmap *vert_hidden;
 
   /* multires */
-  int maxgrid;               /* same for grid */
-  int gridsize;              /* same for grid */
-  int totgrid;               /* to restore into right location */
-  blender::Array<int> grids; /* to restore into right location */
+  int maxgrid;  /* same for grid */
+  int gridsize; /* same for grid */
+  int totgrid;  /* to restore into right location */
+  int *grids;   /* to restore into right location */
   BLI_bitmap **grid_hidden;
 
   /* bmesh */
@@ -231,9 +228,9 @@ struct SculptUndoNode {
   float pivot_rot[4];
 
   /* Sculpt Face Sets */
-  blender::Array<int> face_sets;
+  int *face_sets;
 
-  blender::Array<PBVHFaceRef> faces;
+  PBVHFaceRef *faces;
   int faces_num;
 
   size_t undo_size;

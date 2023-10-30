@@ -11,11 +11,9 @@
 #include "BLI_math_quaternion.hh"
 #include "BLI_string.h"
 
-#include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
-#include "NOD_socket.hh"
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_geometry_fields.hh"
@@ -44,7 +42,7 @@ StringRef input_attribute_name_suffix()
 
 bool socket_type_has_attribute_toggle(const eNodeSocketDatatype type)
 {
-  return socket_type_supports_fields(type);
+  return ELEM(type, SOCK_FLOAT, SOCK_VECTOR, SOCK_BOOLEAN, SOCK_RGBA, SOCK_INT, SOCK_ROTATION);
 }
 
 bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)
@@ -120,10 +118,6 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       return property;
     }
     case SOCK_BOOLEAN: {
-      if (is_layer_selection_field(socket)) {
-        /* We can't use the value from the socket here since it doesn't storing a string. */
-        return bke::idprop::create(identifier, "");
-      }
       const bNodeSocketValueBoolean *value = static_cast<const bNodeSocketValueBoolean *>(
           socket.socket_data);
       auto property = bke::idprop::create_bool(identifier, value->value);
@@ -205,9 +199,6 @@ bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
       return property.type == IDP_ARRAY &&
              ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 4;
     case SOCK_BOOLEAN:
-      if (is_layer_selection_field(socket)) {
-        return property.type == IDP_STRING;
-      }
       return property.type == IDP_BOOLEAN;
     case SOCK_STRING:
       return property.type == IDP_STRING;
@@ -405,17 +396,6 @@ static void initialize_group_input(const bNodeTree &tree,
         *typeinfo->geometry_nodes_cpp_type);
     BLI_assert(value_or_field_cpp_type != nullptr);
     value_or_field_cpp_type->construct_from_field(r_value, std::move(attribute_field));
-  }
-  else if (is_layer_selection_field(io_input)) {
-    const IDProperty *property_layer_name = IDP_GetPropertyFromGroup(properties,
-                                                                     io_input.identifier);
-    StringRef layer_name = IDP_String(property_layer_name);
-    const fn::GField selection_field(
-        std::make_shared<bke::NamedLayerSelectionFieldInput>(layer_name), 0);
-    const auto *value_or_field_cpp_type = fn::ValueOrFieldCPPType::get_from_self(
-        *typeinfo->geometry_nodes_cpp_type);
-    BLI_assert(value_or_field_cpp_type != nullptr);
-    value_or_field_cpp_type->construct_from_field(r_value, std::move(selection_field));
   }
   else {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);

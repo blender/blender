@@ -127,13 +127,13 @@ static void ptcache_job_update(void *customdata, float progress, int *cancel)
   *(job->progress) = progress;
 }
 
-static void ptcache_job_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void ptcache_job_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   PointCacheJob *job = static_cast<PointCacheJob *>(customdata);
 
-  job->stop = &worker_status->stop;
-  job->do_update = &worker_status->do_update;
-  job->progress = &worker_status->progress;
+  job->stop = stop;
+  job->do_update = do_update;
+  job->progress = progress;
 
   G.is_break = false;
 
@@ -144,8 +144,8 @@ static void ptcache_job_startjob(void *customdata, wmJobWorkerStatus *worker_sta
 
   BKE_ptcache_bake(job->baker);
 
-  worker_status->do_update = true;
-  worker_status->stop = false;
+  *do_update = true;
+  *stop = false;
 }
 
 static void ptcache_job_endjob(void *customdata)

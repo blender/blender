@@ -8,16 +8,16 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  */
 
-#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 vec4 closure_to_rgba(Closure cl)
 {
@@ -26,38 +26,26 @@ vec4 closure_to_rgba(Closure cl)
   vec3 refraction_light = vec3(0.0);
   float shadow = 1.0;
 
-  float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
-  vec3 V = drw_world_incident_vector(g_data.P);
+  float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
 
-  ClosureLightStack stack;
-
-  ClosureLight cl_diff;
-  cl_diff.N = g_diffuse_data.N;
-  cl_diff.ltc_mat = LTC_LAMBERT_MAT;
-  cl_diff.type = LIGHT_DIFFUSE;
-  stack.cl[0] = cl_diff;
-
-  ClosureLight cl_refl;
-  cl_refl.N = g_reflection_data.N;
-  cl_refl.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.roughness);
-  cl_refl.type = LIGHT_SPECULAR;
-  stack.cl[1] = cl_refl;
-
-  float thickness = 0.01; /* TODO(fclem) thickness. */
-  light_eval(stack, g_data.P, g_data.Ng, V, vPz, thickness);
-
-  vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
-  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
-
-  diffuse_light += lightprobe_eval(samp, g_diffuse_data, g_data.P, V, noise_probe);
-  reflection_light += lightprobe_eval(samp, g_reflection_data, g_data.P, V, noise_probe);
+  light_eval(g_diffuse_data,
+             g_reflection_data,
+             g_data.P,
+             g_data.Ng,
+             cameraVec(g_data.P),
+             vP_z,
+             0.01 /* TODO(fclem) thickness. */,
+             diffuse_light,
+             reflection_light,
+             shadow);
 
   vec4 out_color;
   out_color.rgb = g_emission;
-  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * stack.cl[0].light_shadowed;
-  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * stack.cl[1].light_shadowed;
+  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * diffuse_light;
+  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * reflection_light;
+  out_color.rgb += g_refraction_data.color * g_refraction_data.weight * refraction_light;
 
-  out_color.a = saturate(1.0 - average(g_transmittance));
+  out_color.a = saturate(1.0 - avg(g_transmittance));
 
   /* Reset for the next closure tree. */
   closure_weights_reset();
@@ -83,45 +71,23 @@ void main()
 
   float thickness = nodetree_thickness();
 
-  float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
-  vec3 V = drw_world_incident_vector(g_data.P);
-
-  ClosureLightStack stack;
-
-  ClosureLight cl_diff;
-  cl_diff.N = g_diffuse_data.N;
-  cl_diff.ltc_mat = LTC_LAMBERT_MAT;
-  cl_diff.type = LIGHT_DIFFUSE;
-  stack.cl[0] = cl_diff;
-
-  ClosureLight cl_refl;
-  cl_refl.N = g_reflection_data.N;
-  cl_refl.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.roughness);
-  cl_refl.type = LIGHT_SPECULAR;
-  stack.cl[1] = cl_refl;
-
-#ifdef SSS_TRANSMITTANCE
-  ClosureLight cl_sss;
-  cl_sss.N = -g_diffuse_data.N;
-  cl_sss.ltc_mat = LTC_LAMBERT_MAT;
-  cl_sss.type = LIGHT_DIFFUSE;
-  stack.cl[2] = cl_sss;
-#endif
-
-  light_eval(stack, g_data.P, g_data.Ng, V, vPz, thickness);
-
-  vec3 diffuse_light = stack.cl[0].light_shadowed;
-  vec3 reflection_light = stack.cl[1].light_shadowed;
+  vec3 diffuse_light = vec3(0.0);
+  vec3 reflection_light = vec3(0.0);
   vec3 refraction_light = vec3(0.0);
-#ifdef SSS_TRANSMITTANCE
-  diffuse_light += stack.cl[2].light_shadowed;
-#endif
+  float shadow = 1.0;
 
-  vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
-  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
+  float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
 
-  diffuse_light += lightprobe_eval(samp, g_diffuse_data, g_data.P, V, noise_probe);
-  reflection_light += lightprobe_eval(samp, g_reflection_data, g_data.P, V, noise_probe);
+  light_eval(g_diffuse_data,
+             g_reflection_data,
+             g_data.P,
+             g_data.Ng,
+             cameraVec(g_data.P),
+             vP_z,
+             thickness,
+             diffuse_light,
+             reflection_light,
+             shadow);
 
   g_diffuse_data.color *= g_diffuse_data.weight;
   g_reflection_data.color *= g_reflection_data.weight;
@@ -155,18 +121,6 @@ void main()
         cryptomatte_object_buf[resource_id], node_tree.crypto_hash, 0.0);
     imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
-
-  vec3 radiance_shadowed = stack.cl[0].light_shadowed;
-  vec3 radiance_unshadowed = stack.cl[0].light_unshadowed;
-  radiance_shadowed += stack.cl[1].light_shadowed;
-  radiance_unshadowed += stack.cl[1].light_unshadowed;
-#  ifdef SSS_TRANSMITTANCE
-  radiance_shadowed += stack.cl[2].light_shadowed;
-  radiance_unshadowed += stack.cl[2].light_unshadowed;
-#  endif
-
-  vec3 shadows = radiance_shadowed / safe_rcp(radiance_unshadowed);
-
   output_renderpass_color(uniform_buf.render_pass.normal_id, vec4(out_normal, 1.0));
   output_renderpass_color(uniform_buf.render_pass.position_id, vec4(g_data.P, 1.0));
   output_renderpass_color(uniform_buf.render_pass.diffuse_color_id,
@@ -175,7 +129,7 @@ void main()
   output_renderpass_color(uniform_buf.render_pass.specular_color_id, vec4(specular_color, 1.0));
   output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0));
   output_renderpass_color(uniform_buf.render_pass.emission_id, vec4(g_emission, 1.0));
-  output_renderpass_value(uniform_buf.render_pass.shadow_id, average(shadows));
+  output_renderpass_value(uniform_buf.render_pass.shadow_id, shadow);
   /** NOTE: AO is done on its own pass. */
 #endif
 
@@ -196,5 +150,5 @@ void main()
   out_radiance.rgb *= 1.0 - g_holdout;
 
   out_transmittance.rgb = g_transmittance;
-  out_transmittance.a = saturate(average(g_transmittance));
+  out_transmittance.a = saturate(avg(g_transmittance));
 }

@@ -55,11 +55,10 @@
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
-
-#include "ANIM_keyframing.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -2256,7 +2255,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
         continue;
       }
 
-      if (!blender::animrig::is_autokey_on(scene) && (gpl->actframe == nullptr)) {
+      if (!IS_AUTOKEY_ON(scene) && (gpl->actframe == nullptr)) {
         continue;
       }
 
@@ -2268,8 +2267,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
        *       -> If there are no strokes in that frame, don't add a new empty frame
        */
       if (gpl->actframe && gpl->actframe->strokes.first) {
-        short frame_mode = blender::animrig::is_autokey_on(scene) ? GP_GETFRAME_ADD_COPY :
-                                                                    GP_GETFRAME_USE_PREV;
+        short frame_mode = IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_COPY : GP_GETFRAME_USE_PREV;
         gpl->actframe = BKE_gpencil_layer_frame_get(
             gpl, scene->r.cfra, eGP_GetFrame_Mode(frame_mode));
         has_layer_to_erase = true;
@@ -2293,7 +2291,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
     /* Drawing Modes - Add a new frame if needed on the active layer */
     short add_frame_mode;
 
-    if (blender::animrig::is_autokey_on(scene)) {
+    if (IS_AUTOKEY_ON(scene)) {
       if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
         add_frame_mode = GP_GETFRAME_ADD_COPY;
       }
@@ -2319,7 +2317,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
 
     if (p->gpf == nullptr) {
       p->status = GP_STATUS_ERROR;
-      if (!blender::animrig::is_autokey_on(scene)) {
+      if (!IS_AUTOKEY_ON(scene)) {
         BKE_report(p->reports, RPT_INFO, "No available frame for creating stroke");
       }
 

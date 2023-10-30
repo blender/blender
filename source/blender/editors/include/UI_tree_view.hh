@@ -322,12 +322,11 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
  */
 class TreeViewItemDropTarget : public DropTargetInterface {
  protected:
-  AbstractTreeViewItem &view_item_;
+  AbstractTreeView &view_;
   const DropBehavior behavior_;
 
  public:
-  TreeViewItemDropTarget(AbstractTreeViewItem &view_item,
-                         DropBehavior behavior = DropBehavior::Insert);
+  TreeViewItemDropTarget(AbstractTreeView &view, DropBehavior behavior = DropBehavior::Insert);
 
   std::optional<DropLocation> choose_drop_location(const ARegion &region,
                                                    const wmEvent &event) const override;
@@ -369,7 +368,7 @@ template<class ViewType> ViewType &TreeViewItemDropTarget::get_view() const
 {
   static_assert(std::is_base_of<AbstractTreeView, ViewType>::value,
                 "Type must derive from and implement the ui::AbstractTreeView interface");
-  return dynamic_cast<ViewType &>(view_item_.get_tree_view());
+  return dynamic_cast<ViewType &>(view_);
 }
 
 }  // namespace blender::ui

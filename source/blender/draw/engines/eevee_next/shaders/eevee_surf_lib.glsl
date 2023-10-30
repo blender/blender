@@ -2,9 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
@@ -12,16 +10,6 @@
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
 vec3 barycentric_distances_get()
 {
-#  if defined(GPU_METAL)
-  /* Calculate Barycentric distances from available parameters in Metal. */
-  float wp_delta = length(dfdx(interp.P)) + length(dfdy(interp.P));
-  float bc_delta = length(dfdx(gpu_BaryCoord)) + length(dfdy(gpu_BaryCoord));
-  float rate_of_change = wp_delta / bc_delta;
-  vec3 dists;
-  dists.x = rate_of_change * (1.0 - gpu_BaryCoord.x);
-  dists.y = rate_of_change * (1.0 - gpu_BaryCoord.y);
-  dists.z = rate_of_change * (1.0 - gpu_BaryCoord.z);
-#  else
   /* NOTE: No need to undo perspective divide since it has not been applied. */
   vec3 pos0 = (ProjectionMatrixInverse * gpu_position_at_vertex(0)).xyz;
   vec3 pos1 = (ProjectionMatrixInverse * gpu_position_at_vertex(1)).xyz;
@@ -39,8 +27,7 @@ vec3 barycentric_distances_get()
   dists.y = sqrt(dot(edge10, edge10) - d * d);
   d = dot(d10, edge21);
   dists.z = sqrt(dot(edge21, edge21) - d * d);
-#  endif
-  return dists;
+  return dists.xyz;
 }
 #endif
 
@@ -54,39 +41,35 @@ void init_globals_mesh()
 
 void init_globals_curves()
 {
-#if defined(MAT_GEOM_CURVES)
   /* Shade as a cylinder. */
-  float cos_theta = curve_interp.time_width / curve_interp.thickness;
-#  if defined(GPU_FRAGMENT_SHADER)
+  float cos_theta = interp.curves_time_width / interp.curves_thickness;
+#if defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_CURVES)
   if (hairThicknessRes == 1) {
-#    ifdef EEVEE_UTILITY_TX
     /* Random cosine normal distribution on the hair surface. */
     float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).x;
-#      ifdef EEVEE_SAMPLING_DATA
+#  ifdef EEVEE_SAMPLING_DATA
     /* Needs to check for SAMPLING_DATA,
      * otherwise Surfel and World (?!?!) shader validation fails. */
     noise = fract(noise + sampling_rng_1D_get(SAMPLING_CURVES_U));
-#      endif
-    cos_theta = noise * 2.0 - 1.0;
-#    endif
-  }
 #  endif
+    cos_theta = noise * 2.0 - 1.0;
+  }
+#endif
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
-  g_data.N = g_data.Ni = normalize(interp.N * sin_theta + curve_interp.binormal * cos_theta);
+  g_data.N = g_data.Ni = normalize(interp.N * sin_theta + interp.curves_binormal * cos_theta);
 
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
-  vec3 V = drw_world_incident_vector(g_data.P);
-  g_data.curve_T = -curve_interp.tangent;
+  vec3 V = cameraVec(g_data.P);
+  g_data.curve_T = -interp.curves_tangent;
   g_data.curve_B = cross(V, g_data.curve_T);
   g_data.curve_N = safe_normalize(cross(g_data.curve_T, g_data.curve_B));
 
   g_data.is_strand = true;
-  g_data.hair_time = curve_interp.time;
-  g_data.hair_thickness = curve_interp.thickness;
-  g_data.hair_strand_id = curve_interp_flat.strand_id;
-#  if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER)
-  g_data.barycentric_coords = hair_resolve_barycentric(curve_interp.barycentric_coords);
-#  endif
+  g_data.hair_time = interp.curves_time;
+  g_data.hair_thickness = interp.curves_thickness;
+  g_data.hair_strand_id = interp_flat.curves_strand_id;
+#if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_CURVES)
+  g_data.barycentric_coords = hair_resolve_barycentric(interp.barycentric_coords);
 #endif
 }
 
@@ -109,7 +92,7 @@ void init_globals()
   g_data.hair_strand_id = 0;
   g_data.ray_type = RAY_TYPE_CAMERA; /* TODO */
   g_data.ray_depth = 0.0;
-  g_data.ray_length = distance(g_data.P, drw_view_position());
+  g_data.ray_length = distance(g_data.P, cameraPos);
   g_data.barycentric_coords = vec2(0.0);
   g_data.barycentric_dists = vec3(0.0);
 
@@ -134,6 +117,13 @@ void init_interface()
 #ifdef GPU_VERTEX_SHADER
   interp.P = vec3(0.0);
   interp.N = vec3(0.0);
+  interp.barycentric_coords = vec2(0.0);
+  interp.curves_tangent = vec3(0.0);
+  interp.curves_binormal = vec3(0.0);
+  interp.curves_time = 0.0;
+  interp.curves_time_width = 0.0;
+  interp.curves_thickness = 0.0;
+  interp_flat.curves_strand_id = 0;
   drw_ResourceID_iface.resource_index = resource_id;
 #endif
 }

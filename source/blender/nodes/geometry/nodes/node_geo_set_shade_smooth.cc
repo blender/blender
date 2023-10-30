@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Bool>("Shade Smooth").default_value(true).field_on_all();
+  b.add_input<decl::Bool>("Shade Smooth").field_on_all().default_value(true);
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 

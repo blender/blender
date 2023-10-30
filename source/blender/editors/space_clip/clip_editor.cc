@@ -280,8 +280,8 @@ ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
 
 bool ED_space_clip_get_position(const SpaceClip *sc,
                                 const ARegion *region,
-                                const int mval[2],
-                                float r_fpos[2])
+                                int mval[2],
+                                float fpos[2])
 {
   ImBuf *ibuf = ED_space_clip_get_buffer(sc);
   if (!ibuf) {
@@ -289,7 +289,7 @@ bool ED_space_clip_get_position(const SpaceClip *sc,
   }
 
   /* map the mouse coords to the backdrop image space */
-  ED_clip_mouse_pos(sc, region, mval, r_fpos);
+  ED_clip_mouse_pos(sc, region, mval, fpos);
 
   IMB_freeImBuf(ibuf);
   return true;
@@ -545,12 +545,9 @@ void ED_clip_point_stable_pos__reverse(const SpaceClip *sc,
   r_co[1] = (pos[1] * height * zoomy) + float(sy);
 }
 
-void ED_clip_mouse_pos(const SpaceClip *sc,
-                       const ARegion *region,
-                       const int mval[2],
-                       float r_co[2])
+void ED_clip_mouse_pos(const SpaceClip *sc, const ARegion *region, const int mval[2], float co[2])
 {
-  ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &r_co[0], &r_co[1]);
+  ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &co[0], &co[1]);
 }
 
 bool ED_space_clip_check_show_trackedit(const SpaceClip *sc)
@@ -1001,7 +998,7 @@ static void do_prefetch_movie(MovieClip *clip,
   }
 }
 
-static void prefetch_startjob(void *pjv, wmJobWorkerStatus *worker_status)
+static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   PrefetchJob *pj = static_cast<PrefetchJob *>(pjv);
 
@@ -1013,9 +1010,9 @@ static void prefetch_startjob(void *pjv, wmJobWorkerStatus *worker_status)
                            pj->end_frame,
                            pj->render_size,
                            pj->render_flag,
-                           &worker_status->stop,
-                           &worker_status->do_update,
-                           &worker_status->progress);
+                           stop,
+                           do_update,
+                           progress);
   }
   else if (pj->clip->source == MCLIP_SRC_MOVIE) {
     /* read movie in a single thread */
@@ -1026,9 +1023,9 @@ static void prefetch_startjob(void *pjv, wmJobWorkerStatus *worker_status)
                       pj->end_frame,
                       pj->render_size,
                       pj->render_flag,
-                      &worker_status->stop,
-                      &worker_status->do_update,
-                      &worker_status->progress);
+                      stop,
+                      do_update,
+                      progress);
   }
   else {
     BLI_assert_msg(0, "Unknown movie clip source when prefetching frames");

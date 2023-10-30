@@ -1451,7 +1451,7 @@ static void do_sequence_proxy(void *pjv,
   MEM_freeN(handles);
 }
 
-static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
+static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   MovieClip *clip = pj->clip;
@@ -1471,9 +1471,9 @@ static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
                    build_count,
                    build_undistort_sizes,
                    build_undistort_count,
-                   &worker_status->stop,
-                   &worker_status->do_update,
-                   &worker_status->progress);
+                   stop,
+                   do_update,
+                   progress);
   }
   else {
     do_sequence_proxy(pjv,
@@ -1481,9 +1481,9 @@ static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
                       build_count,
                       build_undistort_sizes,
                       build_undistort_count,
-                      &worker_status->stop,
-                      &worker_status->do_update,
-                      &worker_status->progress);
+                      stop,
+                      do_update,
+                      progress);
   }
 }
 

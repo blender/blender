@@ -2,50 +2,39 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ltc_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
-
-/* Attenuation cutoff needs to be the same in the shadow loop and the light eval loop. */
-#define LIGHT_ATTENUATION_THRESHOLD 1e-6
 
 /* ---------------------------------------------------------------------- */
 /** \name Light Functions
  * \{ */
 
-struct LightVector {
-  /* World space light vector. From the shading point to the light center. Normalized. */
-  vec3 L;
-  /* Distance from the shading point to the light center. */
-  float dist;
-};
-
-LightVector light_vector_get(LightData light, const bool is_directional, vec3 P)
+void light_vector_get(LightData ld, vec3 P, out vec3 L, out float dist)
 {
-  LightVector lv;
-  if (is_directional) {
-    lv.L = light._back;
-    lv.dist = 1.0;
+  /* TODO(fclem): Static branching. */
+  if (is_sun_light(ld.type)) {
+    L = ld._back;
+    dist = 1.0;
   }
   else {
-    lv.L = light._position - P;
-    float inv_distance = inversesqrt(length_squared(lv.L));
-    lv.L *= inv_distance;
-    lv.dist = 1.0 / inv_distance;
+    L = ld._position - P;
+    dist = inversesqrt(len_squared(L));
+    L *= dist;
+    dist = 1.0 / dist;
   }
-  return lv;
 }
 
 /* Light vector to the closest point in the light shape. */
-LightVector light_shape_vector_get(LightData light, const bool is_directional, vec3 P)
+void light_shape_vector_get(LightData ld, vec3 P, out vec3 L, out float dist)
 {
-  if (!is_directional && is_area_light(light.type)) {
-    vec3 L = P - light._position;
-    vec2 closest_point = vec2(dot(light._right, L), dot(light._up, L));
-    vec2 max_pos = vec2(light._area_size_x, light._area_size_y);
+  if (ld.type == LIGHT_RECT || ld.type == LIGHT_ELLIPSE) {
+    L = P - ld._position;
+    vec2 closest_point = vec2(dot(ld._right, L), dot(ld._up, L));
+    vec2 max_pos = vec2(ld._area_size_x, ld._area_size_y);
     closest_point /= max_pos;
 
-    if (light.type == LIGHT_ELLIPSE) {
+    if (ld.type == LIGHT_ELLIPSE) {
       closest_point /= max(1.0, length(closest_point));
     }
     else {
@@ -53,28 +42,27 @@ LightVector light_shape_vector_get(LightData light, const bool is_directional, v
     }
     closest_point *= max_pos;
 
-    vec3 L_prime = light._right * closest_point.x + light._up * closest_point.y;
+    vec3 L_prime = ld._right * closest_point.x + ld._up * closest_point.y;
 
     L = L_prime - L;
-    float inv_distance = inversesqrt(length_squared(L));
-    LightVector lv;
-    lv.L = L * inv_distance;
-    lv.dist = 1.0 / inv_distance;
-    return lv;
+    dist = inversesqrt(len_squared(L));
+    L *= dist;
+    dist = 1.0 / dist;
   }
-  /* TODO(@fclem): other light shape? */
-  return light_vector_get(light, is_directional, P);
+  else {
+    light_vector_get(ld, P, L, dist);
+  }
 }
 
 /* Rotate vector to light's local space. Does not translate. */
-vec3 light_world_to_local(LightData light, vec3 L)
+vec3 light_world_to_local(LightData ld, vec3 L)
 {
   /* Avoid relying on compiler to optimize this.
-   * vec3 lL = transpose(mat3(light.object_mat)) * L; */
+   * vec3 lL = transpose(mat3(ld.object_mat)) * L; */
   vec3 lL;
-  lL.x = dot(light.object_mat[0].xyz, L);
-  lL.y = dot(light.object_mat[1].xyz, L);
-  lL.z = dot(light.object_mat[2].xyz, L);
+  lL.x = dot(ld.object_mat[0].xyz, L);
+  lL.y = dot(ld.object_mat[1].xyz, L);
+  lL.z = dot(ld.object_mat[2].xyz, L);
   return lL;
 }
 
@@ -89,65 +77,41 @@ vec3 light_local_position_to_world(LightData light, vec3 lP)
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
 float light_influence_attenuation(float dist, float inv_sqr_influence)
 {
-  float factor = square(dist) * inv_sqr_influence;
-  float fac = saturate(1.0 - square(factor));
-  return square(fac);
+  float factor = sqr(dist) * inv_sqr_influence;
+  float fac = saturate(1.0 - sqr(factor));
+  return sqr(fac);
 }
 
-float light_spot_attenuation(LightData light, vec3 L)
+float light_spot_attenuation(LightData ld, vec3 L)
 {
-  vec3 lL = light_world_to_local(light, L);
-  float ellipse = inversesqrt(1.0 + length_squared(lL.xy * light.spot_size_inv / lL.z));
-  float spotmask = smoothstep(0.0, 1.0, ellipse * light._spot_mul + light._spot_bias);
-  return spotmask * step(0.0, -dot(L, -light._back));
+  vec3 lL = light_world_to_local(ld, L);
+  float ellipse = inversesqrt(1.0 + len_squared(lL.xy * ld.spot_size_inv / lL.z));
+  float spotmask = smoothstep(0.0, 1.0, ellipse * ld._spot_mul + ld._spot_bias);
+  return spotmask;
 }
 
-float light_attenuation_common(LightData light, const bool is_directional, vec3 L)
+float light_attenuation(LightData ld, vec3 L, float dist)
 {
-  if (is_directional) {
-    return 1.0;
+  float vis = 1.0;
+  if (ld.type == LIGHT_SPOT) {
+    vis *= light_spot_attenuation(ld, L);
   }
-  if (light.type == LIGHT_SPOT) {
-    return light_spot_attenuation(light, L);
-  }
-  if (is_area_light(light.type)) {
-    return step(0.0, -dot(L, -light._back));
-  }
-  return 1.0;
-}
 
-/**
- * Fade light influence when surface is not facing the light.
- * L is normalized vector to light shape center.
- * Ng is ideally the geometric normal.
- */
-float light_attenuation_facing(LightData light, vec3 L, vec3 Ng, bool use_subsurface)
-{
-  if (use_subsurface) {
-    return 1.0;
+  if (ld.type >= LIGHT_SPOT) {
+    vis *= step(0.0, -dot(L, -ld._back));
   }
-  /* TODO(fclem): Take into consideration the light radius. */
-  return float(dot(L, Ng) > 0.0);
-}
 
-float light_attenuation_surface(
-    LightData light, const bool is_directional, vec3 Ng, bool use_subsurface, LightVector lv)
-{
-  /* TODO(fclem): add cutoff attenuation when back-facing. For now do nothing with Ng. */
-  return light_attenuation_common(light, is_directional, lv.L) *
-         light_attenuation_facing(light, lv.L, Ng, use_subsurface) *
-         light_influence_attenuation(lv.dist, light.influence_radius_invsqr_surface);
-}
-
-float light_attenuation_volume(LightData light, const bool is_directional, LightVector lv)
-{
-  return light_attenuation_common(light, is_directional, lv.L) *
-         light_influence_attenuation(lv.dist, light.influence_radius_invsqr_volume);
+#ifdef VOLUME_LIGHTING
+  vis *= light_influence_attenuation(dist, ld.influence_radius_invsqr_volume);
+#else
+  vis *= light_influence_attenuation(dist, ld.influence_radius_invsqr_surface);
+#endif
+  return vis;
 }
 
 /* Cheaper alternative than evaluating the LTC.
  * The result needs to be multiplied by BSDF or Phase Function. */
-float light_point_light(LightData light, const bool is_directional, LightVector lv)
+float light_point_light(LightData ld, const bool is_directional, vec3 L, float dist)
 {
   if (is_directional) {
     return 1.0;
@@ -156,14 +120,14 @@ float light_point_light(LightData light, const bool is_directional, LightVector 
    * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
    * http://www.cemyuksel.com/research/pointlightattenuation/
    */
-  float d_sqr = square(lv.dist);
-  float r_sqr = light.radius_squared;
+  float d_sqr = sqr(dist);
+  float r_sqr = ld.radius_squared;
   /* Using reformulation that has better numerical precision. */
-  float power = 2.0 / (d_sqr + r_sqr + lv.dist * sqrt(d_sqr + r_sqr));
+  float power = 2.0 / (d_sqr + r_sqr + dist * sqrt(d_sqr + r_sqr));
 
-  if (is_area_light(light.type)) {
+  if (is_area_light(ld.type)) {
     /* Modulate by light plane orientation / solid angle. */
-    power *= saturate(dot(light._back, lv.L));
+    power *= saturate(dot(ld._back, L));
   }
   return power;
 }
@@ -177,59 +141,119 @@ float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
 {
   /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
    * half-angle spanned by a disk light with the same radius. */
-  return sphere_radius * inversesqrt(1.0 - square(sphere_radius / distance_to_sphere));
+  return sphere_radius * inversesqrt(1.0 - sqr(sphere_radius / distance_to_sphere));
 }
 
-float light_ltc(
-    sampler2DArray utility_tx, LightData light, vec3 N, vec3 V, LightVector lv, vec4 ltc_mat)
+float light_diffuse(sampler2DArray utility_tx,
+                    const bool is_directional,
+                    LightData ld,
+                    vec3 N,
+                    vec3 V,
+                    vec3 L,
+                    float dist)
 {
-  if (light.type == LIGHT_POINT && lv.dist < light._radius) {
-    /* Inside the sphere light, integrate over the hemisphere. */
-    return 1.0;
+  if (ld.type == LIGHT_POINT) {
+    if (dist < ld._radius) {
+      /* Inside, treat as hemispherical light. */
+      return 1.0;
+    }
+    else {
+      /* Outside, treat as disk light spanning the same solid angle. */
+      /* The result is the same as passing the scaled radius to #ltc_evaluate_disk_simple (see
+       * #light_ltc), using simplified math here. */
+      float r_sq = sqr(ld._radius / dist);
+      return r_sq * ltc_diffuse_sphere_integral(utility_tx, dot(N, L), r_sq);
+    }
   }
-
-  if (light.type == LIGHT_RECT) {
+  else if (is_directional || ld.type == LIGHT_SPOT) {
+    float radius = ld._radius / dist;
+    return ltc_evaluate_disk_simple(utility_tx, radius, dot(N, L));
+  }
+  else if (ld.type == LIGHT_RECT) {
     vec3 corners[4];
-    corners[0] = light._right * light._area_size_x + light._up * -light._area_size_y;
-    corners[1] = light._right * light._area_size_x + light._up * light._area_size_y;
+    corners[0] = ld._right * ld._area_size_x + ld._up * -ld._area_size_y;
+    corners[1] = ld._right * ld._area_size_x + ld._up * ld._area_size_y;
     corners[2] = -corners[0];
     corners[3] = -corners[1];
 
-    vec3 L = lv.L * lv.dist;
-    corners[0] += L;
-    corners[1] += L;
-    corners[2] += L;
-    corners[3] += L;
+    corners[0] = normalize(L * dist + corners[0]);
+    corners[1] = normalize(L * dist + corners[1]);
+    corners[2] = normalize(L * dist + corners[2]);
+    corners[3] = normalize(L * dist + corners[3]);
+
+    return ltc_evaluate_quad(utility_tx, corners, N);
+  }
+  else /* (ld.type == LIGHT_ELLIPSE) */ {
+    vec3 points[3];
+    points[0] = ld._right * -ld._area_size_x + ld._up * -ld._area_size_y;
+    points[1] = ld._right * ld._area_size_x + ld._up * -ld._area_size_y;
+    points[2] = -points[0];
+
+    points[0] += L * dist;
+    points[1] += L * dist;
+    points[2] += L * dist;
+
+    return ltc_evaluate_disk(utility_tx, N, V, mat3(1.0), points);
+  }
+}
+
+float light_ltc(sampler2DArray utility_tx,
+                const bool is_directional,
+                LightData ld,
+                vec3 N,
+                vec3 V,
+                vec3 L,
+                float dist,
+                vec4 ltc_mat)
+{
+  if (ld.type == LIGHT_POINT && dist < ld._radius) {
+    /* Inside the sphere light, integrate over the hemisphere. */
+    return 1.0;
+  }
+  else if (is_directional || ld.type != LIGHT_RECT) {
+    vec3 Px = ld._right;
+    vec3 Py = ld._up;
+
+    if (is_directional || !is_area_light(ld.type)) {
+      make_orthonormal_basis(L, Px, Py);
+    }
+
+    vec3 points[3];
+    if (ld.type == LIGHT_POINT) {
+      /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
+       * half-angle spanned by a disk light with the same radius. */
+      float radius = light_sphere_disk_radius(ld._radius, dist);
+
+      points[0] = Px * -radius + Py * -radius;
+      points[1] = Px * radius + Py * -radius;
+    }
+    else {
+      points[0] = Px * -ld._area_size_x + Py * -ld._area_size_y;
+      points[1] = Px * ld._area_size_x + Py * -ld._area_size_y;
+    }
+    points[2] = -points[0];
+
+    points[0] += L * dist;
+    points[1] += L * dist;
+    points[2] += L * dist;
+
+    return ltc_evaluate_disk(utility_tx, N, V, ltc_matrix(ltc_mat), points);
+  }
+  else {
+    vec3 corners[4];
+    corners[0] = ld._right * ld._area_size_x + ld._up * -ld._area_size_y;
+    corners[1] = ld._right * ld._area_size_x + ld._up * ld._area_size_y;
+    corners[2] = -corners[0];
+    corners[3] = -corners[1];
+
+    corners[0] += L * dist;
+    corners[1] += L * dist;
+    corners[2] += L * dist;
+    corners[3] += L * dist;
 
     ltc_transform_quad(N, V, ltc_matrix(ltc_mat), corners);
 
     return ltc_evaluate_quad(utility_tx, corners, vec3(0.0, 0.0, 1.0));
-  }
-  else {
-    vec3 Px = light._right;
-    vec3 Py = light._up;
-
-    if (!is_area_light(light.type)) {
-      make_orthonormal_basis(lv.L, Px, Py);
-    }
-
-    vec2 size = vec2(light._area_size_x, light._area_size_y);
-    if (light.type == LIGHT_POINT) {
-      /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
-       * half-angle spanned by a disk light with the same radius. */
-      size = vec2(light_sphere_disk_radius(light._radius, lv.dist));
-    }
-    vec3 points[3];
-    points[0] = Px * -size.x + Py * -size.y;
-    points[1] = Px * size.x + Py * -size.y;
-    points[2] = -points[0];
-
-    vec3 L = lv.L * lv.dist;
-    points[0] += L;
-    points[1] += L;
-    points[2] += L;
-
-    return ltc_evaluate_disk(utility_tx, N, V, ltc_matrix(ltc_mat), points);
   }
 }
 
@@ -240,18 +264,19 @@ float sample_transmittance_profile(float u)
 }
 
 vec3 light_translucent(const bool is_directional,
-                       LightData light,
+                       LightData ld,
                        vec3 N,
-                       LightVector lv,
+                       vec3 L,
+                       float dist,
                        vec3 sss_radius,
                        float delta)
 {
   /* TODO(fclem): We should compute the power at the entry point. */
   /* NOTE(fclem): we compute the light attenuation using the light vector but the transmittance
    * using the shadow depth delta. */
-  float power = light_point_light(light, is_directional, lv);
+  float power = light_point_light(ld, is_directional, L, dist);
   /* Do not add more energy on front faces. Also apply lambertian BSDF. */
-  power *= max(0.0, dot(-N, lv.L)) * M_1_PI;
+  power *= max(0.0, dot(-N, L)) * M_1_PI;
 
   sss_radius *= SSS_TRANSMIT_LUT_RADIUS;
   vec3 channels_co = saturate(delta / sss_radius) * SSS_TRANSMIT_LUT_SCALE + SSS_TRANSMIT_LUT_BIAS;

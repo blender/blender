@@ -32,5 +32,5 @@ void main()
   surfel_buf[surfel_index].ray_distance = ray_distance;
   /* NOTE: We only need to init the `list_start_buf` to -1 for the whole list to be valid since
    * every surfel will load its `next` value from the list head. */
-  surfel_buf[surfel_index].next = atomicExchange(list_start_buf[list_index], surfel_index);
+  // surfel_buf[surfel_index].next = atomicExchange(list_start_buf[list_index], surfel_index);
 }

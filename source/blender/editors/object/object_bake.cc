@@ -464,7 +464,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
   CTX_DATA_END;
 }
 
-static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
+static void multiresbake_startjob(void *bkv, bool *stop, bool *do_update, float *progress)
 {
   MultiresBakeJob *bkj = static_cast<MultiresBakeJob *>(bkv);
   int baked_objects = 0, tot_obj;
@@ -510,9 +510,9 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
     bkr.tot_obj = tot_obj;
     bkr.baked_objects = baked_objects;
 
-    bkr.stop = &worker_status->stop;
-    bkr.do_update = &worker_status->do_update;
-    bkr.progress = &worker_status->progress;
+    bkr.stop = stop;
+    bkr.do_update = do_update;
+    bkr.progress = progress;
 
     bkr.bias = bkj->bias;
     bkr.number_of_rays = bkj->number_of_rays;

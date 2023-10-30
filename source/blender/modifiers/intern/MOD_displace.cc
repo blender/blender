@@ -302,15 +302,22 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
-    if (CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL)) {
+    CustomData *ldata = &mesh->loop_data;
+
+    if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
+      if (!CustomData_has_layer(ldata, CD_NORMAL)) {
+        BKE_mesh_calc_normals_split(mesh);
+      }
+
+      float(*clnors)[3] = static_cast<float(*)[3]>(
+          CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
-      BKE_mesh_normals_loop_to_vertex(
-          verts_num,
-          mesh->corner_verts().data(),
-          mesh->totloop,
-          reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
-          vert_clnors);
+      BKE_mesh_normals_loop_to_vertex(verts_num,
+                                      mesh->corner_verts().data(),
+                                      mesh->totloop,
+                                      (const float(*)[3])clnors,
+                                      vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;
@@ -407,7 +414,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
   }
 
   uiItemS(layout);

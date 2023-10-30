@@ -1298,7 +1298,7 @@ static void sculpt_expand_mask_update_task(SculptSession *ss,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
-    const float initial_mask = vd.mask;
+    const float initial_mask = *vd.mask;
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.vertex);
 
     if (expand_cache->check_islands &&
@@ -1387,7 +1387,7 @@ static void sculpt_expand_colors_update_task(SculptSession *ss, PBVHNode *node)
       fade = 0.0f;
     }
 
-    fade *= 1.0f - vd.mask;
+    fade *= 1.0f - *vd.mask;
     fade = clamp_f(fade, 0.0f, 1.0f);
 
     float final_color[4];

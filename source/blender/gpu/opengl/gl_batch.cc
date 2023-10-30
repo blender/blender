@@ -219,6 +219,15 @@ GLuint GLVaoCache::base_instance_vao_get(GPUBatch *batch, int i_first)
     /* Trigger update. */
     base_instance_ = 0;
   }
+  /**
+   * There seems to be a nasty bug when drawing using the same VAO reconfiguring (#71147).
+   * We just use a throwaway VAO for that. Note that this is likely to degrade performance.
+   */
+#ifdef __APPLE__
+  glDeleteVertexArrays(1, &vao_base_instance_);
+  vao_base_instance_ = 0;
+  base_instance_ = 0;
+#endif
 
   if (vao_base_instance_ == 0) {
     glGenVertexArrays(1, &vao_base_instance_);
@@ -309,12 +318,18 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
     }
   }
   else {
+#ifdef __APPLE__
+    glDisable(GL_PRIMITIVE_RESTART);
+#endif
     if (GLContext::base_instance_support) {
       glDrawArraysInstancedBaseInstance(gl_type, v_first, v_count, i_count, i_first);
     }
     else {
       glDrawArraysInstanced(gl_type, v_first, v_count, i_count);
     }
+#ifdef __APPLE__
+    glEnable(GL_PRIMITIVE_RESTART);
+#endif
   }
 }
 

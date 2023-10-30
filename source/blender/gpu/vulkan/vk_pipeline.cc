@@ -205,12 +205,12 @@ void VKPipeline::update_and_bind(VKContext &context,
                                  VkPipelineLayout vk_pipeline_layout,
                                  VkPipelineBindPoint vk_pipeline_bind_point)
 {
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.bind(*this, vk_pipeline_bind_point);
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.bind(*this, vk_pipeline_bind_point);
   push_constants_.update(context);
   if (descriptor_set_.has_layout()) {
     descriptor_set_.update(context);
-    command_buffers.bind(
+    command_buffer.bind(
         *descriptor_set_.active_descriptor_set(), vk_pipeline_layout, vk_pipeline_bind_point);
   }
 }

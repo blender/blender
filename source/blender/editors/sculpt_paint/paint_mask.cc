@@ -119,7 +119,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
       bool redraw = false;
       PBVHVertexIter vi;
       BKE_pbvh_vertex_iter_begin (pbvh, node, vi, PBVH_ITER_UNIQUE) {
-        float prevmask = vi.mask;
+        float prevmask = *vi.mask;
         const float new_mask = mask_flood_fill_get_new_value_for_elem(prevmask, mode, value);
         if (prevmask != new_mask) {
           SCULPT_mask_vert_set(BKE_pbvh_type(ob->sculpt->pbvh), mask_write, new_mask, vi);
@@ -291,7 +291,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
                                                SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  sgcontext->vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_viewcontext_init(C, &sgcontext->vc, depsgraph);
   Object *ob = sgcontext->vc.obact;
 
   /* Operator properties. */
@@ -794,7 +794,7 @@ static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
 
   BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (sculpt_gesture_is_vertex_effected(sgcontext, vd.vertex)) {
-      float prevmask = vd.mask;
+      float prevmask = vd.mask ? *vd.mask : 0.0f;
       if (!any_masked) {
         any_masked = true;
 
@@ -1503,7 +1503,7 @@ static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBV
 
     float disp[3];
     sub_v3_v3v3(disp, projected_pos, vd.co);
-    const float mask = vd.mask;
+    const float mask = vd.mask ? *vd.mask : 0.0f;
     mul_v3_fl(disp, 1.0f - mask);
     if (is_zero_v3(disp)) {
       continue;

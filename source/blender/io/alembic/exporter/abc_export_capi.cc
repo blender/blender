@@ -70,7 +70,12 @@ static void report_job_duration(const ExportJobData *data)
   std::cout << '\n';
 }
 
-static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void export_startjob(void *customdata,
+                            /* Cannot be const, this function implements wm_jobs_start_callback.
+                             * NOLINTNEXTLINE: readability-non-const-parameter. */
+                            bool *stop,
+                            bool *do_update,
+                            float *progress)
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
   data->was_canceled = false;
@@ -80,8 +85,8 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   WM_set_locked_interface(data->wm, true);
   G.is_break = false;
 
-  worker_status->progress = 0.0f;
-  worker_status->do_update = true;
+  *progress = 0.0f;
+  *do_update = true;
 
   build_depsgraph(data->depsgraph, data->params.visible_objects_only);
   SubdivModifierDisabler subdiv_disabler(data->depsgraph);
@@ -135,7 +140,7 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     for (; frame_it != frames_end; frame_it++) {
       double frame = *frame_it;
 
-      if (G.is_break || worker_status->stop) {
+      if (G.is_break || (stop != nullptr && *stop)) {
         break;
       }
 
@@ -149,8 +154,8 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
       iter.set_export_subset(export_subset);
       iter.iterate_and_write();
 
-      worker_status->progress += progress_per_frame;
-      worker_status->do_update = true;
+      *progress += progress_per_frame;
+      *do_update = true;
     }
   }
   else {
@@ -168,8 +173,8 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   data->export_ok = !data->was_canceled;
 
-  worker_status->progress = 1.0f;
-  worker_status->do_update = true;
+  *progress = 1.0f;
+  *do_update = true;
 }
 
 static void export_endjob(void *customdata)
@@ -225,8 +230,11 @@ bool ABC_export(Scene *scene,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    wmJobWorkerStatus worker_status = {};
-    blender::io::alembic::export_startjob(job, &worker_status);
+    /* Fake a job context, so that we don't need null pointer checks while exporting. */
+    bool stop = false, do_update = false;
+    float progress = 0.0f;
+
+    blender::io::alembic::export_startjob(job, &stop, &do_update, &progress);
     blender::io::alembic::export_endjob(job);
     export_ok = job->export_ok;
 

@@ -219,12 +219,15 @@ static void lineart_gpencil_guard_modifiers(LineartBakeJob *bj)
   }
 }
 
-static void lineart_gpencil_bake_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void lineart_gpencil_bake_startjob(void *customdata,
+                                          bool *stop,
+                                          bool *do_update,
+                                          float *progress)
 {
   LineartBakeJob *bj = (LineartBakeJob *)customdata;
-  bj->stop = &worker_status->stop;
-  bj->do_update = &worker_status->do_update;
-  bj->progress = &worker_status->progress;
+  bj->stop = stop;
+  bj->do_update = do_update;
+  bj->progress = progress;
 
   lineart_gpencil_guard_modifiers(bj);
 
@@ -336,8 +339,9 @@ static int lineart_gpencil_bake_common(bContext *C,
     return OPERATOR_RUNNING_MODAL;
   }
 
-  wmJobWorkerStatus worker_status = {};
-  lineart_gpencil_bake_startjob(bj, &worker_status);
+  float pseduo_progress;
+  bool pseduo_do_update;
+  lineart_gpencil_bake_startjob(bj, nullptr, &pseduo_do_update, &pseduo_progress);
 
   BLI_linklist_free(bj->objects, nullptr);
   MEM_freeN(bj);

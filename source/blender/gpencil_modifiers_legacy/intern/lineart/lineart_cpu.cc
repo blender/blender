@@ -2006,6 +2006,10 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   if (orig_ob->lineart.flags & OBJECT_LRT_OWN_CREASE) {
     crease_angle = cosf(M_PI - orig_ob->lineart.crease_threshold);
   }
+  else if (ob_info->original_me->flag & ME_AUTOSMOOTH) {
+    crease_angle = cosf(ob_info->original_me->smoothresh);
+    use_auto_smooth = true;
+  }
   else {
     crease_angle = la_data->conf.crease_threshold;
   }

@@ -944,7 +944,7 @@ int view3d_opengl_select_with_id_filter(ViewContext *vc,
 /* view3d_select.cc */
 
 float ED_view3d_select_dist_px();
-ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
+void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph);
 
 /**
  * Re-initialize `vc` with `obact` as if it's active object (with some differences).

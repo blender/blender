@@ -1173,6 +1173,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
     }
     else {
       BKE_mesh_set_custom_normals(me, reinterpret_cast<float(*)[3]>(loop_normals.data()));
+      me->flag |= ME_AUTOSMOOTH;
     }
   }
 

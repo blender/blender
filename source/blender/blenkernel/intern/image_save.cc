@@ -165,10 +165,10 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     /* check for empty path */
     if (guess_path && opts->filepath[0] == 0) {
-      const bool is_prev_save = !STREQ(G.filepath_last_image, "//");
+      const bool is_prev_save = !STREQ(G.ima, "//");
       if (opts->save_as_render) {
         if (is_prev_save) {
-          STRNCPY(opts->filepath, G.filepath_last_image);
+          STRNCPY(opts->filepath, G.ima);
         }
         else {
           BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", DATA_("untitled"));
@@ -178,8 +178,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       else {
         BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", ima->id.name + 2);
         BLI_path_make_safe(opts->filepath);
-        BLI_path_abs(opts->filepath,
-                     is_prev_save ? G.filepath_last_image : BKE_main_blendfile_path(bmain));
+        BLI_path_abs(opts->filepath, is_prev_save ? G.ima : BKE_main_blendfile_path(bmain));
       }
 
       /* append UDIM marker if not present */

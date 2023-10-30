@@ -64,7 +64,6 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
                                            bke::GeometryComponent::Type::Instance,
                                            bke::GeometryComponent::Type::Mesh,
                                            bke::GeometryComponent::Type::PointCloud,
-                                           bke::GeometryComponent::Type::GreasePencil,
                                            bke::GeometryComponent::Type::Volume};
 
   /* Keep track handled attribute names to make sure that we do not return the same name twice.
@@ -129,10 +128,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         break;
       }
       case bke::GeometryComponent::Type::GreasePencil: {
-        const auto &grease_pencil_component = *static_cast<const bke::GreasePencilComponent *>(
-            component);
-        GreasePencilInfo &info = this->grease_pencil_info.emplace();
-        info.layers_num = grease_pencil_component.attribute_domain_size(ATTR_DOMAIN_LAYER);
+        /* TODO. Do nothing for now. */
         break;
       }
     }
@@ -578,9 +574,28 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   ComputeContextBuilder compute_context_builder;
   compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
-    if (!ed::viewer_path::add_compute_context_for_viewer_path_elem(*elem, compute_context_builder))
-    {
-      return nullptr;
+    switch (elem->type) {
+      case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
+        const auto &typed_elem = *reinterpret_cast<const GroupNodeViewerPathElem *>(elem);
+        compute_context_builder.push<bke::NodeGroupComputeContext>(typed_elem.node_id);
+        break;
+      }
+      case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
+        const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(elem);
+        compute_context_builder.push<bke::SimulationZoneComputeContext>(
+            typed_elem.sim_output_node_id);
+        break;
+      }
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+        const auto &typed_elem = *reinterpret_cast<const RepeatZoneViewerPathElem *>(elem);
+        compute_context_builder.push<bke::RepeatZoneComputeContext>(
+            typed_elem.repeat_output_node_id, typed_elem.iteration);
+        break;
+      }
+      default: {
+        BLI_assert_unreachable();
+        break;
+      }
     }
   }
   const ComputeContextHash context_hash = compute_context_builder.hash();

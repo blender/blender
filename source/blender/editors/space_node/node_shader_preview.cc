@@ -689,13 +689,16 @@ static void update_needed_flag(NestedTreePreviews &tree_previews,
   }
 }
 
-static void shader_preview_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void shader_preview_startjob(void *customdata,
+                                    bool *stop,
+                                    bool *do_update,
+                                    float * /*progress*/)
 {
   ShaderNodesPreviewJob *job_data = static_cast<ShaderNodesPreviewJob *>(customdata);
 
-  job_data->stop = &worker_status->stop;
-  job_data->do_update = &worker_status->do_update;
-  worker_status->do_update = true;
+  job_data->stop = stop;
+  job_data->do_update = do_update;
+  *do_update = true;
   bool size_changed = job_data->tree_previews->preview_size != U.node_preview_res;
   if (size_changed) {
     job_data->tree_previews->preview_size = U.node_preview_res;
@@ -783,7 +786,9 @@ static void ensure_nodetree_previews(const bContext &C,
     return;
   }
   if (tree_previews.rendering) {
-    WM_jobs_stop(CTX_wm_manager(&C), CTX_wm_space_node(&C), shader_preview_startjob);
+    WM_jobs_stop(CTX_wm_manager(&C),
+                 CTX_wm_space_node(&C),
+                 reinterpret_cast<void *>(shader_preview_startjob));
     return;
   }
   tree_previews.rendering = true;
@@ -835,7 +840,7 @@ static void ensure_nodetree_previews(const bContext &C,
 
 void stop_preview_job(wmWindowManager &wm)
 {
-  WM_jobs_stop(&wm, nullptr, shader_preview_startjob);
+  WM_jobs_stop(&wm, nullptr, reinterpret_cast<void *>(shader_preview_startjob));
 }
 
 void free_previews(wmWindowManager &wm, SpaceNode &snode)

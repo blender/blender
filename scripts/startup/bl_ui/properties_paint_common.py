@@ -82,8 +82,6 @@ class UnifiedPaintPanel:
             return tool_settings.gpencil_vertex_paint
         elif mode == 'SCULPT_CURVES':
             return tool_settings.curves_sculpt
-        elif mode == 'PAINT_GREASE_PENCIL':
-            return tool_settings.gpencil_paint
         return None
 
     @staticmethod
@@ -867,11 +865,6 @@ def brush_shared_settings(layout, context, brush, popover=False):
         size = True
         strength = True
         direction = brush.curves_sculpt_tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
-
-    # Grease Pencil #
-    if mode == 'PAINT_GREASE_PENCIL':
-        size = True
-        strength = True
 
     ### Draw settings. ###
     ups = context.scene.tool_settings.unified_paint_settings

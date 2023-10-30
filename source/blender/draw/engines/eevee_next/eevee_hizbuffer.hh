@@ -37,16 +37,10 @@ class HiZBuffer {
   draw::StorageBuffer<uint4, true> atomic_tile_counter_ = {"atomic_tile_counter"};
   /** Single pass recursive down-sample. */
   PassSimple hiz_update_ps_ = {"HizUpdate"};
-  /** Single pass recursive down-sample for layered depth buffer. Only downsample 1 layer. */
-  PassSimple hiz_update_layer_ps_ = {"HizUpdate.Layer"};
-  int layer_id_ = -1;
   /** Debug pass. */
   PassSimple debug_draw_ps_ = {"HizUpdate.Debug"};
   /** Dirty flag to check if the update is necessary. */
   bool is_dirty_ = true;
-  /** Reference to the depth texture to downsample. */
-  GPUTexture *src_tx_;
-  GPUTexture **src_tx_ptr_;
 
   HiZData &data_;
 
@@ -57,15 +51,6 @@ class HiZBuffer {
   };
 
   void sync();
-
-  /**
-   * Set source texture for the hiz downsampling.
-   */
-  void set_source(GPUTexture **texture, int layer = -1)
-  {
-    src_tx_ptr_ = texture;
-    layer_id_ = layer;
-  }
 
   /**
    * Tag the buffer for update if needed.
@@ -89,9 +74,9 @@ class HiZBuffer {
     DRW_shgroup_uniform_texture_ref(grp, "hiz_tx", &hiz_tx_);
   }
 
-  template<typename PassType> void bind_resources(PassType &pass)
+  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
   {
-    pass.bind_texture(HIZ_TEX_SLOT, &hiz_tx_);
+    pass->bind_texture(HIZ_TEX_SLOT, &hiz_tx_);
   }
 };
 

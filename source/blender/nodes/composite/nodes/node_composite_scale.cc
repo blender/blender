@@ -7,10 +7,8 @@
  */
 
 #include "BLI_assert.h"
-#include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
@@ -19,7 +17,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -85,16 +82,13 @@ class ScaleOperation : public NodeOperation {
   void execute() override
   {
     Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &result = get_result("Image");
+    input.pass_through(result);
 
-    const float2 scale = get_scale();
-    const math::AngleRadian rotation = 0.0f;
-    const float2 translation = get_translation();
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
-        translation, rotation, scale);
+        get_translation(), math::AngleRadian(0.0f), get_scale());
 
-    const Interpolation interpolation = input.get_realization_options().interpolation;
-    transform(context(), input, output, transformation, interpolation);
+    result.transform(transformation);
   }
 
   float2 get_scale()

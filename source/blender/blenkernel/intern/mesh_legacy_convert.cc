@@ -21,7 +21,6 @@
 #include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_multi_value_map.hh"
@@ -34,17 +33,10 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
-#include "BKE_idprop.hh"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_modifier.h"
 #include "BKE_multires.hh"
-#include "BKE_node.hh"
-#include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
-
-#include "BLT_translation.h"
 
 using blender::MutableSpan;
 using blender::Span;
@@ -2096,7 +2088,7 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
   else {
     /* Reorder mesh polygons to match the order of their loops. */
     Array<int> orig_indices(polys.size());
-    array_utils::fill_index_range<int>(orig_indices);
+    std::iota(orig_indices.begin(), orig_indices.end(), 0);
     std::stable_sort(orig_indices.begin(), orig_indices.end(), [polys](const int a, const int b) {
       return polys[a].loopstart < polys[b].loopstart;
     });
@@ -2121,177 +2113,6 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
   }
 
   CustomData_free_layers(&mesh->face_data, CD_MPOLY, mesh->faces_num);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Auto Smooth Conversion
- * \{ */
-
-static bNodeTree *add_auto_smooth_node_tree(Main &bmain)
-{
-  bNodeTree *group = ntreeAddTree(&bmain, DATA_("Auto Smooth"), "GeometryNodeTree");
-
-  group->tree_interface.add_socket(DATA_("Geometry"),
-                                   "",
-                                   "NodeSocketGeometry",
-                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                   nullptr);
-  bNodeTreeInterfaceSocket *angle_io_socket = group->tree_interface.add_socket(
-      DATA_("Angle"), "", "NodeSocketFloat", NODE_INTERFACE_SOCKET_INPUT, nullptr);
-  auto &angle_data = *static_cast<bNodeSocketValueFloat *>(angle_io_socket->socket_data);
-  angle_data.min = 0.0f;
-  angle_data.max = DEG2RADF(180.0f);
-  angle_data.subtype = PROP_ANGLE;
-
-  bNode *group_output = nodeAddNode(nullptr, group, "NodeGroupOutput");
-  group_output->locx = 480.0f;
-  group_output->locy = -100.0f;
-  bNode *group_input_angle = nodeAddNode(nullptr, group, "NodeGroupInput");
-  group_input_angle->locx = -420.0f;
-  group_input_angle->locy = -300.0f;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_angle->outputs) {
-    if (!STREQ(socket->identifier, "Socket_1")) {
-      socket->flag |= SOCK_HIDDEN;
-    }
-  }
-  bNode *group_input_mesh = nodeAddNode(nullptr, group, "NodeGroupInput");
-  group_input_mesh->locx = -60.0f;
-  group_input_mesh->locy = -100.0f;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_mesh->outputs) {
-    if (!STREQ(socket->identifier, "Socket_0")) {
-      socket->flag |= SOCK_HIDDEN;
-    }
-  }
-  bNode *shade_smooth_edge = nodeAddNode(nullptr, group, "GeometryNodeSetShadeSmooth");
-  shade_smooth_edge->custom1 = ATTR_DOMAIN_EDGE;
-  shade_smooth_edge->locx = 120.0f;
-  shade_smooth_edge->locy = -100.0f;
-  bNode *shade_smooth_face = nodeAddNode(nullptr, group, "GeometryNodeSetShadeSmooth");
-  shade_smooth_face->custom1 = ATTR_DOMAIN_FACE;
-  shade_smooth_face->locx = 300.0f;
-  shade_smooth_face->locy = -100.0f;
-  bNode *edge_angle = nodeAddNode(nullptr, group, "GeometryNodeInputMeshEdgeAngle");
-  edge_angle->locx = -420.0f;
-  edge_angle->locy = -220.0f;
-  bNode *edge_smooth = nodeAddNode(nullptr, group, "GeometryNodeInputEdgeSmooth");
-  edge_smooth->locx = -60.0f;
-  edge_smooth->locy = -160.0f;
-  bNode *face_smooth = nodeAddNode(nullptr, group, "GeometryNodeInputShadeSmooth");
-  face_smooth->locx = -240.0f;
-  face_smooth->locy = -340.0f;
-  bNode *boolean_and = nodeAddNode(nullptr, group, "FunctionNodeBooleanMath");
-  boolean_and->custom1 = NODE_BOOLEAN_MATH_AND;
-  boolean_and->locx = -60.0f;
-  boolean_and->locy = -220.0f;
-  bNode *less_than_or_equal = nodeAddNode(nullptr, group, "FunctionNodeCompare");
-  static_cast<NodeFunctionCompare *>(less_than_or_equal->storage)->operation =
-      NODE_COMPARE_LESS_EQUAL;
-  less_than_or_equal->locx = -240.0f;
-  less_than_or_equal->locy = -180.0f;
-
-  nodeAddLink(group,
-              edge_angle,
-              nodeFindSocket(edge_angle, SOCK_OUT, "Unsigned Angle"),
-              less_than_or_equal,
-              nodeFindSocket(less_than_or_equal, SOCK_IN, "A"));
-  nodeAddLink(group,
-              shade_smooth_face,
-              nodeFindSocket(shade_smooth_face, SOCK_OUT, "Geometry"),
-              group_output,
-              nodeFindSocket(group_output, SOCK_IN, "Socket_0"));
-  nodeAddLink(group,
-              group_input_angle,
-              nodeFindSocket(group_input_angle, SOCK_OUT, "Socket_1"),
-              less_than_or_equal,
-              nodeFindSocket(less_than_or_equal, SOCK_IN, "B"));
-  nodeAddLink(group,
-              less_than_or_equal,
-              nodeFindSocket(less_than_or_equal, SOCK_OUT, "Result"),
-              boolean_and,
-              nodeFindSocket(boolean_and, SOCK_IN, "Boolean"));
-  nodeAddLink(group,
-              face_smooth,
-              nodeFindSocket(face_smooth, SOCK_OUT, "Smooth"),
-              boolean_and,
-              nodeFindSocket(boolean_and, SOCK_IN, "Boolean_001"));
-  nodeAddLink(group,
-              group_input_mesh,
-              nodeFindSocket(group_input_mesh, SOCK_OUT, "Socket_0"),
-              shade_smooth_edge,
-              nodeFindSocket(shade_smooth_edge, SOCK_IN, "Geometry"));
-  nodeAddLink(group,
-              edge_smooth,
-              nodeFindSocket(edge_smooth, SOCK_OUT, "Smooth"),
-              shade_smooth_edge,
-              nodeFindSocket(shade_smooth_edge, SOCK_IN, "Selection"));
-  nodeAddLink(group,
-              shade_smooth_edge,
-              nodeFindSocket(shade_smooth_edge, SOCK_OUT, "Geometry"),
-              shade_smooth_face,
-              nodeFindSocket(shade_smooth_face, SOCK_IN, "Geometry"));
-  nodeAddLink(group,
-              boolean_and,
-              nodeFindSocket(boolean_and, SOCK_OUT, "Boolean"),
-              shade_smooth_edge,
-              nodeFindSocket(shade_smooth_edge, SOCK_IN, "Shade Smooth"));
-
-  LISTBASE_FOREACH (bNode *, node, &group->nodes) {
-    nodeSetSelected(node, false);
-  }
-
-  return group;
-}
-
-void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
-{
-  using namespace blender;
-  bNodeTree *auto_smooth_node_tree = nullptr;
-  LISTBASE_FOREACH (Object *, object, &bmain.objects) {
-    if (object->type != OB_MESH) {
-      continue;
-    }
-    Mesh *mesh = static_cast<Mesh *>(object->data);
-    if (!(mesh->flag & ME_AUTOSMOOTH_LEGACY)) {
-      continue;
-    }
-    if (CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL)) {
-      continue;
-    }
-    if (!auto_smooth_node_tree) {
-      auto_smooth_node_tree = add_auto_smooth_node_tree(bmain);
-      BKE_ntree_update_main_tree(&bmain, auto_smooth_node_tree, nullptr);
-    }
-    auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
-    STRNCPY(md->modifier.name, DATA_("Auto Smooth"));
-    BKE_modifier_unique_name(&object->modifiers, &md->modifier);
-    md->node_group = auto_smooth_node_tree;
-    if (!BLI_listbase_is_empty(&object->modifiers) &&
-        static_cast<ModifierData *>(object->modifiers.last)->type == eModifierType_Subsurf)
-    {
-      /* Add the auto smooth node group before the last subdivision surface modifier if possible.
-       * Subdivision surface modifiers have special handling for interpolating face corner normals,
-       * and recalculating them afterwards isn't usually helpful and can be much slower. */
-      BLI_insertlinkbefore(&object->modifiers, object->modifiers.last, md);
-    }
-    else {
-      BLI_addtail(&object->modifiers, md);
-    }
-
-    md->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
-    IDProperty *angle_prop =
-        bke::idprop::create(DATA_("Socket_1"), mesh->smoothresh_legacy).release();
-    auto *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(IDP_ui_data_ensure(angle_prop));
-    ui_data->base.rna_subtype = PROP_ANGLE;
-    ui_data->soft_min = 0.0f;
-    ui_data->soft_max = DEG2RADF(180.0f);
-    IDP_AddToGroup(md->settings.properties, angle_prop);
-    IDP_AddToGroup(md->settings.properties,
-                   bke::idprop::create(DATA_("Input_1_use_attribute"), 0).release());
-    IDP_AddToGroup(md->settings.properties,
-                   bke::idprop::create(DATA_("Input_1_attribute_name"), "").release());
-  }
 }
 
 /** \} */

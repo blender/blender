@@ -13,7 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"

@@ -30,7 +30,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -926,11 +925,6 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
   if (ctx->object->type != OB_POINTCLOUD || geometry_set_is_instance) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
       make_dupli(ctx, ctx->object, &pointcloud->id, parent_transform, component_index++);
-    }
-  }
-  if (ctx->object->type != OB_GREASE_PENCIL || geometry_set_is_instance) {
-    if (const GreasePencil *grease_pencil = geometry_set.get_grease_pencil()) {
-      make_dupli(ctx, ctx->object, &grease_pencil->id, parent_transform, component_index++);
     }
   }
   const bool creates_duplis_for_components = component_index >= 1;

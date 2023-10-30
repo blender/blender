@@ -9,8 +9,6 @@
 #include <pxr/usd/usdGeom/bboxCache.h>
 
 #include "BKE_customdata.h"
-#include "BKE_report.h"
-
 #include "BLI_assert.h"
 
 #include "DNA_mesh_types.h"
@@ -169,10 +167,9 @@ void USDAbstractWriter::author_extent(const pxr::UsdTimeCode timecode, pxr::UsdG
   pxr::GfBBox3d bounds = bboxCache.ComputeLocalBound(prim.GetPrim());
   if (pxr::GfBBox3d() == bounds) {
     /* This will occur, for example, if a mesh does not have any vertices. */
-    BKE_reportf(reports(),
-                RPT_WARNING,
-                "USD Export: no bounds could be computed for %s",
-                prim.GetPrim().GetName().GetText());
+    WM_reportf(RPT_WARNING,
+               "USD Export: no bounds could be computed for %s",
+               prim.GetPrim().GetName().GetText());
     return;
   }
 

@@ -202,7 +202,6 @@
     .volumetric_tile_size = 8, \
     .volumetric_samples = 64, \
     .volumetric_sample_distribution = 0.8f, \
-    .volumetric_ray_depth = 16, \
     .volumetric_light_clamp = 0.0f, \
     .volumetric_shadow_samples = 16, \
  \

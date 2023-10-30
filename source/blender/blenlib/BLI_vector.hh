@@ -41,7 +41,7 @@ namespace blender {
 
 namespace internal {
 void vector_print_stats(const char *name,
-                        const void *address,
+                        void *address,
                         int64_t size,
                         int64_t capacity,
                         int64_t inlineCapacity,

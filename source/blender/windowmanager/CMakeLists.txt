@@ -103,7 +103,6 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_screen
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::animrig
   bf_sequencer
   bf_intern_ghost
 )
@@ -175,8 +174,10 @@ if(WITH_INPUT_NDOF)
   add_definitions(-DWITH_INPUT_NDOF)
 endif()
 
-if(WITH_INPUT_IME)
-  add_definitions(-DWITH_INPUT_IME)
+if(WIN32 OR APPLE)
+  if(WITH_INPUT_IME)
+    add_definitions(-DWITH_INPUT_IME)
+  endif()
 endif()
 
 if(WITH_COMPOSITOR_CPU)

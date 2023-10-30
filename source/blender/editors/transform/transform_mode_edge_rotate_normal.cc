@@ -131,7 +131,8 @@ static void initNormalRotation(TransInfo *t, wmOperator * /*op*/)
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
     BMesh *bm = em->bm;
 
-    BKE_editmesh_lnorspace_update(em);
+    BKE_editmesh_ensure_autosmooth(em, static_cast<Mesh *>(tc->obedit->data));
+    BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(tc->obedit->data));
 
     storeCustomLNorValue(tc, bm);
   }

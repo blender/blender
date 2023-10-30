@@ -1019,11 +1019,6 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
         "disabling will render faster but not give accurate shadows",
         default=True,
     )
-    use_bump_map_correction: BoolProperty(
-        name="Bump Map Correction",
-        description="Apply corrections to solve shadow terminator artifacts caused by bump mapping",
-        default=True,
-    )
     homogeneous_volume: BoolProperty(
         name="Homogeneous Volume",
         description="When using volume rendering, assume volume has the same density everywhere "
@@ -1648,7 +1643,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
-                    driver_version = "XX.X.101.4824"
+                    driver_version = "XX.X.101.4644"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
                     col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)

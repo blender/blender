@@ -1316,7 +1316,10 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
 static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job);
 
-static void ui_studiolight_icon_job_exec(void *customdata, wmJobWorkerStatus * /*worker_status*/)
+static void ui_studiolight_icon_job_exec(void *customdata,
+                                         bool * /*stop*/,
+                                         bool * /*do_update*/,
+                                         float * /*progress*/)
 {
   Icon **tmp = (Icon **)customdata;
   Icon *icon = *tmp;

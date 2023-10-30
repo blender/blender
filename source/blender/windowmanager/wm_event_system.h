@@ -134,11 +134,7 @@ void wm_event_do_handlers(bContext *C);
 /**
  * Windows store own event queues #wmWindow.event_queue (no #bContext here).
  */
-void wm_event_add_ghostevent(wmWindowManager *wm,
-                             wmWindow *win,
-                             int type,
-                             const void *customdata,
-                             const uint64_t event_time_ms);
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata);
 #ifdef WITH_XR_OPENXR
 void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val);
 #endif

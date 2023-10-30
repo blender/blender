@@ -16,10 +16,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "WM_types.hh"
-
 #include "DNA_material_types.h"
-#include "DNA_windowmanager_types.h"
 
 struct Material;
 
@@ -53,12 +50,6 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   virtual bool is_supported(const HierarchyContext *context) const;
 
   const pxr::SdfPath &usd_path() const;
-
-  /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
-  ReportList *reports() const
-  {
-    return usd_export_context_.export_params.worker_status->reports;
-  }
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;

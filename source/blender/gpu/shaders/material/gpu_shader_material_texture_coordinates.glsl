@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(gpu_shader_material_transform_utils.glsl)
-
 void node_tex_coord_position(out vec3 out_pos)
 {
   out_pos = g_data.P;
@@ -21,15 +19,9 @@ void node_tex_coord(mat4 obmatinv,
                     out vec3 reflection)
 {
   generated = attr_orco;
-  normal_transform_world_to_object(g_data.N, normal);
+  normal = normal_world_to_object(g_data.N);
   uv = attr_uv.xyz;
-  bool valid_mat = (obmatinv[3][3] != 0.0);
-  if (valid_mat) {
-    object = (obmatinv * vec4(g_data.P, 1.0)).xyz;
-  }
-  else {
-    point_transform_world_to_object(g_data.P, object);
-  }
+  object = transform_point((obmatinv[3][3] == 0.0) ? ModelMatrixInverse : obmatinv, g_data.P);
   camera = coordinate_camera(g_data.P);
   window = coordinate_screen(g_data.P);
   reflection = coordinate_reflect(g_data.P, g_data.N);

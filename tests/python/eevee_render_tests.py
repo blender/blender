@@ -43,13 +43,13 @@ def setup():
     # Does not work in edit mode
     try:
         # Simple probe setup
-        bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.5, 0, 1.5))
+        bpy.ops.object.lightprobe_add(type='CUBEMAP', location=(0.5, 0, 1.5))
         cubemap = bpy.context.selected_objects[0]
         cubemap.scale = (2.5, 2.5, 1.0)
         cubemap.data.falloff = 0
         cubemap.data.clip_start = 2.4
 
-        bpy.ops.object.lightprobe_add(type='VOLUME', location=(0, 0, 0.25))
+        bpy.ops.object.lightprobe_add(type='GRID', location=(0, 0, 0.25))
         grid = bpy.context.selected_objects[0]
         grid.scale = (1.735, 1.735, 1.735)
         grid.data.grid_resolution_x = 3

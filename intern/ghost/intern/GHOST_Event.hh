@@ -31,7 +31,7 @@ class GHOST_Event : public GHOST_IEvent {
    * Returns the event type.
    * \return The event type.
    */
-  GHOST_TEventType getType() const
+  GHOST_TEventType getType()
   {
     return m_type;
   }
@@ -40,7 +40,7 @@ class GHOST_Event : public GHOST_IEvent {
    * Returns the time this event was generated.
    * \return The event generation time.
    */
-  uint64_t getTime() const
+  uint64_t getTime()
   {
     return m_time;
   }
@@ -50,7 +50,7 @@ class GHOST_Event : public GHOST_IEvent {
    * or nullptr if it is a 'system' event.
    * \return The generating window.
    */
-  GHOST_IWindow *getWindow() const
+  GHOST_IWindow *getWindow()
   {
     return m_window;
   }
@@ -59,7 +59,7 @@ class GHOST_Event : public GHOST_IEvent {
    * Returns the event data.
    * \return The event data.
    */
-  GHOST_TEventDataPtr getData() const
+  GHOST_TEventDataPtr getData()
   {
     return m_data;
   }

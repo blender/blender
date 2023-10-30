@@ -66,6 +66,13 @@ extern "C" {
 /** \name Views
  * \{ */
 
+/**
+ * The maximum of indexable views is dictated by:
+ * - The UBO limit (16KiB) of the ViewMatrices container.
+ * - The maximum resource index supported for shaders using multi-view (see DRW_VIEW_SHIFT).
+ */
+#define DRW_VIEW_MAX 64
+
 #ifndef DRW_VIEW_LEN
 /* Single-view case (default). */
 #  define drw_view_id 0

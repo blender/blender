@@ -52,9 +52,10 @@ void VKStateManager::force_state()
 void VKStateManager::issue_barrier(eGPUBarrier /*barrier_bits*/)
 {
   VKContext &context = *VKContext::get();
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
   /* TODO: Pipeline barriers should be added. We might be able to extract it from
    * the actual pipeline, later on, but for now we submit the work as barrier. */
-  context.flush();
+  command_buffer.submit();
 }
 
 void VKStateManager::texture_bind(Texture *tex, GPUSamplerState /*sampler*/, int unit)

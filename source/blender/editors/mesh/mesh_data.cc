@@ -723,9 +723,34 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
 
   if (me->edit_mesh) {
     BMesh &bm = *me->edit_mesh->bm;
+    /* Tag edges as sharp according to smooth threshold if needed,
+     * to preserve auto-smooth shading. */
+    if (me->flag & ME_AUTOSMOOTH) {
+      BM_edges_sharp_from_angle_set(&bm, me->smoothresh);
+    }
+
     BM_data_layer_add(&bm, &bm.ldata, CD_CUSTOMLOOPNORMAL);
   }
   else {
+    /* Tag edges as sharp according to smooth threshold if needed,
+     * to preserve auto-smooth shading. */
+    if (me->flag & ME_AUTOSMOOTH) {
+      bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+      bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+          "sharp_edge", ATTR_DOMAIN_EDGE);
+      const bool *sharp_faces = static_cast<const bool *>(
+          CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
+      bke::mesh::edges_sharp_from_angle_set(me->faces(),
+                                            me->corner_verts(),
+                                            me->corner_edges(),
+                                            me->face_normals(),
+                                            me->corner_to_face_map(),
+                                            sharp_faces,
+                                            me->smoothresh,
+                                            sharp_edges.span);
+      sharp_edges.finish();
+    }
+
     CustomData_add_layer(&me->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me->totloop);
   }
 
@@ -1129,7 +1154,9 @@ void ED_mesh_split_faces(Mesh *mesh)
 {
   using namespace blender;
   const OffsetIndices polys = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
+  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> mesh_sharp_edges = *attributes.lookup_or_default<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE, false);
@@ -1138,6 +1165,15 @@ void ED_mesh_split_faces(Mesh *mesh)
 
   Array<bool> sharp_edges(mesh->totedge);
   mesh_sharp_edges.materialize(sharp_edges);
+
+  bke::mesh::edges_sharp_from_angle_set(polys,
+                                        corner_verts,
+                                        corner_edges,
+                                        mesh->face_normals(),
+                                        mesh->corner_to_face_map(),
+                                        sharp_faces,
+                                        split_angle,
+                                        sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
     for (const int face_i : range) {

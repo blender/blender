@@ -33,7 +33,7 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool 
   report_str = BKE_reports_string(reports, RPT_ERROR);
 
   if (clear == true) {
-    BKE_reports_free(reports);
+    BKE_reports_clear(reports);
   }
 
   if (report_str) {

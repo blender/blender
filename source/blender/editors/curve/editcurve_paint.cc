@@ -574,7 +574,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   if (is_invoke) {
-    cdd->vc = ED_view3d_viewcontext_init(C, depsgraph);
+    ED_view3d_viewcontext_init(C, &cdd->vc, depsgraph);
     if (ELEM(nullptr, cdd->vc.region, cdd->vc.rv3d, cdd->vc.v3d, cdd->vc.win, cdd->vc.scene)) {
       MEM_freeN(cdd);
       BKE_report(op->reports, RPT_ERROR, "Unable to access 3D viewport");

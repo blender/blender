@@ -604,21 +604,13 @@ static void refresh_node(bNodeTree &ntree,
 
 void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node)
 {
-  if (node.typeinfo->declare) {
-    if (node.typeinfo->static_declaration->is_context_dependent) {
-      if (!node.runtime->declaration) {
-        node.runtime->declaration = new NodeDeclaration();
-      }
-      build_node_declaration(*node.typeinfo, *node.runtime->declaration, &ntree, &node);
+  if (node.typeinfo->declare_dynamic) {
+    if (!node.runtime->declaration) {
+      node.runtime->declaration = new NodeDeclaration();
     }
+    build_node_declaration_dynamic(ntree, node, *node.runtime->declaration);
   }
   refresh_node(ntree, node, *node.runtime->declaration, true);
-}
-
-bool socket_type_supports_fields(const eNodeSocketDatatype socket_type)
-{
-  return ELEM(
-      socket_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT, SOCK_ROTATION);
 }
 
 }  // namespace blender::nodes
@@ -629,7 +621,7 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
   if (ntype == nullptr) {
     return;
   }
-  if (ntype->declare) {
+  if (ntype->declare || ntype->declare_dynamic) {
     blender::bke::nodeDeclarationEnsureOnOutdatedNode(ntree, node);
     refresh_node(*ntree, *node, *node->runtime->declaration, do_id_user);
     return;

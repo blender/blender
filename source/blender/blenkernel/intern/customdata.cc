@@ -33,7 +33,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.hh"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #ifndef NDEBUG
@@ -2414,13 +2414,15 @@ static void ensure_layer_data_is_mutable(CustomDataLayer &layer, const int totel
   }
 }
 
-[[maybe_unused]] static bool layer_is_mutable(CustomDataLayer &layer)
+#ifndef NDEBUG
+static bool layer_is_mutable(CustomDataLayer &layer)
 {
   if (layer.sharing_info == nullptr) {
     return true;
   }
   return layer.sharing_info->is_mutable();
 }
+#endif
 
 void CustomData_ensure_data_is_mutable(CustomDataLayer *layer, const int totelem)
 {
@@ -2434,10 +2436,7 @@ void CustomData_ensure_layers_are_mutable(struct CustomData *data, int totelem)
   }
 }
 
-void CustomData_realloc(CustomData *data,
-                        const int old_size,
-                        const int new_size,
-                        const eCDAllocType alloctype)
+void CustomData_realloc(CustomData *data, const int old_size, const int new_size)
 {
   BLI_assert(new_size >= 0);
   for (int i = 0; i < data->totlayer; i++) {
@@ -2470,25 +2469,10 @@ void CustomData_realloc(CustomData *data,
     }
 
     if (new_size > old_size) {
-      const int new_elements_num = new_size - old_size;
-      void *new_elements_begin = POINTER_OFFSET(layer->data, old_size_in_bytes);
-      switch (alloctype) {
-        case CD_CONSTRUCT: {
-          /* Initialize new values for non-trivial types. */
-          if (typeInfo->construct) {
-            typeInfo->construct(new_elements_begin, new_elements_num);
-          }
-          break;
-        }
-        case CD_SET_DEFAULT: {
-          if (typeInfo->set_default_value) {
-            typeInfo->set_default_value(new_elements_begin, new_elements_num);
-          }
-          else {
-            memset(new_elements_begin, 0, typeInfo->size * new_elements_num);
-          }
-          break;
-        }
+      /* Initialize new values for non-trivial types. */
+      if (typeInfo->construct) {
+        const int new_elements_num = new_size - old_size;
+        typeInfo->construct(POINTER_OFFSET(layer->data, old_size_in_bytes), new_elements_num);
       }
     }
   }

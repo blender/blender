@@ -251,7 +251,6 @@ struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_lattice_wires_grp;
   DRWShadingGroup *edit_gpencil_points_grp;
   DRWShadingGroup *edit_gpencil_wires_grp;
-  DRWShadingGroup *edit_grease_pencil_wires_grp;
   DRWShadingGroup *edit_grease_pencil_points_grp;
   DRWShadingGroup *edit_gpencil_curve_handle_grp;
   DRWShadingGroup *edit_gpencil_curve_points_grp;

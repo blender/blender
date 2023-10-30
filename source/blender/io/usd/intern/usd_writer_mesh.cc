@@ -10,7 +10,6 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
-#include "BLI_array_utils.hh"
 #include "BLI_assert.h"
 #include "BLI_math_color.hh"
 #include "BLI_math_quaternion_types.hh"
@@ -25,7 +24,6 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.hh"
-#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -130,7 +128,7 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
 }
 
 static std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
-    const eCustomDataType blender_type, ReportList *reports)
+    const eCustomDataType blender_type)
 {
   switch (blender_type) {
     case CD_PROP_FLOAT:
@@ -149,13 +147,13 @@ static std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
     case CD_PROP_QUATERNION:
       return pxr::SdfValueTypeNames->QuatfArray;
     default:
-      BKE_reportf(reports, RPT_WARNING, "Unsupported type for mesh data");
+      WM_reportf(RPT_WARNING, "Unsupported type for mesh data");
       return std::nullopt;
   }
 }
 
 static const std::optional<pxr::TfToken> convert_blender_domain_to_usd(
-    const eAttrDomain blender_domain, ReportList *reports)
+    const eAttrDomain blender_domain)
 {
   switch (blender_domain) {
     case ATTR_DOMAIN_CORNER:
@@ -167,7 +165,7 @@ static const std::optional<pxr::TfToken> convert_blender_domain_to_usd(
 
     /* Notice: Edge types are not supported in USD! */
     default:
-      BKE_reportf(reports, RPT_WARNING, "Unsupported type for mesh data");
+      WM_reportf(RPT_WARNING, "Unsupported type for mesh data");
       return std::nullopt;
   }
 }
@@ -233,10 +231,9 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
   const pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
 
   /* Varying type depends on original domain. */
-  const std::optional<pxr::TfToken> prim_varying = convert_blender_domain_to_usd(meta_data.domain,
-                                                                                 reports());
+  const std::optional<pxr::TfToken> prim_varying = convert_blender_domain_to_usd(meta_data.domain);
   const std::optional<pxr::SdfValueTypeName> prim_attr_type = convert_blender_type_to_usd(
-      meta_data.data_type, reports());
+      meta_data.data_type);
 
   const GVArraySpan attribute = *mesh->attributes().lookup(
       attribute_id, meta_data.domain, meta_data.data_type);
@@ -245,11 +242,10 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
   }
 
   if (!prim_varying || !prim_attr_type) {
-    BKE_reportf(reports(),
-                RPT_WARNING,
-                "Mesh %s, Attribute %s cannot be converted to USD",
-                &mesh->id.name[2],
-                attribute_id.name().data());
+    WM_reportf(RPT_WARNING,
+               "Mesh %s, Attribute %s cannot be converted to USD",
+               &mesh->id.name[2],
+               attribute_id.name().data());
     return;
   }
 
@@ -649,28 +645,42 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
 void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
+  const float(*lnors)[3] = static_cast<const float(*)[3]>(
+      CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   pxr::VtVec3fArray loop_normals;
-  loop_normals.resize(mesh->totloop);
+  loop_normals.reserve(mesh->totloop);
 
-  MutableSpan dst_normals(reinterpret_cast<float3 *>(loop_normals.data()), loop_normals.size());
-
-  switch (mesh->normals_domain()) {
-    case bke::MeshNormalDomain::Point: {
-      array_utils::gather(mesh->vert_normals(), mesh->corner_verts(), dst_normals);
-      break;
+  if (lnors != nullptr) {
+    /* Export custom loop normals. */
+    for (int loop_idx = 0, totloop = mesh->totloop; loop_idx < totloop; ++loop_idx) {
+      loop_normals.push_back(pxr::GfVec3f(lnors[loop_idx]));
     }
-    case bke::MeshNormalDomain::Face: {
-      const OffsetIndices faces = mesh->faces();
-      const Span<float3> face_normals = mesh->face_normals();
-      for (const int i : faces.index_range()) {
-        dst_normals.slice(faces[i]).fill(face_normals[i]);
+  }
+  else {
+    /* Compute the loop normals based on the 'smooth' flag. */
+    bke::AttributeAccessor attributes = mesh->attributes();
+    const Span<float3> vert_normals = mesh->vert_normals();
+    const Span<float3> face_normals = mesh->face_normals();
+    const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
+        "sharp_face", ATTR_DOMAIN_FACE, false);
+    for (const int i : faces.index_range()) {
+      const IndexRange face = faces[i];
+      if (sharp_faces[i]) {
+        /* Flat shaded, use common normal for all verts. */
+        pxr::GfVec3f pxr_normal(&face_normals[i].x);
+        for (int loop_idx = 0; loop_idx < face.size(); ++loop_idx) {
+          loop_normals.push_back(pxr_normal);
+        }
       }
-      break;
-    }
-    case bke::MeshNormalDomain::Corner: {
-      array_utils::copy(mesh->corner_normals(), dst_normals);
-      break;
+      else {
+        /* Smooth shaded, use individual vert normals. */
+        for (const int vert : corner_verts.slice(face)) {
+          loop_normals.push_back(pxr::GfVec3f(&vert_normals[vert].x));
+        }
+      }
     }
   }
 

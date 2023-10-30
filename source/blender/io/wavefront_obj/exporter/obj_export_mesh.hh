@@ -119,6 +119,8 @@ class OBJMesh : NonCopyable {
    */
   const Material *get_object_material(int16_t mat_nr) const;
 
+  void ensure_mesh_normals() const;
+
   /**
    * Calculate smooth groups of a smooth-shaded object.
    * \return A polygon aligned array of smooth group numbers.

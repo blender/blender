@@ -350,7 +350,7 @@ static void fluid_bake_endjob(void *customdata)
   }
 }
 
-static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void fluid_bake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   FluidJob *job = static_cast<FluidJob *>(customdata);
   FluidDomainSettings *fds = job->fmd->domain;
@@ -358,9 +358,9 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
   char temp_dir[FILE_MAX];
   const char *relbase = BKE_modifier_path_relbase_from_global(job->ob);
 
-  job->stop = &worker_status->stop;
-  job->do_update = &worker_status->do_update;
-  job->progress = &worker_status->progress;
+  job->stop = stop;
+  job->do_update = do_update;
+  job->progress = progress;
   job->start = PIL_check_seconds_timer();
   job->success = 1;
 
@@ -425,8 +425,12 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
 
   fluid_bake_sequence(job);
 
-  worker_status->do_update = true;
-  worker_status->stop = false;
+  if (do_update) {
+    *do_update = true;
+  }
+  if (stop) {
+    *stop = false;
+  }
 }
 
 static void fluid_free_endjob(void *customdata)
@@ -458,14 +462,14 @@ static void fluid_free_endjob(void *customdata)
   }
 }
 
-static void fluid_free_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void fluid_free_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   FluidJob *job = static_cast<FluidJob *>(customdata);
   FluidDomainSettings *fds = job->fmd->domain;
 
-  job->stop = &worker_status->stop;
-  job->do_update = &worker_status->do_update;
-  job->progress = &worker_status->progress;
+  job->stop = stop;
+  job->do_update = do_update;
+  job->progress = progress;
   job->start = PIL_check_seconds_timer();
   job->success = 1;
 
@@ -500,8 +504,8 @@ static void fluid_free_startjob(void *customdata, wmJobWorkerStatus *worker_stat
   UNUSED_VARS(cache_map);
 #endif
 
-  worker_status->do_update = true;
-  worker_status->stop = false;
+  *do_update = true;
+  *stop = false;
 
   /* Update scene so that viewport shows freed up scene */
   ED_update_for_newframe(job->bmain, job->depsgraph);
@@ -527,8 +531,7 @@ static int fluid_bake_exec(bContext *C, wmOperator *op)
   }
   WM_report_banners_cancel(job->bmain);
 
-  wmJobWorkerStatus worker_status = {};
-  fluid_bake_startjob(job, &worker_status);
+  fluid_bake_startjob(job, nullptr, nullptr, nullptr);
   fluid_bake_endjob(job);
   fluid_bake_free(job);
 

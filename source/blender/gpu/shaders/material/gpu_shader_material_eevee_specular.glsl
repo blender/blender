@@ -18,7 +18,7 @@ void node_eevee_specular(vec4 diffuse,
 {
   N = safe_normalize(N);
   CN = safe_normalize(CN);
-  vec3 V = coordinate_incoming(g_data.P);
+  vec3 V = cameraVec(g_data.P);
 
   ClosureEmission emission_data;
   emission_data.weight = weight;

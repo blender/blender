@@ -31,11 +31,11 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "NOD_composite.hh"
+#include "NOD_composite.h"
 #include "node_composite_util.hh"
 
 #ifdef WITH_COMPOSITOR_CPU
-#  include "COM_compositor.hh"
+#  include "COM_compositor.h"
 #endif
 
 static void composite_get_from_context(

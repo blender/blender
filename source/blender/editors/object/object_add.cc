@@ -164,21 +164,21 @@ static const EnumPropertyItem field_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-    {LIGHTPROBE_TYPE_SPHERE,
-     "SPHERE",
-     ICON_LIGHTPROBE_SPHERE,
-     "Sphere",
-     "Light probe that captures precise lighting from all directions at a single point in space"},
-    {LIGHTPROBE_TYPE_PLANE,
-     "PLANE",
-     ICON_LIGHTPROBE_PLANE,
-     "Plane",
-     "Light probe that captures incoming light from a single direction on a plane"},
-    {LIGHTPROBE_TYPE_VOLUME,
-     "VOLUME",
-     ICON_LIGHTPROBE_VOLUME,
-     "Volume",
-     "Light probe that captures low frequency lighting inside a volume"},
+    {LIGHTPROBE_TYPE_CUBE,
+     "CUBEMAP",
+     ICON_LIGHTPROBE_CUBEMAP,
+     "Reflection Cubemap",
+     "Reflection probe with spherical or cubic attenuation"},
+    {LIGHTPROBE_TYPE_PLANAR,
+     "PLANAR",
+     ICON_LIGHTPROBE_PLANAR,
+     "Reflection Plane",
+     "Planar reflection probe"},
+    {LIGHTPROBE_TYPE_GRID,
+     "GRID",
+     ICON_LIGHTPROBE_GRID,
+     "Irradiance Volume",
+     "Irradiance probe to capture diffuse indirect lighting"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -746,12 +746,12 @@ void OBJECT_OT_add(wmOperatorType *ot)
 static const char *get_lightprobe_defname(int type)
 {
   switch (type) {
-    case LIGHTPROBE_TYPE_VOLUME:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Volume");
-    case LIGHTPROBE_TYPE_PLANE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Plane");
-    case LIGHTPROBE_TYPE_SPHERE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Sphere");
+    case LIGHTPROBE_TYPE_GRID:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "IrradianceVolume");
+    case LIGHTPROBE_TYPE_PLANAR:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionPlane");
+    case LIGHTPROBE_TYPE_CUBE:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionCubemap");
     default:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "LightProbe");
   }
@@ -3683,8 +3683,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  // XXX: ED_object_editmode_enter(C, 0);
-  // XXX: exit_editmode(C, EM_FREEDATA|); /* free data, but no undo. */
+  // XXX  ED_object_editmode_enter(C, 0);
+  // XXX  exit_editmode(C, EM_FREEDATA|); /* free data, but no undo */
 
   if (basact) {
     /* active base was changed */

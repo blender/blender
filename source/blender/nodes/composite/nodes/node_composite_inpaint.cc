@@ -56,7 +56,7 @@ class InpaintOperation : public NodeOperation {
     Result inpainting_boundary = compute_inpainting_boundary();
 
     /* Compute a jump flooding table to get the closest boundary pixel to each pixel. */
-    Result flooded_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result flooded_boundary = Result::Temporary(ResultType::Color, texture_pool());
     jump_flooding(context(), inpainting_boundary, flooded_boundary);
     inpainting_boundary.release();
 
@@ -73,7 +73,7 @@ class InpaintOperation : public NodeOperation {
     const Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
-    Result inpainting_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result inpainting_boundary = Result::Temporary(ResultType::Color, texture_pool());
     const Domain domain = compute_domain();
     inpainting_boundary.allocate_texture(domain);
     inpainting_boundary.bind_as_image(shader, "boundary_img");
@@ -92,7 +92,7 @@ class InpaintOperation : public NodeOperation {
     GPUShader *shader = shader_manager().get("compositor_inpaint_compute_region");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1i(shader, "max_distance", get_distance());
+    GPU_shader_uniform_1i(shader, "distance", get_distance());
 
     const Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");

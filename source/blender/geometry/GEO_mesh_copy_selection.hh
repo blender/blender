@@ -24,19 +24,19 @@ namespace blender::geometry {
 
 std::optional<Mesh *> mesh_copy_selection(
     const Mesh &src_mesh,
-    const VArray<bool> &selection,
+    const fn::Field<bool> &selection,
     eAttrDomain selection_domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 std::optional<Mesh *> mesh_copy_selection_keep_verts(
     const Mesh &src_mesh,
-    const VArray<bool> &selection,
+    const fn::Field<bool> &selection,
     eAttrDomain selection_domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 std::optional<Mesh *> mesh_copy_selection_keep_edges(
     const Mesh &mesh,
-    const VArray<bool> &selection,
+    const fn::Field<bool> &selection,
     eAttrDomain selection_domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info);
 

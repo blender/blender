@@ -107,6 +107,12 @@ void Operation::add_and_evaluate_input_processors()
   }
 
   for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
+    SimpleOperation *realize_transformation = RealizeTransformationOperation::construct_if_needed(
+        context(), get_input(identifier), get_input_descriptor(identifier));
+    add_and_evaluate_input_processor(identifier, realize_transformation);
+  }
+
+  for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *realize_on_domain = RealizeOnDomainOperation::construct_if_needed(
         context(), get_input(identifier), get_input_descriptor(identifier), compute_domain());
     add_and_evaluate_input_processor(identifier, realize_on_domain);

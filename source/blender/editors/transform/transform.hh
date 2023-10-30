@@ -676,7 +676,7 @@ struct TransInfo {
  * \{ */
 
 /**
- * \note Caller needs to free `t` on a 0 return.
+ * \note  caller needs to free `t` on a 0 return
  * \warning \a event might be NULL (when tweaking from redo panel)
  * \see #saveTransform which writes these values back.
  */

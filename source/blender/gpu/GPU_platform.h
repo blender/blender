@@ -56,19 +56,6 @@ typedef enum eGPUSupportLevel {
   GPU_SUPPORT_LEVEL_UNSUPPORTED,
 } eGPUSupportLevel;
 
-typedef enum GPUArchitectureType {
-  /* Immediate Mode Renderer (IMR).
-   * Typically, an IMR architecture will execute GPU work in sequence, rasterizing primitives in
-   * order. */
-  GPU_ARCHITECTURE_IMR = 0,
-
-  /* Tile-Based-Deferred-Renderer (TBDR).
-   * A TBDR architecture will typically execute the vertex stage up-front for all primitives,
-   * binning geometry into distinct tiled regions. Fragments will then be rasterized within
-   * the bounds of one tile at a time. */
-  GPU_ARCHITECTURE_TBDR = 1,
-} GPUArchitectureType;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,7 +75,6 @@ const char *GPU_platform_renderer(void);
 const char *GPU_platform_version(void);
 const char *GPU_platform_support_level_key(void);
 const char *GPU_platform_gpu_name(void);
-GPUArchitectureType GPU_platform_architecture(void);
 
 #ifdef __cplusplus
 }

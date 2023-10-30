@@ -61,7 +61,6 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
-#include "RNA_enum_types.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.h"
@@ -1007,7 +1006,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
     /* Stupid special case: The active button may be inside (as in, overlapped on top) a row
      * button which we also want to keep highlighted then. */
     if (ELEM(but->type, UI_BTYPE_VIEW_ITEM, UI_BTYPE_LISTROW)) {
-      flag_copy |= UI_HOVER;
+      flag_copy |= UI_ACTIVE;
     }
 
     but->flag = (but->flag & ~flag_copy) | (oldbut->flag & flag_copy);
@@ -3479,10 +3478,6 @@ static void ui_but_free(const bContext *C, uiBut *but)
     MEM_freeN(but->hold_argN);
   }
 
-  if (but->placeholder) {
-    MEM_freeN(but->placeholder);
-  }
-
   ui_but_free_type_specific(but);
 
   if (but->active) {
@@ -5910,36 +5905,6 @@ void UI_but_disable(uiBut *but, const char *disabled_hint)
   }
 
   but->disabled_info = disabled_hint;
-}
-
-void UI_but_placeholder_set(uiBut *but, const char *placeholder_text)
-{
-  MEM_SAFE_FREE(but->placeholder);
-  but->placeholder = BLI_strdup_null(placeholder_text);
-}
-
-const char *ui_but_placeholder_get(uiBut *but)
-{
-  const char *placeholder = (but->placeholder) ? but->placeholder : nullptr;
-
-  if (!placeholder && but->rnaprop) {
-    if (but->type == UI_BTYPE_SEARCH_MENU) {
-      StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
-      const short idcode = RNA_type_to_ID_code(type);
-      if (idcode != 0) {
-        RNA_enum_name(rna_enum_id_type_items, idcode, &placeholder);
-        placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_ID, placeholder);
-      }
-      else if (type && !STREQ(RNA_struct_identifier(type), "UnknownType")) {
-        placeholder = RNA_struct_ui_name(type);
-      }
-    }
-    else if (but->type == UI_BTYPE_TEXT && but->icon == ICON_VIEWZOOM) {
-      placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Search");
-    }
-  }
-
-  return placeholder;
 }
 
 void UI_but_type_set_menu_from_pulldown(uiBut *but)

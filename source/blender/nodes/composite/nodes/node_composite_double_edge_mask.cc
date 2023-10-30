@@ -66,14 +66,14 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
     /* Compute an image that marks the boundary pixels of the masks as seed pixels in the format
      * expected by the jump flooding algorithm. */
-    Result inner_boundary = Result::Temporary(ResultType::Int2, texture_pool());
-    Result outer_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result inner_boundary = Result::Temporary(ResultType::Color, texture_pool());
+    Result outer_boundary = Result::Temporary(ResultType::Color, texture_pool());
     compute_boundary(inner_boundary, outer_boundary);
 
     /* Compute a jump flooding table for each mask boundary to get a distance transform to each of
      * the boundaries. */
-    Result flooded_inner_boundary = Result::Temporary(ResultType::Int2, texture_pool());
-    Result flooded_outer_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result flooded_inner_boundary = Result::Temporary(ResultType::Color, texture_pool());
+    Result flooded_outer_boundary = Result::Temporary(ResultType::Color, texture_pool());
     jump_flooding(context(), inner_boundary, flooded_inner_boundary);
     jump_flooding(context(), outer_boundary, flooded_outer_boundary);
     inner_boundary.release();

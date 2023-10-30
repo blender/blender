@@ -52,8 +52,8 @@ BMEdge *BM_edge_create(
  * \param create_flag: Options for creating the face
  */
 BMFace *BM_face_create(BMesh *bm,
-                       BMVert *const *verts,
-                       BMEdge *const *edges,
+                       BMVert **verts,
+                       BMEdge **edges,
                        int len,
                        const BMFace *f_example,
                        eBMCreateFlag create_flag);

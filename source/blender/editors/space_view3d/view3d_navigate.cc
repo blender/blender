@@ -158,9 +158,10 @@ void ViewOpsData::state_restore()
 
   /* ROTATE and ZOOM. */
   {
-    /* For Rotate this only changes when orbiting from a camera view.
-     * In this case the `dist` is calculated based on the camera relative to the `ofs`. */
-
+    /**
+     * For Rotate this only changes when orbiting from a camera view.
+     * In this case the `dist` is calculated based on the camera relative to the `ofs`.
+     */
     /* Note this does not remove auto-keys on locked cameras. */
     this->rv3d->dist = this->init.dist;
   }

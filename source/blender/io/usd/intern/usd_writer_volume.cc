@@ -11,7 +11,6 @@
 #include "DNA_volume_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_report.h"
 #include "BKE_volume.h"
 
 #include "BLI_fileops.h"
@@ -48,10 +47,9 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
 
   auto vdb_file_path = resolve_vdb_file(volume);
   if (!vdb_file_path.has_value()) {
-    BKE_reportf(reports(),
-                RPT_WARNING,
-                "USD Export: failed to resolve .vdb file for object: %s",
-                volume->id.name + 2);
+    WM_reportf(RPT_WARNING,
+               "USD Export: failed to resolve .vdb file for object: %s",
+               volume->id.name + 2);
     return;
   }
 
@@ -60,10 +58,9 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
       vdb_file_path = relative_vdb_file_path;
     }
     else {
-      BKE_reportf(reports(),
-                  RPT_WARNING,
-                  "USD Export: couldn't construct relative file path for .vdb file, absolute path "
-                  "will be used instead");
+      WM_reportf(RPT_WARNING,
+                 "USD Export: couldn't construct relative file path for .vdb file, absolute path "
+                 "will be used instead");
     }
   }
 
