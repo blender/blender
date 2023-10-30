@@ -2182,7 +2182,8 @@ static void area_offscreen_exit(wmWindowManager *wm, wmWindow *win, ScrArea *are
     }
 
     WM_event_modal_handler_region_replace(win, region, nullptr);
-    WM_draw_region_free(region, true);
+    WM_draw_region_free(region);
+    region->visible = false;
 
     MEM_SAFE_FREE(region->headerstr);
 
