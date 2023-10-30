@@ -744,7 +744,8 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::PUSH_CONSTANTS) {
     push_constant_range.offset = 0;
     push_constant_range.size = push_constants_layout.size_in_bytes();
-    push_constant_range.stageFlags = VK_SHADER_STAGE_ALL;
+    push_constant_range.stageFlags = is_graphics_shader() ? VK_SHADER_STAGE_ALL_GRAPHICS :
+                                                            VK_SHADER_STAGE_COMPUTE_BIT;
     pipeline_info.pushConstantRangeCount = 1;
     pipeline_info.pPushConstantRanges = &push_constant_range;
   }
@@ -856,20 +857,22 @@ static VkDescriptorType descriptor_type(const shader::ShaderCreateInfo::Resource
 }
 
 static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
-    const VKDescriptorSet::Location location, const shader::ShaderCreateInfo::Resource &resource)
+    const VKDescriptorSet::Location location,
+    const shader::ShaderCreateInfo::Resource &resource,
+    VkShaderStageFlagBits vk_shader_stages)
 {
   VkDescriptorSetLayoutBinding binding = {};
   binding.binding = location;
   binding.descriptorType = descriptor_type(resource);
   binding.descriptorCount = 1;
-  binding.stageFlags = VK_SHADER_STAGE_ALL;
+  binding.stageFlags = vk_shader_stages;
   binding.pImmutableSamplers = nullptr;
 
   return binding;
 }
 
 static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
-    const VKPushConstants::Layout &push_constants_layout)
+    const VKPushConstants::Layout &push_constants_layout, VkShaderStageFlagBits vk_shader_stages)
 {
   BLI_assert(push_constants_layout.storage_type_get() ==
              VKPushConstants::StorageType::UNIFORM_BUFFER);
@@ -877,7 +880,7 @@ static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
   binding.binding = push_constants_layout.descriptor_set_location_get();
   binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   binding.descriptorCount = 1;
-  binding.stageFlags = VK_SHADER_STAGE_ALL;
+  binding.stageFlags = vk_shader_stages;
   binding.pImmutableSamplers = nullptr;
 
   return binding;
@@ -886,26 +889,29 @@ static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
 static void add_descriptor_set_layout_bindings(
     const VKShaderInterface &interface,
     const Vector<shader::ShaderCreateInfo::Resource> &resources,
-    Vector<VkDescriptorSetLayoutBinding> &r_bindings)
+    Vector<VkDescriptorSetLayoutBinding> &r_bindings,
+    VkShaderStageFlagBits vk_shader_stages)
 {
   for (const shader::ShaderCreateInfo::Resource &resource : resources) {
     const VKDescriptorSet::Location location = interface.descriptor_set_location(resource);
-    r_bindings.append(create_descriptor_set_layout_binding(location, resource));
+    r_bindings.append(create_descriptor_set_layout_binding(location, resource, vk_shader_stages));
   }
 
   /* Add push constants to the descriptor when push constants are stored in an uniform buffer. */
   const VKPushConstants::Layout &push_constants_layout = interface.push_constants_layout_get();
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::UNIFORM_BUFFER) {
-    r_bindings.append(create_descriptor_set_layout_binding(push_constants_layout));
+    r_bindings.append(
+        create_descriptor_set_layout_binding(push_constants_layout, vk_shader_stages));
   }
 }
 
 static VkDescriptorSetLayoutCreateInfo create_descriptor_set_layout(
     const VKShaderInterface &interface,
     const Vector<shader::ShaderCreateInfo::Resource> &resources,
-    Vector<VkDescriptorSetLayoutBinding> &r_bindings)
+    Vector<VkDescriptorSetLayoutBinding> &r_bindings,
+    VkShaderStageFlagBits vk_shader_stages)
 {
-  add_descriptor_set_layout_bindings(interface, resources, r_bindings);
+  add_descriptor_set_layout_bindings(interface, resources, r_bindings, vk_shader_stages);
   VkDescriptorSetLayoutCreateInfo set_info = {};
   set_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
   set_info.flags = 0;
@@ -942,8 +948,11 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
   all_resources.extend(info.batch_resources_);
 
   Vector<VkDescriptorSetLayoutBinding> bindings;
+  const VkShaderStageFlagBits vk_shader_stages = is_graphics_shader() ?
+                                                     VK_SHADER_STAGE_ALL_GRAPHICS :
+                                                     VK_SHADER_STAGE_COMPUTE_BIT;
   VkDescriptorSetLayoutCreateInfo layout_info = create_descriptor_set_layout(
-      shader_interface, all_resources, bindings);
+      shader_interface, all_resources, bindings, vk_shader_stages);
   if (vkCreateDescriptorSetLayout(vk_device, &layout_info, vk_allocation_callbacks, &layout_) !=
       VK_SUCCESS)
   {

@@ -80,12 +80,12 @@ void VKVertexAttributeObject::bind_vbos(VKContext &context)
       BLI_assert(vbos[attribute.binding]);
       VKVertexBuffer &vbo = *vbos[attribute.binding];
       vbo.upload();
-      context.command_buffer_get().bind(attribute.binding, vbo, 0);
+      context.command_buffers_get().bind(attribute.binding, vbo, 0);
     }
     else {
       const VKBuffer &buffer = VKBackend::get().device_get().dummy_buffer_get();
       const VKBufferWithOffset buffer_with_offset = {buffer, 0};
-      context.command_buffer_get().bind(attribute.binding, buffer_with_offset);
+      context.command_buffers_get().bind(attribute.binding, buffer_with_offset);
     }
   }
 }
@@ -104,12 +104,12 @@ void VKVertexAttributeObject::bind_buffers(VKContext &context)
 
     if (attribute.binding < buffers.size()) {
       VKBufferWithOffset &buffer = buffers[attribute.binding];
-      context.command_buffer_get().bind(attribute.binding, buffer);
+      context.command_buffers_get().bind(attribute.binding, buffer);
     }
     else {
       const VKBuffer &buffer = VKBackend::get().device_get().dummy_buffer_get();
       const VKBufferWithOffset buffer_with_offset = {buffer, 0};
-      context.command_buffer_get().bind(attribute.binding, buffer_with_offset);
+      context.command_buffers_get().bind(attribute.binding, buffer_with_offset);
     }
   }
 }

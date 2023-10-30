@@ -49,7 +49,7 @@ void VKTexture::generate_mipmap()
   }
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
   layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   for (int src_mipmap : IndexRange(mipmaps_ - 1)) {
@@ -92,14 +92,14 @@ void VKTexture::generate_mipmap()
     image_blit.dstSubresource.baseArrayLayer = 0;
     image_blit.dstSubresource.layerCount = vk_layer_count(1);
 
-    command_buffer.blit(*this,
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                        *this,
-                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                        Span<VkImageBlit>(&image_blit, 1));
+    command_buffers.blit(*this,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         *this,
+                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                         Span<VkImageBlit>(&image_blit, 1));
     /* TODO: Until we do actual command encoding we need to submit each transfer operation
      * individually. */
-    command_buffer.submit();
+    context.flush();
   }
   /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`.
    * All MIP-levels are except the last one. */
@@ -125,9 +125,9 @@ void VKTexture::copy_to(VKTexture &dst_texture, VkImageAspectFlagBits vk_image_a
   region.dstSubresource.layerCount = vk_layer_count(1);
   region.extent = vk_extent_3d(0);
 
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.copy(dst_texture, *this, Span<VkImageCopy>(&region, 1));
-  command_buffer.submit();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.copy(dst_texture, *this, Span<VkImageCopy>(&region, 1));
+  context.flush();
 }
 
 void VKTexture::copy_to(Texture *tex)
@@ -148,7 +148,7 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
   BLI_assert(!is_texture_view());
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
   VkClearColorValue clear_color = to_vk_clear_color_value(format, data);
   VkImageSubresourceRange range = {0};
   range.aspectMask = to_vk_image_aspect_flag_bits(format_);
@@ -156,7 +156,7 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
   range.layerCount = VK_REMAINING_ARRAY_LAYERS;
   layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
 
-  command_buffer.clear(
+  command_buffers.clear(
       vk_image_, current_layout_get(), clear_color, Span<VkImageSubresourceRange>(&range, 1));
 }
 
@@ -167,7 +167,7 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
   BLI_assert(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
   VkClearDepthStencilValue clear_depth_stencil;
   clear_depth_stencil.depth = clear_depth;
   clear_depth_stencil.stencil = clear_stencil;
@@ -177,10 +177,10 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
   range.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
   layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
-  command_buffer.clear(vk_image_,
-                       current_layout_get(),
-                       clear_depth_stencil,
-                       Span<VkImageSubresourceRange>(&range, 1));
+  command_buffers.clear(vk_image_,
+                        current_layout_get(),
+                        clear_depth_stencil,
+                        Span<VkImageSubresourceRange>(&range, 1));
 }
 
 void VKTexture::swizzle_set(const char swizzle_mask[4])
@@ -225,9 +225,9 @@ void VKTexture::read_sub(int mip, eGPUDataFormat format, const int area[4], void
   region.imageSubresource.mipLevel = mip;
   region.imageSubresource.layerCount = vk_layer_count(1);
 
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.copy(staging_buffer, *this, Span<VkBufferImageCopy>(&region, 1));
-  command_buffer.submit();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.copy(staging_buffer, *this, Span<VkBufferImageCopy>(&region, 1));
+  context.flush();
 
   convert_device_to_host(r_data, staging_buffer.mapped_memory_get(), sample_len, format, format_);
 }
@@ -283,9 +283,9 @@ void VKTexture::update_sub(
   region.imageSubresource.layerCount = layers;
 
   layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.copy(*this, staging_buffer, Span<VkBufferImageCopy>(&region, 1));
-  command_buffer.submit();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.copy(*this, staging_buffer, Span<VkBufferImageCopy>(&region, 1));
+  context.flush();
 }
 
 void VKTexture::update_sub(int /*offset*/[3],
@@ -339,9 +339,9 @@ bool VKTexture::init_internal(GPUVertBuf *vbo)
 
   VKContext &context = *VKContext::get();
   layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.copy(*this, vertex_buffer->buffer_, Span<VkBufferImageCopy>(&region, 1));
-  command_buffer.submit();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.copy(*this, vertex_buffer->buffer_, Span<VkBufferImageCopy>(&region, 1));
+  context.flush();
 
   return true;
 }
@@ -557,7 +557,7 @@ void VKTexture::layout_ensure(VKContext &context,
   barrier.subresourceRange.levelCount = uint32_t(mipmap_range.size());
   barrier.subresourceRange.baseArrayLayer = 0;
   barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-  context.command_buffer_get().pipeline_barrier(Span<VkImageMemoryBarrier>(&barrier, 1));
+  context.command_buffers_get().pipeline_barrier(Span<VkImageMemoryBarrier>(&barrier, 1));
 }
 
 /** \} */

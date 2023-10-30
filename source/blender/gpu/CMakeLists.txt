@@ -200,6 +200,7 @@ set(VULKAN_SRC
   vulkan/vk_bindable_resource.cc
   vulkan/vk_buffer.cc
   vulkan/vk_command_buffer.cc
+  vulkan/vk_command_buffers.cc
   vulkan/vk_common.cc
   vulkan/vk_context.cc
   vulkan/vk_data_conversion.cc
@@ -237,6 +238,7 @@ set(VULKAN_SRC
   vulkan/vk_bindable_resource.hh
   vulkan/vk_buffer.hh
   vulkan/vk_command_buffer.hh
+  vulkan/vk_command_buffers.hh
   vulkan/vk_common.hh
   vulkan/vk_context.hh
   vulkan/vk_data_conversion.hh

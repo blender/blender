@@ -89,8 +89,7 @@ void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*dat
 void VKVertexBuffer::read(void *data) const
 {
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.submit();
+  context.flush();
   buffer_.read(data);
 }
 

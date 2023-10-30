@@ -146,8 +146,8 @@ void VKFrameBuffer::clear(const Vector<VkClearAttachment> &attachments) const
   clear_rect.layerCount = 1;
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.clear(attachments, Span<VkClearRect>(&clear_rect, 1));
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.clear(attachments, Span<VkClearRect>(&clear_rect, 1));
 }
 
 void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
@@ -270,7 +270,7 @@ void VKFrameBuffer::read(eGPUFrameBufferBits plane,
 /** \name Blit operations
  * \{ */
 
-static void blit_aspect(VKCommandBuffer &command_buffer,
+static void blit_aspect(VKCommandBuffers &command_buffer,
                         VKTexture &dst_texture,
                         VKTexture &src_texture,
                         int dst_offset_x,
@@ -329,7 +329,7 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
   UNUSED_VARS_NDEBUG(planes);
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
   if (!context.has_active_framebuffer()) {
     BLI_assert_unreachable();
     return;
@@ -347,7 +347,7 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
       dst_framebuffer.color_attachment_layout_ensure(
           context, dst_slot, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-      blit_aspect(command_buffer,
+      blit_aspect(command_buffers,
                   dst_texture,
                   src_texture,
                   dst_offset_x,
@@ -372,7 +372,7 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
       dst_framebuffer.depth_attachment_layout_ensure(context,
                                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-      blit_aspect(command_buffer,
+      blit_aspect(command_buffers,
                   dst_texture,
                   src_texture,
                   dst_offset_x,
@@ -380,7 +380,6 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
                   VK_IMAGE_ASPECT_DEPTH_BIT);
     }
   }
-  command_buffer.submit();
 }
 
 /** \} */

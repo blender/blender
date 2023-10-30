@@ -56,7 +56,7 @@ void VKImmediate::end()
   context.bind_graphics_pipeline(prim_type, vertex_attributes_);
   vertex_attributes_.bind(context);
 
-  context.command_buffer_get().draw(0, vertex_idx, 0, 1);
+  context.command_buffers_get().draw(0, vertex_idx, 0, 1);
 
   buffer_offset_ += current_subbuffer_len_;
   current_subbuffer_len_ = 0;

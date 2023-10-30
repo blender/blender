@@ -37,7 +37,7 @@ void VKIndexBuffer::upload_data()
 
 void VKIndexBuffer::bind(VKContext &context)
 {
-  context.command_buffer_get().bind(buffer_with_offset(), to_vk_index_type(index_type_));
+  context.command_buffers_get().bind(buffer_with_offset(), to_vk_index_type(index_type_));
 }
 
 void VKIndexBuffer::bind_as_ssbo(uint binding)
@@ -63,8 +63,7 @@ void VKIndexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindTy
 void VKIndexBuffer::read(uint32_t *data) const
 {
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.submit();
+  context.flush();
 
   buffer_.read(data);
 }

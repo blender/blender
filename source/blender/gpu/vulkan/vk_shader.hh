@@ -85,6 +85,16 @@ class VKShader : public Shader {
                                 const GPUPrimType prim_type,
                                 const VKVertexAttributeObject &vertex_attribute_object);
 
+  bool is_graphics_shader() const
+  {
+    return !is_compute_shader();
+  }
+
+  bool is_compute_shader() const
+  {
+    return compute_module_ != VK_NULL_HANDLE;
+  }
+
  private:
   Vector<uint32_t> compile_glsl_to_spirv(Span<const char *> sources, shaderc_shader_kind kind);
   void build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *r_shader_module);
@@ -95,16 +105,6 @@ class VKShader : public Shader {
                                        const VKShaderInterface &shader_interface,
                                        const shader::ShaderCreateInfo &info);
   bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);
-
-  bool is_graphics_shader() const
-  {
-    return !is_compute_shader();
-  }
-
-  bool is_compute_shader() const
-  {
-    return compute_module_ != VK_NULL_HANDLE;
-  }
 
   /**
    * \brief features available on newer implementation such as native barycentric coordinates
