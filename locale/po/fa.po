@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -162,6 +162,14 @@ msgstr "ﻡﺎﯿﭘ"
 
 msgid "Off"
 msgstr "ﺵﻮﻣﺎﺧ"
+
+
+msgid "On"
+msgstr "ﻦﺷﻭﺭ"
+
+
+msgid "Auto"
+msgstr "ﺭﺎﮐﺩﻮﺧ"
 
 
 msgid "Animation Data"
@@ -406,10 +414,6 @@ msgstr "ﺩﺍﺯﺁ"
 
 msgid "Aligned"
 msgstr "ﻩﺪﺷﺯﺍﺮﺗ"
-
-
-msgid "Auto"
-msgstr "ﺭﺎﮐﺩﻮﺧ"
 
 
 msgid "Handle 2"
@@ -4157,10 +4161,6 @@ msgstr "ﻩﺯﺍﺪﻧﺍ:"
 
 msgid "Motion"
 msgstr "ﺖﮐﺮﺣ"
-
-
-msgid "On"
-msgstr "ﻦﺷﻭﺭ"
 
 
 msgid "Old"

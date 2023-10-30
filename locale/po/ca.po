@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
-"PO-Revision-Date: 2023-10-23 02:54+0000\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
+"PO-Revision-Date: 2023-10-29 23:16+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -343,6 +343,14 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "[Full]: Optimitza totes les matrius de convolució. Revelat al màxim de ràpid i pot provocar un ús extra de la CPU en segon pla"
 
 
+msgid "On"
+msgstr "Activat"
+
+
+msgid "Auto"
+msgstr "Automàtic"
+
+
 msgid "Distribute memory across devices"
 msgstr "Distribuir memòria entre dispositius"
 
@@ -357,14 +365,6 @@ msgstr "HIP RT (experimental)"
 
 msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
 msgstr "L'HIP RT activa el radiotraçat de maquinari en RDNA2 i superior, i recorre a aspectors amb targes antiquades. Aquesta funcionalitat és experimental i pot revelar incorrectament algunes escenes"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (experimental)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "El MetalRT per a traçat de raigs usa menys memòria per a escenes que utilitzen moltes corbes, i pot rendir millor en determinats casos. Tot i això, és un suport experimental i algunes escenes es poden revelar incorrectament"
 
 
 msgid "Embree on GPU"
@@ -408,11 +408,11 @@ msgstr "El repositori de traducció bf"
 
 
 msgid "Import Paths"
-msgstr "Camins d'importació"
+msgstr "Rutes d'importació"
 
 
 msgid "Additional paths to add to sys.path (';' separated)"
-msgstr "[Import Paths]: Camins addicionals per afegir a sys.path (separador ';')"
+msgstr "[Import Paths]: Rutes addicionals per afegir a sys.path (separador ';')"
 
 
 msgid "Source Root"
@@ -420,7 +420,7 @@ msgstr "Arrel de l'original"
 
 
 msgid "The Blender source root path"
-msgstr "Camí a l'arrel de l'original del Blender"
+msgstr "Ruta arrel de la font de Blender"
 
 
 msgid "Spell Cache"
@@ -440,7 +440,7 @@ msgstr "Avís de missatges que comencen amb lletra minúscula (amb algunes sobre
 
 
 msgid "Persistent Data Path"
-msgstr "Camí de dades persistent"
+msgstr "Ruta persistent de dades"
 
 
 msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
@@ -1076,7 +1076,7 @@ msgstr "Os editable actiu de l'esquelet"
 
 
 msgid "Catalog Path"
-msgstr "Camí del catàleg"
+msgstr "Ruta del catàleg"
 
 
 msgid "Asset Library Reference"
@@ -1116,7 +1116,7 @@ msgstr "UUID del catàleg"
 
 
 msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
-msgstr "Identificador per al catàleg del recurs, que Blender empra per a cercar el camí del catàleg del recurs. Ha de ser un UUID d'acord amb RFC4122"
+msgstr "Identificador per al catàleg del recurs, que Blender empra per a cercar la ruta del catàleg del recurs. Ha de ser un UUID d'acord amb RFC4122"
 
 
 msgid "Catalog Simple Name"
@@ -1172,7 +1172,7 @@ msgstr "Ruta completa de la biblioteca"
 
 
 msgid "Absolute path to the .blend file containing this asset"
-msgstr "[Full Library Path]: Camí complet al document .blend que conté el recurs actiu"
+msgstr "[Full Library Path]: Ruta completa al document .blend que conté el recurs actiu"
 
 
 msgid "Full Path"
@@ -1951,7 +1951,7 @@ msgstr "Precuina les normals en l'espai tangent"
 
 
 msgid "Pass Filter"
-msgstr "Filtre de passada"
+msgstr "Filtre de passades"
 
 
 msgid "Passes to include in the active baking pass"
@@ -2166,10 +2166,6 @@ msgid "Aligned"
 msgstr "Alineada"
 
 
-msgid "Auto"
-msgstr "Automàtic"
-
-
 msgid "Handle 2"
 msgstr "Ansa 2"
 
@@ -2307,7 +2303,7 @@ msgstr "Nom del document"
 
 
 msgid "Path to the .blend file"
-msgstr "Camí cap al document .blend"
+msgstr "Ruta cap al document .blend"
 
 
 msgid "Vector Fonts"
@@ -3977,7 +3973,7 @@ msgstr "Té espaiat"
 
 
 msgid "Image Paint Capabilities"
-msgstr "Potencialitats del pintat d'imatge"
+msgstr "Potencialitats de pintura d'imatge"
 
 
 msgid "Has Accumulate"
@@ -4065,11 +4061,11 @@ msgstr "Té rasclet topològic"
 
 
 msgid "Vertex Paint Capabilities"
-msgstr "Potencialitats del pintat de vèrtexs"
+msgstr "Potencialitats de pintura de vèrtexs"
 
 
 msgid "Weight Paint Capabilities"
-msgstr "Potencialitats del pintat de pesos"
+msgstr "Potencialitats de pintura de pesos"
 
 
 msgid "Has Weight"
@@ -5020,7 +5016,7 @@ msgstr "[Cache Layer]: Capa de memòria cau, usada per a carregar o sobreseure d
 
 
 msgid "Path to the archive"
-msgstr "Camí a l'arxiu"
+msgstr "Ruta a l'arxiu"
 
 
 msgid "Hide Layer"
@@ -5053,7 +5049,7 @@ msgstr "Ruta d'un objecte dins d'un arxiu d'Alembic"
 
 msgctxt "File browser"
 msgid "Path"
-msgstr "Camí"
+msgstr "Ruta"
 
 
 msgid "Object path"
@@ -8005,7 +8001,7 @@ msgstr "[Outside]: L'objecte resta restringit a l'exterior d'una esfera virtual 
 
 
 msgid "On Surface"
-msgstr "De superfície"
+msgstr "A superfície"
 
 
 msgid "The object is constrained on the surface of a virtual sphere around the target object, with a radius defined by the limit distance"
@@ -9265,7 +9261,7 @@ msgstr "[White Level]: Per a les corbes RGB, el color que es mapeja com a blanc"
 
 
 msgid "Curve Paint Settings"
-msgstr "Paràmetres de corba de pintar"
+msgstr "Paràmetres de corba de pintura"
 
 
 msgid "Corner Angle"
@@ -10315,11 +10311,11 @@ msgstr "Capa de visualització en avaluació"
 
 
 msgid "Data Path"
-msgstr "Camí de dades"
+msgstr "Ruta de dades"
 
 
 msgid "RNA Path (from ID-block) to property used"
-msgstr "[Data Path]: Camí d'RNA (del bloc d'IDs) vers la propietat emprada"
+msgstr "[Data Path]: Ruta d'RNA (del bloc d'IDs) vers la propietat emprada"
 
 
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
@@ -10444,11 +10440,11 @@ msgstr "[Inner Proximity]: El decaïment de proximitat s'aplica a l'interior del
 
 
 msgid "Paint Alpha"
-msgstr "Pintar alfa"
+msgstr "Alfa de pintura"
 
 
 msgid "Paint alpha"
-msgstr "Pintura alfa"
+msgstr "Alfa de la pintura"
 
 
 msgid "Paint Color"
@@ -10496,11 +10492,11 @@ msgstr "Volum de malla"
 
 
 msgid "Paint Wetness"
-msgstr "Intensitat d'impregnació"
+msgstr "Impregnació de pintura"
 
 
 msgid "Paint wetness, visible in wetmap (some effects only affect wet paint)"
-msgstr "[Paint Wetness]: Intensitat de la impregnació pintada, que es pot veure en la impregnografia (alguns efectes només afecten a la capa d'impregnació)"
+msgstr "[Paint Wetness]: Intensitat de la impregnació del pintat, que es pot veure en la impregnografia (alguns efectes només afecten a la impregnació de pintura)"
 
 
 msgid "Particle Systems"
@@ -10540,7 +10536,7 @@ msgstr "Direcció de raigs"
 
 
 msgid "Ray direction to use for projection (if brush object is located in that direction it's painted)"
-msgstr "[Ray Direction]: La direcció del raig que s'utilitzarà per a la projecció (si l'objecte del pinzell està ubicat en aquesta direcció, aleshores es pinta)"
+msgstr "[Ray Direction]: La direcció del raig que s'utilitzarà per a la projecció (si l'objecte del pinzell està ubicat en aquesta direcció, aleshores està pintat)"
 
 
 msgid "Canvas Normal"
@@ -10584,7 +10580,7 @@ msgstr "Alfa absoluta"
 
 
 msgid "Only increase alpha value if paint alpha is higher than existing"
-msgstr "[Absolute Alpha]: Augmenta només el valor d'alfa si el pintat alfa ja és superior al de la membrana"
+msgstr "[Absolute Alpha]: Augmenta només el valor d'alfa si l'alfa de pintura ja és superior a l'existent"
 
 
 msgid "Negate Volume"
@@ -10773,7 +10769,7 @@ msgstr "Propagació de color"
 
 
 msgid "How fast colors get mixed within wet paint"
-msgstr "[Color Spread]: Rapidesa amb què els colors acaben barrejats en pintar o impregnar la membrana"
+msgstr "[Color Spread]: Rapidesa amb què els colors acaben barrejats dins la impregnació de pintura"
 
 
 msgid "Max Displace"
@@ -11001,7 +10997,7 @@ msgstr "Usar degoteig"
 
 
 msgid "Process drip effect (drip wet paint to gravity direction)"
-msgstr "[Use Drip]: Processa l'efecte degoteig (La pintura degota en la direcció de la gravetat)"
+msgstr "[Use Drip]: Processa l'efecte degoteig (La pintura d'impregnació degota en la direcció de la gravetat)"
 
 
 msgid "Use logarithmic drying (makes high values to dry faster than low values)"
@@ -11045,7 +11041,7 @@ msgstr "Usar encongiment"
 
 
 msgid "Process shrink effect (shrink paint areas)"
-msgstr "[Use Shrink]: Processa efecte d'encongiment (d'àrees impregnades pel pinzell)"
+msgstr "[Use Shrink]: Processa efecte d'encongiment (redueix les àrees de pintura)"
 
 
 msgid "Use Spread"
@@ -11053,7 +11049,7 @@ msgstr "Usad propagació"
 
 
 msgid "Process spread effect (spread wet paint around surface)"
-msgstr "[Use Spread]: Processa l'efecte de propagació (escampant la pintura impregnada per la superfície)"
+msgstr "[Use Spread]: Processa l'efecte de propagació (escampant la pintura d'impregnació per la superfície)"
 
 
 msgid "Open Borders"
@@ -11061,7 +11057,7 @@ msgstr "Fronteres obertes"
 
 
 msgid "Pass waves through mesh edges"
-msgstr "[Open Borders]: Passa les ones a través de les vores de la malla"
+msgstr "[Open Borders]: Deixa passar les ones a través de les vores de la malla"
 
 
 msgid "UV Map"
@@ -11117,7 +11113,7 @@ msgstr "Superfície activa"
 
 
 msgid "Active Dynamic Paint surface being displayed"
-msgstr "[Active Surface]: S'està visualitzant la superfície activa de pintura dinàmica o impregnació"
+msgstr "[Active Surface]: S'està visualitzant la superfície activa de pintura dinàmica"
 
 
 msgid "Active Point Cache Index"
@@ -11421,7 +11417,7 @@ msgstr "[User Defined]: S'usa un color personalitzat seleccionat manualment per 
 
 
 msgid "RNA Path to property affected by F-Curve"
-msgstr "Camí d'RNA envers la propietat afectada per la Corba-F"
+msgstr "Ruta d'RNA envers la propietat afectada per la Corba-F"
 
 
 msgid "Driver"
@@ -13067,7 +13063,7 @@ msgstr "Paràmetres de selecció de documents"
 
 
 msgid "Whether this path is currently reachable"
-msgstr "Indica si el camí és ara mateix accessible"
+msgstr "Indica si la ruta és ara mateix accessible"
 
 
 msgid "Save"
@@ -13075,7 +13071,7 @@ msgstr "Desar"
 
 
 msgid "Whether this path is saved in bookmarks, or generated from OS"
-msgstr "Indica si el camí està desat entre les dreceres o ha estat generat pel SO"
+msgstr "Indica si la ruta està desada entre les dreceres o ha estat generada pel SO"
 
 
 msgid "File Select Entry"
@@ -13099,11 +13095,11 @@ msgstr "[Icon ID]: Nombre enter únic que identifica la previsualització d'aque
 
 
 msgid "Relative Path"
-msgstr "Camí relatiu"
+msgstr "Ruta relativa"
 
 
 msgid "Path relative to the directory currently displayed in the File Browser (includes the file name)"
-msgstr "[Relative Path]: Camí relatiu al directori que es mostra al navegador (inclou el nom del document)"
+msgstr "[Relative Path]: Ruta relativa al directori que es mostra al navegador (inclou el nom del document)"
 
 
 msgid "File Select ID Filter"
@@ -15128,7 +15124,7 @@ msgstr "[Initial]: Velocitat inicial addicional en direcció X, Y i Z (afegida a
 
 
 msgid "Multiplier of source velocity passed to fluid (source velocity is non-zero only if object is moving)"
-msgstr "Multiplicador de la velocitat d'origen que es passa a fluid (la velocitat d'origen només és desigual a zero si l'objecte està en moviment)"
+msgstr "Multiplicador de la velocitat d'origen que es traspassa al fluid (la velocitat d'origen només és desigual a zero si l'objecte està en moviment)"
 
 
 msgid "Amount of normal directional velocity"
@@ -16088,11 +16084,11 @@ msgstr "[Use Masks in Render]: Inclou les càpes màscares en revelar la capa de
 
 
 msgid "Vertex Paint Opacity"
-msgstr "Opacitat del pintat de vèrtexs"
+msgstr "Opacitat de pintura de vèrtexs"
 
 
 msgid "Vertex Paint mix factor"
-msgstr "Factor de mescla del pintat de vèrtexs"
+msgstr "Factor de mescla de pintura de vèrtexs"
 
 
 msgid "ViewLayer"
@@ -17425,7 +17421,7 @@ msgstr "Com s'animen els traços (és a dir, si apareixen o desapareixen)"
 
 
 msgid "Grow"
-msgstr "Gradual"
+msgstr "Engrandir"
 
 
 msgid "Show points in the order they occur in each stroke (e.g. for animating lines being drawn)"
@@ -20058,11 +20054,11 @@ msgstr "Utilitza un sol color o degradat en pintar"
 
 
 msgid "Paint with a single color"
-msgstr "Pinta amb un sol color"
+msgstr "Pintar amb un sol color"
 
 
 msgid "Paint with a gradient"
-msgstr "Pinta amb un degradat"
+msgstr "Pintar amb un degradat"
 
 
 msgid "Crease Brush Pinch Factor"
@@ -20494,7 +20490,7 @@ msgstr "[Brush Icon Filepath]: Ruta a la icona del pinzell"
 
 msgctxt "Brush"
 msgid "Image Paint Tool"
-msgstr "Eina pintat d'imatge"
+msgstr "Eina de pintar imatges"
 
 
 msgctxt "Brush"
@@ -20566,7 +20562,7 @@ msgstr "[Invert Pressure for Wet Persistence]: Inverteix la modulació de la pre
 
 
 msgid "Jitter the position of the brush while painting"
-msgstr "Trontoll d'ubicació de pinzell"
+msgstr "Trontoll d'ubicació de pinzell en pintar"
 
 
 msgid "Jitter the position of the brush in pixels while painting"
@@ -21019,7 +21015,7 @@ msgstr "Punts"
 
 
 msgid "Apply paint on each mouse move step"
-msgstr "[Dots]: Aplica pintura a cada petit moviment del ratolí"
+msgstr "[Dots]: Aplica pintura a cada moviment del ratolí"
 
 
 msgid "Drag Dot"
@@ -21443,7 +21439,7 @@ msgstr "Usar vèrtex"
 
 
 msgid "Use this brush in vertex paint mode"
-msgstr "[Use Vertex]: Usa aquest pinzell en el mode de pintat de vèrtexs"
+msgstr "[Use Vertex]: Usa aquest pinzell en el mode de pintura de vèrtexs"
 
 
 msgid "Use Weight"
@@ -21627,7 +21623,7 @@ msgstr "Pinçar UVs"
 
 
 msgid "Vertex Paint Tool"
-msgstr "Eina pintar vèrtexs"
+msgstr "Eina de pintar vèrtexs"
 
 
 msgid "Vertex weight when brush is applied"
@@ -21635,7 +21631,7 @@ msgstr "Pesos dels vèrtexs quan s'hi aplica el pinzell"
 
 
 msgid "Weight Paint Tool"
-msgstr "Eina pintura de pesos"
+msgstr "Eina de pintar de pesos"
 
 
 msgid "Wet Mix"
@@ -21647,11 +21643,11 @@ msgstr "[Wet Mix]: Quantitat de pintura de la superfície que queda agafada al c
 
 
 msgid "Wet Paint Radius"
-msgstr "Radi de pintura humida"
+msgstr "Radi de pintura d'impregnació"
 
 
 msgid "Ratio between the brush radius and the radius that is going to be used to sample the color to blend in wet paint"
-msgstr "[Wet Paint Radius]: Relació entre el radi del pinzell i el radi que s'utilitzarà per a mostrejar el color per gradualitzar la pintura humida"
+msgstr "[Wet Paint Radius]: Relació entre el radi del pinzell i el radi que s'utilitzarà per a mostrejar el color per gradualitzar la pintura d'impregnació"
 
 
 msgid "Wet Persistence"
@@ -21659,11 +21655,11 @@ msgstr "Persistència d'humidat"
 
 
 msgid "Amount of wet paint that stays in the brush after applying paint to the surface"
-msgstr "[Wet Persistence]: Quantitat de pintura humida que roman al pinzell després d'aplicar la pintura a la superfície"
+msgstr "[Wet Persistence]: Quantitat de pintura d'impregnació que roman al pinzell després d'aplicar la pintura a la superfície"
 
 
 msgid "Path to external displacements file"
-msgstr "Camí al document de desplaçaments externs"
+msgstr "Ruta al document de desplaçaments externs"
 
 
 msgid "Forward"
@@ -22470,11 +22466,11 @@ msgstr "[Bevel Object]: Nom de l'objecte corba que defineix la forma del bisell"
 
 
 msgid "Custom Profile Path"
-msgstr "Trajecte del perfil adaptat"
+msgstr "Trajecte del perfil personalitzat"
 
 
 msgid "The path for the curve's custom profile"
-msgstr "[Custom Profile Path]: Trajecte del perfil adaptat de la corba"
+msgstr "[Custom Profile Path]: Trajecte del perfil personalitzat de la corba"
 
 
 msgid "Bevel Resolution"
@@ -22686,7 +22682,7 @@ msgstr "[Map Taper]: Mapeja l'efecte de l'objecte transverser a la part bisellad
 
 
 msgid "Path"
-msgstr "Camí"
+msgstr "Trajecte"
 
 
 msgid "Enable the curve to become a translation path"
@@ -22702,7 +22698,7 @@ msgstr "Seguir"
 
 
 msgid "Make curve path children rotate along the path"
-msgstr "[Follow]: Fa que els fills del trajecte de corba vagin rotant al llarg del camí"
+msgstr "[Follow]: Fa que els fills del trajecte de corba vagin rotant al llarg del trajecte"
 
 
 msgid "Option for paths and curve-deform: apply the curve radius to objects following it and to deformed objects"
@@ -25342,7 +25338,7 @@ msgstr "Clonar - Índex de pintat de textura"
 
 
 msgid "Index of clone texture paint slot"
-msgstr "[Clone Texture Paint Index]: Epígraf d'índex del pintat amb textura per clonar"
+msgstr "[Clone Texture Paint Index]: Epígraf d'índex del pintat de textura per clonar"
 
 
 msgid "Index number for the \"Material Index\" render pass"
@@ -25722,7 +25718,7 @@ msgstr "Emmirallar grups de vèrtexs"
 
 
 msgid "Mirror the left/right vertex groups when painting. The symmetry axis is determined by the symmetry settings"
-msgstr "[Mirror Vertex Groups]: Emmiralla els grups de vèrtexs esquerra/dreta mentre s'impregnen. L'eix de simetria es determina amb la configuració de simetria"
+msgstr "[Mirror Vertex Groups]: Emmiralla els grups de vèrtexs esquerra/dreta mentre es pinta. L'eix de simetria es determina amb la configuració de simetria"
 
 
 msgid "Paint Mask"
@@ -25750,7 +25746,7 @@ msgstr "[Fix Poles]: Fa que es generin menys pols i que hi hagi un millor flux d
 
 
 msgid "Preserve Paint Mask"
-msgstr "Conserva màscara de pintar"
+msgstr "Conservar màscara de pintar"
 
 
 msgid "Keep the current mask on the new mesh"
@@ -25834,7 +25830,7 @@ msgstr "[Vertex Normals]: La direcció normal de cada vèrtex, definida com la m
 
 
 msgid "Vertex Paint Mask"
-msgstr "Màscara de pintura de vèrtexs"
+msgstr "Màscara de pintar vèrtexs"
 
 
 msgid "Vertex paint mask"
@@ -26202,7 +26198,7 @@ msgstr "Dues passades"
 
 
 msgid "Use two pass execution during editing: first calculate fast nodes, second pass calculate all nodes"
-msgstr "[Execution Mode]: Utilitza l'execució en dues passades durant l'edició: primer calcula nodes ràpids, i en la segona fase calcula tots els nodes"
+msgstr "[Execution Mode]: Utilitza l'execució en dues passades durant l'edició: primer calcula nodes ràpids, i en la segona passada calcula tots els nodes"
 
 
 msgid "Viewer Region"
@@ -26814,7 +26810,7 @@ msgstr "Mode de dibuix"
 
 
 msgid "Paint Grease Pencil Strokes"
-msgstr "Pinta traços de llapis de greix"
+msgstr "Pintar traços de llapis de greix"
 
 
 msgid "Grease Pencil Weight Paint Strokes"
@@ -27824,7 +27820,7 @@ msgstr "[Path End]: Temps de finalització de la trajectòria"
 
 
 msgid "Path Start"
-msgstr "Inici de trajectòria"
+msgstr "Inici de trajecte"
 
 
 msgid "Starting time of path"
@@ -28132,7 +28128,7 @@ msgstr "Pèl"
 
 
 msgid "Absolute Path Time"
-msgstr "Temps absolut de trajectòria"
+msgstr "Temps absolut de trajecte"
 
 
 msgid "Path timing is in absolute frames"
@@ -28277,7 +28273,7 @@ msgstr "Finalment, dóna a llum partícules que no reaccionen"
 
 
 msgid "Regrow"
-msgstr "Rebrota"
+msgstr "Fer recréixer"
 
 
 msgid "Regrow hair for each frame"
@@ -30343,11 +30339,11 @@ msgstr "Mantingut pels desenvolupadors de la comunitat"
 
 
 msgid "Asset Blend Path"
-msgstr "Camí de recursos blend"
+msgstr "Ruta dels recursos blend"
 
 
 msgid "Full path to the Blender file containing the active asset"
-msgstr "[Asset Blend Path]: Camí complet al document Blender que conté el recurs actiu"
+msgstr "[Asset Blend Path]: Ruta completa al document Blender que conté el recurs actiu"
 
 
 msgid "Is Interface Locked"
@@ -30595,11 +30591,11 @@ msgstr "Llista d'operacions de sobreseïment que afecten a una propietat"
 
 
 msgid "RNA Path"
-msgstr "Camí d'RNA"
+msgstr "Ruta d'RNA"
 
 
 msgid "RNA path leading to that property, from owning ID"
-msgstr "[RNA Path]: El camí d'RNA que porta aquesta propietat, des del propietari de l'ID"
+msgstr "[RNA Path]: La ruta d'RNA que porta vers aquesta propietat, des del propietari de l'ID"
 
 
 msgid "ID Library Override Property Operation"
@@ -31227,7 +31223,7 @@ msgstr "Capa en una imatge multicapa"
 
 
 msgid "Pass in multilayer image"
-msgstr "Passada en una imatge multicapa"
+msgstr "Passada en imatge multicapa"
 
 
 msgid "View in multilayer image"
@@ -31391,7 +31387,7 @@ msgstr "Filles expandides"
 
 
 msgid "Children expanded in the user interface"
-msgstr "[Children Expanded]: Les filles estan expandidides en la interfície d'usuària"
+msgstr "[Children Expanded]: Les filles estan expandides en la interfície d'usuària"
 
 
 msgid "Items Expanded"
@@ -32599,7 +32595,7 @@ msgstr "NDOF escombratge/zoom"
 
 
 msgid "NdofPanZoom"
-msgstr "NdofPanZoom"
+msgstr "NdofEscZoom"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -33183,15 +33179,15 @@ msgstr "Nom de la IU"
 
 
 msgid "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)"
-msgstr "El joc d'atributs de fites defineix camins/paràmetres específics per d'aplicació a fotofites (és a dir, no parteix d'informació de context)"
+msgstr "El joc d'atributs de fites defineix disposicions/paràmetres específics d'aplicació a fotofites (és a dir, no parteix d'informació de context)"
 
 
 msgid "Paths"
-msgstr "Camins"
+msgstr "Disposicions"
 
 
 msgid "Keying Set Paths to define settings that get keyframed together"
-msgstr "[Paths]: Camins del jocs de fitoatributs per definir els paràmetres que s'associen plegats a fotofites"
+msgstr "[Paths]: Disposicions del jocs de fitoatributs per definir els paràmetres que s'associen plegats a fotofites"
 
 
 msgid "Type Info"
@@ -33407,11 +33403,11 @@ msgstr "Personatge sencer (només ossos seleccionats)"
 
 
 msgid "Keying Set Path"
-msgstr "Camí del joc de fitoatributs"
+msgstr "Disposició del joc de fitoatributs"
 
 
 msgid "Path to a setting for use in a Keying Set"
-msgstr "[Keying Set Path]: Camí a un paràmetre per a usar en un joc d'atributs de fites"
+msgstr "[Keying Set Path]: Ruta a un paràmetre per a usar en un joc d'atributs de fites"
 
 
 msgid "Index to the specific setting if applicable"
@@ -33419,7 +33415,7 @@ msgstr "Index de la configuració en qüestió si s'escau"
 
 
 msgid "Path to property setting"
-msgstr "Camí a la configuració de la propietat"
+msgstr "Ruta a la configuració de la propietat"
 
 
 msgid "Group Name"
@@ -33427,7 +33423,7 @@ msgstr "Nom del grup"
 
 
 msgid "Name of Action Group to assign setting(s) for this path to"
-msgstr "Nom del grup d'accions al qual aquest camí assignarà el(s) paràmetre(s)"
+msgstr "Nom del grup d'accions al qual aquesta disposició assignarà el(s) paràmetre(s)"
 
 
 msgid "Grouping Method"
@@ -33463,11 +33459,11 @@ msgstr "[Entire Array]: Quan es tria un tipus de «vector/corrua» (ubicació, r
 
 
 msgid "Keying set paths"
-msgstr "Camins de jocs de fitoatributs"
+msgstr "Disposicions de jocs de fitoatributs"
 
 
 msgid "Collection of keying set paths"
-msgstr "[Keying set paths]: Col·lecció de camins de jocs d'atributs de fites"
+msgstr "[Keying set paths]: Col·lecció de disposicions de jocs d'atributs de fites"
 
 
 msgid "Active Keying Set"
@@ -33479,7 +33475,7 @@ msgstr "[Active Keying Set]: Joc d'atributs de fites utilitzat per inserir/elimi
 
 
 msgid "Active Path Index"
-msgstr "Índex de camí actiu"
+msgstr "Índex de disposició actiu"
 
 
 msgid "Current Keying Set index"
@@ -34740,11 +34736,11 @@ msgstr "Alineació"
 
 
 msgid "Defines how align Dots and Boxes with drawing path and object rotation"
-msgstr "[Alignment]: Defineix com alinear els punts i caixes amb el camí del dibuix i la rotació de l'objecte"
+msgstr "[Alignment]: Defineix com alinear els punts i caixes amb el trajecte marcat i la rotació de l'objecte"
 
 
 msgid "Follow stroke drawing path and object rotation"
-msgstr "Segueix el camí dibuixat pel traç i la rotació de l'objecte"
+msgstr "Segueix el trajecte marcat pel traç i la rotació de l'objecte"
 
 
 msgid "Follow object rotation only"
@@ -34752,7 +34748,7 @@ msgstr "Segueix només la rotació de l'objecte"
 
 
 msgid "Do not follow drawing path or object rotation and keeps aligned with viewport"
-msgstr "No segueix el camí dibuixat o la rotació de l'objecte i es manté alineada amb el mirador"
+msgstr "No seguir el trajecte marcat o rotació de l'objecte i es manté alineada amb el mirador"
 
 
 msgid "Additional rotation applied to dots and square texture of strokes. Only applies in texture shading mode"
@@ -35937,7 +35933,7 @@ msgstr "Propietat de la màscara de pintura de malla"
 
 
 msgid "Floating-point paint mask value"
-msgstr "Valor de la màscara de pintar de coma flotant"
+msgstr "Valor de coma flotant de la màscara de pintar"
 
 
 msgid "Mesh Polygon"
@@ -36865,7 +36861,7 @@ msgstr "Angle per sobre del qual es bisellen les arestes"
 
 
 msgid "The path for the custom profile"
-msgstr "El camí del perfil adaptable"
+msgstr "El trajecte del perfil personalitzat"
 
 
 msgid "Face Strength"
@@ -37053,7 +37049,7 @@ msgstr "El perfil pot ser una corba còncava o convexa"
 
 
 msgid "The profile can be any arbitrary path between its endpoints"
-msgstr "El perfil pot ser qualsevol camí arbitrari entre els seus extrems"
+msgstr "El perfil pot ser qualsevol trajecte arbitrari entre els seus extrems"
 
 
 msgid "Number of segments for round edges/verts"
@@ -38936,11 +38932,11 @@ msgstr "[Fetch]: És la distància respecte a una costa de sotavent, anomenada a
 
 
 msgid "Cache Path"
-msgstr "Camí a memòria cau"
+msgstr "Ruta a memòria cau"
 
 
 msgid "Path to a folder to store external baked images"
-msgstr "[Cache Path]: Camí a la carpeta que guarda imatges externes precuinades"
+msgstr "[Cache Path]: Ruta a la carpeta que guarda imatges externes precuinades"
 
 
 msgid "Foam Coverage"
@@ -39216,7 +39212,7 @@ msgstr "Número de sistema de partícules"
 
 
 msgid "Position along path"
-msgstr "Ubinació en el camí"
+msgstr "Ubicació en el trajecte"
 
 
 msgid "Random Position"
@@ -39224,15 +39220,15 @@ msgstr "Posició aleatòria"
 
 
 msgid "Randomize position along path"
-msgstr "[Random Position]: Ubicació aleatòria al llarg del camí"
+msgstr "[Random Position]: Ubicació aleatòria al llarg del trajecte"
 
 
 msgid "Randomize rotation around path"
-msgstr "Fer rotar aleatòriament al voltant d'un camí"
+msgstr "Fer rotar aleatòriament al voltant d'un trajecte"
 
 
 msgid "Rotation around path"
-msgstr "Rotació al voltant d'un camí"
+msgstr "Rotació al voltant d'un trajecte"
 
 
 msgid "Show instances when particles are alive"
@@ -39277,7 +39273,7 @@ msgstr "Crear instàncies a partir de partícules normals"
 
 
 msgid "Create instances along particle paths"
-msgstr "Crear instàncies seguint camins de partícules"
+msgstr "Crear instàncies seguint trajectes de partícules"
 
 
 msgid "Don't stretch the object"
@@ -40789,11 +40785,11 @@ msgstr "Fotograma inicial de l'interval desat"
 
 
 msgid "Edit Path"
-msgstr "Editar trajectòria"
+msgstr "Editar trajecte"
 
 
 msgid "Path is being edited"
-msgstr "La trajectòria s'està editant"
+msgstr "El trajecte s'està editant"
 
 
 msgid "Number of frames cached"
@@ -41762,7 +41758,7 @@ msgstr "[Use Blue Channel]: Usa el canal blau de la filmació per al rastreig"
 
 
 msgid "Prepass"
-msgstr "Prediscórrer"
+msgstr "Prepassada"
 
 
 msgid "Use a brute-force translation-only initialization when tracking"
@@ -41926,7 +41922,7 @@ msgstr "Posició esperada"
 
 
 msgid "Known relative offset of original shot, will be subtracted (e.g. for panning shot, can be animated)"
-msgstr "[Expected Position]: Desplaçament relatiu conegut de la posició inicial de la càmera, es restarà (p. ex. per l'escombratge, es pot animar)"
+msgstr "[Expected Position]: Desplaçament relatiu conegut de la posició inicial de la càmera, es restarà (p. ex. per una presa d'escombratge, es pot animar)"
 
 
 msgid "Expected Rotation"
@@ -43541,7 +43537,7 @@ msgstr "Aresta a insertar"
 
 
 msgid "Growing/shrinking mode"
-msgstr "Mode Creixement/encongiment"
+msgstr "Mode Expansió/encongiment"
 
 
 msgid "Feather"
@@ -43777,11 +43773,11 @@ msgstr "[Straight Alpha Output]: Posa l'egressió del regulador a alfa directa e
 
 
 msgid "Inpaint"
-msgstr "Empintar"
+msgstr "Tapar forats"
 
 
 msgid "Distance to inpaint (number of iterations)"
-msgstr "[Inpaint]: Distància a estendre la pintura (nombre d'iteracions)"
+msgstr "[Inpaint]: Distància a tapar forats (nombre d'iteracions)"
 
 
 msgid "Invert Color"
@@ -44465,7 +44461,7 @@ msgstr "[Active Input Index]: Índex d'ingressió actiu a la llista de visualitz
 
 
 msgid "Base Path"
-msgstr "Camí base"
+msgstr "Ruta base"
 
 
 msgid "Base output path for the image"
@@ -47497,7 +47493,7 @@ msgstr "FDDB transparent"
 
 
 msgid "Transparency without refraction, passing straight through the surface as if there were no geometry"
-msgstr "Transparència sense refracció, que passa directament per la superfície com si no hi hagués geometria"
+msgstr "Transparència sense refracció, que travessa directament la superfície com si no hi hagués geometria"
 
 
 msgid "Bump"
@@ -47985,7 +47981,7 @@ msgstr "Xifrat efímer del bytecode compilat, per a comprovar ràpid la igualtat
 
 
 msgid "Shader script path"
-msgstr "Camí de l'aspector de protocol"
+msgstr "Ruta del protocol d'aspecció"
 
 
 msgid "Script Source"
@@ -49234,7 +49230,7 @@ msgstr "[Output File Slot]: Inscripció de document unicapa per al node del docu
 
 
 msgid "Subpath used for this slot"
-msgstr "Subcamí usat per a aquest epígraf"
+msgstr "Subruta usada per a aquest epígraf"
 
 
 msgid "Save as Render"
@@ -49586,7 +49582,7 @@ msgstr "El plafó està tancat per defecte en nodes nous"
 
 
 msgid "Panel description"
-msgstr "Descripció del plafó"
+msgstr "Descripció de plafó"
 
 
 msgid "Items in the node panel"
@@ -51129,20 +51125,20 @@ msgstr "Filtrar text"
 
 msgctxt "Operator"
 msgid "Add Empty Keying Set Path"
-msgstr "Afegir un camí buit de joc de fitoatributs"
+msgstr "Afegir una disposició de joc de fitoatributs buit"
 
 
 msgid "Add empty path to active keying set"
-msgstr "Afegir un camí buit al joc d'atributs de fites actiu"
+msgstr "Afegir una disposició buida al joc d'atributs de fites actiu"
 
 
 msgctxt "Operator"
 msgid "Remove Active Keying Set Path"
-msgstr "Suprimir camí del joc de fitoatributs actius"
+msgstr "Suprimir disposició del joc de fitoatributs actiu"
 
 
 msgid "Remove active Path from active keying set"
-msgstr "[Remove Active Keying Set Path]: Suprimeix el camí actiu del jocs d'atributs de fites actiu"
+msgstr "[Remove Active Keying Set Path]: Suprimeix la disposició activa del joc d'atributs de fites actiu"
 
 
 msgctxt "Operator"
@@ -51815,7 +51811,7 @@ msgstr "[Separate Bones]: Aïlla els ossos seleccionats en un esquelet a part"
 
 msgctxt "Operator"
 msgid "Pick Shortest Path"
-msgstr "Tria camí curt"
+msgstr "Triar camí més curt"
 
 
 msgid "Select shortest path between two bones"
@@ -52027,11 +52023,11 @@ msgstr "[New Asset Catalog]: Crea un nou catàleg per posar-hi recursos"
 
 
 msgid "Parent Path"
-msgstr "Camí del pare"
+msgstr "Ruta del pare"
 
 
 msgid "Optional path defining the location to put the new catalog under"
-msgstr "[Parent Path]: Camí opcional que defineix la ubicació on s'ha de posar el catàleg nou"
+msgstr "[Parent Path]: Ruta opcional que defineix la ubicació on s'ha de posar el catàleg nou"
 
 
 msgctxt "Operator"
@@ -52479,7 +52475,7 @@ msgstr "[Add Camera Preset]: Afegeix o suprimeix un valor predefinit de la càme
 
 
 msgid "Name of the preset, used to make the path name"
-msgstr "Nom del predefinit, usat per a donar nom al camí"
+msgstr "Nom del predefinit, usat per a donar nom al trajecte"
 
 
 msgid "Include Focal Length"
@@ -52615,7 +52611,7 @@ msgstr "[Clear Solution]: Retira totes les dades calculades"
 
 msgctxt "Operator"
 msgid "Clear Track Path"
-msgstr "Retirar trajecte a rastrejar"
+msgstr "Retirar trajecte de rastreig"
 
 
 msgid "Clear tracks after/before current position or clear the whole track"
@@ -52851,11 +52847,11 @@ msgstr "Posició a on saltar"
 
 
 msgid "Jump to start of current path"
-msgstr "Saltar a l'inici del camí actual"
+msgstr "Saltar a l'inici del trajecte actual"
 
 
 msgid "Jump to end of current path"
-msgstr "Saltar al final del camí actual"
+msgstr "Saltar al final del trajecte actual"
 
 
 msgid "Previous Failed"
@@ -53535,16 +53531,16 @@ msgstr "NDOF escombratge/zoom"
 
 
 msgid "Use a 3D mouse device to pan/zoom the view"
-msgstr "[NDOF Pan/Zoom]: Utilitza un dispositiu de ratolí 3D per a escombratge/zoom la vista"
+msgstr "[NDOF Pan/Zoom]: Utilitza un dispositiu de ratolí 3D per a escombratge/zoom de la vista"
 
 
 msgctxt "Operator"
 msgid "Pan View"
-msgstr "Escombratge d'escena"
+msgstr "Escombratge de vista"
 
 
 msgid "Pan the view"
-msgstr "Escombratge d'escena"
+msgstr "Escombratge de la vista"
 
 
 msgid "View all selected elements"
@@ -54064,15 +54060,15 @@ msgstr "[Disable and Keep Transform]: Estableix la influència d'aquesta restric
 
 msgctxt "Operator"
 msgid "Auto Animate Path"
-msgstr "Autoanimar camí"
+msgstr "Autoanimar trajecte"
 
 
 msgid "Add default animation for path used by constraint if it isn't animated already"
-msgstr "[Auto Animate Path]: Afegir l'animació predeterminada per al camí utilitzat per la restricció si no és que ja està animada"
+msgstr "[Auto Animate Path]: Afegir l'animació predeterminada per al trajecte utilitzat per la restricció si no és que ja està animada"
 
 
 msgid "First frame of path animation"
-msgstr "Primer fotograma d'animació de camí"
+msgstr "Primer fotograma d'animació de trajecte"
 
 
 msgid "Number of frames that path animation should take"
@@ -55016,7 +55012,7 @@ msgstr "[Denoise Animation]: Dessorolla la seqüència d'animació revelada amb 
 
 
 msgid "Input Filepath"
-msgstr "Ruta d'ingressió"
+msgstr "Adreça d'ingressió"
 
 
 msgid "File path for image to denoise. If not specified, uses the render file path and frame range from the scene"
@@ -55041,11 +55037,11 @@ msgstr "[Merge Images]: Combina les imatges multicapa OpenEXR revelades amb dife
 
 
 msgid "File path for image to merge"
-msgstr "Adreça del document per a fusionar la imatge"
+msgstr "Ruta del document per a fusionar la imatge"
 
 
 msgid "File path for merged image"
-msgstr "Adreça al document per a la imatge fusionada"
+msgstr "Ruta al document per a la imatge fusionada"
 
 
 msgctxt "Operator"
@@ -55647,7 +55643,7 @@ msgstr "Incrustar textures"
 
 
 msgid "Embed textures in FBX binary file (only for \"Copy\" path mode!)"
-msgstr "[Embed Textures]: Incrusta textures en el document binari FBX (només per al mode de camí «Còpia»)"
+msgstr "[Embed Textures]: Incrusta textures en el document binari FBX (només per al mode de ruta «Còpia»)"
 
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
@@ -55703,23 +55699,23 @@ msgstr "Altres tipus de geometria, com la corba, metabola, etc. (convertits en m
 
 
 msgid "Path Mode"
-msgstr "Mode camí"
+msgstr "Mode de rutes"
 
 
 msgid "Method used to reference paths"
-msgstr "[Path Mode]: Mètode per als camins de referència"
+msgstr "[Path Mode]: Mètode per a les rutes de referència"
 
 
 msgid "Use relative paths with subdirectories only"
-msgstr "Usar camins relatius només amb subdirectoris"
+msgstr "Usa rutes relatives només amb subdirectoris"
 
 
 msgid "Always write absolute paths"
-msgstr "Escriure sempre camins absoluts"
+msgstr "Escriure sempre rutes absolutes"
 
 
 msgid "Always write relative paths (where possible)"
-msgstr "Escriure sempre camins relatius (on sigui possible)"
+msgstr "Escriure sempre rutes relatives (on sigui possible)"
 
 
 msgid "Match"
@@ -55731,7 +55727,7 @@ msgstr "[Match]: Fa coincidir la configuració absoluta/relativa amb la ruta d'i
 
 
 msgid "Strip Path"
-msgstr "Camí de segment"
+msgstr "Ruta de segment"
 
 
 msgid "Filename only"
@@ -55739,7 +55735,7 @@ msgstr "Només nom de document"
 
 
 msgid "Copy the file to the destination path (or subdirectory)"
-msgstr "[Filename only]: Copia el document al camí de destinació (o subdirectori)"
+msgstr "[Filename only]: Copia el document a la ruta de destinació (o subdirectori)"
 
 
 msgid "Primary Bone Axis"
@@ -56047,6 +56043,10 @@ msgid "Apply sampling to all animations"
 msgstr "[Always Sample Animations]: Aplica el mostreig a totes les animacions"
 
 
+msgid "Output format. Binary is most efficient, but JSON may be easier to edit later"
+msgstr "Format d'egressió. El més eficient és el binari, però el JSON pot ser més fàcil d'editar posteriorment"
+
+
 msgid "glTF Binary (.glb)"
 msgstr "glTF binari (.glb)"
 
@@ -56075,6 +56075,10 @@ msgid "GPU Instances"
 msgstr "Instàncies de GPU"
 
 
+msgid "Export using EXT_mesh_gpu_instancing. Limited to children of a given Empty. Multiple materials might be omitted"
+msgstr "Exporta mitjançant EXT_mesh_gpu_instancing. Limitat a les filles d'un mateix buit. Pot ser que s'ometin diversos materials"
+
+
 msgid "Flatten Bone Hierarchy"
 msgstr "Aplanar jerarquia d'ossos"
 
@@ -56083,8 +56087,20 @@ msgid "Flatten Bone Hierarchy. Useful in case of non decomposable transformation
 msgstr "[Flatten Bone Hierarchy]: Aplana la jerarquia d'ossos. Útil en el cas d'una matriu de transformació no descomponible"
 
 
+msgid "Create WebP"
+msgstr "Crear WebP"
+
+
+msgid "Creates WebP textures for every texture. For already WebP textures, nothing happens"
+msgstr "Crea textures WebP per a cada textura. En el cas de textures ja WebP, no hi fa res"
+
+
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "Format d'egressió per a les imatges. PNG és sense pèrdua i generalment preferible, però JPEG podria ser preferible per a aplicacions web a causa de la mida menor dels documents. Alternativament, es poden ometre si no són necessaris"
+
+
+msgid "Save PNGs as PNGs, JPEGs as JPEGs, WebPs as WebPs. For other formats, use PNG"
+msgstr "Desa els PNGs com a PNG, els JPEGs com a JPEGs i els WebPs com a WebPs. Si no n'és cap, usa PNG"
 
 
 msgid "JPEG Format (.jpg)"
@@ -56093,6 +56109,14 @@ msgstr "Format JPEG (.jpg)"
 
 msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) Be aware of a possible loss in quality"
 msgstr "Desa les imatges com a JPEG. (Però les imatges que requereixen alfa es desen com a PNG.) Atenció a la possible pèrdua de qualitat"
+
+
+msgid "WebP Format"
+msgstr "Format WebP"
+
+
+msgid "Save images as WebPs as main image (no fallback)"
+msgstr "Desar les imatges en WebP com a imatge principal (sense alternativa)"
 
 
 msgid "Don't export images"
@@ -56105,6 +56129,14 @@ msgstr "Qualitat d'imatge"
 
 msgid "Quality of image export"
 msgstr "Qualitat d'exportació d'imatge"
+
+
+msgid "WebP fallback"
+msgstr "Alternativa a WebP"
+
+
+msgid "For all WebP textures, create a PNG fallback texture"
+msgstr "Per a totes les textures WebP, crear una textura PNG alternativa"
 
 
 msgid "Lighting Mode"
@@ -56341,6 +56373,10 @@ msgstr "Ometent l'accessor espars si les dades estan buides"
 
 msgid "Use Sparse Accessor if better"
 msgstr "Usar accessor espars si va millor"
+
+
+msgid "Try using Sparse Accessor if it saves space"
+msgstr "Proveu un accessor espars per si estalvia espai"
 
 
 msgid "+Y Up"
@@ -56607,7 +56643,7 @@ msgstr "Obre un directori nou"
 
 msgctxt "Operator"
 msgid "Edit Directory Path"
-msgstr "Editar camí del directori"
+msgstr "Editar ruta del directori"
 
 
 msgid "Start editing directory field"
@@ -56637,7 +56673,7 @@ msgstr "Ruta del document o carpeta"
 
 
 msgid "Operation to perform on the file or path"
-msgstr "Operació a executar en el document o carpeta"
+msgstr "Operació a executar en el document o ruta"
 
 
 msgid "Open the file"
@@ -56795,7 +56831,7 @@ msgstr "Ressalta els documents seleccionats"
 
 msgctxt "Operator"
 msgid "Make Paths Absolute"
-msgstr "Fer camins absoluts"
+msgstr "Fer rutes absolutes"
 
 
 msgid "Make all paths to external files absolute"
@@ -56804,11 +56840,11 @@ msgstr "[Make Paths Absolute]: Fa que totes les rutes als documents externs sigu
 
 msgctxt "Operator"
 msgid "Make Paths Relative"
-msgstr "Fer camins relatius"
+msgstr "Fer rutes relatives"
 
 
 msgid "Make all paths to external files relative to current .blend"
-msgstr "Fa que tots els camins als documents externs siguin relatius respecte del .blend actual"
+msgstr "Fa que totes les rutes als documents externs siguin relatives respecte del .blend actual"
 
 
 msgctxt "Operator"
@@ -56922,7 +56958,7 @@ msgstr "Obrir un directori en seleccionar-lo"
 
 
 msgid "Pass Through"
-msgstr "Fer passar"
+msgstr "Travessar"
 
 
 msgid "Even on successful execution, pass the event on so other operators can execute on it as well"
@@ -57945,11 +57981,11 @@ msgstr "Bisellar resolució quan la profunditat no és zero"
 
 
 msgid "The end frame of the path control curve (if Realtime is not set)"
-msgstr "El fotograma final de la corba de control del camí (si no s'ha consignat en temps real)"
+msgstr "El fotograma final de la corba de control del trajecte (si no s'ha consignat en temps real)"
 
 
 msgid "The duration of evaluation of the path control curve"
-msgstr "La durada de l'avaluació de la corba de control del camí"
+msgstr "La durada de l'avaluació de la corba de control del trajecte"
 
 
 msgid "Gap Duration"
@@ -57981,7 +58017,7 @@ msgstr "Mode espai adaptat: generador aleatori de llavor"
 
 
 msgid "The start frame of the path control curve"
-msgstr "El fotograma inicial de la corba de control del camí"
+msgstr "El fotograma inicial de la corba de control del trajecte"
 
 
 msgid "Timing Mode"
@@ -58021,7 +58057,7 @@ msgstr "A quin tipus de corba s'ha de convertir"
 
 
 msgid "Animation path"
-msgstr "Camí d'animació"
+msgstr "Trajecte d'animació"
 
 
 msgid "Smooth Bezier curve"
@@ -58053,7 +58089,7 @@ msgstr "[Normalize Weight]: Normalitza els pesos (tret de l'amplada de traç)"
 
 
 msgid "Whether the path control curve reproduces the drawing in realtime, starting from Start Frame"
-msgstr "Si la corba de control del camí reprodueix el dibuix en temps real, començant des del fotograma inicial"
+msgstr "Si la corba de control del trajecte reprodueix el dibuix en temps real, començant des del fotograma inicial"
 
 
 msgid "Has Valid Timing"
@@ -58925,7 +58961,7 @@ msgstr "Revessar mode pintura de traç"
 
 
 msgid "Enter/Exit paint mode for Grease Pencil strokes"
-msgstr "[Strokes Paint Mode Toggle]: Entra/Surt el mode de pintura per als traços del Llapis de greix"
+msgstr "[Strokes Paint Mode Toggle]: Entra/Surt el mode de pintura de traços del Llapis de greix"
 
 
 msgctxt "Operator"
@@ -59850,7 +59886,7 @@ msgstr "Política de girs"
 
 
 msgid "Determines how to resolve ambiguities during decomposition of bitmaps into paths"
-msgstr "[Turn Policy]: Determina com resoldre ambigüitats durant la descomposició de mapes de bits en camins"
+msgstr "[Turn Policy]: Determina com resoldre ambigüitats durant la descomposició de mapes de bits en trajectes"
 
 
 msgid "Prefers to connect black (foreground) components"
@@ -59917,7 +59953,7 @@ msgstr "[Unlock All Layers]: Desbloca totes les capes de Llapis de greix perquè
 
 msgctxt "Operator"
 msgid "Vertex Paint Brightness/Contrast"
-msgstr "Brillantor/Contrast del pintat de vèrtexs"
+msgstr "Brillantor/Contrast de pintura de vèrtexs"
 
 
 msgid "Adjust vertex color brightness/contrast"
@@ -59926,7 +59962,7 @@ msgstr "Ajusta la brillantor/contrast del color del vèrtex"
 
 msgctxt "Operator"
 msgid "Vertex Paint Hue/Saturation/Value"
-msgstr "To/Saturació/Valor de pintat de vèrtex"
+msgstr "To/Saturació/Valor de pintura de vèrtexs"
 
 
 msgid "Adjust vertex color HSV values"
@@ -59935,7 +59971,7 @@ msgstr "Ajusta els valors HSV del color del vèrtex"
 
 msgctxt "Operator"
 msgid "Vertex Paint Invert"
-msgstr "Invertir pintat de vèrtexs"
+msgstr "Invertir pintura de vèrtexs"
 
 
 msgid "Invert RGB values"
@@ -59944,7 +59980,7 @@ msgstr "Inverteix els valors RGB"
 
 msgctxt "Operator"
 msgid "Vertex Paint Levels"
-msgstr "Nivells de pintat de vèrtex"
+msgstr "Nivells de pintura de vèrtexs"
 
 
 msgid "Adjust levels of vertex colors"
@@ -59961,7 +59997,7 @@ msgstr "Valor a sumar als colors"
 
 msgctxt "Operator"
 msgid "Vertex Paint Set Color"
-msgstr "Assignar color a pintat de vèrtexs"
+msgstr "Assignar color a pintura de vèrtexs"
 
 
 msgid "Set active color to all selected vertex"
@@ -60050,7 +60086,7 @@ msgstr "[Smooth Vertex Group]: Suavitzar pesos al grup de vèrtexs actiu"
 
 msgctxt "Operator"
 msgid "Stroke Vertex Paint"
-msgstr "Pintar vèrtexs de traç"
+msgstr "Pintar vèrtexs amb traç"
 
 
 msgid "Paint stroke points with a color"
@@ -60063,7 +60099,7 @@ msgstr "Revessar mode vèrtex de traços"
 
 
 msgid "Enter/Exit vertex paint mode for Grease Pencil strokes"
-msgstr "Entra/Surt del mode de pintat de vèrtexs per als traços de Llapis de greix"
+msgstr "Entra/Surt del mode de pintura de vèrtexs amb traços de Llapis de greix"
 
 
 msgctxt "Operator"
@@ -60077,7 +60113,7 @@ msgstr "Dibuixar pesos en punts de traç"
 
 msgctxt "Operator"
 msgid "Weight Paint Sample Weight"
-msgstr "Pescar pes de pintura de pesos"
+msgstr "Mostreig de pesos de pintura de pesos"
 
 
 msgid "Use the mouse to sample a weight in the 3D view"
@@ -60272,7 +60308,7 @@ msgstr "Marge d'error"
 
 
 msgid "Use an error margin to specify how much the curve is allowed to deviate from the original path"
-msgstr "Usa un marge d'error per a especificar fins a quin punt es permet que la corba es desviï del camí original"
+msgstr "Usa un marge d'error per a especificar fins a quin punt es permet que la corba es desviï del trajecte original"
 
 
 msgid "Max Error Margin"
@@ -61254,7 +61290,7 @@ msgstr "Obre una imatge"
 
 
 msgid "Allow the path to contain substitution tokens"
-msgstr "Permetre que el camí contingui testimonis de substitució"
+msgstr "Permetre que el trajecte contingui testimonis de substitució"
 
 
 msgid "Detect Sequences"
@@ -61821,7 +61857,7 @@ msgstr "Sobreescriu el material existent (en base al nom del material)"
 
 
 msgid "Relative Paths"
-msgstr "Camins relatius"
+msgstr "Rutes relatives"
 
 
 msgid "Use relative file paths"
@@ -62089,6 +62125,10 @@ msgid "Blender (best for import/export round trip)"
 msgstr "Blender (millor per a importació/exportació reversible)"
 
 
+msgid "Good for re-importing glTFs exported from Blender, and re-exporting glTFs to glTFs after Blender editing. Bone tips are placed on their local +Y axis (in glTF space)"
+msgstr "Bo per reimportar glTF exportats des de Blender, i reexportar gITs a gITFs després d'editar amb Blender. Els caps d'ossos es col·loquen en el seu eix local +Y (en l'espai glTF)"
+
+
 msgid "Temperance (average)"
 msgstr "Temprança (mitjana)"
 
@@ -62131,6 +62171,14 @@ msgstr "Usar dades de normals"
 
 msgid "Flat Shading"
 msgstr "Aspecte aplanat"
+
+
+msgid "Import WebP textures"
+msgstr "Importar textures WebP"
+
+
+msgid "If a texture exists in WebP format, loads the WebP texture instead of the fallback PNG/JPEG one"
+msgstr "Si existeix una textura en format WebP, carrega la textura WebP en lloc de l'alternativa PNG/JPG"
 
 
 msgid "Log Level"
@@ -63004,7 +63052,7 @@ msgstr "Mètode d'interpolació"
 
 
 msgid "Blend Path"
-msgstr "Fusionar trajecte"
+msgstr "Fusionar camí"
 
 
 msgid "Blend Surface"
@@ -64323,7 +64371,7 @@ msgstr "Extracció amb màscara"
 
 
 msgid "Create a new mesh object from the current paint mask"
-msgstr "[Mask Extract]: Crea un nou objecte malla a partir de la màscara de pintat present"
+msgstr "[Mask Extract]: Crea un nou objecte malla a partir de la present màscara de pintar"
 
 
 msgid "Minimum mask value to consider the vertex valid to extract a face from the original mesh"
@@ -64336,7 +64384,7 @@ msgstr "Màscara fragment"
 
 
 msgid "Slices the paint mask from the mesh"
-msgstr "[Mask Slice]: Fragmenta la màscara de pintat des de la malla"
+msgstr "[Mask Slice]: Fragmenta la màscara de pintar des de la malla"
 
 
 msgid "Fill Holes"
@@ -65085,6 +65133,15 @@ msgstr "Eix alineat"
 
 
 msgctxt "Operator"
+msgid "Select by Attribute"
+msgstr "Seleccionar segons atribut"
+
+
+msgid "Select elements based on the active boolean attribute"
+msgstr "Selecciona elements en base a l'atribut booleà actiu"
+
+
+msgctxt "Operator"
 msgid "Select Faces by Sides"
 msgstr "Seleccionar cares per costats"
 
@@ -65408,7 +65465,7 @@ msgstr "Etiqueta d'aresta"
 
 
 msgid "The edge flag to tag when selecting the shortest path"
-msgstr "[Edge Tag]: L'indicador d'aresta que s'ha d'etiquetar quan se selecciona el trajecte més curt"
+msgstr "[Edge Tag]: L'indicador d'aresta que s'ha d'etiquetar quan se selecciona el camí més curt"
 
 
 msgid "Tag Seam"
@@ -65444,7 +65501,7 @@ msgstr "Omplir regió"
 
 
 msgid "Select all paths between the source/destination elements"
-msgstr "[Fill Region]: Selecciona tots els trajectes entre els elements d'origen/destinació"
+msgstr "[Fill Region]: Selecciona tots els camins entre els elements d'origen/destinació"
 
 
 msgid "Topology Distance"
@@ -65457,7 +65514,7 @@ msgstr "Trobar el nombre mínim de passos, ignorant la distància espacial"
 
 msgctxt "Operator"
 msgid "Select Shortest Path"
-msgstr "Seleccionar trajecte màxim de curt"
+msgstr "Seleccionar camí màxim de curt"
 
 
 msgid "Selected shortest path between two vertices/edges/faces"
@@ -65781,7 +65838,7 @@ msgstr "[Split Non-Planar Faces]: Dividir les cares no planars que excedeixen l'
 
 msgctxt "Operator"
 msgid "Vertex Connect Path"
-msgstr "Trajecte de connexió de vèrtexs"
+msgstr "Camí de connexió de vèrtexs"
 
 
 msgid "Connect vertices by their selection order, creating edges, splitting faces"
@@ -66750,7 +66807,7 @@ msgstr "Folre interior"
 
 
 msgid "Inside distance in UI units from the edge of the region within which to start panning"
-msgstr "[Inside Padding]: Distancia interior en unitats d'IU des del límit de la regió dins la qual s'inicia el l'escombratge"
+msgstr "[Inside Padding]: Distancia interior en unitats d'IU des del límit de la regió dins la qual s'inicia l'escombratge"
 
 
 msgid "Maximum speed in UI units per second"
@@ -66762,7 +66819,7 @@ msgstr "Folre exterior"
 
 
 msgid "Outside distance in UI units from the edge of the region at which to stop panning"
-msgstr "[Outside Padding]: Distancia exterior en unitats d'IU des del límit de la regió dins la qual s'atura el l'escombratge"
+msgstr "[Outside Padding]: Distancia exterior en unitats d'IU des del límit de la regió dins la qual s'atura l'escombratge"
 
 
 msgid "Speed Ramp"
@@ -66924,7 +66981,7 @@ msgstr "[Add File Node Socket]: Afegir una entrada nova a un node de sortida de 
 
 
 msgid "Subpath of the output file"
-msgstr "Subcamí del document de sortida"
+msgstr "Subruta del document de sortida"
 
 
 msgctxt "Operator"
@@ -67692,7 +67749,7 @@ msgstr "Afegir un tipus d'imatge buida a escena amb dades"
 
 
 msgid "Filepath"
-msgstr "Adreça del document"
+msgstr "Camí del document"
 
 
 msgid "Path to image file"
@@ -69251,7 +69308,7 @@ msgstr "Ingressar nombre volgut de cares en la nova malla"
 
 
 msgid "Reproject the paint mask onto the new mesh"
-msgstr "Reprojectar la màscara de pintura a la nova malla"
+msgstr "Reprojectar la màscara de pintar a la nova malla"
 
 
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
@@ -70963,11 +71020,11 @@ msgstr "Elimina els controladors assignats als elements seleccionats"
 
 msgctxt "Operator"
 msgid "Expand/Collapse All"
-msgstr "Expandir/replegar-ho tot"
+msgstr "Desplegar/replegar-ho tot"
 
 
 msgid "Expand/Collapse all items"
-msgstr "[Expand/Collapse All]: Expandeix/replega tots els elements"
+msgstr "[Expand/Collapse All]: Desplega/replega tots els elements"
 
 
 msgid "Hide selected objects and collections"
@@ -71468,11 +71525,11 @@ msgstr "Mostrar/ocultar un nivell"
 
 
 msgid "Expand/collapse all entries by one level"
-msgstr "Expandeix/replega totes les entrades en un nivell"
+msgstr "Desplega/replega totes les entrades en un nivell"
 
 
 msgid "Expand all entries one level deep"
-msgstr "Expandir totes les entrades un nivell de profunditat"
+msgstr "Desplegar totes les entrades un nivell de profunditat"
 
 
 msgctxt "Operator"
@@ -71542,7 +71599,7 @@ msgstr "Afegir nova corba de pintura"
 
 
 msgid "Add new paint curve"
-msgstr "Afegir una corba de pintura nova"
+msgstr "Afegeix una corba de pintura nova"
 
 
 msgctxt "Operator"
@@ -71590,7 +71647,7 @@ msgstr "Afegir epígraf de pintat"
 
 
 msgid "Add a paint slot"
-msgstr "[Add Paint Slot]: Afegir una epígraf de pintura"
+msgstr "[Add Paint Slot]: Afegeix un epígraf de pintura"
 
 
 msgid "Name for new paint slot source"
@@ -71602,7 +71659,7 @@ msgstr "Tipus d'epigraf"
 
 
 msgid "Type of new paint slot"
-msgstr "[Slot Type]: Tipus dw nou epígraf de pinat"
+msgstr "[Slot Type]: Tipus del nou epígraf de pintat"
 
 
 msgid "Material Layer Type"
@@ -71628,7 +71685,7 @@ msgstr "Selecció del pinzell"
 
 
 msgid "Select a paint mode's brush by tool type"
-msgstr "Selecciona un pinzell de mode de pintat per tipus d'eina"
+msgstr "Selecciona un pinzell de mode de pintura per tipus d'eina"
 
 
 msgid "Create Missing"
@@ -71640,7 +71697,7 @@ msgstr "[Create Missing]: Si el tipus de pinzell sol·licitat no existeix, crea 
 
 
 msgid "Paint Selection"
-msgstr "Selecció pintura"
+msgstr "Pintar selecció"
 
 
 msgid "Comb"
@@ -72032,7 +72089,7 @@ msgstr "Determinar colors del vèrtex"
 
 
 msgid "Fill the active vertex color layer with the current paint color"
-msgstr "[Set Vertex Colors]: Emplena la capa de color de vèrtex activa amb el color de pintat actual"
+msgstr "[Set Vertex Colors]: Emplena la capa de color de vèrtex activa amb el color de pintura actual"
 
 
 msgid "Set color completely opaque instead of reusing existing alpha"
@@ -72050,7 +72107,7 @@ msgstr "Suavitza els colors per tots els vèrtexs"
 
 msgctxt "Operator"
 msgid "Vertex Paint"
-msgstr "Pintat de vèrtexs"
+msgstr "Pintura de vèrtexs"
 
 
 msgid "Paint a stroke in the active color attribute layer"
@@ -72059,11 +72116,11 @@ msgstr "[Vertex Paint]: Pinta un traç a la capa activa de l'atribut de color"
 
 msgctxt "Operator"
 msgid "Vertex Paint Mode"
-msgstr "Mode de pintat de vèrtex"
+msgstr "Mode de pintura de vèrtexs"
 
 
 msgid "Toggle the vertex paint mode in 3D view"
-msgstr "Revessa el mode de pintat de vèrtex en la vista 3D"
+msgstr "Revessa el mode de pintura de vèrtexs en la vista 3D"
 
 
 msgctxt "Operator"
@@ -72133,7 +72190,7 @@ msgstr "Determinar pesos"
 
 
 msgid "Fill the active vertex group with the current paint weight"
-msgstr "[Set Weight]: Emplena el grup de vèrtexs actiu amb la pintura de pesos present"
+msgstr "[Set Weight]: Emplena el grup de vèrtexs actiu amb la present pintura de pesos"
 
 
 msgctxt "Operator"
@@ -74589,11 +74646,11 @@ msgstr "Mou el fotograma actual cap endavant/cap enrere en un nombre donat"
 
 msgctxt "Operator"
 msgid "Expand/Collapse Header Menus"
-msgstr "Expandir/replegar els menús de capçalera"
+msgstr "Desplegar/replegar els menús de capçalera"
 
 
 msgid "Expand or collapse the header pulldown menus"
-msgstr "Expandeix o replega els menús desplegables de la capçalera"
+msgstr "Desplega o replega els menús desplegables de la capçalera"
 
 
 msgctxt "Operator"
@@ -75554,7 +75611,7 @@ msgstr "Augmentar contrast"
 
 
 msgid "Increase the contrast of the paint mask"
-msgstr "[Increase Contrast]: Augmenta el contrast de la màscara de pintura"
+msgstr "[Increase Contrast]: Augmenta el contrast de la màscara de pintar"
 
 
 msgid "Decrease Contrast"
@@ -75562,7 +75619,7 @@ msgstr "Disminuir contrast"
 
 
 msgid "Decrease the contrast of the paint mask"
-msgstr "[Decrease Contrast]: Disminueix el contrast de la màscara de pintura"
+msgstr "[Decrease Contrast]: Disminueix el contrast de la màscara de pintar"
 
 
 msgid "Number of times that the filter is going to be applied"
@@ -79439,6 +79496,11 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exporta la disposició UV a una imatge de mapa de bits"
 
 
+msgctxt "Mesh"
+msgid "Modified"
+msgstr "Modificat"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "Exporta UVs des de la malla modificada"
 
@@ -79951,6 +80013,36 @@ msgid "Select similar UVs by property types"
 msgstr "Seleccionar UVs similars per tipus de propietat"
 
 
+msgctxt "Mesh"
+msgid "Pinned"
+msgstr "Fixats"
+
+
+msgctxt "Mesh"
+msgid "Length 3D"
+msgstr "Llargada 3D"
+
+
+msgctxt "Mesh"
+msgid "Area 3D"
+msgstr "Àrea 3D"
+
+
+msgctxt "Mesh"
+msgid "Object"
+msgstr "Objecte"
+
+
+msgctxt "Mesh"
+msgid "Winding"
+msgstr "Giratori"
+
+
+msgctxt "Mesh"
+msgid "Amount of Faces in Island"
+msgstr "Quantitat de cares a l'illa"
+
+
 msgctxt "Operator"
 msgid "Select Split"
 msgstr "Selecció partida"
@@ -80129,7 +80221,7 @@ msgstr "[Weld]: Solda els vèrtexs UV seleccionats"
 
 msgctxt "Operator"
 msgid "View Edge Pan"
-msgstr "Escombratge visual de marge"
+msgstr "Vista amb escombratge de marge"
 
 
 msgid "Pan the view when the mouse is held at an edge"
@@ -80946,7 +81038,7 @@ msgstr "Orbita la visualització cap avall"
 
 msgctxt "Operator"
 msgid "Pan View Direction"
-msgstr "Escombratge de visualització"
+msgstr "Direcció de l'escombratge de visualització"
 
 
 msgid "Pan the view in a given direction"
@@ -81896,7 +81988,7 @@ msgstr "Atributs de context"
 
 
 msgid "Context data-path (expanded using visible windows in the current .blend file)"
-msgstr "Camí de les dades de context (expandit mitjançant finestres visibles al document .blend actual)"
+msgstr "Ruta de les dades de context (expandida mitjançant finestres visibles al document .blend actual)"
 
 
 msgid "Cycle backwards"
@@ -84367,7 +84459,7 @@ msgstr "Epígrafs d'eina de pintar"
 
 
 msgid "Mask painting according to mesh geometry cavity"
-msgstr "Pintura de màscara d'acord amb la cavitat de la geometria de la malla"
+msgstr "Pintat de màscara d'acord amb la cavitat de la geometria de la malla"
 
 
 msgid "Delay Viewport Updates"
@@ -84411,7 +84503,7 @@ msgstr "Emmiralla el pinzell sobre l'eix Z"
 
 
 msgid "Curves Sculpt Paint"
-msgstr "Pintura esculpir amb corbes"
+msgstr "Pintat d'esculpir amb corbes"
 
 
 msgid "Grease Pencil Paint"
@@ -84503,7 +84595,7 @@ msgstr "No es troba la capa d'UVs a la malla"
 
 
 msgid "Mode of operation for projection painting"
-msgstr "Mode d'operació per a projecció de pintura"
+msgstr "Mode d'operació per a pintura per projecció"
 
 
 msgid "Detect image slots from the material"
@@ -85085,7 +85177,7 @@ msgstr "Subdivisió"
 
 
 msgid "Render Pass"
-msgstr "Pas de revelat"
+msgstr "Passada de revelat"
 
 
 msgid "Mist Pass"
@@ -89851,7 +89943,7 @@ msgstr "Antialiàsing de passada única"
 
 
 msgid "Scene will be rendered using a single pass anti-aliasing method (FXAA)"
-msgstr "[Single Pass Anti-Aliasing]: L'escena es revelarà utilitzant un únic mètode d'antialiàsing (FXAA)"
+msgstr "[Single Pass Anti-Aliasing]: L'escena es revelarà utilitzant una únic passada de mètode d'antialiàsing (FXAA)"
 
 
 msgid "5 Samples"
@@ -91473,11 +91565,11 @@ msgstr "Prefiltre de passades orientadores (albedo i normal) del soroll per mill
 
 
 msgid "Denoise color and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time"
-msgstr "Passades d'orientació i color alhora pel dessorollament. Millora la qualitat quan les passades orientadores duen soroll fent-ho amb el mínim temps de processament extra"
+msgstr "Passades gui i de color alhora pel dessorollament. Millora la qualitat quan les passades guia duen soroll fent-ho amb el mínim temps de processament extra"
 
 
 msgid "Prefilter noisy guiding passes before denoising color. Improves quality when guiding passes are noisy using extra processing time"
-msgstr "Prefiltrar passades orientadores de soroll abans de dessorollar el color. Millora la qualitat quan les passades orientadores duen soroll i ho fa amb un temps de processament extra"
+msgstr "Prefiltrar passades guia de soroll abans de dessorollar el color. Millora la qualitat quan les passades guies duen soroll i ho fa amb un temps de processament extra"
 
 
 msgid "Device"
@@ -91825,7 +91917,7 @@ msgstr "[Viewport Denoiser]: Dessorolla la imatge després de cada actualitzaci�
 
 
 msgid "Viewport Denoising Input Passes"
-msgstr "Passos d'ingressió de dessorollat del mirador"
+msgstr "Passades d'ingressió de dessorollat del mirador"
 
 
 msgid "Viewport Denoising Prefilter"
@@ -92309,7 +92401,7 @@ msgstr "Mostrar el passada de revelat d'UV"
 
 
 msgid "Show the Mist render pass"
-msgstr "Mostrar el passi de revelat de la boira"
+msgstr "Mostrar la passada de revelat de la boira"
 
 
 msgid "Denoising Albedo"
@@ -92317,7 +92409,7 @@ msgstr "Dessorollar amb Albedo"
 
 
 msgid "Albedo pass used by denoiser"
-msgstr "Pas d'albedo utilitzat per a dessorollar"
+msgstr "Passada d'albedo utilitzada per a dessorollar"
 
 
 msgid "Denoising Normal"
@@ -93234,11 +93326,11 @@ msgstr "Fer passada de textura UV"
 
 
 msgid "Deliver speed vector pass"
-msgstr "Fer passa el vector de rapidesa"
+msgstr "Fer passada del vector de rapidesa"
 
 
 msgid "Deliver Z values pass"
-msgstr "Fer passada de valors Z"
+msgstr "Servir passada de valors Z"
 
 
 msgid "Sky"
@@ -94749,7 +94841,7 @@ msgstr "Viscositat rígida"
 
 
 msgid "Creates viscosity for expanding fluid"
-msgstr "[Stiff Viscosity]: Crea viscositat per expandir el fluid"
+msgstr "[Stiff Viscosity]: Crea viscositat per al fluid en expansió"
 
 
 msgid "How incompressible the fluid is (speed of sound)"
@@ -95577,7 +95669,7 @@ msgstr "Mode de sonograma"
 
 
 msgid "Parade"
-msgstr "Representació"
+msgstr "Parada"
 
 
 msgid "YCbCr (ITU 601)"
@@ -95823,6 +95915,10 @@ msgstr "Multiplicar colors"
 
 msgid "Adjust the intensity of the input's color"
 msgstr "Ajusta la intensitat de color d'ingressió"
+
+
+msgid "Multiply alpha along with color channels"
+msgstr "Multiplicar l'alfa alhora que els canals de color"
 
 
 msgid "Strobe"
@@ -97636,7 +97732,7 @@ msgstr "Força d'aixecament"
 
 
 msgid "Edges receive a lift force when passing through surrounding media"
-msgstr "Les arestes reben una força d'elevació quan passen a través dels medis circumdants"
+msgstr "Les arestes reben una força d'elevació quan travessen els medis circumdants"
 
 
 msgid "Dampening"
@@ -100540,7 +100636,7 @@ msgstr "Mostrar UVs de pintat de textura"
 
 
 msgid "Display overlay of texture paint UV layer"
-msgstr "Mostra la sobreimpressió de la capa UV de pintura de textura"
+msgstr "Mostra la sobreimpressió de la capa UV de pintat de textura"
 
 
 msgid "Tile Grid Shape"
@@ -100945,7 +101041,7 @@ msgstr "Epígraf de pintat de textura"
 
 
 msgid "Slot that contains information about texture painting"
-msgstr "[Texture Paint Slot]: Epígraf que conté informació sobre el puntat de textura"
+msgstr "[Texture Paint Slot]: Epígraf que conté informació sobre el pintat de textura"
 
 
 msgid "Icon"
@@ -101989,7 +102085,7 @@ msgstr "Cartograma del rerefons de la regió"
 
 
 msgid "Texture Paint/Modifier UVs"
-msgstr "Pintura/Modific. UVs de textura"
+msgstr "UVs de pintat de textura/modificador"
 
 
 msgid "Wire Edit"
@@ -102553,7 +102649,7 @@ msgstr "Paràmetres del tema per als jocs d'estils"
 
 
 msgid "Panel Title Font"
-msgstr "Tipografia de títol de plafó"
+msgstr "Tipografia del títol del plafó"
 
 
 msgid "Widget Style"
@@ -103186,7 +103282,7 @@ msgstr "Giny de perfil de corbes"
 
 
 msgid "Used for defining a profile's path"
-msgstr "[Curve Profile Widget]: Serveix per definir el camí d'un perfil"
+msgstr "[Curve Profile Widget]: Serveix per definir el trajecte d'un perfil"
 
 
 msgid "Threshold distance for Auto Merge"
@@ -103551,7 +103647,7 @@ msgstr "Pintar només els punts del traç seleccionats"
 
 
 msgid "Only paint selected stroke points between other strokes"
-msgstr "Pintar només els punts de traç seleccionats entre altres traços"
+msgstr "Pinta només els punts de traç seleccionats entre altres traços"
 
 
 msgid "Only paint selected stroke"
@@ -103671,7 +103767,7 @@ msgstr "Estratificat"
 
 
 msgid "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking"
-msgstr "Afegir una nova pista + segment d'ANL per a cada bucle/pas fet sobre l'animació per permetre un ajustament no destructiu"
+msgstr "Afegir una nova pista + segment d'ANL per a cada bucle/passada fet sobre l'animació per permetre un ajustament no destructiu"
 
 
 msgid "Snap during transform"
@@ -105012,7 +105108,7 @@ msgstr "Opacitat de pintura de pesos"
 
 
 msgid "Opacity of the weight paint mode overlay"
-msgstr "Opacitat de la sobreimpressió de mode de pintura de pesos"
+msgstr "Opacitat de la sobreimpressió del mode de pintura de pesos"
 
 
 msgid "Wireframe Opacity"
@@ -105988,7 +106084,7 @@ msgstr "Mode eina"
 
 
 msgid "Use Paint Canvas"
-msgstr "Usa llenç de pintura"
+msgstr "Usar llenç de pintura"
 
 
 msgid "Does this tool use a painting canvas"
@@ -106132,7 +106228,7 @@ msgstr "[Pose Location Offset]: Desplaçament de rotació de posa"
 
 
 msgid "OpenXR interaction profile path"
-msgstr "Camí del perfil d'interacció OpenXR"
+msgstr "Trajecte del perfil d'interacció OpenXR"
 
 
 msgid "Input threshold for button/axis actions"
@@ -106681,7 +106777,7 @@ msgstr "[Activate Gizmo]: Acció d'activació per a flòstics que admeten el mov
 
 
 msgid "Press causes immediate activation, preventing click being passed to the tool"
-msgstr "Pitjar causa l'activació immediata, impedint que es passi el clic a l'eina"
+msgstr "Pitjar causa l'activació immediata, impedint que es transfereixi el clic a l'eina"
 
 
 msgid "Drag allows click events to pass through to the tool, adding a small delay"
@@ -107089,12 +107185,12 @@ msgstr "Eina genèrica: anotar polígon (pla B)"
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Eraser"
-msgstr "Eina genèrica: anotar esborrador"
+msgstr "Eina genèrica: esborrador d'anotar"
 
 
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Eina genèrica: anotar esborrador (pla B)"
+msgstr "Eina genèrica: esborrador d'anotar (pla B)"
 
 
 msgctxt "WindowManager"
@@ -107184,12 +107280,12 @@ msgstr "Pintura de pesos"
 
 msgctxt "WindowManager"
 msgid "Paint Vertex Selection (Weight, Vertex)"
-msgstr "Selecció de vèrtexs amb pinzell (pesos, vèrtexs)"
+msgstr "Selecció de vèrtexs amb pinzell (pes, vèrtex)"
 
 
 msgctxt "WindowManager"
 msgid "Paint Face Mask (Weight, Vertex, Texture)"
-msgstr "Protegir cares amb pinzell (pesos, vèrtexs, textures)"
+msgstr "Màscara de pintat de cares (pes, vèrtex, textura)"
 
 
 msgctxt "WindowManager"
@@ -107304,7 +107400,7 @@ msgstr "Afegir tall en bucle"
 
 msgctxt "WindowManager"
 msgid "Panning"
-msgstr "Panoràmica"
+msgstr "Escombratge"
 
 
 msgctxt "WindowManager"
@@ -107550,7 +107646,7 @@ msgstr "Cicla al llarg dels mètodes d'intersecció"
 
 msgctxt "WindowManager"
 msgid "Paint Stroke Modal"
-msgstr "Modalitat pintar amb pinzell"
+msgstr "Pintar amb traç modal"
 
 
 msgid "Cancel and undo a stroke in progress"
@@ -108297,7 +108393,7 @@ msgstr "Llapis de greix - Pintura de traç (emplenar)"
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Paint (Erase)"
-msgstr "Llapis de greix Pintura de traç (esborrar)"
+msgstr "Llapis de greix - Pintura de traç (esborrar)"
 
 
 msgctxt "WindowManager"
@@ -109167,7 +109263,7 @@ msgstr "Gràfica vectorial escalable (.svg)"
 
 
 msgid "Unable to parse XML, %s:%s for file %r"
-msgstr "No s'ha pogut analitzar XML, %s:%s per al document %r"
+msgstr "No s'ha pogut estructurar l'XML, %s:%s per al document %r"
 
 
 msgctxt "Operator"
@@ -115833,6 +115929,11 @@ msgstr "Costat de l'actiu"
 
 
 msgctxt "Operator"
+msgid "By Attribute"
+msgstr "Segons atribut"
+
+
+msgctxt "Operator"
 msgid "Similar"
 msgstr "Similar"
 
@@ -115874,7 +115975,7 @@ msgstr "Punts finals"
 
 msgctxt "Operator"
 msgid "Grow"
-msgstr "Créixer"
+msgstr "Expandir"
 
 
 msgctxt "Operator"
@@ -117506,6 +117607,14 @@ msgid "Gradient (Radial)"
 msgstr "Degradat (radial)"
 
 
+msgid "Relax Topology"
+msgstr "Relaxar topologia"
+
+
+msgid "Erase Multires Displacement"
+msgstr "Esborrar desplaçament multires"
+
+
 msgctxt "Operator"
 msgid "Randomize Vertices"
 msgstr "Aleatoritzar vèrtexs"
@@ -117945,6 +118054,10 @@ msgid "Documents"
 msgstr "Documents"
 
 
+msgid "armatures"
+msgstr "esquelets"
+
+
 msgid "Attribute name can not be empty"
 msgstr "El nom de l'atribut no pot estar buit"
 
@@ -118061,6 +118174,14 @@ msgid "Path '%s' cannot be made absolute for %s '%s'"
 msgstr "El camí '%s' no es pot fer absolut per a %s '%s'"
 
 
+msgid "brushes"
+msgstr "pinzells"
+
+
+msgid "cameras"
+msgstr "càmeres"
+
+
 msgid "Can't initialize cloth"
 msgstr "La tela no es pot inicialitzar"
 
@@ -118093,6 +118214,10 @@ msgid "Collection %d"
 msgstr "Col·lecció %d"
 
 
+msgid "collections"
+msgstr "col·leccions"
+
+
 msgid "Const"
 msgstr "Const"
 
@@ -118123,6 +118248,10 @@ msgstr "Calen %d més %s files per a bezier"
 
 msgid "%d more point(s) needed for Bezier"
 msgstr "Calen %d punts més per a bezier"
+
+
+msgid "curves"
+msgstr "corbes"
 
 
 msgid "UVMap"
@@ -118343,8 +118472,16 @@ msgid "Render error (%s) cannot save: '%s'"
 msgstr "Error de revelat (%s) no es pot desar: '%s'"
 
 
+msgid "ipos"
+msgstr "ipos"
+
+
 msgid "Key %d"
 msgstr "Fita %d"
+
+
+msgid "lattices"
+msgstr "retícules"
 
 
 msgid "Impossible to resync data-block %s and its dependencies, as its linked reference is missing"
@@ -118363,6 +118500,14 @@ msgid "Data corruption: data-block '%s' is using another local data-block ('%s')
 msgstr "Corrupció de dades: el bloc de dades '%s' està usant un altre bloc de dades local ('%s') com a referència de sobreseïment de biblioteca"
 
 
+msgid "libraries"
+msgstr "biblioteques"
+
+
+msgid "lights"
+msgstr "llums"
+
+
 msgid "Light Linking for %s"
 msgstr "Endoil·luminació de %s"
 
@@ -118377,6 +118522,22 @@ msgstr "No es pot desenllaçar '%s' no compatible de la col·lecció d'endoil·l
 
 msgid "MaskLayer"
 msgstr "CapaMàscara"
+
+
+msgid "masks"
+msgstr "màscares"
+
+
+msgid "materials"
+msgstr "materials"
+
+
+msgid "metaballs"
+msgstr "metaboles"
+
+
+msgid "meshes"
+msgstr "malles"
 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
@@ -118439,6 +118600,10 @@ msgid "GreasePencil"
 msgstr "Llapis de greix"
 
 
+msgid "objects"
+msgstr "objectes"
+
+
 msgid "No new files have been packed"
 msgstr "No s'han empaquetat documents nous"
 
@@ -118449,6 +118614,10 @@ msgstr "No es pot empaquetar el document, camí d'origen '%s' il·localitzable"
 
 msgid "Unable to access the size of, source path '%s'"
 msgstr "No s'ha pogut accedir a la mida de, ruta de font '%s'"
+
+
+msgid "Unable to pack files over 2gb, source path '%s'"
+msgstr "No s'ha pogut empaquetar documents superiors a 2gb, ruta de la font '%s'"
 
 
 msgid "Image '%s' skipped, packing movies or image sequences not supported"
@@ -118491,12 +118660,20 @@ msgid "Cannot unpack individual Library file, '%s'"
 msgstr "No es pot desempaquetar el document de biblioteca individual, '%s'"
 
 
+msgid "palettes"
+msgstr "paletes"
+
+
 msgid "ParticleSystem"
 msgstr "SistemaPartícules"
 
 
 msgid "ParticleSettings"
 msgstr "ConfigPartícules"
+
+
+msgid "particles"
+msgstr "partícules"
 
 
 msgid "%i frames found!"
@@ -118573,6 +118750,26 @@ msgstr "BIB: objecte perdut de l'escena: '%s'"
 
 msgid "RenderView"
 msgstr "VisRevelat"
+
+
+msgid "screens"
+msgstr "pantalles"
+
+
+msgid "sounds"
+msgstr "sons"
+
+
+msgid "speakers"
+msgstr "altaveus"
+
+
+msgid "texts"
+msgstr "textos"
+
+
+msgid "textures"
+msgstr "textures"
 
 
 msgctxt "MovieClip"
@@ -118896,6 +119093,14 @@ msgid "Kelvin"
 msgstr "Kelvin"
 
 
+msgid "fonts"
+msgstr "tipografies"
+
+
+msgid "volumes"
+msgstr "volums"
+
+
 msgid "Could not load volume for writing"
 msgstr "No s'ha pogut carregar el volum on escriure"
 
@@ -118906,6 +119111,14 @@ msgstr "No s'ha pogut escriure al volum: %s"
 
 msgid "Could not write volume: Unknown error writing VDB file"
 msgstr "No s'ha pogut escriure al volum: error desconegut en escriure a document VDB"
+
+
+msgid "workspaces"
+msgstr "obradors"
+
+
+msgid "worlds"
+msgstr "mons"
 
 
 msgid "Cannot open or start AVI movie file"
@@ -120176,7 +120389,7 @@ msgstr "CercleSuperf"
 
 msgctxt "Curve"
 msgid "SurfPatch"
-msgstr "SuperfPedaç"
+msgstr "PedaçSuperf"
 
 
 msgctxt "Curve"
@@ -121570,7 +121783,7 @@ msgstr "Explorar les dades de la paleta per vincular"
 
 
 msgid "Browse Paint Curve Data to be linked"
-msgstr "Explorar les dades de la corba de pintar per vincular"
+msgstr "Explorar les dades de pintura de corba per vincular"
 
 
 msgid "Browse Cache Files to be linked"
@@ -122103,6 +122316,18 @@ msgstr "Ha d'estar en mode de selecció de vèrtex"
 
 msgid "No weights/vertex groups on object"
 msgstr "No hi ha grups de pesos/vèrtexs en l'objecte"
+
+
+msgid "There must be an active attribute"
+msgstr "Hi ha d'haver un atribut actiu"
+
+
+msgid "The active attribute must have a boolean type"
+msgstr "L'atribut actiu ha de tenir un tipus booleà"
+
+
+msgid "The active attribute must be on the vertex, edge, or face domain"
+msgstr "L'atribut actiu ha de ser dins el domini del vèrtex, l'aresta o la cara"
 
 
 msgid "No face selected"
@@ -124217,7 +124442,7 @@ msgstr "El grup a emmirallar està bloquejat, avortant"
 
 
 msgid "Multipaint group is locked, aborting"
-msgstr "El grup multipintura està bloquejat, avortant"
+msgstr "El grup de multi-pintat està bloquejat, avortant"
 
 
 msgid "Not supported in dynamic topology mode"
@@ -126123,6 +126348,10 @@ msgstr "No es pot desvincular la textura '%s'. No està clar de quin lineament F
 
 msgid "Cannot unlink collection '%s'. It's not clear which scene, collection or instance empties it should be unlinked from, there's no scene, collection or instance empties as parent in the Outliner tree"
 msgstr "No es pot desvincular la col·lecció '%s'. No està clar de quina escena, col·lecció o buits instanciats s'ha de desvincular, no hi ha cap escena, col·lecció o buits instanciats pares a l'arbre de l'inventari"
+
+
+msgid "Cannot unlink collection '%s' parented to another linked collection '%s'"
+msgstr "No es pot desvinculat col·lecció '%s' que fa de pare a una altra col·lecció vinculada '%s'"
 
 
 msgid "Cannot unlink object '%s' parented to another linked object '%s'"
@@ -130367,10 +130596,6 @@ msgid "Cr"
 msgstr "Cr"
 
 
-msgid "On"
-msgstr "Activat"
-
-
 msgid "Val"
 msgstr "Val"
 
@@ -134404,4 +134629,12 @@ msgstr "Retallar corbes de pèl"
 
 msgid "Trims or scales hair curves to a certain length"
 msgstr "Retalla o escala les corbes de pèl a una certa longitud"
+
+
+msgid "Smooth by Angle"
+msgstr "autosuavitzar segons angle"
+
+
+msgid "Set the sharpness of mesh edges based on the angle between the neighboring faces"
+msgstr "Defineix l'agudesa de les arestes de malla en base a l'angle entre cares veïnes"
 

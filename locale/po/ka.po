@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
-"PO-Revision-Date: 2023-10-22 06:54+0000\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
+"PO-Revision-Date: 2023-10-29 09:54+0000\n"
 "Last-Translator: Tamar <TamMebonia@gmail.com>\n"
 "Language-Team: Georgian <https://translate.blender.org/projects/blender-ui/ui/ka/>\n"
 "Language: ka\n"
@@ -343,6 +343,10 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "ყველა ბირთვის ოპტიმიზაცია. უსწრაფესი რენდერი, შესაძლოა, გამოიწვიოს ფონზე CPU-ს დამატებითი გამოყენება"
 
 
+msgid "Auto"
+msgstr "ავტომატური"
+
+
 msgid "Distribute memory across devices"
 msgstr "მეხსიერების განაწილება მოწყობილობებს შორის"
 
@@ -357,14 +361,6 @@ msgstr "HIP RT (ექსპერიმენტალური)"
 
 msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
 msgstr "HIP RT რთავს AMD მოწყობილობით სხივების მიდევნებას RDNA2-ზე და ზემოთ, მოძველებულ ბარათებზე სათადარიგო იერფერით. ეს მახასიათებელი ექსპერიმენტალურია და ზოგიერთი სცენა შესაძლოა, არასწორად დარენდერდეს"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (ექსპერიმენტალური)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT სხივების მიდევნებისთვის ნაკლებ მეხსიერებას ხარჯავს იმ სცენებზე, რომლებიც ბევრ წირს იყენებენ, და შეუძლია, კონკრეტულ შემთხვევებში უკეთესად იმუშავოს. თუმცა, ეს ექსპერიმენტალური მხარდაჭერაა და შესაძლოა, ზოგი სცენა არასწორად დარენდერდეს"
 
 
 msgid "Embree on GPU"
@@ -2164,10 +2160,6 @@ msgstr "თავისუფალი"
 
 msgid "Aligned"
 msgstr "გამწკრივებული"
-
-
-msgid "Auto"
-msgstr "ავტომატური"
 
 
 msgid "Handle 2"
@@ -28580,8 +28572,16 @@ msgid "Show current scene subframe and allow set it using interface tools"
 msgstr "აჩვენე მიმდინარე სცენის ქვეკადრი და დაუშვი მისი ინტერფეისის ხელსაწყოებით დაყენება"
 
 
+msgid "Simulation Frame End"
+msgstr "სიმულაციის დამასრულებელი კადრი"
+
+
 msgid "Frame at which simulations end"
 msgstr "კადრი, რომელზეც მთავრდება სიმულაციები"
+
+
+msgid "Simulation Frame Start"
+msgstr "სიმულაციის დამწყები კადრი"
 
 
 msgid "Frame at which simulations start"
@@ -36369,6 +36369,10 @@ msgid "To Degrees"
 msgstr "გრადუსებში"
 
 
+msgid "Clamp result of the node to 0.0 to 1.0 range"
+msgstr "აღკვეთე კვანძის შედეგი 0.0-დან 0.1-მდე დიაპაზონით"
+
+
 msgid "Movie Distortion"
 msgstr "ვიდეოს დისტორსია"
 
@@ -38002,6 +38006,11 @@ msgstr "გარდატეხა"
 
 
 msgctxt "NodeTree"
+msgid "Faceforward"
+msgstr "წინისკენ"
+
+
+msgctxt "NodeTree"
 msgid "Distance"
 msgstr "მანძილი"
 
@@ -38551,6 +38560,58 @@ msgid "Subtype of the default value"
 msgstr "ნაგულისხმები მნიშვნელობის ქვეტიპი"
 
 
+msgid "Geometry Node Socket Interface"
+msgstr "გეომეტრიის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Image Node Socket Interface"
+msgstr "გამოსახულების კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Integer Node Socket Interface"
+msgstr "მთელ რიცხვის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Material Node Socket Interface"
+msgstr "მასალის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Object Node Socket Interface"
+msgstr "ობიექტის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Rotation Node Socket Interface"
+msgstr "ბრუნვის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Shader Node Socket Interface"
+msgstr "იერფერის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "String Node Socket Interface"
+msgstr "სტრიქონის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Texture Node Socket Interface"
+msgstr "ტექსტურის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Vector Node Socket Interface"
+msgstr "ვექტორის კვანძის ბუდის ინტერფეისი"
+
+
+msgid "Node Tree Path"
+msgstr "კვანძების ხის მისამართი"
+
+
+msgid "Element of the node space tree path"
+msgstr "კვანძთა სივრცის ხის მისამართის ელემენტი"
+
+
+msgid "Base node tree from context"
+msgstr "ძირითადი კვანძოვანი ხე კონტექსტიდან"
+
+
 msgid "Collection of Nodes"
 msgstr "კვანძების კოლექცია"
 
@@ -38563,8 +38624,40 @@ msgid "Active node in this tree"
 msgstr "აქტიური კვანძი ამ ხეში"
 
 
+msgid "Nodes Modifier Bake"
+msgstr "კვანძების მოდიფიკატორის ცხობა"
+
+
+msgid "Frame where the baking ends"
+msgstr "კადრი, სადაც ცხობა მთავრდება"
+
+
+msgid "Frame where the baking starts"
+msgstr "კადრი, სადაც ცხობა იწყება"
+
+
+msgid "Custom Path"
+msgstr "მორგებული მისამართი"
+
+
+msgid "Specify a path where the baked data should be stored manually"
+msgstr "მიუთითე მისამართი, სადაც გამომცხვარი მონაცემები ხელით უნდა შეინახოს"
+
+
+msgid "Custom Simulation Frame Range"
+msgstr "სიმულაციის კადრთა მორგებული დიაპაზონი"
+
+
+msgid "Override the simulation frame range from the scene"
+msgstr "უკუაგდე სიმულაციის კადრთა დიაპაზონი სცენიდან"
+
+
 msgid "Bakes"
 msgstr "გამომცხვრები"
+
+
+msgid "Bake data for every bake node"
+msgstr "გამოაცხვე მონაცემები ყოველი გამოცხობის კვანძისთვის"
 
 
 msgid "Object Base"
@@ -38573,6 +38666,14 @@ msgstr "ობიექტის ბაზა"
 
 msgid "An object instance in a render layer"
 msgstr "ობიექტის ინსტანცია რენდერის შრეში"
+
+
+msgid "Object this base links to"
+msgstr "ობიექტი, რომელსაც უკავშირდება ეს ბაზა"
+
+
+msgid "Object base selection state"
+msgstr "ობიექტის ბაზის მონიშნულობის მდგომარეობა"
 
 
 msgid "Object Constraints"
@@ -38623,6 +38724,10 @@ msgid "Angles smaller than this will be treated as creases"
 msgstr "ამაზე მცირე კუთხეები აღიქმება ნაკეცებად"
 
 
+msgid "How to use this object in line art calculation"
+msgstr "როგორ გამოიყენებოდეს ეს ობიექტი მოხაზულობის გამოანგარიშებისთვის"
+
+
 msgid "Inherit"
 msgstr "მემკვიდრეობით მიღება"
 
@@ -38633,6 +38738,22 @@ msgstr "პარამეტრების გამოყენება მ�
 
 msgid "Generate feature lines for this object's data"
 msgstr "ნაკვთების ხაზების წარმოქმნა ამ ობიექტის მონაცემებისგან"
+
+
+msgid "Only use the object data to produce occlusion"
+msgstr "გამოიყენე ობიექტის მონაცემები მხოლოდ მოჩრდილვის წარმოსაქმნელად"
+
+
+msgid "Don't use this object for Line Art rendering"
+msgstr "ნუ გამოიყენებ ამ ობიექტს მოხაზულობის დასარენდერებლად"
+
+
+msgid "Include this object but do not generate intersection lines"
+msgstr "მოიცავი ეს ობიექტი, მაგრამ ნუ წარმოქმნი გადაკვეთის ხაზებს"
+
+
+msgid "Use this object's intersection priority to override collection setting"
+msgstr "გამოიყენე ამ ობიექტის გადაკვეთის პრიორიტეტულობა კოლექციის პარამეტრის უკუსაგდებლად"
 
 
 msgid "Object Modifiers"
@@ -38659,12 +38780,28 @@ msgid "Operator Options"
 msgstr "ოპერატორის ვარიანტები"
 
 
+msgid "True when the cursor is grabbed"
+msgstr "ჭეშმარიტია, როცა კურსორი ჩაბღაუჭებულია"
+
+
+msgid "Repeat Call"
+msgstr "განმეორებითი გამოძახება"
+
+
+msgid "True when run from the operator 'Repeat Last'"
+msgstr "ჭეშმარიტია, როცა ეშვება ოპერატორის 'გაიმეორე უკანასკნელი' მიერ"
+
+
 msgid "Focus Region"
 msgstr "ფოკუსის მონაკვეთი"
 
 
 msgid "Operator Properties"
 msgstr "ოპერატორის მახასიათებლები"
+
+
+msgid "Input properties of an operator"
+msgstr "შეიყვანე ოპერატორის თვისებები"
 
 
 msgctxt "Operator"
@@ -38710,6 +38847,18 @@ msgid "Select all keyframes that occur on the same frame as the one under the mo
 msgstr "მონიშნე ყველა საკვანძო ფაზა, რომლებიც იმავე კადრში ჩნდება, რომელშიც მაუსის ქვეშ მოქცეული"
 
 
+msgid "Deselect all when nothing under the cursor"
+msgstr "გააუქმე ყველაფრის მონიშვნა, როცა კურსორს ქვეშ არაფერია"
+
+
+msgid "Mouse X"
+msgstr "თაგვი X"
+
+
+msgid "Mouse Y"
+msgstr "თაგვი Y"
+
+
 msgctxt "Operator"
 msgid "Copy Keyframes"
 msgstr "საკვანძო ფაზების კოპირება"
@@ -38717,15 +38866,19 @@ msgstr "საკვანძო ფაზების კოპირება"
 
 msgctxt "Operator"
 msgid "Delete Keyframes"
-msgstr "წაშალე საგასაღებო კადრები"
+msgstr "წაშალე საკვანძო ფაზები"
 
 
 msgid "Remove all selected keyframes"
-msgstr "წაშალე ყველა მონიშნული საგასაღებო კადრი"
+msgstr "წაშალე ყველა მონიშნული საკვანძო ფაზა"
 
 
 msgid "Confirm"
 msgstr "დადასტურება"
+
+
+msgid "Prompt for confirmation"
+msgstr "დადასტურების მოთხოვნა"
 
 
 msgctxt "Operator"
@@ -38765,6 +38918,19 @@ msgstr "მუდმივი ექსტრაპოლაცია"
 
 msgid "Linear Extrapolation"
 msgstr "წრფივი ექსტრაპოლაცია"
+
+
+msgid "Straight-line slope of end segments are extended past the endpoint keyframes"
+msgstr "დამაბოლოებელი სეგმენტების სწორხაზოვანი ქანობი განივრცობა საბოლოო საკვანძო ფაზებს მიღმა"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframes"
+msgstr "გადახტი საკვანძო ფაზებზე"
+
+
+msgid "Set the current frame to the average frame value of selected keyframes"
+msgstr "დააყენე მიმდინარე კადრი მონიშნული საკვანძო ფაზების საშუალო საკადრო მნიშვნელობაზე"
 
 
 msgctxt "Operator"
@@ -38823,7 +38989,20 @@ msgstr "წინა შრე"
 
 msgctxt "Operator"
 msgid "Make Markers Local"
-msgstr "მარკერების გალოკალურება"
+msgstr "გაალოკალურე მარკერები"
+
+
+msgid "Move selected scene markers to the active Action as local 'pose' markers"
+msgstr "გადააადგილე მონიშნული სცენის მარკერები აქტიურ ქმედებაზე, როგორც ლოკალური პოზის მარკერები"
+
+
+msgctxt "Operator"
+msgid "Mirror Keys"
+msgstr "გაასარკისებურე სოლები"
+
+
+msgid "Flip selected keyframes over the selected mirror line"
+msgstr "შეატრიალე მონიშნული საკვანძო ფაზები მონიშნულ სარკის ხაზის მეორე მხარეს"
 
 
 msgctxt "Operator"
@@ -38840,6 +39019,18 @@ msgid "Paste Keyframes"
 msgstr "საკვანძო ფაზების ჩასმა"
 
 
+msgid "Flipped"
+msgstr "შეტრიალებული"
+
+
+msgid "Paste keyframes from mirrored bones if they exist"
+msgstr "ჩასვი საკვანძო ფაზები გასარკისებურებული ძვლებიდან, თუ ისინი არსებობს"
+
+
+msgid "Method of merging pasted keys and existing"
+msgstr "ჩასმული და არსებული სოლების შერწყმის მეთოდი"
+
+
 msgid "Overwrite All"
 msgstr "გადაწერა ყველაზე"
 
@@ -38848,8 +39039,53 @@ msgid "Replace all keys"
 msgstr "ყველა სოლის ჩანაცვლება"
 
 
+msgid "Overwrite Range"
+msgstr "გადააწერე დიაპაზონს"
+
+
+msgid "Overwrite keys in pasted range"
+msgstr "ზედ გადააწერე სოლებს ჩასმულ დიაპაზონში"
+
+
+msgid "Overwrite Entire Range"
+msgstr "გადააწერე მთელ დიაპაზონს"
+
+
+msgid "Overwrite keys in pasted range, using the range of all copied keys"
+msgstr "ზედ გადააწერე სოლებს ჩასმულ დიაპაზონში, ყველა დაკოპირებული სოლის დიაპაზონის გამოყენებით"
+
+
+msgid "Paste keys starting at current frame"
+msgstr "ჩასვი სოლები დაწყებული მიმდინარე კადრიდან"
+
+
+msgid "Frame End"
+msgstr "კადრის დასასრული"
+
+
+msgid "Paste keys ending at current frame"
+msgstr "ჩასვი სოლები მიმდინარე კადრამდე"
+
+
+msgid "Frame Relative"
+msgstr "კადრთან მიმართებაში"
+
+
+msgid "Paste keys relative to the current frame when copying"
+msgstr "ჩასვი სოლები მიმდინარე კადრთან მიმართებაში კოპირებისას"
+
+
 msgid "No Offset"
 msgstr "აცდენის გარეშე"
+
+
+msgid "Paste keys from original time"
+msgstr "ჩასვი სოლები ორიგინალი დროიდან"
+
+
+msgctxt "Operator"
+msgid "Set Preview Range to Selected"
+msgstr "დააყენე წინასწარი ხედის დიაპაზონი მონიშნულზე"
 
 
 msgctxt "Operator"
@@ -38866,23 +39102,23 @@ msgstr "გადართვა"
 
 
 msgid "Toggle selection for all elements"
-msgstr "ყველა ელემენტის მონიშვნის გადართვა"
+msgstr "გადართე მონიშვნა ყველა ელემენტისთვის"
 
 
 msgid "Select all elements"
-msgstr "ყველა ელემენტის გადართვა"
+msgstr "მონიშნე ყველა ელემენტი"
 
 
 msgid "Deselect"
-msgstr "მონიშვნის გაუქმება"
+msgstr "გააუქმე მონიშვნა"
 
 
 msgid "Deselect all elements"
-msgstr "ყველა ელემენტის მონიშვნის გაუქმება"
+msgstr "გააუქმე ყველა ელემენტის მონიშვნა"
 
 
 msgid "Invert selection of all elements"
-msgstr "ყველა ელემენტის მონიშვნის შექცევა"
+msgstr "შეაქციე ყველა ელემენტის მონიშვნა"
 
 
 msgctxt "Operator"
@@ -38892,6 +39128,10 @@ msgstr "მართკუთხა მონიშვნა"
 
 msgid "Select all keyframes within the specified region"
 msgstr "ყველა საკვანძო ფაზის მონიშვნა განსაზღვრულ მონაკვეთში"
+
+
+msgid "Axis Range"
+msgstr "ღერძის დიაპაზონი"
 
 
 msgid "Set"
@@ -38910,9 +39150,41 @@ msgid "Subtract existing selection"
 msgstr "გამოაკელი არსებულ მონიშვნას"
 
 
+msgid "Operator has been activated using a click-drag event"
+msgstr "ოპერატორი აქტივირებულია დაწკაპუნება-გათრევის მოვლენის გამოყენებით"
+
+
+msgid "Wait for Input"
+msgstr "დაელოდე შენატანს"
+
+
+msgid "X Max"
+msgstr "X მაქს."
+
+
+msgid "X Min"
+msgstr "X მინ."
+
+
+msgid "Y Max"
+msgstr "Y მაქს."
+
+
+msgid "Y Min"
+msgstr "Y მინ."
+
+
 msgctxt "Operator"
 msgid "Circle Select"
 msgstr "წრიული მონიშვნა"
+
+
+msgid "Select keyframe points using circle selection"
+msgstr "მონიშნე საკვანძო ფაზის წერტილები წრიული მონიშვნით"
+
+
+msgid "Select all keyframes on the specified frame(s)"
+msgstr "მონიშნე ყველა საკვანძო ფაზა განსაზღვრულ კადრ(ებ)ზე"
 
 
 msgid "On Selected Keyframes"
@@ -38927,9 +39199,30 @@ msgid "On Selected Markers"
 msgstr "მონიშნულ მარკერებზე"
 
 
+msgid "Between Min/Max Selected Markers"
+msgstr "მინ./მაქს. მონიშნულ მარკერებს შორის"
+
+
 msgctxt "Operator"
 msgid "Lasso Select"
 msgstr "ქამანდით მონიშვნა"
+
+
+msgid "Select keyframe points using lasso selection"
+msgstr "მონიშნე საკვანძო ფაზის წერტილები ქამანდით მონიშვნით"
+
+
+msgctxt "Operator"
+msgid "Select Left/Right"
+msgstr "მონიშნე მარცხენა/მარჯვენა"
+
+
+msgid "Select keyframes to the left or the right of the current frame"
+msgstr "მონიშნე საკვანძო ფაზები მიმდინარე კადრის მარცხნივ, ან მარჯვნივ"
+
+
+msgid "Check if Select Left or Right"
+msgstr "შეამოწმე, მონიშვნა მარცხნივაა, თუ მარჯვნივ"
 
 
 msgid "Before Current Frame"
@@ -38945,9 +39238,17 @@ msgid "Select Less"
 msgstr "მონიშნე ნაკლები"
 
 
+msgid "Deselect keyframes on ends of selection islands"
+msgstr "გააუქმე საკვანძო ფაზების მონიშვნა მონიშვნის კუნძულების ბოლოებზე"
+
+
 msgctxt "Operator"
 msgid "Select Linked"
 msgstr "მონიშნე მიბმული"
+
+
+msgid "Select keyframes occurring in the same F-Curves as selected ones"
+msgstr "მონიშნე საკვანძო ფაზები, რომლებიც იმავე F-წირებში გვხვდება, რომელშიც მონიშნულები"
 
 
 msgctxt "Operator"
@@ -38955,17 +39256,73 @@ msgid "Select More"
 msgstr "მონიშნე მეტი"
 
 
+msgid "Select keyframes beside already selected ones"
+msgstr "მონიშნე საკვანძო ფაზები უკვე მონიშნულების გარდა"
+
+
 msgctxt "Operator"
 msgid "Snap Keys"
 msgstr "სოლების მიკვრა"
+
+
+msgid "Snap selected keyframes to the times specified"
+msgstr "მიაკარი მონიშნული საკვანძო ფაზები განსაზღვრულ დროებზე"
+
+
+msgid "Selection to Current Frame"
+msgstr "მონიშნული მიმდინარე კადრს"
+
+
+msgid "Snap selected keyframes to the current frame"
+msgstr "მიაკარი მონიშნული საკვანძო ფაზები მიმდინარე კადრს"
+
+
+msgid "Selection to Nearest Frame"
+msgstr "მონიშნული უახლოეს კადრს"
+
+
+msgid "Snap selected keyframes to the nearest (whole) frame (use to fix accidental subframe offsets)"
+msgstr "მიაკარი მონიშნული საკვანძო ფაზები უახლოეს (მთელ) კადრს (გამოიყენე ქვეკადრის უნებლიე აცდენის შესასწორებლად)"
+
+
+msgid "Selection to Nearest Second"
+msgstr "მონიშული უახლოეს წამს"
+
+
+msgid "Snap selected keyframes to the nearest second"
+msgstr "მიაკარი მონიშნული საკვანძო ფაზები უახლოეს წამს"
+
+
+msgid "Selection to Nearest Marker"
+msgstr "მონიშნული უახლოეს მარკერს"
+
+
+msgid "Snap selected keyframes to the nearest marker"
+msgstr "მიაკარი მონიშნული საკვანძო ფაზები უახლოეს მარკერს"
+
+
+msgid "Store this action in the NLA stack as a non-contributing strip for later use"
+msgstr "შეინახე ეს ქმედება NLA სტეკში, როგორც უწვლილო ლენტი მოგვიანებით გამოსაყენებლად"
 
 
 msgid "Create New Action"
 msgstr "ახალი ქმედების შექმნა"
 
 
+msgid "Create a new action once the existing one has been safely stored"
+msgstr "შექმენი ახალი ქმედება, არსებულის უსაფრთხოდ შენახვის შემდეგ"
+
+
+msgid "Store this action in the NLA stack as a non-contributing strip for later use, and create a new action"
+msgstr "შეინახე ეს ქმედება NLA სტეკში, როგორც უწვლილო ლენტი მოგვიანებით გამოსაყენებლად და შექმენი ახალი ქმედება"
+
+
 msgid "Force Delete"
 msgstr "იძულებით წაშლა"
+
+
+msgid "Clear Fake User and remove copy stashed in this data-block's NLA stack"
+msgstr "გაასუფთავე ყალბი მომხმარებელი და მოაშორე ამ მონაცემთა ბლოკის NLA სტეკში შენახული ასლი"
 
 
 msgctxt "Operator"
@@ -38987,12 +39344,53 @@ msgid "Frame Selected"
 msgstr "მონიშნულის მოქცევა ჩარჩოში"
 
 
+msgctxt "Operator"
+msgid "Change Frame"
+msgstr "შეცვალე კადრი"
+
+
+msgid "Interactively change the current frame number"
+msgstr "ინტერაქტიულად შეცვალე მიმდინარე კადრის ნომერი"
+
+
+msgctxt "Operator"
+msgid "Select Channel Keyframes"
+msgstr "მონიშნე არხის საკვანძო ფაზები"
+
+
+msgid "Select all keyframes of channel under mouse"
+msgstr "მონიშნე თაგვის ქვეშ მყოფი არხის ყველა საკვანძო ფაზა"
+
+
 msgid "Extend selection"
 msgstr "მონიშვნის განვრცობა"
 
 
+msgctxt "Operator"
+msgid "Frame Channel Under Cursor"
+msgstr "კადრის არხი კურსორის ქვეშ"
+
+
 msgid "Include Handles"
 msgstr "სახელურების მითვლა"
+
+
+msgid "Ignore frames outside of the preview range"
+msgstr "დააიგნორირე წინასწარი ხედის დიაპაზონს გარეთ მდებარე კადრები"
+
+
+msgctxt "Operator"
+msgid "Remove Empty Animation Data"
+msgstr "მოაშორე ცარიელი ანიმაციის მონაცემები"
+
+
+msgid "Delete all empty animation data containers from visible data-blocks"
+msgstr "წაშალე ცარიელი ანიმაციის მონაცემთა ყველა კონტეინერი მონაცემთა ხილული ბლოკებიდან"
+
+
+msgctxt "Operator"
+msgid "Mouse Click on Channels"
+msgstr "თაგვით დაწკაპუნება არხებზე"
 
 
 msgid "Select Children Only"
@@ -39001,6 +39399,19 @@ msgstr "მხოლოდ შვილების მონიშვნა"
 
 msgid "Extend Range"
 msgstr "დიაპაზონის განვრცობა"
+
+
+msgctxt "Operator"
+msgid "Collapse Channels"
+msgstr "ჩაშალე არხები"
+
+
+msgid "Collapse (close) all selected expandable animation channels"
+msgstr "ჩაშალე (დახურე) ყველა მონიშნული გაფართოებადი ანიმაციის არხი"
+
+
+msgid "Collapse all channels (not just selected ones)"
+msgstr "ჩაშალე ყველა არხი (არა მხოლოდ მონიშნულები)"
 
 
 msgctxt "Operator"
@@ -39026,8 +39437,26 @@ msgstr "ჩართვა"
 
 
 msgctxt "Operator"
+msgid "Expand Channels"
+msgstr "გაშალე არხები"
+
+
+msgid "Expand (open) all selected expandable animation channels"
+msgstr "გაშალე (გახსენი) ყველა მონიშნული გაფართოებადი ანიმაციის არხი"
+
+
+msgid "Expand all channels (not just selected ones)"
+msgstr "გაშალე ყველა არხი (არა მხოლოდ მონიშნულები)"
+
+
+msgctxt "Operator"
 msgid "Revive Disabled F-Curves"
 msgstr "გათიშული F-წირების გამოცოცხლება"
+
+
+msgctxt "Operator"
+msgid "Group Channels"
+msgstr "დააჯგუფე არხები"
 
 
 msgid "Add selected F-Curves to a new group"
@@ -39041,6 +39470,10 @@ msgstr "ახლად შექმნილი ჯგუფის სახე
 msgctxt "Operator"
 msgid "Move Channels"
 msgstr "არხების გადაადგილება"
+
+
+msgid "Rearrange selected animation channels"
+msgstr "გადაალაგე ანიმაციის მონიშნული არხები"
 
 
 msgid "Down"
@@ -39062,6 +39495,19 @@ msgstr "ანიმაციის ყველა არხის მონი
 
 msgid "Select all animation channels within the specified region"
 msgstr "ანიმაციის ყველა არხის მონიშვნა განსაზღვრულ მონაკვეთში"
+
+
+msgid "Extend selection instead of deselecting everything first"
+msgstr "განავრცე მონიშვნა პირველ რიგში ყველაფრის მონიშვნის გაუქმების მაგივრად"
+
+
+msgctxt "Operator"
+msgid "Filter Channels"
+msgstr "გაფილტრე არხები"
+
+
+msgid "Start entering text which filters the set of channels shown to only include those with matching names"
+msgstr "დაიწყე შეყვანა ტექსტისა, რომელიც ფილტრავს ნაჩვენები არხების კრებულს, რათა მხოლოდ ისინი მოიცვას, რომელთა სახელებსი ემთხვევა"
 
 
 msgctxt "Operator"
@@ -39093,7 +39539,11 @@ msgstr "განსაზღვრული პარამეტრის გ�
 
 msgctxt "Operator"
 msgid "Ungroup Channels"
-msgstr "არხების ჯგუფის დაშლა"
+msgstr "განაჯგუფე არხები"
+
+
+msgid "Remove selected F-Curves from their current groups"
+msgstr "მოაშორე მონიშნული F-წირები თავიანთი ამჟამინდელი ჯგუფებიდან"
 
 
 msgctxt "Operator"
@@ -39110,9 +39560,17 @@ msgid "Only Unused"
 msgstr "მხოლოდ გამოუყენებელი"
 
 
+msgid "Only unused (Fake User only) actions get considered"
+msgstr "განიხილება მხოლოდ გამოუყენებელი (მხოლოდ ყალბი მომხმარებელი) ქმედებები"
+
+
 msgctxt "Operator"
 msgid "Copy Driver"
 msgstr "დრაივერის კოპირება"
+
+
+msgid "Copy the driver for the highlighted button"
+msgstr "დააკოპირე დრაივერი გამოყოფილი ღილაკისთვის"
 
 
 msgctxt "Operator"
@@ -39120,14 +39578,26 @@ msgid "Add Driver"
 msgstr "დრაივერის დამატება"
 
 
+msgid "Add driver for the property under the cursor"
+msgstr "დაამატე დრაივერი კურსორს ქვეშ მყოფი თვისებისთვის"
+
+
 msgctxt "Operator"
 msgid "Edit Driver"
 msgstr "დრაივერის რედაქტირება"
 
 
+msgid "Edit the drivers for the connected property represented by the highlighted button"
+msgstr "დაარედაქტირე დრაივერები დაკავშირებული თვისებისთვის, რომელიც წარმოდგენილია გამოყოფილი ღილაკით"
+
+
 msgctxt "Operator"
 msgid "Remove Driver"
-msgstr "დრაივერის წაშლა"
+msgstr "მოაცილე დრაივერი"
+
+
+msgid "Remove the driver(s) for the connected property(s) represented by the highlighted button"
+msgstr "წაშალე დრაივერ(ებ)ი დაკავშირებული თვისებებისთვის, რომლებიც წარმოდგენილია გამოყოფილი ღილაკით"
 
 
 msgid "Delete drivers for all elements of the array"
@@ -39139,6 +39609,23 @@ msgid "Set End Frame"
 msgstr "ბოლო კადრის დაყენება"
 
 
+msgid "Set the current frame as the preview or scene end frame"
+msgstr "დააყენე მიმდინარე კადრი წინასწარი ხედის, ან სცენის დამასრულებელ კადრად"
+
+
+msgctxt "Operator"
+msgid "Clear Keyframe (Buttons)"
+msgstr "გაასუფთავე საკვანძო ფაზა (ღილაკები)"
+
+
+msgid "Clear all keyframes on the currently active property"
+msgstr "გაასუფთავე ყველა საკვანძო ფაზა ამჟამად აქტიურ თვისებაზე"
+
+
+msgid "Clear keyframes from all elements of the array"
+msgstr "გაასუფთავე საკვანძო ფაზები მასივის ყველა ელემენტიდან"
+
+
 msgctxt "Operator"
 msgid "Remove Animation"
 msgstr "მოაცილე ანიმაცია"
@@ -39146,6 +39633,37 @@ msgstr "მოაცილე ანიმაცია"
 
 msgid "Remove all keyframe animation for selected objects"
 msgstr "მოაცილე მონიშნულ ობიექტებს ყველანაირი საგასაღებო კადრების ანიმაცია"
+
+
+msgctxt "Operator"
+msgid "Delete Keying-Set Keyframe"
+msgstr "წაშალე ჩასოლვის ნაკრები საკვანძო ფაზა"
+
+
+msgid "Delete keyframes on the current frame for all properties in the specified Keying Set"
+msgstr "წაშალე საკვანძო ფაზები მიმდინარე კადრზე განსაზღვრულ ჩასოლვის ნაკრები არსებული ყველა თვისებისათვის"
+
+
+msgid "The Keying Set to use"
+msgstr "ჩასოლვის გამოსაყენებელი ნაკრები"
+
+
+msgctxt "Operator"
+msgid "Delete Keyframe (Buttons)"
+msgstr "წაშალე საკვანძო ფაზა (ღილაკები)"
+
+
+msgid "Delete current keyframe of current UI-active property"
+msgstr "წაშალე მიმდინარე UI-აქტიური თვისების მიმდინარე საკვანძო ფაზა"
+
+
+msgid "Delete keyframes from all elements of the array"
+msgstr "წაშალე საკვანძო ფაზები მასივის ყველა ელემენტიდან"
+
+
+msgctxt "Operator"
+msgid "Delete Keying-Set Keyframe (by name)"
+msgstr "წაშალე ჩასოლვის ნაკრები საკვანძო ფაზა (სახელის მიხედვით)"
 
 
 msgctxt "Operator"
@@ -39162,9 +39680,21 @@ msgid "Insert Keyframe"
 msgstr "ჩასვი საკვანძო ფაზა"
 
 
+msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
+msgstr "ჩასვი საკვანძო ფაზები მიმდინარე კადრზე განსაზღვრულ ჩასოლვის ნაკრებშე მდებარე ყველა თვისებისთვის"
+
+
 msgctxt "Operator"
 msgid "Insert Keyframe (Buttons)"
 msgstr "ჩასვი საკვანძო ფაზა (ღილაკები)"
+
+
+msgid "Insert a keyframe for current UI-active property"
+msgstr "ჩასვი საკვანძო ფაზა მიმდინარე UI-აქტიური თვისებისთვის"
+
+
+msgid "Insert a keyframe for all element of the array"
+msgstr "ჩასვი საკვანძო ფაზა მასივის ყველა ელემენტისთვის"
 
 
 msgctxt "Operator"
@@ -39216,14 +39746,30 @@ msgid "Filter folders"
 msgstr "გაფილტრე საქაღალდეები"
 
 
+msgid "Filter Python"
+msgstr "გაფილტრე Python-ი"
+
+
+msgid "Filter text"
+msgstr "გაფილტრე ტექსტი"
+
+
 msgctxt "Operator"
 msgid "Add Empty Keying Set Path"
-msgstr "დაამატე ცარიელი საგასაღებო კომპლექტის მისამართი"
+msgstr "დაამატე ცარიელი ჩასოლვის ნაკრების მისამართი"
+
+
+msgid "Add empty path to active keying set"
+msgstr "დაამატე ცარიელი მისამართი აქტიურ ჩასოლვის ნაკრებს"
 
 
 msgctxt "Operator"
 msgid "Remove Active Keying Set Path"
 msgstr "მოაცილე აქტიური საგასაღებო კომპლექტის მისამართი"
+
+
+msgid "Remove active Path from active keying set"
+msgstr "მოაშორე აქტიური მისამართი აქტიური ჩასოლვის ნაკრებიდან"
 
 
 msgctxt "Operator"
@@ -39240,9 +39786,26 @@ msgid "Add to Keying Set"
 msgstr "დაამატე საგასაღებო კომპლექტს"
 
 
+msgid "Add current UI-active property to current keying set"
+msgstr "დაამატე მიმდინარე UI-აქტიური თვისება მიმდინარე ჩასოლვის ნაკრებს"
+
+
+msgid "Add all elements of the array to a Keying Set"
+msgstr "დაამატე მასივის ყველა ელემენტი ჩასოლვის ნაკრებს"
+
+
 msgctxt "Operator"
 msgid "Remove from Keying Set"
 msgstr "მოაცილე საგასაღებო კომპლექტს"
+
+
+msgid "Remove current UI-active property from current keying set"
+msgstr "მოაშორე მიმდინარე UI-აქტიური თვისება მიმდინარე ჩასოლვის ნაკრებიდან"
+
+
+msgctxt "Operator"
+msgid "Paste Driver"
+msgstr "ჩასვი დრაივერი"
 
 
 msgctxt "Operator"
@@ -39259,14 +39822,35 @@ msgid "Set Preview Range"
 msgstr "წინასწარი ხედის დიაპაზონის დაყენება"
 
 
+msgid "Interactively define frame range used for playback"
+msgstr "ინტერაქტიულად განსაზღვრე დასაკრავად გამოყენებული კადრთა დიაპაზონი"
+
+
 msgctxt "Operator"
 msgid "Set Start Frame"
 msgstr "საწყისი კადრის დაყენება"
 
 
+msgid "Set the current frame as the preview or scene start frame"
+msgstr "დააყენე მიმდინარე კადრი წინასწარი ხედის, ან სცენის საწყის კადრად"
+
+
+msgctxt "Operator"
+msgid "Update Animated Transform Constraints"
+msgstr "განაახლე ანიმირებული გარდაქმნის ბორკილები"
+
+
+msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
+msgstr "განაახლე რომლებიც გარდაქმნის ბორკილებზე ზემოქმედი f-წირები/დრაივერები (გამოიყენე 2.70-ის და უფრო ადრეულ ფაილებთან)"
+
+
 msgctxt "Operator"
 msgid "Align Bones"
 msgstr "გაასწორე ძვლები"
+
+
+msgid "Align selected bones to the active bone (or to their parent)"
+msgstr "გაუსწორე მონიშნული ძვლები აქტიურ ძვალს (ან თავიანთ მშობელს)"
 
 
 msgctxt "Operator"
@@ -39291,9 +39875,41 @@ msgid "Auto-Name by Axis"
 msgstr "დაარქვი სახელი ავტომატურად ღერძის მიხედვით"
 
 
+msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
+msgstr "ავტომატურად უცვლის სახელს მონიშნულ ძვლებს იმის მიხედვით, თუ სამიზნე ღერძის რომელ მხარეზე ხვდებიან"
+
+
+msgid "X-Axis"
+msgstr "X-ღერძი"
+
+
+msgid "Left/Right"
+msgstr "მარცხნივ/მარჯვნივ"
+
+
+msgid "Y-Axis"
+msgstr "Y-ღერძი"
+
+
+msgid "Front/Back"
+msgstr "წინ/უკან"
+
+
+msgid "Top/Bottom"
+msgstr "ზემოთ/ქვემოთ"
+
+
 msgctxt "Operator"
 msgid "Add Bone"
 msgstr "დაამატე ძვალი"
+
+
+msgid "Add a new bone located at the 3D cursor"
+msgstr "დაამატე 3გ კურსორთან მდებარე ახალი ძვალი"
+
+
+msgid "Name of the newly created bone"
+msgstr "ახლად შექმნილი ძვლის სახელი"
 
 
 msgctxt "Operator"
@@ -39301,8 +39917,60 @@ msgid "Recalculate Roll"
 msgstr "გამოთვალე ტრიალი ხელახლა"
 
 
+msgid "Automatically fix alignment of select bones' axes"
+msgstr "ავტომატურად შეასწორე მონიშნული ძვლების ღერძების გასწორება"
+
+
 msgid "Shortest Rotation"
 msgstr "უმოკლესი ბრუნვა"
+
+
+msgid "Ignore the axis direction, use the shortest rotation to align"
+msgstr "დააიგნორირე ღერძის მიმართულება, გასასწორებლად გამოიყენე უმოკლესი ბრუნვა"
+
+
+msgid "Local +X Tangent"
+msgstr "ლოკალური +X მხები"
+
+
+msgid "Local +Z Tangent"
+msgstr "ლოკალური +Z მხები"
+
+
+msgid "Global +X Axis"
+msgstr "გლობალური +X მხები"
+
+
+msgid "Global +Y Axis"
+msgstr "გლობალური +Y მხები"
+
+
+msgid "Global +Z Axis"
+msgstr "გლობალური +Z მხები"
+
+
+msgid "Local -X Tangent"
+msgstr "ლოკალური -X მხები"
+
+
+msgid "Local -Z Tangent"
+msgstr "ლოკალური -Z მხები"
+
+
+msgid "Global -X Axis"
+msgstr "გლობალური -X მხები"
+
+
+msgid "Global -Y Axis"
+msgstr "გლობალური -Y მხები"
+
+
+msgid "Global -Z Axis"
+msgstr "გლობალური -Z მხები"
+
+
+msgid "View Axis"
+msgstr "ხედის ღერძი"
 
 
 msgctxt "Operator"
@@ -39319,13 +39987,25 @@ msgid "Add Bone Collection"
 msgstr "დაამატე ძვლების კოლექცია"
 
 
+msgid "Add a new bone collection"
+msgstr "დაამატე ძვლების ახალი კოლექცია"
+
+
 msgctxt "Operator"
 msgid "Add Selected Bones to Collection"
 msgstr "დაამატე მონიშნული ძვლები კოლექციაში"
 
 
+msgid "Add selected bones to the chosen bone collection"
+msgstr "დაამატე მონიშნული ძვლები არჩეულ ძვალთა კოლექციას"
+
+
 msgid "Bone Collection"
 msgstr "ძვლების კოლექცია"
+
+
+msgid "Name of the bone collection to assign this bone to; empty to assign to the active bone collection"
+msgstr "სახელი ძვალთა კოლექციისა, რომელსაც ეს ძვალი უნდა მიეკუთვნოს; დააცარიელე ძვალთა აქტიურ კოლექციას მისაკუთვნებლად"
 
 
 msgctxt "Operator"
@@ -39333,9 +40013,17 @@ msgid "Deselect Bone Collection"
 msgstr "გააუქმე ძვლების კოლექციის მონიშვნა"
 
 
+msgid "Deselect bones of active Bone Collection"
+msgstr "გააუქმე ძვალთა აქტიური კოლექციის ძვლების მონიშვნა"
+
+
 msgctxt "Operator"
 msgid "Move Bone Collection"
 msgstr "გადააადგილე ძვლების კოლექცია"
+
+
+msgid "Change position of active Bone Collection in list of Bone collections"
+msgstr "შეცვალე ძვლების აქტიური კოლექციის პოზიცია ძვალთა კოლექციების სიაში"
 
 
 msgid "Direction to move the active Bone Collection towards"
@@ -39347,14 +40035,35 @@ msgid "Remove Bone Collection"
 msgstr "მოაშორე ძვალთა კოლექცია"
 
 
+msgid "Remove the active bone collection"
+msgstr "მოაშორე ძვალთა აქტიური კოლექცია"
+
+
+msgctxt "Operator"
+msgid "Select Bones of Bone Collection"
+msgstr "მონიშნე ძვლების კოლექციის ძვლები"
+
+
+msgid "Select bones in active Bone Collection"
+msgstr "მონიშნე ძვლები აქტიურ ძვალთა კოლექციაში"
+
+
 msgctxt "Operator"
 msgid "Show All"
 msgstr "აჩვენე ყველა"
 
 
+msgid "Show all bone collections"
+msgstr "აჩვენე ძვალთა ყველა კოლექცია"
+
+
 msgctxt "Operator"
 msgid "Solo Visibility"
 msgstr "სოლო ხილულობა"
+
+
+msgid "Hide all other bone collections and show the active one"
+msgstr "დამალე ძვალთა ყველა სხვა კოლექცია და აჩვენე აქტიური"
 
 
 msgctxt "Operator"
@@ -39366,9 +40075,21 @@ msgid "Remove selected bones from the active bone collection"
 msgstr "მოაშორე მონიშნული ძვლები ძვალთა აქტიური კოლექციიდან"
 
 
+msgid "Name of the bone collection to unassign this bone from; empty to unassign from the active bone collection"
+msgstr "სახელი ძვალთა კოლექციისა, რომლისადმი კუთვნილებაც უნდა მოვუშალოთ ძვალს; ძვალთა აქტიური კოლექციისადმი კუთვნილების მოსაშლელად დატოვე ცარიელი"
+
+
 msgctxt "Operator"
 msgid "Remove Bone from Bone collections"
 msgstr "მოაშორე ძვალი ძვალთა კოლექციებიდან"
+
+
+msgid "Unassign the bone from this bone collection"
+msgstr "მოუშალე ძვალს ძვალთა ამ კოლექციისადმი კუთვნილება"
+
+
+msgid "Name of the bone to unassign from the collection; empty to use the active bone"
+msgstr "კოლექციისადმი კუთვნილებამოსაშლელი ძვლის სახელი; აქტიური ძვლის გამოსაყენებლად დატოვე ცარიელი"
 
 
 msgctxt "Operator"
@@ -39376,8 +40097,63 @@ msgid "Copy Colors to Selected"
 msgstr "გადააკოპირე ფერები მონიშნულზე"
 
 
+msgid "Copy the bone color of the active bone to all selected bones"
+msgstr "გადააკოპირე აქტიური ძვლის ფერი ყველა მონიშნულ ძვალზე"
+
+
+msgid "Copy Bone colors from the active bone to all selected bones"
+msgstr "დააკოპირე ძვალთა ფერები აქტიური ძვლიდან ყველა მონიშნულ ძვალზე"
+
+
+msgid "Pose Bone"
+msgstr "პოზის ძვალი"
+
+
+msgid "Copy Pose Bone colors from the active pose bone to all selected pose bones"
+msgstr "დააკოპირე პოზის ძვლის ფერები პოზის აქტიური ძვლიდან ყველა მონიშნულ პოზის ძვალზე"
+
+
+msgctxt "Operator"
+msgid "Delete Selected Bone(s)"
+msgstr "წაშალე მონიშნული ძვალ(ებ)ი"
+
+
+msgid "Remove selected bones from the armature"
+msgstr "მოაშორე მონიშნული ძვლები არმატურიდან"
+
+
+msgctxt "Operator"
+msgid "Dissolve Selected Bone(s)"
+msgstr "განაქარწყლე მონიშნული ძვალ(ებ)ი"
+
+
+msgid "Dissolve selected bones from the armature"
+msgstr "განაქარწყლე მონიშნული ძვლები ამ არმატურიდან"
+
+
+msgctxt "Operator"
+msgid "Duplicate Selected Bone(s)"
+msgstr "დაადუბლირე მონიშნული ძვალ(ებ)ი"
+
+
+msgid "Make copies of the selected bones within the same armature"
+msgstr "შექმენი მონიშნული ძვლების ასლები იმავე არმატურის ფარგლებში"
+
+
 msgid "Flip Names"
 msgstr "შეაბრუნე სახელები"
+
+
+msgid "Try to flip names of the bones, if possible, instead of adding a number extension"
+msgstr "თუ შესაძლებელიე, სცადე შეატრიალო ძვლების სახელები, რიცხვის დამატების ნაცვლად"
+
+
+msgid "Make copies of the selected bones within the same armature and move them"
+msgstr "შექმენი მონიშნული ძვლების ასლები იმავე არმატურის ფარგლებში და გადააადგილე"
+
+
+msgid "Duplicate Selected Bone(s)"
+msgstr "დაადუბლირე მონიშნული ძვალ(ებ)ი"
 
 
 msgid "Move"
@@ -39406,9 +40182,21 @@ msgid "Fill Between Joints"
 msgstr "შეავსე სახსართა შორის სივრცე"
 
 
+msgid "Add bone between selected joint(s) and/or 3D cursor"
+msgstr "დაამატე ძვალი მონიშნულ სახსარ(ებ)სა და/ან 3გ კურსორს შორის"
+
+
 msgctxt "Operator"
 msgid "Flip Names"
-msgstr "შეაბრუნე სახელები"
+msgstr "შეატრიალე სახელები"
+
+
+msgid "Flips (and corrects) the axis suffixes of the names of selected bones"
+msgstr "ატრიალებს (და ასწორებს) მონიშნულ ძვალთა სახელების ღერძისმიერ სუფიქსებს"
+
+
+msgid "Strip Numbers"
+msgstr "ლენტის რიცხვები"
 
 
 msgctxt "Operator"
@@ -39416,8 +40204,16 @@ msgid "Hide Selected"
 msgstr "დამალე მონიშნული"
 
 
+msgid "Tag selected bones to not be visible in Edit Mode"
+msgstr "დაადე მონიშნულ ძვლებს ეტიკეტი, რომ რედაქტირების რეჟიმში უხილავი იყოს"
+
+
 msgid "Unselected"
 msgstr "მოუნიშნავი"
+
+
+msgid "Hide unselected rather than selected"
+msgstr "დამალე უფრო მოუნიშნავი, ვიდრე მონიშნული"
 
 
 msgctxt "Operator"
@@ -39434,8 +40230,16 @@ msgid "Clear Parent"
 msgstr "წაშალე მშობელი"
 
 
+msgid "Remove the parent-child relationship between selected bones and their parents"
+msgstr "წაშალე მშობელ-შვილის ურთიერთკავშირი ძვლებსა და მათ მშობლებს შორის"
+
+
 msgid "Clear Type"
 msgstr "წაშალე ტიპი"
+
+
+msgid "What way to clear parenting"
+msgstr "რა გზით გასუფთავდეს მშობლობა"
 
 
 msgid "Clear Parent"
@@ -39451,6 +40255,10 @@ msgid "Make Parent"
 msgstr "შექმენი მშობელი"
 
 
+msgid "Set the active bone as the parent of the selected bones"
+msgstr "დააყენე აქტიური ძვალი მონიშნული ძვლების მშობლად"
+
+
 msgid "Type of parenting"
 msgstr "მშობლობის ტიპი"
 
@@ -39464,9 +40272,35 @@ msgid "Reveal Hidden"
 msgstr "გამოამჟღავნე დამალული"
 
 
+msgid "Reveal all bones hidden in Edit Mode"
+msgstr "გამოავლინე რედაქტირების რეჟიმში დამალული ყველა ძვალი"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "გაასუფთავე ტრიალი"
+
+
+msgid "Clear roll for selected bones"
+msgstr "გაასუფთავე ტრიალი მონიშნული ძვლებისთვის"
+
+
+msgctxt "Operator"
+msgid "(De)select All"
+msgstr "გადართე ყველას მონიშნულობა"
+
+
+msgid "Toggle selection status of all bones"
+msgstr "გადართე ყველა ძვლის მონიშნულობის სტატუსი"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "მონიშნე იერარქია"
+
+
+msgid "Select immediate parent/children of selected bones"
+msgstr "მონიშნე მონიშნული ძვლების პირდაპირი მშობელი/შვილები"
 
 
 msgid "Select Parent"
@@ -39477,18 +40311,51 @@ msgid "Select Child"
 msgstr "მონიშნე შვილი"
 
 
+msgid "Extend the selection"
+msgstr "განავრცე მონიშვნა"
+
+
+msgid "Deselect those bones at the boundary of each selection region"
+msgstr "გააუქმე ყოველი მონიშნვნის რეგიონის ზღუდესთან მყოფი ძვლების მონიშვნა"
+
+
+msgctxt "Operator"
+msgid "Select Linked All"
+msgstr "მონიშნე ბმულით დაკავშირებული ყველა"
+
+
+msgid "Select all bones linked by parent/child connections to the current selection"
+msgstr "მონიშნე მიმდინარე მონიშვნასთან მშობლის/შვილის კავშირით დაკავშირებული ყველა ძვალი"
+
+
 msgctxt "Operator"
 msgid "Select Mirror"
 msgstr "მონიშნე სარკისებური"
+
+
+msgid "Mirror the bone selection"
+msgstr "გაასარკისებურე ძვალთა მონიშვნა"
 
 
 msgid "Active Only"
 msgstr "მხოლოდ აქტიური"
 
 
+msgid "Only operate on the active bone"
+msgstr "მოახდინე ოპერირება მხოლოდ აქტიურ ძვალზე"
+
+
+msgid "Select those bones connected to the initial selection"
+msgstr "მონიშნე თავდაპირველ მონიშვნასთან დაკავშირებული ძვლები"
+
+
 msgctxt "Operator"
 msgid "Select Similar"
 msgstr "მონიშნე მსგავსი"
+
+
+msgid "Select similar bones by property types"
+msgstr "მონიშნე მსგავსი ძვლები თვისებათა ტიპების მიხედვით"
 
 
 msgid "Immediate Children"
@@ -39497,6 +40364,10 @@ msgstr "პირდაპირი შვილები"
 
 msgid "Siblings"
 msgstr "და-ძმები"
+
+
+msgid "Direction (Y Axis)"
+msgstr "მიმართულება (Y ღერძი)"
 
 
 msgid "Prefix"
@@ -39512,14 +40383,35 @@ msgid "Separate Bones"
 msgstr "გამოაცალკევე ძვლები"
 
 
+msgid "Isolate selected bones into a separate armature"
+msgstr "განაცალკევე მონიშნული ძვლები ცალკე არმატურად"
+
+
+msgctxt "Operator"
+msgid "Pick Shortest Path"
+msgstr "აირჩიე უმოკლესი გზა"
+
+
+msgid "Select shortest path between two bones"
+msgstr "მონიშნე უმოკლესი გზა ორ ძვალს შორის"
+
+
 msgctxt "Operator"
 msgid "Split"
 msgstr "გახლიჩე"
 
 
+msgid "Split off selected bones from connected unselected bones"
+msgstr "მოახლიჩე მონიშნული ძვლები დაკავშირებულ მოუნიშნავ ძვლებს"
+
+
 msgctxt "Operator"
 msgid "Subdivide"
 msgstr "დაყავი"
+
+
+msgid "Break selected bones into chains of smaller bones"
+msgstr "დაყავი მონიშნული ძვლები უფრო პატარა ძვლების ჯაჭვებად"
 
 
 msgid "Number of Cuts"
@@ -39531,17 +40423,181 @@ msgid "Switch Direction"
 msgstr "შეცვალე მიმართულება"
 
 
+msgid "Change the direction that a chain of bones points in (head and tail swap)"
+msgstr "შეცვალე მიმართულება, საითაც ძვლების ჯაჭვი მიუთითებს (თავ-ბოლოს გაცვლა)"
+
+
 msgctxt "Operator"
 msgid "Symmetrize"
 msgstr "გაასიმეტრიულე"
+
+
+msgid "Enforce symmetry, make copies of the selection or use existing"
+msgstr "დაამყარე სიმეტრია, შექმენი მონიშვნის ასლები, ან გამოიყენე არსებული"
+
+
+msgid "Which sides to copy from and to (when both are selected)"
+msgstr "რომლიდან რომელი მხრისკენ მოხდეს კოპირება (როცა ორივე მონიშნულია)"
+
+
+msgid "-X to +X"
+msgstr "-X-დან +X-ისკენ"
+
+
+msgid "+X to -X"
+msgstr "+X-დან -X-ისკენ"
+
+
+msgctxt "Operator"
+msgid "Assign Action"
+msgstr "მიაკუთვნე ქმედება"
+
+
+msgid "Set this pose Action as active Action on the active Object"
+msgstr "დააყენე პოზის ეს ქმედება აქტიურ ქმედებად აქტიურ ობიექტზე"
+
+
+msgctxt "Operator"
+msgid "Copy to Asset Library"
+msgstr "გადააკოპირე აქტივთა ბიბლიოთეკაში"
+
+
+msgid "Copy the current .blend file into an Asset Library. Only works on standalone .blend files (i.e. when no other files are referenced)"
+msgstr "გადააკოპირე მიმდინარე .blend ფაილი აქტივთა ბიბლიოთეკაში. მხოლოდ ცალკე მდგომ .blend ფაილებში მუშაობს (ანუ, როცა არცერთ სხვა ფაილზე მითითება არ არსებობს)"
+
+
+msgid "Check Existing"
+msgstr "შეამოწმე არსებული"
+
+
+msgid "Check and warn on overwriting existing files"
+msgstr "შეამოწმე და გამაფრთხილე არსებულ ფაილებზე ზედ გადაწერის შესახებ"
+
+
+msgid "Automatically determine display type for files"
+msgstr "ავტომატურად განსაზღვრე ასახვის ტიპი ფაილებისთვის"
+
+
+msgid "Short List"
+msgstr "მოკლე სია"
+
+
+msgid "Display files as short list"
+msgstr "ასახე ფაილები მოკლე სიად"
+
+
+msgid "Long List"
+msgstr "გრძელი სია"
+
+
+msgid "Display files as a detailed list"
+msgstr "ასახე ფაილები დეტალურ სიად"
+
+
+msgid "Path to file"
+msgstr "ფაილის მისამართი"
+
+
+msgid "Filter Alembic files"
+msgstr "გაფილტრე Alembic ფაილები"
+
+
+msgid "Filter archive files"
+msgstr "გაფილტრე არქივის ფაილები"
+
+
+msgid "Filter .blend files"
+msgstr "გაფილტრე .blend ფაილები"
+
+
+msgid "Filter btx files"
+msgstr "გაფილტრე btx ფაილები"
+
+
+msgid "Filter COLLADA files"
+msgstr "გაფილტრე COLLADA ფაილები"
+
+
+msgid "Filter font files"
+msgstr "გაფილტრე შრიფტის ფაილები"
+
+
+msgid "Filter image files"
+msgstr "გაფილტრე გამოსახულების ფაილები"
+
+
+msgid "Filter movie files"
+msgstr "გაფილტრე ვიდეო ფაილები"
+
+
+msgid "Filter OBJ files"
+msgstr "გაფილტრე OBJ ფაილები"
 
 
 msgid "Filter Python files"
 msgstr "გაფილტრე Python-ის ფაილები"
 
 
+msgid "Filter sound files"
+msgstr "გაფილტრე ხმოვანი ფაილები"
+
+
+msgid "Filter text files"
+msgstr "გაფილტრე ტექსტური ფაილები"
+
+
+msgid "Filter USD files"
+msgstr "გაფილტრე USD ფაილები"
+
+
 msgid "Filter OpenVDB volume files"
 msgstr "გაფილტრე OpenVDB მოცულობითი ფაილები"
+
+
+msgid "Hide Operator Properties"
+msgstr "დამალე ოპერატორის თვისებები"
+
+
+msgid "Collapse the region displaying the operator settings"
+msgstr "ჩაშალე ოპერატორის პარამეტრების ამსახველი მონაკვეთი"
+
+
+msgid "File sorting mode"
+msgstr "ფაილების დალაგების რეჟიმი"
+
+
+msgctxt "Operator"
+msgid "Delete Asset Catalog"
+msgstr "წაშალე აქტივთა კატალოგი"
+
+
+msgid "Remove an asset catalog from the asset library (contained assets will not be affected and show up as unassigned)"
+msgstr "მოაშორე აქტივთა კატალოგი აქტივთა ბიბლიოთეკიდან (შიგთავსის აქტივებს არ შეეხება და ისინი გამოჩნდება, როგორც მიუკუთვნებელი)"
+
+
+msgid "Catalog ID"
+msgstr "კატალოგის ID"
+
+
+msgid "ID of the catalog to delete"
+msgstr "წასაშლელი კატალოგის ID"
+
+
+msgctxt "Operator"
+msgid "New Asset Catalog"
+msgstr "ახალი აქტივის კატალოგი"
+
+
+msgid "Create a new catalog to put assets in"
+msgstr "შექმენი ახალი კატალოგი აქტივთა მოსათავსებლად"
+
+
+msgid "Parent Path"
+msgstr "მშობელი მისამართი"
+
+
+msgid "Optional path defining the location to put the new catalog under"
+msgstr "არჩევითი მისამართი, რომელიც განსაზღვრავს ახალი კატალოგის ჩასადებ მდებარეობას"
 
 
 msgctxt "Operator"
@@ -39662,6 +40718,60 @@ msgstr "წაშალე ბოიდის ამჟამინდელი 
 
 
 msgctxt "Operator"
+msgid "Move Down Boid Rule"
+msgstr "ჩამოიტანე ბოიდის წესი"
+
+
+msgid "Move boid rule down in the list"
+msgstr "ჩამოწიე ბოიდის წესი სიაში"
+
+
+msgctxt "Operator"
+msgid "Move Up Boid Rule"
+msgstr "აიტანე ბოიდის წესი"
+
+
+msgid "Move boid rule up in the list"
+msgstr "აწიე ბოიდის წესი სიაში"
+
+
+msgctxt "Operator"
+msgid "Add Boid State"
+msgstr "დაამატე ბოიდის მდგომარეობა"
+
+
+msgid "Add a boid state to the particle system"
+msgstr "დაამატე ბოიდის მდგომარეობა ნაწილაკთა სისტემას"
+
+
+msgctxt "Operator"
+msgid "Remove Boid State"
+msgstr "მოაშორე ბოიდის მდგომარეობა"
+
+
+msgid "Delete current boid state"
+msgstr "წაშალე ამჟამინდელი ბოიდის მდგომარეობა"
+
+
+msgctxt "Operator"
+msgid "Move Down Boid State"
+msgstr "ჩამოიტანე ბოიდის მდგომარეობა"
+
+
+msgid "Move boid state down in the list"
+msgstr "ჩამოწიე ბოიდის მდგომარეობა სიაში"
+
+
+msgctxt "Operator"
+msgid "Move Up Boid State"
+msgstr "აიტანე ბოიდის მდგომარეობა"
+
+
+msgid "Move boid state up in the list"
+msgstr "აწიე ბოიდის მდგომარეობა სიაში"
+
+
+msgctxt "Operator"
 msgid "Add Brush"
 msgstr "დაამატე ფუნჯი"
 
@@ -39703,6 +40813,11 @@ msgid "Line"
 msgstr "ხაზი"
 
 
+msgctxt "Curve"
+msgid "Round"
+msgstr "მრგვალი"
+
+
 msgctxt "Operator"
 msgid "Reset Brush"
 msgstr "ფუნჯის პირველსახე"
@@ -39713,8 +40828,30 @@ msgstr "დააბრუნე ფუნჯს ნაგულისმებ�
 
 
 msgctxt "Operator"
+msgid "Scale Sculpt/Paint Brush Size"
+msgstr "დაამასშტაბირე საძერწი/სახატავი ფუნჯის ზომა"
+
+
+msgid "Factor to scale brush size by"
+msgstr "კოეფიციენტი, რომლითაც უნდა დამასშტაბირდეს ფუნჯის ზომა"
+
+
+msgctxt "Operator"
 msgid "Curve Falloff Preset"
 msgstr "წირის წინასწარ დაყენებული მილევა"
+
+
+msgid "Set Curve Falloff Preset"
+msgstr "დააყენე წირის მილევის კონფიგურაცია"
+
+
+msgctxt "Operator"
+msgid "Stencil Brush Control"
+msgstr "ტრაფარეტული ფუნჯის მართვა"
+
+
+msgid "Control the stencil brush"
+msgstr "მართე ტრაფარეტული ფუნჯი"
 
 
 msgid "Translation"
@@ -39727,6 +40864,52 @@ msgstr "პირველადი"
 
 msgid "Secondary"
 msgstr "მეორადი"
+
+
+msgid "Modify Mask Stencil"
+msgstr "დაამოდიფიცირე ნიღბის ტრაფარეტი"
+
+
+msgid "Modify either the primary or mask stencil"
+msgstr "დაამოდიფიცირე პირველადი, ან ნიღბის ტრაფარეტი"
+
+
+msgid "Use Repeat"
+msgstr "გამოიყენე განმეორება"
+
+
+msgid "Use repeat mapping values"
+msgstr "გამოიყენე განმეორებით განაწილების მნიშვნელობები"
+
+
+msgid "Use Scale"
+msgstr "გამოიყენე მასშტაბი"
+
+
+msgid "Use texture scale values"
+msgstr "გამოიყენე ტექსტურის მასშტაბირების მნიშვნელობები"
+
+
+msgid "Reset the stencil transformation to the default"
+msgstr "დააბრუნე ტრაფარეტის ტრანსფორმაცია ნაგულისხმებ მდგომარეობას"
+
+
+msgctxt "Operator"
+msgid "Clear Filter"
+msgstr "გაასუფთავე ფილტრი"
+
+
+msgid "Clear the search filter"
+msgstr "გაასუფთავე ძიების ფილტრი"
+
+
+msgctxt "Operator"
+msgid "Context Menu"
+msgstr "კონტექსტური მენიუ"
+
+
+msgid "Display properties editor context_menu"
+msgstr "ასახე თვისებათა რედაქტორის კონტექსტური მენიუ"
 
 
 msgctxt "Operator"
@@ -39742,18 +40925,131 @@ msgid "Directory of the file"
 msgstr "ფაილის საქაღალდე"
 
 
+msgid "Open a file browser, hold Shift to open the file, Alt to browse containing directory"
+msgstr "გახსენი ფაილების ბრაუზერი, ფაილის გასახსნელად დაიკავე Shift, შიგ მოთავსებული საქაღალდის დასათვალიერებლად - Alt"
+
+
+msgctxt "Operator"
+msgid "Filter"
+msgstr "გაფილტრე"
+
+
+msgid "Start entering filter text"
+msgstr "დაიწყე ფილტრის ტექსტის შეყვანა"
+
+
+msgid "Keep the current data-block displayed"
+msgstr "დატოვე მიმდინარე მონაცემთა ბლოკის ასახული"
+
+
 msgctxt "Operator"
 msgid "Add layer"
 msgstr "დაამატე შრე"
 
 
+msgid "Add an override layer to the archive"
+msgstr "დაამატე უკუგდების შრე არქივში"
+
+
+msgctxt "Operator"
+msgid "Move layer"
+msgstr "გადააადგილე შრე"
+
+
+msgid "Move layer in the list, layers further down the list will overwrite data from the layers higher up"
+msgstr "გადააადგილე შრე სიაში, უფრო ქვემოთ მდებარე შრეები გადააწერს მონაცემებს უფრო ზემოთ მდებარეებისას"
+
+
+msgid "Direction to move the active vertex group towards"
+msgstr "საით უნდა გადაადგილდეს წვეროთა აქტიური ჯგუფი"
+
+
+msgid "Remove an override layer from the archive"
+msgstr "მოაშორე უკუგდების შრე არქივიდან"
+
+
+msgctxt "Operator"
+msgid "Open Cache File"
+msgstr "გახსენი კეშის ფაილი"
+
+
+msgid "Load a cache file"
+msgstr "ჩატვირთე კეშის ფაილი"
+
+
+msgctxt "Operator"
+msgid "Refresh Archive"
+msgstr "განაახლე არქივი"
+
+
+msgid "Update objects paths list with new data from the archive"
+msgstr "განაახლე ობიექტების მისამართთა სია ახალი მონაცემებით არქივიდან"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "დაამატე კამერის კონფიგურაცია"
+
+
+msgid "Add or remove a Camera Preset"
+msgstr "დაამატე, ან მოაშორე კამერის კონფიგურაცია"
+
+
+msgid "Name of the preset, used to make the path name"
+msgstr "მისამართის სახელის შესაქმნელად გამოყენებული კონფიგურაციის სახელი"
+
+
+msgctxt "Operator"
+msgid "Add Safe Area Preset"
+msgstr "დაამატე უსაფრთხო არეალის კონფიგურაცია"
+
+
+msgid "Add or remove a Safe Areas Preset"
+msgstr "დაამატე, ან მოაშორე უსაფრთხო არეალის კონფიგურაცია"
+
+
 msgctxt "Operator"
 msgid "Add Marker"
 msgstr "მარკერის დამატება"
 
 
+msgid "Place new marker at specified location"
+msgstr "მოათავსე ახალი მარკერი მითითებულ მდებარეობაზე"
+
+
+msgid "Location of marker on frame"
+msgstr "მარკერის მდებარეობა კადრზე"
+
+
+msgctxt "Operator"
+msgid "Add Marker at Click"
+msgstr "დაამატე მარკერი დაწკაპუნებისას"
+
+
+msgid "Place new marker at the desired (clicked) position"
+msgstr "მოათავსე ახალი მარკერი სასურველ (დაწკაპუნებულ) პოზიციაზე"
+
+
+msgctxt "Operator"
+msgid "Add Marker and Move"
+msgstr "დაამატე მარკერი და გადააადგილე"
+
+
+msgid "Add new marker and move it on movie"
+msgstr "დაამატე და გადააადგილე მარკერი ვიდეოზე"
+
+
 msgid "Add Marker"
 msgstr "მარკერის დამატება"
+
+
+msgctxt "Operator"
+msgid "Add Marker and Slide"
+msgstr "დაამატე მარკერი და გააცურე"
+
+
+msgid "Add new marker and slide it with mouse until mouse button release"
+msgstr "დაამატე ახალი მარკერი და გააცურე თაგვით თაგვის ღილაკის აშვებამდე"
 
 
 msgctxt "MovieClip"
@@ -39762,17 +41058,151 @@ msgstr "შეინარჩუნე ორიგინალი"
 
 
 msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "3გ მარკერები მეშად"
+
+
+msgid "Clear all calculated data"
+msgstr "გაასუფთავე ყველანაირი გამოანგარიშებული მონაცემები"
+
+
+msgid "Clear action to execute"
+msgstr "გაასუფთავე განსახორციელებელი ქმედება"
+
+
+msgid "Clear Up To"
+msgstr "გაასუფთავე აქამდე"
+
+
+msgid "Clear path up to current frame"
+msgstr "გაასუფთავე გზა მიმდინარე კადრამდე"
+
+
+msgid "Clear Remained"
+msgstr "გაასუფთავე დარჩენილი"
+
+
+msgid "Clear path at remaining frames (after current)"
+msgstr "გასუფთავე გზა დარჩენილ კადრებთან (მიმდინარეს შემდეგ)"
+
+
+msgid "Clear All"
+msgstr "გაასუფთავე ყველა"
+
+
+msgid "Clear the whole path"
+msgstr "გაასუფთავე მთელი გზა"
+
+
+msgid "Clear Active"
+msgstr "გაასუფთავე აქტიური"
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "ბორკილი F-წირად"
+
+
+msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
+msgstr "შექმენი F-წირები ობიექტისათვის, რომლებიც გაიმეორებს ამ ბორკილის მიერ განპირობებულ ობიექტის მოძრაობას"
+
+
+msgctxt "Operator"
+msgid "Set 2D Cursor"
+msgstr "დააყენე 2გ კურსორი"
+
+
+msgid "Set 2D cursor location"
+msgstr "დააყენე 2გ კურსორის მდებარეობა"
+
+
+msgctxt "Operator"
 msgid "Delete Marker"
 msgstr "მარკერის წაშლა"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "წაშალე პროქსი"
+
+
+msgid "Delete movie clip proxy files from the hard drive"
+msgstr "წაშალე ვიდეო კლიპის პროქსი ფაილები მყარი დისკიდან"
+
+
+msgctxt "Operator"
+msgid "Detect Features"
+msgstr "წაშალე ნაკვთები"
+
+
+msgid "Minimal distance accepted between two features"
+msgstr "მისაღები მინიმალური მანძილი ორ ნაკვთს შორის"
 
 
 msgid "Placement"
 msgstr "განთავსება"
 
 
+msgid "Placement for detected features"
+msgstr "განთავსება აღმოჩენილი ნაკვთებისთვის"
+
+
+msgid "Whole Frame"
+msgstr "მთელი კადრი"
+
+
+msgid "Place markers across the whole frame"
+msgstr "განათავსე მარკერები მთელი კადრის გასწვრივ"
+
+
+msgid "Inside Annotated Area"
+msgstr "ანოტირებული არეალის შიგნით"
+
+
+msgid "Place markers only inside areas outlined with the Annotation tool"
+msgstr "განათავსე მარკერები მხოლოდ ანოტაციის ხელსაწყოთი მოხაზულ არეალებს შიგნით"
+
+
+msgid "Outside Annotated Area"
+msgstr "ანოტირებული არეალის გარეთ"
+
+
+msgid "Place markers only outside areas outlined with the Annotation tool"
+msgstr "განათავსე მარკერები მხოლოდ ანოტაციის ხელსაწყოს მიერ მოხაზულ არეალებს გარეთ"
+
+
+msgctxt "Operator"
+msgid "Disable Markers"
+msgstr "გათიშე მარკერები"
+
+
+msgid "Disable/enable selected markers"
+msgstr "გათიშე/ჩართე მონიშნული მარკერები"
+
+
+msgid "Disable action to execute"
+msgstr "გათიშე განსახორციელებელი ქმედება"
+
+
+msgid "Disable selected markers"
+msgstr "გათიშე მონიშნული მარკერები"
+
+
+msgid "Enable selected markers"
+msgstr "ჩართე მონიშნული მარკერები"
+
+
+msgid "Toggle disabled flag for selected markers"
+msgstr "გადართე გათიშული დროშა მონიშნული მარკერებისათვის"
+
+
 msgctxt "Operator"
 msgid "Select Channel"
-msgstr "არხის მონიშვნა"
+msgstr "მონიშნე არხი"
+
+
+msgid "Extend selection rather than clearing the existing selection"
+msgstr "განავრცე მონიშვნა და არა გაასუფთავო არსებული მონიშვნა"
 
 
 msgctxt "Operator"
@@ -39780,14 +41210,60 @@ msgid "Jump to Frame"
 msgstr "გადახტომა კადრზე"
 
 
+msgid "Jump to special frame"
+msgstr "გადახტი სპეციალურ კადრზე"
+
+
+msgid "Position to jump to"
+msgstr "გადასახტომი პოზიცია"
+
+
+msgid "Jump to start of current path"
+msgstr "გადახტი მიმდინარე გზის დასაწყისში"
+
+
+msgid "Jump to end of current path"
+msgstr "გადახტი მიმდინარე გზის დასასრულში"
+
+
+msgctxt "Operator"
+msgid "Center Current Frame"
+msgstr "დააცენტრირე მიმდინარე კადრი"
+
+
+msgid "Scroll view so current frame would be centered"
+msgstr "გააცოცე ხედი ისე, რომ მიმდინარე კადრი ცენტრირებული იყოს"
+
+
 msgctxt "Operator"
 msgid "Delete Curve"
-msgstr "წირის წაშლა"
+msgstr "წაშალე წირი"
 
 
 msgctxt "Operator"
 msgid "Select"
 msgstr "მონიშნე"
+
+
+msgctxt "Operator"
+msgid "(De)select All Markers"
+msgstr "გადართე ყველა მარკერის მონიშვნა"
+
+
+msgid "Select curve points using box selection"
+msgstr "მონიშნე წირის წერტილები მართკუთხა მონიშვნის საშუალებით"
+
+
+msgid "View all curves in editor"
+msgstr "დაათვალიერე ყველა წირი რედაქტორში"
+
+
+msgid "Lock action to execute"
+msgstr "დაბლოკე განსახორციელებელი ქმედება"
+
+
+msgid "Unlock"
+msgstr "განბლოკე"
 
 
 msgctxt "MovieClip"
@@ -39800,9 +41276,84 @@ msgid "Mask"
 msgstr "ნიღაბი"
 
 
+msgid "Show mask editing tools"
+msgstr "აჩვენე ნიღბის რედაქტირების ხელსაწყოები"
+
+
+msgctxt "Operator"
+msgid "New Image from Plane Marker"
+msgstr "ახალი გამოსახულება სიბრტყის მარკერიდან"
+
+
+msgid "Create new image from the content of the plane marker"
+msgstr "შექმენი ახალი გამოსახულება სიბრტყის მარკერის შიგთავსიდან"
+
+
+msgctxt "Operator"
+msgid "Open Clip"
+msgstr "გახსენი კლიპი"
+
+
+msgid "Load a sequence of frames or a movie file"
+msgstr "ჩატვირთე კადრების თანამიმდევრობა, ან ვიდეო ფაილი"
+
+
+msgid "Enable Multi-View"
+msgstr "ჩართე მრავალ-ხედი"
+
+
+msgctxt "Operator"
+msgid "Prefetch Frames"
+msgstr "წინასწარ გამოიტანე კადრები"
+
+
+msgctxt "Operator"
+msgid "Refine Markers"
+msgstr "დახვეწე მარკერები"
+
+
+msgid "Backwards"
+msgstr "უკუღმა"
+
+
+msgctxt "Operator"
+msgid "Reload Clip"
+msgstr "ხელახლა ჩატვირთე კლიპი"
+
+
+msgid "Reload clip"
+msgstr "ხელახლა ჩატვირთე კლიპი"
+
+
+msgid "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds"
+msgstr "თაგვის მდებარეობა ნორმალიზებულ კოორდინატებში, 0.0-დან 1.0-მდე გამოსახულების საზღვრებშია"
+
+
+msgid "Select markers using box selection"
+msgstr "მონიშნე მარკერები მართკუთხა მონიშვნის გამოყენებით"
+
+
+msgid "Select markers using circle selection"
+msgstr "მონიშნე მარკერები წრიული მონიშვნის გამოყენებით"
+
+
 msgctxt "Operator"
 msgid "Select Grouped"
 msgstr "მონიშნე დაჯგუფებული"
+
+
+msgid "Select markers using lasso selection"
+msgstr "მონიშნე მარკერები ქამანდით მონიშვნის საშუალებით"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "დააყენე აქტიური კლიპი"
+
+
+msgctxt "Operator"
+msgid "Set Axis"
+msgstr "დააყენე ღერძი"
 
 
 msgctxt "Operator"
@@ -39810,9 +41361,108 @@ msgid "Set Origin"
 msgstr "დააყენე ამოსავალი წერტილი"
 
 
+msgid "Set active marker as origin by moving camera (or its parent if present) in 3D space"
+msgstr "დააყენე აქტიური მარკერი ამოსავალ წერტილად კამერის (ან მისი მშობლის, თუ არსებობს) 3გ სივრცეში მოძრაობის საშუალებით"
+
+
+msgid "Use Median"
+msgstr "დააყენე მედიანი"
+
+
 msgctxt "Operator"
 msgid "Set Plane"
 msgstr "დააყენე სიბრტყე"
+
+
+msgid "Plane to be used for orientation"
+msgstr "ორიენტაციისთვის გამოსაყენებელი სიბრტყე"
+
+
+msgid "Set floor plane"
+msgstr "დააყენე იატაკის სიბრტყე"
+
+
+msgid "Wall"
+msgstr "კედელი"
+
+
+msgid "Set wall plane"
+msgstr "დააყენე კედლის სიბრტყე"
+
+
+msgctxt "Operator"
+msgid "Set Scale"
+msgstr "დააყენე მასშტაბი"
+
+
+msgctxt "Operator"
+msgid "Set Scene Frames"
+msgstr "დააყენე სცენის მასშტაბი კამერის (ან მისი მშობლის, თუ არსებობს) მასშტაბირების საშუალებით"
+
+
+msgid "Set scene's start and end frame to match clip's start frame and length"
+msgstr "დააყენე სცენის დასაწყისის და დასასრულის კადრები, რომ კლიპის საწყის კადრსა და სიგრძეს დაემთხვეს"
+
+
+msgid "Keyframe to set"
+msgstr "დასაყენებელი საკვანძო ფაზა"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "დააყენე ფონად"
+
+
+msgid "Set current movie clip as a camera background in 3D Viewport (works only when a 3D Viewport is visible)"
+msgstr "დააყენე მიმდინარე ვიდეო კლიპი კამერის ფონად 3გ სარკმელში (მუშაობს მხოლოდ მაშინ, როცა 3გ სარკმელი ჩანს)"
+
+
+msgid "Prepare scene for compositing 3D objects into this footage"
+msgstr "მოამზაე სცენა 3გ ობიექტების ამ ჩანაწერში კომპოზიტირებისთვის"
+
+
+msgctxt "Operator"
+msgid "Slide Marker"
+msgstr "გააცურე მარკერი"
+
+
+msgid "Slide marker areas"
+msgstr "გააცურე მარკერის არეალები"
+
+
+msgid "Offset in floating-point units, 1.0 is the width and height of the image"
+msgstr "ააცდინე ათწილად ერთეულებში, 1.0 გამოსახულების სიგანე და სიმაღლეა"
+
+
+msgctxt "Operator"
+msgid "Slide Plane Marker"
+msgstr "გააცურე სიბრტყის მარკერი"
+
+
+msgid "Slide plane marker areas"
+msgstr "გააცურე სიბრტყის მარკერის არეალები"
+
+
+msgctxt "Operator"
+msgid "Copy Color"
+msgstr "დააკოპირე ფერი"
+
+
+msgctxt "Operator"
+msgid "Update Image from Plane Marker"
+msgstr "განაახლე გამოსახულება სიბრტყის მარკერიდან"
+
+
+msgid "View whole image with markers"
+msgstr "დაათვალიერე მთლიანი გამოსახულება მარკერებით"
+
+
+msgid "Fit View"
+msgstr "ჩაატიე ხედში"
+
+
+msgid "Fit frame to the viewport"
+msgstr "ჩაატიე კადრი სარკმელში"
 
 
 msgctxt "Operator"
@@ -39822,6 +41472,15 @@ msgstr "დააყენე ხედი კურსორის ირგვ
 
 msgid "Center the view so that the cursor is in the middle of the view"
 msgstr "დააყენე ხედი ისე, რომ კურსორი ხედის შუაგულში იყოს"
+
+
+msgctxt "Operator"
+msgid "NDOF Pan/Zoom"
+msgstr "NDOF პანორამირება/ზუმი"
+
+
+msgid "Use a 3D mouse device to pan/zoom the view"
+msgstr "გამოიყენე 3გ თაგვის მოწყობილობა ხედში პანორამირებისთვის/ზუმისთვის"
 
 
 msgctxt "Operator"
@@ -39835,6 +41494,27 @@ msgstr "დააპანორამირე ხედი"
 
 msgid "View all selected elements"
 msgstr "მაჩვენე ყველა მონიშნული ელემენტი"
+
+
+msgctxt "Operator"
+msgid "View Zoom"
+msgstr "ხედის ზუმი"
+
+
+msgid "Zoom in/out the view"
+msgstr "ზუმით მოაახლოვე/დააშორე ხედი"
+
+
+msgid "Zoom factor, values higher than 1.0 zoom in, lower values zoom out"
+msgstr "ზუმის კოეფიციენტი, 1.0-ზე დიდი მნიშვნელობა ზუმით მოაახლოვებს, უფრო მცირე - აშორებს"
+
+
+msgid "Use Mouse Position"
+msgstr "გამოიყენე თაგვის პოზიცია"
+
+
+msgid "Allow the initial mouse position to be used"
+msgstr "დაუშვი თაგვის თავდაპირველი პოზიციის გამოყენება"
 
 
 msgctxt "Operator"
@@ -39861,6 +41541,15 @@ msgstr "დააშორე ხედი"
 
 msgid "Cursor location in normalized (0.0 to 1.0) coordinates"
 msgstr "კურსორის ადგილმდებარეობა ნორმალიზებულ (0,0-დან 1,0-ის ჩათვლით) კოორდინატებში"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "დაამატე ქსოვილის კონფიგურაცია"
+
+
+msgid "Add or remove a Cloth Preset"
+msgstr "დაამატე, ან მოაშორე ქსოვილის კონფიგურაცია"
 
 
 msgctxt "Operator"
@@ -39925,12 +41614,55 @@ msgstr "მონიშნული ობიექტები მოაშო�
 
 
 msgctxt "Operator"
+msgid "Console Autocomplete"
+msgstr "კონსოლის ავტოდასრულება"
+
+
+msgctxt "Operator"
+msgid "Console Banner"
+msgstr "კონსოლის ბანერი"
+
+
+msgid "Print a message when the terminal initializes"
+msgstr "დაბეჭდე შეტყობინება ტერმინალის ინიციალიზაციისას"
+
+
+msgctxt "Operator"
 msgid "Clear All"
 msgstr "გაასუფთავე ყველა"
 
 
+msgid "Clear text by type"
+msgstr "გაასუფთავე ტექსტი ტიპის მიხედვით"
+
+
+msgid "History"
+msgstr "ისტორია"
+
+
+msgid "Clear the command history"
+msgstr "გაასუფთავე ბრძანებების ისტორია"
+
+
+msgctxt "Operator"
+msgid "Clear Line"
+msgstr "გაასუფთავე ხაზი"
+
+
+msgid "Clear the line and store in history"
+msgstr "გაასუფთავე ხაზი და შეინახე მისი ისტორია"
+
+
 msgid "Delete Selection"
 msgstr "წაშალე მონიშვნა"
+
+
+msgid "Whether to delete the selection after copying"
+msgstr "წაიშალოს თუ არა მონიშნული დაკოპირების შემდეგ"
+
+
+msgid "Copy the console contents for use in a script"
+msgstr "დააკოპირე კონსოლის შიგთავსი სკრიპტში გამოსაყენებლად"
 
 
 msgctxt "Operator"
@@ -39938,14 +41670,124 @@ msgid "Delete"
 msgstr "წაშალე"
 
 
+msgid "Delete text by cursor position"
+msgstr "წაშალე ტექსტი კურსორის პოზიციის მიხედვით"
+
+
+msgid "Which part of the text to delete"
+msgstr "ტექსტის რა ნაწილი წაიშალოს"
+
+
+msgid "Next Character"
+msgstr "მომდევნო სიმბოლო"
+
+
+msgid "Previous Character"
+msgstr "წინა სიმბოლო"
+
+
+msgid "Next Word"
+msgstr "მომდევნო სიტყვა"
+
+
+msgid "Previous Word"
+msgstr "წინა სიტყვა"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "გაუშვი კონსოლში"
+
+
+msgid "Execute the current console line as a Python expression"
+msgstr "გაუშვი კონსოლის მიმდინარე ხაზი, როგორც Python-ის გამოსახულება"
+
+
+msgid "The index of the cursor"
+msgstr "კურსორის ინდექსი"
+
+
+msgid "Remove Duplicates"
+msgstr "მოაშორე დუბლიკატები"
+
+
+msgid "Remove duplicate items in the history"
+msgstr "მოაშორე დუბლიკატი ელემენტები ისტორიაში"
+
+
+msgid "Text to insert at the cursor position"
+msgstr "კურსორის პოზიციაზე ჩასასმელი ტექსტი"
+
+
+msgctxt "Operator"
+msgid "History Cycle"
+msgstr "ისტორიის ციკლი"
+
+
+msgid "Cycle through history"
+msgstr "ციკლური გავლა ისტორიაში"
+
+
+msgid "Reverse cycle history"
+msgstr "შებრუნებული ციკლური გავლა ისტორიაში"
+
+
+msgctxt "Operator"
+msgid "Indent"
+msgstr "ინდენტაცია"
+
+
+msgid "Add 4 spaces at line beginning"
+msgstr "დაამატე 4 გამოტოვება ხაზის დასაწყისში"
+
+
+msgctxt "Operator"
+msgid "Indent or Autocomplete"
+msgstr "ინდენტაცია, ან ავტოდასრულება"
+
+
+msgid "Indent selected text or autocomplete"
+msgstr "დააინდენტირე, ან ავტომატურად დაასრულე მონიშნული ტექსტი"
+
+
+msgctxt "Operator"
+msgid "Insert"
+msgstr "ჩასვი"
+
+
+msgid "Insert text at cursor position"
+msgstr "ჩასვი ტექსტი კურსორის პოზიციაზე"
+
+
 msgctxt "Operator"
 msgid "Console Language"
 msgstr "კონსოლის ენა"
 
 
+msgid "Set the current language for this console"
+msgstr "დააყენე მიმდინარე ენა ამ კონსოლისთვის"
+
+
 msgctxt "Python console"
 msgid "Language"
 msgstr "ენა"
+
+
+msgctxt "Operator"
+msgid "Move Cursor"
+msgstr "გადააადგილე კურსორი"
+
+
+msgid "Move cursor position"
+msgstr "გადააადგილე კურსორის პოზიცია"
+
+
+msgid "Whether to select while moving"
+msgstr "მოინიშნოს თუ არა მოძრაობისას"
+
+
+msgid "Where to move cursor to"
+msgstr "სად გადააადგილდეს კურსორი"
 
 
 msgid "Line Begin"
@@ -39956,14 +41798,281 @@ msgid "Line End"
 msgstr "ხაზის დასასრული"
 
 
+msgid "Paste text selected elsewhere rather than copied (X11/Wayland only)"
+msgstr "ჩასვი სხვაგან მონიშნული და არა დაკოპირებული ტექსტი (მხოლოდ X11/Wayland)"
+
+
+msgid "Console output type"
+msgstr "კონსოლის გამონატანის ტიპი"
+
+
+msgid "Information"
+msgstr "ინფორმაცია"
+
+
+msgid "Select all the text"
+msgstr "მონიშნე ყველა ტექსტი"
+
+
+msgctxt "Operator"
+msgid "Set Selection"
+msgstr "დააყენე მონიშვნა"
+
+
+msgid "Set the console selection"
+msgstr "დააყენე კონსოლის მონიშვნა"
+
+
+msgctxt "Operator"
+msgid "Select Word"
+msgstr "მონიშნე სიტყვა"
+
+
+msgid "Select word at cursor position"
+msgstr "მონიშნე სიტყვა კურსორის პოზიციასთან"
+
+
+msgctxt "Operator"
+msgid "Unindent"
+msgstr "წაშალე ინდენტაცია"
+
+
+msgid "Delete 4 spaces from line beginning"
+msgstr "წაშალე 4 გამოტოვება ხაზის დასაწყისიდან"
+
+
+msgctxt "Operator"
+msgid "Add Target"
+msgstr "დაამატე სამიზნე"
+
+
+msgid "Add a target to the constraint"
+msgstr "დაუმატე ბორკილს სამიზნე"
+
+
+msgctxt "Operator"
+msgid "Apply Constraint"
+msgstr "გამოიყენე ბორკილი"
+
+
+msgid "Apply constraint and remove from the stack"
+msgstr "გამოიყენე ბორკილი და მოაშორე სტეკიდან"
+
+
+msgid "Constraint"
+msgstr "ბორკილი"
+
+
+msgid "Name of the constraint to edit"
+msgstr "დასარედაქტირებელი ბორკილის სახელი"
+
+
+msgid "The owner of this constraint"
+msgstr "ამ ბორკილის მფლობელი"
+
+
+msgid "Edit a constraint on the active object"
+msgstr "დაარედაქტირე ბორკილი აქტიურ ობიექტზე"
+
+
+msgid "Edit a constraint on the active bone"
+msgstr "დაარედაქტირე ბორკილი აქტიურ ძვალზე"
+
+
+msgid "Report"
+msgstr "პატაკი"
+
+
+msgid "Create a notification after the operation"
+msgstr "შექმენი შეტყობინება ოპერაციის შემდეგ"
+
+
+msgctxt "Operator"
+msgid "Clear Inverse"
+msgstr "გაწმინდე შექცევა"
+
+
+msgctxt "Operator"
+msgid "Set Inverse"
+msgstr "დააყენე შექცევა"
+
+
+msgctxt "Operator"
+msgid "Duplicate Constraint"
+msgstr "დაადუბლირე ბორკილი"
+
+
+msgid "Duplicate constraint at the same position in the stack"
+msgstr "დაადუბლირე ბორკილი სტეკში იმავე პოზიციაზე"
+
+
+msgctxt "Operator"
+msgid "Copy Constraint To Selected"
+msgstr "გადააკოპირე ბორკილი მონიშნულზე"
+
+
+msgid "Copy constraint to other selected objects/bones"
+msgstr "გადააკოპირე ბორკილი სხვა მონიშნულ ობიექტებზე/ძვლებზე"
+
+
+msgctxt "Operator"
+msgid "Delete Constraint"
+msgstr "წაშალე ბორკილი"
+
+
+msgid "Remove constraint from constraint stack"
+msgstr "მოაშორე ბორკილი ბორკილთან სტეკიდან"
+
+
+msgctxt "Operator"
+msgid "Disable and Keep Transform"
+msgstr "გათიშე და დატოვე გარდაქმნა"
+
+
+msgid "Set the influence of this constraint to zero while trying to maintain the object's transformation. Other active constraints can still influence the final transformation"
+msgstr "დააყენე ამ ბორკილის ზეგავლენა ნულზე და ამავდროულად ეცადე, შეინარჩუნო ობიექტის გარდაქმნა. სხვა აქტიურ ბორკილებს მაინც შეუძლიათ, გავლენა იქონიონ საბოლოო გარდაქმნაზე"
+
+
+msgctxt "Operator"
+msgid "Move Constraint Down"
+msgstr "ჩამოწიე ბორკილი"
+
+
+msgid "Move constraint down in constraint stack"
+msgstr "ჩამოწიე ბორკილი ბორკილთა სტეკში"
+
+
+msgctxt "Operator"
+msgid "Move Constraint to Index"
+msgstr "გადაიტანე ბორკილი ინდექსთან"
+
+
+msgid "Change the constraint's position in the list so it evaluates after the set number of others"
+msgstr "შეცვალე ბორკილის პოზიცია სიაში ისე, რომ ის გამოითვლება სხვების ფიქსირებული რაოდენობის შემდეგ"
+
+
+msgid "The index to move the constraint to"
+msgstr "ინდექსი, რომელზეც უნდა გადავიდეს ბორკილი"
+
+
+msgctxt "Operator"
+msgid "Move Constraint Up"
+msgstr "აწიე ბორკილი"
+
+
+msgid "Move constraint up in constraint stack"
+msgstr "აწიე ბორკილი ბორკილთა სტეკში"
+
+
+msgctxt "Operator"
+msgid "Normalize Weights"
+msgstr "დაანორმალიზე წონები"
+
+
+msgid "Normalize weights of all target bones"
+msgstr "დაანორმალიზე ყველა სამიზნე ძვლის წონა"
+
+
+msgctxt "Operator"
+msgid "Remove Target"
+msgstr "მოაშორე სამიზნე"
+
+
+msgid "Remove the target from the constraint"
+msgstr "მოაშორე ბორკილს სამიზნე"
+
+
+msgctxt "Operator"
+msgid "Convert Particle System to Curves"
+msgstr "გადაიყვანე ნაწილაკთა სისტემა წირებში"
+
+
+msgid "Add a new curves object based on the current state of the particle system"
+msgstr "დაამატე ახალი წირების ობიექტი ნაწილაკთა სისტემის მიმდინარე მდგომარეობის მიხედვით"
+
+
+msgctxt "Operator"
+msgid "Convert Curves to Particle System"
+msgstr "გადაიყვანე წირები ნაწილაკთა სისტემაში"
+
+
+msgid "Add a new or update an existing hair particle system on the surface object"
+msgstr "დაამატე ახალი, ან განაახლე არსებული თმის ნაწილაკთა სისტემა ზედაპირის ობიექტზე"
+
+
+msgid "Remove selected control points or curves"
+msgstr "მოაშორე მონიშნული სამართავი წერტილები, ან წირები"
+
+
+msgctxt "Operator"
+msgid "Curve Sculpt Mode Toggle"
+msgstr "წირების ძერწვის რეჟიმის გადართვა"
+
+
+msgid "Enter/Exit sculpt mode for curves"
+msgstr "შედი/გამოდი ძერწვის რეჟიმიდან წირებისთვის"
+
+
+msgid "(De)select all control points"
+msgstr "გადართე ყველა სამართავი წერტილის მონიშვნა"
+
+
 msgctxt "Operator"
 msgid "Select Ends"
 msgstr "მონიშნე ბოლოები"
 
 
+msgid "Select end points of curves"
+msgstr "მონიშნე წირების ბოლო წერტილები"
+
+
+msgid "Amount Back"
+msgstr "რაოდენობა უკნიდან"
+
+
+msgid "Number of points to select from the back"
+msgstr "უკნიდან მოსანიშნი წერტილების რაოდენობა"
+
+
+msgid "Amount Front"
+msgstr "რაოდენობა წინიდან"
+
+
+msgid "Number of points to select from the front"
+msgstr "წინიდან მოსანიშნი წერტილების რაოდენობა"
+
+
+msgid "Shrink the selection by one point"
+msgstr "შეამცირე მონიშვნა ერთი წერტილით"
+
+
+msgid "Select all points in curves with any point selection"
+msgstr "მონიშნე ყველა წერტილი წირებში ნებისმიერი წერტილის მონიშვნით"
+
+
+msgid "Grow the selection by one point"
+msgstr "გაზარდე მონიშვნა ერთი წერტილით"
+
+
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "მონიშნე შემთხვევით"
+
+
+msgid "Randomizes existing selection or create new random selection"
+msgstr "აშემთხვევითებს არსებულ მონიშვნას, ან ქმნის ახალ შემთხვევით მონიშვნას"
+
+
+msgid "Probability"
+msgstr "ალბათობა"
+
+
+msgid "Chance of every point or curve being included in the selection"
+msgstr "შანსი ყოველი წერტილის, ან წირისა, ჩაითვალონ მონიშვნაში"
+
+
+msgid "Source of randomness"
+msgstr "შემთხვევითობის წყარო"
 
 
 msgctxt "Operator"
@@ -39972,18 +42081,76 @@ msgstr "დააყენე მონიშვნის რეჟიმი"
 
 
 msgctxt "Operator"
+msgid "Snap Curves to Surface"
+msgstr "მიაკარი წირები ზედაპირს"
+
+
+msgid "Move curves so that the first point is exactly on the surface mesh"
+msgstr "გადააადგილე წირები ისე, რომ პირველი წერტილი ზუსტად ზედაპირის მეშზე იყოს"
+
+
+msgid "Attach Mode"
+msgstr "მიმაგრების რეჟიმი"
+
+
+msgid "How to find the point on the surface to attach to"
+msgstr "როგორ მოიძებნოს მისამაგრებელი წერტილი ზედაპირზე"
+
+
+msgid "Find the closest point on the surface for the root point of every curve and move the root there"
+msgstr "მოძებნე უახლოესი წერტილი ზედაპირზე ყოველი წირის ძირის წერტილისთვის და გადაიტანე ძირი იქ"
+
+
+msgid "Re-attach curves to a deformed surface using the existing attachment information. This only works when the topology of the surface mesh has not changed"
+msgstr "ხელახლა მიამაგრე წირები დეფორმირებულ ზედაპირს არსებული მიმაგრების ინფორმაციის გამოყენებით. ეს მხოლოდ მაშინ მუშაობს, როცა ზედაპირის მეშის ტოპოლოგია არ შეცვლილა"
+
+
+msgctxt "Operator"
+msgid "Set Curves Surface Object"
+msgstr "დააყენე წირების ზედაპირის ობიექტი"
+
+
+msgid "Use the active object as surface for selected curves objects and set it as the parent"
+msgstr "გამოიყენე აქტიური ობიექტი ზედაპირად მონიშნული წირების ობიექტებისათვის და დააყენე იგი მშობლად"
+
+
+msgctxt "Operator"
 msgid "Toggle Cyclic"
-msgstr "ჩართე-გამორთე ციკლური"
+msgstr "გადართე ციკლურად"
+
+
+msgid "Make active spline closed/opened loop"
+msgstr "აქციე აქტიური სფლაინი დახურუ/ღია მარყუჟად"
+
+
+msgid "Direction to make surface cyclic in"
+msgstr "მიმართულება, რომლითაც უნდა გაციკლურდეს ზედაპირი"
+
+
+msgid "Cyclic U"
+msgstr "ციკლური U"
+
+
+msgid "Cyclic V"
+msgstr "ციკლური V"
 
 
 msgctxt "Operator"
 msgid "(De)select First"
-msgstr "მონიშნე/გააუქმე მონიშვნა პირველი(ს)"
+msgstr "გადართე პირველის მონიშვნა"
+
+
+msgid "(De)select first of visible part of each NURBS"
+msgstr "გადართე ყოველი NURBS-ის პირველი ხილული ნაწილის მონიშვნა"
 
 
 msgctxt "Operator"
 msgid "(De)select Last"
-msgstr "მონიშნე/გააუქმე მონიშვნა ბოლო(ს)"
+msgstr "გადართე ბოლოს მონიშვნა"
+
+
+msgid "(De)select last of visible part of each NURBS"
+msgstr "გადართე ყოველი NURBS-ის ბოლო ხილული ნაწილის მონიშვნა"
 
 
 msgctxt "Operator"
@@ -39991,9 +42158,25 @@ msgid "Decimate Curve"
 msgstr "წირის დეციმირება"
 
 
+msgid "Simplify selected curves"
+msgstr "გაამარტივე მონიშნული წირები"
+
+
+msgid "Delete selected control points or segments"
+msgstr "წაშალე მონიშნული სამართავი წერტილები, ან სეგმენტები"
+
+
+msgid "Which elements to delete"
+msgstr "რომელი ელემენტები წაიშალოს"
+
+
 msgctxt "Operator"
 msgid "Dissolve Vertices"
 msgstr "გააქრე წვეროები"
+
+
+msgid "Delete selected control points, correcting surrounding handles"
+msgstr "წაშალე მონიშნული სამართავი წერტილები, გარშემორტყმული სახელურების შესწორებით"
 
 
 msgctxt "Operator"
@@ -40006,8 +42189,29 @@ msgstr "დახატე სფლაინი თავისუფლად"
 
 
 msgctxt "Operator"
+msgid "Duplicate Curve"
+msgstr "დაადუბლირე წირი"
+
+
+msgid "Duplicate selected control points"
+msgstr "დაადუბლირე მონიშნული სამართავი წერტილები"
+
+
+msgctxt "Operator"
 msgid "Add Duplicate"
 msgstr "დაამატე დუბლიკატი"
+
+
+msgid "Duplicate curve and move"
+msgstr "დაადუბლირე წირი და გადააადგილე"
+
+
+msgid "Duplicate Curve"
+msgstr "დაადუბლირე წირი"
+
+
+msgid "Extrude selected control point(s)"
+msgstr "ამოიყვანე მონიშნული სამართავი წერტილ(ებ)ი"
 
 
 msgid "Resize"
@@ -40046,12 +42250,28 @@ msgid "Bone Envelope"
 msgstr "ძვლის გარსი"
 
 
+msgid "Bone Envelope Distance"
+msgstr "ძვლის გარსის მანძილი"
+
+
+msgid "Curve Shrink/Fatten"
+msgstr "წირის შეკუმშვა/გასქელება"
+
+
+msgid "Mask Shrink/Fatten"
+msgstr "ნიღბის შეკუმშვა/გასქელება"
+
+
+msgid "Grease Pencil Shrink/Fatten"
+msgstr "Grease Pencil-ის შეკუმშვა/გასქელება"
+
+
 msgid "Edge Slide"
 msgstr "წიბოს გაცურება"
 
 
 msgid "Grease Pencil Opacity"
-msgstr "ცვილის ფანქრის გაუმჭვირვალობა"
+msgstr "Grease Pencil-ის გაუმჭვირვალობა"
 
 
 msgctxt "Operator"
@@ -40068,8 +42288,20 @@ msgid "Set Handle Type"
 msgstr "დააყენე სახელურის ტიპი"
 
 
+msgid "Set type of handles for selected control points"
+msgstr "დააყენე სახელურების ტიპი მონიშნული სამართავი წერტილებისთვის"
+
+
+msgid "Spline type"
+msgstr "სფლაინის ტიპი"
+
+
 msgid "Toggle Free/Align"
 msgstr "გადართე თავისუფალზე/გასწორებულზე"
+
+
+msgid "Hide (un)selected control points"
+msgstr "დამალე მონიშნული/მოუნიშნავი სამართავი წერტილები"
 
 
 msgctxt "Operator"
@@ -40077,9 +42309,30 @@ msgid "Make Segment"
 msgstr "გააკეთე სეგმენტი"
 
 
+msgid "Join two curves by their selected ends"
+msgstr "შეაერთე ორი წირი მათი მონიშნული ბოლოებით"
+
+
+msgctxt "Operator"
+msgid "Match Texture Space"
+msgstr "მიუსადაგე ტექსტურულ სივრცეს"
+
+
+msgid "Match texture space to object's bounding box"
+msgstr "მიუსადაგე ტექსტურული სივრცე ობიექტის მზღუდავ კოლოფს"
+
+
 msgctxt "Operator"
 msgid "Recalculate Handles"
 msgstr "ხელახლა გამოთვალე სახელურები"
+
+
+msgid "Recalculate the direction of selected handles"
+msgstr "ხელახლა გამოთვალე მონიშნული სახელურების მიმართულება"
+
+
+msgid "Recalculate handle length"
+msgstr "ხელახლა გამოთვალე სახელურების სიგრძე"
 
 
 msgctxt "Operator"
@@ -40087,36 +42340,173 @@ msgid "Curve Pen"
 msgstr "წირის კალამი"
 
 
+msgid "Construct and edit splines"
+msgstr "ააგე და დაარედაქტირე სფლაინები"
+
+
+msgid "Close Spline"
+msgstr "დახურე სფლაინი"
+
+
+msgid "Make a spline cyclic by clicking endpoints"
+msgstr "გააციკლურე სფლაინი ბოლოწერტილებზე დაწკაპუნებით"
+
+
+msgid "Close Spline Method"
+msgstr "დახურული სფლაინის მეთოდი"
+
+
+msgid "The condition for close spline to activate"
+msgstr "პირობა დახურული სფლაინის აქტივაციისათვის"
+
+
 msgid "On Press"
 msgstr "დაჭერაზე"
+
+
+msgid "Move handles after closing the spline"
+msgstr "გადააადგილე სახელურები სფლაინის დახურვის შემდეგ"
 
 
 msgid "On Click"
 msgstr "დაწკაპუნებაზე"
 
 
+msgid "Spline closes on release if not dragged"
+msgstr "აშვებისას სფლაინი იხურება, თუ არ გაითრევა"
+
+
 msgid "Cycle Handle Type"
 msgstr "ციკლის სახელურის ტიპი"
+
+
+msgid "Cycle between all four handle types"
+msgstr "ციკლურად გაიარე სახელურთა ოთხივე ტიპი"
 
 
 msgid "Delete Point"
 msgstr "წაშალე წერტილი"
 
 
+msgid "Delete an existing point"
+msgstr "წაშალე არსებული წერტილი"
+
+
+msgid "Remove from selection"
+msgstr "მოაშორე მონიშვნიდან"
+
+
+msgid "Extrude Handle Type"
+msgstr "ამოყვანილი სახელურის ტიპი"
+
+
+msgid "Type of the extruded handle"
+msgstr "ამოყვანილი სახელურის ტიპი"
+
+
+msgid "Extrude Point"
+msgstr "ამოიყვანე წერტილი"
+
+
+msgid "Add a point connected to the last selected point"
+msgstr "დაამატე ბოლოს მონიშნულ წერტილთან დაკავშირებული წერტილი"
+
+
+msgid "Insert Point"
+msgstr "ჩასვი წერტილი"
+
+
+msgid "Insert Point into a curve segment"
+msgstr "ჩასვი წერტილი წირის სეგმენტში"
+
+
 msgid "Move Point"
 msgstr "გადააადგილე წერტილი"
+
+
+msgid "Move a point or its handles"
+msgstr "გადააადგილე წერტილი, ან მისი სახელურები"
 
 
 msgid "Move Segment"
 msgstr "გადააადგილე სეგმენტი"
 
 
+msgid "Only Select Unselected"
+msgstr "მონიშნე მხოლოდ მოუნიშნავი"
+
+
+msgid "Ignore the select action when the element is already selected"
+msgstr "დააიგნორირე მონიშვნის ქმედება, როცა ელემენტი უკვე მონიშნულია"
+
+
 msgid "Select Point"
 msgstr "მონიშნე წერტილი"
 
 
+msgid "Select a point or its handles"
+msgstr "მონიშნე წერტილი, ან მისი სახელურები"
+
+
+msgid "Toggle Selection"
+msgstr "გადართე მონიშვნა"
+
+
+msgid "Toggle the selection"
+msgstr "გადართე მონიშვნა"
+
+
+msgid "Toggle Vector"
+msgstr "გადართე ვექტორი"
+
+
+msgid "Toggle between Vector and Auto handles"
+msgstr "გადართე ვექტორსა და ავტოსახელურებს შორის"
+
+
+msgctxt "Operator"
+msgid "Add Bezier Circle"
+msgstr "დაამატე ბეზიეს წრეწირი"
+
+
+msgid "Construct a Bezier Circle"
+msgstr "ააგე ბეზიეს წრეწირი"
+
+
+msgid "The alignment of the new object"
+msgstr "ახალი ობიექტის გასწორება"
+
+
+msgid "Align the new object to the world"
+msgstr "გაუსწორე ახალი ობიექტი სამყაროს"
+
+
+msgid "Align the new object to the view"
+msgstr "გაუსწორე ახალი ობიექტი ხედს"
+
+
+msgid "Use the 3D cursor orientation for the new object"
+msgstr "ახალი ობიექტისთვის გამოიყენე 3გ კურსორის ორიენტაცია"
+
+
 msgid "Enter Edit Mode"
 msgstr "რედაქტირების რეჟიმში გადასვლა"
+
+
+msgid "Enter edit mode when adding this object"
+msgstr "ამ ობიექტის დამატებისას გადადი რედაქტირების რეჟიმში"
+
+
+msgid "Location for the newly added object"
+msgstr "მდებარეობა ახალდამატებული ობიექტისთვის"
+
+
+msgid "Rotation for the newly added object"
+msgstr "ბრუნვა ახალდამატებული ობიექტისთვის"
+
+
+msgid "Scale for the newly added object"
+msgstr "მასშტაბი ახალდამატებული ობიექტისთვის"
 
 
 msgctxt "Operator"
@@ -40160,9 +42550,37 @@ msgid "Set Curve Radius"
 msgstr "დააყენე წირის რადიუსი"
 
 
+msgid "Reveal hidden control points"
+msgstr "გამოავლინე დამალული სამართავი წერტილები"
+
+
+msgid "Deselect control points at the boundary of each selection region"
+msgstr "გააუქმე სამართავი წერტილების მონიშვნა ყოველი მონიშვნის მონაკვეთის ზღუდესთან"
+
+
+msgid "Select all control points linked to the current selection"
+msgstr "მონიშნე ყველა სამართავი წერტილი დაკავშირებული მიმდინარე მონიშვნასთან"
+
+
+msgid "Select all control points linked to already selected ones"
+msgstr "მონიშნე ყველა სამართავი წერტილი დაკავშირებული უკვე მონიშნულებთან"
+
+
+msgid "Deselect linked control points rather than selecting them"
+msgstr "გააუქმე დაკავშირებული სამართავი წერტილების მონიშვნა და არა პირიქით"
+
+
+msgid "Select control points at the boundary of each selection region"
+msgstr "მონიშნე სამართავი წერტილები ყოველი მონიშვნის მონაკვეთის ზღუდესთან"
+
+
 msgctxt "Operator"
 msgid "Select Next"
 msgstr "მონიშნე შენდეგი"
+
+
+msgid "Select control points following already selected ones along the curves"
+msgstr "მონიშნე საკონტროლო წერტილები, რომლებიც მოჰყვება უკვე მონიშნულებს წირის გასწვრივ"
 
 
 msgctxt "Operator"
@@ -40170,17 +42588,58 @@ msgid "Checker Deselect"
 msgstr "მონიშვნის ჭადრაკოვანი გაუქმება"
 
 
+msgid "Deselect every Nth point starting from the active one"
+msgstr "გააუქმე ყოველი მე-N წერტილის მონიშვნა დაწყებული აქტიურიდან"
+
+
+msgid "Number of selected elements in the repetitive sequence"
+msgstr "მონიშნული ელემენტების რაოდენობა გამეორებად თანმიმდევრობაში"
+
+
+msgid "Offset from the starting point"
+msgstr "აცდენა საწყისი წერტილიდან"
+
+
+msgid "Deselected"
+msgstr "მოუნიშნავი"
+
+
+msgid "Number of deselected elements in the repetitive sequence"
+msgstr "მოუნიშნავი ელემენტების რაოდენობა განმეორებად თანმიმდევრობაში"
+
+
 msgctxt "Operator"
 msgid "Select Previous"
 msgstr "მონიშნე წინა"
+
+
+msgid "Select control points preceding already selected ones along the curves"
+msgstr "მონიშნე სამართავი წერტილები, რომლებიც წინ უსწრებს უკვე მონიშნულებს წირის გასწვრივ"
 
 
 msgid "Randomly select some control points"
 msgstr "შემთხვევითობის პრინციპით მონიშნე რამდენიმე საკონტროლო წერტილი"
 
 
+msgid "Portion of items to select randomly"
+msgstr "შემთხვევით მოსანიშნი ელემენტების პორცია"
+
+
 msgid "Seed for the random number generator"
 msgstr "მარცვალი შემთხვევითი რიცხვის გენერატორისათვის"
+
+
+msgctxt "Operator"
+msgid "Select Control Point Row"
+msgstr "მონიშნე სამართავი წერტილების რიგი"
+
+
+msgid "Select a row of control points including active one"
+msgstr "მონიშნე სამართავი წერტილების რიგი აქტიურის ჩათვლით"
+
+
+msgid "Select similar curve points by property type"
+msgstr "მონიშნე წირის მსგავსი სეგმენტები თვისების ტიპის მიხედვით"
 
 
 msgid "Greater"
@@ -40241,9 +42700,17 @@ msgid "Smooth Curve Tilt"
 msgstr "დააგლუვე წირის გადახრა"
 
 
+msgid "Interpolate tilt of selected points"
+msgstr "მოახდინე მონიშნული წერტილების ინტერპოლაცია"
+
+
 msgctxt "Operator"
 msgid "Smooth Curve Weight"
 msgstr "დააგლუვე წირის წონა"
+
+
+msgid "Interpolate weight of selected points"
+msgstr "მოახდინე მონიშნული წერტილების წონათა ინტერპოლაცია"
 
 
 msgctxt "Operator"
@@ -40251,18 +42718,63 @@ msgid "Spin"
 msgstr "დაბზრიალება"
 
 
+msgid "Extrude selected boundary row around pivot point and current view axis"
+msgstr "ამოიყვანე მონიშნული ზღუდის რიგი ბრუნვის ცენტრის წერტილისა და მიმდინარე ხედის ღერძის გარშემო"
+
+
+msgid "Axis in global view space"
+msgstr "ღერძი გლობალური ხედის სივრცეში"
+
+
+msgid "Center in global view space"
+msgstr "დააცენტრირე გლობალური ხედის სივრცეში"
+
+
 msgctxt "Operator"
 msgid "Set Spline Type"
 msgstr "დააყენე სფლაინის ტიპი"
+
+
+msgid "Set type of active spline"
+msgstr "დააყენე აქტიური სფლაინის ტიპი"
 
 
 msgid "Handles"
 msgstr "სახელურები"
 
 
+msgid "Use handles when converting bezier curves into polygons"
+msgstr "გამოიყენე სახელურები ბეზიეს წირების პოლიგონებში გადაყვანისას"
+
+
+msgctxt "Operator"
+msgid "Set Goal Weight"
+msgstr "დააყენე მისაღწევი წონა"
+
+
+msgid "Set softbody goal weight for selected points"
+msgstr "დააყენე რბილი სხეულის სასურველი წონა მონიშნული წერტილებისათვის"
+
+
+msgid "Split off selected points from connected unselected points"
+msgstr "მოხლიჩე მონიშნული წერტილები დაკავშირებულ მოუნიშნავ წერტილებს"
+
+
+msgid "Subdivide selected segments"
+msgstr "დაყავი მონიშნული სეგმენტები"
+
+
+msgid "Switch direction of selected splines"
+msgstr "შეცვალე მონიშნული სფლაინების მიმართულება"
+
+
 msgctxt "Operator"
 msgid "Clear Tilt"
 msgstr "გაასუფთავე გადახრა"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "გაასუფთავე მონიშნული სამართავი წერტილების გადახრა"
 
 
 msgctxt "Operator"
@@ -40272,6 +42784,143 @@ msgstr "ამოიყვანე კურსორისკენ, ან �
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
 msgstr "დაამატე ახალი საკონტროლო წერტილი (დაკავშირებული მხოლოდ ერთ მონიშნულ დაბოლოების წირთან, თუ ასეთი არსებობს)"
+
+
+msgid "Location to add new vertex at"
+msgstr "მდებარეობა, რომელზეც უნდა დაემატოს ახალი წვერო"
+
+
+msgctxt "Operator"
+msgid "Denoise Animation"
+msgstr "განახმაურე ანიმაცია"
+
+
+msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
+msgstr "გაასუფთავე დარენდერებული ანიმაციური თანმიმდევრობის ხმაური მიმდინარე სცენისა და ხედის შრის პარამეტრების გამოყენებით. მოითხოვს განხმაურების მონაცემების გავლებსა და გამონატანს OpenEXR მრავალშრიან ფაილებში"
+
+
+msgid "Input Filepath"
+msgstr "შენატანის ფაილის მისამართი"
+
+
+msgid "File path for image to denoise. If not specified, uses the render file path and frame range from the scene"
+msgstr "ფაილის მისამართი განსახმაურებელი გამოსახულებისთვის. თუ მითითებული არაა, იყენებს რენდერის ფაილის მისამართსა და კადრთა დიაპაზონს სცენიდან"
+
+
+msgid "Output Filepath"
+msgstr "გამონატანის ფაილის მისამართი"
+
+
+msgid "If not specified, renders will be denoised in-place"
+msgstr "თუ მიუთითებელია, რენდერები ადგილზე განხმაურდება"
+
+
+msgctxt "Operator"
+msgid "Merge Images"
+msgstr "შერწყი გამოსახულებები"
+
+
+msgid "Combine OpenEXR multi-layer images rendered with different sample ranges into one image with reduced noise"
+msgstr "დააკომბინირე სხვადასხვა სემპლების დიაპაზონით დარენდერებული OpenEXR მრავალშრიანი გამოსახულებებიერთ გამოსახულებად შემცირებული ხმაურით"
+
+
+msgid "File path for image to merge"
+msgstr "ფაილის მისამართი შესარწყამი გამოსახულებისთვის"
+
+
+msgid "File path for merged image"
+msgstr "ფაილის მისამართი შერწყმული გამოსახულებისთვის"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "გამოიყენე კვანძები"
+
+
+msgid "Enable nodes on a material, world or light"
+msgstr "ჩართე კვანძები მასალაზე, სამყაროზე, ან სინათლეზე"
+
+
+msgctxt "Operator"
+msgid "Dynamic Paint Bake"
+msgstr "დინამიური ხატვის ცხობა"
+
+
+msgctxt "Operator"
+msgid "Toggle Output Layer"
+msgstr "გადართე გამონატანის შრე"
+
+
+msgid "Output A"
+msgstr "გამონატანი A"
+
+
+msgid "Output B"
+msgstr "გამონატანი B"
+
+
+msgctxt "Operator"
+msgid "Add Surface Slot"
+msgstr "დაამატე ზედაპირის სლოტი"
+
+
+msgid "Add a new Dynamic Paint surface slot"
+msgstr "დაამატე ახალი დინამიური ხატვის ზედაპირის სლოტი"
+
+
+msgctxt "Operator"
+msgid "Remove Surface Slot"
+msgstr "მოაშორე ზედაპირის სლოტი"
+
+
+msgid "Remove the selected surface slot"
+msgstr "მოაშორე მონიშნული ზედაპირის სლოტი"
+
+
+msgctxt "Operator"
+msgid "Toggle Type Active"
+msgstr "გადართე აქტიური ტიპი"
+
+
+msgid "Toggle whether given type is active or not"
+msgstr "გადართე მოცემული ტიპის აქტიურობასა და არააქტიურობას შორის"
+
+
+msgctxt "Operator"
+msgid "Toggle Fake User"
+msgstr "გადართე ყალბი მომხმარებელი"
+
+
+msgctxt "Operator"
+msgid "Generate Preview"
+msgstr "წარმოქმენი წინასწარი ხედი"
+
+
+msgid "Create an automatic preview for the selected data-block"
+msgstr "წარმოქმენი ავტომატური წინასწარი ხედი მონიშნული მონაცემთა ბლოკისათვის"
+
+
+msgctxt "Operator"
+msgid "Generate Preview from Object"
+msgstr "წარმოქმენი წინასწარი ხედი ობიექტიდან"
+
+
+msgid "Create a preview for this asset by rendering the active object"
+msgstr "შექმენი წინასწარი ხედი ამ აქტივისთვის აქტიური ობიექტის რენდერის გზით"
+
+
+msgctxt "Operator"
+msgid "Load Custom Preview"
+msgstr "ჩატვირთე მორგებული წინასწარი ხედი"
+
+
+msgid "Choose an image to help identify the data-block visually"
+msgstr "აირჩიე გამოსახულება მონაცემთა ბლოკის გარეგნულად იდენტიფიცირებაში დასახმარებლად"
+
+
+msgctxt "Operator"
+msgid "Toggle Library Override Editable"
+msgstr "შექმენი ბიბლიოთეკის უკუგდების რედაქტირებადობა"
 
 
 msgctxt "Operator"
@@ -41481,6 +44130,14 @@ msgid "Keep"
 msgstr "დატოვე"
 
 
+msgid "Shear Factor"
+msgstr "წანაცვლების კოეფიციენტი"
+
+
+msgid "The amount of shear to apply"
+msgstr "გამოსაყენებელი წანაცვლების ოდენობა"
+
+
 msgid "Selection to Cursor Value"
 msgstr "მონიშნული კურსორის სიდიდეს"
 
@@ -41535,6 +44192,10 @@ msgstr "შეცვალე აქტიური Grease Pencil-ის შრ�
 
 msgid "Target Name"
 msgstr "სამიზნის სახელი"
+
+
+msgid "Deselect Ends"
+msgstr "ბოლოების მონიშვნის გაუქმება"
 
 
 msgctxt "Operator"
@@ -41658,6 +44319,16 @@ msgid "Import Images as Planes"
 msgstr "დააიმპორტირე გამოსახულებები სიბრტყეებად"
 
 
+msgctxt "Material"
+msgid "Clip"
+msgstr "მოჭრა"
+
+
+msgctxt "Material"
+msgid "None"
+msgstr "არაფერი"
+
+
 msgid "Use alpha channel for transparency"
 msgstr "გამჭვირვალობისთვის გამოიყენე ალფა არხი"
 
@@ -41689,6 +44360,10 @@ msgid "Load a glTF 2.0 file"
 msgstr "ჩატვირთე glTF 2.0 ფაილი"
 
 
+msgid "Import WebP textures"
+msgstr "დააიმპორტირე WebP ტექსტურები"
+
+
 msgctxt "Operator"
 msgid "Import X3D/VRML2"
 msgstr "დააიმპორტირე X3D/VRML2"
@@ -41696,6 +44371,10 @@ msgstr "დააიმპორტირე X3D/VRML2"
 
 msgid "Import an X3D or VRML2 file"
 msgstr "დააიმპორტირე X3D, ან VRML2 ფაილი"
+
+
+msgid "Start frame for inserting animation"
+msgstr "საწყისი კადრი ანიმაციის ჩასასმელად"
 
 
 msgctxt "Operator"
@@ -42759,6 +45438,11 @@ msgid "Rip"
 msgstr "გაფხრიწე"
 
 
+msgctxt "Mesh"
+msgid "Fill"
+msgstr "შეავსე"
+
+
 msgid "Fill the ripped region"
 msgstr "შეავსე გარღვეული რეგიონი"
 
@@ -42848,6 +45532,11 @@ msgstr "უარყოფითი ღერძი"
 
 msgid "Aligned Axis"
 msgstr "გასწორებული ღერძი"
+
+
+msgctxt "Operator"
+msgid "Select by Attribute"
+msgstr "მონიშნე ატრიბუტის მიხედვით"
 
 
 msgctxt "Operator"
@@ -45069,6 +47758,10 @@ msgid "Quick Fur"
 msgstr "სწრაფი ბეწვი"
 
 
+msgid "Add a fur setup to the selected objects"
+msgstr "დაამატე ბეწვის კონფიგურაცია მონიშნულ ობიექტებს"
+
+
 msgid "Hair Radius"
 msgstr "თმის რადიუსი"
 
@@ -45259,6 +47952,10 @@ msgstr "მონიშნე შაბლონით"
 
 msgid "Select objects matching a naming pattern"
 msgstr "მონიშნე ობიექტები, რომლებიც სახელწოდების შაბლონს ერგება"
+
+
+msgid "Select or deselect random visible objects"
+msgstr "მონიშნე, ან გააუქმე მონიშვნა ხილულ შემთხვევით ობიექტებზე"
 
 
 msgctxt "Operator"
@@ -47672,6 +50369,10 @@ msgid "Add a Shader AOV"
 msgstr "დაამატე შეიდერის AOV"
 
 
+msgid "Add a Light Group"
+msgstr "დაამატე სინათლეთა ჯგუფი"
+
+
 msgctxt "Operator"
 msgid "Remove View Layer"
 msgstr "მოაცილე ხედის შრე"
@@ -48284,13 +50985,47 @@ msgid "Effect"
 msgstr "ეფექტი"
 
 
+msgid "Shared effects"
+msgstr "საზიარო ეფექტები"
+
+
 msgid "Overlap"
 msgstr "გადაკვეთა"
+
+
+msgid "Same Channel"
+msgstr "იგივე არხი"
+
+
+msgctxt "Operator"
+msgid "Select Handles"
+msgstr "მონიშნე სახელურები"
+
+
+msgid "Left Neighbor"
+msgstr "მარცხენა მეზობელი"
+
+
+msgid "Right Neighbor"
+msgstr "მარჯვენა მეზობელი"
+
+
+msgid "Both Neighbors"
+msgstr "ორივე მეზობელი"
 
 
 msgctxt "Operator"
 msgid "Snap Strips to the Current Frame"
 msgstr "ლენტების მიკვრა მიმდინარე კადრზე"
+
+
+msgctxt "Operator"
+msgid "Add Sound Strip"
+msgstr "დაამატე ხმის ლენტი"
+
+
+msgid "Add a sound strip to the sequencer"
+msgstr "დაამატე სეკვენსერს ხმის ლენტი"
 
 
 msgctxt "Operator"
@@ -57017,6 +59752,14 @@ msgid "Detail"
 msgstr "დეტალი"
 
 
+msgid "Image Border"
+msgstr "გამოსახულების ჩარჩო"
+
+
+msgid "Angle Min"
+msgstr "დახრილობა მინ."
+
+
 msgctxt "Operator"
 msgid "Selection to Grid"
 msgstr "მონიშნული ცხრილს"
@@ -57099,6 +59842,18 @@ msgid "Data Source:"
 msgstr "მონაცემთა წყარო:"
 
 
+msgid "No annotation source"
+msgstr "ანოტაციის წყარო არაა"
+
+
+msgid "No layers to add"
+msgstr "დასამატებელი შრეები არაა"
+
+
+msgid "Channel Colors are disabled in Animation preferences"
+msgstr "არხების ფერები გათიშულია ანიმაციის პარამეტრებში"
+
+
 msgid "Show Fill Color While Drawing"
 msgstr "ხატვის დროს აჩვენე შემავსებელი ფერი"
 
@@ -57127,6 +59882,14 @@ msgid "Parent:"
 msgstr "მშობელი:"
 
 
+msgid "Transform:"
+msgstr "გარდაქმენი:"
+
+
+msgid "Spline:"
+msgstr "სფლაინი:"
+
+
 msgid "Parenting:"
 msgstr "მეურვეობა:"
 
@@ -57143,6 +59906,16 @@ msgstr "გაასუფთავე"
 
 msgid "Animation:"
 msgstr "ანიმაცია:"
+
+
+msgctxt "Operator"
+msgid "Insert Key"
+msgstr "ჩასვი სოლი"
+
+
+msgctxt "Operator"
+msgid "Clear Key"
+msgstr "გაასუფთავე სოლი"
 
 
 msgctxt "Operator"
@@ -57178,6 +59951,10 @@ msgid "Material Mask"
 msgstr "მასალის ნიღაბი"
 
 
+msgid "Custom Occlusion"
+msgstr "მორგებული მოჩრდილვა"
+
+
 msgctxt "Operator"
 msgid "Lock Unselected"
 msgstr "ჩაკეტე მოუნიშნავი"
@@ -57189,8 +59966,22 @@ msgstr "ჩაკეტე გამოუყენებელი"
 
 
 msgctxt "Operator"
+msgid "Convert Materials to Color Attribute"
+msgstr "დააკონვერტირე მასალები ფერის ატრიბუტად"
+
+
+msgctxt "Operator"
+msgid "Extract Palette from Color Attribute"
+msgstr "გამოიტანე პალიტრა ფერის ატრიბუტიდან"
+
+
+msgctxt "Operator"
 msgid "Merge Similar"
 msgstr "გააერთიანე მსგავსი"
+
+
+msgid "Flip Colors"
+msgstr "შეატრიალე ფერები"
 
 
 msgid "Override Crease"
@@ -57207,6 +59998,10 @@ msgstr "გაუსწორე წვეროს ნორმალს"
 
 msgid "Show Instancer"
 msgstr "ინსტანსერის ჩვენება"
+
+
+msgid "Cubemap"
+msgstr "კუბრუკა"
 
 
 msgctxt "Time"
@@ -57282,6 +60077,10 @@ msgstr "შექმენი ნიღაბი"
 
 msgid "Thickness Profile"
 msgstr "სისქის პროფილი"
+
+
+msgid "Use Thickness Profile"
+msgstr "გამოიყენე სისქის პროფილი"
 
 
 msgid "Caps Type"
@@ -60970,6 +63769,14 @@ msgid "Blend to Neighbor"
 msgstr "შერწყი მეზობელთან"
 
 
+msgid "Actions on this armature will be destroyed by this new rest pose as the transforms stored are relative to the old rest pose"
+msgstr "ამ არმატურაზე ჩატარებული ქმედებები განადგურდება ამ მოსვენებული პოზის მიერ, რადგან შენახული გარდაქმნები ძველ მოსვენებული პოზის მიმართებითია"
+
+
+msgid "No pose to copy"
+msgstr "დასაკოპირებელი პოზა არაა"
+
+
 msgctxt "Curve"
 msgid "Surface"
 msgstr "ზედაპირი"
@@ -62625,12 +65432,28 @@ msgid "Length of the arc"
 msgstr "ძვლის თაღის"
 
 
+msgid "Point 1"
+msgstr "წერტილი 1"
+
+
+msgid "Point 2"
+msgstr "წერტილი 2"
+
+
+msgid "Point 3"
+msgstr "წერტილი 3"
+
+
 msgid "Bottom Width"
 msgstr "ქვედა სიგანე"
 
 
 msgid "Top Width"
 msgstr "ზედა სიგანე"
+
+
+msgid "Point 4"
+msgstr "წერტილი 4"
 
 
 msgid "Start Radius"
@@ -62644,6 +65467,22 @@ msgstr "დასასრულის რადიუსი"
 msgctxt "NodeTree"
 msgid "Rotations"
 msgstr "ბრუნვები"
+
+
+msgid "Inner Radius"
+msgstr "შიდა რადიუსი"
+
+
+msgid "Outer Radius"
+msgstr "გარე რადიუსი"
+
+
+msgid "Outer Points"
+msgstr "გარე წერტილები"
+
+
+msgid "Curve Index"
+msgstr "წირის ინდექსი"
 
 
 msgid "Spline Parameter node"
@@ -62710,8 +65549,28 @@ msgid "End (Length)"
 msgstr "დასასრული (სიგრძე)"
 
 
+msgid "Node only works for curves objects"
+msgstr "კვანძი მხოლოდ წირების ობიექტებისთვის მუშაობს"
+
+
+msgid "Surface UV map not defined"
+msgstr "ზედაპირის UV რუკა განუსაზღვრელია"
+
+
+msgid "Curves not attached to a surface"
+msgstr "წირები ზედაპირზე დამაგრებული არაა"
+
+
+msgid "Surface has no mesh"
+msgstr "ზედაპირს მეში არ აქვს"
+
+
 msgid "Disabled, Blender was compiled without OpenVDB"
 msgstr "გამორთულია, ბლენდერი კომპილირებული იყო OpenVDB-ს გარეშე"
+
+
+msgid "Spacing between grid points"
+msgstr "ცხრილის წერტილთა დაშორება"
 
 
 msgid "Density Max"
@@ -62734,12 +65593,20 @@ msgid "Edge Selection"
 msgstr "წიბოთა მონიშვნა"
 
 
+msgid "Face Group ID"
+msgstr "წახნაგთა ჯგუფის ID"
+
+
 msgid "Offset Scale"
 msgstr "აცდენის მასშტაბი"
 
 
 msgid "Has Alpha"
 msgstr "აქვს ალფა"
+
+
+msgid "Frame Count"
+msgstr "კადრების სათვალავი"
 
 
 msgid "Whether the image has an alpha channel"
@@ -62778,13 +65645,25 @@ msgid "Position 2"
 msgstr "პოზიცია 2"
 
 
+msgid "The index of the first vertex in the edge"
+msgstr "წიბოში პირველი წვეროს ინდექსი"
+
+
 msgid "The index of the second vertex in the edge"
 msgstr "პოზიცია 2"
 
 
+msgid "The position of the first vertex in the edge"
+msgstr "წიბოში პირველი წვეროს პოზიცია"
+
+
+msgid "The position of the second vertex in the edge"
+msgstr "წიბოში მეორე წვეროს პოზიცია"
+
+
 msgctxt "Amount"
 msgid "Area"
-msgstr "არეალი"
+msgstr "ფართობი"
 
 
 msgid "Face Area Field"
@@ -62819,8 +65698,24 @@ msgid "Total Cost"
 msgstr "ჯამური ღირებულება"
 
 
+msgid "Spline Point Count"
+msgstr "სფლაინის წერტილთა რიცხვი"
+
+
+msgid "Instance Index"
+msgstr "ინსტანციის ინდექსი"
+
+
 msgid "Geometry that is instanced on the points"
 msgstr "ინსტანციის არჩევა"
+
+
+msgid "Rotation of the instances"
+msgstr "ინსტანციების ბრუნვა"
+
+
+msgid "Scale of the instances"
+msgstr "ინსტანციების მასშტაბი"
 
 
 msgid "Guide Curves"
@@ -62847,8 +65742,16 @@ msgid "Max Neighbors"
 msgstr "მაქს. მეზობლები"
 
 
+msgid "Closest Index"
+msgstr "უახლოესი ინდექსი"
+
+
 msgid "Closest Weight"
 msgstr "უახლოესი წონა"
+
+
+msgid "Base curves that new curves are interpolated between"
+msgstr "ძირითადი წირები, რომელთა შორისაც ხდება ახალი წირების ინტერპოლაცია"
 
 
 msgid "Maximum amount of close guide curves that are taken into account for interpolation"
@@ -62861,6 +65764,22 @@ msgstr "ძველი"
 
 msgid "Material Selection node"
 msgstr "წახნაგთა ჯგუფის ID"
+
+
+msgid "Vertices must be at least 3"
+msgstr "უნდა იყოს 3 წვერო მაინც"
+
+
+msgid "Side Segments must be at least 1"
+msgstr "უნდა იყოს გვერდების 1 სეგმენტი მაინც"
+
+
+msgid "Fill Segments must be at least 1"
+msgstr "უნდა იყოს შევსების 1 სეგმენტი მაინც"
+
+
+msgid "Side Segments"
+msgstr "გვერდების სეგმენტები"
 
 
 msgid "Fill Segments"
@@ -62879,16 +65798,64 @@ msgid "Radius of the top circle of the cone"
 msgstr "ქვედა რადიუსი"
 
 
-msgid "Vertices Y"
+msgid "Radius of the bottom circle of the cone"
+msgstr "კონუსის ქვედა წრის რადიუსი"
+
+
+msgid "Height of the generated cone"
+msgstr "წარმოქმნილი კონუსის სიმაღლე"
+
+
+msgid "Vertices must be at least 1"
+msgstr "უნდა იყოს 1 წვერო მაინც"
+
+
+msgid "Vertices X"
 msgstr "წვეროები X"
+
+
+msgid "Vertices Y"
+msgstr "წვეროები Y"
+
+
+msgid "Vertices Z"
+msgstr "წვეროები Z"
 
 
 msgid "Side length along each axis"
 msgstr "წვეროები Y"
 
 
+msgid "Number of vertices for the X side of the shape"
+msgstr "წვეროთა რაოდენობა ფიგურის X მხრისთვის"
+
+
 msgid "Number of vertices for the Y side of the shape"
-msgstr "წვეროები Z"
+msgstr "წვეროთა რაოდენობა ფიგურის Y მხრისთვის"
+
+
+msgid "Number of vertices for the Z side of the shape"
+msgstr "წვეროთა რაოდენობა ფიგურის Z მხრისთვის"
+
+
+msgid "The number of vertices on the top and bottom circles"
+msgstr "წვეროთა რაოდენობა ზედა და ქვედა წრეებზე"
+
+
+msgid "The radius of the cylinder"
+msgstr "ცილინდრის რადიუსი"
+
+
+msgid "The height of the cylinder"
+msgstr "ცილინდრის სიმაღლე"
+
+
+msgid "Number of vertices in the X direction"
+msgstr "წვეროთა რაოდენობა X მიმართულებით"
+
+
+msgid "Number of vertices in the Y direction"
+msgstr "წვეროთა რაოდენობა Y მიმართულებით"
 
 
 msgid "Start Location"
@@ -62899,16 +65866,52 @@ msgid "End Location"
 msgstr "დასასრულის მდებარეობა"
 
 
+msgid "Number of vertices on the line"
+msgstr "წვეროთა რაოდენობა ხაზზე"
+
+
+msgid "Length of each individual edge"
+msgstr "თითოეული ინდივიდუალური წიბოს სიგრძე"
+
+
+msgid "Position of the first vertex"
+msgstr "პირველი წვეროს პოზიცია"
+
+
+msgid "Segments must be at least 3"
+msgstr "უნდა იყოს 3 სეგმენტი მაინც"
+
+
+msgid "Rings must be at least 3"
+msgstr "უნდა იყოს 3 რგოლი მაინც"
+
+
+msgid "The number of horizontal rings"
+msgstr "ჰორიზონტალური რგოლების რაოდენობა"
+
+
 msgid "Corner Index"
 msgstr "კუთხის ინდექსი"
+
+
+msgid "Corner of Edge"
+msgstr "წიბოს კუთხე"
 
 
 msgid "Edge Corner Count"
 msgstr "წიბოს კუთხეების რიცხვი"
 
 
+msgid "Corner of Face"
+msgstr "წახნაგის კუთხე"
+
+
 msgid "Vertex Index"
 msgstr "წვეროს ინდექსი"
+
+
+msgid "Corner of Vertex"
+msgstr "წვეროს კუთხე"
 
 
 msgid "Vertex Corner Count"
@@ -62917,6 +65920,14 @@ msgstr "წახნაგის კუთხე"
 
 msgid "Next Edge Index"
 msgstr "მომდევნო წიბოს ინდექსი"
+
+
+msgid "Previous Edge Index"
+msgstr "წინა წიბოს ინდექსი"
+
+
+msgid "The number of edges connected to each vertex"
+msgstr "ყოველ წვეროსთან დაკავშირებული წიბოების რაოდენობა"
 
 
 msgid "Edge of Vertex"
@@ -62939,6 +65950,10 @@ msgid "Corner Index In Face"
 msgstr "კუთხის ინდექსი წახნაგში"
 
 
+msgid "The vertex the corner is attached to"
+msgstr "წვერო, რომელზეც კუთხეა მიმაგრებული"
+
+
 msgid "Corner Vertex"
 msgstr "კუთხის წვერო"
 
@@ -62949,6 +65964,10 @@ msgstr "ინსტანციად"
 
 msgid "The number of control points along the curve to traverse"
 msgstr "გასავლელ საკონტროლო წერტილთა რაოდენობა წირში"
+
+
+msgid "The number of points to create"
+msgstr "შესაქმნელი წერტილების რიცხვი"
 
 
 msgid "The positions of the new points"
@@ -62963,8 +65982,20 @@ msgid "Curve Group ID"
 msgstr "წირების ჯგუფის ID"
 
 
+msgid "Points to generate curves from"
+msgstr "წერტილები, რომელთაგანაც უნდა წარმოიქმნას წირები"
+
+
+msgid "Determines the order of points in each curve"
+msgstr "განსაზღვრავს წერტილთა თანმიმდევრობას ყოველ წირში"
+
+
 msgid "Source Position"
 msgstr "წყაროს მდებარეობა"
+
+
+msgid "The target mesh must have faces"
+msgstr "სამიზნე მეშს წახნაგები უნდა ჰქონდეს"
 
 
 msgid "Is Hit"
@@ -62983,8 +66014,16 @@ msgid "Hit Distance"
 msgstr "მოხვედრის მანძილი"
 
 
+msgid "The source geometry must contain a mesh or a point cloud"
+msgstr "პირველწყარო გეომეტრია უნდა შეიცავდეს მეშს, ან წერტილოვან ღრუბელს"
+
+
 msgid "Sample Position"
 msgstr "პოზიციის ნიმუშის აღება"
+
+
+msgid "The source mesh must have faces"
+msgstr "პირველწყარო მეშს წახნაგები უნდა ჰქონდეს"
 
 
 msgid "Source UV Map"
@@ -62996,7 +66035,23 @@ msgstr "UV ნიმუში"
 
 
 msgid "Is Valid"
-msgstr "სწორია"
+msgstr "ვარგისია"
+
+
+msgid "Grid name needs to be specified"
+msgstr "ცხრილის სახელი მისათითებელია"
+
+
+msgid "The grid type is unsupported"
+msgstr "ცხრილის ტიპს მხარდაჭერა არ აქვს"
+
+
+msgid "Radius must be greater than 0"
+msgstr "რადიუსი 0-ზე დიდი უნდა იყოს"
+
+
+msgid "Voxel size is too small"
+msgstr "ვოქსელი მეტისმეტად მცირე ზომისაა"
 
 
 msgid "Shade Smooth"
@@ -63005,6 +66060,14 @@ msgstr "გლუვი შეფერადება"
 
 msgid "Delta Time"
 msgstr "დელტა დრო"
+
+
+msgid "Skip"
+msgstr "გამოტოვე"
+
+
+msgid "Baked %d - %d"
+msgstr "გამომცხვარი %d - %d"
 
 
 msgid "Frames %d - %d"
@@ -63017,6 +66080,10 @@ msgstr "გამყოფი"
 
 msgid "Strings"
 msgstr "სტრიქონები"
+
+
+msgid "Font not specified"
+msgstr "შრიფტი მითითებული არაა"
 
 
 msgid "Text Box Width"
@@ -63043,6 +66110,22 @@ msgid "Operator Selection"
 msgstr "ოპერატორის მონიშნვა"
 
 
+msgid "Rotate islands for best fit"
+msgstr "აბრუნე კუნძულები საუკეთესოდ მოსარგებად"
+
+
+msgid "Number of voxels in the X axis"
+msgstr "ვოქსელების რაოდენობა X ღერძში"
+
+
+msgid "Number of voxels in the Y axis"
+msgstr "ვოქსელების რაოდენობა Y ღერძში"
+
+
+msgid "Number of voxels in the Z axis"
+msgstr "ვოქსელების რაოდენობა Z ღერძში"
+
+
 msgid "{} node"
 msgstr "{} კვანძი"
 
@@ -63053,6 +66136,10 @@ msgstr "ჯგუფი '{}' ({})"
 
 msgid "Missing Data-Block"
 msgstr "მოუძიებელი მონაცემთა ბლოკი"
+
+
+msgid "Node group has different type"
+msgstr "კვანძთა ჯგუფს სხვა ტიპი გააჩნია"
 
 
 msgid "Undefined Node Tree Type"
@@ -63137,6 +66224,10 @@ msgstr "ანიზოტროპული ბრუნვა"
 
 msgid "Transmission Weight"
 msgstr "გადაცემის წონა"
+
+
+msgid "Sheen Weight"
+msgstr "ბრწყინვის წონა"
 
 
 msgid "Sheen Roughness"
@@ -63496,6 +66587,11 @@ msgstr "ვიდეო სეკვენსერში აღმოჩენ�
 msgctxt "Sequence"
 msgid "Audio"
 msgstr "აუდიო"
+
+
+msgctxt "Sequence"
+msgid "Multicam"
+msgstr "მრავალკამერიანი"
 
 
 msgctxt "Sequence"
@@ -64710,4 +67806,8 @@ msgstr "თმის წირების მოკვეცა"
 
 msgid "Trims or scales hair curves to a certain length"
 msgstr "თმის წირებს ჭრის, ან ამასშტაბირებს გარკვეულ სიგრძემდე"
+
+
+msgid "Smooth by Angle"
+msgstr "დააგლუვე დახრილობის კუთხის მიხედვით"
 

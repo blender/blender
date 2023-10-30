@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
-"PO-Revision-Date: 2023-10-20 06:07+0000\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
+"PO-Revision-Date: 2023-10-25 09:54+0000\n"
 "Last-Translator: Yassir Amry Priyono <yassir_a_p@protonmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
@@ -319,6 +319,10 @@ msgstr "Mati"
 
 msgid "Full"
 msgstr "Penuh"
+
+
+msgid "Auto"
+msgstr "Otomatis"
 
 
 msgid "Distribute memory across devices"
@@ -765,6 +769,10 @@ msgid "Motion tracking tools"
 msgstr "Alat lacak gerakan"
 
 
+msgid "Dope Sheet"
+msgstr "Dope Sheet"
+
+
 msgid "Adjust timing of keyframes"
 msgstr "Sesuaikan waktu keyframe"
 
@@ -826,7 +834,7 @@ msgstr "Bar global di bawah layar untuk informasi status umum"
 
 
 msgid "Outliner"
-msgstr "Outliner"
+msgstr "Penggarisan Luar"
 
 
 msgid "Overview of scene graph and all available data-blocks"
@@ -850,7 +858,7 @@ msgstr "Telurusi dokumen dan aset"
 
 
 msgid "Spreadsheet"
-msgstr "Spreadsheet"
+msgstr "Lembar Sebar"
 
 
 msgid "Explore geometry data in a table"
@@ -1231,6 +1239,10 @@ msgid "2D vector with floating-point values"
 msgstr "Vektor 2D dengan nilai floating-point"
 
 
+msgid "Quaternion"
+msgstr "Kuaternion"
+
+
 msgid "Domain"
 msgstr "Domain"
 
@@ -1553,10 +1565,6 @@ msgstr "Bebas"
 
 msgid "Aligned"
 msgstr "Selaras"
-
-
-msgid "Auto"
-msgstr "Otomatis"
 
 
 msgid "Handle 2"
@@ -2372,11 +2380,11 @@ msgstr "Hindari tabrakan dengan boid lainnya"
 
 
 msgid "Deflectors"
-msgstr "Seleksi"
+msgstr "Pembelok"
 
 
 msgid "Avoid collision with deflector objects"
-msgstr "Hindari tabrakan dengan objek defektor"
+msgstr "Hindari tabrakan dengan objek pembelok"
 
 
 msgid "Fight Distance"
@@ -2384,7 +2392,7 @@ msgstr "Jarak Bertengkar"
 
 
 msgid "Attack boids at max this distance"
-msgstr "Serang boid di jarak maks ini"
+msgstr "Serang boid maksimal di jarak ini"
 
 
 msgid "Flee Distance"

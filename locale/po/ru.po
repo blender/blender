@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -342,20 +342,16 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Оптимизировать все ядра. Самый быстрый рендеринг, может привести к дополнительной загрузке процессора в фоновом режиме."
 
 
+msgid "Auto"
+msgstr "Авто"
+
+
 msgid "Distribute memory across devices"
 msgstr "Распределить память между устройствами"
 
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Освободите место для больших сцен, распределяя память между взаимосвязанными устройствами (например, через NVLink), а не дублируя ее"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (экспериментально)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT для трассировки лучей использует меньше памяти для сцен, в которых широко используются кривые, и может обеспечить более высокую производительность в определённых случаях. Однако эта поддержка является экспериментальной, и некоторые сцены могут отображаться неправильно"
 
 
 msgid "KHR_materials_variants_ui"
@@ -1869,10 +1865,6 @@ msgstr "Свободный"
 
 msgid "Aligned"
 msgstr "С выравниванием"
-
-
-msgid "Auto"
-msgstr "Авто"
 
 
 msgid "Handle 2"

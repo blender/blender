@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2023-09-28 03:54+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -344,16 +344,20 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Otimizar todos os núcleos. Renderização mais rápida, deve resultar em utilização extra de CPU no fundo"
 
 
+msgid "On"
+msgstr "Ligado"
+
+
+msgid "Auto"
+msgstr "Automático"
+
+
 msgid "Distribute memory across devices"
 msgstr "Distribuir memória pelos dispositivos"
 
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (experimental)"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (experimental)"
 
 
 msgid "Fribidi Library"
@@ -1506,10 +1510,6 @@ msgstr "Livre"
 
 msgid "Aligned"
 msgstr "Alinhado"
-
-
-msgid "Auto"
-msgstr "Automático"
 
 
 msgid "Handle 2"
@@ -73429,10 +73429,6 @@ msgstr "Ponto"
 
 msgid "Add Input"
 msgstr "Adicionar Entrada"
-
-
-msgid "On"
-msgstr "Ligado"
 
 
 msgid "Val"

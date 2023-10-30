@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -312,6 +312,10 @@ msgstr "Вимкнено"
 
 msgid "Full"
 msgstr "Повний"
+
+
+msgid "Auto"
+msgstr "Авто"
 
 
 msgid "Distribute memory across devices"
@@ -1668,10 +1672,6 @@ msgstr "Вільно"
 
 msgid "Aligned"
 msgstr "З вирівнюванням"
-
-
-msgid "Auto"
-msgstr "Авто"
 
 
 msgid "Handle 2"

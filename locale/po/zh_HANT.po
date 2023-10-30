@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -315,20 +315,20 @@ msgid "Full"
 msgstr "完整"
 
 
+msgid "On"
+msgstr "開"
+
+
+msgid "Auto"
+msgstr "自動"
+
+
 msgid "Distribute memory across devices"
 msgstr "共享記憶體分發"
 
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "以互連裝置間的共享記憶體 (例如: 透過 NVLink分發) 方式分發記憶體，以保留更多空間給大型場景"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (測試版本)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT 用於光跡追蹤運算時, 在大量使用曲線的場景可減少記憶體用量並在特定條件下有較佳效能。不過此支援功能目前還在測試階段並且某些場景可能無法正確算繪"
 
 
 msgid "Fribidi Library"
@@ -1511,10 +1511,6 @@ msgstr "自由"
 
 msgid "Aligned"
 msgstr "對齊"
-
-
-msgid "Auto"
-msgstr "自動"
 
 
 msgid "Handle 2"
@@ -59219,10 +59215,6 @@ msgstr "Cb"
 
 msgid "Cr"
 msgstr "Cr"
-
-
-msgid "On"
-msgstr "開"
 
 
 msgid "Speed:"

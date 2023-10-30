@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2023-10-10 05:56+0000\n"
 "Last-Translator: maylog <maylog@126.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
@@ -345,6 +345,14 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "优化所有内核。渲染速度最快，可能会导致额外的后台 CPU占用"
 
 
+msgid "On"
+msgstr "开启"
+
+
+msgid "Auto"
+msgstr "自动"
+
+
 msgid "Distribute memory across devices"
 msgstr "跨设备分配内存"
 
@@ -359,14 +367,6 @@ msgstr "MetalRT (试验特性)"
 
 msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
 msgstr "可在具有 RDNA2 及以上版本的显卡上启用 AMD 硬件光线追踪功能，并可在旧显卡上使用着色器回退功能。此功能为试验性功能，某些场景可能会出现渲染不正确的情况"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (试验)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "用于光线追踪的MetalRT 对于广泛使用曲线的场景使用较少的内存，并且可以在特定情况下提供更好的性能。但是，此支持是实验性的，某些场景可能会导致渲染偏差"
 
 
 msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
@@ -2117,10 +2117,6 @@ msgstr "自由"
 
 msgid "Aligned"
 msgstr "对齐"
-
-
-msgid "Auto"
-msgstr "自动"
 
 
 msgid "Handle 2"
@@ -120451,10 +120447,6 @@ msgstr "Cb"
 
 msgid "Cr"
 msgstr "Cr"
-
-
-msgid "On"
-msgstr "开启"
 
 
 msgid "Val"

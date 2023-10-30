@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2023-10-20 06:21+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -343,6 +343,14 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Optimalizuje všetky jadrá. Najrýchlejšie prekresľovanie, môže mať za následok ďalšie využitie CPU na pozadí"
 
 
+msgid "On"
+msgstr "Zapnúť"
+
+
+msgid "Auto"
+msgstr "Automaticky"
+
+
 msgid "Distribute memory across devices"
 msgstr "Rozdeľujte pamäť medzi zariadeniami"
 
@@ -357,14 +365,6 @@ msgstr "HIP RT (experimentálne)"
 
 msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
 msgstr "HIP RT umožňuje hardvérové sledovanie lúčov AMD na kartách RDNA2 a vyšších, pričom na starších kartách je k dispozícii spätný tieňovač. Táto funkcia je experimentálna a niektoré scény sa môžu prekresľovať nesprávne"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (experimentálne)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT pre sledovanie lúče využíva menej pamäte pre scény, ktoré vo veľkej miere využívajú krivky, a v špecifických prípadoch môže poskytnúť lepší výkon. Táto podpora je však experimentálna a niektoré scény sa môžu prekresľovať nesprávne"
 
 
 msgid "Embree on GPU"
@@ -2164,10 +2164,6 @@ msgstr "Voľný"
 
 msgid "Aligned"
 msgstr "Zarovnaný"
-
-
-msgid "Auto"
-msgstr "Automaticky"
 
 
 msgid "Handle 2"
@@ -130369,10 +130365,6 @@ msgstr "Cb"
 
 msgid "Cr"
 msgstr "Cr"
-
-
-msgid "On"
-msgstr "Zapnúť"
 
 
 msgid "Val"

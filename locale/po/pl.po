@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -196,6 +196,10 @@ msgstr "Hasło"
 
 msgid "Message"
 msgstr "Komunikat"
+
+
+msgid "Auto"
+msgstr "Automatyczny"
 
 
 msgid "Fribidi Library"
@@ -896,10 +900,6 @@ msgstr "Swobodny"
 
 msgid "Aligned"
 msgstr "Wyrównany"
-
-
-msgid "Auto"
-msgstr "Automatyczny"
 
 
 msgid "Handle 2"

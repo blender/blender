@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2023-10-19 17:54+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -313,14 +313,6 @@ msgstr "HIP RT (Majaribio)"
 
 msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
 msgstr "HIP RT huwezesha ufuatiliaji wa miale ya maunzi ya AMD kwenye RDNA2 na hapo juu, na urejesho wa shader kwenye kadi za zamani. Kipengele hiki ni cha majaribio na baadhi ya matukio yanaweza kutoa kimakosa"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (Majaribio)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT kwa ufuatiliaji wa miale hutumia kumbukumbu kidogo kwa matukio ambayo hutumia mikunjo sana, na inaweza kutoa utendakazi bora katika matukio mahususi. Hata hivyo usaidizi huu ni wa majaribio na baadhi ya matukio yanaweza kutoa kimakosa"
 
 
 msgid "Embree on GPU"

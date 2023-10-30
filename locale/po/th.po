@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -204,6 +204,10 @@ msgstr "ข้อความ"
 
 msgid "Full"
 msgstr "เต็ม"
+
+
+msgid "Auto"
+msgstr "อัตโนมัติ"
 
 
 msgid "Action"
@@ -543,10 +547,6 @@ msgstr "เป้าหมาย"
 
 msgid "Clear"
 msgstr "ล้าง"
-
-
-msgid "Auto"
-msgstr "อัตโนมัติ"
 
 
 msgid "Weight"

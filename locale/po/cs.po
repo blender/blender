@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2023-10-12 15:54+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -339,6 +339,10 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Optimalizovat všechna jádra. Nejrychlejší renderování, může způsobit dodatečnou zátěž CPU na pozadí"
 
 
+msgid "Auto"
+msgstr "Automaticky"
+
+
 msgid "Distribute memory across devices"
 msgstr "Distribuce paměti mezi zařízeními"
 
@@ -353,14 +357,6 @@ msgstr "HIP RT (Experimentální)"
 
 msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
 msgstr "HIP RT povoluje AMD hardwarový ray tracing na RDNA2 a vyšší. Tato funkcionalita je experimentální a některé scény mohou být špatně vyrenderovány"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (Experimentální)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT pro ray tracing používá méně paměti ve scénách, kde jsou často používány křivky, a může v některých případech být rychlejší. Podpora MetalRT je experimentální a některé scény mohou být vyrenderovány chybně"
 
 
 msgid "Embree on GPU"
@@ -1617,10 +1613,6 @@ msgstr "Volný"
 
 msgid "Aligned"
 msgstr "Zarovnaný"
-
-
-msgid "Auto"
-msgstr "Automaticky"
 
 
 msgid "Handle 2"

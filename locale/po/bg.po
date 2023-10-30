@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2023-09-26 10:37+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -38,6 +38,10 @@ msgstr "Избор"
 
 msgid "Module"
 msgstr "Модул"
+
+
+msgid "On"
+msgstr "Върху"
 
 
 msgid "Action"
@@ -1879,10 +1883,6 @@ msgstr "{} (String)"
 
 msgid "{} (Integer)"
 msgstr "{} (Integer)"
-
-
-msgid "On"
-msgstr "Върху"
 
 
 msgid "OK?"

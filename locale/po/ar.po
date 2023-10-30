@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -205,6 +205,10 @@ msgstr "ﻞﻌﻔﻣ ﺮﻴﻏ"
 
 msgid "Full"
 msgstr "ﻼ﻿ﻣﺎﻛ"
+
+
+msgid "Auto"
+msgstr "ﻲﺗﺍﺫ"
 
 
 msgid "Fribidi Library"
@@ -981,10 +985,6 @@ msgstr "ﺮﺣ"
 
 msgid "Aligned"
 msgstr "ﻱﺫﺎﺤﻣ"
-
-
-msgid "Auto"
-msgstr "ﻲﺗﺍﺫ"
 
 
 msgid "Handle 2"

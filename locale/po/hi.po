@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -185,6 +185,10 @@ msgstr "बंद"
 
 msgid "Full"
 msgstr "पूर्ण"
+
+
+msgid "Auto"
+msgstr "स्वत:"
 
 
 msgid "Fribidi Library"
@@ -425,10 +429,6 @@ msgstr "मुक्त"
 
 msgid "Aligned"
 msgstr "संरेखित"
-
-
-msgid "Auto"
-msgstr "स्वत:"
 
 
 msgid "Hide"

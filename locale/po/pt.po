@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
-"PO-Revision-Date: 2023-10-23 09:29+0000\n"
-"Last-Translator: Tiago Lauriano Copelli <tiagocopelli@gmail.com>\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
+"PO-Revision-Date: 2023-10-29 09:54+0000\n"
+"Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
@@ -346,6 +346,10 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Optimizar todos os núcleos. Renderização mais rápida, pode resultar em utilização de fundo de CPU extra"
 
 
+msgid "Auto"
+msgstr "Automático"
+
+
 msgid "Distribute memory across devices"
 msgstr "Distribuir memória pelos dispositivos"
 
@@ -360,14 +364,6 @@ msgstr "HIP RT (Experimental)"
 
 msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
 msgstr "O HIP RT possibilita o rastreamento de raios por hardware em RDNA2 e mais recentes, com sombreadores de reserva em placas anteriores. Esta funcionalidade é experimental e algumas cenas podem renderizar incorrectamente"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (Experimental)"
-
-
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "O MetalRT para rastreamento de raios usa menos memória em cenas que usem curvas extensivamente, e pode dar melhor performance em casos específicos. O nível de suporte é no entanto experimental e algumas cenas podem renderizar incorrectamente"
 
 
 msgid "Embree on GPU"
@@ -2167,10 +2163,6 @@ msgstr "Livre"
 
 msgid "Aligned"
 msgstr "Alinhado"
-
-
-msgid "Auto"
-msgstr "Automático"
 
 
 msgid "Handle 2"
@@ -4099,6 +4091,14 @@ msgid "Length of newly added curves when it is not interpolated from other curve
 msgstr "Comprimento das novas curvas adicionadas quando não interpoladas de outras curvas"
 
 
+msgid "Curve Parameter Falloff"
+msgstr "Decaimento do Parâmetro da Curva"
+
+
+msgid "Falloff that is applied from the tip to the root of each curve"
+msgstr "Decaimento que é aplicado desde a ponta até à raiz de cada curva"
+
+
 msgid "Density Add Attempts"
 msgstr "Tentativas de Adição de Densidade"
 
@@ -4414,12 +4414,52 @@ msgid "Use visible strokes as fill boundary limits"
 msgstr "Usar traços visíveis como fronteiras dos limites de preenchimento"
 
 
+msgid "Edit Lines"
+msgstr "Editar Linhas"
+
+
+msgid "Use edit lines as fill boundary limits"
+msgstr "Usar linhas de edição como limites das fronteiras de preenchimento"
+
+
+msgid "Closure Mode"
+msgstr "Modo de Encerramento"
+
+
+msgid "Types of stroke extensions used for closing gaps"
+msgstr "Tipo de extensão de traço para fechar aberturas"
+
+
+msgid "Extend strokes in straight lines"
+msgstr "Extender traços em linhas direitas"
+
+
 msgid "Radius"
 msgstr "Raio"
 
 
+msgid "Connect endpoints that are close together"
+msgstr "Conectar pontos finais que estejam próximos"
+
+
 msgid "Precision"
 msgstr "Precisão"
+
+
+msgid "Factor for fill boundary accuracy, higher values are more accurate but slower"
+msgstr "Factor para precisão para as fronteiras dos limites de preenchimento, valores mais altos são mais precisos mas mais lentos"
+
+
+msgid "Layer Mode"
+msgstr "Modo da Camada"
+
+
+msgid "Layers used as boundaries"
+msgstr "Camadas usadas como limites"
+
+
+msgid "Visible layers"
+msgstr "Camadas visíveis"
 
 
 msgid "Only active layer"
@@ -4482,6 +4522,10 @@ msgid "Pencil"
 msgstr "Lápis"
 
 
+msgid "Pen"
+msgstr "Caneta"
+
+
 msgid "Ink"
 msgstr "Tinta"
 
@@ -4528,6 +4572,11 @@ msgstr "ícone Grease Pencil"
 
 
 msgctxt "GPencil"
+msgid "Smooth"
+msgstr "Suavizar"
+
+
+msgctxt "GPencil"
 msgid "Thickness"
 msgstr "Espessura"
 
@@ -4545,6 +4594,11 @@ msgstr "Aleatorizar"
 msgctxt "GPencil"
 msgid "Grab"
 msgstr "Agarrar"
+
+
+msgctxt "GPencil"
+msgid "Push"
+msgstr "Empurrar"
 
 
 msgctxt "GPencil"
@@ -4644,16 +4698,108 @@ msgid "Number of times to subdivide newly created strokes, for less jagged strok
 msgstr "O número de vezes para subdividir os traços recém criados, para obtenção de menos saliências."
 
 
+msgid "Pin Mode"
+msgstr "Modo de Fixação"
+
+
+msgid "Pin the mode to the brush"
+msgstr "Fixar o modo ao pincel"
+
+
 msgid "Hue"
 msgstr "Matiz"
+
+
+msgid "Random factor to modify original hue"
+msgstr "Factor aleatório para modificar tonalidade original"
+
+
+msgid "Pressure Randomness"
+msgstr "Aleatoriedade de Pressão"
+
+
+msgid "Randomness factor for pressure in new strokes"
+msgstr "Factor de aleatoriedade para pressão em novos traços."
 
 
 msgid "Saturation"
 msgstr "Saturação"
 
 
+msgid "Random factor to modify original saturation"
+msgstr "Fator aleatório para modificar a saturação original"
+
+
+msgid "Strength Randomness"
+msgstr "Aleatoriedade da Força"
+
+
+msgid "Randomness factor strength in new strokes"
+msgstr "Factor de aleatoriedade para força em novos traços"
+
+
+msgid "Random factor to modify original value"
+msgstr "Fator aleatório para modificar o valor original"
+
+
+msgid "Show Fill"
+msgstr "Mostrar Preenchimento"
+
+
+msgid "Show transparent lines to use as boundary for filling"
+msgstr "Mostrar linhas transparentes para usar como limite de preenchimento"
+
+
+msgid "Show Lines"
+msgstr "Mostrar Linhas"
+
+
+msgid "Show help lines for filling to see boundaries"
+msgstr "Mostrar linhas auxiliares de preenchimento para ver os limites"
+
+
+msgid "Visual Aids"
+msgstr "Auxiliares Visuais"
+
+
+msgid "Show help lines for stroke extension"
+msgstr "Mostra linhas auxiliares para extensão de traços"
+
+
+msgid "Show Lasso"
+msgstr "Mostrar Laço"
+
+
+msgid "Do not display fill color while drawing the stroke"
+msgstr "Não mostrar cor de preenchimento enquanto desenhar traços"
+
+
+msgid "Factor of Simplify using adaptive algorithm"
+msgstr "Factor do Simplificar usando algoritmo adaptativo"
+
+
 msgid "Active Layer"
 msgstr "Camada ativa"
+
+
+msgid "Only edit the active layer of the object"
+msgstr "Editar apenas a camada activa do objecto"
+
+
+msgid "Strokes Collision"
+msgstr "Colisões de Traços"
+
+
+msgid "Check if extend lines collide with strokes"
+msgstr "Verificar se linhas prolongadas não colidem com traços"
+
+
+msgid "Default Eraser"
+msgstr "Borracha Padrão"
+
+
+msgid "Use this brush when enable eraser with fast switch key"
+msgstr "Usar este pincel quando activar borracha com a tecla de troca rápida"
 
 
 msgid "Affect Position"
@@ -4680,12 +4826,52 @@ msgid "The brush affects the thickness of the point"
 msgstr "O pincel afeta a espessura dos pontos."
 
 
+msgid "Affect UV"
+msgstr "Afectar UV"
+
+
+msgid "The brush affects the UV rotation of the point"
+msgstr "O pincel afecta a rotação UV do ponto"
+
+
+msgid "Limit to Viewport"
+msgstr "Limitar à janela de visualização"
+
+
+msgid "Fill only visible areas in viewport"
+msgstr "Preencher apenas áreas visíveis na janela de visualização"
+
+
 msgid "Use Pressure Jitter"
 msgstr "Usar pressão tremulada"
 
 
 msgid "Use tablet pressure for jitter"
 msgstr "Usa a pressão da mesa de desenho para a tremulação."
+
+
+msgid "Keep caps"
+msgstr "Manter pontas"
+
+
+msgid "Keep the caps as they are and don't flatten them when erasing"
+msgstr "Manter pontas actuais, não achatar enquanto se apaga"
+
+
+msgid "Pin Material"
+msgstr "Afixar Material"
+
+
+msgid "Keep material assigned to brush"
+msgstr "Manter material aplicado ao pincel"
+
+
+msgid "Occlude Eraser"
+msgstr "Ocultar Borracha"
+
+
+msgid "Erase only strokes visible and not occluded"
+msgstr "Apagar apenas traços visíveis e não ocultos"
 
 
 msgid "Use Pressure"
@@ -4696,8 +4882,40 @@ msgid "Use tablet pressure"
 msgstr "Usa a pressão de mesa de desenho."
 
 
+msgid "Use pressure to modulate randomness"
+msgstr "Usar a pressão para variar aleatoriedade"
+
+
 msgid "Outline"
 msgstr "Contorno"
+
+
+msgid "Convert stroke to perimeter"
+msgstr "Converter traço para perímetro"
+
+
+msgid "Use Post-Process Settings"
+msgstr "Usar Definições de Pós Processamento"
+
+
+msgid "Additional post processing options for new strokes"
+msgstr "Pós processamento adicional para traços"
+
+
+msgid "Random Settings"
+msgstr "Definições de Aleatoriedade"
+
+
+msgid "Random brush settings"
+msgstr "Definições do pincel de aleatoriedade"
+
+
+msgid "Use Stabilizer"
+msgstr "Usar estabilizador"
+
+
+msgid "Draw lines with a delay to allow smooth strokes. Press Shift key to override while drawing"
+msgstr "Desenhar linhas com um atraso para permitir traços suaves. Carregue na tecla Shift para revogar enquanto desenha"
 
 
 msgid "Use Pressure Strength"
@@ -4708,12 +4926,129 @@ msgid "Use tablet pressure for color strength"
 msgstr "Usa a pressão da mesa de desenho para a aplicação de força nas cores."
 
 
+msgid "Stroke Random"
+msgstr "Traço Aleatório"
+
+
+msgid "Use randomness at stroke level"
+msgstr "Utilizar aleatoriedade ao nível do traço"
+
+
+msgid "Trim Stroke Ends"
+msgstr "Aparar Finais dos Traços"
+
+
+msgid "Trim intersecting stroke ends"
+msgstr "Aparar pontas dos traços intersectantes"
+
+
+msgid "UV Random"
+msgstr "UV Aleatório"
+
+
+msgid "Random factor for auto-generated UV rotation"
+msgstr "Factor aleatório para rotação UV gerada automaticamente"
+
+
+msgid "Vertex Color Factor"
+msgstr "Fator de cores de vértices"
+
+
+msgid "Factor used to mix vertex color to get final color"
+msgstr "Factor usado para misturar cores de vértices para obter cor final"
+
+
+msgid "Mode Type"
+msgstr "Tipo de Modo"
+
+
+msgid "Defines how vertex color affect to the strokes"
+msgstr "Define como as cores de vertices afectam os traços"
+
+
+msgid "Vertex Color affects to Stroke only"
+msgstr "Cores de Vertices afectam apenas os traços"
+
+
+msgid "Vertex Color affects to Fill only"
+msgstr "Cores de vértices afectam apenas o preenchimento"
+
+
+msgid "Stroke & Fill"
+msgstr "Traço & Preenchimento"
+
+
+msgid "Vertex Color affects to Stroke and Fill"
+msgstr "Efeitos de cores de vértices no traço e preenchimento"
+
+
+msgid "Byte Color Attribute Value"
+msgstr "Valor de atributo de cor byte"
+
+
+msgid "Color value in geometry attribute"
+msgstr "Valor de cor no atributo de geometria"
+
+
+msgid "RGBA color in scene linear color space"
+msgstr "Cor RGBA no espaço de cor linear de cena"
+
+
+msgid "RGBA color in sRGB color space"
+msgstr "Cor RGBA em espaço de cor sRGB"
+
+
+msgid "8-bit Integer Attribute Value"
+msgstr "Valor de atributo Inteiro de 8 bits"
+
+
+msgid "8-bit value in geometry attribute"
+msgstr "Valor de 8-bits em atributo de geometria"
+
+
+msgid "Cache Layer"
+msgstr "Armazenar Camada"
+
+
+msgid "Layer of the cache, used to load or override data from the first the first layer"
+msgstr "Camada do armazém, de onde carregar ou revogar a informação da primeira camada"
+
+
+msgid "Path to the archive"
+msgstr "Caminho para o arquivo"
+
+
+msgid "Hide Layer"
+msgstr "Ocultar Camada"
+
+
+msgid "Do not load data from this layer"
+msgstr "Não carregar informação desta camada"
+
+
+msgid "Cache Layers"
+msgstr "Camadas de Armazenamento"
+
+
+msgid "Collection of cache layers"
+msgstr "Coleção de camadas de armazém"
+
+
+msgid "Active layer of the CacheFile"
+msgstr "Camada activa do CacheFile"
+
+
 msgid "Object Path"
 msgstr "Caminho de objetos"
 
 
 msgid "Path of an object inside of an Alembic archive"
 msgstr "Caminho de um objeto dentro de um ficheiro de cache do tipo Alembic."
+
+
+msgctxt "File browser"
+msgid "Path"
+msgstr "Caminho"
 
 
 msgid "Object path"
@@ -4760,6 +5095,25 @@ msgid "Parameters defining which frame of the movie clip is displayed"
 msgstr "Parâmetros definindo qual o fotograma do clipe de filme é mostrado."
 
 
+msgctxt "Camera"
+msgid "Depth"
+msgstr "Profundidade"
+
+
+msgid "Display under or over everything"
+msgstr "Mostrar por cima ou por baixo de tudo"
+
+
+msgctxt "Camera"
+msgid "Back"
+msgstr "Traseira"
+
+
+msgctxt "Camera"
+msgid "Front"
+msgstr "Dianteira"
+
+
 msgid "Frame Method"
 msgstr "Método de fotogramas"
 
@@ -4796,6 +5150,14 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "Parâmetros definindo qual a camada, passo e fotograma de imagem é exibido."
 
 
+msgid "Override Background Image"
+msgstr "Revogar Imagem Fundo"
+
+
+msgid "In a local override camera, whether this background image comes from the linked reference camera, or is local to the override"
+msgstr "Numa câmara revogada localmente, se a imagem vem da câmara de referência conectada, ou é local da revogação"
+
+
 msgid "Offset"
 msgstr "Deslocamento"
 
@@ -4812,6 +5174,10 @@ msgid "Scale"
 msgstr "Escala"
 
 
+msgid "Scale the background image"
+msgstr "Escala da imagem de fundo"
+
+
 msgid "Show Background Image"
 msgstr "Mostrar imagem de plano de fundo"
 
@@ -4822,6 +5188,10 @@ msgstr "Mostra esta imagem como plano de fundo."
 
 msgid "Show Expanded"
 msgstr "Mostrar expandida"
+
+
+msgid "Show the details in the user interface"
+msgstr "Mostrar detalhes no interface do utilizador"
 
 
 msgid "Show On Foreground"
@@ -4880,12 +5250,24 @@ msgid "Depth of Field"
 msgstr "Profundidade de campo"
 
 
+msgid "Depth of Field settings"
+msgstr "Definições de Profundidade de Campo"
+
+
 msgid "Blades"
 msgstr "Lâminas"
 
 
 msgid "Number of blades in aperture for polygonal bokeh (at least 3)"
 msgstr "Numero de lâminas em abertura para a flocagem poligonal (pelo menos 3)."
+
+
+msgid "F-Stop"
+msgstr "Número F"
+
+
+msgid "F-Stop ratio (lower numbers give more defocus, higher numbers give a sharper image)"
+msgstr "Proporção para os F-Stops (números menores fornecerão mais desfocagem, números mais altos fornecerão uma imagem mais nítida)"
 
 
 msgid "Ratio"
@@ -4900,12 +5282,32 @@ msgid "Rotation of blades in aperture"
 msgstr "Rotação das lâminas na abertura."
 
 
+msgid "Focus Distance"
+msgstr "Distância de foco"
+
+
 msgid "Distance to the focus point for depth of field"
 msgstr "Distância do ponto focal para o campo de visão."
 
 
+msgid "Focus Object"
+msgstr "Objecto de foco"
+
+
 msgid "Use this object to define the depth of field focal point"
 msgstr "Usa este objeto para definir o ponto focal da profundidade de campo."
+
+
+msgid "Focus Bone"
+msgstr "Osso de Foco"
+
+
+msgid "Use this armature bone to define the depth of field focal point"
+msgstr "Usa este osso da armação para definir o ponto focal da profundidade de campo"
+
+
+msgid "Use Depth of Field"
+msgstr "Usar Profundidade de Campo"
 
 
 msgid "Stereo"
@@ -5028,6 +5430,14 @@ msgid "Cloth simulation settings for self collision and collision with other obj
 msgstr "Definições para simulação de roupas, para colisões internas da própria roupa ou com outros objetos."
 
 
+msgid "Collision Collection"
+msgstr "Colecção de Colisão"
+
+
+msgid "Limit colliders to this Collection"
+msgstr "Limita colisores a esta Colecção"
+
+
 msgid "Collision Quality"
 msgstr "Qualidade das colisões"
 
@@ -5044,6 +5454,10 @@ msgid "Amount of velocity lost on collision"
 msgstr "Quantidade de velocidade perdida nas colisões."
 
 
+msgid "Minimum distance between collision objects before collision response takes effect"
+msgstr "Distância mínima entre objetos colisores antes da resposta de colisão fazer efeito"
+
+
 msgid "Friction"
 msgstr "Fricção"
 
@@ -5052,12 +5466,28 @@ msgid "Friction force if a collision happened (higher = less movement)"
 msgstr "Força de atrito caso alguma colisão tenha ocorrido (maior = menos movimento)."
 
 
+msgid "Impulse Clamping"
+msgstr "Limitação de Impulso"
+
+
+msgid "Clamp collision impulses to avoid instability (0.0 to disable clamping)"
+msgstr "Limitar impulsos de colisão para evitar instabilidade (0.0 para desactivar limitação)"
+
+
 msgid "Self Minimum Distance"
 msgstr "Distância mínima consigo"
 
 
+msgid "Minimum distance between cloth faces before collision response takes effect"
+msgstr "Distância mínima entre faces do textil antes da resposta de colisão fazer efeito"
+
+
 msgid "Self Friction"
 msgstr "Fricção interna"
+
+
+msgid "Friction with self contact"
+msgstr "Fricção em contato consigo mesmo"
 
 
 msgid "Enable Collision"
@@ -5076,8 +5506,20 @@ msgid "Enable self collisions"
 msgstr "Ativa as colisões internas (colisões do objeto consigo mesmo)."
 
 
+msgid "Collision Vertex Group"
+msgstr "Grupo de Vértices de Colisão"
+
+
+msgid "Triangles with all vertices in this group are not used during object collisions"
+msgstr "Triângulos com todos os vértices neste grupo não são usados durante colisões de objectos"
+
+
 msgid "Selfcollision Vertex Group"
 msgstr "Grupo de vértices de colisão interna"
+
+
+msgid "Triangles with all vertices in this group are not used during self collisions"
+msgstr "Triângulos com todos os vértices neste grupo não são usados durante colisões consigo mesmo"
 
 
 msgid "Cloth Settings"
@@ -5100,12 +5542,40 @@ msgid "Bending Spring Damping"
 msgstr "Amortecimento de conformação das molas"
 
 
+msgid "Amount of damping in bending behavior"
+msgstr "Quantidade de amortecimento no comportamento de flexão"
+
+
+msgid "Bending Model"
+msgstr "Modo de flexão"
+
+
+msgid "Physical model for simulating bending forces"
+msgstr "Modelo físico para simular forças de flexão"
+
+
+msgid "Angular"
+msgstr "Angular"
+
+
+msgid "Cloth model with angular bending springs"
+msgstr "Modelo de textil com molas de flexão angular"
+
+
 msgid "Linear"
 msgstr "Linear"
 
 
+msgid "Cloth model with linear bending springs (legacy)"
+msgstr "Modelo de textil com molas de flexão linear (legado)"
+
+
 msgid "Bending Stiffness"
 msgstr "Rigidez de conformação"
+
+
+msgid "How much the material resists bending"
+msgstr "Quantidade de resistência à flexão do material"
 
 
 msgid "Bending Stiffness Maximum"
@@ -5118,6 +5588,32 @@ msgstr "Valor máximo de rigidez de conformação."
 
 msgid "Collider Friction"
 msgstr "Fricção do colisor"
+
+
+msgid "Compression Spring Damping"
+msgstr "Amortecimento de Molas de Compressão"
+
+
+msgid "Amount of damping in compression behavior"
+msgstr "Quantidade de amortecimento no comportamento de compressão"
+
+
+msgid "Compression Stiffness"
+msgstr "Rigidez à Compressão"
+
+
+msgid "How much the material resists compression"
+msgstr "Quantidade de resistência à compressão do material"
+
+
+msgid "Compression Stiffness Maximum"
+msgstr ""
+"Máximo de Resistência à c\n"
+"Compressão"
+
+
+msgid "Maximum compression stiffness value"
+msgstr "Valor máximo de rigidez à compressão"
 
 
 msgid "Target Density Strength"
@@ -5138,6 +5634,14 @@ msgstr "Densidade máxima dos cabelos."
 
 msgid "Effector Weights"
 msgstr "Peso dos efetores"
+
+
+msgid "Fluid Density"
+msgstr "Densidade de Fluido"
+
+
+msgid "Density (kg/l) of the fluid contained inside the object, used to create a hydrostatic pressure gradient simulating the weight of the internal fluid, or buoyancy from the surrounding fluid if negative"
+msgstr "Densidade (kg/l) do fluido contido dentro do objecto, usado para criar um gradiente de pressão hidrostática simulando o peso do fluído interno, ou a flutuabilidade do fluído envolvente se negativo"
 
 
 msgid "Goal Default"
@@ -5192,12 +5696,68 @@ msgid "Internal Friction"
 msgstr "Fricção interna"
 
 
+msgid "Internal Spring Max Diversion"
+msgstr "Divergência Máxima das Molas Internas"
+
+
+msgid "How much the rays used to connect the internal points can diverge from the vertex normal"
+msgstr "Quantidade que os raios conectando os pontos internos podem divergir da normal dos vértices"
+
+
+msgid "Internal Spring Max Length"
+msgstr "Comprimento Máximo das Molas Internas"
+
+
+msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit"
+msgstr "O comprimento máximo que uma mola pode ter durante a criação. Se a distância entre dois pontos for maior que este valor não será criada uma mola. Um comprimento de zero significa que não há limite"
+
+
+msgid "Check Internal Spring Normals"
+msgstr "Verificar Normais das Molas Internas"
+
+
+msgid "Require the points the internal springs connect to have opposite normal directions"
+msgstr "Requerer que os pontos que as molas internas conectam tenham normais com direção opostas"
+
+
+msgid "Tension Stiffness"
+msgstr "Rigidez de Tensão"
+
+
+msgid "How much the material resists stretching"
+msgstr "Quanto o material resiste ao alongamento"
+
+
+msgid "Tension Stiffness Maximum"
+msgstr "Rigidez Máxima de Tensão"
+
+
+msgid "Maximum tension stiffness value"
+msgstr "Valor máximo de rigidez de tensão"
+
+
+msgid "Vertex Mass"
+msgstr "Massa do Vértice"
+
+
+msgid "The mass of each vertex on the cloth material"
+msgstr "A massa de cada vértice no material de têxtil"
+
+
 msgid "Pin Stiffness"
 msgstr "Rigidez de afixação"
 
 
 msgid "Pin (vertex target position) spring stiffness"
 msgstr "Afixar a rigidez da mola (posição do vértice alvo)."
+
+
+msgid "Pressure Scale"
+msgstr "Escala de Pressão"
+
+
+msgid "Ambient pressure (kPa) that balances out between the inside and outside of the object when it has the target volume"
+msgstr "Pressão ambiente (kpa) que equilibra o interior e exterior do objecto quando o volume alvo"
 
 
 msgid "Quality"
@@ -5224,8 +5784,28 @@ msgid "Maximum sewing force"
 msgstr "A força máxima das costuras."
 
 
+msgid "Shear Spring Damping"
+msgstr "Amortecimento de Mola de Cisalhamento"
+
+
+msgid "Amount of damping in shearing behavior"
+msgstr "Quantidade de amortecimento no comportamento de cisalhamento"
+
+
 msgid "Shear Stiffness"
 msgstr "Rigidez para cisalhar"
+
+
+msgid "How much the material resists shearing"
+msgstr "Quanto o material resiste ao cisalhamento"
+
+
+msgid "Shear Stiffness Maximum"
+msgstr "Máximo de rigidez de cisalhamento"
+
+
+msgid "Maximum shear scaling value"
+msgstr "Valor máximo de escala de cisalhamento"
 
 
 msgid "Shrink Factor Max"
@@ -5236,6 +5816,30 @@ msgid "Max amount to shrink cloth by"
 msgstr "Quantidade máxima pela qual encolher o tecido."
 
 
+msgid "Shrink Factor"
+msgstr "Fator de encolhimento"
+
+
+msgid "Factor by which to shrink cloth"
+msgstr "Factor pelo qual encolher o tecido"
+
+
+msgid "Target Volume"
+msgstr "Volume Alvo"
+
+
+msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure"
+msgstr "O volume da malha onde a pressão interior/exterior será igual. Se for zero a mudança de volume não afectará a pressão"
+
+
+msgid "Tension Spring Damping"
+msgstr "Amortecimento das molas de tem"
+
+
+msgid "Amount of damping in stretching behavior"
+msgstr "Quantidade de amortecimento no comportamento de alongamento"
+
+
 msgid "Cloth speed is multiplied by this value"
 msgstr "A velocidade do tecido é multiplicada por este valor."
 
@@ -5244,12 +5848,36 @@ msgid "Pressure"
 msgstr "Pressão"
 
 
+msgid "The uniform pressure that is constantly applied to the mesh, in units of Pressure Scale. Can be negative"
+msgstr "A pressão uniforme que é aplicada à malha constantemente, em unidades de Escala de Pressão. Pode ser negativa"
+
+
 msgid "Dynamic Base Mesh"
 msgstr "Malha dinâmica como base"
 
 
 msgid "Make simulation respect deformations in the base mesh"
 msgstr "Faz com que a simulação atual considere dinamicamente as deformações das malhas de base."
+
+
+msgid "Create Internal Springs"
+msgstr "Criar Molas Internas"
+
+
+msgid "Simulate an internal volume structure by creating springs connecting the opposite sides of the mesh"
+msgstr "Simular uma estrutura de volume intdrns criando molas que ligam lados opostos da malha"
+
+
+msgid "Simulate pressure inside a closed cloth mesh"
+msgstr "Simular pressão dentro de uma malha de têxtil fechada"
+
+
+msgid "Use Custom Volume"
+msgstr "Usar Volume Personalizado"
+
+
+msgid "Use the Target Volume parameter as the initial volume, instead of calculating it from the mesh itself"
+msgstr "Usar o parâmetro de Volume Alvo como volume inicial,em vez de calcula-lo da própria malha"
 
 
 msgid "Sew Cloth"
@@ -5268,8 +5896,36 @@ msgid "Vertex group for fine control over bending stiffness"
 msgstr "Grupo de vértices para o controlo fino da rigidez de conformação."
 
 
+msgid "Internal Springs Vertex Group"
+msgstr "Grupo de Vértices de Molas Internas"
+
+
+msgid "Vertex group for fine control over the internal spring stiffness"
+msgstr "Grupo de vértices para o controlo detalhado da rigidez de molas internas"
+
+
+msgid "Pin Vertex Group"
+msgstr "Grupo de Vértices de Fixação"
+
+
 msgid "Vertex Group for pinning of vertices"
 msgstr "Grupo de vértices para fixação dos vértices."
+
+
+msgid "Pressure Vertex Group"
+msgstr "Grupo de Vértices de Pressão"
+
+
+msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation"
+msgstr "Grupo de Vértices onde aplicar pressão. Peso de zero significa sem pressão, peso de um significa pressão total. Faces com vértices que tenham um peso zero serão excluídas do cálculo de volume"
+
+
+msgid "Shear Stiffness Vertex Group"
+msgstr "Grupo de Vértices de Rigidez de Cisalhamento"
+
+
+msgid "Vertex group for fine control over shear stiffness"
+msgstr "Grupo de vértices para o controlo detalhado da rigidez de cisalhamento"
 
 
 msgid "Shrink Vertex Group"
@@ -5392,6 +6048,74 @@ msgid "The inputs are invalid, or the algorithm has been improperly called"
 msgstr "As entradas são inválidas, ou o algoritmo foi chamado de maneira inapropriada."
 
 
+msgid "Collection Child"
+msgstr "Colecção Filha"
+
+
+msgid "Child collection with its collection related settings"
+msgstr "Colecção filha com as definições de colecção"
+
+
+msgid "Light Linking"
+msgstr "Associação de Iluminação"
+
+
+msgid "Light linking settings of the collection object"
+msgstr "Definições de associação de iluminação do objecto da colecção"
+
+
+msgid "Collection Children"
+msgstr "Filhos da Colecção"
+
+
+msgid "Collection of child collections"
+msgstr "Coleção de colecções filhas"
+
+
+msgid "Collection Light Linking"
+msgstr "Associação de Iluminação de Colecções"
+
+
+msgid "Light linking settings of objects and children collections of a collection"
+msgstr "Definições de associação de iluminação de objevtos e coleções filhos da colecção"
+
+
+msgid "Link State"
+msgstr "Estado de associação"
+
+
+msgid "Light or shadow receiving state of the object or collection"
+msgstr "Estado de recepção de recepção iluminação e sombra do objecto ou colecção"
+
+
+msgid "Include"
+msgstr "Incluir"
+
+
+msgid "Exclude"
+msgstr "Excluir"
+
+
+msgid "Collection Object"
+msgstr "Objecto da Colecção"
+
+
+msgid "Object of a collection with its collection related settings"
+msgstr "Objecto da colecção e definições relativas à colecção"
+
+
+msgid "Light linking settings of the collection"
+msgstr "Definições de associação de iluminação da colecção"
+
+
+msgid "Collection Objects"
+msgstr "Objectos da colecção"
+
+
+msgid "Collection of collection objects"
+msgstr "Coleção de objetos de colecção"
+
+
 msgid "Collision Settings"
 msgstr "Definições de colisão"
 
@@ -5406,6 +6130,10 @@ msgstr "Absorção"
 
 msgid "How much of effector force gets lost during collision with this object (in percent)"
 msgstr "Define quanto da força do efetor será perdida durante as colisões com este objeto (em percentual)."
+
+
+msgid "Friction for cloth collisions"
+msgstr "Fricção para colisões de têxteis"
 
 
 msgid "Damping"
@@ -5512,6 +6240,86 @@ msgid "Input Color Space"
 msgstr "Espaço de cor de entrada"
 
 
+msgid "Filmic Log"
+msgstr "Filmic Log"
+
+
+msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
+msgstr "Modelador filmico logaritmico com 16.5 paragens de latitude, e 25 paragens de alcance dinâmico"
+
+
+msgid "sRGB display space with Filmic view transform"
+msgstr "Espaço de amostragem sRGB com transformação visual filmic"
+
+
+msgid "Linear CIE-XYZ D65"
+msgstr "CIE-XYZ D65 Linear"
+
+
+msgid "1931 CIE XYZ with adapted illuminant D65 white point"
+msgstr "1931 CIE XYZ com ponto de branco D65 luminante adaptado"
+
+
+msgid "Linear CIE-XYZ E"
+msgstr "CIE-XYZ E Linear"
+
+
+msgid "1931 CIE XYZ standard with assumed illuminant E white point"
+msgstr "1931 CIE XYZ com ponto de Branco luminante E assumido"
+
+
+msgid "Linear DCI-P3 D65"
+msgstr "DCI-P3 D65 Linear"
+
+
+msgid "Linear DCI-P3 with illuminant D65 white point"
+msgstr "DCI-P3 linear com ponto de branco luminante D65"
+
+
+msgid "Linear FilmLight E-Gamut"
+msgstr "FilmLight E-Gamut Linear"
+
+
+msgid "Linear E-Gamut with illuminant D65 white point"
+msgstr "E-Gamut linear com ponto de branco luminante D65"
+
+
+msgid "Linear Rec.2020"
+msgstr "Rec.2020 Linear"
+
+
+msgid "Linear BT.2020 with illuminant D65 white point"
+msgstr "BT.2020 linear com ponto de branco D65"
+
+
+msgid "Linear Rec.709"
+msgstr "Rec.709 Linear"
+
+
+msgid "Linear BT.709 with illuminant D65 white point"
+msgstr "BT.709 com ponto de branco luminante D65"
+
+
+msgid "Non-Color"
+msgstr "Não-Cor"
+
+
+msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
+msgstr "Informação genérica que não representa cor, não aplica qualquer transformação de cor (por exemplo mapas de normais)"
+
+
+msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
+msgstr "BT.1886 2.4 Exibição Expoente EOTF Display, geralmente utilizado para TVs"
+
+
+msgid "Rec.2020"
+msgstr "Rec.2020"
+
+
+msgid "BT.2020 2.4 Exponent EOTF Display"
+msgstr "BT.2020 2.4 Exibição Expoente EOTF"
+
+
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
 msgstr "Não perfaz quaisquer transformações de cores durante o carregamento, e trata as cores como já estando no espaço linear de cores da cena."
 
@@ -5556,6 +6364,10 @@ msgid "Look"
 msgstr "Aparência"
 
 
+msgid "Additional transform applied before view transform for artistic needs"
+msgstr "Transformação adicional aplicada antes da transformação de visualização, para necessidades artísticas"
+
+
 msgid "Do not modify image in an artistic manner"
 msgstr "Não modifica a imagem de maneira artística."
 
@@ -5566,6 +6378,10 @@ msgstr "Usar curvas"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "Permite usar curvas RGB para transformações da pré-amostragem."
+
+
+msgid "High Dynamic Range"
+msgstr "Alto Alcance Dinâmico"
 
 
 msgid "View Transform"

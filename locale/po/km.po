@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'd2b86610f058')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 09:18:46\n"
+"POT-Creation-Date: 2023-10-30 16:01:56\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,10 +111,6 @@ msgstr "សារ"
 
 msgid "Device to use for computation (rendering with Cycles)"
 msgstr "ឧបករណ៍ដែលត្រូវប្រើសម្រាប់ការ Render ជាមួយ  Cycles"
-
-
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (លក្ខណៈពិសោធន៍)"
 
 
 msgid "File"
