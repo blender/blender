@@ -1637,7 +1637,7 @@ void WM_draw_region_viewport_unbind(ARegion *region);
 
 /* Region drawing */
 
-void WM_draw_region_free(ARegion *region, bool hide);
+void WM_draw_region_free(ARegion *region);
 GPUViewport *WM_draw_region_get_viewport(ARegion *region);
 GPUViewport *WM_draw_region_get_bound_viewport(ARegion *region);
 
