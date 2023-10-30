@@ -129,6 +129,7 @@ bool LookdevModule::sync_world()
 
     parameters_ = new_parameters;
     inst_.sampling.reset();
+    gpu_status_ = GPU_MAT_CREATED;
   }
 
   if (parameters_.show_scene_world) {
@@ -143,10 +144,12 @@ bool LookdevModule::sync_world()
                                                     MAT_GEOM_WORLD,
                                                     true);
 
-  if (GPU_material_status(gpu_material_) == GPU_MAT_SUCCESS) {
+  if (assign_if_different(gpu_status_, GPU_material_status(gpu_material_)) &&
+      gpu_status_ == GPU_MAT_SUCCESS)
+  {
     inst_.reflection_probes.sync_world_lookdev();
   }
-  else {
+  else if (gpu_status_ == GPU_MAT_QUEUED) {
     inst_.sampling.reset();
     DRW_viewport_request_redraw();
   }
