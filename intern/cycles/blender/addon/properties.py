@@ -1480,7 +1480,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     metalrt: EnumProperty(
         name="MetalRT",
         description="MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better "
-                    "performance in specific cases.",
+                    "performance in specific cases",
         default='AUTO',
         items=(
             ('OFF', "Off", "Disable MetalRT (uses BVH2 layout for intersection queries)"),

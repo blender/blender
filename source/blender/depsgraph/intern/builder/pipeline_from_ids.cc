@@ -96,7 +96,7 @@ void FromIDsBuilderPipeline::build_nodes(DepsgraphNodeBuilder &node_builder)
 {
   node_builder.build_view_layer(scene_, view_layer_, DEG_ID_LINKED_DIRECTLY);
   for (ID *id : ids_) {
-    node_builder.build_id(id);
+    node_builder.build_id(id, true);
   }
 }
 
