@@ -7,6 +7,6 @@
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  vec4 pass_color = texture_load(input_tx, texel + compositing_region_lower_bound);
-  imageStore(output_img, texel, READ_EXPRESSION(pass_color));
+  vec4 input_color = texture_load(input_tx, texel + lower_bound);
+  imageStore(output_img, texel, READ_EXPRESSION(input_color));
 }
