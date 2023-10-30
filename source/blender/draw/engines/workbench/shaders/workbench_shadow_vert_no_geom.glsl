@@ -70,6 +70,8 @@ vec3 extrude_offset(vec3 ls_P)
   if (L_dot_FP > 0.0) {
     float signed_distance = dot(pass_data.far_plane.xyz, ws_P) - pass_data.far_plane.w;
     extrude_distance = -signed_distance / L_dot_FP;
+    /* Ensure we don't overlap the far plane. */
+    extrude_distance -= 1e-3f;
   }
   return pass_data.light_direction_ws * extrude_distance;
 }
