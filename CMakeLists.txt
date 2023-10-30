@@ -851,7 +851,7 @@ Build `extern` dependencies with address sanitizer when WITH_COMPILER_ASAN is on
 Can cause linking issues due to too large binary size."
   OFF
 )
-mark_as_advanced(WITH_EXTERN_ASAN)
+mark_as_advanced(WITH_COMPILER_ASAN_EXTERN)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(WITH_COMPILER_ASAN)
