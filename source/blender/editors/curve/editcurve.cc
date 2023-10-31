@@ -5706,7 +5706,12 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     RNA_float_set_array(op->ptr, "location", location);
   }
 
-  return add_vertex_exec(C, op);
+  /* Support dragging to move after extrude, see: #114282. */
+  int retval = add_vertex_exec(C, op);
+  if (retval & OPERATOR_FINISHED) {
+    retval |= OPERATOR_PASS_THROUGH;
+  }
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void CURVE_OT_vertex_add(wmOperatorType *ot)
