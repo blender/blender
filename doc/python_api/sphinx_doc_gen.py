@@ -986,9 +986,21 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
         # `type_name` is only used for examples and messages:
         # `<class 'bpy.app.handlers'>` -> `bpy.app.handlers`.
         type_name = str(type(module)).strip("<>").split(" ", 1)[-1][1:-1]
+
+        # The type typically contains the module in the case of PyStruct's (defined by Blender).
+        # Assign a temporary module name: `module_name_split`.
+        if module_name == type_name:
+            assert "." in module_name
+            module_name_split, type_name = module_name.rpartition(".")[0::2]
+        elif type_name.startswith(module_name + "."):
+            type_name = type_name.removeprefix(module_name + ".")
+        else:
+            module_name_split = module_name
+
         if type(descr) == types.GetSetDescriptorType:
-            py_descr2sphinx("", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("", fw, descr, module_name_split, type_name, key)
             attribute_set.add(key)
+        del module_name_split
     descr_sorted = []
     for key, descr in sorted(type(module).__dict__.items()):
         if key.startswith("__"):
