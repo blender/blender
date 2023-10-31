@@ -50,7 +50,7 @@
 31:Hungarian (Magyar):hu_HU
 27:Indonesian (Bahasa indonesia):id_ID
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh (Қазақша):kk_KZ
-50:Khmer (ខ្មែរ):km
+# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #50:Khmer (ខ្មែរ):km
 29:Kyrgyz (Кыргыз тили):ky_KG
 25:Nepali (नेपाली):ne_NP
 3:Dutch (Nederlands):nl_NL
