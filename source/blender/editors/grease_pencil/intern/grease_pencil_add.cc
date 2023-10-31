@@ -1180,7 +1180,7 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
   object.actcol = material_index + 1;
 
-  Layer &new_layer = grease_pencil.add_layer(DATA_("GP_Layer"));
+  Layer &new_layer = grease_pencil.add_layer(DATA_("Layer"));
   grease_pencil.set_active_layer(&new_layer);
   grease_pencil.insert_blank_frame(new_layer, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 }
