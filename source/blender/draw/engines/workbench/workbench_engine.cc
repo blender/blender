@@ -781,6 +781,9 @@ static void workbench_render_to_image(void *vedata,
 
     /* Perform render step between samples to allow
      * flushing of freed GPUBackend resources. */
+    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      GPU_flush();
+    }
     GPU_render_step();
     GPU_FINISH_DELIMITER();
   } while (ved->instance->scene_state.sample + 1 < ved->instance->scene_state.samples_len);
