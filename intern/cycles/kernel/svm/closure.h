@@ -109,18 +109,18 @@ ccl_device
       // get Disney principled parameters
       float metallic = saturatef(param1);
       float subsurface_weight = saturatef(param2);
-      float specular_ior_level = fmaxf(stack_load_float(stack, specular_ior_level_offset), 0.0f);
+      float specular_ior_level = max(stack_load_float(stack, specular_ior_level_offset), 0.0f);
       float roughness = saturatef(stack_load_float(stack, roughness_offset));
       Spectrum specular_tint = rgb_to_spectrum(
           max(stack_load_float3(stack, specular_tint_offset), zero_float3()));
       float anisotropic = saturatef(stack_load_float(stack, anisotropic_offset));
-      float sheen_weight = saturatef(stack_load_float(stack, sheen_weight_offset));
-      float3 sheen_tint = stack_load_float3(stack, sheen_tint_offset);
+      float sheen_weight = max(stack_load_float(stack, sheen_weight_offset), 0.0f);
+      float3 sheen_tint = max(stack_load_float3(stack, sheen_tint_offset), zero_float3());
       float sheen_roughness = saturatef(stack_load_float(stack, sheen_roughness_offset));
-      float coat_weight = saturatef(stack_load_float(stack, coat_weight_offset));
+      float coat_weight = fmaxf(stack_load_float(stack, coat_weight_offset), 0.0f);
       float coat_roughness = saturatef(stack_load_float(stack, coat_roughness_offset));
       float coat_ior = fmaxf(stack_load_float(stack, coat_ior_offset), 1.0f);
-      float3 coat_tint = stack_load_float3(stack, coat_tint_offset);
+      float3 coat_tint = max(stack_load_float3(stack, coat_tint_offset), zero_float3());
       float transmission_weight = saturatef(stack_load_float(stack, transmission_weight_offset));
       float anisotropic_rotation = stack_load_float(stack, anisotropic_rotation_offset);
       float ior = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
@@ -140,6 +140,8 @@ ccl_device
                               make_float3(__uint_as_float(data_base_color.y),
                                           __uint_as_float(data_base_color.z),
                                           __uint_as_float(data_base_color.w));
+      base_color = max(base_color, zero_float3());
+      const float3 clamped_base_color = min(base_color, one_float3());
 
       // get the subsurface scattering data
       uint4 data_subsurf = read_node(kg, &offset);
@@ -157,7 +159,7 @@ ccl_device
       float emission_strength = stack_valid(emission_strength_offset) ?
                                     stack_load_float(stack, emission_strength_offset) :
                                     __uint_as_float(data_alpha_emission.z);
-      float3 emission = stack_load_float3(stack, emission_offset) * fmaxf(emission_strength, 0.0f);
+      float3 emission = stack_load_float3(stack, emission_offset) * emission_strength;
 
       Spectrum weight = closure_weight * mix_weight;
 
@@ -283,8 +285,8 @@ ccl_device
           bsdf->alpha_x = alpha_x;
           bsdf->alpha_y = alpha_y;
 
-          fresnel->f0 = rgb_to_spectrum(base_color);
-          const Spectrum f82 = specular_tint;
+          fresnel->f0 = rgb_to_spectrum(clamped_base_color);
+          const Spectrum f82 = min(specular_tint, one_spectrum());
 
           /* setup bsdf */
           sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
@@ -316,7 +318,7 @@ ccl_device
           fresnel->f90 = one_spectrum();
           fresnel->exponent = -ior;
           fresnel->reflection_tint = one_spectrum();
-          fresnel->transmission_tint = sqrt(rgb_to_spectrum(base_color));
+          fresnel->transmission_tint = sqrt(rgb_to_spectrum(clamped_base_color));
 
           /* setup bsdf */
           sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
@@ -375,16 +377,18 @@ ccl_device
       /* Diffuse/Subsurface component */
 #ifdef __SUBSURFACE__
       ccl_private Bssrdf *bssrdf = bssrdf_alloc(
-          sd, rgb_to_spectrum(base_color) * subsurface_weight * weight);
+          sd, rgb_to_spectrum(clamped_base_color) * subsurface_weight * weight);
       if (bssrdf) {
         float3 subsurface_radius = stack_load_float3(stack, data_subsurf.y);
         float subsurface_scale = stack_load_float(stack, data_subsurf.z);
 
-        bssrdf->radius = rgb_to_spectrum(subsurface_radius * subsurface_scale);
-        bssrdf->albedo = rgb_to_spectrum(base_color);
+        bssrdf->radius = rgb_to_spectrum(max(subsurface_radius * subsurface_scale, zero_float3()));
+        bssrdf->albedo = rgb_to_spectrum(clamped_base_color);
         bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->alpha = sqr(roughness);
+        /* IOR is clamped to [1.01..3.8] inside bssrdf_setup */
         bssrdf->ior = eta;
+        /* Anisotropy is clamped to [0.0..0.9] inside bssrdf_setup */
         bssrdf->anisotropy = stack_load_float(stack, data_subsurf.w);
         if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
           bssrdf->ior = stack_load_float(stack, data_subsurf.x);
