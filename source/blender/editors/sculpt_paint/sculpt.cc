@@ -794,8 +794,24 @@ int SCULPT_face_set_next_available_get(SculptSession *ss)
       next_face_set++;
       return next_face_set;
     }
-    case PBVH_BMESH:
-      return 0;
+    case PBVH_BMESH: {
+      const int cd_offset = CustomData_get_offset_named(
+          &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+      if (cd_offset == -1) {
+        return 0;
+      }
+
+      int next_face_set = 0;
+      BMIter iter;
+      BMFace *f;
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        const int fset = *static_cast<const int *>(POINTER_OFFSET(f->head.data, cd_offset));
+        next_face_set = blender::math::max(next_face_set, fset);
+      }
+
+      next_face_set++;
+      return next_face_set;
+    }
   }
   return 0;
 }
