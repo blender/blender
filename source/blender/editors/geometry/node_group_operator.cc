@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
@@ -167,6 +168,7 @@ static void store_result_geometry(Main &bmain,
                                   Object &object,
                                   bke::GeometrySet geometry)
 {
+  geometry.ensure_owns_direct_data();
   switch (object.type) {
     case OB_CURVES: {
       Curves &curves = *static_cast<Curves *>(object.data);
@@ -225,10 +227,34 @@ static void store_result_geometry(Main &bmain,
   }
 }
 
+/**
+ * Create a dependency graph referencing all data-blocks used by the tree, and all selected
+ * objects. Adding the selected objects is necessary because they are currently compared by pointer
+ * to other evaluated objects inside of geometry nodes.
+ */
+static Depsgraph *build_depsgraph_from_indirect_ids(Main &bmain,
+                                                    Scene &scene,
+                                                    ViewLayer &view_layer,
+                                                    const bNodeTree &node_tree_orig,
+                                                    const Span<const Object *> objects)
+{
+  Set<ID *> ids_for_relations;
+  bool needs_own_transform_relation = false;
+  nodes::find_node_tree_dependencies(node_tree_orig, ids_for_relations, needs_own_transform_relation);
+
+  Vector<const ID *> ids;
+  ids.append(&node_tree_orig.id);
+  ids.extend(objects.cast<const ID *>());
+  ids.insert(ids.size(), ids_for_relations.begin(), ids_for_relations.end());
+
+  Depsgraph *depsgraph = DEG_graph_new(&bmain, &scene, &view_layer, DAG_EVAL_VIEWPORT);
+  DEG_graph_build_from_ids(depsgraph, const_cast<ID **>(ids.data()), ids.size());
+  return depsgraph;
+}
+
 static int run_node_group_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *active_object = CTX_data_active_object(C);
@@ -240,10 +266,23 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   }
   const eObjectMode mode = eObjectMode(active_object->mode);
 
-  const bNodeTree *node_tree = get_node_group(*C, *op->ptr, op->reports);
-  if (!node_tree) {
+  const bNodeTree *node_tree_orig = get_node_group(*C, *op->ptr, op->reports);
+  if (!node_tree_orig) {
     return OPERATOR_CANCELLED;
   }
+
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C), &objects_len, mode);
+  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(objects); });
+
+  Depsgraph *depsgraph = build_depsgraph_from_indirect_ids(
+      *bmain, *scene, *view_layer, *node_tree_orig, {objects, objects_len});
+  DEG_evaluate_on_refresh(depsgraph);
+  BLI_SCOPED_DEFER([&]() { DEG_graph_free(depsgraph); });
+
+  const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(
+      DEG_get_evaluated_id(depsgraph, const_cast<ID *>(&node_tree_orig->id)));
 
   const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
       nodes::ensure_geometry_nodes_lazy_function_graph(*node_tree);
@@ -257,10 +296,6 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len, mode);
-
   OperatorComputeContext compute_context(op->type->idname);
 
   for (Object *object : Span(objects, objects_len)) {
@@ -269,8 +304,8 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     }
     nodes::GeoNodesOperatorData operator_eval_data{};
     operator_eval_data.depsgraph = depsgraph;
-    operator_eval_data.self_object = object;
-    operator_eval_data.scene = scene;
+    operator_eval_data.self_object = DEG_get_evaluated_object(depsgraph, object);
+    operator_eval_data.scene = DEG_get_evaluated_scene(depsgraph);
 
     bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(*object);
 
@@ -289,8 +324,6 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(object->data), ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, object->data);
   }
-
-  MEM_SAFE_FREE(objects);
 
   return OPERATOR_FINISHED;
 }
