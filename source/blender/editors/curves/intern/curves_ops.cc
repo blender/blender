@@ -1267,5 +1267,5 @@ void ED_keymap_curves(wmKeyConfig *keyconf)
   using namespace blender::ed::curves;
   /* Only set in editmode curves, by space_view3d listener. */
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  keymap->poll = editable_curves_poll;
+  keymap->poll = editable_curves_in_edit_mode_poll;
 }
