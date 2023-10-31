@@ -418,6 +418,9 @@ class MTLBufferPool {
   std::atomic<MTLSafeFreeList *> current_free_list_;
   std::atomic<int64_t> allocations_in_pool_;
 
+  /* Previous list, to be released after one full frame. */
+  MTLSafeFreeList *prev_free_buffer_list_ = nullptr;
+
  public:
   void init(id<MTLDevice> device);
   ~MTLBufferPool();
