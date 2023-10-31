@@ -255,8 +255,8 @@ void VKPipelineStateManager::set_stencil_test(const eGPUStencilTest test,
   switch (operation) {
     case GPU_STENCIL_OP_REPLACE:
       depth_stencil_state.front.failOp = VK_STENCIL_OP_KEEP;
-      depth_stencil_state.front.passOp = VK_STENCIL_OP_KEEP;
-      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_REPLACE;
+      depth_stencil_state.front.passOp = VK_STENCIL_OP_REPLACE;
+      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_KEEP;
       depth_stencil_state.back = depth_stencil_state.front;
       break;
 
