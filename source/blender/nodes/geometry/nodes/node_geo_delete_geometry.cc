@@ -356,7 +356,8 @@ static void node_rna(StructRNA *srna)
                     "Which domain to delete in",
                     rna_enum_attribute_domain_without_corner_items,
                     NOD_storage_enum_accessors(domain),
-                    ATTR_DOMAIN_POINT);
+                    ATTR_DOMAIN_POINT,
+                    enums::domain_experimental_grease_pencil_version3_fn);
 }
 
 static void node_register()
