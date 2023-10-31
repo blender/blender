@@ -63,7 +63,7 @@
 
 static bool get_normalized_fcurve_bounds(FCurve *fcu,
                                          bAnimContext *ac,
-                                         const bAnimListElem *ale,
+                                         bAnimListElem *ale,
                                          const bool include_handles,
                                          const float range[2],
                                          rctf *r_bounds)
@@ -91,6 +91,10 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
     r_bounds->ymin -= (min_height - height) / 2;
     r_bounds->ymax += (min_height - height) / 2;
   }
+  AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+  r_bounds->xmin = BKE_nla_tweakedit_remap(adt, r_bounds->xmin, NLATIME_CONVERT_MAP);
+  r_bounds->xmax = BKE_nla_tweakedit_remap(adt, r_bounds->xmax, NLATIME_CONVERT_MAP);
+
   return true;
 }
 
@@ -154,6 +158,7 @@ static void add_region_padding(bContext *C, ARegion *region, rctf *bounds)
                                UI_MARKER_MARGIN_Y;
   BLI_rctf_pad_y(bounds, region->winy, pad_bottom, pad_top);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
