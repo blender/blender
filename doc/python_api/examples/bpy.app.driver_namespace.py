@@ -1,8 +1,8 @@
 """
 File Loading & Order of Initialization
-   Since drivers are evaluated immediately after loading a blend-file,
-   using ``--python`` to populate name-space often fails to achieve the desired goal because the initial evaluation
-   will lookup a function that doesn't exist yet, marking the driver as invalid - preventing further evaluation.
+   Since drivers are evaluated immediately after loading a blend-file, using the ``--python`` command line argument
+   to populate name-space often fails to achieve the desired goal because the initial evaluation will lookup a function
+   that doesn't exist yet, marking the driver as invalid - preventing further evaluation.
 
    Populating the driver name-space before the blend-file loads also doesn't work
    since opening a file clears the name-space.
