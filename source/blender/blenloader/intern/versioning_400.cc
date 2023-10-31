@@ -37,6 +37,7 @@
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -1059,6 +1060,165 @@ static void enable_geometry_nodes_is_modifier(Main &bmain)
   }
 }
 
+static void versioning_convert_combined_noise_texture_node(bNodeTree *ntree)
+{
+  /* Convert future combined Noise Texture back to Musgrave and Noise Texture nodes. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != SH_NODE_TEX_NOISE) {
+      continue;
+    }
+
+    const NodeTexNoise *noise_data = static_cast<const NodeTexNoise *>(node->storage);
+    if (!noise_data || noise_data->type == SHD_NOISE_FBM) {
+      continue;
+    }
+
+    /* Does the node have the expected new sockets? */
+    bNodeSocket *height_socket = nodeFindSocket(node, SOCK_OUT, "Fac");
+    bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
+    bNodeSocket *detail_socket = nodeFindSocket(node, SOCK_IN, "Detail");
+    bNodeSocket *lacunarity_socket = nodeFindSocket(node, SOCK_IN, "Lacunarity");
+
+    if (!(height_socket && roughness_socket && detail_socket && lacunarity_socket)) {
+      continue;
+    }
+
+    /* Delete links to sockets that don't exist in Blender 4.0. */
+    LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+      if (((link->tonode == node) && STREQ(link->tosock->identifier, "Distortion")) ||
+          ((link->fromnode == node) && STREQ(link->fromsock->identifier, "Color")))
+      {
+        nodeRemLink(ntree, link);
+      }
+    }
+
+    /* Change node idname and storage to Musgrave. */
+    STRNCPY(node->idname, "ShaderNodeTexMusgrave");
+    node->type = SH_NODE_TEX_MUSGRAVE;
+    NodeTexMusgrave *data = MEM_cnew<NodeTexMusgrave>(__func__);
+    data->base = noise_data->base;
+    data->musgrave_type = noise_data->type;
+    data->dimensions = noise_data->dimensions;
+    MEM_freeN(node->storage);
+    node->storage = data;
+
+    /* Convert socket names and labels. */
+    bNodeSocket *dimension_socket = roughness_socket;
+    STRNCPY(dimension_socket->identifier, "Dimension");
+    STRNCPY(dimension_socket->name, "Dimension");
+
+    STRNCPY(height_socket->label, "Height");
+
+    /* Find links to convert. */
+    bNodeLink *detail_link = nullptr;
+    bNode *detail_from_node = nullptr;
+    bNodeSocket *detail_from_socket = nullptr;
+    float *detail = version_cycles_node_socket_float_value(detail_socket);
+
+    bNodeLink *dimension_link = nullptr;
+    bNode *dimension_from_node = nullptr;
+    bNodeSocket *dimension_from_socket = nullptr;
+    float *dimension = version_cycles_node_socket_float_value(dimension_socket);
+
+    bNodeLink *lacunarity_link = nullptr;
+    bNode *lacunarity_from_node = nullptr;
+    bNodeSocket *lacunarity_from_socket = nullptr;
+    float *lacunarity = version_cycles_node_socket_float_value(lacunarity_socket);
+
+    LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+      /* Find links, nodes and sockets. */
+      if (link->tonode == node) {
+        if (link->tosock == detail_socket) {
+          detail_link = link;
+          detail_from_node = link->fromnode;
+          detail_from_socket = link->fromsock;
+        }
+        if (link->tosock == dimension_socket) {
+          dimension_link = link;
+          dimension_from_node = link->fromnode;
+          dimension_from_socket = link->fromsock;
+        }
+        if (link->tosock == lacunarity_socket) {
+          lacunarity_link = link;
+          lacunarity_from_node = link->fromnode;
+          lacunarity_from_socket = link->fromsock;
+        }
+      }
+    }
+
+    float locy_offset = 0.0f;
+
+    if (detail_link != nullptr) {
+      locy_offset -= 40.0f;
+
+      /* Add Add Math node before Detail input. */
+
+      bNode *add_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
+      add_node->parent = node->parent;
+      add_node->custom1 = NODE_MATH_ADD;
+      add_node->locx = node->locx;
+      add_node->locy = node->locy - 280.0f;
+      add_node->flag |= NODE_HIDDEN;
+      bNodeSocket *add_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 0));
+      bNodeSocket *add_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 1));
+      bNodeSocket *add_socket_out = nodeFindSocket(add_node, SOCK_OUT, "Value");
+
+      *version_cycles_node_socket_float_value(add_socket_B) = 1.0f;
+
+      nodeRemLink(ntree, detail_link);
+      nodeAddLink(ntree, detail_from_node, detail_from_socket, add_node, add_socket_A);
+      nodeAddLink(ntree, add_node, add_socket_out, node, detail_socket);
+    }
+    else {
+      *detail = std::clamp(*detail + 1.0f, 0.0f, 15.0f);
+    }
+
+    if ((dimension_link != nullptr) || (lacunarity_link != nullptr)) {
+      /* Add Logarithm Math node and Multiply Math node before Roughness input. */
+
+      bNode *log_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
+      log_node->parent = node->parent;
+      log_node->custom1 = NODE_MATH_LOGARITHM;
+      log_node->locx = node->locx;
+      log_node->locy = node->locy - 320.0f + locy_offset;
+      log_node->flag |= NODE_HIDDEN;
+      bNodeSocket *log_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&log_node->inputs, 0));
+      bNodeSocket *log_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&log_node->inputs, 1));
+      bNodeSocket *log_socket_out = nodeFindSocket(log_node, SOCK_OUT, "Value");
+
+      bNode *mul_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
+      mul_node->parent = node->parent;
+      mul_node->custom1 = NODE_MATH_MULTIPLY;
+      mul_node->locx = node->locx;
+      mul_node->locy = node->locy - 280.0f + locy_offset;
+      mul_node->flag |= NODE_HIDDEN;
+      bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
+      bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
+      bNodeSocket *mul_socket_out = nodeFindSocket(mul_node, SOCK_OUT, "Value");
+
+      *version_cycles_node_socket_float_value(log_socket_A) = *dimension;
+      *version_cycles_node_socket_float_value(log_socket_B) = *lacunarity;
+      *version_cycles_node_socket_float_value(mul_socket_B) = -1.0f;
+
+      if (dimension_link) {
+        nodeRemLink(ntree, dimension_link);
+        nodeAddLink(ntree, dimension_from_node, dimension_from_socket, log_node, log_socket_A);
+      }
+      nodeAddLink(ntree, log_node, log_socket_out, mul_node, mul_socket_A);
+      nodeAddLink(ntree, mul_node, mul_socket_out, node, dimension_socket);
+
+      if (lacunarity_link != nullptr) {
+        nodeAddLink(ntree, lacunarity_from_node, lacunarity_from_socket, log_node, log_socket_B);
+      }
+    }
+    else {
+      *dimension = -safe_logf(*dimension, *lacunarity);
+    }
+  }
+
+  version_socket_update_is_used(ntree);
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -1690,6 +1850,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       versioning_node_group_sort_sockets_recursive(ntree->tree_interface.root_panel);
     }
+  }
+
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 401, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_CUSTOM) {
+        versioning_convert_combined_noise_texture_node(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**
