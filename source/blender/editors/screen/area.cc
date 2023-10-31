@@ -1716,7 +1716,7 @@ static void region_evaulate_visibility(ARegion *region)
   bool hidden = (region->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) !=
                 0;
 
-  if ((region->alignment & RGN_SPLIT_PREV) && region->prev) {
+  if ((region->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV)) && region->prev) {
     hidden = hidden || (region->prev->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
   }
 

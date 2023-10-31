@@ -1744,5 +1744,21 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
                                          MA_SURFACE_METHOD_DEFERRED;
       }
     }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                       &sl->regionbase;
+          LISTBASE_FOREACH (ARegion *, region, regionbase) {
+            if (region->regiontype != RGN_TYPE_ASSET_SHELF_HEADER) {
+              continue;
+            }
+            region->alignment &= ~RGN_SPLIT_PREV;
+            region->alignment |= RGN_ALIGN_HIDE_WITH_PREV;
+          }
+        }
+      }
+    }
   }
 }
