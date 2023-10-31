@@ -914,7 +914,9 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
   }
   MEM_freeN(objects);
 
-  return OPERATOR_FINISHED;
+  /* Support dragging to move after extrude, see: #114282. */
+  const int retval = OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)

@@ -7392,6 +7392,11 @@ def km_3d_view_tool_edit_armature_extrude_to_cursor(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("armature.click_extrude", {"type": params.tool_mouse, "value": 'PRESS', **params.tool_modifier}, None),
+            # Support LMB click-drag for RMB key-map.
+            *(([] if (params.select_mouse == 'LEFTMOUSE') else [
+                ("transform.translate", {"type": params.tool_mouse, "value": 'CLICK_DRAG'},
+                 {"properties": [("release_confirm", True)]})
+            ])),
         ]},
     )
 
@@ -7477,6 +7482,11 @@ def km_3d_view_tool_edit_mesh_extrude_to_cursor(params):
         {"items": [
             # No need for `tool_modifier` since this takes all input.
             ("mesh.dupli_extrude_cursor", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            # Support LMB click-drag for RMB key-map.
+            *(([] if (params.select_mouse == 'LEFTMOUSE') else [
+                ("transform.translate", {"type": params.tool_mouse, "value": 'CLICK_DRAG'},
+                 {"properties": [("release_confirm", True)]})
+            ])),
         ]},
     )
 
@@ -7771,6 +7781,11 @@ def km_3d_view_tool_edit_curve_extrude_to_cursor(params):
         {"items": [
             # No need for `tool_modifier` since this takes all input.
             ("curve.vertex_add", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            # Support LMB click-drag for RMB key-map.
+            *(([] if (params.select_mouse == 'LEFTMOUSE') else [
+                ("transform.translate", {"type": params.tool_mouse, "value": 'CLICK_DRAG'},
+                 {"properties": [("release_confirm", True)]})
+            ])),
         ]},
     )
 
