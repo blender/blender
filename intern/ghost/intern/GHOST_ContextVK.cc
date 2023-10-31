@@ -150,6 +150,7 @@ class GHOST_DeviceVK {
   VkPhysicalDeviceProperties properties = {};
   VkPhysicalDeviceFeatures2 features = {};
   VkPhysicalDeviceVulkan11Features features_11 = {};
+  VkPhysicalDeviceVulkan12Features features_12 = {};
 
   int users = 0;
 
@@ -161,7 +162,9 @@ class GHOST_DeviceVK {
 
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+    features_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     features.pNext = &features_11;
+    features_11.pNext = &features_12;
 
     vkGetPhysicalDeviceFeatures2(physical_device, &features);
   }
@@ -231,34 +234,44 @@ class GHOST_DeviceVK {
     device_features.drawIndirectFirstInstance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
 
-    /* Enable shader draw parameters on logical device when supported on physical device. */
-    VkPhysicalDeviceShaderDrawParametersFeatures shader_draw_parameters = {};
-    shader_draw_parameters.sType =
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
-    shader_draw_parameters.shaderDrawParameters = features_11.shaderDrawParameters;
-
-    VkPhysicalDeviceMaintenance4FeaturesKHR maintenance_4 = {};
-    maintenance_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;
-    maintenance_4.maintenance4 = VK_TRUE;
-    /* Mainenance4 is core in Vulkan 1.3 so we need to query for availability. */
-    if (has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
-      maintenance_4.pNext = shader_draw_parameters.pNext;
-      shader_draw_parameters.pNext = &maintenance_4;
-    }
-
     VkDeviceCreateInfo device_create_info = {};
-    device_create_info.pNext = &shader_draw_parameters;
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.queueCreateInfoCount = uint32_t(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
-    /* layers_enabled are the same as instance extensions.
-     * This is only needed for 1.0 implementations. */
     device_create_info.enabledLayerCount = uint32_t(layers_enabled.size());
     device_create_info.ppEnabledLayerNames = layers_enabled.data();
     device_create_info.enabledExtensionCount = uint32_t(extensions_device.size());
     device_create_info.ppEnabledExtensionNames = extensions_device.data();
     device_create_info.pEnabledFeatures = &device_features;
 
+    void *device_create_info_p_next = nullptr;
+
+    /* Enable optional vulkan 12 features when supported on physical device. */
+    VkPhysicalDeviceVulkan12Features vulkan_12_features = {};
+    vulkan_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    vulkan_12_features.shaderOutputLayer = features_12.shaderOutputLayer;
+    vulkan_12_features.shaderOutputViewportIndex = features_12.shaderOutputViewportIndex;
+    vulkan_12_features.pNext = device_create_info_p_next;
+    device_create_info_p_next = &vulkan_12_features;
+
+    /* Enable shader draw parameters on logical device when supported on physical device. */
+    VkPhysicalDeviceShaderDrawParametersFeatures shader_draw_parameters = {};
+    shader_draw_parameters.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
+    shader_draw_parameters.shaderDrawParameters = features_11.shaderDrawParameters;
+    shader_draw_parameters.pNext = device_create_info_p_next;
+    device_create_info_p_next = &shader_draw_parameters;
+
+    /* Query for Mainenance4 (core in Vulkan 1.3). */
+    VkPhysicalDeviceMaintenance4FeaturesKHR maintenance_4 = {};
+    maintenance_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;
+    maintenance_4.maintenance4 = VK_TRUE;
+    if (has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
+      maintenance_4.pNext = device_create_info_p_next;
+      device_create_info_p_next = &maintenance_4;
+    }
+
+    device_create_info.pNext = device_create_info_p_next;
     vkCreateDevice(physical_device, &device_create_info, nullptr, &device);
   }
 
