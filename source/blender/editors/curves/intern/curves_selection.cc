@@ -84,6 +84,7 @@ bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves
     if (selection_attr.domain == selection_domain) {
       return selection_attr;
     }
+    selection_attr.finish();
     attributes.remove(".selection");
   }
   const int domain_size = attributes.domain_size(selection_domain);
