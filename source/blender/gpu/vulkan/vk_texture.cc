@@ -562,9 +562,6 @@ void VKTexture::layout_ensure(VKContext &context,
                               const VkAccessFlagBits src_access,
                               const VkAccessFlagBits dst_access)
 {
-  if (requested_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
-    std::cout << "break\n";
-  }
   BLI_assert(vk_image_ != VK_NULL_HANDLE);
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
