@@ -74,6 +74,9 @@ void device_metal_info(vector<DeviceInfo> &devices)
     }
 #  endif
 
+    /* Use hardware raytracing for faster rendering on architectures that support it. */
+    info.use_metalrt_by_default = (MetalInfo::get_apple_gpu_architecture(device) >= APPLE_M3);
+
     devices.push_back(info);
     device_index++;
   }
