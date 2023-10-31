@@ -34,14 +34,12 @@ ExternalProject_Add(external_igc_llvm
   CONFIGURE_COMMAND echo .
   BUILD_COMMAND echo .
   INSTALL_COMMAND echo .
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0001-OpenCL-3.0-support.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0002-Remove-__IMAGE_SUPPORT__-macro-for-SPIR.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0003-Avoid-calling-ParseCommandLineOptions-in-BackendUtil.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0004-OpenCL-support-cl_ext_float_atomics.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-OpenCL-Add-cl_khr_integer_dot_product.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/llvm/0001-Memory-leak-fix-for-Managed-Static-Mutex.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/llvm/0002-Remove-repo-name-in-LLVM-IR.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/llvm/0003-Add-missing-include-limit-in-benchmark.patch
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0001-Remove-__IMAGE_SUPPORT__-macro-for-SPIR.patch &&
+    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0002-Remove-wrong-check-of-__opencl_c_images-feature-macr.patch &&
+    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0003-Fix-checking-mechanism-for-read_write-Image-type.patch &&
+    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0004-OpenCL-Allow-undefining-header-only-macros.patch &&
+    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-Enable-use-of-GNU-C-extension.patch &&
+    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0006-Make-globals-used-for-array-initialization-codegen-c.patch
 )
 add_dependencies(
   external_igc_llvm
