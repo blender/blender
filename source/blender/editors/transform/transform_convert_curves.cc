@@ -97,14 +97,26 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
-    curve_populate_trans_data_structs(
-        tc,
-        curves,
-        {} /* Currently no transform for attributes other than position. */,
-        selection_per_object[i],
-        use_proportional_edit,
-        use_connected_only,
-        0 /* No data offset for curves. */);
+    std::optional<MutableSpan<float>> value_attribute;
+    bke::SpanAttributeWriter<float> attribute_writer;
+    if (t->mode == TFM_CURVE_SHRINKFATTEN) {
+      bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+      attribute_writer = attributes.lookup_or_add_for_write_span<float>(
+          "radius",
+          ATTR_DOMAIN_POINT,
+          bke::AttributeInitVArray(VArray<float>::ForSingle(0.01f, curves.points_num())));
+
+      value_attribute = attribute_writer.span;
+    }
+
+    curve_populate_trans_data_structs(tc,
+                                      curves,
+                                      value_attribute,
+                                      selection_per_object[i],
+                                      use_proportional_edit,
+                                      use_connected_only,
+                                      0 /* No data offset for curves. */);
+    attribute_writer.finish();
   }
 }
 
