@@ -762,7 +762,22 @@ struct PBVHBatches {
       if (const float *mask = static_cast<const float *>(
               CustomData_get_layer(args.vert_data, CD_PAINT_MASK)))
       {
-        extract_data_vert_faces<float>(args, {mask, args.me->totvert}, vert_buf);
+        const Span<int> corner_verts = args.corner_verts;
+        const Span<MLoopTri> looptris = args.mlooptri;
+        const Span<int> looptri_faces = args.looptri_faces;
+        const bool *hide_poly = args.hide_poly;
+
+        float *data = static_cast<float *>(GPU_vertbuf_get_data(&vert_buf));
+        for (const int looptri_i : args.prim_indices) {
+          if (hide_poly && hide_poly[looptri_faces[looptri_i]]) {
+            continue;
+          }
+          for (int i : IndexRange(3)) {
+            const int vert = corner_verts[looptris[looptri_i].tri[i]];
+            *data = mask[vert];
+            data++;
+          }
+        }
       }
       else {
         MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)), totvert).fill(0);
