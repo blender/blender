@@ -140,7 +140,10 @@ class VKTexture : public Texture, public VKBindableResource {
    *
    * When texture is already in the requested layout, nothing will be done.
    */
-  void layout_ensure(VKContext &context, VkImageLayout requested_layout);
+  void layout_ensure(VKContext &context,
+                     VkImageLayout requested_layout,
+                     VkAccessFlagBits src_access = VK_ACCESS_MEMORY_WRITE_BIT,
+                     VkAccessFlagBits dst_access = VK_ACCESS_MEMORY_READ_BIT);
 
  private:
   /**
@@ -151,7 +154,9 @@ class VKTexture : public Texture, public VKBindableResource {
   void layout_ensure(VKContext &context,
                      IndexRange mipmap_range,
                      VkImageLayout current_layout,
-                     VkImageLayout requested_layout);
+                     VkImageLayout requested_layout,
+                     VkAccessFlagBits src_access,
+                     VkAccessFlagBits dst_access);
 
   /** \} */
 

@@ -50,7 +50,12 @@ void VKTexture::generate_mipmap()
 
   VKContext &context = *VKContext::get();
   VKCommandBuffers &command_buffers = context.command_buffers_get();
-  layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  command_buffers.submit();
+
+  layout_ensure(context,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                VK_ACCESS_MEMORY_WRITE_BIT,
+                VK_ACCESS_TRANSFER_READ_BIT);
 
   for (int src_mipmap : IndexRange(mipmaps_ - 1)) {
     int dst_mipmap = src_mipmap + 1;
@@ -75,7 +80,9 @@ void VKTexture::generate_mipmap()
     layout_ensure(context,
                   IndexRange(src_mipmap, 1),
                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                  VK_ACCESS_TRANSFER_WRITE_BIT,
+                  VK_ACCESS_TRANSFER_READ_BIT);
 
     VkImageBlit image_blit = {};
     image_blit.srcOffsets[0] = {0, 0, 0};
@@ -97,16 +104,15 @@ void VKTexture::generate_mipmap()
                          *this,
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                          Span<VkImageBlit>(&image_blit, 1));
-    /* TODO: Until we do actual command encoding we need to submit each transfer operation
-     * individually. */
-    context.flush();
   }
-  /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`.
-   * All MIP-levels are except the last one. */
+
+  /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`. */
   layout_ensure(context,
                 IndexRange(mipmaps_ - 1, 1),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                VK_ACCESS_TRANSFER_WRITE_BIT,
+                VK_ACCESS_MEMORY_READ_BIT);
   current_layout_set(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 }
 
@@ -527,7 +533,10 @@ void VKTexture::current_layout_set(const VkImageLayout new_layout)
   current_layout_ = new_layout;
 }
 
-void VKTexture::layout_ensure(VKContext &context, const VkImageLayout requested_layout)
+void VKTexture::layout_ensure(VKContext &context,
+                              const VkImageLayout requested_layout,
+                              const VkAccessFlagBits src_access,
+                              const VkAccessFlagBits dst_access)
 {
   if (is_texture_view()) {
     source_texture_->layout_ensure(context, requested_layout);
@@ -537,20 +546,32 @@ void VKTexture::layout_ensure(VKContext &context, const VkImageLayout requested_
   if (current_layout == requested_layout) {
     return;
   }
-  layout_ensure(context, IndexRange(0, VK_REMAINING_MIP_LEVELS), current_layout, requested_layout);
+  layout_ensure(context,
+                IndexRange(0, VK_REMAINING_MIP_LEVELS),
+                current_layout,
+                requested_layout,
+                src_access,
+                dst_access);
   current_layout_set(requested_layout);
 }
 
 void VKTexture::layout_ensure(VKContext &context,
                               const IndexRange mipmap_range,
                               const VkImageLayout current_layout,
-                              const VkImageLayout requested_layout)
+                              const VkImageLayout requested_layout,
+                              const VkAccessFlagBits src_access,
+                              const VkAccessFlagBits dst_access)
 {
+  if (requested_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+    std::cout << "break\n";
+  }
   BLI_assert(vk_image_ != VK_NULL_HANDLE);
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   barrier.oldLayout = current_layout;
   barrier.newLayout = requested_layout;
+  barrier.srcAccessMask = src_access;
+  barrier.dstAccessMask = dst_access;
   barrier.image = vk_image_;
   barrier.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(format_);
   barrier.subresourceRange.baseMipLevel = uint32_t(mipmap_range.start());
