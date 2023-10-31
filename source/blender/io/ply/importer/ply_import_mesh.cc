@@ -100,6 +100,15 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
     uv_map.finish();
   }
 
+  /* Custom attributes */
+  if (params.import_attributes && !data.vertex_custom_attr.is_empty()) {
+    for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
+      attributes.add<float>(attr.name,
+                            ATTR_DOMAIN_POINT,
+                            bke::AttributeInitVArray(VArray<float>::ForSpan(attr.data)));
+    }
+  }
+
   /* Calculate edges from the rest of the mesh. */
   BKE_mesh_calc_edges(mesh, true, false);
 

@@ -29,6 +29,14 @@ void FileBufferBinary::write_UV(float u, float v)
   write_bytes(span);
 }
 
+void FileBufferBinary::write_data(float v)
+{
+  char *bits = reinterpret_cast<char *>(&v);
+  Span<char> span(bits, sizeof(float));
+
+  write_bytes(span);
+}
+
 void FileBufferBinary::write_vertex_normal(float nx, float ny, float nz)
 {
   float3 vector(nx, ny, nz);

@@ -50,6 +50,10 @@ void write_header(FileBuffer &buffer,
     buffer.write_header_scalar_property("float", "t");
   }
 
+  for (const PlyCustomAttribute &attr : ply_data.vertex_custom_attr) {
+    buffer.write_header_scalar_property("float", attr.name);
+  }
+
   if (!ply_data.face_sizes.is_empty()) {
     buffer.write_header_element("face", int(ply_data.face_sizes.size()));
     buffer.write_header_list_property("uchar", "uint", "vertex_indices");

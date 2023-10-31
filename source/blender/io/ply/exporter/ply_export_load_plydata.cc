@@ -17,6 +17,7 @@
 #include "BLI_hash.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
@@ -147,6 +148,166 @@ static void generate_vertex_map(const Mesh *mesh,
   }
 }
 
+static void load_custom_attributes(const Mesh *mesh, Vector<PlyCustomAttribute> &r_attributes)
+{
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const StringRef color_name = mesh->active_color_attribute;
+  const StringRef uv_name = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2);
+
+  attributes.for_all([&](const bke::AttributeIDRef &attribute_id,
+                         const bke::AttributeMetaData &meta_data) {
+    /* Skip internal, standard and non-vertex domain attributes. */
+    if (meta_data.domain != ATTR_DOMAIN_POINT || attribute_id.name()[0] == '.' ||
+        attribute_id.is_anonymous() || ELEM(attribute_id.name(), "position", color_name, uv_name))
+    {
+      return true;
+    }
+
+    const GVArraySpan attribute = *mesh->attributes().lookup(
+        attribute_id, meta_data.domain, meta_data.data_type);
+    const int64_t size = attribute.size();
+    if (size == 0) {
+      return true;
+    }
+    switch (meta_data.data_type) {
+      case CD_PROP_FLOAT: {
+        PlyCustomAttribute attr(attribute_id.name(), size);
+        auto typed = attribute.typed<float>();
+        for (const int64_t i : typed.index_range()) {
+          attr.data[i] = typed[i];
+        }
+        r_attributes.append(attr);
+        break;
+      }
+      case CD_PROP_INT8: {
+        PlyCustomAttribute attr(attribute_id.name(), size);
+        auto typed = attribute.typed<int8_t>();
+        for (const int64_t i : typed.index_range()) {
+          attr.data[i] = typed[i];
+        }
+        r_attributes.append(attr);
+        break;
+      }
+      case CD_PROP_INT32: {
+        PlyCustomAttribute attr(attribute_id.name(), size);
+        auto typed = attribute.typed<int32_t>();
+        for (const int64_t i : typed.index_range()) {
+          attr.data[i] = typed[i];
+        }
+        r_attributes.append(attr);
+        break;
+      }
+      case CD_PROP_INT32_2D: {
+        PlyCustomAttribute attr_x(attribute_id.name() + "_x", size);
+        PlyCustomAttribute attr_y(attribute_id.name() + "_y", size);
+        auto typed = attribute.typed<int2>();
+        for (const int64_t i : typed.index_range()) {
+          attr_x.data[i] = typed[i].x;
+          attr_y.data[i] = typed[i].y;
+        }
+        r_attributes.append(attr_x);
+        r_attributes.append(attr_y);
+        break;
+      }
+      case CD_PROP_FLOAT2: {
+        PlyCustomAttribute attr_x(attribute_id.name() + "_x", size);
+        PlyCustomAttribute attr_y(attribute_id.name() + "_y", size);
+        auto typed = attribute.typed<float2>();
+        for (const int64_t i : typed.index_range()) {
+          attr_x.data[i] = typed[i].x;
+          attr_y.data[i] = typed[i].y;
+        }
+        r_attributes.append(attr_x);
+        r_attributes.append(attr_y);
+        break;
+      }
+      case CD_PROP_FLOAT3: {
+        PlyCustomAttribute attr_x(attribute_id.name() + "_x", size);
+        PlyCustomAttribute attr_y(attribute_id.name() + "_y", size);
+        PlyCustomAttribute attr_z(attribute_id.name() + "_z", size);
+        auto typed = attribute.typed<float3>();
+        for (const int64_t i : typed.index_range()) {
+          attr_x.data[i] = typed[i].x;
+          attr_y.data[i] = typed[i].y;
+          attr_z.data[i] = typed[i].z;
+        }
+        r_attributes.append(attr_x);
+        r_attributes.append(attr_y);
+        r_attributes.append(attr_z);
+        break;
+      }
+      case CD_PROP_BYTE_COLOR: {
+        PlyCustomAttribute attr_r(attribute_id.name() + "_r", size);
+        PlyCustomAttribute attr_g(attribute_id.name() + "_g", size);
+        PlyCustomAttribute attr_b(attribute_id.name() + "_b", size);
+        PlyCustomAttribute attr_a(attribute_id.name() + "_a", size);
+        auto typed = attribute.typed<ColorGeometry4b>();
+        for (const int64_t i : typed.index_range()) {
+          ColorGeometry4f col = typed[i].decode();
+          attr_r.data[i] = col.r;
+          attr_g.data[i] = col.g;
+          attr_b.data[i] = col.b;
+          attr_a.data[i] = col.a;
+        }
+        r_attributes.append(attr_r);
+        r_attributes.append(attr_g);
+        r_attributes.append(attr_b);
+        r_attributes.append(attr_a);
+        break;
+      }
+      case CD_PROP_COLOR: {
+        PlyCustomAttribute attr_r(attribute_id.name() + "_r", size);
+        PlyCustomAttribute attr_g(attribute_id.name() + "_g", size);
+        PlyCustomAttribute attr_b(attribute_id.name() + "_b", size);
+        PlyCustomAttribute attr_a(attribute_id.name() + "_a", size);
+        auto typed = attribute.typed<ColorGeometry4f>();
+        for (const int64_t i : typed.index_range()) {
+          ColorGeometry4f col = typed[i];
+          attr_r.data[i] = col.r;
+          attr_g.data[i] = col.g;
+          attr_b.data[i] = col.b;
+          attr_a.data[i] = col.a;
+        }
+        r_attributes.append(attr_r);
+        r_attributes.append(attr_g);
+        r_attributes.append(attr_b);
+        r_attributes.append(attr_a);
+        break;
+      }
+      case CD_PROP_BOOL: {
+        PlyCustomAttribute attr(attribute_id.name(), size);
+        auto typed = attribute.typed<bool>();
+        for (const int64_t i : typed.index_range()) {
+          attr.data[i] = typed[i] ? 1.0f : 0.0f;
+        }
+        r_attributes.append(attr);
+        break;
+      }
+      case CD_PROP_QUATERNION: {
+        PlyCustomAttribute attr_x(attribute_id.name() + "_x", size);
+        PlyCustomAttribute attr_y(attribute_id.name() + "_y", size);
+        PlyCustomAttribute attr_z(attribute_id.name() + "_z", size);
+        PlyCustomAttribute attr_w(attribute_id.name() + "_w", size);
+        auto typed = attribute.typed<math::Quaternion>();
+        for (const int64_t i : typed.index_range()) {
+          attr_x.data[i] = typed[i].x;
+          attr_y.data[i] = typed[i].y;
+          attr_z.data[i] = typed[i].z;
+          attr_w.data[i] = typed[i].w;
+        }
+        r_attributes.append(attr_x);
+        r_attributes.append(attr_y);
+        r_attributes.append(attr_z);
+        r_attributes.append(attr_w);
+        break;
+      }
+      default:
+        BLI_assert_msg(0, "Unsupported attribute type for PLY export.");
+    }
+    return true;
+  });
+}
+
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params)
 {
   DEGObjectIterSettings deg_iter_settings{};
@@ -265,6 +426,11 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
           }
         }
       }
+    }
+
+    /* Custom attributes */
+    if (export_params.export_attributes) {
+      load_custom_attributes(mesh, plyData.vertex_custom_attr);
     }
 
     /* Loose edges */
