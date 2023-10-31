@@ -5507,7 +5507,9 @@ struct RegionAlphaInfo {
 float ED_region_blend_alpha(ARegion *region)
 {
   /* check parent too */
-  if (region->regiontimer == nullptr && (region->alignment & RGN_SPLIT_PREV) && region->prev) {
+  if (region->regiontimer == nullptr &&
+      (region->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV)) && region->prev)
+  {
     region = region->prev;
   }
 
@@ -5582,7 +5584,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
   }
 
   if (region->next) {
-    if (region->next->alignment & RGN_SPLIT_PREV) {
+    if (region->next->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV)) {
       rgi->child_region = region->next;
     }
   }
