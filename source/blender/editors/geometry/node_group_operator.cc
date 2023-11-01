@@ -236,11 +236,22 @@ static Depsgraph *build_depsgraph_from_indirect_ids(Main &bmain,
                                                     Scene &scene,
                                                     ViewLayer &view_layer,
                                                     const bNodeTree &node_tree_orig,
-                                                    const Span<const Object *> objects)
+                                                    const Span<const Object *> objects,
+                                                    const IDProperty &properties)
 {
   Set<ID *> ids_for_relations;
   bool needs_own_transform_relation = false;
-  nodes::find_node_tree_dependencies(node_tree_orig, ids_for_relations, needs_own_transform_relation);
+  nodes::find_node_tree_dependencies(
+      node_tree_orig, ids_for_relations, needs_own_transform_relation);
+  IDP_foreach_property(
+      &const_cast<IDProperty &>(properties),
+      IDP_TYPE_FILTER_ID,
+      [](IDProperty *property, void *user_data) {
+        if (ID *id = IDP_Id(property)) {
+          static_cast<Set<ID *> *>(user_data)->add(id);
+        }
+      },
+      &ids_for_relations);
 
   Vector<const ID *> ids;
   ids.append(&node_tree_orig.id);
@@ -250,6 +261,24 @@ static Depsgraph *build_depsgraph_from_indirect_ids(Main &bmain,
   Depsgraph *depsgraph = DEG_graph_new(&bmain, &scene, &view_layer, DAG_EVAL_VIEWPORT);
   DEG_graph_build_from_ids(depsgraph, const_cast<ID **>(ids.data()), ids.size());
   return depsgraph;
+}
+
+static IDProperty *replace_inputs_evaluated_data_blocks(const IDProperty &op_properties,
+                                                        const Depsgraph &depsgraph)
+{
+  /* We just create a temporary copy, so don't adjust data-block user count. */
+  IDProperty *properties = IDP_CopyProperty_ex(&op_properties, LIB_ID_CREATE_NO_USER_REFCOUNT);
+  IDP_foreach_property(
+      properties,
+      IDP_TYPE_FILTER_ID,
+      [](IDProperty *property, void *user_data) {
+        if (ID *id = IDP_Id(property)) {
+          Depsgraph *depsgraph = static_cast<Depsgraph *>(user_data);
+          property->data.pointer = DEG_get_evaluated_id(depsgraph, id);
+        }
+      },
+      &const_cast<Depsgraph &>(depsgraph));
+  return properties;
 }
 
 static int run_node_group_exec(bContext *C, wmOperator *op)
@@ -277,7 +306,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(objects); });
 
   Depsgraph *depsgraph = build_depsgraph_from_indirect_ids(
-      *bmain, *scene, *view_layer, *node_tree_orig, {objects, objects_len});
+      *bmain, *scene, *view_layer, *node_tree_orig, {objects, objects_len}, *op->properties);
   DEG_evaluate_on_refresh(depsgraph);
   BLI_SCOPED_DEFER([&]() { DEG_graph_free(depsgraph); });
 
@@ -296,6 +325,9 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  IDProperty *properties = replace_inputs_evaluated_data_blocks(*op->properties, *depsgraph);
+  BLI_SCOPED_DEFER([&]() { IDP_FreeProperty_ex(properties, false); });
+
   OperatorComputeContext compute_context(op->type->idname);
 
   for (Object *object : Span(objects, objects_len)) {
@@ -311,7 +343,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
 
     bke::GeometrySet new_geometry = nodes::execute_geometry_nodes_on_geometry(
         *node_tree,
-        op->properties,
+        properties,
         compute_context,
         std::move(geometry_orig),
         [&](nodes::GeoNodesLFUserData &user_data) {
