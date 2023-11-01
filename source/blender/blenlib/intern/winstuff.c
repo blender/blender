@@ -221,6 +221,11 @@ bool BLI_windows_register_blend_extension(const bool all_users)
     return false;
   }
 
+  if (!BLI_windows_update_pinned_launcher(blender_path)) {
+    fprintf(stderr, "Update of pinned launcher failed.");
+    return false;
+  }
+
 #  ifdef WITH_BLENDER_THUMBNAILER
   {
     char reg_cmd[MAX_PATH * 2];

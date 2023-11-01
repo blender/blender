@@ -162,6 +162,7 @@ set(SRC
   intern/voxel.c
   intern/winstuff.c
   intern/winstuff_dir.c
+  intern/winstuff_registration.cc
 
   # Private headers.
   intern/BLI_mempool_private.h
@@ -382,6 +383,7 @@ set(SRC
   BLI_voronoi_2d.h
   BLI_voxel.h
   BLI_winstuff.h
+  BLI_winstuff_com.hh
   PIL_time.h
   PIL_time_utildefines.h
 
