@@ -165,7 +165,11 @@ int node_get_resize_cursor(NodeResizeDirection directions);
  * Usual convention here would be #node_socket_get_color(),
  * but that's already used (for setting a color property socket).
  */
-void node_socket_color_get(const bNodeSocketType &type, float r_color[4]);
+void node_socket_color_get(const bContext &C,
+                           const bNodeTree &ntree,
+                           PointerRNA &node_ptr,
+                           const bNodeSocket &sock,
+                           float r_color[4]);
 
 const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label);
 
@@ -243,15 +247,20 @@ void nodelink_batch_end(SpaceNode &snode);
 /**
  * \note this is used for fake links in groups too.
  */
-void node_draw_link(const View2D &v2d,
+void node_draw_link(const bContext &C,
+                    const View2D &v2d,
                     const SpaceNode &snode,
                     const bNodeLink &link,
                     bool selected);
-void node_draw_link_dragged(const View2D &v2d, const SpaceNode &snode, const bNodeLink &link);
+void node_draw_link_dragged(const bContext &C,
+                            const View2D &v2d,
+                            const SpaceNode &snode,
+                            const bNodeLink &link);
 /**
  * Don't do shadows if th_col3 is -1.
  */
-void node_draw_link_bezier(const View2D &v2d,
+void node_draw_link_bezier(const bContext &C,
+                           const View2D &v2d,
                            const SpaceNode &snode,
                            const bNodeLink &link,
                            int th_col1,
