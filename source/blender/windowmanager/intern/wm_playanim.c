@@ -1546,9 +1546,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     exit(1);
   }
 
+  GHOST_EventConsumerHandle ghost_event_consumer;
   {
-
-    GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
+    ghost_event_consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
 
     GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
@@ -1561,7 +1561,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
       exit(1);
     }
 
-    GHOST_AddEventConsumer(g_WS.ghost_system, consumer);
+    GHOST_AddEventConsumer(g_WS.ghost_system, ghost_event_consumer);
 
     playanim_window_open("Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
   }
@@ -1833,7 +1833,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   /* we still miss freeing a lot!,
    * but many areas could skip initialization too for anim play */
 
-  IMB_exit();
   DEG_free_node_types();
 
   BLF_exit();
@@ -1845,6 +1844,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     g_WS.gpu_context = NULL;
   }
 
+  GHOST_RemoveEventConsumer(g_WS.ghost_system, ghost_event_consumer);
+  GHOST_DisposeEventConsumer(ghost_event_consumer);
+
   GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
 
   /* early exit, IMB and BKE should be exited only in end */
@@ -1852,6 +1854,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     STRNCPY(filepath, ps.dropped_file);
     return filepath;
   }
+
+  IMB_exit();
 
   totblock = MEM_get_memory_blocks_in_use();
   if (totblock != 0) {
