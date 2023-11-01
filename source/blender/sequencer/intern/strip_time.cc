@@ -463,27 +463,6 @@ bool SEQ_time_strip_intersects_frame(const Scene *scene,
          (SEQ_time_right_handle_frame_get(scene, seq) > timeline_frame);
 }
 
-void SEQ_time_speed_factor_set(const Scene *scene, Sequence *seq, const float speed_factor)
-{
-
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    seq->speed_factor = speed_factor;
-  }
-  else {
-    const float left_handle_frame = SEQ_time_left_handle_frame_get(scene, seq);
-    const float unity_start_offset = seq->startofs * seq->speed_factor;
-    const float unity_end_offset = seq->endofs * seq->speed_factor;
-    /* Left handle is pivot point for content scaling - it must always show same frame. */
-    seq->speed_factor = speed_factor;
-    seq->startofs = unity_start_offset / speed_factor;
-    seq->start = left_handle_frame - seq->startofs;
-    seq->endofs = unity_end_offset / speed_factor;
-  }
-
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
-  seq_time_update_effects_strip_range(scene, seq_sequence_lookup_effects_by_seq(scene, seq));
-}
-
 bool SEQ_time_has_left_still_frames(const Scene *scene, const Sequence *seq)
 {
   return SEQ_time_left_handle_frame_get(scene, seq) < SEQ_time_start_frame_get(seq);
