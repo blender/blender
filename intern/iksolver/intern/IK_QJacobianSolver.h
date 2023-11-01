@@ -37,7 +37,7 @@ class IK_QJacobianSolver {
   // call setup once before solving, if it fails don't solve
   bool Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks);
 
-  // returns true if converged, false if max number of iterations was used
+  // returns true if converged, false if failed to converge after maximum number of iterations
   bool Solve(IK_QSegment *root,
              std::list<IK_QTask *> tasks,
              const double tolerance,
