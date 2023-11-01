@@ -208,7 +208,6 @@ class ZstdWriteWrap : public WriteWrap {
   int next_frame = 0;
   int num_frames = 0;
 
-  int level = 0;
   ListBase frames = {};
 
   bool write_error = false;
