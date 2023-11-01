@@ -712,7 +712,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 }  // namespace blender::ed::space_node
 
 void uiTemplateNodeLink(
-    uiLayout *layout, bContext * /*C*/, bNodeTree *ntree, bNode *node, bNodeSocket *input)
+    uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
   using namespace blender::ed::space_node;
 
@@ -726,7 +726,8 @@ void uiTemplateNodeLink(
   arg->node = node;
   arg->sock = input;
 
-  node_socket_color_get(*input->typeinfo, socket_col);
+  PointerRNA node_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
+  node_socket_color_get(*C, *ntree, node_ptr, *input, socket_col);
 
   UI_block_layout_set_current(block, layout);
 
