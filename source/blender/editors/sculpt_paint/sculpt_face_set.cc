@@ -268,16 +268,13 @@ static void do_draw_face_sets_brush_bmesh(Object *ob, const Brush *brush, PBVHNo
       continue;
     }
 
-    bool is_face_fully_covered = true;
-
     float3 face_center;
     BM_face_calc_center_median(f, face_center);
 
     const BMLoop *l_iter = f->l_first = BM_FACE_FIRST_LOOP(f);
     do {
       if (!sculpt_brush_test_sq_fn(&test, l_iter->v->co)) {
-        is_face_fully_covered = false;
-        break;
+        continue;
       }
 
       BMVert *vert = l_iter->v;
@@ -304,17 +301,15 @@ static void do_draw_face_sets_brush_bmesh(Object *ob, const Brush *brush, PBVHNo
                                                       &automask_data);
 
       if (fade <= FACE_SET_BRUSH_MIN_FADE) {
-        is_face_fully_covered = false;
-        break;
+        continue;
       }
 
-    } while ((l_iter = l_iter->next) != f->l_first);
-
-    if (is_face_fully_covered) {
       int &fset = *static_cast<int *>(POINTER_OFFSET(f->head.data, cd_offset));
       fset = ss->cache->paint_face_set;
       changed = true;
-    }
+      break;
+
+    } while ((l_iter = l_iter->next) != f->l_first);
   }
 
   if (changed) {
