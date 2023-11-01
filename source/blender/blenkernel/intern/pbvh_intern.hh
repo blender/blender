@@ -177,8 +177,6 @@ struct PBVH {
   CustomData *loop_data;
   CustomData *face_data;
 
-  int face_sets_color_seed;
-  int face_sets_color_default;
   int *face_sets;
 
   /* Grid Data */

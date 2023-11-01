@@ -665,8 +665,8 @@ static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *arg
   args->node = node;
 
   args->grid_hidden = pbvh->grid_hidden;
-  args->face_sets_color_default = pbvh->face_sets_color_default;
-  args->face_sets_color_seed = pbvh->face_sets_color_seed;
+  args->face_sets_color_default = mesh.face_sets_color_default;
+  args->face_sets_color_seed = mesh.face_sets_color_seed;
   args->vert_positions = pbvh->vert_positions;
   if (pbvh->mesh) {
     args->corner_verts = pbvh->corner_verts;
@@ -850,9 +850,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 #endif
 
   pbvh->faces_num = mesh->faces_num;
-
-  pbvh->face_sets_color_seed = mesh->face_sets_color_seed;
-  pbvh->face_sets_color_default = mesh->face_sets_color_default;
 
   /* For each face, store the AABB and the AABB centroid */
   blender::Array<BBC> prim_bbc(looptri_num);
@@ -2850,12 +2847,6 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
       MEM_freeN(faces);
     }
   }
-}
-
-void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default)
-{
-  pbvh->face_sets_color_seed = seed;
-  pbvh->face_sets_color_default = color_default;
 }
 
 /**

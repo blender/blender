@@ -400,12 +400,6 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (ss->pbvh) {
-    Mesh *mesh = BKE_mesh_from_object(ob);
-    BKE_pbvh_face_sets_color_set(
-        ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
-  }
-
   BKE_curvemapping_init(brush->curve);
 
   TaskParallelSettings settings;
@@ -534,8 +528,6 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
     if (all_visible) {
       mesh->face_sets_color_default = next_face_set;
-      BKE_pbvh_face_sets_color_set(
-          ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
     }
 
     for (int i = 0; i < tot_vert; i++) {
@@ -1110,7 +1102,6 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op
                                      max_ii(0, ss->totfaces - 1));
     mesh->face_sets_color_default = ss->face_sets[random_index];
   }
-  BKE_pbvh_face_sets_color_set(pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
   for (PBVHNode *node : nodes) {

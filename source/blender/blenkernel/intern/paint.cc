@@ -1756,8 +1756,6 @@ static void sculpt_update_object(
   BKE_pbvh_face_sets_set(ss->pbvh, ss->face_sets);
   BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
 
-  BKE_pbvh_face_sets_color_set(ss->pbvh, me->face_sets_color_seed, me->face_sets_color_default);
-
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 

@@ -470,8 +470,6 @@ void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
  */
 void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh);
 
-void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);
-
 /* Vertex Deformer. */
 
 void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], int totvert);
