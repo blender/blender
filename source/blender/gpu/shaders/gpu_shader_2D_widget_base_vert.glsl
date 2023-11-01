@@ -81,7 +81,7 @@ vec2 do_tria()
   int vidx = gl_VertexID % 4;
   bool tria2 = gl_VertexID > 7;
 
-  vec2 pos;
+  vec2 pos = vec2(0.0);
   float size = (tria2) ? -tria2Size : tria1Size;
   vec2 center = (tria2) ? tria2Center : tria1Center;
 
