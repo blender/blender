@@ -1949,28 +1949,53 @@ void BKE_sculpt_update_object_for_edit(
 
 int *BKE_sculpt_face_sets_ensure(Object *ob)
 {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  if (!attributes.contains(".sculpt_face_set")) {
-    SpanAttributeWriter<int> face_sets = attributes.lookup_or_add_for_write_only_span<int>(
-        ".sculpt_face_set", ATTR_DOMAIN_FACE);
-    face_sets.span.fill(1);
-    mesh->face_sets_color_default = 1;
-    face_sets.finish();
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ss->pbvh;
+  if (!pbvh) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  const StringRefNull name = ".sculpt_face_set";
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS: {
+      MutableAttributeAccessor attributes = mesh->attributes_for_write();
+      if (!attributes.contains(name)) {
+        attributes.add<int>(name,
+                            ATTR_DOMAIN_FACE,
+                            AttributeInitVArray(VArray<int>::ForSingle(1, mesh->faces_num)));
+        mesh->face_sets_color_default = 1;
+      }
+
+      int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+          &mesh->face_data, CD_PROP_INT32, name.c_str(), mesh->faces_num));
+      BKE_pbvh_face_sets_set(pbvh, face_sets);
+      return face_sets;
+    }
+    case PBVH_BMESH: {
+      BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
+      if (!CustomData_has_layer_named(&bm->pdata, CD_PROP_INT32, name.c_str())) {
+        BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, name.c_str());
+        const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, name.c_str());
+        if (offset == -1) {
+          return nullptr;
+        }
+        BMIter iter;
+        BMFace *face;
+        BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
+          BM_ELEM_CD_SET_INT(face, offset, 1);
+        }
+        mesh->face_sets_color_default = 1;
+      }
+      break;
+    }
   }
 
-  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
-
-  if (ss->pbvh && ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
-    BKE_pbvh_face_sets_set(ss->pbvh, face_sets);
-  }
-
-  return face_sets;
+  return nullptr;
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
