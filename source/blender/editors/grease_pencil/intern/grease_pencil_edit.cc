@@ -797,8 +797,13 @@ static void GREASE_PENCIL_OT_delete_frame(wmOperatorType *ot)
                                  "Method used for deleting Grease Pencil frames");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+/** \} */
 
-static int grease_pencil_stroke_change_color_exec(bContext *C, wmOperator * /*op*/)
+/* -------------------------------------------------------------------- */
+/** \name Stroke Material Set Operator
+ * \{ */
+
+static int grease_pencil_stroke_material_set_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender;
   const Scene *scene = CTX_data_scene(C);
@@ -814,17 +819,16 @@ static int grease_pencil_stroke_change_color_exec(bContext *C, wmOperator * /*op
       scene->r.cfra, [&](int /*layer_index*/, bke::greasepencil::Drawing &drawing) {
         bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
-        if (curves.points_num() == 0) {
+        IndexMaskMemory memory;
+        IndexMask selected_curves = ed::curves::retrieve_selected_curves(curves, memory);
+
+        if (selected_curves.is_empty()) {
           return;
         }
 
         bke::SpanAttributeWriter<int> materials =
             curves.attributes_for_write().lookup_or_add_for_write_span<int>("material_index",
                                                                             ATTR_DOMAIN_CURVE);
-
-        IndexMaskMemory memory;
-        IndexMask selected_curves = ed::curves::retrieve_selected_curves(curves, memory);
-
         selected_curves.foreach_index(
             [&](const int curve_index) { materials.span[curve_index] = material_index; });
 
@@ -837,13 +841,13 @@ static int grease_pencil_stroke_change_color_exec(bContext *C, wmOperator * /*op
   return OPERATOR_FINISHED;
 }
 
-static void GREASE_PENCIL_OT_stroke_change_color(wmOperatorType *ot)
+static void GREASE_PENCIL_OT_stroke_material_set(wmOperatorType *ot)
 {
-  ot->name = "Change Stroke color";
-  ot->idname = "GREASE_PENCIL_OT_stroke_change_color";
-  ot->description = "Change Stroke color with selected material";
+  ot->name = "Assign Material";
+  ot->idname = "GREASE_PENCIL_OT_stroke_material_set";
+  ot->description = "Change Stroke material with selected material";
 
-  ot->exec = grease_pencil_stroke_change_color_exec;
+  ot->exec = grease_pencil_stroke_material_set_exec;
   ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -957,7 +961,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_simplify);
   WM_operatortype_append(GREASE_PENCIL_OT_dissolve);
   WM_operatortype_append(GREASE_PENCIL_OT_delete_frame);
-  WM_operatortype_append(GREASE_PENCIL_OT_stroke_change_color);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_material_set);
   WM_operatortype_append(GREASE_PENCIL_OT_cyclical_set);
 }
 
