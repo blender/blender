@@ -256,11 +256,12 @@ static SocketDeclarationPtr declaration_for_interface_socket(const bNodeTree &nt
       dst = std::move(value);
       break;
     }
-    case SOCK_CUSTOM:
+    case SOCK_CUSTOM: {
       std::unique_ptr<decl::Custom> decl = std::make_unique<decl::Custom>();
       decl->idname_ = io_socket.idname;
       dst = std::move(decl);
       break;
+    }
   }
   dst->name = io_socket.name;
   dst->identifier = io_socket.identifier;

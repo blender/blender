@@ -659,6 +659,10 @@ static void update_input_properties_from_node_tree(const bNodeTree &tree,
   const Span<const bNodeSocket *> tree_inputs = tree.interface_inputs();
   for (const int i : tree_inputs.index_range()) {
     const bNodeSocket &socket = *tree_inputs[i];
+    if (!nodeSocketIsRegistered(&socket)) {
+      continue;
+    }
+
     IDProperty *new_prop = id_property_create_from_socket(socket).release();
     if (new_prop == nullptr) {
       /* Out of the set of supported input sockets, only
