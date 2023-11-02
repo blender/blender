@@ -108,15 +108,15 @@ static void process_prim_path(char *prim_path)
 
   /* The absolute root "/" path indicates a no-op,
    * so clear the string. */
-  if (prim_path[0] == '/' && strlen(prim_path) == 1) {
+  if (prim_path[0] == '/' && prim_path[1] == '\0') {
     prim_path[0] = '\0';
   }
 
   /* If a prim path doesn't start with a "/" it
    * is invalid when creating the prim. */
   if (prim_path[0] != '/') {
-    auto new_path = "/" + std::string(prim_path);
-    snprintf(prim_path, FILE_MAX, "%s", new_path.c_str());
+    const std::string prim_path_copy = std::string(prim_path);
+    BLI_snprintf(prim_path, FILE_MAX, "/%s", prim_path_copy.c_str());
   }
 }
 
