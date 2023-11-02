@@ -265,7 +265,7 @@ static void version_principled_bsdf_update_animdata(ID *owner_id, bNodeTree *ntr
     /* Order is important here: If we e.g. want to change A->B and B->C, but perform A->B first,
      * then later we don't know whether a B entry is an original B (and therefore should be
      * changed to C) or used to be A and was already handled.
-     * In practise, going reverse mostly works, the two notable dependency chains are:
+     * In practice, going reverse mostly works, the two notable dependency chains are:
      * - 8->13, then 2->8, then 9->2 (13 was changed before)
      * - 1->9, then 6->1 (9 was changed before)
      * - 4->10, then 21->4 (10 was changed before)

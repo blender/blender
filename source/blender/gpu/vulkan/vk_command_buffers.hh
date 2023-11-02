@@ -166,7 +166,7 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
   void ensure_no_compute_commands();
 
   /**
-   * Ensire that no draw_commands are scheduled.
+   * Ensure that no draw_commands are scheduled.
    *
    * To ensure correct operation all draw commands should be flushed when adding a new compute
    * command.

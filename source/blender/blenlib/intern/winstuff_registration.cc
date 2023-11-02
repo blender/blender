@@ -19,7 +19,8 @@
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
 
-/* Pinning : Windows allows people to pin an application to their taskbar, when a user pins
+/**
+ * Pinning: Windows allows people to pin an application to their taskbar, when a user pins
  * blender, the data we set in `GHOST_WindowWin32::registerWindowAppUserModelProperties` is used
  * which includes the path to the `blender-launcher.exe`. Now once that shortcut is created on
  * the taskbar, this will never be updated, if people remove blender and install it again to a
@@ -27,8 +28,8 @@
  * shortcut on the taskbar points to a no longer existing blender installation. Now you may think,
  * just un-pin and re-pin that should clear that right up! It doesn't, it'll keep using the
  * outdated path till the end of time and there's no window API call we can do to update this
- * information. However this shortcut is stored in the user profile in a sub-foder we can easily
- * query, from there, we can iterate over all files, look for the one that has our appid in it,
+ * information. However this shortcut is stored in the user profile in a sub-folder we can easily
+ * query, from there, we can iterate over all files, look for the one that has our APP-ID in it,
  * and when we find it, update the path to the blender launcher to the current installation, bit
  * of a hack, but Microsoft seemingly offers no other way to deal with this problem.
  *

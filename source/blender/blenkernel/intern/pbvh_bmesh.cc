@@ -199,7 +199,7 @@ static BMVert *bm_vert_hash_lookup_chain(GHash *deleted_verts, BMVert *v)
 
 /****************************** Building ******************************/
 
-/* Update node data after splitting. */
+/** Update node data after splitting. */
 static void pbvh_bmesh_node_finalize(PBVH *pbvh,
                                      const int node_index,
                                      const int cd_vert_node_offset,
@@ -250,7 +250,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   n->flag |= PBVH_UpdateNormals;
 }
 
-/* Recursively split the node if it exceeds the leaf_limit. */
+/** Recursively split the node if it exceeds the leaf_limit. */
 static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int node_index)
 {
   const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
@@ -360,7 +360,7 @@ static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int nod
   n->orig_vb = n->vb;
 }
 
-/* Recursively split the node if it exceeds the leaf_limit. */
+/** Recursively split the node if it exceeds the leaf_limit. */
 static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 {
   PBVHNode &node = pbvh->nodes[node_index];
@@ -441,7 +441,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
 
   BLI_assert((pbvh->nodes.size() == 1 || node_index) && node_index <= pbvh->nodes.size());
 
-  /* Avoid initializing customdata because its quite involved. */
+  /* Avoid initializing custom-data because its quite involved. */
   BMVert *v = BM_vert_create(pbvh->header.bm, co, nullptr, BM_CREATE_NOP);
 
   BM_data_interp_from_verts(pbvh->header.bm, v1, v2, v, 0.5f);
@@ -515,7 +515,7 @@ static int pbvh_bmesh_node_vert_use_count_at_most(PBVH *pbvh,
   return count;
 }
 
-/* Return a node that uses vertex 'v' other than its current owner. */
+/** Return a node that uses vertex `v` other than its current owner. */
 static PBVHNode *pbvh_bmesh_vert_other_node_find(PBVH *pbvh, BMVert *v)
 {
   PBVHNode *current_node = pbvh_bmesh_node_from_vert(pbvh, v);
@@ -744,7 +744,7 @@ static bool edge_queue_tri_in_circle(const EdgeQueue *q, BMFace *f)
   return len_squared_v3v3(q->center_proj, c) <= q->radius_squared;
 }
 
-/* Return true if the vertex mask is less than 1.0, false otherwise. */
+/** Return true if the vertex mask is less than 1.0, false otherwise. */
 static bool check_mask(EdgeQueueContext *eq_ctx, BMVert *v)
 {
   return BM_ELEM_CD_GET_FLOAT(v, eq_ctx->cd_vert_mask_offset) < 1.0f;
@@ -774,7 +774,7 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e, float priorit
   }
 }
 
-/* Return true if the edge is a boundary edge: both its vertices are on a boundary. */
+/** Return true if the edge is a boundary edge: both its vertices are on a boundary. */
 static bool is_boundary_edge(const BMEdge &edge)
 {
   if (edge.head.hflag & BM_ELEM_SEAM) {
@@ -806,7 +806,7 @@ static bool is_boundary_vert(const BMVert &vertex)
   return false;
 }
 
-/* Return true if at least one of the edge vertices is adjacent to a boundary. */
+/** Return true if at least one of the edge vertices is adjacent to a boundary. */
 static bool is_edge_adjacent_to_boundary(const BMEdge &edge)
 {
   return is_boundary_vert(*edge.v1) || is_boundary_vert(*edge.v2);
@@ -1043,7 +1043,8 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
   }
 }
 
-/* Create a priority queue containing vertex pairs connected by a
+/**
+ * Create a priority queue containing vertex pairs connected by a
  * short edge as defined by PBVH.bm_min_edge_len.
  *
  * Only nodes marked for topology update are checked, and in those
@@ -1161,8 +1162,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *
       pbvh_bmesh_vert_ownership_transfer(pbvh, &pbvh->nodes[ni], v_new);
     }
 
-    /**
-     * The 2 new faces created and assigned to `f_new` have their
+    /* The 2 new faces created and assigned to `f_new` have their
      * verts & edges shuffled around.
      *
      * - faces wind anticlockwise in this example.
@@ -1297,11 +1297,11 @@ static bool vert_in_face_adjacent_to_edge(BMVert &vert, BMEdge &edge)
  *
  * This function is to be called before faces adjacent to \a e are deleted.
  * This function only handles edge attributes and does not handle face deletion.
-
+ *
  * \param del_face: Face which is adjacent to \a v_del and will form a flap when merging \a v_del
- *     to \a v_conn.
+ * to \a v_conn.
  * \param flap_face: Face which is adjacent to \a v_conn and will form a flap when merging \a v_del
- *     to \a v_conn.
+ * to \a v_conn.
  * \param e: An edge which is being collapsed. It connects \a v_del and \a v_conn.
  * \param v_del: A vertex which will be removed after the edge collapse.
  * \param l_del: A loop of del_face which is adjacent to v_del.
@@ -1316,7 +1316,6 @@ static void merge_flap_edge_data(BMesh &bm,
                                  BMVert *v_conn)
 {
   /*
-   *
    *                                       v_del
    *                                      +
    *          del_face        .        /  |
@@ -1335,11 +1334,11 @@ static void merge_flap_edge_data(BMesh &bm,
   UNUSED_VARS_NDEBUG(del_face, flap_face);
 
   /* Faces around `e` (which connects `v_del` to `v_conn`) are to the handled separately from this
-   * function. Help troubleshooting cases where these faces are mistakingly considered flaps.  */
+   * function. Help troubleshooting cases where these faces are mistakenly considered flaps. */
   BLI_assert(!BM_edge_in_face(e, del_face));
   BLI_assert(!BM_edge_in_face(e, flap_face));
 
-  /* The l_del->next->v and l_del->prev->v are v1 and v2, but in an unknown order. */
+  /* The `l_del->next->v` and `l_del->prev->v` are v1 and v2, but in an unknown order. */
   BMEdge *edge_v1_v2 = BM_edge_exists(l_del->next->v, l_del->prev->v);
   if (!edge_v1_v2) {
     CLOG_WARN(&LOG, "Unable to find edge shared between deleting and flap faces");
@@ -1404,11 +1403,13 @@ static BMVert *find_outer_flap_vert(BMFace &face)
   return flap_vert;
 }
 
-/* If the `del_face` is a flap, merge edge data from edges adjacent to "corner" vertex into the
+/**
+ * If the `del_face` is a flap, merge edge data from edges adjacent to "corner" vertex into the
  * other edge. The "corner" as it is an "outer", or a vertex which will become loose when the
  * `del_face` and its edges are removed.
  *
- * If the face is not a flap then this function does nothing. */
+ * If the face is not a flap then this function does nothing.
+ */
 static void try_merge_flap_edge_data_before_dissolve(BMesh &bm, BMFace &face)
 {
   /*
@@ -1448,11 +1449,11 @@ static void try_merge_flap_edge_data_before_dissolve(BMesh &bm, BMFace &face)
  *
  * This function is to be called before faces adjacent to \a e are deleted.
  * This function only handles edge attributes. and does not handle face deletion.
-
+ *
  * \param del_face: Face which is adjacent to \a v_del and will be deleted as part of merging
-*      \a v_del to \a v_conn.
+ * \a v_del to \a v_conn.
  * \param new_face: A new face which is created from \a del_face by replacing \a v_del with
- *     \a v_conn.
+ * \a v_conn.
  * \param v_del: A vertex which will be removed after the edge collapse.
  * \param l_del: A loop of del_face which is adjacent to v_del.
  * \param v_conn: A vertex which into which geometry is reconnected to after the edge collapse.
