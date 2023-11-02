@@ -553,7 +553,7 @@ static std::string run_node_group_get_name(wmOperatorType * /*ot*/, PointerRNA *
       ptr, "relative_asset_identifier", nullptr, 0, &len);
   BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(library_asset_identifier); })
   StringRef ref(library_asset_identifier, len);
-  return ref.drop_prefix(ref.find_last_of('/') + 1);
+  return ref.drop_prefix(ref.find_last_of(SEP_STR) + 1);
 }
 
 void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
