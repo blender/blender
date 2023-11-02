@@ -209,6 +209,8 @@
     .gtao_distance = 0.2f, \
     .gtao_factor = 1.0f, \
     .gtao_quality = 0.25f, \
+    .gtao_thickness = 0.5f, \
+    .gtao_focus = 0.05f, \
  \
     .bokeh_overblur = 5.0f, \
     .bokeh_max_size = 100.0f, \

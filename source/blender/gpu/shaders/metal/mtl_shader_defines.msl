@@ -1524,19 +1524,19 @@ inline float4 uintBitsToFloat(uint4 f)
 #define bitfieldInsert insert_bits
 #define bitCount popcount
 
-template<typename T> T findLSB(T x)
+template<typename T> int findLSB(T x)
 {
   /* ctz returns the number of trailing zeroes. To fetch the index of the LSB, we can also use this
    * value as index, however we need to filter out the case where the input value is zero to match
    * GLSL functionality. */
-  return (x == T(0)) ? T(-1) : T(ctz(x));
+  return (x == T(0)) ? int(-1) : int(ctz(x));
 }
 
-template<typename T> T findMSB(T x)
+template<typename T> int findMSB(T x)
 {
   /* clz returns the number of leading zeroes. To fetch the index of the MSB, we can also use this
    * value as index when offset by 1. */
-  return (sizeof(T) * 8) - T(1) - clz(x);
+  return int(sizeof(T) * 8) - 1 - int(clz(x));
 }
 
 /* Texture size functions. Add texture types as needed. */

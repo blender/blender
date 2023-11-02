@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(draw_view_reconstruction_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_horizon_scan_eval_lib.glsl)
 
 void main()
 {
@@ -14,26 +14,36 @@ void main()
     return;
   }
 
-  SurfaceReconstructResult surf = view_reconstruct_from_depth(hiz_tx, extent, texel);
-  if (surf.is_background) {
+  vec2 uv = (vec2(texel) + vec2(0.5)) / vec2(extent);
+  float depth = texelFetch(hiz_tx, texel, 0).r;
+
+  if (depth == 1.0) {
     /* Do not trace for background */
     imageStore(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(0.0));
     return;
   }
 
-  vec3 P = drw_point_view_to_world(surf.vP);
-  vec3 V = drw_world_incident_vector(P);
-  vec3 Ng = drw_normal_view_to_world(surf.vNg);
+  vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
   vec3 N = imageLoad(in_normal_img, ivec3(texel, in_normal_img_layer_index)).xyz;
+  vec3 vN = drw_normal_world_to_view(N);
 
-  OcclusionData data = ambient_occlusion_search(
-      surf.vP, hiz_tx, texel, uniform_buf.ao.distance, 0.0, 8.0);
+  vec2 noise;
+  noise.x = interlieved_gradient_noise(vec2(texel), 3.0, 0.0);
+  noise.y = utility_tx_fetch(utility_tx, texel, UTIL_BLUE_NOISE_LAYER).r;
+  noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
 
-  float visibility;
-  float unused_visibility_error_out;
-  vec3 unused_bent_normal_out;
-  ambient_occlusion_eval(
-      data, texel, V, N, Ng, 0.0, visibility, unused_visibility_error_out, unused_bent_normal_out);
+  vec3 ambient_occlusion = horizon_scan_eval(vP,
+                                             vN,
+                                             hiz_tx,
+                                             noise,
+                                             uniform_buf.ao.pixel_size,
+                                             uniform_buf.ao.distance,
+                                             uniform_buf.ao.thickness,
+                                             uniform_buf.ao.angle_bias,
+                                             10);
 
-  imageStore(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(saturate(visibility)));
+  /* We can have some float imprecision because of the weighted accumulation. */
+  ambient_occlusion = saturate(ambient_occlusion * 1.02);
+
+  imageStore(out_ao_img, ivec3(texel, out_ao_img_layer_index), saturate(ambient_occlusion.rrrr));
 }
