@@ -377,7 +377,7 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       int n_index = curr_corner.vertex_normal_index;
       float3 normal(0, 0, 0);
-      if (n_index >= 0) {
+      if (n_index >= 0 && n_index < global_vertices_.vert_normals.size()) {
         normal = global_vertices_.vert_normals[n_index];
       }
       copy_v3_v3(loop_normals[tot_loop_idx], normal);
