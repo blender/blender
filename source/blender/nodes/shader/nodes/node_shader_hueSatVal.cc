@@ -45,7 +45,8 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem combine = create_node(
       "combine3", NodeItem::Type::Vector3, {{"in1", hue}, {"in2", saturation}, {"in3", value}});
 
-  NodeItem hsv = create_node("hsvadjust", NodeItem::Type::Color3, {{"in", color}, {"amount", combine}});
+  NodeItem hsv = create_node(
+      "hsvadjust", NodeItem::Type::Color3, {{"in", color}, {"amount", combine}});
 
   return fac.mix(color, hsv);
 }
