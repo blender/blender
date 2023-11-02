@@ -198,6 +198,9 @@ class Result {
    * a practical example of use. */
   void steal_data(Result &source);
 
+  /* Sets the transformation of the domain of the result to the given transformation. */
+  void set_transformation(const float3x3 &transformation);
+
   /* Transform the result by the given transformation. This effectively pre-multiply the given
    * transformation by the current transformation of the domain of the result. */
   void transform(const float3x3 &transformation);

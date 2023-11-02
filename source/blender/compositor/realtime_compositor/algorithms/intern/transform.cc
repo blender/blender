@@ -56,32 +56,30 @@ void transform(Context &context,
                Result &input,
                Result &output,
                float3x3 transformation,
-               Interpolation interpolation)
+               RealizationOptions realization_options)
 {
-  math::AngleRadian rotation;
-  float2 translation, scale;
-  math::to_loc_rot_scale(transformation, translation, rotation, scale);
+  /* If we are wrapping, the input is translated but the target domain remains fixed, which results
+   * in the input clipping on one side and wrapping on the opposite side. This mask vector can be
+   * multiplied to the translation component of the transformation to remove it. */
+  const float2 wrap_mask = float2(realization_options.wrap_x ? 0.0f : 1.0f,
+                                  realization_options.wrap_y ? 0.0f : 1.0f);
 
-  /* Rotation and scale transformations are immediately realized. */
-  if (rotation != 0.0f || scale != float2(1.0f)) {
-    RealizationOptions realization_options = input.get_realization_options();
-    realization_options.interpolation = interpolation;
+  /* Compute a transformed input domain, excluding translations of wrapped axes. */
+  Domain input_domain = input.domain();
+  float3x3 domain_transformation = transformation;
+  domain_transformation.location() *= wrap_mask;
+  input_domain.transform(domain_transformation);
 
-    Domain input_domain = input.domain();
-    input_domain.transform(transformation);
+  /* Realize the input on the target domain using the full transformation. */
+  const Domain target_domain = compute_realized_transformation_domain(input_domain);
+  realize_on_domain(context,
+                    input,
+                    output,
+                    target_domain,
+                    transformation * input.domain().transformation,
+                    realization_options);
 
-    const Domain target_domain = compute_realized_transformation_domain(input_domain);
-
-    realize_on_domain(
-        context, input, output, target_domain, input_domain.transformation, realization_options);
-  }
-  else {
-    input.pass_through(output);
-    const float3x3 translation_matrix = math::from_location<float3x3>(translation);
-    output.transform(translation_matrix);
-  }
-
-  output.get_realization_options().interpolation = interpolation;
+  output.get_realization_options().interpolation = realization_options.interpolation;
 }
 
 }  // namespace blender::realtime_compositor

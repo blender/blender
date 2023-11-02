@@ -60,7 +60,10 @@ class RotateOperation : public NodeOperation {
     const math::AngleRadian rotation = get_input("Degr").get_float_value_default(0.0f);
     const float3x3 transformation = math::from_rotation<float3x3>(rotation);
 
-    transform(context(), input, output, transformation, get_interpolation());
+    RealizationOptions realization_options = input.get_realization_options();
+    realization_options.interpolation = get_interpolation();
+
+    transform(context(), input, output, transformation, realization_options);
   }
 
   Interpolation get_interpolation()

@@ -62,6 +62,12 @@ void realize_on_domain(Context &context,
                        const float3x3 &input_transformation,
                        const RealizationOptions &realization_options)
 {
+  const Domain input_domain = Domain(input.domain().size, input_transformation);
+  if (input_domain == domain) {
+    input.pass_through(output);
+    output.set_transformation(domain.transformation);
+    return;
+  }
 
   GPUShader *shader = context.shader_manager().get(
       get_realization_shader(input, realization_options));
@@ -87,16 +93,14 @@ void realize_on_domain(Context &context,
       realization_options.interpolation, Interpolation::Bilinear, Interpolation::Bicubic);
   GPU_texture_filter_mode(input.texture(), use_bilinear);
 
-  /* If the input repeats, set a repeating wrap mode for out-of-bound texture access. Otherwise,
+  /* If the input wraps, set a repeating wrap mode for out-of-bound texture access. Otherwise,
    * make out-of-bound texture access return zero by setting a clamp to border extend mode. */
   GPU_texture_extend_mode_x(input.texture(),
-                            realization_options.repeat_x ?
-                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
-                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+                            realization_options.wrap_x ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                                         GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
   GPU_texture_extend_mode_y(input.texture(),
-                            realization_options.repeat_y ?
-                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
-                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+                            realization_options.wrap_y ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                                         GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
   input.bind_as_texture(shader, "input_tx");
 

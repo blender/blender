@@ -179,6 +179,11 @@ void Result::steal_data(Result &source)
   source.texture_pool_ = nullptr;
 }
 
+void Result::set_transformation(const float3x3 &transformation)
+{
+  domain_.transformation = transformation;
+}
+
 void Result::transform(const float3x3 &transformation)
 {
   domain_.transform(transformation);
