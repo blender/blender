@@ -6,6 +6,7 @@
  * \ingroup edcurves
  */
 
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "ED_curves.hh"
