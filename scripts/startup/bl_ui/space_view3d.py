@@ -1077,6 +1077,7 @@ class VIEW3D_HT_header(Header):
 
 class VIEW3D_AST_brush_asset_shelf(bpy.types.AssetShelf):
     bl_space_type = "VIEW_3D"
+    bl_options = {'NO_ASSET_DRAG'}
 
     @classmethod
     def poll(cls, context):
@@ -1084,7 +1085,7 @@ class VIEW3D_AST_brush_asset_shelf(bpy.types.AssetShelf):
 
     @classmethod
     def asset_poll(cls, asset):
-        return asset.file_data.id_type == 'BRUSH'
+        return asset.id_type == 'BRUSH'
 
 
 class VIEW3D_MT_editor_menus(Menu):
