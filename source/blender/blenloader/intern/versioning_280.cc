@@ -4148,8 +4148,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             View3D *v3d = (View3D *)sl;
             v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_FACES | V3D_OVERLAY_EDIT_SEAMS |
                                       V3D_OVERLAY_EDIT_SHARP | V3D_OVERLAY_EDIT_FREESTYLE_EDGE |
-                                      V3D_OVERLAY_EDIT_FREESTYLE_FACE | V3D_OVERLAY_EDIT_EDGES |
-                                      V3D_OVERLAY_EDIT_CREASES | V3D_OVERLAY_EDIT_BWEIGHTS;
+                                      V3D_OVERLAY_EDIT_FREESTYLE_FACE | V3D_OVERLAY_EDIT_CREASES |
+                                      V3D_OVERLAY_EDIT_BWEIGHTS;
           }
         }
       }

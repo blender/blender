@@ -188,8 +188,8 @@ static void blo_update_defaults_screen(bScreen *screen,
       v3d->overlay.texture_paint_mode_opacity = 1.0f;
       v3d->overlay.weight_paint_mode_opacity = 1.0f;
       v3d->overlay.vertex_paint_mode_opacity = 1.0f;
-      /* Use dimmed selected edges. */
-      v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_EDGES;
+      /* Clear this deprecated bit for later reuse. */
+      v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_EDGES_DEPRECATED;
       /* grease pencil settings */
       v3d->vertex_opacity = 1.0f;
       v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;

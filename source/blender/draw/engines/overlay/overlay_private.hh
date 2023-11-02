@@ -367,7 +367,6 @@ struct OVERLAY_PrivateData {
   struct {
     bool do_zbufclip;
     bool do_faces;
-    bool do_edges;
     bool select_vert;
     bool select_face;
     bool select_edge;
