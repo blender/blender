@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define SEQ_RENDER_THUMB_SIZE 256
 
 struct ListBase;
@@ -127,7 +123,3 @@ void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4
  * This function also checks `SeqTimelineChannel` flag.
  */
 bool SEQ_render_is_muted(const struct ListBase *channels, const struct Sequence *seq);
-
-#ifdef __cplusplus
-}
-#endif

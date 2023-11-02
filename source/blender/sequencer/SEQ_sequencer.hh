@@ -10,10 +10,6 @@
 
 #include "DNA_scene_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
@@ -151,7 +147,3 @@ void SEQ_sequence_lookup_free(const struct Scene *scene);
  * \param tag: tag to set
  */
 void SEQ_sequence_lookup_tag(const struct Scene *scene, eSequenceLookupTag tag);
-
-#ifdef __cplusplus
-}
-#endif

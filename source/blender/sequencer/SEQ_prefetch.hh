@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Main;
 struct Scene;
 
@@ -22,7 +18,3 @@ void SEQ_prefetch_stop_all(void);
  */
 void SEQ_prefetch_stop(struct Scene *scene);
 bool SEQ_prefetch_need_redraw(struct Main *bmain, struct Scene *scene);
-
-#ifdef __cplusplus
-}
-#endif

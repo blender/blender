@@ -46,7 +46,7 @@
 
 #include "ANIM_bone_collections.h"
 
-#include "SEQ_select.h"
+#include "SEQ_select.hh"
 
 #include "transform.hh"
 #include "transform_orientations.hh"

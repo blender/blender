@@ -86,7 +86,7 @@
 
 #include "RE_pipeline.h"
 
-#include "SEQ_utils.h" /* SEQ_get_topmost_sequence() */
+#include "SEQ_utils.hh" /* SEQ_get_topmost_sequence() */
 
 #include "GPU_material.h"
 #include "GPU_texture.h"

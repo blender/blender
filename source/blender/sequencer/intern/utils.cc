@@ -26,24 +26,24 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
-#include "SEQ_animation.h"
-#include "SEQ_channels.h"
-#include "SEQ_edit.h"
-#include "SEQ_iterator.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_utils.h"
+#include "SEQ_animation.hh"
+#include "SEQ_channels.hh"
+#include "SEQ_edit.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_utils.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "multiview.h"
-#include "proxy.h"
-#include "sequencer.h"
-#include "utils.h"
+#include "multiview.hh"
+#include "proxy.hh"
+#include "sequencer.hh"
+#include "utils.hh"
 
 struct SeqUniqueInfo {
   Sequence *seq;

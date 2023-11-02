@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 struct Scene;
 struct Sequence;
@@ -49,7 +45,3 @@ float seq_time_media_playback_rate_factor_get(const struct Scene *scene,
 int seq_time_strip_original_content_length_get(const struct Scene *scene,
                                                const struct Sequence *seq);
 float seq_retiming_evaluate(const struct Sequence *seq, const float frame_index);
-
-#ifdef __cplusplus
-}
-#endif

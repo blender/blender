@@ -32,7 +32,7 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.hh"
 
-#include "SEQ_transform.h"
+#include "SEQ_transform.hh"
 
 #include "ED_clip.hh"
 #include "ED_image.hh"
@@ -47,7 +47,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sequencer.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

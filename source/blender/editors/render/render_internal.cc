@@ -66,7 +66,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "SEQ_relations.h"
+#include "SEQ_relations.hh"
 
 #include "render_intern.hh"
 

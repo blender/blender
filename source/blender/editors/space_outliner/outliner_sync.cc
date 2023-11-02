@@ -30,7 +30,7 @@
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 
-#include "SEQ_select.h"
+#include "SEQ_select.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

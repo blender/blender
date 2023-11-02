@@ -52,9 +52,9 @@
 
 #include "rna_internal.h"
 
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

@@ -86,8 +86,8 @@
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 
-#include "SEQ_sequencer.h"
-#include "SEQ_utils.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_utils.hh"
 
 #include "ANIM_bone_collections.h"
 

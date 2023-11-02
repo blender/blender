@@ -68,7 +68,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
 
-#include "SEQ_clipboard.h" /* free seq clipboard */
+#include "SEQ_clipboard.hh" /* free seq clipboard */
 
 #include "IMB_thumbs.h"
 

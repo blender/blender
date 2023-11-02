@@ -20,11 +20,11 @@
 
 #include "BKE_scene.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_time.h"
-#include "render.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_time.hh"
+#include "render.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Iterator API

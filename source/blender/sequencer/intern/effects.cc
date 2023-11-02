@@ -45,20 +45,20 @@
 
 #include "RE_pipeline.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_effects.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_time.h"
-#include "SEQ_utils.h"
+#include "SEQ_channels.hh"
+#include "SEQ_effects.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_time.hh"
+#include "SEQ_utils.hh"
 
 #include "BLF_api.h"
 
-#include "effects.h"
-#include "render.h"
-#include "strip_time.h"
-#include "utils.h"
+#include "effects.hh"
+#include "render.hh"
+#include "strip_time.hh"
+#include "utils.hh"
 
 static SeqEffectHandle get_sequence_effect_impl(int seq_type);
 

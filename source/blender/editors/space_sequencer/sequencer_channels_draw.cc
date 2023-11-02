@@ -30,9 +30,9 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
+#include "SEQ_channels.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

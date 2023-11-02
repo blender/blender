@@ -8,11 +8,7 @@
  * \ingroup sequencer
  */
 
-#include "SEQ_effects.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "SEQ_effects.hh"
 
 struct Scene;
 struct Sequence;
@@ -30,7 +26,3 @@ float seq_speed_effect_target_frame_get(struct Scene *scene,
                                         struct Sequence *seq,
                                         float timeline_frame,
                                         int input);
-
-#ifdef __cplusplus
-}
-#endif

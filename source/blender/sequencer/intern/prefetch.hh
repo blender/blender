@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Scene;
 struct SeqRenderData;
 struct Sequence;
@@ -31,7 +27,3 @@ struct SeqRenderData *seq_prefetch_get_original_context(const struct SeqRenderDa
  * For cache context swapping.
  */
 struct Sequence *seq_prefetch_get_original_sequence(struct Sequence *seq, struct Scene *scene);
-
-#ifdef __cplusplus
-}
-#endif

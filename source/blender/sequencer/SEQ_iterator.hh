@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "BLI_ghash.h"
 
 struct GSet;
@@ -234,7 +230,3 @@ void SEQ_query_strip_effect_chain(const struct Scene *scene,
                                   struct ListBase *seqbase,
                                   SeqCollection *collection);
 void SEQ_filter_selected_strips(SeqCollection *collection);
-
-#ifdef __cplusplus
-}
-#endif

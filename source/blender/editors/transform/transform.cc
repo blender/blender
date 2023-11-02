@@ -37,7 +37,7 @@
 
 #include "ANIM_keyframing.hh"
 
-#include "SEQ_transform.h"
+#include "SEQ_transform.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"

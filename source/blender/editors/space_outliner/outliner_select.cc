@@ -54,8 +54,8 @@
 #include "ED_text.hh"
 #include "ED_undo.hh"
 
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

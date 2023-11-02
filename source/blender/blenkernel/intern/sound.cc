@@ -55,9 +55,9 @@
 
 #include "BLO_read_write.hh"
 
-#include "SEQ_sequencer.h"
-#include "SEQ_sound.h"
-#include "SEQ_time.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_sound.hh"
+#include "SEQ_time.hh"
 
 static void sound_free_audio(bSound *sound);
 

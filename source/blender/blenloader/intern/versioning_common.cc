@@ -29,7 +29,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sequencer.hh"
 
 #include "MEM_guardedalloc.h"
 

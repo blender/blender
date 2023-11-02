@@ -38,21 +38,21 @@
 
 #include "rna_internal.h"
 
-#include "SEQ_add.h"
-#include "SEQ_channels.h"
-#include "SEQ_effects.h"
-#include "SEQ_iterator.h"
-#include "SEQ_modifier.h"
-#include "SEQ_prefetch.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
+#include "SEQ_add.hh"
+#include "SEQ_channels.hh"
+#include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
+#include "SEQ_prefetch.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_sound.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_sound.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 #include "WM_types.hh"
 
@@ -123,7 +123,7 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include "IMB_imbuf.h"
 
-#  include "SEQ_edit.h"
+#  include "SEQ_edit.hh"
 
 struct SequenceSearchData {
   Sequence *seq;

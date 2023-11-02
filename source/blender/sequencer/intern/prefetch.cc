@@ -38,16 +38,16 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_prefetch.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_prefetch.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 
-#include "image_cache.h"
-#include "prefetch.h"
-#include "render.h"
+#include "image_cache.hh"
+#include "prefetch.hh"
+#include "render.hh"
 
 struct PrefetchJob {
   PrefetchJob *next, *prev;

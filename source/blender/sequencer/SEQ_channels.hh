@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Editing;
 struct ListBase;
 struct SeqTimelineChannel;
@@ -32,7 +28,3 @@ int SEQ_channel_index_get(const struct SeqTimelineChannel *channel);
 ListBase *SEQ_get_channels_by_seq(struct ListBase *seqbase,
                                   struct ListBase *channels,
                                   const struct Sequence *seq);
-
-#ifdef __cplusplus
-}
-#endif

@@ -30,18 +30,18 @@
 
 #include "RNA_prototypes.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
-#include "sequencer.h"
-#include "strip_time.h"
-#include "utils.h"
+#include "sequencer.hh"
+#include "strip_time.hh"
+#include "utils.hh"
 
 using blender::MutableSpan;
 

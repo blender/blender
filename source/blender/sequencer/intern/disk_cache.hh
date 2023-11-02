@@ -12,10 +12,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ImBuf;
 struct Main;
 struct Scene;
@@ -36,6 +32,3 @@ void seq_disk_cache_invalidate(struct SeqDiskCache *disk_cache,
                                struct Sequence *seq,
                                struct Sequence *seq_changed,
                                int invalidate_types);
-#ifdef __cplusplus
-}
-#endif

@@ -69,7 +69,7 @@
 #include "BKE_sound.h"
 #include "BKE_texture.h"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 
 #include "BLO_readfile.h"
 

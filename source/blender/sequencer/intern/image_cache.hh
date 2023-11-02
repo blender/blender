@@ -8,11 +8,7 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "SEQ_render.h" /* Needed for #eSeqTaskId. */
+#include "SEQ_render.hh" /* Needed for #eSeqTaskId. */
 
 struct ImBuf;
 struct Main;
@@ -71,7 +67,3 @@ void seq_cache_cleanup_sequence(struct Scene *scene,
 void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area);
 bool seq_cache_is_full(void);
 float seq_cache_frame_index_to_timeline_frame(struct Sequence *seq, float frame_index);
-
-#ifdef __cplusplus
-}
-#endif

@@ -32,11 +32,11 @@
 #  include "AUD_Sound.h"
 #endif
 
-#include "SEQ_sound.h"
-#include "SEQ_time.h"
+#include "SEQ_sound.hh"
+#include "SEQ_time.hh"
 
-#include "sequencer.h"
-#include "strip_time.h"
+#include "sequencer.hh"
+#include "strip_time.hh"
 
 /* Unlike _update_sound_ functions,
  * these ones take info from audaspace to update sequence length! */

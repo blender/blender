@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 struct Main;
 struct Scene;
@@ -33,7 +29,3 @@ void SEQ_clipboard_active_seq_name_store(struct Scene *scene);
  * \return true if strip was active, false otherwise
  */
 bool SEQ_clipboard_pasted_seq_was_active(struct Sequence *pasted_seq);
-
-#ifdef __cplusplus
-}
-#endif

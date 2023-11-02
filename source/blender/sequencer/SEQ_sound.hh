@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Main;
 struct Scene;
 struct Sequence;
@@ -61,7 +57,3 @@ typedef struct SoundModifierWorkerInfo {
   int type;
   void *(*recreator)(struct Sequence *seq, struct SequenceModifierData *smd, void *sound);
 } SoundModifierWorkerInfo;
-
-#ifdef __cplusplus
-}
-#endif

@@ -35,8 +35,8 @@
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
-#include "SEQ_relations.h"
-#include "SEQ_select.h"
+#include "SEQ_relations.hh"
+#include "SEQ_select.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

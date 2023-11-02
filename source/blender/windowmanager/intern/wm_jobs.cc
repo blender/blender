@@ -22,7 +22,7 @@
 #include "BKE_global.h"
 #include "BKE_report.h"
 
-#include "SEQ_prefetch.h"
+#include "SEQ_prefetch.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

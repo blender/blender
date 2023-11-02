@@ -44,10 +44,10 @@
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 
-#include "SEQ_channels.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_transform.h"
+#include "SEQ_channels.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
 #include "WM_api.hh"

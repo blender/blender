@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 struct Main;
 struct MovieClip;
@@ -70,7 +66,3 @@ struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqba
                                                 struct Sequence *meta /* = NULL */,
                                                 struct Sequence *seq);
 bool SEQ_exists_in_seqbase(const struct Sequence *seq, const struct ListBase *seqbase);
-
-#ifdef __cplusplus
-}
-#endif

@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ImBuf;
 struct SeqRenderData;
 struct Sequence;
@@ -95,7 +91,3 @@ struct SeqEffectHandle SEQ_effect_handle_get(struct Sequence *seq);
 int SEQ_effect_get_num_inputs(int seq_type);
 void SEQ_effect_text_font_unload(struct TextVars *data, bool do_id_user);
 void SEQ_effect_text_font_load(struct TextVars *data, bool do_id_user);
-
-#ifdef __cplusplus
-}
-#endif

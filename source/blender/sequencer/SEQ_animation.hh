@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GSet;
 struct ListBase;
 struct Scene;
@@ -41,7 +37,3 @@ void SEQ_animation_restore_original(struct Scene *scene, struct SeqAnimationBack
 void SEQ_animation_duplicate_backup_to_scene(struct Scene *scene,
                                              struct Sequence *seq,
                                              struct SeqAnimationBackup *backup);
-
-#ifdef __cplusplus
-}
-#endif

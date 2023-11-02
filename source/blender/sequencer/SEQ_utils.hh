@@ -10,10 +10,6 @@
 
 #include "DNA_scene_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 struct Mask;
 struct Scene;
@@ -57,6 +53,3 @@ void SEQ_set_scale_to_fit(const struct Sequence *seq,
  * \param scene: Scene in which name must be unique
  */
 void SEQ_ensure_unique_name(struct Sequence *seq, struct Scene *scene);
-#ifdef __cplusplus
-}
-#endif

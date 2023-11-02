@@ -101,8 +101,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_key.h"

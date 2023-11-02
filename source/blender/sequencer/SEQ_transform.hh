@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 struct Scene;
 struct SeqCollection;
@@ -135,7 +131,3 @@ void SEQ_image_transform_bounding_box_from_collection(struct Scene *scene,
                                                       bool apply_rotation,
                                                       float r_min[2],
                                                       float r_max[2]);
-
-#ifdef __cplusplus
-}
-#endif

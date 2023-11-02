@@ -93,9 +93,9 @@
 #include "BKE_unit.h"
 #include "BKE_workspace.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_modifier.h"
-#include "SEQ_utils.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
+#include "SEQ_utils.hh"
 
 #include "NOD_shader.h"
 

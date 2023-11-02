@@ -83,8 +83,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "SEQ_relations.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_element_grease_pencil_node.hh"

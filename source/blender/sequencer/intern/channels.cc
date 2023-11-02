@@ -16,10 +16,10 @@
 
 #include "BLI_blenlib.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_relations.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 ListBase *SEQ_channels_displayed_get(Editing *ed)
 {

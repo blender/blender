@@ -755,9 +755,9 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_query.hh"
 
-#  include "SEQ_relations.h"
-#  include "SEQ_sequencer.h"
-#  include "SEQ_sound.h"
+#  include "SEQ_relations.hh"
+#  include "SEQ_sequencer.hh"
+#  include "SEQ_sound.hh"
 
 #  ifdef WITH_FREESTYLE
 #    include "FRS_freestyle.h"

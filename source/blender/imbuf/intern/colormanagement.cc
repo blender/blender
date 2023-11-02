@@ -45,7 +45,7 @@
 
 #include "RNA_define.hh"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 
 #include <ocio_capi.h>
 

@@ -67,8 +67,8 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
 
 #include "BLO_readfile.h"
 

@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 struct Main;
 struct Scene;
@@ -95,7 +91,3 @@ bool SEQ_edit_remove_gaps(struct Scene *scene,
                           int initial_frame,
                           bool remove_all_gaps);
 void SEQ_edit_sequence_name_set(struct Scene *scene, struct Sequence *seq, const char *new_name);
-
-#ifdef __cplusplus
-}
-#endif

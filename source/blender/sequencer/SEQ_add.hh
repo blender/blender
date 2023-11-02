@@ -8,9 +8,6 @@
  * \ingroup sequencer
  */
 #include "BLI_utildefines.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct ListBase;
 struct Scene;
@@ -199,7 +196,3 @@ void SEQ_add_movie_reload_if_needed(struct Main *bmain,
                                     struct Sequence *seq,
                                     bool *r_was_reloaded,
                                     bool *r_can_produce_frames);
-
-#ifdef __cplusplus
-}
-#endif

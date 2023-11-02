@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Depsgraph;
 struct GSet;
 struct ListBase;
@@ -47,7 +43,3 @@ typedef struct ProxyBuildJob {
 
 struct wmJob *ED_seq_proxy_wm_job_get(const struct bContext *C);
 ProxyJob *ED_seq_proxy_job_get(const struct bContext *C, struct wmJob *wm_job);
-
-#ifdef __cplusplus
-}
-#endif

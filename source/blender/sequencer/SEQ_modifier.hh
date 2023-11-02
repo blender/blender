@@ -8,10 +8,6 @@
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
@@ -64,7 +60,3 @@ int SEQ_sequence_supports_modifiers(struct Sequence *seq);
 
 void SEQ_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
 void SEQ_modifier_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
-
-#ifdef __cplusplus
-}
-#endif

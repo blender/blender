@@ -20,10 +20,10 @@
 
 #include "BIF_glutil.hh"
 
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
