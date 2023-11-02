@@ -670,16 +670,15 @@ GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
 
 GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object *ob_eval,
                                                                     const Object &ob_orig,
-                                                                    const int layer_index)
+                                                                    const int layer_index,
+                                                                    const int frame)
 {
   BLI_assert(ob_orig.type == OB_GREASE_PENCIL);
-  const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(ob_eval->data);
   const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
 
-  const int eval_frame = grease_pencil.runtime->eval_frame;
   const Span<const bke::greasepencil::Layer *> layers_orig = grease_pencil_orig.layers();
   BLI_assert(layer_index >= 0 && layer_index < layers_orig.size());
-  const int drawing_index = layers_orig[layer_index]->drawing_index_at(eval_frame);
+  const int drawing_index = layers_orig[layer_index]->drawing_index_at(frame);
   if (drawing_index == -1) {
     return {};
   }
@@ -726,7 +725,7 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
       Span<const bke::greasepencil::Layer *> layers_eval = grease_pencil_eval->layers();
       if (layers_eval.size() != layers_orig.size()) {
         const bke::greasepencil::Layer *layer_eval = layers_eval[layer_index];
-        const int drawing_index_eval = layer_eval->drawing_index_at(eval_frame);
+        const int drawing_index_eval = layer_eval->drawing_index_at(frame);
         if (drawing_index_eval != -1) {
           const GreasePencilDrawingBase *drawing_base_eval = grease_pencil_eval->drawing(
               drawing_index_eval);
@@ -748,10 +747,11 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
 
 GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Depsgraph &depsgraph,
                                                                     const Object &ob_orig,
-                                                                    const int layer_index)
+                                                                    const int layer_index,
+                                                                    const int frame)
 {
   const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, const_cast<Object *>(&ob_orig));
-  return get_evaluated_grease_pencil_drawing_deformation(ob_eval, ob_orig, layer_index);
+  return get_evaluated_grease_pencil_drawing_deformation(ob_eval, ob_orig, layer_index, frame);
 }
 
 }  // namespace blender::bke::crazyspace

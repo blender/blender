@@ -11,6 +11,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_modifier_types.h"
@@ -877,6 +878,19 @@ static void rna_Gpencil_vertex_mask_segment_update(bContext *C, PointerRNA *ptr)
 
   ED_gpencil_tag_scene_gpencil(CTX_data_scene(C));
 }
+
+#  ifdef WITH_GREASE_PENCIL_V3
+static void rna_active_grease_pencil_update(bContext *C, PointerRNA * /*ptr*/)
+{
+  Object *active_object = CTX_data_active_object(C);
+  if (!active_object || active_object->type != OB_GREASE_PENCIL) {
+    return;
+  }
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(active_object->data);
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
+}
+#  endif
 
 /* Read-only Iterator of all the scene objects. */
 
@@ -3733,6 +3747,16 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Gpencil_vertex_mask_segment_update");
+
+#  ifdef WITH_GREASE_PENCIL_V3
+  prop = RNA_def_property(srna, "use_grease_pencil_multi_frame_editing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "gpencil_flags", GP_USE_MULTI_FRAME_EDITING);
+  RNA_def_property_ui_text(prop, "Multi-frame Editing", "Enable multi-frame editing");
+  RNA_def_property_ui_icon(prop, ICON_GP_MULTIFRAME_EDITING, 0);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_active_grease_pencil_update");
+#  endif
 
   /* Annotations - 2D Views Stroke Placement */
   prop = RNA_def_property(srna, "annotation_stroke_placement_view2d", PROP_ENUM, PROP_NONE);

@@ -577,20 +577,6 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Drawing *get_editable_drawing_at(
       const blender::bke::greasepencil::Layer *layer, int frame_number);
 
-  void foreach_visible_drawing(
-      const int frame,
-      blender::FunctionRef<void(const int /*layer_index*/,
-                                blender::bke::greasepencil::Drawing & /*drawing*/)> function);
-  void foreach_visible_drawing(
-      const int frame,
-      blender::FunctionRef<void(const int /*layer_index*/,
-                                const blender::bke::greasepencil::Drawing & /*drawing*/)> function)
-      const;
-  void foreach_editable_drawing(
-      const int frame,
-      blender::FunctionRef<void(const int /*layer_index*/,
-                                blender::bke::greasepencil::Drawing & /*drawing*/)> function);
-
   std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
 
   blender::bke::AttributeAccessor attributes() const;

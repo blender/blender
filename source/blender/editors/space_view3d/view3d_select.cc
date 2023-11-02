@@ -1192,20 +1192,21 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
       vc->scene->toolsettings);
 
   bool changed = false;
-  grease_pencil.foreach_editable_drawing(
-      vc->scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
-        bke::crazyspace::GeometryDeformation deformation =
-            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, layer_index);
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
+  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
 
-        changed = ed::curves::select_lasso(
-            *vc,
-            drawing.strokes_for_write(),
-            deformation.positions,
-            selection_domain,
-            Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
-            sel_op);
-      });
+    changed = ed::curves::select_lasso(
+        *vc,
+        info.drawing.strokes_for_write(),
+        deformation.positions,
+        selection_domain,
+        Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
+        sel_op);
+  }
 
   if (changed) {
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
@@ -3167,13 +3168,8 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   /* Collect editable drawings. */
   const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obedit->data);
-  Vector<blender::bke::greasepencil::Drawing *> drawings;
-  Vector<int> layer_indices;
-  grease_pencil.foreach_editable_drawing(
-      vc.scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
-        drawings.append(&drawing);
-        layer_indices.append(layer_index);
-      });
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
 
   /* Get selection domain from tool settings. */
   const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
@@ -3186,21 +3182,22 @@ static bool ed_grease_pencil_select_pick(bContext *C,
       [&](const IndexRange range, const ClosestGreasePencilDrawing &init) {
         ClosestGreasePencilDrawing new_closest = init;
         for (const int i : range) {
+          ed::greasepencil::MutableDrawingInfo info = drawings[i];
           /* Get deformation by modifiers. */
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                  ob_eval, *vc.obedit, layer_indices[i]);
+                  ob_eval, *vc.obedit, info.layer_index, info.frame_number);
           std::optional<ed::curves::FindClosestData> new_closest_elem =
               ed::curves::closest_elem_find_screen_space(vc,
                                                          *vc.obedit,
-                                                         drawings[i]->strokes_for_write(),
+                                                         info.drawing.strokes_for_write(),
                                                          deformation.positions,
                                                          selection_domain,
                                                          mval,
                                                          new_closest.elem);
           if (new_closest_elem) {
             new_closest.elem = *new_closest_elem;
-            new_closest.drawing = drawings[i];
+            new_closest.drawing = &info.drawing;
           }
         }
         return new_closest;
@@ -3213,7 +3210,8 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   if (params.deselect_all || params.sel_op == SEL_OP_SET) {
     threading::parallel_for(drawings.index_range(), 1L, [&](const IndexRange range) {
       for (const int i : range) {
-        bke::CurvesGeometry &curves = drawings[i]->geometry.wrap();
+        ed::greasepencil::MutableDrawingInfo info = drawings[i];
+        bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
         if (!ed::curves::has_anything_selected(curves)) {
           continue;
         }
@@ -4191,18 +4189,19 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
   const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
   bool changed = false;
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
-        bke::crazyspace::GeometryDeformation deformation =
-            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, layer_index);
-        changed |= ed::curves::select_box(*vc,
-                                          drawing.strokes_for_write(),
-                                          deformation.positions,
-                                          selection_domain,
-                                          *rect,
-                                          sel_op);
-      });
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
+  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+    changed |= ed::curves::select_box(*vc,
+                                      info.drawing.strokes_for_write(),
+                                      deformation.positions,
+                                      selection_domain,
+                                      *rect,
+                                      sel_op);
+  }
 
   if (changed) {
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
@@ -5039,20 +5038,21 @@ static bool grease_pencil_circle_select(ViewContext *vc,
       vc->scene->toolsettings);
 
   bool changed = false;
-  grease_pencil.foreach_editable_drawing(
-      vc->scene->r.cfra, [&](const int layer_index, blender::bke::greasepencil::Drawing &drawing) {
-        bke::crazyspace::GeometryDeformation deformation =
-            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, layer_index);
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
+  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
 
-        changed = ed::curves::select_circle(*vc,
-                                            drawing.strokes_for_write(),
-                                            deformation.positions,
-                                            selection_domain,
-                                            int2(mval),
-                                            rad,
-                                            sel_op);
-      });
+    changed = ed::curves::select_circle(*vc,
+                                        info.drawing.strokes_for_write(),
+                                        deformation.positions,
+                                        selection_domain,
+                                        int2(mval),
+                                        rad,
+                                        sel_op);
+  }
 
   if (changed) {
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
