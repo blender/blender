@@ -53,6 +53,10 @@ struct ReflectionProbe : ReflectionProbeData {
    */
   float2 clipping_distances;
 
+  /** Display debug spheres in the viewport. */
+  bool viewport_display;
+  float viewport_display_size;
+
   ReflectionProbe()
   {
     this->atlas_coord.layer_subdivision = -1;
@@ -123,6 +127,11 @@ class ReflectionProbeModule {
   bool update_probes_next_sample_ = false;
   bool update_probes_this_sample_ = false;
 
+  /** Viewport data display drawing. */
+  bool do_display_draw_ = false;
+  ReflectionProbeDisplayDataBuf display_data_buf_;
+  PassSimple viewport_display_ps_ = {"ReflectionProbeModule.Viewport Display"};
+
  public:
   ReflectionProbeModule(Instance &instance) : instance_(instance) {}
 
@@ -132,6 +141,8 @@ class ReflectionProbeModule {
   void sync_world_lookdev();
   void sync_object(Object *ob, ObjectHandle &ob_handle);
   void end_sync();
+
+  void viewport_draw(View &view, GPUFrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
   {

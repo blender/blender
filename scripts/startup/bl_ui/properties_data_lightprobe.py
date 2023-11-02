@@ -111,6 +111,12 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             col.operator("object.lightprobe_cache_free").subset = 'ACTIVE'
 
             col.separator()
+            
+            row = col.row(align=True)
+            row.prop(probe, "data_display_size", text="Display Data")
+            row.prop(probe, "use_data_display", text="", toggle=True)
+            
+            col.separator()
 
             col.prop(probe, "grid_bake_samples")
             col.prop(probe, "surfel_density")
@@ -160,11 +166,15 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             sub.prop(probe, "clip_start", text="Clipping Start")
             sub.prop(probe, "clip_end", text="End")
 
+            row = col.row(align=True)
+            row.prop(probe, "data_display_size", text="Display Data")
+            row.prop(probe, "use_data_display", text="", toggle=True)
+
         elif probe.type == 'PLANE':
             col = layout.column()
-            row = col.row()
             col.prop(probe, "clip_start", text="Clipping Offset")
             col.prop(probe, "influence_distance", text="Distance")
+            col.prop(probe, "use_data_display", toggle=True)
             pass
         else:
             # Currently unsupported

@@ -120,6 +120,10 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_debug_irradiance_grid";
     case DISPLAY_PROBE_GRID:
       return "eevee_display_probe_grid";
+    case DISPLAY_PROBE_REFLECTION:
+      return "eevee_display_probe_reflection";
+    case DISPLAY_PROBE_PLANAR:
+      return "eevee_display_probe_planar";
     case DOF_BOKEH_LUT:
       return "eevee_depth_of_field_bokeh_lut";
     case DOF_DOWNSAMPLE:

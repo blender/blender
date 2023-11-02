@@ -36,9 +36,14 @@ struct PlanarProbe : ProbePlanarData {
   int resource_index;
   /* Pruning flag. */
   bool is_probe_used = false;
+  /** Display a debug plane in the viewport. */
+  bool viewport_display = false;
 
  public:
-  void sync(const float4x4 &world_to_object, float clipping_offset, float influence_distance);
+  void sync(const float4x4 &world_to_object,
+            float clipping_offset,
+            float influence_distance,
+            bool viewport_display);
 
   /**
    * Update the ProbePlanarData part of the struct.
@@ -90,6 +95,11 @@ class PlanarProbeModule {
 
   bool update_probes_ = false;
 
+  /** Viewport data display drawing. */
+  bool do_display_draw_ = false;
+  ProbePlanarDisplayDataBuf display_data_buf_;
+  PassSimple viewport_display_ps_ = {"PlanarProbeModule.Viewport Display"};
+
  public:
   PlanarProbeModule(Instance &instance) : instance_(instance) {}
 
@@ -99,6 +109,8 @@ class PlanarProbeModule {
   void end_sync();
 
   void set_view(const draw::View &main_view, int2 main_view_extent);
+
+  void viewport_draw(View &view, GPUFrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
   {

@@ -7597,37 +7597,40 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_range(prop, 1.0f, 8.0f);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
-  prop = RNA_def_property(srna, "gi_show_irradiance", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_SHOW_IRRADIANCE);
-  RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
-  RNA_def_property_ui_text(
-      prop, "Show Irradiance Cache", "Display irradiance samples in the viewport");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+  /* TODO(Miguel Pozo): Remove once EEVEE is fully replaced. */
+  {
+    prop = RNA_def_property(srna, "gi_show_irradiance", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_SHOW_IRRADIANCE);
+    RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
+    RNA_def_property_ui_text(
+        prop, "Show Irradiance Cache", "Display irradiance samples in the viewport");
+    RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "gi_show_cubemaps", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_SHOW_CUBEMAPS);
-  RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
-  RNA_def_property_ui_text(
-      prop, "Show Cubemap Cache", "Display captured cubemaps in the viewport");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+    prop = RNA_def_property(srna, "gi_show_cubemaps", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_SHOW_CUBEMAPS);
+    RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
+    RNA_def_property_ui_text(
+        prop, "Show Cubemap Cache", "Display captured cubemaps in the viewport");
+    RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "gi_irradiance_display_size", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_float_sdna(prop, nullptr, "gi_irradiance_draw_size");
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.01f, 1.0f, 1, 3);
-  RNA_def_property_ui_text(prop,
-                           "Irradiance Display Size",
-                           "Size of the irradiance sample spheres to debug captured light");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+    prop = RNA_def_property(srna, "gi_irradiance_display_size", PROP_FLOAT, PROP_DISTANCE);
+    RNA_def_property_float_sdna(prop, nullptr, "gi_irradiance_draw_size");
+    RNA_def_property_range(prop, 0.0f, FLT_MAX);
+    RNA_def_property_ui_range(prop, 0.01f, 1.0f, 1, 3);
+    RNA_def_property_ui_text(prop,
+                             "Irradiance Display Size",
+                             "Size of the irradiance sample spheres to debug captured light");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "gi_cubemap_display_size", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_float_sdna(prop, nullptr, "gi_cubemap_draw_size");
-  RNA_def_property_range(prop, 0.05f, 10.0f);
-  RNA_def_property_ui_text(
-      prop, "Cubemap Display Size", "Size of the cubemap spheres to debug captured light");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+    prop = RNA_def_property(srna, "gi_cubemap_display_size", PROP_FLOAT, PROP_DISTANCE);
+    RNA_def_property_float_sdna(prop, nullptr, "gi_cubemap_draw_size");
+    RNA_def_property_range(prop, 0.05f, 10.0f);
+    RNA_def_property_ui_text(
+        prop, "Cubemap Display Size", "Size of the cubemap spheres to debug captured light");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+  }
 
   prop = RNA_def_property(srna, "gi_auto_bake", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_GI_AUTOBAKE);

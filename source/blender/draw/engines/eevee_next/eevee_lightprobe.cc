@@ -48,6 +48,10 @@ void LightProbeModule::sync_grid(const Object *ob, ObjectHandle &handle)
     grid.dilation_threshold = lightprobe->grid_dilation_threshold;
     grid.dilation_radius = lightprobe->grid_dilation_radius;
     grid.intensity = lightprobe->intensity;
+
+    grid.viewport_display = lightprobe->flag & LIGHTPROBE_FLAG_SHOW_DATA;
+    grid.viewport_display_size = lightprobe->data_display_size;
+
     /* Force reupload. */
     inst_.irradiance_cache.bricks_free(grid.bricks);
   }

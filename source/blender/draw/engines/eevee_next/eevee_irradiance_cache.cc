@@ -23,8 +23,7 @@ namespace blender::eevee {
 
 void IrradianceCache::init()
 {
-  display_grids_enabled_ = DRW_state_draw_support() &&
-                           (inst_.scene->eevee.flag & SCE_EEVEE_SHOW_IRRADIANCE);
+  display_grids_enabled_ = DRW_state_draw_support();
 
   int atlas_byte_size = 1024 * 1024 * inst_.scene->eevee.gi_irradiance_pool_size;
   /* This might become an option in the future. */
@@ -535,15 +534,13 @@ void IrradianceCache::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
   }
 
   for (const IrradianceGrid &grid : inst_.light_probes.grid_map_.values()) {
-    if (grid.cache == nullptr) {
+    if (!grid.viewport_display || grid.viewport_display_size == 0.0f || !grid.cache ||
+        !grid.cache->grid_static_cache)
+    {
       continue;
     }
 
     LightProbeGridCacheFrame *cache = grid.cache->grid_static_cache;
-
-    if (cache == nullptr) {
-      continue;
-    }
 
     /* Display texture. Updated for each individual light grid to avoid increasing VRAM usage. */
     draw::Texture irradiance_a_tx = {"irradiance_a_tx"};
@@ -596,7 +593,7 @@ void IrradianceCache::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
     display_grids_ps_.framebuffer_set(&view_fb);
     display_grids_ps_.shader_set(inst_.shaders.static_shader_get(DISPLAY_PROBE_GRID));
 
-    display_grids_ps_.push_constant("sphere_radius", inst_.scene->eevee.gi_irradiance_draw_size);
+    display_grids_ps_.push_constant("sphere_radius", grid.viewport_display_size);
     display_grids_ps_.push_constant("grid_resolution", grid_size);
     display_grids_ps_.push_constant("grid_to_world", grid.object_to_world);
     display_grids_ps_.push_constant("world_to_grid", grid.world_to_object);
