@@ -257,9 +257,7 @@ class IndexOnSplineFieldInput final : public bke::CurvesFieldInput {
     threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange range) {
       for (const int i_curve : range) {
         MutableSpan<int> indices = result.as_mutable_span().slice(points_by_curve[i_curve]);
-        for (const int i : indices.index_range()) {
-          indices[i] = i;
-        }
+        array_utils::fill_index_range(indices);
       }
     });
     return VArray<int>::ForContainer(std::move(result));
