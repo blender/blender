@@ -207,32 +207,33 @@ void VKTexture::mip_range_set(int min, int max)
   flags_ |= IMAGE_VIEW_DIRTY;
 }
 
-void VKTexture::read_sub(int mip, eGPUDataFormat format, const int area[4], void *r_data)
+void VKTexture::read_sub(
+    int mip, eGPUDataFormat format, const int region[4], const IndexRange layers, void *r_data)
 {
-  BLI_assert(!is_texture_view());
   VKContext &context = *VKContext::get();
   layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKBuffer staging_buffer;
 
-  size_t sample_len = area[2] * area[3] * vk_layer_count(1);
+  size_t sample_len = (region[2] - region[0]) * (region[3] - region[1]) * layers.size();
   size_t device_memory_size = sample_len * to_bytesize(format_);
 
   staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
-  VkBufferImageCopy region = {};
-  region.imageOffset.x = area[0];
-  region.imageOffset.y = area[1];
-  region.imageExtent.width = area[2];
-  region.imageExtent.height = area[3];
-  region.imageExtent.depth = 1;
-  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
-  region.imageSubresource.mipLevel = mip;
-  region.imageSubresource.layerCount = vk_layer_count(1);
+  VkBufferImageCopy buffer_image_copy = {};
+  buffer_image_copy.imageOffset.x = region[0];
+  buffer_image_copy.imageOffset.y = region[1];
+  buffer_image_copy.imageExtent.width = region[2];
+  buffer_image_copy.imageExtent.height = region[3];
+  buffer_image_copy.imageExtent.depth = 1;
+  buffer_image_copy.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  buffer_image_copy.imageSubresource.mipLevel = mip;
+  buffer_image_copy.imageSubresource.baseArrayLayer = layers.start();
+  buffer_image_copy.imageSubresource.layerCount = layers.size();
 
   VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.copy(staging_buffer, *this, Span<VkBufferImageCopy>(&region, 1));
+  command_buffers.copy(staging_buffer, *this, Span<VkBufferImageCopy>(&buffer_image_copy, 1));
   context.flush();
 
   convert_device_to_host(r_data, staging_buffer.mapped_memory_get(), sample_len, format, format_);
@@ -240,15 +241,15 @@ void VKTexture::read_sub(int mip, eGPUDataFormat format, const int area[4], void
 
 void *VKTexture::read(int mip, eGPUDataFormat format)
 {
-  BLI_assert(!is_texture_view());
   int mip_size[3] = {1, 1, 1};
   mip_size_get(mip, mip_size);
-  size_t sample_len = mip_size[0] * mip_size[1] * vk_layer_count(1);
+  IndexRange layers = IndexRange(layer_offset_, vk_layer_count(1));
+  size_t sample_len = mip_size[0] * mip_size[1] * layers.size();
   size_t host_memory_size = sample_len * to_bytesize(format_, format);
 
   void *data = MEM_mallocN(host_memory_size, __func__);
-  int area[4] = {0, 0, mip_size[0], mip_size[1]};
-  read_sub(mip, format, area, data);
+  int region[4] = {0, 0, mip_size[0], mip_size[1]};
+  read_sub(mip, format, region, layers, data);
   return data;
 }
 
@@ -621,6 +622,9 @@ IndexRange VKTexture::layer_range() const
 
 int VKTexture::vk_layer_count(int non_layered_value) const
 {
+  if (is_texture_view()) {
+    return 1;
+  }
   return type_ == GPU_TEXTURE_CUBE   ? d_ :
          (type_ & GPU_TEXTURE_ARRAY) ? layer_count() :
                                        non_layered_value;
