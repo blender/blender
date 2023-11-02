@@ -573,6 +573,10 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
     /* Regular mesh restore. */
     float *vmask = static_cast<float *>(
         CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
+    if (!vmask) {
+      vmask = static_cast<float *>(
+          CustomData_add_layer(&mesh->vert_data, CD_PAINT_MASK, CD_SET_DEFAULT, mesh->totvert));
+    }
     ss->vmask = vmask;
 
     const Span<int> index = unode->index;
