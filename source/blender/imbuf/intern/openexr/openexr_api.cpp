@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -1470,10 +1471,13 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
     echan->chan_id = BLI_toupper_ascii(name[0]);
     layname[0] = '\0';
 
-    if (ELEM(name[0], 'R', 'G', 'B', 'A')) {
+    /* Notice that we are comparing with an upper-case version of the channel name, so the
+     * comparison is effectively not case sensitive, and would also consider lowercase versions of
+     * the listed channels. */
+    if (ELEM(echan->chan_id, 'R', 'G', 'B', 'A', 'V')) {
       BLI_strncpy(passname, "Combined", passname_maxncpy);
     }
-    else if (name[0] == 'Z') {
+    else if (echan->chan_id == 'Z') {
       BLI_strncpy(passname, "Depth", passname_maxncpy);
     }
     else {
@@ -1795,15 +1799,25 @@ static const char *exr_rgba_channelname(MultiPartInputFile &file, const char *ch
 
 static int exr_has_rgb(MultiPartInputFile &file, const char *rgb_channels[3])
 {
-  /* Common names for RGB-like channels in order. */
+  /* Common names for RGB-like channels in order. The V channel name is used by convention for BW
+   * images, which will be broadcast to RGB channel at the end. */
   static const char *channel_names[] = {
-      "R", "Red", "G", "Green", "B", "Blue", "AR", "RA", "AG", "GA", "AB", "BA", nullptr};
+      "V", "R", "Red", "G", "Green", "B", "Blue", "AR", "RA", "AG", "GA", "AB", "BA", nullptr};
 
   const Header &header = file.header(0);
   int num_channels = 0;
 
   for (int i = 0; channel_names[i]; i++) {
-    if (header.channels().findChannel(channel_names[i])) {
+    /* Also try to match lower case variant of of the channel names. */
+    std::string lower_case_name = std::string(channel_names[i]);
+    std::transform(lower_case_name.begin(),
+                   lower_case_name.end(),
+                   lower_case_name.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    if (header.channels().findChannel(channel_names[i]) ||
+        header.channels().findChannel(lower_case_name))
+    {
       rgb_channels[num_channels++] = channel_names[i];
       if (num_channels == 3) {
         break;
