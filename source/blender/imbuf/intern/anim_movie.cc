@@ -639,7 +639,6 @@ static int startffmpeg(anim *anim)
   anim->framesize = anim->x * anim->y * 4;
 
   anim->cur_position = 0;
-  anim->cur_frame_final = nullptr;
   anim->cur_pts = -1;
   anim->cur_key_frame_pts = -1;
   anim->cur_packet = av_packet_alloc();
@@ -808,11 +807,10 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(anim *anim)
 /**
  * Postprocess the image in anim->pFrame and do color conversion and de-interlacing stuff.
  *
- * Output is `anim->cur_frame_final`.
+ * \param ibuf: The frame just read by `ffmpeg_fetchibuf`, processed in-place.
  */
-static void ffmpeg_postprocess(anim *anim, AVFrame *input)
+static void ffmpeg_postprocess(anim *anim, AVFrame *input, ImBuf *ibuf)
 {
-  ImBuf *ibuf = anim->cur_frame_final;
   int filter_y = 0;
 
   /* This means the data wasn't read properly,
@@ -1391,8 +1389,6 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
   anim->x = anim->pCodecCtx->width;
   anim->y = anim->pCodecCtx->height;
 
-  IMB_freeImBuf(anim->cur_frame_final);
-
   /* Certain versions of FFmpeg have a bug in libswscale which ends up in crash
    * when destination buffer is not properly aligned. For example, this happens
    * in FFmpeg 4.3.1. It got fixed later on, but for compatibility reasons is
@@ -1419,14 +1415,14 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
     planes = R_IMF_PLANES_RGB;
   }
 
-  anim->cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
+  ImBuf *cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
 
   /* Allocate the storage explicitly to ensure the memory is aligned. */
   uint8_t *buffer_data = static_cast<uint8_t *>(
       MEM_mallocN_aligned(size_t(4) * anim->x * anim->y, 32, "ffmpeg ibuf"));
-  IMB_assign_byte_buffer(anim->cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
+  IMB_assign_byte_buffer(cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
 
-  anim->cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(
+  cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(
       anim->colorspace);
 
   AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, pts_to_search);
@@ -1439,14 +1435,12 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
   /* Even with the fallback from above it is possible that the current decode frame is nullptr. In
    * this case skip post-processing and return current image buffer. */
   if (final_frame != nullptr) {
-    ffmpeg_postprocess(anim, final_frame);
+    ffmpeg_postprocess(anim, final_frame, cur_frame_final);
   }
 
   anim->cur_position = position;
 
-  IMB_refImBuf(anim->cur_frame_final);
-
-  return anim->cur_frame_final;
+  return cur_frame_final;
 }
 
 static void free_anim_ffmpeg(anim *anim)
@@ -1466,7 +1460,6 @@ static void free_anim_ffmpeg(anim *anim)
     av_frame_free(&anim->pFrameDeinterlaced);
 
     sws_freeContext(anim->img_convert_ctx);
-    IMB_freeImBuf(anim->cur_frame_final);
   }
   anim->duration_in_frames = 0;
 }
