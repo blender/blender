@@ -9,6 +9,7 @@
 #include "IMB_colormanagement.h"
 
 #include "COM_KuwaharaClassicOperation.h"
+#include "COM_SummedAreaTableOperation.h"
 
 namespace blender::compositor {
 
