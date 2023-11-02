@@ -67,6 +67,23 @@ inline void copy(const Span<T> src,
 }
 
 /**
+ * Fill the specified indices of the destination with the values in the source span.
+ */
+template<typename T, typename IndexT>
+inline void scatter(const Span<T> src,
+                    const Span<IndexT> indices,
+                    MutableSpan<T> dst,
+                    const int64_t grain_size = 4096)
+{
+  BLI_assert(indices.size() == src.size());
+  threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      dst[indices[i]] = src[i];
+    }
+  });
+}
+
+/**
  * Fill the destination span by gathering indexed values from the `src` array.
  */
 void gather(const GVArray &src,
