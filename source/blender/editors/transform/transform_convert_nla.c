@@ -408,7 +408,10 @@ static void recalcData_nla(TransInfo *t)
     delta_y1 = ((int)tdn->h1[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
     delta_y2 = ((int)tdn->h2[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
 
-    if (delta_y1 || delta_y2) {
+    /* If we cannot find the strip in the track, this strip has moved tracks already (if multiple
+     * strips using the same action from equal IDs such as meshes or shapekeys are selected) so can
+     * be skipped. */
+    if ((delta_y1 || delta_y2) && BLI_findindex(&tdn->nlt->strips, strip) != -1) {
       NlaTrack *track;
       int delta = (delta_y2) ? delta_y2 : delta_y1;
       int n;
