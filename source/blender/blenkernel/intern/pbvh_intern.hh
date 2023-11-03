@@ -177,8 +177,6 @@ struct PBVH {
   CustomData *loop_data;
   CustomData *face_data;
 
-  int *face_sets;
-
   /* Grid Data */
   CCGKey gridkey;
   CCGElem **grids;

@@ -413,6 +413,7 @@ void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
                              const int **r_corner_verts);
+blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
 
 /* Get number of faces in the mesh; for PBVH_GRIDS the
  * number of base mesh faces is returned.
@@ -462,7 +463,6 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
                            unsigned int **grid_hidden,
                            CCGKey *key);
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg);
-void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
 
 /**
  * If an operation causes the hide status stored in the mesh to change, this must be called
@@ -606,52 +606,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   ((void)0)
 
 #define PBVH_FACE_ITER_VERTS_RESERVED 8
-
-struct PBVHFaceIter {
-  PBVHFaceRef face;
-  int index;
-  bool *hide;
-  int *face_set;
-  int i;
-
-  PBVHVertRef *verts;
-  int verts_num;
-
-  PBVHVertRef verts_reserved_[PBVH_FACE_ITER_VERTS_RESERVED];
-  const PBVHNode *node_;
-  PBVHType pbvh_type_;
-  int verts_size_;
-  std::optional<blender::Set<BMFace *, 0>::Iterator> bm_faces_iter_;
-  int cd_hide_poly_, cd_face_set_;
-  bool *hide_poly_;
-  int *face_sets_;
-  blender::OffsetIndices<int> face_offsets_;
-  blender::Span<int> looptri_faces_;
-  blender::Span<int> corner_verts_;
-  int prim_index_;
-  const SubdivCCG *subdiv_ccg_;
-  const BMesh *bm;
-  CCGKey subdiv_key_;
-
-  int last_face_index_;
-};
-
-void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd);
-void BKE_pbvh_face_iter_step(PBVHFaceIter *fd);
-bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd);
-void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
-
-/**
- * Iterate over faces inside a #PBVHNode. These are either base mesh faces
- * (for PBVH_FACES and PBVH_GRIDS) or BMesh faces (for PBVH_BMESH).
- */
-#define BKE_pbvh_face_iter_begin(pbvh, node, fd) \
-  BKE_pbvh_face_iter_init(pbvh, node, &fd); \
-  for (; !BKE_pbvh_face_iter_done(&fd); BKE_pbvh_face_iter_step(&fd)) {
-
-#define BKE_pbvh_face_iter_end(fd) \
-  } \
-  BKE_pbvh_face_iter_finish(&fd)
 
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);

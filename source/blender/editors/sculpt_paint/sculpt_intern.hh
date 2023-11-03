@@ -233,8 +233,7 @@ struct SculptUndoNode {
   /* Sculpt Face Sets */
   blender::Array<int> face_sets;
 
-  blender::Array<PBVHFaceRef> faces;
-  int faces_num;
+  blender::Vector<int> face_indices;
 
   size_t undo_size;
 };
@@ -1001,9 +1000,6 @@ int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 
-int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face);
-void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
-
 bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 
@@ -1034,23 +1030,6 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
  * handles #BMesh, #Mesh, and multi-resolution.
  */
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, SculptUndoNode *unode);
-/**
- * Initialize a #SculptOrigFaceData for accessing original face data;
- * handles #BMesh, #Mesh, and multi-resolution.
- */
-void SCULPT_orig_face_data_init(SculptOrigFaceData *data,
-                                Object *ob,
-                                PBVHNode *node,
-                                SculptUndoType type);
-/**
- * Update a #SculptOrigFaceData for a particular vertex from the PBVH iterator.
- */
-void SCULPT_orig_face_data_update(SculptOrigFaceData *orig_data, PBVHFaceIter *iter);
-/**
- * Initialize a #SculptOrigVertData for accessing original vertex data;
- * handles #BMesh, #Mesh, and multi-resolution.
- */
-void SCULPT_orig_face_data_unode_init(SculptOrigFaceData *data, Object *ob, SculptUndoNode *unode);
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -1753,7 +1753,6 @@ static void sculpt_update_object(
   UNUSED_VARS_NDEBUG(pbvh);
 
   BKE_pbvh_subdiv_cgg_set(ss->pbvh, ss->subdiv_ccg);
-  BKE_pbvh_face_sets_set(ss->pbvh, ss->face_sets);
   BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
 
   sculpt_attribute_update_refs(ob);
@@ -1970,11 +1969,8 @@ int *BKE_sculpt_face_sets_ensure(Object *ob)
                             AttributeInitVArray(VArray<int>::ForSingle(1, mesh->faces_num)));
         mesh->face_sets_color_default = 1;
       }
-
-      int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+      return static_cast<int *>(CustomData_get_layer_named_for_write(
           &mesh->face_data, CD_PROP_INT32, name.c_str(), mesh->faces_num));
-      BKE_pbvh_face_sets_set(pbvh, face_sets);
-      return face_sets;
     }
     case PBVH_BMESH: {
       BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
