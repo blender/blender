@@ -103,6 +103,8 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
+#include "ANIM_fcurve.hh"
+
 #include "MOD_nodes.hh"
 
 #include "object_intern.h"
@@ -560,7 +562,8 @@ bool ED_object_parent_set(ReportList *reports,
       if (partype == PAR_FOLLOW) {
         /* get or create F-Curve */
         bAction *act = ED_id_action_ensure(bmain, &cu->id);
-        FCurve *fcu = ED_action_fcurve_ensure(bmain, act, nullptr, nullptr, "eval_time", 0);
+        FCurve *fcu = blender::animrig::ED_action_fcurve_ensure(
+            bmain, act, nullptr, nullptr, "eval_time", 0);
 
         /* setup dummy 'generator' modifier here to get 1-1 correspondence still working */
         if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first) {
