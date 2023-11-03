@@ -31,6 +31,18 @@ void DepsgraphRelationBuilder::build_scene_render(Scene *scene, ViewLayer *view_
   }
 }
 
+void DepsgraphRelationBuilder::build_scene_camera(Scene *scene)
+{
+  if (scene->camera != nullptr) {
+    build_object(scene->camera);
+  }
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      build_object(marker->camera);
+    }
+  }
+}
+
 void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
 {
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_PARAMETERS)) {
