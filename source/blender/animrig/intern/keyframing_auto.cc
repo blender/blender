@@ -57,7 +57,7 @@ bool is_autokey_flag(const Scene *scene, const eAutokey_Flag flag)
 
 bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
 {
-  /* only filter if auto-key mode requires this */
+  /* Only filter if auto-key mode requires this. */
   if (!is_autokey_on(scene)) {
     return false;
   }
@@ -78,18 +78,9 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
    */
   scene->toolsettings->autokey_mode = AUTOKEY_MODE_NORMAL;
 
-  /* Can insert anytime we like... */
   return true;
 }
 
-/**
- * Auto-keyframing feature - for objects
- *
- * \param tmode: A transform mode.
- *
- * \note Context may not always be available,
- * so must check before using it as it's a luxury for a few cases.
- */
 void autokeyframe_object(
     bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, const eTfmMode tmode)
 {
@@ -121,12 +112,13 @@ void autokeyframe_object(
     ANIM_apply_keyingset(
         C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
   }
+
   else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
+    /* Only key on available channels. */
     AnimData *adt = ob->adt;
     ToolSettings *ts = scene->toolsettings;
     Main *bmain = CTX_data_main(C);
 
-    /* only key on available channels */
     if (adt && adt->action) {
       LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
         insert_keyframe(bmain,
@@ -142,10 +134,11 @@ void autokeyframe_object(
       }
     }
   }
+
   else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
     bool do_loc = false, do_rot = false, do_scale = false;
 
-    /* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
+    /* Filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D). */
     if (tmode == TFM_TRANSLATION) {
       do_loc = true;
     }
@@ -180,7 +173,6 @@ void autokeyframe_object(
       }
     }
 
-    /* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
     if (do_loc) {
       KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOCATION_ID);
       ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
@@ -194,7 +186,8 @@ void autokeyframe_object(
       ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
   }
-  /* insert keyframe in all (transform) channels */
+
+  /* Insert keyframe in all (transform) channels. */
   else {
     KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOC_ROT_SCALE_ID);
     ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
@@ -203,7 +196,6 @@ void autokeyframe_object(
 
 bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
 {
-  /* auto keyframing */
   if (!autokeyframe_cfra_can_key(scene, &ob->id)) {
     return false;
   }
@@ -255,8 +247,8 @@ bool autokeyframe_property(bContext *C,
   bool special;
   bool changed = false;
 
-  /* for entire array buttons we check the first component, it's not perfect
-   * but works well enough in typical cases */
+  /* For entire array buttons we check the first component, it's not perfect
+   * but works well enough in typical cases. */
   const int rnaindex_check = (rnaindex == -1) ? 0 : rnaindex;
   FCurve *fcu = BKE_fcurve_find_by_rna_context_ui(
       C, ptr, prop, rnaindex_check, nullptr, &action, &driven, &special);
@@ -268,7 +260,7 @@ bool autokeyframe_property(bContext *C,
   }
 
   if (special) {
-    /* NLA Strip property */
+    /* NLA Strip property. */
     if (is_autokey_on(scene)) {
       ReportList *reports = CTX_wm_reports(C);
       ToolSettings *ts = scene->toolsettings;
@@ -286,7 +278,7 @@ bool autokeyframe_property(bContext *C,
   }
   else if (driven) {
     /* Driver - Try to insert keyframe using the driver's input as the frame,
-     * making it easier to set up corrective drivers
+     * making it easier to set up corrective drivers.
      */
     if (is_autokey_on(scene)) {
       ReportList *reports = CTX_wm_reports(C);

@@ -1,3 +1,11 @@
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup animrig
+ */
+
 #include "BLI_vector.hh"
 #include "RNA_access.hh"
 #include "RNA_define.hh"

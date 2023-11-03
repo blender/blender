@@ -92,6 +92,16 @@ int delete_keyframe(Main *bmain,
                     int array_index,
                     float cfra);
 
+/**
+ * Main Keyframing API call:
+ * Use this when validation of necessary animation data isn't necessary as it
+ * already exists. It will clear the current buttons fcurve(s).
+ *
+ * The flag argument is used for special settings that alter the behavior of
+ * the keyframe deletion. These include the quick refresh options.
+ *
+ * \return The number of f-curves removed.
+ */
 int clear_keyframe(Main *bmain,
                    ReportList *reports,
                    ID *id,
@@ -128,6 +138,14 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id);
 
 void autokeyframe_object(
     bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, eTfmMode tmode);
+/**
+ * Auto-keyframing feature - for objects
+ *
+ * \param tmode: A transform mode.
+ *
+ * \note Context may not always be available,
+ * so must check before using it as it's a luxury for a few cases.
+ */
 bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks);
 bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks);
 
