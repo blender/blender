@@ -335,16 +335,6 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   usd_stage->GetRootLayer()->Save();
 
-  if (data->targets_usdz()) {
-    bool usd_conversion_success = perform_usdz_conversion(data);
-    if (!usd_conversion_success) {
-      data->export_ok = false;
-      worker_status->progress = 1.0f;
-      worker_status->do_update = true;
-      return;
-    }
-  }
-
   data->export_ok = true;
   worker_status->progress = 1.0f;
   worker_status->do_update = true;
@@ -375,6 +365,16 @@ static void export_endjob(void *customdata)
   DEG_graph_free(data->depsgraph);
 
   if (data->targets_usdz()) {
+    /* NOTE: call to #perform_usdz_conversion has to be done here instead of the main threaded
+     * worker callback (#export_startjob) because USDZ conversion requires changing the current
+     * working directory. This is not safe to do from a non-main thread. Once the USD library fix
+     * this weird requirement, this call can be moved back at the end of #export_startjob, and not
+     * block the main user interface anymore. */
+    bool usd_conversion_success = perform_usdz_conversion(data);
+    if (!usd_conversion_success) {
+      data->export_ok = false;
+    }
+
     export_endjob_usdz_cleanup(data);
   }
 
