@@ -970,15 +970,14 @@ static void setup_app_blend_file_data(bContext *C,
 
 static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
 {
-  if (main->minversionfile > BLENDER_FILE_VERSION ||
-      (main->minversionfile == BLENDER_FILE_VERSION &&
-       main->minsubversionfile > BLENDER_FILE_SUBVERSION))
+  if (main->versionfile > BLENDER_FILE_VERSION || (main->versionfile == BLENDER_FILE_VERSION &&
+                                                   main->subversionfile > BLENDER_FILE_SUBVERSION))
   {
     BKE_reportf(reports->reports,
                 RPT_WARNING,
                 "File written by newer Blender binary (%d.%d), expect loss of data!",
-                main->minversionfile,
-                main->minsubversionfile);
+                main->versionfile,
+                main->subversionfile);
   }
 }
 
