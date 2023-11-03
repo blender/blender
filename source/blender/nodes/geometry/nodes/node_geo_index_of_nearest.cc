@@ -88,11 +88,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     }
     const VArraySpan<int> group_ids_span(group_ids);
 
-    VectorSet<int> group_indexing;
-    for (const int index : IndexRange(domain_size)) {
-      const int group_id = group_ids_span[index];
-      group_indexing.add(group_id);
-    }
+    const VectorSet<int> group_indexing(group_ids_span);
     const int groups_num = group_indexing.size();
 
     IndexMaskMemory mask_memory;
