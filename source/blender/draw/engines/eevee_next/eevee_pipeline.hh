@@ -507,7 +507,7 @@ class UtilityTexture : public Texture {
 
   static constexpr int lut_size = UTIL_TEX_SIZE;
   static constexpr int lut_size_sqr = lut_size * lut_size;
-  static constexpr int layer_count = UTIL_BTDF_LAYER + 1 + UTIL_BTDF_LAYER_COUNT;
+  static constexpr int layer_count = UTIL_BTDF_LAYER + UTIL_BTDF_LAYER_COUNT;
 
  public:
   UtilityTexture()
