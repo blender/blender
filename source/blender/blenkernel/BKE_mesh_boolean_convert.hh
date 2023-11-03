@@ -19,8 +19,7 @@ namespace blender::meshintersect {
 
 /**
  * Do a mesh boolean operation directly on meshes (without going back and forth from BMesh).
- * \param transforms: An array of pointers to transform matrices used for each mesh's positions.
- * It is allowed for the pointers to be null, meaning the transformation is the identity.
+ * \param transforms: An array of transform matrices used for each mesh's positions.
  * \param material_remaps: An array of maps from material slot numbers in the corresponding mesh
  * to the material slot in the first mesh. It is OK for material_remaps or any of its constituent
  * arrays to be empty. A -1 value means that the original index should be used with no mapping.
@@ -28,7 +27,7 @@ namespace blender::meshintersect {
  * 'new' edges are the result of the intersections.
  */
 Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
-                          Span<const float4x4 *> transforms,
+                          Span<float4x4> transforms,
                           const float4x4 &target_transform,
                           Span<Array<short>> material_remaps,
                           bool use_self,
