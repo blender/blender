@@ -112,7 +112,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
   }
 
   /* Annoying, check if this exists. */
-  if (blender::animrig::ED_action_fcurve_find(act, data_path, index)) {
+  if (blender::animrig::action_fcurve_find(act, data_path, index)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "F-Curve '%s[%d]' already exists in action '%s'",
@@ -121,7 +121,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                 act->id.name + 2);
     return nullptr;
   }
-  return blender::animrig::ED_action_fcurve_ensure(bmain, act, group, nullptr, data_path, index);
+  return blender::animrig::action_fcurve_ensure(bmain, act, group, nullptr, data_path, index);
 }
 
 static FCurve *rna_Action_fcurve_find(bAction *act,

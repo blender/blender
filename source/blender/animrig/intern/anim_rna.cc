@@ -6,15 +6,13 @@
  * \ingroup animrig
  */
 
+#include "ANIM_rna.hh"
 #include "BLI_vector.hh"
 #include "RNA_access.hh"
-#include "RNA_define.hh"
-#include "RNA_path.hh"
-#include "RNA_types.hh"
 
 namespace blender::animrig {
 
-Vector<float> ANIM_setting_get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
+Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
 {
   Vector<float> values;
   if (RNA_property_array_check(prop)) {

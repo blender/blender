@@ -1476,7 +1476,7 @@ bool fcurve_is_changed(PointerRNA ptr,
   anim_rna.prop_index = fcu->array_index;
 
   int index = fcu->array_index;
-  blender::Vector<float> values = blender::animrig::ANIM_setting_get_rna_values(&ptr, prop);
+  blender::Vector<float> values = blender::animrig::get_rna_values(&ptr, prop);
 
   float fcurve_val = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
   float cur_val = (index >= 0 && index < values.size()) ? values[index] : 0.0f;

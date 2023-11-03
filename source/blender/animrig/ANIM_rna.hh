@@ -14,6 +14,6 @@
 namespace blender::animrig {
 
 /** Get the values of the given property. Casts non-float properties to float. */
-Vector<float> ANIM_setting_get_rna_values(PointerRNA *ptr, PropertyRNA *prop);
+Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop);
 
 }  // namespace blender::animrig

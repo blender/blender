@@ -239,7 +239,7 @@ Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop)
     }
   }
   else {
-    return ANIM_setting_get_rna_values(ptr, prop);
+    return get_rna_values(ptr, prop);
   }
 
   /* Rot/Scale code are common! */
@@ -269,6 +269,6 @@ Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop)
   }
 
   /* As the function hasn't returned yet, read value from system in the default way. */
-  return ANIM_setting_get_rna_values(ptr, prop);
+  return get_rna_values(ptr, prop);
 }
 }  // namespace blender::animrig

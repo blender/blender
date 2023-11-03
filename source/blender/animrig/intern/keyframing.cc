@@ -157,7 +157,7 @@ static Vector<float> get_keyframe_values(ReportList *reports,
     values = visualkey_get_values(&ptr, prop);
   }
   else {
-    values = ANIM_setting_get_rna_values(&ptr, prop);
+    values = get_rna_values(&ptr, prop);
   }
 
   *r_successful_remaps = BLI_BITMAP_NEW(values.size(), __func__);
@@ -530,8 +530,8 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
    */
   const bool can_create_curve = (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;
   FCurve *fcu = can_create_curve ?
-                    ED_action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
-                    ED_action_fcurve_find(act, rna_path, array_index);
+                    action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
+                    action_fcurve_find(act, rna_path, array_index);
 
   /* We may not have a F-Curve when we're replacing only. */
   if (!fcu) {
@@ -837,7 +837,7 @@ int delete_keyframe(Main *bmain,
   /* Will only loop once unless the array index was -1. */
   int key_count = 0;
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
+    FCurve *fcu = action_fcurve_find(act, rna_path, array_index);
 
     if (fcu == nullptr) {
       continue;
@@ -920,7 +920,7 @@ int clear_keyframe(Main *bmain,
   int key_count = 0;
   /* Will only loop once unless the array index was -1. */
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
+    FCurve *fcu = action_fcurve_find(act, rna_path, array_index);
 
     if (fcu == nullptr) {
       continue;

@@ -562,7 +562,7 @@ bool ED_object_parent_set(ReportList *reports,
       if (partype == PAR_FOLLOW) {
         /* get or create F-Curve */
         bAction *act = ED_id_action_ensure(bmain, &cu->id);
-        FCurve *fcu = blender::animrig::ED_action_fcurve_ensure(
+        FCurve *fcu = blender::animrig::action_fcurve_ensure(
             bmain, act, nullptr, nullptr, "eval_time", 0);
 
         /* setup dummy 'generator' modifier here to get 1-1 correspondence still working */

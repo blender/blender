@@ -18,7 +18,7 @@
 
 namespace blender::animrig {
 
-FCurve *ED_action_fcurve_find(bAction *act, const char rna_path[], const int array_index)
+FCurve *action_fcurve_find(bAction *act, const char rna_path[], const int array_index)
 {
   if (ELEM(nullptr, act, rna_path)) {
     return nullptr;
@@ -26,12 +26,12 @@ FCurve *ED_action_fcurve_find(bAction *act, const char rna_path[], const int arr
   return BKE_fcurve_find(&act->curves, rna_path, array_index);
 }
 
-FCurve *ED_action_fcurve_ensure(Main *bmain,
-                                bAction *act,
-                                const char group[],
-                                PointerRNA *ptr,
-                                const char rna_path[],
-                                const int array_index)
+FCurve *action_fcurve_ensure(Main *bmain,
+                             bAction *act,
+                             const char group[],
+                             PointerRNA *ptr,
+                             const char rna_path[],
+                             const int array_index)
 {
   bActionGroup *agrp;
   FCurve *fcu;
