@@ -103,8 +103,8 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
             VkImageLayout src_layout,
             Span<VkImageBlit> regions);
   void pipeline_barrier(VkPipelineStageFlags source_stages,
-                        VkPipelineStageFlags destination_stages);
-  void pipeline_barrier(Span<VkImageMemoryBarrier> image_memory_barriers);
+                        VkPipelineStageFlags destination_stages,
+                        Span<VkImageMemoryBarrier> image_memory_barriers);
 
   /**
    * Clear color image resource.

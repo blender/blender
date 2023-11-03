@@ -462,30 +462,14 @@ void VKCommandBuffers::blit(VKTexture &dst_texture,
   command_buffer.command_recorded();
 }
 
-void VKCommandBuffers::pipeline_barrier(VkPipelineStageFlags source_stages,
-                                        VkPipelineStageFlags destination_stages)
-{
-  /* TODO: Command isn't used.*/
-  VKCommandBuffer &command_buffer = command_buffer_get(Type::DataTransfer);
-  vkCmdPipelineBarrier(command_buffer.vk_command_buffer(),
-                       source_stages,
-                       destination_stages,
-                       0,
-                       0,
-                       nullptr,
-                       0,
-                       nullptr,
-                       0,
-                       nullptr);
-  command_buffer.command_recorded();
-}
-
-void VKCommandBuffers::pipeline_barrier(Span<VkImageMemoryBarrier> image_memory_barriers)
+void VKCommandBuffers::pipeline_barrier(const VkPipelineStageFlags src_stages,
+                                        const VkPipelineStageFlags dst_stages,
+                                        Span<VkImageMemoryBarrier> image_memory_barriers)
 {
   VKCommandBuffer &command_buffer = command_buffer_get(Type::DataTransfer);
   vkCmdPipelineBarrier(command_buffer.vk_command_buffer(),
-                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                       src_stages,
+                       dst_stages,
                        VK_DEPENDENCY_BY_REGION_BIT,
                        0,
                        nullptr,

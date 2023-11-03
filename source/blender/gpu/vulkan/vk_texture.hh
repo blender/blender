@@ -143,8 +143,10 @@ class VKTexture : public Texture, public VKBindableResource {
    */
   void layout_ensure(VKContext &context,
                      VkImageLayout requested_layout,
-                     VkAccessFlagBits src_access = VK_ACCESS_MEMORY_WRITE_BIT,
-                     VkAccessFlagBits dst_access = VK_ACCESS_MEMORY_READ_BIT);
+                     VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                     VkAccessFlags src_access = VK_ACCESS_MEMORY_WRITE_BIT,
+                     VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                     VkAccessFlags dst_access = VK_ACCESS_MEMORY_READ_BIT);
 
  private:
   /**
@@ -156,8 +158,10 @@ class VKTexture : public Texture, public VKBindableResource {
                      IndexRange mipmap_range,
                      VkImageLayout current_layout,
                      VkImageLayout requested_layout,
-                     VkAccessFlagBits src_access,
-                     VkAccessFlagBits dst_access);
+                     VkPipelineStageFlags src_stage,
+                     VkAccessFlags src_access,
+                     VkPipelineStageFlags dst_stage,
+                     VkAccessFlags dst_access);
 
   /** \} */
 

@@ -54,7 +54,9 @@ void VKTexture::generate_mipmap()
 
   layout_ensure(context,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                 VK_ACCESS_MEMORY_WRITE_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
                 VK_ACCESS_TRANSFER_READ_BIT);
 
   for (int src_mipmap : IndexRange(mipmaps_ - 1)) {
@@ -81,7 +83,9 @@ void VKTexture::generate_mipmap()
                   IndexRange(src_mipmap, 1),
                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                  VK_PIPELINE_STAGE_TRANSFER_BIT,
                   VK_ACCESS_TRANSFER_WRITE_BIT,
+                  VK_PIPELINE_STAGE_TRANSFER_BIT,
                   VK_ACCESS_TRANSFER_READ_BIT);
 
     VkImageBlit image_blit = {};
@@ -111,7 +115,9 @@ void VKTexture::generate_mipmap()
                 IndexRange(mipmaps_ - 1, 1),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
                 VK_ACCESS_TRANSFER_WRITE_BIT,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                 VK_ACCESS_MEMORY_READ_BIT);
   current_layout_set(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 }
@@ -536,8 +542,10 @@ void VKTexture::current_layout_set(const VkImageLayout new_layout)
 
 void VKTexture::layout_ensure(VKContext &context,
                               const VkImageLayout requested_layout,
-                              const VkAccessFlagBits src_access,
-                              const VkAccessFlagBits dst_access)
+                              const VkPipelineStageFlags src_stage,
+                              const VkAccessFlags src_access,
+                              const VkPipelineStageFlags dst_stage,
+                              const VkAccessFlags dst_access)
 {
   if (is_texture_view()) {
     source_texture_->layout_ensure(context, requested_layout);
@@ -551,7 +559,9 @@ void VKTexture::layout_ensure(VKContext &context,
                 IndexRange(0, VK_REMAINING_MIP_LEVELS),
                 current_layout,
                 requested_layout,
+                src_stage,
                 src_access,
+                dst_stage,
                 dst_access);
   current_layout_set(requested_layout);
 }
@@ -560,8 +570,10 @@ void VKTexture::layout_ensure(VKContext &context,
                               const IndexRange mipmap_range,
                               const VkImageLayout current_layout,
                               const VkImageLayout requested_layout,
-                              const VkAccessFlagBits src_access,
-                              const VkAccessFlagBits dst_access)
+                              const VkPipelineStageFlags src_stages,
+                              const VkAccessFlags src_access,
+                              const VkPipelineStageFlags dst_stages,
+                              const VkAccessFlags dst_access)
 {
   BLI_assert(vk_image_ != VK_NULL_HANDLE);
   VkImageMemoryBarrier barrier{};
@@ -576,7 +588,8 @@ void VKTexture::layout_ensure(VKContext &context,
   barrier.subresourceRange.levelCount = uint32_t(mipmap_range.size());
   barrier.subresourceRange.baseArrayLayer = 0;
   barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-  context.command_buffers_get().pipeline_barrier(Span<VkImageMemoryBarrier>(&barrier, 1));
+  context.command_buffers_get().pipeline_barrier(
+      src_stages, dst_stages, Span<VkImageMemoryBarrier>(&barrier, 1));
 }
 
 /** \} */
