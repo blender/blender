@@ -111,11 +111,11 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             col.operator("object.lightprobe_cache_free").subset = 'ACTIVE'
 
             col.separator()
-            
+
             row = col.row(align=True)
             row.prop(probe, "data_display_size", text="Display Data")
             row.prop(probe, "use_data_display", text="", toggle=True)
-            
+
             col.separator()
 
             col.prop(probe, "grid_bake_samples")
