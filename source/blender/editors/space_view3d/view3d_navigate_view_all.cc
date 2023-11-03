@@ -10,17 +10,21 @@
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 
+#include "BLI_bounds.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_curves.hh"
 #include "ED_mesh.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
@@ -406,6 +410,29 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   }
   else if (ob_eval && (ob_eval->mode & OB_MODE_PARTICLE_EDIT)) {
     ok = PE_minmax(depsgraph, scene, CTX_data_view_layer(C), min, max);
+  }
+  else if (ob_eval && (ob_eval->mode & OB_MODE_SCULPT_CURVES)) {
+    BLI_assert(ob_eval->type == OB_CURVES);
+    BLI_assert(ob_eval->data != nullptr);
+    using namespace blender;
+    using namespace blender::bke;
+    using namespace blender::bke::crazyspace;
+    const Object &ob_orig = *DEG_get_original_object(ob_eval);
+    const GeometryDeformation deformation = get_evaluated_curves_deformation(ob_eval, ob_orig);
+    BLI_assert(ob_eval->data);
+    const Curves &curves_id = *static_cast<const Curves *>(ob_orig.data);
+    IndexMaskMemory memory;
+    const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+    const IndexMask mask = ed::curves::retrieve_selected_points(curves, memory);
+    const std::optional<Bounds<float3>> curves_bounds = bounds::min_max(mask,
+                                                                        deformation.positions);
+    if (curves_bounds.has_value()) {
+      ok = true;
+      copy_v3_v3(min, curves_bounds->min);
+      copy_v3_v3(max, curves_bounds->max);
+      mul_m4_v3(ob_eval->object_to_world, min);
+      mul_m4_v3(ob_eval->object_to_world, max);
+    }
   }
   else if (ob_eval && (ob_eval->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT |
                                         OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
