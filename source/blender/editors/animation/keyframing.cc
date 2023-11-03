@@ -47,6 +47,7 @@
 #include "ANIM_bone_collections.h"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
+#include "ANIM_rna.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -552,66 +553,6 @@ int insert_vert_fcurve(
 
   /* return the index at which the keyframe was added */
   return a;
-}
-
-/* ------------------ RNA Data-Access Functions ------------------ */
-
-/** Try to read value using RNA-properties obtained already. */
-blender::Vector<float> ANIM_setting_get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
-{
-  blender::Vector<float> values;
-  if (RNA_property_array_check(prop)) {
-    const int length = RNA_property_array_length(ptr, prop);
-
-    switch (RNA_property_type(prop)) {
-      case PROP_BOOLEAN: {
-        bool *tmp_bool = static_cast<bool *>(MEM_malloc_arrayN(length, sizeof(bool), __func__));
-        RNA_property_boolean_get_array(ptr, prop, tmp_bool);
-        for (int i = 0; i < length; i++) {
-          values.append(float(tmp_bool[i]));
-        }
-        MEM_freeN(tmp_bool);
-        break;
-      }
-      case PROP_INT: {
-        int *tmp_int = static_cast<int *>(MEM_malloc_arrayN(length, sizeof(int), __func__));
-        RNA_property_int_get_array(ptr, prop, tmp_int);
-        for (int i = 0; i < length; i++) {
-          values.append(float(tmp_int[i]));
-        }
-        MEM_freeN(tmp_int);
-        break;
-      }
-      case PROP_FLOAT: {
-        values.reinitialize(length);
-        RNA_property_float_get_array(ptr, prop, &values[0]);
-        break;
-      }
-      default:
-        values.reinitialize(length);
-        break;
-    }
-  }
-  else {
-    switch (RNA_property_type(prop)) {
-      case PROP_BOOLEAN:
-        values.append(float(RNA_property_boolean_get(ptr, prop)));
-        break;
-      case PROP_INT:
-        values.append(float(RNA_property_int_get(ptr, prop)));
-        break;
-      case PROP_FLOAT:
-        values.append(RNA_property_float_get(ptr, prop));
-        break;
-      case PROP_ENUM:
-        values.append(float(RNA_property_enum_get(ptr, prop)));
-        break;
-      default:
-        values.append(0.0f);
-    }
-  }
-
-  return values;
 }
 
 /* ------------------------- Insert Key API ------------------------- */
@@ -1613,7 +1554,7 @@ bool fcurve_is_changed(PointerRNA ptr,
   anim_rna.prop_index = fcu->array_index;
 
   int index = fcu->array_index;
-  blender::Vector<float> values = ANIM_setting_get_rna_values(&ptr, prop);
+  blender::Vector<float> values = blender::animrig::ANIM_setting_get_rna_values(&ptr, prop);
 
   float fcurve_val = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
   float cur_val = (index >= 0 && index < values.size()) ? values[index] : 0.0f;

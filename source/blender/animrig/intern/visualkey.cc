@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "ANIM_rna.hh"
 #include "ANIM_visualkey.hh"
 
 #include "BKE_animsys.h"

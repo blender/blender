@@ -39,8 +39,6 @@ struct NlaKeyframingContext;
 /** \name Key-Framing Management
  * \{ */
 
-blender::Vector<float> ANIM_setting_get_rna_values(PointerRNA *ptr, PropertyRNA *prop);
-
 /**
  * Get the active settings for key-framing settings from context (specifically the given scene)
  * \param use_autokey_mode: include settings from key-framing mode in the result

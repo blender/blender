@@ -11,6 +11,7 @@
 
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
+#include "ANIM_rna.hh"
 #include "ANIM_visualkey.hh"
 
 #include "BKE_action.h"
