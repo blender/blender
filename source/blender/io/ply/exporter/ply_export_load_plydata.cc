@@ -441,7 +441,11 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
             *attributes.lookup_or_default<ColorGeometry4f>(
                 name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
         if (!color_attribute.is_empty()) {
-          plyData.vertex_colors.reserve(ply_to_vertex.size());
+          if (plyData.vertex_colors.size() != vertex_offset) {
+            plyData.vertex_colors.resize(vertex_offset, float4(0));
+          }
+
+          plyData.vertex_colors.reserve(vertex_offset + ply_to_vertex.size());
           for (int vertex_index : ply_to_vertex) {
             float4 color = float4(color_attribute[vertex_index]);
             if (export_params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
@@ -477,7 +481,11 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
   DEG_OBJECT_ITER_END;
 
-  /* Make sure all custom attribute data arrays are encompassing all input objects */
+  /* Make sure color and attribute arrays are encompassing all input objects */
+  if (!plyData.vertex_colors.is_empty()) {
+    BLI_assert(plyData.vertex_colors.size() <= vertex_offset);
+    plyData.vertex_colors.resize(vertex_offset, float4(0));
+  }
   for (PlyCustomAttribute &attr : plyData.vertex_custom_attr) {
     BLI_assert(attr.data.size() <= vertex_offset);
     attr.data.resize(vertex_offset, 0.0f);
