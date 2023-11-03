@@ -83,8 +83,7 @@ std::unique_ptr<VKBuffer> VKImmediate::create_resource(VKContext & /*context*/)
   std::unique_ptr<VKBuffer> result = std::make_unique<VKBuffer>();
   result->create(new_buffer_size(bytes_needed),
                  GPU_USAGE_DYNAMIC,
-                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   debug::object_label(result->vk_handle(), "Immediate");
   buffer_offset_ = 0;
   return result;

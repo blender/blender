@@ -56,7 +56,7 @@ class VKTexture : public Texture, public VKBindableResource {
 
   void generate_mipmap() override;
   void copy_to(Texture *tex) override;
-  void copy_to(VKTexture &dst_texture, VkImageAspectFlagBits vk_image_aspect);
+  void copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspect);
   void clear(eGPUDataFormat format, const void *data) override;
   void clear_depth_stencil(const eGPUFrameBufferBits buffer,
                            float clear_depth,

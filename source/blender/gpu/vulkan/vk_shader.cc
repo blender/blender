@@ -859,7 +859,7 @@ static VkDescriptorType descriptor_type(const shader::ShaderCreateInfo::Resource
 static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
     const VKDescriptorSet::Location location,
     const shader::ShaderCreateInfo::Resource &resource,
-    VkShaderStageFlagBits vk_shader_stages)
+    VkShaderStageFlags vk_shader_stages)
 {
   VkDescriptorSetLayoutBinding binding = {};
   binding.binding = location;
@@ -872,7 +872,7 @@ static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
 }
 
 static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
-    const VKPushConstants::Layout &push_constants_layout, VkShaderStageFlagBits vk_shader_stages)
+    const VKPushConstants::Layout &push_constants_layout, VkShaderStageFlags vk_shader_stages)
 {
   BLI_assert(push_constants_layout.storage_type_get() ==
              VKPushConstants::StorageType::UNIFORM_BUFFER);
@@ -890,7 +890,7 @@ static void add_descriptor_set_layout_bindings(
     const VKShaderInterface &interface,
     const Vector<shader::ShaderCreateInfo::Resource> &resources,
     Vector<VkDescriptorSetLayoutBinding> &r_bindings,
-    VkShaderStageFlagBits vk_shader_stages)
+    VkShaderStageFlags vk_shader_stages)
 {
   for (const shader::ShaderCreateInfo::Resource &resource : resources) {
     const VKDescriptorSet::Location location = interface.descriptor_set_location(resource);
@@ -909,7 +909,7 @@ static VkDescriptorSetLayoutCreateInfo create_descriptor_set_layout(
     const VKShaderInterface &interface,
     const Vector<shader::ShaderCreateInfo::Resource> &resources,
     Vector<VkDescriptorSetLayoutBinding> &r_bindings,
-    VkShaderStageFlagBits vk_shader_stages)
+    VkShaderStageFlags vk_shader_stages)
 {
   add_descriptor_set_layout_bindings(interface, resources, r_bindings, vk_shader_stages);
   VkDescriptorSetLayoutCreateInfo set_info = {};
@@ -948,9 +948,8 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
   all_resources.extend(info.batch_resources_);
 
   Vector<VkDescriptorSetLayoutBinding> bindings;
-  const VkShaderStageFlagBits vk_shader_stages = is_graphics_shader() ?
-                                                     VK_SHADER_STAGE_ALL_GRAPHICS :
-                                                     VK_SHADER_STAGE_COMPUTE_BIT;
+  const VkShaderStageFlags vk_shader_stages = is_graphics_shader() ? VK_SHADER_STAGE_ALL_GRAPHICS :
+                                                                     VK_SHADER_STAGE_COMPUTE_BIT;
   VkDescriptorSetLayoutCreateInfo layout_info = create_descriptor_set_layout(
       shader_interface, all_resources, bindings, vk_shader_stages);
   if (vkCreateDescriptorSetLayout(vk_device, &layout_info, vk_allocation_callbacks, &layout_) !=

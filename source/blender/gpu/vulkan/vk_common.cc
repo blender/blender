@@ -11,7 +11,7 @@
 #include "vk_common.hh"
 
 namespace blender::gpu {
-VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat format)
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUTextureFormat format)
 {
   switch (format) {
     /* Formats texture & render-buffer */
@@ -62,8 +62,7 @@ VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat forma
 
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
-      return static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT |
-                                                VK_IMAGE_ASPECT_STENCIL_BIT);
+      return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
     /* Texture only formats. */
     case GPU_RGB32UI:
@@ -98,20 +97,20 @@ VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat forma
       return VK_IMAGE_ASPECT_COLOR_BIT;
   }
   BLI_assert_unreachable();
-  return static_cast<VkImageAspectFlagBits>(0);
+  return 0;
 }
 
-VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers)
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers)
 {
-  VkImageAspectFlagBits result = static_cast<VkImageAspectFlagBits>(0);
+  VkImageAspectFlags result = 0;
   if (buffers & GPU_COLOR_BIT) {
-    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_COLOR_BIT);
+    result |= VK_IMAGE_ASPECT_COLOR_BIT;
   }
   if (buffers & GPU_DEPTH_BIT) {
-    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_DEPTH_BIT);
+    result |= VK_IMAGE_ASPECT_DEPTH_BIT;
   }
   if (buffers & GPU_STENCIL_BIT) {
-    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_STENCIL_BIT);
+    result |= VK_IMAGE_ASPECT_STENCIL_BIT;
   }
   return result;
 }

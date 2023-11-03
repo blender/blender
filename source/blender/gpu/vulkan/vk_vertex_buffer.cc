@@ -178,10 +178,8 @@ void VKVertexBuffer::allocate()
 {
   buffer_.create(size_alloc_get(),
                  usage_,
-                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                                                    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT));
+                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }
 

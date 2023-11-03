@@ -81,10 +81,8 @@ void VKIndexBuffer::strip_restart_indices()
 void VKIndexBuffer::allocate()
 {
   GPUUsageType usage = data_ == nullptr ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_STATIC;
-  buffer_.create(size_get(),
-                 usage,
-                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT));
+  buffer_.create(
+      size_get(), usage, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
   debug::object_label(buffer_.vk_handle(), "IndexBuffer");
 }
 

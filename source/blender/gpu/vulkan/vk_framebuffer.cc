@@ -283,7 +283,7 @@ static void blit_aspect(VKCommandBuffers &command_buffer,
                         VKTexture &src_texture,
                         int dst_offset_x,
                         int dst_offset_y,
-                        VkImageAspectFlagBits image_aspect)
+                        VkImageAspectFlags image_aspect)
 {
   /* Prefer texture copy, as some platforms don't support using D32_SFLOAT_S8_UINT to be used as
    * a blit destination. */

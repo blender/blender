@@ -26,9 +26,8 @@ void VKUniformBuffer::allocate()
 {
   buffer_.create(size_in_bytes_,
                  GPU_USAGE_STATIC,
-                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                     VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   debug::object_label(buffer_.vk_handle(), name_);
 }
 

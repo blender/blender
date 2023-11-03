@@ -37,11 +37,11 @@ VKImageView::VKImageView(VKTexture &texture,
                          bool use_srgb,
                          StringRefNull name)
 {
-  const VkImageAspectFlagBits allowed_bits = static_cast<VkImageAspectFlagBits>(
-      VK_IMAGE_ASPECT_COLOR_BIT |
-      (use_stencil ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT));
-  VkImageAspectFlagBits image_aspect = static_cast<VkImageAspectFlagBits>(
-      (to_vk_image_aspect_flag_bits(texture.format_get()) & allowed_bits));
+  const VkImageAspectFlags allowed_bits = VK_IMAGE_ASPECT_COLOR_BIT |
+                                          (use_stencil ? VK_IMAGE_ASPECT_STENCIL_BIT :
+                                                         VK_IMAGE_ASPECT_DEPTH_BIT);
+  VkImageAspectFlags image_aspect = to_vk_image_aspect_flag_bits(texture.format_get()) &
+                                    allowed_bits;
 
   vk_format_ = to_vk_format(texture.format_get());
   if (texture.format_flag_get() & GPU_FORMAT_SRGB && !use_srgb) {
