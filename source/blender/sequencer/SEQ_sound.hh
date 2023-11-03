@@ -8,11 +8,13 @@
  * \ingroup sequencer
  */
 
+struct EQCurveMappingData;
 struct Main;
 struct Scene;
 struct Sequence;
 struct bSound;
 struct SequencerSoundEqualizer;
+struct SoundModifierWorkerInfo;
 struct BlendWriter;
 struct BlendDataReader;
 struct ListBase;
@@ -24,36 +26,33 @@ struct SoundEqualizerModifierData;
 #define SOUND_EQUALIZER_SIZE_CONVERSION 2048
 #define SOUND_EQUALIZER_SIZE_DEFINITION 1000
 
-void SEQ_sound_update_bounds_all(struct Scene *scene);
-void SEQ_sound_update_bounds(struct Scene *scene, struct Sequence *seq);
-void SEQ_sound_update(struct Scene *scene, struct bSound *sound);
-void SEQ_sound_update_length(struct Main *bmain, struct Scene *scene);
-float SEQ_sound_pitch_get(const struct Scene *scene, const struct Sequence *seq);
-struct EQCurveMappingData *SEQ_sound_equalizer_add(struct SoundEqualizerModifierData *semd,
-                                                   float minX,
-                                                   float maxX);
-void SEQ_sound_blend_write(struct BlendWriter *writer, struct ListBase *soundbase);
-void SEQ_sound_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
+void SEQ_sound_update_bounds_all(Scene *scene);
+void SEQ_sound_update_bounds(Scene *scene, Sequence *seq);
+void SEQ_sound_update(Scene *scene, bSound *sound);
+void SEQ_sound_update_length(Main *bmain, Scene *scene);
+float SEQ_sound_pitch_get(const Scene *scene, const Sequence *seq);
+EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *semd,
+                                            float minX,
+                                            float maxX);
+void SEQ_sound_blend_write(BlendWriter *writer, ListBase *soundbase);
+void SEQ_sound_blend_read_data(BlendDataReader *reader, ListBase *lb);
 
-void *SEQ_sound_modifier_recreator(struct Sequence *seq,
-                                   struct SequenceModifierData *smd,
-                                   void *sound);
+void *SEQ_sound_modifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound);
 
-void SEQ_sound_equalizermodifier_init_data(struct SequenceModifierData *smd);
-void SEQ_sound_equalizermodifier_free(struct SequenceModifierData *smd);
-void SEQ_sound_equalizermodifier_copy_data(struct SequenceModifierData *target,
-                                           struct SequenceModifierData *smd);
-void *SEQ_sound_equalizermodifier_recreator(struct Sequence *seq,
-                                            struct SequenceModifierData *smd,
-                                            void *sound);
-void SEQ_sound_equalizermodifier_set_graphs(struct SoundEqualizerModifierData *semd, int number);
-const struct SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type);
-struct EQCurveMappingData *SEQ_sound_equalizermodifier_add_graph(
-    struct SoundEqualizerModifierData *semd, float min_freq, float max_freq);
-void SEQ_sound_equalizermodifier_remove_graph(struct SoundEqualizerModifierData *semd,
-                                              struct EQCurveMappingData *gsed);
+void SEQ_sound_equalizermodifier_init_data(SequenceModifierData *smd);
+void SEQ_sound_equalizermodifier_free(SequenceModifierData *smd);
+void SEQ_sound_equalizermodifier_copy_data(SequenceModifierData *target,
+                                           SequenceModifierData *smd);
+void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound);
+void SEQ_sound_equalizermodifier_set_graphs(SoundEqualizerModifierData *semd, int number);
+const SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type);
+EQCurveMappingData *SEQ_sound_equalizermodifier_add_graph(SoundEqualizerModifierData *semd,
+                                                          float min_freq,
+                                                          float max_freq);
+void SEQ_sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
+                                              EQCurveMappingData *gsed);
 
-typedef struct SoundModifierWorkerInfo {
+struct SoundModifierWorkerInfo {
   int type;
-  void *(*recreator)(struct Sequence *seq, struct SequenceModifierData *smd, void *sound);
-} SoundModifierWorkerInfo;
+  void *(*recreator)(Sequence *seq, SequenceModifierData *smd, void *sound);
+};

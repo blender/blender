@@ -16,30 +16,24 @@ struct Scene;
 struct Sequence;
 struct StripElem;
 
-void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
-                                             struct ListBase *seqbasep,
-                                             struct Sequence *seq);
-const char *SEQ_sequence_give_name(struct Sequence *seq);
-struct ListBase *SEQ_get_seqbase_from_sequence(struct Sequence *seq,
-                                               struct ListBase **channels,
-                                               int *r_offset);
-const struct Sequence *SEQ_get_topmost_sequence(const struct Scene *scene, int frame);
+void SEQ_sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, Sequence *seq);
+const char *SEQ_sequence_give_name(Sequence *seq);
+ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **channels, int *r_offset);
+const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame);
 /**
  * In cases where we don't know the sequence's listbase.
  */
-struct ListBase *SEQ_get_seqbase_by_seq(const struct Scene *scene, struct Sequence *seq);
+ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq);
 /**
  * Only use as last resort when the StripElem is available but no the Sequence.
  * (needed for RNA)
  */
-struct Sequence *SEQ_sequence_from_strip_elem(struct ListBase *seqbase, struct StripElem *se);
-struct Sequence *SEQ_get_sequence_by_name(struct ListBase *seqbase,
-                                          const char *name,
-                                          bool recursive);
-struct Mask *SEQ_active_mask_get(struct Scene *scene);
-void SEQ_alpha_mode_from_file_extension(struct Sequence *seq);
-bool SEQ_sequence_has_source(const struct Sequence *seq);
-void SEQ_set_scale_to_fit(const struct Sequence *seq,
+Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se);
+Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive);
+Mask *SEQ_active_mask_get(Scene *scene);
+void SEQ_alpha_mode_from_file_extension(Sequence *seq);
+bool SEQ_sequence_has_source(const Sequence *seq);
+void SEQ_set_scale_to_fit(const Sequence *seq,
                           int image_width,
                           int image_height,
                           int preview_width,
@@ -52,4 +46,4 @@ void SEQ_set_scale_to_fit(const struct Sequence *seq,
  * \param seq: Sequence which name will be ensured to be unique
  * \param scene: Scene in which name must be unique
  */
-void SEQ_ensure_unique_name(struct Sequence *seq, struct Scene *scene);
+void SEQ_ensure_unique_name(Sequence *seq, Scene *scene);

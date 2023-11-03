@@ -18,7 +18,7 @@ struct SeqRenderData;
 struct Sequence;
 struct SequenceModifierData;
 
-typedef struct SequenceModifierTypeInfo {
+struct SequenceModifierTypeInfo {
   /* default name for the modifier */
   char name[64]; /* MAX_NAME */
 
@@ -29,34 +29,34 @@ typedef struct SequenceModifierTypeInfo {
   int struct_size;
 
   /* data initialization */
-  void (*init_data)(struct SequenceModifierData *smd);
+  void (*init_data)(SequenceModifierData *smd);
 
   /* free data used by modifier,
    * only modifier-specific data should be freed, modifier descriptor would
    * be freed outside of this callback
    */
-  void (*free_data)(struct SequenceModifierData *smd);
+  void (*free_data)(SequenceModifierData *smd);
 
   /* copy data from one modifier to another */
-  void (*copy_data)(struct SequenceModifierData *smd, struct SequenceModifierData *target);
+  void (*copy_data)(SequenceModifierData *smd, SequenceModifierData *target);
 
   /* apply modifier on a given image buffer */
-  void (*apply)(struct SequenceModifierData *smd, struct ImBuf *ibuf, struct ImBuf *mask);
-} SequenceModifierTypeInfo;
+  void (*apply)(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask);
+};
 
-const struct SequenceModifierTypeInfo *SEQ_modifier_type_info_get(int type);
-struct SequenceModifierData *SEQ_modifier_new(struct Sequence *seq, const char *name, int type);
-bool SEQ_modifier_remove(struct Sequence *seq, struct SequenceModifierData *smd);
-void SEQ_modifier_clear(struct Sequence *seq);
-void SEQ_modifier_free(struct SequenceModifierData *smd);
-void SEQ_modifier_unique_name(struct Sequence *seq, struct SequenceModifierData *smd);
-struct SequenceModifierData *SEQ_modifier_find_by_name(struct Sequence *seq, const char *name);
-struct ImBuf *SEQ_modifier_apply_stack(const struct SeqRenderData *context,
-                                       struct Sequence *seq,
-                                       struct ImBuf *ibuf,
-                                       int timeline_frame);
-void SEQ_modifier_list_copy(struct Sequence *seqn, struct Sequence *seq);
-int SEQ_sequence_supports_modifiers(struct Sequence *seq);
+const SequenceModifierTypeInfo *SEQ_modifier_type_info_get(int type);
+SequenceModifierData *SEQ_modifier_new(Sequence *seq, const char *name, int type);
+bool SEQ_modifier_remove(Sequence *seq, SequenceModifierData *smd);
+void SEQ_modifier_clear(Sequence *seq);
+void SEQ_modifier_free(SequenceModifierData *smd);
+void SEQ_modifier_unique_name(Sequence *seq, SequenceModifierData *smd);
+SequenceModifierData *SEQ_modifier_find_by_name(Sequence *seq, const char *name);
+ImBuf *SEQ_modifier_apply_stack(const SeqRenderData *context,
+                                Sequence *seq,
+                                ImBuf *ibuf,
+                                int timeline_frame);
+void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq);
+int SEQ_sequence_supports_modifiers(Sequence *seq);
 
-void SEQ_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
-void SEQ_modifier_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
+void SEQ_modifier_blend_write(BlendWriter *writer, ListBase *modbase);
+void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb);
