@@ -155,7 +155,7 @@ PassAccessor::PassAccessInfo PathTraceWork::get_display_pass_access_info(PassMod
 
   const BufferPass *display_pass = params.get_actual_display_pass(film_->get_display_pass());
   if (display_pass == nullptr) {
-    /* Happens when interactive sesssion changes display pass but render
+    /* Happens when interactive session changes display pass but render
      * buffer does not contain it yet. */
     return PassAccessor::PassAccessInfo();
   }

@@ -46,7 +46,7 @@ typedef struct SeqIterator {
 /**
  * Utility function for SEQ_ITERATOR_FOREACH macro.
  * Ensure, that iterator is initialized. During initialization return pointer to collection element
- * and step gset iterator. When this function is called after iterator has been initialized, it
+ * and step #GSet iterator. When this function is called after iterator has been initialized, it
  * will do nothing and return true.
  *
  * \param collection: collection to iterate

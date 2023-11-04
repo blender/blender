@@ -1308,7 +1308,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
 {
   BLO_read_data_address(reader, &prop->ui_data);
   if (!prop->ui_data) {
-    /* Can happen when opening more recent files with unknown tyes of IDProperties. */
+    /* Can happen when opening more recent files with unknown types of IDProperties. */
     return;
   }
   BLO_read_data_address(reader, &prop->ui_data->description);

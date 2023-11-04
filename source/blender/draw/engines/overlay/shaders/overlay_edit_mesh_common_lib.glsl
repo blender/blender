@@ -25,7 +25,7 @@ vec4 EDIT_MESH_edge_color_inner(uint edge_flag)
 
 vec4 EDIT_MESH_edge_vertex_color(uint vertex_flag)
 {
-  /* Edge color in vextex selection mode. */
+  /* Edge color in vertex selection mode. */
   vec4 selected_edge_col = (selectEdge) ? colorEdgeModeSelect : colorEdgeSelect;
   bool edge_selected = (vertex_flag & (VERT_ACTIVE | VERT_SELECTED)) != 0u;
   vec4 color = (edge_selected) ? selected_edge_col : colorWireEdit;

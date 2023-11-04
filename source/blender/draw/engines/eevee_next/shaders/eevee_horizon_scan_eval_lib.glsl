@@ -132,7 +132,7 @@ vec3 horizon_scan_eval(vec3 vP,
         vec3 vL_front = normalize(vP_front - vP);
         vec3 vL_back = normalize(vP_back - vP);
 
-        /* Ordered pair of angle. Mininum in X, Maximum in Y.
+        /* Ordered pair of angle. Minimum in X, Maximum in Y.
          * Front will always have the smallest angle here since it is the closest to the view. */
         vec2 theta = acos_fast(vec2(dot(vL_front, vV), dot(vL_back, vV)));
         /* If we are tracing backward, the angles are negative. Swizzle to keep correct order. */

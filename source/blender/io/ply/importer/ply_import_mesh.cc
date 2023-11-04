@@ -107,7 +107,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
    * after initializing the loops). */
   if (!data.vertex_normals.is_empty()) {
     if (!data.face_sizes.is_empty()) {
-      /* For a non-pointcloud mesh, set custom normals. */
+      /* For a non-point-cloud mesh, set custom normals. */
       BKE_mesh_set_custom_normals_from_verts(
           mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
     }

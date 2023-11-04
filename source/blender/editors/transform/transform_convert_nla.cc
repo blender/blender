@@ -731,8 +731,8 @@ static void recalcData_nla(TransInfo *t)
 
     /* Move strip into track in the requested direction. */
     /* If we cannot find the strip in the track, this strip has moved tracks already (if multiple
-     * strips using the same action from equal IDs such as meshes or shapekeys are selected) so can
-     * be skipped. */
+     * strips using the same action from equal IDs such as meshes or shape-keys are selected)
+     * so can be skipped. */
     if ((delta_y1 || delta_y2) && BLI_findindex(&tdn->nlt->strips, strip) != -1) {
       int delta = (delta_y2) ? delta_y2 : delta_y1;
 
