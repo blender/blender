@@ -9,7 +9,7 @@ Blender
 
 Blender is the free and open source 3D creation suite.
 It supports the entirety of the 3D pipeline-modeling, rigging, animation, simulation, rendering, compositing,
-motion tracking and video editing.
+motion tracking and video editing and much more.
 
 ![Blender screenshot](https://code.blender.org/wp-content/uploads/2018/12/springrg.jpg "Blender screenshot")
 
@@ -35,4 +35,4 @@ License
 Blender as a whole is licensed under the GNU General Public License, Version 3.
 Individual files may have a different, but compatible license.
 
-See [blender.org/about/license](https://www.blender.org/about/license) for details.
+See [blender.org/about/license](https://www.blender.org/about/license) for more details.
