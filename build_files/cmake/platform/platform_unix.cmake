@@ -548,6 +548,7 @@ endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package_wrapper(openpgl)
+  mark_as_advanced(openpgl_DIR)
   if(openpgl_FOUND)
     get_target_property(OPENPGL_LIBRARIES openpgl::openpgl LOCATION)
     get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
@@ -780,6 +781,8 @@ endif()
 
 if(WITH_GHOST_X11)
   find_package(X11 REQUIRED)
+  # For some reason the finder doesn't mark this.
+  mark_as_advanced(X11_xcb_xkb_INCLUDE_PATH)
 
   find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
   mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
