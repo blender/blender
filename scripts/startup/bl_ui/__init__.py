@@ -193,6 +193,7 @@ class UI_UL_list(bpy.types.UIList):
         or an empty list if no flags were given and no filtering has been done.
         """
         import fnmatch
+        import re
 
         if not pattern or not items:  # Empty pattern or list = no filtering!
             return flags or []
@@ -201,12 +202,12 @@ class UI_UL_list(bpy.types.UIList):
             flags = [0] * len(items)
 
         # Implicitly add heading/trailing wildcards.
-        pattern = "*" + pattern + "*"
+        pattern_regex = re.compile(fnmatch.translate("*" + pattern + "*"))
 
         for i, item in enumerate(items):
             name = getattr(item, propname, None)
-            # This is similar to a logical xor
-            if bool(name and fnmatch.fnmatch(name, pattern)) is not bool(reverse):
+            # This is similar to a logical XOR.
+            if bool(name and pattern_regex.match(name)) is not reverse:
                 flags[i] |= bitflag
         return flags
 
