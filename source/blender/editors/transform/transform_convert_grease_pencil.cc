@@ -49,7 +49,6 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
   /* Count selected elements per layer per object and create TransData structs. */
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
 
     const Array<ed::greasepencil::MutableDrawingInfo> drawings = all_drawings[i];
     for (ed::greasepencil::MutableDrawingInfo info : drawings) {
@@ -80,7 +79,6 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     if (tc.data_len == 0) {
       continue;
     }
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
 
     float mtx[3][3], smtx[3][3];
     copy_m3_m4(mtx, tc.obedit->object_to_world);
