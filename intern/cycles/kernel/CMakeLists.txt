@@ -895,17 +895,22 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   foreach(device ${CYCLES_ONEAPI_INTEL_BINARIES_ARCH})
     # Run ocloc ids to test if the device is supported.
     if(WIN32)
-      execute_process(COMMAND ${OCLOC_INSTALL_DIR}/ocloc.exe ids ${device}
-                      RESULT_VARIABLE oclocids_ret
-                      OUTPUT_QUIET
-                      ERROR_QUIET)
+      execute_process(
+        COMMAND ${OCLOC_INSTALL_DIR}/ocloc.exe ids ${device}
+        RESULT_VARIABLE oclocids_ret
+        OUTPUT_QUIET
+        ERROR_QUIET
+      )
     else()
-      execute_process(COMMAND ${CMAKE_COMMAND}
-                              -E env "LD_LIBRARY_PATH=${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
-                              ${OCLOC_INSTALL_DIR}/bin/ocloc ids ${device}
-                      RESULT_VARIABLE oclocids_ret
-                      OUTPUT_QUIET
-                      ERROR_QUIET)
+      execute_process(
+        COMMAND ${CMAKE_COMMAND}
+        -E env "LD_LIBRARY_PATH=${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
+        ${OCLOC_INSTALL_DIR}/bin/ocloc ids ${device}
+
+        RESULT_VARIABLE oclocids_ret
+        OUTPUT_QUIET
+        ERROR_QUIET
+      )
     endif()
     if(NOT oclocids_ret EQUAL 0)
       list(REMOVE_ITEM CYCLES_ONEAPI_INTEL_BINARIES_ARCH ${device})
@@ -924,7 +929,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
     foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
       if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
-        list(APPEND sycl_compiler_flags "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\"")
+        list(APPEND sycl_compiler_flags
+          "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\""
+        )
       endif()
     endforeach()
   else()
@@ -985,12 +992,12 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
         set(next_library_mode "")
       endif()
     endforeach()
-      list(APPEND sycl_compiler_flags
-        "$<$<CONFIG:Release>:${EMBREE_TBB_LIBRARIES_optimized}>"
-        "$<$<CONFIG:RelWithDebInfo>:${EMBREE_TBB_LIBRARIES_optimized}>"
-        "$<$<CONFIG:MinSizeRel>:${EMBREE_TBB_LIBRARIES_optimized}>"
-        "$<$<CONFIG:Debug>:${EMBREE_TBB_LIBRARIES_debug}>"
-      )
+    list(APPEND sycl_compiler_flags
+      "$<$<CONFIG:Release>:${EMBREE_TBB_LIBRARIES_optimized}>"
+      "$<$<CONFIG:RelWithDebInfo>:${EMBREE_TBB_LIBRARIES_optimized}>"
+      "$<$<CONFIG:MinSizeRel>:${EMBREE_TBB_LIBRARIES_optimized}>"
+      "$<$<CONFIG:Debug>:${EMBREE_TBB_LIBRARIES_debug}>"
+    )
   endif()
 
   if(WITH_CYCLES_DEBUG)
@@ -1001,16 +1008,17 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   if(WIN32) # Add Windows specific compiler flags.
     list(APPEND sycl_compiler_flags
-    -fuse-ld=link
-    -fms-extensions
-    -fms-compatibility
-    -D_WINDLL
-    -D_MBCS
-    -DWIN32
-    -D_WINDOWS
-    -D_CRT_NONSTDC_NO_DEPRECATE
-    -D_CRT_SECURE_NO_DEPRECATE
-    -DONEAPI_EXPORT)
+      -fuse-ld=link
+      -fms-extensions
+      -fms-compatibility
+      -D_WINDLL
+      -D_MBCS
+      -DWIN32
+      -D_WINDOWS
+      -D_CRT_NONSTDC_NO_DEPRECATE
+      -D_CRT_SECURE_NO_DEPRECATE
+      -DONEAPI_EXPORT
+    )
 
     string(REPLACE /Redist/ /Tools/ MSVC_TOOLS_DIR ${MSVC_REDIST_DIR})
     # Version Folder between Redist and Tools can mismatch sometimes
@@ -1026,9 +1034,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
     endif()
     list(APPEND sycl_compiler_flags
-                -L"${MSVC_TOOLS_DIR}/lib/x64"
-                -L"${WINDOWS_KIT_DIR}/um/x64"
-                -L"${WINDOWS_KIT_DIR}/ucrt/x64")
+      -L"${MSVC_TOOLS_DIR}/lib/x64"
+      -L"${WINDOWS_KIT_DIR}/um/x64"
+      -L"${WINDOWS_KIT_DIR}/ucrt/x64"
+    )
   else() # Add Linux specific compiler flags.
     list(APPEND sycl_compiler_flags -fPIC)
     list(APPEND sycl_compiler_flags -fvisibility=hidden)
@@ -1048,22 +1057,22 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   set(sycl_compiler_flags_RelWithDebInfo ${sycl_compiler_flags})
 
   list(APPEND sycl_compiler_flags_Release
-              -DNDEBUG
-              )
+    -DNDEBUG
+  )
   list(APPEND sycl_compiler_flags_RelWithDebInfo
-              -DNDEBUG
-              -g
-              )
+    -DNDEBUG
+    -g
+  )
   list(APPEND sycl_compiler_flags_Debug
-              -g
-              )
+    -g
+  )
 
   if(WIN32)
     list(APPEND sycl_compiler_flags_Debug
-                -D_DEBUG
-                -nostdlib
-                -Xclang --dependent-lib=msvcrtd
-                )
+      -D_DEBUG
+      -nostdlib
+      -Xclang --dependent-lib=msvcrtd
+    )
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env

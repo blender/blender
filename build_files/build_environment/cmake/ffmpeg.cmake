@@ -70,7 +70,7 @@ set(FFMPEG_EXTRA_FLAGS
 
 set(FFMPEG_ENV)
 if(NOT WIN32)
-set(FFMPEG_ENV "PKG_CONFIG_PATH=\
+  set(FFMPEG_ENV "PKG_CONFIG_PATH=\
 ${temp_LIBDIR}/openjpeg/lib/pkgconfig:\
 ${temp_LIBDIR}/x264/lib/pkgconfig:\
 ${temp_LIBDIR}/vorbis/lib/pkgconfig:\
@@ -80,7 +80,7 @@ ${temp_LIBDIR}/theora/lib/pkgconfig:\
 ${temp_LIBDIR}/openjpeg/lib/pkgconfig:\
 ${temp_LIBDIR}/opus/lib/pkgconfig:\
 ${temp_LIBDIR}/aom/lib/pkgconfig:"
-)
+  )
 endif()
 
 unset(temp_LIBDIR)

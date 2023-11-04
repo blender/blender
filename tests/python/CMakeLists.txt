@@ -770,33 +770,33 @@ endif()
 # NOTE: WITH_COMPOSITOR_CPU is needed for rendering.
 if(WITH_COMPOSITOR_REALTIME_TESTS AND WITH_COMPOSITOR_CPU)
   if(NOT OPENIMAGEIO_IDIFF)
-      message(WARNING "Disabling realtime compositor tests because OIIO idiff does not exist")
-    else()
-      set(compositor_tests
-          color
-          converter
-          filter
-          input
-          output
-          vector
+    message(WARNING "Disabling realtime compositor tests because OIIO idiff does not exist")
+  else()
+    set(compositor_tests
+        color
+        converter
+        filter
+        input
+        output
+        vector
 
-          multiple_node_setups
-        )
+        multiple_node_setups
+      )
 
-      if(WITH_LIBMV)
-        list(APPEND compositor_tests distort matte)
-      endif()
+    if(WITH_LIBMV)
+      list(APPEND compositor_tests distort matte)
+    endif()
 
-      foreach(comp_test ${compositor_tests})
-        add_python_test(
-          compositor_${comp_test}_realtime_test
-          ${CMAKE_CURRENT_LIST_DIR}/compositor_realtime_render_tests.py
-          -blender "${TEST_BLENDER_EXE}"
-          -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
-          -idiff "${OPENIMAGEIO_IDIFF}"
-          -outdir "${TEST_OUT_DIR}/compositor_realtime"
-        )
-      endforeach()
+    foreach(comp_test ${compositor_tests})
+      add_python_test(
+        compositor_${comp_test}_realtime_test
+        ${CMAKE_CURRENT_LIST_DIR}/compositor_realtime_render_tests.py
+        -blender "${TEST_BLENDER_EXE}"
+        -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
+        -idiff "${OPENIMAGEIO_IDIFF}"
+        -outdir "${TEST_OUT_DIR}/compositor_realtime"
+      )
+    endforeach()
   endif()
 endif()
 
@@ -855,7 +855,7 @@ if(EXISTS "${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/")
       geo_node_simulation_test_${filename}
       ${file}
       --python ${TEST_PYTHON_DIR}/geo_node_sim_test.py
-      )
+    )
   endforeach()
 else()
   message(STATUS "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/ not found, disabling tests")
@@ -917,10 +917,10 @@ endif()
 
 if(WITH_USD)
   add_blender_test(
-          bf_io_usd_export_test
-          --python ${CMAKE_CURRENT_LIST_DIR}/bl_usd_export_test.py
-          --
-          --testdir "${TEST_SRC_DIR}/usd"
+    bf_io_usd_export_test
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_usd_export_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/usd"
   )
   add_blender_test(
     bf_io_usd_import_test
