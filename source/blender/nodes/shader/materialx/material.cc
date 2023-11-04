@@ -13,6 +13,8 @@
 
 #include "NOD_shader.h"
 
+#include "material.h"
+
 namespace blender::nodes::materialx {
 
 class DefaultMaterialNodeParser : public NodeParser {
