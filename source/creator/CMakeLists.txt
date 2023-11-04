@@ -668,16 +668,16 @@ if(UNIX AND NOT APPLE)
       # OpenGL now that the lib/ folder is used for other libraries.
       install(
         CODE "\
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
-        "
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
+"
       )
     endif()
   else()

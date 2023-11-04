@@ -39,17 +39,19 @@ set(FFMPEG_PATCH_FILE)
 
 if(WIN32)
   set(FFMPEG_CFLAGS "\
-  ${FFMPEG_CFLAGS} \
-  -I${temp_LIBDIR}/openjpeg_msvc/include/openjpeg-2.5 \
-  -I${temp_LIBDIR}/opus/include/opus \
-  -DOPJ_STATIC \
-  -MD \
-  -UHAVE_UNISTD_H")
+${FFMPEG_CFLAGS} \
+-I${temp_LIBDIR}/openjpeg_msvc/include/openjpeg-2.5 \
+-I${temp_LIBDIR}/opus/include/opus \
+-DOPJ_STATIC \
+-MD \
+-UHAVE_UNISTD_H"
+  )
 
   set(FFMPEG_LDFLAGS "\
-  ${FFMPEG_LDFLAGS} \
-  ${LIBDIR_FLAG}${temp_LIBDIR}/openjpeg_msvc/lib \
-  ucrt.lib")
+${FFMPEG_LDFLAGS} \
+${LIBDIR_FLAG}${temp_LIBDIR}/openjpeg_msvc/lib \
+ucrt.lib"
+  )
 
   # As we now use MSVC on windows, pkgconfig is not really a viable option for many packages
   # so this patch removes those checks in favour of looking for the libs directly.
