@@ -7,10 +7,10 @@
  *
  * Interactive fly navigation modal operator (flying around in space).
  *
+ * Defines #VIEW3D_OT_fly modal operator.
+ *
  * \note Similar logic to `view3d_navigate_walk.cc` changes here may apply there too.
  */
-
-/* defines VIEW3D_OT_fly modal operator */
 
 #ifdef WITH_INPUT_NDOF
 //#  define NDOF_FLY_DEBUG

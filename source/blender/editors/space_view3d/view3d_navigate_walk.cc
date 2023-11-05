@@ -8,10 +8,10 @@
  * Interactive walk navigation modal operator
  * (similar to walking around in a first person game).
  *
+ * Defines #VIEW3D_OT_navigate, walk modal operator.
+ *
  * \note Similar logic to `view3d_navigate_fly.cc` changes here may apply there too.
  */
-
-/* defines VIEW3D_OT_navigate - walk modal operator */
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -98,7 +98,7 @@ enum {
   WALK_MODAL_DIR_LOCAL_DOWN_STOP,
 };
 
-enum {
+enum eWalkDirectionFlag {
   WALK_BIT_FORWARD = 1 << 0,
   WALK_BIT_BACKWARD = 1 << 1,
   WALK_BIT_LEFT = 1 << 2,
@@ -108,6 +108,7 @@ enum {
   WALK_BIT_LOCAL_UP = 1 << 6,
   WALK_BIT_LOCAL_DOWN = 1 << 7,
 };
+ENUM_OPERATORS(eWalkDirectionFlag, WALK_BIT_LOCAL_DOWN)
 
 enum eWalkTeleportState {
   WALK_TELEPORT_STATE_OFF = 0,
@@ -222,6 +223,13 @@ struct WalkTeleport {
   eWalkMethod navigation_mode; /* teleport always set FREE mode on */
 };
 
+/** #WalkInfo::state */
+enum eWalkState {
+  WALK_RUNNING = 0,
+  WALK_CANCEL = 1,
+  WALK_CONFIRM = 2,
+};
+
 struct WalkInfo {
   /* context stuff */
   RegionView3D *rv3d;
@@ -233,11 +241,11 @@ struct WalkInfo {
   /** Needed for updating that isn't triggered by input. */
   wmTimer *timer;
 
-  short state;
+  eWalkState state;
   bool redraw;
 
   /**
-   * Needed for auto-keyframing, when animation isn't playing, only keyframe on confirmation.
+   * Needed for auto-key-framing, when animation isn't playing, only keyframe on confirmation.
    *
    * Currently we can't cancel this operator usefully while recording on animation playback
    * (this would need to un-key all previous frames).
@@ -305,7 +313,7 @@ struct WalkInfo {
   float view_height;
 
   /** Counting system to allow movement to continue if a direction (WASD) key is still pressed. */
-  int active_directions;
+  eWalkDirectionFlag active_directions;
 
   float speed_jump;
   /** Current maximum jump height. */
@@ -414,8 +422,8 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
 {
   const float ray_normal[3] = {0, 0, -1}; /* down */
   float ray_start[3];
-  float r_location[3];
-  float r_normal_dummy[3];
+  float location_dummy[3];
+  float normal_dummy[3];
   float dvec_tmp[3];
   bool ret;
 
@@ -438,10 +446,10 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
                                              ray_start,
                                              ray_normal,
                                              r_distance,
-                                             r_location,
-                                             r_normal_dummy);
+                                             location_dummy,
+                                             normal_dummy);
 
-  /* artificially scale the distance to the scene size */
+  /* Artificially scale the distance to the scene size. */
   *r_distance /= walk->grid;
   return ret;
 }
@@ -455,13 +463,12 @@ static bool walk_ray_cast(RegionView3D *rv3d,
                           WalkInfo *walk,
                           float r_location[3],
                           float r_normal[3],
-                          float *ray_distance)
+                          float *r_ray_distance)
 {
   float ray_normal[3] = {0, 0, -1}; /* forward */
   float ray_start[3];
-  bool ret;
 
-  *ray_distance = BVH_RAYCAST_DIST_MAX;
+  *r_ray_distance = BVH_RAYCAST_DIST_MAX;
 
   copy_v3_v3(ray_start, rv3d->viewinv[3]);
 
@@ -472,15 +479,15 @@ static bool walk_ray_cast(RegionView3D *rv3d,
   SnapObjectParams snap_params = {};
   snap_params.snap_target_select = SCE_SNAP_TARGET_ALL;
 
-  ret = ED_transform_snap_object_project_ray(walk->snap_context,
-                                             walk->depsgraph,
-                                             walk->v3d,
-                                             &snap_params,
-                                             ray_start,
-                                             ray_normal,
-                                             nullptr,
-                                             r_location,
-                                             r_normal);
+  const bool ret = ED_transform_snap_object_project_ray(walk->snap_context,
+                                                        walk->depsgraph,
+                                                        walk->v3d,
+                                                        &snap_params,
+                                                        ray_start,
+                                                        ray_normal,
+                                                        nullptr,
+                                                        r_location,
+                                                        r_normal);
 
   /* dot is positive if both rays are facing the same direction */
   if (dot_v3v3(ray_normal, r_normal) > 0) {
@@ -488,17 +495,10 @@ static bool walk_ray_cast(RegionView3D *rv3d,
   }
 
   /* artificially scale the distance to the scene size */
-  *ray_distance /= walk->grid;
+  *r_ray_distance /= walk->grid;
 
   return ret;
 }
-
-/* WalkInfo->state */
-enum {
-  WALK_RUNNING = 0,
-  WALK_CANCEL = 1,
-  WALK_CONFIRM = 2,
-};
 
 /* Keep the previous speed and jump height until user changes preferences. */
 static float base_speed = -1.0f;
@@ -598,10 +598,10 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   walk->is_cursor_absolute = false;
 #endif
 
-  walk->active_directions = 0;
+  walk->active_directions = eWalkDirectionFlag(0);
 
 #ifdef NDOF_WALK_DRAW_TOOMUCH
-  walk->redraw = 1;
+  walk->redraw = true;
 #endif
   zero_v3(walk->dvec_prev);
 
@@ -892,7 +892,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
       case WALK_MODAL_TELEPORT: {
         float loc[3], nor[3];
         float distance;
-        bool ret = walk_ray_cast(walk->rv3d, walk, loc, nor, &distance);
+        const bool ret = walk_ray_cast(walk->rv3d, walk, loc, nor, &distance);
 
         /* in case we are teleporting middle way from a jump */
         walk->speed_jump = 0.0f;
@@ -1049,7 +1049,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       float time_redraw;
       float time_redraw_clamped;
 #ifdef NDOF_WALK_DRAW_TOOMUCH
-      walk->redraw = 1;
+      walk->redraw = true;
 #endif
       time_current = PIL_check_seconds_timer();
       time_redraw = float(time_current - walk->time_lastdraw);
@@ -1271,15 +1271,11 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       if (walk->navigation_mode == WALK_MODE_GRAVITY &&
           ELEM(walk->gravity_state, WALK_GRAVITY_STATE_OFF, WALK_GRAVITY_STATE_START))
       {
-
-        bool ret;
         float ray_distance;
         float difference = -100.0f;
         float fall_distance;
 
-        ret = walk_floor_distance_get(rv3d, walk, dvec, &ray_distance);
-
-        if (ret) {
+        if (walk_floor_distance_get(rv3d, walk, dvec, &ray_distance)) {
           difference = walk->view_height - ray_distance;
         }
 
@@ -1309,30 +1305,25 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
       /* Falling or jumping) */
       if (ELEM(walk->gravity_state, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
-        float t;
-        float z_cur, z_new;
-        bool ret;
         float ray_distance, difference = -100.0f;
 
         /* delta time */
-        t = float(PIL_check_seconds_timer() - walk->teleport.initial_time);
+        const bool t = float(PIL_check_seconds_timer() - walk->teleport.initial_time);
 
         /* keep moving if we were moving */
         copy_v2_v2(dvec, walk->teleport.direction);
 
-        z_cur = walk->rv3d->viewinv[3][2] / walk->grid;
-        z_new = (walk->teleport.origin[2] / walk->grid) - getFreeFallDistance(walk->gravity, t);
-
-        /* jump */
-        z_new += t * walk->speed_jump;
+        const float z_cur = walk->rv3d->viewinv[3][2] / walk->grid;
+        const float z_new = ((walk->teleport.origin[2] / walk->grid) -
+                             getFreeFallDistance(walk->gravity, t)) +
+                            /* Jump. */
+                            (t * walk->speed_jump);
 
         /* duration is the jump duration */
         if (t > walk->teleport.duration) {
 
           /* check to see if we are landing */
-          ret = walk_floor_distance_get(rv3d, walk, dvec, &ray_distance);
-
-          if (ret) {
+          if (walk_floor_distance_get(rv3d, walk, dvec, &ray_distance)) {
             difference = walk->view_height - ray_distance;
           }
 
@@ -1475,7 +1466,6 @@ static void walk_cancel(bContext *C, wmOperator *op)
 
 static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int exit_code;
   bool do_draw = false;
   WalkInfo *walk = static_cast<WalkInfo *>(op->customdata);
   View3D *v3d = walk->v3d;
@@ -1501,7 +1491,7 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   do_draw |= walk->redraw;
 
-  exit_code = walkEnd(C, walk);
+  const int exit_code = walkEnd(C, walk);
 
   if (exit_code != OPERATOR_RUNNING_MODAL) {
     do_draw = true;
