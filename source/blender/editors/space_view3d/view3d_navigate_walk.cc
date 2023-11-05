@@ -1334,9 +1334,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       /* Falling or jumping). */
       if (ELEM(walk->gravity_state, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
         float ray_distance, difference = -100.0f;
-
         /* Delta time. */
-        const bool t = float(PIL_check_seconds_timer() - walk->teleport.initial_time);
+        const float t = float(PIL_check_seconds_timer() - walk->teleport.initial_time);
 
         /* Keep moving if we were moving. */
         copy_v2_v2(dvec, walk->teleport.direction);
