@@ -50,6 +50,8 @@
 #include "view3d_intern.h" /* own include */
 #include "view3d_navigate.hh"
 
+#include "BLI_strict_flags.h"
+
 #ifdef WITH_INPUT_NDOF
 //#  define NDOF_WALK_DEBUG
 /* NOTE(@ideasman42): Is this needed for NDOF? commented so redraw doesn't thrash. */
@@ -343,7 +345,7 @@ struct WalkInfo {
 static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm);
 #endif /* WITH_INPUT_NDOF */
 static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm);
-static float getVelocityZeroTime(const float gravity, const float velocity);
+static float walk_calc_velocity_zero_time(const float gravity, const float velocity);
 
 static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
 {
@@ -358,8 +360,8 @@ static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
   if (ED_view3d_cameracontrol_object_get(walk->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
         walk->scene, walk->depsgraph, region, walk->v3d, walk->rv3d, &viewborder, false);
-    xoff = viewborder.xmin + BLI_rctf_size_x(&viewborder) * 0.5f;
-    yoff = viewborder.ymin + BLI_rctf_size_y(&viewborder) * 0.5f;
+    xoff = int(viewborder.xmin + BLI_rctf_size_x(&viewborder) * 0.5f);
+    yoff = int(viewborder.ymin + BLI_rctf_size_y(&viewborder) * 0.5f);
   }
   else {
     xoff = walk->region->winx / 2;
@@ -426,7 +428,6 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
   float location_dummy[3];
   float normal_dummy[3];
   float dvec_tmp[3];
-  bool ret;
 
   *r_distance = BVH_RAYCAST_DIST_MAX;
 
@@ -440,15 +441,15 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
   /* Avoid having to convert the edit-mesh to a regular mesh. */
   snap_params.edit_mode_type = SNAP_GEOM_EDIT;
 
-  ret = ED_transform_snap_object_project_ray(walk->snap_context,
-                                             walk->depsgraph,
-                                             walk->v3d,
-                                             &snap_params,
-                                             ray_start,
-                                             ray_normal,
-                                             r_distance,
-                                             location_dummy,
-                                             normal_dummy);
+  const bool ret = ED_transform_snap_object_project_ray(walk->snap_context,
+                                                        walk->depsgraph,
+                                                        walk->v3d,
+                                                        &snap_params,
+                                                        ray_start,
+                                                        ray_normal,
+                                                        r_distance,
+                                                        location_dummy,
+                                                        normal_dummy);
 
   /* Artificially scale the distance to the scene size. */
   *r_distance /= walk->grid;
@@ -501,11 +502,18 @@ static bool walk_ray_cast(RegionView3D *rv3d,
   return ret;
 }
 
-/* Keep the previous speed and jump height until user changes preferences. */
-static float base_speed = -1.0f;
-static float userdef_speed = -1.0f;
-static float jump_height = -1.0f;
-static float userdef_jump_height = -1.0f;
+/** Keep the previous speed and jump height until user changes preferences. */
+static struct {
+  float base_speed;
+  float userdef_speed;
+  float jump_height;
+  float userdef_jump_height;
+} g_walk = {
+    /*base_speed*/ -1.0f,
+    /*userdef_speed*/ -1.0f,
+    /*jump_height*/ -1.0f,
+    /*userdef_jump_height*/ -1.0f,
+};
 
 static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int mval[2])
 {
@@ -548,14 +556,14 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 
   walk->state = WALK_RUNNING;
 
-  if (fabsf(U.walk_navigation.walk_speed - userdef_speed) > 0.1f) {
-    base_speed = U.walk_navigation.walk_speed;
-    userdef_speed = U.walk_navigation.walk_speed;
+  if (fabsf(U.walk_navigation.walk_speed - g_walk.userdef_speed) > 0.1f) {
+    g_walk.base_speed = U.walk_navigation.walk_speed;
+    g_walk.userdef_speed = U.walk_navigation.walk_speed;
   }
 
-  if (fabsf(U.walk_navigation.jump_height - userdef_jump_height) > 0.1f) {
-    jump_height = U.walk_navigation.jump_height;
-    userdef_jump_height = U.walk_navigation.jump_height;
+  if (fabsf(U.walk_navigation.jump_height - g_walk.userdef_jump_height) > 0.1f) {
+    g_walk.jump_height = U.walk_navigation.jump_height;
+    g_walk.userdef_jump_height = U.walk_navigation.jump_height;
   }
 
   walk->jump_height = 0.0f;
@@ -780,11 +788,11 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
         break;
       }
       case WALK_MODAL_ACCELERATE: {
-        base_speed *= 1.0f + (walk->is_slow ? 0.01f : 0.1f);
+        g_walk.base_speed *= 1.0f + (walk->is_slow ? 0.01f : 0.1f);
         break;
       }
       case WALK_MODAL_DECELERATE: {
-        base_speed /= 1.0f + (walk->is_slow ? 0.01f : 0.1f);
+        g_walk.base_speed /= 1.0f + (walk->is_slow ? 0.01f : 0.1f);
         break;
       }
         /* Implement WASD keys. */
@@ -886,7 +894,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
                              t * (JUMP_SPEED_MAX - JUMP_SPEED_MIN) / JUMP_TIME_MAX;
 
           /* When jumping, duration is how long it takes before we start going down. */
-          walk->teleport.duration = getVelocityZeroTime(walk->gravity, walk->speed_jump);
+          walk->teleport.duration = walk_calc_velocity_zero_time(walk->gravity, walk->speed_jump);
 
           /* No more increase of jump speed. */
           walk->gravity_state = WALK_GRAVITY_STATE_ON;
@@ -910,7 +918,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
           copy_v2_v2(walk->teleport.direction, walk->dvec_prev);
 
           /* When jumping, duration is how long it takes before we start going down. */
-          walk->teleport.duration = getVelocityZeroTime(walk->gravity, walk->speed_jump);
+          walk->teleport.duration = walk_calc_velocity_zero_time(walk->gravity, walk->speed_jump);
         }
         break;
       }
@@ -974,11 +982,11 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
 #define JUMP_HEIGHT_MAX 10.0f
 
       case WALK_MODAL_INCREASE_JUMP: {
-        jump_height = min_ff(jump_height * JUMP_HEIGHT_FACTOR, JUMP_HEIGHT_MAX);
+        g_walk.jump_height = min_ff(g_walk.jump_height * JUMP_HEIGHT_FACTOR, JUMP_HEIGHT_MAX);
         break;
       }
       case WALK_MODAL_DECREASE_JUMP: {
-        jump_height = max_ff(jump_height / JUMP_HEIGHT_FACTOR, JUMP_HEIGHT_MIN);
+        g_walk.jump_height = max_ff(g_walk.jump_height / JUMP_HEIGHT_FACTOR, JUMP_HEIGHT_MIN);
         break;
       }
 
@@ -1006,24 +1014,24 @@ static void walkMoveCamera(bContext *C,
   }
 }
 
-static float getFreeFallDistance(const float gravity, const float time)
+static float walk_calc_free_fall_distance(const float gravity, const float time)
 {
   return gravity * (time * time) * 0.5f;
 }
 
-static float getVelocityZeroTime(const float gravity, const float velocity)
+static float walk_calc_velocity_zero_time(const float gravity, const float velocity)
 {
   return velocity / gravity;
 }
 
 static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 {
-#define WALK_ROTATE_TABLET_FAC 8.8f             /* Higher is faster, relative to region size. */
-#define WALK_ROTATE_CONSTANT_FAC DEG2RAD(0.15f) /* Higher is faster, radians per-pixel. */
+#define WALK_ROTATE_TABLET_FAC 8.8f              /* Higher is faster, relative to region size. */
+#define WALK_ROTATE_CONSTANT_FAC DEG2RADF(0.15f) /* Higher is faster, radians per-pixel. */
 #define WALK_TOP_LIMIT DEG2RADF(85.0f)
 #define WALK_BOTTOM_LIMIT DEG2RADF(-80.0f)
-#define WALK_MOVE_SPEED base_speed
-#define WALK_JUMP_HEIGHT jump_height
+#define WALK_MOVE_SPEED (0 ? 0.0f : g_walk.base_speed)
+#define WALK_JUMP_HEIGHT (0 ? 0.0f : g_walk.jump_height)
 #define WALK_BOOST_FACTOR ((void)0, walk->speed_factor)
 #define WALK_ZUP_CORRECT_FAC 0.1f    /* Amount to correct per step. */
 #define WALK_ZUP_CORRECT_ACCEL 0.05f /* Increase upright momentum each step. */
@@ -1301,7 +1309,6 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       {
         float ray_distance;
         float difference = -100.0f;
-        float fall_distance;
 
         if (walk_floor_distance_get(rv3d, walk, dvec, &ray_distance)) {
           difference = walk->view_height - ray_distance;
@@ -1309,7 +1316,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
         /* The distance we would fall naturally smoothly enough that we
          * can manually drop the object without activating gravity. */
-        fall_distance = time_redraw * walk->speed * WALK_BOOST_FACTOR;
+        const float fall_distance = time_redraw * walk->speed * WALK_BOOST_FACTOR;
 
         if (fabsf(difference) < fall_distance) {
           /* slope/stairs */
@@ -1342,7 +1349,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
         const float z_cur = walk->rv3d->viewinv[3][2] / walk->grid;
         const float z_new = ((walk->teleport.origin[2] / walk->grid) -
-                             getFreeFallDistance(walk->gravity, t)) +
+                             walk_calc_free_fall_distance(walk->gravity, t)) +
                             /* Jump. */
                             (t * walk->speed_jump);
 
@@ -1460,13 +1467,11 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm)
 static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  WalkInfo *walk;
-
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
     return OPERATOR_CANCELLED;
   }
 
-  walk = MEM_cnew<WalkInfo>("NavigationWalkOperation");
+  WalkInfo *walk = MEM_cnew<WalkInfo>("NavigationWalkOperation");
 
   op->customdata = walk;
 

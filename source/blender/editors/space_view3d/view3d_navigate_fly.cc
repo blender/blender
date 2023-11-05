@@ -50,6 +50,8 @@
 #include "view3d_intern.h" /* own include */
 #include "view3d_navigate.hh"
 
+#include "BLI_strict_flags.h"
+
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map
  * \{ */
@@ -173,8 +175,8 @@ struct FlyInfo {
   int mval[2];
   /** Center mouse values. */
   int center_mval[2];
-  /** Camera viewport dimensions. */
-  float width, height;
+  /** Camera viewport size. */
+  float viewport_size[2];
 
 #ifdef WITH_INPUT_NDOF
   /** Latest 3D mouse values. */
@@ -226,13 +228,12 @@ static void drawFlyPixel(const bContext * /*C*/, ARegion * /*region*/, void *arg
   FlyInfo *fly = static_cast<FlyInfo *>(arg);
   rctf viewborder;
   int xoff, yoff;
-  float x1, x2, y1, y2;
 
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
         fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, &viewborder, false);
-    xoff = viewborder.xmin;
-    yoff = viewborder.ymin;
+    xoff = int(viewborder.xmin);
+    yoff = int(viewborder.ymin);
   }
   else {
     xoff = 0;
@@ -242,10 +243,10 @@ static void drawFlyPixel(const bContext * /*C*/, ARegion * /*region*/, void *arg
   /* Draws 4 edge brackets that frame the safe area where the
    * mouse can move during fly mode without spinning the view. */
 
-  x1 = xoff + 0.45f * fly->width;
-  y1 = yoff + 0.45f * fly->height;
-  x2 = xoff + 0.55f * fly->width;
-  y2 = yoff + 0.55f * fly->height;
+  const float x1 = float(xoff) + 0.45f * fly->viewport_size[0];
+  const float y1 = float(yoff) + 0.45f * fly->viewport_size[1];
+  const float x2 = float(xoff) + 0.55f * fly->viewport_size[0];
+  const float y2 = float(yoff) + 0.55f * fly->viewport_size[1];
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -393,18 +394,18 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
     ED_view3d_calc_camera_border(
         fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, &viewborder, false);
 
-    fly->width = BLI_rctf_size_x(&viewborder);
-    fly->height = BLI_rctf_size_y(&viewborder);
+    fly->viewport_size[0] = BLI_rctf_size_x(&viewborder);
+    fly->viewport_size[1] = BLI_rctf_size_y(&viewborder);
 
-    fly->center_mval[0] = viewborder.xmin + fly->width / 2;
-    fly->center_mval[1] = viewborder.ymin + fly->height / 2;
+    fly->center_mval[0] = int(viewborder.xmin + (fly->viewport_size[0] / 2.0f));
+    fly->center_mval[1] = int(viewborder.ymin + (fly->viewport_size[1] / 2));
   }
   else {
-    fly->width = fly->region->winx;
-    fly->height = fly->region->winy;
+    fly->viewport_size[0] = fly->region->winx;
+    fly->viewport_size[1] = fly->region->winy;
 
-    fly->center_mval[0] = fly->width / 2;
-    fly->center_mval[1] = fly->height / 2;
+    fly->center_mval[0] = int(fly->viewport_size[0] / 2.0f);
+    fly->center_mval[1] = int(fly->viewport_size[1] / 2.0f);
   }
 
   /* Center the mouse, probably the UI mafia are against this but without its quite annoying. */
@@ -540,7 +541,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
       }
       /* Speed adjusting with mouse-pan (track-pad). */
       case FLY_MODAL_SPEED: {
-        float fac = 0.02f * (event->prev_xy[1] - event->xy[1]);
+        float fac = 0.02f * float(event->prev_xy[1] - event->xy[1]);
 
         /* Allowing to brake immediate. */
         if (fac > 0.0f && fly->speed < 0.0f) {
@@ -779,9 +780,6 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
   float moffset[2];  /* Mouse offset from the views center. */
   float tmp_quat[4]; /* Used for rotating the view. */
 
-  /* X and Y margin defining the safe area where the mouse's movement won't rotate the view. */
-  int xmargin, ymargin;
-
 #ifdef NDOF_FLY_DEBUG
   {
     static uint iteration = 1;
@@ -789,14 +787,15 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
   }
 #endif
 
-  xmargin = fly->width / 20.0f;
-  ymargin = fly->height / 20.0f;
+  /* X and Y margin defining the safe area where the mouse's movement won't rotate the view. */
+  const float xmargin = fly->viewport_size[0] / 20.0f;
+  const float ymargin = fly->viewport_size[1] / 20.0f;
 
   {
 
     /* Mouse offset from the center. */
-    moffset[0] = fly->mval[0] - fly->center_mval[0];
-    moffset[1] = fly->mval[1] - fly->center_mval[1];
+    moffset[0] = float(fly->mval[0] - fly->center_mval[0]);
+    moffset[1] = float(fly->mval[1] - fly->center_mval[1]);
 
     /* Enforce a view margin. */
     if (moffset[0] > xmargin) {
@@ -825,12 +824,12 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
      * the mouse moves isn't linear. */
 
     if (moffset[0]) {
-      moffset[0] /= fly->width - (xmargin * 2);
+      moffset[0] /= fly->viewport_size[0] - (xmargin * 2);
       moffset[0] *= fabsf(moffset[0]);
     }
 
     if (moffset[1]) {
-      moffset[1] /= fly->height - (ymargin * 2);
+      moffset[1] /= fly->viewport_size[1] - (ymargin * 2);
       moffset[1] *= fabsf(moffset[1]);
     }
 
@@ -1065,13 +1064,12 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm)
 static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  FlyInfo *fly;
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
     return OPERATOR_CANCELLED;
   }
 
-  fly = MEM_cnew<FlyInfo>("FlyOperation");
+  FlyInfo *fly = MEM_cnew<FlyInfo>("FlyOperation");
 
   op->customdata = fly;
 
