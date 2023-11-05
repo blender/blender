@@ -101,14 +101,14 @@ enum {
 };
 
 enum eWalkDirectionFlag {
-  WALK_BIT_FORWARD = 1 << 0,
-  WALK_BIT_BACKWARD = 1 << 1,
-  WALK_BIT_LEFT = 1 << 2,
-  WALK_BIT_RIGHT = 1 << 3,
-  WALK_BIT_UP = 1 << 4,
-  WALK_BIT_DOWN = 1 << 5,
-  WALK_BIT_LOCAL_UP = 1 << 6,
-  WALK_BIT_LOCAL_DOWN = 1 << 7,
+  WALK_BIT_LOCAL_FORWARD = 1 << 0,
+  WALK_BIT_LOCAL_BACKWARD = 1 << 1,
+  WALK_BIT_LOCAL_LEFT = 1 << 2,
+  WALK_BIT_LOCAL_RIGHT = 1 << 3,
+  WALK_BIT_LOCAL_UP = 1 << 4,
+  WALK_BIT_LOCAL_DOWN = 1 << 5,
+  WALK_BIT_GLOBAL_UP = 1 << 6,
+  WALK_BIT_GLOBAL_DOWN = 1 << 7,
 };
 ENUM_OPERATORS(eWalkDirectionFlag, WALK_BIT_LOCAL_DOWN)
 
@@ -151,8 +151,8 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
       {WALK_MODAL_DIR_BACKWARD, "BACKWARD", 0, "Backward", ""},
       {WALK_MODAL_DIR_LEFT, "LEFT", 0, "Left", ""},
       {WALK_MODAL_DIR_RIGHT, "RIGHT", 0, "Right", ""},
-      {WALK_MODAL_DIR_UP, "UP", 0, "Global Up", ""},
-      {WALK_MODAL_DIR_DOWN, "DOWN", 0, "Global Down", ""},
+      {WALK_MODAL_DIR_UP, "UP", 0, "Up", ""},
+      {WALK_MODAL_DIR_DOWN, "DOWN", 0, "Down", ""},
       {WALK_MODAL_DIR_LOCAL_UP, "LOCAL_UP", 0, "Local Up", ""},
       {WALK_MODAL_DIR_LOCAL_DOWN, "LOCAL_DOWN", 0, "Local Down", ""},
 
@@ -797,27 +797,27 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
       }
         /* Implement WASD keys. */
       case WALK_MODAL_DIR_FORWARD: {
-        walk->active_directions |= WALK_BIT_FORWARD;
+        walk->active_directions |= WALK_BIT_LOCAL_FORWARD;
         break;
       }
       case WALK_MODAL_DIR_BACKWARD: {
-        walk->active_directions |= WALK_BIT_BACKWARD;
+        walk->active_directions |= WALK_BIT_LOCAL_BACKWARD;
         break;
       }
       case WALK_MODAL_DIR_LEFT: {
-        walk->active_directions |= WALK_BIT_LEFT;
+        walk->active_directions |= WALK_BIT_LOCAL_LEFT;
         break;
       }
       case WALK_MODAL_DIR_RIGHT: {
-        walk->active_directions |= WALK_BIT_RIGHT;
+        walk->active_directions |= WALK_BIT_LOCAL_RIGHT;
         break;
       }
       case WALK_MODAL_DIR_UP: {
-        walk->active_directions |= WALK_BIT_UP;
+        walk->active_directions |= WALK_BIT_GLOBAL_UP;
         break;
       }
       case WALK_MODAL_DIR_DOWN: {
-        walk->active_directions |= WALK_BIT_DOWN;
+        walk->active_directions |= WALK_BIT_GLOBAL_DOWN;
         break;
       }
       case WALK_MODAL_DIR_LOCAL_UP: {
@@ -829,27 +829,27 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
         break;
       }
       case WALK_MODAL_DIR_FORWARD_STOP: {
-        walk->active_directions &= ~WALK_BIT_FORWARD;
+        walk->active_directions &= ~WALK_BIT_LOCAL_FORWARD;
         break;
       }
       case WALK_MODAL_DIR_BACKWARD_STOP: {
-        walk->active_directions &= ~WALK_BIT_BACKWARD;
+        walk->active_directions &= ~WALK_BIT_LOCAL_BACKWARD;
         break;
       }
       case WALK_MODAL_DIR_LEFT_STOP: {
-        walk->active_directions &= ~WALK_BIT_LEFT;
+        walk->active_directions &= ~WALK_BIT_LOCAL_LEFT;
         break;
       }
       case WALK_MODAL_DIR_RIGHT_STOP: {
-        walk->active_directions &= ~WALK_BIT_RIGHT;
+        walk->active_directions &= ~WALK_BIT_LOCAL_RIGHT;
         break;
       }
       case WALK_MODAL_DIR_UP_STOP: {
-        walk->active_directions &= ~WALK_BIT_UP;
+        walk->active_directions &= ~WALK_BIT_GLOBAL_UP;
         break;
       }
       case WALK_MODAL_DIR_DOWN_STOP: {
-        walk->active_directions &= ~WALK_BIT_DOWN;
+        walk->active_directions &= ~WALK_BIT_GLOBAL_DOWN;
         break;
       }
       case WALK_MODAL_DIR_LOCAL_UP_STOP: {
@@ -1219,16 +1219,17 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         short direction;
         zero_v3(dvec);
 
-        if ((walk->active_directions & WALK_BIT_FORWARD) ||
-            (walk->active_directions & WALK_BIT_BACKWARD)) {
+        if ((walk->active_directions & WALK_BIT_LOCAL_FORWARD) ||
+            (walk->active_directions & WALK_BIT_LOCAL_BACKWARD))
+        {
 
           direction = 0;
 
-          if (walk->active_directions & WALK_BIT_FORWARD) {
+          if (walk->active_directions & WALK_BIT_LOCAL_FORWARD) {
             direction += 1;
           }
 
-          if (walk->active_directions & WALK_BIT_BACKWARD) {
+          if (walk->active_directions & WALK_BIT_LOCAL_BACKWARD) {
             direction -= 1;
           }
 
@@ -1242,16 +1243,17 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           add_v3_v3(dvec, dvec_tmp);
         }
 
-        if ((walk->active_directions & WALK_BIT_LEFT) ||
-            (walk->active_directions & WALK_BIT_RIGHT)) {
+        if ((walk->active_directions & WALK_BIT_LOCAL_LEFT) ||
+            (walk->active_directions & WALK_BIT_LOCAL_RIGHT))
+        {
 
           direction = 0;
 
-          if (walk->active_directions & WALK_BIT_LEFT) {
+          if (walk->active_directions & WALK_BIT_LOCAL_LEFT) {
             direction += 1;
           }
 
-          if (walk->active_directions & WALK_BIT_RIGHT) {
+          if (walk->active_directions & WALK_BIT_LOCAL_RIGHT) {
             direction -= 1;
           }
 
@@ -1265,15 +1267,15 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         /* Up and down movement is only available in free mode, not gravity mode. */
         if (walk->navigation_mode == WALK_MODE_FREE) {
 
-          if (walk->active_directions & (WALK_BIT_UP | WALK_BIT_DOWN)) {
+          if (walk->active_directions & (WALK_BIT_LOCAL_UP | WALK_BIT_GLOBAL_DOWN)) {
 
             direction = 0;
 
-            if (walk->active_directions & WALK_BIT_UP) {
+            if (walk->active_directions & WALK_BIT_GLOBAL_UP) {
               direction -= 1;
             }
 
-            if (walk->active_directions & WALK_BIT_DOWN) {
+            if (walk->active_directions & WALK_BIT_GLOBAL_DOWN) {
               direction += 1;
             }
 
