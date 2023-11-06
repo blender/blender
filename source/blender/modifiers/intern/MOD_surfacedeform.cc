@@ -606,7 +606,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           return nullptr;
         }
 
-        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, face.size(), false);
+        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, face.size());
 
         /* Initialize weight components */
         bpoly->weight_angular = 1.0f;

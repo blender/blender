@@ -790,12 +790,10 @@ bool isect_ray_line_v3(const float ray_origin[3],
 
 bool isect_point_poly_v2(const float pt[2],
                          const float verts[][2],
-                         unsigned int nr,
-                         bool use_holes);
+                         unsigned int nr);
 bool isect_point_poly_v2_int(const int pt[2],
                              const int verts[][2],
-                             unsigned int nr,
-                             bool use_holes);
+                             unsigned int nr);
 
 /**
  * Point in quad - only convex quads.

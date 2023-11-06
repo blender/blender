@@ -944,7 +944,7 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
     mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
   }
 
-  return isect_point_poly_v2(co_2d, projverts, f->len, false);
+  return isect_point_poly_v2(co_2d, projverts, f->len);
 }
 
 void BM_face_triangulate(BMesh *bm,

@@ -1462,10 +1462,7 @@ int isect_line_sphere_v2(const float l1[2],
   return -1;
 }
 
-bool isect_point_poly_v2(const float pt[2],
-                         const float verts[][2],
-                         const uint nr,
-                         [[maybe_unused]] const bool use_holes)
+bool isect_point_poly_v2(const float pt[2], const float verts[][2], const uint nr)
 {
   /* Keep in sync with #isect_point_poly_v2_int. */
 
@@ -1482,10 +1479,7 @@ bool isect_point_poly_v2(const float pt[2],
   }
   return isect;
 }
-bool isect_point_poly_v2_int(const int pt[2],
-                             const int verts[][2],
-                             const uint nr,
-                             [[maybe_unused]] const bool use_holes)
+bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const uint nr)
 {
   /* Keep in sync with #isect_point_poly_v2. */
 

@@ -4965,7 +4965,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   while (p) {
     const float(*mval_fl)[2] = static_cast<const float(*)[2]>(p->link);
     const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
-    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1, false));
+    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1));
     p = p->next;
   }
 
