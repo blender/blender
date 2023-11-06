@@ -79,7 +79,7 @@
 
 static Sequence *special_seq_update = nullptr;
 
-typedef struct StripDrawContext {
+struct StripDrawContext {
   Sequence *seq;
   float content_start, content_end, bottom, top; /* Strip boundary in timeline space. */
   float left_handle, right_handle;               /* Position in frames. */
@@ -93,9 +93,9 @@ typedef struct StripDrawContext {
   bool is_active_strip;
   bool is_single_image; /* Strip has single frame of content. */
   bool show_strip_color_tag;
-} StripDrawContext;
+};
 
-typedef struct TimelineDrawContext {
+struct TimelineDrawContext {
   const bContext *C;
   ARegion *region;
   Scene *scene;
@@ -106,7 +106,7 @@ typedef struct TimelineDrawContext {
   GPUViewport *viewport;
   GPUFrameBuffer *framebuffer_overlay;
   float pixelx, pixely; /* Width and height of pixel in timeline space. */
-} TimelineDrawContext;
+};
 
 static TimelineDrawContext timeline_draw_context_get(const bContext *C)
 {
@@ -882,8 +882,7 @@ static void draw_seq_outline(TimelineDrawContext *timeline_ctx, StripDrawContext
    */
   const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
   if ((G.moving & G_TRANSFORM_SEQ) && (seq->flag & SELECT) &&
-      overlap_mode != SEQ_OVERLAP_OVERWRITE)
-  {
+      overlap_mode != SEQ_OVERLAP_OVERWRITE) {
     if (seq->flag & SEQ_OVERLAP) {
       col[0] = 255;
       col[1] = col[2] = 33;
@@ -1781,8 +1780,7 @@ static bool draw_cache_view_iter_fn(void *userdata,
   size_t *vert_count;
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
-      (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT))
-  {
+      (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT)) {
     stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) - v2d->cur.ymin;
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
     stripe_top = stripe_bot + stripe_ht;
