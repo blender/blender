@@ -1491,6 +1491,75 @@ static void draw_seq_fcurve_overlay(TimelineDrawContext *timeline_ctx, StripDraw
   }
 }
 
+/* When active strip is a Multi-cam strip, highlight its source channel. */
+static void draw_multicam_highlight(TimelineDrawContext *timeline_ctx, StripDrawContext *strip_ctx)
+{
+  Sequence *act_seq = SEQ_select_active_get(timeline_ctx->scene);
+
+  if (strip_ctx->seq != act_seq || act_seq == nullptr) {
+    return;
+  }
+  if ((act_seq->flag & SELECT) == 0 || act_seq->type != SEQ_TYPE_MULTICAM) {
+    return;
+  }
+
+  int channel = act_seq->multicam_source;
+
+  if (channel == 0) {
+    return;
+  }
+
+  View2D *v2d = timeline_ctx->v2d;
+  GPU_blend(GPU_BLEND_ALPHA);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+  immUniformColor4ub(255, 255, 255, 48);
+  immRectf(pos, v2d->cur.xmin, channel, v2d->cur.xmax, channel + 1);
+
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+/* Highlight strip if it is input of selected active strip. */
+static void draw_effect_inputs_highlight(TimelineDrawContext *timeline_ctx,
+                                         StripDrawContext *strip_ctx)
+{
+  Sequence *act_seq = SEQ_select_active_get(timeline_ctx->scene);
+
+  if (act_seq == nullptr || (act_seq->flag & SELECT) == 0) {
+    return;
+  }
+  if (act_seq->seq1 != strip_ctx->seq && act_seq->seq2 != strip_ctx->seq) {
+    return;
+  }
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4ub(255, 255, 255, 48);
+  immRectf(
+      pos, strip_ctx->left_handle, strip_ctx->bottom, strip_ctx->right_handle, strip_ctx->top);
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+static void draw_seq_solo_highlight(StripDrawContext *strip_ctx)
+{
+  if (special_seq_update == nullptr || special_seq_update != strip_ctx->seq) {
+    return;
+  }
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4ub(255, 255, 255, 48);
+  immRectf(
+      pos, strip_ctx->left_handle, strip_ctx->bottom, strip_ctx->right_handle, strip_ctx->top);
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+}
+
 /* Draw visible strips. Bounds check are already made. */
 static void draw_seq_strip(TimelineDrawContext *timeline_ctx, StripDrawContext *strip_ctx)
 {
@@ -1511,45 +1580,13 @@ static void draw_seq_strip(TimelineDrawContext *timeline_ctx, StripDrawContext *
   draw_seq_waveform_overlay(timeline_ctx, strip_ctx);
   draw_seq_locked(timeline_ctx, strip_ctx);
   draw_seq_invalid(strip_ctx); /* Draw Red line on the top of invalid strip (Missing media). */
+  draw_effect_inputs_highlight(timeline_ctx, strip_ctx);
+  draw_multicam_highlight(timeline_ctx, strip_ctx);
+  draw_seq_solo_highlight(strip_ctx);
   draw_seq_handle(timeline_ctx, strip_ctx, SEQ_LEFTHANDLE);
   draw_seq_handle(timeline_ctx, strip_ctx, SEQ_RIGHTHANDLE);
   draw_seq_outline(timeline_ctx, strip_ctx);
   draw_seq_text_overlay(timeline_ctx, strip_ctx);
-}
-
-static void draw_effect_inputs_highlight(const Scene *scene, Sequence *seq)
-{
-  Sequence *seq1 = seq->seq1;
-  Sequence *seq2 = seq->seq2;
-  Sequence *seq3 = seq->seq3;
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-  immUniformColor4ub(255, 255, 255, 48);
-  immRectf(pos,
-           SEQ_time_left_handle_frame_get(scene, seq1),
-           seq1->machine + SEQ_STRIP_OFSBOTTOM,
-           SEQ_time_right_handle_frame_get(scene, seq1),
-           seq1->machine + SEQ_STRIP_OFSTOP);
-
-  if (seq2 && seq2 != seq1) {
-    immRectf(pos,
-             SEQ_time_left_handle_frame_get(scene, seq2),
-             seq2->machine + SEQ_STRIP_OFSBOTTOM,
-             SEQ_time_right_handle_frame_get(scene, seq2),
-             seq2->machine + SEQ_STRIP_OFSTOP);
-  }
-  if (seq3 && !ELEM(seq3, seq1, seq2)) {
-    immRectf(pos,
-             SEQ_time_left_handle_frame_get(scene, seq3),
-             seq3->machine + SEQ_STRIP_OFSBOTTOM,
-             SEQ_time_right_handle_frame_get(scene, seq3),
-             seq3->machine + SEQ_STRIP_OFSTOP);
-  }
-  immUnbindProgram();
-  GPU_blend(GPU_BLEND_NONE);
 }
 
 /* Force redraw, when prefetching and using cache view. */
@@ -1582,43 +1619,16 @@ static void draw_seq_timeline_channels(TimelineDrawContext *ctx)
   immUnbindProgram();
 }
 
-static void draw_seq_solo_preview(TimelineDrawContext *timeline_ctx)
-{
-  /* Draw highlight if "solo preview" is used. */
-  if (special_seq_update) {
-    const Sequence *seq = special_seq_update;
-    GPU_blend(GPU_BLEND_ALPHA);
-
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-    immUniformColor4ub(255, 255, 255, 48);
-    immRectf(pos,
-             SEQ_time_left_handle_frame_get(timeline_ctx->scene, seq),
-             seq->machine + SEQ_STRIP_OFSBOTTOM,
-             SEQ_time_right_handle_frame_get(timeline_ctx->scene, seq),
-             seq->machine + SEQ_STRIP_OFSTOP);
-
-    immUnbindProgram();
-
-    GPU_blend(GPU_BLEND_NONE);
-  }
-}
-
 static void draw_seq_strips(TimelineDrawContext *timeline_ctx)
 {
   if (timeline_ctx->ed == nullptr) {
     return;
   }
 
-  const bContext *C = timeline_ctx->C;
-  ARegion *region = timeline_ctx->region;
-  Scene *scene = CTX_data_scene(C);
-  View2D *v2d = &region->v2d;
-
-  Sequence *active_seq = SEQ_select_active_get(scene);
+  Sequence *active_seq = SEQ_select_active_get(timeline_ctx->scene);
   const bool use_active_draw_pass = active_seq != nullptr && (active_seq->flag & SELECT) != 0;
-  blender::Vector<Sequence *> strips = sequencer_visible_strips_get(C);
+
+  blender::Vector<Sequence *> strips = sequencer_visible_strips_get(timeline_ctx->C);
 
   if (use_active_draw_pass) {
     strips.remove_if([&](Sequence *seq) { return seq == active_seq; });
@@ -1646,32 +1656,9 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx)
   if (use_active_draw_pass) {
     StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, active_seq);
     draw_seq_strip(timeline_ctx, &strip_ctx);
-
-    /* When active strip is an effect, highlight its inputs. */
-    if (SEQ_effect_get_num_inputs(active_seq->type) > 0) {
-      draw_effect_inputs_highlight(scene, active_seq);
-    }
-    /* When active is a Multi-cam strip, highlight its source channel. */
-    else if (active_seq->type == SEQ_TYPE_MULTICAM) {
-      int channel = active_seq->multicam_source;
-      if (channel != 0) {
-        GPU_blend(GPU_BLEND_ALPHA);
-        uint pos = GPU_vertformat_attr_add(
-            immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-        immUniformColor4ub(255, 255, 255, 48);
-        immRectf(pos, v2d->cur.xmin, channel, v2d->cur.xmax, channel + 1);
-
-        immUnbindProgram();
-        GPU_blend(GPU_BLEND_NONE);
-      }
-    }
   }
 
-  draw_seq_solo_preview(timeline_ctx);
-
-  UI_view2d_text_cache_draw(region);
+  UI_view2d_text_cache_draw(timeline_ctx->region);
 }
 
 static void draw_timeline_sfra_efra(TimelineDrawContext *ctx)
