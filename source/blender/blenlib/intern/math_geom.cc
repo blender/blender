@@ -6,10 +6,9 @@
  * \ingroup bli
  */
 
+#include "BLI_array.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_geom.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math_bits.h"
 #include "BLI_math_matrix.h"
@@ -1466,7 +1465,7 @@ int isect_line_sphere_v2(const float l1[2],
 bool isect_point_poly_v2(const float pt[2],
                          const float verts[][2],
                          const uint nr,
-                         const bool UNUSED(use_holes))
+                         [[maybe_unused]] const bool use_holes)
 {
   /* Keep in sync with #isect_point_poly_v2_int. */
 
@@ -1486,7 +1485,7 @@ bool isect_point_poly_v2(const float pt[2],
 bool isect_point_poly_v2_int(const int pt[2],
                              const int verts[][2],
                              const uint nr,
-                             const bool UNUSED(use_holes))
+                             [[maybe_unused]] const bool use_holes)
 {
   /* Keep in sync with #isect_point_poly_v2. */
 
@@ -3953,11 +3952,11 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
   float valid_last = skipval;
   int valid_ofs = 0;
 
-  float *array_up = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
-  float *array_down = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
+  blender::Array<float> array_up(list_size);
+  blender::Array<float> array_down(list_size);
 
-  int *ofs_tot_up = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tup");
-  int *ofs_tot_down = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tdown");
+  blender::Array<int> ofs_tot_up(list_size);
+  blender::Array<int> ofs_tot_down(list_size);
 
   for (i = 0; i < list_size; i++) {
     if (array[i] == skipval) {
@@ -4000,12 +3999,6 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
       }
     }
   }
-
-  MEM_freeN(array_up);
-  MEM_freeN(array_down);
-
-  MEM_freeN(ofs_tot_up);
-  MEM_freeN(ofs_tot_down);
 
   return 1;
 }
