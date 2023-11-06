@@ -4405,10 +4405,8 @@ bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, Pointe
   return ((r_ptr->type = rna_ensure_property(prop)->srna) ? 1 : 0);
 }
 
-int RNA_property_collection_raw_array(PointerRNA *ptr,
-                                      PropertyRNA *prop,
-                                      PropertyRNA *itemprop,
-                                      RawArray *array)
+int RNA_property_collection_raw_array(
+    PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, bool set, RawArray *array)
 {
   CollectionPropertyIterator iter;
   ArrayIterator *internal;
@@ -4429,7 +4427,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr,
     internal = &iter.internal.array;
     arrayp = (iter.valid) ? static_cast<char *>(iter.ptr.data) : nullptr;
 
-    if (internal->skip || !RNA_property_editable(&iter.ptr, itemprop)) {
+    if (internal->skip || (set && !RNA_property_editable(&iter.ptr, itemprop))) {
       /* we might skip some items, so it's not a proper array */
       RNA_property_collection_end(&iter);
       return 0;
@@ -4587,7 +4585,7 @@ static int rna_raw_access(ReportList *reports,
       itemprop = nullptr;
     }
     /* try to access as raw array */
-    else if (RNA_property_collection_raw_array(ptr, prop, itemprop, &out)) {
+    else if (RNA_property_collection_raw_array(ptr, prop, itemprop, set, &out)) {
       int arraylen = (itemlen == 0) ? 1 : itemlen;
       if (in.len != arraylen * out.len) {
         BKE_reportf(reports,
