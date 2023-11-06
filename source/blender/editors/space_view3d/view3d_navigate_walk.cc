@@ -1267,7 +1267,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         /* Up and down movement is only available in free mode, not gravity mode. */
         if (walk->navigation_mode == WALK_MODE_FREE) {
 
-          if (walk->active_directions & (WALK_BIT_LOCAL_UP | WALK_BIT_GLOBAL_DOWN)) {
+          if (walk->active_directions & (WALK_BIT_GLOBAL_UP | WALK_BIT_GLOBAL_DOWN)) {
 
             direction = 0;
 
