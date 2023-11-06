@@ -1775,49 +1775,43 @@ static bool draw_cache_view_iter_fn(void *userdata,
 {
   CacheDrawData *drawdata = static_cast<CacheDrawData *>(userdata);
   View2D *v2d = drawdata->v2d;
-  float stripe_bot, stripe_top, stripe_ofs_y, stripe_ht;
+  float stripe_bot;
   GPUVertBuf *vbo;
   size_t *vert_count;
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
       (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT)) {
-    stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) - v2d->cur.ymin;
+    float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) -
+                      v2d->cur.ymin;
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
-    stripe_top = stripe_bot + stripe_ht;
     vbo = drawdata->final_out_vbo;
     vert_count = &drawdata->final_out_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_RAW) && (drawdata->cache_flag & SEQ_CACHE_VIEW_RAW)) {
-    stripe_ofs_y = drawdata->stripe_ofs_y;
-    stripe_ht = drawdata->stripe_ht;
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_ofs_y;
-    stripe_top = stripe_bot + stripe_ht;
+    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
     vbo = drawdata->raw_vbo;
     vert_count = &drawdata->raw_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_PREPROCESSED) &&
            (drawdata->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED))
   {
-    stripe_ofs_y = drawdata->stripe_ofs_y;
-    stripe_ht = drawdata->stripe_ht;
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + (stripe_ofs_y + stripe_ht) + stripe_ofs_y;
-    stripe_top = stripe_bot + stripe_ht;
+    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ht +
+                 drawdata->stripe_ofs_y * 2;
     vbo = drawdata->preprocessed_vbo;
     vert_count = &drawdata->preprocessed_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_COMPOSITE) &&
            (drawdata->cache_flag & SEQ_CACHE_VIEW_COMPOSITE))
   {
-    stripe_ofs_y = drawdata->stripe_ofs_y;
-    stripe_ht = drawdata->stripe_ht;
-    stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_ofs_y;
-    stripe_bot = stripe_top - stripe_ht;
+    stripe_bot = seq->machine + SEQ_STRIP_OFSTOP - drawdata->stripe_ofs_y - drawdata->stripe_ht;
     vbo = drawdata->composite_vbo;
     vert_count = &drawdata->composite_vert_count;
   }
   else {
     return false;
   }
+
+  float stripe_top = stripe_bot + drawdata->stripe_ht;
 
   float vert_pos[6][2];
   copy_v2_fl2(vert_pos[0], timeline_frame, stripe_bot);
@@ -1848,89 +1842,82 @@ static void draw_cache_view_batch(
   GPU_batch_discard(batch);
 }
 
-static void draw_cache_view(const bContext *C)
+static void draw_cache_stripe(const Scene *scene,
+                              const Sequence *seq,
+                              uint pos,
+                              const float stripe_bot,
+                              const float stripe_ht,
+                              const float bg_color[4])
+{
+  immUniformColor4fv(bg_color);
+  immRectf(pos,
+           SEQ_time_left_handle_frame_get(scene, seq),
+           stripe_bot,
+           SEQ_time_right_handle_frame_get(scene, seq),
+           stripe_bot + stripe_ht);
+}
+
+static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
 {
   Scene *scene = CTX_data_scene(C);
-  ARegion *region = CTX_wm_region(C);
-  View2D *v2d = &region->v2d;
-
-  if ((scene->ed->cache_flag & SEQ_CACHE_VIEW_ENABLE) == 0) {
-    return;
-  }
+  View2D *v2d = UI_view2d_fromcontext(C);
+  float bg_colors[4][4];
+  copy_v4_fl4(bg_colors[0], 1.0f, 0.4f, 0.2f, 0.1f);
+  copy_v4_fl4(bg_colors[1], 1.0f, 0.1f, 0.02f, 0.1f);
+  copy_v4_fl4(bg_colors[2], 0.1f, 0.1f, 0.75f, 0.1f);
+  copy_v4_fl4(bg_colors[4], 1.0f, 0.6f, 0.0f, 0.1f);
 
   GPU_blend(GPU_BLEND_ALPHA);
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  float stripe_bot, stripe_top;
+  float stripe_bot;
+  if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
+    stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
+
+    immUniformColor4fv(bg_colors[0]);
+    immRectf(pos, scene->r.sfra, stripe_bot, scene->r.efra, stripe_bot + draw_data->stripe_ht);
+  }
+
+  blender::Vector<Sequence *> strips = sequencer_visible_strips_get(C);
+  strips.remove_if([&](Sequence *seq) { return seq->type == SEQ_TYPE_SOUND_RAM; });
+
+  for (Sequence *seq : strips) {
+    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;
+    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
+      draw_cache_stripe(scene, seq, pos, stripe_bot, draw_data->stripe_ht, bg_colors[1]);
+    }
+
+    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
+      stripe_bot += draw_data->stripe_ht + draw_data->stripe_ofs_y;
+      draw_cache_stripe(scene, seq, pos, stripe_bot, draw_data->stripe_ht, bg_colors[2]);
+    }
+
+    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
+      stripe_bot = seq->machine + SEQ_STRIP_OFSTOP - draw_data->stripe_ofs_y -
+                   draw_data->stripe_ht;
+      draw_cache_stripe(scene, seq, pos, stripe_bot, draw_data->stripe_ht, bg_colors[3]);
+    }
+  }
+
+  immUnbindProgram();
+}
+
+static void draw_cache_view(const bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  View2D *v2d = UI_view2d_fromcontext(C);
+
+  if ((scene->ed->cache_flag & SEQ_CACHE_VIEW_ENABLE) == 0) {
+    return;
+  }
+
   float stripe_ofs_y = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
   float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) -
                     v2d->cur.ymin;
 
   CLAMP_MAX(stripe_ht, 0.2f);
   CLAMP_MIN(stripe_ofs_y, stripe_ht / 2);
-
-  if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
-    stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
-    stripe_top = stripe_bot + stripe_ht;
-    const float bg_color[4] = {1.0f, 0.4f, 0.2f, 0.1f};
-
-    immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
-    immRectf(pos, scene->r.sfra, stripe_bot, scene->r.efra, stripe_top);
-  }
-
-  LISTBASE_FOREACH (Sequence *, seq, scene->ed->seqbasep) {
-    if (seq->type == SEQ_TYPE_SOUND_RAM) {
-      continue;
-    }
-
-    if (SEQ_time_left_handle_frame_get(scene, seq) > v2d->cur.xmax ||
-        SEQ_time_right_handle_frame_get(scene, seq) < v2d->cur.xmin)
-    {
-      continue;
-    }
-
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_ofs_y;
-    stripe_top = stripe_bot + stripe_ht;
-
-    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
-      const float bg_color[4] = {1.0f, 0.1f, 0.02f, 0.1f};
-      immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
-      immRectf(pos,
-               SEQ_time_left_handle_frame_get(scene, seq),
-               stripe_bot,
-               SEQ_time_right_handle_frame_get(scene, seq),
-               stripe_top);
-    }
-
-    stripe_bot += stripe_ht + stripe_ofs_y;
-    stripe_top = stripe_bot + stripe_ht;
-
-    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
-      const float bg_color[4] = {0.1f, 0.1f, 0.75f, 0.1f};
-      immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
-      immRectf(pos,
-               SEQ_time_left_handle_frame_get(scene, seq),
-               stripe_bot,
-               SEQ_time_right_handle_frame_get(scene, seq),
-               stripe_top);
-    }
-
-    stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_ofs_y;
-    stripe_bot = stripe_top - stripe_ht;
-
-    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
-      const float bg_color[4] = {1.0f, 0.6f, 0.0f, 0.1f};
-      immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
-      immRectf(pos,
-               SEQ_time_left_handle_frame_get(scene, seq),
-               stripe_bot,
-               SEQ_time_right_handle_frame_get(scene, seq),
-               stripe_top);
-    }
-  }
-
-  immUnbindProgram();
 
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1951,6 +1938,7 @@ static void draw_cache_view(const bContext *C)
 
   SEQ_cache_iterate(scene, &userdata, draw_cache_view_init_fn, draw_cache_view_iter_fn);
 
+  draw_cache_background(C, &userdata);
   draw_cache_view_batch(userdata.raw_vbo, userdata.raw_vert_count, 1.0f, 0.1f, 0.02f, 0.4f);
   draw_cache_view_batch(
       userdata.preprocessed_vbo, userdata.preprocessed_vert_count, 0.1f, 0.1f, 0.75f, 0.4f);
