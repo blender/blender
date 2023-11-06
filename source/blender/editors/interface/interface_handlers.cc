@@ -8053,16 +8053,15 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
         (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0 &&
         (event->val == KM_PRESS))
     {
-      ARegion *region = CTX_wm_region(C);
       /* For some button types that are typically representing entire sets of data, right-clicking
        * to spawn the context menu should also activate the item. This makes it clear which item
        * will be operated on.
        * Apply the button immediately, so context menu polls get the right active item. */
       uiBut *clicked_view_item_but = but->type == UI_BTYPE_VIEW_ITEM ?
                                          but :
-                                         ui_view_item_find_mouse_over(region, event->xy);
+                                         ui_view_item_find_mouse_over(data->region, event->xy);
       if (clicked_view_item_but) {
-        UI_but_execute(C, region, clicked_view_item_but);
+        UI_but_execute(C, data->region, clicked_view_item_but);
       }
 
       /* RMB has two options now */
