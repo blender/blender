@@ -307,11 +307,12 @@ static int current_tile_draw_height(const ARegion *region)
 {
   const RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(
       *region);
-  const AssetShelf *active_shelf = shelf_regiondata->active_shelf;
-
   const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
                        (BLI_rcti_size_y(&region->v2d.mask) + 1);
 
+  /* It can happen that this function is called before the region is actually initialized, when
+   * user clicks & drags slightly on the 'up arrow' icon of the shelf. */
+  const AssetShelf *active_shelf = shelf_regiondata ? shelf_regiondata->active_shelf : nullptr;
   return (active_shelf ? ED_asset_shelf_tile_height(active_shelf->settings) :
                          asset_shelf_default_tile_height()) /
          (IS_EQF(aspect, 0) ? 1.0f : aspect);
