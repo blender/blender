@@ -1733,18 +1733,13 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 
   SEQ_prefetch_stop(scene);
 
-  SeqCollection *selected_strips = selected_strips_from_context(C);
-  Sequence *seq;
-
-  SEQ_ITERATOR_FOREACH (seq, selected_strips) {
+  for (Sequence *seq : selected_strips_from_context(C)) {
     SEQ_edit_flag_for_removal(scene, seqbasep, seq);
     if (delete_data) {
       sequencer_delete_strip_data(C, seq);
     }
   }
   SEQ_edit_remove_flagged_sequences(scene, seqbasep);
-
-  SEQ_collection_free(selected_strips);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);

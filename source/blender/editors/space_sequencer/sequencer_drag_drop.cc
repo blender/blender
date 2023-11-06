@@ -299,20 +299,18 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     ListBase *channels = SEQ_channels_displayed_get(ed);
     SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-    SeqCollection *strips = SEQ_query_rendered_strips(
+    blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
     /* Get the top most strip channel that is in view. */
-    Sequence *seq;
     int max_channel = -1;
-    SEQ_ITERATOR_FOREACH (seq, strips) {
+    for (Sequence *seq : strips) {
       max_channel = max_ii(seq->machine, max_channel);
     }
 
     if (max_channel != -1) {
       RNA_int_set(drop->ptr, "channel", max_channel);
     }
-    SEQ_collection_free(strips);
   }
 }
 

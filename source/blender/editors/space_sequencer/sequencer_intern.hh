@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 #include "DNA_sequence_types.h"
 #include "RNA_access.hh"
 
@@ -21,7 +22,6 @@ struct wmGizmoGroupType;
 struct wmGizmoType;
 struct Main;
 struct Scene;
-struct SeqCollection;
 struct SeqRetimingKey;
 struct Sequence;
 struct SpaceSeq;
@@ -153,7 +153,7 @@ bool sequencer_view_strips_poll(bContext *C);
  * \param C: context
  * \return collection of strips (`Sequence`)
  */
-SeqCollection *all_strips_from_context(bContext *C);
+blender::VectorSet<Sequence *> all_strips_from_context(bContext *C);
 
 /**
  * Returns collection with selected strips presented to user. If operation is done in preview,
@@ -163,7 +163,7 @@ SeqCollection *all_strips_from_context(bContext *C);
  * \param C: context
  * \return collection of strips (`Sequence`)
  */
-SeqCollection *selected_strips_from_context(bContext *C);
+blender::VectorSet<Sequence *> selected_strips_from_context(bContext *C);
 
 /* Externals. */
 

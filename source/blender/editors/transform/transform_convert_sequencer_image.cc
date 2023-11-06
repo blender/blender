@@ -128,20 +128,18 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
 
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  SeqCollection *strips = SEQ_query_rendered_strips(
+  blender::VectorSet strips = SEQ_query_rendered_strips(
       t->scene, channels, seqbase, t->scene->r.cfra, 0);
-  SEQ_filter_selected_strips(strips);
+  strips.remove_if([&](Sequence *seq) { return (seq->flag & SELECT) == 0; });
 
-  const int count = SEQ_collection_len(strips);
-  if (count == 0) {
-    SEQ_collection_free(strips);
+  if (strips.is_empty()) {
     return;
   }
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   tc->custom.type.free_cb = freeSeqData;
 
-  tc->data_len = count * 3; /* 3 vertices per sequence are needed. */
+  tc->data_len = strips.size() * 3; /* 3 vertices per sequence are needed. */
   TransData *td = tc->data = static_cast<TransData *>(
       MEM_callocN(tc->data_len * sizeof(TransData), "TransSeq TransData"));
   TransData2D *td2d = tc->data_2d = static_cast<TransData2D *>(
@@ -149,8 +147,7 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
   TransDataSeq *tdseq = static_cast<TransDataSeq *>(
       MEM_callocN(tc->data_len * sizeof(TransDataSeq), "TransSeq TransDataSeq"));
 
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : strips) {
     /* One `Sequence` needs 3 `TransData` entries - center point placed in image origin, then 2
      * points offset by 1 in X and Y direction respectively, so rotation and scale can be
      * calculated from these points. */
@@ -158,8 +155,6 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
     SeqToTransData(t->scene, seq, td++, td2d++, tdseq++, 1);
     SeqToTransData(t->scene, seq, td++, td2d++, tdseq++, 2);
   }
-
-  SEQ_collection_free(strips);
 }
 
 static bool autokeyframe_sequencer_image(bContext *C,

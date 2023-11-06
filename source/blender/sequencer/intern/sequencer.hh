@@ -4,18 +4,15 @@
 
 #pragma once
 
+#include <BLI_vector_set.hh>
+
 /** \file
  * \ingroup sequencer
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Scene;
 struct Sequence;
 struct StripProxy;
-struct SeqCollection;
 /**
  * Cache must be freed before calling this function
  * since it leaves the seqbase in an invalid state.
@@ -44,8 +41,5 @@ struct Sequence *seq_sequence_lookup_meta_by_seq(const struct Scene *scene,
  *
  * \return collection of effect strips
  */
-struct SeqCollection *seq_sequence_lookup_effects_by_seq(const struct Scene *scene,
-                                                         const struct Sequence *key);
-#ifdef __cplusplus
-}
-#endif
+blender::Span<Sequence *> seq_sequence_lookup_effects_by_seq(const struct Scene *scene,
+                                                             const struct Sequence *key);

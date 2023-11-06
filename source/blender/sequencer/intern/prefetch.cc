@@ -397,7 +397,7 @@ static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
 static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
                                                  ListBase *channels,
                                                  ListBase *seqbase,
-                                                 SeqCollection *scene_strips,
+                                                 blender::Span<Sequence *> scene_strips,
                                                  bool is_recursive_check)
 {
   float cfra = seq_prefetch_cfra(pfjob);
@@ -421,8 +421,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
     }
 
     /* Check if strip is effect of scene strip or uses it as modifier. This is recursive check. */
-    Sequence *seq_scene;
-    SEQ_ITERATOR_FOREACH (seq_scene, scene_strips) {
+    for (Sequence *seq_scene : scene_strips) {
       if (SEQ_relations_render_loop_check(seq, seq_scene)) {
         return true;
       }
@@ -431,27 +430,25 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
   return false;
 }
 
-static SeqCollection *query_scene_strips(ListBase *seqbase)
+static blender::VectorSet<Sequence *> query_scene_strips(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_query_all_strips_recursive(seqbase);
+  blender::VectorSet<Sequence *> strips;
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type != SEQ_TYPE_SCENE || (seq->flag & SEQ_SCENE_STRIPS) != 0) {
-      SEQ_collection_remove_strip(seq, collection);
+      strips.add(seq);
     }
   }
-  return collection;
+  return strips;
 }
 
 /* Prefetch must avoid rendering scene strips, because rendering in background locks UI and can
  * make it unresponsive for long time periods. */
 static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *channels, ListBase *seqbase)
 {
-  SeqCollection *scene_strips = query_scene_strips(seqbase);
+  blender::VectorSet<Sequence *> scene_strips = query_scene_strips(seqbase);
   if (seq_prefetch_scene_strip_is_rendered(pfjob, channels, seqbase, scene_strips, false)) {
-    SEQ_collection_free(scene_strips);
     return true;
   }
-  SEQ_collection_free(scene_strips);
   return false;
 }
 

@@ -279,25 +279,22 @@ int seq_get_shown_sequences(const Scene *scene,
                             const int chanshown,
                             Sequence **r_seq_arr)
 {
-  SeqCollection *collection = SEQ_query_rendered_strips(
+  blender::VectorSet strips = SEQ_query_rendered_strips(
       scene, channels, seqbase, timeline_frame, chanshown);
-  const int strip_count = BLI_gset_len(collection->set);
+  const int strip_count = strips.size();
 
   if (UNLIKELY(strip_count > MAXSEQ)) {
-    SEQ_collection_free(collection);
     BLI_assert_msg(0, "Too many strips, this shouldn't happen");
     return 0;
   }
 
   /* Copy collection elements into array. */
   memset(r_seq_arr, 0, sizeof(Sequence *) * (MAXSEQ + 1));
-  Sequence *seq;
   int index = 0;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
+  for (Sequence *seq : strips) {
     r_seq_arr[index] = seq;
     index++;
   }
-  SEQ_collection_free(collection);
 
   /* Sort array by channel. */
   qsort(r_seq_arr, strip_count, sizeof(Sequence *), seq_channel_cmp_fn);

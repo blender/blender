@@ -797,14 +797,12 @@ void sequencer_draw_preview(const bContext *C,
   if (!draw_backdrop && scene->ed != nullptr) {
     Editing *ed = SEQ_editing_get(scene);
     ListBase *channels = SEQ_channels_displayed_get(ed);
-    SeqCollection *collection = SEQ_query_rendered_strips(
+    blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, ed->seqbasep, timeline_frame, 0);
-    Sequence *seq;
     Sequence *active_seq = SEQ_select_active_get(scene);
-    SEQ_ITERATOR_FOREACH (seq, collection) {
+    for (Sequence *seq : strips) {
       seq_draw_image_origin_and_outline(C, seq, seq == active_seq);
     }
-    SEQ_collection_free(collection);
   }
 
   if (draw_gpencil && show_imbuf && (sseq->flag & SEQ_SHOW_OVERLAY)) {

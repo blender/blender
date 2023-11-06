@@ -42,12 +42,13 @@ struct TransSeqSnapData {
 /** \name Snap sources
  * \{ */
 
-static int seq_get_snap_source_points_len(SeqCollection *snap_sources)
+static int seq_get_snap_source_points_len(blender::Span<Sequence *> snap_sources)
 {
-  return SEQ_collection_len(snap_sources) * 2;
+  return snap_sources.size() * 2;
 }
 
-static void seq_snap_source_points_alloc(TransSeqSnapData *snap_data, SeqCollection *snap_sources)
+static void seq_snap_source_points_alloc(TransSeqSnapData *snap_data,
+                                         blender::Span<Sequence *> snap_sources)
 {
   const size_t point_count = seq_get_snap_source_points_len(snap_sources);
   snap_data->source_snap_points = static_cast<int *>(
@@ -63,11 +64,10 @@ static int cmp_fn(const void *a, const void *b)
 
 static void seq_snap_source_points_build(const Scene *scene,
                                          TransSeqSnapData *snap_data,
-                                         SeqCollection *snap_sources)
+                                         blender::Span<Sequence *> snap_sources)
 {
   int i = 0;
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, snap_sources) {
+  for (Sequence *seq : snap_sources) {
     int left = 0, right = 0;
     if (seq->flag & SEQ_LEFTSEL) {
       left = right = SEQ_time_left_handle_frame_get(scene, seq);
@@ -99,41 +99,38 @@ static void seq_snap_source_points_build(const Scene *scene,
 static void query_strip_effects_fn(const Scene *scene,
                                    Sequence *seq_reference,
                                    ListBase *seqbase,
-                                   SeqCollection *collection)
+                                   blender::VectorSet<Sequence *> &strips)
 {
-  if (!SEQ_collection_append_strip(seq_reference, collection)) {
+  if (strips.contains(seq_reference)) {
     return; /* Strip is already in set, so all effects connected to it are as well. */
   }
+  strips.add(seq_reference);
 
   /* Find all strips connected to `seq_reference`. */
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
     if (SEQ_relation_is_effect_of_strip(seq_test, seq_reference)) {
-      query_strip_effects_fn(scene, seq_test, seqbase, collection);
+      query_strip_effects_fn(scene, seq_test, seqbase, strips);
     }
   }
 }
 
-static SeqCollection *seq_collection_extract_effects(SeqCollection *collection)
-{
-  SeqCollection *effects = SEQ_collection_create(__func__);
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (SEQ_effect_get_num_inputs(seq->type) > 0) {
-      SEQ_collection_append_strip(seq, effects);
-    }
-  }
-  return effects;
-}
-
-static SeqCollection *query_snap_targets(Scene *scene,
-                                         SeqCollection *snap_sources,
-                                         bool exclude_selected)
+static blender::VectorSet<Sequence *> query_snap_targets(Scene *scene,
+                                                         blender::Span<Sequence *> snap_sources,
+                                                         bool exclude_selected)
 {
   Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
   const short snap_flag = SEQ_tool_settings_snap_flag_get(scene);
-  SeqCollection *snap_targets = SEQ_collection_create(__func__);
+
+  /* Effects will always change position with strip to which they are connected and they don't have
+   * to be selected. Remove such strips from `snap_targets` collection. */
+  blender::VectorSet effects_of_snap_sources = snap_sources;
+  SEQ_iterator_set_expand(scene, seqbase, effects_of_snap_sources, query_strip_effects_fn);
+  effects_of_snap_sources.remove_if(
+      [&](Sequence *seq) { return SEQ_effect_get_num_inputs(seq->type) == 0; });
+
+  blender::VectorSet<Sequence *> snap_targets;
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (exclude_selected && seq->flag & SELECT) {
       continue; /* Selected are being transformed. */
@@ -144,21 +141,18 @@ static SeqCollection *query_snap_targets(Scene *scene,
     if (seq->type == SEQ_TYPE_SOUND_RAM && (snap_flag & SEQ_SNAP_IGNORE_SOUND)) {
       continue;
     }
-    SEQ_collection_append_strip(seq, snap_targets);
-  }
+    if (effects_of_snap_sources.contains(seq)) {
+      continue;
+    }
 
-  /* Effects will always change position with strip to which they are connected and they don't have
-   * to be selected. Remove such strips from `snap_targets` collection. */
-  SeqCollection *snap_sources_temp = SEQ_collection_duplicate(snap_sources);
-  SEQ_collection_expand(scene, seqbase, snap_sources_temp, query_strip_effects_fn);
-  SeqCollection *snap_sources_effects = seq_collection_extract_effects(snap_sources_temp);
-  SEQ_collection_exclude(snap_targets, snap_sources_effects);
-  SEQ_collection_free(snap_sources_temp);
+    snap_targets.add(seq);
+  }
 
   return snap_targets;
 }
 
-static int seq_get_snap_target_points_count(short snap_mode, SeqCollection *snap_targets)
+static int seq_get_snap_target_points_count(short snap_mode,
+                                            blender::Span<Sequence *> snap_targets)
 {
   int count = 2; /* Strip start and end are always used. */
 
@@ -166,7 +160,7 @@ static int seq_get_snap_target_points_count(short snap_mode, SeqCollection *snap
     count += 2;
   }
 
-  count *= SEQ_collection_len(snap_targets);
+  count *= snap_targets.size();
 
   if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
     count++;
@@ -177,7 +171,7 @@ static int seq_get_snap_target_points_count(short snap_mode, SeqCollection *snap
 
 static void seq_snap_target_points_alloc(short snap_mode,
                                          TransSeqSnapData *snap_data,
-                                         SeqCollection *snap_targets)
+                                         blender::Span<Sequence *> snap_targets)
 {
   const size_t point_count = seq_get_snap_target_points_count(snap_mode, snap_targets);
   snap_data->target_snap_points = static_cast<int *>(
@@ -189,7 +183,7 @@ static void seq_snap_target_points_alloc(short snap_mode,
 static void seq_snap_target_points_build(Scene *scene,
                                          short snap_mode,
                                          TransSeqSnapData *snap_data,
-                                         SeqCollection *snap_targets)
+                                         blender::Span<Sequence *> snap_targets)
 {
   int i = 0;
 
@@ -198,8 +192,7 @@ static void seq_snap_target_points_build(Scene *scene,
     i++;
   }
 
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, snap_targets) {
+  for (Sequence *seq : snap_targets) {
     snap_data->target_snap_points[i] = SEQ_time_left_handle_frame_get(scene, seq);
     snap_data->target_snap_points[i + 1] = SEQ_time_right_handle_frame_get(scene, seq);
     i += 2;
@@ -258,12 +251,10 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
       MEM_callocN(sizeof(TransSeqSnapData), __func__));
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
-  SeqCollection *snap_sources = SEQ_query_selected_strips(seqbase);
-  SeqCollection *snap_targets = query_snap_targets(scene, snap_sources, true);
+  blender::VectorSet<Sequence *> snap_sources = SEQ_query_selected_strips(seqbase);
+  blender::VectorSet<Sequence *> snap_targets = query_snap_targets(scene, snap_sources, true);
 
-  if (SEQ_collection_len(snap_sources) == 0) {
-    SEQ_collection_free(snap_targets);
-    SEQ_collection_free(snap_sources);
+  if (snap_sources.is_empty()) {
     MEM_freeN(snap_data);
     return nullptr;
   }
@@ -271,12 +262,10 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
   /* Build arrays of snap points. */
   seq_snap_source_points_alloc(snap_data, snap_sources);
   seq_snap_source_points_build(scene, snap_data, snap_sources);
-  SEQ_collection_free(snap_sources);
 
   short snap_mode = t->tsnap.mode;
   seq_snap_target_points_alloc(snap_mode, snap_data, snap_targets);
   seq_snap_target_points_build(scene, snap_mode, snap_data, snap_targets);
-  SEQ_collection_free(snap_targets);
 
   return snap_data;
 }
@@ -338,9 +327,8 @@ static int transform_snap_sequencer_to_closest_strip_ex(TransInfo *t, int frame_
   TransSeqSnapData *snap_data = static_cast<TransSeqSnapData *>(
       MEM_callocN(sizeof(TransSeqSnapData), __func__));
 
-  SeqCollection *empty_col = SEQ_collection_create(__func__);
-  SeqCollection *snap_targets = query_snap_targets(scene, empty_col, false);
-  SEQ_collection_free(empty_col);
+  blender::VectorSet<Sequence *> empty_col;
+  blender::VectorSet<Sequence *> snap_targets = query_snap_targets(scene, empty_col, false);
 
   snap_data->source_snap_points = static_cast<int *>(MEM_callocN(sizeof(int) * 2, __func__));
   snap_data->source_snap_point_count = 2;
@@ -352,7 +340,6 @@ static int transform_snap_sequencer_to_closest_strip_ex(TransInfo *t, int frame_
   /* Build arrays of snap points. */
   seq_snap_target_points_alloc(snap_mode, snap_data, snap_targets);
   seq_snap_target_points_build(scene, snap_mode, snap_data, snap_targets);
-  SEQ_collection_free(snap_targets);
 
   t->tsnap.seq_context = snap_data;
   bool snap_success = transform_snap_sequencer_calc(t);

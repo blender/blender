@@ -107,18 +107,15 @@ static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_fr
 {
 
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
-  SeqCollection *strips = SEQ_query_all_strips(seqbase);
 
   int best_frame = 0;
   int best_distance = MAXFRAME;
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : SEQ_query_all_strips(seqbase)) {
     seq_frame_snap_update_best(
         SEQ_time_left_handle_frame_get(scene, seq), timeline_frame, &best_frame, &best_distance);
     seq_frame_snap_update_best(
         SEQ_time_right_handle_frame_get(scene, seq), timeline_frame, &best_frame, &best_distance);
   }
-  SEQ_collection_free(strips);
 
   if (best_distance < seq_snap_threshold_get_frame_distance(C)) {
     return best_frame;

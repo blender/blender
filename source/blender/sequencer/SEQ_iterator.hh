@@ -9,6 +9,7 @@
  */
 
 #include "BLI_ghash.h"
+#include "BLI_vector_set.hh"
 
 struct GSet;
 struct GSetIterator;
@@ -85,137 +86,65 @@ typedef bool (*SeqForEachFunc)(struct Sequence *seq, void *user_data);
 void SEQ_for_each_callback(struct ListBase *seqbase, SeqForEachFunc callback, void *user_data);
 
 /**
- * Create new empty strip collection.
- *
- * \return empty strip collection.
- */
-SeqCollection *SEQ_collection_create(const char *name);
-/**
- * Duplicate collection
- *
- * \param collection: collection to be duplicated
- * \return duplicate of collection
- */
-SeqCollection *SEQ_collection_duplicate(SeqCollection *collection);
-/**
- * Return number of items in collection.
- */
-uint SEQ_collection_len(const SeqCollection *collection);
-/**
- * Check if seq is in collection.
- */
-bool SEQ_collection_has_strip(const struct Sequence *seq, const SeqCollection *collection);
-/**
- * Add strip to collection.
- *
- * \param seq: strip to be added
- * \param collection: collection to which strip will be added
- * \return false if strip is already in set, otherwise true
- */
-bool SEQ_collection_append_strip(struct Sequence *seq, SeqCollection *collection);
-/**
- * Remove strip from collection.
- *
- * \param seq: strip to be removed
- * \param collection: collection from which strip will be removed
- * \return true if strip exists in set and it was removed from set, otherwise false
- */
-bool SEQ_collection_remove_strip(struct Sequence *seq, SeqCollection *collection);
-/**
- * Free strip collection.
- *
- * \param collection: collection to be freed
- */
-void SEQ_collection_free(SeqCollection *collection);
-/** Quiet compiler warning for free function. */
-#define SEQ_collection_free_void_p ((GHashValFreeFP)SEQ_collection_free)
-
-/**
- * Move strips from collection_src to collection_dst. Source collection will be freed.
- *
- * \param collection_dst: destination collection
- * \param collection_src: source collection
- */
-void SEQ_collection_merge(SeqCollection *collection_dst, SeqCollection *collection_src);
-/**
- * Remove strips from collection that are also in `exclude_elements`. Source collection will be
- * freed.
- *
- * \param collection: collection from which strips are removed
- * \param exclude_elements: collection of strips to be removed
- */
-void SEQ_collection_exclude(SeqCollection *collection, SeqCollection *exclude_elements);
-/**
- * Expand collection by running SEQ_query() for each strip, which will be used as reference.
+ * Expand set by running `seq_query_func()` for each strip, which will be used as reference.
  * Results of these queries will be merged into provided collection.
  *
  * \param seqbase: ListBase in which strips are queried
- * \param collection: SeqCollection to be expanded
+ * \param strips: set of strips to be expanded
  * \param seq_query_func: query function callback
  */
-void SEQ_collection_expand(const struct Scene *scene,
-                           struct ListBase *seqbase,
-                           SeqCollection *collection,
-                           void seq_query_func(const struct Scene *scene,
-                                               struct Sequence *seq_reference,
-                                               struct ListBase *seqbase,
-                                               SeqCollection *collection));
+void SEQ_iterator_set_expand(const struct Scene *scene,
+                             struct ListBase *seqbase,
+                             blender::VectorSet<Sequence *> &strips,
+                             void seq_query_func(const struct Scene *scene,
+                                                 struct Sequence *seq_reference,
+                                                 struct ListBase *seqbase,
+                                                 blender::VectorSet<Sequence *> &strips));
 /**
  * Query strips from seqbase. seq_reference is used by query function as filter condition.
  *
  * \param seq_reference: reference strip for query function
  * \param seqbase: ListBase in which strips are queried
  * \param seq_query_func: query function callback
- * \return strip collection
+ * \return set of strips
  */
-SeqCollection *SEQ_query_by_reference(struct Sequence *seq_reference,
-                                      const struct Scene *scene,
-                                      struct ListBase *seqbase,
-                                      void seq_query_func(const struct Scene *scene,
-                                                          struct Sequence *seq_reference,
-                                                          struct ListBase *seqbase,
-                                                          SeqCollection *collection));
+blender::VectorSet<Sequence *> SEQ_query_by_reference(
+    struct Sequence *seq_reference,
+    const struct Scene *scene,
+    struct ListBase *seqbase,
+    void seq_query_func(const struct Scene *scene,
+                        struct Sequence *seq_reference,
+                        struct ListBase *seqbase,
+                        blender::VectorSet<Sequence *> &strips));
 /**
  * Query all selected strips in seqbase.
  *
  * \param seqbase: ListBase in which strips are queried
- * \return strip collection
+ * \return set of strips
  */
-SeqCollection *SEQ_query_selected_strips(struct ListBase *seqbase);
+blender::VectorSet<Sequence *> SEQ_query_selected_strips(struct ListBase *seqbase);
 /**
  * Query all unselected strips in seqbase.
  *
  * \param seqbase: ListBase in which strips are queried
- * \return strip collection
+ * \return set of strips
  */
-SeqCollection *SEQ_query_unselected_strips(struct ListBase *seqbase);
+blender::VectorSet<Sequence *> SEQ_query_unselected_strips(ListBase *seqbase);
 /**
  * Query all strips in seqbase. This does not include strips nested in meta strips.
  *
  * \param seqbase: ListBase in which strips are queried
- * \return strip collection
+ * \return set of strips
  */
-SeqCollection *SEQ_query_all_strips(ListBase *seqbase);
+blender::VectorSet<Sequence *> SEQ_query_all_strips(ListBase *seqbase);
 /**
  * Query all strips in seqbase and nested meta strips.
  *
  * \param seqbase: ListBase in which strips are queried
- * \return strip collection
+ * \return set of strips
  */
-SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase);
-/**
- * Query strips that are rendered at \a timeline_frame when \a displayed channel is viewed
- *
- * \param seqbase: ListBase in which strips are queried
- * \param timeline_frame: viewed frame
- * \param displayed_channel: viewed channel. when set to 0, no channel filter is applied
- * \return strip collection
- */
-SeqCollection *SEQ_query_rendered_strips(const struct Scene *scene,
-                                         ListBase *channels,
-                                         ListBase *seqbase,
-                                         int timeline_frame,
-                                         int displayed_channel);
+blender::VectorSet<Sequence *> SEQ_query_all_strips_recursive(ListBase *seqbase);
+
 /**
  * Query all effect strips that are directly or indirectly connected to seq_reference.
  * This includes all effects of seq_reference, strips used by another inputs and their effects, so
@@ -223,10 +152,23 @@ SeqCollection *SEQ_query_rendered_strips(const struct Scene *scene,
  *
  * \param seq_reference: reference strip
  * \param seqbase: ListBase in which strips are queried
- * \param collection: collection to be filled
+ * \param strips: set of strips to be filled
  */
 void SEQ_query_strip_effect_chain(const struct Scene *scene,
                                   struct Sequence *seq_reference,
                                   struct ListBase *seqbase,
-                                  SeqCollection *collection);
-void SEQ_filter_selected_strips(SeqCollection *collection);
+                                  blender::VectorSet<Sequence *> &strips);
+
+/**
+ * Query strips that are rendered at \a timeline_frame when \a displayed channel is viewed
+ *
+ * \param seqbase: ListBase in which strips are queried
+ * \param timeline_frame: viewed frame
+ * \param displayed_channel: viewed channel. when set to 0, no channel filter is applied
+ * \return set of strips
+ */
+blender::VectorSet<Sequence *> SEQ_query_rendered_strips(const struct Scene *scene,
+                                                         ListBase *channels,
+                                                         ListBase *seqbase,
+                                                         int timeline_frame,
+                                                         int displayed_channel);
