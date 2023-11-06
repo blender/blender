@@ -648,6 +648,10 @@ class TestAlloc {
     GPU_render_begin();
     int tiles_index = 1;
 
+    for (int i : IndexRange(SHADOW_MAX_TILE)) {
+      tiles_data[i] = 0;
+    }
+
     for (uint i : IndexRange(0, page_free_count)) {
       uint2 page = {i % SHADOW_PAGE_PER_ROW, i / SHADOW_PAGE_PER_ROW};
       pages_free_data[i] = page.x | (page.y << 16u);
