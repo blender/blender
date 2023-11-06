@@ -1781,8 +1781,6 @@ static bool draw_cache_view_iter_fn(void *userdata,
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
       (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT)) {
-    float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) -
-                      v2d->cur.ymin;
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
     vbo = drawdata->final_out_vbo;
     vert_count = &drawdata->final_out_vert_count;
