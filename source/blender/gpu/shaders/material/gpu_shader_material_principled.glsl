@@ -221,7 +221,8 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Diffuse component */
   if (true) {
-    diffuse_data.sss_radius = max(subsurface_radius * subsurface_scale, vec3(0.0));
+    diffuse_data.sss_radius = subsurface_weight *
+                              max(subsurface_radius * subsurface_scale, vec3(0.0));
     diffuse_data.sss_id = uint(do_sss);
     diffuse_data.color += weight * diffuse_sss_base_color.rgb * coat_tint.rgb;
   }
