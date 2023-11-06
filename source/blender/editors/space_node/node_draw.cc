@@ -1194,7 +1194,13 @@ void node_socket_color_get(const bContext &C,
                            float r_color[4])
 {
   if (!sock.typeinfo->draw_color) {
-    copy_v4_v4(r_color, float4(1.0f, 0.0f, 1.0f, 1.0f));
+    /* Fallback to the simple variant. If not defined either, fallback to a magenta color. */
+    if (sock.typeinfo->draw_color_simple) {
+      sock.typeinfo->draw_color_simple(sock.typeinfo, r_color);
+    }
+    else {
+      copy_v4_v4(r_color, float4(1.0f, 0.0f, 1.0f, 1.0f));
+    }
     return;
   }
 
