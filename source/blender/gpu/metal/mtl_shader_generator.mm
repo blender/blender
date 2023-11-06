@@ -622,7 +622,7 @@ void extract_shared_memory_blocks(MSLGeneratorInterface &msl_iface,
     }
     int len = c_next_space - c;
     BLI_assert(len < 256);
-    BLI_strncpy(buf, c, len);
+    BLI_strncpy(buf, c, len + 1);
     new_shared_block.type_name = std::string(buf);
 
     /* Read var-name.
@@ -662,13 +662,13 @@ void extract_shared_memory_blocks(MSLGeneratorInterface &msl_iface,
     }
     len = varname_end - c;
     BLI_assert(len < 256);
-    BLI_strncpy(buf, c, len);
+    BLI_strncpy(buf, c, len + 1);
     new_shared_block.varname = std::string(buf);
 
     /* Determine if array. */
     if (new_shared_block.is_array) {
       int len = c_expr_end - c_array_begin;
-      BLI_strncpy(buf, c_array_begin, len);
+      BLI_strncpy(buf, c_array_begin, len + 1);
       new_shared_block.array_decl = std::string(buf);
     }
 
