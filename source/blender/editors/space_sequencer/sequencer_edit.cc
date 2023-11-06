@@ -1896,7 +1896,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         seq_new->start = start_ofs;
         seq_new->type = SEQ_TYPE_IMAGE;
         seq_new->len = 1;
-        seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+        seq_new->flag |= SEQ_SINGLE_FRAME_CONTENT;
         seq_new->endofs = 1 - step;
 
         /* New strip. */

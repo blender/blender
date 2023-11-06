@@ -387,9 +387,9 @@ class NODE_MT_geometry_node_GEO_MESH_WRITE(Menu):
 
     def draw(self, context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeSetShadeSmooth")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSetFaceSet")
+        node_add_menu.add_node_type(layout, "GeometryNodeSetShadeSmooth")
         node_add_menu.draw_assets_for_catalog(layout, "Mesh/Write")
 
 
