@@ -69,19 +69,24 @@ enum eMaterialProbe {
 
 static inline void material_type_from_shader_uuid(uint64_t shader_uuid,
                                                   eMaterialPipeline &pipeline_type,
-                                                  eMaterialGeometry &geometry_type)
+                                                  eMaterialGeometry &geometry_type,
+                                                  bool &transparent_shadows)
 {
   const uint64_t geometry_mask = ((1u << 4u) - 1u);
   const uint64_t pipeline_mask = ((1u << 4u) - 1u);
   geometry_type = static_cast<eMaterialGeometry>(shader_uuid & geometry_mask);
   pipeline_type = static_cast<eMaterialPipeline>((shader_uuid >> 4u) & pipeline_mask);
+  transparent_shadows = (shader_uuid >> 8u) & 1u;
 }
 
 static inline uint64_t shader_uuid_from_material_type(eMaterialPipeline pipeline_type,
-                                                      eMaterialGeometry geometry_type)
+                                                      eMaterialGeometry geometry_type,
+                                                      char blend_flags)
 {
   BLI_assert(geometry_type < (1 << 4));
-  return geometry_type | (pipeline_type << 4);
+  BLI_assert(pipeline_type < (1 << 4));
+  uchar transparent_shadows = blend_flags & MA_BL_TRANSPARENT_SHADOW ? 1 : 0;
+  return geometry_type | (pipeline_type << 4) | (transparent_shadows << 8);
 }
 
 ENUM_OPERATORS(eClosureBits, CLOSURE_AMBIENT_OCCLUSION)
@@ -142,7 +147,7 @@ struct MaterialKey {
 
   MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline pipeline) : mat(mat_)
   {
-    options = shader_uuid_from_material_type(pipeline, geometry);
+    options = shader_uuid_from_material_type(pipeline, geometry, mat_->blend_flag);
   }
 
   uint64_t hash() const

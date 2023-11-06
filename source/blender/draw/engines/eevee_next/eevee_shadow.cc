@@ -893,11 +893,12 @@ void ShadowModule::begin_sync()
   }
 }
 
-void ShadowModule::sync_object(const ObjectHandle &handle,
+void ShadowModule::sync_object(const Object *ob,
+                               const ObjectHandle &handle,
                                const ResourceHandle &resource_handle,
-                               bool is_shadow_caster,
                                bool is_alpha_blend)
 {
+  bool is_shadow_caster = !(ob->visibility_flag & OB_HIDE_SHADOW);
   if (!is_shadow_caster && !is_alpha_blend) {
     return;
   }

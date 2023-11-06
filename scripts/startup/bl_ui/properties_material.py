@@ -300,7 +300,7 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         col.prop(mat, "use_backface_culling_shadow", text="Shadow")
 
         # TODO(fclem): Displacement option
-        # TODO(fclem): Transparent shadow option
+        layout.prop(mat, "use_transparent_shadow")
 
         col = layout.column()
         col.prop(mat, "surface_render_method", text="Render Method")

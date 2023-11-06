@@ -1013,12 +1013,6 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
         default="AUTO",
     )
 
-    use_transparent_shadow: BoolProperty(
-        name="Transparent Shadows",
-        description="Use transparent shadows for this material if it contains a Transparent BSDF, "
-        "disabling will render faster but not give accurate shadows",
-        default=True,
-    )
     use_bump_map_correction: BoolProperty(
         name="Bump Map Correction",
         description="Apply corrections to solve shadow terminator artifacts caused by bump mapping",

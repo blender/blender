@@ -311,7 +311,8 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
   eMaterialPipeline pipeline_type;
   eMaterialGeometry geometry_type;
-  material_type_from_shader_uuid(shader_uuid, pipeline_type, geometry_type);
+  bool transparent_shadows;
+  material_type_from_shader_uuid(shader_uuid, pipeline_type, geometry_type, transparent_shadows);
 
   GPUCodegenOutput &codegen = *codegen_;
   ShaderCreateInfo &info = *reinterpret_cast<ShaderCreateInfo *>(codegen.create_info);
@@ -356,7 +357,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
-    info.define("MAT_TRANSPARENT");
+    if (pipeline_type != MAT_PIPE_SHADOW || transparent_shadows) {
+      info.define("MAT_TRANSPARENT");
+    }
     /* Transparent material do not have any velocity specific pipeline. */
     if (pipeline_type == MAT_PIPE_PREPASS_FORWARD_VELOCITY) {
       pipeline_type = MAT_PIPE_PREPASS_FORWARD;
@@ -641,7 +644,8 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
 {
   bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
 
-  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
+  uint64_t shader_uuid = shader_uuid_from_material_type(
+      pipeline_type, geometry_type, blender_mat->blend_flag);
 
   return DRW_shader_from_material(
       blender_mat, nodetree, shader_uuid, is_volume, deferred_compilation, codegen_callback, this);
@@ -656,7 +660,7 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
 
   eMaterialGeometry geometry_type = is_volume ? MAT_GEOM_VOLUME_WORLD : MAT_GEOM_WORLD;
 
-  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
+  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type, 0);
 
   return DRW_shader_from_world(
       blender_world, nodetree, shader_uuid, is_volume, defer_compilation, codegen_callback, this);
@@ -671,7 +675,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                eMaterialGeometry geometry_type,
                                                bool is_lookdev)
 {
-  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
+  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type, 0);
 
   bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
 

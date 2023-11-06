@@ -328,9 +328,9 @@ class ShadowModule {
 
   void begin_sync();
   /** Register a shadow caster or receiver. */
-  void sync_object(const ObjectHandle &handle,
+  void sync_object(const Object *ob,
+                   const ObjectHandle &handle,
                    const ResourceHandle &resource_handle,
-                   bool is_shadow_caster,
                    bool is_alpha_blend);
   void end_sync();
 

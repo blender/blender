@@ -390,6 +390,11 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         col.prop(ob, "hide_render", text="Renders", toggle=False, invert_checkbox=True)
 
         if context.engine == 'BLENDER_EEVEE_NEXT':
+            if ob.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'CURVES', 'POINTCLOUD', 'VOLUME'}:
+                layout.separator()
+                col = layout.column(heading="Ray Visibility")
+                col.prop(ob, "visible_shadow", text="Shadow", toggle=False)
+            
             if ob.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'CURVES', 'POINTCLOUD', 'VOLUME', 'LIGHT'}:
                 layout.separator()
                 col = layout.column(heading="Light Probes")

@@ -360,6 +360,7 @@ enum {
   MA_BL_TRANSLUCENCY = (1 << 3),
   MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED = (1 << 4),
   MA_BL_CULL_BACKFACE_SHADOW = (1 << 5),
+  MA_BL_TRANSPARENT_SHADOW = (1 << 6),
 };
 
 /** #Material::blend_shadow */
