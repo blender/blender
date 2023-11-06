@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 16:01:56\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
 "PO-Revision-Date: 2023-10-20 06:21+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -96435,10 +96435,6 @@ msgid "Sound data-block used by this sequence"
 msgstr "Blok údajov zvuku používaný touto sekvenciou"
 
 
-msgid "Multiply playback speed"
-msgstr "Násobok rýchlosti prehrávania"
-
-
 msgid "Playback volume of the sound"
 msgstr "Hlasitosť prehrávania zvuku"
 
@@ -127955,10 +127951,6 @@ msgstr "Nepodarilo sa otvoriť archív USD na čítanie! Podrobnosti nájdete v 
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD: nemožné otvoriť oblasť na čítanie %s"
-
-
-msgid "USD Import: unable to open cache reader for object %s"
-msgstr "Import USD: nemožno otvoriť čítačku zásobníka pre objekt %s"
 
 
 msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"

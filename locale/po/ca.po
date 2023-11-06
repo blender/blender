@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 16:01:56\n"
-"PO-Revision-Date: 2023-10-29 23:16+0000\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"PO-Revision-Date: 2023-11-06 03:54+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -343,12 +343,32 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "[Full]: Optimitza totes les matrius de convolució. Revelat al màxim de ràpid i pot provocar un ús extra de la CPU en segon pla"
 
 
+msgid "MetalRT"
+msgstr "MetaIRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "El MetalRT per a radiotraçat usa menys memòria per a escenes d'çus intensiu de corbes, i pot rendir millor en determinats casos"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Desactivar MetaIRT (usa disposició BVH2 per consultes d'interseccions)"
+
+
 msgid "On"
 msgstr "Activat"
 
 
+msgid "Enable MetalRT for intersection queries"
+msgstr "Habilitar MetaIRT per a consultes d'interseccions"
+
+
 msgid "Auto"
 msgstr "Automàtic"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Agafa automàticament el mètode d'intersecció més ràpid"
 
 
 msgid "Distribute memory across devices"
@@ -440,7 +460,7 @@ msgstr "Avís de missatges que comencen amb lletra minúscula (amb algunes sobre
 
 
 msgid "Persistent Data Path"
-msgstr "Ruta persistent de dades"
+msgstr "Camí persistent de dades"
 
 
 msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
@@ -6428,7 +6448,7 @@ msgstr "Codificació (peça per peça) de composició sRGB IEC 61966-2-1"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
-msgstr "No realitzar cap transformació de color en carregar, tracta els colors directament com a l'espai cromàtic lineal"
+msgstr "No realitzeu cap transformació de color en carregar, tracteu els colors directament com a l'espai cromàtic lineal"
 
 
 msgid "Color Space"
@@ -6504,7 +6524,7 @@ msgstr "[View Transform]: Vista utilitzada quan es converteix una imatge cap a u
 
 
 msgid "Do not perform any color transform on display, use old non-color managed technique for display"
-msgstr "No emprenguis cap transformació de color en la visualització, usa la antiga tècnica de gestió de no-color per a visualitzar"
+msgstr "No empreneu cap transformació de color en la visualització, useu la antiga tècnica de gestió de no-color per a visualitzar"
 
 
 msgid "Color Mapping"
@@ -10311,11 +10331,11 @@ msgstr "Capa de visualització en avaluació"
 
 
 msgid "Data Path"
-msgstr "Ruta de dades"
+msgstr "Camí de dades"
 
 
 msgid "RNA Path (from ID-block) to property used"
-msgstr "[Data Path]: Ruta d'RNA (del bloc d'IDs) vers la propietat emprada"
+msgstr "[Data Path]: Camí d'RNA (del bloc d'IDs) vers la propietat emprada"
 
 
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
@@ -11413,7 +11433,7 @@ msgstr "Definit per usuària"
 
 
 msgid "Use custom hand-picked color for F-Curve"
-msgstr "[User Defined]: S'usa un color personalitzat seleccionat manualment per a la Corba-F"
+msgstr "[User Defined]: S'usa un color personalitzat pescat manualment per a la Corba-F"
 
 
 msgid "RNA Path to property affected by F-Curve"
@@ -18463,7 +18483,7 @@ msgstr "Escalar freqüència de soroll"
 
 
 msgid "Where to perform randomization"
-msgstr "On es realitza l'aleatorietat"
+msgstr "On es realitza l'aleatorització"
 
 
 msgid "Steps"
@@ -21091,7 +21111,7 @@ msgstr "Intensitat d'inclinació"
 
 
 msgid "How much the tilt of the pen will affect the brush"
-msgstr "[Tilt Strength]: Fins a quin punt la inclinació del pen afectarà el pinzell"
+msgstr "[Tilt Strength]: Fins a quin punt la inclinació del llapis afectarà el pinzell"
 
 
 msgid "Tip Roundness"
@@ -21499,7 +21519,7 @@ msgstr "Mode pressió de màscara"
 
 
 msgid "Pen pressure makes texture influence smaller"
-msgstr "[Mask Pressure Mode]: La pressió del pen fa disminuir la influència de la textura"
+msgstr "[Mask Pressure Mode]: La pressió del llapis fa disminuir la influència de la textura"
 
 
 msgid "Ramp"
@@ -26506,7 +26526,7 @@ msgstr "[Empty Display Type]: Estil de visualització dels trivis al mirador"
 
 
 msgid "Plain Axes"
-msgstr "Eixos de pla"
+msgstr "Eixos senzills"
 
 
 msgid "Arrows"
@@ -31576,7 +31596,7 @@ msgstr "B7R"
 
 msgctxt "UI_Events_KeyMaps"
 msgid "Pen"
-msgstr "Pen"
+msgstr "Llapis"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -33179,15 +33199,15 @@ msgstr "Nom de la IU"
 
 
 msgid "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)"
-msgstr "El joc d'atributs de fites defineix disposicions/paràmetres específics d'aplicació a fotofites (és a dir, no parteix d'informació de context)"
+msgstr "El joc d'atributs de fites defineix camins/paràmetres específics d'aplicació a fotofites (és a dir, no parteix d'informació de context)"
 
 
 msgid "Paths"
-msgstr "Disposicions"
+msgstr "Camins"
 
 
 msgid "Keying Set Paths to define settings that get keyframed together"
-msgstr "[Paths]: Disposicions del jocs de fitoatributs per definir els paràmetres que s'associen plegats a fotofites"
+msgstr "[Paths]: Camins dels jocs de fitoatributs per definir els paràmetres que s'associen plegats a fotofites"
 
 
 msgid "Type Info"
@@ -33403,7 +33423,7 @@ msgstr "Personatge sencer (només ossos seleccionats)"
 
 
 msgid "Keying Set Path"
-msgstr "Disposició del joc de fitoatributs"
+msgstr "Camí del joc de fitoatributs"
 
 
 msgid "Path to a setting for use in a Keying Set"
@@ -33423,7 +33443,7 @@ msgstr "Nom del grup"
 
 
 msgid "Name of Action Group to assign setting(s) for this path to"
-msgstr "Nom del grup d'accions al qual aquesta disposició assignarà el(s) paràmetre(s)"
+msgstr "Nom del grup d'accions al qual aquest d'assignarà()nparàmetre(s) per aquest camí"
 
 
 msgid "Grouping Method"
@@ -33459,11 +33479,11 @@ msgstr "[Entire Array]: Quan es tria un tipus de «vector/corrua» (ubicació, r
 
 
 msgid "Keying set paths"
-msgstr "Disposicions de jocs de fitoatributs"
+msgstr "Camins de jocs de fitoatributs"
 
 
 msgid "Collection of keying set paths"
-msgstr "[Keying set paths]: Col·lecció de disposicions de jocs d'atributs de fites"
+msgstr "[Keying set paths]: Col·lecció de camins de jocs d'atributs de fites"
 
 
 msgid "Active Keying Set"
@@ -33475,7 +33495,7 @@ msgstr "[Active Keying Set]: Joc d'atributs de fites utilitzat per inserir/elimi
 
 
 msgid "Active Path Index"
-msgstr "Índex de disposició actiu"
+msgstr "Índex de camí actiu"
 
 
 msgid "Current Keying Set index"
@@ -35164,7 +35184,7 @@ msgstr "Afegir extra"
 
 
 msgid "Select Linked"
-msgstr "Seleccionar enllaçats"
+msgstr "Seleccionar connectats"
 
 
 msgid "Align"
@@ -43248,7 +43268,7 @@ msgstr "Criptoclapa (antic)"
 
 
 msgid "Add object or material to matte, by picking a color from the Pick output"
-msgstr "[Cryptomatte (Legacy)]: Afegir un objecte o material a la clapa, seleccionant un color amb Selecció manual"
+msgstr "[Cryptomatte (Legacy)]: Afegir un objecte o material a la clapa, tot pescant un color des de Selecció d'egressió"
 
 
 msgid "Matte Objects"
@@ -47945,7 +47965,7 @@ msgstr "Extreu informació sobre els punts en un núvol de punts"
 
 
 msgid "A color picker"
-msgstr "Selector de color"
+msgstr "Un selector de color"
 
 
 msgid "Apply color corrections for each color channel"
@@ -50543,7 +50563,7 @@ msgstr "[Select Less]: Deselecciona fotofites als extrems de les illes de selecc
 
 msgctxt "Operator"
 msgid "Select Linked"
-msgstr "Seleccionar enllaçat"
+msgstr "Seleccionar connectats"
 
 
 msgid "Select keyframes occurring in the same F-Curves as selected ones"
@@ -51125,20 +51145,20 @@ msgstr "Filtrar text"
 
 msgctxt "Operator"
 msgid "Add Empty Keying Set Path"
-msgstr "Afegir una disposició de joc de fitoatributs buit"
+msgstr "Afegir un camí de joc de fitoatributs buit"
 
 
 msgid "Add empty path to active keying set"
-msgstr "Afegir una disposició buida al joc d'atributs de fites actiu"
+msgstr "Afegir un camí buit al joc d'atributs de fites actiu"
 
 
 msgctxt "Operator"
 msgid "Remove Active Keying Set Path"
-msgstr "Suprimir disposició del joc de fitoatributs actiu"
+msgstr "Suprimir camí del joc de fitoatributs actiu"
 
 
 msgid "Remove active Path from active keying set"
-msgstr "[Remove Active Keying Set Path]: Suprimeix la disposició activa del joc d'atributs de fites actiu"
+msgstr "[Remove Active Keying Set Path]: Suprimeix el camí actiu del joc d'atributs de fites actiu"
 
 
 msgctxt "Operator"
@@ -51731,7 +51751,7 @@ msgstr "Deselecciona els ossos del límit de cada regió de selecció"
 
 msgctxt "Operator"
 msgid "Select Linked All"
-msgstr "Seleccionar tot vinculat"
+msgstr "Seleccionar vinculats tots"
 
 
 msgid "Select all bones linked by parent/child connections to the current selection"
@@ -51811,7 +51831,7 @@ msgstr "[Separate Bones]: Aïlla els ossos seleccionats en un esquelet a part"
 
 msgctxt "Operator"
 msgid "Pick Shortest Path"
-msgstr "Triar camí més curt"
+msgstr "Agafar el camí més curt"
 
 
 msgid "Select shortest path between two bones"
@@ -52084,6 +52104,15 @@ msgstr "[Set Fake User]: Assegura que el bloc de dades es desa, fins i tot quan 
 
 
 msgctxt "Operator"
+msgid "Clear Single Asset"
+msgstr "Retirar recurs únic"
+
+
+msgid "Delete all asset metadata and turn the asset data-block back into a normal data-block"
+msgstr "[Clear Asset]: Elimina totes les metadades del recurs i converteix els blocs de dades del recurs seleccionat en un bloc de dades normal"
+
+
+msgctxt "Operator"
 msgid "Refresh Asset Library"
 msgstr "Refresca biblioteca de recursos"
 
@@ -52099,6 +52128,15 @@ msgstr "Marca com a recurs"
 
 msgid "Enable easier reuse of selected data-blocks through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
 msgstr "[Mark as Asset]: Possibilita la reutilització més fàcil dels blocs de dades seleccionats a través del navegador de recursos, amb l'ajuda de metadades adaptables (com previsualitzacions, descripcions i etiquetes)"
+
+
+msgctxt "Operator"
+msgid "Mark as Single Asset"
+msgstr "Marcar com a recurs únic"
+
+
+msgid "Enable easier reuse of a data-block through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
+msgstr "[Mark as Asset]: Possibilita la reutilització més fàcil d'un bloc de dades amb el navegador de recursos, amb l'ajuda de metadades personalitzables (com previsualitzacions, descripcions i etiquetes)"
 
 
 msgctxt "Operator"
@@ -54775,7 +54813,7 @@ msgstr "Seleccionar tots els punts de control lligats als ja seleccionats"
 
 
 msgid "Deselect linked control points rather than selecting them"
-msgstr "Desseleccionar els punts de control lligats preferiblement a seleccionar-los"
+msgstr "Desseleccionar els punts de control connectats preferiblement a seleccionar-los"
 
 
 msgid "Select control points at the boundary of each selection region"
@@ -62319,7 +62357,7 @@ msgstr "Seleccionar els punts de reticle emmirallats"
 
 
 msgid "Select vertex directly linked to already selected ones"
-msgstr "Seleccionar vèrtexs directament vinculats als ja seleccionats"
+msgstr "Seleccionar vèrtexs directament connectats als ja seleccionats"
 
 
 msgid "Randomly select UVW control points"
@@ -62666,11 +62704,11 @@ msgstr "Desseleccionar els punts de spline al límit de cada regió de selecció
 
 
 msgid "Select all curve points linked to already selected ones"
-msgstr "Seleccionar tots els punts de corba vinculats als ja seleccionats"
+msgstr "Seleccionar tots els punts de corba connectats als ja seleccionats"
 
 
 msgid "(De)select all points linked to the curve under the mouse cursor"
-msgstr "(Des)selecciona tots els punts vinculats a la corba sota el cursor del ratolí"
+msgstr "(Des)selecciona tots els punts connectats a la corba sota el cursor del ratolí"
 
 
 msgid "Select more spline points connected to initial selection"
@@ -63728,11 +63766,11 @@ msgstr "Tolerància per a trobar duplicats de vèrtex"
 
 msgctxt "Operator"
 msgid "Select Linked Flat Faces"
-msgstr "Seleccionar cares aplanades vinculades"
+msgstr "Seleccionar connectats - cares aplanades"
 
 
 msgid "Select linked faces by angle"
-msgstr "Selecciona les cares vinculades per angle"
+msgstr "Seleccionar connectats - cares per angle"
 
 
 msgid "Display faces flat"
@@ -65196,7 +65234,7 @@ msgstr "Delimitar regió seleccionada"
 
 
 msgid "(De)select all vertices linked to the edge under the mouse cursor"
-msgstr "(Des)selecciona tots els vèrtexs vinculats a l'aresta de sota el cursor del ratolí"
+msgstr "(Des)selecciona tots els vèrtexs connectats a l'aresta de sota el cursor del ratolí"
 
 
 msgctxt "Operator"
@@ -66090,7 +66128,7 @@ msgstr "Duplicar vinculats"
 
 
 msgid "Duplicate Linked selected NLA-Strips, adding the new strips to new track(s)"
-msgstr "Duplica els segments ANL vinculats, tot afegint els nous segments a pista/es nova/es"
+msgstr "Duplica els segments ANL connectats, tot afegint els nous segments a pista/es nova/es"
 
 
 msgid "Duplicate Strips"
@@ -67124,7 +67162,7 @@ msgstr "Enllaçar a node de visualització"
 
 msgctxt "Operator"
 msgid "Select Linked From"
-msgstr "Seleccionar-ne enllaçat(s)"
+msgstr "Seleccionar enllaçats des de"
 
 
 msgid "Select nodes linked from the selected ones"
@@ -67133,7 +67171,7 @@ msgstr "[Select Linked From]: Selecciona els nodes enllaçats d'entre els selecc
 
 msgctxt "Operator"
 msgid "Select Linked To"
-msgstr "Seleccionar-hi enllaçats"
+msgstr "Seleccionar enllaçats a"
 
 
 msgid "Select nodes linked to the selected ones"
@@ -69106,7 +69144,7 @@ msgstr "Deformació de corba"
 
 
 msgid "Path Constraint"
-msgstr "Restricció de camí"
+msgstr "Restricció de trajectòria"
 
 
 msgid "Lattice Deform"
@@ -71742,16 +71780,16 @@ msgstr "També desseleccionar cares que només toquen a un cantell"
 
 
 msgid "Select linked faces"
-msgstr "Seleccionar cares vinculades"
+msgstr "Seleccionar connectats - cares"
 
 
 msgctxt "Operator"
 msgid "Select Linked Pick"
-msgstr "Selecció de vinculats amb cursor"
+msgstr "Seleccionar connectats amb cursor"
 
 
 msgid "Select linked faces under the cursor"
-msgstr "[Select Linked Pick]: Selecciona les cares vinculades sota del cursor"
+msgstr "[Select Linked Pick]: Selecciona les cares connectades sota del cursor"
 
 
 msgctxt "Operator"
@@ -71997,24 +72035,24 @@ msgstr "Desseleccionar vèrtexs connectats a la selecció existent"
 
 msgctxt "Operator"
 msgid "Select Linked Vertices"
-msgstr "Seleccionar vèrtexs vinculats"
+msgstr "Seleccionar connectats - vèrtexs"
 
 
 msgid "Select linked vertices"
-msgstr "Selecciona els vèrtexs vinculats"
+msgstr "Selecciona els vèrtexs connectats"
 
 
 msgctxt "Operator"
 msgid "Select Linked Vertices Pick"
-msgstr "Clicar selecció de vèrtexs vinculats"
+msgstr "Seleccionar connectats amb cursor - vèrtexs"
 
 
 msgid "Select linked vertices under the cursor"
-msgstr "[Select Linked Vertices Pick]: Selecciona els vèrtexs vinculats sota el cursor"
+msgstr "[Select Linked Vertices Pick]: Selecciona els vèrtexs connectats sota el cursor"
 
 
 msgid "Whether to select or deselect linked vertices under the cursor"
-msgstr "Si cal o no cal seleccionar vèrtexs vinculats sota del cursor"
+msgstr "Si cal o no cal seleccionar vèrtexs connectats sota del cursor"
 
 
 msgid "Select Vertices connected to existing selection"
@@ -72520,7 +72558,7 @@ msgstr "Deseleccionar fites seleccionades del contorn de cada partícula"
 
 
 msgid "Select all keys linked to already selected ones"
-msgstr "Seleccionar totes les fites vinculades a d'altres ja seleccionades"
+msgstr "Seleccionar totes les fites connectades a d'altres ja seleccionades"
 
 
 msgid "Select nearest particle from mouse pointer"
@@ -72528,11 +72566,11 @@ msgstr "Seleccionar la partícula més propera al punter del ratolí"
 
 
 msgid "Deselect linked keys rather than selecting them"
-msgstr "Deseleccionar fites vinculades preferiblement a seleccionar-les"
+msgstr "Deseleccionar fites connectades preferiblement a seleccionar-les"
 
 
 msgid "Select keys linked to boundary selected keys of each particle"
-msgstr "Seleccionar fites vinculades a fites seleccionades de contorn de cada partícula"
+msgstr "Seleccionar fites connectades a fites seleccionades de contorn de cada partícula"
 
 
 msgid "Select a randomly distributed set of hair or points"
@@ -72962,7 +73000,7 @@ msgstr "Actualitza l'interval de fotogrames per als trajectes de moviment des de
 
 msgctxt "Operator"
 msgid "Update Bone Paths"
-msgstr "Actualitzar trajectes d'ossis"
+msgstr "Actualitzar trajectes d'ossos"
 
 
 msgid "Recalculate paths for bones that already have them"
@@ -73120,7 +73158,7 @@ msgstr "[Shared group]: Tots els ossos afectats pel Joc de fitoatributs actiu"
 
 msgctxt "Operator"
 msgid "Select Connected"
-msgstr "Seleccionar connectats"
+msgstr "Seleccionar vinculats"
 
 
 msgid "Select bones linked by parent/child connections under the mouse cursor"
@@ -73215,7 +73253,7 @@ msgstr "Suprimeix els complements existents amb el mateix ID"
 
 
 msgid "Target Path"
-msgstr "Camí del referent"
+msgstr "Ruta del referent"
 
 
 msgctxt "Operator"
@@ -73272,7 +73310,7 @@ msgstr "Suprimir biblioteca de recursos"
 
 
 msgid "Remove a path to a .blend file, so the Asset Browser will not attempt to show it anymore"
-msgstr "Suprimeix un camí a un document .blend, de manera que el navegador d'actius ja no intenti mostrar-lo més"
+msgstr "Suprimeix una ruta a un document .blend, de manera que el navegador d'actius ja no intenti mostrar-la més"
 
 
 msgctxt "Operator"
@@ -73286,20 +73324,20 @@ msgstr "Usa aquesta instal·lació per als documents .blend i per a mostrar les 
 
 msgctxt "Operator"
 msgid "Add Auto-Execution Path"
-msgstr "Afegir camí d'autoexecució"
+msgstr "Afegir ruta d'autoexecució"
 
 
 msgid "Add path to exclude from auto-execution"
-msgstr "[Add Auto-Execution Path]: Afegir un camí per excloure de l'execució automàtica"
+msgstr "[Add Auto-Execution Path]: Afegir una ruta d'exclusió d'execucions automàtiques"
 
 
 msgctxt "Operator"
 msgid "Remove Auto-Execution Path"
-msgstr "Suprimir camí d'autoexecució"
+msgstr "Suprimir ruta d'autoexecució"
 
 
 msgid "Remove path to exclude from auto-execution"
-msgstr "Suprimeix el camí a excloure de l'execució automàtica"
+msgstr "Suprimeix la ruta d'exclusió d'execucions automàtiques"
 
 
 msgctxt "Operator"
@@ -74045,7 +74083,7 @@ msgstr "Afegir marques d'aresta a joc de fitoatributs"
 
 
 msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
-msgstr "[Add Edge Marks to Keying Set]: Afegeix al joc de fitoatributs actiu els camins a les dades de propietat de marques d'aresta en Freestyle de les arestes seleccionades"
+msgstr "[Add Edge Marks to Keying Set]: Afegeix al joc de fitoatributs actiu els camins de dades de propietat de marques d'aresta en Freestyle de les arestes seleccionades"
 
 
 msgctxt "Operator"
@@ -76949,11 +76987,11 @@ msgstr "Seleccionar tots els segments adjacents a la selecció actual"
 
 msgctxt "Operator"
 msgid "Select Pick Linked"
-msgstr "Seleccionar vinculats amb cursor"
+msgstr "Seleccionar de connectats amb cursor"
 
 
 msgid "Select a chain of linked strips nearest to the mouse pointer"
-msgstr "[Select Pick Linked]: Selecciona una cadena de segments vinculats més propera al punter del ratolí"
+msgstr "[Select Pick Linked]: Selecciona una cadena de segments connectats més propera al punter del ratolí"
 
 
 msgid "Select more strips adjacent to the current selection"
@@ -78745,7 +78783,7 @@ msgstr "Pista original del control definida per l'RNA, si n'hi ha"
 
 
 msgid "Path to the matching po file"
-msgstr "Camí al document PO corresponent"
+msgstr "Ruta al document PO corresponent"
 
 
 msgid "RNA context for label"
@@ -78994,7 +79032,7 @@ msgstr "Carrega la configuració de traduccions des d'un document JSon persisten
 
 
 msgid "Path to the saved settings file"
-msgstr "Camí al document de configuració desat"
+msgstr "Ruta al document de configuració desat"
 
 
 msgctxt "Operator"
@@ -79955,15 +79993,15 @@ msgstr "Desselecciona els vèrtexs UV al contorn de cada regió de selecció"
 
 
 msgid "Select all UV vertices linked to the active UV map"
-msgstr "Seleccionar tots els vèrtexs UV vinculats al mapa UV actiu"
+msgstr "Seleccionar tots els vèrtexs UV connectats al mapa UV actiu"
 
 
 msgid "Select all UV vertices linked under the mouse"
-msgstr "Seleccionar tots els vèrtexs UV vinculats sota el ratolí"
+msgstr "Seleccionar tots els vèrtexs UV connectats sota el ratolí"
 
 
 msgid "Deselect linked UV vertices rather than selecting them"
-msgstr "Desseleccionar els vèrtexs UV vinculats preferiblement a de seleccionar-los"
+msgstr "Desselecciona els vèrtexs UV connectats preferiblement a seleccionar-los"
 
 
 msgid "Select a loop of connected UV vertices"
@@ -81563,15 +81601,15 @@ msgstr "Nom del menú"
 
 msgctxt "Operator"
 msgid "Call Pie Menu"
-msgstr "Cridar menú de pastís"
+msgstr "Cridar menú circular"
 
 
 msgid "Open a predefined pie menu"
-msgstr "Obre un menú de pastís predefinit"
+msgstr "Obre un menú circular predefinit"
 
 
 msgid "Name of the pie menu"
-msgstr "Nom del menú de pastís"
+msgstr "Nom del menú circular"
 
 
 msgctxt "Operator"
@@ -81988,7 +82026,7 @@ msgstr "Atributs de context"
 
 
 msgid "Context data-path (expanded using visible windows in the current .blend file)"
-msgstr "Ruta de les dades de context (expandida mitjançant finestres visibles al document .blend actual)"
+msgstr "Camí a les dades de context (expandida mitjançant finestres visibles al document .blend actual)"
 
 
 msgid "Cycle backwards"
@@ -82053,7 +82091,7 @@ msgstr "Invertir ingressió de ratolí"
 
 msgctxt "Operator"
 msgid "Context Enum Pie"
-msgstr "Pastís d'enumeració de context"
+msgstr "Cercle d'enumeració de context"
 
 
 msgctxt "Operator"
@@ -82241,7 +82279,7 @@ msgstr "Nombre mínim de segons per a mostrar l'animació (per a bucles petits)"
 
 
 msgid "Search Path"
-msgstr "Cercar camí"
+msgstr "Ruta de cerca"
 
 
 msgid "Directory used for importing the file"
@@ -82605,7 +82643,7 @@ msgstr "Eix Z negatiu"
 
 
 msgid "Write relative paths where possible"
-msgstr "Escriure camins relatius quan es pot"
+msgstr "Escriure rutes relatives quan es pot"
 
 
 msgid "Write filename only"
@@ -82613,7 +82651,7 @@ msgstr "Escriure sols nom de document"
 
 
 msgid "Copy the file to the destination path"
-msgstr "Copiar document al camí de destinació"
+msgstr "Copiar document al ruta de destinació"
 
 
 msgid "Generate Bitflags for Smooth Groups"
@@ -82714,7 +82752,7 @@ msgstr "Posa l'operador actiu en els seus valors predeterminats"
 
 msgctxt "Operator"
 msgid "Operator Enum Pie"
-msgstr "Menú pastís d'operadors"
+msgstr "Operador Cercle d'enumeració"
 
 
 msgid "Operator name (in Python as string)"
@@ -82863,7 +82901,7 @@ msgstr "[Batch-Generate Previews]: Genera les vistes prèvies del document .blen
 
 
 msgid "Root path of all files listed in `files` collection"
-msgstr "Camí arrel de tots els documents llistats a la col·lecció «documents»"
+msgstr "Ruta arrel de tots els documents llistats a la col·lecció «documents»"
 
 
 msgid "Collection of file paths with common `directory` root"
@@ -83131,7 +83169,7 @@ msgstr "Camí de dades primari"
 
 
 msgid "Primary path of property to be set by the radial control"
-msgstr "[Primary Data Path]: Camí primari de la propietat a establir pel control radial"
+msgstr "[Primary Data Path]: Camí primari de la propietat per establir pel control radial"
 
 
 msgid "Secondary Data Path"
@@ -83247,7 +83285,7 @@ msgstr "Obrir el document predefinit"
 
 
 msgid "Path to an alternative start-up file"
-msgstr "Camí a un document d'inici alternatiu"
+msgstr "Ruta a un document d'inici alternatiu"
 
 
 msgid "Load user interface setup from the .blend file"
@@ -83392,7 +83430,7 @@ msgstr "Remapejar relatius"
 
 
 msgid "Remap relative paths when saving to a different directory"
-msgstr "[Remap Relative]: Reassigna els camins relatius en desar a un directori diferent"
+msgstr "[Remap Relative]: Reassigna les rutes relatives en desar a un directori diferent"
 
 
 msgctxt "Operator"
@@ -83666,7 +83704,7 @@ msgstr "Barra d'eines"
 
 msgctxt "Operator"
 msgid "Fallback Tool Pie Menu"
-msgstr "Menú pastís d'eines de segona opció"
+msgstr "Menú circular d'eines de segona opció"
 
 
 msgctxt "Operator"
@@ -83769,7 +83807,7 @@ msgstr "Sobreescriu els documents existents quan s'exporten textures"
 
 
 msgid "Use relative paths to reference external files (i.e. textures, volumes) in USD, otherwise use absolute paths"
-msgstr "Usar camins relatius per a referenciar documents externs (és a dir, textures, volums) en USD, altrament usar camins absoluts"
+msgstr "Usar rutes relatives per a referenciar documents externs (és a dir, textures, volums) en USD, altrament usar rutes absolutes"
 
 
 msgid "Root Prim"
@@ -83870,7 +83908,7 @@ msgstr "Directori de textures"
 
 
 msgid "Path to the directory where imported textures will be copied"
-msgstr "[Textures Directory]: Camí al directori on es copiaran les textures importades"
+msgstr "[Textures Directory]: Ruta al directori on es copiaran les textures importades"
 
 
 msgid "Import Textures"
@@ -83946,11 +83984,11 @@ msgstr "[Reference Existing]: Si ja existeix un material amb el mateix nom, es r
 
 
 msgid "Path Mask"
-msgstr "Màscara de trajecte"
+msgstr "Màscara de ruta"
 
 
 msgid "Import only the primitive at the given path and its descendants. Multiple paths may be specified in a list delimited by commas or semicolons"
-msgstr "[Path Mask]: Importar només el primitiu en el trajecte estipulat i els seus descendents. Es poden especificar múltiples trajectes amb una llista delimitada per comes o punts i coma"
+msgstr "[Path Mask]: Importa només el primitiu en la ruta estipulada i els seus descendents. Es poden especificar múltiples rutes amb una llista delimitada per comes o punts i coma"
 
 
 msgid "Mesh Attributes"
@@ -84317,7 +84355,7 @@ msgstr "Incorpora un obrador i el designa com a actiu dins la finestra actual"
 
 
 msgid "Path to the library"
-msgstr "Camí a la biblioteca"
+msgstr "Ruta a la biblioteca"
 
 
 msgid "Name of the workspace to append and activate"
@@ -85169,7 +85207,7 @@ msgstr "Fils"
 
 
 msgid "Path Guiding"
-msgstr "Guiatge de trajecte"
+msgstr "Guiatge de trajectes"
 
 
 msgid "Subdivision"
@@ -85237,7 +85275,7 @@ msgstr "Paràgraf"
 
 
 msgid "Path Animation"
-msgstr "Animació de trajecte"
+msgstr "Animació de trajectes"
 
 
 msgid "Effects"
@@ -85295,7 +85333,7 @@ msgstr "Volums"
 
 
 msgid "Directory Path"
-msgstr "Camí del directori"
+msgstr "Ruta del directori"
 
 
 msgid "Filter Settings"
@@ -86025,7 +86063,7 @@ msgstr "Obrir en passar el ratolí"
 
 
 msgid "Pie Menus"
-msgstr "Menús de pastís"
+msgstr "Menús circulars"
 
 
 msgid "Temporary Editors"
@@ -86182,7 +86220,7 @@ msgstr "Opció"
 
 
 msgid "Pie Menu"
-msgstr "Menú de pastís"
+msgstr "Menú circular"
 
 
 msgid "Progress Bar"
@@ -87004,7 +87042,7 @@ msgstr "[Keys]: De quantes fites cal fer les partícules noves"
 
 
 msgid "How many steps to display the path with"
-msgstr "Amb quants passos cal mostrar el camí"
+msgstr "Amb quants passos cal mostrar la trajectòria"
 
 
 msgid "Emitter Distance"
@@ -87044,7 +87082,7 @@ msgstr "Mode de selecció i visualització de partícules"
 
 
 msgid "Path edit mode"
-msgstr "Mode edició de camí"
+msgstr "Mode edició de trajectòries"
 
 
 msgid "Point select mode"
@@ -87560,11 +87598,11 @@ msgstr "[Target Particle System]: L'índex del sistema de partícules en l'objec
 
 
 msgid "Path Compare"
-msgstr "Comparar trajectòries"
+msgstr "Comparar trajecte"
 
 
 msgid "Match paths against this value"
-msgstr "Fer correspondre trajectòries en base a aquest valor"
+msgstr "Fer correspondre trajectes en base a aquest valor"
 
 
 msgid "Use Wildcard"
@@ -87576,11 +87614,11 @@ msgstr "[Use Wildcard]: Habilita l'ús dels comodins"
 
 
 msgid "Paths Compare"
-msgstr "Comparar trajectòries"
+msgstr "Comparar trajectes"
 
 
 msgid "Collection of paths"
-msgstr "Col·lecció de trajectòries"
+msgstr "Col·lecció de trajectes"
 
 
 msgid "Point in a point cloud"
@@ -87688,7 +87726,7 @@ msgstr "Llegir memòria cau des d'una ubicació externa"
 
 
 msgid "Library Path"
-msgstr "Camí de la biblioteca"
+msgstr "Ruta a biblioteca"
 
 
 msgid "Use this file's path for the disk cache when library linked into another file (for local bakes per scene file, disable this option)"
@@ -88040,7 +88078,7 @@ msgstr "Preferències que només funcionen per a aplicacions"
 
 
 msgid "Auto-Execution Paths"
-msgstr "Camins d'autoexecució"
+msgstr "Rutes d'autoexecució"
 
 
 msgid "Edit Methods"
@@ -88056,7 +88094,7 @@ msgstr "Configuració de les funcionalitats que encara són en fase de desenvolu
 
 
 msgid "Default paths for external files"
-msgstr "Camins per defecte a documents externs"
+msgstr "Rutes per defecte a documents externs"
 
 
 msgid "Settings for input devices"
@@ -88841,7 +88879,7 @@ msgstr "Directori branches de traducció"
 
 
 msgid "The path to the '/branches' directory of your local svn-translation copy, to allow translating from the UI"
-msgstr "El camí al directori «/branches» de la teva còpia de la traducció SVN local, que permet traduir des de la IU"
+msgstr "La ruta al directori «/branches» de la teva còpia de la traducció SVN local, que permet traduir des de la IU"
 
 
 msgid "Image Editor"
@@ -88849,7 +88887,7 @@ msgstr "Editor d'imatges"
 
 
 msgid "Path to an image editor"
-msgstr "Camí a un editor d'imatges"
+msgstr "Ruta a un editor d'imatges"
 
 
 msgid "Recent Files"
@@ -88861,7 +88899,7 @@ msgstr "Nombre màxim de documents recents a recordar"
 
 
 msgid "Render Cache Path"
-msgstr "Camí de la cau de revelat"
+msgstr "Ruta a cau de revelat"
 
 
 msgid "Where to cache raw render results"
@@ -88932,7 +88970,7 @@ msgid ""
 "Command to launch the text editor, either a full path or a command in $PATH.\n"
 "Use the internal editor when left blank"
 msgstr ""
-"Ordre per engegar l'editor de text, sigui amb el camí complet o amb una ordre a $PATH.\n"
+"Ordre per engegar l'editor de text, sigui amb la ruta completa o amb una ordre a $PATH.\n"
 "Si es deixa buit, usa l'editor intern"
 
 
@@ -88991,7 +89029,7 @@ msgstr "Carregar la configuració de la interfície d'usuari en carregar documen
 
 
 msgid "Default relative path option for the file selector, when no path is defined yet"
-msgstr "Opció de camí relatiu per defecte per al selector de documents, quan encara no se n'ha definit cap"
+msgstr "Opció de ruta relativa per defecte per al selector de documents, quan encara no se n'ha definit cap"
 
 
 msgid "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)"
@@ -89255,7 +89293,7 @@ msgstr "Windows Ink"
 
 
 msgid "Use native Windows Ink API, for modern tablet and pen devices. Requires Windows 8 or newer"
-msgstr "Usa l'API nativa de Windows Ink, per dispositius de tauleta i pen moderns. Requereix Windows 8 o més recent"
+msgstr "Usa l'API nativa de Windows Ink, per dispositius de tauleta i llapis moderns. Requereix Windows 8 o més recent"
 
 
 msgid "Wintab"
@@ -89987,7 +90025,7 @@ msgstr "L'escena es revelarà usant 32 mostres d'antialiàsing"
 
 
 msgid "Color Picker Type"
-msgstr "Selector de color"
+msgstr "Tipus de selector de color"
 
 
 msgid "Different styles of displaying the color picker widget"
@@ -90211,7 +90249,7 @@ msgstr "Lapse d'animació"
 
 
 msgid "Time needed to fully animate the pie to unfolded state (in 1/100ths of sec)"
-msgstr "Temps necessari per a animar completament el pastís fins que queda desplegat (en 1/100ens seg)"
+msgstr "Temps necessari per a animar completament el menú circular fins que queda desplegat (en 1/100ens seg)"
 
 
 msgid "Recenter Timeout"
@@ -90219,7 +90257,7 @@ msgstr "Recentrar lapse"
 
 
 msgid "Pie menus will use the initial mouse position as center for this amount of time (in 1/100ths of sec)"
-msgstr "Els menús de pastís agafaran la posició inicial del ratolí com a centre per durant aquesta quantitat de temps (en 1/100ens seg)"
+msgstr "Els menús circulars agafaran la posició inicial del ratolí com a centre per durant aquesta quantitat de temps (en 1/100ens seg)"
 
 
 msgid "Confirm Threshold"
@@ -90231,7 +90269,7 @@ msgstr "Llindar de distància després del qual es fa la selecció (zero per a d
 
 
 msgid "Pie menu size in pixels"
-msgstr "Mida del menú de pastís en píxels"
+msgstr "Mida del menú circular en píxels"
 
 
 msgid "Distance from center needed before a selection can be made"
@@ -90243,7 +90281,7 @@ msgstr "Lapse de teclejat"
 
 
 msgid "Pie menu button held longer than this will dismiss menu on release (in 1/100ths of sec)"
-msgstr "[Tap Key Timeout]: El botó de menú de pastís que es mantingui més temps que això descartarà el menú en amollar (en 1/100ens de segon)"
+msgstr "[Tap Key Timeout]: El botó de menú circular que es mantingui més temps que això descartarà el menú en amollar (en 1/100ens de segon)"
 
 
 msgid "FPS Average Samples"
@@ -91629,15 +91667,15 @@ msgstr "Mostreig d'importància múltiple"
 
 
 msgid "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing"
-msgstr "[Multiple Importance Sampling]: El mostreig d'importància múltiple s'utilitza per combinar aportacions de llum directa des de l'estimació de situació següent i des del traçat endavant"
+msgstr "[Multiple Importance Sampling]: El mostreig d'importància múltiple s'utilitza per combinar aportacions de llum directa des de l'estimació de situació següent i des del traçat endavant de trajectes"
 
 
 msgid "Forward Path Tracing"
-msgstr "Traçat endavant"
+msgstr "Traçat endavant de trajectes"
 
 
 msgid "Direct light contributions are only sampled using forward path tracing"
-msgstr "[Forward Path Tracing]: Les aportacions de llum directa només es mostregen usant el traçat de trajecte endavant"
+msgstr "[Forward Path Tracing]: Les aportacions de llum directa només es mostregen usant el traçat de trajectes endavant"
 
 
 msgid "Next-Event Estimation"
@@ -91801,7 +91839,7 @@ msgstr "Mostres d'entrenament"
 
 
 msgid "The maximum number of samples used for training path guiding. Higher samples lead to more accurate guiding, however may also unnecessarily slow down rendering once guiding is accurate enough. A value of 0 will continue training until the last sample"
-msgstr "[Training Samples]: El nombre màxim de mostres usades en l'entrenament de guiatge de trajecte. Els mostrejos més alts fan el guiatge més precís, però també poden alentir el revelat innecessàriament una cop el guiatge és prou precís. Un valor de 0 continuarà entrenament fins a l'última mostra"
+msgstr "[Training Samples]: El nombre màxim de mostres usades en l'entrenament de guiatge de trajectes. Els mostrejos més alts fan el guiatge més precís, però també poden alentir el revelat innecessàriament una cop el guiatge és prou precís. Un valor de 0 continuarà entrenament fins a l'última mostra"
 
 
 msgid "Light Sampling Threshold"
@@ -92165,7 +92203,7 @@ msgstr "Determinista"
 
 
 msgid "Makes path guiding deterministic which means renderings will be reproducible with the same pixel values every time. This feature slows down training"
-msgstr "[Deterministic]: Fa determinista el guiatge de camí, que vol dir que els revelats seran reproduïbles amb els mateixos valors de píxel cada vegada. Aquesta funcionalitat alenteix l'entrenament"
+msgstr "[Deterministic]: Fa determinista el guiatge de trajectes, que vol dir que els revelats seran reproduïbles amb els mateixos valors de píxel cada vegada. Aquesta funcionalitat alenteix l'entrenament"
 
 
 msgid "Allow objects to be culled based on the distance from camera"
@@ -92665,11 +92703,11 @@ msgstr "Nom d'un document o directori dins d'una llista de documents"
 
 
 msgid "Operator Mouse Path"
-msgstr "Camí del ratolí per a operadors"
+msgstr "Operador: trajectòria del ratolí"
 
 
 msgid "Mouse path values for operators that record such paths"
-msgstr "Valors del camí del ratolí per als operadors que enregistren aquests camins"
+msgstr "Valors de trajectòria del ratolí per als operadors que enregistren aquestes trajectòries"
 
 
 msgid "Time of mouse location"
@@ -95685,7 +95723,7 @@ msgstr "YCbCr (JPEG)"
 
 
 msgid "Alternate script path, matching the default layout with sub-directories: startup, add-ons, modules, and presets (requires restart)"
-msgstr "Camí alternatiu de protocols, que coincideix amb la disposició predeterminada amb els subdirectoris: inici, complements, mòduls i predefinits (cal reiniciar)"
+msgstr "Ruta alternativa de protocols, que coincideix amb la disposició predeterminada amb els subdirectoris: inici, complements, mòduls i predefinits (cal reiniciar)"
 
 
 msgid "Identifier for the Python scripts directory"
@@ -96533,10 +96571,6 @@ msgstr "Mostra el gràfic d'ona d'àudio dins de el segment"
 
 msgid "Sound data-block used by this sequence"
 msgstr "Bloc de dades de so utilitzat en aquesta seqüència"
-
-
-msgid "Multiply playback speed"
-msgstr "Multiplicar rapidesa de reproducció"
 
 
 msgid "Playback volume of the sound"
@@ -98130,11 +98164,11 @@ msgstr "Context d'edició que es visualitza"
 
 
 msgid "Path Length"
-msgstr "Longitud de camí"
+msgstr "Longitud de trajecte"
 
 
 msgid "Length of displaying path, in frames"
-msgstr "[Path Length]: Longitud del camí de visualització, en fotogrames"
+msgstr "[Path Length]: Longitud del trajecte visualitzat, en fotogrames"
 
 
 msgid "Pivot center for rotation/scaling"
@@ -98314,11 +98348,11 @@ msgstr "Mostra els marcadors d'una manera més compacta"
 
 
 msgid "Show Track Path"
-msgstr "Mostrar trajecte del rastre"
+msgstr "Mostrar trajecte de rastre"
 
 
 msgid "Show path of how track moves"
-msgstr "[Show Track Path]: Mostrar el camí de com es mou el rastre"
+msgstr "[Show Track Path]: Mostrar com es mou el rastre"
 
 
 msgid "Display frame in grayscale mode"
@@ -100940,19 +100974,19 @@ msgstr "[Has Specular Highlight]: El document d'imatge d'il·luminació d'estudi
 
 
 msgid "Irradiance Cache Path"
-msgstr "Camí de memòria cau d'irradiància"
+msgstr "Ruta de memòria cau d'irradiància"
 
 
 msgid "Path where the irradiance cache is stored"
-msgstr "[Irradiance Cache Path]: Camí on s'emmagatzema la memòria cau de la irradiació"
+msgstr "[Irradiance Cache Path]: Ruta a on s'emmagatzema la memòria cau de la irradiació"
 
 
 msgid "SH Cache Path"
-msgstr "Camí de memòria cau d'HE"
+msgstr "Ruta memòria cau d'HE"
 
 
 msgid "Path where the spherical harmonics cache is stored"
-msgstr "[SH Cache Path]: Camí on s'emmagatzema la memòria cau d'harmònics esfèrics"
+msgstr "[SH Cache Path]: Ruta on s'emmagatzema la memòria cau d'harmònics esfèrics"
 
 
 msgid "Lights user to display objects in solid draw mode"
@@ -101065,7 +101099,7 @@ msgstr "Quadre de text"
 
 
 msgid "Text bounding box for layout"
-msgstr "Capsa contenidora de text per a la distribució"
+msgstr "Capsa contenidora de text per a la paginació"
 
 
 msgid "Textbox Height"
@@ -101597,19 +101631,19 @@ msgstr "Metadades text"
 
 
 msgid "Path After"
-msgstr "Camí posterior"
+msgstr "Trajecte posterior"
 
 
 msgid "Color of path after current frame"
-msgstr "[Path After]: Color del camí de després del fotograma actual"
+msgstr "[Path After]: Color del trajecte de després del fotograma actual"
 
 
 msgid "Path Before"
-msgstr "Camí anterior"
+msgstr "Trajecte anterior"
 
 
 msgid "Color of path before current frame"
-msgstr "[Path Before]: Color del camí d'abans del fotograma actual"
+msgstr "[Path Before]: Color del trajecte d'abans del fotograma actual"
 
 
 msgid "Selected Marker"
@@ -102861,7 +102895,7 @@ msgstr "Opció colors de ginys"
 
 
 msgid "Pie Menu Colors"
-msgstr "Menú pastís de colors"
+msgstr "Menú circular de colors"
 
 
 msgid "Progress Bar Widget Colors"
@@ -103282,7 +103316,7 @@ msgstr "Giny de perfil de corbes"
 
 
 msgid "Used for defining a profile's path"
-msgstr "[Curve Profile Widget]: Serveix per definir el trajecte d'un perfil"
+msgstr "[Curve Profile Widget]: Serveix per definir el camí d'un perfil"
 
 
 msgid "Threshold distance for Auto Merge"
@@ -104402,11 +104436,11 @@ msgstr "Identificador (no necessàriament únic) per a la biblioteca de recursos
 
 
 msgid "Path to a directory with .blend files to use as an asset library"
-msgstr "Camí a un directori amb documents .blend per a usar-los com a biblioteca de recursos"
+msgstr "Ruta a un directori amb documents .blend per a usar-los com a biblioteca de recursos"
 
 
 msgid "Use relative path when linking assets from this asset library"
-msgstr "Usar camí relatiu en vincular recursos d'aquesta biblioteca de recursos"
+msgstr "Usar ruta relativa en vincular recursos d'aquesta biblioteca de recursos"
 
 
 msgid "Extension Repository"
@@ -105659,15 +105693,15 @@ msgstr "Camí a les dades que es visualitzen"
 
 
 msgid "Viewer Path Element"
-msgstr "Element de trajecte del visor"
+msgstr "Element del camí del visor"
 
 
 msgid "Element of a viewer path"
-msgstr "Element d'un trajecte del visor"
+msgstr "Element d'un camí del visor"
 
 
 msgid "Type of the path element"
-msgstr "Tipus d'element de trajecte"
+msgstr "Tipus d'element del camí"
 
 
 msgid "Name that can be displayed in the UI for this element"
@@ -106228,7 +106262,7 @@ msgstr "[Pose Location Offset]: Desplaçament de rotació de posa"
 
 
 msgid "OpenXR interaction profile path"
-msgstr "Trajecte del perfil d'interacció OpenXR"
+msgstr "Camí del perfil d'interacció OpenXR"
 
 
 msgid "Input threshold for button/axis actions"
@@ -106252,7 +106286,7 @@ msgstr "Bimanual"
 
 
 msgid "The action depends on the states/poses of both user paths"
-msgstr "[Bimanual]: L'acció depèn dels estats/poses d'ambdós camins d'usuari"
+msgstr "[Bimanual]: L'acció depèn dels estats/poses d'ambdós trajectes d'usuària"
 
 
 msgid "Bindings"
@@ -106288,11 +106322,11 @@ msgstr "Freqüència de la vibració hàptica en hertz. 0.0 especifica la freqü
 
 
 msgid "Haptic Match User Paths"
-msgstr "Hàptica coincident amb trajectes de l'usador"
+msgstr "Hàptica coincident amb trajectes d'usuària"
 
 
 msgid "Apply haptics to the same user paths for the haptic action and this action"
-msgstr "[Haptic Match User Paths]: Aplica l'hàptica als mateixos trajectes d'un usador per a l'acció hàptica i per a aquesta acció"
+msgstr "[Haptic Match User Paths]: Aplica l'hàptica als mateixos trajectes d'ina usuària per a l'acció hàptica i per a aquesta acció"
 
 
 msgid "Haptic mode"
@@ -106420,11 +106454,11 @@ msgstr "Acció egressiva de vibració hàptica, que s'aplicarà amb una durada, 
 
 
 msgid "User Paths"
-msgstr "Camins d'usuari"
+msgstr "Trajectes d'usuària"
 
 
 msgid "OpenXR user paths"
-msgstr "Camins d'usuari d'OpenXR"
+msgstr "Trajectes d'usuària d'OpenXR"
 
 
 msgid "XR Action Map Items"
@@ -106452,7 +106486,7 @@ msgstr "[XR Component Path]: Camí del component d'OpenXR"
 
 
 msgid "XR Component Paths"
-msgstr "Rutes de component RX"
+msgstr "Camins de components RX"
 
 
 msgid "Collection of OpenXR component paths"
@@ -106492,7 +106526,7 @@ msgstr "Ubicació del controlador altre"
 
 
 msgid "Controller aim location of the other user path for bimanual actions"
-msgstr "[Controller Location Other]: Ubicació d'apuntament del controlador per a l'altre camí d'usuari en accions bimanuals"
+msgstr "[Controller Location Other]: Ubicació d'apuntament del controlador per a l'altre trajecte d'usuària en accions bimanuals"
 
 
 msgid "Controller Rotation"
@@ -106508,7 +106542,7 @@ msgstr "Rotació del controlador altre"
 
 
 msgid "Controller aim rotation of the other user path for bimanual actions"
-msgstr "Rotació de l'apuntament del controlador de l'altre camí d'usuari en accions bimanuals"
+msgstr "Rotació de l'apuntament del controlador de l'altre trajecte d'usuària en accions bimanuals"
 
 
 msgid "Float Threshold"
@@ -106528,7 +106562,7 @@ msgstr "Estat altre"
 
 
 msgid "State of the other user path for bimanual actions"
-msgstr "[State Other]: Estat de l'altre camí d'usuari en accions bimanuals"
+msgstr "[State Other]: Estat de l'altre trajecte d'usuària en accions bimanuals"
 
 
 msgid "XR action type"
@@ -106536,19 +106570,19 @@ msgstr "Tipus d'acció RX"
 
 
 msgid "User Path"
-msgstr "Camí d'usuari"
+msgstr "Trajecte d'usuària"
 
 
 msgid "User path of the action. E.g. \"/user/hand/left\""
-msgstr "[User Path]: Camí de l'usuari de l'acció. P. ex. «/usuari/mà/esquerra»"
+msgstr "[User Path]: Trajectes d'usuària de l'acció. P. ex. «/usuaria/ma/esquerra»"
 
 
 msgid "User Path Other"
-msgstr "Camí d'usuari Altre"
+msgstr "Trajecte d'usuària Altra"
 
 
 msgid "Other user path, for bimanual actions. E.g. \"/user/hand/right\""
-msgstr "[User Path Other]: Camí de l'altre usuari, per a accions bimanuals. P. ex. «/usuari/mà/dreta»"
+msgstr "[User Path Other]: Trajecte de l'altra usuària per a accions bimanuals. P. ex. «/usuari/mà/dreta»"
 
 
 msgid "Rotation angle around the Z-Axis to apply the rotation deltas from the VR headset to"
@@ -106745,19 +106779,19 @@ msgstr "Última rotació coneguda de la posa del visor (al centre entre els ulls
 
 
 msgid "XR User Path"
-msgstr "Camí d'usuari RX"
+msgstr "Trajecte d'usuària RX"
 
 
 msgid "OpenXR user path"
-msgstr "[XR User Path]: Camí de l'usuari d'OpenXR"
+msgstr "[XR User Path]: Trajecte d'usuària d'OpenXR"
 
 
 msgid "XR User Paths"
-msgstr "Camins d'usuari RX"
+msgstr "Trajectes d'usuària RX"
 
 
 msgid "Collection of OpenXR user paths"
-msgstr "Col·lecció de camins d'usuari d'OpenXR"
+msgstr "Col·lecció de trajectes d'usuària d'OpenXR"
 
 
 msgid "Work Space UI Tag"
@@ -106846,7 +106880,7 @@ msgstr ""
 "Obre barra d'eines emergent\n"
 "Quan es manté «espai» premut i s'utilitza com a modificador:\n"
 "• Prement les tecles actives d'eines hi canvia immediatament.\n"
-"• Arrossegant i amollant el cursor sobre una eina l'activa (com un menú de pastís).\n"
+"• Arrossegant i amollant el cursor sobre una eina l'activa (com un menú circular).\n"
 "Per a reproduir usar 'Maj-Espai'"
 
 
@@ -106923,7 +106957,7 @@ msgstr "Navega per carpetes fent-hi clic una sola vegada en lloc de dues"
 
 
 msgid "Pie Menu on Drag"
-msgstr "Menú pastís en arrossegar"
+msgstr "Menú circular en arrossegar"
 
 
 msgid ""
@@ -106934,7 +106968,7 @@ msgid ""
 "• Tapping Z in the 3D view toggles wireframe, drag for draw modes.\n"
 "• Tapping Tilde in the 3D view for first person navigation, drag for view axes"
 msgstr ""
-"[Pie Menu on Drag]: Activa alguns menús de pastís en arrossegar,\n"
+"[Pie Menu on Drag]: Activa alguns menús circulars en arrossegar,\n"
 "permetent que la mateixa tecla tingui una acció secundària.\n"
 "\n"
 "• Pitjant Tabulació en vista 3D es revessa el mode d'edició, arrossegar per a menú de mode.\n"
@@ -106943,11 +106977,11 @@ msgstr ""
 
 
 msgid "Region Toggle Pie"
-msgstr "Pastís de revessat de regió"
+msgstr "Menú circular de regions seguides"
 
 
 msgid "N-key opens a pie menu to toggle regions"
-msgstr "La tecla N obre un menú de pastís per a revessar regions"
+msgstr "La tecla N obre un menú circular per a passar les regions"
 
 
 msgid "Select All Toggles"
@@ -106959,7 +106993,7 @@ msgstr "Fa que seleccionar tot (tecla «A») desseleccioni en cas que hi hagi un
 
 
 msgid "Extra Shading Pie Menu Items"
-msgstr "Elements de menú de per a aspecció extra de pastís"
+msgstr "Aspecció extra d'elements de menú circular"
 
 
 msgid "Show additional options in the shading menu ('Z')"
@@ -106967,11 +107001,11 @@ msgstr "[Extra Shading Pie Menu Items]: Mostra opcions addicionals al menú d'as
 
 
 msgid "Tab for Pie Menu"
-msgstr "Tab per menú pastís"
+msgstr "Tab per a menú circular"
 
 
 msgid "Causes tab to open pie menu (swaps 'Tab' / 'Ctrl-Tab')"
-msgstr "[Tab for Pie Menu]: Fa que la tecla de tabulació obri el menú patís (intercanvia «Tab» / «Ctrl-Tab»)"
+msgstr "[Tab for Pie Menu]: Fa que la tecla de tabulació obri el menú circular (intercanvia «Tab» / «Ctrl-Tab»)"
 
 
 msgid "Alt-MMB Drag Action"
@@ -107740,7 +107774,7 @@ msgstr "Pintar corba"
 
 msgctxt "WindowManager"
 msgid "Curve Pen Modal Map"
-msgstr "Mapa modal de llapis de corba"
+msgstr "Mapa modal de rotulador de corba"
 
 
 msgctxt "WindowManager"
@@ -110222,11 +110256,11 @@ msgstr "El grup de nodes ha de tenir una egressió de geometria"
 
 
 msgid "Image path not set"
-msgstr "No s'ha establert l'adreça de la imatge"
+msgstr "No s'ha establert la ruta de la imatge"
 
 
 msgid "Image path %r not found, image may be packed or unsaved"
-msgstr "No s'ha trobat el camí de la imatge %r, la imatge pot estar empaquetada o sense desar"
+msgstr "No s'ha trobat la ruta de la imatge %r, la imatge pot estar empaquetada o sense desar"
 
 
 msgid "Image is packed, unpack before editing"
@@ -110482,7 +110516,7 @@ msgstr "Plantilla instal·lada (%s) de %r a %r"
 
 
 msgid "Failed to create Studio Light path"
-msgstr "No s'ha pogut crear el trajecte d'il·luminació d'estudi"
+msgstr "No s'ha pogut crear el camí d'il·luminació d'estudi"
 
 
 msgid "StudioLight Installed %r into %r"
@@ -110490,7 +110524,7 @@ msgstr "La llum d'estudi ha instal·lat %r a %r"
 
 
 msgid "Failed to get Studio Light path"
-msgstr "No s'ha trobat el trajecte d'il·luminació d'estudi"
+msgstr "No s'ha trobat el camí d'il·luminació d'estudi"
 
 
 msgid "Warning, file already exists. Overwrite existing file?"
@@ -110510,7 +110544,7 @@ msgstr "Document ja instal·lat a %r"
 
 
 msgid "Source file is in the add-on search path: %r"
-msgstr "El document d'origen és a la ruta de cerca de complements: %r"
+msgstr "El document d'origen és al camí de cerca de complements: %r"
 
 
 msgid "Remove Add-on: %r?"
@@ -110965,7 +110999,7 @@ msgstr "Interval en memòria cau"
 
 msgctxt "Operator"
 msgid "Update Path"
-msgstr "Actualitzar camí"
+msgstr "Actualitzar trajecte"
 
 
 msgid "Nothing to show yet..."
@@ -113052,7 +113086,7 @@ msgstr "Després"
 
 msgctxt "Operator"
 msgid "Track Path"
-msgstr "Camí de rastre"
+msgstr "Trajectòria de rastre"
 
 
 msgctxt "Operator"
@@ -118043,11 +118077,11 @@ msgstr "Joc de fites"
 
 
 msgid ", cannot have single-frame paths"
-msgstr ", no es poden tenir camins per un sol fotograma"
+msgstr ", no es poden tenir trajectes d'un sol fotograma"
 
 
 msgid "Motion path frame extents invalid for %s (%d to %d)%s"
-msgstr "El fotograma del trajecte de moviment no és vàlid per a %s (%d a %d)%s"
+msgstr "Llargada invàlida de fotogrames del trajecte de moviment per a %s (%d a %d)%s"
 
 
 msgid "Documents"
@@ -118143,7 +118177,7 @@ msgstr "Recàrrega de bib: la substitució de totes les referències al bloc de 
 
 
 msgid "Path '%s' not found"
-msgstr "No s'ha trobat el camí '%s'"
+msgstr "No s'ha trobat la ruta '%s'"
 
 
 msgid "No missing files"
@@ -118159,7 +118193,7 @@ msgstr "No s'ha pogut trobar '%s' a '%s '"
 
 
 msgid "Path '%s' cannot be made absolute"
-msgstr "El camí '%s' no es pot fer absolut"
+msgstr "La ruta '%s' no es pot fer absoluta"
 
 
 msgid "Total files %d | Changed %d | Failed %d"
@@ -118167,15 +118201,19 @@ msgstr "Documents totals %d | Canviats %d| Errors %d"
 
 
 msgid "Path '%s' cannot be made relative for %s '%s'"
-msgstr "El camí '%s' no es pot fer relatiu per a %s '%s'"
+msgstr "La ruta '%s' no es pot fer relativa per a %s '%s'"
 
 
 msgid "Path '%s' cannot be made absolute for %s '%s'"
-msgstr "El camí '%s' no es pot fer absolut per a %s '%s'"
+msgstr "La ruta '%s' no es pot fer absoluta per a %s '%s'"
 
 
 msgid "brushes"
 msgstr "pinzells"
+
+
+msgid "cache_files"
+msgstr "documents de memòria cau"
 
 
 msgid "cameras"
@@ -118252,6 +118290,10 @@ msgstr "Calen %d punts més per a bezier"
 
 msgid "curves"
 msgstr "corbes"
+
+
+msgid "hair_curves"
+msgstr "corbes de pèl"
 
 
 msgid "UVMap"
@@ -118436,8 +118478,16 @@ msgid "GP_Layer"
 msgstr "Capa_LdG"
 
 
+msgid "grease_pencils"
+msgstr "llapis de greix"
+
+
 msgid "GP_Group"
 msgstr "Grup_LdG"
+
+
+msgid "grease_pencils_v3"
+msgstr "llapis de greix v3"
 
 
 msgid "Cannot pack multiview images from raw data currently..."
@@ -118461,7 +118511,7 @@ msgstr "No s'ha pogut escriure la imatge: %s"
 
 
 msgid "When saving a tiled image, the path '%s' must contain a valid UDIM marker"
-msgstr "En desar una imatge en mosaic, el camí '%s' ha de contenir un marcador UDIM vàlid"
+msgstr "En desar una imatge en mosaic, la ruta '%s' ha de contenir un marcador UDIM vàlid"
 
 
 msgid "Error writing render result, %s (see console)"
@@ -118480,8 +118530,16 @@ msgid "Key %d"
 msgstr "Fita %d"
 
 
+msgid "shape_keys"
+msgstr "morfofites"
+
+
 msgid "lattices"
 msgstr "retícules"
+
+
+msgid "link_placeholders"
+msgstr "lloc-tinents d'enllaços"
 
 
 msgid "Impossible to resync data-block %s and its dependencies, as its linked reference is missing"
@@ -118520,6 +118578,14 @@ msgid "Cannot unlink unsupported '%s' from light linking collection '%s'"
 msgstr "No es pot desenllaçar '%s' no compatible de la col·lecció d'endoil·luminació '%s'"
 
 
+msgid "lightprobes"
+msgstr "sondes de llum"
+
+
+msgid "linestyles"
+msgstr "lineaments"
+
+
 msgid "MaskLayer"
 msgstr "CapaMàscara"
 
@@ -118556,6 +118622,10 @@ msgid "Possible data loss when saving this file! %s modifier is deprecated (Obje
 msgstr "Possible pèrdua de dades en desar aquest document! El modificador %s està obsolet (objecte: %s)"
 
 
+msgid "movieclips"
+msgstr "videoclips"
+
+
 msgid "NlaTrack"
 msgstr "Pista ANL"
 
@@ -118566,6 +118636,10 @@ msgstr "Segment ANL"
 
 msgid "[Action Stash]"
 msgstr "[Estiba d'acció]"
+
+
+msgid "node_groups"
+msgstr "grups de nodes"
 
 
 msgid "Can't find object data of %s lib %s"
@@ -118609,7 +118683,7 @@ msgstr "No s'han empaquetat documents nous"
 
 
 msgid "Unable to pack file, source path '%s' not found"
-msgstr "No es pot empaquetar el document, camí d'origen '%s' il·localitzable"
+msgstr "No es pot empaquetar el document, ruta d'origen '%s' il·localitzable"
 
 
 msgid "Unable to access the size of, source path '%s'"
@@ -118664,6 +118738,10 @@ msgid "palettes"
 msgstr "paletes"
 
 
+msgid "paint_curves"
+msgstr "corbes de pintura"
+
+
 msgid "ParticleSystem"
 msgstr "SistemaPartícules"
 
@@ -118710,6 +118788,10 @@ msgstr "%s, la memòria cau està obsoleta!"
 
 msgid "%s, not exact since frame %i"
 msgstr "%s, no és exacte des del fotograma %i"
+
+
+msgid "pointclouds"
+msgstr "núvols de punts"
 
 
 msgid "Warning"
@@ -119574,7 +119656,7 @@ msgstr "<invalid>"
 
 
 msgid "<no path>"
-msgstr "<no path>"
+msgstr "<no hi ha camí>"
 
 
 msgid "Marker %.2f offset %s"
@@ -119654,7 +119736,7 @@ msgstr "No s'ha pogut afegir el controlador, ja que el camí RNA no és vàlid p
 
 
 msgid "Could not find driver to copy, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "No s'ha pogut trobar el controlador per copiar, ja que el camí RNA no és vàlida per a l'identificador proporcionat (ID = %s, ruta = %s)"
+msgstr "No s'ha pogut trobar el controlador per copiar, ja que el camí RNA no és vàlid per a l'identificador proporcionat (ID = %s, ruta = %s)"
 
 
 msgid "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -120184,7 +120266,7 @@ msgstr "La captació de recursos no s'ha acabat"
 
 
 msgid "No asset found at path \"%s\""
-msgstr "No s'ha trobat cap recurs a la ruta \"%s\""
+msgstr "No s'ha trobat cap recurs a a la ruta \"%s\""
 
 
 msgid "Data-block is not marked as asset"
@@ -120216,11 +120298,11 @@ msgstr "No hi ha blocs de dades de recursos seleccionats/enfocats"
 
 
 msgid "Path is empty, cannot save"
-msgstr "El camí està buit, no es pot desar"
+msgstr "La ruta és buida, no es pot desar"
 
 
 msgid "Path too long, cannot save"
-msgstr "El camí és massa llarg, no es pot desar"
+msgstr "La ruta és massa llarga, no es pot desar"
 
 
 msgid "Data-block '%s' is now an asset"
@@ -120240,7 +120322,7 @@ msgstr "%i blocs de dades ja no són recursos"
 
 
 msgid "Selected path is outside of the selected asset library"
-msgstr "El camí seleccionat és fora de la biblioteca de recursos seleccionada"
+msgstr "La ruta seleccionada és fora de la biblioteca de recursos seleccionada"
 
 
 msgid "Unable to copy bundle due to external dependency: \"%s\""
@@ -120995,6 +121077,14 @@ msgid "Missing Menu: %s"
 msgstr "Falta el menú: %s"
 
 
+msgid "Mark as Asset"
+msgstr "Marcar com a recurs"
+
+
+msgid "Clear Asset"
+msgstr "Retirar recurs"
+
+
 msgid "Non-Keyboard Shortcut"
 msgstr "No és drecera de teclat"
 
@@ -121231,7 +121321,7 @@ msgstr "No s'ha trobat el botó actiu"
 
 
 msgid "Please set your Preferences' 'Translation Branches Directory' path to a valid directory"
-msgstr "Si us plau, estableix a Preferències el camí «Directori branches de traducció» en un directori vàlid"
+msgstr "Si us plau, estableix a Preferències la ruta «Directori branches de traducció» en un directori vàlid"
 
 
 msgid "Could not compute a valid data path"
@@ -122002,7 +122092,7 @@ msgstr "Mètode Quads"
 
 
 msgid "No filepath given"
-msgstr "No s'ha aportat cap ruta de document"
+msgstr "No s'ha aportat cap adreça de document"
 
 
 msgid "Unable to determine ABC sequence length"
@@ -122379,7 +122469,7 @@ msgstr "No hi ha cap aresta seleccionada per operar-hi"
 
 
 msgid "Mouse path too short"
-msgstr "El camí del ratolí és massa curt"
+msgstr "La trajectòria del ratolí és massa curta"
 
 
 msgid "Selection not supported in object mode"
@@ -122869,11 +122959,11 @@ msgstr "S'ha produït un problema en precuinar l'objecte \"%s\""
 
 
 msgid "Bake directory of object %s, modifier %s is empty, setting default path"
-msgstr "Precuinar directori d'objecte %s, el modificador %s està buit i estableix el camí predeterminat"
+msgstr "Precuinar directori d'objecte %s, el modificador %s està buit i estableix la ruta predeterminada"
 
 
 msgid "Path conflict: %d caches set to path %s"
-msgstr "Conflicte de ruta: %d cau establerta a camí %s"
+msgstr "Conflicte de ruta: %d cau establerta a ruta %s"
 
 
 msgid "Failed to remove metadata directory %s"
@@ -122949,7 +123039,7 @@ msgstr "No s'ha trobat la restricció de Seguir trajecte"
 
 
 msgid "Path is already animated"
-msgstr "El camí ja està animat"
+msgstr "El trajecte ja està animat"
 
 
 msgid "Could not find constraint data for ObjectSolver Set Inverse"
@@ -123733,7 +123823,7 @@ msgstr "Precuinat lliure fallit: s'han trobat tasques pendents de precuinat"
 
 
 msgid "Fluid: Empty cache path, reset to default '%s'"
-msgstr "Fluid: camí de memòria cau buit, restableix a predeterminat '%s'"
+msgstr "Fluid: ruta de memòria cau buida, restableix a predeterminada '%s'"
 
 
 msgid "Fluid: Could not create cache directory '%s', reset to default '%s'"
@@ -123741,7 +123831,7 @@ msgstr "Fluid: no s'ha pogut crear el directori de memòria cau '%s', es restabl
 
 
 msgid "Fluid: Could not use default cache directory '%s', please define a valid cache path manually"
-msgstr "Fluid: No s'ha pogut usar el directori de memòria cau predeterminat '%s', cal definir manualment un camí de memòria cau vàlid"
+msgstr "Fluid: No s'ha pogut usar el directori de memòria cau predeterminat '%s', cal definir manualment una ruta vàlida de memòria cau"
 
 
 msgid "Fluid: %s complete! (%.2f)"
@@ -124890,7 +124980,7 @@ msgstr "Ruta al document"
 
 
 msgid "Path to asset library does not exist:"
-msgstr "El camí a la biblioteca de recursos no existeix:"
+msgstr "La ruta a la biblioteca de recursos no existeix:"
 
 
 msgid ""
@@ -124898,7 +124988,7 @@ msgid ""
 "Manage Asset Libraries from the File Paths section in Preferences"
 msgstr ""
 "Les biblioteques de recursos són directoris locals que poden contenir documents .blend amb recursos a l'interior.\n"
-"Gestiona les biblioteques de recursos des de la secció Camins de documents en les preferències"
+"Gestiona les biblioteques de recursos des de la secció Rutes de documents en les preferències"
 
 
 msgid "Unreadable Blender library file:"
@@ -124934,7 +125024,7 @@ msgstr "Fracàs en l'operació de document extern en \"%s\""
 
 
 msgid "'%s' given path is OS-invalid, creating '%s' path instead"
-msgstr "El camí indicat '%s' no és vàlid per al sistema operatiu, en lloc seu es crea el camí '%s'"
+msgstr "La ruta indicada '%s' no és vàlida per al sistema operatiu, en lloc seu es crea la ruta '%s'"
 
 
 msgid "Could not create new folder: %s"
@@ -125134,7 +125224,7 @@ msgstr "AVÍS: L'expressió del controlador pot no funcionar correctament"
 
 
 msgid "TIP: Use variables instead of bpy.data paths (see below)"
-msgstr "CONSELL: usa variables en lloc de camins de bpy.data (vega més avall)"
+msgstr "CONSELL: useu variables en lloc de camins de bpy.data (vegeu més avall)"
 
 
 msgid "TIP: bpy.context is not safe for renderfarm usage"
@@ -125423,7 +125513,7 @@ msgstr "Empaquetat a la imatge de memòria \"%s\""
 
 
 msgid "Cannot save image, path \"%s\" is not writable"
-msgstr "No es pot desar la imatge, el camí \"%s\" no és escrivible"
+msgstr "No es pot desar la imatge, la ruta \"%s\" no és escrivible"
 
 
 msgid "Saved image \"%s\""
@@ -125447,7 +125537,7 @@ msgstr "No es pot desar la imatge, utilitza un format de document diferent: \"%s
 
 
 msgid "Multiple images can't be saved to an identical path: \"%s\""
-msgstr "No es poden desar múltiples imatges en un camí idèntic: \"%s\""
+msgstr "No es poden desar múltiples imatges en una ruta idèntica: \"%s\""
 
 
 msgid "Image can't be saved, no valid file path: \"%s\""
@@ -125487,7 +125577,7 @@ msgstr "No es poden establir rutes relatives amb un document blend sense desar"
 
 
 msgid "Cannot set absolute paths with an unsaved blend file"
-msgstr "No es poden establir camins absoluts amb un document blend sense desar"
+msgstr "No es poden establir rutes absolutes amb un document blend sense desar"
 
 
 msgid "Joints"
@@ -126227,11 +126317,11 @@ msgstr "No es poden editar la biblioteca o les dades de sobreseïment no editabl
 
 
 msgid "Library path '%s' does not exist, correct this before saving"
-msgstr "El camí de la biblioteca '%s' no existeix, corregiu-ho abans de desar"
+msgstr "La ruta a la biblioteca '%s' no existeix, corregiu-ho abans de desar"
 
 
 msgid "Library path '%s' is now valid, please reload the library"
-msgstr "El camí de la biblioteca '%s' ara és vàlid, sisplau recarrega la biblioteca"
+msgstr "La ruta a la biblioteca '%s' ara és vàlid, sisplau recarrega la biblioteca"
 
 
 msgid "Purging %d unused data-blocks ("
@@ -126259,7 +126349,7 @@ msgstr "Els blocs de dades sobreseguts no són editables"
 
 
 msgid "Library path is not editable, use the Relocate operation"
-msgstr "La ruta de la biblioteca ja no es pot editar des d'aquí, sisplau utilitzeu l'operació Reubicar"
+msgstr "La ruta a la biblioteca ja no es pot editar des d'aquí, sisplau utilitzeu l'operació Reubicar"
 
 
 msgid "No active item to rename"
@@ -126751,7 +126841,7 @@ msgstr "Python desactivat en aquesta versió"
 
 
 msgid "File path property not set"
-msgstr "Propietat ruta de document no definida"
+msgstr "Propietat ruta de document no està definida"
 
 
 msgid "No file path for \"%s\""
@@ -127990,15 +128080,15 @@ msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apuntava a l
 
 
 msgid "Object type mismatch, Alembic object path points to Camera"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apunta a la càmera"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apunta a la càmera"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Curves when importing, but not any more"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apuntava a Corbes en la importació, però ja no"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apuntava a Corbes en la importació, però ja no"
 
 
 msgid "Object type mismatch, Alembic object path points to Curves"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apunta a Corbes"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apunta a Corbes"
 
 
 msgid "Error reading curve sample; more detail on the console"
@@ -128006,11 +128096,11 @@ msgstr "Error llegint la mostra de corba; per més detalls mirar consola"
 
 
 msgid "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not any more"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apuntava a la Polimalla en la importació, però ja no"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apuntava a la Polimalla en la importació, però ja no"
 
 
 msgid "Object type mismatch, Alembic object path points to PolyMesh"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apunta a Polimalla"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apunta a la Polimalla"
 
 
 msgid "Error reading mesh sample; more detail on the console"
@@ -128026,27 +128116,27 @@ msgstr "Ha canviat la topologia, potser triangulant la malla. Només se'n llegir
 
 
 msgid "Object type mismatch, Alembic object path pointed to SubD when importing, but not any more"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apuntava a la SubD en la importació, però ja no"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apuntava a la SubD en la importació, però ja no"
 
 
 msgid "Object type mismatch, Alembic object path points to SubD"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apunta a SubD"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apunta a SubD"
 
 
 msgid "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any more"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apuntava a NURBS en la importació, però ja no"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apuntava a NURBS en la importació, però ja no"
 
 
 msgid "Object type mismatch, Alembic object path points to NURBS"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apunta a NURBS"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apunta a NURBS"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Points when importing, but not any more"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apuntava a Punts en la importació, però ja no"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apuntava a Punts en la importació, però ja no"
 
 
 msgid "Object type mismatch, Alembic object path points to Points"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apunta a Punts"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apunta a Punts"
 
 
 msgid "Error reading points sample; more detail on the console"
@@ -128054,11 +128144,11 @@ msgstr "Error llegint mostra de punts; per més detalls mirar consola"
 
 
 msgid "Object type mismatch, Alembic object path pointed to XForm when importing, but not any more"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apuntava a la XForm en la importació, però ja no"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apuntava a la XForm en la importació, però ja no"
 
 
 msgid "Object type mismatch, Alembic object path points to XForm"
-msgstr "No casen els tipus d'objecte, la ruta de l'objecte Alembic apunta a XForm"
+msgstr "No casen els tipus d'objecte, el camí de l'objecte Alembic apunta a XForm"
 
 
 msgid "Invalid object: verify object path"
@@ -128087,7 +128177,7 @@ msgstr "Importador PLY: %s: %s"
 
 
 msgid "%s: Couldn't determine package-relative file name from path %s"
-msgstr "%s: No s'ha pogut determinar el nom del document relatiu-a-paquet des del camí %s"
+msgstr "%s: No s'ha pogut determinar el nom del document relatiu-a-paquet des de la ruta %s"
 
 
 msgid "%s: Couldn't copy file %s to %s"
@@ -128143,7 +128233,7 @@ msgstr "%s: No s'ha pogut tancar el recurs de destinació %s"
 
 
 msgid "%s: Texture import directory path empty, couldn't import %s"
-msgstr "%s: el camí del directori d'importació de textures està buit, no s'ha pogut importar %s"
+msgstr "%s: la ruta del directori d'importació de textures està buida, no s'ha pogut importar %s"
 
 
 msgid "%s: import directory is relative but the blend file path is empty. Please save the blend file before importing the USD or provide an absolute import directory path. Can't import %s"
@@ -128155,15 +128245,15 @@ msgstr "%s: No s'ha pogut crear el directori d'importació de textures %s"
 
 
 msgid "USD Export: invalid path string '%s': %s"
-msgstr "Exportació d'USD: cadena de camí invàlida '%s': %s"
+msgstr "Exportació d'USD: cadena de ruta invàlida '%s': %s"
 
 
 msgid "USD Export: path '%s' is not an absolute path"
-msgstr "Exportació d'USD: el camí '%s' no és un camí absolut"
+msgstr "Exportació d'USD: la ruta '%s' no és una ruta absoluta"
 
 
 msgid "USD Export: path string '%s' is not a prim path"
-msgstr "Exportació d'USD: la cadena de camí '%s' no és un camí primitiu"
+msgstr "Exportació d'USD: la cadena de ruta '%s' no és una ruta de primitiva"
 
 
 msgid "USD Export: Unable to delete existing usdz file %s"
@@ -128184,10 +128274,6 @@ msgstr "No s'ha pogut obrir l'arxiu USD per a lectura! Consulta la consola per m
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Importació USD: no s'ha pogut obrir l'etapa per a llegir %s"
-
-
-msgid "USD Import: unable to open cache reader for object %s"
-msgstr "Importació d'USD: no s'ha pogut obrir lector de memòria cau d'objecte %s"
 
 
 msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
@@ -130145,7 +130231,7 @@ msgstr "Espai de coordenades"
 
 
 msgid "Create Along Paths"
-msgstr "Crear seguint camins"
+msgstr "Crear seguint trajectòries"
 
 
 msgid "ParticleInstance"
@@ -131510,7 +131596,7 @@ msgstr "Tria instàncies de la ingressió «Instància» a cada punt en lloc d'i
 
 
 msgid "Index of the instance used for each point. This is only used when Pick Instances is on. By default the point index is used"
-msgstr "Índex de la instància utilitzada per a cada punt. Això només s'utilitza quan s'activa Tria instàncies. Per defecte s'utilitza l'índex de punts"
+msgstr "Índex de la instància utilitzada per a cada punt. Això només s'utilitza quan s'activa Triar instàncies. Per defecte s'utilitza l'índex de punts"
 
 
 msgid "Rotation of the instances"
@@ -133117,6 +133203,10 @@ msgid "WaveDistortion"
 msgstr "Direcció d'ona"
 
 
+msgid "window_managers"
+msgstr "gestors de finestres"
+
+
 msgid "Region could not be drawn!"
 msgstr "No s'ha pogut dibuixar en la regió!"
 
@@ -133274,7 +133364,7 @@ msgstr "No es pot sobreescriure la biblioteca utilitzada '%.240s'"
 
 
 msgid "Cannot save blend file, path \"%s\" is not writable"
-msgstr "No es pot desar el document blend, no es pot escriure el camí \"%s\""
+msgstr "No es pot desar el document blend, la ruta \"%s\" no és escrivible"
 
 
 msgid "Saved \"%s\""
@@ -133322,11 +133412,11 @@ msgstr "'%s' no és una adreça vàlida per a documents de biblioteca"
 
 
 msgid "Trying to reload library '%s' from invalid path '%s'"
-msgstr "S'està intentant de recarregar la biblioteca '%s' des del camí no vàlid '%s'"
+msgstr "S'està intentant de recarregar la biblioteca '%s' des d'una ruta no vàlida '%s'"
 
 
 msgid "Trying to reload or relocate library '%s' to invalid path '%s'"
-msgstr "S'està intentant de recarregar o reubicar la biblioteca '%s' al camí no vàlid '%s'"
+msgstr "S'està intentant de recarregar o reubicar la biblioteca '%s' a una ruta no vàlida '%s'"
 
 
 msgid "Cannot relocate library '%s' to current blend file '%s'"
@@ -133910,7 +134000,7 @@ msgstr "Nodes de geometria"
 
 msgctxt "WorkSpace"
 msgid "Layout"
-msgstr "Mirador"
+msgstr "Disposició"
 
 
 msgctxt "WorkSpace"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 16:01:56\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
 "PO-Revision-Date: 2023-10-30 06:54+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -97426,10 +97426,6 @@ msgid "Sound data-block used by this sequence"
 msgstr "このシーケンスに使う音声データブロック"
 
 
-msgid "Multiply playback speed"
-msgstr "再生速度の乗数"
-
-
 msgid "Playback volume of the sound"
 msgstr "音声の再生ボリューム"
 
@@ -129143,10 +129139,6 @@ msgstr "読み込む USD アーカイブが開けません（コンソールに�
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "USD Import:「%s」を読み込むためのステージが開けません"
-
-
-msgid "USD Import: unable to open cache reader for object %s"
-msgstr "USD Import:オブジェクト「%s」のキャッシュリーダーが開けません"
 
 
 msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
