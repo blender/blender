@@ -882,7 +882,8 @@ static void draw_seq_outline(TimelineDrawContext *timeline_ctx, StripDrawContext
    */
   const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
   if ((G.moving & G_TRANSFORM_SEQ) && (seq->flag & SELECT) &&
-      overlap_mode != SEQ_OVERLAP_OVERWRITE) {
+      overlap_mode != SEQ_OVERLAP_OVERWRITE)
+  {
     if (seq->flag & SEQ_OVERLAP) {
       col[0] = 255;
       col[1] = col[2] = 33;
@@ -1581,6 +1582,29 @@ static void draw_seq_timeline_channels(TimelineDrawContext *ctx)
   immUnbindProgram();
 }
 
+static void draw_seq_solo_preview(TimelineDrawContext *timeline_ctx)
+{
+  /* Draw highlight if "solo preview" is used. */
+  if (special_seq_update) {
+    const Sequence *seq = special_seq_update;
+    GPU_blend(GPU_BLEND_ALPHA);
+
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+    immUniformColor4ub(255, 255, 255, 48);
+    immRectf(pos,
+             SEQ_time_left_handle_frame_get(timeline_ctx->scene, seq),
+             seq->machine + SEQ_STRIP_OFSBOTTOM,
+             SEQ_time_right_handle_frame_get(timeline_ctx->scene, seq),
+             seq->machine + SEQ_STRIP_OFSTOP);
+
+    immUnbindProgram();
+
+    GPU_blend(GPU_BLEND_NONE);
+  }
+}
+
 static void draw_seq_strips(TimelineDrawContext *timeline_ctx)
 {
   if (timeline_ctx->ed == nullptr) {
@@ -1588,63 +1612,48 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx)
   }
 
   const bContext *C = timeline_ctx->C;
-  Editing *ed = timeline_ctx->ed;
   ARegion *region = timeline_ctx->region;
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;
-  Sequence *last_seq = SEQ_select_active_get(scene);
-  int sel = 0, j;
 
-  /* Loop through twice, first unselected, then selected. */
-  for (j = 0; j < 2; j++) {
-    /* Loop through strips, checking for those that are visible. */
-    LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
-      /* Bound-box and selection tests for NOT drawing the strip. */
-      if ((seq->flag & SELECT) != sel) {
-        continue;
-      }
-      if (seq == last_seq && (last_seq->flag & SELECT)) {
-        continue;
-      }
-      if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
-          v2d->cur.xmax)
-      {
-        continue;
-      }
-      if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
-                 SEQ_time_content_end_frame_get(scene, seq)) < v2d->cur.xmin)
-      {
-        continue;
-      }
-      if (seq->machine + 1.0f < v2d->cur.ymin) {
-        continue;
-      }
-      if (seq->machine > v2d->cur.ymax) {
-        continue;
-      }
+  Sequence *active_seq = SEQ_select_active_get(scene);
+  const bool use_active_draw_pass = active_seq != nullptr && (active_seq->flag & SELECT) != 0;
+  blender::Vector<Sequence *> strips = sequencer_visible_strips_get(C);
 
-      /* Strip passed all tests, draw it now. */
-      StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, seq);
-      draw_seq_strip(timeline_ctx, &strip_ctx);
-    }
-
-    /* Draw selected next time round. */
-    sel = SELECT;
+  if (use_active_draw_pass) {
+    strips.remove_if([&](Sequence *seq) { return seq == active_seq; });
   }
 
-  /* When selected draw the last selected (active) strip last,
-   * removes some overlapping error. */
-  if (last_seq && (last_seq->flag & SELECT)) {
-    StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, last_seq);
+  /* Draw unselected strips. */
+  for (Sequence *seq : strips) {
+    if ((seq->flag & SELECT) != 0) {
+      continue;
+    }
+    StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, seq);
+    draw_seq_strip(timeline_ctx, &strip_ctx);
+  }
+
+  /* Draw selected strips. */
+  for (Sequence *seq : strips) {
+    if ((seq->flag & SELECT) == 0) {
+      continue;
+    }
+    StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, seq);
+    draw_seq_strip(timeline_ctx, &strip_ctx);
+  }
+
+  /* Draw selected active strip last to avoid overlapping of drawing. */
+  if (use_active_draw_pass) {
+    StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, active_seq);
     draw_seq_strip(timeline_ctx, &strip_ctx);
 
     /* When active strip is an effect, highlight its inputs. */
-    if (SEQ_effect_get_num_inputs(last_seq->type) > 0) {
-      draw_effect_inputs_highlight(scene, last_seq);
+    if (SEQ_effect_get_num_inputs(active_seq->type) > 0) {
+      draw_effect_inputs_highlight(scene, active_seq);
     }
     /* When active is a Multi-cam strip, highlight its source channel. */
-    else if (last_seq->type == SEQ_TYPE_MULTICAM) {
-      int channel = last_seq->multicam_source;
+    else if (active_seq->type == SEQ_TYPE_MULTICAM) {
+      int channel = active_seq->multicam_source;
       if (channel != 0) {
         GPU_blend(GPU_BLEND_ALPHA);
         uint pos = GPU_vertformat_attr_add(
@@ -1660,25 +1669,7 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx)
     }
   }
 
-  /* Draw highlight if "solo preview" is used. */
-  if (special_seq_update) {
-    const Sequence *seq = special_seq_update;
-    GPU_blend(GPU_BLEND_ALPHA);
-
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-    immUniformColor4ub(255, 255, 255, 48);
-    immRectf(pos,
-             SEQ_time_left_handle_frame_get(scene, seq),
-             seq->machine + SEQ_STRIP_OFSBOTTOM,
-             SEQ_time_right_handle_frame_get(scene, seq),
-             seq->machine + SEQ_STRIP_OFSTOP);
-
-    immUnbindProgram();
-
-    GPU_blend(GPU_BLEND_NONE);
-  }
+  draw_seq_solo_preview(timeline_ctx);
 
   UI_view2d_text_cache_draw(region);
 }
@@ -1801,7 +1792,8 @@ static bool draw_cache_view_iter_fn(void *userdata,
   size_t *vert_count;
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
-      (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT)) {
+      (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT))
+  {
     stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) - v2d->cur.ymin;
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
     stripe_top = stripe_bot + stripe_ht;
