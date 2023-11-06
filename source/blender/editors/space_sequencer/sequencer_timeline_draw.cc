@@ -1619,42 +1619,44 @@ static void draw_seq_timeline_channels(TimelineDrawContext *ctx)
   immUnbindProgram();
 }
 
+/* Get visible strips in following order:
+ * Unselected strips, selected strips and finally selected active strip. */
+static blender::Vector<Sequence *> visible_strips_ordered_get(TimelineDrawContext *timeline_ctx)
+{
+  Sequence *act_seq = SEQ_select_active_get(timeline_ctx->scene);
+  blender::Vector<Sequence *> strips = sequencer_visible_strips_get(timeline_ctx->C);
+  blender::Vector<Sequence *> strips_ordered;
+  const bool act_seq_is_selected = act_seq != nullptr && (act_seq->flag & SELECT) != 0;
+
+  if (act_seq_is_selected) {
+    strips.remove_if([&](Sequence *seq) { return seq == act_seq; });
+  }
+
+  for (Sequence *seq : strips) {
+    if ((seq->flag & SELECT) == 0) {
+      strips_ordered.append(seq);
+    }
+  }
+  for (Sequence *seq : strips) {
+    if ((seq->flag & SELECT) != 0) {
+      strips_ordered.append(seq);
+    }
+  }
+  if (act_seq_is_selected) {
+    strips_ordered.append(act_seq);
+  }
+
+  return strips_ordered;
+}
+
 static void draw_seq_strips(TimelineDrawContext *timeline_ctx)
 {
   if (timeline_ctx->ed == nullptr) {
     return;
   }
 
-  Sequence *active_seq = SEQ_select_active_get(timeline_ctx->scene);
-  const bool use_active_draw_pass = active_seq != nullptr && (active_seq->flag & SELECT) != 0;
-
-  blender::Vector<Sequence *> strips = sequencer_visible_strips_get(timeline_ctx->C);
-
-  if (use_active_draw_pass) {
-    strips.remove_if([&](Sequence *seq) { return seq == active_seq; });
-  }
-
-  /* Draw unselected strips. */
-  for (Sequence *seq : strips) {
-    if ((seq->flag & SELECT) != 0) {
-      continue;
-    }
+  for (Sequence *seq : visible_strips_ordered_get(timeline_ctx)) {
     StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, seq);
-    draw_seq_strip(timeline_ctx, &strip_ctx);
-  }
-
-  /* Draw selected strips. */
-  for (Sequence *seq : strips) {
-    if ((seq->flag & SELECT) == 0) {
-      continue;
-    }
-    StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, seq);
-    draw_seq_strip(timeline_ctx, &strip_ctx);
-  }
-
-  /* Draw selected active strip last to avoid overlapping of drawing. */
-  if (use_active_draw_pass) {
-    StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, active_seq);
     draw_seq_strip(timeline_ctx, &strip_ctx);
   }
 
