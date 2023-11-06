@@ -1863,7 +1863,7 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
   copy_v4_fl4(bg_colors[0], 1.0f, 0.4f, 0.2f, 0.1f);
   copy_v4_fl4(bg_colors[1], 1.0f, 0.1f, 0.02f, 0.1f);
   copy_v4_fl4(bg_colors[2], 0.1f, 0.1f, 0.75f, 0.1f);
-  copy_v4_fl4(bg_colors[4], 1.0f, 0.6f, 0.0f, 0.1f);
+  copy_v4_fl4(bg_colors[3], 1.0f, 0.6f, 0.0f, 0.1f);
 
   GPU_blend(GPU_BLEND_ALPHA);
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
