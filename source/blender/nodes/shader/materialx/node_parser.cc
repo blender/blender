@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <pxr/base/tf/stringUtils.h>
+
 #include "node_parser.h"
 
 #include "group_nodes.h"
@@ -58,26 +60,40 @@ NodeItem NodeParser::compute_full()
   return res;
 }
 
-std::string NodeParser::node_name() const
+std::string NodeParser::node_name(bool with_out_socket) const
 {
+  auto valid_name = [](const std::string &name) {
+    /* Node name should suite to MatX and USD valid names.
+     * It shouldn't start from '_', due to error occured in Storm delegate. */
+    std::string res = MaterialX::createValidName(pxr::TfMakeValidIdentifier(name));
+    if (res[0] == '_') {
+      res = "node" + res;
+    }
+    return res;
+  };
+
   std::string name = node_->name;
-  if (node_->output_sockets().size() > 1) {
-    name += std::string("_") + socket_out_->name;
-  }
-  if (ELEM(to_type_, NodeItem::Type::BSDF, NodeItem::Type::EDF, NodeItem::Type::SurfaceOpacity)) {
-    name += "_" + NodeItem::type(to_type_);
+  if (with_out_socket) {
+    if (node_->output_sockets().size() > 1) {
+      name += std::string("_") + socket_out_->name;
+    }
+    if (ELEM(to_type_, NodeItem::Type::BSDF, NodeItem::Type::EDF, NodeItem::Type::SurfaceOpacity))
+    {
+      name += "_" + NodeItem::type(to_type_);
+    }
   }
 #ifdef USE_MATERIALX_NODEGRAPH
-  return MaterialX::createValidName(name);
+  return valid_name(name);
 #else
+
   std::string prefix;
   GroupNodeParser *gr = group_parser_;
   while (gr) {
     const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(gr->node_->id);
-    prefix = MaterialX::createValidName(ngroup->id.name) + "_" + prefix;
+    prefix = valid_name(ngroup->id.name) + "_" + prefix;
     gr = gr->group_parser_;
   }
-  return prefix + MaterialX::createValidName(name);
+  return prefix + valid_name(name);
 #endif
 }
 
