@@ -3480,8 +3480,8 @@ static uint32_t name_buffer_copystr(char **name_buffer_ptr,
   BLI_assert(ret_len > 0);
 
   /* If required name buffer size is larger, increase by at least 128 bytes. */
-  if (name_buffer_size + ret_len > name_buffer_size) {
-    name_buffer_size = name_buffer_size + max_ii(128, ret_len);
+  if (name_buffer_offset + ret_len + 1 > name_buffer_size) {
+    name_buffer_size = name_buffer_offset + max_ii(128, ret_len + 1);
     *name_buffer_ptr = (char *)MEM_reallocN(*name_buffer_ptr, name_buffer_size);
   }
 
