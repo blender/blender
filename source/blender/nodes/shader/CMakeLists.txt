@@ -139,6 +139,10 @@ set(LIB
 
 if(WITH_MATERIALX)
   add_definitions(-DWITH_MATERIALX)
+  list(APPEND INC
+    ${USD_INCLUDE_DIRS}
+    ${BOOST_INCLUDE_DIR}
+  )
   list(APPEND SRC
     materialx/material.cc
     materialx/node_item.cc
