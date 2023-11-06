@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-10-30 16:01:56\n"
-"PO-Revision-Date: 2023-10-29 09:54+0000\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"PO-Revision-Date: 2023-11-02 12:54+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -6212,6 +6212,26 @@ msgid "Enabled"
 msgstr "Ativado"
 
 
+msgid "Enable this object as a collider for physics systems"
+msgstr "Activar este objecto como colisores para os sistemas de física"
+
+
+msgid "Single Sided"
+msgstr "Lado Único"
+
+
+msgid "Cloth collision acts with respect to the collider normals (improves penetration recovery)"
+msgstr "Colisão de têxtil actua com respeito às normais dos colisores (melhora recuperação de penetração)"
+
+
+msgid "Override Normals"
+msgstr "Revogar Normais"
+
+
+msgid "Cloth collision impulses act in the direction of the collider normals (more reliable in some cases)"
+msgstr "Impulsos de colisão de têxtil actuam na direcção das normais dos colisores (mais fiável em alguns casos)"
+
+
 msgid "Kill Particles"
 msgstr "Matar partículas"
 
@@ -6236,8 +6256,84 @@ msgid "Input color space settings"
 msgstr "Definições de espaço de cor de entrada."
 
 
+msgid "Is Data"
+msgstr "É Informação"
+
+
+msgid "Treat image as non-color data without color management, like normal or displacement maps"
+msgstr "Tratar imagem como não sendo informação de cor sem gestão de cores, como mapas de normais ou deslocamento"
+
+
 msgid "Input Color Space"
 msgstr "Espaço de cor de entrada"
+
+
+msgid "Color space in the image file, to convert to and from when saving and loading the image"
+msgstr "Espaço de cor no ficheiro de imagem, para converter de e para quando guardar e carregar a imagem"
+
+
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
+
+
+msgid "Linear AP0 with ACES white point"
+msgstr "AP0 Linear com ponto de branco ACES"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
+msgid "Linear AP1 with ACES white point"
+msgstr "AP1 Linear com ponto de branco ACES"
+
+
+msgid "AgX Base Display P3"
+msgstr "Base de Visor AgX P3"
+
+
+msgid "AgX Base Image Encoding for Display P3 Display"
+msgstr "Codificação de imagem base AgX para Visor P3"
+
+
+msgid "AgX Base Rec.1886"
+msgstr "AgX Base Rec.1886"
+
+
+msgid "AgX Base Image Encoding for Rec.1886 Display"
+msgstr "Codificação de imagem base AgX para Visor Rec.1886"
+
+
+msgid "AgX Base Rec.2020"
+msgstr "AgX Base Rec.2020"
+
+
+msgid "AgX Base Image Encoding for BT.2020 Display"
+msgstr "Codificação de imagem base AgX para Visor BT.2020"
+
+
+msgid "AgX Base sRGB"
+msgstr "AgX Base sRGB"
+
+
+msgid "AgX Base Image Encoding for sRGB Display"
+msgstr "Codificação de imagem base AgX para sRGB Display"
+
+
+msgid "AgX Log"
+msgstr "AgX Log"
+
+
+msgid "Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range"
+msgstr "Codificação Log com inserção e rotação Chroma, e com 25 paragens de Alcance Dinâmico"
+
+
+msgid "Display P3"
+msgstr "Visor P3"
+
+
+msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
+msgstr "Visor P3 Apple com função de transferência de codificação composta (por partes) sRGB, comum em dispositivos Mac"
 
 
 msgid "Filmic Log"
@@ -6246,6 +6342,10 @@ msgstr "Filmic Log"
 
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
 msgstr "Modelador filmico logaritmico com 16.5 paragens de latitude, e 25 paragens de alcance dinâmico"
+
+
+msgid "Filmic sRGB"
+msgstr "Filmic sRGB"
 
 
 msgid "sRGB display space with Filmic view transform"
@@ -6308,8 +6408,12 @@ msgid "Generic data that is not color, will not apply any color transform (e.g. 
 msgstr "Informação genérica que não representa cor, não aplica qualquer transformação de cor (por exemplo mapas de normais)"
 
 
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
 msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
-msgstr "BT.1886 2.4 Exibição Expoente EOTF Display, geralmente utilizado para TVs"
+msgstr "BT.1886 2.4 Visor Expoente EOTF, geralmente utilizado para TVs"
 
 
 msgid "Rec.2020"
@@ -6317,7 +6421,11 @@ msgstr "Rec.2020"
 
 
 msgid "BT.2020 2.4 Exponent EOTF Display"
-msgstr "BT.2020 2.4 Exibição Expoente EOTF"
+msgstr "BT.2020 2.4 Visor Exponente EOTF"
+
+
+msgid "sRGB IEC 61966-2-1 compound (piece-wise) encoding"
+msgstr "Codificação sRGB IEC 61966-2-1 composta (por partes)"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -6382,6 +6490,10 @@ msgstr "Permite usar curvas RGB para transformações da pré-amostragem."
 
 msgid "High Dynamic Range"
 msgstr "Alto Alcance Dinâmico"
+
+
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' does not generate HDR colors"
+msgstr "Activar exibição em alto alcance dinâmico, removendo limites de brilho. Isto requer um monitor com suporte para HDR, e uma transformação de exibição concebida para HDR. 'Filmic' não gera cores HDR"
 
 
 msgid "View Transform"
@@ -6502,6 +6614,14 @@ msgstr "Define o modo de cor para ser usado na interpolação."
 
 msgid "RGB"
 msgstr "RGB"
+
+
+msgid "HSV"
+msgstr "HSV"
+
+
+msgid "HSL"
+msgstr "HSL"
 
 
 msgid "Elements"
@@ -6637,12 +6757,24 @@ msgid "Constraint modifying the transformation of objects and bones"
 msgstr "Restrição modificando a transformação de objetos e ossos."
 
 
+msgid "Constraint is the one being edited"
+msgstr "Restrição é a que está a ser editada"
+
+
+msgid "Use the results of this constraint"
+msgstr "Usar o resultado desta restrição"
+
+
 msgid "Lin error"
 msgstr "Erro linear"
 
 
 msgid "Amount of residual error in Blender space unit for constraints that work on position"
 msgstr "Quantidade de erro residual em unidades Blender para restrições que trabalham na posição."
+
+
+msgid "Rotation error"
+msgstr "Erro de rotação"
 
 
 msgid "Amount of residual error in radians for constraints that work on orientation"
@@ -6655,6 +6787,14 @@ msgstr "Influência"
 
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "A quantidade de influência que a restrição terá na solução final. O valor de 1.000 representa 100%."
+
+
+msgid "Override Constraint"
+msgstr "Revogar Restrição"
+
+
+msgid "In a local override object, whether this constraint comes from the linked reference object, or is local to the override"
+msgstr "Num objecto com revogação local, se esta restrição vem do objecto de referência conectado, ou é local da revogação"
 
 
 msgid "Constraint has valid settings and can be evaluated"
@@ -6689,6 +6829,14 @@ msgid "The constraint is applied relative to the world coordinate system"
 msgstr "A restrição é aplicada com relação ao sistema de coordenadas do ambiente (mundo)."
 
 
+msgid "Custom Space"
+msgstr "Espaço Personalizado"
+
+
+msgid "The constraint is applied in local space of a custom object/bone/vertex group"
+msgstr "A restrição é aplicada no espaço local de um objecto/osso/grupo de vértices personalizado"
+
+
 msgid "Pose Space"
 msgstr "Espaço de pose"
 
@@ -6699,6 +6847,10 @@ msgstr "A restrição é aplicada no espaço de pose, as transformações do obj
 
 msgid "Local With Parent"
 msgstr "Local com parente"
+
+
+msgid "The constraint is applied relative to the rest pose local coordinate system of the bone, thus including the parent-induced transformation"
+msgstr "A restrição é aplicada relativa ao sistema de coordenadas locais do osso em pose de descanso, incluindo assim as transformações induzidas pelos pais"
 
 
 msgid "Local Space"
@@ -6713,8 +6865,16 @@ msgid "Constraint's panel is expanded in UI"
 msgstr "O painel de restrições é expandido na interface de utilizador."
 
 
+msgid "Object for Custom Space"
+msgstr "Objecto para Espaço Personalizado"
+
+
 msgid "Sub-Target"
 msgstr "Sub-alvo"
+
+
+msgid "Armature bone, mesh or lattice vertex group, ..."
+msgstr "Armação, osso, grupo de vértices de malhas ou grade, ..."
 
 
 msgid "Target Space"
@@ -6729,12 +6889,28 @@ msgid "The transformation of the target is evaluated relative to the world coord
 msgstr "As transformações do alvo são avaliadas em relação ao sistema de coordenadas do ambiente (global)."
 
 
+msgid "The transformation of the target is evaluated relative to a custom object/bone/vertex group"
+msgstr "A transformação do alvo é avaliadas relativas a um objecto/osso/grupo de vértices personalizado"
+
+
 msgid "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"
 msgstr "As transformações do alvo somente são avaliadas no espaço de pose, as transformações do objeto de armação alvo são ignoradas."
 
 
+msgid "The transformation of the target bone is evaluated relative to its rest pose local coordinate system, thus including the parent-induced transformation"
+msgstr "A transformação do osso alvo é avaliada em relação a seu sistema de coordenadas locais, com as transformações do parente superior adicionadas."
+
+
 msgid "The transformation of the target is evaluated relative to its local coordinate system"
 msgstr "As transformações do alvo são avaliadas em relação ao seu sistema de coordenadas locais."
+
+
+msgid "Local Space (Owner Orientation)"
+msgstr "Espaço Local (Orientação do Dono)"
+
+
+msgid "The transformation of the target bone is evaluated relative to its local coordinate system, followed by a correction for the difference in target and owner rest pose orientations. When applied as local transform to the owner produces the same global motion as the target if the parents are still in rest pose"
+msgstr "A transformação do osso alvo é avaliada relativamente ao seu sistema de coordenadas local, seguido de uma correcção para a diferença de orientação entre a pose de descanso do alvo e do dono. Quando aplicada como transformação local ao dono, produz o mesmo movimento global que o alvo se os pais ainda não estiverem em pose de descanso"
 
 
 msgid "Camera Solver"
@@ -6901,6 +7077,10 @@ msgid "Armature"
 msgstr "Armação"
 
 
+msgid "Apply weight-blended transformation from multiple bones like the Armature modifier"
+msgstr "Aplicar transformação mesclada por pesos de vários ossos como o modificador Armação"
+
+
 msgid "Child Of"
 msgstr "Criança de"
 
@@ -6953,6 +7133,10 @@ msgid "Evaluation Time"
 msgstr "Tempo de avaliação"
 
 
+msgid "Interpolates between Action Start and End frames"
+msgstr "Interpola entre fotogramas de Início e Fim da acção"
+
+
 msgid "Last frame of the Action to use"
 msgstr "Último fotograma da ação para usar."
 
@@ -6979,6 +7163,58 @@ msgstr "Valor mínimo para o campo do canal alvo."
 
 msgid "Mix Mode"
 msgstr "Modo de mistura"
+
+
+msgid "Specify how existing transformations and the action channels are combined"
+msgstr "Especifica como transformações existentes e os canais de acção são combinados"
+
+
+msgid "Before Original (Full)"
+msgstr "Antes da Original (Completa)"
+
+
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale"
+msgstr "Aplicar os canais de acção antes da transformação original, como se fosse aplicado a um pai imaginário em Modo de Herança de Escala Completa. Irá criar cisalhamento quando combinando rotação e escala não uniforme"
+
+
+msgid "Before Original (Aligned)"
+msgstr "Antes da Original (Alinhada)"
+
+
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale"
+msgstr "Aplicar os canais de transformação antes da transformação original, como se aplicada a um pai imaginário em modo Herdar Escala Alinhada. Isto usa efectivamente Completa para a posição e Canais Separados para rotação e escala"
+
+
+msgid "Before Original (Split Channels)"
+msgstr "Antes da Original (Canais Separados)"
+
+
+msgid "Apply the action channels before the original transformation, handling location, rotation and scale separately"
+msgstr "Aplicar os canais de transformação antes da transformação original, lidando com a posição, rotação e escala separadamente"
+
+
+msgid "After Original (Full)"
+msgstr "Após Original (Completa)"
+
+
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale"
+msgstr "Aplicar os canais de ação após a a transformação original, como se fosse aplicada a um filho imaginário em modo Herança de Escala Completa. Irá criar cisalhamento quando combinar rotação com escala uniforme"
+
+
+msgid "After Original (Aligned)"
+msgstr "Após Original (Alinhada)"
+
+
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale"
+msgstr "Aplicar os canais de acção após a transformação original, como se fosse aplicada a um filho imaginário em modo Herança de Escala Alinhada. Usa efectivamente Completa para a posição, e Canais Separados para rotação e escala"
+
+
+msgid "After Original (Split Channels)"
+msgstr "Após Original (Canais Separados)"
+
+
+msgid "Apply the action channels after the original transformation, handling location, rotation and scale separately"
+msgstr "Aplicar os canais de transformação após transformação original, lidando com a posição rotação e escala separadamente"
 
 
 msgid "Target object"
@@ -7037,8 +7273,44 @@ msgid "Bones only: apply the object's transformation channels of the action to t
 msgstr "Somente ossos: aplicar os canais de transformação do objeto da ação do osso restringido, ao invés dos canais dos ossos."
 
 
+msgid "Use Evaluation Time"
+msgstr "Usar Tempo de Avaliação"
+
+
+msgid "Interpolate between Action Start and End frames, with the Evaluation Time slider instead of the Target object/bone"
+msgstr "Interpolar entre fotogramas Início e Fim, com o botão deslisante Avaliação de Tempo em vez do objecto/osso Alvo"
+
+
+msgid "Armature Constraint"
+msgstr "Restrição de Armação"
+
+
+msgid "Applies transformations done by the Armature modifier"
+msgstr "Aplica transformações feitas pelo modificador Armação"
+
+
 msgid "Targets"
 msgstr "Alvos"
+
+
+msgid "Target Bones"
+msgstr "Ossos Alvo"
+
+
+msgid "Use Envelopes"
+msgstr "Usar Envelopes"
+
+
+msgid "Multiply weights by envelope for all bones, instead of acting like Vertex Group based blending. The specified weights are still used, and only the listed bones are considered"
+msgstr "Multiplicar pesos por envelope para todos os ossos, em vez de agir como mesclagem baseada em Grupos de Vértices. Os pesos especificados ainda são usados, e apenas os ossos listados são tidos em consideração"
+
+
+msgid "Use Current Location"
+msgstr "Usar Posição Actual"
+
+
+msgid "Use the current bone location for envelopes and choosing B-Bone segments instead of rest position"
+msgstr "Usar posição actual dos ossos para envelopes e escolher segmentos de B-Bones em vez de pose de descanso"
 
 
 msgid "Preserve Volume"
@@ -7083,6 +7355,14 @@ msgstr "Matriz inversa"
 
 msgid "Transformation matrix to apply before"
 msgstr "Matriz de transformação para aplicar antes."
+
+
+msgid "Set Inverse Pending"
+msgstr "Definir Inversa Pendente"
+
+
+msgid "Set to true to request recalculation of the inverse matrix"
+msgstr "Definir como verdadeiro para solicitar recalculo da matriz inversa"
 
 
 msgid "Location X"
@@ -7363,6 +7643,18 @@ msgstr "Restrição - Copiar transformações"
 
 msgid "Copy all the transforms of the target"
 msgstr "Copia todas as transformações do alvo."
+
+
+msgid "Apply copied transformation before original, using simple matrix multiplication as if the constraint target is a parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale"
+msgstr "Aplicar transformação copiada antes da original, usando multiplicações de matrizes simples como se o alvo da restrição fosse um pai em modo Herdar Escala Completa. Irá causar cisalhamento quando combinar rotação e escala não uniforme"
+
+
+msgid "Apply copied transformation before original, as if the constraint target is a parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale"
+msgstr "Aplicar transformação copiada antes da original, usando multiplicações de matrizes simples como se o alvo da restrição fosse um pai em modo Herdar Escala Alinhada. Usa efectivamente Completa para posição e Canais Separados para rotação escala"
+
+
+msgid "Apply copied transformation before original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
+msgstr "Aplicar transformação copiada antes da original, lidando com posição rotação e escala separadamente, semelhante a uma sequência de três restrições Copiar"
 
 
 msgid "Damped Track Constraint"

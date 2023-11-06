@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 16:01:56\n"
-"PO-Revision-Date: 2023-10-29 23:17+0000\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"PO-Revision-Date: 2023-11-06 03:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
 "Language: tr\n"
@@ -1382,12 +1382,76 @@ msgid "World"
 msgstr "Dünya"
 
 
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Bu varlığın temsil ettiği veri bloku; yalnızca bu dosyadaki bir veri blokuysa geçerlidir"
+
+
+msgid "Asset Metadata"
+msgstr "Varlık Üst Verisi"
+
+
+msgid "Additional information about the asset"
+msgstr "Varlık hakkında ek bilgi"
+
+
+msgid "Asset Shelf"
+msgstr "Varlık Rafı"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Varlıklara tez erişim için bölgeler"
+
+
+msgid "Asset Library"
+msgstr "Varlık Kitaplığı"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Varlıkların görüntüleneceği varlık kitaplığını seç"
+
+
+msgid "ID Name"
+msgstr "Kimlik Adı"
+
+
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the menu (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Bu ayarlıysa varlık özel bir kimlik alır, aksi takdirde menüyü tanımlamak için kullanılan sınıfın adını alır (örneğin, sınıf adı \"OBJECT_AST_hello\" ise ve bl_idname betik tarafından ayarlanmadıysa bl_idname = \"OBJECT_AST_hello\")"
+
+
 msgid "Options"
 msgstr "Seçenekler"
 
 
+msgid "Options for this asset shelf type"
+msgstr "Bu varlık rafı türü için seçenekler"
+
+
+msgid "No Asset Dragging"
+msgstr "Varlık Sürükleme Yok"
+
+
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
+msgstr "Sürükleme olaylarındaki saptanmış varlık sürüklemeyi devre dışı bırak. Özel düğme eşlem ögeleriyle özel sürükleme gerçeklemek için yararlıdır"
+
+
+msgid "Space Type"
+msgstr "Uzay Türü"
+
+
+msgid "The space where the asset shelf is going to be used in"
+msgstr "Varlık rafının içinde kullanılacağı uzay"
+
+
 msgid "Preview Size"
 msgstr "Önizleme Boyutu"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Varlık önizleme küçük görsellerinin piksel türünden boyutu"
+
+
+msgid "Display Filter"
+msgstr "Görüntü Süzgeci"
 
 
 msgid "Filter assets by name"
@@ -1396,6 +1460,10 @@ msgstr "Varlıkları ada göre süz"
 
 msgid "Show Names"
 msgstr "Adları Göster"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
+msgstr "Varlık adını önizlemeyle birlikte göster. Aksi takdirde yalnızca önizleme görünürdür"
 
 
 msgid "Asset Tag"
@@ -1510,6 +1578,10 @@ msgid "Quaternion"
 msgstr "Dördey"
 
 
+msgid "Floating point quaternion rotation"
+msgstr "Kayan noktalı dördey döndürmesi"
+
+
 msgid "Domain"
 msgstr "Etki Alanı"
 
@@ -1571,11 +1643,15 @@ msgstr "İçsel"
 
 
 msgid "The attribute is meant for internal use by Blender"
-msgstr "Öznitelik, Blender tarafından iç kullanım içindir"
+msgstr "Öznitelik, Blender tarafından içsel kullanım içindir"
 
 
 msgid "Is Required"
 msgstr "Gerekli"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Özniteliğin kaldırılıp kaldırılamayacağı veya yeniden adlandırılıp adlandırılamayacağı"
 
 
 msgid "Name of the Attribute"
@@ -1919,11 +1995,11 @@ msgstr "Pişirilmiş görsel dokularının nereye kaydedileceği"
 
 
 msgid "Internal"
-msgstr "İç"
+msgstr "İçsel"
 
 
 msgid "Save the baking map in an internal image data-block"
-msgstr "Pişirme haritasını bir iç görsel veri blokuna kaydet"
+msgstr "Pişirme haritasını bir içsel görsel veri blokuna kaydet"
 
 
 msgid "External"
@@ -1975,7 +2051,7 @@ msgstr "Temizle"
 
 
 msgid "Clear Images before baking (internal only)"
-msgstr "Pişirme öncesi görselleri temizle (yalnızca iç)"
+msgstr "Pişirme öncesi görselleri temizle (yalnızca içsel)"
 
 
 msgid "Color the pass"
@@ -2931,7 +3007,7 @@ msgstr "Hızın yönünün ne kadar rastgeleleştirildiği"
 
 
 msgid "Fear Factor"
-msgstr "Korku Etmeni"
+msgstr "Korku Çarpanı"
 
 
 msgid "Avoid object if danger from it is above this threshold"
@@ -3295,7 +3371,7 @@ msgstr "X'te"
 
 
 msgid "X-axis handle offset for start of the B-Bone's curve, adjusts curvature"
-msgstr "Bükülmüş kemik eğrisi başlangıcının X ekseni tutacı ofseti, eğriliği ayarlar"
+msgstr "Esnek kemiğin eğrisi başlangıcının X ekseni tutacı ofseti, eğriliği ayarlar"
 
 
 msgid "In Z"
@@ -3303,7 +3379,7 @@ msgstr "Z'de"
 
 
 msgid "Z-axis handle offset for start of the B-Bone's curve, adjusts curvature"
-msgstr "Bükülmüş kemik eğrisi başlangıcının Z ekseni tutacı ofseti, eğriliği ayarlar"
+msgstr "Esnek kemiğin eğrisi başlangıcının Z ekseni tutacı ofseti, eğriliği ayarlar"
 
 
 msgid "Out X"
@@ -3311,7 +3387,7 @@ msgstr "X Dışında"
 
 
 msgid "X-axis handle offset for end of the B-Bone's curve, adjusts curvature"
-msgstr "Bükülmüş kemiğin eğrisinin bitişinin X ekseni tutacı ofseti, eğriliği ayarlar"
+msgstr "Esnek kemiğin eğrisinin bitişinin X ekseni tutacı ofseti, eğriliği ayarlar"
 
 
 msgid "Out Z"
@@ -3319,23 +3395,23 @@ msgstr "Z Dışında"
 
 
 msgid "Z-axis handle offset for end of the B-Bone's curve, adjusts curvature"
-msgstr "Bükülmüş kemiğin eğrisinin bitişinin Z ekseni tutacı ofseti, eğriliği ayarlar"
+msgstr "Esnek kemiğin eğrisinin bitişinin Z ekseni tutacı ofseti, eğriliği ayarlar"
 
 
 msgid "B-Bone End Handle"
-msgstr "Bükülmüş Kemik Bitiş Tutacı"
+msgstr "Esnek Kemik Bitiş Tutacı"
 
 
 msgid "Bone that serves as the end handle for the B-Bone curve"
-msgstr "Bükülmüş kemik eğrisinin bitiş tutacı olarak kullanılan kemik"
+msgstr "Esnek kemik eğrisinin bitiş tutacı olarak kullanılan kemik"
 
 
 msgid "B-Bone Start Handle"
-msgstr "Bükülmüş Kemik Başlangıç Tutacı"
+msgstr "Esnek Kemik Başlangıç Tutacı"
 
 
 msgid "Bone that serves as the start handle for the B-Bone curve"
-msgstr "Bükülmüş kemik eğrisinin başlangıç tutacı olarak kullanılan kemik"
+msgstr "Esnek kemik eğrisinin başlangıç tutacı olarak kullanılan kemik"
 
 
 msgctxt "Armature"
@@ -3344,7 +3420,7 @@ msgstr "Yavaşça Gir"
 
 
 msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "İlk Bezier tutacının uzunluğu (yalnızca bükülmüş kemikler için)"
+msgstr "İlk Bezier tutacının uzunluğu (yalnızca esnek kemikler için)"
 
 
 msgctxt "Armature"
@@ -3353,15 +3429,15 @@ msgstr "Yavaşça Çık"
 
 
 msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "İkinci Bezier tutacının uzunluğu (yalnızca bükülmüş kemikler için)"
+msgstr "İkinci Bezier tutacının uzunluğu (yalnızca esnek kemikler için)"
 
 
 msgid "B-Bone End Handle Type"
-msgstr "Bükülmüş Kemik Bitiş Tutacı Türü"
+msgstr "Esnek Kemik Bitiş Tutacı Türü"
 
 
 msgid "Selects how the end handle of the B-Bone is computed"
-msgstr "Bükülmüş kemiğin bitiş tutacının nice hesaplandığını seçer"
+msgstr "Esnek kemiğin bitiş tutacının nice hesaplandığını seçer"
 
 
 msgid "Automatic"
@@ -3393,11 +3469,11 @@ msgstr "Tutacı hesaplamak için belirtilen kemiğin yönelimini konumunu yok sa
 
 
 msgid "B-Bone Start Handle Type"
-msgstr "Bükülmüş Kemik Başlangıç Tutacı Türü"
+msgstr "Esnek Kemik Başlangıç Tutacı Türü"
 
 
 msgid "Selects how the start handle of the B-Bone is computed"
-msgstr "Bükülmüş kemiğin başlangıç tutacının nice hesaplandığını seçer"
+msgstr "Esnek kemiğin başlangıç tutacının nice hesaplandığını seçer"
 
 
 msgid "End Handle Ease"
@@ -3405,7 +3481,7 @@ msgstr "Bitiş Tutacını Yavaşlat"
 
 
 msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Bükülmüş Kemik Yavaşça Çıkış kanalını, bitiş tutamacının yerel Y ölçeği değeriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
+msgstr "Esnek Kemik Yavaşça Çıkış kanalını, bitiş tutamacının yerel Y ölçeği değeriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
 
 
 msgid "Start Handle Ease"
@@ -3413,7 +3489,7 @@ msgstr "Başlangıç Tutacını Yavaşlat"
 
 
 msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Bükülmüş Kemik Yavaşça Giriş kanalını, başlangıç tutamacının yerel Y ölçeği değeriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
+msgstr "Esnek Kemik Yavaşça Giriş kanalını, başlangıç tutamacının yerel Y ölçeği değeriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
 
 
 msgid "End Handle Scale"
@@ -3421,7 +3497,7 @@ msgstr "Bitiş Tutacı Ölçeği"
 
 
 msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Bükülmüş Kemik Dışa Ölçekle kanallarını, bitiş tutamacının yerel ölçek değerleriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
+msgstr "Esnek Kemik Dışa Ölçekle kanallarını, bitiş tutamacının yerel ölçek değerleriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
 
 
 msgid "Start Handle Scale"
@@ -3429,7 +3505,31 @@ msgstr "Başlangıç Tutacı Ölçeği"
 
 
 msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Bükülmüş Kemik İçe Ölçekle kanallarını, bitiş tutamacının yerel ölçek değerleriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
+msgstr "Esnek Kemik İçe Ölçekle kanallarını, bitiş tutamacının yerel ölçek değerleriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
+
+
+msgid "B-Bone Vertex Mapping Mode"
+msgstr "Esnek Kemik Tepecik Eşlemleme Kipi"
+
+
+msgid "Selects how the vertices are mapped to B-Bone segments based on their position"
+msgstr "Tepeciklerin konumlarına göre esnek kemik bölütlerine nasıl eşlendiğini seçer"
+
+
+msgid "Straight"
+msgstr "Düz"
+
+
+msgid "Fast mapping that is good for most situations, but ignores the rest pose curvature of the B-Bone"
+msgstr "Çoğu durum için iyi olan hızlı eşlemleme; ancak esnek kemiğin geri kalan poz eğriliğini yok sayar"
+
+
+msgid "Curved"
+msgstr "Kavisli"
+
+
+msgid "Slower mapping that gives better deformation for B-Bones that are sharply curved in rest pose"
+msgstr "Dinlenme pozunda keskin bir şekilde kavisli esnek kemikler için daha iyi deformasyon sağlayan daha yavaş eşlemleme"
 
 
 msgid "Roll In"
@@ -3437,7 +3537,7 @@ msgstr "İçe Yuvarla"
 
 
 msgid "Roll offset for the start of the B-Bone, adjusts twist"
-msgstr "Bükülmüş Kemiğin başlangıcı için dönme ofseti, bükülmeyi ayarlar"
+msgstr "Esnek kemiğin başlangıcı için dönme ofseti, bükülmeyi ayarlar"
 
 
 msgid "Roll Out"
@@ -3445,7 +3545,7 @@ msgstr "Dışa Yuvarla"
 
 
 msgid "Roll offset for the end of the B-Bone, adjusts twist"
-msgstr "Bükülmüş Kemiğin bitişi için dönme ofseti, bükülmeyi ayarlar"
+msgstr "Esnek kemiğin bitişi için dönme ofseti, bükülmeyi ayarlar"
 
 
 msgid "Scale In"
@@ -3453,7 +3553,7 @@ msgstr "İçe Ölçekle"
 
 
 msgid "Scale factors for the start of the B-Bone, adjusts thickness (for tapering effects)"
-msgstr "Bükülmüş Kemiğin başlangıcı için ölçek çarpanları, kalınlığı ayarlar (incelen efektler için)"
+msgstr "Esnek kemiğin başlangıcı için ölçek çarpanları, kalınlığı ayarlar (incelen efektler için)"
 
 
 msgid "Scale Out"
@@ -3461,31 +3561,31 @@ msgstr "Dışa Ölçekle"
 
 
 msgid "Scale factors for the end of the B-Bone, adjusts thickness (for tapering effects)"
-msgstr "Bükülmüş Kemiğin bitişi için ölçek çarpanları, kalınlığı ayarlar (incelen efektler için)"
+msgstr "Esnek kemiğin bitişi için ölçek çarpanları, kalınlığı ayarlar (incelen efektler için)"
 
 
 msgid "B-Bone Segments"
-msgstr "Bükülmüş Kemik Bölütleri"
+msgstr "Esnek Kemik Bölütleri"
 
 
 msgid "Number of subdivisions of bone (for B-Bones only)"
-msgstr "Kemiğin alt bölümlerinin sayısı (yalnızca Bükülmüş Kemikler için)"
+msgstr "Kemiğin alt bölümlerinin sayısı (yalnızca esnek kemikler için)"
 
 
 msgid "B-Bone Display X Width"
-msgstr "Bükülmüş Kemik X Genişliğini Görüntüle"
+msgstr "Esnek Kemik X Genişliğini Görüntüle"
 
 
 msgid "B-Bone X size"
-msgstr "Bükülmüş Kemik X boyutu"
+msgstr "Esnek kemik X boyutu"
 
 
 msgid "B-Bone Display Z Width"
-msgstr "Bükülmüş Kemik Z Genişliğini Görüntüle"
+msgstr "Esnek Kemik Z Genişliğini Görüntüle"
 
 
 msgid "B-Bone Z size"
-msgstr "Bükülmüş Kemik Z boyutu"
+msgstr "Esnek kemik Z boyutu"
 
 
 msgid "Children"
@@ -3494,6 +3594,10 @@ msgstr "Alt Ögeler"
 
 msgid "Bones which are children of this bone"
 msgstr "Bu kemiğin alt ögesi olan kemikler"
+
+
+msgid "Bone Collections that contain this bone"
+msgstr "Bu kemiği içeren kemik koleksiyonları"
 
 
 msgid "Envelope Deform Distance"
@@ -3736,8 +3840,60 @@ msgid "Bone collection in an Armature data-block"
 msgstr "Bir armatür veri blokundaki kemik koleksiyonu"
 
 
+msgid "Bones"
+msgstr "Kemikler"
+
+
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronised when exiting edit mode"
+msgstr "Bu kemik koleksiyonuna atanan kemikler. Kemik koleksiyonu üyelikleri yalnızca düzenleme kipinden çıkarken eşzamanlandığından, armatür düzenleme kipinde bu her zaman bir boş kemikler listesi döndürür"
+
+
+msgid "Is Editable"
+msgstr "Düzenlenebilir"
+
+
+msgid "This collection is owned by a local Armature, or was added via a library override in the current blend file"
+msgstr "Bu koleksiyonun sahibi yerel bir armatür veya geçerli blend dosyasında bir kitaplık geçersiz kılınarak eklendi"
+
+
+msgid "Is Local Override"
+msgstr "Yerel Geçersiz Kılma"
+
+
+msgid "This collection was added via a library override in the current blend file"
+msgstr "Bu koleksiyon, geçerli blend dosyasında bir kitaplık geçersiz kılınarak eklendi"
+
+
 msgid "Visible"
 msgstr "Görünür"
+
+
+msgid "Bones in this collection will be visible in pose/object mode"
+msgstr "Bu koleksiyondaki kemikler poz/nesne kipinde görünürdür"
+
+
+msgid "Unique within the Armature"
+msgstr "Armatür içinde benzersiz"
+
+
+msgid "Bone Collection Memberships"
+msgstr "Kemik Koleksiyonu Üyelikleri"
+
+
+msgid "The Bone Collections that contain this Bone"
+msgstr "Bu kemiği içeren kemik koleksiyonları"
+
+
+msgid "Armature Bone Collections"
+msgstr "Armatür Kemiği Koleksiyonları"
+
+
+msgid "The Bone Collections of this Armature"
+msgstr "Bu armatürün kemik koleksiyonları"
+
+
+msgid "Active Collection"
+msgstr "Etkin Koleksiyon"
 
 
 msgid "Armature's active bone collection"
@@ -3748,16 +3904,40 @@ msgid "Active Collection Index"
 msgstr "Etkin Koleksiyon İndeksi"
 
 
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
+msgstr "Armatürün etkin kemik koleksiyonunun indeksi; etkin koleksiyon yokken -1'dir"
+
+
 msgid "Active Collection Name"
 msgstr "Etkin Koleksiyon Adı"
+
+
+msgid "The name of the Armature's active bone collection; empty when there is no active collection"
+msgstr "Armatürün etkin kemik koleksiyonunun adı; etkin koleksiyon yokken boştur"
+
+
+msgid "Theme color or custom color of a bone"
+msgstr "Bir kemiğin tema veya özel rengi"
 
 
 msgid "Custom"
 msgstr "Özel"
 
 
+msgid "The custom bone colors, used when palette is 'CUSTOM'"
+msgstr "Özel kemik renkleri, palet 'CUSTOM' iken kullanılır"
+
+
 msgid "Use Custom Color"
 msgstr "Özel Renk Kullan"
+
+
+msgid "A color palette is user-defined, instead of using a theme-defined one"
+msgstr "Bir renk paleti, tema tarafından tanımlanmak yerine kullanıcı tanımlıdır"
+
+
+msgid "Color palette to use"
+msgstr "Kullanılacak renk paleti"
 
 
 msgid "Bool Attribute Value"
@@ -3841,7 +4021,7 @@ msgstr "Seğirme Var"
 
 
 msgid "Has Crease/Pinch Factor"
-msgstr "Buruşma/Çimdik Etmeni Var"
+msgstr "Buruşma/Çimdik Çarpanı Var"
 
 
 msgid "Has Persistence"
@@ -3849,7 +4029,7 @@ msgstr "Kalıcılık Var"
 
 
 msgid "Has Pinch Factor"
-msgstr "Çimdik Etmeni Var"
+msgstr "Çimdik Çarpanı Var"
 
 
 msgid "Has Plane Offset"
@@ -3857,7 +4037,7 @@ msgstr "Düzlem Ofseti Var"
 
 
 msgid "Has Rake Factor"
-msgstr "Tırmık Etmeni Var"
+msgstr "Tırmık Çarpanı Var"
 
 
 msgid "Has Sculpt Plane"
@@ -4204,7 +4384,7 @@ msgstr "Olağan"
 
 
 msgid "Fill internal area"
-msgstr "İç alanı doldur"
+msgstr "İçsel alanı doldur"
 
 
 msgid "Inverted"
@@ -4268,7 +4448,7 @@ msgstr "Kesinlik"
 
 
 msgid "Factor for fill boundary accuracy, higher values are more accurate but slower"
-msgstr "Dolgu haddi doğruluğu için çarpan, yüksek değerler daha doğrudur; ancak yavaştır"
+msgstr "Dolgu haddi doğruluğu için çarpan, yüksek değerler daha doğrudur; ancak daha yavaştır"
 
 
 msgid "Layer Mode"
@@ -4596,11 +4776,15 @@ msgstr "Vuruşu çizerken dolgu rengini görüntüleme"
 
 
 msgid "Factor of Simplify using adaptive algorithm"
-msgstr "Uyarlanabilir algoritma kullanarak Basitleştirme Çarpanı"
+msgstr "Uyarlanabilir algoritma kullanarak basitleştirme çarpanı"
 
 
 msgid "Active Layer"
 msgstr "Etkin Katman"
+
+
+msgid "Only edit the active layer of the object"
+msgstr "Yalnızca nesnenin etkin katmanını düzenle"
 
 
 msgid "Strokes Collision"
@@ -4665,6 +4849,14 @@ msgstr "Basınç Seğirtmesi Kullan"
 
 msgid "Use tablet pressure for jitter"
 msgstr "Seğirtme için tablet basıncını kullan"
+
+
+msgid "Keep caps"
+msgstr "Başlıkları tut"
+
+
+msgid "Keep the caps as they are and don't flatten them when erasing"
+msgstr "Başlıkları olduğu gibi tut ve silme yaparken onları düzleştirme"
 
 
 msgid "Pin Material"
@@ -5071,6 +5263,22 @@ msgid "Number of blades in aperture for polygonal bokeh (at least 3)"
 msgstr "Çokgen bokeh için açıklıktaki bıçak sayısı (en az 3)"
 
 
+msgid "F-Stop"
+msgstr "F Durağı"
+
+
+msgid "F-Stop ratio (lower numbers give more defocus, higher numbers give a sharper image)"
+msgstr "F Durağı oranı (daha düşük sayılar daha fazla odaksızlık verir, daha yüksek sayılar daha keskin bir görsel verir)"
+
+
+msgid "Ratio"
+msgstr "Oran"
+
+
+msgid "Distortion to simulate anamorphic lens bokeh"
+msgstr "Anamorfozcu mercek bokehini benzetmek için bozunum"
+
+
 msgid "Rotation of blades in aperture"
 msgstr "Açıklıktaki bıçakların döndürülmesi"
 
@@ -5079,12 +5287,572 @@ msgid "Focus Distance"
 msgstr "Odak Uzaklığı"
 
 
+msgid "Distance to the focus point for depth of field"
+msgstr "Derinlik alanı için odak noktasına olan uzaklık"
+
+
+msgid "Focus Object"
+msgstr "Odak Nesnesi"
+
+
+msgid "Use this object to define the depth of field focal point"
+msgstr "Derinlik alanı odak noktasını tanımlamak için bu nesneyi kullan"
+
+
+msgid "Focus Bone"
+msgstr "Odak Kemiği"
+
+
+msgid "Use this armature bone to define the depth of field focal point"
+msgstr "Derinlik alanı odak noktasını tanımlamak için bu armatür kemiğini kullan"
+
+
+msgid "Use Depth of Field"
+msgstr "Derinlik Alanını Kullan"
+
+
+msgid "Stereo"
+msgstr "Stereo"
+
+
+msgid "Stereoscopy settings for a Camera data-block"
+msgstr "Bir kamera veri bloku için üç boyutlu görünüş ayarları"
+
+
+msgid "Convergence Plane Distance"
+msgstr "Yakınsak Düzlem Uzaklığı"
+
+
+msgid "The converge point for the stereo cameras (often the distance between a projector and the projection screen)"
+msgstr "Stereo kameralar için yakınsama noktası (genellikle bir projektör ve projeksiyon ekranı arasındaki uzaklıktır)"
+
+
+msgid "Off-Axis"
+msgstr "Eksen Dışı"
+
+
+msgid "Off-axis frustums converging in a plane"
+msgstr "Bir düzlemde yakınsayan eksen dışı kesik gövdeler"
+
+
+msgid "Parallel"
+msgstr "Paralel"
+
+
+msgid "Parallel cameras with no convergence"
+msgstr "Yakınsamasız paralel kameralar"
+
+
+msgid "Toe-in"
+msgstr "Ayak Ucu"
+
+
+msgid "Rotated cameras, looking at the convergence distance"
+msgstr "Yakınsama uzaklığına bakan döndürülmüş kameralar"
+
+
+msgid "Interocular Distance"
+msgstr "Gözlerarası Uzaklık"
+
+
+msgid "Set the distance between the eyes - the stereo plane distance / 30 should be fine"
+msgstr "Gözler arasındaki uzaklığı ayarla - stereo düzlem uzaklığı / 30 yeterli olmalıdır"
+
+
+msgid "Pivot"
+msgstr "Pivot"
+
+
+msgid "Left"
+msgstr "Sol"
+
+
+msgid "Right"
+msgstr "Sağ"
+
+
 msgid "Center"
 msgstr "Merkez"
 
 
+msgid "Pole Merge Start Angle"
+msgstr "Kutup Birleştirme Başlangıç Açısı"
+
+
+msgid "Angle at which interocular distance starts to fade to 0"
+msgstr "Gözlerarası uzaklığın 0'a doğru solmaya başladığı açı"
+
+
+msgid "Pole Merge End Angle"
+msgstr "Kutup Birleştirme Bitiş Açısı"
+
+
+msgid "Angle at which interocular distance is 0"
+msgstr "Gözlerarası uzaklığın 0 olduğu açı"
+
+
+msgid "Use Pole Merge"
+msgstr "Kutup Birleştirmeyi Kullan"
+
+
+msgid "Fade interocular distance to 0 after the given cutoff angle"
+msgstr "Verilen kesim açısından sonra gözlerarası uzaklığı 0'a soldur"
+
+
+msgid "Spherical Stereo"
+msgstr "Küresel Stereo"
+
+
+msgid "Render every pixel rotating the camera around the middle of the interocular distance"
+msgstr "Gözlerarası uzaklığın ortasında kamerayı döndüren her bir pikseli sun"
+
+
+msgid "ChannelDriver Variables"
+msgstr "Kanal Sürücüsü Değişkenleri"
+
+
+msgid "Collection of channel driver Variables"
+msgstr "Kanal sürücüsü değişkenleri koleksiyonu"
+
+
+msgid "Child Particle"
+msgstr "Alt Parçacık"
+
+
+msgid "Child particle interpolated from simulated or edited particles"
+msgstr "Benzetilen veya düzenlenen parçacıklardan aradeğerlenen alt parçacık"
+
+
+msgid "Cloth Collision Settings"
+msgstr "Kumaş Çarpışma Ayarları"
+
+
+msgid "Cloth simulation settings for self collision and collision with other objects"
+msgstr "Kendisiyle ve diğer nesnelerle çarpışma için kumaş benzetimi ayarları"
+
+
+msgid "Collision Collection"
+msgstr "Çarpışma Koleksiyonu"
+
+
+msgid "Limit colliders to this Collection"
+msgstr "Çarpıştırıcıları bu koleksiyona sınırla"
+
+
+msgid "Collision Quality"
+msgstr "Çarpışma Kalitesi"
+
+
+msgid "How many collision iterations should be done. (higher is better quality but slower)"
+msgstr "Kaç tane çarpışma yinelemesinin yapılması gerektiği (daha yüksek, daha iyi kalitedir; ancak daha yavaştır)"
+
+
+msgid "Restitution"
+msgstr "Doğrultma"
+
+
+msgid "Amount of velocity lost on collision"
+msgstr "Çarpışmada kaybedilen hız miktarı"
+
+
+msgid "Minimum distance between collision objects before collision response takes effect"
+msgstr "Çarpışma tepkisi etkili olmadan önce çarpışma nesneleri arasındaki en düşük uzaklık"
+
+
+msgid "Friction"
+msgstr "Sürtünme"
+
+
+msgid "Friction force if a collision happened (higher = less movement)"
+msgstr "Bir çarpışma gerçekleşirse olacak sürtünme kuvveti (daha yüksek = daha az hareket)"
+
+
+msgid "Impulse Clamping"
+msgstr "Darbe Sıkma"
+
+
+msgid "Clamp collision impulses to avoid instability (0.0 to disable clamping)"
+msgstr "Kararsızlığı önlemek için çarpışma darbelerini sıkın (sıkmayı devre dışı bırakmak için 0,0)"
+
+
+msgid "Self Minimum Distance"
+msgstr "Öz En Az Uzaklık"
+
+
+msgid "Minimum distance between cloth faces before collision response takes effect"
+msgstr "Çarpışma tepkisi etkili olmadan önce kumaş yüzleri arasındaki en az uzaklık"
+
+
+msgid "Self Friction"
+msgstr "Öz Sürtünme"
+
+
+msgid "Friction with self contact"
+msgstr "Kendi kendine temasla sürtünme"
+
+
+msgid "Enable Collision"
+msgstr "Çarpışmayı Etkinleştir"
+
+
+msgid "Enable collisions with other objects"
+msgstr "Başka nesnelerle çarpışmayı etkinleştir"
+
+
+msgid "Enable Self Collision"
+msgstr "Öz Çarpışmayı Etkinleştir"
+
+
+msgid "Enable self collisions"
+msgstr "Kendi kendine çarpışmaları etkinleştir"
+
+
+msgid "Collision Vertex Group"
+msgstr "Çarpışma Tepecik Grubu"
+
+
+msgid "Triangles with all vertices in this group are not used during object collisions"
+msgstr "Bu gruptaki tüm tepeciklere sahip üçgenler nesne çarpışmaları sırasında kullanılmaz"
+
+
+msgid "Selfcollision Vertex Group"
+msgstr "Öz Çarpışma Tepecik Grubu"
+
+
+msgid "Triangles with all vertices in this group are not used during self collisions"
+msgstr "Bu gruptaki tüm tepeciklere sahip üçgenler kendi kendine çarpışmalar sırasında kullanılmaz"
+
+
+msgid "Cloth Settings"
+msgstr "Kumaş Ayarları"
+
+
+msgid "Cloth simulation settings for an object"
+msgstr "Bir nesne için kumaş benzetimi ayarları"
+
+
+msgid "Air Damping"
+msgstr "Hava Sönümleme"
+
+
+msgid "Air has normally some thickness which slows falling things down"
+msgstr "Hava, normalde nesnelerin düşmesini yavaşlatan bir yoğunluğa sahiptir"
+
+
+msgid "Bending Spring Damping"
+msgstr "Bükme Yayı Sönümlemesi"
+
+
+msgid "Amount of damping in bending behavior"
+msgstr "Bükme davranışındaki sönümleme miktarı"
+
+
+msgid "Bending Model"
+msgstr "Bükme Modeli"
+
+
+msgid "Physical model for simulating bending forces"
+msgstr "Bükme kuvvetlerini benzetmek için fiziksel model"
+
+
+msgid "Angular"
+msgstr "Açısal"
+
+
+msgid "Cloth model with angular bending springs"
+msgstr "Açısal bükme yaylı kumaş modeli"
+
+
+msgid "Linear"
+msgstr "Doğrusal"
+
+
+msgid "Cloth model with linear bending springs (legacy)"
+msgstr "Doğrusal bükme yaylı kumaş modeli (eski)"
+
+
+msgid "Bending Stiffness"
+msgstr "Bükme Sertliği"
+
+
+msgid "How much the material resists bending"
+msgstr "Malzemenin bükmeye ne kadar direndiği"
+
+
+msgid "Bending Stiffness Maximum"
+msgstr "En Yüksek Bükme Sertliği"
+
+
+msgid "Maximum bending stiffness value"
+msgstr "En yüksek bükme sertliği değeri"
+
+
+msgid "Collider Friction"
+msgstr "Çarpıştırıcı Sürtünmesi"
+
+
+msgid "Compression Spring Damping"
+msgstr "Baskı Yayı Sönümlemesi"
+
+
+msgid "Amount of damping in compression behavior"
+msgstr "Baskı davranışındaki sönümleme miktarı"
+
+
+msgid "Compression Stiffness"
+msgstr "Baskı Sertliği"
+
+
+msgid "How much the material resists compression"
+msgstr "Malzemenin baskıya ne kadar direndiği"
+
+
+msgid "Compression Stiffness Maximum"
+msgstr "En Düşük Baskı Sertliği"
+
+
+msgid "Maximum compression stiffness value"
+msgstr "En yüksek baskı sertliği değeri"
+
+
+msgid "Target Density Strength"
+msgstr "Hedef Yoğunluğu Gücü"
+
+
+msgid "Influence of target density on the simulation"
+msgstr "Hedef yoğunluğunun benzetimdeki etkisi"
+
+
+msgid "Target Density"
+msgstr "Hedef Yoğunluğu"
+
+
+msgid "Maximum density of hair"
+msgstr "En yüksek kıl yoğunluğu"
+
+
+msgid "Effector Weights"
+msgstr "Etkileyici Ağırlıkları"
+
+
+msgid "Fluid Density"
+msgstr "Akışkan Yoğunluğu"
+
+
+msgid "Density (kg/l) of the fluid contained inside the object, used to create a hydrostatic pressure gradient simulating the weight of the internal fluid, or buoyancy from the surrounding fluid if negative"
+msgstr "Nesnenin içinde bulunan akışkanın yoğunluğu (kg/l), içsel akışkanın ağırlığını benzeten bir hidrostatik basınç gradyanı veya negatifse çevredeki sıvının kaldırma kuvvetini oluşturmak için kullanılır"
+
+
 msgid "Goal Default"
 msgstr "Hedef Saptanmışı"
+
+
+msgid "Default Goal (vertex target position) value, when no Vertex Group used"
+msgstr "Bir tepecik grubu kullanılmadığında olan saptanmış hedef (tepecik hedef konumu)"
+
+
+msgid "Goal Damping"
+msgstr "Hedef Sönümlemesi"
+
+
+msgid "Goal (vertex target position) friction"
+msgstr "Hedef (tepecik hedef konumu) sürtünmesi"
+
+
+msgid "Goal Maximum"
+msgstr "En Yüksek Hedef"
+
+
+msgid "Goal maximum, vertex group weights are scaled to match this range"
+msgstr "En yüksek hedef, tepecik grubu ağırlıkları bu erime uyacak biçimde ölçeklendirilir"
+
+
+msgid "Goal Minimum"
+msgstr "En Düşük Hedef"
+
+
+msgid "Goal minimum, vertex group weights are scaled to match this range"
+msgstr "En düşük hedef, tepecik grubu ağırlıkları bu erime uyacak biçimde ölçeklendirilir"
+
+
+msgid "Goal Stiffness"
+msgstr "Hedef Sertliği"
+
+
+msgid "Goal (vertex target position) spring stiffness"
+msgstr "Hedef (tepecik hedef konumu) yayı sertliği"
+
+
+msgid "Gravity"
+msgstr "Yerçekimi"
+
+
+msgid "Gravity or external force vector"
+msgstr "Yerçekimi veya dış kuvvet vektörü"
+
+
+msgid "Internal Friction"
+msgstr "İçsel Sürtünme"
+
+
+msgid "Internal Spring Max Diversion"
+msgstr "En Yüksek İçsel Yay Yönlendirmesi"
+
+
+msgid "How much the rays used to connect the internal points can diverge from the vertex normal"
+msgstr "İçsel noktaları birleştirmek için kullanılan ışınların tepecik normalinden ne kadar sapabileceği"
+
+
+msgid "Internal Spring Max Length"
+msgstr "En Yüksek İçsel Yay Uzunluğu"
+
+
+msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit"
+msgstr "Bir içsel yayın oluşturma sırasında sahip olabileceği en büyük uzunluk. İçsel noktalar arasındaki uzaklık bundan büyük olursa bu noktalar arasında içsel yay oluşmayacaktır. Sıfır uzunluk, uzunluk sınırı olmadığı anlamına gelir"
+
+
+msgid "Check Internal Spring Normals"
+msgstr "İçsel Yay Normallerini Denetle"
+
+
+msgid "Require the points the internal springs connect to have opposite normal directions"
+msgstr "İçsel yayların bağlandığı noktaların karşıt normal yönlere sahip olmasını gerektir"
+
+
+msgid "Tension Stiffness"
+msgstr "Gerilim Sertliği"
+
+
+msgid "How much the material resists stretching"
+msgstr "Malzemenin esnemeye ne kadar direndiği"
+
+
+msgid "Tension Stiffness Maximum"
+msgstr "En Yüksek Gerilim Sertliği"
+
+
+msgid "Maximum tension stiffness value"
+msgstr "En yüksek gerilim sertliği değeri"
+
+
+msgid "Vertex Mass"
+msgstr "Tepecik Kütlesi"
+
+
+msgid "The mass of each vertex on the cloth material"
+msgstr "Kumaş malzemesindeki her bir tepeciğin kütlesi"
+
+
+msgid "Pin Stiffness"
+msgstr "Pim Sertliği"
+
+
+msgid "Pin (vertex target position) spring stiffness"
+msgstr "Pim (tepecik hedef konumu) yayı sertliği"
+
+
+msgid "Pressure Scale"
+msgstr "Basınç Ölçeği"
+
+
+msgid "Ambient pressure (kPa) that balances out between the inside and outside of the object when it has the target volume"
+msgstr "Hedef hacme sahip olduğunda nesnenin içi ve dışı arasında dengelenen ortam basıncı (kPa)"
+
+
+msgid "Quality"
+msgstr "Kalite"
+
+
+msgid "Quality of the simulation in steps per frame (higher is better quality but slower)"
+msgstr "Benzetimin kare başına adım sayısı türünden kalitesi (daha yüksek, daha iyi kalitedir; ancak daha yavaştır)"
+
+
+msgid "Rest Shape Key"
+msgstr "Dinlenen Şekil Anahtarı"
+
+
+msgid "Shape key to use the rest spring lengths from"
+msgstr "Dinlenen yay uzunluklarını kullanmak için şekil anahtarı"
+
+
+msgid "Sewing Force Max"
+msgstr "En Yüksek Dikiş Kuvveti"
+
+
+msgid "Maximum sewing force"
+msgstr "En yüksek dikiş kuvveti"
+
+
+msgid "Shear Spring Damping"
+msgstr "Kırkma Yayı Sönümlemesi"
+
+
+msgid "Amount of damping in shearing behavior"
+msgstr "Kırkma davranışındaki sönümleme tutarı"
+
+
+msgid "Shear Stiffness"
+msgstr "Kırkma Sertliği"
+
+
+msgid "How much the material resists shearing"
+msgstr "Malzemenin kırkmaya ne kadar direndiği"
+
+
+msgid "Shear Stiffness Maximum"
+msgstr "En Yüksek Kırkma Sertliği"
+
+
+msgid "Maximum shear scaling value"
+msgstr "En yüksek kırkma ölçeklemesi değeri"
+
+
+msgid "Shrink Factor Max"
+msgstr "En Yüksek Küçültme Çarpanı"
+
+
+msgid "Max amount to shrink cloth by"
+msgstr "Kumaşın küçültüleceği en yüksek miktar"
+
+
+msgid "Shrink Factor"
+msgstr "Küçültme Çarpanı"
+
+
+msgid "Factor by which to shrink cloth"
+msgstr "Kumaşın küçültüleceği çarpan"
+
+
+msgid "Target Volume"
+msgstr "Hedef Hacim"
+
+
+msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure"
+msgstr "İç/dış basıncın aynı olacağı örgü hacmi. Sıfıra ayarlanırsa hacimdeki değişiklik basıncı etkilemez"
+
+
+msgid "Tension Spring Damping"
+msgstr "Gerilim Yayı Sönümlemesi"
+
+
+msgid "Amount of damping in stretching behavior"
+msgstr "Gerilme davranışındaki sönümleme miktarı"
+
+
+msgid "Cloth speed is multiplied by this value"
+msgstr "Kumaş hızı bu değerle çarpılır"
+
+
+msgid "Pressure"
+msgstr "Basınç"
+
+
+msgid "The uniform pressure that is constantly applied to the mesh, in units of Pressure Scale. Can be negative"
+msgstr "Basınç ölçeği türünden, örgüye sürekli olarak uygulanan tek tür basınç. Negatif olabilir"
+
+
+msgid "Dynamic Base Mesh"
+msgstr "Devingen Taban Örgüsü"
 
 
 msgid "Collection Child"
@@ -5335,7 +6103,7 @@ msgstr "Pürüzsüz"
 
 
 msgid "Factor"
-msgstr "Faktör"
+msgstr "Çarpan"
 
 
 msgid "Displacement"
@@ -5993,7 +6761,7 @@ msgstr "Kare"
 
 
 msgid "Lens Unit"
-msgstr "Lens Ölçeği"
+msgstr "Mercek Birimi"
 
 
 msgid "Vertical"
@@ -6942,7 +7710,7 @@ msgstr "Hakkında"
 
 
 msgid "Distortion"
-msgstr "Saptırma"
+msgstr "Bozunum"
 
 
 msgid "Normalized quaternion rotation"
@@ -7908,7 +8676,7 @@ msgstr "Etkin Kanallar İmleçte"
 
 
 msgid "Scale Factor"
-msgstr "Ölçek Etmeni"
+msgstr "Ölçek Çarpanı"
 
 
 msgctxt "Operator"
@@ -7917,7 +8685,7 @@ msgstr "Anahtar Kareleri Kırk"
 
 
 msgid "Shear Factor"
-msgstr "Kırkma Etmeni"
+msgstr "Kırkma Çarpanı"
 
 
 msgid "All Active Frames"
@@ -9739,6 +10507,10 @@ msgid "Translate Tooltips"
 msgstr "Araç İpuçlarını Çevir"
 
 
+msgid "True when the property is optional in a Python function implementing an RNA function"
+msgstr "Bir RNA işlevi uygulayan bir Python işlevinde özellik isteğe bağlı olduğunda doğru"
+
+
 msgid "Skip Save"
 msgstr "Kaydetmeyi Atla"
 
@@ -10847,7 +11619,7 @@ msgstr "Metin: Dış"
 
 
 msgid "Text: Internal"
-msgstr "Metin: İç"
+msgstr "Metin: İçsel"
 
 
 msgctxt "WindowManager"
@@ -11479,7 +12251,7 @@ msgstr "Desteklenmeyen bağlam"
 
 
 msgid "Internal error!"
-msgstr "İç hata!"
+msgstr "İçsel hata!"
 
 
 msgid "Shortcut: %s"

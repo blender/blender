@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 16:01:56\n"
-"PO-Revision-Date: 2023-10-25 09:54+0000\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"PO-Revision-Date: 2023-10-31 12:54+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -343,12 +343,32 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Optimiser tous les noyaux. Rendu le plus rapide, utilisation CPU en arrière-plan supplémentaire possible"
 
 
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "Le lancer de rayons avec MetalRT utilise moins de mémoire pour les scènes utilisant beaucoup de courbes, et peut donner de meilleures performances dans certains cas"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Désactiver MetalRT (utilise une disposition BVH2 pour les requêtes d’intersections)"
+
+
 msgid "On"
 msgstr "Activé"
 
 
+msgid "Enable MetalRT for intersection queries"
+msgstr "Activer MetalRT pour les requêtes d’intersections"
+
+
 msgid "Auto"
 msgstr "Auto"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Choisir automatiquement la méthode d’intersection la plus rapide"
 
 
 msgid "Distribute memory across devices"
@@ -52070,11 +52090,11 @@ msgstr "Rendre permanentes toutes les modifications de catalogues en enregistran
 
 msgctxt "Operator"
 msgid "Clear Asset"
-msgstr "Effacer l’asset"
+msgstr "Annuler l’asset"
 
 
 msgid "Delete all asset metadata and turn the selected asset data-blocks back into normal data-blocks"
-msgstr "Effacer toutes les métadonnées d’asset et redéfinir les blocs de données d’asset en tant que blocs de données normaux"
+msgstr "Effacer toutes les métadonnées des assets et les reconvertir en blocs de données normaux"
 
 
 msgid "Set Fake User"
@@ -52083,6 +52103,15 @@ msgstr "Définir en utilisateur factice"
 
 msgid "Ensure the data-block is saved, even when it is no longer marked as asset"
 msgstr "S’assurer que le bloc de données est sauvegardé, même lorsqu’il n’est plus indiqué comme étant un asset"
+
+
+msgctxt "Operator"
+msgid "Clear Single Asset"
+msgstr "Effacer un seul asset"
+
+
+msgid "Delete all asset metadata and turn the asset data-block back into a normal data-block"
+msgstr "Effacer toutes les métadonnées de l’asset et le reconvertir en bloc de données normal"
 
 
 msgctxt "Operator"
@@ -52101,6 +52130,15 @@ msgstr "Définir comme asset"
 
 msgid "Enable easier reuse of selected data-blocks through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
 msgstr "Permet de réutiliser simplement les blocs de données sélectionnés via l’explorateur d’assets, à l’aide de métadonnées personnalisables (comme les prévisualisations, les descriptions et les étiquettes)"
+
+
+msgctxt "Operator"
+msgid "Mark as Single Asset"
+msgstr "Définir un seul asset"
+
+
+msgid "Enable easier reuse of a data-block through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
+msgstr "Permet de réutiliser simplement le bloc de données sélectionné via l’explorateur d’assets, à l’aide de métadonnées personnalisables (comme les prévisualisations, les descriptions et les étiquettes)"
 
 
 msgctxt "Operator"
@@ -96537,10 +96575,6 @@ msgid "Sound data-block used by this sequence"
 msgstr "Bloc de données son utilisé par cette séquence"
 
 
-msgid "Multiply playback speed"
-msgstr "Multiplier la vitesse de lecture"
-
-
 msgid "Playback volume of the sound"
 msgstr "Volume de lecture du son"
 
@@ -118180,6 +118214,10 @@ msgid "brushes"
 msgstr "brosses"
 
 
+msgid "cache_files"
+msgstr "fichiers de cache"
+
+
 msgid "cameras"
 msgstr "caméras"
 
@@ -118254,6 +118292,10 @@ msgstr "%d point(s) supplémentaires requis pour Bézier"
 
 msgid "curves"
 msgstr "courbes"
+
+
+msgid "hair_curves"
+msgstr "courbes de poils"
 
 
 msgid "UVMap"
@@ -118438,8 +118480,16 @@ msgid "GP_Layer"
 msgstr "Calque_GP"
 
 
+msgid "grease_pencils"
+msgstr "grease pencils"
+
+
 msgid "GP_Group"
 msgstr "Groupe_GP"
+
+
+msgid "grease_pencils_v3"
+msgstr "grease pencils v3"
 
 
 msgid "Cannot pack multiview images from raw data currently..."
@@ -118482,8 +118532,16 @@ msgid "Key %d"
 msgstr "Clé %d"
 
 
+msgid "shape_keys"
+msgstr "clés de forme"
+
+
 msgid "lattices"
 msgstr "lattices"
+
+
+msgid "link_placeholders"
+msgstr "emplacements reservés de liens"
 
 
 msgid "Impossible to resync data-block %s and its dependencies, as its linked reference is missing"
@@ -118522,6 +118580,14 @@ msgid "Cannot unlink unsupported '%s' from light linking collection '%s'"
 msgstr "Impossible de dé-lier « %s » non pris en charge de la collection de liaison d’éclairage « %s »"
 
 
+msgid "lightprobes"
+msgstr "sondes lumière"
+
+
+msgid "linestyles"
+msgstr "styles de lignes"
+
+
 msgid "MaskLayer"
 msgstr "CalqueMasque"
 
@@ -118558,6 +118624,10 @@ msgid "Possible data loss when saving this file! %s modifier is deprecated (Obje
 msgstr "Perte de données possible lors de l’enregistrement de ce fichier ! Le modificateur %s est obsolète (objet : %s)"
 
 
+msgid "movieclips"
+msgstr "clips vidéo"
+
+
 msgid "NlaTrack"
 msgstr "PisteNLA"
 
@@ -118568,6 +118638,10 @@ msgstr "BandeNLA"
 
 msgid "[Action Stash]"
 msgstr "[Actions réservées]"
+
+
+msgid "node_groups"
+msgstr "groupes de nœuds"
 
 
 msgid "Can't find object data of %s lib %s"
@@ -118666,6 +118740,10 @@ msgid "palettes"
 msgstr "palettes"
 
 
+msgid "paint_curves"
+msgstr "courbes de peinture"
+
+
 msgid "ParticleSystem"
 msgstr "SystèmeParticules"
 
@@ -118712,6 +118790,10 @@ msgstr "%s, le cache est obsolète !"
 
 msgid "%s, not exact since frame %i"
 msgstr "%s, non-exact depuis la frame %i"
+
+
+msgid "pointclouds"
+msgstr "nuages de points"
 
 
 msgid "Warning"
@@ -120198,7 +120280,7 @@ msgstr "Aucun bloc de données sélectionné n’est marqué comme étant un ass
 
 
 msgid "Delete all asset metadata, turning the selected asset data-blocks back into normal data-blocks, and set Fake User to ensure the data-blocks will still be saved"
-msgstr "Supprimer toutes les métadonnées de l’asset, les blocs de données de l’asset sélectionné redeviendront des blocs de données normaux, l’utilisateur factice y sera défini pour s’assurer que les blocs de données soient toujours sauvegardés"
+msgstr "Effacer toutes les métadonnées des assets et les reconvertir en blocs de données normaux. L’utilisateur factice y sera défini pour s’assurer que les blocs de données soient toujours sauvegardés"
 
 
 msgid "Selected data-blocks are already assets (or do not support use as assets)"
@@ -120995,6 +121077,14 @@ msgstr "Panneau manquant : %s"
 
 msgid "Missing Menu: %s"
 msgstr "Menu manquant : %s"
+
+
+msgid "Mark as Asset"
+msgstr "Définir comme asset"
+
+
+msgid "Clear Asset"
+msgstr "Annuler l’asset"
 
 
 msgid "Non-Keyboard Shortcut"
@@ -128188,10 +128278,6 @@ msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD : impossible d’ouvrir l’étage pour lire %s"
 
 
-msgid "USD Import: unable to open cache reader for object %s"
-msgstr "Import USD : impossible d’ouvrir le lecteur de cache pour l’objet %s"
-
-
 msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
 msgstr "Une exception a eu lieu à l’invocation du callback USD « %s ». Voir la console pour plus de détails"
 
@@ -133117,6 +133203,10 @@ msgstr "Tourbillon"
 
 msgid "WaveDistortion"
 msgstr "Ondulation"
+
+
+msgid "window_managers"
+msgstr "gestionnaires de fenêtre"
 
 
 msgid "Region could not be drawn!"

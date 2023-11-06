@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'8474716abb0d')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 16:01:56\n"
-"PO-Revision-Date: 2023-10-19 01:54+0000\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"PO-Revision-Date: 2023-11-05 13:30+0000\n"
 "Last-Translator: saran <saranmurugappan2020@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
 "Language: ta\n"
@@ -397,4 +397,16 @@ msgstr "ஒன்றுமில்லை"
 
 msgid "Hold"
 msgstr "பிடிக்க"
+
+
+msgid "True or false"
+msgstr "சரியா தவறா"
+
+
+msgid "Point"
+msgstr "புள்ளி"
+
+
+msgid "Face"
+msgstr "முகப்பு"
 
