@@ -77,16 +77,15 @@ float brush_radius_world_space(bContext &C, int x, int y)
 }
 
 static Array<int> get_frame_numbers_for_layer(const bke::greasepencil::Layer &layer,
-                                              const int frame,
+                                              const int current_frame,
                                               const bool use_multi_frame_editing)
 {
-  if (!use_multi_frame_editing) {
-    return Array<int>({frame});
-  }
-  Vector<int> frame_numbers;
-  for (const auto [frame_number, frame] : layer.frames().items()) {
-    if (frame.is_selected()) {
-      frame_numbers.append_unchecked(frame_number);
+  Vector<int> frame_numbers({current_frame});
+  if (use_multi_frame_editing) {
+    for (const auto [frame_number, frame] : layer.frames().items()) {
+      if (frame.is_selected()) {
+        frame_numbers.append_unchecked(frame_number);
+      }
     }
   }
   return frame_numbers.as_span();
