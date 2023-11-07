@@ -718,20 +718,6 @@ void ANIM_set_active_channel(bAnimContext *ac,
  */
 bool ANIM_is_active_channel(bAnimListElem *ale);
 
-/**
- * Delete the F-Curve from the given AnimData block (if possible),
- * as appropriate according to animation context.
- */
-void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu);
-
-/**
- * Unlink the action from animdata if it's empty.
- *
- * If the action has no F-Curves, unlink it from AnimData if it did not
- * come from a NLA Strip being tweaked.
- */
-bool ANIM_remove_empty_action_from_animdata(AnimData *adt);
-
 /* ************************************************ */
 /* DRAWING API */
 /* `anim_draw.cc` */

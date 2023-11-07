@@ -39,11 +39,11 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "ED_keyframes_edit.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
+#include "ANIM_animdata.hh"
 #include "ANIM_bone_collections.h"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
@@ -628,14 +628,14 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
 
         /* delete F-Curve completely */
         if (can_delete) {
-          ANIM_fcurve_delete_from_animdata(nullptr, adt, fcu);
+          blender::animrig::ANIM_fcurve_delete_from_animdata(nullptr, adt, fcu);
           DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
           changed = true;
         }
       }
 
       /* Delete the action itself if it is empty. */
-      if (ANIM_remove_empty_action_from_animdata(adt)) {
+      if (blender::animrig::ANIM_remove_empty_action_from_animdata(adt)) {
         changed = true;
       }
     }

@@ -47,6 +47,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
+#include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ED_anim_api.hh"
@@ -765,7 +766,7 @@ static bool delete_graph_keys(bAnimContext *ac)
 
     /* Only delete curve too if it won't be doing anything anymore. */
     if (BKE_fcurve_is_empty(fcu)) {
-      ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
+      blender::animrig::ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
       ale->key_data = nullptr;
     }
   }

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <string.h>
 
+#include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "BKE_fcurve.h"
 #include "DNA_anim_types.h"

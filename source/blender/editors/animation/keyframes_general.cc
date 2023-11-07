@@ -34,10 +34,9 @@
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 
-#include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
-#include "ED_keyframing.hh"
 
+#include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
 /* This file contains code for various keyframe-editing tools which are 'destructive'
@@ -229,7 +228,7 @@ void clean_fcurve(bAnimContext *ac,
       /* check if curve is really unused and if it is, return signal for deletion */
       if (BKE_fcurve_is_empty(fcu)) {
         AnimData *adt = ale->adt;
-        ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
+        blender::animrig::ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
         ale->key_data = nullptr;
       }
     }

@@ -23,8 +23,6 @@
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 
-#include "ED_keyframing.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 #include "RNA_types.hh"
