@@ -8,8 +8,11 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "NOD_node_declaration.hh"
 
