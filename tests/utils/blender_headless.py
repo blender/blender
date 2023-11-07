@@ -287,7 +287,12 @@ class backend_wayland(backend_base):
 
                 blender_env = {**os.environ, "WAYLAND_DISPLAY": socket}
 
+                # Needed so Blender can find WAYLAND libraries such as `libwayland-cursor.so`.
+                if weston_env is not None and "LD_LIBRARY_PATH" in weston_env:
+                    blender_env["LD_LIBRARY_PATH"] = weston_env["LD_LIBRARY_PATH"]
+
                 cmd = [
+                    # "strace",  # Can be useful for debugging any startup issues.
                     BLENDER_BIN,
                     *blender_args,
                 ]
