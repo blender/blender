@@ -8,11 +8,8 @@
  * \brief Functions to modify FCurves.
  */
 
-#include "RNA_types.hh"
-
 struct AnimData;
 struct FCurve;
-struct bAction;
 
 namespace blender::animrig {
 /**
