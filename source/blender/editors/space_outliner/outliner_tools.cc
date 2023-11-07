@@ -2294,7 +2294,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
       lb = &ob->constraints;
     }
 
-    if (BKE_constraint_remove_ex(lb, ob, constraint, true)) {
+    if (BKE_constraint_remove_ex(lb, ob, constraint)) {
       /* there's no active constraint now, so make sure this is the case */
       BKE_constraints_active_set(&ob->constraints, nullptr);
 
