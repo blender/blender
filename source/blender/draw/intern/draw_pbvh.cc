@@ -50,6 +50,7 @@
 #include "DRW_engine.h"
 #include "DRW_pbvh.hh"
 
+#include "attribute_convert.hh"
 #include "bmesh.h"
 #include "draw_pbvh.h"
 #include "gpu_private.h"
@@ -57,10 +58,7 @@
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
 
-using blender::char3;
-using blender::float2;
 using blender::float3;
-using blender::float4;
 using blender::FunctionRef;
 using blender::IndexRange;
 using blender::Map;
@@ -72,130 +70,7 @@ using blender::StringRef;
 using blender::StringRefNull;
 using blender::uchar3;
 using blender::uchar4;
-using blender::ushort3;
-using blender::ushort4;
 using blender::Vector;
-
-/**
- * Component length of 3 is used for scalars because implicit conversion is done by OpenGL from a
- * scalar `s` will produce `vec4(s, 0, 0, 1)`. However, following the Blender convention, it should
- * be `vec4(s, s, s, 1)`.
- */
-constexpr int COMPONENT_LEN_SCALAR = 3;
-
-namespace blender::draw {
-
-/** Similar to #AttributeTypeConverter. */
-template<typename T> struct AttributeConverter {
-  using VBOT = void;
-};
-
-template<> struct AttributeConverter<bool> {
-  using VBOT = VecBase<int, COMPONENT_LEN_SCALAR>;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_I32;
-  static constexpr int gpu_component_len = COMPONENT_LEN_SCALAR;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_INT_TO_FLOAT;
-  static VBOT convert(const bool &value)
-  {
-    return VBOT(value);
-  }
-};
-template<> struct AttributeConverter<int8_t> {
-  using VBOT = VecBase<int, COMPONENT_LEN_SCALAR>;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_I32;
-  static constexpr int gpu_component_len = COMPONENT_LEN_SCALAR;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_INT_TO_FLOAT;
-  static VBOT convert(const int8_t &value)
-  {
-    return VecBase<int, COMPONENT_LEN_SCALAR>(value);
-  }
-};
-template<> struct AttributeConverter<int> {
-  using VBOT = VecBase<int, COMPONENT_LEN_SCALAR>;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_I32;
-  static constexpr int gpu_component_len = COMPONENT_LEN_SCALAR;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_INT_TO_FLOAT;
-  static VBOT convert(const int &value)
-  {
-    return int3(value);
-  }
-};
-template<> struct AttributeConverter<int2> {
-  using VBOT = int2;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_I32;
-  static constexpr int gpu_component_len = 2;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_INT_TO_FLOAT;
-  static VBOT convert(const int2 &value)
-  {
-    return int2(value.x, value.y);
-  }
-};
-template<> struct AttributeConverter<float> {
-  using VBOT = VecBase<float, COMPONENT_LEN_SCALAR>;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_F32;
-  static constexpr int gpu_component_len = COMPONENT_LEN_SCALAR;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_FLOAT;
-  static VBOT convert(const float &value)
-  {
-    return VBOT(value);
-  }
-};
-template<> struct AttributeConverter<float2> {
-  using VBOT = float2;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_F32;
-  static constexpr int gpu_component_len = 2;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_FLOAT;
-  static VBOT convert(const float2 &value)
-  {
-    return value;
-  }
-};
-template<> struct AttributeConverter<float3> {
-  using VBOT = float3;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_F32;
-  static constexpr int gpu_component_len = 3;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_FLOAT;
-  static VBOT convert(const float3 &value)
-  {
-    return value;
-  }
-};
-template<> struct AttributeConverter<ColorGeometry4b> {
-  /* 16 bits are required to store the color in linear space without precision loss. */
-  using VBOT = ushort4;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_U16;
-  static constexpr int gpu_component_len = 4;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_INT_TO_FLOAT_UNIT;
-  static VBOT convert(const ColorGeometry4b &value)
-  {
-    return {unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.r]),
-            unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.g]),
-            unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.b]),
-            ushort(value.a * 257)};
-  }
-};
-template<> struct AttributeConverter<ColorGeometry4f> {
-  using VBOT = ColorGeometry4f;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_F32;
-  static constexpr int gpu_component_len = 4;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_FLOAT;
-  static VBOT convert(const ColorGeometry4f &value)
-  {
-    return value;
-  }
-};
-template<> struct AttributeConverter<blender::math::Quaternion> {
-  using VBOT = float4;
-  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_F32;
-  static constexpr int gpu_component_len = 4;
-  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_FLOAT;
-  static VBOT convert(const blender::math::Quaternion &value)
-  {
-    return float4(value.w, value.x, value.y, value.z);
-  }
-};
-
-}  // namespace blender::draw
 
 static bool pbvh_attr_supported(int type, const eAttrDomain domain)
 {
@@ -211,8 +86,8 @@ static bool pbvh_attr_supported(int type, const eAttrDomain domain)
   bke::attribute_math::convert_to_static_type(eCustomDataType(type), [&](auto dummy) {
     using T = decltype(dummy);
     using Converter = draw::AttributeConverter<T>;
-    using VBOT = typename Converter::VBOT;
-    if constexpr (!std::is_void_v<VBOT>) {
+    using VBOType = typename Converter::VBOType;
+    if constexpr (!std::is_void_v<VBOType>) {
       type_supported = true;
     }
   });
@@ -257,13 +132,13 @@ template<typename T>
 void extract_data_vert_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
   using Converter = blender::draw::AttributeConverter<T>;
-  using VBOT = typename Converter::VBOT;
+  using VBOType = typename Converter::VBOType;
   const Span<int> corner_verts = args.corner_verts;
   const Span<MLoopTri> looptris = args.mlooptri;
   const Span<int> looptri_faces = args.looptri_faces;
   const bool *hide_poly = args.hide_poly;
 
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
   for (const int looptri_i : args.prim_indices) {
     if (hide_poly && hide_poly[looptri_faces[looptri_i]]) {
       continue;
@@ -280,12 +155,12 @@ template<typename T>
 void extract_data_face_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
   using Converter = blender::draw::AttributeConverter<T>;
-  using VBOT = typename Converter::VBOT;
+  using VBOType = typename Converter::VBOType;
 
   const Span<int> looptri_faces = args.looptri_faces;
   const bool *hide_poly = args.hide_poly;
 
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
   for (const int looptri_i : args.prim_indices) {
     const int face = looptri_faces[looptri_i];
     if (hide_poly && hide_poly[face]) {
@@ -300,13 +175,13 @@ template<typename T>
 void extract_data_corner_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
   using Converter = blender::draw::AttributeConverter<T>;
-  using VBOT = typename Converter::VBOT;
+  using VBOType = typename Converter::VBOType;
 
   const Span<MLoopTri> looptris = args.mlooptri;
   const Span<int> looptri_faces = args.looptri_faces;
   const bool *hide_poly = args.hide_poly;
 
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
   for (const int looptri_i : args.prim_indices) {
     if (hide_poly && hide_poly[looptri_faces[looptri_i]]) {
       continue;
@@ -338,8 +213,8 @@ template<typename T>
 void extract_data_vert_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
 {
   using Converter = blender::draw::AttributeConverter<T>;
-  using VBOT = typename Converter::VBOT;
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  using VBOType = typename Converter::VBOType;
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
 
   for (const BMFace *f : *args.bm_faces) {
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -359,8 +234,8 @@ template<typename T>
 void extract_data_face_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
 {
   using Converter = blender::draw::AttributeConverter<T>;
-  using VBOT = typename Converter::VBOT;
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  using VBOType = typename Converter::VBOType;
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
 
   for (const BMFace *f : *args.bm_faces) {
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -375,8 +250,8 @@ template<typename T>
 void extract_data_corner_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
 {
   using Converter = blender::draw::AttributeConverter<T>;
-  using VBOT = typename Converter::VBOT;
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  using VBOType = typename Converter::VBOType;
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
 
   for (const BMFace *f : *args.bm_faces) {
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -736,10 +611,10 @@ struct PBVHBatches {
       bke::attribute_math::convert_to_static_type(eCustomDataType(vbo.type), [&](auto dummy) {
         using T = decltype(dummy);
         using Converter = draw::AttributeConverter<T>;
-        using VBOT = typename Converter::VBOT;
-        std::fill_n(static_cast<VBOT *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+        using VBOType = typename Converter::VBOType;
+        std::fill_n(static_cast<VBOType *>(GPU_vertbuf_get_data(vbo.vert_buf)),
                     GPU_vertbuf_get_vertex_len(vbo.vert_buf),
-                    VBOT());
+                    VBOType());
       });
     }
   }
@@ -1094,8 +969,7 @@ struct PBVHBatches {
     PBVHVbo vbo(domain, type, name);
     GPUVertFormat format;
 
-    bool need_aliases = !ELEM(
-        type, CD_PBVH_CO_TYPE, CD_PBVH_NO_TYPE, CD_PBVH_FSET_TYPE, CD_PBVH_MASK_TYPE);
+    bool need_aliases = false;
 
     GPU_vertformat_clear(&format);
 
@@ -1112,15 +986,7 @@ struct PBVHBatches {
       GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     }
     else {
-      bke::attribute_math::convert_to_static_type(eCustomDataType(type), [&](auto dummy) {
-        using T = decltype(dummy);
-        using Converter = draw::AttributeConverter<T>;
-        GPU_vertformat_attr_add(&format,
-                                "data",
-                                Converter::gpu_component_type,
-                                Converter::gpu_component_len,
-                                Converter::gpu_fetch_mode);
-      });
+      format = draw::init_format_for_attribute(eCustomDataType(type), "data");
       need_aliases = true;
     }
 
