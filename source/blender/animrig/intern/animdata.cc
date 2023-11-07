@@ -22,35 +22,34 @@ namespace blender::animrig {
 
 void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
 {
-  /* - if no AnimData, we've got nowhere to remove the F-Curve from
+  /* - If no AnimData, we've got nowhere to remove the F-Curve from
    *   (this doesn't guarantee that the F-Curve is in there, but at least we tried
-   * - if no F-Curve, there is nothing to remove
+   * - If no F-Curve, there is nothing to remove
    */
   if (ELEM(nullptr, adt, fcu)) {
     return;
   }
 
-  /* remove from whatever list it came from
+  /* Remove from whatever list it came from
    * - Action Group
    * - Action
    * - Drivers
    * - TODO... some others?
    */
   if ((ac) && (ac->datatype == ANIMCONT_DRIVERS)) {
-    /* driver F-Curve */
     BLI_remlink(&adt->drivers, fcu);
   }
   else if (adt->action) {
     bAction *act = adt->action;
 
-    /* remove from group or action, whichever one "owns" the F-Curve */
+    /* Remove from group or action, whichever one "owns" the F-Curve. */
     if (fcu->grp) {
       bActionGroup *agrp = fcu->grp;
 
-      /* remove F-Curve from group+action */
+      /* Remove F-Curve from group+action. */
       action_groups_remove_channel(act, fcu);
 
-      /* if group has no more channels, remove it too,
+      /* If group has no more channels, remove it too,
        * otherwise can have many dangling groups #33541.
        */
       if (BLI_listbase_is_empty(&agrp->channels)) {
@@ -61,7 +60,7 @@ void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
       BLI_remlink(&act->curves, fcu);
     }
 
-    /* if action has no more F-Curves as a result of this, unlink it from
+    /* If action has no more F-Curves as a result of this, unlink it from
      * AnimData if it did not come from a NLA Strip being tweaked.
      *
      * This is done so that we don't have dangling Object+Action entries in
@@ -71,7 +70,6 @@ void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
     animdata_remove_empty_action(adt);
   }
 
-  /* free the F-Curve itself */
   BKE_fcurve_free(fcu);
 }
 

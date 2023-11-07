@@ -36,7 +36,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
     return nullptr;
   }
 
-  /* try to find f-curve matching for this setting
+  /* Try to find f-curve matching for this setting.
    * - add if not found and allowed to add one
    *   TODO: add auto-grouping support? how this works will need to be resolved
    */

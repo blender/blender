@@ -29,7 +29,9 @@ bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra);
  * memory for the array if needed, and will insert the #BezTriple into a
  * suitable place in chronological order.
  *
- * \note any recalculate of the F-Curve that needs to be done will need to be done by the caller.
+ * \returns The index of the keyframe array into which the bezt has been added.
+ *
+ * \note Any recalculate of the F-Curve that needs to be done will need to be done by the caller.
  */
 int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag);
 
@@ -43,6 +45,8 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
  * This function is a wrapper for #insert_bezt_fcurve(), and should be used when
  * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet.
  * It returns the index at which the keyframe was added.
+ *
+ * \returns The index of the keyframe array into which the bezt has been added.
  *
  * \param keyframe_type: The type of keyframe (#eBezTriple_KeyframeType).
  * \param flag: Optional flags (#eInsertKeyFlags) for controlling how keys get added
