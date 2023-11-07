@@ -4412,7 +4412,7 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
                                             const wmEvent *event,
                                             uiButtonActivateType activate_type)
 {
-  ARegion *region = CTX_wm_region(C);
+  ARegion *region = data->region;
   uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->xy, true, false, nullptr, nullptr);
 
   if (labelbut && labelbut->type == UI_BTYPE_TEXT && !(labelbut->flag & UI_BUT_DISABLED)) {
