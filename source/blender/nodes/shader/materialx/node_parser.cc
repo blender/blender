@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <pxr/base/tf/stringUtils.h>
+#ifdef WITH_USD
+#  include <pxr/base/tf/stringUtils.h>
+#endif
 
 #include "node_parser.h"
 
@@ -63,9 +65,13 @@ NodeItem NodeParser::compute_full()
 std::string NodeParser::node_name(bool with_out_socket) const
 {
   auto valid_name = [](const std::string &name) {
+#ifdef WITH_USD
     /* Node name should suite to MatX and USD valid names.
      * It shouldn't start from '_', due to error occurred in Storm delegate. */
     std::string res = MaterialX::createValidName(pxr::TfMakeValidIdentifier(name));
+#else
+    std::string res = MaterialX::createValidName(name);
+#endif
     if (res[0] == '_') {
       res = "node" + res;
     }
