@@ -91,7 +91,11 @@ PassMain::Sub &MeshPass::get_subpass(
         /* TODO(@pragma37): This setting should be exposed on the user side,
          * either as a global parameter (and set it here)
          * or by reading the Material Clipping Threshold (and set it per material) */
-        sub_pass->push_constant("imageTransparencyCutoff", 0.1f);
+        float alpha_cutoff = 0.1f;
+        if (ELEM(image->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED)) {
+          alpha_cutoff = -FLT_MAX;
+        }
+        sub_pass->push_constant("imageTransparencyCutoff", alpha_cutoff);
         return sub_pass;
       };
 
