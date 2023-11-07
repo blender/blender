@@ -1121,7 +1121,8 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Allow the lines to decrease as we get really small. */
-  float line_width = std::max(std::min(U.pixelsize / 5.0f * fabs(half_width - 4.0f), U.pixelsize), 0.5f);
+  float line_width = std::max(std::min(U.pixelsize / 5.0f * fabs(half_width - 4.0f), U.pixelsize),
+                              0.5f);
 
   /* Make things transparent as we get tiny. */
   uchar alpha = std::min(int(fabs(half_width - 2.0f) * 50.0f), 255);

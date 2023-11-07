@@ -783,14 +783,15 @@ static void bb_combineMaps(FluidObjectBB *output,
               x - bb2->min[0], bb2->res[0], y - bb2->min[1], bb2->res[1], z - bb2->min[2]);
 
           /* Values. */
-          output->numobjs[index_out] = std::max(bb2->numobjs[index_in], output->numobjs[index_out]);
+          output->numobjs[index_out] = std::max(bb2->numobjs[index_in],
+                                                output->numobjs[index_out]);
           if (output->influence && bb2->influence) {
             if (additive) {
               output->influence[index_out] += bb2->influence[index_in] * sample_size;
             }
             else {
               output->influence[index_out] = std::max(bb2->influence[index_in],
-                                                  output->influence[index_out]);
+                                                      output->influence[index_out]);
             }
           }
           output->distances[index_out] = MIN2(bb2->distances[index_in],

@@ -383,7 +383,7 @@ static void bm_uuidwalk_rehash(UUIDWalk *uuidwalk)
   uint i;
 
   uint rehash_store_len_new = std::max(BLI_ghash_len(uuidwalk->verts_uuid),
-                                   BLI_ghash_len(uuidwalk->faces_uuid));
+                                       BLI_ghash_len(uuidwalk->faces_uuid));
 
   bm_uuidwalk_rehash_reserve(uuidwalk, rehash_store_len_new);
   uuid_store = uuidwalk->cache.rehash_store;

@@ -103,10 +103,10 @@ static int textview_wrap_offsets(
 
   *r_lines = 1;
 
-  *r_offsets = static_cast<int *>(
-      MEM_callocN(sizeof(**r_offsets) *
-                      (str_len * column_width_max / std::max(1, width - (column_width_max - 1)) + 1),
-                  __func__));
+  *r_offsets = static_cast<int *>(MEM_callocN(
+      sizeof(**r_offsets) *
+          (str_len * column_width_max / std::max(1, width - (column_width_max - 1)) + 1),
+      __func__));
   (*r_offsets)[0] = 0;
 
   for (i = 0, end = width, j = 0; j < str_len && str[j]; j += BLI_str_utf8_size_safe(str + j)) {

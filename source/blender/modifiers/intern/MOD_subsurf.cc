@@ -387,11 +387,11 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (ob_use_adaptive_subdivision && show_adaptive_options) {
     uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, nullptr, ICON_NONE);
     float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
-                            RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                        0.1f);
+                                RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
+                            0.1f);
     float preview = std::max(RNA_float_get(&cycles_ptr, "preview_dicing_rate") *
-                             RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                         0.1f);
+                                 RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
+                             0.1f);
     char output[256];
     SNPRINTF(output, TIP_("Final Scale: Render %.2f px, Viewport %.2f px"), render, preview);
     uiItemL(layout, output, ICON_NONE);

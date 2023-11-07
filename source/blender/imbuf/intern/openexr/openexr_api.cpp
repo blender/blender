@@ -2203,7 +2203,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     }
 
     float scale_factor = std::min(float(max_thumb_size) / float(source_w),
-                              float(max_thumb_size) / float(source_h));
+                                  float(max_thumb_size) / float(source_h));
     int dest_w = std::max(int(source_w * scale_factor), 1);
     int dest_h = std::max(int(source_h * scale_factor), 1);
 
