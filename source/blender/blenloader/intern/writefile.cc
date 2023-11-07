@@ -78,7 +78,7 @@
 
 #include "CLG_log.h"
 
-/* allow writefile to use deprecated functionality (for forward compatibility code) */
+/* Allow writefile to use deprecated functionality (for forward compatibility code). */
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_collection_types.h"
@@ -101,7 +101,7 @@
 
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
-#include "BKE_global.h" /* for G */
+#include "BKE_global.h" /* For #Global `G`. */
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -471,7 +471,7 @@ static void writedata_do_write(WriteData *wd, const void *mem, size_t memlen)
     return;
   }
 
-  /* memory based save */
+  /* Memory based save. */
   if (wd->use_memfile) {
     BLO_memfile_chunk_add(&wd->mem, static_cast<const char *>(mem), memlen);
   }
@@ -532,8 +532,8 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
     writedata_do_write(wd, adr, len);
   }
   else {
-    /* if we have a single big chunk, write existing data in
-     * buffer and write out big chunk in smaller pieces */
+    /* If we have a single big chunk, write existing data in
+     * buffer and write out big chunk in smaller pieces. */
     if (len > wd->buffer.chunk_size) {
       if (wd->buffer.used_len != 0) {
         writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
@@ -550,13 +550,13 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
       return;
     }
 
-    /* if data would overflow buffer, write out the buffer */
+    /* If data would overflow buffer, write out the buffer. */
     if (len + wd->buffer.used_len > wd->buffer.max_size - 1) {
       writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
       wd->buffer.used_len = 0;
     }
 
-    /* append data at end of buffer */
+    /* Append data at end of buffer. */
     memcpy(&wd->buffer.buf[wd->buffer.used_len], adr, len);
     wd->buffer.used_len += len;
   }
@@ -669,7 +669,7 @@ static void writestruct_at_address_nr(
     return;
   }
 
-  /* init BHead */
+  /* Initialize #BHead. */
   bh.code = filecode;
   bh.old = adr;
   bh.nr = nr;
@@ -693,7 +693,9 @@ static void writestruct_nr(
   writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
 }
 
-/* do not use for structs */
+/**
+ * \warning Do not use for structs.
+ */
 static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
 {
   BHead bh;
@@ -707,10 +709,10 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
     return;
   }
 
-  /* align to 4 (writes uninitialized bytes in some cases) */
+  /* Align to 4 (writes uninitialized bytes in some cases). */
   len = (len + 3) & ~size_t(3);
 
-  /* init BHead */
+  /* Initialize #BHead. */
   bh.code = filecode;
   bh.old = adr;
   bh.nr = 1;
@@ -721,7 +723,9 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
   mywrite(wd, adr, len);
 }
 
-/* use this to force writing of lists in same order as reading (using link_list) */
+/**
+ * Use this to force writing of lists in same order as reading (using link_list).
+ */
 static void writelist_nr(WriteData *wd, int filecode, const int struct_nr, const ListBase *lb)
 {
   const Link *link = static_cast<Link *>(lb->first);
@@ -782,20 +786,20 @@ static void current_screen_compat(Main *mainvar,
   wmWindowManager *wm;
   wmWindow *window = nullptr;
 
-  /* find a global current screen in the first open window, to have
-   * a reasonable default for reading in older versions */
+  /* Find a global current screen in the first open window, to have
+   * a reasonable default for reading in older versions. */
   wm = static_cast<wmWindowManager *>(mainvar->wm.first);
 
   if (wm) {
     if (use_active_win) {
-      /* write the active window into the file, needed for multi-window undo #43424 */
+      /* Write the active window into the file, needed for multi-window undo #43424. */
       for (window = static_cast<wmWindow *>(wm->windows.first); window; window = window->next) {
         if (window->active) {
           break;
         }
       }
 
-      /* fallback */
+      /* Fallback. */
       if (window == nullptr) {
         window = static_cast<wmWindow *>(wm->windows.first);
       }
@@ -829,7 +833,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
   Scene *curscene = nullptr;
   ViewLayer *view_layer;
 
-  /* XXX in future, handle multiple windows with multiple screens? */
+  /* XXX: in future, handle multiple windows with multiple screens? */
   current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
   LISTBASE_FOREACH (Scene *, sce, &mainvar->scenes) {
@@ -939,7 +943,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-/* Keep it last of write_foodata functions. */
+/** Keep it last of `write_*_data` functions. */
 static void write_libraries(WriteData *wd, Main *main)
 {
   ListBase *lbarray[INDEX_ID_MAX];
@@ -950,7 +954,7 @@ static void write_libraries(WriteData *wd, Main *main)
   for (; main; main = main->next) {
     a = tot = set_listbasepointers(main, lbarray);
 
-    /* test: is lib being used */
+    /* Test: is lib being used. */
     if (main->curlib && main->curlib->packedfile) {
       found_one = true;
     }
@@ -1024,9 +1028,11 @@ extern "C" ulong build_commit_timestamp;
 extern "C" char build_hash[];
 #endif
 
-/* context is usually defined by WM, two cases where no WM is available:
- * - for forward compatibility, curscreen has to be saved
- * - for undofile, curscene needs to be saved */
+/**
+ * Context is usually defined by WM, two cases where no WM is available:
+ * - for forward compatibility, `curscreen` has to be saved
+ * - for undo-file, `curscene` needs to be saved.
+ */
 static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 {
   const bool is_undo = wd->use_memfile;
@@ -1036,7 +1042,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   ViewLayer *view_layer;
   char subvstr[8];
 
-  /* prevent mem checkers from complaining */
+  /* Prevent memory checkers from complaining. */
   memset(fg._pad, 0, sizeof(fg._pad));
   memset(fg.filepath, 0, sizeof(fg.filepath));
   memset(fg.build_hash, 0, sizeof(fg.build_hash));
@@ -1044,12 +1050,12 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 
   current_screen_compat(mainvar, is_undo, &screen, &scene, &view_layer);
 
-  /* XXX still remap G */
+  /* XXX: still remap `G`. */
   fg.curscreen = screen;
   fg.curscene = scene;
   fg.cur_view_layer = view_layer;
 
-  /* prevent to save this, is not good convention, and feature with concerns... */
+  /* Prevent to save this, is not good convention, and feature with concerns. */
   fg.fileflags = (fileflags & ~G_FILE_FLAG_ALL_RUNTIME);
 
   fg.globalf = G.f;
@@ -1192,7 +1198,12 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
   return IDWALK_RET_NOP;
 }
 
-/* if MemFile * there's filesave to memory */
+/**
+ * When #MemFile arguments are non-null, this is a file-safe to memory.
+ *
+ * \param compare: Previous memory file (can be nullptr).
+ * \param current: The current memory file (can be nullptr).
+ */
 static bool write_file_handle(Main *mainvar,
                               WriteWrap *ww,
                               MemFile *compare,
@@ -1364,7 +1375,7 @@ static bool write_file_handle(Main *mainvar,
    * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
   writedata(wd, BLO_CODE_DNA1, size_t(wd->sdna->data_len), wd->sdna->data);
 
-  /* end of file */
+  /* End of file. */
   memset(&bhead, 0, sizeof(BHead));
   bhead.code = BLO_CODE_ENDB;
   mywrite(wd, &bhead, sizeof(BHead));
@@ -1475,14 +1486,14 @@ static bool BLO_write_file_impl(Main *mainvar,
   const BlendThumbnail *thumb = params->thumb;
   const bool relbase_valid = (mainvar->filepath[0] != '\0');
 
-  /* path backup/restore */
+  /* Path backup/restore. */
   void *path_list_backup = nullptr;
   const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
                                             BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
   write_file_main_validate_pre(mainvar, reports);
 
-  /* open temporary file, so we preserve the original in case we crash */
+  /* Open temporary file, so we preserve the original in case we crash. */
   SNPRINTF(tempname, "%s@", filepath);
 
   if (ww.open(tempname) == false) {
@@ -1574,7 +1585,7 @@ static bool BLO_write_file_impl(Main *mainvar,
     }
   }
 
-  /* actual file writing */
+  /* Actual file writing. */
   const bool err = write_file_handle(
       mainvar, &ww, nullptr, nullptr, write_flags, use_userdef, thumb);
 
@@ -1592,8 +1603,8 @@ static bool BLO_write_file_impl(Main *mainvar,
     return false;
   }
 
-  /* file save to temporary file was successful */
-  /* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
+  /* File save to temporary file was successful, now do reverse file history
+   * (move `.blend1` -> `.blend2`, `.blend` -> `.blend1` .. etc). */
   if (use_save_versions) {
     if (!do_history(filepath, reports)) {
       BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
@@ -1610,6 +1621,8 @@ static bool BLO_write_file_impl(Main *mainvar,
 
   return true;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name File Writing (Public)
