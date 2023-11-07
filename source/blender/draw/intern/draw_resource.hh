@@ -159,7 +159,7 @@ inline void ObjectBounds::sync()
   bounding_sphere.w = -1.0f; /* Disable test. */
 }
 
-inline void ObjectBounds::sync(Object &ob)
+inline void ObjectBounds::sync(Object &ob, float inflate_bounds)
 {
   const std::optional<BoundBox> bbox = BKE_object_boundbox_get(&ob);
   if (!bbox) {
@@ -171,6 +171,16 @@ inline void ObjectBounds::sync(Object &ob)
   *reinterpret_cast<float3 *>(&bounding_corners[2]) = bbox->vec[3];
   *reinterpret_cast<float3 *>(&bounding_corners[3]) = bbox->vec[1];
   bounding_sphere.w = 0.0f; /* Enable test. */
+
+  if (inflate_bounds != 0.0f) {
+    BLI_assert(inflate_bounds >= 0.0f);
+    float p = inflate_bounds;
+    float n = -inflate_bounds;
+    bounding_corners[0] += float4(n, n, n, 0.0f);
+    bounding_corners[1] += float4(p, n, n, 0.0f);
+    bounding_corners[2] += float4(n, p, n, 0.0f);
+    bounding_corners[3] += float4(n, n, p, 0.0f);
+  }
 }
 
 inline void ObjectBounds::sync(const float3 &center, const float3 &size)

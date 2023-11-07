@@ -964,6 +964,15 @@ void RNA_def_material(BlenderRNA *brna)
       "Determines which inner part of the mesh will produce volumetric effect");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
+  prop = RNA_def_property(srna, "max_vertex_displacement", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "inflate_bounds");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_text(prop,
+                           "Max Vertex Displacement",
+                           "The max distance a vertex can be displaced."
+                           "Displacements over this threshold may cause visibility issues");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
   /* For Preview Render */
   prop = RNA_def_property(srna, "preview_render_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "pr_type");

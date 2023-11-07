@@ -130,6 +130,7 @@ struct GPUMaterial {
   /** DEPRECATED: To remove. */
   bool has_surface_output;
   bool has_volume_output;
+  bool has_displacement_output;
   /** DEPRECATED: To remove. */
   GPUUniformBuf *sss_profile;  /* UBO containing SSS profile. */
   GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
@@ -662,6 +663,7 @@ void GPU_material_output_displacement(GPUMaterial *material, GPUNodeLink *link)
 {
   if (!material->graph.outlink_displacement) {
     material->graph.outlink_displacement = link;
+    material->has_displacement_output = true;
   }
 }
 
@@ -777,6 +779,11 @@ bool GPU_material_has_surface_output(GPUMaterial *mat)
 bool GPU_material_has_volume_output(GPUMaterial *mat)
 {
   return mat->has_volume_output;
+}
+
+bool GPU_material_has_displacement_output(GPUMaterial *mat)
+{
+  return mat->has_displacement_output;
 }
 
 void GPU_material_flag_set(GPUMaterial *mat, eGPUMaterialFlag flag)

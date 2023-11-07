@@ -141,6 +141,7 @@ void SyncModule::sync_mesh(Object *ob,
   }
 
   bool is_alpha_blend = false;
+  float inflate_bounds = 0.0f;
   for (auto i : material_array.gpu_materials.index_range()) {
     GPUBatch *geom = mat_geom[i];
     if (geom == nullptr) {
@@ -176,6 +177,14 @@ void SyncModule::sync_mesh(Object *ob,
 
     ::Material *mat = GPU_material_get_material(gpu_material);
     inst_.cryptomatte.sync_material(mat);
+
+    if (GPU_material_has_displacement_output(gpu_material)) {
+      inflate_bounds = math::max(inflate_bounds, mat->inflate_bounds);
+    }
+  }
+
+  if (inflate_bounds != 0.0f) {
+    inst_.manager->update_handle_bounds(res_handle, ob_ref, inflate_bounds);
   }
 
   inst_.manager->extract_object_attributes(res_handle, ob_ref, material_array.gpu_materials);
@@ -202,18 +211,11 @@ bool SyncModule::sync_sculpt(Object *ob,
     return false;
   }
 
-  /* Use a valid bounding box. The PBVH module already does its own culling, but a valid */
-  /* bounding box is still needed for directional shadow tile-map bounds computation. */
-  float3 min, max;
-  BKE_pbvh_bounding_box(ob_ref.object->sculpt->pbvh, min, max);
-  float3 center = (min + max) * 0.5;
-  float3 half_extent = max - center;
-  res_handle = inst_.manager->resource_handle(ob_ref, nullptr, &center, &half_extent);
-
   bool has_motion = false;
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
 
   bool is_alpha_blend = false;
+  float inflate_bounds = 0.0f;
   for (SculptBatch &batch :
        sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
   {
@@ -251,7 +253,20 @@ bool SyncModule::sync_sculpt(Object *ob,
     GPUMaterial *gpu_material = material_array.gpu_materials[batch.material_slot];
     ::Material *mat = GPU_material_get_material(gpu_material);
     inst_.cryptomatte.sync_material(mat);
+
+    if (GPU_material_has_displacement_output(gpu_material)) {
+      inflate_bounds = math::max(inflate_bounds, mat->inflate_bounds);
+    }
   }
+
+  /* Use a valid bounding box. The PBVH module already does its own culling, but a valid */
+  /* bounding box is still needed for directional shadow tile-map bounds computation. */
+  float3 min, max;
+  BKE_pbvh_bounding_box(ob_ref.object->sculpt->pbvh, min, max);
+  float3 center = (min + max) * 0.5;
+  float3 half_extent = max - center;
+  half_extent += inflate_bounds;
+  inst_.manager->update_handle_bounds(res_handle, center, half_extent);
 
   inst_.manager->extract_object_attributes(res_handle, ob_ref, material_array.gpu_materials);
 
@@ -270,7 +285,7 @@ bool SyncModule::sync_sculpt(Object *ob,
 void SyncModule::sync_point_cloud(Object *ob,
                                   ObjectHandle &ob_handle,
                                   ResourceHandle res_handle,
-                                  const ObjectRef & /*ob_ref*/)
+                                  const ObjectRef &ob_ref)
 {
   const int material_slot = POINTCLOUD_MATERIAL_NR;
 
@@ -319,6 +334,11 @@ void SyncModule::sync_point_cloud(Object *ob,
   inst_.cryptomatte.sync_material(mat);
 
   bool is_alpha_blend = material.is_alpha_blend_transparent;
+
+  if (GPU_material_has_displacement_output(gpu_material) && mat->inflate_bounds != 0.0f) {
+    inst_.manager->update_handle_bounds(res_handle, ob_ref, mat->inflate_bounds);
+  }
+
   inst_.shadows.sync_object(ob, ob_handle, res_handle, is_alpha_blend);
 }
 
@@ -494,6 +514,7 @@ void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandl
 void SyncModule::sync_curves(Object *ob,
                              ObjectHandle &ob_handle,
                              ResourceHandle res_handle,
+                             const ObjectRef &ob_ref,
                              ModifierData *modifier_data,
                              ParticleSystem *particle_sys)
 {
@@ -552,6 +573,11 @@ void SyncModule::sync_curves(Object *ob,
   inst_.cryptomatte.sync_material(mat);
 
   bool is_alpha_blend = material.is_alpha_blend_transparent;
+
+  if (GPU_material_has_displacement_output(gpu_material) && mat->inflate_bounds != 0.0f) {
+    inst_.manager->update_handle_bounds(res_handle, ob_ref, mat->inflate_bounds);
+  }
+
   inst_.shadows.sync_object(ob, ob_handle, res_handle, is_alpha_blend);
 }
 

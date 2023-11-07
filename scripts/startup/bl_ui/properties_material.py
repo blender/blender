@@ -299,7 +299,8 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         col.prop(mat, "use_backface_culling", text="Camera")
         col.prop(mat, "use_backface_culling_shadow", text="Shadow")
 
-        # TODO(fclem): Displacement option
+        layout.prop(mat, "max_vertex_displacement", text="Max Displacement")
+
         layout.prop(mat, "use_transparent_shadow")
 
         col = layout.column()

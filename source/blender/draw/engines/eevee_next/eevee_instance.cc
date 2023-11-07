@@ -196,6 +196,7 @@ void Instance::object_sync(Object *ob)
                                        OB_VOLUME,
                                        OB_LAMP,
                                        OB_LIGHTPROBE);
+  const bool is_drawable_type = is_renderable_type && !ELEM(ob->type, OB_LAMP, OB_LIGHTPROBE);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -208,15 +209,17 @@ void Instance::object_sync(Object *ob)
 
   /* TODO cleanup. */
   ObjectRef ob_ref = DRW_object_ref_get(ob);
-  ResourceHandle res_handle = manager->resource_handle(ob_ref);
-
   ObjectHandle &ob_handle = sync.sync_object(ob);
+  ResourceHandle res_handle = {0};
+  if (is_drawable_type) {
+    res_handle = manager->resource_handle(ob_ref);
+  }
 
   if (partsys_is_visible && ob != DRW_context_state_get()->object_edit) {
     auto sync_hair =
         [&](ObjectHandle hair_handle, ModifierData &md, ParticleSystem &particle_sys) {
           ResourceHandle _res_handle = manager->resource_handle(float4x4(ob->object_to_world));
-          sync.sync_curves(ob, hair_handle, _res_handle, &md, &particle_sys);
+          sync.sync_curves(ob, hair_handle, _res_handle, ob_ref, &md, &particle_sys);
         };
     foreach_hair_particle_handle(ob, ob_handle, sync_hair);
   }
@@ -238,7 +241,7 @@ void Instance::object_sync(Object *ob)
         sync.sync_volume(ob, ob_handle, res_handle);
         break;
       case OB_CURVES:
-        sync.sync_curves(ob, ob_handle, res_handle);
+        sync.sync_curves(ob, ob_handle, res_handle, ob_ref);
         break;
       case OB_GPENCIL_LEGACY:
         sync.sync_gpencil(ob, ob_handle, res_handle);

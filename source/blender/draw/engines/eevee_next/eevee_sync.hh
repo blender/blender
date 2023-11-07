@@ -161,6 +161,7 @@ class SyncModule {
   void sync_curves(Object *ob,
                    ObjectHandle &ob_handle,
                    ResourceHandle res_handle,
+                   const ObjectRef &ob_ref,
                    ModifierData *modifier_data = nullptr,
                    ParticleSystem *particle_sys = nullptr);
   void sync_light_probe(Object *ob, ObjectHandle &ob_handle);
