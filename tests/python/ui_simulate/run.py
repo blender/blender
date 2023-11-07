@@ -6,8 +6,6 @@ Run interaction tests using event simulation.
 
 Example usage from Blender's source dir:
 
-   ./tests/python/ui_simulate/run.py --blender=./blender.bin --tests test_undo.text_editor_simple
-
 This uses ``test_undo.py``, running the ``text_editor_simple`` function.
 
 To run all tests:
@@ -16,7 +14,7 @@ To run all tests:
 
 For an editor to follow the tests:
 
-   ./lib/python/tests/ui_simulate/run.py --blender=blender.bin --tests '*' \
+   ./tests/python/ui_simulate/run.py --blender=blender.bin --tests '*' \
        --step-command-pre='gvim --remote-silent +{line} "{file}"'
 
 """

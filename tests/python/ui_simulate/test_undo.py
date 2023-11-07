@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Only access for it's methods.
-
+"""
+This file does not run anything, it's methods are accessed for tests by: ``run.py``.
+"""
 
 # FIXME: Since 2.8 or so, there is a problem with simulated events
 # where a popup needs the main-loop to cycle once before new events
@@ -270,6 +271,9 @@ def text_editor_edit_mode_mix():
 # 3D View
 
 def _view3d_startup_area_maximized(e):
+    """
+    Set the 3D viewport and set the area full-screen so no other regions.
+    """
     yield e.shift.f5()                  # 3D Viewport.
     yield e.ctrl.alt.space()            # Full-screen.
     yield e.a()                         # Select all.
@@ -277,6 +281,10 @@ def _view3d_startup_area_maximized(e):
 
 
 def _view3d_startup_area_single(e):
+    """
+    Create a single area (not full screen)
+    this has the advantage that the window can be duplicated (not the case with a full-screened area).
+    """
     yield e.shift.f5()                  # 3D Viewport.
     yield e.a()                         # Select all.
     yield e.delete().ret()              # Delete all.
@@ -444,8 +452,6 @@ def view3d_texture_paint_simple():
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
     yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
     yield e.ctrl.z()                    # Used to crash T61172.
-    # test_undo.view3d_sculpt_dyntopo_simple
-    # test_undo.view3d_texture_paint_simple
 
 
 def view3d_texture_paint_complex():
@@ -597,14 +603,14 @@ def view3d_multi_mode_select():
         object_names.append(window.view_layer.objects.active.name)
 
     yield from _call_menu(e, "View -> Frame All")
-    print(object_names)
+    # print(object_names)
 
     for ob_name in object_names:
         yield from _view3d_object_select_by_name(e, ob_name)
         yield
-        print()
-        print('=' * 40)
-        print(window.view_layer.objects.active.name, ob_name)
+        # print()
+        # print('=' * 40)
+        # print(window.view_layer.objects.active.name, ob_name)
 
     for ob_name in reversed(object_names):
         t.assertEqual(ob_name, window.view_layer.objects.active.name)
