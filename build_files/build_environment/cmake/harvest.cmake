@@ -191,6 +191,14 @@ else()
     harvest(wayland/bin wayland/bin "wayland-scanner")
     harvest(wayland/include wayland/include "*.h")
     harvest(wayland_libdecor/include wayland_libdecor/include "*.h")
+    # Only needed for running the WESTON compositor.
+    harvest(wayland/lib64 wayland/lib64 "*")
+
+    harvest(
+      wayland_weston/
+      wayland_weston/
+      "*"
+    )
   else()
     harvest(blosc/lib openvdb/lib "*.a")
     harvest(xml2/lib opencollada/lib "*.a")

@@ -574,6 +574,13 @@ set(WAYLAND_LIBDECOR_HASH 47b59eba76faa3787f0878bf8700e912)
 set(WAYLAND_LIBDECOR_HASH_TYPE MD5)
 set(WAYLAND_LIBDECOR_HOMEPAGE https://gitlab.freedesktop.org/libdecor/libdecor)
 
+set(WAYLAND_WESTON_VERSION 12.0.92)
+set(WAYLAND_WESTON_FILE weston-${WAYLAND_WESTON_VERSION}.tar.xz)
+set(WAYLAND_WESTON_URI https://gitlab.freedesktop.org/wayland/weston/-/releases/${WAYLAND_WESTON_VERSION}/downloads/weston-${WAYLAND_WESTON_VERSION}.tar.xz)
+set(WAYLAND_WESTON_HASH 44542b60bf9b9fe3add904af11bbad98)
+set(WAYLAND_WESTON_HASH_TYPE MD5)
+set(WAYLAND_WESTON_HOMEPAGE https://wayland.freedesktop.org)
+
 set(ISPC_VERSION v1.17.0)
 set(ISPC_URI https://github.com/ispc/ispc/archive/${ISPC_VERSION}.tar.gz)
 set(ISPC_HASH 4f476a3109332a77fe839a9014c60ca9)
