@@ -3251,10 +3251,19 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
   else {
     char filepath[FILE_MAX];
     STRNCPY(filepath, vfont->filepath);
-    BLI_assert(BLI_thread_is_main());
-    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+    if (BLI_thread_is_main()) {
+      /* FIXME: This is a band-aid fix. A proper solution has to be worked on by the VSE team.
+       *
+       * This code can be called from non-main thread, e.g. when copying sequences as part of
+       * depsgraph CoW copy of the evaluated scene. Just skip font loading in that case, BLF code
+       * is not thread-safe, and if this happens from threaded context, it almost certainly means
+       * that a previous atempt to load the font already failed, e.g. because font filepath is
+       * invalid. Propoer fix would likely be to not attempt to reload a failed-to-load font every
+       * time. */
+      BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
 
-    data->text_blf_id = BLF_load(filepath);
+      data->text_blf_id = BLF_load(filepath);
+    }
   }
 }
 
