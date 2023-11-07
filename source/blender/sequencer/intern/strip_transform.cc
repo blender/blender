@@ -36,8 +36,6 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"seq.strip_transform"};
-
 bool SEQ_transform_single_image_check(Sequence *seq)
 {
   return (seq->flag & SEQ_SINGLE_FRAME_CONTENT) != 0;
@@ -195,7 +193,8 @@ static bool shuffle_seq_test_overlap(const Scene *scene,
                                      const Sequence *seq2,
                                      const int offset)
 {
-  return (seq1 != seq2 && seq1->machine == seq2->machine &&
+  BLI_assert(seq1 != seq2);
+  return (seq1->machine == seq2->machine &&
           ((SEQ_time_right_handle_frame_get(scene, seq1) + offset <=
             SEQ_time_left_handle_frame_get(scene, seq2)) ||
            (SEQ_time_left_handle_frame_get(scene, seq1) + offset >=
@@ -214,16 +213,13 @@ static int shuffle_seq_time_offset_get(const Scene *scene,
     all_conflicts_resolved = true;
     for (Sequence *seq : strips_to_shuffle) {
       LISTBASE_FOREACH (Sequence *, seq_other, seqbasep) {
-        if (!shuffle_seq_test_overlap(scene, seq, seq_other, offset)) {
+        if (strips_to_shuffle.contains(seq_other)) {
           continue;
         }
         if (SEQ_relation_is_effect_of_strip(seq_other, seq)) {
           continue;
         }
-        if (UNLIKELY(strips_to_shuffle.contains(seq_other))) {
-          CLOG_WARN(&LOG,
-                    "Strip overlaps with itself or another strip, that is to be shuffled. "
-                    "This should never happen.");
+        if (!shuffle_seq_test_overlap(scene, seq, seq_other, offset)) {
           continue;
         }
 
