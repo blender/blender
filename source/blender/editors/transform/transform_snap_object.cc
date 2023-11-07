@@ -723,6 +723,12 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   if (sctx->runtime.params.keep_on_same_target) {
     r_nearest->dist_sq = original_distance;
   }
+  else if (sctx->runtime.params.face_nearest_steps > 1) {
+    /* Recalculate the distance.
+     * When multiple steps are tested, we cannot depend on the distance calculated for
+     * `nearest.dist_sq`, as it reduces with each step. */
+    r_nearest->dist_sq = math::distance_squared(sctx->runtime.curr_co, co);
+  }
   return true;
 }
 
