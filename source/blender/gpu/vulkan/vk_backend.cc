@@ -92,6 +92,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.shader_output_layer = true;
     workarounds.shader_output_viewport_index = true;
 
+    device.workarounds_ = workarounds;
     return;
   }
 
