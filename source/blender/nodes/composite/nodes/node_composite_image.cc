@@ -575,10 +575,10 @@ class ImageOperation : public NodeOperation {
     }
   }
 
-  /* Compositor image inputs are expected to be always premultiplied, so identify if the GPU
-   * texture returned by the image module is straight and needs to be premultiplied. An exception
+  /* Compositor image inputs are expected to be always pre-multiplied, so identify if the GPU
+   * texture returned by the image module is straight and needs to be pre-multiplied. An exception
    * is when the image has an alpha mode of channel packed or alpha ignore, in which case, we
-   * always ignore premultiplication. */
+   * always ignore pre-multiplication. */
   bool should_premultiply_alpha(ImageUser &image_user)
   {
     Image *image = get_image();

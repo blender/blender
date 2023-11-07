@@ -1359,16 +1359,14 @@ int isect_line_sphere_v3(const float l1[3],
                          float r_p1[3],
                          float r_p2[3])
 {
-  /* adapted for use in blender by Campbell Barton - 2011
+  /* Adapted for use in blender by Campbell Barton, 2011.
    *
-   * atelier iebele abel - 2001
-   * <atelier@iebele.nl>
    * http://www.iebele.nl
+   * `Atelier Iebele Abel <atelier@iebele.nl>` - 2001.
    *
    * sphere_line_intersection function adapted from:
    * http://astronomy.swin.edu.au/pbourke/geometry/sphereline
-   * Paul Bourke <pbourke@swin.edu.au>
-   */
+   * `Paul Bourke <pbourke@swin.edu.au>`. */
 
   const float ldir[3] = {
       l2[0] - l1[0],
