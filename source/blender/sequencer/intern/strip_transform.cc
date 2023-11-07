@@ -220,7 +220,7 @@ static int shuffle_seq_time_offset_get(const Scene *scene,
         if (SEQ_relation_is_effect_of_strip(seq_other, seq)) {
           continue;
         }
-        if (UNLIKELY(strips_to_shuffle.contains(seq))) {
+        if (UNLIKELY(strips_to_shuffle.contains(seq_other))) {
           CLOG_WARN(&LOG,
                     "Strip overlaps with itself or another strip, that is to be shuffled. "
                     "This should never happen.");
