@@ -1067,7 +1067,7 @@ endif()
 
 if(WITH_UI_TESTS)
   # This could be generated with:
-  # `"${TEST_PYTHON_EXE}" "${TEST_SRC_DIR}/ui_simulate/run.py" --list-tests`
+  # `"${TEST_PYTHON_EXE}" "${CMAKE_CURRENT_LIST_DIR}/ui_simulate/run.py" --list-tests`
   # list explicitly so changes bisecting/updated are sure to re-run CMake.
   set(_undo_tests
     test_undo.text_editor_edit_mode_mix
@@ -1089,7 +1089,7 @@ if(WITH_UI_TESTS)
     add_blender_test_headless(
       "bf_ui_${ui_test}"
       --enable-event-simulate
-      --python "${TEST_SRC_DIR}/ui_simulate/run_blender_setup.py"
+      --python "${CMAKE_CURRENT_LIST_DIR}/ui_simulate/run_blender_setup.py"
       --
       --tests "${ui_test}"
     )
