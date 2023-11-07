@@ -103,7 +103,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "ANIM_fcurve.hh"
+#include "ANIM_action.hh"
 
 #include "MOD_nodes.hh"
 

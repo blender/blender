@@ -36,7 +36,7 @@
 
 #  include "DEG_depsgraph.hh"
 
-#  include "ANIM_fcurve.hh"
+#  include "ANIM_action.hh"
 
 #  include "WM_api.hh"
 

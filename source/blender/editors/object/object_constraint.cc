@@ -60,7 +60,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
-#include "ANIM_fcurve.hh"
+#include "ANIM_action.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

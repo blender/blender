@@ -66,7 +66,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "ANIM_fcurve.hh"
+#include "ANIM_action.hh"
 #include "ANIM_keyframing.hh"
 
 #include "ED_clip.hh"

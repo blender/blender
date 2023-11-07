@@ -8,7 +8,7 @@
 
 #include <cstdio>
 
-#include "ANIM_fcurve.hh"
+#include "ANIM_action.hh"
 #include "ANIM_keyframing.hh"
 
 #include "MEM_guardedalloc.h"

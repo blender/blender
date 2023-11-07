@@ -9,6 +9,7 @@
 #include <cfloat>
 #include <cmath>
 
+#include "ANIM_action.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
