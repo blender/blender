@@ -39,7 +39,8 @@ void vertbuf_data_extract_direct(const GSpan attribute, GPUVertBuf &vbo)
     using Converter = AttributeConverter<T>;
     using VBOType = typename Converter::VBOType;
     const Span<T> src = attribute.typed<T>();
-    MutableSpan data(static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo)), attribute.size());
+    MutableSpan<VBOType> data(static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo)),
+                              attribute.size());
     if constexpr (std::is_same_v<T, VBOType>) {
       array_utils::copy(src, data);
     }
