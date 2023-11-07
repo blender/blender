@@ -343,6 +343,11 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     }
   }
 
+  if (@available(macos 14.0, *)) {
+    /* Use Program Scope Global Built-ins, when available. */
+    global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
+  }
+
 #  ifdef WITH_CYCLES_DEBUG
   global_defines += "#define __KERNEL_DEBUG__\n";
 #  endif
