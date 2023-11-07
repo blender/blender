@@ -319,7 +319,7 @@ BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t
   /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning.
    * No need to check `src` points to a nil byte as this will return from the switch statement. */
   size_t utf8_size;
-  while ((utf8_size = (size_t)utf8_char_compute_skip(*src)) < dst_maxncpy) {
+  while ((utf8_size = size_t(utf8_char_compute_skip(*src))) < dst_maxncpy) {
     dst_maxncpy -= utf8_size;
     /* Prefer more compact block. */
     /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
@@ -356,7 +356,7 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, s
   char *r_dst = dst;
   dst = str_utf8_copy_max_bytes_impl(dst, src, dst_maxncpy);
 
-  return (size_t)(dst - r_dst);
+  return size_t(dst - r_dst);
 }
 
 /* -------------------------------------------------------------------- */
@@ -371,7 +371,7 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
 
   size_t len = 0;
   while (*src && len < dst_maxncpy) {
-    len += BLI_str_utf8_from_unicode((uint)*src++, dst + len, dst_maxncpy - len);
+    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_maxncpy - len);
   }
   dst[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */
@@ -386,7 +386,7 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
   size_t len = 0;
 
   while (*src) {
-    len += BLI_str_utf8_from_unicode_len((uint)*src++);
+    len += BLI_str_utf8_from_unicode_len(uint(*src++));
   }
 
   return len;
@@ -401,7 +401,7 @@ size_t BLI_strlen_utf8_ex(const char *strc, size_t *r_len_bytes)
     strc += BLI_str_utf8_size_safe(strc);
   }
 
-  *r_len_bytes = (size_t)(strc - strc_orig);
+  *r_len_bytes = size_t(strc - strc_orig);
   return len;
 }
 
@@ -418,7 +418,7 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t strc_maxlen, size_t *r
   const char *strc_end = strc + strc_maxlen;
 
   while (true) {
-    size_t step = (size_t)BLI_str_utf8_size_safe(strc);
+    size_t step = size_t(BLI_str_utf8_size_safe(strc));
     if (!*strc || strc + step > strc_end) {
       break;
     }
@@ -426,7 +426,7 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t strc_maxlen, size_t *r
     len++;
   }
 
-  *r_len_bytes = (size_t)(strc - strc_orig);
+  *r_len_bytes = size_t(strc - strc_orig);
   return len;
 }
 
@@ -762,7 +762,7 @@ uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
                                            const size_t p_len,
                                            size_t *__restrict index)
 {
-  const uchar c = (uchar) * (p += *index);
+  const uchar c = uchar(*(p += *index));
 
   BLI_assert(*index < p_len);
   BLI_assert(c != '\0');
@@ -788,7 +788,7 @@ uint BLI_str_utf8_as_unicode_step_safe(const char *__restrict p,
 {
   uint result = BLI_str_utf8_as_unicode_step_or_error(p, p_len, index);
   if (UNLIKELY(result == BLI_UTF8_ERR)) {
-    result = (uint)p[*index];
+    result = uint(p[*index]);
     *index += 1;
   }
   BLI_assert(*index <= p_len);
@@ -854,10 +854,10 @@ size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
   }
 
   for (uint i = len - 1; i > 0; i--) {
-    dst[i] = (char)((c & 0x3f) | 0x80);
+    dst[i] = char((c & 0x3f) | 0x80);
     c >>= 6;
   }
-  dst[0] = (char)(c | first);
+  dst[0] = char(c | first);
 
   return len;
 }
@@ -883,7 +883,7 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
     else {
       *dst_w = '?';
       const char *src_c_next = BLI_str_find_next_char_utf8(src_c + index, src_c_end);
-      index = (size_t)(src_c_next - src_c);
+      index = size_t(src_c_next - src_c);
     }
     dst_w++;
     len++;
@@ -903,7 +903,7 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
 
   size_t len = 0;
   while (*src && len < dst_maxncpy) {
-    len += BLI_str_utf8_from_unicode((uint)*src++, dst + len, dst_maxncpy - len);
+    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_maxncpy - len);
   }
   dst[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */
@@ -919,7 +919,7 @@ size_t BLI_str_utf32_as_utf8_len_ex(const char32_t *src, const size_t src_maxlen
   const char32_t *src_end = src + src_maxlen;
 
   while ((src < src_end) && *src) {
-    len += BLI_str_utf8_from_unicode_len((uint)*src++);
+    len += BLI_str_utf8_from_unicode_len(uint(*src++));
   }
 
   return len;
@@ -930,7 +930,7 @@ size_t BLI_str_utf32_as_utf8_len(const char32_t *src)
   size_t len = 0;
 
   while (*src) {
-    len += BLI_str_utf8_from_unicode_len((uint)*src++);
+    len += BLI_str_utf8_from_unicode_len(uint(*src++));
   }
 
   return len;
@@ -987,7 +987,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  const char **r_suf,
                                  const bool from_right)
 {
-  const size_t str_len = end ? (size_t)(end - str) : strlen(str);
+  const size_t str_len = end ? size_t(end - str) : strlen(str);
   if (end == nullptr) {
     end = str + str_len;
   }
@@ -1003,7 +1003,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                    str + index))
   {
     size_t index_ofs = 0;
-    const uint c = BLI_str_utf8_as_unicode_step_or_error(sep, (size_t)(end - sep), &index_ofs);
+    const uint c = BLI_str_utf8_as_unicode_step_or_error(sep, size_t(end - sep), &index_ofs);
     if (UNLIKELY(c == BLI_UTF8_ERR)) {
       break;
     }
@@ -1014,7 +1014,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
         /* `suf` is already correct in case from_right is true. */
         *r_sep = sep;
         *r_suf = from_right ? suf : (char *)(str + index);
-        return (size_t)(sep - str);
+        return size_t(sep - str);
       }
     }
 
@@ -1063,7 +1063,7 @@ int BLI_str_utf8_offset_from_index(const char *str, const size_t str_len, const 
     UNUSED_VARS(code);
     index++;
   }
-  return (int)offset;
+  return int(offset);
 }
 
 int BLI_str_utf8_offset_to_column(const char *str, const size_t str_len, const int offset_target)
@@ -1092,7 +1092,7 @@ int BLI_str_utf8_offset_from_column(const char *str, const size_t str_len, const
     }
     offset = offset_next;
   }
-  return (int)offset;
+  return int(offset);
 }
 
 int BLI_str_utf8_offset_to_column_with_tabs(const char *str,
@@ -1129,7 +1129,7 @@ int BLI_str_utf8_offset_from_column_with_tabs(const char *str,
     }
     offset = offset_next;
   }
-  return (int)offset;
+  return int(offset);
 }
 
 /** \} */

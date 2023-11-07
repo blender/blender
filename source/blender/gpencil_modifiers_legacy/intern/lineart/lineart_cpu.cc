@@ -3616,7 +3616,7 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     ld->qtree.recursive_level = LRT_TILE_RECURSIVE_ORTHO;
   }
 
-  double asp = (double(ld->w) / double(ld->h));
+  double asp = double(ld->w) / double(ld->h);
   int fit = BKE_camera_sensor_fit(c->sensor_fit, ld->w, ld->h);
   ld->conf.shift_x = fit == CAMERA_SENSOR_FIT_HOR ? c->shiftx : c->shiftx / asp;
   ld->conf.shift_y = fit == CAMERA_SENSOR_FIT_VERT ? c->shifty : c->shifty * asp;

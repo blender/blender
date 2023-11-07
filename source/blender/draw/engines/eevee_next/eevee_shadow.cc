@@ -321,7 +321,7 @@ void ShadowPunctual::compute_projection_boundaries(float light_radius,
    * TODO(fclem): Explain derivation.
    */
   float cos_alpha = shadow_radius / max_lit_distance;
-  float sin_alpha = sqrt((1.0f - math::square(cos_alpha)));
+  float sin_alpha = sqrt(1.0f - math::square(cos_alpha));
   float near_shift = M_SQRT2 * shadow_radius * 0.5f * (sin_alpha - cos_alpha);
   float side_shift = M_SQRT2 * shadow_radius * 0.5f * (sin_alpha + cos_alpha);
   float origin_shift = M_SQRT2 * shadow_radius / (sin_alpha - cos_alpha);
@@ -345,7 +345,7 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
       light_radius_, light_radius_ * softness_factor_, max_distance_, near, far, side);
 
   /* Shift shadow map origin for area light to avoid clipping nearby geometry. */
-  float shift = (is_area_light(light.type)) ? near : 0.0f;
+  float shift = is_area_light(light.type) ? near : 0.0f;
 
   float4x4 obmat_tmp = light.object_mat;
 

@@ -1822,7 +1822,7 @@ static size_t animdata_filter_grease_pencil_layer_node_recursive(
     size_t tmp_items = 0;
 
     /* Add grease pencil layer channels. */
-    BEGIN_ANIMFILTER_SUBCHANNELS ((layer_group.base.flag & GP_LAYER_TREE_NODE_EXPANDED)) {
+    BEGIN_ANIMFILTER_SUBCHANNELS (layer_group.base.flag &GP_LAYER_TREE_NODE_EXPANDED) {
       LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group.children) {
         tmp_items += animdata_filter_grease_pencil_layer_node_recursive(
             &tmp_data, ads, grease_pencil, node_->wrap(), filter_mode);

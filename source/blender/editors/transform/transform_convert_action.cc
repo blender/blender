@@ -498,7 +498,7 @@ static int GreasePencilLayerToTransData(TransData *td,
   };
 
   const blender::Map<int, GreasePencilFrame> &frame_map =
-      duplicate ? (layer->runtime->trans_data_.temp_frames_buffer) : (layer->frames());
+      duplicate ? (layer->runtime->trans_data_.temp_frames_buffer) : layer->frames();
 
   for (const auto [frame_number, frame] : frame_map.items()) {
     grease_pencil_frame_to_trans_data(frame_number, frame.is_selected());

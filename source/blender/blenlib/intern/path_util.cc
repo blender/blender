@@ -76,7 +76,7 @@ int BLI_path_sequence_decode(const char *path,
   const char *const lslash = BLI_path_slash_rfind(path);
   const char *const extension = BLI_path_extension_or_end(lslash ? lslash : path);
   const uint lslash_len = lslash != nullptr ? int(lslash - path) : 0;
-  const uint name_end = (uint)(extension - path);
+  const uint name_end = uint(extension - path);
 
   for (i = name_end - 1; i >= int(lslash_len); i--) {
     if (isdigit(path[i])) {
@@ -108,7 +108,7 @@ int BLI_path_sequence_decode(const char *path,
       if (r_digits_len) {
         *r_digits_len = nume - nums + 1;
       }
-      return (int)ret;
+      return int(ret);
     }
   }
 
@@ -1166,7 +1166,7 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
 
     if (lslash) {
       /* Length up to and including last `/`. */
-      const int baselen = (int)(lslash - base) + 1;
+      const int baselen = int(lslash - base) + 1;
       /* Use path for temp storage here, we copy back over it right away. */
       BLI_strncpy(path, tmp + 2, FILE_MAX); /* Strip `//` prefix. */
 

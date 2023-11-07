@@ -1939,7 +1939,7 @@ static std::string unique_node_name(const GreasePencil &grease_pencil,
 {
   using namespace blender;
   char unique_name[MAX_NAME];
-  BLI_strncpy(unique_name, name.c_str(), MAX_NAME);
+  STRNCPY(unique_name, name.c_str());
   VectorSet<StringRefNull> names = get_node_names(grease_pencil);
   unique_node_name_ex(names, default_name, unique_name);
   return unique_name;

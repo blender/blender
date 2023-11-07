@@ -509,7 +509,7 @@ void DRW_curves_update()
     GPUFrameBuffer *temp_fb = nullptr;
     GPUFrameBuffer *prev_fb = nullptr;
     if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-      if (!(GPU_compute_shader_support())) {
+      if (!GPU_compute_shader_support()) {
         prev_fb = GPU_framebuffer_active_get();
         char errorOut[256];
         /* if the frame-buffer is invalid we need a dummy frame-buffer to be bound. */

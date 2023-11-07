@@ -1793,7 +1793,7 @@ static int exr_has_rgb(MultiPartInputFile &file, const char *rgb_channels[3])
     std::transform(lower_case_name.begin(),
                    lower_case_name.end(),
                    lower_case_name.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
+                   [](uchar c) { return std::tolower(c); });
 
     if (header.channels().findChannel(channel_names[i]) ||
         header.channels().findChannel(lower_case_name))

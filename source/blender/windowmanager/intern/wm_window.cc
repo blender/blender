@@ -1704,7 +1704,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
      * Even though using `floor` or `round` is more responsive,
      * it causes CPU intensive loops that may run until the timer is reached, see: #111579. */
     const double microseconds = 1000000.0;
-    const double sleep_sec = (double(sleep_us) / microseconds);
+    const double sleep_sec = double(sleep_us) / microseconds;
     const double sleep_sec_next = ntime_min - time;
 
     if (sleep_sec_next < sleep_sec) {

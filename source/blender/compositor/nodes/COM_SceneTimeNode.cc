@@ -21,7 +21,7 @@ void SceneTimeNode::convert_to_operations(NodeConverter &converter,
 
   const int frameNumber = context.get_framenumber();
   const Scene *scene = context.get_scene();
-  const double frameRate = (double(scene->r.frs_sec) / double(scene->r.frs_sec_base));
+  const double frameRate = double(scene->r.frs_sec) / double(scene->r.frs_sec_base);
 
   SecondOperation->set_value(float(frameNumber / frameRate));
   converter.add_operation(SecondOperation);

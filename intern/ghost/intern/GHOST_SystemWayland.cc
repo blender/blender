@@ -726,7 +726,7 @@ static void gwl_primary_selection_discard_source(GWL_PrimarySelection *primary)
 
 #ifdef WITH_INPUT_IME
 struct GWL_SeatIME {
-  struct wl_surface *surface_window = nullptr;
+  wl_surface *surface_window = nullptr;
   GHOST_TEventImeData event_ime_data = {
       /*result_len*/ nullptr,
       /*composite_len*/ nullptr,
@@ -806,7 +806,7 @@ struct GWL_Seat {
     std::unordered_set<zwp_tablet_tool_v2 *> tablet_tools;
 
 #ifdef WITH_INPUT_IME
-    struct zwp_text_input_v3 *text_input = nullptr;
+    zwp_text_input_v3 *text_input = nullptr;
 #endif
   } wp;
 
@@ -1063,7 +1063,7 @@ struct GWL_Display {
     zwp_pointer_constraints_v1 *pointer_constraints = nullptr;
     zwp_pointer_gestures_v1 *pointer_gestures = nullptr;
 #ifdef WITH_INPUT_IME
-    struct zwp_text_input_manager_v3 *text_input_manager = nullptr;
+    zwp_text_input_manager_v3 *text_input_manager = nullptr;
 #endif
   } wp;
 
@@ -4566,7 +4566,7 @@ static CLG_LogRef LOG_WL_TEXT_INPUT = {"ghost.wl.handle.text_input"};
 
 static void text_input_handle_enter(void *data,
                                     zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                    struct wl_surface *surface)
+                                    wl_surface *surface)
 {
   if (!ghost_wl_surface_own(surface)) {
     return;
@@ -4578,7 +4578,7 @@ static void text_input_handle_enter(void *data,
 
 static void text_input_handle_leave(void *data,
                                     zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                    struct wl_surface *surface)
+                                    wl_surface *surface)
 {
   /* Can be null when closing a window. */
   if (!ghost_wl_surface_own_with_null_check(surface)) {
@@ -4747,7 +4747,7 @@ static void text_input_handle_done(void *data,
   seat->ime.has_commit_string_callback = false;
 }
 
-static struct zwp_text_input_v3_listener text_input_listener = {
+static zwp_text_input_v3_listener text_input_listener = {
     /*enter*/ text_input_handle_enter,
     /*leave*/ text_input_handle_leave,
     /*preedit_string*/ text_input_handle_preedit_string,
@@ -5773,7 +5773,7 @@ static void gwl_registry_wp_text_input_manager_remove(GWL_Display *display,
                                                       void * /*user_data*/,
                                                       const bool /*on_exit*/)
 {
-  struct zwp_text_input_manager_v3 **value_p = &display->wp.text_input_manager;
+  zwp_text_input_manager_v3 **value_p = &display->wp.text_input_manager;
   zwp_text_input_manager_v3_destroy(*value_p);
   *value_p = nullptr;
 }

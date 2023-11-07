@@ -155,8 +155,8 @@ float4 summed_area_table_sum_tiled(SocketReader *buffer, const rcti &area)
 
   int2 corrected_lower_bound = lower_bound - int2(1, 1);
   int2 corrected_upper_bound;
-  corrected_upper_bound[0] = math::min((int)buffer->get_width() - 1, upper_bound[0]);
-  corrected_upper_bound[1] = math::min((int)buffer->get_height() - 1, upper_bound[1]);
+  corrected_upper_bound[0] = math::min(int(buffer->get_width()) - 1, upper_bound[0]);
+  corrected_upper_bound[1] = math::min(int(buffer->get_height()) - 1, upper_bound[1]);
 
   float4 a, b, c, d, addend, substrahend;
   buffer->read_sampled(

@@ -862,9 +862,9 @@ static int recursive_operation(const char *startfrom,
                                RecursiveOp_Callback callback_dir_post)
 {
   struct stat st;
-  char *from = NULL, *to = nullptr;
-  char *from_path = NULL, *to_path = nullptr;
-  struct dirent **dirlist = nullptr;
+  char *from = nullptr, *to = nullptr;
+  char *from_path = nullptr, *to_path = nullptr;
+  dirent **dirlist = nullptr;
   size_t from_alloc_len = -1, to_alloc_len = -1;
   int i, n = 0, ret = 0;
 
@@ -916,7 +916,7 @@ static int recursive_operation(const char *startfrom,
     }
 
     for (i = 0; i < n; i++) {
-      const struct dirent *const dirent = dirlist[i];
+      const dirent *const dirent = dirlist[i];
 
       if (FILENAME_IS_CURRPAR(dirent->d_name)) {
         continue;
@@ -1062,8 +1062,8 @@ static int delete_soft(const char *file, const char **error_message)
   char *xdg_current_desktop = getenv("XDG_CURRENT_DESKTOP");
   char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
-  if ((xdg_current_desktop != NULL && STREQ(xdg_current_desktop, "KDE")) ||
-      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE")))
+  if ((xdg_current_desktop != nullptr && STREQ(xdg_current_desktop, "KDE")) ||
+      (xdg_session_desktop != nullptr && STREQ(xdg_session_desktop, "KDE")))
   {
     args[0] = "kioclient5";
     args[1] = "move";

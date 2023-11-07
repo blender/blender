@@ -624,7 +624,7 @@ int WM_event_absolute_delta_y(const wmEvent *event)
  *
  * \note Shift is excluded from this check since it prevented typing `Shift+Space`, see: #85517.
  */
-bool WM_event_is_ime_switch(const struct wmEvent *event)
+bool WM_event_is_ime_switch(const wmEvent *event)
 {
   return (event->val == KM_PRESS) && (event->type == EVT_SPACEKEY) &&
          (event->modifier & (KM_CTRL | KM_OSKEY | KM_ALT));

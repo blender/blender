@@ -2427,7 +2427,7 @@ void CustomData_ensure_data_is_mutable(CustomDataLayer *layer, const int totelem
   ensure_layer_data_is_mutable(*layer, totelem);
 }
 
-void CustomData_ensure_layers_are_mutable(struct CustomData *data, int totelem)
+void CustomData_ensure_layers_are_mutable(CustomData *data, int totelem)
 {
   for (const int i : IndexRange(data->totlayer)) {
     ensure_layer_data_is_mutable(data->layers[i], totelem);

@@ -547,8 +547,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     blo_update_defaults_scene(bmain, scene);
 
-    if (app_template &&
-        (STREQ(app_template, "Video_Editing") || STREQ(app_template, "2D_Animation"))) {
+    if (app_template && STR_ELEM(app_template, "Video_Editing", "2D_Animation")) {
       /* Filmic is too slow, use standard until it is optimized. */
       STRNCPY(scene->view_settings.view_transform, "Standard");
       STRNCPY(scene->view_settings.look, "None");

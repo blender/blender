@@ -174,7 +174,7 @@ static void gizmo_snap_rna_snap_elem_index_get_fn(PointerRNA * /*ptr*/,
 static int gizmo_snap_rna_snap_srouce_type_get_fn(PointerRNA * /*ptr*/, PropertyRNA * /*prop*/)
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  return (int)snap_data->type_source;
+  return int(snap_data->type_source);
 }
 
 static void gizmo_snap_rna_snap_srouce_type_set_fn(PointerRNA * /*ptr*/,

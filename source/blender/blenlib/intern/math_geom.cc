@@ -653,7 +653,7 @@ void aabb_get_near_far_from_plane(const float plane_no[3],
 /** \name dist_squared_to_ray_to_aabb and helpers
  * \{ */
 
-void dist_squared_ray_to_aabb_v3_precalc(struct DistRayAABB_Precalc *neasrest_precalc,
+void dist_squared_ray_to_aabb_v3_precalc(DistRayAABB_Precalc *neasrest_precalc,
                                          const float ray_origin[3],
                                          const float ray_direction[3])
 {
@@ -667,7 +667,7 @@ void dist_squared_ray_to_aabb_v3_precalc(struct DistRayAABB_Precalc *neasrest_pr
   }
 }
 
-float dist_squared_ray_to_aabb_v3(const struct DistRayAABB_Precalc *data,
+float dist_squared_ray_to_aabb_v3(const DistRayAABB_Precalc *data,
                                   const float bb_min[3],
                                   const float bb_max[3],
                                   float r_point[3],
@@ -763,7 +763,7 @@ float dist_squared_ray_to_aabb_v3_simple(const float ray_origin[3],
                                          float r_point[3],
                                          float *r_depth)
 {
-  struct DistRayAABB_Precalc data;
+  DistRayAABB_Precalc data;
   dist_squared_ray_to_aabb_v3_precalc(&data, ray_origin, ray_direction);
   return dist_squared_ray_to_aabb_v3(&data, bb_min, bb_max, r_point, r_depth);
 }
@@ -774,7 +774,7 @@ float dist_squared_ray_to_aabb_v3_simple(const float ray_origin[3],
 /** \name dist_squared_to_projected_aabb and helpers
  * \{ */
 
-void dist_squared_to_projected_aabb_precalc(struct DistProjectedAABBPrecalc *precalc,
+void dist_squared_to_projected_aabb_precalc(DistProjectedAABBPrecalc *precalc,
                                             const float projmat[4][4],
                                             const float winsize[2],
                                             const float mval[2])
@@ -826,7 +826,7 @@ void dist_squared_to_projected_aabb_precalc(struct DistProjectedAABBPrecalc *pre
   }
 }
 
-float dist_squared_to_projected_aabb(struct DistProjectedAABBPrecalc *data,
+float dist_squared_to_projected_aabb(DistProjectedAABBPrecalc *data,
                                      const float bbmin[3],
                                      const float bbmax[3],
                                      bool r_axis_closest[3])
@@ -962,7 +962,7 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
                                             const float bbmin[3],
                                             const float bbmax[3])
 {
-  struct DistProjectedAABBPrecalc data;
+  DistProjectedAABBPrecalc data;
   dist_squared_to_projected_aabb_precalc(&data, projmat, winsize, mval);
 
   bool dummy[3] = {true, true, true};
@@ -1070,14 +1070,14 @@ int isect_seg_seg_v2_int(const int v1[2], const int v2[2], const int v3[2], cons
 {
   float div, lambda, mu;
 
-  div = (float)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
+  div = float((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
   if (div == 0.0f) {
     return ISECT_LINE_LINE_COLINEAR;
   }
 
-  lambda = (float)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+  lambda = float((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
-  mu = (float)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+  mu = float((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
   if (lambda >= 0.0f && lambda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
     if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) {
@@ -1120,9 +1120,9 @@ int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], co
     return ISECT_LINE_LINE_COLINEAR;
   }
 
-  lambda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+  lambda = (float(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
-  mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+  mu = (float(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
   if (lambda >= 0.0f && lambda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
     if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) {
@@ -1781,7 +1781,7 @@ bool isect_ray_tri_epsilon_v3(const float ray_origin[3],
   return true;
 }
 
-void isect_ray_tri_watertight_v3_precalc(struct IsectRayPrecalc *isect_precalc,
+void isect_ray_tri_watertight_v3_precalc(IsectRayPrecalc *isect_precalc,
                                          const float ray_direction[3])
 {
   float inv_dir_z;
@@ -1809,7 +1809,7 @@ void isect_ray_tri_watertight_v3_precalc(struct IsectRayPrecalc *isect_precalc,
 }
 
 bool isect_ray_tri_watertight_v3(const float ray_origin[3],
-                                 const struct IsectRayPrecalc *isect_precalc,
+                                 const IsectRayPrecalc *isect_precalc,
                                  const float v0[3],
                                  const float v1[3],
                                  const float v2[3],
@@ -1859,7 +1859,7 @@ bool isect_ray_tri_watertight_v3(const float ray_origin[3],
   /* Calculate scaled z-coordinates of vertices and use them to calculate
    * the hit distance.
    */
-  const int sign_det = (float_as_int(det) & (int)0x80000000);
+  const int sign_det = (float_as_int(det) & int(0x80000000));
   const float t = (u * a_kz + v * b_kz + w * c_kz) * sz;
   const float sign_t = xor_fl(t, sign_det);
   if ((sign_t < 0.0f)
@@ -1892,7 +1892,7 @@ bool isect_ray_tri_watertight_v3_simple(const float ray_origin[3],
                                         float *r_lambda,
                                         float r_uv[2])
 {
-  struct IsectRayPrecalc isect_precalc;
+  IsectRayPrecalc isect_precalc;
   isect_ray_tri_watertight_v3_precalc(&isect_precalc, ray_direction);
   return isect_ray_tri_watertight_v3(ray_origin, &isect_precalc, v0, v1, v2, r_lambda, r_uv);
 }
@@ -2250,9 +2250,9 @@ bool isect_tri_tri_v3_ex(const float tri_a[3][3],
   sub_v3db_v3fl_v3fl(bc, tri_a[2], tri_a[1]);
   cross_v3_v3v3_db(plane_a, ba, bc);
   plane_a[3] = -dot_v3db_v3fl(plane_a, tri_a[1]);
-  side[1][0] = (float)(dot_v3db_v3fl(plane_a, tri_b[0]) + plane_a[3]);
-  side[1][1] = (float)(dot_v3db_v3fl(plane_a, tri_b[1]) + plane_a[3]);
-  side[1][2] = (float)(dot_v3db_v3fl(plane_a, tri_b[2]) + plane_a[3]);
+  side[1][0] = float(dot_v3db_v3fl(plane_a, tri_b[0]) + plane_a[3]);
+  side[1][1] = float(dot_v3db_v3fl(plane_a, tri_b[1]) + plane_a[3]);
+  side[1][2] = float(dot_v3db_v3fl(plane_a, tri_b[2]) + plane_a[3]);
 
   if (!side[1][0] && !side[1][1] && !side[1][2]) {
     /* Coplanar case is not supported. */
@@ -2271,9 +2271,9 @@ bool isect_tri_tri_v3_ex(const float tri_a[3][3],
   sub_v3db_v3fl_v3fl(bc, tri_b[2], tri_b[1]);
   cross_v3_v3v3_db(plane_b, ba, bc);
   plane_b[3] = -dot_v3db_v3fl(plane_b, tri_b[1]);
-  side[0][0] = (float)(dot_v3db_v3fl(plane_b, tri_a[0]) + plane_b[3]);
-  side[0][1] = (float)(dot_v3db_v3fl(plane_b, tri_a[1]) + plane_b[3]);
-  side[0][2] = (float)(dot_v3db_v3fl(plane_b, tri_a[2]) + plane_b[3]);
+  side[0][0] = float(dot_v3db_v3fl(plane_b, tri_a[0]) + plane_b[3]);
+  side[0][1] = float(dot_v3db_v3fl(plane_b, tri_a[1]) + plane_b[3]);
+  side[0][2] = float(dot_v3db_v3fl(plane_b, tri_a[2]) + plane_b[3]);
 
   if ((side[0][0] && side[0][1] && side[0][2]) && (side[0][0] < 0.0f) == (side[0][1] < 0.0f) &&
       (side[0][0] < 0.0f) == (side[0][2] < 0.0f))
@@ -2323,13 +2323,13 @@ bool isect_tri_tri_v3_ex(const float tri_a[3][3],
         SWAP(int, tri_i[0], tri_i[2]);
       }
 
-      range[i].min = (float)(dot_b + offset0);
-      range[i].max = (float)(dot_b + offset1);
+      range[i].min = float(dot_b + offset0);
+      range[i].max = float(dot_b + offset1);
       interp_v3_v3v3(range[i].loc[0], tri[tri_i[1]], tri[tri_i[0]], fac0);
       interp_v3_v3v3(range[i].loc[1], tri[tri_i[1]], tri[tri_i[2]], fac1);
     }
     else {
-      range[i].min = range[i].max = (float)dot_b;
+      range[i].min = range[i].max = float(dot_b);
       copy_v3_v3(range[i].loc[0], tri[tri_i[1]]);
       copy_v3_v3(range[i].loc[1], tri[tri_i[1]]);
     }
@@ -3019,12 +3019,12 @@ bool isect_ray_ray_epsilon_v3(const float ray_origin_a[3],
   sub_v3_v3v3(t, ray_origin_b, ray_origin_a);
   sub_v3_v3v3(c, n, t);
 
-  if (r_lambda_a != NULL) {
+  if (r_lambda_a != nullptr) {
     cross_v3_v3v3(cray, c, ray_direction_b);
     *r_lambda_a = dot_v3v3(cray, n) / nlen;
   }
 
-  if (r_lambda_b != NULL) {
+  if (r_lambda_b != nullptr) {
     cross_v3_v3v3(cray, c, ray_direction_a);
     *r_lambda_b = dot_v3v3(cray, n) / nlen;
   }
@@ -3057,7 +3057,7 @@ bool isect_aabb_aabb_v3(const float min1[3],
           min2[1] < max1[1] && min2[2] < max1[2]);
 }
 
-void isect_ray_aabb_v3_precalc(struct IsectRayAABB_Precalc *data,
+void isect_ray_aabb_v3_precalc(IsectRayAABB_Precalc *data,
                                const float ray_origin[3],
                                const float ray_direction[3])
 {
@@ -3072,7 +3072,7 @@ void isect_ray_aabb_v3_precalc(struct IsectRayAABB_Precalc *data,
   data->sign[2] = data->ray_inv_dir[2] < 0.0f;
 }
 
-bool isect_ray_aabb_v3(const struct IsectRayAABB_Precalc *data,
+bool isect_ray_aabb_v3(const IsectRayAABB_Precalc *data,
                        const float bb_min[3],
                        const float bb_max[3],
                        float *tmin_out)
@@ -3133,17 +3133,17 @@ bool isect_ray_aabb_v3_simple(const float orig[3],
 {
   double t[6];
   float hit_dist[2];
-  const double invdirx = (dir[0] > 1e-35f || dir[0] < -1e-35f) ? 1.0 / (double)dir[0] : DBL_MAX;
-  const double invdiry = (dir[1] > 1e-35f || dir[1] < -1e-35f) ? 1.0 / (double)dir[1] : DBL_MAX;
-  const double invdirz = (dir[2] > 1e-35f || dir[2] < -1e-35f) ? 1.0 / (double)dir[2] : DBL_MAX;
-  t[0] = (double)(bb_min[0] - orig[0]) * invdirx;
-  t[1] = (double)(bb_max[0] - orig[0]) * invdirx;
-  t[2] = (double)(bb_min[1] - orig[1]) * invdiry;
-  t[3] = (double)(bb_max[1] - orig[1]) * invdiry;
-  t[4] = (double)(bb_min[2] - orig[2]) * invdirz;
-  t[5] = (double)(bb_max[2] - orig[2]) * invdirz;
-  hit_dist[0] = (float)fmax(fmax(fmin(t[0], t[1]), fmin(t[2], t[3])), fmin(t[4], t[5]));
-  hit_dist[1] = (float)fmin(fmin(fmax(t[0], t[1]), fmax(t[2], t[3])), fmax(t[4], t[5]));
+  const double invdirx = (dir[0] > 1e-35f || dir[0] < -1e-35f) ? 1.0 / double(dir[0]) : DBL_MAX;
+  const double invdiry = (dir[1] > 1e-35f || dir[1] < -1e-35f) ? 1.0 / double(dir[1]) : DBL_MAX;
+  const double invdirz = (dir[2] > 1e-35f || dir[2] < -1e-35f) ? 1.0 / double(dir[2]) : DBL_MAX;
+  t[0] = double(bb_min[0] - orig[0]) * invdirx;
+  t[1] = double(bb_max[0] - orig[0]) * invdirx;
+  t[2] = double(bb_min[1] - orig[1]) * invdiry;
+  t[3] = double(bb_max[1] - orig[1]) * invdiry;
+  t[4] = double(bb_min[2] - orig[2]) * invdirz;
+  t[5] = double(bb_max[2] - orig[2]) * invdirz;
+  hit_dist[0] = float(fmax(fmax(fmin(t[0], t[1]), fmin(t[2], t[3])), fmin(t[4], t[5])));
+  hit_dist[1] = float(fmin(fmin(fmax(t[0], t[1]), fmax(t[2], t[3])), fmax(t[4], t[5])));
   if ((hit_dist[1] < 0.0f) || (hit_dist[0] > hit_dist[1])) {
     return false;
   }
@@ -3314,17 +3314,17 @@ int isect_point_tri_v2_int(
 {
   float v1[2], v2[2], v3[2], p[2];
 
-  v1[0] = (float)x1;
-  v1[1] = (float)y1;
+  v1[0] = float(x1);
+  v1[1] = float(y1);
 
-  v2[0] = (float)x1;
-  v2[1] = (float)y2;
+  v2[0] = float(x1);
+  v2[1] = float(y2);
 
-  v3[0] = (float)x2;
-  v3[1] = (float)y1;
+  v3[0] = float(x2);
+  v3[1] = float(y1);
 
-  p[0] = (float)a;
-  p[1] = (float)b;
+  p[0] = float(a);
+  p[1] = float(b);
 
   return isect_point_tri_v2(p, v1, v2, v3);
 }
@@ -3979,9 +3979,9 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
   for (i = 0; i < list_size; i++) {
     if (array[i] == skipval) {
       if (array_up[i] != skipval && array_down[i] != skipval) {
-        array[i] = ((array_up[i] * (float)ofs_tot_down[i]) +
-                    (array_down[i] * (float)ofs_tot_up[i])) /
-                   (float)(ofs_tot_down[i] + ofs_tot_up[i]);
+        array[i] = ((array_up[i] * float(ofs_tot_down[i])) +
+                    (array_down[i] * float(ofs_tot_up[i]))) /
+                   float(ofs_tot_down[i] + ofs_tot_up[i]);
       }
       else if (array_up[i] != skipval) {
         array[i] = array_up[i];
@@ -4026,8 +4026,7 @@ struct Double2_Len {
 
 /* Mean value weights - smooth interpolation weights for polygons with
  * more than 3 vertices */
-static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
-                                    const struct Float3_Len *d_next)
+static float mean_value_half_tan_v3(const Float3_Len *d_curr, const Float3_Len *d_next)
 {
   float cross[3];
   cross_v3_v3v3(cross, d_curr->dir, d_next->dir);
@@ -4053,8 +4052,7 @@ static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
  * do not indicate a point "inside" the polygon.
  * To resolve this, doubles are used.
  */
-static double mean_value_half_tan_v2_db(const struct Double2_Len *d_curr,
-                                        const struct Double2_Len *d_next)
+static double mean_value_half_tan_v2_db(const Double2_Len *d_curr, const Double2_Len *d_next)
 {
   /* Different from the 3d version but still correct. */
   const double area = cross_v2v2_db(d_curr->dir, d_next->dir);
@@ -4091,7 +4089,7 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
   float totweight = 0.0f;
   int i_curr, i_next;
   char ix_flag = 0;
-  struct Float3_Len d_curr, d_next;
+  Float3_Len d_curr, d_next;
 
   /* loop over 'i_next' */
   i_curr = n - 1;
@@ -4134,7 +4132,7 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
   }
 
   if (ix_flag) {
-    memset(w, 0, sizeof(*w) * (size_t)n);
+    memset(w, 0, sizeof(*w) * size_t(n));
 
     if (ix_flag & IS_POINT_IX) {
       w[i_curr] = 1.0f;
@@ -4176,7 +4174,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
   float totweight = 0.0f;
   int i_curr, i_next;
   char ix_flag = 0;
-  struct Double2_Len d_curr, d_next;
+  Double2_Len d_curr, d_next;
 
   /* loop over 'i_next' */
   i_curr = n - 1;
@@ -4207,7 +4205,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
     d_curr = d_next;
     DIR_V2_SET(&d_next, v_next, co);
     ht = mean_value_half_tan_v2_db(&d_curr, &d_next);
-    w[i_curr] = (d_curr.len == 0.0) ? 0.0f : (float)((ht_prev + ht) / d_curr.len);
+    w[i_curr] = (d_curr.len == 0.0) ? 0.0f : float((ht_prev + ht) / d_curr.len);
     totweight += w[i_curr];
 
     /* step */
@@ -4219,7 +4217,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
   }
 
   if (ix_flag) {
-    memset(w, 0, sizeof(*w) * (size_t)n);
+    memset(w, 0, sizeof(*w) * size_t(n));
 
     if (ix_flag & IS_POINT_IX) {
       w[i_curr] = 1.0f;
@@ -4297,8 +4295,8 @@ void resolve_tri_uv_v2(
   if (IS_ZERO(det) == 0) {
     const double x[2] = {st[0] - st2[0], st[1] - st2[1]};
 
-    r_uv[0] = (float)((d * x[0] - b * x[1]) / det);
-    r_uv[1] = (float)(((-c) * x[0] + a * x[1]) / det);
+    r_uv[0] = float((d * x[0] - b * x[1]) / det);
+    r_uv[1] = float(((-c) * x[0] + a * x[1]) / det);
   }
   else {
     zero_v2(r_uv);
@@ -4327,8 +4325,8 @@ void resolve_tri_uv_v3(
   if (IS_ZERO(det) == 0) {
     float w;
 
-    w = (float)((d00 * d21 - d01 * d20) / det);
-    r_uv[1] = (float)((d11 * d20 - d01 * d21) / det);
+    w = float((d00 * d21 - d01 * d20) / det);
+    r_uv[1] = float((d11 * d20 - d01 * d21) / det);
     r_uv[0] = 1.0f - r_uv[1] - w;
   }
   else {
@@ -4343,7 +4341,7 @@ void resolve_quad_uv_v2(float r_uv[2],
                         const float st2[2],
                         const float st3[2])
 {
-  resolve_quad_uv_v2_deriv(r_uv, NULL, st, st0, st1, st2, st3);
+  resolve_quad_uv_v2_deriv(r_uv, nullptr, st, st0, st1, st2, st3);
 }
 
 void resolve_quad_uv_v2_deriv(float r_uv[2],
@@ -4364,10 +4362,9 @@ void resolve_quad_uv_v2_deriv(float r_uv[2],
   const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
 
   /* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */
-  const double b = 0.5 * (double)(((st0[0] - st[0]) * (st1[1] - st2[1]) -
-                                   (st0[1] - st[1]) * (st1[0] - st2[0])) +
-                                  ((st1[0] - st[0]) * (st0[1] - st3[1]) -
-                                   (st1[1] - st[1]) * (st0[0] - st3[0])));
+  const double b =
+      0.5 * double(((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
+                   ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
 
   /* C = (p1-p) X (p1-p2) */
   const double fC = (st1[0] - st[0]) * (st1[1] - st2[1]) - (st1[1] - st[1]) * (st1[0] - st2[0]);
@@ -4379,7 +4376,7 @@ void resolve_quad_uv_v2_deriv(float r_uv[2],
   if (IS_ZERO(denom) != 0) {
     const double fDen = a - fC;
     if (IS_ZERO(fDen) == 0) {
-      r_uv[0] = (float)(a / fDen);
+      r_uv[0] = float(a / fDen);
     }
   }
   else {
@@ -4387,7 +4384,7 @@ void resolve_quad_uv_v2_deriv(float r_uv[2],
     const double desc = sqrt(desc_sq < 0.0 ? 0.0 : desc_sq);
     const double s = signed_area > 0 ? (-1.0) : 1.0;
 
-    r_uv[0] = (float)(((a - b) + s * desc) / denom);
+    r_uv[0] = float(((a - b) + s * desc) / denom);
   }
 
   /* find UV such that
@@ -4404,9 +4401,8 @@ void resolve_quad_uv_v2_deriv(float r_uv[2],
     }
 
     if (IS_ZERO(denom) == 0) {
-      r_uv[1] = (float)((double)((1.0f - r_uv[0]) * (st0[i] - st[i]) +
-                                 r_uv[0] * (st1[i] - st[i])) /
-                        denom);
+      r_uv[1] = float(double((1.0f - r_uv[0]) * (st0[i] - st[i]) + r_uv[0] * (st1[i] - st[i])) /
+                      denom);
     }
   }
 
@@ -4428,10 +4424,10 @@ void resolve_quad_uv_v2_deriv(float r_uv[2],
 
     if (!IS_ZERO(denom)) {
       double inv_denom = 1.0 / denom;
-      r_deriv[0][0] = (float)((double)-t[1] * inv_denom);
-      r_deriv[0][1] = (float)((double)t[0] * inv_denom);
-      r_deriv[1][0] = (float)((double)s[1] * inv_denom);
-      r_deriv[1][1] = (float)((double)-s[0] * inv_denom);
+      r_deriv[0][0] = float(double(-t[1]) * inv_denom);
+      r_deriv[0][1] = float(double(t[0]) * inv_denom);
+      r_deriv[1][0] = float(double(s[1]) * inv_denom);
+      r_deriv[1][1] = float(double(-s[0]) * inv_denom);
     }
   }
 }
@@ -4452,10 +4448,9 @@ float resolve_quad_u_v2(const float st[2],
   const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
 
   /* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */
-  const double b = 0.5 * (double)(((st0[0] - st[0]) * (st1[1] - st2[1]) -
-                                   (st0[1] - st[1]) * (st1[0] - st2[0])) +
-                                  ((st1[0] - st[0]) * (st0[1] - st3[1]) -
-                                   (st1[1] - st[1]) * (st0[0] - st3[0])));
+  const double b =
+      0.5 * double(((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
+                   ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
 
   /* C = (p1-p) X (p1-p2) */
   const double fC = (st1[0] - st[0]) * (st1[1] - st2[1]) - (st1[1] - st[1]) * (st1[0] - st2[0]);
@@ -4464,7 +4459,7 @@ float resolve_quad_u_v2(const float st[2],
   if (IS_ZERO(denom) != 0) {
     const double fDen = a - fC;
     if (IS_ZERO(fDen) == 0) {
-      return (float)(a / fDen);
+      return float(a / fDen);
     }
 
     return 0.0f;
@@ -4474,7 +4469,7 @@ float resolve_quad_u_v2(const float st[2],
   const double desc = sqrt(desc_sq < 0.0 ? 0.0 : desc_sq);
   const double s = signed_area > 0 ? (-1.0) : 1.0;
 
-  return (float)(((a - b) + s * desc) / denom);
+  return float(((a - b) + s * desc) / denom);
 }
 
 #undef IS_ZERO
@@ -4730,14 +4725,14 @@ void projmat_from_subregion(const float projmat[4][4],
                             const int y_max,
                             float r_projmat[4][4])
 {
-  float rect_width = (float)(x_max - x_min);
-  float rect_height = (float)(y_max - y_min);
+  float rect_width = float(x_max - x_min);
+  float rect_height = float(y_max - y_min);
 
-  float x_sca = (float)win_size[0] / rect_width;
-  float y_sca = (float)win_size[1] / rect_height;
+  float x_sca = float(win_size[0]) / rect_width;
+  float y_sca = float(win_size[1]) / rect_height;
 
-  float x_fac = (float)((x_min + x_max) - win_size[0]) / rect_width;
-  float y_fac = (float)((y_min + y_max) - win_size[1]) / rect_height;
+  float x_fac = float((x_min + x_max) - win_size[0]) / rect_width;
+  float y_fac = float((y_min + y_max) - win_size[1]) / rect_height;
 
   copy_m4_m4(r_projmat, projmat);
   r_projmat[0][0] *= x_sca;
@@ -4944,7 +4939,7 @@ bool map_to_tube(float *r_u, float *r_v, const float x, const float y, const flo
   }
   else {
     /* The "Regular" case, just compute the coordinate. */
-    *r_u = snap_coordinate(atan2f(x, -y) / (float)(2.0f * M_PI));
+    *r_u = snap_coordinate(atan2f(x, -y) / float(2.0f * M_PI));
   }
   *r_v = (z + 1.0f) / 2.0f;
   return regular;
@@ -4961,9 +4956,9 @@ bool map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
   }
   else {
     /* The "Regular" case, just compute the coordinate. */
-    *r_u = snap_coordinate(atan2f(x, -y) / (float)(2.0f * M_PI));
+    *r_u = snap_coordinate(atan2f(x, -y) / float(2.0f * M_PI));
   }
-  *r_v = snap_coordinate(atan2f(len_xy, -z) / (float)M_PI);
+  *r_v = snap_coordinate(atan2f(len_xy, -z) / float(M_PI));
   return regular;
 }
 
@@ -5040,7 +5035,7 @@ void accumulate_vertex_normals_v3(float n1[3],
                                   const float co4[3])
 {
   float vdiffs[4][3];
-  const int nverts = (n4 != NULL && co4 != NULL) ? 4 : 3;
+  const int nverts = (n4 != nullptr && co4 != nullptr) ? 4 : 3;
 
   /* compute normalized edge vectors */
   sub_v3_v3v3(vdiffs[0], co2, co1);
@@ -5211,7 +5206,7 @@ void vcloud_estimate_transform_v3(const int list_size,
       }
     }
     if (!weight || !rweight) {
-      accu_weight = accu_rweight = (float)list_size;
+      accu_weight = accu_rweight = float(list_size);
     }
 
     mul_v3_fl(accu_com, 1.0f / accu_weight);
@@ -5725,7 +5720,7 @@ float form_factor_quad(const float p[3],
   dot3 = dot_v3v3(n, g2);
   dot4 = dot_v3v3(n, g3);
 
-  result = (a1 * dot1 + a2 * dot2 + a3 * dot3 + a4 * dot4) * 0.5f / (float)M_PI;
+  result = (a1 * dot1 + a2 * dot2 + a3 * dot3 + a4 * dot4) * 0.5f / float(M_PI);
   result = MAX2(result, 0.0f);
 
   return result;

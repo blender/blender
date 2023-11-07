@@ -261,7 +261,7 @@ static bNodeSocket *node_find_preview_socket(bNodeTree &ntree, bNode &node)
   if (socket == nullptr) {
     socket = get_main_socket(ntree, node, SOCK_IN);
     if (socket != nullptr && socket->link == nullptr) {
-      if (!(ELEM(socket->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA))) {
+      if (!ELEM(socket->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA)) {
         /* We can not preview a socket with no link and no manual value. */
         return nullptr;
       }

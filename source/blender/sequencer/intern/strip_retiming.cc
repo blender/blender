@@ -215,7 +215,7 @@ bool SEQ_retiming_key_is_transition_start(const SeqRetimingKey *key)
 
 SeqRetimingKey *SEQ_retiming_transition_start_get(SeqRetimingKey *key)
 {
-  if ((key->flag & SEQ_SPEED_TRANSITION_OUT)) {
+  if (key->flag & SEQ_SPEED_TRANSITION_OUT) {
     return key - 1;
   }
   if (key->flag & SEQ_SPEED_TRANSITION_IN) {

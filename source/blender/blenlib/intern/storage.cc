@@ -172,7 +172,7 @@ double BLI_dir_free_space(const char *dir)
   }
 #  endif
 
-  return ((double(disk.f_bsize)) * (double(disk.f_bfree)));
+  return double(disk.f_bsize) * double(disk.f_bfree);
 #endif
 }
 
@@ -563,7 +563,7 @@ LinkNode *BLI_file_read_as_lines(const char *filepath)
   }
 
   BLI_fseek(fp, 0, SEEK_END);
-  size = (size_t)BLI_ftell(fp);
+  size = size_t(BLI_ftell(fp));
   BLI_fseek(fp, 0, SEEK_SET);
 
   if (UNLIKELY(size == size_t(-1))) {
