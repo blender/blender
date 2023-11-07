@@ -94,14 +94,14 @@ static void query_all_strips_recursive(ListBase *seqbase, VectorSet<Sequence *> 
 
 VectorSet<Sequence *> SEQ_query_all_strips_recursive(ListBase *seqbase)
 {
-  static VectorSet<Sequence *> strips;
+  VectorSet<Sequence *> strips;
   query_all_strips_recursive(seqbase, strips);
   return strips;
 }
 
 VectorSet<Sequence *> SEQ_query_all_strips(ListBase *seqbase)
 {
-  static VectorSet<Sequence *> strips;
+  VectorSet<Sequence *> strips;
   LISTBASE_FOREACH (Sequence *, strip, seqbase) {
     strips.add(strip);
   }
