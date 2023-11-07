@@ -79,7 +79,7 @@ void SEQ_iterator_set_expand(const Scene *scene,
   }
 
   /* Merge all expanded results in provided VectorSet. */
-  query_matches.add_multiple(query_matches);
+  strips.add_multiple(query_matches);
 }
 
 static void query_all_strips_recursive(ListBase *seqbase, VectorSet<Sequence *> &strips)
