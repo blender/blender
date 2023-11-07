@@ -27,6 +27,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -636,7 +637,7 @@ float effector_falloff(EffectorCache *eff,
           break;
         }
 
-        r_fac = RAD2DEGF(saacos(fac / len_v3(efd->vec_to_point2)));
+        r_fac = RAD2DEGF(safe_acosf(fac / len_v3(efd->vec_to_point2)));
         falloff *= falloff_func_rad(eff->pd, r_fac);
 
         break;

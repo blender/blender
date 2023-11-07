@@ -12,6 +12,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_task.h"
@@ -158,7 +159,7 @@ static float sculpt_automasking_normal_calc(SculptSession *ss,
     SCULPT_vertex_normal_get(ss, vertex, normal_v);
   }
 
-  float angle = saacos(dot_v3v3(normal, normal_v));
+  float angle = safe_acosf(dot_v3v3(normal, normal_v));
 
   /* note that limit is pre-divided by M_PI */
 

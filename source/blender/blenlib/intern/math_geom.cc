@@ -11,6 +11,7 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 
+#include "BLI_math_base_safe.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -5711,10 +5712,10 @@ float form_factor_quad(const float p[3],
   cross_v3_v3v3(g3, r0, r3);
   ff_normalize(g3);
 
-  a1 = saacosf(dot_v3v3(r0, r1));
-  a2 = saacosf(dot_v3v3(r1, r2));
-  a3 = saacosf(dot_v3v3(r2, r3));
-  a4 = saacosf(dot_v3v3(r3, r0));
+  a1 = safe_acosf(dot_v3v3(r0, r1));
+  a2 = safe_acosf(dot_v3v3(r1, r2));
+  a3 = safe_acosf(dot_v3v3(r2, r3));
+  a4 = safe_acosf(dot_v3v3(r3, r0));
 
   dot1 = dot_v3v3(n, g0);
   dot2 = dot_v3v3(n, g1);

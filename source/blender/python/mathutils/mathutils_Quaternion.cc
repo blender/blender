@@ -10,6 +10,7 @@
 
 #include "mathutils.h"
 
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -1448,7 +1449,7 @@ static PyObject *Quaternion_angle_get(QuaternionObject *self, void * /*closure*/
 
   normalize_qt_qt(tquat, self->quat);
 
-  angle = 2.0f * saacos(tquat[0]);
+  angle = 2.0f * safe_acosf(tquat[0]);
 
   quat__axis_angle_sanitize(nullptr, &angle);
 

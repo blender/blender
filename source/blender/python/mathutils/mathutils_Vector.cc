@@ -10,6 +10,7 @@
 
 #include "mathutils.h"
 
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -1130,7 +1131,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
     return nullptr;
   }
 
-  return PyFloat_FromDouble(saacos(dot / (sqrt(dot_self) * sqrt(dot_other))));
+  return PyFloat_FromDouble(safe_acosf(dot / (sqrt(dot_self) * sqrt(dot_other))));
 }
 
 /** \} */
