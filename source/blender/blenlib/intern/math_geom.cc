@@ -8,6 +8,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_base.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 
 #include "BLI_math_bits.h"
@@ -5015,7 +5016,7 @@ void accumulate_vertex_normals_tri_v3(float n1[3],
 
     for (i = 0; i < nverts; i++) {
       const float *cur_edge = vdiffs[i];
-      const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
+      const float fac = blender::math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vn[i], f_no, fac);
@@ -5062,7 +5063,7 @@ void accumulate_vertex_normals_v3(float n1[3],
 
     for (i = 0; i < nverts; i++) {
       const float *cur_edge = vdiffs[i];
-      const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
+      const float fac = blender::math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vn[i], f_no, fac);
@@ -5094,7 +5095,7 @@ void accumulate_vertex_normals_poly_v3(float **vertnos,
 
       /* calculate angle between the two poly edges incident on
        * this vertex */
-      const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
+      const float fac = blender::math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vertnos[i], polyno, fac);

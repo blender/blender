@@ -16,6 +16,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -72,7 +73,7 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
   if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
     dotprod = -dotprod;
   }
-  const float fac = saacos(-dotprod);
+  const float fac = blender::math::safe_acos_approx(-dotprod);
   /* Shouldn't happen as normalizing edge-vectors cause degenerate values to be zeroed out. */
   BLI_assert(!isnan(fac));
   madd_v3_v3fl(v_no, f_no, fac);
@@ -642,7 +643,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         /* Code similar to accumulate_vertex_normals_poly_v3. */
         /* Calculate angle between the two face edges incident on this vertex. */
         const BMFace *f = lfan_pivot->f;
-        const float fac = saacos(dot_v3v3(vec_next, vec_curr));
+        const float fac = blender::math::safe_acos_approx(dot_v3v3(vec_next, vec_curr));
         const float *no = fnos ? fnos[BM_elem_index_get(f)] : f->no;
         /* Accumulate */
         madd_v3_v3fl(lnor, no, fac);

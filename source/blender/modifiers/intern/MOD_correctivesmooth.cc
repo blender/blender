@@ -8,6 +8,7 @@
  * Method of smoothing deformation, also known as 'delta-mush'.
  */
 
+#include "BLI_math_base.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -470,7 +471,8 @@ static void calc_tangent_spaces(const Mesh *mesh,
 
       if (calc_tangent_loop(v_dir_prev, v_dir_next, ts)) {
         if (r_tangent_weights != nullptr) {
-          const float weight = fabsf(acosf(dot_v3v3(v_dir_next, v_dir_prev)));
+          const float weight = fabsf(
+              blender::math::safe_acos_approx(dot_v3v3(v_dir_next, v_dir_prev)));
           r_tangent_weights[curr_corner] = weight;
           r_tangent_weights_per_vertex[corner_verts[curr_corner]] += weight;
         }

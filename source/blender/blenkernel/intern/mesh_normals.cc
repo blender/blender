@@ -23,6 +23,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_linklist.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
@@ -243,7 +244,7 @@ static void accumulate_face_normal_to_vert(const Span<float3> positions,
       }
 
       /* Calculate angle between the two face edges incident on this vertex. */
-      const float fac = saacos(-dot_v3v3(edvec_prev, edvec_next));
+      const float fac = math::safe_acos_approx(-dot_v3v3(edvec_prev, edvec_next));
       const float vnor_add[3] = {face_normal[0] * fac, face_normal[1] * fac, face_normal[2] * fac};
 
       float *vnor = vert_normals[face_verts[i_curr]];
@@ -535,7 +536,7 @@ static CornerNormalSpace lnor_space_define(const float lnor[3],
   if (!edge_vectors.is_empty()) {
     float alpha = 0.0f;
     for (const float3 &vec : edge_vectors) {
-      alpha += saacosf(dot_v3v3(vec, lnor));
+      alpha += math::safe_acos_approx(dot_v3v3(vec, lnor));
     }
     /* This piece of code shall only be called for more than one loop. */
     /* NOTE: In theory, this could be `count > 2`,
@@ -546,8 +547,8 @@ static CornerNormalSpace lnor_space_define(const float lnor[3],
     lnor_space.ref_alpha = alpha / float(edge_vectors.size());
   }
   else {
-    lnor_space.ref_alpha = (saacosf(dot_v3v3(vec_ref, lnor)) +
-                            saacosf(dot_v3v3(vec_other, lnor))) /
+    lnor_space.ref_alpha = (math::safe_acos_approx(dot_v3v3(vec_ref, lnor)) +
+                            math::safe_acos_approx(dot_v3v3(vec_other, lnor))) /
                            2.0f;
   }
 
@@ -567,7 +568,7 @@ static CornerNormalSpace lnor_space_define(const float lnor[3],
   /* Beta is angle between ref_vec and other_vec, around lnor. */
   dtp = dot_v3v3(lnor_space.vec_ref, vec_other);
   if (LIKELY(dtp < LNOR_SPACE_TRIGO_THRESHOLD)) {
-    const float beta = saacos(dtp);
+    const float beta = math::safe_acos_approx(dtp);
     lnor_space.ref_beta = (dot_v3v3(lnor_space.vec_ortho, vec_other) < 0.0f) ? pi2 - beta : beta;
   }
   else {
@@ -698,7 +699,7 @@ short2 lnor_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
   float vec[3], cos_beta;
   float alpha;
 
-  alpha = saacosf(cos_alpha);
+  alpha = math::safe_acos_approx(cos_alpha);
   if (alpha > lnor_space.ref_alpha) {
     /* Note we could stick to [0, pi] range here,
      * but makes decoding more complex, not worth it. */
@@ -716,7 +717,7 @@ short2 lnor_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
   cos_beta = dot_v3v3(lnor_space.vec_ref, vec);
 
   if (cos_beta < LNOR_SPACE_TRIGO_THRESHOLD) {
-    float beta = saacosf(cos_beta);
+    float beta = math::safe_acos_approx(cos_beta);
     if (dot_v3v3(lnor_space.vec_ortho, vec) < 0.0f) {
       beta = pi2 - beta;
     }
@@ -1097,7 +1098,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
 
     /* Code similar to accumulate_vertex_normals_poly_v3. */
     /* Calculate angle between the two face edges incident on this vertex. */
-    lnor += face_normals[loop_to_face[mlfan_curr_index]] * saacos(math::dot(vec_curr, vec_prev));
+    lnor += face_normals[loop_to_face[mlfan_curr_index]] *
+            math::safe_acos_approx(math::dot(vec_curr, vec_prev));
 
     processed_corners.append(mlfan_vert_index);
 

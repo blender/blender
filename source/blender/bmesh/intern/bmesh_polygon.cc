@@ -18,6 +18,7 @@
 #include "BLI_alloca.h"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -615,7 +616,7 @@ static void bm_loop_normal_accum(const BMLoop *l, float no[3])
   normalize_v3(vec1);
   normalize_v3(vec2);
 
-  fac = saacos(-dot_v3v3(vec1, vec2));
+  fac = blender::math::safe_acos_approx(-dot_v3v3(vec1, vec2));
 
   madd_v3_v3fl(no, l->f->no, fac);
 }
