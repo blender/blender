@@ -268,7 +268,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
   float radius = math::length(v1);
   BKE_gpencil_free_stroke(gps_perimeter);
 
-  return MAX2(radius, 1.0f);
+  return std::max(radius, 1.0f);
 }
 
 void GpencilIO::prepare_layer_export_matrix(Object *ob, bGPDlayer *gpl)

@@ -409,8 +409,8 @@ void MemoryBuffer::fill_from(const MemoryBuffer &src)
   rcti overlap;
   overlap.xmin = MAX2(rect_.xmin, src.rect_.xmin);
   overlap.xmax = MIN2(rect_.xmax, src.rect_.xmax);
-  overlap.ymin = MAX2(rect_.ymin, src.rect_.ymin);
-  overlap.ymax = MIN2(rect_.ymax, src.rect_.ymax);
+  overlap.ymin = std::max(rect_.ymin, src.rect_.ymin);
+  overlap.ymax = std::min(rect_.ymax, src.rect_.ymax);
   copy_from(&src, overlap);
 }
 

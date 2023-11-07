@@ -330,7 +330,7 @@ int ANIM_add_driver_with_target(ReportList *reports,
       int dst_len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr, prop) : 1;
       int src_len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr2, prop2) : 1;
 
-      int len = MIN2(dst_len, src_len);
+      int len = std::min(dst_len, src_len);
 
       for (int i = 0; i < len; i++) {
         done_tot += add_driver_with_target(reports,

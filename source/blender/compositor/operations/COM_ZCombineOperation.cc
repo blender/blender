@@ -84,7 +84,7 @@ void ZCombineAlphaOperation::execute_pixel_sampled(float output[4],
   output[0] = fac * color1[0] + ifac * color2[0];
   output[1] = fac * color1[1] + ifac * color2[1];
   output[2] = fac * color1[2] + ifac * color2[2];
-  output[3] = MAX2(color1[3], color2[3]);
+  output[3] = std::max(color1[3], color2[3]);
 }
 
 void ZCombineAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -109,7 +109,7 @@ void ZCombineAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
     it.out[0] = fac * color1[0] + ifac * color2[0];
     it.out[1] = fac * color1[1] + ifac * color2[1];
     it.out[2] = fac * color1[2] + ifac * color2[2];
-    it.out[3] = MAX2(color1[3], color2[3]);
+    it.out[3] = std::max(color1[3], color2[3]);
   }
 }
 
@@ -188,7 +188,7 @@ void ZCombineMaskAlphaOperation::execute_pixel_sampled(float output[4],
   output[0] = color1[0] * mfac + color2[0] * fac;
   output[1] = color1[1] * mfac + color2[1] * fac;
   output[2] = color1[2] * mfac + color2[2] * fac;
-  output[3] = MAX2(color1[3], color2[3]);
+  output[3] = std::max(color1[3], color2[3]);
 }
 
 void ZCombineMaskAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -205,7 +205,7 @@ void ZCombineMaskAlphaOperation::update_memory_buffer_partial(MemoryBuffer *outp
     it.out[0] = color1[0] * mfac + color2[0] * fac;
     it.out[1] = color1[1] * mfac + color2[1] * fac;
     it.out[2] = color1[2] * mfac + color2[2] * fac;
-    it.out[3] = MAX2(color1[3], color2[3]);
+    it.out[3] = std::max(color1[3], color2[3]);
   }
 }
 

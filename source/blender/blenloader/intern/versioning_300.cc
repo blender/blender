@@ -122,12 +122,12 @@ static void version_idproperty_move_data_int(IDPropertyUIDataInt *ui_data,
   IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
   if (soft_min != nullptr) {
     ui_data->soft_min = IDP_coerce_to_int_or_zero(soft_min);
-    ui_data->soft_min = MIN2(ui_data->soft_min, ui_data->min);
+    ui_data->soft_min = std::min(ui_data->soft_min, ui_data->min);
   }
   IDProperty *soft_max = IDP_GetPropertyFromGroup(prop_ui_data, "soft_max");
   if (soft_max != nullptr) {
     ui_data->soft_max = IDP_coerce_to_int_or_zero(soft_max);
-    ui_data->soft_max = MAX2(ui_data->soft_max, ui_data->max);
+    ui_data->soft_max = std::max(ui_data->soft_max, ui_data->max);
   }
   IDProperty *step = IDP_GetPropertyFromGroup(prop_ui_data, "step");
   if (step != nullptr) {
@@ -163,12 +163,12 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
   IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
   if (soft_min != nullptr) {
     ui_data->soft_min = IDP_coerce_to_double_or_zero(soft_min);
-    ui_data->soft_min = MAX2(ui_data->soft_min, ui_data->min);
+    ui_data->soft_min = std::max(ui_data->soft_min, ui_data->min);
   }
   IDProperty *soft_max = IDP_GetPropertyFromGroup(prop_ui_data, "soft_max");
   if (soft_max != nullptr) {
     ui_data->soft_max = IDP_coerce_to_double_or_zero(soft_max);
-    ui_data->soft_max = MIN2(ui_data->soft_max, ui_data->max);
+    ui_data->soft_max = std::min(ui_data->soft_max, ui_data->max);
   }
   IDProperty *step = IDP_GetPropertyFromGroup(prop_ui_data, "step");
   if (step != nullptr) {

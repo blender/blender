@@ -1533,7 +1533,7 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
         offset = U.gizmo_size_navigate_v3d;
         break;
       case USER_MINI_AXIS_TYPE_MINIMAL:
-        offset = U.rvisize * MIN2((U.pixelsize / U.scale_factor), 1.0f) * 2.5f;
+        offset = U.rvisize * std::min((U.pixelsize / U.scale_factor), 1.0f) * 2.5f;
         break;
       case USER_MINI_AXIS_TYPE_NONE:
         offset = U.rvisize;

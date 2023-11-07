@@ -171,7 +171,7 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     temp_dupli_object->base_local_view_bits = dupli_parent->base_local_view_bits;
     temp_dupli_object->runtime.local_collections_bits =
         dupli_parent->runtime.local_collections_bits;
-    temp_dupli_object->dt = MIN2(temp_dupli_object->dt, dupli_parent->dt);
+    temp_dupli_object->dt = std::min(temp_dupli_object->dt, dupli_parent->dt);
     copy_v4_v4(temp_dupli_object->color, dupli_parent->color);
     temp_dupli_object->runtime.select_id = dupli_parent->runtime.select_id;
     if (dob->ob->data != dob->ob_data) {

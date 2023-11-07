@@ -2202,10 +2202,10 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
       colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
     }
 
-    float scale_factor = MIN2(float(max_thumb_size) / float(source_w),
+    float scale_factor = std::min(float(max_thumb_size) / float(source_w),
                               float(max_thumb_size) / float(source_h));
-    int dest_w = MAX2(int(source_w * scale_factor), 1);
-    int dest_h = MAX2(int(source_h * scale_factor), 1);
+    int dest_w = std::max(int(source_w * scale_factor), 1);
+    int dest_h = std::max(int(source_h * scale_factor), 1);
 
     ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rectfloat);
 

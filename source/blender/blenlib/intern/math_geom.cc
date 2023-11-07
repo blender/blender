@@ -5721,7 +5721,7 @@ float form_factor_quad(const float p[3],
   dot4 = dot_v3v3(n, g3);
 
   result = (a1 * dot1 + a2 * dot2 + a3 * dot3 + a4 * dot4) * 0.5f / float(M_PI);
-  result = MAX2(result, 0.0f);
+  result = std::max(result, 0.0f);
 
   return result;
 }

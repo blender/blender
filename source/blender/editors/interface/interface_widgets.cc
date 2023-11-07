@@ -1327,7 +1327,7 @@ static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
 
   const int w = BLI_rcti_size_x(rect);
   const int h = BLI_rcti_size_y(rect);
-  const int size = MIN2(w, h) - PREVIEW_PAD * 2;
+  const int size = std::min(w, h) - PREVIEW_PAD * 2;
 
   if (size > 0) {
     const int x = rect->xmin + w / 2 - size / 2;
@@ -3741,7 +3741,7 @@ static void widget_progress_type_bar(uiButProgress *but_progress,
   float w = factor * BLI_rcti_size_x(&rect_prog);
 
   /* Ensure minimum size. */
-  w = MAX2(w, ofs);
+  w = std::max(w, ofs);
 
   rect_bar.xmax = rect_bar.xmin + w;
 

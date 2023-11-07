@@ -525,7 +525,7 @@ static float density_falloff(PointDensityRangeData *pdr, int index, float square
       break;
     case TEX_PD_FALLOFF_PARTICLE_AGE:
       if (pdr->point_data_life) {
-        density = dist * MIN2(pdr->point_data_life[index], 1.0f);
+        density = dist * std::min(pdr->point_data_life[index], 1.0f);
       }
       else {
         density = dist;

@@ -1964,10 +1964,10 @@ static void mesh_partial_update(TransInfo *t,
   /* Promote the partial update types based on the previous state
    * so the values that no longer modified are reset before being left as-is.
    * Needed for translation which can toggle snap-to-normal during transform. */
-  const enum ePartialType partial_for_looptri = MAX2(partial_state->for_looptri,
-                                                     partial_state_prev->for_looptri);
-  const enum ePartialType partial_for_normals = MAX2(partial_state->for_normals,
-                                                     partial_state_prev->for_normals);
+  const enum ePartialType partial_for_looptri = std::max(partial_state->for_looptri,
+                                                         partial_state_prev->for_looptri);
+  const enum ePartialType partial_for_normals = std::max(partial_state->for_normals,
+                                                         partial_state_prev->for_normals);
 
   if ((partial_for_looptri == PARTIAL_TYPE_ALL) && (partial_for_normals == PARTIAL_TYPE_ALL) &&
       (em->bm->totvert == em->bm->totvertsel))

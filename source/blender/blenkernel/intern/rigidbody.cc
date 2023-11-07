@@ -501,7 +501,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
 
   if (ELEM(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
     /* take radius as largest x/y dimension, and height as z-dimension */
-    radius = MAX2(size[0], size[1]);
+    radius = std::max(size[0], size[1]);
     height = size[2];
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {

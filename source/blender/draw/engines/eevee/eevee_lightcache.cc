@@ -276,7 +276,7 @@ static void irradiance_pool_size_get(int visibility_size, int total_samples, int
                     (visibility_size / IRRADIANCE_SAMPLE_SIZE_Y);
 
   /* The irradiance itself take one layer, hence the +1 */
-  int layer_count = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
+  int layer_count = std::min(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
 
   int texel_count = int(ceilf(float(total_samples) / float(layer_count - 1)));
   r_size[0] = visibility_size *

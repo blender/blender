@@ -541,7 +541,7 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
       }
 
       do {
-        size_t writelen = MIN2(len, wd->buffer.chunk_size);
+        size_t writelen = std::min(len, wd->buffer.chunk_size);
         writedata_do_write(wd, adr, writelen);
         adr = (const char *)adr + writelen;
         len -= writelen;

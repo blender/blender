@@ -140,10 +140,10 @@ void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const int x = it.x;
     const int y = it.y;
 
-    const int start_x = MAX2(0, x - delta + 1);
-    const int start_y = MAX2(0, y - delta + 1);
-    const int end_x = MIN2(x + delta, width);
-    const int end_y = MIN2(y + delta, height);
+    const int start_x = std::max(0, x - delta + 1);
+    const int start_y = std::max(0, y - delta + 1);
+    const int end_x = std::min(x + delta, width);
+    const int end_y = std::min(y + delta, height);
     const int x_len = end_x - start_x;
     const int y_len = end_y - start_y;
 

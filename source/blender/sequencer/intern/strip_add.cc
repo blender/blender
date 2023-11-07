@@ -490,7 +490,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     }
   }
 
-  seq->len = MAX2(1, seq->len);
+  seq->len = std::max(1, seq->len);
   if (load_data->adjust_playback_rate) {
     seq->flag |= SEQ_AUTO_PLAYBACK_RATE;
   }

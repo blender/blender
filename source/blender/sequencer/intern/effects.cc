@@ -938,13 +938,13 @@ static void do_drop_effect_byte(float fac, int x, int y, uchar *rect2i, uchar *r
     for (int j = xoff; j < x; j++) {
       int temp_fac2 = ((temp_fac * rt2[3]) >> 8);
 
-      *(out++) = MAX2(0, *rt1 - temp_fac2);
+      *(out++) = std::max(0, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0, *rt1 - temp_fac2);
+      *(out++) = std::max(0, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0, *rt1 - temp_fac2);
+      *(out++) = std::max(0, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0, *rt1 - temp_fac2);
+      *(out++) = std::max(0, *rt1 - temp_fac2);
       rt1++;
       rt2 += 4;
     }
@@ -972,13 +972,13 @@ static void do_drop_effect_float(
     for (int j = xoff; j < x; j++) {
       float temp_fac2 = temp_fac * rt2[3];
 
-      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
+      *(out++) = std::max(0.0f, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
+      *(out++) = std::max(0.0f, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
+      *(out++) = std::max(0.0f, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
+      *(out++) = std::max(0.0f, *rt1 - temp_fac2);
       rt1++;
       rt2 += 4;
     }

@@ -608,10 +608,10 @@ static void bm_decim_triangulate_end(BMesh *bm, const int edges_tri_tot)
 
   /* we need to collect before merging for ngons since the loops indices will be lost */
   BMEdge **edges_tri = static_cast<BMEdge **>(
-      MEM_mallocN(MIN2(edges_tri_tot, bm->totedge) * sizeof(*edges_tri), __func__));
+      MEM_mallocN(std::min(edges_tri_tot, bm->totedge) * sizeof(*edges_tri), __func__));
   STACK_DECLARE(edges_tri);
 
-  STACK_INIT(edges_tri, MIN2(edges_tri_tot, bm->totedge));
+  STACK_INIT(edges_tri, std::min(edges_tri_tot, bm->totedge));
 
   /* boundary edges */
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {

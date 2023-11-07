@@ -1219,7 +1219,7 @@ static int imagewraposa_aniso(Tex *tex,
       b = max_ff(b, 1.0f);
       fProbes = 2.0f * (a / b) - 1.0f;
       AFD.iProbes = round_fl_to_int(fProbes);
-      AFD.iProbes = MIN2(AFD.iProbes, tex->afmax);
+      AFD.iProbes = std::min(AFD.iProbes, tex->afmax);
       if (AFD.iProbes < fProbes) {
         b = 2.0f * a / float(AFD.iProbes + 1);
       }

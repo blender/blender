@@ -4131,7 +4131,7 @@ static void filelist_readjob_update(void *flrjv)
 
   /* if no new_entries_num, this is NOP */
   BLI_movelisttolist(&fl_intern->entries, &new_entries);
-  flrj->filelist->filelist.entries_num = MAX2(entries_num, 0) + new_entries_num;
+  flrj->filelist->filelist.entries_num = std::max(entries_num, 0) + new_entries_num;
 }
 
 static void filelist_readjob_endjob(void *flrjv)

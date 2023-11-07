@@ -828,7 +828,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
     /* color strength */
     if (brush_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) {
       pt->strength *= BKE_curvemapping_evaluateF(brush_settings->curve_strength, 0, pressure);
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
     }
 
     /* Set vertex colors for buffer. */
@@ -1090,7 +1090,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       copy_v4_v4(pt->vert_color, ptc->vert_color);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
@@ -1124,7 +1124,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
       ED_gpencil_point_vertex_color_set(ts, brush, pt, ptc);
@@ -1256,7 +1256,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       copy_v4_v4(pt->vert_color, ptc->vert_color);
       pt->time = ptc->time;
       pt->uv_fac = ptc->uv_fac;

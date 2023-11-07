@@ -39,9 +39,9 @@ void TonemapOperation::execute_pixel(float output[4], int x, int y, void *data)
   output[2] /= ((db == 0.0f) ? 1.0f : db);
   const float igm = avg->igm;
   if (igm != 0.0f) {
-    output[0] = powf(MAX2(output[0], 0.0f), igm);
+    output[0] = powf(std::max(output[0], 0.0f), igm);
     output[1] = powf(MAX2(output[1], 0.0f), igm);
-    output[2] = powf(MAX2(output[2], 0.0f), igm);
+    output[2] = powf(std::max(output[2], 0.0f), igm);
   }
 }
 void PhotoreceptorTonemapOperation::execute_pixel(float output[4], int x, int y, void *data)
@@ -186,8 +186,8 @@ void TonemapOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
           join.sum += chunk.sum;
           add_v3_v3(join.color_sum, chunk.color_sum);
           join.log_sum += chunk.log_sum;
-          join.max = MAX2(join.max, chunk.max);
-          join.min = MIN2(join.min, chunk.min);
+          join.max = std::max(join.max, chunk.max);
+          join.min = std::min(join.min, chunk.min);
           join.num_pixels += chunk.num_pixels;
         });
 
@@ -224,7 +224,7 @@ void TonemapOperation::update_memory_buffer_partial(MemoryBuffer *output,
     if (igm != 0.0f) {
       it.out[0] = powf(MAX2(it.out[0], 0.0f), igm);
       it.out[1] = powf(MAX2(it.out[1], 0.0f), igm);
-      it.out[2] = powf(MAX2(it.out[2], 0.0f), igm);
+      it.out[2] = powf(std::max(it.out[2], 0.0f), igm);
     }
   }
 }

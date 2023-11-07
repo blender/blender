@@ -433,7 +433,7 @@ static void compute_sss_kernel(GPUSssKernelData *kd, const float radii[3], int s
   /* Minimum radius */
   rad[0] = MAX2(radii[0], 1e-15f);
   rad[1] = MAX2(radii[1], 1e-15f);
-  rad[2] = MAX2(radii[2], 1e-15f);
+  rad[2] = std::max(radii[2], 1e-15f);
 
   kd->avg_inv_radius = 3.0f / (rad[0] + rad[1] + rad[2]);
 

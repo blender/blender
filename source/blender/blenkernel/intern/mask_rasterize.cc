@@ -50,6 +50,8 @@
  * - Campbell
  */
 
+#include <algorithm> /* For `min/max`. */
+
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -630,7 +632,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 
       const uint resol_a = BKE_mask_spline_resolution(spline, width, height) / 4;
       const uint resol_b = BKE_mask_spline_feather_resolution(spline, width, height) / 4;
-      const uint resol = CLAMPIS(MAX2(resol_a, resol_b), 4, 512);
+      const uint resol = CLAMPIS(std::max(resol_a, resol_b), 4, 512);
 
       diff_points = BKE_mask_spline_differentiate_with_resolution(spline, resol, &tot_diff_point);
 

@@ -532,9 +532,9 @@ void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *o
 
   if (mdisp) {
     mmd->totlvl = get_levels_from_disps(ob);
-    mmd->lvl = MIN2(mmd->sculptlvl, mmd->totlvl);
-    mmd->sculptlvl = MIN2(mmd->sculptlvl, mmd->totlvl);
-    mmd->renderlvl = MIN2(mmd->renderlvl, mmd->totlvl);
+    mmd->lvl = std::min(mmd->sculptlvl, mmd->totlvl);
+    mmd->sculptlvl = std::min(mmd->sculptlvl, mmd->totlvl);
+    mmd->renderlvl = std::min(mmd->renderlvl, mmd->totlvl);
   }
 }
 

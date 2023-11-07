@@ -3713,7 +3713,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                      UI_UNIT_Y,
                      &coba->cur,
                      0.0,
-                     float(MAX2(0, coba->tot - 1)),
+                     float(std::max(0, coba->tot - 1)),
                      0,
                      0,
                      TIP_("Choose active color stop"));
@@ -3740,7 +3740,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                      UI_UNIT_Y,
                      &coba->cur,
                      0.0,
-                     float(MAX2(0, coba->tot - 1)),
+                     float(std::max(0, coba->tot - 1)),
                      0,
                      0,
                      TIP_("Choose active color stop"));
@@ -5840,7 +5840,7 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
   uiBut *but = nullptr;
 
-  const int cols_per_row = MAX2(uiLayoutGetWidth(layout) / UI_UNIT_X, 1);
+  const int cols_per_row = std::max(uiLayoutGetWidth(layout) / UI_UNIT_X, 1);
 
   if (!prop) {
     RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);

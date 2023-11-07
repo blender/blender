@@ -14,6 +14,7 @@
 
 #include "lineart_intern.h"
 
+#include <algorithm> /* For `min/max`. */
 #include <cmath>
 
 #define LRT_OTHER_VERT(e, vt) ((vt) == (e)->v1 ? (e)->v2 : ((vt) == (e)->v2 ? (e)->v1 : nullptr))
@@ -1380,7 +1381,7 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
         sub_v3_v3v3(dir, cam, eci->gpos);
         float len_lim = dot_v3v3(view, dir) - ld->conf.near_clip;
         normalize_v3_v3(view_clamp, view);
-        mul_v3_fl(view_clamp, MIN2(dist, len_lim));
+        mul_v3_fl(view_clamp, std::min(dist, len_lim));
         add_v3_v3(eci->gpos, view_clamp);
       }
     }

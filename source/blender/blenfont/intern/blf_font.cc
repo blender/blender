@@ -1244,7 +1244,7 @@ static ft_pix blf_font_height_max_ft_pix(FontBLF *font)
 {
   blf_ensure_size(font);
   /* #Metrics::height is rounded to pixel. Force minimum of one pixel. */
-  return MAX2((ft_pix)font->ft_size->metrics.height, ft_pix_from_int(1));
+  return std::max((ft_pix)font->ft_size->metrics.height, ft_pix_from_int(1));
 }
 
 int blf_font_height_max(FontBLF *font)
@@ -1256,7 +1256,7 @@ static ft_pix blf_font_width_max_ft_pix(FontBLF *font)
 {
   blf_ensure_size(font);
   /* #Metrics::max_advance is rounded to pixel. Force minimum of one pixel. */
-  return MAX2((ft_pix)font->ft_size->metrics.max_advance, ft_pix_from_int(1));
+  return std::max((ft_pix)font->ft_size->metrics.max_advance, ft_pix_from_int(1));
 }
 
 int blf_font_width_max(FontBLF *font)

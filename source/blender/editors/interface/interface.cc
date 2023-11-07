@@ -540,8 +540,8 @@ static void ui_block_bounds_calc_popup(
   const int height = BLI_rctf_size_y(&block->rect);
 
   /* avoid divide by zero below, caused by calling with no UI, but better not crash */
-  oldwidth = oldwidth > 0 ? oldwidth : MAX2(1, width);
-  oldheight = oldheight > 0 ? oldheight : MAX2(1, height);
+  oldwidth = oldwidth > 0 ? oldwidth : std::max(1, width);
+  oldheight = oldheight > 0 ? oldheight : std::max(1, height);
 
   /* offset block based on mouse position, user offset is scaled
    * along in case we resized the block in ui_block_bounds_calc_text */
@@ -2934,7 +2934,7 @@ void ui_but_string_get_ex(uiBut *but,
           BLI_snprintf(str, str_maxncpy, "%.*f", prec, value);
         }
         else {
-          BLI_snprintf(str, str_maxncpy, "%.*f", MAX2(0, prec - 2), value * 100);
+          BLI_snprintf(str, str_maxncpy, "%.*f", std::max(0, prec - 2), value * 100);
         }
       }
       else {
@@ -3758,7 +3758,7 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
       STR_CONCATF(but->drawstr, slen, "%.*f", precision, value);
     }
     else {
-      STR_CONCATF(but->drawstr, slen, "%.*f%%", MAX2(0, precision - 2), value * 100);
+      STR_CONCATF(but->drawstr, slen, "%.*f%%", std::max(0, precision - 2), value * 100);
     }
   }
   else if (ui_but_is_unit(but)) {

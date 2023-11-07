@@ -57,9 +57,9 @@ void RotateOperation::get_area_rotation_bounds(const rcti &area,
   const float y3 = center_y + (sine * dxmin + cosine * dymax);
   const float y4 = center_y + (sine * dxmax + cosine * dymax);
   const float minx = MIN2(x1, MIN2(x2, MIN2(x3, x4)));
-  const float maxx = MAX2(x1, MAX2(x2, MAX2(x3, x4)));
-  const float miny = MIN2(y1, MIN2(y2, MIN2(y3, y4)));
-  const float maxy = MAX2(y1, MAX2(y2, MAX2(y3, y4)));
+  const float maxx = std::max(x1, MAX2(x2, std::max(x3, x4)));
+  const float miny = MIN2(y1, std::min(y2, MIN2(y3, y4)));
+  const float maxy = std::max(y1, MAX2(y2, std::max(y3, y4)));
 
   r_bounds.xmin = floor(minx);
   r_bounds.xmax = ceil(maxx);
@@ -191,10 +191,10 @@ bool RotateOperation::determine_depending_area_of_interest(rcti *input,
   const float y2 = center_y_ + (-sine_ * dxmax + cosine_ * dymin);
   const float y3 = center_y_ + (-sine_ * dxmin + cosine_ * dymax);
   const float y4 = center_y_ + (-sine_ * dxmax + cosine_ * dymax);
-  const float minx = MIN2(x1, MIN2(x2, MIN2(x3, x4)));
-  const float maxx = MAX2(x1, MAX2(x2, MAX2(x3, x4)));
-  const float miny = MIN2(y1, MIN2(y2, MIN2(y3, y4)));
-  const float maxy = MAX2(y1, MAX2(y2, MAX2(y3, y4)));
+  const float minx = std::min(x1, std::min(x2, std::min(x3, x4)));
+  const float maxx = std::max(x1, std::max(x2, std::max(x3, x4)));
+  const float miny = std::min(y1, std::min(y2, std::min(y3, y4)));
+  const float maxy = std::max(y1, std::max(y2, std::max(y3, y4)));
 
   new_input.xmax = ceil(maxx) + 1;
   new_input.xmin = floor(minx) - 1;

@@ -220,10 +220,10 @@ static float wpaint_blend(const VPaint *wp,
 static float wpaint_clamp_monotonic(float oldval, float curval, float newval)
 {
   if (newval < oldval) {
-    return MIN2(newval, curval);
+    return std::min(newval, curval);
   }
   if (newval > oldval) {
-    return MAX2(newval, curval);
+    return std::max(newval, curval);
   }
   return newval;
 }

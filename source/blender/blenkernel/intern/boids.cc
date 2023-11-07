@@ -275,7 +275,7 @@ static bool rule_avoid_collision(BoidRule *rule,
       mul_v3_fl(bbd->wanted_co, (1.0f - t) * val->personal_space * pa->size);
 
       bbd->wanted_speed = sqrtf(t) * len_v3(pa->prev_state.vel);
-      bbd->wanted_speed = MAX2(bbd->wanted_speed, val->min_speed);
+      bbd->wanted_speed = std::max(bbd->wanted_speed, val->min_speed);
 
       return true;
     }
@@ -1321,7 +1321,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
       new_speed = MAX2(bbd->wanted_speed, old_speed - val.max_acc);
     }
     else {
-      new_speed = MIN2(bbd->wanted_speed, old_speed + val.max_acc);
+      new_speed = std::min(bbd->wanted_speed, old_speed + val.max_acc);
     }
 
     /* combine direction and speed */
@@ -1333,7 +1333,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
       float len2 = dot_v2v2(new_vel, new_vel);
       float root;
 
-      len2 = MAX2(len2, val.min_speed * val.min_speed);
+      len2 = std::max(len2, val.min_speed * val.min_speed);
       root = sasqrt(new_speed * new_speed - len2);
 
       new_vel[2] = new_vel[2] < 0.0f ? -root : root;
@@ -1367,7 +1367,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
   if (ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
     float length = normalize_v3(force);
 
-    length = MAX2(0.0f, length - boids->land_stick_force);
+    length = std::max(0.0f, length - boids->land_stick_force);
 
     mul_v3_fl(force, length);
   }

@@ -146,7 +146,7 @@ void ExecutionGroup::init_read_buffer_operations()
     if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read_operation = static_cast<ReadBufferOperation *>(operation);
       read_operations_.append(read_operation);
-      max_offset = MAX2(max_offset, read_operation->get_offset());
+      max_offset = std::max(max_offset, read_operation->get_offset());
     }
   }
   max_offset++;
@@ -442,10 +442,10 @@ inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
     const uint width = MIN2(uint(viewer_border_.xmax), width_);
     const uint height = MIN2(uint(viewer_border_.ymax), height_);
     BLI_rcti_init(r_rect,
-                  MIN2(minx, width_),
-                  MIN2(minx + chunk_size_, width),
-                  MIN2(miny, height_),
-                  MIN2(miny + chunk_size_, height));
+                  std::min(minx, width_),
+                  std::min(minx + chunk_size_, width),
+                  std::min(miny, height_),
+                  std::min(miny + chunk_size_, height));
   }
 }
 

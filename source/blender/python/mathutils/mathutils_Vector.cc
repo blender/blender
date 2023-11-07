@@ -694,7 +694,7 @@ static PyObject *Vector_to_3d(VectorObject *self)
     return nullptr;
   }
 
-  memcpy(tvec, self->vec, sizeof(float) * MIN2(self->vec_num, 3));
+  memcpy(tvec, self->vec, sizeof(float) * std::min(self->vec_num, 3));
   return Vector_CreatePyObject(tvec, 3, Py_TYPE(self));
 }
 PyDoc_STRVAR(Vector_to_4d_doc,
@@ -712,7 +712,7 @@ static PyObject *Vector_to_4d(VectorObject *self)
     return nullptr;
   }
 
-  memcpy(tvec, self->vec, sizeof(float) * MIN2(self->vec_num, 4));
+  memcpy(tvec, self->vec, sizeof(float) * std::min(self->vec_num, 4));
   return Vector_CreatePyObject(tvec, 4, Py_TYPE(self));
 }
 
@@ -1082,7 +1082,7 @@ PyDoc_STRVAR(
     "   :rtype: float\n");
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
-  const int vec_num = MIN2(self->vec_num, 3); /* 4D angle makes no sense */
+  const int vec_num = std::min(self->vec_num, 3); /* 4D angle makes no sense */
   float tvec[MAX_DIMENSIONS];
   PyObject *value;
   double dot = 0.0f, dot_self = 0.0f, dot_other = 0.0f;

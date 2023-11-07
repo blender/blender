@@ -179,8 +179,8 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
     xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, str_len);
   }
 
-  yofs = MAX2(0, yofs);
-  xofs = MAX2(0, xofs);
+  yofs = std::max(0, yofs);
+  xofs = std::max(0, xofs);
 
   BLF_clipping(fs->uifont_id, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
   BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);

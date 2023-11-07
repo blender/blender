@@ -220,7 +220,7 @@ static void pose_brush_grow_factor_task(Object *ob,
     /* Grow the factor. */
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       float vmask_f = prev_mask[ni.index];
-      max = MAX2(vmask_f, max);
+      max = std::max(vmask_f, max);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 

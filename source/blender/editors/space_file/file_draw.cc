@@ -925,7 +925,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   bool do_drag;
   uchar text_col[4];
   const bool draw_columnheader = (params->display == FILE_VERTICALDISPLAY);
-  const float thumb_icon_aspect = MIN2(64.0f / float(params->thumbnail_size), 1.0f);
+  const float thumb_icon_aspect = std::min(64.0f / float(params->thumbnail_size), 1.0f);
 
   numfiles = filelist_files_ensure(files);
 

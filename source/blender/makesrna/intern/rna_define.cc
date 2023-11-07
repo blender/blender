@@ -1784,16 +1784,16 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
       IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
       iprop->hardmin = int(min);
       iprop->hardmax = int(max);
-      iprop->softmin = MAX2(int(min), iprop->hardmin);
-      iprop->softmax = MIN2(int(max), iprop->hardmax);
+      iprop->softmin = std::max(int(min), iprop->hardmin);
+      iprop->softmax = std::min(int(max), iprop->hardmax);
       break;
     }
     case PROP_FLOAT: {
       FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
       fprop->hardmin = float(min);
       fprop->hardmax = float(max);
-      fprop->softmin = MAX2(float(min), fprop->hardmin);
-      fprop->softmax = MIN2(float(max), fprop->hardmax);
+      fprop->softmin = std::max(float(min), fprop->hardmin);
+      fprop->softmax = std::min(float(max), fprop->hardmax);
       break;
     }
     default:
@@ -2539,7 +2539,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
             }
             else if (STREQ(dp->dnatype, "int")) {
               int *defaultarray = static_cast<int *>(rna_calloc(size_final));
-              memcpy(defaultarray, default_data, MIN2(size_final, dp->dnasize));
+              memcpy(defaultarray, default_data, std::min(size_final, dp->dnasize));
               iprop->defaultarray = defaultarray;
             }
             else {
@@ -2650,7 +2650,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
             if (STREQ(dp->dnatype, "float")) {
               const int size_final = sizeof(float) * prop->totarraylength;
               float *defaultarray = static_cast<float *>(rna_calloc(size_final));
-              memcpy(defaultarray, default_data, MIN2(size_final, dp->dnasize));
+              memcpy(defaultarray, default_data, std::min(size_final, dp->dnasize));
               fprop->defaultarray = defaultarray;
             }
             else {

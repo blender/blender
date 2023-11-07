@@ -337,8 +337,8 @@ void DRW_stats_draw(const rcti *rect)
     }
 
     /* avoid very long number */
-    time_ms = MIN2(time_ms, 999.0);
-    time_percent = MIN2(time_percent, 100.0);
+    time_ms = std::min(time_ms, 999.0);
+    time_percent = std::min(time_percent, 100.0);
 
     SNPRINTF(stat_string, "%s", timer->name);
     draw_stat(rect, 0 + timer->lvl, v, stat_string, sizeof(stat_string));

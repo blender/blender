@@ -94,7 +94,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int numLaye
   int normalOffset = 0;
 
   /* (subdivLevels == 0) is not allowed */
-  subdivLevels = MAX2(subdivLevels, 1);
+  subdivLevels = std::max(subdivLevels, 1);
 
   if (prevSS) {
     int oldUseAging;

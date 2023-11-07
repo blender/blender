@@ -492,12 +492,12 @@ static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot,
   ParticleCacheKey **cache;
   int i, totkey, totbufkey;
 
-  tot = MAX2(tot, 1);
+  tot = std::max(tot, 1);
   totkey = 0;
   cache = static_cast<ParticleCacheKey **>(MEM_callocN(tot * sizeof(void *), "PathCacheArray"));
 
   while (totkey < tot) {
-    totbufkey = MIN2(tot - totkey, PATH_CACHE_BUF_SIZE);
+    totbufkey = std::min(tot - totkey, PATH_CACHE_BUF_SIZE);
     buf = static_cast<LinkData *>(MEM_callocN(sizeof(LinkData), "PathCacheLinkData"));
     buf->data = MEM_callocN(sizeof(ParticleCacheKey) * totbufkey * totkeys, "ParticleCacheKey");
 
@@ -1309,8 +1309,8 @@ static void init_particle_interpolation(Object *ob,
     pind->dietime = pa ? pa->dietime : (pind->cache->endframe + 1);
 
     if (get_pointcache_times_for_particle(pind->cache, pa - psys->particles, &start, &dietime)) {
-      pind->birthtime = MAX2(pind->birthtime, start);
-      pind->dietime = MIN2(pind->dietime, dietime);
+      pind->birthtime = std::max(pind->birthtime, start);
+      pind->dietime = std::min(pind->dietime, dietime);
     }
   }
   else {
@@ -3352,7 +3352,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 
     if (part->draw & PART_ABS_PATH_TIME) {
       birthtime = MAX2(pind.birthtime, part->path_start);
-      dietime = MIN2(pind.dietime, part->path_end);
+      dietime = std::min(pind.dietime, part->path_end);
     }
     else {
       float tb = pind.birthtime;
@@ -3674,7 +3674,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph,
     return;
   }
 
-  segments = MAX2(segments, 4);
+  segments = std::max(segments, 4);
 
   if (!cache || edit->totpoint != edit->totcached) {
     /* Clear out old and create new empty path cache. */
@@ -4934,7 +4934,7 @@ bool psys_get_particle_state(ParticleSimulationData *sim,
       }
     }
 
-    cfra = MIN2(cfra, pa->dietime);
+    cfra = std::min(cfra, pa->dietime);
   }
 
   if (sim->psys->flag & PSYS_KEYED) {

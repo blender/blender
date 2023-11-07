@@ -1521,7 +1521,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       zoomy = float(ps->display_ctx.size[1]) / ps->ibuf_size[1];
 
       /* Zoom always show entire image. */
-      ps->zoom = MIN2(zoomx, zoomy);
+      ps->zoom = std::min(zoomx, zoomy);
 
       GPU_viewport(0, 0, ps->display_ctx.size[0], ps->display_ctx.size[1]);
       GPU_scissor(0, 0, ps->display_ctx.size[0], ps->display_ctx.size[1]);

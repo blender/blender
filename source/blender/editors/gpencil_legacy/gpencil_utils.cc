@@ -1774,7 +1774,7 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
     float brush_size = float(brush->size);
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
     if (gpl != nullptr) {
-      brush_size = MAX2(1.0f, brush_size + gpl->line_change);
+      brush_size = std::max(1.0f, brush_size + gpl->line_change);
     }
 
     /* Convert the 3D offset distance to a brush radius. */

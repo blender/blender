@@ -1717,7 +1717,7 @@ float BKE_gpencil_stroke_segment_length(const bGPDstroke *gps,
   }
 
   int index = MAX2(start_index, 0) + 1;
-  int last_index = MIN2(end_index, gps->totpoints - 1) + 1;
+  int last_index = std::min(end_index, gps->totpoints - 1) + 1;
 
   float *last_pt = &gps->points[index - 1].x;
   float total_length = 0.0f;
@@ -3560,8 +3560,8 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
   if (smooth) {
     const int sample_points = 8;
     /* Get the segment to smooth using n points on each side of the join. */
-    int start = MAX2(0, totpoints_a - sample_points);
-    int end = MIN2(gps_a->totpoints - 1, start + (sample_points * 2));
+    int start = std::max(0, totpoints_a - sample_points);
+    int end = std::min(gps_a->totpoints - 1, start + (sample_points * 2));
     const int len = (end - start);
     float step = 1.0f / ((len / 2) + 1);
 

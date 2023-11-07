@@ -1134,11 +1134,11 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   /* Style targets are on the settings_font. */
   float weight_target = float(settings_font->char_weight);
   if (settings_font->flags & BLF_BOLD) {
-    weight_target = MIN2(weight_target + 300.0f, 900.0f);
+    weight_target = std::min(weight_target + 300.0f, 900.0f);
   }
   float slant_target = settings_font->char_slant;
   if (settings_font->flags & BLF_ITALIC) {
-    slant_target = MIN2(slant_target + 8.0f, 15.0f);
+    slant_target = std::min(slant_target + 8.0f, 15.0f);
   }
   float width_target = settings_font->char_width;
   float spacing_target = settings_font->char_spacing;
@@ -1281,7 +1281,7 @@ static void blf_glyph_calc_rect_test(rcti *rect, GlyphBLF *g, const int x, const
    * width used by BLF_width. This allows that the text slightly
    * overlaps the clipping border to achieve better alignment. */
   rect->xmin = x + g->pos[0] + 1;
-  rect->xmax = x + MIN2(ft_pix_to_int(g->advance_x), g->dims[0]);
+  rect->xmax = x + std::min(ft_pix_to_int(g->advance_x), g->dims[0]);
   rect->ymin = y;
   rect->ymax = rect->ymin - g->dims[1];
 }

@@ -545,7 +545,7 @@ static bool anything_showing_through(PointerRNA *ptr)
   const int level_start = RNA_int_get(ptr, "level_start");
   const int level_end = RNA_int_get(ptr, "level_end");
   if (use_multiple_levels) {
-    return (MAX2(level_start, level_end) > 0);
+    return (std::max(level_start, level_end) > 0);
   }
   return (level_start > 0);
 }

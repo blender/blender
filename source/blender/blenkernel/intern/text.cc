@@ -2113,7 +2113,7 @@ static bool txt_select_unprefix(Text *text, const char *remove, const bool requi
 
     if (text->curl == text->sell) {
       if (changed) {
-        text->selc = MAX2(text->selc - indentlen, 0);
+        text->selc = std::max(text->selc - indentlen, 0);
       }
       break;
     }
@@ -2123,7 +2123,7 @@ static bool txt_select_unprefix(Text *text, const char *remove, const bool requi
   }
 
   if (unindented_first) {
-    text->curc = MAX2(text->curc - indentlen, 0);
+    text->curc = std::max(text->curc - indentlen, 0);
   }
 
   while (num > 0) {

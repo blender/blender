@@ -961,7 +961,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           key->refkey)
       {
         data = static_cast<const float *>(key->refkey->data);
-        tot = MIN2(me->totvert, key->refkey->totelem);
+        tot = std::min(me->totvert, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(
             &me->vert_data, CD_MVERT, me->totvert);
         for (a = 0; a < tot; a++, data += 3) {
@@ -976,7 +976,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           key->refkey)
       {
         data = static_cast<const float *>(key->refkey->data);
-        tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
+        tot = std::min(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
         for (a = 0; a < tot; a++, data += 3) {
           copy_v3_v3(lt->def[a].vec, data);

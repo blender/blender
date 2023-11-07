@@ -281,8 +281,8 @@ eScreenDir area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
   short bottom_b = sa_b->v1->vec.y;
 
   /* How much these areas share a common edge. */
-  short overlapx = MIN2(right_a, right_b) - MAX2(left_a, left_b);
-  short overlapy = MIN2(top_a, top_b) - MAX2(bottom_a, bottom_b);
+  short overlapx = std::min(right_a, right_b) - std::max(left_a, left_b);
+  short overlapy = std::min(top_a, top_b) - std::max(bottom_a, bottom_b);
 
   /* Minimum overlap required. */
   const short minx = MIN3(AREAJOINTOLERANCEX, right_a - left_a, right_b - left_b);
@@ -381,8 +381,8 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
 
   /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See #100772. */
   if (SCREEN_DIR_IS_VERTICAL(dir)) {
-    const short xmin = MIN2(sa1->v1->vec.x, sa2->v1->vec.x);
-    const short xmax = MAX2(sa1->v3->vec.x, sa2->v3->vec.x);
+    const short xmin = std::min(sa1->v1->vec.x, sa2->v1->vec.x);
+    const short xmax = std::max(sa1->v3->vec.x, sa2->v3->vec.x);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (ELEM(area, sa1, sa2)) {
         continue;
@@ -396,8 +396,8 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
     }
   }
   else {
-    const short ymin = MIN2(sa1->v1->vec.y, sa2->v1->vec.y);
-    const short ymax = MAX2(sa1->v3->vec.y, sa2->v3->vec.y);
+    const short ymin = std::min(sa1->v1->vec.y, sa2->v1->vec.y);
+    const short ymax = std::max(sa1->v3->vec.y, sa2->v3->vec.y);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (ELEM(area, sa1, sa2)) {
         continue;
@@ -581,7 +581,7 @@ bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area)
       const int ar_length = vertical ? (neighbor->v3->vec.x - neighbor->v1->vec.x) :
                                        (neighbor->v3->vec.y - neighbor->v1->vec.y);
       /* Calculate the ratio of the lengths of the shared edges. */
-      float alignment = MIN2(area_length, ar_length) / float(MAX2(area_length, ar_length));
+      float alignment = std::min(area_length, ar_length) / float(std::max(area_length, ar_length));
       if (alignment > best_alignment) {
         best_alignment = alignment;
         sa2 = neighbor;

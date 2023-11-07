@@ -2259,7 +2259,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         /* convert settings from old particle system */
         /* general settings */
-        part->totpart = MIN2(paf->totpart, 100000);
+        part->totpart = std::min(paf->totpart, 100000);
         part->sta = paf->sta;
         part->end = paf->end;
         part->lifetime = paf->lifetime;
@@ -2503,8 +2503,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          * use it for the number of divisions per segment
          */
         if (nu->pntsv > 1) {
-          nu->resolu = MAX2(1, int((float(nu->resolu) / float(nu->pntsu)) + 0.5f));
-          nu->resolv = MAX2(1, int((float(nu->resolv) / float(nu->pntsv)) + 0.5f));
+          nu->resolu = std::max(1, int((float(nu->resolu) / float(nu->pntsu)) + 0.5f));
+          nu->resolv = std::max(1, int((float(nu->resolv) / float(nu->pntsv)) + 0.5f));
         }
       }
     }

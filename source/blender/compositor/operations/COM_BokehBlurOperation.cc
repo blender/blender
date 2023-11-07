@@ -44,7 +44,7 @@ void BokehBlurOperation::init_data()
   const int width = bokeh->get_width();
   const int height = bokeh->get_height();
 
-  const float dimension = MIN2(width, height);
+  const float dimension = std::min(width, height);
 
   bokeh_mid_x_ = width / 2.0f;
   bokeh_mid_y_ = height / 2.0f;
@@ -103,8 +103,8 @@ void BokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data
     int maxy = y + pixel_size;
     int minx = x - pixel_size;
     int maxx = x + pixel_size;
-    miny = MAX2(miny, input_rect.ymin);
-    minx = MAX2(minx, input_rect.xmin);
+    miny = std::max(miny, input_rect.ymin);
+    minx = std::max(minx, input_rect.xmin);
     maxy = MIN2(maxy, input_rect.ymax);
     maxx = MIN2(maxx, input_rect.xmax);
 
@@ -338,7 +338,7 @@ void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
       multiplier_accum[2] = 1.0f;
       multiplier_accum[3] = 1.0f;
     }
-    const int miny = MAX2(y - pixel_size, image_rect.ymin);
+    const int miny = std::max(y - pixel_size, image_rect.ymin);
     const int maxy = MIN2(y + pixel_size, image_rect.ymax);
     const int minx = MAX2(x - pixel_size, image_rect.xmin);
     const int maxx = MIN2(x + pixel_size, image_rect.xmax);

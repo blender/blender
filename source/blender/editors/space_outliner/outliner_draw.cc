@@ -3214,7 +3214,7 @@ static void outliner_draw_iconrow(bContext *C,
         if ((merged->tree_element[index] == nullptr) || (active > merged->active[index])) {
           merged->tree_element[index] = te;
         }
-        merged->active[index] = MAX2(active, merged->active[index]);
+        merged->active[index] = std::max(active, merged->active[index]);
       }
     }
 

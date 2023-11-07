@@ -280,7 +280,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
       immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
 
       /* Color overlay outside the start/end frame range get a more transparent overlay. */
-      immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+      immUniformColor3ubvAlpha(color, std::min(255, color[3] / 2));
       immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
       immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
     }
@@ -299,7 +299,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
       immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
 
       /* Color overlay outside the start/end frame range get a more transparent overlay. */
-      immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+      immUniformColor3ubvAlpha(color, std::min(255, color[3] / 2));
       immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
       immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
     }

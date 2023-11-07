@@ -262,7 +262,7 @@ void WM_OT_splash(wmOperatorType *ot)
 static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void * /*arg*/)
 {
   const uiStyle *style = UI_style_get_dpi();
-  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  const int text_points_max = std::max(style->widget.points, style->widgetlabel.points);
   const int dialog_width = text_points_max * 42 * UI_SCALE_FAC;
 
   uiBlock *block = UI_block_begin(C, region, "about", UI_EMBOSS);
