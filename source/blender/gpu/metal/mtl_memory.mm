@@ -70,10 +70,17 @@ void MTLBufferPool::free()
     delete completed_safelist_queue_[safe_pool_free_index];
   }
   completed_safelist_queue_.clear();
+
+  safelist_lock_.lock();
   if (current_free_list_ != nullptr) {
     delete current_free_list_;
     current_free_list_ = nullptr;
   }
+  if (prev_free_buffer_list_ != nullptr) {
+    delete prev_free_buffer_list_;
+    prev_free_buffer_list_ = nullptr;
+  }
+  safelist_lock_.unlock();
 
   /* Clear and release memory pools. */
   for (std::multiset<blender::gpu::MTLBufferHandle, blender::gpu::CompareMTLBuffer> *buffer_pool :
