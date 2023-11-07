@@ -628,14 +628,14 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
 
         /* delete F-Curve completely */
         if (can_delete) {
-          blender::animrig::ANIM_fcurve_delete_from_animdata(nullptr, adt, fcu);
+          blender::animrig::animdata_fcurve_delete(nullptr, adt, fcu);
           DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
           changed = true;
         }
       }
 
       /* Delete the action itself if it is empty. */
-      if (blender::animrig::ANIM_remove_empty_action_from_animdata(adt)) {
+      if (blender::animrig::animdata_remove_empty_action(adt)) {
         changed = true;
       }
     }

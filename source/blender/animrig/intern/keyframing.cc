@@ -937,7 +937,7 @@ int clear_keyframe(Main *bmain,
       continue;
     }
 
-    ANIM_fcurve_delete_from_animdata(nullptr, adt, fcu);
+    animdata_fcurve_delete(nullptr, adt, fcu);
 
     key_count++;
   }

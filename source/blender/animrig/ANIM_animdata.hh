@@ -18,7 +18,7 @@ namespace blender::animrig {
  * Delete the F-Curve from the given AnimData block (if possible),
  * as appropriate according to animation context.
  */
-void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu);
+void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu);
 
 /**
  * Unlink the action from animdata if it's empty.
@@ -26,6 +26,6 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
  * If the action has no F-Curves, unlink it from AnimData if it did not
  * come from a NLA Strip being tweaked.
  */
-bool ANIM_remove_empty_action_from_animdata(AnimData *adt);
+bool animdata_remove_empty_action(AnimData *adt);
 
 }  // namespace blender::animrig

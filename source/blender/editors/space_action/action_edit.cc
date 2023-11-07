@@ -1111,7 +1111,7 @@ static bool delete_action_keys(bAnimContext *ac)
 
       /* Only delete curve too if it won't be doing anything anymore */
       if (BKE_fcurve_is_empty(fcu)) {
-        blender::animrig::ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
+        blender::animrig::animdata_fcurve_delete(ac, adt, fcu);
         ale->key_data = nullptr;
       }
     }

@@ -2136,7 +2136,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
         FCurve *fcu = (FCurve *)ale->data;
 
         /* try to free F-Curve */
-        blender::animrig::ANIM_fcurve_delete_from_animdata(&ac, adt, fcu);
+        blender::animrig::animdata_fcurve_delete(&ac, adt, fcu);
         tag_update_animation_element(ale);
         break;
       }

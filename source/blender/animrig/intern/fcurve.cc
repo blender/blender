@@ -33,7 +33,7 @@ bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
 
   /* Empty curves get automatically deleted. */
   if (BKE_fcurve_is_empty(fcu)) {
-    ANIM_fcurve_delete_from_animdata(nullptr, adt, fcu);
+    animdata_fcurve_delete(nullptr, adt, fcu);
   }
 
   return true;

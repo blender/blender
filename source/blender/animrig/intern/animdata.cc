@@ -20,7 +20,7 @@ namespace blender::animrig {
 /** \name Public F-Curves API
  * \{ */
 
-void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu)
+void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
 {
   /* - if no AnimData, we've got nowhere to remove the F-Curve from
    *   (this doesn't guarantee that the F-Curve is in there, but at least we tried
@@ -68,14 +68,14 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
      * channel list that are empty, and linger around long after the data they
      * are for has disappeared (and probably won't come back).
      */
-    ANIM_remove_empty_action_from_animdata(adt);
+    animdata_remove_empty_action(adt);
   }
 
   /* free the F-Curve itself */
   BKE_fcurve_free(fcu);
 }
 
-bool ANIM_remove_empty_action_from_animdata(AnimData *adt)
+bool animdata_remove_empty_action(AnimData *adt)
 {
   if (adt->action != nullptr) {
     bAction *act = adt->action;
