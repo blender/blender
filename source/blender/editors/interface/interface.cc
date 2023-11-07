@@ -2454,6 +2454,7 @@ bool ui_but_is_bool(const uiBut *but)
            UI_BTYPE_ICON_TOGGLE_N,
            UI_BTYPE_CHECKBOX,
            UI_BTYPE_CHECKBOX_N,
+           UI_BTYPE_BUT_TOGGLE,
            UI_BTYPE_TAB))
   {
     return true;
