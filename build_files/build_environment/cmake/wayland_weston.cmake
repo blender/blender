@@ -15,6 +15,10 @@ ExternalProject_Add(external_wayland_weston
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/wayland_weston
 
+  # Notes:
+  # - Disable nearly everything as only a simple headless server is needed for testing.
+  # - Keep X11 and WAYLAND back-ends enabled so it's possible
+  #   to run the instance inside existing X11/WAYLAND sessions (for debugging).
   CONFIGURE_COMMAND ${WAYLAND_WESTON_CONFIGURE_ENV} &&
   ${CMAKE_COMMAND} -E env ${WAYLAND_WESTON_PKG_ENV}
   ${MESON} setup
@@ -26,17 +30,22 @@ ExternalProject_Add(external_wayland_weston
   -Dbackend-drm=false
   -Dbackend-pipewire=false
   -Dbackend-rdp=false
+  -Dbackend-vnc=false
   -Dcolor-management-lcms=false
   -Ddemo-clients=false
+  -Ddoc=false
   -Dimage-jpeg=false
   -Dimage-webp=false
   -Dpipewire=false
   -Dremoting=false
+  -Dscreenshare=false
   -Dshell-fullscreen=false
+  -Dshell-ivi=false
   -Dshell-kiosk=false
   -Dsimple-clients=
   -Dsystemd=false
   -Dtest-junit-xml=false
+  -Dtools=
   -Dwcap-decode=false
   -Dxwayland=false
   ${BUILD_DIR}/wayland_weston/src/external_wayland_weston-build
