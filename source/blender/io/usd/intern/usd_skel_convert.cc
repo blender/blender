@@ -41,6 +41,8 @@
 #include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 
+#include "ANIM_fcurve.hh"
+
 #include "WM_api.hh"
 
 #include <iostream>
@@ -93,7 +95,7 @@ void add_bezt(FCurve *fcu,
   bez.ipo = ipo; /* use default interpolation mode here... */
   bez.f1 = bez.f2 = bez.f3 = SELECT;
   bez.h1 = bez.h2 = HD_AUTO;
-  insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
+  blender::animrig::insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
 }
 
 /**

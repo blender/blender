@@ -67,12 +67,13 @@
 #include "ED_armature.hh"
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframes_keylist.hh"
-#include "ED_keyframing.hh"
 #include "ED_markers.hh"
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_util.hh"
+
+#include "ANIM_fcurve.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -1740,7 +1741,7 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
       FCurve *fcu = (FCurve *)ld->data;
       const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
       LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
-        insert_vert_fcurve(
+        blender::animrig::insert_vert_fcurve(
             fcu, target_frame->frame, current_fcu_value, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NEEDED);
       }
     }

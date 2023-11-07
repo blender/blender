@@ -43,6 +43,8 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
+#include "ANIM_fcurve.hh"
+
 #include "anim_intern.h"
 
 /* ************************************************** */
@@ -122,9 +124,9 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
        * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
        *   which can be easily tweaked from there.
        */
-      insert_vert_fcurve(
+      blender::animrig::insert_vert_fcurve(
           fcu, 0.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
-      insert_vert_fcurve(
+      blender::animrig::insert_vert_fcurve(
           fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
       fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
       BKE_fcurve_handles_recalc(fcu);

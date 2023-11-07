@@ -47,6 +47,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
+#include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
@@ -179,7 +180,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       }
 
       /* Insert keyframe directly into the F-Curve. */
-      insert_vert_fcurve(
+      blender::animrig::insert_vert_fcurve(
           fcu, x, y, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
 
       ale->update |= ANIM_UPDATE_DEFAULT;
@@ -228,7 +229,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         }
 
         const float curval = evaluate_fcurve_only_curve(fcu, cfra);
-        insert_vert_fcurve(
+        blender::animrig::insert_vert_fcurve(
             fcu, cfra, curval, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
       }
 
@@ -345,7 +346,7 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
     val = val * scale - offset;
 
     /* Insert keyframe on the specified frame + value. */
-    insert_vert_fcurve(
+    blender::animrig::insert_vert_fcurve(
         fcu, frame, val, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
 
     ale->update |= ANIM_UPDATE_DEPS;

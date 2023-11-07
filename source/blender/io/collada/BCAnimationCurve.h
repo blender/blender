@@ -15,7 +15,8 @@
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
-#include "ED_keyframing.hh"
+
+#include "ANIM_fcurve.hh"
 
 typedef float(TangentPoint)[2];
 

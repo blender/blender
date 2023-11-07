@@ -43,6 +43,7 @@
 
 #include "UI_view2d.hh"
 
+#include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ED_anim_api.hh"
 #include "ED_gpencil_legacy.hh"
@@ -859,7 +860,7 @@ static void insert_fcurve_key(bAnimContext *ac,
     }
 
     const float curval = evaluate_fcurve(fcu, cfra);
-    insert_vert_fcurve(
+    blender::animrig::insert_vert_fcurve(
         fcu, cfra, curval, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
   }
 

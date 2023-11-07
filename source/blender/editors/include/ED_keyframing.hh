@@ -68,38 +68,6 @@ void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
 /* -------- */
 
 /**
- * \brief Lesser Key-framing API call.
- *
- * Use this when validation of necessary animation data isn't necessary as it already
- * exists, and there is a #BezTriple that can be directly copied into the array.
- *
- * This function adds a given #BezTriple to an F-Curve. It will allocate
- * memory for the array if needed, and will insert the #BezTriple into a
- * suitable place in chronological order.
- *
- * \note any recalculate of the F-Curve that needs to be done will need to be done by the caller.
- */
-int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag);
-
-/**
- * \brief Main Key-framing API call.
- *
- * Use this when validation of necessary animation data isn't necessary as it
- * already exists. It will insert a keyframe using the current value being keyframed.
- * Returns the index at which a keyframe was added (or -1 if failed).
- *
- * This function is a wrapper for #insert_bezt_fcurve(), and should be used when
- * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet.
- * It returns the index at which the keyframe was added.
- *
- * \param keyframe_type: The type of keyframe (#eBezTriple_KeyframeType).
- * \param flag: Optional flags (#eInsertKeyFlags) for controlling how keys get added
- * and/or whether updates get done.
- */
-int insert_vert_fcurve(
-    FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag);
-
-/**
  * Add the given number of keyframes to the FCurve. Their coordinates are
  * uninitialized, so the curve should not be used without further attention.
  *
