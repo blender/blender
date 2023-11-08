@@ -63,7 +63,8 @@ static void eevee_engine_init(void *vedata)
       rctf default_border;
       BLI_rctf_init(&default_border, 0.0f, 1.0f, 0.0f, 1.0f);
       bool is_default_border = BLI_rctf_compare(&scene->r.border, &default_border, 0.0f);
-      if (!is_default_border) {
+      bool use_border = scene->r.mode & R_BORDER;
+      if (!is_default_border && use_border) {
         rctf viewborder;
         /* TODO(fclem) Might be better to get it from DRW. */
         ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &viewborder, false);
