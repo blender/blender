@@ -12,11 +12,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifdef _WIN32
-#  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
@@ -442,30 +437,6 @@ static void free_openrecent()
   BLI_freelistN(&(G.recent_files));
 }
 
-#ifdef WIN32
-/* Read console events until there is a key event. Also returns on any error. */
-static void wait_for_console_key()
-{
-  HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
-
-  if (!ELEM(hConsoleInput, nullptr, INVALID_HANDLE_VALUE) &&
-      FlushConsoleInputBuffer(hConsoleInput)) {
-    for (;;) {
-      INPUT_RECORD buffer;
-      DWORD ignored;
-
-      if (!ReadConsoleInput(hConsoleInput, &buffer, 1, &ignored)) {
-        break;
-      }
-
-      if (buffer.EventType == KEY_EVENT) {
-        break;
-      }
-    }
-  }
-}
-#endif
-
 static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
 {
   WM_exit(C, EXIT_SUCCESS);
@@ -737,14 +708,6 @@ void WM_exit(bContext *C, const int exit_code)
   WM_exit_ex(C, true, do_user_exit_actions);
 
   printf("\nBlender quit\n");
-
-#ifdef WIN32
-  /* ask user to press a key when in debug mode */
-  if (G.debug & G_DEBUG) {
-    printf("Press any key to exit . . .\n\n");
-    wait_for_console_key();
-  }
-#endif
 
   exit(exit_code);
 }
