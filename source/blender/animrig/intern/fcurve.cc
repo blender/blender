@@ -255,7 +255,7 @@ int insert_vert_fcurve(
   beztr.back = 1.70158f;
 
   /* "elastic" easing - Values here were hand-optimized for a default duration of
-   *                    ~10 frames (typical mograph motion length) */
+   *                    ~10 frames (typical motion-graph motion length). */
   beztr.amplitude = 0.8f;
   beztr.period = 4.1f;
 

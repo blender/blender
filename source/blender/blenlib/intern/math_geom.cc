@@ -3336,18 +3336,16 @@ static bool point_in_slice(const float p[3],
                            const float l1[3],
                            const float l2[3])
 {
-  /*
-   * what is a slice ?
-   * some maths:
+  /* What is a slice?
+   * Some math:
    * a line including (l1, l2) and a point not on the line
    * define a subset of R3 delimited by planes parallel to the line and orthogonal
    * to the (point --> line) distance vector, one plane on the line one on the point,
    * the room inside usually is rather small compared to R3 though still infinite
    * useful for restricting (speeding up) searches
-   * e.g. all points of triangular prism are within the intersection of 3 'slices'
-   * another trivial case : cube
-   * but see a 'spat' which is a deformed cube with paired parallel planes needs only 3 slices too
-   */
+   * e.g. all points of triangular prism are within the intersection of 3 "slices"
+   * Another trivial case is a cube, but see a "spat" which is a deformed cube
+   * with paired parallel planes needs only 3 slices too. */
   float h, rp[3], cp[3], q[3];
 
   closest_to_line_v3(cp, v1, l1, l2);

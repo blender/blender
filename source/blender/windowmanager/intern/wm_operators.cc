@@ -1474,8 +1474,8 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
-  /* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogues have many items
-   * where quitting by accident is very annoying */
+  /* Intentionally don't use #UI_BLOCK_MOVEMOUSE_QUIT, some dialogs have many items
+   * where quitting by accident is very annoying. */
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NUMSELECT);
 
   uiLayout *layout = UI_block_layout(

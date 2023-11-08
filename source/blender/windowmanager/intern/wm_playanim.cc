@@ -2145,7 +2145,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   BLF_exit();
 
   /* NOTE: Must happen before GPU Context destruction as GPU resources are released via
-   * Colour Management module. */
+   * Color Management module. */
   IMB_exit();
 
   if (ps.ghost_data.gpu_context) {

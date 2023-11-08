@@ -131,7 +131,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 #else
 
 /* On macOS versions before 14.x, builtin constants (e.g. metal_global_id) must
- * be accessed through attributed entrypoint parameters. */
+ * be accessed through attributed entry-point parameters. */
 
 #define ccl_gpu_kernel_signature(name, ...) \
 struct kernel_gpu_##name \
