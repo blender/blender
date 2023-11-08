@@ -86,12 +86,14 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertTrue(_insert_with_keying_set_test("Location", ["location"]))
         self.assertTrue(_insert_with_keying_set_test("Rotation", ["rotation_euler"]))
         self.assertTrue(_insert_with_keying_set_test("Scale", ["scale"]))
-        self.assertTrue(_insert_with_keying_set_test("Location, Rotation & Scale", ["location", "rotation_euler", "scale"]))
+        self.assertTrue(
+            _insert_with_keying_set_test("Location, Rotation & Scale", ["location", "rotation_euler", "scale"])
+        )
 
 
 class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
     """ Check if visual keying produces the correct keyframe values. """
-    
+
     def test_visual_location_keying_set(self):
         t_value = 1
         target = _create_animation_object()
@@ -129,7 +131,7 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         bpy.data.objects.remove(constrained, do_unlink=True)
 
     def test_visual_location_user_pref(self):
-        # When enabling the user preference setting, 
+        # When enabling the user preference setting,
         # the normal keying sets behave like their visual keying set counterpart.
         bpy.context.preferences.edit.use_visual_keying = True
         t_value = 1
@@ -184,19 +186,19 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertTrue(_fcurve_paths_match(action.fcurves, ["location"]))
 
         expected_keys = [1, 3, 5, 9, 20]
-        
+
         for fcurve in action.fcurves:
             self.assertEqual(len(fcurve.keyframe_points), len(expected_keys))
             key_index = 0
             for key in fcurve.keyframe_points:
                 self.assertEqual(key.co.x, expected_keys[key_index])
                 key_index += 1
-            
+
             # All fcurves should have a cycles modifier.
             self.assertTrue(fcurve.modifiers[0].type == "CYCLES")
 
         bpy.data.objects.remove(keyed_object, do_unlink=True)
-        
+
 
 def main():
     global args

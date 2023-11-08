@@ -71,7 +71,9 @@ vec4 EDIT_MESH_face_color(uint face_flag)
   }
   else {
     /* Don't always fill 'colorFace'. */
-    color.a = (selectFace || face_selected || face_active || face_freestyle || face_retopo) ? color.a : 0.0;
+    color.a = (selectFace || face_selected || face_active || face_freestyle || face_retopo) ?
+                  color.a :
+                  0.0;
   }
   return color;
 }
