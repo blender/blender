@@ -1127,7 +1127,7 @@ static void GREASE_PENCIL_OT_set_uniform_opacity(wmOperatorType *ot)
 /** \name Switch Direction Operator
  * \{ */
 
-static int grease_pencil_stroke_switch_direction_exec(bContext *C, wmOperator *op)
+static int grease_pencil_stroke_switch_direction_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
