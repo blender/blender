@@ -5848,6 +5848,10 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
         layout = self.layout
         layout.operator("grease_pencil.stroke_smooth", text="Smooth Points")
 
+        layout.separator()
+        layout.operator("grease_pencil.set_uniform_thickness")
+        layout.operator("grease_pencil.set_uniform_opacity")
+
 
 class VIEW3D_MT_edit_curves(Menu):
     bl_label = "Curves"
