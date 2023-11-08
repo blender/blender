@@ -330,6 +330,19 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Node group must have a group output node");
     return OPERATOR_CANCELLED;
   }
+  for (const bNodeTreeInterfaceSocket *input : node_tree->interface_inputs()) {
+    if (STR_ELEM(input->socket_type,
+                 "NodeSocketObject",
+                 "NodeSocketImage",
+                 "NodeSocketGeometry",
+                 "NodeSocketCollection",
+                 "NodeSocketTexture",
+                 "NodeSocketMaterial"))
+    {
+      BKE_report(op->reports, RPT_ERROR, "Data-block inputs are unsupported");
+      return OPERATOR_CANCELLED;
+    }
+  }
 
   IDProperty *properties = replace_inputs_evaluated_data_blocks(*op->properties, *depsgraph);
   BLI_SCOPED_DEFER([&]() { IDP_FreeProperty_ex(properties, false); });
