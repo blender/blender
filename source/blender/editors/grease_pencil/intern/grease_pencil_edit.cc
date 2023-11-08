@@ -1005,6 +1005,58 @@ static void GREASE_PENCIL_OT_set_active_material(wmOperatorType *ot)
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Switch Direction Operator
+ * \{ */
+
+static int grease_pencil_stroke_switch_direction_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  bool changed = false;
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+
+    IndexMaskMemory memory;
+    const IndexMask selected_curves = ed::curves::retrieve_selected_curves(curves, memory);
+
+    if (selected_curves.is_empty()) {
+      return;
+    }
+
+    /* Switch stroke direction. */
+    curves.reverse_curves(selected_curves);
+
+    changed = true;
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_stroke_switch_direction(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Switch Direction";
+  ot->idname = "GREASE_PENCIL_OT_stroke_switch_direction";
+  ot->description = "Change direction of the points of the selected strokes";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_stroke_switch_direction_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -1017,6 +1069,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_material_set);
   WM_operatortype_append(GREASE_PENCIL_OT_cyclical_set);
   WM_operatortype_append(GREASE_PENCIL_OT_set_active_material);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_switch_direction);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
