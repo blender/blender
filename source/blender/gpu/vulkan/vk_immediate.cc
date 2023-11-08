@@ -9,6 +9,7 @@
  */
 
 #include "vk_immediate.hh"
+#include "vk_backend.hh"
 #include "vk_data_conversion.hh"
 #include "vk_state_manager.hh"
 
@@ -20,7 +21,10 @@ VKImmediate::~VKImmediate() {}
 uchar *VKImmediate::begin()
 {
   VKContext &context = *VKContext::get();
-  const size_t bytes_needed = vertex_buffer_size(&vertex_format, vertex_len);
+  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
+  vertex_format_converter.init(&vertex_format, workarounds);
+  const size_t bytes_needed = vertex_buffer_size(&vertex_format_converter.device_format_get(),
+                                                 vertex_len);
   const bool new_buffer_needed = !has_active_resource() || buffer_bytes_free() < bytes_needed;
 
   std::unique_ptr<VKBuffer> &buffer = tracked_resource_for(context, new_buffer_needed);
@@ -37,14 +41,13 @@ void VKImmediate::end()
     return;
   }
 
-  if (conversion_needed(vertex_format)) {
-    // Slow path
+  if (vertex_format_converter.needs_conversion()) {
     /* Determine the start of the subbuffer. The `vertex_data` attribute changes when new vertices
      * are loaded.
      */
     uchar *data = static_cast<uchar *>(active_resource()->mapped_memory_get()) +
                   subbuffer_offset_get();
-    convert_in_place(data, vertex_format, vertex_idx);
+    vertex_format_converter.convert(data, data, vertex_idx);
   }
 
   VKContext &context = *VKContext::get();
@@ -60,6 +63,7 @@ void VKImmediate::end()
 
   buffer_offset_ += current_subbuffer_len_;
   current_subbuffer_len_ = 0;
+  vertex_format_converter.reset();
 }
 
 VkDeviceSize VKImmediate::subbuffer_offset_get()

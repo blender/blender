@@ -126,22 +126,6 @@ void VKVertexBuffer::release_data()
   MEM_SAFE_FREE(data);
 }
 
-static bool inplace_conversion_supported(const GPUUsageType &usage)
-{
-  return ELEM(usage, GPU_USAGE_STATIC, GPU_USAGE_STREAM);
-}
-
-void *VKVertexBuffer::convert() const
-{
-  void *out_data = data;
-  if (!inplace_conversion_supported(usage_)) {
-    out_data = MEM_dupallocN(out_data);
-  }
-  BLI_assert(format.deinterleaved);
-  convert_in_place(out_data, format, vertex_len);
-  return out_data;
-}
-
 void VKVertexBuffer::upload_data()
 {
   if (!buffer_.is_allocated()) {
@@ -152,13 +136,13 @@ void VKVertexBuffer::upload_data()
   }
 
   if (flag & GPU_VERTBUF_DATA_DIRTY) {
-    void *data_to_upload = data;
-    if (conversion_needed(format)) {
-      data_to_upload = convert();
+    device_format_ensure();
+    if (vertex_format_converter.needs_conversion()) {
+      vertex_format_converter.convert(buffer_.mapped_memory_get(), data, vertex_len);
+      buffer_.flush();
     }
-    buffer_.update(data_to_upload);
-    if (data_to_upload != data) {
-      MEM_SAFE_FREE(data_to_upload);
+    else {
+      buffer_.update(data);
     }
     if (usage_ == GPU_USAGE_STATIC) {
       MEM_SAFE_FREE(data);
@@ -172,6 +156,19 @@ void VKVertexBuffer::upload_data()
 void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/)
 {
   NOT_YET_IMPLEMENTED
+}
+
+void VKVertexBuffer::device_format_ensure()
+{
+  if (!vertex_format_converter.is_initialized()) {
+    const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
+    vertex_format_converter.init(&format, workarounds);
+  }
+}
+
+const GPUVertFormat &VKVertexBuffer::device_format_get() const
+{
+  return vertex_format_converter.device_format_get();
 }
 
 void VKVertexBuffer::allocate()

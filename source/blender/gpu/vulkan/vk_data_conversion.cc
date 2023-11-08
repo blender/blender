@@ -7,6 +7,9 @@
  */
 
 #include "vk_data_conversion.hh"
+#include "vk_device.hh"
+
+#include "gpu_vertex_format_private.h"
 
 #include "BLI_color.hh"
 
@@ -951,49 +954,187 @@ void convert_device_to_host(void *dst_buffer,
 /** \name Vertex Attributes
  * \{ */
 
-static bool conversion_needed(const GPUVertAttr &vertex_attribute)
+static bool attribute_check(const GPUVertAttr attribute,
+                            GPUVertCompType comp_type,
+                            GPUVertFetchMode fetch_mode)
 {
-  return (vertex_attribute.fetch_mode == GPU_FETCH_INT_TO_FLOAT &&
-          ELEM(vertex_attribute.comp_type, GPU_COMP_I32, GPU_COMP_U32));
+  return attribute.comp_type == comp_type && attribute.fetch_mode == fetch_mode;
 }
 
-bool conversion_needed(const GPUVertFormat &vertex_format)
+static bool attribute_check(const GPUVertAttr attribute, GPUVertCompType comp_type, uint comp_len)
 {
+  return attribute.comp_type == comp_type && attribute.comp_len == comp_len;
+}
+
+void VertexFormatConverter::reset()
+{
+  source_format_ = nullptr;
+  device_format_ = nullptr;
+  GPU_vertformat_clear(&converted_format_);
+
+  needs_conversion_ = false;
+}
+
+bool VertexFormatConverter::is_initialized() const
+{
+  return device_format_ != nullptr;
+}
+
+void VertexFormatConverter::init(const GPUVertFormat *vertex_format,
+                                 const VKWorkarounds &workarounds)
+{
+  source_format_ = vertex_format;
+  device_format_ = vertex_format;
+
+  update_conversion_flags(*source_format_, workarounds);
+  if (needs_conversion_) {
+    init_device_format(workarounds);
+  }
+}
+
+const GPUVertFormat &VertexFormatConverter::device_format_get() const
+{
+  BLI_assert(is_initialized());
+  return *device_format_;
+}
+
+bool VertexFormatConverter::needs_conversion() const
+{
+  BLI_assert(is_initialized());
+  return needs_conversion_;
+}
+
+void VertexFormatConverter::update_conversion_flags(const GPUVertFormat &vertex_format,
+                                                    const VKWorkarounds &workarounds)
+{
+  needs_conversion_ = false;
+
   for (int attr_index : IndexRange(vertex_format.attr_len)) {
     const GPUVertAttr &vert_attr = vertex_format.attrs[attr_index];
-    if (conversion_needed(vert_attr)) {
-      return true;
+    update_conversion_flags(vert_attr, workarounds);
+  }
+}
+
+void VertexFormatConverter::update_conversion_flags(const GPUVertAttr &vertex_attribute,
+                                                    const VKWorkarounds &workarounds)
+{
+  /* I32/U32 to F32 conversion doesn't exist in vulkan. */
+  if (vertex_attribute.fetch_mode == GPU_FETCH_INT_TO_FLOAT &&
+      ELEM(vertex_attribute.comp_type, GPU_COMP_I32, GPU_COMP_U32))
+  {
+    needs_conversion_ = true;
+  }
+  /* r8g8b8 formats will be stored as r8g8b8a8. */
+  else if (workarounds.vertex_formats.r8g8b8 && attribute_check(vertex_attribute, GPU_COMP_U8, 3))
+  {
+    needs_conversion_ = true;
+  }
+}
+
+void VertexFormatConverter::init_device_format(const VKWorkarounds &workarounds)
+{
+  BLI_assert(needs_conversion_);
+  GPU_vertformat_copy(&converted_format_, source_format_);
+  bool needs_repack = false;
+
+  for (int attr_index : IndexRange(converted_format_.attr_len)) {
+    GPUVertAttr &vert_attr = converted_format_.attrs[attr_index];
+    make_device_compatible(vert_attr, workarounds, needs_repack);
+  }
+
+  if (needs_repack) {
+    VertexFormat_pack(&converted_format_);
+  }
+  device_format_ = &converted_format_;
+}
+
+void VertexFormatConverter::make_device_compatible(GPUVertAttr &vertex_attribute,
+                                                   const VKWorkarounds &workarounds,
+                                                   bool &r_needs_repack) const
+{
+  if (vertex_attribute.fetch_mode == GPU_FETCH_INT_TO_FLOAT &&
+      ELEM(vertex_attribute.comp_type, GPU_COMP_I32, GPU_COMP_U32))
+  {
+    vertex_attribute.fetch_mode = GPU_FETCH_FLOAT;
+    vertex_attribute.comp_type = GPU_COMP_F32;
+  }
+  else if (workarounds.vertex_formats.r8g8b8 && attribute_check(vertex_attribute, GPU_COMP_U8, 3))
+  {
+    vertex_attribute.comp_len = 4;
+    vertex_attribute.size = 4;
+    r_needs_repack = true;
+  }
+}
+
+void VertexFormatConverter::convert(void *device_data,
+                                    const void *source_data,
+                                    const uint vertex_len) const
+{
+  BLI_assert(needs_conversion_);
+  if (source_data != device_data) {
+    memcpy(device_data, source_data, device_format_->stride * vertex_len);
+  }
+
+  const void *source_row_data = static_cast<const uint8_t *>(source_data);
+  void *device_row_data = static_cast<uint8_t *>(device_data);
+  for (int vertex_index : IndexRange(vertex_len)) {
+    UNUSED_VARS(vertex_index);
+    convert_row(device_row_data, source_row_data);
+    source_row_data = static_cast<const uint8_t *>(source_row_data) + source_format_->stride;
+    device_row_data = static_cast<uint8_t *>(device_row_data) + device_format_->stride;
+  }
+}
+
+void VertexFormatConverter::convert_row(void *device_row_data, const void *source_row_data) const
+{
+  for (int attr_index : IndexRange(source_format_->attr_len)) {
+    const GPUVertAttr &device_attribute = device_format_->attrs[attr_index];
+    const GPUVertAttr &source_attribute = source_format_->attrs[attr_index];
+    convert_attribute(device_row_data, source_row_data, device_attribute, source_attribute);
+  }
+}
+
+void VertexFormatConverter::convert_attribute(void *device_row_data,
+                                              const void *source_row_data,
+                                              const GPUVertAttr &device_attribute,
+                                              const GPUVertAttr &source_attribute) const
+{
+  const void *source_attr_data = static_cast<const uint8_t *>(source_row_data) +
+                                 source_attribute.offset;
+  void *device_attr_data = static_cast<uint8_t *>(device_row_data) + device_attribute.offset;
+  if (source_attribute.comp_len == device_attribute.comp_len &&
+      source_attribute.comp_type == device_attribute.comp_type &&
+      source_attribute.fetch_mode == device_attribute.fetch_mode)
+  {
+    /* This check is done first to improve possible branch prediction. */
+  }
+  else if (attribute_check(source_attribute, GPU_COMP_I32, GPU_FETCH_INT_TO_FLOAT) &&
+           attribute_check(device_attribute, GPU_COMP_F32, GPU_FETCH_FLOAT))
+  {
+    for (int component : IndexRange(source_attribute.comp_len)) {
+      const int32_t *component_in = static_cast<const int32_t *>(source_attr_data) + component;
+      float *component_out = static_cast<float *>(device_attr_data) + component;
+      *component_out = float(*component_in);
     }
   }
-  return false;
-}
-
-void convert_in_place(void *data, const GPUVertFormat &vertex_format, const uint vertex_len)
-{
-  BLI_assert(vertex_format.deinterleaved == false);
-  for (int attr_index : IndexRange(vertex_format.attr_len)) {
-    const GPUVertAttr &vert_attr = vertex_format.attrs[attr_index];
-    if (!conversion_needed(vert_attr)) {
-      continue;
+  else if (attribute_check(source_attribute, GPU_COMP_U32, GPU_FETCH_INT_TO_FLOAT) &&
+           attribute_check(device_attribute, GPU_COMP_F32, GPU_FETCH_FLOAT))
+  {
+    for (int component : IndexRange(source_attribute.comp_len)) {
+      const uint32_t *component_in = static_cast<const uint32_t *>(source_attr_data) + component;
+      float *component_out = static_cast<float *>(device_attr_data) + component;
+      *component_out = float(*component_in);
     }
-    void *row_data = static_cast<uint8_t *>(data) + vert_attr.offset;
-    for (int vert_index = 0; vert_index < vertex_len; vert_index++) {
-      if (vert_attr.comp_type == GPU_COMP_I32) {
-        for (int component : IndexRange(vert_attr.comp_len)) {
-          int32_t *component_in = static_cast<int32_t *>(row_data) + component;
-          float *component_out = static_cast<float *>(row_data) + component;
-          *component_out = float(*component_in);
-        }
-      }
-      else if (vert_attr.comp_type == GPU_COMP_U32) {
-        for (int component : IndexRange(vert_attr.comp_len)) {
-          uint32_t *component_in = static_cast<uint32_t *>(row_data) + component;
-          float *component_out = static_cast<float *>(row_data) + component;
-          *component_out = float(*component_in);
-        }
-      }
-      row_data = static_cast<uint8_t *>(row_data) + vertex_format.stride;
-    }
+  }
+  else if (attribute_check(source_attribute, GPU_COMP_U8, 3) &&
+           attribute_check(device_attribute, GPU_COMP_U8, 4))
+  {
+    const uchar3 *attr_in = static_cast<const uchar3 *>(source_attr_data);
+    uchar4 *attr_out = static_cast<uchar4 *>(device_attr_data);
+    *attr_out = uchar4(attr_in->x, attr_in->y, attr_in->z, 255);
+  }
+  else {
+    BLI_assert_unreachable();
   }
 }
 

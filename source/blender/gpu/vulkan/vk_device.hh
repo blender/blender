@@ -40,6 +40,14 @@ struct VKWorkarounds {
    * #VkPhysicalDeviceVulkan12Features::shaderOutputLayer enabled.
    */
   bool shader_output_layer = false;
+
+  struct {
+    /**
+     * Is the workaround enabled for devices that don't support using VK_FORMAT_R8G8B8_* as vertex
+     * buffer.
+     */
+    bool r8g8b8 = false;
+  } vertex_formats;
 };
 
 class VKDevice : public NonCopyable {

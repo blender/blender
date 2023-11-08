@@ -91,6 +91,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.not_aligned_pixel_formats = true;
     workarounds.shader_output_layer = true;
     workarounds.shader_output_viewport_index = true;
+    workarounds.vertex_formats.r8g8b8 = true;
 
     device.workarounds_ = workarounds;
     return;
@@ -105,6 +106,12 @@ void VKBackend::detect_workarounds(VKDevice &device)
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     workarounds.not_aligned_pixel_formats = true;
   }
+
+  VkFormatProperties format_properties = {};
+  vkGetPhysicalDeviceFormatProperties(
+      device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
+  workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
+                                       VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
 
   device.workarounds_ = workarounds;
 }

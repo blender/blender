@@ -129,15 +129,27 @@ void VKVertexAttributeObject::update_bindings(const VKContext &context, VKBatch 
   for (int v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
     VKVertexBuffer *vbo = batch.instance_buffer_get(v);
     if (vbo) {
-      update_bindings(
-          vbo->format, vbo, nullptr, vbo->vertex_len, interface, occupied_attributes, true);
+      vbo->device_format_ensure();
+      update_bindings(vbo->device_format_get(),
+                      vbo,
+                      nullptr,
+                      vbo->vertex_len,
+                      interface,
+                      occupied_attributes,
+                      true);
     }
   }
   for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     VKVertexBuffer *vbo = batch.vertex_buffer_get(v);
     if (vbo) {
-      update_bindings(
-          vbo->format, vbo, nullptr, vbo->vertex_len, interface, occupied_attributes, false);
+      vbo->device_format_ensure();
+      update_bindings(vbo->device_format_get(),
+                      vbo,
+                      nullptr,
+                      vbo->vertex_len,
+                      interface,
+                      occupied_attributes,
+                      false);
     }
   }
 
@@ -241,7 +253,7 @@ void VKVertexAttributeObject::update_bindings(VKImmediate &immediate)
   VKBufferWithOffset immediate_buffer = {*immediate.active_resource(),
                                          immediate.subbuffer_offset_get()};
 
-  update_bindings(immediate.vertex_format,
+  update_bindings(immediate.vertex_format_converter.device_format_get(),
                   nullptr,
                   &immediate_buffer,
                   immediate.vertex_len,
