@@ -62,6 +62,7 @@ def create_argparse():
     parser.add_argument("-outdir", nargs=1)
     parser.add_argument("-idiff", nargs=1)
     parser.add_argument("-export_method", nargs=1)
+    parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
 
@@ -92,7 +93,7 @@ def main():
 
     os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = export_method
 
-    ok = report.run(test_dir, blender, get_arguments, batch=True)
+    ok = report.run(test_dir, blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)
 

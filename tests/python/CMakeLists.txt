@@ -127,6 +127,15 @@ function(add_python_test testname testscript)
   endif()
 endfunction()
 
+# Run Python render test.
+function(add_render_test testname testscript)
+  set(_args ${ARGN} -blender "${TEST_BLENDER_EXE}" -idiff "${OPENIMAGEIO_IDIFF}")
+  if(WITH_TESTS_BATCHED)
+    list(APPEND _args --batch)
+  endif()
+  add_python_test(${testname} ${testscript} ${_args})
+endfunction()
+
 # ------------------------------------------------------------------------------
 # GENERAL PYTHON CORRECTNESS TESTS
 add_blender_test(
@@ -629,12 +638,10 @@ if(TRUE)
     set(_svg_render_tests complex path)
 
     foreach(render_test ${_svg_render_tests})
-      add_python_test(
+      add_render_test(
         io_curve_svg_${render_test}
         ${CMAKE_CURRENT_LIST_DIR}/bl_io_curve_svg_test.py
-        -blender "${TEST_BLENDER_EXE}"
         -testdir "${TEST_SRC_DIR}/io_tests/svg/${render_test}"
-        -idiff "${OPENIMAGEIO_IDIFF}"
         -outdir "${TEST_OUT_DIR}/io_curve_svg"
       )
     endforeach()
@@ -716,12 +723,10 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
 
         foreach(render_test ${_cycles_render_tests})
           set(_cycles_test_name "cycles_${render_test}_${_cycles_device_lower}")
-          add_python_test(
+          add_render_test(
             ${_cycles_test_name}
             ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-            -blender "${TEST_BLENDER_EXE}"
             -testdir "${TEST_SRC_DIR}/render/${render_test}"
-            -idiff "${OPENIMAGEIO_IDIFF}"
             -outdir "${TEST_OUT_DIR}/cycles"
             -device ${_cycles_device}
             -blacklist ${_cycles_blacklist}
@@ -739,36 +744,30 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
     if(WITH_OPENGL_RENDER_TESTS)
       # Eevee
       foreach(render_test ${render_tests})
-        add_python_test(
+        add_render_test(
           eevee_${render_test}_test
           ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
-          -blender "${TEST_BLENDER_EXE}"
           -testdir "${TEST_SRC_DIR}/render/${render_test}"
-          -idiff "${OPENIMAGEIO_IDIFF}"
           -outdir "${TEST_OUT_DIR}/eevee"
         )
       endforeach()
 
       # Eevee Next
       foreach(render_test ${render_tests})
-        add_python_test(
+        add_render_test(
           eevee_next_${render_test}_test
           ${CMAKE_CURRENT_LIST_DIR}/eevee_next_render_tests.py
-          -blender "${TEST_BLENDER_EXE}"
           -testdir "${TEST_SRC_DIR}/render/${render_test}"
-          -idiff "${OPENIMAGEIO_IDIFF}"
           -outdir "${TEST_OUT_DIR}/eevee_next"
         )
       endforeach()
 
       foreach(render_test ${render_tests})
         # Workbench
-        add_python_test(
+        add_render_test(
           workbench_${render_test}_test
           ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
-          -blender "${TEST_BLENDER_EXE}"
           -testdir "${TEST_SRC_DIR}/render/${render_test}"
-          -idiff "${OPENIMAGEIO_IDIFF}"
           -outdir "${TEST_OUT_DIR}/workbench"
         )
       endforeach()
@@ -776,24 +775,20 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       if(WITH_HYDRA)
         # Hydra Storm
         foreach(render_test ${render_tests})
-          add_python_test(
+          add_render_test(
             storm_hydra_${render_test}_test
             ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
-            -blender "${TEST_BLENDER_EXE}"
             -testdir "${TEST_SRC_DIR}/render/${render_test}"
-            -idiff "${OPENIMAGEIO_IDIFF}"
             -outdir "${TEST_OUT_DIR}/storm_hydra"
             -export_method "HYDRA"
           )
         endforeach()
 
         foreach(render_test ${render_tests})
-          add_python_test(
+          add_render_test(
             storm_usd_${render_test}_test
             ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
-            -blender "${TEST_BLENDER_EXE}"
             -testdir "${TEST_SRC_DIR}/render/${render_test}"
-            -idiff "${OPENIMAGEIO_IDIFF}"
             -outdir "${TEST_OUT_DIR}/storm_usd"
             -export_method "USD"
           )
@@ -823,12 +818,10 @@ if(WITH_COMPOSITOR_CPU)
     endif()
 
     foreach(comp_test ${compositor_tests})
-      add_python_test(
+      add_render_test(
         compositor_${comp_test}_cpu_test
         ${CMAKE_CURRENT_LIST_DIR}/compositor_cpu_render_tests.py
-        -blender "${TEST_BLENDER_EXE}"
         -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
-        -idiff "${OPENIMAGEIO_IDIFF}"
         -outdir "${TEST_OUT_DIR}/compositor_cpu"
       )
     endforeach()
@@ -857,12 +850,10 @@ if(WITH_COMPOSITOR_REALTIME_TESTS AND WITH_COMPOSITOR_CPU)
     endif()
 
     foreach(comp_test ${compositor_tests})
-      add_python_test(
+      add_render_test(
         compositor_${comp_test}_realtime_test
         ${CMAKE_CURRENT_LIST_DIR}/compositor_realtime_render_tests.py
-        -blender "${TEST_BLENDER_EXE}"
         -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
-        -idiff "${OPENIMAGEIO_IDIFF}"
         -outdir "${TEST_OUT_DIR}/compositor_realtime"
       )
     endforeach()
@@ -945,12 +936,10 @@ if(WITH_OPENGL_DRAW_TESTS)
       if(IS_DIRECTORY ${child_path})
         file(GLOB_RECURSE blends "${child_path}/*.blend")
         if(blends)
-          add_python_test(
+          add_render_test(
             opengl_draw_${child}
             ${CMAKE_CURRENT_LIST_DIR}/opengl_draw_tests.py
-            -blender "${TEST_BLENDER_EXE}"
             -testdir "${child_path}"
-            -idiff "${OPENIMAGEIO_IDIFF}"
             -outdir "${TEST_OUT_DIR}/opengl_draw"
           )
         endif()
@@ -1057,12 +1046,10 @@ else()
   )
 
   foreach(render_test ${render_tests})
-    add_python_test(
+    add_render_test(
       sequencer_render_${render_test}
       ${CMAKE_CURRENT_LIST_DIR}/sequencer_render_tests.py
-      -blender "${TEST_BLENDER_EXE}"
       -testdir "${TEST_SRC_DIR}/sequence_editing/${render_test}"
-      -idiff "${OPENIMAGEIO_IDIFF}"
       -outdir "${TEST_OUT_DIR}/sequence_editing"
     )
   endforeach()
