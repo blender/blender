@@ -79,9 +79,9 @@ static void extract_data_mesh_mapped_corner(const Span<T> attribute,
 }
 
 template<typename T>
-static void extract_data_mesh_vert(const MeshRenderData &mr,
-                                   const Span<T> attribute,
-                                   GPUVertBuf &vbo)
+static void extract_data_mesh_vert(const MeshRenderData & /*mr*/,
+                                   const Span<T> /*attribute*/,
+                                   GPUVertBuf & /*vbo*/)
 {
 }
 
