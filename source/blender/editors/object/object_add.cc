@@ -1535,9 +1535,9 @@ static EnumPropertyItem rna_enum_gpencil_add_stroke_depth_order_items[] = {
 
 void OBJECT_OT_gpencil_add(wmOperatorType *ot)
 {
-  /* identifiers */
-  ot->name = "Add Grease Pencil (legacy)";
-  ot->description = "Add a Grease Pencil (legacy) object to the scene";
+/* identifiers */
+  ot->name = "Add Grease Pencil";
+  ot->description = "Add a Grease Pencil object to the scene";
   ot->idname = "OBJECT_OT_gpencil_add";
 
   /* api callbacks */
@@ -2913,16 +2913,8 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
-#ifdef WITH_GREASE_PENCIL_V3
-     "Grease Pencil (legacy)",
-#else
      "Grease Pencil",
-#endif
-#ifdef WITH_GREASE_PENCIL_V3
-     "Grease Pencil (legacy) from Curve or Mesh objects"},
-#else
      "Grease Pencil from Curve or Mesh objects"},
-#endif
 #ifdef WITH_POINT_CLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
@@ -2935,8 +2927,8 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_GREASE_PENCIL,
      "GREASEPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
-     "Grease Pencil",
-     "Grease Pencil from Grease Pencil (legacy)"},
+     "Grease Pencil v3",
+     "Grease Pencil v3 from Grease Pencil"},
 #endif
     {0, nullptr, 0, nullptr, nullptr},
 };
