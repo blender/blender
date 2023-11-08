@@ -54,7 +54,7 @@ class FlipOperation : public NodeOperation {
       return;
     }
 
-    GPUShader *shader = shader_manager().get("compositor_flip");
+    GPUShader *shader = context().get_shader("compositor_flip");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(

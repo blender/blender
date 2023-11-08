@@ -38,7 +38,6 @@ set(SRC
   intern/shader_operation.cc
   intern/simple_operation.cc
   intern/static_cache_manager.cc
-  intern/static_shader_manager.cc
   intern/texture_pool.cc
   intern/utilities.cc
 
@@ -59,7 +58,6 @@ set(SRC
   COM_shader_operation.hh
   COM_simple_operation.hh
   COM_static_cache_manager.hh
-  COM_static_shader_manager.hh
   COM_texture_pool.hh
   COM_utilities.hh
 
@@ -84,6 +82,7 @@ set(SRC
   algorithms/COM_algorithm_transform.hh
 
   cached_resources/intern/cached_mask.cc
+  cached_resources/intern/cached_shader.cc
   cached_resources/intern/cached_texture.cc
   cached_resources/intern/distortion_grid.cc
   cached_resources/intern/keying_screen.cc
@@ -95,6 +94,7 @@ set(SRC
 
   cached_resources/COM_cached_mask.hh
   cached_resources/COM_cached_resource.hh
+  cached_resources/COM_cached_shader.hh
   cached_resources/COM_cached_texture.hh
   cached_resources/COM_distortion_grid.hh
   cached_resources/COM_keying_screen.hh

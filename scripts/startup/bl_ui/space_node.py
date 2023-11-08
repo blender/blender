@@ -830,6 +830,7 @@ class NODE_PT_quality(bpy.types.Panel):
         if prefs.experimental.use_experimental_compositors:
             col.prop(tree, "execution_mode")
             use_realtime = tree.execution_mode == 'REALTIME'
+        col.prop(tree, "precision")
 
         col = layout.column()
         col.active = not use_realtime

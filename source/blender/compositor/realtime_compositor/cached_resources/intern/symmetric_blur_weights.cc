@@ -16,6 +16,8 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
+#include "COM_context.hh"
+#include "COM_result.hh"
 #include "COM_symmetric_blur_weights.hh"
 
 namespace blender::realtime_compositor {
@@ -43,7 +45,7 @@ bool operator==(const SymmetricBlurWeightsKey &a, const SymmetricBlurWeightsKey 
  * Symmetric Blur Weights.
  */
 
-SymmetricBlurWeights::SymmetricBlurWeights(int type, float2 radius)
+SymmetricBlurWeights::SymmetricBlurWeights(Context &context, int type, float2 radius)
 {
   /* The full size of filter is double the radius plus 1, but since the filter is symmetric, we
    * only compute a single quadrant of it and so no doubling happens. We add 1 to make sure the
@@ -97,7 +99,13 @@ SymmetricBlurWeights::SymmetricBlurWeights(int type, float2 radius)
   }
 
   texture_ = GPU_texture_create_2d(
-      "Weights", size.x, size.y, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, weights.data());
+      "Weights",
+      size.x,
+      size.y,
+      1,
+      Result::texture_format(ResultType::Float, context.get_precision()),
+      GPU_TEXTURE_USAGE_GENERAL,
+      weights.data());
 }
 
 SymmetricBlurWeights::~SymmetricBlurWeights()
@@ -132,12 +140,12 @@ void SymmetricBlurWeightsContainer::reset()
   }
 }
 
-SymmetricBlurWeights &SymmetricBlurWeightsContainer::get(int type, float2 radius)
+SymmetricBlurWeights &SymmetricBlurWeightsContainer::get(Context &context, int type, float2 radius)
 {
   const SymmetricBlurWeightsKey key(type, radius);
 
   auto &weights = *map_.lookup_or_add_cb(
-      key, [&]() { return std::make_unique<SymmetricBlurWeights>(type, radius); });
+      key, [&]() { return std::make_unique<SymmetricBlurWeights>(context, type, radius); });
 
   weights.needed = true;
   return weights;

@@ -28,6 +28,7 @@
 
 #include "COM_context.hh"
 #include "COM_evaluator.hh"
+#include "COM_result.hh"
 #include "COM_texture_pool.hh"
 
 #include "GPU_context.h"
@@ -176,6 +177,19 @@ class Context : public realtime_compositor::Context {
     const SceneRenderView *view = static_cast<SceneRenderView *>(
         BLI_findlink(&get_render_data().views, DRW_context_state_get()->v3d->multiview_eye));
     return view->name;
+  }
+
+  realtime_compositor::ResultPrecision get_precision() const override
+  {
+    switch (get_node_tree().precision) {
+      case NODE_TREE_COMPOSITOR_PRECISION_AUTO:
+        return realtime_compositor::ResultPrecision::Half;
+      case NODE_TREE_COMPOSITOR_PRECISION_FULL:
+        return realtime_compositor::ResultPrecision::Full;
+    }
+
+    BLI_assert_unreachable();
+    return realtime_compositor::ResultPrecision::Half;
   }
 
   void set_info_message(StringRef message) const override

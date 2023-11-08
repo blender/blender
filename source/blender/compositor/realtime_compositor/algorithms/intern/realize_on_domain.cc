@@ -33,7 +33,9 @@ static const char *get_realization_shader(Result &input,
       case ResultType::Float:
         return "compositor_realize_on_domain_bicubic_float";
       case ResultType::Int2:
-        /* Realization does not support integer images. */
+      case ResultType::Float2:
+      case ResultType::Float3:
+        /* Realization does not support internal image types. */
         break;
     }
   }
@@ -46,7 +48,9 @@ static const char *get_realization_shader(Result &input,
       case ResultType::Float:
         return "compositor_realize_on_domain_float";
       case ResultType::Int2:
-        /* Realization does not support integer images. */
+      case ResultType::Float2:
+      case ResultType::Float3:
+        /* Realization does not support internal image types. */
         break;
     }
   }
@@ -69,8 +73,7 @@ void realize_on_domain(Context &context,
     return;
   }
 
-  GPUShader *shader = context.shader_manager().get(
-      get_realization_shader(input, realization_options));
+  GPUShader *shader = context.get_shader(get_realization_shader(input, realization_options));
   GPU_shader_bind(shader);
 
   /* Transform the input space into the domain space. */

@@ -66,14 +66,18 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
     /* Compute an image that marks the boundary pixels of the masks as seed pixels in the format
      * expected by the jump flooding algorithm. */
-    Result inner_boundary = Result::Temporary(ResultType::Int2, texture_pool());
-    Result outer_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result inner_boundary = context().create_temporary_result(ResultType::Int2,
+                                                              ResultPrecision::Half);
+    Result outer_boundary = context().create_temporary_result(ResultType::Int2,
+                                                              ResultPrecision::Half);
     compute_boundary(inner_boundary, outer_boundary);
 
     /* Compute a jump flooding table for each mask boundary to get a distance transform to each of
      * the boundaries. */
-    Result flooded_inner_boundary = Result::Temporary(ResultType::Int2, texture_pool());
-    Result flooded_outer_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result flooded_inner_boundary = context().create_temporary_result(ResultType::Int2,
+                                                                      ResultPrecision::Half);
+    Result flooded_outer_boundary = context().create_temporary_result(ResultType::Int2,
+                                                                      ResultPrecision::Half);
     jump_flooding(context(), inner_boundary, flooded_inner_boundary);
     jump_flooding(context(), outer_boundary, flooded_outer_boundary);
     inner_boundary.release();
@@ -87,7 +91,8 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void compute_boundary(Result &inner_boundary, Result &outer_boundary)
   {
-    GPUShader *shader = shader_manager().get("compositor_double_edge_mask_compute_boundary");
+    GPUShader *shader = context().get_shader("compositor_double_edge_mask_compute_boundary",
+                                             ResultPrecision::Half);
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(shader, "include_all_inner_edges", include_all_inner_edges());
@@ -118,7 +123,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void compute_gradient(Result &flooded_inner_boundary, Result &flooded_outer_boundary)
   {
-    GPUShader *shader = shader_manager().get("compositor_double_edge_mask_compute_gradient");
+    GPUShader *shader = context().get_shader("compositor_double_edge_mask_compute_gradient");
     GPU_shader_bind(shader);
 
     const Result &inner_mask = get_input("Inner Mask");

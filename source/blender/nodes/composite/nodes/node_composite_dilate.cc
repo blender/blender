@@ -104,7 +104,7 @@ class DilateErodeOperation : public NodeOperation {
 
   Result execute_step_horizontal_pass()
   {
-    GPUShader *shader = shader_manager().get(get_morphological_step_shader_name());
+    GPUShader *shader = context().get_shader(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
 
     /* Pass the absolute value of the distance. We have specialized shaders for each sign. */
@@ -124,7 +124,7 @@ class DilateErodeOperation : public NodeOperation {
     const Domain domain = compute_domain();
     const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
-    Result horizontal_pass_result = Result::Temporary(ResultType::Color, texture_pool());
+    Result horizontal_pass_result = context().create_temporary_result(ResultType::Color);
     horizontal_pass_result.allocate_texture(transposed_domain);
     horizontal_pass_result.bind_as_image(shader, "output_img");
 
@@ -139,7 +139,7 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute_step_vertical_pass(Result &horizontal_pass_result)
   {
-    GPUShader *shader = shader_manager().get(get_morphological_step_shader_name());
+    GPUShader *shader = context().get_shader(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
 
     /* Pass the absolute value of the distance. We have specialized shaders for each sign. */
@@ -184,7 +184,7 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute_distance_threshold()
   {
-    GPUShader *shader = shader_manager().get("compositor_morphological_distance_threshold");
+    GPUShader *shader = context().get_shader("compositor_morphological_distance_threshold");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "inset", get_inset());

@@ -56,7 +56,8 @@ class InpaintOperation : public NodeOperation {
     Result inpainting_boundary = compute_inpainting_boundary();
 
     /* Compute a jump flooding table to get the closest boundary pixel to each pixel. */
-    Result flooded_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result flooded_boundary = context().create_temporary_result(ResultType::Int2,
+                                                                ResultPrecision::Half);
     jump_flooding(context(), inpainting_boundary, flooded_boundary);
     inpainting_boundary.release();
 
@@ -67,13 +68,15 @@ class InpaintOperation : public NodeOperation {
 
   Result compute_inpainting_boundary()
   {
-    GPUShader *shader = shader_manager().get("compositor_inpaint_compute_boundary");
+    GPUShader *shader = context().get_shader("compositor_inpaint_compute_boundary",
+                                             ResultPrecision::Half);
     GPU_shader_bind(shader);
 
     const Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
-    Result inpainting_boundary = Result::Temporary(ResultType::Int2, texture_pool());
+    Result inpainting_boundary = context().create_temporary_result(ResultType::Int2,
+                                                                   ResultPrecision::Half);
     const Domain domain = compute_domain();
     inpainting_boundary.allocate_texture(domain);
     inpainting_boundary.bind_as_image(shader, "boundary_img");
@@ -89,7 +92,7 @@ class InpaintOperation : public NodeOperation {
 
   void compute_inpainting_region(Result &flooded_boundary)
   {
-    GPUShader *shader = shader_manager().get("compositor_inpaint_compute_region");
+    GPUShader *shader = context().get_shader("compositor_inpaint_compute_region");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "max_distance", get_distance());
@@ -103,7 +106,8 @@ class InpaintOperation : public NodeOperation {
      * inpainting boundary. So the maximum possible blur radius is the user supplied distance. */
     const float max_radius = float(get_distance());
     const SymmetricSeparableBlurWeights &gaussian_weights =
-        context().cache_manager().symmetric_separable_blur_weights.get(R_FILTER_GAUSS, max_radius);
+        context().cache_manager().symmetric_separable_blur_weights.get(
+            context(), R_FILTER_GAUSS, max_radius);
     gaussian_weights.bind_as_texture(shader, "gaussian_weights_tx");
 
     const Domain domain = compute_domain();

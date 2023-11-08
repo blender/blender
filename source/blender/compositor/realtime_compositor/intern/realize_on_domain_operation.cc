@@ -24,7 +24,7 @@ RealizeOnDomainOperation::RealizeOnDomainOperation(Context &context,
   InputDescriptor input_descriptor;
   input_descriptor.type = type;
   declare_input_descriptor(input_descriptor);
-  populate_result(Result(type, texture_pool()));
+  populate_result(context.create_result(type));
 }
 
 void RealizeOnDomainOperation::execute()

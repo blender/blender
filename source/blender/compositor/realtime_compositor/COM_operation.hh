@@ -15,7 +15,6 @@
 #include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
-#include "COM_static_shader_manager.hh"
 #include "COM_texture_pool.hh"
 
 namespace blender::realtime_compositor {
@@ -155,13 +154,10 @@ class Operation {
   InputDescriptor &get_input_descriptor(StringRef identifier);
 
   /* Returns a reference to the compositor context. */
-  Context &context();
+  Context &context() const;
 
   /* Returns a reference to the texture pool of the compositor context. */
   TexturePool &texture_pool() const;
-
-  /* Returns a reference to the shader manager of the compositor context. */
-  StaticShaderManager &shader_manager() const;
 
  private:
   /* Evaluate the input processors. If the input processors were already added they will be

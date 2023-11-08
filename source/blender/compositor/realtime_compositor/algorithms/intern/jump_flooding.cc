@@ -20,7 +20,7 @@ namespace blender::realtime_compositor {
 
 static void jump_flooding_pass(Context &context, Result &input, Result &output, int step_size)
 {
-  GPUShader *shader = context.shader_manager().get("compositor_jump_flooding");
+  GPUShader *shader = context.get_shader("compositor_jump_flooding", ResultPrecision::Half);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1i(shader, "step_size", step_size);
@@ -42,13 +42,15 @@ void jump_flooding(Context &context, Result &input, Result &output)
 
   /* First, run a jump flooding pass with a step size of 1. This initial pass is proposed by the
    * 1+FJA variant to improve accuracy. */
-  Result initial_flooded_result = Result::Temporary(ResultType::Int2, context.texture_pool());
+  Result initial_flooded_result = context.create_temporary_result(ResultType::Int2,
+                                                                  ResultPrecision::Half);
   initial_flooded_result.allocate_texture(input.domain());
   jump_flooding_pass(context, input, initial_flooded_result, 1);
 
   /* We compute the result using a ping-pong buffer, so create an intermediate result. */
   Result *result_to_flood = &initial_flooded_result;
-  Result intermediate_result = Result::Temporary(ResultType::Int2, context.texture_pool());
+  Result intermediate_result = context.create_temporary_result(ResultType::Int2,
+                                                               ResultPrecision::Half);
   intermediate_result.allocate_texture(input.domain());
   Result *result_after_flooding = &intermediate_result;
 

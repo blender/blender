@@ -126,7 +126,7 @@ class MovieClipOperation : public NodeOperation {
                            GPU_texture_height(movie_clip_texture));
     result.allocate_texture(Domain(size));
 
-    GPUShader *shader = shader_manager().get("compositor_read_input_color");
+    GPUShader *shader = context().get_shader("compositor_read_input_color");
     GPU_shader_bind(shader);
 
     const int2 lower_bound = int2(0);
@@ -163,7 +163,7 @@ class MovieClipOperation : public NodeOperation {
                            GPU_texture_height(movie_clip_texture));
     result.allocate_texture(Domain(size));
 
-    GPUShader *shader = shader_manager().get("compositor_read_input_alpha");
+    GPUShader *shader = context().get_shader("compositor_read_input_alpha");
     GPU_shader_bind(shader);
 
     const int2 lower_bound = int2(0);

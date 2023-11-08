@@ -81,7 +81,8 @@ class CompositeOperation : public NodeOperation {
   /* Executes when the alpha channel of the image is ignored. */
   void execute_ignore_alpha()
   {
-    GPUShader *shader = shader_manager().get("compositor_write_output_opaque");
+    GPUShader *shader = context().get_shader("compositor_write_output_opaque",
+                                             ResultPrecision::Half);
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the output texture, so only write into
@@ -109,7 +110,7 @@ class CompositeOperation : public NodeOperation {
    * to the output texture. */
   void execute_copy()
   {
-    GPUShader *shader = shader_manager().get("compositor_write_output");
+    GPUShader *shader = context().get_shader("compositor_write_output", ResultPrecision::Half);
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the output texture, so only write into
@@ -136,7 +137,8 @@ class CompositeOperation : public NodeOperation {
   /* Executes when the alpha channel of the image is set as the value of the input alpha. */
   void execute_set_alpha()
   {
-    GPUShader *shader = shader_manager().get("compositor_write_output_alpha");
+    GPUShader *shader = context().get_shader("compositor_write_output_alpha",
+                                             ResultPrecision::Half);
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the output texture, so only write into

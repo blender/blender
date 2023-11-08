@@ -17,6 +17,7 @@ void StaticCacheManager::reset()
   ocio_color_space_conversion_shaders.reset();
   distortion_grids.reset();
   keying_screens.reset();
+  cached_shaders.reset();
 }
 
 }  // namespace blender::realtime_compositor

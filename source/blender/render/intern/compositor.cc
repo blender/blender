@@ -216,13 +216,15 @@ class Context : public realtime_compositor::Context {
      * once that supports GPU buffers. */
     if (output_texture_ == nullptr) {
       const int2 size = get_render_size();
-      output_texture_ = GPU_texture_create_2d("compositor_output_texture",
-                                              size.x,
-                                              size.y,
-                                              1,
-                                              GPU_RGBA16F,
-                                              GPU_TEXTURE_USAGE_GENERAL,
-                                              nullptr);
+      output_texture_ = GPU_texture_create_2d(
+          "compositor_output_texture",
+          size.x,
+          size.y,
+          1,
+          get_precision() == realtime_compositor::ResultPrecision::Half ? GPU_RGBA16F :
+                                                                          GPU_RGBA32F,
+          GPU_TEXTURE_USAGE_GENERAL,
+          nullptr);
     }
 
     return output_texture_;
@@ -244,13 +246,15 @@ class Context : public realtime_compositor::Context {
     /* TODO: just a temporary hack, needs to get stored in RenderResult,
      * once that supports GPU buffers. */
     if (viewer_output_texture_ == nullptr) {
-      viewer_output_texture_ = GPU_texture_create_2d("compositor_viewer_output_texture",
-                                                     size.x,
-                                                     size.y,
-                                                     1,
-                                                     GPU_RGBA16F,
-                                                     GPU_TEXTURE_USAGE_GENERAL,
-                                                     nullptr);
+      viewer_output_texture_ = GPU_texture_create_2d(
+          "compositor_viewer_output_texture",
+          size.x,
+          size.y,
+          1,
+          get_precision() == realtime_compositor::ResultPrecision::Half ? GPU_RGBA16F :
+                                                                          GPU_RGBA32F,
+          GPU_TEXTURE_USAGE_GENERAL,
+          nullptr);
     }
 
     return viewer_output_texture_;
@@ -299,6 +303,26 @@ class Context : public realtime_compositor::Context {
   StringRef get_view_name() override
   {
     return input_data_.view_name;
+  }
+
+  realtime_compositor::ResultPrecision get_precision() const override
+  {
+    switch (input_data_.node_tree->precision) {
+      case NODE_TREE_COMPOSITOR_PRECISION_AUTO:
+        /* Auto uses full precision for final renders and half procession otherwise. File outputs
+         * are only used in final renders, so use that as a condition. */
+        if (use_file_output()) {
+          return realtime_compositor::ResultPrecision::Full;
+        }
+        else {
+          return realtime_compositor::ResultPrecision::Half;
+        }
+      case NODE_TREE_COMPOSITOR_PRECISION_FULL:
+        return realtime_compositor::ResultPrecision::Full;
+    }
+
+    BLI_assert_unreachable();
+    return realtime_compositor::ResultPrecision::Full;
   }
 
   void set_info_message(StringRef /*message*/) const override

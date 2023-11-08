@@ -17,7 +17,9 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
+#include "COM_context.hh"
 #include "COM_morphological_distance_feather_weights.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -46,10 +48,12 @@ bool operator==(const MorphologicalDistanceFeatherWeightsKey &a,
  * Morphological Distance Feather Weights.
  */
 
-MorphologicalDistanceFeatherWeights::MorphologicalDistanceFeatherWeights(int type, int radius)
+MorphologicalDistanceFeatherWeights::MorphologicalDistanceFeatherWeights(Context &context,
+                                                                         int type,
+                                                                         int radius)
 {
-  compute_weights(radius);
-  compute_distance_falloffs(type, radius);
+  compute_weights(context, radius);
+  compute_distance_falloffs(context, type, radius);
 }
 
 MorphologicalDistanceFeatherWeights::~MorphologicalDistanceFeatherWeights()
@@ -58,7 +62,7 @@ MorphologicalDistanceFeatherWeights::~MorphologicalDistanceFeatherWeights()
   GPU_texture_free(distance_falloffs_texture_);
 }
 
-void MorphologicalDistanceFeatherWeights::compute_weights(int radius)
+void MorphologicalDistanceFeatherWeights::compute_weights(Context &context, int radius)
 {
   /* The size of filter is double the radius plus 1, but since the filter is symmetric, we only
    * compute half of it and no doubling happens. We add 1 to make sure the filter size is always
@@ -89,7 +93,12 @@ void MorphologicalDistanceFeatherWeights::compute_weights(int radius)
   }
 
   weights_texture_ = GPU_texture_create_1d(
-      "Weights", size, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, weights.data());
+      "Weights",
+      size,
+      1,
+      Result::texture_format(ResultType::Float, context.get_precision()),
+      GPU_TEXTURE_USAGE_GENERAL,
+      weights.data());
 }
 
 /* Computes a falloff that is equal to 1 at an input of zero and decrease to zero at an input of 1,
@@ -117,7 +126,9 @@ static float compute_distance_falloff(int type, float x)
   }
 }
 
-void MorphologicalDistanceFeatherWeights::compute_distance_falloffs(int type, int radius)
+void MorphologicalDistanceFeatherWeights::compute_distance_falloffs(Context &context,
+                                                                    int type,
+                                                                    int radius)
 {
   /* The size of the distance falloffs is double the radius plus 1, but since the falloffs are
    * symmetric, we only compute half of them and no doubling happens. We add 1 to make sure the
@@ -133,7 +144,12 @@ void MorphologicalDistanceFeatherWeights::compute_distance_falloffs(int type, in
   }
 
   distance_falloffs_texture_ = GPU_texture_create_1d(
-      "Distance Factors", size, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, falloffs.data());
+      "Distance Factors",
+      size,
+      1,
+      Result::texture_format(ResultType::Float, context.get_precision()),
+      GPU_TEXTURE_USAGE_GENERAL,
+      falloffs.data());
 }
 
 void MorphologicalDistanceFeatherWeights::bind_weights_as_texture(GPUShader *shader,
@@ -176,13 +192,14 @@ void MorphologicalDistanceFeatherWeightsContainer::reset()
   }
 }
 
-MorphologicalDistanceFeatherWeights &MorphologicalDistanceFeatherWeightsContainer::get(int type,
-                                                                                       int radius)
+MorphologicalDistanceFeatherWeights &MorphologicalDistanceFeatherWeightsContainer::get(
+    Context &context, int type, int radius)
 {
   const MorphologicalDistanceFeatherWeightsKey key(type, radius);
 
-  auto &weights = *map_.lookup_or_add_cb(
-      key, [&]() { return std::make_unique<MorphologicalDistanceFeatherWeights>(type, radius); });
+  auto &weights = *map_.lookup_or_add_cb(key, [&]() {
+    return std::make_unique<MorphologicalDistanceFeatherWeights>(context, type, radius);
+  });
 
   weights.needed = true;
   return weights;
