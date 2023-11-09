@@ -116,7 +116,8 @@ class backend_wayland(backend_base):
         """
         # NOTE(@ideasman42): WESTON does not make it convenient to run a portable instance,
         # a reasonable amount of logic here is simply to get WESTON running with references to portable paths.
-        # Once pcakges are available on RedHad8, we might consider to remove this entire function.
+        # Once packages are available on the Linux distribution used for the CI-environment,
+        # we can consider removing this entire function.
         weston_env = {}
         weston_ini = []
         ld_library_paths = []
