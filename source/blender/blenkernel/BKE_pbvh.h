@@ -100,14 +100,8 @@ BLI_INLINE PBVHType BKE_pbvh_type(const PBVH *pbvh)
   return ((const struct PBVHPublic *)pbvh)->type;
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Needed by eevee_materias.c. */
+/* Needed for the render engines integration. */
 void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val);
-
-/* Needed by `basic_engine.cc`. */
 void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                             void (*draw_fn)(PBVHNode *node,
                                             void *user_data,
@@ -115,7 +109,3 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                                             const float bmax[3],
                                             PBVHNodeFlags flag),
                             void *user_data);
-
-#ifdef __cplusplus
-}
-#endif /* extern "C" */
