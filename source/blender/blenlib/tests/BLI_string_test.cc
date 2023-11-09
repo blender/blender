@@ -948,9 +948,10 @@ TEST(string, StrJoin_Truncate)
     EXPECT_STREQ(buffer, "");
   }
   { /* Empty array. */
-    string_join_array_test_truncate(nullptr, 0, buffer);
+    const char *strings[] = {"a"};
+    string_join_array_test_truncate(strings, 0, buffer);
     EXPECT_STREQ(buffer, "");
-    string_join_array_with_sep_char_test_truncate(nullptr, 0, buffer);
+    string_join_array_with_sep_char_test_truncate(strings, 0, buffer);
     EXPECT_STREQ(buffer, "");
   }
 }

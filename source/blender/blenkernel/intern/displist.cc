@@ -135,10 +135,10 @@ static void curve_to_displist(const Curve *cu,
 
     const int resolution = (for_render && cu->resolu_ren != 0) ? cu->resolu_ren : nu->resolu;
     const bool is_cyclic = nu->flagu & CU_NURB_CYCLIC;
-    const BezTriple *bezt_first = &nu->bezt[0];
-    const BezTriple *bezt_last = &nu->bezt[nu->pntsu - 1];
 
     if (nu->type == CU_BEZIER) {
+      const BezTriple *bezt_first = &nu->bezt[0];
+      const BezTriple *bezt_last = &nu->bezt[nu->pntsu - 1];
       int samples_len = 0;
       for (int i = 1; i < nu->pntsu; i++) {
         const BezTriple *prevbezt = &nu->bezt[i - 1];
