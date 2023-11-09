@@ -63,7 +63,9 @@
  * \{ */
 
 static bool get_normalized_fcurve_bounds(FCurve *fcu,
-                                         bAnimContext *ac,
+                                         AnimData *anim_data,
+                                         SpaceLink *space_link,
+                                         Scene *scene,
                                          bAnimListElem *ale,
                                          const bool include_handles,
                                          const float range[2],
@@ -77,11 +79,10 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
     return false;
   }
 
-  const short mapping_flag = ANIM_get_normalization_flags(ac->sl);
+  const short mapping_flag = ANIM_get_normalization_flags(space_link);
 
   float offset;
-  const float unit_fac = ANIM_unit_mapping_get_factor(
-      ac->scene, ale->id, fcu, mapping_flag, &offset);
+  const float unit_fac = ANIM_unit_mapping_get_factor(scene, ale->id, fcu, mapping_flag, &offset);
 
   r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
   r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
@@ -92,9 +93,8 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
     r_bounds->ymin -= (min_height - height) / 2;
     r_bounds->ymax += (min_height - height) / 2;
   }
-  AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-  r_bounds->xmin = BKE_nla_tweakedit_remap(adt, r_bounds->xmin, NLATIME_CONVERT_MAP);
-  r_bounds->xmax = BKE_nla_tweakedit_remap(adt, r_bounds->xmax, NLATIME_CONVERT_MAP);
+  r_bounds->xmin = BKE_nla_tweakedit_remap(anim_data, r_bounds->xmin, NLATIME_CONVERT_MAP);
+  r_bounds->xmax = BKE_nla_tweakedit_remap(anim_data, r_bounds->xmax, NLATIME_CONVERT_MAP);
 
   return true;
 }
@@ -140,7 +140,9 @@ static bool get_channel_bounds(bAnimContext *ac,
     }
     case ALE_FCURVE: {
       FCurve *fcu = (FCurve *)ale->key_data;
-      found_bounds = get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
+      AnimData *anim_data = ANIM_nla_mapping_get(ac, ale);
+      found_bounds = get_normalized_fcurve_bounds(
+          fcu, anim_data, ac->sl, ac->scene, ale, include_handles, range, r_bounds);
       break;
     }
   }
