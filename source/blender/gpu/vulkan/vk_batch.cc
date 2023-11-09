@@ -51,10 +51,10 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   VKIndexBuffer *index_buffer = index_buffer_get();
   const bool draw_indexed = index_buffer != nullptr;
   if (draw_indexed) {
-    command_buffers.draw_indexed(index_buffer->index_len_get(),
+    command_buffers.draw_indexed(vertex_count,
                                  instance_count,
-                                 index_buffer->index_start_get(),
                                  vertex_first,
+                                 index_buffer->index_start_get(),
                                  instance_first);
   }
   else {
