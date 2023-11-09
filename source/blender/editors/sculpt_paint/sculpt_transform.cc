@@ -10,6 +10,8 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 
 #include "DNA_meshdata_types.h"
@@ -38,6 +40,9 @@
 
 #include <cmath>
 #include <cstdlib>
+
+using blender::float3;
+using blender::MutableSpan;
 
 void ED_sculpt_init_transform(bContext *C,
                               Object *ob,
@@ -207,7 +212,7 @@ static void sculpt_elastic_transform_task(Object *ob,
 
   SculptSession *ss = ob->sculpt;
 
-  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);

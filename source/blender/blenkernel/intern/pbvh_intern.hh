@@ -105,8 +105,7 @@ struct PBVHNode {
   /* Scalar displacements for sculpt mode's layer brush. */
   float *layer_disp = nullptr;
 
-  int proxy_count = 0;
-  PBVHProxyNode *proxies = nullptr;
+  blender::Vector<PBVHProxyNode> proxies;
 
   /* Dyntopo */
 

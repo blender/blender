@@ -44,6 +44,8 @@
 #include <cstdlib>
 #include <cstring>
 
+using blender::float3;
+using blender::MutableSpan;
 using blender::Span;
 
 /* -------------------------------------------------------------------- */
@@ -248,9 +250,7 @@ static void do_draw_brush_task(Object *ob, const Brush *brush, const float *offs
 {
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
-  float(*proxy)[3];
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -344,10 +344,8 @@ static void do_fill_brush_task(
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -438,10 +436,8 @@ static void do_scrape_brush_task(
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -542,9 +538,7 @@ static void do_clay_thumb_brush_task(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -707,10 +701,8 @@ static void do_flatten_brush_task(
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -848,10 +840,8 @@ static void do_clay_brush_task(
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = fabsf(ss->cache->bstrength);
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -961,11 +951,9 @@ static void do_clay_strips_brush_task(Object *ob,
 
   PBVHVertexIter vd;
   SculptBrushTest test;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const bool flip = (ss->cache->bstrength < 0.0f);
   const float bstrength = flip ? -ss->cache->bstrength : ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SCULPT_brush_test_init(ss, &test);
   plane_from_point_normal_v3(test.plane_tool, area_co, area_no_sp);
@@ -1106,7 +1094,7 @@ static void do_snake_hook_brush_task(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
   const bool do_rake_rotation = ss->cache->is_rake_rotation_valid;
   const bool do_pinch = (brush->crease_pinch_factor != 0.5f);
@@ -1115,8 +1103,6 @@ static void do_snake_hook_brush_task(Object *ob,
                                  0.0f;
 
   const bool do_elastic = brush->snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1246,12 +1232,10 @@ static void do_thumb_brush_task(Object *ob, const Brush *brush, const float *con
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1315,12 +1299,10 @@ static void do_rotate_brush_task(Object *ob, const Brush *brush, const float ang
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1495,10 +1477,8 @@ static void do_inflate_brush_task(Object *ob, const Brush *brush, PBVHNode *node
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1560,10 +1540,8 @@ static void do_nudge_brush_task(Object *ob, const Brush *brush, const float *con
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1638,9 +1616,7 @@ static void do_crease_brush_task(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1745,10 +1721,8 @@ static void do_pinch_brush_task(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1859,12 +1833,10 @@ static void do_grab_brush_task(Object *ob,
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
   const float bstrength = ss->cache->bstrength;
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1945,15 +1917,13 @@ static void do_elastic_deform_brush_task(Object *ob,
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   const float bstrength = ss->cache->bstrength;
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   float dir;
   if (ss->cache->mouse[0] > ss->cache->initial_mouse[0]) {
@@ -2055,11 +2025,9 @@ static void do_draw_sharp_brush_task(Object *ob,
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -2135,11 +2103,9 @@ static void do_topology_slide_task(Object *ob, const Brush *brush, PBVHNode *nod
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  float(*proxy)[3];
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -2299,7 +2265,10 @@ static void do_topology_relax_task(Object *ob, const Brush *brush, PBVHNode *nod
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
 
-  BKE_pbvh_node_add_proxy(ss->pbvh, node);
+  /* TODO(@sergey): This looks very suspicious: proxy is added but is never written.
+   * Either this needs to be documented better why it is needed, or removed. The removal is likely
+   * to lead to performance improvements as well. */
+  BKE_pbvh_node_add_proxy(*ss->pbvh, *node);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -2379,7 +2348,7 @@ static void do_displacement_eraser_brush_task(Object *ob, const Brush *brush, PB
   SculptSession *ss = ob->sculpt;
   const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
 
-  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(

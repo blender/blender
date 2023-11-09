@@ -23,6 +23,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_set.hh"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -3297,7 +3298,7 @@ static void do_gravity_task(SculptSession *ss,
                             PBVHNode *node)
 {
   PBVHVertexIter vd;
-  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -3816,9 +3817,7 @@ static void sculpt_combine_proxies_node(Object &object,
         (SCULPT_undo_push_node(&object, &node, SCULPT_UNDO_COORDS)->co.data()));
   }
 
-  int proxy_count;
-  PBVHProxyNode *proxies;
-  BKE_pbvh_node_get_proxies(&node, &proxies, &proxy_count);
+  MutableSpan<PBVHProxyNode> proxies = BKE_pbvh_node_get_proxies(&node);
 
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
@@ -3839,8 +3838,8 @@ static void sculpt_combine_proxies_node(Object &object,
       copy_v3_v3(val, vd.co);
     }
 
-    for (int p = 0; p < proxy_count; p++) {
-      add_v3_v3(val, proxies[p].co[vd.i]);
+    for (const PBVHProxyNode &proxy_node : proxies) {
+      add_v3_v3(val, proxy_node.co[vd.i]);
     }
 
     SCULPT_clip(&sd, ss, vd.co, val);
