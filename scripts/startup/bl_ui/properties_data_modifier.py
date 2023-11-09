@@ -228,7 +228,10 @@ class AddModifierMenu(Operator):
     @classmethod
     def poll(cls, context):
         # NOTE: This operator only exists to add a poll to the add modifier shortcut in the property editor.
+        object = context.object
         space = context.space_data
+        if object and object.type == 'GPENCIL':
+            return False
         return space and space.type == 'PROPERTIES' and space.context == 'MODIFIER'
 
     def invoke(self, context, event):
