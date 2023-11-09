@@ -158,9 +158,17 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
   Vector<VkClearAttachment> attachments;
   if (buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
     VKContext &context = *VKContext::get();
-    /* Clearing depth via vkCmdClearAttachments requires a render pass with write depth enabled.
-     * When not enabled, clearing should be done via texture directly. */
-    if (context.state_manager_get().state.write_mask & GPU_WRITE_DEPTH) {
+    eGPUWriteMask needed_mask = GPU_WRITE_NONE;
+    if (buffers & GPU_DEPTH_BIT) {
+      needed_mask |= GPU_WRITE_DEPTH;
+    }
+    if (buffers & GPU_STENCIL_BIT) {
+      needed_mask |= GPU_WRITE_STENCIL;
+    }
+
+    /* Clearing depth via vkCmdClearAttachments requires a render pass with write depth or stencil
+     * enabled. When not enabled, clearing should be done via texture directly. */
+    if ((context.state_manager_get().state.write_mask & needed_mask) == needed_mask) {
       build_clear_attachments_depth_stencil(buffers, clear_depth, clear_stencil, attachments);
     }
     else {

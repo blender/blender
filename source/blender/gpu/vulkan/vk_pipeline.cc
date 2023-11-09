@@ -159,7 +159,9 @@ void VKPipeline::finalize(VKContext &context,
   pipeline_input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   pipeline_input_assembly.topology = to_vk_primitive_topology(prim_type);
   pipeline_input_assembly.primitiveRestartEnable =
-      ELEM(prim_type, GPU_PRIM_TRIS, GPU_PRIM_LINES, GPU_PRIM_POINTS) ? VK_FALSE : VK_TRUE;
+      ELEM(prim_type, GPU_PRIM_TRIS, GPU_PRIM_LINES, GPU_PRIM_POINTS, GPU_PRIM_LINES_ADJ) ?
+          VK_FALSE :
+          VK_TRUE;
   pipeline_create_info.pInputAssemblyState = &pipeline_input_assembly;
 
   /* Viewport state. */

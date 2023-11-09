@@ -262,18 +262,18 @@ void VKPipelineStateManager::set_stencil_test(const eGPUStencilTest test,
 
     case GPU_STENCIL_OP_COUNT_DEPTH_PASS:
       depth_stencil_state.front.failOp = VK_STENCIL_OP_KEEP;
-      depth_stencil_state.front.passOp = VK_STENCIL_OP_KEEP;
-      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_DECREMENT_AND_WRAP;
+      depth_stencil_state.front.passOp = VK_STENCIL_OP_DECREMENT_AND_WRAP;
+      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_KEEP;
       depth_stencil_state.back = depth_stencil_state.front;
-      depth_stencil_state.back.depthFailOp = VK_STENCIL_OP_INCREMENT_AND_WRAP;
+      depth_stencil_state.back.passOp = VK_STENCIL_OP_INCREMENT_AND_WRAP;
       break;
 
     case GPU_STENCIL_OP_COUNT_DEPTH_FAIL:
       depth_stencil_state.front.failOp = VK_STENCIL_OP_KEEP;
-      depth_stencil_state.front.passOp = VK_STENCIL_OP_INCREMENT_AND_WRAP;
-      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_KEEP;
+      depth_stencil_state.front.passOp = VK_STENCIL_OP_KEEP;
+      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_INCREMENT_AND_WRAP;
       depth_stencil_state.back = depth_stencil_state.front;
-      depth_stencil_state.back.depthFailOp = VK_STENCIL_OP_DECREMENT_AND_WRAP;
+      depth_stencil_state.back.passOp = VK_STENCIL_OP_DECREMENT_AND_WRAP;
       break;
 
     case GPU_STENCIL_OP_NONE:
@@ -319,7 +319,10 @@ void VKPipelineStateManager::set_stencil_mask(const eGPUStencilTest test,
       return;
   }
 
-  depth_stencil_state.back = depth_stencil_state.front;
+  depth_stencil_state.back.writeMask = depth_stencil_state.front.writeMask;
+  depth_stencil_state.back.reference = depth_stencil_state.front.reference;
+  depth_stencil_state.back.compareOp = depth_stencil_state.front.compareOp;
+  depth_stencil_state.back.compareMask = depth_stencil_state.front.compareMask;
 }
 
 void VKPipelineStateManager::set_clip_distances(const int /*new_dist_len*/,
