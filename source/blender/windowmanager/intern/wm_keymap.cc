@@ -92,6 +92,10 @@ static void wm_keymap_item_free_data(wmKeyMapItem *kmi)
     kmi->ptr = nullptr;
     kmi->properties = nullptr;
   }
+  else if (kmi->properties) {
+    IDP_FreeProperty(kmi->properties);
+    kmi->properties = nullptr;
+  }
 }
 
 static void wm_keymap_item_clear_runtime(wmKeyMapItem *kmi)
@@ -203,6 +207,9 @@ void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, IDProperty *properties)
     MEM_freeN(kmi->ptr);
 
     kmi->ptr = nullptr;
+  }
+  else if (kmi->properties) {
+    IDP_FreeProperty(kmi->properties);
   }
 
   kmi->properties = properties;
@@ -574,6 +581,9 @@ void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
   if (kmi->ptr) {
     WM_operator_properties_free(kmi->ptr);
     MEM_freeN(kmi->ptr);
+  }
+  else if (kmi->properties) {
+    IDP_FreeProperty(kmi->properties);
   }
   BLI_freelinkN(&keymap->items, kmi);
 
@@ -2094,7 +2104,9 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
       }
 
       kmi->properties = IDP_CopyProperty(orig->properties);
-      kmi->ptr->data = kmi->properties;
+      if (kmi->ptr) {
+        kmi->ptr->data = kmi->properties;
+      }
     }
 
     kmi->propvalue = orig->propvalue;
