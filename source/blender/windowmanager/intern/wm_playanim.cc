@@ -2145,7 +2145,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   BLF_exit();
 
   /* NOTE: Must happen before GPU Context destruction as GPU resources are released via
-   * Color Management module. */
+   * Color Management module. Must be re-initialized in the case of drag & drop. */
   IMB_exit();
 
   if (ps.ghost_data.gpu_context) {
@@ -2161,6 +2161,9 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   /* Early exit, IMB and BKE should be exited only in end. */
   if (ps.argv_next) {
+    /* Ensure drag & drop runs with a valid IMB state. */
+    IMB_init();
+
     args_next->argc = ps.argc_next;
     args_next->argv = ps.argv_next;
     return true;
