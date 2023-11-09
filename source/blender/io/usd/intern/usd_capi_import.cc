@@ -222,6 +222,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
     WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
 
+    BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     data->view_layer->active_collection = BKE_layer_collection_first_from_scene_collection(
         data->view_layer, import_collection);
   }
