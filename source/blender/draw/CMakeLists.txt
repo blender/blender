@@ -230,9 +230,9 @@ set(SRC
   DRW_engine.h
   DRW_pbvh.hh
   DRW_select_buffer.hh
-  intern/attribute_convert.hh
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
+  intern/attribute_convert.hh
   intern/draw_attributes.hh
   intern/draw_cache.h
   intern/draw_cache_extract.hh

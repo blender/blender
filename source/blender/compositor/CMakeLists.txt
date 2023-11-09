@@ -345,8 +345,6 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_GaussianXBlurOperation.h
     operations/COM_GaussianYBlurOperation.cc
     operations/COM_GaussianYBlurOperation.h
-    operations/COM_SummedAreaTableOperation.h
-    operations/COM_SummedAreaTableOperation.cc
     operations/COM_KuwaharaAnisotropicOperation.cc
     operations/COM_KuwaharaAnisotropicOperation.h
     operations/COM_KuwaharaAnisotropicStructureTensorOperation.cc
@@ -361,6 +359,8 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_PosterizeOperation.h
     operations/COM_SMAAOperation.cc
     operations/COM_SMAAOperation.h
+    operations/COM_SummedAreaTableOperation.cc
+    operations/COM_SummedAreaTableOperation.h
     operations/COM_VariableSizeBokehBlurOperation.cc
     operations/COM_VariableSizeBokehBlurOperation.h
 
@@ -666,8 +666,8 @@ if(WITH_COMPOSITOR_CPU)
       tests/COM_BufferArea_test.cc
       tests/COM_BufferRange_test.cc
       tests/COM_BuffersIterator_test.cc
-      tests/COM_NodeOperation_test.cc
       tests/COM_ComputeSummedAreaTableOperation_test.cc
+      tests/COM_NodeOperation_test.cc
     )
     set(TEST_INC
     )

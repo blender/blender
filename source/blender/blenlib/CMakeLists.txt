@@ -382,6 +382,7 @@ set(SRC
   BLI_voronoi_2d.h
   BLI_voxel.h
   BLI_winstuff.h
+  BLI_winstuff_com.hh
   PIL_time.h
   PIL_time_utildefines.h
 
