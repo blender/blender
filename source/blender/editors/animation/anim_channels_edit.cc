@@ -77,7 +77,7 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
     return false;
   }
 
-  const short mapping_flag = ANIM_get_normalization_flags(ac);
+  const short mapping_flag = ANIM_get_normalization_flags(ac->sl);
 
   float offset;
   const float unit_fac = ANIM_unit_mapping_get_factor(

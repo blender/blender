@@ -321,10 +321,10 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
 /* *************************************************** */
 /* UNITS CONVERSION MAPPING (required for drawing and editing keyframes) */
 
-short ANIM_get_normalization_flags(bAnimContext *ac)
+short ANIM_get_normalization_flags(SpaceLink *space_link)
 {
-  if (ac->sl->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+  if (space_link->spacetype == SPACE_GRAPH) {
+    SpaceGraph *sipo = (SpaceGraph *)space_link;
     bool use_normalization = (sipo->flag & SIPO_NORMALIZE) != 0;
     bool freeze_normalization = (sipo->flag & SIPO_NORMALIZE_FREEZE) != 0;
     return use_normalization ? (ANIM_UNITCONV_NORMALIZE |

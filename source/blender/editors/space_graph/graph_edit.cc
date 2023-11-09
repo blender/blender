@@ -154,7 +154,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       AnimData *adt = ANIM_nla_mapping_get(ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
 
-      short mapping_flag = ANIM_get_normalization_flags(ac);
+      short mapping_flag = ANIM_get_normalization_flags(ac->sl);
       float offset;
       float unit_scale = ANIM_unit_mapping_get_factor(
           ac->scene, ale->id, static_cast<FCurve *>(ale->key_data), mapping_flag, &offset);
@@ -321,7 +321,7 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
     ListBase anim_data;
     ToolSettings *ts = ac.scene->toolsettings;
 
-    short mapping_flag = ANIM_get_normalization_flags(&ac);
+    short mapping_flag = ANIM_get_normalization_flags(ac.sl);
     float scale, offset;
 
     /* Preserve selection? */
@@ -2119,7 +2119,7 @@ static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-    short mapping_flag = ANIM_get_normalization_flags(ac);
+    short mapping_flag = ANIM_get_normalization_flags(ac->sl);
     KeyframeEditData current_ked;
     float offset;
     float unit_scale = ANIM_unit_mapping_get_factor(ac->scene,
@@ -2441,7 +2441,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 
     /* Normalize cursor value (for normalized F-Curves display). */
     if (mode == GRAPHKEYS_SNAP_VALUE) {
-      short mapping_flag = ANIM_get_normalization_flags(ac);
+      short mapping_flag = ANIM_get_normalization_flags(ac->sl);
       float offset;
       float unit_scale = ANIM_unit_mapping_get_factor(
           ac->scene, ale->id, static_cast<FCurve *>(ale->key_data), mapping_flag, &offset);
@@ -2754,7 +2754,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 
     /* Apply unit corrections. */
     if (mode == GRAPHKEYS_MIRROR_VALUE) {
-      short mapping_flag = ANIM_get_normalization_flags(ac);
+      short mapping_flag = ANIM_get_normalization_flags(ac->sl);
       float offset;
       float unit_scale = ANIM_unit_mapping_get_factor(ac->scene,
                                                       ale->id,

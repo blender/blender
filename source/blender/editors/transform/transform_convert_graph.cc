@@ -240,7 +240,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     return;
   }
 
-  anim_map_flag |= ANIM_get_normalization_flags(&ac);
+  anim_map_flag |= ANIM_get_normalization_flags(ac.sl);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
