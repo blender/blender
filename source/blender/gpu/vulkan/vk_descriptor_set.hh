@@ -148,6 +148,8 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
                   VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) &&
              texture != nullptr;
     }
+
+    void debug_print() const;
   };
 
  private:
@@ -190,6 +192,8 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
   {
     return active_resource();
   }
+
+  void debug_print() const;
 
  protected:
   std::unique_ptr<VKDescriptorSet> create_resource(VKContext &context) override;

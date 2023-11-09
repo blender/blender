@@ -54,7 +54,9 @@ if(NOT DEFINED LIBDIR)
     set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin_${CMAKE_OSX_ARCHITECTURES})
   endif()
 else()
-  message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
+  if(FIRST_RUN)
+    message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
+  endif()
 endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
@@ -101,12 +103,6 @@ if(WITH_MATERIALX)
   set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
 endif()
 add_bundled_libraries(materialx/lib)
-
-if(WITH_VULKAN_BACKEND)
-  find_package(MoltenVK REQUIRED)
-  find_package(ShaderC REQUIRED)
-  find_package(Vulkan REQUIRED)
-endif()
 
 if(WITH_OPENSUBDIV)
   find_package(OpenSubdiv)
@@ -191,8 +187,6 @@ string(APPEND PLATFORM_CFLAGS " -pipe -funsigned-char -fno-strict-aliasing -ffp-
 set(PLATFORM_LINKFLAGS
   "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework Metal -framework QuartzCore"
 )
-
-list(APPEND PLATFORM_LINKLIBS c++)
 
 if(WITH_OPENIMAGEDENOISE)
   if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
@@ -330,21 +324,12 @@ endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
-
-  # Embree static library linking can mix up SSE and AVX symbols, causing
-  # crashes on macOS systems with older CPUs that don't have AVX. Using
-  # force load avoids that. The Embree shared library does not suffer from
-  # this problem, precisely because linking a shared library uses force load.
-  set(_embree_libraries_force_load)
-  foreach(_embree_library ${EMBREE_LIBRARIES})
-    list(APPEND _embree_libraries_force_load "-Wl,-force_load,${_embree_library}")
-  endforeach()
-  set(EMBREE_LIBRARIES ${_embree_libraries_force_load})
 endif()
 add_bundled_libraries(embree/lib)
 
 if(WITH_OPENIMAGEDENOISE)
   find_package(OpenImageDenoise REQUIRED)
+  add_bundled_libraries(openimagedenoise/lib)
 endif()
 
 if(WITH_TBB)
@@ -435,8 +420,10 @@ string(APPEND PLATFORM_LINKFLAGS
   " -Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'"
 )
 
-string(APPEND CMAKE_CXX_FLAGS " -stdlib=libc++")
-string(APPEND PLATFORM_LINKFLAGS " -stdlib=libc++")
+# Use old, slower linker for now to avoid many linker warnings.
+if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
+  string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+endif()
 
 # Make stack size more similar to Embree, required for Embree.
 string(APPEND PLATFORM_LINKFLAGS_EXECUTABLE " -Wl,-stack_size,0x100000")

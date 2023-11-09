@@ -43,8 +43,8 @@
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
 
@@ -67,7 +67,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "SEQ_render.h"
+#include "SEQ_render.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
@@ -1065,6 +1065,7 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
     }
   }
   if (reports.list.first != nullptr) {
+    /* TODO: Should rather use new #BKE_reports_move_to_reports ? */
     BLI_spin_lock(&oglrender->reports_lock);
     for (Report *report = static_cast<Report *>(reports.list.first); report != nullptr;
          report = report->next)
@@ -1073,6 +1074,7 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
     }
     BLI_spin_unlock(&oglrender->reports_lock);
   }
+  BKE_reports_free(&reports);
   if (!ok) {
     oglrender->pool_ok = false;
   }

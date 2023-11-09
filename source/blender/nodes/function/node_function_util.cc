@@ -5,7 +5,6 @@
 #include "node_function_util.hh"
 #include "node_util.hh"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 static bool fn_node_poll_default(const bNodeType * /*ntype*/,
@@ -26,5 +25,4 @@ void fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclas
   ntype->poll = fn_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }

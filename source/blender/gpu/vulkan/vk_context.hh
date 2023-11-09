@@ -12,7 +12,7 @@
 
 #include "GHOST_Types.h"
 
-#include "vk_command_buffer.hh"
+#include "vk_command_buffers.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
@@ -25,7 +25,7 @@ class VKStateManager;
 
 class VKContext : public Context, NonCopyable {
  private:
-  VKCommandBuffer command_buffer_;
+  VKCommandBuffers command_buffers_;
 
   VkExtent2D vk_extent_ = {};
   VkFormat swap_chain_format_ = {};
@@ -69,9 +69,9 @@ class VKContext : public Context, NonCopyable {
     return static_cast<VKContext *>(Context::get());
   }
 
-  VKCommandBuffer &command_buffer_get()
+  VKCommandBuffers &command_buffers_get()
   {
-    return command_buffer_;
+    return command_buffers_;
   }
 
   VKStateManager &state_manager_get() const;

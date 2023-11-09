@@ -23,7 +23,7 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_screen.hh"
 

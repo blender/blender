@@ -40,6 +40,7 @@ void RenderBuffers::sync()
   };
 
   data.normal_id = pass_index_get(EEVEE_RENDER_PASS_NORMAL, EEVEE_RENDER_PASS_AO);
+  data.position_id = pass_index_get(EEVEE_RENDER_PASS_POSITION);
   data.diffuse_light_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_LIGHT);
   data.diffuse_color_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_COLOR);
   data.specular_light_id = pass_index_get(EEVEE_RENDER_PASS_SPECULAR_LIGHT);
@@ -51,20 +52,19 @@ void RenderBuffers::sync()
   data.ambient_occlusion_id = pass_index_get(EEVEE_RENDER_PASS_AO);
 
   data.aovs = inst_.film.aovs_info;
-  data.push_update();
 }
 
 void RenderBuffers::acquire(int2 extent)
 {
   const eViewLayerEEVEEPassType enabled_passes = inst_.film.enabled_passes_get();
 
+  extent_ = extent;
+
   auto pass_extent = [&](eViewLayerEEVEEPassType pass_bit) -> int2 {
     /* Use dummy texture for disabled passes. Allows correct bindings. */
     return (enabled_passes & pass_bit) ? extent : int2(1);
   };
 
-  eGPUTextureFormat color_format = GPU_RGBA16F;
-  eGPUTextureFormat float_format = GPU_R16F;
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   /* Depth and combined are always needed. */

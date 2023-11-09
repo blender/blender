@@ -22,11 +22,11 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLT_translation.h"
 
@@ -522,11 +522,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
                                         false,
                                         op->reports))
       {
-
-        if (data_type == DT_TYPE_LNOR && use_create) {
-          ((Mesh *)ob_dst->data)->flag |= ME_AUTOSMOOTH;
-        }
-
         DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
         changed = true;
       }

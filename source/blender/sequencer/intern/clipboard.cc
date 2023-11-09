@@ -26,10 +26,10 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "SEQ_clipboard.h"
-#include "SEQ_select.h"
+#include "SEQ_clipboard.hh"
+#include "SEQ_select.hh"
 
-#include "sequencer.h"
+#include "sequencer.hh"
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Special.h>

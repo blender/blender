@@ -11,7 +11,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BKE_context.h"
 
@@ -21,17 +21,19 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "SEQ_iterator.h"
-#include "SEQ_modifier.h"
-#include "SEQ_relations.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_sound.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_sound.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"
 
-/*********************** Add modifier operator *************************/
+/* -------------------------------------------------------------------- */
+/** \name Add modifier operator
+ * \{ */
 
 static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -47,19 +49,23 @@ static int strip_modifier_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static const EnumPropertyItem *filter_modifiers_by_sequence_type(bContext *C,
-                                                                 PointerRNA * /* ptr */,
-                                                                 PropertyRNA * /* prop */,
-                                                                 bool * /* r_free */)
+static const EnumPropertyItem *filter_modifiers_by_sequence_type_itemf(bContext *C,
+                                                                       PointerRNA * /*ptr*/,
+                                                                       PropertyRNA * /*prop*/,
+                                                                       bool * /*r_free*/)
 {
+  if (C == nullptr) {
+    return rna_enum_sequence_modifier_type_items;
+  }
+
   Scene *scene = CTX_data_scene(C);
   Sequence *seq = SEQ_select_active_get(scene);
-  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM)) {
-    return rna_enum_sequence_sound_modifier_type_items;
+  if (seq) {
+    if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM)) {
+      return rna_enum_sequence_sound_modifier_type_items;
+    }
   }
-  else {
-    return rna_enum_sequence_video_modifier_type_items;
-  }
+  return rna_enum_sequence_video_modifier_type_items;
 }
 
 void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
@@ -83,11 +89,15 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_enum(ot->srna, "type", rna_enum_dummy_NULL_items, 0, "Type", "");
-  RNA_def_enum_funcs(prop, filter_modifiers_by_sequence_type);
+  RNA_def_enum_funcs(prop, filter_modifiers_by_sequence_type_itemf);
   ot->prop = prop;
 }
 
-/*********************** Remove modifier operator *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Modifier Operator
+ * \{ */
 
 static int strip_modifier_remove_exec(bContext *C, wmOperator *op)
 {
@@ -140,7 +150,11 @@ void SEQUENCER_OT_strip_modifier_remove(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/*********************** Move operator *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Operator
+ * \{ */
 
 enum {
   SEQ_MODIFIER_MOVE_UP = 0,
@@ -220,7 +234,11 @@ void SEQUENCER_OT_strip_modifier_move(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/*********************** Copy to selected operator *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy to Selected Operator
+ * \{ */
 
 enum {
   SEQ_MODIFIER_COPY_REPLACE = 0,
@@ -249,8 +267,9 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
       /* If original is sound, only copy to "sound" strips
        * If original is not sound, only copy to "not sound" strips
        */
-      if (isSound != seq_iter_is_sound)
+      if (isSound != seq_iter_is_sound) {
         continue;
+      }
 
       if (type == SEQ_MODIFIER_COPY_REPLACE) {
         if (seq_iter->modifiers.first) {
@@ -313,6 +332,12 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", type_items, SEQ_MODIFIER_COPY_REPLACE, "Type", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Redefine Equalizer Graphs Operator
+ * \{ */
+
 static int strip_modifier_equalizer_redefine_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -347,7 +372,7 @@ void SEQUENCER_OT_strip_modifier_equalizer_redefine(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Redefine equalizer graphs";
+  ot->name = "Redefine Equalizer Graphs";
   ot->idname = "SEQUENCER_OT_strip_modifier_equalizer_redefine";
   ot->description = "Redefine equalizer graphs";
 
@@ -369,3 +394,5 @@ void SEQUENCER_OT_strip_modifier_equalizer_redefine(wmOperatorType *ot)
       ot->srna, "name", "Name", MAX_NAME, "Name", "Name of modifier to redefine");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
+
+/** \} */

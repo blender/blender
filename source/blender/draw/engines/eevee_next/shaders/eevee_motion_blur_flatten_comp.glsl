@@ -14,7 +14,7 @@
  * Adapted from G3D Innovation Engine implementation.
  */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 
 shared uint payload_prev;

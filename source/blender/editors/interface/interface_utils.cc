@@ -18,7 +18,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_string_search.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -28,7 +27,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -37,6 +36,7 @@
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
+#include "UI_string_search.hh"
 #include "UI_view2d.hh"
 
 #include "WM_api.hh"
@@ -519,7 +519,7 @@ void ui_rna_collection_search_update_fn(
   char *name;
   bool has_id_icon = false;
 
-  blender::string_search::StringSearch<CollItemSearch> search;
+  blender::ui::string_search::StringSearch<CollItemSearch> search;
 
   if (data->search_prop != nullptr) {
     /* build a temporary list of relevant items first */

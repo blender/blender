@@ -18,7 +18,7 @@
 #include "BKE_layer.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "DNA_collection_types.h"
 

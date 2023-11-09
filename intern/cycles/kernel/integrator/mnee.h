@@ -623,7 +623,8 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
     G = bsdf_G<MicrofacetType::GGX>(alpha2, cosNI, cosNO);
   }
 
-  Spectrum F = microfacet_fresnel(bsdf, wi, Ht, true);
+  Spectrum reflectance, transmittance;
+  microfacet_fresnel(bsdf, cosHI, nullptr, &reflectance, &transmittance);
 
   /*
    * bsdf_do = (1 - F) * D_do * G * |h.wi| / (n.wi * n.wo)
@@ -633,7 +634,8 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
    * contribution = bsdf_do * |do/dh| * |n.wo / n.h| / pdf_dh
    *              = (1 - F) * G * |h.wi / (n.wi * n.h^2)|
    */
-  return bsdf->weight * F * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
+  /* TODO: energy compensation for multi-GGX. */
+  return bsdf->weight * transmittance * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
 }
 
 /* Compute transfer matrix determinant |T1| = |dx1/dxn| (and |dh/dx| in the process) */
@@ -787,7 +789,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   const int diffuse_bounce = INTEGRATOR_STATE(state, path, diffuse_bounce);
   const int bounce = INTEGRATOR_STATE(state, path, bounce);
 
-  /* Set diffuse bounce info . */
+  /* Set diffuse bounce info. */
   INTEGRATOR_STATE_WRITE(state, path, diffuse_bounce) = diffuse_bounce + 1;
 
   /* Evaluate light sample

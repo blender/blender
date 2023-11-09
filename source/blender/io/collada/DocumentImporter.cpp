@@ -60,8 +60,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "DocumentImporter.h"
 #include "ErrorHandler.h"
@@ -622,7 +622,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     if ((geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
       /* Check if Object is armature, by checking if immediate child is a JOINT node. */
       if (is_armature(node)) {
-        ob = bc_add_object(bmain, sce, view_layer, OB_ARMATURE, name.c_str());
+        ExtraTags *et = getExtraTags(node->getUniqueId());
+        ob = bc_add_armature(node, et, bmain, sce, view_layer, OB_ARMATURE, name.c_str());
       }
       else {
         ob = bc_add_object(bmain, sce, view_layer, OB_EMPTY, nullptr);
@@ -650,7 +651,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       }
     }
 
-    /* create_constraints(et,ob); */
+    // create_constraints(et, ob);
   }
 
   for (Object *ob : *objects_done) {
@@ -853,14 +854,17 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
   switch (type) {
     case COLLADAFW::Camera::ORTHOGRAPHIC: {
       cam->type = CAM_ORTHO;
-    } break;
+      break;
+    }
     case COLLADAFW::Camera::PERSPECTIVE: {
       cam->type = CAM_PERSP;
-    } break;
+      break;
+    }
     case COLLADAFW::Camera::UNDEFINED_CAMERATYPE: {
       fprintf(stderr, "Current camera type is not supported.\n");
       cam->type = CAM_PERSP;
-    } break;
+      break;
+    }
   }
 
   switch (camera->getDescriptionType()) {
@@ -871,7 +875,8 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
           double aspect = camera->getAspectRatio().getValue();
           double xmag = aspect * ymag;
           cam->ortho_scale = float(xmag);
-        } break;
+          break;
+        }
         case CAM_PERSP:
         default: {
           double yfov = camera->getYFov().getValue();
@@ -881,9 +886,11 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 
           double xfov = 2.0f * atanf(aspect * tanf(DEG2RADF(yfov) * 0.5f));
           cam->lens = fov_to_focallength(xfov, cam->sensor_x);
-        } break;
+          break;
+        }
       }
-    } break;
+      break;
+    }
     /* XXX correct way to do following four is probably to get also render
      * size and determine proper settings from that somehow */
     case COLLADAFW::Camera::ASPECTRATIO_AND_X:
@@ -898,9 +905,11 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
           double x = camera->getXFov().getValue();
           /* X is in degrees, cam->lens is in millimeters. */
           cam->lens = fov_to_focallength(DEG2RADF(x), cam->sensor_x);
-        } break;
+          break;
+        }
       }
-    } break;
+      break;
+    }
     case COLLADAFW::Camera::SINGLE_Y: {
       switch (cam->type) {
         case CAM_ORTHO:
@@ -911,9 +920,11 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
           double yfov = camera->getYFov().getValue();
           /* yfov is in degrees, cam->lens is in millimeters. */
           cam->lens = fov_to_focallength(DEG2RADF(yfov), cam->sensor_x);
-        } break;
+          break;
+        }
       }
-    } break;
+      break;
+    }
     case COLLADAFW::Camera::UNDEFINED:
       /* read nothing, use blender defaults. */
       break;
@@ -1035,23 +1046,28 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     switch (light->getLightType()) {
       case COLLADAFW::Light::AMBIENT_LIGHT: {
         lamp->type = LA_SUN; /* TODO: needs more thoughts. */
-      } break;
+        break;
+      }
       case COLLADAFW::Light::SPOT_LIGHT: {
         lamp->type = LA_SPOT;
         lamp->spotsize = DEG2RADF(light->getFallOffAngle().getValue());
         lamp->spotblend = light->getFallOffExponent().getValue();
-      } break;
+        break;
+      }
       case COLLADAFW::Light::DIRECTIONAL_LIGHT: {
         /* our sun is very strong, so pick a smaller energy level */
         lamp->type = LA_SUN;
-      } break;
+        break;
+      }
       case COLLADAFW::Light::POINT_LIGHT: {
         lamp->type = LA_LOCAL;
-      } break;
+        break;
+      }
       case COLLADAFW::Light::UNDEFINED: {
         fprintf(stderr, "Current light type is not supported.\n");
         lamp->type = LA_LOCAL;
-      } break;
+        break;
+      }
     }
   }
 
@@ -1075,7 +1091,7 @@ bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animat
     return true;
   }
 
-  /* return true; */
+  // return true;
   return anim_importer.write_animation_list(animationList);
 }
 

@@ -9,6 +9,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_buffer.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_map.hh"
@@ -85,7 +87,7 @@ typedef struct SPHData {
   ParticleSystem *psys[10];
   ParticleData *pa;
   float mass;
-  blender::Map<blender::OrderedEdge, int> eh;
+  std::optional<blender::Map<blender::OrderedEdge, int>> eh;
   float *gravity;
   float hfac;
   /* Average distance to neighbors (other particles in the support domain),

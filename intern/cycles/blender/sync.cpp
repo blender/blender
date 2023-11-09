@@ -355,8 +355,14 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     scene->light_manager->tag_update(scene, LightManager::UPDATE_ALL);
   }
 
-  SamplingPattern sampling_pattern = (SamplingPattern)get_enum(
-      cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
+  SamplingPattern sampling_pattern;
+  if (use_developer_ui) {
+    sampling_pattern = (SamplingPattern)get_enum(
+        cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
+  }
+  else {
+    sampling_pattern = SAMPLING_PATTERN_TABULATED_SOBOL;
+  }
   integrator->set_sampling_pattern(sampling_pattern);
 
   int samples = 1;
@@ -793,15 +799,19 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene,
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
 
-  if (shadingsystem == 0)
+  if (shadingsystem == 0) {
     params.shadingsystem = SHADINGSYSTEM_SVM;
-  else if (shadingsystem == 1)
+  }
+  else if (shadingsystem == 1) {
     params.shadingsystem = SHADINGSYSTEM_OSL;
+  }
 
-  if (background || (use_developer_ui && get_enum(cscene, "debug_bvh_type")))
+  if (background || (use_developer_ui && get_enum(cscene, "debug_bvh_type"))) {
     params.bvh_type = BVH_TYPE_STATIC;
-  else
+  }
+  else {
     params.bvh_type = BVH_TYPE_DYNAMIC;
+  }
 
   params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
   params.use_bvh_compact_structure = RNA_boolean_get(&cscene, "debug_use_compact_bvh");
@@ -903,10 +913,12 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   /* shading system - scene level needs full refresh */
   const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
 
-  if (shadingsystem == 0)
+  if (shadingsystem == 0) {
     params.shadingsystem = SHADINGSYSTEM_SVM;
-  else if (shadingsystem == 1)
+  }
+  else if (shadingsystem == 1) {
     params.shadingsystem = SHADINGSYSTEM_OSL;
+  }
 
   /* Time limit. */
   if (background) {

@@ -38,7 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_endian_switch.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -60,7 +60,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 
 #include "BLO_read_write.hh"
 
@@ -160,7 +160,7 @@ IDTypeInfo IDType_ID_IP = {
     /*main_listbase_index*/ INDEX_ID_IP,
     /*struct_size*/ sizeof(Ipo),
     /*name*/ "Ipo",
-    /*name_plural*/ "ipos",
+    /*name_plural*/ N_("ipos"),
     /*translation_context*/ "",
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ nullptr,
@@ -1609,7 +1609,7 @@ static void icu_to_fcurves(ID *id,
         if (((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
             ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)))
         {
-          const float fac = float(M_PI) / 18.0f; /* 10.0f * M_PI/180.0f; */
+          const float fac = float(M_PI) / 18.0f; /* `10.0f * M_PI/180.0f`. */
 
           dst->vec[0][1] *= fac;
           dst->vec[1][1] *= fac;
@@ -2040,10 +2040,7 @@ static bool seq_convert_callback(Sequence *seq, void *userdata)
     return true;
   }
 
-  /* patch adrcode, so that we can map
-   * to different DNA variables later
-   * (semi-hack (tm) )
-   */
+  /* Patch `adrcode`, so that we can map to different DNA variables later (semi-hack (tm)). */
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
     case SEQ_TYPE_META:

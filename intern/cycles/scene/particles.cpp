@@ -51,8 +51,9 @@ void ParticleSystemManager::device_update_particles(Device *,
    * adds one dummy particle at the beginning to avoid invalid lookups,
    * in case a shader uses particle info without actual particle data. */
   int num_particles = 1;
-  for (size_t j = 0; j < scene->particle_systems.size(); j++)
+  for (size_t j = 0; j < scene->particle_systems.size(); j++) {
     num_particles += scene->particle_systems[j]->particles.size();
+  }
 
   KernelParticle *kparticles = dscene->particles.alloc(num_particles);
 
@@ -78,8 +79,9 @@ void ParticleSystemManager::device_update_particles(Device *,
 
       i++;
 
-      if (progress.get_cancel())
+      if (progress.get_cancel()) {
         return;
+      }
     }
   }
 
@@ -91,8 +93,9 @@ void ParticleSystemManager::device_update(Device *device,
                                           Scene *scene,
                                           Progress &progress)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -107,8 +110,9 @@ void ParticleSystemManager::device_update(Device *device,
   progress.set_status("Updating Particle Systems", "Copying Particles to device");
   device_update_particles(device, dscene, scene, progress);
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   need_update_ = false;
 }

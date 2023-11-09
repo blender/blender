@@ -8,6 +8,7 @@
 
 #include "BLI_math_vector.h"
 
+#include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
 #include "BLI_strict_flags.h"
@@ -457,12 +458,12 @@ float angle_normalized_v3v3(const float v1[3], const float v2[3])
 
   /* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
   if (dot_v3v3(v1, v2) >= 0.0f) {
-    return 2.0f * saasin(len_v3v3(v1, v2) / 2.0f);
+    return 2.0f * safe_asinf(len_v3v3(v1, v2) / 2.0f);
   }
 
   float v2_n[3];
   negate_v3_v3(v2_n, v2);
-  return (float)M_PI - 2.0f * saasin(len_v3v3(v1, v2_n) / 2.0f);
+  return (float)M_PI - 2.0f * safe_asinf(len_v3v3(v1, v2_n) / 2.0f);
 }
 
 float angle_normalized_v2v2(const float a[2], const float b[2])
@@ -473,12 +474,12 @@ float angle_normalized_v2v2(const float a[2], const float b[2])
 
   /* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
   if (dot_v2v2(a, b) >= 0.0f) {
-    return 2.0f * saasin(len_v2v2(a, b) / 2.0f);
+    return 2.0f * safe_asinf(len_v2v2(a, b) / 2.0f);
   }
 
   float v2_n[2];
   negate_v2_v2(v2_n, b);
-  return (float)M_PI - 2.0f * saasin(len_v2v2(a, v2_n) / 2.0f);
+  return (float)M_PI - 2.0f * safe_asinf(len_v2v2(a, v2_n) / 2.0f);
 }
 
 float angle_on_axis_v3v3_v3(const float v1[3], const float v2[3], const float axis[3])

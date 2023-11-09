@@ -32,7 +32,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_vfont.h"
 
@@ -40,8 +40,8 @@
 
 #include "BLT_translation.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -385,7 +385,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
     ef->textbuf[ef->pos] = c;
     ef->textbufinfo[ef->pos] = cu->curinfo;
     ef->textbufinfo[ef->pos].kern = 0.0f;
-    ef->textbufinfo[ef->pos].mat_nr = obedit->actcol;
+    ef->textbufinfo[ef->pos].mat_nr = obedit->actcol - 1;
 
     ef->pos++;
     ef->len++;
@@ -418,10 +418,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
   if (obedit->totcol > 0) {
-    obedit->actcol = cu->curinfo.mat_nr;
-
-    /* since this array is calloc'd, it can be 0 even though we try ensure
-     * (mat_nr > 0) almost everywhere */
+    obedit->actcol = cu->curinfo.mat_nr + 1;
     if (obedit->actcol < 1) {
       obedit->actcol = 1;
     }
@@ -478,7 +475,6 @@ static void font_select_update_primary_clipboard(Object *obedit)
 /** \name Generic Paste Functions
  * \{ */
 
-/* text_update_edited(C, scene, obedit, 1, FO_EDIT); */
 static bool font_paste_wchar(Object *obedit,
                              const char32_t *str,
                              const size_t str_len,
@@ -1753,13 +1749,13 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       if (accentcode) {
         if (ef->pos > 0) {
           inserted_text[0] = findaccent(ef->textbuf[ef->pos - 1],
-                                        BLI_str_utf8_as_unicode(event->utf8_buf));
+                                        BLI_str_utf8_as_unicode_or_error(event->utf8_buf));
           ef->textbuf[ef->pos - 1] = inserted_text[0];
         }
         accentcode = false;
       }
       else if (event->utf8_buf[0]) {
-        inserted_text[0] = BLI_str_utf8_as_unicode(event->utf8_buf);
+        inserted_text[0] = BLI_str_utf8_as_unicode_or_error(event->utf8_buf);
         insert_into_textbuf(obedit, inserted_text[0]);
         accentcode = false;
       }
@@ -1852,7 +1848,7 @@ static void font_cursor_set_apply(bContext *C, const wmEvent *event)
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
   if (ob->totcol > 0) {
-    ob->actcol = cu->curinfo.mat_nr;
+    ob->actcol = cu->curinfo.mat_nr + 1;
     if (ob->actcol < 1) {
       ob->actcol = 1;
     }
@@ -2390,7 +2386,6 @@ bool ED_curve_editfont_select_pick(
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = static_cast<Curve *>(obedit->data);
-  ViewContext vc;
   /* bias against the active, in pixels, allows cycling */
   const float active_bias_px = 4.0f;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
@@ -2399,7 +2394,7 @@ bool ED_curve_editfont_select_pick(
   const float dist = ED_view3d_select_dist_px();
   float dist_sq_best = dist * dist;
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 

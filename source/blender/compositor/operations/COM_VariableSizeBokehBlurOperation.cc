@@ -59,7 +59,7 @@ void *VariableSizeBokehBlurOperation::initialize_tile_data(rcti *rect)
   this->determine_depending_area_of_interest(
       rect, (ReadBufferOperation *)input_size_program_, &rect2);
 
-  const float max_dim = MAX2(this->get_width(), this->get_height());
+  const float max_dim = std::max(this->get_width(), this->get_height());
   const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
 
   data->max_blur_scalar = int(data->size->get_max_value(rect2) * scalar);
@@ -87,7 +87,7 @@ void VariableSizeBokehBlurOperation::execute_pixel(float output[4], int x, int y
   float multiplier_accum[4];
   float color_accum[4];
 
-  const float max_dim = MAX2(get_width(), get_height());
+  const float max_dim = std::max(get_width(), get_height());
   const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
   int max_blur_scalar = tile_data->max_blur_scalar;
 
@@ -105,10 +105,10 @@ void VariableSizeBokehBlurOperation::execute_pixel(float output[4], int x, int y
   int maxx = search[2];
   int maxy = search[3];
 #else
-  int minx = MAX2(x - max_blur_scalar, 0);
-  int miny = MAX2(y - max_blur_scalar, 0);
-  int maxx = MIN2(x + max_blur_scalar, int(get_width()));
-  int maxy = MIN2(y + max_blur_scalar, int(get_height()));
+  int minx = std::max(x - max_blur_scalar, 0);
+  int miny = std::max(y - max_blur_scalar, 0);
+  int maxx = std::min(x + max_blur_scalar, int(get_width()));
+  int maxy = std::min(y + max_blur_scalar, int(get_height()));
 #endif
   {
     input_size_buffer->read_no_check(temp_size, x, y);
@@ -130,7 +130,8 @@ void VariableSizeBokehBlurOperation::execute_pixel(float output[4], int x, int y
         int offset_color_nx_ny = offset_value_nx_ny * COM_DATA_TYPE_COLOR_CHANNELS;
         for (int nx = minx; nx < maxx; nx += add_xstep_value) {
           if (nx != x || ny != y) {
-            float size = MIN2(input_size_float_buffer[offset_value_nx_ny] * scalar, size_center);
+            float size = std::min(input_size_float_buffer[offset_value_nx_ny] * scalar,
+                                  size_center);
             if (size > threshold_) {
               float dx = nx - x;
               if (size > fabsf(dx) && size > fabsf(dy)) {
@@ -183,7 +184,7 @@ void VariableSizeBokehBlurOperation::execute_opencl(
   MemoryBuffer *size_memory_buffer = input_size_program_->get_input_memory_buffer(
       input_memory_buffers);
 
-  const float max_dim = MAX2(get_width(), get_height());
+  const float max_dim = std::max(get_width(), get_height());
   cl_float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
 
   max_blur = (cl_int)min_ff(size_memory_buffer->get_max_value() * scalar, float(max_blur_));
@@ -223,7 +224,7 @@ bool VariableSizeBokehBlurOperation::determine_depending_area_of_interest(
   rcti new_input;
   rcti bokeh_input;
 
-  const float max_dim = MAX2(get_width(), get_height());
+  const float max_dim = std::max(get_width(), get_height());
   const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
   int max_blur_scalar = max_blur_ * scalar;
 
@@ -269,7 +270,7 @@ void VariableSizeBokehBlurOperation::get_area_of_interest(const int input_idx,
   switch (input_idx) {
     case IMAGE_INPUT_INDEX:
     case SIZE_INPUT_INDEX: {
-      const float max_dim = MAX2(get_width(), get_height());
+      const float max_dim = std::max(get_width(), get_height());
       const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
       const int max_blur_scalar = max_blur_ * scalar;
       r_input_area.xmax = output_area.xmax + max_blur_scalar + 2;
@@ -326,10 +327,10 @@ static void blur_pixel(int x, int y, PixelData &p)
   const int maxx = search[2];
   const int maxy = search[3];
 #else
-  const int minx = MAX2(x - p.max_blur_scalar, 0);
-  const int miny = MAX2(y - p.max_blur_scalar, 0);
-  const int maxx = MIN2(x + p.max_blur_scalar, p.image_width);
-  const int maxy = MIN2(y + p.max_blur_scalar, p.image_height);
+  const int minx = std::max(x - p.max_blur_scalar, 0);
+  const int miny = std::max(y - p.max_blur_scalar, 0);
+  const int maxx = std::min(x + p.max_blur_scalar, p.image_width);
+  const int maxy = std::min(y + p.max_blur_scalar, p.image_height);
 #endif
 
   const int color_row_stride = p.image_input->row_stride * p.step;
@@ -350,7 +351,7 @@ static void blur_pixel(int x, int y, PixelData &p)
       if (nx == x && ny == y) {
         continue;
       }
-      const float size = MIN2(size_elem[0] * p.scalar, p.size_center);
+      const float size = std::min(size_elem[0] * p.scalar, p.size_center);
       if (size <= p.threshold) {
         continue;
       }
@@ -391,7 +392,7 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
   BLI_rcti_isect(&scalar_area, &p.size_input->get_rect(), &scalar_area);
   const float max_size = p.size_input->get_max_value(scalar_area);
 
-  const float max_dim = MAX2(this->get_width(), this->get_height());
+  const float max_dim = std::max(this->get_width(), this->get_height());
   p.scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
   p.max_blur_scalar = int(max_size * p.scalar);
   CLAMP(p.max_blur_scalar, 1, max_blur_);
@@ -452,10 +453,10 @@ void *InverseSearchRadiusOperation::initialize_tile_data(rcti *rect)
     for (x = rect->xmin; x < rect->xmax; x++) {
       int rx = x * DIVIDER;
       int ry = y * DIVIDER;
-      buffer[offset] = MAX2(rx - max_blur_, 0);
-      buffer[offset + 1] = MAX2(ry - max_blur_, 0);
-      buffer[offset + 2] = MIN2(rx + DIVIDER + max_blur_, width);
-      buffer[offset + 3] = MIN2(ry + DIVIDER + max_blur_, height);
+      buffer[offset] = std::max(rx - max_blur_, 0);
+      buffer[offset + 1] = std::max(ry - max_blur_, 0);
+      buffer[offset + 2] = std::min(rx + DIVIDER + max_blur_, width);
+      buffer[offset + 3] = std::min(ry + DIVIDER + max_blur_, height);
       offset += 4;
     }
   }
@@ -482,10 +483,10 @@ void *InverseSearchRadiusOperation::initialize_tile_data(rcti *rect)
       for (int x2 = x - impact_radius; x2 < x + impact_radius; x2++) {
         for (int y2 = y - impact_radius; y2 < y + impact_radius; y2++) {
           data->read(temp, x2, y2);
-          temp[0] = MIN2(temp[0], maxx);
-          temp[1] = MIN2(temp[1], maxy);
-          temp[2] = MAX2(temp[2], maxx);
-          temp[3] = MAX2(temp[3], maxy);
+          temp[0] = std::min(temp[0], maxx);
+          temp[1] = std::min(temp[1], maxy);
+          temp[2] = std::max(temp[2], maxx);
+          temp[3] = std::max(temp[3], maxy);
           data->write_pixel(x2, y2, temp);
         }
       }

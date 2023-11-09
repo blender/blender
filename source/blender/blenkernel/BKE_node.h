@@ -114,7 +114,7 @@ using NodeGeometryExecFunction = void (*)(blender::nodes::GeoNodeExecParams para
 using NodeDeclareFunction = void (*)(blender::nodes::NodeDeclarationBuilder &builder);
 using NodeDeclareDynamicFunction = void (*)(const bNodeTree &tree,
                                             const bNode &node,
-                                            blender::nodes::NodeDeclaration &r_declaration);
+                                            blender::nodes::NodeDeclarationBuilder &builder);
 using SocketGetCPPValueFunction = void (*)(const void *socket_value, void *r_value);
 using SocketGetGeometryNodesCPPValueFunction = void (*)(const void *socket_value, void *r_value);
 
@@ -225,6 +225,7 @@ typedef int (*NodeGPUExecFunction)(struct GPUMaterial *mat,
                                    struct bNodeExecData *execdata,
                                    struct GPUNodeStack *in,
                                    struct GPUNodeStack *out);
+typedef void (*NodeMaterialXFunction)(void *data, struct bNode *node, struct bNodeSocket *out);
 
 /**
  * \brief Defines a node type.
@@ -339,6 +340,8 @@ typedef struct bNodeType {
   NodeExecFunction exec_fn;
   /* gpu */
   NodeGPUExecFunction gpu_fn;
+  /* MaterialX */
+  NodeMaterialXFunction materialx_fn;
 
   /* Get an instance of this node's compositor operation. Freeing the instance is the
    * responsibility of the caller. */
@@ -359,17 +362,22 @@ typedef struct bNodeType {
   /* Execute a geometry node. */
   NodeGeometryExecFunction geometry_node_execute;
 
-  /* Declares which sockets the node has. */
-  NodeDeclareFunction declare;
   /**
-   * Declare which sockets the node has for declarations that aren't static per node type.
-   * In other words, defining this callback means that different nodes of this type can have
-   * different declarations and different sockets.
+   * Declares which sockets and panels the node has. It has to be able to generate a declaration
+   * with and without a specific node context. If the declaration depends on the node, but the node
+   * is not provided, then the declaration should be generated as much as possible and everything
+   * that depends on the node context should be skipped.
    */
-  NodeDeclareDynamicFunction declare_dynamic;
+  NodeDeclareFunction declare;
 
-  /* Declaration to be used when it is not dynamic. */
-  NodeDeclarationHandle *fixed_declaration;
+  /**
+   * Declaration of the node outside of any context. If the node declaration is never dependent on
+   * the node context, this declaration is also shared with the corresponding node instances.
+   * Otherwise, it mainly allows checking what sockets a node will have, without having to create
+   * the node. In this case, the static declaration is mostly just a hint, and does not have to
+   * match with the final node.
+   */
+  NodeDeclarationHandle *static_declaration;
 
   /**
    * Add to the list of search names and operations gathered by node link drag searching.
@@ -377,13 +385,6 @@ typedef struct bNodeType {
    * custom behavior here like adding custom search items.
    */
   NodeGatherSocketLinkOperationsFunction gather_link_search_ops;
-
-  /**
-   * Add to the list of search items gathered by the add-node search. The default behavior of
-   * adding a single item with the node name is usually enough, but node types can have any number
-   * of custom search items.
-   */
-  NodeGatherAddOperationsFunction gather_add_node_search_ops;
 
   /** True when the node cannot be muted. */
   bool no_muting;
@@ -441,7 +442,7 @@ typedef struct bNodeTreeType {
   void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
   void (*local_merge)(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
-  /* Tree update. Overrides `nodetype->updatetreefunc` ! */
+  /* Tree update. Overrides `nodetype->updatetreefunc`. */
   void (*update)(struct bNodeTree *ntree);
 
   bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to);
@@ -1313,6 +1314,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_TOOL_SET_FACE_SET 2113
 #define GEO_NODE_POINTS_TO_CURVES 2114
 #define GEO_NODE_INPUT_EDGE_SMOOTH 2115
+#define GEO_NODE_SPLIT_TO_INSTANCES 2116
+#define GEO_NODE_INPUT_NAMED_LAYER_SELECTION 2117
 
 /** \} */
 

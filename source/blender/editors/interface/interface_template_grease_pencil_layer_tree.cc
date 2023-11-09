@@ -11,6 +11,8 @@
 
 #include "BLT_translation.h"
 
+#include "DEG_depsgraph.hh"
+
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 
@@ -18,6 +20,8 @@
 #include "RNA_prototypes.h"
 
 #include "ED_undo.hh"
+
+#include "WM_api.hh"
 
 #include <fmt/format.h>
 
@@ -40,8 +44,8 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
   TreeNode &drop_tree_node_;
 
  public:
-  LayerNodeDropTarget(AbstractTreeView &view, TreeNode &drop_tree_node, DropBehavior behavior)
-      : TreeViewItemDropTarget(view, behavior), drop_tree_node_(drop_tree_node)
+  LayerNodeDropTarget(AbstractTreeViewItem &item, TreeNode &drop_tree_node, DropBehavior behavior)
+      : TreeViewItemDropTarget(item, behavior), drop_tree_node_(drop_tree_node)
   {
   }
 
@@ -74,15 +78,14 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
     return "";
   }
 
-  bool on_drop(bContext * /*C*/, const DragInfo &drag_info) const override
+  bool on_drop(bContext *C, const DragInfo &drag_info) const override
   {
     const wmDragGreasePencilLayer *drag_grease_pencil =
         static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
+    GreasePencil &grease_pencil = *drag_grease_pencil->grease_pencil;
     Layer &drag_layer = drag_grease_pencil->layer->wrap();
 
-    LayerGroup &drag_parent = drag_layer.parent_group();
-    LayerGroup *drop_parent_group = drop_tree_node_.parent_group();
-    if (!drop_parent_group) {
+    if (!drop_tree_node_.parent_group()) {
       /* Root node is not added to the tree view, so there should never be a drop target for this.
        */
       BLI_assert_unreachable();
@@ -98,25 +101,29 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
         BLI_assert_msg(drop_tree_node_.is_group(),
                        "Inserting should not be possible for layers, only for groups, because "
                        "only groups use DropBehavior::Reorder_and_Insert");
-
         LayerGroup &drop_group = drop_tree_node_.as_group();
-        drag_parent.unlink_node(&drag_layer.as_node());
-        drop_group.add_layer(&drag_layer);
-        return true;
+        grease_pencil.move_node_into(drag_layer.as_node(), drop_group);
+        break;
       }
-      case DropLocation::Before:
-        drag_parent.unlink_node(&drag_layer.as_node());
-        /* Draw order is inverted, so inserting before means inserting below. */
-        drop_parent_group->add_layer_after(&drag_layer, &drop_tree_node_);
-        return true;
-      case DropLocation::After:
-        drag_parent.unlink_node(&drag_layer.as_node());
-        /* Draw order is inverted, so inserting after means inserting above. */
-        drop_parent_group->add_layer_before(&drag_layer, &drop_tree_node_);
-        return true;
+      case DropLocation::Before: {
+        /* Draw order is inverted, so inserting before (above) means inserting the node after. */
+        grease_pencil.move_node_after(drag_layer.as_node(), drop_tree_node_);
+        break;
+      }
+      case DropLocation::After: {
+        /* Draw order is inverted, so inserting after (below) means inserting the node before. */
+        grease_pencil.move_node_before(drag_layer.as_node(), drop_tree_node_);
+        break;
+      }
+      default: {
+        BLI_assert_unreachable();
+        return false;
+      }
     }
 
-    return false;
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+    return true;
   }
 };
 
@@ -141,6 +148,7 @@ class LayerViewItemDragController : public AbstractViewItemDragController {
   {
     wmDragGreasePencilLayer *drag_data = MEM_new<wmDragGreasePencilLayer>(__func__);
     drag_data->layer = &dragged_layer_;
+    drag_data->grease_pencil = &grease_pencil_;
     return drag_data;
   }
 
@@ -200,9 +208,15 @@ class LayerViewItem : public AbstractTreeViewItem {
     return true;
   }
 
-  bool rename(const bContext & /*C*/, StringRefNull new_name) override
+  bool rename(const bContext &C, StringRefNull new_name) override
   {
-    grease_pencil_.rename_node(layer_.as_node(), new_name);
+    PointerRNA layer_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
+    PropertyRNA *prop = RNA_struct_find_property(&layer_ptr, "name");
+
+    RNA_property_string_set(&layer_ptr, prop, new_name.c_str());
+    RNA_property_update(&const_cast<bContext &>(C), &layer_ptr, prop);
+
+    ED_undo_push(&const_cast<bContext &>(C), "Rename Grease Pencil Layer");
     return true;
   }
 
@@ -219,8 +233,7 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
   {
-    return std::make_unique<LayerNodeDropTarget>(
-        get_tree_view(), layer_.as_node(), DropBehavior::Reorder);
+    return std::make_unique<LayerNodeDropTarget>(*this, layer_.as_node(), DropBehavior::Reorder);
   }
 
  private:
@@ -230,7 +243,7 @@ class LayerViewItem : public AbstractTreeViewItem {
   void build_layer_name(uiLayout &row)
   {
     uiBut *but = uiItemL_ex(
-        &row, IFACE_(layer_.name().c_str()), ICON_OUTLINER_DATA_GP_LAYER, false, false);
+        &row, layer_.name().c_str(), ICON_OUTLINER_DATA_GP_LAYER, false, false);
     if (layer_.is_locked() || !layer_.parent_group().is_visible()) {
       UI_but_disable(but, "Layer is locked or not visible");
     }
@@ -308,9 +321,16 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     return true;
   }
 
-  bool rename(const bContext & /*C*/, StringRefNull new_name) override
+  bool rename(const bContext &C, StringRefNull new_name) override
   {
-    grease_pencil_.rename_node(group_.as_node(), new_name);
+    PointerRNA group_ptr = RNA_pointer_create(
+        &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
+    PropertyRNA *prop = RNA_struct_find_property(&group_ptr, "name");
+
+    RNA_property_string_set(&group_ptr, prop, new_name.c_str());
+    RNA_property_update(&const_cast<bContext &>(C), &group_ptr, prop);
+
+    ED_undo_push(&const_cast<bContext &>(C), "Rename Grease Pencil Layer Group");
     return true;
   }
 
@@ -322,7 +342,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
   {
     return std::make_unique<LayerNodeDropTarget>(
-        get_tree_view(), group_.as_node(), DropBehavior::ReorderAndInsert);
+        *this, group_.as_node(), DropBehavior::ReorderAndInsert);
   }
 
  private:
@@ -332,7 +352,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   void build_layer_group_name(uiLayout &row)
   {
     uiItemS_ex(&row, 0.8f);
-    uiBut *but = uiItemL_ex(&row, IFACE_(group_.name().c_str()), ICON_FILE_FOLDER, false, false);
+    uiBut *but = uiItemL_ex(&row, group_.name().c_str(), ICON_FILE_FOLDER, false, false);
     if (group_.is_locked()) {
       UI_but_disable(but, "Layer Group is locked");
     }

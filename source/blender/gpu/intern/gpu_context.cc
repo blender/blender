@@ -185,7 +185,7 @@ void GPU_context_main_unlock()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name  GPU Begin/end work blocks
+/** \name GPU Begin/end work blocks
  *
  * Used to explicitly define a per-frame block within which GPU work will happen.
  * Used for global autoreleasepool flushing in Metal
@@ -205,13 +205,17 @@ void GPU_render_end()
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
-  backend->render_end();
+  if (backend) {
+    backend->render_end();
+  }
 }
 void GPU_render_step()
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
-  backend->render_step();
+  if (backend) {
+    backend->render_step();
+  }
 }
 
 /** \} */

@@ -96,7 +96,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatR16Float;
     case GPU_R16:
       return MTLPixelFormatR16Unorm;
-    /* Special formats texture & renderbuffer */
+    /* Special formats texture & render-buffer. */
     case GPU_RGB10_A2:
       return MTLPixelFormatRGB10A2Unorm;
     case GPU_RGB10_A2UI:
@@ -225,6 +225,7 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
     case MTLPixelFormatR8Unorm:
+    case MTLPixelFormatR8Snorm:
       return 1;
     case MTLPixelFormatR32Uint:
     case MTLPixelFormatR32Sint:
@@ -288,6 +289,7 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatDepth32Float_Stencil8:
     case MTLPixelFormatRG16Snorm:
     case MTLPixelFormatRG16Unorm:
+    case MTLPixelFormatRG8Snorm:
       return 2;
 
     case MTLPixelFormatR8Uint:
@@ -411,7 +413,9 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
           [NSNumber numberWithInt:specialization_params.component_count_input],
       @"COMPONENT_COUNT_OUTPUT" :
           [NSNumber numberWithInt:specialization_params.component_count_output],
-      @"TEX_TYPE" : [NSNumber numberWithInt:((int)(texture_type))]
+      @"TEX_TYPE" : [NSNumber numberWithInt:((int)(texture_type))],
+      @"IS_TEXTURE_CLEAR" :
+          [NSNumber numberWithInt:((int)(specialization_params.is_clear ? 1 : 0))]
     };
 
     /* Prepare shader library for conversion routine. */
@@ -661,7 +665,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Texture data read  routines
+/** \name Texture data read routines
  * \{ */
 
 id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(

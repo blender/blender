@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_pointcloud_types.h"

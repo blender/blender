@@ -26,13 +26,15 @@ void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversion
     /* Version files created in the 'blender2.8' branch
      * between October 2016, and November 2017 (>=280.0 and < 280.2). */
     if (versionfile >= 280) {
-      DNA_sdna_patch_struct(sdna, "SceneLayer", "ViewLayer");
-      DNA_sdna_patch_struct(sdna, "SceneLayerEngineData", "ViewLayerEngineData");
-      DNA_sdna_patch_struct_member(sdna, "FileGlobal", "cur_render_layer", "cur_view_layer");
-      DNA_sdna_patch_struct_member(sdna, "ParticleEditSettings", "scene_layer", "view_layer");
-      DNA_sdna_patch_struct_member(sdna, "Scene", "active_layer", "active_view_layer");
-      DNA_sdna_patch_struct_member(sdna, "Scene", "render_layers", "view_layers");
-      DNA_sdna_patch_struct_member(sdna, "WorkSpace", "render_layer", "view_layer");
+      DNA_sdna_patch_struct_by_name(sdna, "SceneLayer", "ViewLayer");
+      DNA_sdna_patch_struct_by_name(sdna, "SceneLayerEngineData", "ViewLayerEngineData");
+      DNA_sdna_patch_struct_member_by_name(
+          sdna, "FileGlobal", "cur_render_layer", "cur_view_layer");
+      DNA_sdna_patch_struct_member_by_name(
+          sdna, "ParticleEditSettings", "scene_layer", "view_layer");
+      DNA_sdna_patch_struct_member_by_name(sdna, "Scene", "active_layer", "active_view_layer");
+      DNA_sdna_patch_struct_member_by_name(sdna, "Scene", "render_layers", "view_layers");
+      DNA_sdna_patch_struct_member_by_name(sdna, "WorkSpace", "render_layer", "view_layer");
     }
   }
 

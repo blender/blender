@@ -14,6 +14,8 @@
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 
+#include "GEO_randomize.hh"
+
 #include "DNA_pointcloud_types.h"
 
 namespace blender::nodes::node_geo_interpolate_curves_cc {
@@ -359,7 +361,7 @@ static void interpolate_curve_shapes(bke::CurvesGeometry &child_curves,
         const float neighbor_weight = neighbor_weights[neighbor_i];
         const IndexRange guide_points = guide_points_by_curve[neighbor_index];
         const Span<float3> neighbor_positions = guide_positions.slice(guide_points);
-        const float3 &neighbor_root = neighbor_positions[0];
+        const float3 &neighbor_root = neighbor_positions.first();
         const float3 neighbor_up = guides_up[neighbor_index];
         BLI_assert(math::is_unit_scale(neighbor_up));
 
@@ -388,8 +390,22 @@ static void interpolate_curve_shapes(bke::CurvesGeometry &child_curves,
           /* This method is used when guide curves have different amounts of control points. In
            * this case, some additional interpolation is necessary compared to the method above. */
 
-          const Span<float> lengths = parameterized_guide_lengths.slice(
-              parameterized_guide_offsets[neighbor_index]);
+          const IndexRange guide_offsets = parameterized_guide_offsets[neighbor_index];
+
+          if (guide_offsets.is_empty()) {
+            /* Single point curve. */
+            float3 rotated_relative = neighbor_root;
+            if (!is_same_up_vector) {
+              rotated_relative = normal_rotation * rotated_relative;
+            }
+            const float3 global_pos = rotated_relative * neighbor_weight;
+            for (float3 &position : child_positions) {
+              position += global_pos;
+            }
+            continue;
+          }
+
+          const Span<float> lengths = parameterized_guide_lengths.slice(guide_offsets);
           const float neighbor_length = lengths.last();
 
           sample_lengths.reinitialize(points.size());
@@ -533,8 +549,17 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
                 }
               }
               else {
-                const Span<float> lengths = parameterized_guide_lengths.slice(
-                    parameterized_guide_offsets[neighbor_index]);
+                const IndexRange guide_offsets = parameterized_guide_offsets[neighbor_index];
+                if (guide_offsets.is_empty()) {
+                  /* Single point curve. */
+                  const T &curve_value = src[guide_points.first()];
+                  for (const int i : points) {
+                    mixer.mix_in(i, curve_value, neighbor_weight);
+                  }
+                  continue;
+                }
+
+                const Span<float> lengths = parameterized_guide_lengths.slice(guide_offsets);
                 const float neighbor_length = lengths.last();
 
                 sample_lengths.reinitialize(points.size());
@@ -759,6 +784,8 @@ static GeometrySet generate_interpolated_curves(
     child_curves_id->totcol = guide_curves_id.totcol;
   }
 
+  geometry::debug_randomize_curve_order(&child_curves);
+
   return GeometrySet::from_curves(child_curves_id);
 }
 
@@ -767,7 +794,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet guide_curves_geometry = params.extract_input<GeometrySet>("Guide Curves");
   const GeometrySet points_geometry = params.extract_input<GeometrySet>("Points");
 
-  if (!guide_curves_geometry.has_curves()) {
+  if (!guide_curves_geometry.has_curves() ||
+      guide_curves_geometry.get_curves()->geometry.curve_num == 0)
+  {
     params.set_default_remaining_outputs();
     return;
   }
@@ -834,7 +863,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                         index_attribute_id,
                                                         weight_attribute_id);
 
-  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(guide_curves_geometry);
+  GeometryComponentEditData::remember_deformed_positions_if_necessary(guide_curves_geometry);
   if (const auto *curve_edit_data =
           guide_curves_geometry.get_component<GeometryComponentEditData>()) {
     new_curves.add(*curve_edit_data);

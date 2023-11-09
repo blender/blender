@@ -234,14 +234,18 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       return;
       SVM_CASE(NODE_SHADER_JUMP)
       {
-        if (type == SHADER_TYPE_SURFACE)
+        if (type == SHADER_TYPE_SURFACE) {
           offset = node.y;
-        else if (type == SHADER_TYPE_VOLUME)
+        }
+        else if (type == SHADER_TYPE_VOLUME) {
           offset = node.z;
-        else if (type == SHADER_TYPE_DISPLACEMENT)
+        }
+        else if (type == SHADER_TYPE_DISPLACEMENT) {
           offset = node.w;
-        else
+        }
+        else {
           return;
+        }
         break;
       }
       SVM_CASE(NODE_CLOSURE_BSDF)
@@ -276,12 +280,14 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       svm_node_mix_closure(sd, stack, node);
       break;
       SVM_CASE(NODE_JUMP_IF_ZERO)
-      if (stack_load_float(stack, node.z) <= 0.0f)
+      if (stack_load_float(stack, node.z) <= 0.0f) {
         offset += node.y;
+      }
       break;
       SVM_CASE(NODE_JUMP_IF_ONE)
-      if (stack_load_float(stack, node.z) >= 1.0f)
+      if (stack_load_float(stack, node.z) >= 1.0f) {
         offset += node.y;
+      }
       break;
       SVM_CASE(NODE_GEOMETRY)
       svm_node_geometry(kg, sd, stack, node.y, node.z);

@@ -11,14 +11,14 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_view3d.hh"
 
 #include "UI_interface.hh"
 
 #include "BKE_duplilist.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 
 #include "GPU_capabilities.h"

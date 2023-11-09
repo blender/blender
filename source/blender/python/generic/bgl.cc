@@ -51,7 +51,7 @@ static void report_deprecated_call(const char *function_name)
   }
   char message[256];
   SNPRINTF(message,
-           "'bgl.gl%s' is deprecated and will be removed in Blender 4.0. Report or update your "
+           "'bgl.gl%s' is deprecated and will not work on all platforms. Report or update your "
            "script to use 'gpu' module.",
            function_name);
   CLOG_WARN(&LOG, "%s", message);
@@ -204,83 +204,83 @@ struct BufferOrOffset {
  * so we use signed everything (even stuff that should be unsigned.
  */
 
-/* typedef uint GLenum; */
+/* Type: `typedef uint GLenum`. */
 #define GLenum_str "i"
 #define GLenum_var(num) bgl_var##num
 #define GLenum_ref(num) &bgl_var##num
 #define GLenum_def(num) /* unsigned */ int GLenum_var(num)
 
-/* typedef uint GLboolean; */
+/* Type: `typedef uint GLboolean`. */
 #define GLboolean_str "b"
 #define GLboolean_var(num) bgl_var##num
 #define GLboolean_ref(num) &bgl_var##num
 #define GLboolean_def(num) /* unsigned */ char GLboolean_var(num)
 
-/* typedef uint GLbitfield; */
+/* Type: `typedef uint GLbitfield`. */
 #define GLbitfield_str "i"
 #define GLbitfield_var(num) bgl_var##num
 #define GLbitfield_ref(num) &bgl_var##num
 #define GLbitfield_def(num) /* unsigned */ int GLbitfield_var(num)
 
 #if 0
-/* typedef signed char GLbyte; */
+/* Type: `typedef signed char GLbyte`. */
 #  define GLbyte_str "b"
 #  define GLbyte_var(num) bgl_var##num
 #  define GLbyte_ref(num) &bgl_var##num
 #  define GLbyte_def(num) signed char GLbyte_var(num)
 #endif
 
-/* typedef short GLshort; */
+/* Type: `typedef short GLshort`. */
 #define GLshort_str "h"
 #define GLshort_var(num) bgl_var##num
 #define GLshort_ref(num) &bgl_var##num
 #define GLshort_def(num) short GLshort_var(num)
 
-/* typedef int GLint; */
+/* Type: `typedef int GLint`. */
 #define GLint_str "i"
 #define GLint_var(num) bgl_var##num
 #define GLint_ref(num) &bgl_var##num
 #define GLint_def(num) int GLint_var(num)
 
-/* typedef int GLsizei; */
+/* Type: `typedef int GLsizei`. */
 #define GLsizei_str "n"
 #define GLsizei_var(num) bgl_var##num
 #define GLsizei_ref(num) &bgl_var##num
 #define GLsizei_def(num) size_t GLsizei_var(num)
 
-/* typedef int GLsizeiptr; */
+/* Type: `typedef int GLsizeiptr`. */
 #define GLsizeiptr_str "n"
 #define GLsizeiptr_var(num) bgl_var##num
 #define GLsizeiptr_ref(num) &bgl_var##num
 #define GLsizeiptr_def(num) size_t GLsizeiptr_var(num)
 
-/* typedef int GLintptr; */
+/* Type: `typedef int GLintptr`. */
 #define GLintptr_str "n"
 #define GLintptr_var(num) bgl_var##num
 #define GLintptr_ref(num) &bgl_var##num
 #define GLintptr_def(num) size_t GLintptr_var(num)
 
-/* typedef uchar GLubyte; */
+/* Type: `typedef uchar GLubyte`. */
 #define GLubyte_str "B"
 #define GLubyte_var(num) bgl_var##num
 #define GLubyte_ref(num) &bgl_var##num
 #define GLubyte_def(num) /* unsigned */ char GLubyte_var(num)
 
 #if 0
-/* typedef ushort GLushort; */
+/* Type: `typedef ushort GLushort`. */
 #  define GLushort_str "H"
 #  define GLushort_var(num) bgl_var##num
 #  define GLushort_ref(num) &bgl_var##num
 #  define GLushort_def(num) /* unsigned */ short GLushort_var(num)
 #endif
 
-/* typedef uint GLuint; */
+/* Type: `typedef uint GLuint`. */
 #define GLuint_str "I"
 #define GLuint_var(num) bgl_var##num
 #define GLuint_ref(num) &bgl_var##num
 #define GLuint_def(num) /* unsigned */ int GLuint_var(num)
 
-/* typedef uint GLuint64; */
+/* Type: `typedef uint GLuint64`. */
 #if 0
 #  define GLuint64_str "Q"
 #  define GLuint64_var(num) bgl_var##num
@@ -288,7 +288,7 @@ struct BufferOrOffset {
 #  define GLuint64_def(num) /* unsigned */ int GLuint64_var(num)
 #endif
 
-/* typedef uint GLsync; */
+/* Type: `typedef uint GLsync`. */
 #if 0
 #  define GLsync_str "I"
 #  define GLsync_var(num) bgl_var##num
@@ -296,19 +296,19 @@ struct BufferOrOffset {
 #  define GLsync_def(num) /* unsigned */ int GLsync_var(num)
 #endif
 
-/* typedef float GLfloat; */
+/* Type: `typedef float GLfloat`. */
 #define GLfloat_str "f"
 #define GLfloat_var(num) bgl_var##num
 #define GLfloat_ref(num) &bgl_var##num
 #define GLfloat_def(num) float GLfloat_var(num)
 
-/* typedef char *GLstring; */
+/* Type: `typedef char *GLstring`. */
 #define GLstring_str "s"
 #define GLstring_var(number) bgl_var##number
 #define GLstring_ref(number) &bgl_var##number
 #define GLstring_def(number) char *GLstring_var(number)
 
-/* typedef float GLclampf; */
+/* Type: `typedef float GLclampf`. */
 #if 0
 #  define GLclampf_str "f"
 #  define GLclampf_var(num) bgl_var##num
@@ -316,13 +316,13 @@ struct BufferOrOffset {
 #  define GLclampf_def(num) float GLclampf_var(num)
 #endif
 
-/* typedef double GLdouble; */
+/* Type: `typedef double GLdouble`. */
 #define GLdouble_str "d"
 #define GLdouble_var(num) bgl_var##num
 #define GLdouble_ref(num) &bgl_var##num
 #define GLdouble_def(num) double GLdouble_var(num)
 
-/* typedef double GLclampd; */
+/* Type: `typedef double GLclampd`. */
 #if 0
 #  define GLclampd_str "d"
 #  define GLclampd_var(num) bgl_var##num
@@ -2675,7 +2675,7 @@ PyObject *BPyInit_bgl()
   if (GPU_backend_get_type() != GPU_BACKEND_OPENGL) {
     CLOG_WARN(&LOG,
               "'bgl' imported without an OpenGL backend. Please update your add-ons to use the "
-              "'gpu' module. In Blender 4.0 'bgl' will be removed.");
+              "'gpu' module.");
   }
 #endif
 

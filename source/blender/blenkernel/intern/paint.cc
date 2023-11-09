@@ -58,15 +58,15 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -146,7 +146,7 @@ IDTypeInfo IDType_ID_PAL = {
     /*main_listbase_index*/ INDEX_ID_PAL,
     /*struct_size*/ sizeof(Palette),
     /*name*/ "Palette",
-    /*name_plural*/ "palettes",
+    /*name_plural*/ N_("palettes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_PALETTE,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ nullptr,
@@ -213,7 +213,7 @@ IDTypeInfo IDType_ID_PC = {
     /*main_listbase_index*/ INDEX_ID_PC,
     /*struct_size*/ sizeof(PaintCurve),
     /*name*/ "PaintCurve",
-    /*name_plural*/ "paint_curves",
+    /*name_plural*/ N_("paint_curves"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_PAINTCURVE,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ nullptr,
@@ -1131,6 +1131,8 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
       return OB_MODE_EDIT;
     case PAINT_MODE_SCULPT_CURVES:
       return OB_MODE_SCULPT_CURVES;
+    case PAINT_MODE_GPENCIL:
+      return OB_MODE_PAINT_GREASE_PENCIL;
     case PAINT_MODE_INVALID:
     default:
       return OB_MODE_OBJECT;
@@ -1812,10 +1814,7 @@ static void sculpt_update_object(
   UNUSED_VARS_NDEBUG(pbvh);
 
   BKE_pbvh_subdiv_cgg_set(ss->pbvh, ss->subdiv_ccg);
-  BKE_pbvh_face_sets_set(ss->pbvh, ss->face_sets);
   BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
-
-  BKE_pbvh_face_sets_color_set(ss->pbvh, me->face_sets_color_seed, me->face_sets_color_default);
 
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
@@ -2010,28 +2009,50 @@ void BKE_sculpt_update_object_for_edit(
 
 int *BKE_sculpt_face_sets_ensure(Object *ob)
 {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  if (!attributes.contains(".sculpt_face_set")) {
-    SpanAttributeWriter<int> face_sets = attributes.lookup_or_add_for_write_only_span<int>(
-        ".sculpt_face_set", ATTR_DOMAIN_FACE);
-    face_sets.span.fill(1);
-    mesh->face_sets_color_default = 1;
-    face_sets.finish();
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ss->pbvh;
+  if (!pbvh) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  const StringRefNull name = ".sculpt_face_set";
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS: {
+      MutableAttributeAccessor attributes = mesh->attributes_for_write();
+      if (!attributes.contains(name)) {
+        attributes.add<int>(name,
+                            ATTR_DOMAIN_FACE,
+                            AttributeInitVArray(VArray<int>::ForSingle(1, mesh->faces_num)));
+        mesh->face_sets_color_default = 1;
+      }
+      return static_cast<int *>(CustomData_get_layer_named_for_write(
+          &mesh->face_data, CD_PROP_INT32, name.c_str(), mesh->faces_num));
+    }
+    case PBVH_BMESH: {
+      BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
+      if (!CustomData_has_layer_named(&bm->pdata, CD_PROP_INT32, name.c_str())) {
+        BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, name.c_str());
+        const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, name.c_str());
+        if (offset == -1) {
+          return nullptr;
+        }
+        BMIter iter;
+        BMFace *face;
+        BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
+          BM_ELEM_CD_SET_INT(face, offset, 1);
+        }
+        mesh->face_sets_color_default = 1;
+      }
+      break;
+    }
   }
 
-  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
-
-  if (ss->pbvh && ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
-    BKE_pbvh_face_sets_set(ss->pbvh, face_sets);
-  }
-
-  return face_sets;
+  return nullptr;
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)

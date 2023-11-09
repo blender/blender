@@ -149,6 +149,73 @@ void UI_draw_roundbox_4fv(const rctf *rect, bool filled, float rad, const float 
   UI_draw_roundbox_4fv_ex(rect, (filled) ? col : nullptr, nullptr, 1.0f, col, U.pixelsize, rad);
 }
 
+void ui_draw_rounded_corners_inverted(const rcti &rect,
+                                      const float rad,
+                                      const blender::float4 color)
+{
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  float vec[4][2] = {
+      {0.195, 0.02},
+      {0.55, 0.169},
+      {0.831, 0.45},
+      {0.98, 0.805},
+  };
+  for (int a = 0; a < 4; a++) {
+    mul_v2_fl(vec[a], rad);
+  }
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4fv(color);
+
+  if (roundboxtype & UI_CNR_TOP_LEFT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmin, rect.ymax);
+    immVertex2f(pos, rect.xmin, rect.ymax - rad);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmin + vec[a][1], rect.ymax - rad + vec[a][0]);
+    }
+    immVertex2f(pos, rect.xmin + rad, rect.ymax);
+    immEnd();
+  }
+
+  if (roundboxtype & UI_CNR_TOP_RIGHT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmax, rect.ymax);
+    immVertex2f(pos, rect.xmax - rad, rect.ymax);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmax - rad + vec[a][0], rect.ymax - vec[a][1]);
+    }
+    immVertex2f(pos, rect.xmax, rect.ymax - rad);
+    immEnd();
+  }
+
+  if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmax, rect.ymin);
+    immVertex2f(pos, rect.xmax, rect.ymin + rad);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmax - vec[a][1], rect.ymin + rad - vec[a][0]);
+    }
+    immVertex2f(pos, rect.xmax - rad, rect.ymin);
+    immEnd();
+  }
+
+  if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
+    immBegin(GPU_PRIM_TRI_FAN, 7);
+    immVertex2f(pos, rect.xmin, rect.ymin);
+    immVertex2f(pos, rect.xmin + rad, rect.ymin);
+    for (int a = 0; a < 4; a++) {
+      immVertex2f(pos, rect.xmin + rad - vec[a][0], rect.ymin + vec[a][1]);
+    }
+    immVertex2f(pos, rect.xmin, rect.ymin + rad);
+    immEnd();
+  }
+
+  immUnbindProgram();
+}
+
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4])
 {
   const int ofs_y = 4 * U.pixelsize;
@@ -552,7 +619,7 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
   int scissor[4];
   float colors[3][3];
   const float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
-  /* colors  pre multiplied by alpha for speed up */
+  /* Colors pre-multiplied by alpha for speed up. */
   float colors_alpha[3][3], colorsycc_alpha[3][3];
   float min, max;
 
@@ -1054,10 +1121,11 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Allow the lines to decrease as we get really small. */
-  float line_width = MAX2(MIN2(U.pixelsize / 5.0f * fabs(half_width - 4.0f), U.pixelsize), 0.5f);
+  float line_width = std::max(std::min(U.pixelsize / 5.0f * fabs(half_width - 4.0f), U.pixelsize),
+                              0.5f);
 
   /* Make things transparent as we get tiny. */
-  uchar alpha = MIN2(int(fabs(half_width - 2.0f) * 50.0f), 255);
+  uchar alpha = std::min(int(fabs(half_width - 2.0f) * 50.0f), 255);
 
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 

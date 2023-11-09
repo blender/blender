@@ -35,6 +35,8 @@
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -44,8 +46,8 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_image.hh"
 #include "ED_mesh.hh"
@@ -3273,7 +3275,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
     if (efa_index != vlist_iter->face_index) {
       BMLoop *l_other;
       efa_vlist = BM_face_at_index(em->bm, vlist_iter->face_index);
-      /* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
+      // tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); /* UNUSED */
 
       l_other = static_cast<BMLoop *>(
           BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_face_index));
@@ -4568,21 +4570,24 @@ static float get_uv_vert_needle(const eUVSelectSimilar type,
       BM_ITER_ELEM (f, &iter, vert, BM_FACES_OF_VERT) {
         result += BM_face_calc_area_uv(f, offsets.uv);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_AREA_3D: {
       BMFace *f;
       BMIter iter;
       BM_ITER_ELEM (f, &iter, vert, BM_FACES_OF_VERT) {
         result += BM_face_calc_area_with_mat3(f, ob_m3);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_SIDES: {
       BMEdge *e;
       BMIter iter;
       BM_ITER_ELEM (e, &iter, vert, BM_EDGES_OF_VERT) {
         result += 1.0f;
       }
-    } break;
+      break;
+    }
     case UV_SSIM_PIN:
       return BM_ELEM_CD_GET_BOOL(loop, offsets.pin) ? 1.0f : 0.0f;
     default:
@@ -4610,19 +4615,21 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
       BM_ITER_ELEM (f, &iter, edge, BM_FACES_OF_EDGE) {
         result += BM_face_calc_area_uv(f, offsets.uv);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_AREA_3D: {
       BMFace *f;
       BMIter iter;
       BM_ITER_ELEM (f, &iter, edge, BM_FACES_OF_EDGE) {
         result += BM_face_calc_area_with_mat3(f, ob_m3);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_LENGTH_UV: {
       float *luv_a = BM_ELEM_CD_GET_FLOAT_P(loop_a, offsets.uv);
       float *luv_b = BM_ELEM_CD_GET_FLOAT_P(loop_b, offsets.uv);
       return len_v2v2(luv_a, luv_b);
-    } break;
+    }
     case UV_SSIM_LENGTH_3D:
       return len_v3v3(edge->v1->co, edge->v2->co);
     case UV_SSIM_SIDES: {
@@ -4631,8 +4638,9 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
       BM_ITER_ELEM (e, &iter, edge, BM_FACES_OF_EDGE) {
         result += 1.0f;
       }
-    } break;
-    case UV_SSIM_PIN:
+      break;
+    }
+    case UV_SSIM_PIN: {
       if (BM_ELEM_CD_GET_BOOL(loop_a, offsets.pin)) {
         result += 1.0f;
       }
@@ -4640,6 +4648,7 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
         result += 1.0f;
       }
       break;
+    }
     default:
       BLI_assert_unreachable();
       return false;
@@ -4674,7 +4683,8 @@ static float get_uv_face_needle(const eUVSelectSimilar type,
           result += 1.0f;
         }
       }
-    } break;
+      break;
+    }
     case UV_SSIM_MATERIAL:
       return face->mat_nr;
     case UV_SSIM_WINDING:
@@ -5270,6 +5280,7 @@ void UV_OT_select_similar(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop = ot->prop = RNA_def_enum(
       ot->srna, "type", uv_select_similar_type_items, SIMVERT_NORMAL, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_enum_funcs(prop, uv_select_similar_type_itemf);
   RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
   RNA_def_float(ot->srna, "threshold", 0.0f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);

@@ -40,15 +40,17 @@ void main()
 
   barrier();
 
-  ivec2 texel = min(ivec2(gl_GlobalInvocationID.xy), textureSize(stencil_tx, 0) - 1);
+  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  eClosureBits closure_bits = eClosureBits(texelFetch(stencil_tx, texel, 0).r);
+  bool valid_texel = in_texture_range(texel, gbuf_header_tx);
+  uint closure_bits = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel, 0).r;
 
-  if (flag_test(closure_bits, raytrace_buf.closure_active)) {
-    int gbuffer_layer = raytrace_buf.closure_active == CLOSURE_REFRACTION ? 1 : 0;
+  if (flag_test(closure_bits, uniform_buf.raytrace.closure_active)) {
+    GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
 
-    vec4 gbuffer_packed = texelFetch(gbuffer_closure_tx, ivec3(texel, gbuffer_layer), 0);
-    float roughness = gbuffer_packed.z;
+    float roughness = (uniform_buf.raytrace.closure_active == CLOSURE_REFRACTION) ?
+                          gbuf.refraction.roughness :
+                          gbuf.reflection.roughness;
 
     if (ray_glossy_factor(roughness) > 0.0) {
       /* We don't care about race condition here. */

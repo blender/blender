@@ -138,7 +138,7 @@ static char *ui_drop_material_tooltip(bContext *C,
 
 void ED_dropboxes_ui()
 {
-  ListBase *lb = WM_dropboxmap_find("User Interface", SPACE_EMPTY, 0);
+  ListBase *lb = WM_dropboxmap_find("User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(lb, "UI_OT_view_drop", ui_view_drop_poll, nullptr, nullptr, ui_view_drop_tooltip);
   WM_dropbox_add(lb,

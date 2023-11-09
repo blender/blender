@@ -25,7 +25,7 @@
 #include "BKE_nla.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
@@ -40,8 +40,8 @@
 
 #include "UI_interface.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "UI_view2d.hh"
 

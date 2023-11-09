@@ -21,7 +21,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_mempool.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -41,12 +41,14 @@
 #include "BKE_main_namemap.h"
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "ANIM_bone_collections.h"
+
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_armature.hh"
 #include "ED_fileselect.hh"
@@ -822,21 +824,6 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
-        case TSE_POSEGRP: {
-          Object *ob = (Object *)tselem->id; /* id = object. */
-          bActionGroup *grp = static_cast<bActionGroup *>(te->directdata);
-
-          BLI_uniquename(&ob->pose->agroups,
-                         grp,
-                         CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "Group"),
-                         '.',
-                         offsetof(bActionGroup, name),
-                         sizeof(grp->name));
-          WM_msg_publish_rna_prop(mbus, &ob->id, grp, ActionGroup, name);
-          WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
-          break;
-        }
         case TSE_GP_LAYER: {
           bGPdata *gpd = (bGPdata *)tselem->id; /* id = GP Datablock */
           bGPDlayer *gpl = static_cast<bGPDlayer *>(te->directdata);
@@ -893,6 +880,17 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &collection->id, &collection->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          break;
+        }
+
+        case TSE_BONE_COLLECTION: {
+          bArmature *arm = (bArmature *)tselem->id;
+          BoneCollection *bcoll = static_cast<BoneCollection *>(te->directdata);
+
+          ANIM_armature_bonecoll_name_set(arm, bcoll, bcoll->name);
+          WM_msg_publish_rna_prop(mbus, &arm->id, bcoll, BoneCollection, name);
+          WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, arm);
+          DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
       }
@@ -1503,6 +1501,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
         }
       }
+#ifdef WITH_GREASE_PENCIL_V3
       else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
         bke::greasepencil::TreeNode &node =
             tree_element_cast<TreeElementGreasePencilNode>(te)->node();
@@ -1540,6 +1539,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           }
         }
       }
+#endif
       else if (outliner_is_collection_tree_element(te)) {
         PointerRNA collection_ptr;
         PointerRNA layer_collection_ptr;
@@ -1988,9 +1988,12 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
     }
 
     ID &id = te_id->get_ID();
-    BLI_assert(ID_IS_OVERRIDE_LIBRARY(&id));
-
     if (ID_IS_LINKED(&id)) {
+      continue;
+    }
+    if (!ID_IS_OVERRIDE_LIBRARY(&id)) {
+      /* Some items may not be liboverrides, e.g. the root item for all linked libraries (see
+       * #TreeDisplayOverrideLibraryHierarchies::build_tree). */
       continue;
     }
 
@@ -2524,14 +2527,14 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_LP: {
       const LightProbe *lp = (LightProbe *)id;
       switch (lp->type) {
-        case LIGHTPROBE_TYPE_CUBE:
-          return ICON_LIGHTPROBE_CUBEMAP;
-        case LIGHTPROBE_TYPE_PLANAR:
-          return ICON_LIGHTPROBE_PLANAR;
-        case LIGHTPROBE_TYPE_GRID:
-          return ICON_LIGHTPROBE_GRID;
+        case LIGHTPROBE_TYPE_SPHERE:
+          return ICON_LIGHTPROBE_SPHERE;
+        case LIGHTPROBE_TYPE_PLANE:
+          return ICON_LIGHTPROBE_PLANE;
+        case LIGHTPROBE_TYPE_VOLUME:
+          return ICON_LIGHTPROBE_VOLUME;
         default:
-          return ICON_LIGHTPROBE_CUBEMAP;
+          return ICON_LIGHTPROBE_SPHERE;
       }
     }
     case ID_BR:
@@ -2810,8 +2813,8 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_R_LAYER:
         data.icon = ICON_RENDER_RESULT;
         break;
-      case TSE_POSEGRP_BASE:
-      case TSE_POSEGRP:
+      case TSE_BONE_COLLECTION_BASE:
+      case TSE_BONE_COLLECTION:
         data.icon = ICON_GROUP_BONE;
         break;
       case TSE_SEQUENCE: {
@@ -3193,7 +3196,7 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_BONE,
                 TSE_EBONE,
                 TSE_POSE_CHANNEL,
-                TSE_POSEGRP,
+                TSE_BONE_COLLECTION,
                 TSE_DEFGROUP))
       {
         outliner_draw_iconrow_doit(block, te, xmax, offsx, ys, alpha_fac, active, 1);
@@ -3211,7 +3214,7 @@ static void outliner_draw_iconrow(bContext *C,
         if ((merged->tree_element[index] == nullptr) || (active > merged->active[index])) {
           merged->tree_element[index] = te;
         }
-        merged->active[index] = MAX2(active, merged->active[index]);
+        merged->active[index] = std::max(active, merged->active[index]);
       }
     }
 

@@ -4,6 +4,7 @@
 
 #include "BKE_curves.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_task.hh"
 
 #include "node_geometry_util.hh"
@@ -91,7 +92,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
            * when accessing values in the sort weights. However, it means a separate array of
            * indices within the compressed array is necessary for sorting. */
           sort_indices.reinitialize(points.size());
-          std::iota(sort_indices.begin(), sort_indices.end(), 0);
+          array_utils::fill_index_range<int>(sort_indices);
           std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
             return sort_weights[a] < sort_weights[b];
           });
@@ -195,10 +196,10 @@ class CurveStartPointInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain /*domain*/,
+                                 const eAttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    return VArray<int>::ForSpan(curves.offsets());
+    return curves.adapt_domain(VArray<int>::ForSpan(curves.offsets()), ATTR_DOMAIN_CURVE, domain);
   }
 
   uint64_t hash() const final

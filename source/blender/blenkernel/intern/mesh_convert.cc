@@ -48,14 +48,14 @@
 /* these 2 are only used by conversion functions */
 #include "BKE_curve.h"
 /* -- */
-#include "BKE_object.h"
+#include "BKE_object.hh"
 /* -- */
 #include "BKE_pointcloud.h"
 
 #include "BKE_curve_to_mesh.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 using blender::float3;
 using blender::IndexRange;

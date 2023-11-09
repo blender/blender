@@ -26,7 +26,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -34,7 +34,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
@@ -80,8 +80,10 @@ BLI_INLINE void copy_v3_v3_unmap(float a[3], const float b[3], const uint map[3]
   a[map[2]] = b[2];
 }
 
-/* Clamps/Limits the given coordinate to:  limits[0] <= co[axis] <= limits[1]
- * The amount of clamp is saved on dcut */
+/**
+ * Clamps/Limits the given coordinate to: limits[0] <= co[axis] <= limits[1]
+ * The amount of clamp is saved on `dcut`.
+ */
 static void axis_limit(const int axis, const float limits[2], float co[3], float dcut[3])
 {
   float val = co[axis];

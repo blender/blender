@@ -29,7 +29,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -39,8 +39,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -606,7 +606,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           return nullptr;
         }
 
-        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, face.size(), false);
+        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, face.size());
 
         /* Initialize weight components */
         bpoly->weight_angular = 1.0f;

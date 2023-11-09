@@ -15,11 +15,10 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 
@@ -30,7 +29,7 @@ float bilateral_depth_weight(vec3 center_N, vec3 center_P, vec3 sample_P)
   float depth_delta = dot(center_plane_eq, vec4(sample_P, 1.0));
   /* TODO(fclem): Scene parameter. This is dependent on scene scale. */
   const float scale = 10000.0;
-  float weight = exp2(-scale * sqr(depth_delta));
+  float weight = exp2(-scale * square(depth_delta));
   return weight;
 }
 
@@ -61,20 +60,20 @@ vec3 from_accumulation_space(vec3 color)
   return color / (1.0 - dot(color, vec3(1.0)));
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureDiffuse closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 1), 0);
+  vec4 data_in = texelFetch(gbuf_closure_tx, ivec3(texel, 1), 0);
 
   closure.N = gbuffer_normal_unpack(data_in.xy);
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureRefraction closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 1), 0);
+  vec4 data_in = texelFetch(gbuf_closure_tx, ivec3(texel, 1), 0);
 
   closure.N = gbuffer_normal_unpack(data_in.xy);
   if (gbuffer_is_refraction(data_in)) {
@@ -87,11 +86,11 @@ void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
   }
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureReflection closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 0), 0);
+  vec4 data_in = texelFetch(gbuf_closure_tx, ivec3(texel, 0), 0);
 
   closure.N = gbuffer_normal_unpack(data_in.xy);
   closure.roughness = data_in.z;
@@ -102,10 +101,10 @@ void main()
   const uint tile_size = RAYTRACE_GROUP_SIZE;
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel_fullres = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
-  vec2 center_uv = vec2(texel_fullres) * raytrace_buf.full_resolution_inv;
+  vec2 center_uv = vec2(texel_fullres) * uniform_buf.raytrace.full_resolution_inv;
 
-  float center_depth = texelFetch(hiz_tx, texel_fullres, 0).r;
-  vec3 center_P = get_world_space_from_depth(center_uv, center_depth);
+  float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
+  vec3 center_P = drw_point_screen_to_world(vec3(center_uv, center_depth));
 
 #if defined(RAYTRACE_DIFFUSE)
   ClosureDiffuse sample_closure, center_closure;
@@ -116,9 +115,13 @@ void main()
 #else
 #  error
 #endif
-  gbuffer_load_closure_data(gbuffer_closure_tx, texel_fullres, center_closure);
+  gbuffer_load_closure_data(gbuf_closure_tx, texel_fullres, center_closure);
 
+#if defined(RAYTRACE_DIFFUSE)
+  float roughness = 1.0;
+#else
   float roughness = center_closure.roughness;
+#endif
 
   float variance = imageLoad(in_variance_img, texel_fullres).r;
   vec3 in_radiance = imageLoad(in_radiance_img, texel_fullres).rgb;
@@ -159,16 +162,16 @@ void main()
       continue;
     }
 
-    float sample_depth = texelFetch(hiz_tx, sample_texel, 0).r;
-    vec2 sample_uv = vec2(sample_texel) * raytrace_buf.full_resolution_inv;
-    vec3 sample_P = get_world_space_from_depth(sample_uv, sample_depth);
+    float sample_depth = texelFetch(depth_tx, sample_texel, 0).r;
+    vec2 sample_uv = vec2(sample_texel) * uniform_buf.raytrace.full_resolution_inv;
+    vec3 sample_P = drw_point_screen_to_world(vec3(sample_uv, sample_depth));
 
     /* Background case. */
     if (sample_depth == 0.0) {
       continue;
     }
 
-    gbuffer_load_closure_data(gbuffer_closure_tx, sample_texel, sample_closure);
+    gbuffer_load_closure_data(gbuf_closure_tx, sample_texel, sample_closure);
 
     float depth_weight = bilateral_depth_weight(center_closure.N, center_P, sample_P);
     float spatial_weight = bilateral_spatial_weight(filter_size, vec2(offset));

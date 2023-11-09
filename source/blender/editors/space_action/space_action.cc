@@ -24,7 +24,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_nla.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -159,9 +159,9 @@ static void action_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet", SPACE_ACTION, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet", SPACE_ACTION, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -264,10 +264,10 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -428,6 +428,7 @@ static void action_main_region_listener(const wmRegionListenerParams *params)
           break;
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
         case ND_KEYS:
           ED_region_tag_redraw(region);
           break;
@@ -712,7 +713,7 @@ static void action_buttons_area_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 

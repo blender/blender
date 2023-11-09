@@ -176,6 +176,7 @@ static eViewLayerEEVEEPassType enabled_passes(const ViewLayer *view_layer)
   ENABLE_FROM_LEGACY(Z, Z)
   ENABLE_FROM_LEGACY(MIST, MIST)
   ENABLE_FROM_LEGACY(NORMAL, NORMAL)
+  ENABLE_FROM_LEGACY(POSITION, POSITION)
   ENABLE_FROM_LEGACY(SHADOW, SHADOW)
   ENABLE_FROM_LEGACY(AO, AO)
   ENABLE_FROM_LEGACY(EMIT, EMIT)
@@ -283,6 +284,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     }
 
     const eViewLayerEEVEEPassType data_passes = EEVEE_RENDER_PASS_Z | EEVEE_RENDER_PASS_NORMAL |
+                                                EEVEE_RENDER_PASS_POSITION |
                                                 EEVEE_RENDER_PASS_VECTOR;
     const eViewLayerEEVEEPassType color_passes_1 = EEVEE_RENDER_PASS_DIFFUSE_LIGHT |
                                                    EEVEE_RENDER_PASS_SPECULAR_LIGHT |
@@ -328,6 +330,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
     data_.mist_id = pass_index_get(EEVEE_RENDER_PASS_MIST);
     data_.normal_id = pass_index_get(EEVEE_RENDER_PASS_NORMAL);
+    data_.position_id = pass_index_get(EEVEE_RENDER_PASS_POSITION);
     data_.vector_id = pass_index_get(EEVEE_RENDER_PASS_VECTOR);
     data_.diffuse_light_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_LIGHT);
     data_.diffuse_color_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_COLOR);
@@ -434,7 +437,7 @@ void Film::sync()
   accumulate_ps_.init();
   accumulate_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
   accumulate_ps_.shader_set(inst_.shaders.static_shader_get(shader));
-  accumulate_ps_.bind_ubo("film_buf", &data_);
+  inst_.bind_uniform_data(&accumulate_ps_);
   accumulate_ps_.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
   accumulate_ps_.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
   accumulate_ps_.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
@@ -455,7 +458,6 @@ void Film::sync()
   accumulate_ps_.bind_image("color_accum_img", &color_accum_tx_);
   accumulate_ps_.bind_image("value_accum_img", &value_accum_tx_);
   accumulate_ps_.bind_image("cryptomatte_img", &cryptomatte_tx_);
-  accumulate_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
   /* Sync with rendering passes. */
   accumulate_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
   if (use_compute) {
@@ -646,7 +648,7 @@ void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
   combined_final_tx_ = combined_final_tx;
 
   data_.display_only = false;
-  data_.push_update();
+  inst_.push_uniform_data();
 
   draw::View drw_view("MainView", view);
 
@@ -675,7 +677,7 @@ void Film::display()
   combined_final_tx_ = inst_.render_buffers.combined_tx;
 
   data_.display_only = true;
-  data_.push_update();
+  inst_.push_uniform_data();
 
   draw::View drw_view("MainView", DRW_view_default_get());
 

@@ -41,8 +41,8 @@
 #include "BKE_node.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -791,7 +791,7 @@ bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
   iterprop = RNA_struct_iterator_property(ptr->type);
 
   RNA_PROP_BEGIN (ptr, itemptr, iterprop) {
-    /* PropertyRNA *prop = itemptr.data; */
+    // PropertyRNA *prop = itemptr.data;
     if (prop_test == (PropertyRNA *)itemptr.data) {
       found = true;
       break;
@@ -2281,7 +2281,7 @@ static void rna_property_boolean_fill_default_array_values(
     const bool *defarr, int defarr_length, bool defvalue, int out_length, bool *r_values)
 {
   if (defarr && defarr_length > 0) {
-    defarr_length = MIN2(defarr_length, out_length);
+    defarr_length = std::min(defarr_length, out_length);
     memcpy(r_values, defarr, sizeof(bool) * defarr_length);
   }
   else {
@@ -2297,7 +2297,7 @@ static void rna_property_boolean_fill_default_array_values_from_ints(
     const int *defarr, int defarr_length, bool defvalue, int out_length, bool *r_values)
 {
   if (defarr && defarr_length > 0) {
-    defarr_length = MIN2(defarr_length, out_length);
+    defarr_length = std::min(defarr_length, out_length);
     for (int i = 0; i < defarr_length; i++) {
       r_values[i] = defarr[i] != 0;
     }
@@ -2650,7 +2650,7 @@ static void rna_property_int_fill_default_array_values(
     const int *defarr, int defarr_length, int defvalue, int out_length, int *r_values)
 {
   if (defarr && defarr_length > 0) {
-    defarr_length = MIN2(defarr_length, out_length);
+    defarr_length = std::min(defarr_length, out_length);
     memcpy(r_values, defarr, sizeof(int) * defarr_length);
   }
   else {
@@ -2732,8 +2732,8 @@ void RNA_property_int_get_array_range(PointerRNA *ptr, PropertyRNA *prop, int va
     RNA_property_int_get_array(ptr, prop, arr);
     values[0] = values[1] = arr[0];
     for (i = 1; i < array_len; i++) {
-      values[0] = MIN2(values[0], arr[i]);
-      values[1] = MAX2(values[1], arr[i]);
+      values[0] = std::min(values[0], arr[i]);
+      values[1] = std::max(values[1], arr[i]);
     }
 
     if (arr != arr_stack) {
@@ -2799,7 +2799,7 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
     IDPropertyTemplate val = {0};
     IDProperty *group;
 
-    /* TODO: RNA_property_int_clamp_array(ptr, prop, &value); */
+    // RNA_property_int_clamp_array(ptr, prop, &value); /* TODO. */
 
     val.array.len = prop->totarraylength;
     val.array.type = IDP_INT;
@@ -2997,7 +2997,7 @@ static void rna_property_float_fill_default_array_values(
     const float *defarr, int defarr_length, float defvalue, int out_length, float *r_values)
 {
   if (defarr && defarr_length > 0) {
-    defarr_length = MIN2(defarr_length, out_length);
+    defarr_length = std::min(defarr_length, out_length);
     memcpy(r_values, defarr, sizeof(float) * defarr_length);
   }
   else {
@@ -3018,7 +3018,7 @@ static void rna_property_float_fill_default_array_values_double(const double *de
                                                                 const int out_length,
                                                                 float *r_values)
 {
-  const int array_copy_len = MIN2(out_length, default_array_len);
+  const int array_copy_len = std::min(out_length, default_array_len);
 
   for (int i = 0; i < array_copy_len; i++) {
     r_values[i] = float(default_array[i]);
@@ -3105,8 +3105,8 @@ void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, floa
     RNA_property_float_get_array(ptr, prop, arr);
     values[0] = values[1] = arr[0];
     for (i = 1; i < array_len; i++) {
-      values[0] = MIN2(values[0], arr[i]);
-      values[1] = MAX2(values[1], arr[i]);
+      values[0] = std::min(values[0], arr[i]);
+      values[1] = std::max(values[1], arr[i]);
     }
 
     if (arr != arr_stack) {
@@ -3183,7 +3183,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
     IDPropertyTemplate val = {0};
     IDProperty *group;
 
-    /* TODO: RNA_property_float_clamp_array(ptr, prop, &value); */
+    // RNA_property_float_clamp_array(ptr, prop, &value); /* TODO. */
 
     val.array.len = prop->totarraylength;
     val.array.type = IDP_FLOAT;
@@ -4006,7 +4006,7 @@ static bool property_collection_liboverride_editable(PointerRNA *ptr,
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
   IDProperty *idprop;
-  /* CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop; */
+  // CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
@@ -4046,8 +4046,8 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
         item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
       }
       IDP_AppendArray(idprop, item);
-      /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
-      /* IDP_FreePropertyContent(item); */
+      /* #IDP_AppendArray does a shallow copy (memcpy), only free memory. */
+      // IDP_FreePropertyContent(item);
       MEM_freeN(item);
     }
   }
@@ -4089,7 +4089,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 bool RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 {
   IDProperty *idprop;
-  /*  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop; */
+  // CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
@@ -4405,10 +4405,8 @@ bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, Pointe
   return ((r_ptr->type = rna_ensure_property(prop)->srna) ? 1 : 0);
 }
 
-int RNA_property_collection_raw_array(PointerRNA *ptr,
-                                      PropertyRNA *prop,
-                                      PropertyRNA *itemprop,
-                                      RawArray *array)
+int RNA_property_collection_raw_array(
+    PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, bool set, RawArray *array)
 {
   CollectionPropertyIterator iter;
   ArrayIterator *internal;
@@ -4429,7 +4427,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr,
     internal = &iter.internal.array;
     arrayp = (iter.valid) ? static_cast<char *>(iter.ptr.data) : nullptr;
 
-    if (internal->skip || !RNA_property_editable(&iter.ptr, itemprop)) {
+    if (internal->skip || (set && !RNA_property_editable(&iter.ptr, itemprop))) {
       /* we might skip some items, so it's not a proper array */
       RNA_property_collection_end(&iter);
       return 0;
@@ -4587,7 +4585,7 @@ static int rna_raw_access(ReportList *reports,
       itemprop = nullptr;
     }
     /* try to access as raw array */
-    else if (RNA_property_collection_raw_array(ptr, prop, itemprop, &out)) {
+    else if (RNA_property_collection_raw_array(ptr, prop, itemprop, set, &out)) {
       int arraylen = (itemlen == 0) ? 1 : itemlen;
       if (in.len != arraylen * out.len) {
         BKE_reportf(reports,

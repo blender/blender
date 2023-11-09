@@ -369,10 +369,11 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             mod.__time__ = os.path.getmtime(mod.__file__)
             mod.__addon_enabled__ = False
         except BaseException as ex:
-            # if the addon doesn't exist, don't print full traceback
-            if type(ex) is ImportError and ex.name == module_name:
-                print("addon not loaded:", repr(module_name))
-                print("cause:", str(ex))
+            # If the add-on doesn't exist, don't print full trace-back because the back-trace is in this case
+            # is verbose without any useful details. A missing path is better communicated in a short message.
+            # Account for `ImportError` & `ModuleNotFoundError`.
+            if isinstance(ex, ImportError) and ex.name == module_name:
+                print("Add-on not loaded:", repr(module_name), "cause:", str(ex))
             else:
                 handle_error(ex)
 
@@ -519,7 +520,7 @@ def disable_all():
     # Use direct `__dict__` access to bypass `__getattr__`, see: #111649.
     addon_modules = [
         item for item in sys.modules.items()
-        if type(mod_dict := getattr(item[0], "__dict__", None)) is dict
+        if type(mod_dict := getattr(item[1], "__dict__", None)) is dict
         if mod_dict.get("__addon_enabled__")
     ]
     # Check the enabled state again since it's possible the disable call

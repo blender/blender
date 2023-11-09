@@ -38,8 +38,9 @@ TEST(Tuple, InitFromPointer) {
   float vals[3] = {1.0f, 2.0f, 3.0f};
 
   Tuple<float, 3> t(vals);
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++) {
     EXPECT_EQ(t(i), vals[i]);
+  }
 
   Tuple<int, 3> b(t);
   EXPECT_EQ(b(0), int(vals[0]));

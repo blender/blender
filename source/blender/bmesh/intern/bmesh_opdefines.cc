@@ -1816,7 +1816,6 @@ static BMOpDefine bmo_bevel_def = {
    {"miter_inner", BMO_OP_SLOT_INT, to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
     bmo_enum_bevel_miter_type},           /* outer miter kind */
    {"spread", BMO_OP_SLOT_FLT},           /* amount to offset beveled edge */
-   {"smoothresh", BMO_OP_SLOT_FLT},       /* for passing mesh's smoothresh, used in hardening */
    {"custom_profile", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_STRUCT)}, /* CurveProfile, if None ignored */
    {"vmesh_method", BMO_OP_SLOT_INT, to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
     bmo_enum_bevel_vmesh_method},         /* The method to use to create meshes at intersections. */

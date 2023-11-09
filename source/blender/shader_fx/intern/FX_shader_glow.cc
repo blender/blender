@@ -20,7 +20,7 @@
 
 #include "BKE_context.h"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
 #include "UI_interface.hh"

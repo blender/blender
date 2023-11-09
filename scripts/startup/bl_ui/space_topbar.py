@@ -159,7 +159,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
                       icon='MOD_MASK' if gpl.use_mask_layer else 'LAYER_ACTIVE')
 
             srow = col.row(align=True)
-            srow.prop(gpl, "use_lights")
+            srow.prop(gpl, "use_lights", text="Lights")
 
         col = row.column()
 
@@ -718,7 +718,7 @@ class TOPBAR_MT_help(Menu):
 
 
 class TOPBAR_MT_file_context_menu(Menu):
-    bl_label = "File Context Menu"
+    bl_label = "File"
 
     def draw(self, _context):
         layout = self.layout
@@ -726,6 +726,7 @@ class TOPBAR_MT_file_context_menu(Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.menu("TOPBAR_MT_file_new", text="New", text_ctxt=i18n_contexts.id_windowmanager, icon='FILE_NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
+        layout.menu("TOPBAR_MT_file_open_recent")
 
         layout.separator()
 

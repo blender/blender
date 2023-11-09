@@ -11,9 +11,11 @@
 #include "BLI_math_quaternion.hh"
 #include "BLI_string.h"
 
+#include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_socket.hh"
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_geometry_fields.hh"
@@ -30,6 +32,106 @@ namespace geo_log = blender::nodes::geo_eval_log;
 
 namespace blender::nodes {
 
+static void add_used_ids_from_sockets(const ListBase &sockets, Set<ID *> &ids)
+{
+  LISTBASE_FOREACH (const bNodeSocket *, socket, &sockets) {
+    switch (socket->type) {
+      case SOCK_OBJECT: {
+        if (Object *object = ((bNodeSocketValueObject *)socket->default_value)->value) {
+          ids.add(reinterpret_cast<ID *>(object));
+        }
+        break;
+      }
+      case SOCK_COLLECTION: {
+        if (Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value)
+        {
+          ids.add(reinterpret_cast<ID *>(collection));
+        }
+        break;
+      }
+      case SOCK_MATERIAL: {
+        if (Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value) {
+          ids.add(reinterpret_cast<ID *>(material));
+        }
+        break;
+      }
+      case SOCK_TEXTURE: {
+        if (Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value) {
+          ids.add(reinterpret_cast<ID *>(texture));
+        }
+        break;
+      }
+      case SOCK_IMAGE: {
+        if (Image *image = ((bNodeSocketValueImage *)socket->default_value)->value) {
+          ids.add(reinterpret_cast<ID *>(image));
+        }
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * \note We can only check properties here that cause the dependency graph to update relations when
+ * they are changed, otherwise there may be a missing relation after editing. So this could check
+ * more properties like whether the node is muted, but we would have to accept the cost of updating
+ * relations when those properties are changed.
+ */
+static bool node_needs_own_transform_relation(const bNode &node)
+{
+  if (node.type == GEO_NODE_COLLECTION_INFO) {
+    const NodeGeometryCollectionInfo &storage = *static_cast<const NodeGeometryCollectionInfo *>(
+        node.storage);
+    return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
+  }
+
+  if (node.type == GEO_NODE_OBJECT_INFO) {
+    const NodeGeometryObjectInfo &storage = *static_cast<const NodeGeometryObjectInfo *>(
+        node.storage);
+    return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
+  }
+
+  if (node.type == GEO_NODE_SELF_OBJECT) {
+    return true;
+  }
+  if (node.type == GEO_NODE_DEFORM_CURVES_ON_SURFACE) {
+    return true;
+  }
+
+  return false;
+}
+
+static void process_nodes_for_depsgraph(const bNodeTree &tree,
+                                        Set<ID *> &ids,
+                                        bool &r_needs_own_transform_relation,
+                                        Set<const bNodeTree *> &checked_groups)
+{
+  if (!checked_groups.add(&tree)) {
+    return;
+  }
+
+  tree.ensure_topology_cache();
+  for (const bNode *node : tree.all_nodes()) {
+    add_used_ids_from_sockets(node->inputs, ids);
+    add_used_ids_from_sockets(node->outputs, ids);
+    r_needs_own_transform_relation |= node_needs_own_transform_relation(*node);
+  }
+
+  for (const bNode *node : tree.group_nodes()) {
+    if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
+      process_nodes_for_depsgraph(*sub_tree, ids, r_needs_own_transform_relation, checked_groups);
+    }
+  }
+}
+
+void find_node_tree_dependencies(const bNodeTree &tree,
+                                 Set<ID *> &r_ids,
+                                 bool &r_needs_own_transform_relation)
+{
+  Set<const bNodeTree *> checked_groups;
+  process_nodes_for_depsgraph(tree, r_ids, r_needs_own_transform_relation, checked_groups);
+}
+
 StringRef input_use_attribute_suffix()
 {
   return "_use_attribute";
@@ -42,7 +144,7 @@ StringRef input_attribute_name_suffix()
 
 bool socket_type_has_attribute_toggle(const eNodeSocketDatatype type)
 {
-  return ELEM(type, SOCK_FLOAT, SOCK_VECTOR, SOCK_BOOLEAN, SOCK_RGBA, SOCK_INT, SOCK_ROTATION);
+  return socket_type_supports_fields(type);
 }
 
 bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)
@@ -118,6 +220,10 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       return property;
     }
     case SOCK_BOOLEAN: {
+      if (is_layer_selection_field(socket)) {
+        /* We can't use the value from the socket here since it doesn't storing a string. */
+        return bke::idprop::create(identifier, "");
+      }
       const bNodeSocketValueBoolean *value = static_cast<const bNodeSocketValueBoolean *>(
           socket.socket_data);
       auto property = bke::idprop::create_bool(identifier, value->value);
@@ -193,12 +299,15 @@ bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
       return property.type == IDP_INT;
     case SOCK_VECTOR:
     case SOCK_ROTATION:
-      return property.type == IDP_ARRAY && ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_FLOAT) &&
-             property.len == 3;
+      return property.type == IDP_ARRAY &&
+             ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 3;
     case SOCK_RGBA:
       return property.type == IDP_ARRAY &&
              ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 4;
     case SOCK_BOOLEAN:
+      if (is_layer_selection_field(socket)) {
+        return property.type == IDP_STRING;
+      }
       return property.type == IDP_BOOLEAN;
     case SOCK_STRING:
       return property.type == IDP_STRING;
@@ -397,6 +506,17 @@ static void initialize_group_input(const bNodeTree &tree,
     BLI_assert(value_or_field_cpp_type != nullptr);
     value_or_field_cpp_type->construct_from_field(r_value, std::move(attribute_field));
   }
+  else if (is_layer_selection_field(io_input)) {
+    const IDProperty *property_layer_name = IDP_GetPropertyFromGroup(properties,
+                                                                     io_input.identifier);
+    StringRef layer_name = IDP_String(property_layer_name);
+    const fn::GField selection_field(
+        std::make_shared<bke::NamedLayerSelectionFieldInput>(layer_name), 0);
+    const auto *value_or_field_cpp_type = fn::ValueOrFieldCPPType::get_from_self(
+        *typeinfo->geometry_nodes_cpp_type);
+    BLI_assert(value_or_field_cpp_type != nullptr);
+    value_or_field_cpp_type->construct_from_field(r_value, std::move(selection_field));
+  }
   else {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
   }
@@ -569,25 +689,22 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
 {
   const nodes::GeometryNodesLazyFunctionGraphInfo &lf_graph_info =
       *nodes::ensure_geometry_nodes_lazy_function_graph(btree);
-  const nodes::GeometryNodeLazyFunctionGraphMapping &mapping = lf_graph_info.mapping;
+  const GeometryNodesGroupFunction &function = lf_graph_info.function;
+  const lf::LazyFunction &lazy_function = *function.function;
+  const int num_inputs = lazy_function.inputs().size();
+  const int num_outputs = lazy_function.outputs().size();
 
-  Vector<const lf::OutputSocket *> graph_inputs = mapping.group_input_sockets;
-  graph_inputs.extend(mapping.group_output_used_sockets);
-  graph_inputs.extend(mapping.attribute_set_by_geometry_output.values().begin(),
-                      mapping.attribute_set_by_geometry_output.values().end());
-  Vector<const lf::InputSocket *> graph_outputs = mapping.standard_group_output_sockets;
+  Array<GMutablePointer> param_inputs(num_inputs);
+  Array<GMutablePointer> param_outputs(num_outputs);
+  Array<std::optional<lf::ValueUsage>> param_input_usages(num_inputs);
+  Array<lf::ValueUsage> param_output_usages(num_outputs);
+  Array<bool> param_set_outputs(num_outputs, false);
 
-  Array<GMutablePointer> param_inputs(graph_inputs.size());
-  Array<GMutablePointer> param_outputs(graph_outputs.size());
-  Array<std::optional<lf::ValueUsage>> param_input_usages(graph_inputs.size());
-  Array<lf::ValueUsage> param_output_usages(graph_outputs.size(), lf::ValueUsage::Used);
-  Array<bool> param_set_outputs(graph_outputs.size(), false);
-
-  nodes::GeometryNodesLazyFunctionLogger lf_logger(lf_graph_info);
-  nodes::GeometryNodesLazyFunctionSideEffectProvider lf_side_effect_provider;
-
-  lf::GraphExecutor graph_executor{
-      lf_graph_info.graph, graph_inputs, graph_outputs, &lf_logger, &lf_side_effect_provider};
+  /* We want to evaluate the main outputs, but don't care about which inputs are used for now. */
+  param_output_usages.as_mutable_span().slice(function.outputs.main).fill(lf::ValueUsage::Used);
+  param_output_usages.as_mutable_span()
+      .slice(function.outputs.input_usages)
+      .fill(lf::ValueUsage::Unused);
 
   nodes::GeoNodesLFUserData user_data;
   fill_user_data(user_data);
@@ -597,15 +714,16 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
   LinearAllocator<> allocator;
   Vector<GMutablePointer> inputs_to_destruct;
 
-  int input_index = -1;
+  btree.ensure_interface_cache();
+
+  /* Prepare main inputs. */
   for (const int i : btree.interface_inputs().index_range()) {
-    input_index++;
     const bNodeTreeInterfaceSocket &interface_socket = *btree.interface_inputs()[i];
     const bNodeSocketType *typeinfo = interface_socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? eNodeSocketDatatype(typeinfo->type) :
                                                        SOCK_CUSTOM;
-    if (socket_type == SOCK_GEOMETRY && input_index == 0) {
-      param_inputs[input_index] = &input_geometry;
+    if (socket_type == SOCK_GEOMETRY && i == 0) {
+      param_inputs[function.inputs.main[0]] = &input_geometry;
       continue;
     }
 
@@ -613,41 +731,42 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
     BLI_assert(type != nullptr);
     void *value = allocator.allocate(type->size(), type->alignment());
     initialize_group_input(btree, properties, i, value);
-    param_inputs[input_index] = {type, value};
+    param_inputs[function.inputs.main[i]] = {type, value};
     inputs_to_destruct.append({type, value});
   }
 
+  /* Prepare used-outputs inputs. */
   Array<bool> output_used_inputs(btree.interface_outputs().size(), true);
   for (const int i : btree.interface_outputs().index_range()) {
-    input_index++;
-    param_inputs[input_index] = &output_used_inputs[i];
+    param_inputs[function.inputs.output_usages[i]] = &output_used_inputs[i];
   }
 
+  /* No anonymous attributes have to be propagated. */
   Array<bke::AnonymousAttributeSet> attributes_to_propagate(
-      mapping.attribute_set_by_geometry_output.size());
+      function.inputs.attributes_to_propagate.geometry_outputs.size());
   for (const int i : attributes_to_propagate.index_range()) {
-    input_index++;
-    param_inputs[input_index] = &attributes_to_propagate[i];
+    param_inputs[function.inputs.attributes_to_propagate.range[i]] = &attributes_to_propagate[i];
   }
 
-  for (const int i : graph_outputs.index_range()) {
-    const lf::InputSocket &socket = *graph_outputs[i];
-    const CPPType &type = socket.type();
+  /* Prepare memory for output values. */
+  for (const int i : IndexRange(num_outputs)) {
+    const lf::Output &lf_output = lazy_function.outputs()[i];
+    const CPPType &type = *lf_output.type;
     void *buffer = allocator.allocate(type.size(), type.alignment());
     param_outputs[i] = {type, buffer};
   }
 
   nodes::GeoNodesLFLocalUserData local_user_data(user_data);
 
-  lf::Context lf_context(graph_executor.init_storage(allocator), &user_data, &local_user_data);
-  lf::BasicParams lf_params{graph_executor,
+  lf::Context lf_context(lazy_function.init_storage(allocator), &user_data, &local_user_data);
+  lf::BasicParams lf_params{lazy_function,
                             param_inputs,
                             param_outputs,
                             param_input_usages,
                             param_output_usages,
                             param_set_outputs};
-  graph_executor.execute(lf_params, lf_context);
-  graph_executor.destruct_storage(lf_context.storage);
+  lazy_function.execute(lf_params, lf_context);
+  lazy_function.destruct_storage(lf_context.storage);
 
   for (GMutablePointer &ptr : inputs_to_destruct) {
     ptr.destruct();
@@ -656,8 +775,11 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
   bke::GeometrySet output_geometry = std::move(*param_outputs[0].get<bke::GeometrySet>());
   store_output_attributes(output_geometry, btree, properties, param_outputs);
 
-  for (GMutablePointer &ptr : param_outputs) {
-    ptr.destruct();
+  for (const int i : IndexRange(num_outputs)) {
+    if (param_set_outputs[i]) {
+      GMutablePointer &ptr = param_outputs[i];
+      ptr.destruct();
+    }
   }
 
   return output_geometry;
@@ -668,7 +790,7 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
                                             const bool use_bool_for_use_attribute,
                                             IDProperty &properties)
 {
-  tree.ensure_topology_cache();
+  tree.ensure_interface_cache();
   const Span<const bNodeTreeInterfaceSocket *> tree_inputs = tree.interface_inputs();
   for (const int i : tree_inputs.index_range()) {
     const bNodeTreeInterfaceSocket &socket = *tree_inputs[i];

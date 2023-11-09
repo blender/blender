@@ -1000,7 +1000,7 @@ void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer,
   }
 }
 
-void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint64_t length, uint index)
+void MTLRenderPassState::bind_vertex_bytes(const void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
@@ -1025,7 +1025,7 @@ void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint64_t length, uint in
   }
 }
 
-void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint64_t length, uint index)
+void MTLRenderPassState::bind_fragment_bytes(const void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
@@ -1050,7 +1050,7 @@ void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint64_t length, uint 
   }
 }
 
-void MTLComputeState::bind_compute_bytes(void *bytes, uint64_t length, uint index)
+void MTLComputeState::bind_compute_bytes(const void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);

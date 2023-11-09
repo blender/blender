@@ -9,7 +9,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_sys_types.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "TransformWriter.h"
 

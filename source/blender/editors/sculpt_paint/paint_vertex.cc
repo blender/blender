@@ -45,12 +45,12 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -960,7 +960,7 @@ static VPaintData *vpaint_init_vpaint(bContext *C,
   vpd->type = type;
   vpd->domain = domain;
 
-  ED_view3d_viewcontext_init(C, &vpd->vc, depsgraph);
+  vpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
   vwpaint::view_angle_limits_init(&vpd->normal_angle_precalc,
                                   vp->paint.brush->falloff_angle,
                                   (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);

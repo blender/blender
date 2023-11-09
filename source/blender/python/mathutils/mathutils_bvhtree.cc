@@ -40,9 +40,9 @@
 #  include "BKE_lib_id.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"
-#  include "BKE_object.h"
+#  include "BKE_object.hh"
 
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph_query.hh"
 
 #  include "bmesh.h"
 

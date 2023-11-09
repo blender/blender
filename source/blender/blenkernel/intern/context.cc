@@ -23,7 +23,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -36,7 +36,7 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_workspace.h"
 
@@ -1484,10 +1484,10 @@ bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
 
 const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
 {
-  return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_ref"));
+  return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_reference"));
 }
 
-AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
+static AssetHandle ctx_wm_asset_handle(const bContext *C, bool *r_is_valid)
 {
   AssetHandle *asset_handle_p =
       (AssetHandle *)CTX_data_pointer_get_type(C, "asset_handle", &RNA_AssetHandle).data;
@@ -1514,8 +1514,20 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
 
 blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C)
 {
-  return static_cast<blender::asset_system::AssetRepresentation *>(
-      ctx_data_pointer_get(C, "asset"));
+  if (auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(
+          ctx_data_pointer_get(C, "asset")))
+  {
+    return asset;
+  }
+
+  /* Expose the asset representation from the asset-handle.
+   * TODO(Julian): #AssetHandle should be properly replaced by #AssetRepresentation. */
+  bool is_valid;
+  if (AssetHandle handle = ctx_wm_asset_handle(C, &is_valid); is_valid) {
+    return handle.file_data->asset;
+  }
+
+  return nullptr;
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)

@@ -223,4 +223,66 @@ TEST(action_assets, BKE_action_has_single_frame)
   }
 }
 
+TEST(action, BKE_action_frame_range_calc)
+{
+  float start, end;
+
+  /* No FCurves. */
+  {
+    const bAction empty = {{nullptr}};
+    BKE_action_frame_range_calc(&empty, false, &start, &end);
+    EXPECT_FLOAT_EQ(start, 0.0f);
+    EXPECT_FLOAT_EQ(end, 0.0f);
+  }
+
+  /* One curve with one key. */
+  {
+    FCurve fcu = {nullptr};
+    std::unique_ptr<BezTriple[]> bezt = allocate_keyframes(&fcu, 1);
+    add_keyframe(&fcu, 1.0f, 2.0f);
+
+    bAction action = {{nullptr}};
+    BLI_addtail(&action.curves, &fcu);
+
+    BKE_action_frame_range_calc(&action, false, &start, &end);
+    EXPECT_FLOAT_EQ(start, 1.0f);
+    EXPECT_FLOAT_EQ(end, 1.0f);
+  }
+
+  /* Two curves with one key each on different frames. */
+  {
+    FCurve fcu1 = {nullptr};
+    FCurve fcu2 = {nullptr};
+    std::unique_ptr<BezTriple[]> bezt1 = allocate_keyframes(&fcu1, 1);
+    std::unique_ptr<BezTriple[]> bezt2 = allocate_keyframes(&fcu2, 1);
+    add_keyframe(&fcu1, 1.0f, 2.0f);
+    add_keyframe(&fcu2, 1.5f, 2.0f);
+
+    bAction action = {{nullptr}};
+    BLI_addtail(&action.curves, &fcu1);
+    BLI_addtail(&action.curves, &fcu2);
+
+    BKE_action_frame_range_calc(&action, false, &start, &end);
+    EXPECT_FLOAT_EQ(start, 1.0f);
+    EXPECT_FLOAT_EQ(end, 1.5f);
+  }
+
+  /* One curve with two keys. */
+  {
+    FCurve fcu = {nullptr};
+    std::unique_ptr<BezTriple[]> bezt = allocate_keyframes(&fcu, 2);
+    add_keyframe(&fcu, 1.0f, 2.0f);
+    add_keyframe(&fcu, 1.5f, 2.0f);
+
+    bAction action = {{nullptr}};
+    BLI_addtail(&action.curves, &fcu);
+
+    BKE_action_frame_range_calc(&action, false, &start, &end);
+    EXPECT_FLOAT_EQ(start, 1.0f);
+    EXPECT_FLOAT_EQ(end, 1.5f);
+  }
+
+  /* TODO: action with fcurve modifiers. */
+}
+
 }  // namespace blender::bke::tests

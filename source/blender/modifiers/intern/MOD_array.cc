@@ -34,9 +34,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -47,8 +48,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "GEO_mesh_merge_by_distance.hh"
 
@@ -380,6 +381,15 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 {
   using namespace blender;
   if (mesh->totvert == 0) {
+    /* Output just the start cap even if the mesh is empty. */
+    Object *start_cap_ob = amd->start_cap;
+    if (start_cap_ob && start_cap_ob != ctx->object) {
+      Mesh *start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
+      if (start_cap_mesh) {
+        BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
+        return BKE_mesh_copy_for_eval(start_cap_mesh);
+      }
+    }
     return mesh;
   }
 
@@ -428,6 +438,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
     start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
     if (start_cap_mesh) {
+      BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
       start_cap_nverts = start_cap_mesh->totvert;
       start_cap_nedges = start_cap_mesh->totedge;
       start_cap_nloops = start_cap_mesh->totloop;
@@ -443,6 +454,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
     end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(end_cap_ob);
     if (end_cap_mesh) {
+      BKE_mesh_wrapper_ensure_mdata(end_cap_mesh);
       end_cap_nverts = end_cap_mesh->totvert;
       end_cap_nedges = end_cap_mesh->totedge;
       end_cap_nloops = end_cap_mesh->totloop;

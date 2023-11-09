@@ -41,12 +41,12 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -220,10 +220,10 @@ static float wpaint_blend(const VPaint *wp,
 static float wpaint_clamp_monotonic(float oldval, float curval, float newval)
 {
   if (newval < oldval) {
-    return MIN2(newval, curval);
+    return std::min(newval, curval);
   }
   if (newval > oldval) {
-    return MAX2(newval, curval);
+    return std::max(newval, curval);
   }
   return newval;
 }
@@ -932,7 +932,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   /* make mode data storage */
   wpd = (WPaintData *)MEM_callocN(sizeof(WPaintData), "WPaintData");
   paint_stroke_set_mode_data(stroke, wpd);
-  ED_view3d_viewcontext_init(C, &wpd->vc, depsgraph);
+  wpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
   vwpaint::view_angle_limits_init(&wpd->normal_angle_precalc,
                                   vp->paint.brush->falloff_angle,
                                   (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);

@@ -8,7 +8,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_lib_id.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
@@ -141,6 +141,7 @@ void SceneExporter::writeNode(Object *ob)
 
     /* <instance_controller> */
     else if (ob->type == OB_ARMATURE) {
+      arm_exporter->add_bone_collections(ob, colladaNode);
       arm_exporter->add_armature_bones(ob, view_layer, this, child_objects);
     }
 

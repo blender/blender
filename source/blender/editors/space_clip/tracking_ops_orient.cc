@@ -20,12 +20,12 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

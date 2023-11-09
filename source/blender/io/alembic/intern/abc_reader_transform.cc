@@ -15,7 +15,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 using Alembic::Abc::ISampleSelector;
 

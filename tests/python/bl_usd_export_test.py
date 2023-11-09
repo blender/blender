@@ -97,11 +97,11 @@ class USDExportTest(AbstractUSDTest):
 
         # if prims are missing, the exporter must have skipped some objects
         stats = UsdUtils.ComputeUsdStageStats(str(export_path))
-        self.assertEqual(stats["totalPrimCount"], 15, "Unexpected number of prims")
+        self.assertEqual(stats["totalPrimCount"], 16, "Unexpected number of prims")
 
         # validate the overall world bounds of the scene
         stage = Usd.Stage.Open(str(export_path))
-        scenePrim = stage.GetPrimAtPath("/scene")
+        scenePrim = stage.GetPrimAtPath("/root/scene")
         bboxcache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
         bounds = bboxcache.ComputeWorldBound(scenePrim)
         bound_min = bounds.GetRange().GetMin()
@@ -110,15 +110,15 @@ class USDExportTest(AbstractUSDTest):
         self.compareVec3d(bound_max, Gf.Vec3d(1, 2.9515805244, 2.7985136508))
 
         # validate the locally authored extents
-        prim = stage.GetPrimAtPath("/scene/BigCube/BigCubeMesh")
+        prim = stage.GetPrimAtPath("/root/scene/BigCube/BigCubeMesh")
         extent = UsdGeom.Boundable(prim).GetExtentAttr().Get()
         self.compareVec3d(Gf.Vec3d(extent[0]), Gf.Vec3d(-1, -1, -2.7985137))
         self.compareVec3d(Gf.Vec3d(extent[1]), Gf.Vec3d(1, 1, 2.7985137))
-        prim = stage.GetPrimAtPath("/scene/LittleCube/LittleCubeMesh")
+        prim = stage.GetPrimAtPath("/root/scene/LittleCube/LittleCubeMesh")
         extent = UsdGeom.Boundable(prim).GetExtentAttr().Get()
         self.compareVec3d(Gf.Vec3d(extent[0]), Gf.Vec3d(-1, -1, -1))
         self.compareVec3d(Gf.Vec3d(extent[1]), Gf.Vec3d(1, 1, 1))
-        prim = stage.GetPrimAtPath("/scene/Volume/Volume")
+        prim = stage.GetPrimAtPath("/root/scene/Volume/Volume")
         extent = UsdGeom.Boundable(prim).GetExtentAttr().Get()
         self.compareVec3d(
             Gf.Vec3d(extent[0]), Gf.Vec3d(-0.7313742, -0.68043584, -0.5801515)
@@ -143,7 +143,7 @@ class USDExportTest(AbstractUSDTest):
 
         # Inspect and validate the exported USD for the opaque blend case.
         stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/_materials/Material/Principled_BSDF")
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         self.assertEqual(opacity_input.HasConnectedSource(), False,
@@ -170,7 +170,7 @@ class USDExportTest(AbstractUSDTest):
 
         # Inspect and validate the exported USD for the alpha clip case.
         stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/_materials/Material/Principled_BSDF")
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         opacity_thres_input = shader.GetInput('opacityThreshold')
@@ -189,7 +189,7 @@ class USDExportTest(AbstractUSDTest):
 
         # Inspect and validate the exported USD for the alpha blend case.
         stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/_materials/Material/Principled_BSDF")
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         opacity_thres_input = shader.GetInput('opacityThreshold')

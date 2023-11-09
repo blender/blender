@@ -44,7 +44,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "IMB_imbuf.h"
 
@@ -261,7 +261,7 @@ static bNodeSocket *node_find_preview_socket(bNodeTree &ntree, bNode &node)
   if (socket == nullptr) {
     socket = get_main_socket(ntree, node, SOCK_IN);
     if (socket != nullptr && socket->link == nullptr) {
-      if (!(ELEM(socket->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA))) {
+      if (!ELEM(socket->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA)) {
         /* We can not preview a socket with no link and no manual value. */
         return nullptr;
       }
@@ -689,16 +689,13 @@ static void update_needed_flag(NestedTreePreviews &tree_previews,
   }
 }
 
-static void shader_preview_startjob(void *customdata,
-                                    bool *stop,
-                                    bool *do_update,
-                                    float * /*progress*/)
+static void shader_preview_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   ShaderNodesPreviewJob *job_data = static_cast<ShaderNodesPreviewJob *>(customdata);
 
-  job_data->stop = stop;
-  job_data->do_update = do_update;
-  *do_update = true;
+  job_data->stop = &worker_status->stop;
+  job_data->do_update = &worker_status->do_update;
+  worker_status->do_update = true;
   bool size_changed = job_data->tree_previews->preview_size != U.node_preview_res;
   if (size_changed) {
     job_data->tree_previews->preview_size = U.node_preview_res;
@@ -786,9 +783,7 @@ static void ensure_nodetree_previews(const bContext &C,
     return;
   }
   if (tree_previews.rendering) {
-    WM_jobs_stop(CTX_wm_manager(&C),
-                 CTX_wm_space_node(&C),
-                 reinterpret_cast<void *>(shader_preview_startjob));
+    WM_jobs_stop(CTX_wm_manager(&C), CTX_wm_space_node(&C), shader_preview_startjob);
     return;
   }
   tree_previews.rendering = true;
@@ -840,7 +835,7 @@ static void ensure_nodetree_previews(const bContext &C,
 
 void stop_preview_job(wmWindowManager &wm)
 {
-  WM_jobs_stop(&wm, nullptr, reinterpret_cast<void *>(shader_preview_startjob));
+  WM_jobs_stop(&wm, nullptr, shader_preview_startjob);
 }
 
 void free_previews(wmWindowManager &wm, SpaceNode &snode)

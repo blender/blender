@@ -32,7 +32,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_common.h"
 #include "NOD_node_declaration.hh"
 #include "NOD_register.hh"
@@ -196,18 +195,18 @@ static SocketDeclarationPtr declaration_for_interface_socket(
 {
   SocketDeclarationPtr dst;
 
-  bNodeSocketType *typeinfo = nodeSocketTypeFind(io_socket.socket_type);
-  if (typeinfo == nullptr) {
+  bNodeSocketType *base_typeinfo = nodeSocketTypeFind(io_socket.socket_type);
+  if (base_typeinfo == nullptr) {
     return dst;
   }
 
-  eNodeSocketDatatype datatype = eNodeSocketDatatype(typeinfo->type);
+  eNodeSocketDatatype datatype = eNodeSocketDatatype(base_typeinfo->type);
 
   switch (datatype) {
     case SOCK_FLOAT: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueFloat>(io_socket);
       std::unique_ptr<decl::Float> decl = std::make_unique<decl::Float>();
-      decl->subtype = PropertySubType(typeinfo->subtype);
+      decl->subtype = PropertySubType(value.subtype);
       decl->default_value = value.value;
       decl->soft_min_value = value.min;
       decl->soft_max_value = value.max;
@@ -217,7 +216,7 @@ static SocketDeclarationPtr declaration_for_interface_socket(
     case SOCK_VECTOR: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueVector>(io_socket);
       std::unique_ptr<decl::Vector> decl = std::make_unique<decl::Vector>();
-      decl->subtype = PropertySubType(typeinfo->subtype);
+      decl->subtype = PropertySubType(value.subtype);
       decl->default_value = value.value;
       decl->soft_min_value = value.min;
       decl->soft_max_value = value.max;
@@ -253,7 +252,7 @@ static SocketDeclarationPtr declaration_for_interface_socket(
     case SOCK_INT: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueInt>(io_socket);
       std::unique_ptr<decl::Int> decl = std::make_unique<decl::Int>();
-      decl->subtype = PropertySubType(typeinfo->subtype);
+      decl->subtype = PropertySubType(value.subtype);
       decl->default_value = value.value;
       decl->soft_min_value = value.min;
       decl->soft_max_value = value.max;
@@ -300,13 +299,15 @@ static SocketDeclarationPtr declaration_for_interface_socket(
       dst = std::move(value);
       break;
     }
-    case SOCK_CUSTOM:
+    case SOCK_CUSTOM: {
       auto value = std::make_unique<decl::Custom>();
       value->init_socket_fn = get_init_socket_fn(ntree.tree_interface, io_socket);
+      value->idname_ = io_socket.socket_type;
       dst = std::move(value);
       break;
+    }
   }
-  dst->name = io_socket.name;
+  dst->name = io_socket.name ? io_socket.name : "";
   dst->identifier = io_socket.identifier;
   dst->in_out = in_out;
   dst->description = io_socket.description ? io_socket.description : "";
@@ -357,11 +358,42 @@ static PanelDeclarationPtr declaration_for_interface_panel(const bNodeTree & /*n
   return dst;
 }
 
-void node_group_declare_dynamic(const bNodeTree & /*node_tree*/,
-                                const bNode &node,
-                                NodeDeclaration &r_declaration)
+static void set_default_input_field(const bNodeTreeInterfaceSocket &input, SocketDeclaration &decl)
 {
-  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id);
+  if (dynamic_cast<decl::Vector *>(&decl)) {
+    if (input.default_input == GEO_NODE_DEFAULT_FIELD_INPUT_NORMAL_FIELD) {
+      decl.implicit_input_fn = std::make_unique<ImplicitInputValueFn>(
+          implicit_field_inputs::normal);
+      decl.hide_value = true;
+    }
+    else if (input.default_input == GEO_NODE_DEFAULT_FIELD_INPUT_POSITION_FIELD) {
+      decl.implicit_input_fn = std::make_unique<ImplicitInputValueFn>(
+          implicit_field_inputs::position);
+      decl.hide_value = true;
+    }
+  }
+  else if (dynamic_cast<decl::Int *>(&decl)) {
+    if (input.default_input == GEO_NODE_DEFAULT_FIELD_INPUT_INDEX_FIELD) {
+      decl.implicit_input_fn = std::make_unique<ImplicitInputValueFn>(
+          implicit_field_inputs::index);
+      decl.hide_value = true;
+    }
+    else if (input.default_input == GEO_NODE_DEFAULT_FIELD_INPUT_ID_INDEX_FIELD) {
+      decl.implicit_input_fn = std::make_unique<ImplicitInputValueFn>(
+          implicit_field_inputs::id_or_index);
+      decl.hide_value = true;
+    }
+  }
+}
+
+void node_group_declare(NodeDeclarationBuilder &b)
+{
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
+  NodeDeclaration &r_declaration = b.declaration();
+  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
   if (!group) {
     return;
   }
@@ -379,19 +411,22 @@ void node_group_declare_dynamic(const bNodeTree & /*node_tree*/,
       case NODE_INTERFACE_SOCKET: {
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
-        if (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
-          if (SocketDeclarationPtr socket_decl = declaration_for_interface_socket(
-                  *group, socket, SOCK_OUT)) {
-            r_declaration.outputs.append(socket_decl.get());
-            r_declaration.items.append(std::move(socket_decl));
-          }
+
+        SocketDeclarationPtr input_decl = (socket.flag & NODE_INTERFACE_SOCKET_INPUT) ?
+                                              declaration_for_interface_socket(
+                                                  *group, socket, SOCK_IN) :
+                                              nullptr;
+        SocketDeclarationPtr output_decl = (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) ?
+                                               declaration_for_interface_socket(
+                                                   *group, socket, SOCK_OUT) :
+                                               nullptr;
+        if (output_decl) {
+          r_declaration.outputs.append(output_decl.get());
+          r_declaration.items.append(std::move(output_decl));
         }
-        if (socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
-          if (SocketDeclarationPtr socket_decl = declaration_for_interface_socket(
-                  *group, socket, SOCK_IN)) {
-            r_declaration.inputs.append(socket_decl.get());
-            r_declaration.items.append(std::move(socket_decl));
-          }
+        if (input_decl) {
+          r_declaration.inputs.append(input_decl.get());
+          r_declaration.items.append(std::move(input_decl));
         }
         break;
       }
@@ -406,6 +441,22 @@ void node_group_declare_dynamic(const bNodeTree & /*node_tree*/,
     }
     return true;
   });
+
+  if (group->type == NTREE_GEOMETRY) {
+    group->ensure_interface_cache();
+    const Span<const bNodeTreeInterfaceSocket *> inputs = group->interface_inputs();
+    const FieldInferencingInterface &field_interface =
+        *group->runtime->field_inferencing_interface;
+    for (const int i : inputs.index_range()) {
+      SocketDeclaration &decl = *r_declaration.inputs[i];
+      decl.input_field_type = field_interface.inputs[i];
+      set_default_input_field(*inputs[i], decl);
+    }
+
+    for (const int i : r_declaration.outputs.index_range()) {
+      r_declaration.outputs[i]->output_field_dependency = field_interface.outputs[i];
+    }
+  }
 }
 
 }  // namespace blender::nodes
@@ -434,7 +485,6 @@ void register_node_type_frame()
 
   blender::bke::node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
   ntype->initfunc = node_frame_init;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
   node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
   blender::bke::node_type_size(ntype, 150, 100, 0);
   ntype->flag |= NODE_BACKGROUND;
@@ -465,7 +515,6 @@ void register_node_type_reroute()
 
   blender::bke::node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
   ntype->initfunc = node_reroute_init;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 
   nodeRegisterType(ntype);
 }
@@ -604,18 +653,21 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 
 namespace blender::nodes {
 
-static void group_input_declare_dynamic(const bNodeTree &node_tree,
-                                        const bNode & /*node*/,
-                                        NodeDeclaration &r_declaration)
+static void group_input_declare(NodeDeclarationBuilder &b)
 {
-  node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
+  const bNodeTree *node_tree = b.tree_or_null();
+  if (node_tree == nullptr) {
+    return;
+  }
+  NodeDeclaration &r_declaration = b.declaration();
+  node_tree->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
     switch (item.item_type) {
       case NODE_INTERFACE_SOCKET: {
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
         if (socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
           SocketDeclarationPtr socket_decl = declaration_for_interface_socket(
-              node_tree, socket, SOCK_OUT);
+              *node_tree, socket, SOCK_OUT);
           r_declaration.outputs.append(socket_decl.get());
           r_declaration.items.append(std::move(socket_decl));
         }
@@ -629,18 +681,21 @@ static void group_input_declare_dynamic(const bNodeTree &node_tree,
   r_declaration.items.append(std::move(extend_decl));
 }
 
-static void group_output_declare_dynamic(const bNodeTree &node_tree,
-                                         const bNode & /*node*/,
-                                         NodeDeclaration &r_declaration)
+static void group_output_declare(NodeDeclarationBuilder &b)
 {
-  node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
+  const bNodeTree *node_tree = b.tree_or_null();
+  if (node_tree == nullptr) {
+    return;
+  }
+  NodeDeclaration &r_declaration = b.declaration();
+  node_tree->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
     switch (item.item_type) {
       case NODE_INTERFACE_SOCKET: {
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
         if (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
           SocketDeclarationPtr socket_decl = declaration_for_interface_socket(
-              node_tree, socket, SOCK_IN);
+              *node_tree, socket, SOCK_IN);
           r_declaration.inputs.append(socket_decl.get());
           r_declaration.items.append(std::move(socket_decl));
         }
@@ -706,8 +761,7 @@ void register_node_type_group_input()
 
   blender::bke::node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
   blender::bke::node_type_size(ntype, 140, 80, 400);
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
-  ntype->declare_dynamic = blender::nodes::group_input_declare_dynamic;
+  ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
 
   nodeRegisterType(ntype);
@@ -731,8 +785,7 @@ void register_node_type_group_output()
 
   blender::bke::node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
   blender::bke::node_type_size(ntype, 140, 80, 400);
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
-  ntype->declare_dynamic = blender::nodes::group_output_declare_dynamic;
+  ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;
 
   ntype->no_muting = true;

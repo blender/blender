@@ -37,7 +37,7 @@
 
 #include "DRW_engine.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "GPU_material.h"
 
@@ -182,7 +182,7 @@ IDTypeInfo IDType_ID_WO = {
     /*main_listbase_index*/ INDEX_ID_WO,
     /*struct_size*/ sizeof(World),
     /*name*/ "World",
-    /*name_plural*/ "worlds",
+    /*name_plural*/ N_("worlds"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_WORLD,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

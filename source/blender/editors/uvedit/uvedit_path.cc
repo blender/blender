@@ -36,8 +36,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_object.hh"
 #include "ED_screen.hh"

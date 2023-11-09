@@ -87,7 +87,7 @@ def addr2line_fn(arg_pair: Tuple[Tuple[str, str, bool], Sequence[str]]) -> Seque
         del output_lines[:2]
         line_list = []
         for line in output_lines_for_addr:
-            if line.startswith(base_path):
+            if base_path and line.startswith(base_path):
                 line = "." + os.sep + line[len(base_path):]
             line_list.append(line)
         output = ": ".join(reversed(line_list))
@@ -205,7 +205,7 @@ def main() -> None:
 
     jobs = args.jobs
     if jobs <= 0:
-        jobs = multiprocessing.cpu_count() * 2
+        jobs = multiprocessing.cpu_count()
 
     base_path = args.base
     if not base_path:

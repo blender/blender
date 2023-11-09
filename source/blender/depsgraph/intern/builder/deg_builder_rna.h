@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "intern/node/deg_node.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node.hh"
+#include "intern/node/deg_node_operation.hh"
 
 struct ID;
 struct PointerRNA;

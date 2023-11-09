@@ -783,13 +783,14 @@ void IDP_CopyPropertyContent(IDProperty *dst, const IDProperty *src)
   IDP_FreeProperty(idprop_tmp);
 }
 
-IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
+IDProperty *IDP_GetProperties(ID *id)
 {
-  if (id->properties) {
-    return id->properties;
-  }
+  return id->properties;
+}
 
-  if (create_if_needed) {
+IDProperty *IDP_EnsureProperties(ID *id)
+{
+  if (id->properties == nullptr) {
     id->properties = static_cast<IDProperty *>(MEM_callocN(sizeof(IDProperty), "IDProperty"));
     id->properties->type = IDP_GROUP;
     /* NOTE(@ideasman42): Don't overwrite the data's name and type
@@ -1306,6 +1307,10 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
 static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
 {
   BLO_read_data_address(reader, &prop->ui_data);
+  if (!prop->ui_data) {
+    /* Can happen when opening more recent files with unknown types of IDProperties. */
+    return;
+  }
   BLO_read_data_address(reader, &prop->ui_data->description);
 
   switch (IDP_ui_data_type(prop)) {

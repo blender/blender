@@ -188,13 +188,13 @@ eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *t
   else if (BLI_file_magic_is_gzip(header)) {
     file = BLI_filereader_new_gzip(rawfile);
     if (file != nullptr) {
-      rawfile = nullptr; /* The Gzip #FileReader takes ownership of raw-file. */
+      rawfile = nullptr; /* The GZIP #FileReader takes ownership of raw-file. */
     }
   }
   else if (BLI_file_magic_is_zstd(header)) {
     file = BLI_filereader_new_zstd(rawfile);
     if (file != nullptr) {
-      rawfile = nullptr; /* The Zstd #FileReader takes ownership of raw-file. */
+      rawfile = nullptr; /* The ZSTD #FileReader takes ownership of raw-file. */
     }
   }
 

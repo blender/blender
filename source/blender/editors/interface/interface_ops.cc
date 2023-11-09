@@ -35,12 +35,12 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_text.h"
 
 #include "IMB_colormanagement.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -58,6 +58,7 @@
 
 #include "ED_object.hh"
 #include "ED_paint.hh"
+#include "ED_undo.hh"
 
 /* for Copy As Driver */
 #include "ED_keyframing.hh"
@@ -145,10 +146,11 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *op)
       }
     }
     else {
-      path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, 0, -1, &id);
+      const int index_dim = (index != -1 && RNA_property_array_check(prop)) ? 1 : 0;
+      path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, index_dim, index, &id);
 
       if (!path) {
-        path = RNA_path_from_ID_to_property(&ptr, prop);
+        path = RNA_path_from_ID_to_property_index(&ptr, prop, index_dim, index);
       }
     }
 
@@ -1055,6 +1057,33 @@ static void ui_context_selected_bones_via_pose(bContext *C, ListBase *r_lb)
   *r_lb = lb;
 }
 
+static void ui_context_fcurve_modifiers_via_fcurve(bContext *C, ListBase *r_lb, FModifier *source)
+{
+  ListBase /* CollectionPointerLink */ fcurve_links;
+  fcurve_links = CTX_data_collection_get(C, "selected_editable_fcurves");
+  if (BLI_listbase_is_empty(&fcurve_links)) {
+    return;
+  }
+  LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, &fcurve_links) {
+    FCurve *fcu = static_cast<FCurve *>(link->ptr.data);
+    bool found_modifier = false;
+    LISTBASE_FOREACH (FModifier *, mod, &fcu->modifiers) {
+      if (STREQ(mod->name, source->name) && mod->type == source->type) {
+        link->ptr = RNA_pointer_create(link->ptr.owner_id, &RNA_FModifier, mod);
+        found_modifier = true;
+        /* Since names are unique it is safe to break here. */
+        break;
+      }
+    }
+    if (!found_modifier) {
+      /* FCurves that don't have a modifier named the same must be removed to avoid segfaults. */
+      BLI_freelinkN(&fcurve_links, link);
+    }
+  }
+
+  *r_lb = fcurve_links;
+}
+
 bool UI_context_copy_to_selected_list(bContext *C,
                                       PointerRNA *ptr,
                                       PropertyRNA *prop,
@@ -1066,6 +1095,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
   *r_path = nullptr;
   /* special case for bone constraints */
   char *path_from_bone = nullptr;
+  const bool is_rna = !RNA_property_is_idprop(prop);
   /* Remove links from the collection list which don't contain 'prop'. */
   bool ensure_list_items_contain_prop = false;
 
@@ -1077,7 +1107,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
    *
    * Properties owned by the ID are handled by the 'if (ptr->owner_id)' case below.
    */
-  if (!RNA_property_is_idprop(prop) && RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
+  if (is_rna && RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
     PointerRNA owner_ptr;
     char *idpath = nullptr;
 
@@ -1085,7 +1115,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     if (NOT_RNA_NULL(owner_ptr = CTX_data_pointer_get_type(C, "active_pose_bone", &RNA_PoseBone)))
     {
       if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                       &owner_ptr, static_cast<IDProperty *>(ptr->data))))
+                       &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
       {
         *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
       }
@@ -1094,7 +1124,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
         owner_ptr = RNA_pointer_create(owner_ptr.owner_id, &RNA_Bone, pchan->bone);
 
         if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                         &owner_ptr, static_cast<IDProperty *>(ptr->data))))
+                         &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
         {
           ui_context_selected_bones_via_pose(C, r_lb);
         }
@@ -1106,7 +1136,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
       if (NOT_RNA_NULL(
               owner_ptr = CTX_data_pointer_get_type_silent(C, "active_bone", &RNA_EditBone)) &&
           NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                       &owner_ptr, static_cast<IDProperty *>(ptr->data))))
+                       &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
       {
         *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
       }
@@ -1178,11 +1208,18 @@ bool UI_context_copy_to_selected_list(bContext *C,
     else {
       *r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
     }
-    /* Account for properties only being available for some sequence types. */
-    ensure_list_items_contain_prop = true;
+
+    if (is_rna) {
+      /* Account for properties only being available for some sequence types. */
+      ensure_list_items_contain_prop = true;
+    }
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_FCurve)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_FModifier)) {
+    FModifier *mod = static_cast<FModifier *>(ptr->data);
+    ui_context_fcurve_modifiers_via_fcurve(C, r_lb, mod);
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Keyframe)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_keyframes");
@@ -1299,14 +1336,17 @@ bool UI_context_copy_to_selected_list(bContext *C,
         /* Special case when we do this for 'Sequence.lock'.
          * (if the sequence is locked, it won't be in "selected_editable_sequences"). */
         const char *prop_id = RNA_property_identifier(prop);
-        if (STREQ(prop_id, "lock")) {
+        if (is_rna && STREQ(prop_id, "lock")) {
           *r_lb = CTX_data_collection_get(C, "selected_sequences");
         }
         else {
           *r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
         }
-        /* Account for properties only being available for some sequence types. */
-        ensure_list_items_contain_prop = true;
+
+        if (is_rna) {
+          /* Account for properties only being available for some sequence types. */
+          ensure_list_items_contain_prop = true;
+        }
       }
     }
     return (*r_path != nullptr);
@@ -1315,14 +1355,58 @@ bool UI_context_copy_to_selected_list(bContext *C,
     return false;
   }
 
+  if (RNA_property_is_idprop(prop)) {
+    if (*r_path == nullptr) {
+      *r_path = RNA_path_from_ptr_to_property_index(ptr, prop, 0, -1);
+      BLI_assert(*r_path);
+    }
+    /* Always resolve custom-properties because they can always exist per-item. */
+    ensure_list_items_contain_prop = true;
+  }
+
   if (ensure_list_items_contain_prop) {
-    const char *prop_id = RNA_property_identifier(prop);
-    LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
-      if ((ptr->type != link->ptr.type) &&
-          (RNA_struct_type_find_property(link->ptr.type, prop_id) != prop))
-      {
-        BLI_remlink(r_lb, link);
-        MEM_freeN(link);
+    if (is_rna) {
+      const char *prop_id = RNA_property_identifier(prop);
+      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
+        if ((ptr->type != link->ptr.type) &&
+            (RNA_struct_type_find_property(link->ptr.type, prop_id) != prop))
+        {
+          BLI_remlink(r_lb, link);
+          MEM_freeN(link);
+        }
+      }
+    }
+    else {
+      const bool prop_is_array = RNA_property_array_check(prop);
+      const int prop_array_len = prop_is_array ? RNA_property_array_length(ptr, prop) : -1;
+      const PropertyType prop_type = RNA_property_type(prop);
+      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
+        PointerRNA lptr;
+        PropertyRNA *lprop = nullptr;
+        RNA_path_resolve_property(&link->ptr, *r_path, &lptr, &lprop);
+
+        bool remove = false;
+        if (lprop == nullptr) {
+          remove = true;
+        }
+        else if (!RNA_property_is_idprop(lprop)) {
+          remove = true;
+        }
+        else if (prop_type != RNA_property_type(lprop)) {
+          remove = true;
+        }
+        else if (prop_is_array != RNA_property_array_check(lprop)) {
+          remove = true;
+        }
+        else if (prop_is_array && (prop_array_len != RNA_property_array_length(&link->ptr, lprop)))
+        {
+          remove = true;
+        }
+
+        if (remove) {
+          BLI_remlink(r_lb, link);
+          MEM_freeN(link);
+        }
       }
     }
   }
@@ -1357,6 +1441,7 @@ bool UI_context_copy_to_selected_check(PointerRNA *ptr,
     RNA_path_resolve_property(ptr_link, path, &lptr, &lprop);
   }
   else {
+    BLI_assert(!RNA_property_is_idprop(prop));
     lptr = *ptr_link;
     lprop = prop;
   }
@@ -1888,7 +1973,7 @@ static void edittranslation_find_po_file(const char *root,
     return;
   }
 
-  /* Now try without the second ISO code part (`_ES` in `es_ES`). */
+  /* Now try without the second ISO code part (`_BR` in `pt_BR`). */
   {
     const char *tc = nullptr;
     size_t szt = 0;
@@ -2232,6 +2317,10 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
     }
+
+    if (UI_but_flag_is_set(but, UI_BUT_UNDO)) {
+      ED_undo_push(C, RNA_property_ui_name(but->rnaprop));
+    }
   }
   else {
     if (gamma) {
@@ -2383,13 +2472,16 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 
 static bool ui_view_focused_poll(bContext *C)
 {
+  const wmWindow *win = CTX_wm_window(C);
+  if (!(win && win->eventstate)) {
+    return false;
+  }
+
   const ARegion *region = CTX_wm_region(C);
   if (!region) {
     return false;
   }
-  const wmWindow *win = CTX_wm_window(C);
   const uiViewHandle *view = UI_region_view_find_at(region, win->eventstate->xy, 0);
-
   return view != nullptr;
 }
 
@@ -2426,6 +2518,9 @@ static void UI_OT_view_start_filter(wmOperatorType *ot)
 static bool ui_view_drop_poll(bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
+  if (!(win && win->eventstate)) {
+    return false;
+  }
   const ARegion *region = CTX_wm_region(C);
   if (region == nullptr) {
     return false;
@@ -2631,7 +2726,7 @@ void ED_operatortypes_ui()
 
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "User Interface", 0, 0);
+  WM_keymap_ensure(keyconf, "User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   eyedropper_modal_keymap(keyconf);
   eyedropper_colorband_modal_keymap(keyconf);

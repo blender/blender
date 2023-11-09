@@ -142,8 +142,9 @@ static float blender_camera_focal_distance(BL::RenderEngine &b_engine,
 {
   BL::Object b_dof_object = b_camera.dof().focus_object();
 
-  if (!b_dof_object)
+  if (!b_dof_object) {
     return b_camera.dof().focus_distance();
+  }
 
   Transform dofmat = get_transform(b_dof_object.matrix_world());
 
@@ -202,10 +203,12 @@ static void blender_camera_from_object(BlenderCamera *bcam,
         bcam->type = CAMERA_ORTHOGRAPHIC;
         break;
       case BL::Camera::type_PANO:
-        if (!skip_panorama)
+        if (!skip_panorama) {
           bcam->type = CAMERA_PANORAMA;
-        else
+        }
+        else {
           bcam->type = CAMERA_PERSPECTIVE;
+        }
         break;
       case BL::Camera::type_PERSP:
       default:
@@ -252,10 +255,12 @@ static void blender_camera_from_object(BlenderCamera *bcam,
       float fstop = b_camera.dof().aperture_fstop();
       fstop = max(fstop, 1e-5f);
 
-      if (bcam->type == CAMERA_ORTHOGRAPHIC)
+      if (bcam->type == CAMERA_ORTHOGRAPHIC) {
         bcam->aperturesize = 1.0f / (2.0f * fstop);
-      else
+      }
+      else {
         bcam->aperturesize = (bcam->lens * 1e-3f) / (2.0f * fstop);
+      }
 
       bcam->apertureblades = b_camera.dof().aperture_blades();
       bcam->aperturerotation = b_camera.dof().aperture_rotation();
@@ -277,12 +282,15 @@ static void blender_camera_from_object(BlenderCamera *bcam,
     bcam->sensor_width = b_camera.sensor_width();
     bcam->sensor_height = b_camera.sensor_height();
 
-    if (b_camera.sensor_fit() == BL::Camera::sensor_fit_AUTO)
+    if (b_camera.sensor_fit() == BL::Camera::sensor_fit_AUTO) {
       bcam->sensor_fit = BlenderCamera::AUTO;
-    else if (b_camera.sensor_fit() == BL::Camera::sensor_fit_HORIZONTAL)
+    }
+    else if (b_camera.sensor_fit() == BL::Camera::sensor_fit_HORIZONTAL) {
       bcam->sensor_fit = BlenderCamera::HORIZONTAL;
-    else
+    }
+    else {
       bcam->sensor_fit = BlenderCamera::VERTICAL;
+    }
   }
   else if (b_ob_data.is_a(&RNA_Light)) {
     /* Can also look through spot light. */
@@ -509,12 +517,15 @@ static void blender_camera_sync(Camera *cam,
   cam->set_use_spherical_stereo(bcam->use_spherical_stereo);
 
   if (cam->get_use_spherical_stereo()) {
-    if (strcmp(viewname, "left") == 0)
+    if (strcmp(viewname, "left") == 0) {
       cam->set_stereo_eye(Camera::STEREO_LEFT);
-    else if (strcmp(viewname, "right") == 0)
+    }
+    else if (strcmp(viewname, "right") == 0) {
       cam->set_stereo_eye(Camera::STEREO_RIGHT);
-    else
+    }
+    else {
       cam->set_stereo_eye(Camera::STEREO_NONE);
+    }
   }
 
   cam->set_use_pole_merge(bcam->use_pole_merge);
@@ -604,8 +615,9 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
   /* camera object */
   BL::Object b_ob = b_scene.camera();
 
-  if (b_override)
+  if (b_override) {
     b_ob = b_override;
+  }
 
   if (b_ob) {
     BL::Array<float, 16> b_ob_matrix;
@@ -641,8 +653,9 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
 void BlenderSync::sync_camera_motion(
     BL::RenderSettings &b_render, BL::Object &b_ob, int width, int height, float motion_time)
 {
-  if (!b_ob)
+  if (!b_ob) {
     return;
+  }
 
   Camera *cam = scene->camera;
   BL::Array<float, 16> b_ob_matrix;
@@ -771,10 +784,12 @@ static void blender_camera_from_view(BlenderCamera *bcam,
     bcam->nearclip = -bcam->farclip;
 
     float sensor_size;
-    if (bcam->sensor_fit == BlenderCamera::VERTICAL)
+    if (bcam->sensor_fit == BlenderCamera::VERTICAL) {
       sensor_size = bcam->sensor_height;
-    else
+    }
+    else {
       sensor_size = bcam->sensor_width;
+    }
 
     bcam->type = CAMERA_ORTHOGRAPHIC;
     bcam->ortho_scale = b_rv3d.view_distance() * sensor_size / b_v3d.lens();
@@ -890,8 +905,9 @@ static void blender_camera_border(BlenderCamera *bcam,
 
   BL::Object b_ob = (b_v3d.use_local_camera()) ? b_v3d.camera() : b_scene.camera();
 
-  if (!b_ob)
+  if (!b_ob) {
     return;
+  }
 
   /* Determine camera border inside the viewport. */
   BoundBox2D full_border;
@@ -970,11 +986,13 @@ BufferParams BlenderSync::get_buffer_params(
   params.full_width = width;
   params.full_height = height;
 
-  if (b_v3d && b_rv3d && b_rv3d.view_perspective() != BL::RegionView3D::view_perspective_CAMERA)
+  if (b_v3d && b_rv3d && b_rv3d.view_perspective() != BL::RegionView3D::view_perspective_CAMERA) {
     use_border = b_v3d.use_render_border();
-  else
+  }
+  else {
     /* the camera can always have a passepartout */
     use_border = true;
+  }
 
   if (use_border) {
     /* border render */

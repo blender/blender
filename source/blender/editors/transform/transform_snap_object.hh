@@ -82,7 +82,10 @@ struct SnapObjectContext {
 
     float ray_depth_max;
     float ray_depth_max_in_front;
-    float dist_px_sq;
+    union {
+      float dist_px_sq;
+      float dist_nearest_sq;
+    };
   } ret;
 };
 
@@ -170,8 +173,7 @@ void cb_snap_edge(void *userdata,
 bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
-                        const blender::float3 &init_co,
-                        const blender::float3 &curr_co,
+                        const blender::float4x4 &obmat,
                         void *treedata,
                         BVHTreeNearest *r_nearest);
 

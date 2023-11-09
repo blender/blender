@@ -343,8 +343,15 @@ static bool addGPULut1D2D(OCIO_GPUTextures &textures,
   unsigned int height = 0;
   GpuShaderCreator::TextureType channel = GpuShaderCreator::TEXTURE_RGB_CHANNEL;
   Interpolation interpolation = INTERP_LINEAR;
+#if OCIO_VERSION_HEX >= 0x02030000
+  /* Always use 2D textures in OpenColorIO 2.3, simpler and same performance. */
+  GpuShaderDesc::TextureDimensions dimensions = GpuShaderDesc::TEXTURE_2D;
+  shader_desc->getTexture(
+      index, texture_name, sampler_name, width, height, channel, dimensions, interpolation);
+#else
   shader_desc->getTexture(
       index, texture_name, sampler_name, width, height, channel, interpolation);
+#endif
 
   const float *values;
   shader_desc->getTextureValues(index, values);
@@ -358,6 +365,7 @@ static bool addGPULut1D2D(OCIO_GPUTextures &textures,
                                                                                   GPU_R16F;
 
   OCIO_GPULutTexture lut;
+#if OCIO_VERSION_HEX < 0x02030000
   /* There does not appear to be an explicit way to check if a texture is 1D or 2D.
    * It depends on more than height. So check instead by looking at the source. */
   std::string sampler1D_name = std::string("sampler1D ") + sampler_name;
@@ -365,7 +373,9 @@ static bool addGPULut1D2D(OCIO_GPUTextures &textures,
     lut.texture = GPU_texture_create_1d(
         texture_name, width, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, values);
   }
-  else {
+  else
+#endif
+  {
     lut.texture = GPU_texture_create_2d(
         texture_name, width, height, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, values);
   }

@@ -36,8 +36,8 @@ shader node_hair_bsdf(color Color = 0.8,
   }
   else {
     if (component == "reflection")
-      BSDF = Color * hair_reflection(Ng, roughnessh, roughnessv, T, offset);
+      BSDF = Color * hair_reflection(N, roughnessh, roughnessv, T, offset);
     else
-      BSDF = Color * hair_transmission(Ng, roughnessh, roughnessv, T, offset);
+      BSDF = Color * hair_transmission(N, roughnessh, roughnessv, T, offset);
   }
 }

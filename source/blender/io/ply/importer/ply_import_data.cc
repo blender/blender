@@ -251,6 +251,19 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     return "Vertex positions are not present in the file";
   }
 
+  Vector<int64_t> custom_attr_indices;
+  for (const int64_t prop_idx : element.properties.index_range()) {
+    const PlyProperty &prop = element.properties[prop_idx];
+    bool is_standard = ELEM(
+        prop.name, "x", "y", "z", "nx", "ny", "nz", "red", "green", "blue", "alpha", "s", "t");
+    if (is_standard)
+      continue;
+
+    custom_attr_indices.append(prop_idx);
+    PlyCustomAttribute attr(prop.name, element.count);
+    data->vertex_custom_attr.append(attr);
+  }
+
   data->vertices.reserve(element.count);
   if (has_color) {
     data->vertex_colors.reserve(element.count);
@@ -329,6 +342,12 @@ static const char *load_vertex_element(PlyReadBuffer &file,
       uvmap.y = value_vec[uv_index.y];
       data->uv_coordinates.append(uvmap);
     }
+
+    /* Custom attributes */
+    for (const int64_t ci : custom_attr_indices.index_range()) {
+      float value = value_vec[custom_attr_indices[ci]];
+      data->vertex_custom_attr[ci].data[i] = value;
+    }
   }
   return nullptr;
 }
@@ -341,8 +360,9 @@ static uint32_t read_list_count(PlyReadBuffer &file,
   scratch.resize(8);
   file.read_bytes(scratch.data(), data_type_size[prop.count_type]);
   const uint8_t *ptr = scratch.data();
-  if (big_endian)
+  if (big_endian) {
     endian_switch((uint8_t *)ptr, data_type_size[prop.count_type]);
+  }
   uint32_t count = get_binary_value<uint32_t>(prop.count_type, ptr);
   return count;
 }
@@ -446,8 +466,9 @@ static const char *load_face_element(PlyReadBuffer &file,
       scratch.resize(count * data_type_size[prop.type]);
       file.read_bytes(scratch.data(), scratch.size());
       ptr = scratch.data();
-      if (header.type == PlyFormatType::BINARY_BE)
+      if (header.type == PlyFormatType::BINARY_BE) {
         endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+      }
       for (int j = 0; j < count; ++j) {
         uint32_t index = get_binary_value<uint32_t>(prop.type, ptr);
         data->face_vertices.append(index);
@@ -508,8 +529,9 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
     scratch.resize(count * data_type_size[prop.type]);
     file.read_bytes(scratch.data(), scratch.size());
     ptr = scratch.data();
-    if (header.type == PlyFormatType::BINARY_BE)
+    if (header.type == PlyFormatType::BINARY_BE) {
       endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+    }
     for (int j = 0; j < count; ++j) {
       int index = get_binary_value<int>(prop.type, ptr);
       strip[j] = index;

@@ -20,6 +20,14 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   )
 endif()
 
+if(WITH_COMPILER_ASAN AND NOT WITH_COMPILER_ASAN_EXTERN)
+  # Disable ASAN for extern dependencies, as it can lead to linking issues due to too large binaries.
+  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
+  string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
+  string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=all")
+  string(APPEND CMAKE_C_FLAGS_DEBUG " -fno-sanitize=all")
+endif()
+
 
 add_subdirectory(rangetree)
 add_subdirectory(nanosvg)

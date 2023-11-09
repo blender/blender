@@ -13,6 +13,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_boolean_cc {
@@ -21,8 +23,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Mesh 1").only_realized_data().supported_type(
       GeometryComponent::Type::Mesh);
-  b.add_input<decl::Geometry>("Mesh 2").multi_input().supported_type(
-      GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh 2")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .multi_input();
   b.add_input<decl::Bool>("Self Intersection");
   b.add_input<decl::Bool>("Hole Tolerant");
   b.add_output<decl::Geometry>("Mesh").propagate_all();
@@ -144,6 +147,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     selection.finish();
   }
+
+  geometry::debug_randomize_mesh_order(result);
 
   params.set_output("Mesh", GeometrySet::from_mesh(result));
 #else

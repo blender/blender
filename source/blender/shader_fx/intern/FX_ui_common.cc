@@ -12,8 +12,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_object.h"
-#include "BKE_screen.h"
+#include "BKE_object.hh"
+#include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
 #include "DNA_object_types.h"

@@ -32,7 +32,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -52,10 +52,10 @@
 #include "BKE_mball.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BLO_read_write.hh"
 
@@ -147,7 +147,7 @@ IDTypeInfo IDType_ID_MB = {
     /*main_listbase_index*/ INDEX_ID_MB,
     /*struct_size*/ sizeof(MetaBall),
     /*name*/ "Metaball",
-    /*name_plural*/ "metaballs",
+    /*name_plural*/ N_("metaballs"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_METABALL,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

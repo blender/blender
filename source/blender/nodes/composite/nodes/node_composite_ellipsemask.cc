@@ -74,7 +74,7 @@ class EllipseMaskOperation : public NodeOperation {
 
   void execute() override
   {
-    GPUShader *shader = shader_manager().get(get_shader_name());
+    GPUShader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
     const Domain domain = compute_domain();

@@ -37,13 +37,13 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
@@ -67,7 +67,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "PIL_time_utildefines.h"
 
@@ -512,7 +512,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 {
   PE_set_data(C, data);
 
-  ED_view3d_viewcontext_init(C, &data->vc, data->depsgraph);
+  data->vc = ED_view3d_viewcontext_init(C, data->depsgraph);
 
   if (!XRAY_ENABLED(data->vc.v3d)) {
     ED_view3d_depth_override(data->depsgraph,

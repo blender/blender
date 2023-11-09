@@ -169,7 +169,9 @@ typedef struct Material {
   struct AnimData *adt;
 
   short flag;
-  char _pad1[2];
+  /** Rendering modes for EEVEE. */
+  char surface_render_method;
+  char _pad1[1];
 
   /* Colors from Blender Internal that we are still using. */
   float r, g, b, a;
@@ -212,10 +214,17 @@ typedef struct Material {
   /* Transparency. */
   float alpha_threshold;
   float refract_depth;
-  char blend_method;
-  char blend_shadow;
+  char blend_method; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
+  char blend_shadow; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
   char blend_flag;
-  char _pad3[1];
+
+  /* Volume. */
+  char volume_intersection_method;
+
+  /* Displacement*/
+  float inflate_bounds;
+
+  char _pad3[4];
 
   /**
    * Cached slots for texture painting, must be refreshed in
@@ -326,6 +335,18 @@ enum {
   MA_PREVIEW_WORLD = 1 << 0,
 };
 
+/** #Material::surface_render_method */
+enum {
+  MA_SURFACE_METHOD_DEFERRED = 0,
+  MA_SURFACE_METHOD_FORWARD = 1,
+};
+
+/** #Material::volume_intersection_method */
+enum {
+  MA_VOLUME_ISECT_FAST = 0,
+  MA_VOLUME_ISECT_ACCURATE = 1,
+};
+
 /** #Material::blend_method */
 enum {
   MA_BM_SOLID = 0,
@@ -342,6 +363,9 @@ enum {
   MA_BL_SS_REFRACTION = (1 << 1),
   MA_BL_CULL_BACKFACE = (1 << 2),
   MA_BL_TRANSLUCENCY = (1 << 3),
+  MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED = (1 << 4),
+  MA_BL_CULL_BACKFACE_SHADOW = (1 << 5),
+  MA_BL_TRANSPARENT_SHADOW = (1 << 6),
 };
 
 /** #Material::blend_shadow */

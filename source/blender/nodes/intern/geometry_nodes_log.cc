@@ -15,6 +15,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
 
+#include "ED_node.hh"
 #include "ED_viewer_path.hh"
 
 #include "MOD_nodes.hh"
@@ -63,6 +64,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
                                            bke::GeometryComponent::Type::Instance,
                                            bke::GeometryComponent::Type::Mesh,
                                            bke::GeometryComponent::Type::PointCloud,
+                                           bke::GeometryComponent::Type::GreasePencil,
                                            bke::GeometryComponent::Type::Volume};
 
   /* Keep track handled attribute names to make sure that we do not return the same name twice.
@@ -127,7 +129,10 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         break;
       }
       case bke::GeometryComponent::Type::GreasePencil: {
-        /* TODO. Do nothing for now. */
+        const auto &grease_pencil_component = *static_cast<const bke::GreasePencilComponent *>(
+            component);
+        GreasePencilInfo &info = this->grease_pencil_info.emplace();
+        info.layers_num = grease_pencil_component.attribute_domain_size(ATTR_DOMAIN_LAYER);
         break;
       }
     }
@@ -293,17 +298,13 @@ void GeoTreeLog::ensure_existing_attributes()
   }
   this->ensure_socket_values();
 
-  Set<StringRef> names;
-
   auto handle_value_log = [&](const ValueLog &value_log) {
     const GeometryInfoLog *geo_log = dynamic_cast<const GeometryInfoLog *>(&value_log);
     if (geo_log == nullptr) {
       return;
     }
     for (const GeometryAttributeInfo &attribute : geo_log->attributes) {
-      if (names.add(attribute.name)) {
-        this->existing_attributes.append(&attribute);
-      }
+      this->existing_attributes.append(&attribute);
     }
   };
 
@@ -480,52 +481,6 @@ GeoTreeLog &GeoModifierLog::get_tree_log(const ComputeContextHash &compute_conte
   return reduced_tree_log;
 }
 
-struct ObjectAndModifier {
-  const Object *object;
-  const NodesModifierData *nmd;
-};
-
-static std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode)
-{
-  if (snode.id == nullptr) {
-    return std::nullopt;
-  }
-  if (GS(snode.id->name) != ID_OB) {
-    return std::nullopt;
-  }
-  const Object *object = reinterpret_cast<Object *>(snode.id);
-  const NodesModifierData *used_modifier = nullptr;
-  if (snode.flag & SNODE_PIN) {
-    LISTBASE_FOREACH (const ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
-        /* Would be good to store the name of the pinned modifier in the node editor. */
-        if (nmd->node_group == snode.nodetree) {
-          used_modifier = nmd;
-          break;
-        }
-      }
-    }
-  }
-  else {
-    LISTBASE_FOREACH (const ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
-        if (nmd->node_group == snode.nodetree) {
-          if (md->flag & eModifierFlag_Active) {
-            used_modifier = nmd;
-            break;
-          }
-        }
-      }
-    }
-  }
-  if (used_modifier == nullptr) {
-    return std::nullopt;
-  }
-  return ObjectAndModifier{object, used_modifier};
-}
-
 static void find_tree_zone_hash_recursive(
     const bNodeTreeZone &zone,
     ComputeContextBuilder &compute_context_builder,
@@ -537,9 +492,10 @@ static void find_tree_zone_hash_recursive(
       break;
     }
     case GEO_NODE_REPEAT_OUTPUT: {
-      /* Only show data from the first iteration for now. */
-      const int iteration = 0;
-      compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone.output_node, iteration);
+      const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
+          zone.output_node->storage);
+      compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone.output_node,
+                                                                  storage.inspection_index);
       break;
     }
   }
@@ -553,46 +509,11 @@ static void find_tree_zone_hash_recursive(
 Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
     get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name)
 {
-  Vector<const bNodeTreePath *> tree_path;
-  LISTBASE_FOREACH (const bNodeTreePath *, item, &snode.treepath) {
-    tree_path.append(item);
-  }
-  if (tree_path.is_empty()) {
-    return {};
-  }
-
   ComputeContextBuilder compute_context_builder;
   compute_context_builder.push<bke::ModifierComputeContext>(modifier_name);
 
-  for (const int i : tree_path.index_range().drop_back(1)) {
-    bNodeTree *tree = tree_path[i]->nodetree;
-    const char *group_node_name = tree_path[i + 1]->node_name;
-    const bNode *group_node = nodeFindNodebyName(tree, group_node_name);
-    if (group_node == nullptr) {
-      return {};
-    }
-    const bNodeTreeZones *tree_zones = tree->zones();
-    if (tree_zones == nullptr) {
-      return {};
-    }
-    const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
-        group_node->identifier);
-    for (const bNodeTreeZone *zone : zone_stack) {
-      switch (zone->output_node->type) {
-        case GEO_NODE_SIMULATION_OUTPUT: {
-          compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone->output_node);
-          break;
-        }
-        case GEO_NODE_REPEAT_OUTPUT: {
-          /* Only show data from the first iteration for now. */
-          const int repeat_iteration = 0;
-          compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone->output_node,
-                                                                      repeat_iteration);
-          break;
-        }
-      }
-    }
-    compute_context_builder.push<bke::NodeGroupComputeContext>(*group_node);
+  if (!ed::space_node::push_compute_context_for_tree_path(snode, compute_context_builder)) {
+    return {};
   }
 
   const bNodeTreeZones *tree_zones = snode.edittree->zones();
@@ -610,7 +531,8 @@ Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
 Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_for_node_editor(
     const SpaceNode &snode)
 {
-  std::optional<ObjectAndModifier> object_and_modifier = get_modifier_for_node_editor(snode);
+  std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
+      ed::space_node::get_modifier_for_node_editor(snode);
   if (!object_and_modifier) {
     return {};
   }
@@ -656,28 +578,9 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   ComputeContextBuilder compute_context_builder;
   compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
-    switch (elem->type) {
-      case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
-        const auto &typed_elem = *reinterpret_cast<const GroupNodeViewerPathElem *>(elem);
-        compute_context_builder.push<bke::NodeGroupComputeContext>(typed_elem.node_id);
-        break;
-      }
-      case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
-        const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(elem);
-        compute_context_builder.push<bke::SimulationZoneComputeContext>(
-            typed_elem.sim_output_node_id);
-        break;
-      }
-      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
-        const auto &typed_elem = *reinterpret_cast<const RepeatZoneViewerPathElem *>(elem);
-        compute_context_builder.push<bke::RepeatZoneComputeContext>(
-            typed_elem.repeat_output_node_id, typed_elem.iteration);
-        break;
-      }
-      default: {
-        BLI_assert_unreachable();
-        break;
-      }
+    if (!ed::viewer_path::add_compute_context_for_viewer_path_elem(*elem, compute_context_builder))
+    {
+      return nullptr;
     }
   }
   const ComputeContextHash context_hash = compute_context_builder.hash();

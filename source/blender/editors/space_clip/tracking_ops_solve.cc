@@ -23,7 +23,7 @@
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -92,11 +92,15 @@ static void solve_camera_updatejob(void *scv)
   STRNCPY(tracking->stats->message, scj->stats_message);
 }
 
-static void solve_camera_startjob(void *scv, bool *stop, bool *do_update, float *progress)
+static void solve_camera_startjob(void *scv, wmJobWorkerStatus *worker_status)
 {
   SolveCameraJob *scj = (SolveCameraJob *)scv;
-  BKE_tracking_reconstruction_solve(
-      scj->context, stop, do_update, progress, scj->stats_message, sizeof(scj->stats_message));
+  BKE_tracking_reconstruction_solve(scj->context,
+                                    &worker_status->stop,
+                                    &worker_status->do_update,
+                                    &worker_status->progress,
+                                    scj->stats_message,
+                                    sizeof(scj->stats_message));
 }
 
 static void solve_camera_freejob(void *scv)
@@ -184,7 +188,8 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
     solve_camera_freejob(scj);
     return OPERATOR_CANCELLED;
   }
-  solve_camera_startjob(scj, nullptr, nullptr, nullptr);
+  wmJobWorkerStatus worker_status = {};
+  solve_camera_startjob(scj, &worker_status);
   solve_camera_freejob(scj);
   return OPERATOR_FINISHED;
 }

@@ -127,6 +127,9 @@ class FrameBuffer {
                        int dst_offset_x,
                        int dst_offset_y) = 0;
 
+  virtual void subpass_transition(const GPUAttachmentState depth_attachment_state,
+                                  Span<GPUAttachmentState> color_attachment_states) = 0;
+
   void load_store_config_array(const GPULoadStore *load_store_actions, uint actions_len);
 
   void attachment_set(GPUAttachmentType type, const GPUAttachment &new_attachment);
@@ -185,6 +188,7 @@ class FrameBuffer {
   inline void scissor_test_set(bool test)
   {
     scissor_test_ = test;
+    dirty_state_ = true;
   }
 
   inline void viewport_get(int r_viewport[4]) const

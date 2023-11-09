@@ -10,7 +10,7 @@ void node_layer_weight(float blend, vec3 N, out float fresnel, out float facing)
 
   /* fresnel */
   float eta = max(1.0 - blend, 0.00001);
-  vec3 V = cameraVec(g_data.P);
+  vec3 V = coordinate_incoming(g_data.P);
 
   fresnel = fresnel_dielectric(V, N, (FrontFacing) ? 1.0 / eta : eta);
 

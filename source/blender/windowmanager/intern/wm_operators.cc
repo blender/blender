@@ -42,7 +42,7 @@
 #include "BLI_dynstr.h" /* For #WM_operator_pystring. */
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
@@ -60,7 +60,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h" /* BKE_ST_MAXNAME */
+#include "BKE_screen.hh" /* BKE_ST_MAXNAME */
 #include "BKE_unit.h"
 
 #include "BKE_idtype.h"
@@ -76,6 +76,7 @@
 
 #include "ED_fileselect.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
@@ -826,8 +827,6 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
   IDPropertyTemplate val = {0};
   IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 
-  CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
-
   PropertyRNA *iterprop = RNA_struct_iterator_property(op->type->srna);
 
   RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
@@ -853,6 +852,9 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
   }
   RNA_PROP_END;
 
+  if (changed) {
+    CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
+  }
   IDP_MergeGroup(op->properties, replaceprops, true);
   IDP_FreeProperty(replaceprops);
   return changed;
@@ -881,7 +883,9 @@ bool WM_operator_last_properties_store(wmOperator *op)
   }
 
   if (op->properties) {
-    CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
+    if (!BLI_listbase_is_empty(&op->properties->data.group)) {
+      CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
+    }
     op->type->last_properties = IDP_CopyProperty(op->properties);
   }
 
@@ -1470,8 +1474,8 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
-  /* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogues have many items
-   * where quitting by accident is very annoying */
+  /* Intentionally don't use #UI_BLOCK_MOVEMOUSE_QUIT, some dialogs have many items
+   * where quitting by accident is very annoying. */
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NUMSELECT);
 
   uiLayout *layout = UI_block_layout(
@@ -1856,6 +1860,8 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   static SearchPopupInit_Data data{};
+  char temp_buffer[256] = "";
+  STRNCPY(temp_buffer, g_search_text);
 
   if (search_type == SEARCH_TYPE_SINGLE_MENU) {
     {
@@ -1875,6 +1881,10 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   data.size[1] = UI_searchbox_size_y();
 
   UI_popup_block_invoke_ex(C, wm_block_search_menu, &data, nullptr, false);
+
+  /* g_search_text contains pressed letter here, copy previous searched
+   * value back to it, this will retain last searched result. see: #112896 */
+  STRNCPY(g_search_text, temp_buffer);
 
   return OPERATOR_INTERFACE;
 }
@@ -2350,14 +2360,10 @@ static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, con
     d[0] *= zoom[0];
     d[1] *= zoom[1];
   }
-  /* Grease pencil draw tool needs to rescale the cursor size. If we don't do that
-   * the size of the radial is not equals to the actual stroke size. */
+  rc->scale_fac = 1.0f;
   if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size) {
-    rc->scale_fac = ED_gpencil_radial_control_scale(
-        C, (Brush *)rc->ptr.owner_id, rc->initial_value, event->mval);
-  }
-  else {
-    rc->scale_fac = 1.0f;
+    Brush *brush = reinterpret_cast<Brush *>(rc->ptr.owner_id);
+    rc->scale_fac = ED_gpencil_radial_control_scale(C, brush, rc->initial_value, event->mval);
   }
 
   rc->initial_mouse[0] -= d[0];
@@ -4101,7 +4107,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Window", 0, 0);
+  WM_keymap_ensure(keyconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   wm_gizmos_keymap(keyconf);
   gesture_circle_modal_keymap(keyconf);

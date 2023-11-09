@@ -9,9 +9,8 @@
  * This contains the common logic used for tagging shadows for opaque and transparent receivers.
  */
 
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_intersect_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
@@ -35,7 +34,7 @@ void shadow_tag_usage_tilemap_directional_at_level(uint l_idx, vec3 P, int level
     return;
   }
 
-  vec3 lP = shadow_world_to_local(light, P);
+  vec3 lP = light_world_to_local(light, P);
 
   level = clamp(level, light.clipmap_lod_min, light.clipmap_lod_max);
 
@@ -51,7 +50,7 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
     return;
   }
 
-  vec3 lP = shadow_world_to_local(light, P);
+  vec3 lP = light_world_to_local(light, P);
 
   /* TODO(Miguel Pozo): Implement lod_bias support. */
   if (radius == 0.0) {
@@ -60,8 +59,8 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
     shadow_tag_usage_tile(light, coord.tile_coord, 0, coord.tilemap_index);
   }
   else {
-    vec3 start_lP = shadow_world_to_local(light, P - V * radius);
-    vec3 end_lP = shadow_world_to_local(light, P + V * radius);
+    vec3 start_lP = light_world_to_local(light, P - V * radius);
+    vec3 end_lP = light_world_to_local(light, P + V * radius);
     int min_level = shadow_directional_level(light, start_lP - light._position);
     int max_level = shadow_directional_level(light, end_lP - light._position);
 
@@ -108,6 +107,9 @@ void shadow_tag_usage_tilemap_punctual(
     }
   }
 
+  /* TODO(fclem): 3D shift for jittered soft shadows. */
+  lP += vec3(0.0, 0.0, -light.shadow_projection_shift);
+
   /* How much a shadow map pixel covers a final image pixel.
    * We project a shadow map pixel (as a sphere for simplicity) to the receiver plane.
    * We then reproject this sphere onto the camera screen and compare it to the film pixel size.
@@ -122,6 +124,8 @@ void shadow_tag_usage_tilemap_punctual(
   }
   /* Apply resolution ratio. */
   footprint_ratio *= tilemap_projection_ratio;
+  /* Take the frustum padding into account. */
+  footprint_ratio *= light.clip_side / orderedIntBitsToFloat(light.clip_near);
 
   if (radius == 0) {
     int face_id = shadow_punctual_face_index_get(lP);

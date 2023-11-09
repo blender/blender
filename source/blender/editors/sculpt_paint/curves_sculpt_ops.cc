@@ -15,7 +15,7 @@
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 
 #include "WM_api.hh"
@@ -33,8 +33,8 @@
 
 #include "AS_asset_representation.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
@@ -1177,22 +1177,12 @@ static void SCULPT_CURVES_OT_min_distance_edit(wmOperatorType *ot)
 
 static int brush_asset_select_exec(bContext *C, wmOperator * /*op*/)
 {
-  char *brush_name = nullptr;
-  char asset_libpath[FILE_MAX];
-  char asset_libpath_full[FILE_MAX_LIBEXTRA];
-  bool asset_handle_valid;
-
-  const AssetHandle asset_handle = CTX_wm_asset_handle(C, &asset_handle_valid);
-  if (!asset_handle_valid) {
+  blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  if (!asset) {
     return OPERATOR_CANCELLED;
   }
-  AssetRepresentationHandle *asset = ED_asset_handle_get_representation(&asset_handle);
+
   AssetWeakReference *brush_asset_reference = asset->make_weak_reference();
-
-  ED_asset_handle_get_full_path(&asset_handle, asset_libpath_full);
-  BKE_blendfile_library_path_explode(asset_libpath_full, asset_libpath, nullptr, &brush_name);
-  BLI_assert(brush_name != nullptr);
-
   Brush *brush = BKE_brush_asset_runtime_ensure(CTX_data_main(C), brush_asset_reference);
 
   ToolSettings *tool_settings = CTX_data_tool_settings(C);

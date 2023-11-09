@@ -30,10 +30,10 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 static void alloc_child_particles(ParticleSystem *psys, int tot)
 {
@@ -128,11 +128,11 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 
   /* float errors grrr. */
   size[(axis + 1) % 3] = MIN2(size[(axis + 1) % 3], res);
-  size[(axis + 2) % 3] = MIN2(size[(axis + 2) % 3], res);
+  size[(axis + 2) % 3] = std::min(size[(axis + 2) % 3], res);
 
-  size[0] = MAX2(size[0], 1);
-  size[1] = MAX2(size[1], 1);
-  size[2] = MAX2(size[2], 1);
+  size[0] = std::max(size[0], 1);
+  size[1] = std::max(size[1], 1);
+  size[2] = std::max(size[2], 1);
 
   /* no full offset for flat/thin objects */
   min[0] += d < delta[0] ? d / 2.0f : delta[0] / 2.0f;
@@ -741,7 +741,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
     maxw = BLI_kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
 
     maxd = ptn[maxw - 1].dist;
-    /* mind=ptn[0].dist; */ /* UNUSED */
+    // mind=ptn[0].dist; /* UNUSED */
 
     /* the weights here could be done better */
     for (w = 0; w < maxw; w++) {

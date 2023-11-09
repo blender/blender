@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_attribute.h"
 #include "BKE_subdiv_modifier.hh"
 
 #include "MEM_guardedalloc.h"
@@ -85,14 +86,8 @@ static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
 
 bool BKE_subsurf_modifier_use_custom_loop_normals(const SubsurfModifierData *smd, const Mesh *mesh)
 {
-  return (smd->flags & eSubsurfModifierFlag_UseCustomNormals) && (mesh->flag & ME_AUTOSMOOTH) &&
-         CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL);
-}
-
-static bool subsurf_modifier_use_autosmooth_or_split_normals(const SubsurfModifierData *smd,
-                                                             const Mesh *mesh)
-{
-  return (mesh->flag & ME_AUTOSMOOTH) || BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh);
+  return smd->flags & eSubsurfModifierFlag_UseCustomNormals &&
+         mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner;
 }
 
 static bool is_subdivision_evaluation_possible_on_gpu()
@@ -102,7 +97,7 @@ static bool is_subdivision_evaluation_possible_on_gpu()
     return false;
   }
 
-  if (!(GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support())) {
+  if (!GPU_compute_shader_support()) {
     return false;
   }
 
@@ -126,7 +121,7 @@ bool BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(const SubsurfMod
     return false;
   }
 
-  return subsurf_modifier_use_autosmooth_or_split_normals(smd, mesh);
+  return BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh);
 }
 
 bool BKE_subsurf_modifier_can_do_gpu_subdiv(const Scene *scene,
@@ -139,9 +134,9 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const Scene *scene,
     return false;
   }
 
-  /* Deactivate GPU subdivision if autosmooth or custom split normals are used as those are
+  /* Deactivate GPU subdivision if auto-smooth or custom split normals are used as those are
    * complicated to support on GPU, and should really be separate workflows. */
-  if (subsurf_modifier_use_autosmooth_or_split_normals(smd, mesh)) {
+  if (BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh)) {
     return false;
   }
 

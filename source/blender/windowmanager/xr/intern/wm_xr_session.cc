@@ -12,7 +12,7 @@
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
@@ -20,8 +20,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_space_types.h"

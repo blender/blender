@@ -24,7 +24,8 @@
 #include "BKE_layer.h"
 
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -221,7 +222,7 @@ static void createTransGPencil_curves(bContext *C,
       }
 
       if ((gpf->framenum != cfra) && (!is_multiedit)) {
-        if (IS_AUTOKEY_ON(scene)) {
+        if (blender::animrig::is_autokey_on(scene)) {
           gpf = BKE_gpencil_frame_addcopy(gpl, cfra);
         }
         /* In some weird situations (frame-lock enabled) return nullptr. */
@@ -521,7 +522,7 @@ static void createTransGPencil_strokes(bContext *C,
        *   spent too much time editing the wrong frame...
        */
       if ((gpf->framenum != cfra) && (!is_multiedit)) {
-        if (IS_AUTOKEY_ON(scene)) {
+        if (blender::animrig::is_autokey_on(scene)) {
           gpf = BKE_gpencil_frame_addcopy(gpl, cfra);
         }
         /* In some weird situations (frame-lock enabled) return nullptr. */

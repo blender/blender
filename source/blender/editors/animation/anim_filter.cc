@@ -86,8 +86,8 @@
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 
-#include "SEQ_sequencer.h"
-#include "SEQ_utils.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_utils.hh"
 
 #include "ANIM_bone_collections.h"
 
@@ -138,7 +138,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
   switch (saction->mode) {
     case SACTCONT_ACTION: /* 'Action Editor' */
       /* if not pinned, sync with active object */
-      if (/*saction->pin == 0*/ true) {
+      if (/* `saction->pin == 0` */ true) {
         if (ac->obact && ac->obact->adt) {
           saction->action = ac->obact->adt->action;
         }
@@ -158,7 +158,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->data = actedit_get_shapekeys(ac);
 
       /* if not pinned, sync with active object */
-      if (/*saction->pin == 0*/ true) {
+      if (/* `saction->pin == 0` */ true) {
         Key *key = (Key *)ac->data;
 
         if (key && key->adt) {
@@ -1822,7 +1822,7 @@ static size_t animdata_filter_grease_pencil_layer_node_recursive(
     size_t tmp_items = 0;
 
     /* Add grease pencil layer channels. */
-    BEGIN_ANIMFILTER_SUBCHANNELS ((layer_group.base.flag & GP_LAYER_TREE_NODE_EXPANDED)) {
+    BEGIN_ANIMFILTER_SUBCHANNELS (layer_group.base.flag &GP_LAYER_TREE_NODE_EXPANDED) {
       LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group.children) {
         tmp_items += animdata_filter_grease_pencil_layer_node_recursive(
             &tmp_data, ads, grease_pencil, node_->wrap(), filter_mode);

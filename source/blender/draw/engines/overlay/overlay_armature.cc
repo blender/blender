@@ -29,9 +29,9 @@
 #include "BKE_armature.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_armature.hh"
 #include "ED_view3d.hh"
@@ -61,7 +61,7 @@ enum eArmatureDrawMode {
 struct ArmatureDrawContext {
   /* Current armature object */
   Object *ob;
-  /* bArmature *arm; */ /* TODO */
+  // bArmature *arm; /* TODO. */
   eArmatureDrawMode draw_mode;
   eArmature_Drawtype drawtype;
 
@@ -1134,11 +1134,11 @@ static void cp_shade_color3ub(uchar cp[3], const int offset)
 static void use_bone_color(float *r_color, const uint8_t *color_from_theme, const int shade_offset)
 {
   uint8_t srgb_color[4];
-  copy_v3_v3_uchar(srgb_color, color_from_theme);
+  copy_v4_v4_uchar(srgb_color, color_from_theme);
   if (shade_offset != 0) {
     cp_shade_color3ub(srgb_color, shade_offset);
   }
-  rgb_uchar_to_float(r_color, srgb_color);
+  rgba_uchar_to_float(r_color, srgb_color);
   /* Meh, hardcoded srgb transform here. */
   srgb_to_linearrgb_v4(r_color, r_color);
 };
@@ -1201,7 +1201,11 @@ static void get_pchan_color_constraint(const ThemeWireColor *bcolor,
                                        float r_color[4])
 {
   const ePchan_ConstFlag constflag = bone.constflag();
-  if (constflag == 0 || (bcolor && (bcolor->flag & TH_WIRECOLOR_CONSTCOLS) == 0)) {
+  /* Not all flags should result in a different bone color. */
+  const ePchan_ConstFlag flags_to_color = PCHAN_HAS_NO_TARGET | PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK |
+                                          PCHAN_HAS_CONST;
+  if ((constflag & flags_to_color) == 0 ||
+      (bcolor && (bcolor->flag & TH_WIRECOLOR_CONSTCOLS) == 0)) {
     get_pchan_color_solid(bcolor, r_color);
     return;
   }
@@ -1211,8 +1215,8 @@ static void get_pchan_color_constraint(const ThemeWireColor *bcolor,
   get_pchan_color_solid(bcolor, solid_color);
 
   float4 constraint_color;
-  if (constflag & PCHAN_HAS_TARGET) {
-    constraint_color = G_draw.block.color_bone_pose_target;
+  if (constflag & PCHAN_HAS_NO_TARGET) {
+    constraint_color = G_draw.block.color_bone_pose_no_target;
   }
   else if (constflag & PCHAN_HAS_IK) {
     constraint_color = G_draw.block.color_bone_pose_ik;
@@ -1223,7 +1227,7 @@ static void get_pchan_color_constraint(const ThemeWireColor *bcolor,
   else if (constflag & PCHAN_HAS_CONST) {
     constraint_color = G_draw.block.color_bone_pose_constraint;
   }
-  interp_v3_v3v3(r_color, solid_color, constraint_color, 0.5f);
+  interp_v4_v4v4(r_color, solid_color, constraint_color, 0.5f);
 }
 
 /** \} */
@@ -1823,11 +1827,11 @@ static void pchan_draw_ik_lines(const ArmatureDrawContext *ctx,
         if (parchan) {
           line_end = parchan->pose_head;
 
-          if (constflag & PCHAN_HAS_TARGET) {
-            drw_shgroup_bone_ik_lines(ctx, line_start, line_end);
+          if (constflag & PCHAN_HAS_NO_TARGET) {
+            drw_shgroup_bone_ik_no_target_lines(ctx, line_start, line_end);
           }
           else {
-            drw_shgroup_bone_ik_no_target_lines(ctx, line_start, line_end);
+            drw_shgroup_bone_ik_lines(ctx, line_start, line_end);
           }
         }
         break;
@@ -1903,7 +1907,7 @@ static void draw_bone_relations(const ArmatureDrawContext *ctx,
       if (ctx->draw_mode == ARM_DRAW_MODE_POSE) {
         if (pchan->constflag & (PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK)) {
           if (boneflag & BONE_SELECTED) {
-            pchan_draw_ik_lines(ctx, bone.as_posebone(), !ctx->do_relations);
+            pchan_draw_ik_lines(ctx, pchan, !ctx->do_relations);
           }
         }
       }

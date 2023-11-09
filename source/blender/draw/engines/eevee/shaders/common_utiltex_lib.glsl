@@ -20,12 +20,12 @@ uniform sampler2DArray utilTex;
 #define LUT_SIZE 64
 
 #define LTC_MAT_LAYER 0
-#define LTC_BRDF_LAYER 1
+#define LTC_BRDF_LAYER 3
+#define LTC_DISK_LAYER 3
 #define BRDF_LUT_LAYER 1
 #define NOISE_LAYER 2
-#define LTC_DISK_LAYER 3 /* UNUSED */
 
-/* Layers 4 to 20 are for BTDF Lut. */
+/* Layers 4 to 20 are for BTDF LUT. */
 #define lut_btdf_layer_first 4.0
 #define lut_btdf_layer_count 16.0
 
@@ -51,8 +51,63 @@ vec2 brdf_lut(float cos_theta, float roughness)
   return textureLod(utilTex, vec3(lut_coords(cos_theta, roughness), BRDF_LUT_LAYER), 0.0).rg;
 }
 
+void brdf_f82_tint_lut(vec3 F0,
+                       vec3 F82,
+                       float cos_theta,
+                       float roughness,
+                       bool do_multiscatter,
+                       out vec3 reflectance)
+{
+  vec2 uv = lut_coords(cos_theta, roughness);
+  vec3 split_sum = textureLod(utilTex, vec3(uv, BRDF_LUT_LAYER), 0.0).rgb;
+
+  reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :
+                                  F_brdf_single_scatter(F0, vec3(1.0), split_sum.xy);
+
+  /* Precompute the F82 term factor for the Fresnel model.
+   * In the classic F82 model, the F82 input directly determines the value of the Fresnel
+   * model at ~82°, similar to F0 and F90.
+   * With F82-Tint, on the other hand, the value at 82° is the value of the classic Schlick
+   * model multiplied by the tint input.
+   * Therefore, the factor follows by setting `F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6`
+   * and `F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint` and solving for `b`. */
+  const float f = 6.0 / 7.0;
+  const float f5 = (f * f) * (f * f) * f;
+  const float f6 = (f * f) * (f * f) * (f * f);
+  vec3 F_schlick = mix(F0, vec3(1.0), f5);
+  vec3 b = F_schlick * (7.0 / f6) * (1.0 - F82);
+  reflectance -= b * split_sum.z;
+}
+
+vec4 sample_3D_texture(sampler2DArray tex, vec3 coords)
+{
+  float layer_floored;
+  float interp = modf(coords.z, layer_floored);
+
+  coords.z = layer_floored;
+  vec4 tex_low = textureLod(tex, coords, 0.0);
+
+  coords.z += 1.0;
+  vec4 tex_high = textureLod(tex, coords, 0.0);
+
+  /* Manual trilinear interpolation. */
+  return mix(tex_low, tex_high, interp);
+}
+
 /* Return texture coordinates to sample Surface LUT. */
 vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
+{
+  vec3 coords = vec3(sqrt((ior - 1.0) / (ior + 1.0)), sqrt(1.0 - cos_theta), roughness);
+
+  /* scale and bias coordinates, for correct filtered lookup */
+  coords.xy = coords.xy * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
+  coords.z = coords.z * lut_btdf_layer_count + lut_btdf_layer_first;
+
+  return coords;
+}
+
+/* Return texture coordinates to sample BSDF LUT. */
+vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 {
   /* ior is sin of critical angle. */
   float critical_cos = sqrt(1.0 - ior * ior);
@@ -69,53 +124,82 @@ vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
 
   /* scale and bias coordinates, for correct filtered lookup */
   coords.xy = coords.xy * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
+  coords.z = coords.z * lut_btdf_layer_count + lut_btdf_layer_first;
 
   return coords;
 }
 
-/* Returns GGX BTDF in first component and fresnel in second. */
-vec2 btdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+/* Computes the reflectance and transmittance based on the tint (`f0`, `f90`, `transmission_tint`)
+ * and the BSDF LUT. */
+void bsdf_lut(vec3 F0,
+              vec3 F90,
+              vec3 transmission_tint,
+              float cos_theta,
+              float roughness,
+              float ior,
+              bool do_multiscatter,
+              out vec3 reflectance,
+              out vec3 transmittance)
 {
-  if (ior <= 1e-5) {
-    return vec2(0.0);
+  if (ior == 1.0) {
+    reflectance = vec3(0.0);
+    transmittance = transmission_tint;
+    return;
   }
 
-  if (ior >= 1.0) {
-    vec2 split_sum = brdf_lut(cos_theta, roughness);
-    float f0 = F0_from_ior(ior);
+  vec2 split_sum;
+  float transmission_factor;
+
+  if (ior > 1.0) {
+    split_sum = brdf_lut(cos_theta, roughness);
+    transmission_factor = sample_3D_texture(utilTex, lut_coords_btdf(cos_theta, roughness, ior)).a;
     /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
      * transition at `IOR == 1`. */
-    float f90 = fast_sqrt(saturate(f0 / 0.02));
-
-    float brdf = F_brdf_multi_scatter(vec3(f0), vec3(f90), split_sum).r;
-    /* Energy conservation. */
-    float btdf = 1.0 - brdf;
-    /* Assuming the energy loss caused by single-scattering is distributed proportionally in the
-     * reflection and refraction lobes. */
-    return vec2(btdf, brdf) * ((do_multiscatter == 0.0) ? sum(split_sum) : 1.0);
+    if (all(equal(F90, vec3(1.0)))) {
+      F90 = vec3(saturate(2.33 / 0.33 * (ior - 1.0) / (ior + 1.0)));
+    }
+  }
+  else {
+    vec3 bsdf = sample_3D_texture(utilTex, lut_coords_bsdf(cos_theta, roughness, ior)).rgb;
+    split_sum = bsdf.rg;
+    transmission_factor = bsdf.b;
   }
 
-  vec3 coords = lut_coords_btdf(cos_theta, roughness, ior);
+  reflectance = F_brdf_single_scatter(F0, F90, split_sum);
+  transmittance = (vec3(1.0) - F0) * transmission_factor * transmission_tint;
 
-  float layer = coords.z * lut_btdf_layer_count;
-  float layer_floored = floor(layer);
+  if (do_multiscatter) {
+    float real_F0 = F0_from_ior(ior);
+    float Ess = real_F0 * split_sum.x + split_sum.y + (1.0 - real_F0) * transmission_factor;
+    float Ems = 1.0 - Ess;
+    /* Assume that the transmissive tint makes up most of the overall color if it's not zero. */
+    vec3 Favg = all(equal(transmission_tint, vec3(0.0))) ? F0 + (F90 - F0) / 21.0 :
+                                                           transmission_tint;
 
-  coords.z = lut_btdf_layer_first + layer_floored;
-  vec2 btdf_brdf_low = textureLod(utilTex, coords, 0.0).rg;
-
-  coords.z += 1.0;
-  vec2 btdf_brdf_high = textureLod(utilTex, coords, 0.0).rg;
-
-  /* Manual trilinear interpolation. */
-  vec2 btdf_brdf = mix(btdf_brdf_low, btdf_brdf_high, layer - layer_floored);
-
-  if (do_multiscatter != 0.0) {
-    /* For energy-conserving BSDF the reflection and refraction lobes should sum to one. Assuming
-     * the energy loss of single-scattering is distributed proportionally in the two lobes. */
-    btdf_brdf /= (btdf_brdf.x + btdf_brdf.y);
+    vec3 scale = 1.0 / (1.0 - Ems * Favg);
+    reflectance *= scale;
+    transmittance *= scale;
   }
 
-  return btdf_brdf;
+  return;
+}
+
+/* Computes the reflectance and transmittance based on the BSDF LUT. */
+vec2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatter)
+{
+  float F0 = F0_from_ior(ior);
+  vec3 color = vec3(1.0);
+  vec3 reflectance, transmittance;
+  bsdf_lut(vec3(F0),
+           color,
+           color,
+           cos_theta,
+           roughness,
+           ior,
+           do_multiscatter,
+           reflectance,
+           transmittance);
+  return vec2(reflectance.r, transmittance.r);
 }
 
 /** \} */

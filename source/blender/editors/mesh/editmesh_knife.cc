@@ -62,8 +62,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "mesh_intern.h" /* Own include. */
 
@@ -3849,7 +3849,7 @@ static void knife_constrain_axis(KnifeTool_OpData *kcd)
   mul_m3_m3_pre(co, mat);
   for (int i = 0; i <= 2; i++) {
     if ((kcd->constrain_axis - 1) != i) {
-      /* kcd->curr_cage_adjusted[i] = prev_cage_adjusted[i]; */
+      // kcd->curr_cage_adjusted[i] = prev_cage_adjusted[i];
       co[2][i] = co[0][i];
     }
   }
@@ -4810,10 +4810,9 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const float angle_snapping_increment = RAD2DEGF(
       RNA_float_get(op->ptr, "angle_snapping_increment"));
 
-  ViewContext vc;
   KnifeTool_OpData *kcd;
 
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
 
   /* alloc new customdata */
   kcd = static_cast<KnifeTool_OpData *>(
@@ -4966,7 +4965,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   while (p) {
     const float(*mval_fl)[2] = static_cast<const float(*)[2]>(p->link);
     const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
-    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1, false));
+    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1));
     p = p->next;
   }
 

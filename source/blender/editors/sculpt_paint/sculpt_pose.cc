@@ -176,7 +176,7 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
       mul_v3_fl(disp, segments[ik].weights[vd.index]);
 
       /* Apply the vertex mask to the displacement. */
-      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+      const float mask = 1.0f - vd.mask;
       const float automask = SCULPT_automasking_factor_get(
           ss->cache->automasking, ss, vd.vertex, &automask_data);
       mul_v3_fl(disp, mask * automask);
@@ -220,7 +220,7 @@ static void pose_brush_grow_factor_task(Object *ob,
     /* Grow the factor. */
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       float vmask_f = prev_mask[ni.index];
-      max = MAX2(vmask_f, max);
+      max = std::max(vmask_f, max);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 

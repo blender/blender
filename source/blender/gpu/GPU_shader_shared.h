@@ -7,6 +7,8 @@
  */
 
 #ifndef USE_GPU_SHADER_CREATE_INFO
+#  pragma once
+
 #  include "GPU_shader_shared_utils.h"
 
 typedef struct TestOutputRawData TestOutputRawData;

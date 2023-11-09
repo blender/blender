@@ -30,7 +30,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -38,7 +38,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
@@ -477,22 +477,6 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     return mesh;
   }
 
-  /* XXX TODO(Rohan Rathi):
-   * Once we fully switch to Mesh evaluation of modifiers,
-   * we can expect to get that flag from the COW copy.
-   * But for now, it is lost in the DM intermediate step,
-   * so we need to directly check orig object's data. */
-#if 0
-  if (!(mesh->flag & ME_AUTOSMOOTH))
-#else
-  if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH))
-#endif
-  {
-    BKE_modifier_set_error(
-        ob, (ModifierData *)enmd, "Enable 'Auto Smooth' in Object Data Properties");
-    return mesh;
-  }
-
   Mesh *result;
   if (mesh->edges().data() == ((Mesh *)ob->data)->edges().data()) {
     /* We need to duplicate data here, otherwise setting custom normals
@@ -540,8 +524,6 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                           sharp_edges.span.data(),
                                           sharp_faces,
                                           clnors,
-                                          true,
-                                          result->smoothresh,
                                           nullptr,
                                           loop_normals);
   }

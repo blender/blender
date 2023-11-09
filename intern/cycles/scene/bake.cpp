@@ -51,8 +51,9 @@ void BakeManager::device_update(Device * /*device*/,
                                 Scene *scene,
                                 Progress & /* progress */)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   KernelBake *kbake = &dscene->data.bake;
   memset(kbake, 0, sizeof(*kbake));

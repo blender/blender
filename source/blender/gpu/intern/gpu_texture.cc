@@ -920,6 +920,22 @@ bool GPU_texture_has_integer_format(const GPUTexture *tex)
   return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_INTEGER) != 0;
 }
 
+bool GPU_texture_has_float_format(const GPUTexture *tex)
+{
+  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_FLOAT) != 0;
+}
+
+bool GPU_texture_has_normalized_format(const GPUTexture *tex)
+{
+  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() &
+          GPU_FORMAT_NORMALIZED_INTEGER) != 0;
+}
+
+bool GPU_texture_has_signed_format(const GPUTexture *tex)
+{
+  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_SIGNED) != 0;
+}
+
 bool GPU_texture_is_cube(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->type_get() & GPU_TEXTURE_CUBE) != 0;

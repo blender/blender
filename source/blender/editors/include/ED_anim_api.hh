@@ -570,6 +570,12 @@ struct bAnimChannelType {
   /* -- Drawing -- */
   /** Get RGB color that is used to draw the majority of the backdrop. */
   void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float r_color[3]);
+
+  /** Get RGB color that represents this channel.
+   * \return true when r_color was updated, false when there is no color for this channel.
+   */
+  bool (*get_channel_color)(const bAnimListElem *ale, uint8_t r_color[3]);
+
   /** Draw backdrop strip for channel. */
   void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
   /** Get depth of indentation (relative to the depth channel is nested at). */
@@ -711,20 +717,6 @@ void ANIM_set_active_channel(bAnimContext *ac,
  * Return whether channel is active.
  */
 bool ANIM_is_active_channel(bAnimListElem *ale);
-
-/**
- * Delete the F-Curve from the given AnimData block (if possible),
- * as appropriate according to animation context.
- */
-void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu);
-
-/**
- * Unlink the action from animdata if it's empty.
- *
- * If the action has no F-Curves, unlink it from AnimData if it did not
- * come from a NLA Strip being tweaked.
- */
-bool ANIM_remove_empty_action_from_animdata(AnimData *adt);
 
 /* ************************************************ */
 /* DRAWING API */

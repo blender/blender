@@ -13,7 +13,7 @@
 
 #include "DNA_armature_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_batch.h"
 

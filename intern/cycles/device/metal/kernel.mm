@@ -41,6 +41,12 @@ struct ShaderCache {
     if (MetalInfo::get_device_vendor(mtlDevice) == METAL_GPU_APPLE) {
       switch (MetalInfo::get_apple_gpu_architecture(mtlDevice)) {
         default:
+        case APPLE_M3:
+          /* Peak occupancy is achieved through Dynamic Caching on M3 GPUs. */
+          for (size_t i = 0; i < DEVICE_KERNEL_NUM; i++) {
+            occupancy_tuning[i] = {64, 64};
+          }
+          break;
         case APPLE_M2_BIG:
           occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {384, 128};
           occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {640, 128};
@@ -489,14 +495,14 @@ void MetalKernelPipeline::compile()
           "__anyhit__cycles_metalrt_visibility_test_box",
           "__anyhit__cycles_metalrt_shadow_all_hit_tri",
           "__anyhit__cycles_metalrt_shadow_all_hit_box",
+          "__anyhit__cycles_metalrt_volume_test_tri",
+          "__anyhit__cycles_metalrt_volume_test_box",
           "__anyhit__cycles_metalrt_local_hit_tri",
           "__anyhit__cycles_metalrt_local_hit_box",
           "__anyhit__cycles_metalrt_local_hit_tri_prim",
           "__anyhit__cycles_metalrt_local_hit_box_prim",
-          "__intersection__curve_ribbon",
-          "__intersection__curve_ribbon_shadow",
-          "__intersection__curve_all",
-          "__intersection__curve_all_shadow",
+          "__intersection__curve",
+          "__intersection__curve_shadow",
           "__intersection__point",
           "__intersection__point_shadow",
       };
@@ -540,17 +546,8 @@ void MetalKernelPipeline::compile()
     id<MTLFunction> point_intersect_default = nil;
     id<MTLFunction> point_intersect_shadow = nil;
     if (kernel_features & KERNEL_FEATURE_HAIR) {
-      /* Add curve intersection programs. */
-      if (kernel_features & KERNEL_FEATURE_HAIR_THICK) {
-        /* Slower programs for thick hair since that also slows down ribbons.
-         * Ideally this should not be needed. */
-        curve_intersect_default = rt_intersection_function[METALRT_FUNC_CURVE_ALL];
-        curve_intersect_shadow = rt_intersection_function[METALRT_FUNC_CURVE_ALL_SHADOW];
-      }
-      else {
-        curve_intersect_default = rt_intersection_function[METALRT_FUNC_CURVE_RIBBON];
-        curve_intersect_shadow = rt_intersection_function[METALRT_FUNC_CURVE_RIBBON_SHADOW];
-      }
+      curve_intersect_default = rt_intersection_function[METALRT_FUNC_CURVE];
+      curve_intersect_shadow = rt_intersection_function[METALRT_FUNC_CURVE_SHADOW];
     }
     if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
       point_intersect_default = rt_intersection_function[METALRT_FUNC_POINT];
@@ -574,6 +571,11 @@ void MetalKernelPipeline::compile()
                              point_intersect_shadow :
                              rt_intersection_function[METALRT_FUNC_SHADOW_BOX],
                          nil];
+    table_functions[METALRT_TABLE_VOLUME] = [NSArray
+        arrayWithObjects:rt_intersection_function[METALRT_FUNC_VOLUME_TRI],
+                         rt_intersection_function[METALRT_FUNC_VOLUME_BOX],
+                         rt_intersection_function[METALRT_FUNC_VOLUME_BOX],
+                         nil];
     table_functions[METALRT_TABLE_LOCAL] = [NSArray
         arrayWithObjects:rt_intersection_function[METALRT_FUNC_LOCAL_TRI],
                          rt_intersection_function[METALRT_FUNC_LOCAL_BOX],
@@ -585,9 +587,10 @@ void MetalKernelPipeline::compile()
                          rt_intersection_function[METALRT_FUNC_LOCAL_BOX_PRIM],
                          nil];
 
-    NSMutableSet *unique_functions = [NSMutableSet
-        setWithArray:table_functions[METALRT_TABLE_DEFAULT]];
+    NSMutableSet *unique_functions = [[NSMutableSet alloc] init];
+    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_DEFAULT]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_SHADOW]];
+    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_VOLUME]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL_PRIM]];
 

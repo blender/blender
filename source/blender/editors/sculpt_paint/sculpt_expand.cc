@@ -34,7 +34,7 @@
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -676,7 +676,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
         continue;
       }
       dists[ni.index] = dists[v_next_i] + 1.0f;
-      visited_verts[ni.index];
+      visited_verts[ni.index].set();
       BLI_gsqueue_push(queue, &ni.vertex);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -1194,16 +1194,50 @@ static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *exp
   }
 }
 
-static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expand_cache)
+static void write_mask_data(SculptSession *ss, const Span<float> mask)
 {
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
-  for (PBVHNode *node : nodes) {
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      *vd.mask = expand_cache->original_mask[vd.index];
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
+      float *layer = static_cast<float *>(
+          CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
+      for (PBVHNode *node : nodes) {
+        PBVHVertexIter vd;
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+          layer[vd.index] = mask[vd.index];
+        }
+        BKE_pbvh_vertex_iter_end;
+        BKE_pbvh_node_mark_redraw(node);
+      }
+      break;
     }
-    BKE_pbvh_vertex_iter_end;
-    BKE_pbvh_node_mark_redraw(node);
+    case PBVH_BMESH: {
+      const int offset = CustomData_get_offset(&BKE_pbvh_get_bmesh(ss->pbvh)->vdata,
+                                               CD_PAINT_MASK);
+      for (PBVHNode *node : nodes) {
+        PBVHVertexIter vd;
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+          BM_ELEM_CD_SET_FLOAT(vd.bm_vert, offset, mask[vd.index]);
+        }
+        BKE_pbvh_vertex_iter_end;
+        BKE_pbvh_node_mark_redraw(node);
+      }
+      break;
+    }
+    case PBVH_GRIDS: {
+      for (PBVHNode *node : nodes) {
+        PBVHVertexIter vd;
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+          *CCG_elem_mask(&vd.key, vd.grid) = mask[vd.index];
+          break;
+        }
+        BKE_pbvh_vertex_iter_end;
+        BKE_pbvh_node_mark_redraw(node);
+      }
+      break;
+    }
   }
 }
 
@@ -1213,19 +1247,18 @@ static void sculpt_expand_restore_original_state(bContext *C,
                                                  Object *ob,
                                                  ExpandCache *expand_cache)
 {
-
   SculptSession *ss = ob->sculpt;
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
-      sculpt_expand_restore_mask_data(ss, expand_cache);
+      write_mask_data(ss, {expand_cache->original_mask, SCULPT_vertex_count_get(ss)});
       SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
       SCULPT_tag_update_overlays(C);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       sculpt_expand_restore_face_set_data(ss, expand_cache);
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_FACE_SET);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_FACE_SET);
       SCULPT_tag_update_overlays(C);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
@@ -1255,7 +1288,9 @@ static void sculpt_expand_cancel(bContext *C, wmOperator * /*op*/)
 /**
  * Callback to update mask data per PBVH node.
  */
-static void sculpt_expand_mask_update_task(SculptSession *ss, PBVHNode *node)
+static void sculpt_expand_mask_update_task(SculptSession *ss,
+                                           const SculptMaskWriteInfo mask_write,
+                                           PBVHNode *node)
 {
   ExpandCache *expand_cache = ss->expand_cache;
 
@@ -1263,7 +1298,7 @@ static void sculpt_expand_mask_update_task(SculptSession *ss, PBVHNode *node)
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
-    const float initial_mask = *vd.mask;
+    const float initial_mask = vd.mask;
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.vertex);
 
     if (expand_cache->check_islands &&
@@ -1294,7 +1329,8 @@ static void sculpt_expand_mask_update_task(SculptSession *ss, PBVHNode *node)
       continue;
     }
 
-    *vd.mask = clamp_f(new_mask, 0.0f, 1.0f);
+    new_mask = clamp_f(new_mask, 0.0f, 1.0f);
+    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, new_mask, vd);
     any_changed = true;
   }
   BKE_pbvh_vertex_iter_end;
@@ -1351,7 +1387,7 @@ static void sculpt_expand_colors_update_task(SculptSession *ss, PBVHNode *node)
       fade = 0.0f;
     }
 
-    fade *= 1.0f - *vd.mask;
+    fade *= 1.0f - vd.mask;
     fade = clamp_f(fade, 0.0f, 1.0f);
 
     float final_color[4];
@@ -1385,7 +1421,7 @@ static void sculpt_expand_flush_updates(bContext *C)
       SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_FACE_SET);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
@@ -1485,13 +1521,15 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const PBVHV
   }
 
   switch (expand_cache->target) {
-    case SCULPT_EXPAND_TARGET_MASK:
+    case SCULPT_EXPAND_TARGET_MASK: {
+      const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
       threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          sculpt_expand_mask_update_task(ss, expand_cache->nodes[i]);
+          sculpt_expand_mask_update_task(ss, mask_write, expand_cache->nodes[i]);
         }
       });
       break;
+    }
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       sculpt_expand_face_sets_update(ss, expand_cache);
       break;
@@ -1600,7 +1638,7 @@ static void sculpt_expand_finish(bContext *C)
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_FACE_SET);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
@@ -1803,7 +1841,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
           expand_cache->snap_enabled_face_sets = std::make_unique<blender::Set<int>>();
           sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
         }
-      } break;
+        break;
+      }
       case SCULPT_EXPAND_MODAL_MOVE_TOGGLE: {
         if (expand_cache->move) {
           expand_cache->move = false;
@@ -2097,6 +2136,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   SCULPT_stroke_id_next(ob);
 
@@ -2132,18 +2172,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
       }
 
       if (ok) {
-        /* TODO: implement SCULPT_vertex_mask_set and use it here. */
-        Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
-        for (PBVHNode *node : nodes) {
-          PBVHVertexIter vd;
-
-          BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-            *vd.mask = 1.0f;
-          }
-          BKE_pbvh_vertex_iter_end;
-
-          BKE_pbvh_node_mark_update_mask(node);
-        }
+        write_mask_data(ss, blender::Array<float>(SCULPT_vertex_count_get(ss), 1.0f));
       }
     }
   }
@@ -2157,7 +2186,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
     ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   }

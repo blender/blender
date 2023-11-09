@@ -71,7 +71,7 @@ template<class T> class UnaryFunction0D {
     py_uf0D = nullptr;
   }
 
-  /** Destructor; */
+  /** Destructor. */
   virtual ~UnaryFunction0D() {}
 
   /** Returns the string "UnaryFunction0D" */

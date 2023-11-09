@@ -117,8 +117,9 @@ bool EuclideanResect(const vector<Marker>& markers,
     LG << "No fallback; failing resection for " << markers[0].image;
     return false;
 
-    if (!final_pass)
+    if (!final_pass) {
       return false;
+    }
     // Euclidean resection failed. Fall back to projective resection, which is
     // less reliable but better conditioned when there are many points.
     Mat34 P;

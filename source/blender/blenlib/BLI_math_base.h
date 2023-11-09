@@ -128,13 +128,6 @@ MINLINE double sqrt3d(double d);
 
 MINLINE float sqrtf_signed(float f);
 
-MINLINE float saacosf(float f);
-MINLINE float saasinf(float f);
-MINLINE float sasqrtf(float f);
-MINLINE float saacos(float fac);
-MINLINE float saasin(float fac);
-MINLINE float sasqrt(float fac);
-
 /* Compute linear interpolation (lerp) between origin and target. */
 MINLINE float interpf(float target, float origin, float t);
 MINLINE double interpd(double target, double origin, double t);
@@ -290,7 +283,7 @@ MINLINE uint divide_ceil_u(uint a, uint b);
 MINLINE uint64_t divide_ceil_ul(uint64_t a, uint64_t b);
 
 /**
- * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
+ * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a.
  */
 MINLINE uint ceil_to_multiple_u(uint a, uint b);
 MINLINE uint64_t ceil_to_multiple_ul(uint64_t a, uint64_t b);

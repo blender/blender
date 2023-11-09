@@ -38,13 +38,13 @@ struct GPUCapabilities {
   int max_varying_floats = 0;
   int max_shader_storage_buffer_bindings = 0;
   int max_compute_shader_storage_blocks = 0;
+  size_t max_storage_buffer_size = 0;
   int extensions_len = 0;
   const char *(*extension_get)(int);
 
   bool mem_stats_support = false;
   bool compute_shader_support = false;
   bool geometry_shader_support = false;
-  bool shader_storage_buffer_objects_support = false;
   bool shader_image_load_store_support = false;
   bool shader_draw_parameters_support = false;
   bool transform_feedback_support = false;

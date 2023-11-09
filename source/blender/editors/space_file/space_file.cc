@@ -22,7 +22,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -129,7 +129,7 @@ static void file_free(SpaceLink *sl)
   MEM_SAFE_FREE(sfile->params);
   MEM_SAFE_FREE(sfile->asset_params);
   if (sfile->runtime != nullptr) {
-    BKE_reports_clear(&sfile->runtime->is_blendfile_readable_reports);
+    BKE_reports_free(&sfile->runtime->is_blendfile_readable_reports);
   }
   MEM_SAFE_FREE(sfile->runtime);
 
@@ -437,10 +437,10 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Main", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Main", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -634,13 +634,13 @@ static void file_operatortypes()
 static void file_keymap(wmKeyConfig *keyconf)
 {
   /* keys for all regions */
-  WM_keymap_ensure(keyconf, "File Browser", SPACE_FILE, 0);
+  WM_keymap_ensure(keyconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
 
   /* keys for main region */
-  WM_keymap_ensure(keyconf, "File Browser Main", SPACE_FILE, 0);
+  WM_keymap_ensure(keyconf, "File Browser Main", SPACE_FILE, RGN_TYPE_WINDOW);
 
   /* keys for button region (top) */
-  WM_keymap_ensure(keyconf, "File Browser Buttons", SPACE_FILE, 0);
+  WM_keymap_ensure(keyconf, "File Browser Buttons", SPACE_FILE, RGN_TYPE_WINDOW);
 }
 
 static bool file_ui_region_poll(const RegionPollParams *params)
@@ -670,7 +670,7 @@ static void file_tools_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_panels_init(wm, region);
 
   /* own keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -720,7 +720,7 @@ static void file_header_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_header_init(region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -738,10 +738,10 @@ static void file_ui_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Buttons", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Buttons", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -758,7 +758,7 @@ static void file_execution_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 

@@ -63,8 +63,9 @@ TEST(Homography2DTest, Rotation45AndTranslationXY) {
 
   Mat x2 = x1;
   // Transform point from ground truth matrix
-  for (int i = 0; i < x2.cols(); ++i)
+  for (int i = 0; i < x2.cols(); ++i) {
     x2.col(i) = m * x1.col(i);
+  }
 
   Mat3 homography_mat;
   EXPECT_TRUE(Homography2DFromCorrespondencesLinear(x1, x2, &homography_mat));
@@ -128,8 +129,9 @@ TEST(Homography2DTest, AffineGeneral5) {
   // clang-format on
 
   Mat x2 = x1;
-  for (int i = 0; i < x2.cols(); ++i)
+  for (int i = 0; i < x2.cols(); ++i) {
     x2.col(i) = m * x1.col(i);
+  }
 
   Mat3 homography_mat;
   EXPECT_TRUE(Homography2DFromCorrespondencesLinear(x1, x2, &homography_mat));
@@ -165,8 +167,9 @@ TEST(Homography2DTest, HomographyGeneral) {
   // clang-format on
 
   Mat x2 = x1;
-  for (int i = 0; i < x2.cols(); ++i)
+  for (int i = 0; i < x2.cols(); ++i) {
     x2.col(i) = m * x1.col(i);
+  }
 
   Mat3 homography_mat;
   EXPECT_TRUE(Homography2DFromCorrespondencesLinear(x1, x2, &homography_mat));

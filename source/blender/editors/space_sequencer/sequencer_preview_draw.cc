@@ -39,15 +39,15 @@
 
 #include "BIF_glutil.hh"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_prefetch.h"
-#include "SEQ_proxy.h"
-#include "SEQ_render.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_prefetch.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_render.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -197,6 +197,7 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
       display_ibuf, &scene->view_settings, &scene->display_settings);
 
   scope = make_scope_fn(display_ibuf);
+  IMB_rectfill_alpha(scope, 1.0f);
 
   IMB_freeImBuf(display_ibuf);
 
@@ -796,14 +797,12 @@ void sequencer_draw_preview(const bContext *C,
   if (!draw_backdrop && scene->ed != nullptr) {
     Editing *ed = SEQ_editing_get(scene);
     ListBase *channels = SEQ_channels_displayed_get(ed);
-    SeqCollection *collection = SEQ_query_rendered_strips(
+    blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, ed->seqbasep, timeline_frame, 0);
-    Sequence *seq;
     Sequence *active_seq = SEQ_select_active_get(scene);
-    SEQ_ITERATOR_FOREACH (seq, collection) {
+    for (Sequence *seq : strips) {
       seq_draw_image_origin_and_outline(C, seq, seq == active_seq);
     }
-    SEQ_collection_free(collection);
   }
 
   if (draw_gpencil && show_imbuf && (sseq->flag & SEQ_SHOW_OVERLAY)) {

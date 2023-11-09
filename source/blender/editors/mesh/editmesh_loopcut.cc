@@ -39,8 +39,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "mesh_intern.h" /* own include */
 
@@ -282,7 +282,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
   lcd = static_cast<RingSelOpData *>(
       op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data"));
 
-  em_setup_viewcontext(C, &lcd->vc);
+  lcd->vc = em_setup_viewcontext(C);
 
   lcd->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -374,7 +374,11 @@ static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
 /* called by both init() and exec() */
 static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const bool is_interactive = (event != nullptr);
+  /* Check whether both `rv3d` and `event` is present, this way we allow the loopcut operator to
+   * run non-interactively no matter whether the graphical UI is present or not (e.g. from scripts
+   * with UI running, or entirely in the background with `blender -b`). */
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  const bool is_interactive = (rv3d != nullptr) && (event != nullptr);
 
   /* Use for redo - intentionally wrap int to uint. */
   struct {
@@ -404,7 +408,9 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  view3d_operator_needs_opengl(C);
+  if (is_interactive) {
+    view3d_operator_needs_opengl(C);
+  }
 
   /* for re-execution, check edge index is in range before we setup ringsel */
   bool ok = true;
@@ -548,7 +554,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
   bool show_cuts = false;
   const bool has_numinput = hasNumInput(&lcd->num);
 
-  em_setup_viewcontext(C, &lcd->vc);
+  lcd->vc = em_setup_viewcontext(C);
   lcd->region = lcd->vc.region;
 
   view3d_operator_needs_opengl(C);
@@ -737,7 +743,8 @@ void MESH_OT_loopcut(wmOperatorType *ot)
   ot->exec = loopcut_exec;
   ot->modal = loopcut_modal;
   ot->cancel = ringcut_cancel;
-  ot->poll = ED_operator_editmesh_region_view3d;
+  /* Note the #RegionView3D is needed for interactive use, the operator must check this. */
+  ot->poll = ED_operator_editmesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;

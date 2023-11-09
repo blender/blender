@@ -88,7 +88,7 @@ else()
     export CFLAGS=${PYTHON_CFLAGS} &&
     export CPPFLAGS=${PYTHON_CFLAGS} &&
     export LDFLAGS=${PYTHON_LDFLAGS} &&
-    export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/ssl/lib64/pkgconfig)
+    export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/ssl/lib/pkgconfig:${LIBDIR}/ssl/lib64/pkgconfig)
 
   # NOTE: untested on APPLE so far.
   if(NOT APPLE)

@@ -9,7 +9,7 @@
 #include "BLI_fileops.hh"
 
 #ifdef WIN32
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #endif
 
 namespace blender {

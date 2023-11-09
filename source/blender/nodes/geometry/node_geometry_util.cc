@@ -12,42 +12,15 @@
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_node.hh"
 #include "BKE_pointcloud.h"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"
 
 namespace blender::nodes {
-
-std::optional<eCustomDataType> node_data_type_to_custom_data_type(const eNodeSocketDatatype type)
-{
-  switch (type) {
-    case SOCK_FLOAT:
-      return CD_PROP_FLOAT;
-    case SOCK_VECTOR:
-      return CD_PROP_FLOAT3;
-    case SOCK_RGBA:
-      return CD_PROP_COLOR;
-    case SOCK_BOOLEAN:
-      return CD_PROP_BOOL;
-    case SOCK_ROTATION:
-      return CD_PROP_QUATERNION;
-    case SOCK_INT:
-      return CD_PROP_INT32;
-    case SOCK_STRING:
-      return CD_PROP_STRING;
-    default:
-      return {};
-  }
-}
-
-std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket)
-{
-  return node_data_type_to_custom_data_type(eNodeSocketDatatype(socket.type));
-}
 
 bool check_tool_context_and_error(GeoNodeExecParams &params)
 {
@@ -59,13 +32,6 @@ bool check_tool_context_and_error(GeoNodeExecParams &params)
   return true;
 }
 
-void search_link_ops_for_for_tool_node(GatherAddNodeSearchParams &params)
-{
-  const SpaceNode &snode = *CTX_wm_space_node(&params.context());
-  if (snode.geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
-    search_node_add_ops_for_basic_node(params);
-  }
-}
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params)
 {
   if (params.space_node().geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
@@ -101,6 +67,19 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item)
               CD_PROP_QUATERNION);
 }
 
+const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext * /*C*/,
+                                                                      PointerRNA * /*ptr*/,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free)
+{
+  *r_free = true;
+  return enum_items_filter(
+      rna_enum_attribute_domain_items, [](const EnumPropertyItem &item) -> bool {
+        return (item.value == ATTR_DOMAIN_LAYER) ? U.experimental.use_grease_pencil_version3 :
+                                                   true;
+      });
+}
+
 }  // namespace enums
 
 }  // namespace blender::nodes
@@ -122,5 +101,4 @@ void geo_node_type_base(bNodeType *ntype, int type, const char *name, short ncla
   ntype->poll = geo_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }

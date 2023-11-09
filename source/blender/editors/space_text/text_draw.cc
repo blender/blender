@@ -17,7 +17,7 @@
 #include "DNA_text_types.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
 
@@ -64,16 +64,19 @@ static void text_font_end(const TextDrawContext * /*tdc*/) {}
 
 static int text_font_draw(const TextDrawContext *tdc, int x, int y, const char *str)
 {
+  const char tab_columns = 1; /* Tab characters aren't used here. */
   BLF_position(tdc->font_id, x, y, 0);
-  const int columns = BLF_draw_mono(tdc->font_id, str, BLF_DRAW_STR_DUMMY_MAX, tdc->cwidth_px);
+  const int columns = BLF_draw_mono(
+      tdc->font_id, str, BLF_DRAW_STR_DUMMY_MAX, tdc->cwidth_px, tab_columns);
 
   return tdc->cwidth_px * columns;
 }
 
 static int text_font_draw_character(const TextDrawContext *tdc, int x, int y, char c)
 {
+  const char tab_columns = 1;
   BLF_position(tdc->font_id, x, y, 0);
-  BLF_draw_mono(tdc->font_id, &c, 1, tdc->cwidth_px);
+  BLF_draw_mono(tdc->font_id, &c, 1, tdc->cwidth_px, tab_columns);
 
   return tdc->cwidth_px;
 }
@@ -82,8 +85,9 @@ static int text_font_draw_character_utf8(
     const TextDrawContext *tdc, int x, int y, const char *c, const int c_len)
 {
   BLI_assert(c_len == BLI_str_utf8_size_safe(c));
+  const char tab_columns = 1; /* Tab characters aren't used here. */
   BLF_position(tdc->font_id, x, y, 0);
-  const int columns = BLF_draw_mono(tdc->font_id, c, c_len, tdc->cwidth_px);
+  const int columns = BLF_draw_mono(tdc->font_id, c, c_len, tdc->cwidth_px, tab_columns);
 
   return tdc->cwidth_px * columns;
 }
@@ -191,7 +195,8 @@ void wrap_offset(
 {
   Text *text;
   TextLine *linep;
-  int i, j, start, end, max, chop;
+  int i, j, start, end, max;
+  bool chop;
   char ch;
 
   *offl = *offc = 0;
@@ -229,12 +234,12 @@ void wrap_offset(
   }
 
   max = wrap_width(st, region);
-  cursin = BLI_str_utf8_offset_to_column(linein->line, cursin);
+  cursin = BLI_str_utf8_offset_to_column(linein->line, linein->len, cursin);
 
   while (linep) {
     start = 0;
     end = max;
-    chop = 1;
+    chop = true;
     *offc = 0;
     for (i = 0, j = 0; linep->line[j]; j += BLI_str_utf8_size_safe(linep->line + j)) {
       int chars;
@@ -271,11 +276,11 @@ void wrap_offset(
 
           start = end;
           end += max;
-          chop = 1;
+          chop = true;
         }
         else if (ELEM(ch, ' ', '-')) {
           end = i + 1;
-          chop = 0;
+          chop = false;
           if (linep == linein && i >= cursin) {
             return;
           }
@@ -293,7 +298,8 @@ void wrap_offset(
 void wrap_offset_in_line(
     const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc)
 {
-  int i, j, start, end, chars, max, chop;
+  int i, j, start, end, chars, max;
+  bool chop;
   char ch;
 
   *offl = *offc = 0;
@@ -309,9 +315,9 @@ void wrap_offset_in_line(
 
   start = 0;
   end = max;
-  chop = 1;
+  chop = true;
   *offc = 0;
-  cursin = BLI_str_utf8_offset_to_column(linein->line, cursin);
+  cursin = BLI_str_utf8_offset_to_column(linein->line, linein->len, cursin);
 
   for (i = 0, j = 0; linein->line[j]; j += BLI_str_utf8_size_safe(linein->line + j)) {
     int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
@@ -347,11 +353,11 @@ void wrap_offset_in_line(
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
       }
       else if (ELEM(ch, ' ', '-')) {
         end = i + 1;
-        chop = 0;
+        chop = false;
         if (i >= cursin) {
           return;
         }
@@ -381,7 +387,7 @@ static const char *txt_utf8_forward_columns(const char *str, int columns, int *p
   int col;
   const char *p = str;
   while (*p) {
-    col = BLI_str_utf8_char_width(p);
+    col = BLI_str_utf8_char_width_safe(p);
     if (columns - col < 0) {
       break;
     }
@@ -576,8 +582,8 @@ struct DrawCache {
   char cwidth_px;
   char text_id[MAX_ID_NAME];
 
-  /* for partial lines recalculation */
-  short update_flag;
+  /** For partial lines recalculation. */
+  bool update;
   int valid_head, valid_tail; /* amount of unchanged lines */
 };
 
@@ -596,7 +602,8 @@ static void text_drawcache_init(SpaceText *st)
 static void text_update_drawcache(SpaceText *st, ARegion *region)
 {
   DrawCache *drawcache;
-  int full_update = 0, nlines = 0;
+  bool full_update = false;
+  int nlines = 0;
   Text *txt = st->text;
 
   if (st->runtime.drawcache == nullptr) {
@@ -630,10 +637,10 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
     if (full_update || !drawcache->line_height) {
       drawcache->valid_head = 0;
       drawcache->valid_tail = 0;
-      drawcache->update_flag = 1;
+      drawcache->update = true;
     }
 
-    if (drawcache->update_flag) {
+    if (drawcache->update) {
       TextLine *line = static_cast<TextLine *>(st->text->lines.first);
       int lineno = 0, size, lines_count;
       int *fp = drawcache->line_height, *new_tail, *old_tail;
@@ -684,7 +691,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
   else {
     MEM_SAFE_FREE(drawcache->line_height);
 
-    if (full_update || drawcache->update_flag) {
+    if (full_update || drawcache->update) {
       nlines = BLI_listbase_count(&txt->lines);
 
       if (st->showlinenrs) {
@@ -708,7 +715,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
   STRNCPY(drawcache->text_id, txt->id.name);
 
   /* clear update flag */
-  drawcache->update_flag = 0;
+  drawcache->update = false;
   drawcache->valid_head = 0;
   drawcache->valid_tail = 0;
 }
@@ -724,7 +731,7 @@ void text_drawcache_tag_update(SpaceText *st, const bool full)
     DrawCache *drawcache = static_cast<DrawCache *>(st->runtime.drawcache);
     Text *txt = st->text;
 
-    if (drawcache->update_flag) {
+    if (drawcache->update) {
       /* happens when tagging update from space listener */
       /* should do nothing to prevent locally tagged cache be fully recalculated */
       return;
@@ -758,7 +765,7 @@ void text_drawcache_tag_update(SpaceText *st, const bool full)
       drawcache->valid_tail = 0;
     }
 
-    drawcache->update_flag = 1;
+    drawcache->update = true;
   }
 }
 
@@ -814,7 +821,7 @@ int text_get_visible_lines(const SpaceText *st, ARegion *region, const char *str
     while (chars--) {
       if (i + columns - start > max) {
         lines++;
-        start = MIN2(end, i);
+        start = std::min(end, i);
         end += max;
       }
       else if (ELEM(ch, ' ', '-')) {
@@ -920,7 +927,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
   sell_off = text_get_span_wrap(
       st, region, static_cast<TextLine *>(st->text->lines.first), st->text->sell);
   lhlstart = MIN2(curl_off, sell_off);
-  lhlend = MAX2(curl_off, sell_off);
+  lhlend = std::max(curl_off, sell_off);
 
   if (ltexth > 0) {
     hlstart = (lhlstart * pix_available) / ltexth;
@@ -1078,7 +1085,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   boxh = SUGG_LIST_SIZE * lheight + 8;
 
   if (x + boxw > region->winx) {
-    x = MAX2(0, region->winx - boxw);
+    x = std::max(0, region->winx - boxw);
   }
 
   /* not needed but stands out nicer */
@@ -1145,7 +1152,8 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 static void draw_text_decoration(SpaceText *st, ARegion *region)
 {
   Text *text = st->text;
-  int vcurl, vcurc, vsell, vselc, hidden = 0;
+  int vcurl, vcurc, vsell, vselc;
+  bool hidden = false;
   int x, y, w, i;
   int offl, offc;
   const int lheight = TXT_LINE_HEIGHT(st);
@@ -1157,7 +1165,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
   if (vselc < 0) {
     vselc = 0;
-    hidden = 1;
+    hidden = true;
   }
 
   if (text->curl == text->sell && text->curc == text->selc && !st->line_hlight && hidden) {
@@ -1334,7 +1342,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
 
   linep = startl;
   c = startc;
-  fc = BLI_str_utf8_offset_to_index(linep->line, startc);
+  fc = BLI_str_utf8_offset_to_index(linep->line, linep->len, startc);
   endl = nullptr;
   endc = -1;
   find = -b;

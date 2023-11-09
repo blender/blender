@@ -29,6 +29,15 @@ static int node_shader_gpu_hair_info(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_hair_info", in, out, length_link);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* NOTE: This node doesn't have an implementation in MaterialX.*/
+  return get_output_default(socket_out_->name, NodeItem::Type::Any);
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_hair_info_cc
 
 /* node type definition */
@@ -41,6 +50,7 @@ void register_node_type_sh_hair_info()
   sh_node_type_base(&ntype, SH_NODE_HAIR_INFO, "Curves Info", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_hair_info;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,6 +14,8 @@
 
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
+
+#include "GEO_randomize.hh"
 
 #include "BKE_geometry_set.hh"
 
@@ -97,7 +99,7 @@ static Curves *curve_from_points(const AttributeAccessor attributes,
     return curves_id;
   }
   Array<int> indices(domain_size);
-  std::iota(indices.begin(), indices.end(), 0);
+  array_utils::fill_index_range<int>(indices);
   const VArraySpan<float> weights(weights_varray);
   grouped_sort(OffsetIndices<int>({0, domain_size}), weights, indices);
   bke::gather_attributes(
@@ -151,6 +153,8 @@ static Curves *curves_from_points(const PointCloud &points,
                          {},
                          indices,
                          curves.attributes_for_write());
+
+  geometry::debug_randomize_curve_order(&curves);
   return curves_id;
 }
 

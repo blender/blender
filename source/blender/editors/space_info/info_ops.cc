@@ -28,7 +28,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

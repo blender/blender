@@ -358,8 +358,16 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSet
   switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_Context *context = new GHOST_ContextVK(
-          false, GHOST_kVulkanPlatformX11, 0, m_display, nullptr, nullptr, 1, 2, debug_context);
+      GHOST_Context *context = new GHOST_ContextVK(false,
+                                                   GHOST_kVulkanPlatformX11,
+                                                   0,
+                                                   m_display,
+                                                   nullptr,
+                                                   nullptr,
+                                                   nullptr,
+                                                   1,
+                                                   2,
+                                                   debug_context);
       if (context->initializeDrawingContext()) {
         return context;
       }
@@ -791,7 +799,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     (void)class_presence;
 
     if (xe->type == xi_presence) {
-      XDevicePresenceNotifyEvent *notify_event = (XDevicePresenceNotifyEvent *)xe;
+      const XDevicePresenceNotifyEvent *notify_event = (const XDevicePresenceNotifyEvent *)xe;
       if (ELEM(notify_event->devchange, DeviceEnabled, DeviceDisabled, DeviceAdded, DeviceRemoved))
       {
         refreshXInputDevices();
@@ -825,7 +833,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
   if (window->GetTabletData().Active != GHOST_kTabletModeNone) {
     bool any_proximity = false;
 
-    for (GHOST_TabletX11 &xtablet : m_xtablets) {
+    for (const GHOST_TabletX11 &xtablet : m_xtablets) {
       if (checkTabletProximity(xe->xany.display, xtablet.Device)) {
         any_proximity = true;
       }
@@ -1108,10 +1116,9 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           }
 
           if (ELEM(status, XLookupChars, XLookupBoth)) {
-            if (uchar(utf8_buf[0]) >= 32) { /* not an ascii control character */
-              /* do nothing for now, this is valid utf8 */
-            }
-            else {
+            /* Check for ASCII control characters.
+             * Inline `iscntrl` because the users locale must not change behavior. */
+            if ((utf8_buf[0] < 32 && utf8_buf[0] > 0) || (utf8_buf[0] == 127)) {
               utf8_buf[0] = '\0';
             }
           }
@@ -1457,7 +1464,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #ifdef WITH_X11_XINPUT
       for (GHOST_TabletX11 &xtablet : m_xtablets) {
         if (ELEM(xe->type, xtablet.MotionEvent, xtablet.PressEvent)) {
-          XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
+          const XDeviceMotionEvent *data = (const XDeviceMotionEvent *)xe;
           if (data->deviceid != xtablet.ID) {
             continue;
           }
@@ -1505,7 +1512,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #  undef AXIS_VALUE_GET
         }
         else if (xe->type == xtablet.ProxInEvent) {
-          XProximityNotifyEvent *data = (XProximityNotifyEvent *)xe;
+          const XProximityNotifyEvent *data = (const XProximityNotifyEvent *)xe;
           if (data->deviceid != xtablet.ID) {
             continue;
           }
@@ -1735,7 +1742,9 @@ GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
                                    /* No support yet for desktop sampling. */
                                    GHOST_kCapabilityDesktopSample |
                                    /* No support yet for image copy/paste. */
-                                   GHOST_kCapabilityClipboardImages));
+                                   GHOST_kCapabilityClipboardImages |
+                                   /* No support yet for IME input methods. */
+                                   GHOST_kCapabilityInputIME));
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)
@@ -2370,7 +2379,7 @@ class DialogData {
   }
 
   /* Is the mouse inside the given button */
-  bool isInsideButton(const XEvent &e, uint button_num)
+  bool isInsideButton(const XEvent &e, uint button_num) const
   {
     return (
         (e.xmotion.y > int(height - padding_y - button_height)) &&
@@ -2734,8 +2743,9 @@ void GHOST_SystemX11::refreshXInputDevices()
 void GHOST_SystemX11::clearXInputDevices()
 {
   for (GHOST_TabletX11 &xtablet : m_xtablets) {
-    if (xtablet.Device)
+    if (xtablet.Device) {
       XCloseDevice(m_display, xtablet.Device);
+    }
   }
 
   m_xtablets.clear();

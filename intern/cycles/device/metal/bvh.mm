@@ -23,6 +23,92 @@ CCL_NAMESPACE_BEGIN
       metal_printf("%s\n", str.c_str()); \
     }
 
+//#  define BVH_THROTTLE_DIAGNOSTICS
+#  ifdef BVH_THROTTLE_DIAGNOSTICS
+#    define bvh_throttle_printf(...) printf("BVHMetalBuildThrottler::" __VA_ARGS__)
+#  else
+#    define bvh_throttle_printf(...)
+#  endif
+
+/* Limit the number of concurrent BVH builds so that we don't approach unsafe GPU working set
+ * sizes. */
+struct BVHMetalBuildThrottler {
+  thread_mutex mutex;
+  size_t wired_memory = 0;
+  size_t safe_wired_limit = 0;
+  int requests_in_flight = 0;
+
+  BVHMetalBuildThrottler()
+  {
+    /* The default device will always be the one that supports MetalRT if the machine supports it.
+     */
+    id<MTLDevice> mtlDevice = MTLCreateSystemDefaultDevice();
+
+    /* Set a conservative limit, but which will still only throttle in extreme cases. */
+    safe_wired_limit = [mtlDevice recommendedMaxWorkingSetSize] / 4;
+    bvh_throttle_printf("safe_wired_limit = %zu\n", safe_wired_limit);
+  }
+
+  /* Block until we're safely able to wire the requested resources. */
+  void acquire(size_t bytes_to_be_wired)
+  {
+    bool throttled = false;
+    while (true) {
+      {
+        thread_scoped_lock lock(mutex);
+
+        /* Always allow a BVH build to proceed if no other is in flight, otherwise
+         * only proceed if we're within safe limits. */
+        if (wired_memory == 0 || wired_memory + bytes_to_be_wired <= safe_wired_limit) {
+          wired_memory += bytes_to_be_wired;
+          requests_in_flight += 1;
+          bvh_throttle_printf("acquire -- success (requests_in_flight = %d, wired_memory = %zu)\n",
+                              requests_in_flight,
+                              wired_memory);
+          return;
+        }
+
+        if (!throttled) {
+          bvh_throttle_printf(
+              "acquire -- throttling (requests_in_flight = %d, wired_memory = %zu, "
+              "bytes_to_be_wired = %zu)\n",
+              requests_in_flight,
+              wired_memory,
+              bytes_to_be_wired);
+        }
+        throttled = true;
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }
+
+  /* Notify of resources that have stopped being wired. */
+  void release(size_t bytes_just_unwired)
+  {
+    thread_scoped_lock lock(mutex);
+    wired_memory -= bytes_just_unwired;
+    requests_in_flight -= 1;
+    bvh_throttle_printf("release (requests_in_flight = %d, wired_memory = %zu)\n",
+                        requests_in_flight,
+                        wired_memory);
+  }
+
+  /* Wait for all outstanding work to finish. */
+  void wait_for_all()
+  {
+    while (true) {
+      {
+        thread_scoped_lock lock(mutex);
+        if (wired_memory == 0) {
+          return;
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }
+} g_bvh_build_throttler;
+
 BVHMetal::BVHMetal(const BVHParams &params_,
                    const vector<Geometry *> &geometry_,
                    const vector<Object *> &objects_,
@@ -37,6 +123,10 @@ BVHMetal::~BVHMetal()
     if (accel_struct) {
       stats.mem_free(accel_struct.allocatedSize);
       [accel_struct release];
+    }
+
+    if (null_BLAS) {
+      [null_BLAS release];
     }
   }
 }
@@ -132,6 +222,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       geomDescMotion.indexType = MTLIndexTypeUInt32;
       geomDescMotion.triangleCount = num_indices / 3;
       geomDescMotion.intersectionFunctionTableOffset = 0;
+      geomDescMotion.opaque = true;
 
       geomDesc = geomDescMotion;
     }
@@ -146,6 +237,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       geomDescNoMotion.indexType = MTLIndexTypeUInt32;
       geomDescNoMotion.triangleCount = num_indices / 3;
       geomDescNoMotion.intersectionFunctionTableOffset = 0;
+      geomDescNoMotion.opaque = true;
 
       geomDesc = geomDescNoMotion;
     }
@@ -165,6 +257,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       accelDesc.motionEndBorderMode = MTLMotionBorderModeClamp;
       accelDesc.motionKeyframeCount = num_motion_steps;
     }
+    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
 
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
@@ -201,6 +294,12 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
+
+    /* Estimated size of resources that will be wired for the GPU accelerated build.
+     * Acceleration-struct size is doubled to account for possible compaction step. */
+    size_t wired_size = posBuf.allocatedSize + indexBuf.allocatedSize + scratchBuf.allocatedSize +
+                        accel_uncompressed.allocatedSize * 2;
+
     [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
@@ -225,7 +324,9 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
             [accel_uncompressed release];
-            accel_struct_building = false;
+
+            /* Signal that we've finished doing GPU acceleration struct build. */
+            g_bvh_build_throttler.release(wired_size);
           }];
           [accelCommands commit];
         });
@@ -236,12 +337,16 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
 
         uint64_t allocated_size = [accel_struct allocatedSize];
         stats.mem_alloc(allocated_size);
-        accel_struct_building = false;
+
+        /* Signal that we've finished doing GPU acceleration struct build. */
+        g_bvh_build_throttler.release(wired_size);
       }
+
       [sizeBuf release];
     }];
 
-    accel_struct_building = true;
+    /* Wait until it's safe to proceed with GPU acceleration struct build. */
+    g_bvh_build_throttler.acquire(wired_size);
     [accelCommands commit];
 
     return true;
@@ -255,7 +360,8 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                Geometry *const geom,
                                bool refit)
 {
-  if (@available(macos 12.0, *)) {
+#  if defined(MAC_OS_VERSION_14_0)
+  if (@available(macos 14.0, *)) {
     /* Build BLAS for hair curves */
     Hair *hair = static_cast<Hair *>(geom);
     if (hair->num_curves() == 0) {
@@ -268,15 +374,12 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
     /*------------------------------------------------*/
 
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC);
-    const size_t num_segments = hair->num_segments();
 
     size_t num_motion_steps = 1;
     Attribute *motion_keys = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (motion_blur && hair->get_use_motion_blur() && motion_keys) {
       num_motion_steps = hair->get_motion_steps();
     }
-
-    const size_t num_aabbs = num_segments * num_motion_steps;
 
     MTLResourceOptions storage_mode;
     if (device.hasUnifiedMemory) {
@@ -286,91 +389,197 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       storage_mode = MTLResourceStorageModeManaged;
     }
 
-    /* Allocate a GPU buffer for the AABB data and populate it */
-    id<MTLBuffer> aabbBuf = [device
-        newBufferWithLength:num_aabbs * sizeof(MTLAxisAlignedBoundingBox)
-                    options:storage_mode];
-    MTLAxisAlignedBoundingBox *aabb_data = (MTLAxisAlignedBoundingBox *)[aabbBuf contents];
-
-    /* Get AABBs for each motion step */
-    size_t center_step = (num_motion_steps - 1) / 2;
-    for (size_t step = 0; step < num_motion_steps; ++step) {
-      /* The center step for motion vertices is not stored in the attribute */
-      const float3 *keys = hair->get_curve_keys().data();
-      if (step != center_step) {
-        size_t attr_offset = (step > center_step) ? step - 1 : step;
-        /* Technically this is a float4 array, but sizeof(float3) == sizeof(float4) */
-        keys = motion_keys->data_float3() + attr_offset * hair->get_curve_keys().size();
-      }
-
-      for (size_t j = 0, i = 0; j < hair->num_curves(); ++j) {
-        const Hair::Curve curve = hair->get_curve(j);
-
-        for (int segment = 0; segment < curve.num_segments(); ++segment, ++i) {
-          {
-            BoundBox bounds = BoundBox::empty;
-            curve.bounds_grow(segment, keys, hair->get_curve_radius().data(), bounds);
-
-            const size_t index = step * num_segments + i;
-            aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
-            aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
-          }
-        }
-      }
-    }
-
-    if (storage_mode == MTLResourceStorageModeManaged) {
-      [aabbBuf didModifyRange:NSMakeRange(0, aabbBuf.length)];
-    }
-
-#  if 0
-    for (size_t i=0; i<num_aabbs && i < 400; i++) {
-      MTLAxisAlignedBoundingBox& bb = aabb_data[i];
-      printf("  %d:   %.1f,%.1f,%.1f -- %.1f,%.1f,%.1f\n", int(i), bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z);
-    }
-#  endif
+    id<MTLBuffer> cpBuffer = nil;
+    id<MTLBuffer> radiusBuffer = nil;
+    id<MTLBuffer> idxBuffer = nil;
 
     MTLAccelerationStructureGeometryDescriptor *geomDesc;
     if (motion_blur) {
-      std::vector<MTLMotionKeyframeData *> aabb_ptrs;
-      aabb_ptrs.reserve(num_motion_steps);
+      MTLAccelerationStructureMotionCurveGeometryDescriptor *geomDescCrv =
+          [MTLAccelerationStructureMotionCurveGeometryDescriptor descriptor];
+
+      uint64_t numKeys = hair->num_keys();
+      uint64_t numCurves = hair->num_curves();
+      const array<float> &radiuses = hair->get_curve_radius();
+
+      /* Gather the curve geometry. */
+      std::vector<float3> cpData;
+      std::vector<int> idxData;
+      std::vector<float> radiusData;
+      cpData.reserve(numKeys);
+      radiusData.reserve(numKeys);
+
+      std::vector<int> step_offsets;
       for (size_t step = 0; step < num_motion_steps; ++step) {
-        MTLMotionKeyframeData *k = [MTLMotionKeyframeData data];
-        k.buffer = aabbBuf;
-        k.offset = step * num_segments * sizeof(MTLAxisAlignedBoundingBox);
-        aabb_ptrs.push_back(k);
+
+        /* The center step for motion vertices is not stored in the attribute. */
+        const float3 *keys = hair->get_curve_keys().data();
+        size_t center_step = (num_motion_steps - 1) / 2;
+        if (step != center_step) {
+          size_t attr_offset = (step > center_step) ? step - 1 : step;
+          /* Technically this is a float4 array, but sizeof(float3) == sizeof(float4). */
+          keys = motion_keys->data_float3() + attr_offset * numKeys;
+        }
+
+        step_offsets.push_back(cpData.size());
+
+        for (int c = 0; c < numCurves; ++c) {
+          const Hair::Curve curve = hair->get_curve(c);
+          int segCount = curve.num_segments();
+          int firstKey = curve.first_key;
+          uint64_t idxBase = cpData.size();
+          cpData.push_back(keys[firstKey]);
+          radiusData.push_back(radiuses[firstKey]);
+          for (int s = 0; s < segCount; ++s) {
+            if (step == 0) {
+              idxData.push_back(idxBase + s);
+            }
+            cpData.push_back(keys[firstKey + s]);
+            radiusData.push_back(radiuses[firstKey + s]);
+          }
+          cpData.push_back(keys[firstKey + curve.num_keys - 1]);
+          cpData.push_back(keys[firstKey + curve.num_keys - 1]);
+          radiusData.push_back(radiuses[firstKey + curve.num_keys - 1]);
+          radiusData.push_back(radiuses[firstKey + curve.num_keys - 1]);
+        }
       }
 
-      MTLAccelerationStructureMotionBoundingBoxGeometryDescriptor *geomDescMotion =
-          [MTLAccelerationStructureMotionBoundingBoxGeometryDescriptor descriptor];
-      geomDescMotion.boundingBoxBuffers = [NSArray arrayWithObjects:aabb_ptrs.data()
-                                                              count:aabb_ptrs.size()];
-      geomDescMotion.boundingBoxCount = num_segments;
-      geomDescMotion.boundingBoxStride = sizeof(aabb_data[0]);
-      geomDescMotion.intersectionFunctionTableOffset = 1;
+      /* Allocate and populate MTLBuffers for geometry. */
+      idxBuffer = [device newBufferWithBytes:idxData.data()
+                                      length:idxData.size() * sizeof(int)
+                                     options:storage_mode];
+
+      cpBuffer = [device newBufferWithBytes:cpData.data()
+                                     length:cpData.size() * sizeof(float3)
+                                    options:storage_mode];
+
+      radiusBuffer = [device newBufferWithBytes:radiusData.data()
+                                         length:radiusData.size() * sizeof(float)
+                                        options:storage_mode];
+
+      std::vector<MTLMotionKeyframeData *> cp_ptrs;
+      std::vector<MTLMotionKeyframeData *> radius_ptrs;
+      cp_ptrs.reserve(num_motion_steps);
+      radius_ptrs.reserve(num_motion_steps);
+
+      for (size_t step = 0; step < num_motion_steps; ++step) {
+        MTLMotionKeyframeData *k = [MTLMotionKeyframeData data];
+        k.buffer = cpBuffer;
+        k.offset = step_offsets[step] * sizeof(float3);
+        cp_ptrs.push_back(k);
+
+        k = [MTLMotionKeyframeData data];
+        k.buffer = radiusBuffer;
+        k.offset = step_offsets[step] * sizeof(float);
+        radius_ptrs.push_back(k);
+      }
+
+      if (storage_mode == MTLResourceStorageModeManaged) {
+        [cpBuffer didModifyRange:NSMakeRange(0, cpBuffer.length)];
+        [idxBuffer didModifyRange:NSMakeRange(0, idxBuffer.length)];
+        [radiusBuffer didModifyRange:NSMakeRange(0, radiusBuffer.length)];
+      }
+
+      geomDescCrv.controlPointBuffers = [NSArray arrayWithObjects:cp_ptrs.data()
+                                                            count:cp_ptrs.size()];
+      geomDescCrv.radiusBuffers = [NSArray arrayWithObjects:radius_ptrs.data()
+                                                      count:radius_ptrs.size()];
+
+      geomDescCrv.controlPointCount = cpData.size();
+      geomDescCrv.controlPointStride = sizeof(float3);
+      geomDescCrv.controlPointFormat = MTLAttributeFormatFloat3;
+      geomDescCrv.radiusStride = sizeof(float);
+      geomDescCrv.radiusFormat = MTLAttributeFormatFloat;
+      geomDescCrv.segmentCount = idxData.size();
+      geomDescCrv.segmentControlPointCount = 4;
+      geomDescCrv.curveType = (hair->curve_shape == CURVE_RIBBON) ? MTLCurveTypeFlat :
+                                                                    MTLCurveTypeRound;
+      geomDescCrv.curveBasis = MTLCurveBasisCatmullRom;
+      geomDescCrv.curveEndCaps = MTLCurveEndCapsDisk;
+      geomDescCrv.indexType = MTLIndexTypeUInt32;
+      geomDescCrv.indexBuffer = idxBuffer;
+      geomDescCrv.intersectionFunctionTableOffset = 1;
 
       /* Force a single any-hit call, so shadow record-all behavior works correctly */
       /* (Match optix behavior: unsigned int build_flags =
        * OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;) */
-      geomDescMotion.allowDuplicateIntersectionFunctionInvocation = false;
-      geomDescMotion.opaque = true;
-      geomDesc = geomDescMotion;
+      geomDescCrv.allowDuplicateIntersectionFunctionInvocation = false;
+      geomDescCrv.opaque = true;
+      geomDesc = geomDescCrv;
     }
     else {
-      MTLAccelerationStructureBoundingBoxGeometryDescriptor *geomDescNoMotion =
-          [MTLAccelerationStructureBoundingBoxGeometryDescriptor descriptor];
-      geomDescNoMotion.boundingBoxBuffer = aabbBuf;
-      geomDescNoMotion.boundingBoxBufferOffset = 0;
-      geomDescNoMotion.boundingBoxCount = int(num_aabbs);
-      geomDescNoMotion.boundingBoxStride = sizeof(aabb_data[0]);
-      geomDescNoMotion.intersectionFunctionTableOffset = 1;
+      MTLAccelerationStructureCurveGeometryDescriptor *geomDescCrv =
+          [MTLAccelerationStructureCurveGeometryDescriptor descriptor];
+
+      uint64_t numKeys = hair->num_keys();
+      uint64_t numCurves = hair->num_curves();
+      const array<float> &radiuses = hair->get_curve_radius();
+
+      /* Gather the curve geometry. */
+      std::vector<float3> cpData;
+      std::vector<int> idxData;
+      std::vector<float> radiusData;
+      cpData.reserve(numKeys);
+      radiusData.reserve(numKeys);
+      auto keys = hair->get_curve_keys();
+      for (int c = 0; c < numCurves; ++c) {
+        const Hair::Curve curve = hair->get_curve(c);
+        int segCount = curve.num_segments();
+        int firstKey = curve.first_key;
+        radiusData.push_back(radiuses[firstKey]);
+        uint64_t idxBase = cpData.size();
+        cpData.push_back(keys[firstKey]);
+        for (int s = 0; s < segCount; ++s) {
+          idxData.push_back(idxBase + s);
+          cpData.push_back(keys[firstKey + s]);
+          radiusData.push_back(radiuses[firstKey + s]);
+        }
+        cpData.push_back(keys[firstKey + curve.num_keys - 1]);
+        cpData.push_back(keys[firstKey + curve.num_keys - 1]);
+        radiusData.push_back(radiuses[firstKey + curve.num_keys - 1]);
+        radiusData.push_back(radiuses[firstKey + curve.num_keys - 1]);
+      }
+
+      /* Allocate and populate MTLBuffers for geometry. */
+      idxBuffer = [device newBufferWithBytes:idxData.data()
+                                      length:idxData.size() * sizeof(int)
+                                     options:storage_mode];
+
+      cpBuffer = [device newBufferWithBytes:cpData.data()
+                                     length:cpData.size() * sizeof(float3)
+                                    options:storage_mode];
+
+      radiusBuffer = [device newBufferWithBytes:radiusData.data()
+                                         length:radiusData.size() * sizeof(float)
+                                        options:storage_mode];
+
+      if (storage_mode == MTLResourceStorageModeManaged) {
+        [cpBuffer didModifyRange:NSMakeRange(0, cpBuffer.length)];
+        [idxBuffer didModifyRange:NSMakeRange(0, idxBuffer.length)];
+        [radiusBuffer didModifyRange:NSMakeRange(0, radiusBuffer.length)];
+      }
+      geomDescCrv.controlPointBuffer = cpBuffer;
+      geomDescCrv.radiusBuffer = radiusBuffer;
+      geomDescCrv.controlPointCount = cpData.size();
+      geomDescCrv.controlPointStride = sizeof(float3);
+      geomDescCrv.controlPointFormat = MTLAttributeFormatFloat3;
+      geomDescCrv.controlPointBufferOffset = 0;
+      geomDescCrv.segmentCount = idxData.size();
+      geomDescCrv.segmentControlPointCount = 4;
+      geomDescCrv.curveType = (hair->curve_shape == CURVE_RIBBON) ? MTLCurveTypeFlat :
+                                                                    MTLCurveTypeRound;
+      geomDescCrv.curveBasis = MTLCurveBasisCatmullRom;
+      geomDescCrv.curveEndCaps = MTLCurveEndCapsDisk;
+      geomDescCrv.indexType = MTLIndexTypeUInt32;
+      geomDescCrv.indexBuffer = idxBuffer;
+      geomDescCrv.intersectionFunctionTableOffset = 1;
 
       /* Force a single any-hit call, so shadow record-all behavior works correctly */
       /* (Match optix behavior: unsigned int build_flags =
        * OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;) */
-      geomDescNoMotion.allowDuplicateIntersectionFunctionInvocation = false;
-      geomDescNoMotion.opaque = true;
-      geomDesc = geomDescNoMotion;
+      geomDescCrv.allowDuplicateIntersectionFunctionInvocation = false;
+      geomDescCrv.opaque = true;
+      geomDesc = geomDescCrv;
     }
 
     MTLPrimitiveAccelerationStructureDescriptor *accelDesc =
@@ -389,6 +598,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
                           MTLAccelerationStructureUsagePreferFastBuild);
     }
+    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
 
     MTLAccelerationStructureSizes accelSizes = [device
         accelerationStructureSizesWithDescriptor:accelDesc];
@@ -420,13 +630,21 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
+
+    /* Estimated size of resources that will be wired for the GPU accelerated build.
+     * Acceleration-struct size is doubled to account for possible compaction step. */
+    size_t wired_size = cpBuffer.allocatedSize + radiusBuffer.allocatedSize +
+                        idxBuffer.allocatedSize + scratchBuf.allocatedSize +
+                        accel_uncompressed.allocatedSize * 2;
+
     [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
-      [aabbBuf release];
+      [cpBuffer release];
+      [radiusBuffer release];
+      [idxBuffer release];
 
       if (use_fast_trace_bvh) {
-        /* Compact the accel structure */
         uint64_t compressed_size = *(uint64_t *)sizeBuf.contents;
 
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -443,7 +661,9 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
             [accel_uncompressed release];
-            accel_struct_building = false;
+
+            /* Signal that we've finished doing GPU acceleration struct build. */
+            g_bvh_build_throttler.release(wired_size);
           }];
           [accelCommands commit];
         });
@@ -454,15 +674,27 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
         uint64_t allocated_size = [accel_struct allocatedSize];
         stats.mem_alloc(allocated_size);
-        accel_struct_building = false;
+
+        /* Signal that we've finished doing GPU acceleration struct build. */
+        g_bvh_build_throttler.release(wired_size);
       }
+
       [sizeBuf release];
     }];
 
-    accel_struct_building = true;
+    /* Wait until it's safe to proceed with GPU acceleration struct build. */
+    g_bvh_build_throttler.acquire(wired_size);
     [accelCommands commit];
+
     return true;
   }
+#  else  /* MAC_OS_VERSION_14_0 */
+  (void)progress;
+  (void)device;
+  (void)queue;
+  (void)geom;
+  (void)(refit);
+#  endif /* MAC_OS_VERSION_14_0 */
   return false;
 }
 
@@ -605,10 +837,11 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     if (motion_blur) {
       accelDesc.motionStartTime = 0.0f;
       accelDesc.motionEndTime = 1.0f;
-      accelDesc.motionStartBorderMode = MTLMotionBorderModeVanish;
-      accelDesc.motionEndBorderMode = MTLMotionBorderModeVanish;
+      //      accelDesc.motionStartBorderMode = MTLMotionBorderModeVanish;
+      //      accelDesc.motionEndBorderMode = MTLMotionBorderModeVanish;
       accelDesc.motionKeyframeCount = num_motion_steps;
     }
+    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
 
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
@@ -645,6 +878,12 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
+
+    /* Estimated size of resources that will be wired for the GPU accelerated build.
+     * Acceleration-struct size is doubled to account for possible compaction step. */
+    size_t wired_size = aabbBuf.allocatedSize + scratchBuf.allocatedSize +
+                        accel_uncompressed.allocatedSize * 2;
+
     [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
@@ -668,7 +907,9 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
             [accel_uncompressed release];
-            accel_struct_building = false;
+
+            /* Signal that we've finished doing GPU acceleration struct build. */
+            g_bvh_build_throttler.release(wired_size);
           }];
           [accelCommands commit];
         });
@@ -679,12 +920,16 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
 
         uint64_t allocated_size = [accel_struct allocatedSize];
         stats.mem_alloc(allocated_size);
-        accel_struct_building = false;
+
+        /* Signal that we've finished doing GPU acceleration struct build. */
+        g_bvh_build_throttler.release(wired_size);
       }
+
       [sizeBuf release];
     }];
 
-    accel_struct_building = true;
+    /* Wait until it's safe to proceed with GPU acceleration struct build. */
+    g_bvh_build_throttler.acquire(wired_size);
     [accelCommands commit];
     return true;
   }
@@ -696,22 +941,20 @@ bool BVHMetal::build_BLAS(Progress &progress,
                           id<MTLCommandQueue> queue,
                           bool refit)
 {
-  if (@available(macos 12.0, *)) {
-    assert(objects.size() == 1 && geometry.size() == 1);
+  assert(objects.size() == 1 && geometry.size() == 1);
 
-    /* Build bottom level acceleration structures (BLAS) */
-    Geometry *const geom = geometry[0];
-    switch (geom->geometry_type) {
-      case Geometry::VOLUME:
-      case Geometry::MESH:
-        return build_BLAS_mesh(progress, device, queue, geom, refit);
-      case Geometry::HAIR:
-        return build_BLAS_hair(progress, device, queue, geom, refit);
-      case Geometry::POINTCLOUD:
-        return build_BLAS_pointcloud(progress, device, queue, geom, refit);
-      default:
-        return false;
-    }
+  /* Build bottom level acceleration structures (BLAS) */
+  Geometry *const geom = geometry[0];
+  switch (geom->geometry_type) {
+    case Geometry::VOLUME:
+    case Geometry::MESH:
+      return build_BLAS_mesh(progress, device, queue, geom, refit);
+    case Geometry::HAIR:
+      return build_BLAS_hair(progress, device, queue, geom, refit);
+    case Geometry::POINTCLOUD:
+      return build_BLAS_pointcloud(progress, device, queue, geom, refit);
+    default:
+      return false;
   }
   return false;
 }
@@ -721,45 +964,73 @@ bool BVHMetal::build_TLAS(Progress &progress,
                           id<MTLCommandQueue> queue,
                           bool refit)
 {
+  /* Wait for all BLAS builds to finish. */
+  g_bvh_build_throttler.wait_for_all();
+
   if (@available(macos 12.0, *)) {
-
-    /* we need to sync here and ensure that all BLAS have completed async generation by both GCD
-     * and Metal */
-    {
-      __block bool complete_bvh = false;
-      while (!complete_bvh) {
-        dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-          complete_bvh = true;
-          for (Object *ob : objects) {
-            /* Skip non-traceable objects */
-            if (!ob->is_traceable())
-              continue;
-
-            Geometry const *geom = ob->get_geometry();
-            BVHMetal const *blas = static_cast<BVHMetal const *>(geom->bvh);
-            if (blas->accel_struct_building) {
-              complete_bvh = false;
-
-              /* We're likely waiting on a command buffer that's in flight to complete.
-               * Queue up a command buffer and wait for it complete before checking the BLAS again
-               */
-              id<MTLCommandBuffer> command_buffer = [queue commandBuffer];
-              [command_buffer commit];
-              [command_buffer waitUntilCompleted];
-              break;
-            }
-          }
-        });
+    /* Defined inside available check, for return type to be available. */
+    auto make_null_BLAS = [](id<MTLDevice> device,
+                             id<MTLCommandQueue> queue) -> id<MTLAccelerationStructure> {
+      MTLResourceOptions storage_mode = MTLResourceStorageModeManaged;
+      if (device.hasUnifiedMemory) {
+        storage_mode = MTLResourceStorageModeShared;
       }
-    }
+
+      id<MTLBuffer> nullBuf = [device newBufferWithLength:0 options:storage_mode];
+
+      /* Create an acceleration structure. */
+      MTLAccelerationStructureTriangleGeometryDescriptor *geomDesc =
+          [MTLAccelerationStructureTriangleGeometryDescriptor descriptor];
+      geomDesc.vertexBuffer = nullBuf;
+      geomDesc.vertexBufferOffset = 0;
+      geomDesc.vertexStride = sizeof(float3);
+      geomDesc.indexBuffer = nullBuf;
+      geomDesc.indexBufferOffset = 0;
+      geomDesc.indexType = MTLIndexTypeUInt32;
+      geomDesc.triangleCount = 0;
+      geomDesc.intersectionFunctionTableOffset = 0;
+      geomDesc.opaque = true;
+      geomDesc.allowDuplicateIntersectionFunctionInvocation = false;
+
+      MTLPrimitiveAccelerationStructureDescriptor *accelDesc =
+          [MTLPrimitiveAccelerationStructureDescriptor descriptor];
+      accelDesc.geometryDescriptors = @[ geomDesc ];
+      accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+
+      MTLAccelerationStructureSizes accelSizes = [device
+          accelerationStructureSizesWithDescriptor:accelDesc];
+      id<MTLAccelerationStructure> accel_struct = [device
+          newAccelerationStructureWithSize:accelSizes.accelerationStructureSize];
+      id<MTLBuffer> scratchBuf = [device newBufferWithLength:accelSizes.buildScratchBufferSize
+                                                     options:MTLResourceStorageModePrivate];
+      id<MTLBuffer> sizeBuf = [device newBufferWithLength:8 options:MTLResourceStorageModeShared];
+      id<MTLCommandBuffer> accelCommands = [queue commandBuffer];
+      id<MTLAccelerationStructureCommandEncoder> accelEnc =
+          [accelCommands accelerationStructureCommandEncoder];
+      [accelEnc buildAccelerationStructure:accel_struct
+                                descriptor:accelDesc
+                             scratchBuffer:scratchBuf
+                       scratchBufferOffset:0];
+      [accelEnc endEncoding];
+      [accelCommands commit];
+      [accelCommands waitUntilCompleted];
+
+      /* free temp resources */
+      [scratchBuf release];
+      [nullBuf release];
+      [sizeBuf release];
+
+      return accel_struct;
+    };
 
     uint32_t num_instances = 0;
     uint32_t num_motion_transforms = 0;
     for (Object *ob : objects) {
-      /* Skip non-traceable objects */
+      num_instances++;
+
+      /* Skip motion for non-traceable objects */
       if (!ob->is_traceable())
         continue;
-      num_instances++;
 
       if (ob->use_motion()) {
         num_motion_transforms += max((size_t)1, ob->get_motion().size());
@@ -792,7 +1063,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
         int blas_index = (int)[all_blas count];
         instance_mapping[blas] = blas_index;
         if (@available(macos 12.0, *)) {
-          [all_blas addObject:blas->accel_struct];
+          [all_blas addObject:(blas ? blas->accel_struct : null_BLAS)];
         }
         return blas_index;
       }
@@ -829,28 +1100,36 @@ bool BVHMetal::build_TLAS(Progress &progress,
     uint32_t instance_index = 0;
     uint32_t motion_transform_index = 0;
 
-    // allocate look up buffer for wost case scenario
-    uint64_t count = objects.size();
-    blas_lookup.resize(count);
+    blas_array.clear();
+    blas_array.reserve(num_instances);
 
     for (Object *ob : objects) {
       /* Skip non-traceable objects */
-      if (!ob->is_traceable())
-        continue;
-
       Geometry const *geom = ob->get_geometry();
-
       BVHMetal const *blas = static_cast<BVHMetal const *>(geom->bvh);
+      if (!blas || !blas->accel_struct) {
+        /* Place a degenerate instance, to ensure [[instance_id]] equals ob->get_device_index()
+         * in our intersection functions */
+        blas = nullptr;
+
+        /* Workaround for issue in macOS <= 14.1: Insert degenerate BLAS instead of zero-filling
+         * the descriptor. */
+        if (!null_BLAS) {
+          null_BLAS = make_null_BLAS(device, queue);
+        }
+        blas_array.push_back(null_BLAS);
+      }
+      else {
+        blas_array.push_back(blas->accel_struct);
+      }
+
       uint32_t accel_struct_index = get_blas_index(blas);
 
       /* Add some of the object visibility bits to the mask.
        * __prim_visibility contains the combined visibility bits of all instances, so is not
        * reliable if they differ between instances.
-       *
-       * METAL_WIP: OptiX visibility mask can only contain 8 bits, so have to trade-off here
-       * and select just a few important ones.
        */
-      uint32_t mask = ob->visibility_for_tracing() & 0xFF;
+      uint32_t mask = ob->visibility_for_tracing();
 
       /* Have to have at least one bit in the mask, or else instance would always be culled. */
       if (0 == mask) {
@@ -858,11 +1137,25 @@ bool BVHMetal::build_TLAS(Progress &progress,
       }
 
       /* Set user instance ID to object index */
-      int object_index = ob->get_device_index();
-      uint32_t user_id = uint32_t(object_index);
+      uint32_t primitive_offset = 0;
       int currIndex = instance_index++;
-      assert(user_id < blas_lookup.size());
-      blas_lookup[user_id] = accel_struct_index;
+
+      if (geom->geometry_type == Geometry::HAIR) {
+        /* Build BLAS for curve primitives. */
+        Hair *const hair = static_cast<Hair *const>(const_cast<Geometry *>(geom));
+        primitive_offset = uint32_t(hair->curve_segment_offset);
+      }
+      else if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
+        /* Build BLAS for triangle primitives. */
+        Mesh *const mesh = static_cast<Mesh *const>(const_cast<Geometry *>(geom));
+        primitive_offset = uint32_t(mesh->prim_offset);
+      }
+      else if (geom->geometry_type == Geometry::POINTCLOUD) {
+        /* Build BLAS for points primitives. */
+        PointCloud *const pointcloud = static_cast<PointCloud *const>(
+            const_cast<Geometry *>(geom));
+        primitive_offset = uint32_t(pointcloud->prim_offset);
+      }
 
       /* Bake into the appropriate descriptor */
       if (motion_blur) {
@@ -871,7 +1164,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
         MTLAccelerationStructureMotionInstanceDescriptor &desc = instances[currIndex];
 
         desc.accelerationStructureIndex = accel_struct_index;
-        desc.userID = user_id;
+        desc.userID = primitive_offset;
         desc.mask = mask;
         desc.motionStartTime = 0.0f;
         desc.motionEndTime = 1.0f;
@@ -917,9 +1210,10 @@ bool BVHMetal::build_TLAS(Progress &progress,
         MTLAccelerationStructureUserIDInstanceDescriptor &desc = instances[currIndex];
 
         desc.accelerationStructureIndex = accel_struct_index;
-        desc.userID = user_id;
+        desc.userID = primitive_offset;
         desc.mask = mask;
         desc.intersectionFunctionTableOffset = 0;
+        desc.options = MTLAccelerationStructureInstanceOptionOpaque;
 
         float *t = (float *)&desc.transformationMatrix;
         if (ob->get_geometry()->is_instanced()) {
@@ -959,6 +1253,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
       accelDesc.motionTransformCount = num_motion_transforms;
     }
 
+    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
                           MTLAccelerationStructureUsagePreferFastBuild);
@@ -1001,11 +1296,12 @@ bool BVHMetal::build_TLAS(Progress &progress,
 
     /* Cache top and bottom-level acceleration structs */
     accel_struct = accel;
-    blas_array.clear();
-    blas_array.reserve(all_blas.count);
-    for (id<MTLAccelerationStructure> blas in all_blas) {
-      blas_array.push_back(blas);
-    }
+
+    unique_blas_array.clear();
+    unique_blas_array.reserve(all_blas.count);
+    [all_blas enumerateObjectsUsingBlock:^(id<MTLAccelerationStructure> blas, NSUInteger, BOOL *) {
+      unique_blas_array.push_back(blas);
+    }];
 
     return true;
   }
@@ -1030,11 +1326,13 @@ bool BVHMetal::build(Progress &progress,
     }
   }
 
-  if (!params.top_level) {
-    return build_BLAS(progress, device, queue, refit);
-  }
-  else {
-    return build_TLAS(progress, device, queue, refit);
+  @autoreleasepool {
+    if (!params.top_level) {
+      return build_BLAS(progress, device, queue, refit);
+    }
+    else {
+      return build_TLAS(progress, device, queue, refit);
+    }
   }
 }
 

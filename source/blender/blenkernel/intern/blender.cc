@@ -37,15 +37,15 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_studiolight.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sequencer.hh"
 
 #include "BLF_api.h"
 
@@ -93,6 +93,9 @@ void BKE_blender_free()
 
 static char blender_version_string[48] = "";
 
+/* Only includes patch if non-zero. */
+static char blender_version_string_compact[48] = "";
+
 static void blender_version_init()
 {
   const char *version_cycle = "";
@@ -118,11 +121,22 @@ static void blender_version_init()
            BLENDER_VERSION % 100,
            BLENDER_VERSION_PATCH,
            version_cycle);
+
+  SNPRINTF(blender_version_string_compact,
+           "%d.%01d%s",
+           BLENDER_VERSION / 100,
+           BLENDER_VERSION % 100,
+           version_cycle);
 }
 
 const char *BKE_blender_version_string()
 {
   return blender_version_string;
+}
+
+const char *BKE_blender_version_string_compact()
+{
+  return blender_version_string_compact;
 }
 
 void BKE_blender_version_blendfile_string_from_values(char *str_buff,
@@ -167,7 +181,7 @@ void BKE_blender_globals_init()
 
   BKE_blender_globals_main_replace(BKE_main_new());
 
-  STRNCPY(G.ima, "//");
+  STRNCPY(G.filepath_last_image, "//");
 
 #ifndef WITH_PYTHON_SECURITY /* default */
   G.f |= G_FLAG_SCRIPT_AUTOEXEC;

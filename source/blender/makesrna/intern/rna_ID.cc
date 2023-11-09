@@ -19,7 +19,7 @@
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
 #include "BKE_main_namemap.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -42,14 +42,14 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_CU_LEGACY, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_CV, "CURVES", ICON_CURVES_DATA, "Curves", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
-    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil (legacy)", ""},
-    {ID_GP, "GREASEPENCIL_V3", ICON_GREASEPENCIL, "Grease Pencil", ""},
+    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
+    {ID_GP, "GREASEPENCIL_V3", ICON_GREASEPENCIL, "Grease Pencil v3", ""},
     {ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
     {ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
     {ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
     {ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
     {ID_LA, "LIGHT", ICON_LIGHT_DATA, "Light", ""},
-    {ID_LP, "LIGHT_PROBE", ICON_LIGHTPROBE_CUBEMAP, "Light Probe", ""},
+    {ID_LP, "LIGHT_PROBE", ICON_LIGHTPROBE_SPHERE, "Light Probe", ""},
     {ID_LS, "LINESTYLE", ICON_LINE_DATA, "Line Style", ""},
     {ID_MSK, "MASK", ICON_MOD_MASK, "Mask", ""},
     {ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
@@ -226,9 +226,9 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_preview_image.hh"
 #  include "BKE_vfont.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
+#  include "DEG_depsgraph_query.hh"
 
 #  include "ED_asset.hh"
 
@@ -484,7 +484,9 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_GD_LEGACY:
       return &RNA_GreasePencil;
     case ID_GP:
+#  ifdef WITH_GREASE_PENCIL_V3
       return &RNA_GreasePencilv3;
+#  endif
       break;
     case ID_GR:
       return &RNA_Collection;
@@ -1093,7 +1095,7 @@ static ID *rna_ID_make_local(ID *self, Main *bmain, bool /*clear_proxy*/)
     BKE_lib_id_make_local(bmain, self, 0);
   }
   else if (ID_IS_OVERRIDE_LIBRARY_REAL(self)) {
-    BKE_lib_override_library_make_local(self);
+    BKE_lib_override_library_make_local(bmain, self);
   }
 
   ID *ret_id = self->newid ? self->newid : self;

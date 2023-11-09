@@ -105,7 +105,6 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             scene.collection.objects.link(camera)
 
             light.rotation_euler = Euler((0.7853981852531433, 0.0, 1.7453292608261108), 'XYZ')  # (45, 0, 100)
-            light_data.falloff_type = 'CONSTANT'
             light_data.spot_size = 1.0471975803375244  # 60
             scene.collection.objects.link(light)
 

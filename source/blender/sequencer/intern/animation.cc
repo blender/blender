@@ -19,9 +19,9 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "SEQ_animation.h"
+#include "SEQ_animation.hh"
 
 bool SEQ_animation_curves_exist(Scene *scene)
 {

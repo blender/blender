@@ -87,8 +87,8 @@ static const EnumPropertyItem rna_enum_glow_blend_modes_items[] = {
 
 #  include "BKE_shader_fx.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 static StructRNA *rna_ShaderFx_refine(PointerRNA *ptr)
 {

@@ -224,7 +224,7 @@ void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup);
  * \note This must be called in the same context as the poll function that created it.
  */
 struct bContextPollMsgDyn_Params {
-  /** The result is allocated . */
+  /** The result is allocated. */
   char *(*get_fn)(bContext *C, void *user_data);
   /** Optionally free the user-data. */
   void (*free_fn)(bContext *C, void *user_data);
@@ -413,8 +413,6 @@ bool CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
-struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
-
 #ifdef __cplusplus
 class blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
 #endif

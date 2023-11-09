@@ -39,8 +39,8 @@ class DATA_PT_context_arm(ArmatureButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
-    bl_label = "Skeleton"
+class DATA_PT_pose(ArmatureButtonsPanel, Panel):
+    bl_label = "Pose"
 
     def draw(self, context):
         layout = self.layout
@@ -89,6 +89,16 @@ class DATA_UL_bone_collections(UIList):
 
         layout.prop(bcoll, "name", text="", emboss=False,
                     icon='DOT' if has_active_bone else 'BLANK1')
+
+        if armature.override_library:
+            icon = 'LIBRARY_DATA_OVERRIDE' if bcoll.is_local_override else 'BLANK1'
+            layout.prop(
+                bcoll,
+                "is_local_override",
+                text="",
+                emboss=False,
+                icon=icon)
+
         layout.prop(bcoll, "is_visible", text="", emboss=False,
                     icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
 
@@ -125,6 +135,9 @@ class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
             col.separator()
             col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            col.separator()
+
+        col.menu("ARMATURE_MT_collection_context_menu", icon='DOWNARROW_HLT', text="")
 
         row = layout.row()
 
@@ -135,6 +148,20 @@ class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
         sub = row.row(align=True)
         sub.operator("armature.collection_select", text="Select")
         sub.operator("armature.collection_deselect", text="Deselect")
+
+
+class ARMATURE_MT_collection_context_menu(Menu):
+    bl_label = "Bone Collection Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        arm = context.armature
+        active_bcoll = arm.collections.active
+
+        props = layout.operator("armature.collection_solo_visibility")
+        props.name = active_bcoll.name if active_bcoll else ""
+        layout.operator("armature.collection_show_all")
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
@@ -245,14 +272,25 @@ class DATA_PT_custom_props_bcoll(ArmatureButtonsPanel, PropertyPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.armature and context.armature.collections.active
+        arm = context.armature
+        if not arm:
+            return False
+
+        is_lib_override = arm.id_data.override_library and arm.id_data.override_library.reference
+        if is_lib_override:
+            # This is due to a limitation in scripts/modules/rna_prop_ui.py; if that
+            # limitation is lifted, this poll function should be adjusted.
+            return False
+
+        return arm.collections.active
 
 
 classes = (
     DATA_PT_context_arm,
-    DATA_PT_skeleton,
+    DATA_PT_pose,
     DATA_PT_bone_collections,
     DATA_UL_bone_collections,
+    ARMATURE_MT_collection_context_menu,
     DATA_PT_motion_paths,
     DATA_PT_motion_paths_display,
     DATA_PT_display,

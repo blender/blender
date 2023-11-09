@@ -227,8 +227,9 @@ void Camera::update(Scene *scene)
     need_device_update = true;
   }
 
-  if (!is_modified())
+  if (!is_modified()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -254,12 +255,15 @@ void Camera::update(Scene *scene)
 
   /* Screen to camera. */
   ProjectionTransform cameratoscreen;
-  if (camera_type == CAMERA_PERSPECTIVE)
+  if (camera_type == CAMERA_PERSPECTIVE) {
     cameratoscreen = projection_perspective(fov, nearclip, farclip);
-  else if (camera_type == CAMERA_ORTHOGRAPHIC)
+  }
+  else if (camera_type == CAMERA_ORTHOGRAPHIC) {
     cameratoscreen = projection_orthographic(nearclip, farclip);
-  else
+  }
+  else {
     cameratoscreen = projection_identity();
+  }
 
   ProjectionTransform screentocamera = projection_inverse(cameratoscreen);
 
@@ -474,8 +478,9 @@ void Camera::device_update(Device * /* device */, DeviceScene *dscene, Scene *sc
 {
   update(scene);
 
-  if (!need_device_update)
+  if (!need_device_update) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {

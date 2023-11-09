@@ -15,7 +15,7 @@
 
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"

@@ -20,7 +20,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -91,7 +91,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
                     defgrp_index,
                     (wmd->flag & MOD_WIREFRAME_INVERT_VGROUP) != 0,
                     wmd->mat_ofs,
-                    MAX2(ob->totcol - 1, 0),
+                    std::max(ob->totcol - 1, 0),
                     false);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);

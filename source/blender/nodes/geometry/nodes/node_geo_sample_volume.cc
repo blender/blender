@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BKE_type_conversions.hh"
 #include "BKE_volume.h"
@@ -10,7 +10,6 @@
 
 #include "BLI_virtual_array.hh"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "node_geometry_util.hh"
@@ -32,8 +31,8 @@ NODE_STORAGE_FUNCS(NodeGeometrySampleVolume)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID)
-      .supported_type(GeometryComponent::Type::Volume);
+      .supported_type(GeometryComponent::Type::Volume)
+      .translation_context(BLT_I18NCONTEXT_ID_ID);
 
   std::string grid_socket_description = N_(
       "Expects a Named Attribute with the name of a Grid in the Volume");
@@ -63,14 +62,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>("Value", "Value_Int").dependent_field({5});
 }
 
-static void search_node_add_ops(GatherAddNodeSearchParams &params)
-{
-  if (!U.experimental.use_new_volume_nodes) {
-    return;
-  }
-  blender::nodes::search_node_add_ops_for_basic_node(params);
-}
-
 static std::optional<eCustomDataType> other_socket_type_to_grid_type(
     const eNodeSocketDatatype type)
 {
@@ -94,7 +85,7 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
   if (!U.experimental.use_new_volume_nodes) {
     return;
   }
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
@@ -429,7 +420,6 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  ntype.gather_add_node_search_ops = search_node_add_ops;
   ntype.gather_link_search_ops = search_link_ops;
   ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);

@@ -9,7 +9,7 @@
 
 #include "BLI_map.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "CLG_log.h"
 
@@ -52,7 +52,9 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
   const View3D *view3d = nullptr;
   Main *bmain = nullptr;
   Scene *scene = nullptr;
+
   ShadingSettings shading_settings;
+  bool use_materialx = true;
 
  private:
   ObjectDataMap objects_;
@@ -103,7 +105,6 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
   MaterialData *material_data(pxr::SdfPath const &id) const;
   InstancerData *instancer_data(pxr::SdfPath const &id, bool child_id = false) const;
 
-  void update_world();
   void check_updates();
   void update_collection();
   bool set_light_shading_settings();

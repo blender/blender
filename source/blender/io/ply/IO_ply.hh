@@ -43,6 +43,7 @@ struct PLYExportParams {
   bool export_uv;
   bool export_normals;
   ePLYVertexColorMode vertex_colors;
+  bool export_attributes;
   bool export_triangulated_mesh;
 };
 
@@ -54,6 +55,7 @@ struct PLYImportParams {
   bool use_scene_unit;
   float global_scale;
   ePLYVertexColorMode vertex_colors;
+  bool import_attributes;
   bool merge_verts;
 };
 

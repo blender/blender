@@ -13,6 +13,7 @@ set(INC
   ../editors/include
   ../makesrna
   ../render
+  ../render/intern
   ../windowmanager
   ../../../intern/eigen
 

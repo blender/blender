@@ -38,7 +38,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_subsurf.hh"
@@ -94,7 +94,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int numLaye
   int normalOffset = 0;
 
   /* (subdivLevels == 0) is not allowed */
-  subdivLevels = MAX2(subdivLevels, 1);
+  subdivLevels = std::max(subdivLevels, 1);
 
   if (prevSS) {
     int oldUseAging;
@@ -990,7 +990,7 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, int *r_face_offsets)
   int index;
   int totface;
   int gridSize = ccgSubSurf_getGridSize(ss);
-  /* int edgeSize = ccgSubSurf_getEdgeSize(ss); */ /* UNUSED */
+  // int edgeSize = ccgSubSurf_getEdgeSize(ss); /* UNUSED. */
   int i = 0, k = 0;
 
   totface = ccgSubSurf_getNumFaces(ss);

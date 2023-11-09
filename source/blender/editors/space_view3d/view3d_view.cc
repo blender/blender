@@ -24,11 +24,11 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "UI_resources.hh"
 

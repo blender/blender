@@ -19,12 +19,12 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subsurf.hh"
 #include "BLI_math_vector.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "multires_reshape.hh"
 

@@ -526,7 +526,7 @@ void do_kink(ParticleKey *state,
       sub_v3_v3v3(par_vec, state->co, state_co);
 
       length = normalize_v3(par_vec);
-      mul_v3_fl(par_vec, MIN2(length, amplitude / 2.0f));
+      mul_v3_fl(par_vec, std::min(length, amplitude / 2.0f));
 
       add_v3_v3v3(state_co, par_co, y_vec);
       add_v3_v3(state_co, z_vec);

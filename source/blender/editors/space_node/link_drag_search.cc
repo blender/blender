@@ -5,7 +5,6 @@
 #include "AS_asset_representation.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string_search.hh"
 
 #include "DNA_space_types.h"
 
@@ -15,7 +14,9 @@
 #include "BKE_lib_id.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
+
+#include "UI_string_search.hh"
 
 #include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
@@ -26,7 +27,7 @@
 
 #include "WM_api.hh"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_asset.hh"
 #include "ED_node.hh"
@@ -93,7 +94,8 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
       params.socket.typeinfo->idname,
       NODE_INTERFACE_SOCKET_INPUT,
       nullptr);
-  BKE_ntree_update_tag_interface(&params.node_tree);
+  socket_iface->init_from_socket_instance(&params.socket);
+  params.node_tree.tree_interface.active_item_set(&socket_iface->item);
 
   bNode &group_input = params.add_node("NodeGroupInput");
 
@@ -334,12 +336,12 @@ static void gather_socket_link_operations(const bContext &C,
           return true;
         }
       }
-      search_link_ops.append(
-          {std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP + interface_socket.name,
-           [interface_socket](nodes::LinkSearchOpParams &params) {
-             add_existing_group_input_fn(params, interface_socket);
-           },
-           weight});
+      search_link_ops.append({std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP +
+                                  (interface_socket.name ? interface_socket.name : ""),
+                              [interface_socket](nodes::LinkSearchOpParams &params) {
+                                add_existing_group_input_fn(params, interface_socket);
+                              },
+                              weight});
       weight--;
       return true;
     });
@@ -359,7 +361,8 @@ static void link_drag_search_update_fn(
     storage.update_items_tag = false;
   }
 
-  string_search::StringSearch<SocketLinkOperation> search;
+  ui::string_search::StringSearch<SocketLinkOperation> search{
+      string_search::MainWordsHeuristic::All};
 
   for (SocketLinkOperation &op : storage.search_link_ops) {
     search.add(op.name, &op, op.weight);

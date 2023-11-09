@@ -10,9 +10,26 @@
 
 namespace blender::fn::lazy_function {
 
+Graph::Graph()
+{
+  graph_input_node_ = allocator_.construct<InterfaceNode>().release();
+  graph_output_node_ = allocator_.construct<InterfaceNode>().release();
+  nodes_.append(graph_input_node_);
+  nodes_.append(graph_output_node_);
+}
+
 Graph::~Graph()
 {
-  for (Node *node : nodes_) {
+  for (FunctionNode *node : this->function_nodes()) {
+    for (InputSocket *socket : node->inputs_) {
+      std::destroy_at(socket);
+    }
+    for (OutputSocket *socket : node->outputs_) {
+      std::destroy_at(socket);
+    }
+    std::destroy_at(node);
+  }
+  for (const InterfaceNode *node : {graph_input_node_, graph_output_node_}) {
     for (InputSocket *socket : node->inputs_) {
       std::destroy_at(socket);
     }
@@ -52,34 +69,30 @@ FunctionNode &Graph::add_function(const LazyFunction &fn)
   return node;
 }
 
-DummyNode &Graph::add_dummy(Span<const CPPType *> input_types,
-                            Span<const CPPType *> output_types,
-                            const DummyDebugInfo *debug_info)
+GraphInputSocket &Graph::add_input(const CPPType &type, std::string name)
 {
-  DummyNode &node = *allocator_.construct<DummyNode>().release();
-  node.fn_ = nullptr;
-  node.inputs_ = allocator_.construct_elements_and_pointer_array<InputSocket>(input_types.size());
-  node.outputs_ = allocator_.construct_elements_and_pointer_array<OutputSocket>(
-      output_types.size());
-  node.debug_info_ = debug_info;
+  GraphInputSocket &socket = *allocator_.construct<GraphInputSocket>().release();
+  socket.is_input_ = false;
+  socket.node_ = graph_input_node_;
+  socket.type_ = &type;
+  socket.index_in_node_ = graph_inputs_.append_and_get_index(&socket);
+  graph_input_node_->outputs_ = graph_inputs_;
 
-  for (const int i : input_types.index_range()) {
-    InputSocket &socket = *node.inputs_[i];
-    socket.index_in_node_ = i;
-    socket.is_input_ = true;
-    socket.node_ = &node;
-    socket.type_ = input_types[i];
-  }
-  for (const int i : output_types.index_range()) {
-    OutputSocket &socket = *node.outputs_[i];
-    socket.index_in_node_ = i;
-    socket.is_input_ = false;
-    socket.node_ = &node;
-    socket.type_ = output_types[i];
-  }
+  graph_input_node_->socket_names_.append(std::move(name));
+  return socket;
+}
 
-  nodes_.append(&node);
-  return node;
+GraphOutputSocket &Graph::add_output(const CPPType &type, std::string name)
+{
+  GraphOutputSocket &socket = *allocator_.construct<GraphOutputSocket>().release();
+  socket.is_input_ = true;
+  socket.node_ = graph_output_node_;
+  socket.type_ = &type;
+  socket.index_in_node_ = graph_outputs_.append_and_get_index(&socket);
+  graph_output_node_->inputs_ = graph_outputs_;
+
+  graph_output_node_->socket_names_.append(std::move(name));
+  return socket;
 }
 
 void Graph::add_link(OutputSocket &from, InputSocket &to)
@@ -129,8 +142,6 @@ bool Graph::node_indices_are_valid() const
   return true;
 }
 
-static const char *fallback_name = "No Name";
-
 std::string Socket::name() const
 {
   if (node_->is_function()) {
@@ -141,14 +152,8 @@ std::string Socket::name() const
     }
     return fn.output_name(index_in_node_);
   }
-  const DummyNode &dummy_node = *static_cast<const DummyNode *>(node_);
-  if (dummy_node.debug_info_) {
-    if (is_input_) {
-      return dummy_node.debug_info_->input_name(index_in_node_);
-    }
-    return dummy_node.debug_info_->output_name(index_in_node_);
-  }
-  return fallback_name;
+  const InterfaceNode &interface_node = *static_cast<const InterfaceNode *>(node_);
+  return interface_node.socket_names_[index_in_node_];
 }
 
 std::string Socket::detailed_name() const
@@ -164,41 +169,7 @@ std::string Node::name() const
   if (this->is_function()) {
     return fn_->name();
   }
-  const DummyNode &dummy_node = *static_cast<const DummyNode *>(this);
-  if (dummy_node.debug_info_) {
-    return dummy_node.debug_info_->node_name();
-  }
-  return fallback_name;
-}
-
-std::string DummyDebugInfo::node_name() const
-{
-  return fallback_name;
-}
-
-std::string DummyDebugInfo::input_name(const int /*i*/) const
-{
-  return fallback_name;
-}
-
-std::string DummyDebugInfo::output_name(const int /*i*/) const
-{
-  return fallback_name;
-}
-
-std::string SimpleDummyDebugInfo::node_name() const
-{
-  return this->name;
-}
-
-std::string SimpleDummyDebugInfo::input_name(const int i) const
-{
-  return this->input_names[i];
-}
-
-std::string SimpleDummyDebugInfo::output_name(const int i) const
-{
-  return this->output_names[i];
+  return "Interface";
 }
 
 std::string Graph::ToDotOptions::socket_name(const Socket &socket) const
@@ -226,7 +197,7 @@ std::string Graph::to_dot(const ToDotOptions &options) const
 
   for (const Node *node : nodes_) {
     dot::Node &dot_node = digraph.new_node("");
-    if (node->is_dummy()) {
+    if (node->is_interface()) {
       dot_node.set_background_color("lightblue");
     }
     else {

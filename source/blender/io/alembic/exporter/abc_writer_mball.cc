@@ -15,7 +15,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"

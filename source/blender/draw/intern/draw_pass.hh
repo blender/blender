@@ -215,6 +215,14 @@ class PassBase {
   void framebuffer_set(GPUFrameBuffer **framebuffer);
 
   /**
+   * Start a new sub-pass and change framebuffer attachments status.
+   * \note Affect the currently bound framebuffer at the time of submission and execution.
+   * \note States are copied and stored in the command.
+   */
+  void subpass_transition(GPUAttachmentState depth_attachment,
+                          Span<GPUAttachmentState> color_attachments);
+
+  /**
    * Bind a material shader along with its associated resources. Any following bind() or
    * push_constant() call will use its interface.
    * IMPORTANT: Assumes material is compiled and can be used (no compilation error).
@@ -550,6 +558,9 @@ template<class T> void PassBase<T>::submit(command::RecordingState &state) const
       case command::Type::FramebufferBind:
         commands_[header.index].framebuffer_bind.execute();
         break;
+      case command::Type::SubPassTransition:
+        commands_[header.index].subpass_transition.execute();
+        break;
       case command::Type::ShaderBind:
         commands_[header.index].shader_bind.execute(state);
         break;
@@ -610,6 +621,9 @@ template<class T> std::string PassBase<T>::serialize(std::string line_prefix) co
         break;
       case Type::FramebufferBind:
         ss << line_prefix << commands_[header.index].framebuffer_bind.serialize() << std::endl;
+        break;
+      case Type::SubPassTransition:
+        ss << line_prefix << commands_[header.index].subpass_transition.serialize() << std::endl;
         break;
       case Type::ShaderBind:
         ss << line_prefix << commands_[header.index].shader_bind.serialize() << std::endl;
@@ -673,8 +687,24 @@ inline void PassBase<T>::draw(GPUBatch *batch,
     return;
   }
   BLI_assert(shader_);
-  draw_commands_buf_.append_draw(
-      headers_, commands_, batch, instance_len, vertex_len, vertex_first, handle, custom_id);
+#ifdef WITH_METAL_BACKEND
+  /* TEMP: Note, shader_ is passed as part of the draw as vertex-expansion properties for SSBO
+   * vertex fetch need extracting at command generation time. */
+  GPUShader *draw_shader = GPU_shader_uses_ssbo_vertex_fetch(shader_) ? shader_ : nullptr;
+#endif
+  draw_commands_buf_.append_draw(headers_,
+                                 commands_,
+                                 batch,
+                                 instance_len,
+                                 vertex_len,
+                                 vertex_first,
+                                 handle,
+                                 custom_id
+#ifdef WITH_METAL_BACKEND
+                                 ,
+                                 draw_shader
+#endif
+  );
 }
 
 template<class T>
@@ -823,6 +853,25 @@ template<class T> inline void PassBase<T>::shader_set(GPUShader *shader)
 template<class T> inline void PassBase<T>::framebuffer_set(GPUFrameBuffer **framebuffer)
 {
   create_command(Type::FramebufferBind).framebuffer_bind = {framebuffer};
+}
+
+template<class T>
+inline void PassBase<T>::subpass_transition(GPUAttachmentState depth_attachment,
+                                            Span<GPUAttachmentState> color_attachments)
+{
+  uint8_t color_states[8] = {GPU_ATTACHEMENT_IGNORE};
+  for (auto i : color_attachments.index_range()) {
+    color_states[i] = uint8_t(color_attachments[i]);
+  }
+  create_command(Type::SubPassTransition).subpass_transition = {uint8_t(depth_attachment),
+                                                                {color_states[0],
+                                                                 color_states[1],
+                                                                 color_states[2],
+                                                                 color_states[3],
+                                                                 color_states[4],
+                                                                 color_states[5],
+                                                                 color_states[6],
+                                                                 color_states[7]}};
 }
 
 template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMaterial *material)

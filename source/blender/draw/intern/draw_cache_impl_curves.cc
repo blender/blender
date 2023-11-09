@@ -24,7 +24,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
@@ -434,8 +434,8 @@ static void curves_batch_cache_fill_segments_indices(GPUPrimType prim_type,
         }
         GPU_indexbuf_add_primitive_restart(&elb);
       }
-    } break;
-
+      break;
+    }
     /* Generate curves using independent line segments. */
     case GPU_PRIM_LINES: {
       uint curr_point = 0;
@@ -447,8 +447,8 @@ static void curves_batch_cache_fill_segments_indices(GPUPrimType prim_type,
         /* Skip to next primitive base index. */
         curr_point++;
       }
-    } break;
-
+      break;
+    }
     /* Generate curves using independent two-triangle segments. */
     case GPU_PRIM_TRIS: {
       uint curr_point = 0;
@@ -461,8 +461,8 @@ static void curves_batch_cache_fill_segments_indices(GPUPrimType prim_type,
         /* Skip to next primitive base index. */
         curr_point += 2;
       }
-    } break;
-
+      break;
+    }
     default:
       BLI_assert_unreachable();
       break;

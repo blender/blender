@@ -7,7 +7,6 @@
  */
 
 #include "BLI_string_ref.hh"
-#include "BLI_string_search.hh"
 
 #include "DNA_customdata_types.h"
 
@@ -22,6 +21,7 @@
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+#include "UI_string_search.hh"
 
 using blender::nodes::geo_eval_log::GeometryAttributeInfo;
 
@@ -91,7 +91,7 @@ void attribute_search_add_items(StringRefNull str,
    * so the items are in the same order they will appear in while searching. */
   const char *string = is_first ? "" : str.c_str();
 
-  string_search::StringSearch<const GeometryAttributeInfo> search;
+  ui::string_search::StringSearch<const GeometryAttributeInfo> search;
   for (const GeometryAttributeInfo *item : infos) {
     if (!bke::allow_procedural_attribute_access(item->name)) {
       continue;

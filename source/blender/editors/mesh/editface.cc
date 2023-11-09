@@ -30,7 +30,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
@@ -40,8 +40,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 /* own include */
 
@@ -456,8 +456,7 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   using namespace blender;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);

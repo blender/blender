@@ -20,7 +20,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
 #include "ED_buttons.hh"
@@ -146,7 +146,7 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -536,7 +536,7 @@ static void buttons_operatortypes()
 
 static void buttons_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Property Editor", SPACE_PROPERTIES, 0);
+  WM_keymap_ensure(keyconf, "Property Editor", SPACE_PROPERTIES, RGN_TYPE_WINDOW);
 }
 
 /** \} */
@@ -694,6 +694,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
         case ND_POSE:
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
           buttons_area_redraw(area, BCONTEXT_BONE);
           buttons_area_redraw(area, BCONTEXT_BONE_CONSTRAINT);
           buttons_area_redraw(area, BCONTEXT_DATA);

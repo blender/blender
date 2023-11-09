@@ -177,11 +177,13 @@ static int SVertex_mathutils_set(BaseMathObject *bmo, int subtype)
     case MATHUTILS_SUBTYPE_POINT3D: {
       Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
       self->sv->setPoint3D(p);
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_POINT2D: {
       Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
       self->sv->setPoint2D(p);
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -236,12 +238,14 @@ static int SVertex_mathutils_set_index(BaseMathObject *bmo, int subtype, int ind
       Vec3r p(self->sv->point3D());
       p[index] = bmo->data[index];
       self->sv->setPoint3D(p);
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_POINT2D: {
       Vec3r p(self->sv->point2D());
       p[index] = bmo->data[index];
       self->sv->setPoint2D(p);
-    } break;
+      break;
+    }
     default:
       return -1;
   }

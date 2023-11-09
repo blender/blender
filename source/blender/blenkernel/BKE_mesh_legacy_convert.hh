@@ -13,6 +13,7 @@
 #include "BLI_utildefines.h"
 
 struct CustomData;
+struct Main;
 struct Mesh;
 struct MFace;
 
@@ -72,7 +73,7 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh);
 
 void BKE_mesh_legacy_convert_loops_to_corners(Mesh *mesh);
 
-void BKE_mesh_legacy_face_map_to_generic(Mesh *mesh);
+void BKE_mesh_legacy_face_map_to_generic(Main *bmain);
 
 /**
  * Recreate #MFace Tessellation.
@@ -107,6 +108,8 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh);
 void BKE_mesh_calc_edges_legacy(Mesh *me);
 
 void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh);
+
+void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain);
 
 /* Inlines */
 

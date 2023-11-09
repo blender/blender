@@ -114,7 +114,7 @@ class ToneMapOperation : public NodeOperation {
     const float gamma = node_storage(bnode()).gamma;
     const float inverse_gamma = gamma != 0.0f ? 1.0f / gamma : 0.0f;
 
-    GPUShader *shader = shader_manager().get("compositor_tone_map_simple");
+    GPUShader *shader = context().get_shader("compositor_tone_map_simple");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "luminance_scale", luminance_scale);
@@ -175,7 +175,7 @@ class ToneMapOperation : public NodeOperation {
     const float chromatic_adaptation = get_chromatic_adaptation();
     const float light_adaptation = get_light_adaptation();
 
-    GPUShader *shader = shader_manager().get("compositor_tone_map_photoreceptor");
+    GPUShader *shader = context().get_shader("compositor_tone_map_photoreceptor");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_4fv(shader, "global_adaptation_level", global_adaptation_level);

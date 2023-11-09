@@ -16,7 +16,7 @@
 #include "BLI_math_base.h"
 
 #include "BKE_camera.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLT_translation.h"
 

@@ -34,10 +34,10 @@
 #include "BKE_linestyle.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
@@ -262,9 +262,11 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
   if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && ELEM(type, -1, OB_GPENCIL_LEGACY)) {
     return true;
   }
+#ifdef WITH_GREASE_PENCIL_V3
   if (RNA_struct_is_a(ptr->type, &RNA_GreasePencilv3) && ELEM(type, -1, OB_GREASE_PENCIL)) {
     return true;
   }
+#endif
   if (RNA_struct_is_a(ptr->type, &RNA_Curves) && ELEM(type, -1, OB_CURVES)) {
     return true;
   }
@@ -1172,10 +1174,12 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     set_pointer_type(path, result, &RNA_GreasePencil);
     return CTX_RESULT_OK;
   }
+#ifdef WITH_GREASE_PENCIL_V3
   if (CTX_data_equals(member, "grease_pencil")) {
     set_pointer_type(path, result, &RNA_GreasePencilv3);
     return CTX_RESULT_OK;
   }
+#endif
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 

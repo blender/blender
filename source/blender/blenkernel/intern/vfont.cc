@@ -160,7 +160,7 @@ IDTypeInfo IDType_ID_VF = {
     /*main_listbase_index*/ INDEX_ID_VF,
     /*struct_size*/ sizeof(VFont),
     /*name*/ "Font",
-    /*name_plural*/ "fonts",
+    /*name_plural*/ N_("fonts"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_VFONT,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -448,8 +448,8 @@ static void build_underline(Curve *cu,
   nu2->bezt = nullptr;
   nu2->knotsu = nu2->knotsv = nullptr;
   nu2->charidx = charidx + 1000;
-  if (mat_nr > 0) {
-    nu2->mat_nr = mat_nr - 1;
+  if (mat_nr >= 0) {
+    nu2->mat_nr = mat_nr;
   }
   nu2->pntsu = 4;
   nu2->pntsv = 1;
@@ -538,7 +538,7 @@ void BKE_vfont_build_char(Curve *cu,
       nu2->flag = CU_SMOOTH;
       nu2->charidx = charidx;
       if (info->mat_nr > 0) {
-        nu2->mat_nr = info->mat_nr - 1;
+        nu2->mat_nr = info->mat_nr;
       }
       else {
         nu2->mat_nr = 0;

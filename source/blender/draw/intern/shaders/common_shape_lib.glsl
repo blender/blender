@@ -8,8 +8,6 @@
  * allow for more than one constructor per type.
  */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-
 /* ---------------------------------------------------------------------- */
 /** \name Circle
  * \{ */

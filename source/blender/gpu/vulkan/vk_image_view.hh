@@ -18,12 +18,15 @@ class VKTexture;
 
 class VKImageView : NonCopyable {
   VkImageView vk_image_view_ = VK_NULL_HANDLE;
+  VkFormat vk_format_ = VK_FORMAT_UNDEFINED;
 
  public:
   VKImageView(VKTexture &texture,
               eImageViewUsage usage,
               IndexRange layer_range,
               IndexRange mip_range,
+              bool use_stencil,
+              bool use_srgb,
               StringRefNull name);
 
   VKImageView(VKImageView &&other);
@@ -33,6 +36,11 @@ class VKImageView : NonCopyable {
   {
     BLI_assert(vk_image_view_ != VK_NULL_HANDLE);
     return vk_image_view_;
+  }
+
+  VkFormat vk_format() const
+  {
+    return vk_format_;
   }
 };
 

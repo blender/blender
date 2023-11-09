@@ -84,6 +84,10 @@ void View::frustum_boundbox_calc(int view_id)
   for (float4 &corner : corners) {
     mul_m4_v3(data_[view_id].viewinv.ptr(), corner);
     corner.w = 1.0;
+    /* Special case for planar reflection. */
+    if (is_inverted_) {
+      corner.z = -corner.z;
+    }
   }
 }
 
@@ -101,6 +105,11 @@ void View::frustum_culling_planes_calc(int view_id)
   /* Normalize. */
   for (float4 &plane : culling_[view_id].frustum_planes.planes) {
     plane.w /= normalize_v3(plane);
+
+    /* Special case for planar reflection. */
+    if (is_inverted_) {
+      plane.z = -plane.z;
+    }
   }
 }
 

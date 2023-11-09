@@ -27,8 +27,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -141,8 +141,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     }
   }
 
-  ViewContext vc;
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
   copy_v2_v2_int(vc.mval, mval);
 
   {
@@ -371,8 +370,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     }
   }
 
-  ViewContext vc;
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
   copy_v2_v2_int(vc.mval, mval);
 
   uint base_index;

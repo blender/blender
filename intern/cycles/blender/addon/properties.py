@@ -1013,10 +1013,9 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
         default="AUTO",
     )
 
-    use_transparent_shadow: BoolProperty(
-        name="Transparent Shadows",
-        description="Use transparent shadows for this material if it contains a Transparent BSDF, "
-        "disabling will render faster but not give accurate shadows",
+    use_bump_map_correction: BoolProperty(
+        name="Bump Map Correction",
+        description="Apply corrections to solve shadow terminator artifacts caused by bump mapping",
         default=True,
     )
     homogeneous_volume: BoolProperty(
@@ -1472,11 +1471,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         default=False,
     )
 
-    use_metalrt: BoolProperty(
-        name="MetalRT (Experimental)",
+    metalrt: EnumProperty(
+        name="MetalRT",
         description="MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better "
-                    "performance in specific cases. However this support is experimental and some scenes may render incorrectly",
-        default=False,
+                    "performance in specific cases",
+        default='AUTO',
+        items=(
+            ('OFF', "Off", "Disable MetalRT (uses BVH2 layout for intersection queries)"),
+            ('ON', "On", "Enable MetalRT for intersection queries"),
+            ('AUTO', "Auto", "Automatically pick the fastest intersection method"),
+        ),
     )
 
     use_hiprt: BoolProperty(
@@ -1638,7 +1642,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
-                    driver_version = "XX.X.101.4644"
+                    driver_version = "XX.X.101.4824"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
                     col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
@@ -1681,9 +1685,13 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         import _cycles
         has_peer_memory = 0
+        has_rt_api_support = False
         for device in _cycles.available_devices(compute_device_type):
             if device[3] and self.find_existing_device_entry(device).use:
                 has_peer_memory += 1
+            if device[4] and self.find_existing_device_entry(device).use:
+                has_rt_api_support = True
+
         if has_peer_memory > 1:
             row = layout.row()
             row.use_property_split = True
@@ -1700,13 +1708,14 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
             # MetalRT only works on Apple Silicon and Navi2.
             is_arm64 = platform.machine() == 'arm64'
-            if is_arm64 or is_navi_2:
+            if is_arm64 or (is_navi_2 and has_rt_api_support):
                 col = layout.column()
                 col.use_property_split = True
                 # Kernel specialization is only supported on Apple Silicon
                 if is_arm64:
                     col.prop(self, "kernel_optimization_level")
-                col.prop(self, "use_metalrt")
+                if has_rt_api_support:
+                    col.prop(self, "metalrt")
 
         if compute_device_type == 'HIP':
             has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()

@@ -7,6 +7,7 @@
 #include "BLI_compute_context.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_multi_value_map.hh"
+#include "BLI_set.hh"
 
 #include "BKE_idprop.hh"
 #include "BKE_node.h"
@@ -28,6 +29,10 @@ class GeoModifierLog;
 }  // namespace blender::nodes
 
 namespace blender::nodes {
+
+void find_node_tree_dependencies(const bNodeTree &tree,
+                                 Set<ID *> &r_ids,
+                                 bool &r_needs_own_transform_relation);
 
 StringRef input_use_attribute_suffix();
 StringRef input_attribute_name_suffix();

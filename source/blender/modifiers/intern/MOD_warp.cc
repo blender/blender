@@ -32,7 +32,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_texture.h"
 
 #include "UI_interface.hh"
@@ -43,8 +43,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RE_texture.h"
 
@@ -361,7 +361,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   if (!RNA_pointer_is_null(&from_obj_ptr) && RNA_enum_get(&from_obj_ptr, "type") == OB_ARMATURE) {
 
     PointerRNA from_obj_data_ptr = RNA_pointer_get(&from_obj_ptr, "data");
-    uiItemPointerR(col, ptr, "bone_from", &from_obj_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
+    uiItemPointerR(
+        col, ptr, "bone_from", &from_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
   col = uiLayoutColumn(layout, true);
@@ -369,7 +370,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA to_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&to_obj_ptr) && RNA_enum_get(&to_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA to_obj_data_ptr = RNA_pointer_get(&to_obj_ptr, "data");
-    uiItemPointerR(col, ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
+    uiItemPointerR(col, ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
   uiItemR(layout, ptr, "use_volume_preserve", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -436,7 +437,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
   }
 }
 

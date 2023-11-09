@@ -14,7 +14,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_volume.h"
 
 #include "BLT_translation.h"
@@ -25,7 +25,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_volume_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "GEO_mesh_to_volume.hh"
 
@@ -128,6 +128,9 @@ static Volume *mesh_to_volume(ModifierData *md,
     return input_volume;
   }
   BKE_mesh_wrapper_ensure_mdata(mesh);
+  if (mesh->totvert == 0) {
+    return input_volume;
+  }
 
   const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->world_to_object) *
                                                       float4x4(object_to_convert->object_to_world);
@@ -147,9 +150,9 @@ static Volume *mesh_to_volume(ModifierData *md,
   }
 
   auto bounds_fn = [&](float3 &r_min, float3 &r_max) {
-    const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
-    r_min = bb->vec[0];
-    r_max = bb->vec[6];
+    const Bounds<float3> bounds = *mesh->bounds_min_max();
+    r_min = bounds.min;
+    r_max = bounds.max;
   };
 
   const float voxel_size = geometry::volume_compute_voxel_size(

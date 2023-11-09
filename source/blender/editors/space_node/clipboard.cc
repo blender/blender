@@ -22,7 +22,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "node_intern.hh"
 

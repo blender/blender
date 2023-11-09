@@ -13,7 +13,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_curve.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "ED_transform_snap_object_context.hh"
 

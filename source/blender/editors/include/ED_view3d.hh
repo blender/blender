@@ -301,7 +301,8 @@ enum eV3DSnapCursor {
 ENUM_OPERATORS(eV3DSnapCursor, V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE)
 
 struct V3DSnapCursorData {
-  eSnapMode snap_elem;
+  eSnapMode type_source;
+  eSnapMode type_target;
   float loc[3];
   float nor[3];
   float obmat[4][4];
@@ -342,10 +343,10 @@ SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene);
 void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const float source_loc[3],
                                      const float target_loc[3],
-                                     const float target_normal[3],
+                                     const eSnapMode source_type,
+                                     const eSnapMode target_type,
                                      const uchar source_color[4],
-                                     const uchar target_color[4],
-                                     const eSnapMode target_type);
+                                     const uchar target_color[4]);
 
 /* view3d_iterators.cc */
 
@@ -560,20 +561,22 @@ bool ED_view3d_win_to_ray_clipped(Depsgraph *depsgraph,
  * \param region: The region (used for the window width and height).
  * \param v3d: The 3d viewport (used for near clipping value).
  * \param mval: The area relative 2d location (such as `event->mval`, converted into float[2]).
+ * \param do_clip_planes: Optionally clip the start of the ray by the view clipping planes.
  * \param r_ray_co: The world-space point where the ray intersects the window plane.
  * \param r_ray_normal: The normalized world-space direction of towards mval.
  * \param r_ray_start: The world-space starting point of the ray.
- * \param do_clip_planes: Optionally clip the start of the ray by the view clipping planes.
+ * \param r_ray_end: The world-space end point of the segment.
  * \return success, false if the ray is totally clipped.
  */
 bool ED_view3d_win_to_ray_clipped_ex(Depsgraph *depsgraph,
                                      const ARegion *region,
                                      const View3D *v3d,
                                      const float mval[2],
+                                     const bool do_clip_planes,
                                      float r_ray_co[3],
                                      float r_ray_normal[3],
                                      float r_ray_start[3],
-                                     bool do_clip_planes);
+                                     float r_ray_end[3]);
 /**
  * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
  * This ray_start is located at the viewpoint, ray_normal is the direction towards `mval`.
@@ -941,7 +944,7 @@ int view3d_opengl_select_with_id_filter(ViewContext *vc,
 /* view3d_select.cc */
 
 float ED_view3d_select_dist_px();
-void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph);
+ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
 
 /**
  * Re-initialize `vc` with `obact` as if it's active object (with some differences).

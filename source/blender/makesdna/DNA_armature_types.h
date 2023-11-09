@@ -122,6 +122,9 @@ typedef struct Bone {
   int layer;
   /** For B-bones. */
   short segments;
+  /** Vertex to segment mapping mode. */
+  char bbone_mapping_mode;
+  char _pad2[7];
 
   /** Type of next/prev bone handles. */
   char bbone_prev_type;
@@ -147,6 +150,7 @@ typedef struct bArmature_Runtime {
    */
   int active_collection_index;
   uint8_t _pad0[4];
+  struct BoneCollection *active_collection;
 } bArmature_Runtime;
 
 typedef struct bArmature {
@@ -185,8 +189,12 @@ typedef struct bArmature {
 
   /* BoneCollection. */
   ListBase collections;
-  /* Do not directly assign, use `ANIM_armature_bonecoll_active_set` instead. */
-  struct BoneCollection *active_collection;
+
+  /** Do not directly assign, use `ANIM_armature_bonecoll_active_set` instead.
+   * This is stored as a string to make it possible for the library overrides system to understand
+   * when it actually changed (compared to a BoneCollection*, which would change on every load).
+   */
+  char active_collection_name[64]; /* MAX_NAME. */
 
   /** For UI, to show which layers are there. */
   unsigned int layer_used DNA_DEPRECATED;
@@ -390,6 +398,12 @@ typedef enum eBone_BBoneHandleType {
   BBONE_HANDLE_TANGENT = 3,  /* Custom handle in tangent mode (use direction, not location). */
 } eBone_BBoneHandleType;
 
+/* bone->bbone_mapping_mode */
+typedef enum eBone_BBoneMappingMode {
+  BBONE_MAPPING_STRAIGHT = 0, /* Default mode that ignores the rest pose curvature. */
+  BBONE_MAPPING_CURVED = 1,   /* Mode that takes the rest pose curvature into account. */
+} eBone_BBoneMappingMode;
+
 /* bone->bbone_flag */
 typedef enum eBone_BBoneFlag {
   /** Add the parent Out roll to the In roll. */
@@ -419,8 +433,9 @@ typedef enum eBone_BBoneHandleFlag {
 typedef enum eBoneCollection_Flag {
   BONE_COLLECTION_VISIBLE = (1 << 0),
   BONE_COLLECTION_SELECTABLE = (1 << 1), /* Intended to be implemented in the not-so-far future. */
+  BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL = (1 << 2), /* Added by a local library override. */
 } eBoneCollection_Flag;
-ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_SELECTABLE)
+ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL)
 
 #ifdef __cplusplus
 

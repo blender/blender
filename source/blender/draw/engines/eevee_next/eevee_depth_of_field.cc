@@ -13,7 +13,7 @@
  * under-sampling.
  * - The second one is a post-processing based one. It follows the
  * implementation described in the presentation
- * "Life of a Bokeh - Siggraph 2018" from Guillaume Abadie.
+ * "Life of a Bokeh - SIGGRAPH 2018" from Guillaume Abadie.
  * There are some difference with our actual implementation that prioritize quality.
  */
 
@@ -376,7 +376,7 @@ void DepthOfField::gather_pass_sync()
                                                 DOF_GATHER_FOREGROUND) :
                               (use_bokeh_lut_ ? DOF_GATHER_BACKGROUND_LUT : DOF_GATHER_BACKGROUND);
     drw_pass.init();
-    inst_.sampling.bind_resources(&drw_pass);
+    inst_.sampling.bind_resources(drw_pass);
     drw_pass.shader_set(inst_.shaders.static_shader_get(sh_type));
     drw_pass.bind_ubo("dof_buf", data_);
     drw_pass.bind_texture("color_bilinear_tx", reduced_color_tx_, gather_bilinear);
@@ -440,7 +440,7 @@ void DepthOfField::hole_fill_pass_sync()
   const GPUSamplerState gather_nearest = {GPU_SAMPLER_FILTERING_MIPMAP};
 
   hole_fill_ps_.init();
-  inst_.sampling.bind_resources(&hole_fill_ps_);
+  inst_.sampling.bind_resources(hole_fill_ps_);
   hole_fill_ps_.shader_set(inst_.shaders.static_shader_get(DOF_GATHER_HOLE_FILL));
   hole_fill_ps_.bind_ubo("dof_buf", data_);
   hole_fill_ps_.bind_texture("color_bilinear_tx", reduced_color_tx_, gather_bilinear);
@@ -461,7 +461,7 @@ void DepthOfField::resolve_pass_sync()
   eShaderType sh_type = use_bokeh_lut_ ? DOF_RESOLVE_LUT : DOF_RESOLVE;
 
   resolve_ps_.init();
-  inst_.sampling.bind_resources(&resolve_ps_);
+  inst_.sampling.bind_resources(resolve_ps_);
   resolve_ps_.shader_set(inst_.shaders.static_shader_get(sh_type));
   resolve_ps_.bind_ubo("dof_buf", data_);
   resolve_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);

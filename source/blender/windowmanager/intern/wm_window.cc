@@ -30,13 +30,14 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
 #include "RNA_access.hh"
@@ -165,36 +166,39 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 static bool wm_window_timers_process(const bContext *C, int *sleep_us);
 static uint8_t wm_ghost_modifier_query(const enum ModSide side);
 
-void wm_get_screensize(int *r_width, int *r_height)
+bool wm_get_screensize(int *r_width, int *r_height)
 {
-  uint uiwidth;
-  uint uiheight;
-
-  GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight);
+  uint32_t uiwidth, uiheight;
+  if (GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight) == GHOST_kFailure) {
+    return false;
+  }
   *r_width = uiwidth;
   *r_height = uiheight;
+  return true;
 }
 
-void wm_get_desktopsize(int *r_width, int *r_height)
+bool wm_get_desktopsize(int *r_width, int *r_height)
 {
-  uint uiwidth;
-  uint uiheight;
-
-  GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight);
+  uint32_t uiwidth, uiheight;
+  if (GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight) == GHOST_kFailure) {
+    return false;
+  }
   *r_width = uiwidth;
   *r_height = uiheight;
+  return true;
 }
 
 /* keeps size within monitor bounds */
 static void wm_window_check_size(rcti *rect)
 {
   int width, height;
-  wm_get_screensize(&width, &height);
-  if (BLI_rcti_size_x(rect) > width) {
-    BLI_rcti_resize_x(rect, width);
-  }
-  if (BLI_rcti_size_y(rect) > height) {
-    BLI_rcti_resize_y(rect, height);
+  if (wm_get_screensize(&width, &height)) {
+    if (BLI_rcti_size_x(rect) > width) {
+      BLI_rcti_resize_x(rect, width);
+    }
+    if (BLI_rcti_size_y(rect) > height) {
+      BLI_rcti_resize_y(rect, height);
+    }
   }
 }
 
@@ -476,32 +480,54 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
+  if (win->ghostwin == nullptr) {
+    return;
+  }
+
   if (WM_window_is_temp_screen(win)) {
     /* Nothing to do for 'temp' windows,
      * because #WM_window_open always sets window title. */
+    return;
   }
-  else if (win->ghostwin) {
-    /* this is set to 1 if you don't have startup.blend open */
-    const char *blendfile_path = BKE_main_blendfile_path_from_global();
-    if (blendfile_path[0] != '\0') {
-      char str[sizeof(Main::filepath) + 24];
-      SNPRINTF(str,
-               "Blender%s [%s%s]",
-               wm->file_saved ? "" : "*",
-               blendfile_path,
-               G_MAIN->recovered ? " (Recovered)" : "");
-      GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), str);
-    }
-    else {
-      GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), "Blender");
-    }
 
-    /* Informs GHOST of unsaved changes, to set window modified visual indicator (macOS)
-     * and to give hint of unsaved changes for a user warning mechanism in case of OS application
-     * terminate request (e.g. OS Shortcut Alt+F4, Command+Q, (...), or session end). */
-    GHOST_SetWindowModifiedState(static_cast<GHOST_WindowHandle>(win->ghostwin),
-                                 bool(!wm->file_saved));
+  GHOST_WindowHandle handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
+
+  const char *filepath = BKE_main_blendfile_path_from_global();
+  const char *filename = BLI_path_basename(filepath);
+
+  const bool has_filepath = filepath[0] != '\0';
+  const bool include_filepath = has_filepath && (filepath != filename) &&
+                                (GHOST_SetPath(handle, filepath) == GHOST_kFailure);
+
+  std::string str;
+  str += wm->file_saved ? " " : "* ";
+  if (has_filepath) {
+    const size_t filename_no_ext_len = BLI_path_extension_or_end(filename) - filename;
+    str.append(filename, filename_no_ext_len);
   }
+  else {
+    str += IFACE_("(Unsaved)");
+  }
+
+  if (G_MAIN->recovered) {
+    str += IFACE_(" (Recovered)");
+  }
+
+  if (include_filepath) {
+    str += " [";
+    str += filepath;
+    str += "]";
+  }
+
+  str += " - Blender ";
+  str += BKE_blender_version_string_compact();
+
+  GHOST_SetTitle(handle, str.c_str());
+
+  /* Informs GHOST of unsaved changes to set the window modified visual indicator (macOS)
+   * and to give a hint of unsaved changes for a user warning mechanism in case of OS application
+   * terminate request (e.g., OS Shortcut Alt+F4, Command+Q, (...) or session end). */
+  GHOST_SetWindowModifiedState(handle, bool(!wm->file_saved));
 }
 
 void WM_window_set_dpi(const wmWindow *win)
@@ -560,7 +586,9 @@ void WM_window_set_dpi(const wmWindow *win)
  * inactive window must run #wm_window_update_eventstate_modifiers first to ensure no modifier
  * keys are held. See: #105277.
  */
-static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow *win)
+static void wm_window_update_eventstate_modifiers(wmWindowManager *wm,
+                                                  wmWindow *win,
+                                                  const uint64_t event_time_ms)
 {
   const uint8_t keymodifier_sided[2] = {
       wm_ghost_modifier_query(MOD_SIDE_LEFT),
@@ -579,7 +607,7 @@ static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow 
           for (int side = 0; side < 2; side++) {
             if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
               kdata.key = g_modifier_table[i].ghost_key_pair[side];
-              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata, event_time_ms);
               /* Only ever send one release event
                * (currently releasing multiple isn't needed and only confuses logic). */
               break;
@@ -592,7 +620,7 @@ static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow 
           for (int side = 0; side < 2; side++) {
             if (keymodifier_sided[side] & g_modifier_table[i].flag) {
               kdata.key = g_modifier_table[i].ghost_key_pair[side];
-              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata);
+              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata, event_time_ms);
             }
           }
         }
@@ -613,7 +641,9 @@ static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow 
  * NOTE(@ideasman42): Events generated for non-active windows are rare,
  * this happens when using the mouse-wheel over an unfocused window, see: #103722.
  */
-static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm, wmWindow *win)
+static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm,
+                                                        wmWindow *win,
+                                                        const uint64_t event_time_ms)
 {
   /* Release all held modifiers before de-activating the window. */
   if (win->eventstate->modifier != 0) {
@@ -640,7 +670,7 @@ static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm, wmW
         for (int side = 0; side < 2; side++) {
           if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
             kdata.key = g_modifier_table[i].ghost_key_pair[side];
-            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata, event_time_ms);
           }
         }
       }
@@ -651,7 +681,10 @@ static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm, wmW
 static void wm_window_update_eventstate(wmWindow *win)
 {
   /* Update mouse position when a window is activated. */
-  wm_cursor_position_get(win, &win->eventstate->xy[0], &win->eventstate->xy[1]);
+  int xy[2];
+  if (wm_cursor_position_get(win, &xy[0], &xy[1])) {
+    copy_v2_v2_int(win->eventstate->xy, xy);
+  }
 }
 
 static void wm_window_ensure_eventstate(wmWindow *win)
@@ -683,9 +716,16 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
 
-  int scr_w, scr_h;
-  wm_get_desktopsize(&scr_w, &scr_h);
-  int posy = (scr_h - win->posy - win->sizey);
+  int posx = 0;
+  int posy = 0;
+
+  if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) {
+    int scr_w, scr_h;
+    if (wm_get_desktopsize(&scr_w, &scr_h)) {
+      posx = win->posx;
+      posy = (scr_h - win->posy - win->sizey);
+    }
+  }
 
   /* Clear drawable so we can set the new window. */
   wmWindow *prev_windrawable = wm->windrawable;
@@ -695,7 +735,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
       g_system,
       static_cast<GHOST_WindowHandle>((win->parent) ? win->parent->ghostwin : nullptr),
       title,
-      win->posx,
+      posx,
       posy,
       win->sizex,
       win->sizey,
@@ -798,18 +838,18 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   }
 
   /* add keymap handlers (1 handler for all keys in map!) */
-  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
   /* Add drop boxes. */
   {
-    ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
+    ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
     WM_event_add_dropbox_handler(&win->handlers, lb);
   }
   wm_window_title(wm, win);
@@ -827,7 +867,11 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
    * when there is no startup.blend yet.
    */
   if (wm_init_state.size_x == 0) {
-    wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y);
+    if (UNLIKELY(!wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y))) {
+      /* Use fallback values. */
+      wm_init_state.size_x = 0;
+      wm_init_state.size_y = 0;
+    }
 
     /* NOTE: this isn't quite correct, active screen maybe offset 1000s if PX,
      * we'd need a #wm_get_screensize like function that gives offset,
@@ -862,12 +906,19 @@ static bool wm_window_update_size_position(wmWindow *win)
 
   GHOST_DisposeRectangle(client_rect);
 
-  int scr_w, scr_h;
-  wm_get_desktopsize(&scr_w, &scr_h);
   int sizex = r - l;
   int sizey = b - t;
-  int posx = l;
-  int posy = scr_h - t - win->sizey;
+
+  int posx = 0;
+  int posy = 0;
+
+  if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) {
+    int scr_w, scr_h;
+    if (wm_get_desktopsize(&scr_w, &scr_h)) {
+      posx = l;
+      posy = scr_h - t - win->sizey;
+    }
+  }
 
   if (win->sizex != sizex || win->sizey != sizey || win->posx != posx || win->posy != posy) {
     win->sizex = sizex;
@@ -1151,15 +1202,22 @@ void wm_cursor_position_to_ghost_screen_coords(wmWindow *win, int *x, int *y)
   GHOST_ClientToScreen(static_cast<GHOST_WindowHandle>(win->ghostwin), *x, *y, x, y);
 }
 
-void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
+bool wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
     *r_x = win->eventstate->xy[0];
     *r_y = win->eventstate->xy[1];
-    return;
+    return true;
   }
-  GHOST_GetCursorPosition(g_system, static_cast<GHOST_WindowHandle>(win->ghostwin), r_x, r_y);
-  wm_cursor_position_from_ghost_client_coords(win, r_x, r_y);
+
+  if (GHOST_GetCursorPosition(
+          g_system, static_cast<GHOST_WindowHandle>(win->ghostwin), r_x, r_y) == GHOST_kSuccess)
+  {
+    wm_cursor_position_from_ghost_client_coords(win, r_x, r_y);
+    return true;
+  }
+
+  return false;
 }
 
 /** Check if specified modifier key type is pressed. */
@@ -1242,15 +1300,11 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
   bContext *C = static_cast<bContext *>(C_void_ptr);
   wmWindowManager *wm = CTX_wm_manager(C);
   GHOST_TEventType type = GHOST_GetEventType(evt);
-#if 0
-  /* We may want to use time from ghost, currently `PIL_check_seconds_timer` is used instead. */
-  uint64_t time = GHOST_GetEventTime(evt);
-#endif
+
+  GHOST_WindowHandle ghostwin = GHOST_GetEventWindow(evt);
 
   if (type == GHOST_kEventQuitRequest) {
     /* Find an active window to display quit dialog in. */
-    GHOST_WindowHandle ghostwin = GHOST_GetEventWindow(evt);
-
     wmWindow *win;
     if (ghostwin && GHOST_ValidWindow(g_system, ghostwin)) {
       win = static_cast<wmWindow *>(GHOST_GetWindowUserData(ghostwin));
@@ -1266,321 +1320,307 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
     else {
       wm_exit_schedule_delayed(C);
     }
+    return true;
   }
-  else {
-    GHOST_WindowHandle ghostwin = GHOST_GetEventWindow(evt);
-    GHOST_TEventDataPtr data = GHOST_GetEventData(evt);
 
-    /* Ghost now can call this function for life resizes,
-     * but it should return if WM didn't initialize yet.
-     * Can happen on file read (especially full size window). */
-    if ((wm->init_flag & WM_INIT_FLAG_WINDOW) == 0) {
-      return true;
+  GHOST_TEventDataPtr data = GHOST_GetEventData(evt);
+  const uint64_t event_time_ms = GHOST_GetEventTime(evt);
+
+  /* Ghost now can call this function for life resizes,
+   * but it should return if WM didn't initialize yet.
+   * Can happen on file read (especially full size window). */
+  if ((wm->init_flag & WM_INIT_FLAG_WINDOW) == 0) {
+    return true;
+  }
+  if (!ghostwin) {
+    /* XXX: should be checked, why are we getting an event here, and what is it? */
+    puts("<!> event has no window");
+    return true;
+  }
+  if (!GHOST_ValidWindow(g_system, ghostwin)) {
+    /* XXX: should be checked, why are we getting an event here, and what is it? */
+    puts("<!> event has invalid window");
+    return true;
+  }
+
+  wmWindow *win = static_cast<wmWindow *>(GHOST_GetWindowUserData(ghostwin));
+
+  switch (type) {
+    case GHOST_kEventWindowDeactivate: {
+      wm_window_update_eventstate_modifiers_clear(wm, win, event_time_ms);
+
+      wm_event_add_ghostevent(wm, win, type, data, event_time_ms);
+      win->active = 0;
+      break;
     }
-    if (!ghostwin) {
-      /* XXX: should be checked, why are we getting an event here, and what is it? */
-      puts("<!> event has no window");
-      return true;
+    case GHOST_kEventWindowActivate: {
+      /* Ensure the event state matches modifiers (window was inactive). */
+      wm_window_update_eventstate_modifiers(wm, win, event_time_ms);
+
+      /* Entering window, update mouse position (without sending an event). */
+      wm_window_update_eventstate(win);
+
+      /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
+      wm->winactive = win;
+      win->active = 1;
+
+      /* keymodifier zero, it hangs on hotkeys that open windows otherwise */
+      win->eventstate->keymodifier = 0;
+
+      win->addmousemove = 1; /* enables highlighted buttons */
+
+      wm_window_make_drawable(wm, win);
+
+      /* window might be focused by mouse click in configuration of window manager
+       * when focus is not following mouse
+       * click could have been done on a button and depending on window manager settings
+       * click would be passed to blender or not, but in any case button under cursor
+       * should be activated, so at max next click on button without moving mouse
+       * would trigger its handle function
+       * currently it seems to be common practice to generate new event for, but probably
+       * we'll need utility function for this? (sergey)
+       */
+      wmEvent event;
+      wm_event_init_from_window(win, &event);
+      event.type = MOUSEMOVE;
+      event.val = KM_NOTHING;
+      copy_v2_v2_int(event.prev_xy, event.xy);
+      event.flag = eWM_EventFlag(0);
+
+      wm_event_add(win, &event);
+
+      break;
     }
-    if (!GHOST_ValidWindow(g_system, ghostwin)) {
-      /* XXX: should be checked, why are we getting an event here, and what is it? */
-      puts("<!> event has invalid window");
-      return true;
+    case GHOST_kEventWindowClose: {
+      wm_window_close(C, wm, win);
+      break;
     }
-    wmWindow *win = static_cast<wmWindow *>(GHOST_GetWindowUserData(ghostwin));
-
-    switch (type) {
-      case GHOST_kEventWindowDeactivate: {
-        wm_window_update_eventstate_modifiers_clear(wm, win);
-
-        wm_event_add_ghostevent(wm, win, type, data);
-        win->active = 0;
-        break;
+    case GHOST_kEventWindowUpdate: {
+      if (G.debug & G_DEBUG_EVENTS) {
+        printf("%s: ghost redraw %d\n", __func__, win->winid);
       }
-      case GHOST_kEventWindowActivate: {
-        /* Ensure the event state matches modifiers (window was inactive). */
-        wm_window_update_eventstate_modifiers(wm, win);
 
-        /* Entering window, update mouse position (without sending an event). */
-        wm_window_update_eventstate(win);
+      wm_window_make_drawable(wm, win);
+      WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
-        /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
-        wm->winactive = win;
-        win->active = 1;
-
-        /* keymodifier zero, it hangs on hotkeys that open windows otherwise */
-        win->eventstate->keymodifier = 0;
-
-        win->addmousemove = 1; /* enables highlighted buttons */
-
-        wm_window_make_drawable(wm, win);
-
-        /* window might be focused by mouse click in configuration of window manager
-         * when focus is not following mouse
-         * click could have been done on a button and depending on window manager settings
-         * click would be passed to blender or not, but in any case button under cursor
-         * should be activated, so at max next click on button without moving mouse
-         * would trigger its handle function
-         * currently it seems to be common practice to generate new event for, but probably
-         * we'll need utility function for this? (sergey)
-         */
-        wmEvent event;
-        wm_event_init_from_window(win, &event);
-        event.type = MOUSEMOVE;
-        event.val = KM_NOTHING;
-        copy_v2_v2_int(event.prev_xy, event.xy);
-        event.flag = eWM_EventFlag(0);
-
-        wm_event_add(win, &event);
-
-        break;
+      break;
+    }
+    case GHOST_kEventWindowUpdateDecor: {
+      if (G.debug & G_DEBUG_EVENTS) {
+        printf("%s: ghost redraw decor %d\n", __func__, win->winid);
       }
-      case GHOST_kEventWindowClose: {
-        wm_window_close(C, wm, win);
-        break;
-      }
-      case GHOST_kEventWindowUpdate: {
-        if (G.debug & G_DEBUG_EVENTS) {
-          printf("%s: ghost redraw %d\n", __func__, win->winid);
-        }
 
-        wm_window_make_drawable(wm, win);
-        WM_event_add_notifier(C, NC_WINDOW, nullptr);
-
-        break;
-      }
-      case GHOST_kEventWindowUpdateDecor: {
-        if (G.debug & G_DEBUG_EVENTS) {
-          printf("%s: ghost redraw decor %d\n", __func__, win->winid);
-        }
-
-        wm_window_make_drawable(wm, win);
+      wm_window_make_drawable(wm, win);
 #if 0
         /* NOTE(@ideasman42): Ideally we could swap-buffers to avoid a full redraw.
          * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
         wm_window_swap_buffers(win);
 #else
-        WM_event_add_notifier(C, NC_WINDOW, nullptr);
+      WM_event_add_notifier(C, NC_WINDOW, nullptr);
 #endif
 
-        break;
-      }
-      case GHOST_kEventWindowSize:
-      case GHOST_kEventWindowMove: {
-        GHOST_TWindowState state = GHOST_GetWindowState(
-            static_cast<GHOST_WindowHandle>(win->ghostwin));
-        win->windowstate = state;
+      break;
+    }
+    case GHOST_kEventWindowSize:
+    case GHOST_kEventWindowMove: {
+      GHOST_TWindowState state = GHOST_GetWindowState(
+          static_cast<GHOST_WindowHandle>(win->ghostwin));
+      win->windowstate = state;
 
-        WM_window_set_dpi(win);
+      WM_window_set_dpi(win);
 
-        /* win32: gives undefined window size when minimized */
-        if (state != GHOST_kWindowStateMinimized) {
-          /*
-           * Ghost sometimes send size or move events when the window hasn't changed.
-           * One case of this is using COMPIZ on Linux.
-           * To alleviate the problem we ignore all such event here.
-           *
-           * It might be good to eventually do that at GHOST level, but that is for another time.
-           */
-          if (wm_window_update_size_position(win)) {
-            const bScreen *screen = WM_window_get_active_screen(win);
+      /* win32: gives undefined window size when minimized */
+      if (state != GHOST_kWindowStateMinimized) {
+        /*
+         * Ghost sometimes send size or move events when the window hasn't changed.
+         * One case of this is using COMPIZ on Linux.
+         * To alleviate the problem we ignore all such event here.
+         *
+         * It might be good to eventually do that at GHOST level, but that is for another time.
+         */
+        if (wm_window_update_size_position(win)) {
+          const bScreen *screen = WM_window_get_active_screen(win);
 
-            /* debug prints */
-            if (G.debug & G_DEBUG_EVENTS) {
-              const char *state_str;
-              state = GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin));
+          /* debug prints */
+          if (G.debug & G_DEBUG_EVENTS) {
+            const char *state_str;
+            state = GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin));
 
-              if (state == GHOST_kWindowStateNormal) {
-                state_str = "normal";
-              }
-              else if (state == GHOST_kWindowStateMinimized) {
-                state_str = "minimized";
-              }
-              else if (state == GHOST_kWindowStateMaximized) {
-                state_str = "maximized";
-              }
-              else if (state == GHOST_kWindowStateFullScreen) {
-                state_str = "full-screen";
-              }
-              else {
-                state_str = "<unknown>";
-              }
-
-              printf("%s: window %d state = %s\n", __func__, win->winid, state_str);
-
-              if (type != GHOST_kEventWindowSize) {
-                printf("win move event pos %d %d size %d %d\n",
-                       win->posx,
-                       win->posy,
-                       win->sizex,
-                       win->sizey);
-              }
+            if (state == GHOST_kWindowStateNormal) {
+              state_str = "normal";
+            }
+            else if (state == GHOST_kWindowStateMinimized) {
+              state_str = "minimized";
+            }
+            else if (state == GHOST_kWindowStateMaximized) {
+              state_str = "maximized";
+            }
+            else if (state == GHOST_kWindowStateFullScreen) {
+              state_str = "full-screen";
+            }
+            else {
+              state_str = "<unknown>";
             }
 
-            wm_window_make_drawable(wm, win);
-            BKE_icon_changed(screen->id.icon_id);
-            WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
-            WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, nullptr);
+            printf("%s: window %d state = %s\n", __func__, win->winid, state_str);
 
-#if defined(__APPLE__) || defined(WIN32)
-            /* MACOS and WIN32 don't return to the main-loop while resize. */
-            int dummy_sleep_ms = 0;
-            wm_window_timers_process(C, &dummy_sleep_ms);
-            wm_event_do_handlers(C);
-            wm_event_do_notifiers(C);
-            wm_draw_update(C);
-#endif
+            if (type != GHOST_kEventWindowSize) {
+              printf("win move event pos %d %d size %d %d\n",
+                     win->posx,
+                     win->posy,
+                     win->sizex,
+                     win->sizey);
+            }
           }
-        }
-        break;
-      }
-
-      case GHOST_kEventWindowDPIHintChanged: {
-        WM_window_set_dpi(win);
-        /* font's are stored at each DPI level, without this we can easy load 100's of fonts */
-        BLF_cache_clear();
-
-        WM_main_add_notifier(NC_WINDOW, nullptr);             /* full redraw */
-        WM_main_add_notifier(NC_SCREEN | NA_EDITED, nullptr); /* refresh region sizes */
-        break;
-      }
-
-      case GHOST_kEventOpenMainFile: {
-        const char *path = static_cast<const char *>(GHOST_GetEventData(evt));
-
-        if (path) {
-          wmOperatorType *ot = WM_operatortype_find("WM_OT_open_mainfile", false);
-          /* operator needs a valid window in context, ensures
-           * it is correctly set */
-          CTX_wm_window_set(C, win);
-
-          PointerRNA props_ptr;
-          WM_operator_properties_create_ptr(&props_ptr, ot);
-          RNA_string_set(&props_ptr, "filepath", path);
-          RNA_boolean_set(&props_ptr, "display_file_selector", false);
-          WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
-          WM_operator_properties_free(&props_ptr);
-
-          CTX_wm_window_set(C, nullptr);
-        }
-        break;
-      }
-      case GHOST_kEventDraggingDropDone: {
-        GHOST_TEventDragnDropData *ddd = static_cast<GHOST_TEventDragnDropData *>(
-            GHOST_GetEventData(evt));
-
-        /* Ensure the event state matches modifiers (window was inactive). */
-        wm_window_update_eventstate_modifiers(wm, win);
-        /* Entering window, update mouse position (without sending an event). */
-        wm_window_update_eventstate(win);
-
-        wmEvent event;
-        wm_event_init_from_window(win, &event); /* copy last state, like mouse coords */
-
-        /* activate region */
-        event.type = MOUSEMOVE;
-        event.val = KM_NOTHING;
-        copy_v2_v2_int(event.prev_xy, event.xy);
-
-        wm_cursor_position_from_ghost_screen_coords(win, &ddd->x, &ddd->y);
-        event.xy[0] = ddd->x;
-        event.xy[1] = ddd->y;
-
-        /* The values from #wm_window_update_eventstate may not match (under WAYLAND they don't)
-         * Write this into the event state. */
-        copy_v2_v2_int(win->eventstate->xy, event.xy);
-
-        event.flag = eWM_EventFlag(0);
-
-        /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
-        wm->winactive = win;
-        win->active = 1;
-
-        wm_event_add(win, &event);
-
-        /* make blender drop event with custom data pointing to wm drags */
-        event.type = EVT_DROP;
-        event.val = KM_RELEASE;
-        event.custom = EVT_DATA_DRAGDROP;
-        event.customdata = &wm->drags;
-        event.customdata_free = true;
-
-        wm_event_add(win, &event);
-
-        // printf("Drop detected\n");
-
-        /* add drag data to wm for paths: */
-
-        if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
-          GHOST_TStringArray *stra = static_cast<GHOST_TStringArray *>(ddd->data);
-
-          for (int a = 0; a < stra->count; a++) {
-            printf("drop file %s\n", stra->strings[a]);
-            /* try to get icon type from extension */
-            int icon = ED_file_extension_icon((char *)stra->strings[a]);
-            wmDragPath *path_data = WM_drag_create_path_data((char *)stra->strings[a]);
-            WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, 0.0, WM_DRAG_NOP);
-            /* Void pointer should point to string, it makes a copy. */
-            break; /* only one drop element supported now */
-          }
-        }
-
-        break;
-      }
-      case GHOST_kEventNativeResolutionChange: {
-        /* Only update if the actual pixel size changes. */
-        float prev_pixelsize = U.pixelsize;
-        WM_window_set_dpi(win);
-
-        if (U.pixelsize != prev_pixelsize) {
-          BKE_icon_changed(WM_window_get_active_screen(win)->id.icon_id);
-
-          /* Close all popups since they are positioned with the pixel
-           * size baked in and it's difficult to correct them. */
-          CTX_wm_window_set(C, win);
-          UI_popup_handlers_remove_all(C, &win->modalhandlers);
-          CTX_wm_window_set(C, nullptr);
 
           wm_window_make_drawable(wm, win);
-
+          BKE_icon_changed(screen->id.icon_id);
           WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
           WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, nullptr);
+
+#if defined(__APPLE__) || defined(WIN32)
+          /* MACOS and WIN32 don't return to the main-loop while resize. */
+          int dummy_sleep_ms = 0;
+          wm_window_timers_process(C, &dummy_sleep_ms);
+          wm_event_do_handlers(C);
+          wm_event_do_notifiers(C);
+          wm_draw_update(C);
+#endif
         }
-
-        break;
       }
-      case GHOST_kEventTrackpad: {
-        GHOST_TEventTrackpadData *pd = static_cast<GHOST_TEventTrackpadData *>(data);
+      break;
+    }
 
-        wm_cursor_position_from_ghost_screen_coords(win, &pd->x, &pd->y);
-        wm_event_add_ghostevent(wm, win, type, data);
-        break;
-      }
-      case GHOST_kEventCursorMove: {
-        GHOST_TEventCursorData *cd = static_cast<GHOST_TEventCursorData *>(data);
+    case GHOST_kEventWindowDPIHintChanged: {
+      WM_window_set_dpi(win);
+      /* font's are stored at each DPI level, without this we can easy load 100's of fonts */
+      BLF_cache_clear();
 
-        wm_cursor_position_from_ghost_screen_coords(win, &cd->x, &cd->y);
-        wm_event_add_ghostevent(wm, win, type, data);
-        break;
+      WM_main_add_notifier(NC_WINDOW, nullptr);             /* full redraw */
+      WM_main_add_notifier(NC_SCREEN | NA_EDITED, nullptr); /* refresh region sizes */
+      break;
+    }
+
+    case GHOST_kEventOpenMainFile: {
+      const char *path = static_cast<const char *>(data);
+
+      if (path) {
+        wmOperatorType *ot = WM_operatortype_find("WM_OT_open_mainfile", false);
+        /* operator needs a valid window in context, ensures
+         * it is correctly set */
+        CTX_wm_window_set(C, win);
+
+        PointerRNA props_ptr;
+        WM_operator_properties_create_ptr(&props_ptr, ot);
+        RNA_string_set(&props_ptr, "filepath", path);
+        RNA_boolean_set(&props_ptr, "display_file_selector", false);
+        WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
+        WM_operator_properties_free(&props_ptr);
+
+        CTX_wm_window_set(C, nullptr);
       }
-      case GHOST_kEventButtonDown:
-      case GHOST_kEventButtonUp: {
-        if (win->active == 0) {
-          /* Entering window, update cursor/tablet state & modifiers.
-           * (ghost sends win-activate *after* the mouse-click in window!) */
-          wm_window_update_eventstate_modifiers(wm, win);
-          wm_window_update_eventstate(win);
+      break;
+    }
+    case GHOST_kEventDraggingDropDone: {
+      const GHOST_TEventDragnDropData *ddd = static_cast<const GHOST_TEventDragnDropData *>(data);
+
+      /* Ensure the event state matches modifiers (window was inactive). */
+      wm_window_update_eventstate_modifiers(wm, win, event_time_ms);
+      /* Entering window, update mouse position (without sending an event). */
+      wm_window_update_eventstate(win);
+
+      wmEvent event;
+      wm_event_init_from_window(win, &event); /* copy last state, like mouse coords */
+
+      /* activate region */
+      event.type = MOUSEMOVE;
+      event.val = KM_NOTHING;
+      copy_v2_v2_int(event.prev_xy, event.xy);
+
+      copy_v2_v2_int(event.xy, &ddd->x);
+      wm_cursor_position_from_ghost_screen_coords(win, &event.xy[0], &event.xy[1]);
+
+      /* The values from #wm_window_update_eventstate may not match (under WAYLAND they don't)
+       * Write this into the event state. */
+      copy_v2_v2_int(win->eventstate->xy, event.xy);
+
+      event.flag = eWM_EventFlag(0);
+
+      /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
+      wm->winactive = win;
+      win->active = 1;
+
+      wm_event_add(win, &event);
+
+      /* make blender drop event with custom data pointing to wm drags */
+      event.type = EVT_DROP;
+      event.val = KM_RELEASE;
+      event.custom = EVT_DATA_DRAGDROP;
+      event.customdata = &wm->drags;
+      event.customdata_free = true;
+
+      wm_event_add(win, &event);
+
+      // printf("Drop detected\n");
+
+      /* add drag data to wm for paths: */
+
+      if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
+        const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
+
+        for (int a = 0; a < stra->count; a++) {
+          printf("drop file %s\n", stra->strings[a]);
+          /* try to get icon type from extension */
+          int icon = ED_file_extension_icon((char *)stra->strings[a]);
+          wmDragPath *path_data = WM_drag_create_path_data((char *)stra->strings[a]);
+          WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, 0.0, WM_DRAG_NOP);
+          /* Void pointer should point to string, it makes a copy. */
+          break; /* only one drop element supported now */
         }
+      }
 
-        wm_event_add_ghostevent(wm, win, type, data);
-        break;
+      break;
+    }
+    case GHOST_kEventNativeResolutionChange: {
+      /* Only update if the actual pixel size changes. */
+      float prev_pixelsize = U.pixelsize;
+      WM_window_set_dpi(win);
+
+      if (U.pixelsize != prev_pixelsize) {
+        BKE_icon_changed(WM_window_get_active_screen(win)->id.icon_id);
+
+        /* Close all popups since they are positioned with the pixel
+         * size baked in and it's difficult to correct them. */
+        CTX_wm_window_set(C, win);
+        UI_popup_handlers_remove_all(C, &win->modalhandlers);
+        CTX_wm_window_set(C, nullptr);
+
+        wm_window_make_drawable(wm, win);
+
+        WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
+        WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, nullptr);
       }
-      default: {
-        wm_event_add_ghostevent(wm, win, type, data);
-        break;
+
+      break;
+    }
+    case GHOST_kEventButtonDown:
+    case GHOST_kEventButtonUp: {
+      if (win->active == 0) {
+        /* Entering window, update cursor/tablet state & modifiers.
+         * (ghost sends win-activate *after* the mouse-click in window!) */
+        wm_window_update_eventstate_modifiers(wm, win, event_time_ms);
+        wm_window_update_eventstate(win);
       }
+
+      wm_event_add_ghostevent(wm, win, type, data, event_time_ms);
+      break;
+    }
+    default: {
+      wm_event_add_ghostevent(wm, win, type, data, event_time_ms);
+      break;
     }
   }
+
   return true;
 }
 
@@ -1664,7 +1704,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
      * Even though using `floor` or `round` is more responsive,
      * it causes CPU intensive loops that may run until the timer is reached, see: #111579. */
     const double microseconds = 1000000.0;
-    const double sleep_sec = (double(sleep_us) / microseconds);
+    const double sleep_sec = double(sleep_us) / microseconds;
     const double sleep_sec_next = ntime_min - time;
 
     if (sleep_sec_next < sleep_sec) {
@@ -1937,6 +1977,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityDesktopSample) {
     flag |= WM_CAPABILITY_DESKTOP_SAMPLE;
   }
+  if (ghost_flag & GHOST_kCapabilityInputIME) {
+    flag |= WM_CAPABILITY_INPUT_IME;
+  }
 
   return flag;
 }
@@ -2068,6 +2111,70 @@ void WM_event_timer_remove_notifier(wmWindowManager *wm, wmWindow *win, wmTimer 
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Clipboard Wrappers
+ *
+ * GHOST function wrappers that support a "fake" clipboard used when simulating events.
+ * This is useful user actions can be simulated while the system is in use without the system's
+ * clipboard getting overwritten.
+ * \{ */
+
+struct {
+  char *buffers[2];
+} *g_wm_clipboard_text_simulate = nullptr;
+
+void wm_clipboard_free()
+{
+  if (g_wm_clipboard_text_simulate == nullptr) {
+    return;
+  }
+  for (int i = 0; i < ARRAY_SIZE(g_wm_clipboard_text_simulate->buffers); i++) {
+    char *buf = g_wm_clipboard_text_simulate->buffers[i];
+    if (buf) {
+      MEM_freeN(buf);
+    }
+  }
+  MEM_freeN(g_wm_clipboard_text_simulate);
+  g_wm_clipboard_text_simulate = nullptr;
+}
+
+static char *wm_clipboard_text_get_impl(bool selection)
+{
+  if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
+    if (g_wm_clipboard_text_simulate == nullptr) {
+      return nullptr;
+    }
+    const char *buf_src = g_wm_clipboard_text_simulate->buffers[int(selection)];
+    if (buf_src == nullptr) {
+      return nullptr;
+    }
+    size_t size = strlen(buf_src) + 1;
+    char *buf = static_cast<char *>(malloc(size));
+    memcpy(buf, buf_src, size);
+    return buf;
+  }
+
+  return GHOST_getClipboard(selection);
+}
+
+static void wm_clipboard_text_set_impl(const char *buf, bool selection)
+{
+  if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
+    if (g_wm_clipboard_text_simulate == nullptr) {
+      g_wm_clipboard_text_simulate = static_cast<decltype(g_wm_clipboard_text_simulate)>(
+          MEM_callocN(sizeof(*g_wm_clipboard_text_simulate), __func__));
+    }
+    char **buf_src_p = &(g_wm_clipboard_text_simulate->buffers[int(selection)]);
+    MEM_SAFE_FREE(*buf_src_p);
+    *buf_src_p = BLI_strdup(buf);
+    return;
+  }
+
+  GHOST_putClipboard(buf, selection);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Clipboard
  * \{ */
 
@@ -2081,7 +2188,7 @@ static char *wm_clipboard_text_get_ex(bool selection,
     return nullptr;
   }
 
-  char *buf = GHOST_getClipboard(selection);
+  char *buf = wm_clipboard_text_get_impl(selection);
   if (!buf) {
     *r_len = 0;
     return nullptr;
@@ -2170,10 +2277,10 @@ void WM_clipboard_text_set(const char *buf, bool selection)
     }
     *p2 = '\0';
 
-    GHOST_putClipboard(newbuf, selection);
+    wm_clipboard_text_set_impl(newbuf, selection);
     MEM_freeN(newbuf);
 #else
-    GHOST_putClipboard(buf, selection);
+    wm_clipboard_text_set_impl(buf, selection);
 #endif
   }
 }
@@ -2699,6 +2806,9 @@ bool WM_window_is_temp_screen(const wmWindow *win)
 void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
 {
   BLI_assert(win);
+  if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
+    return;
+  }
 
   /* Convert to native OS window coordinates. */
   float fac = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->ghostwin));
@@ -2710,10 +2820,20 @@ void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complet
 
 void wm_window_IME_end(wmWindow *win)
 {
-  BLI_assert(win && win->ime_data);
+  if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
+    return;
+  }
 
+  BLI_assert(win);
+  /* NOTE(@ideasman42): on WAYLAND a call to "begin" must be closed by an "end" call.
+   * Even if no IME events were generated (which assigned `ime_data`).
+   * TODO: check if #GHOST_EndIME can run on WIN32 & APPLE without causing problems. */
+#  if defined(WIN32) || defined(__APPLE__)
+  BLI_assert(win->ime_data);
+#  endif
   GHOST_EndIME(static_cast<GHOST_WindowHandle>(win->ghostwin));
   win->ime_data = nullptr;
+  win->ime_data_is_composing = false;
 }
 #endif /* WITH_INPUT_IME */
 

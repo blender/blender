@@ -804,10 +804,9 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
     }
   }
   else {
-    /* If user wants to switch to brush with the same  tool as
+    /* If user wants to switch to brush with the same tool as
      * currently active brush do a cycling via all possible
-     * brushes with requested tool.
-     */
+     * brushes with requested tool. */
     first_brush = brush_orig->id.next ? static_cast<Brush *>(brush_orig->id.next) :
                                         static_cast<Brush *>(bmain->brushes.first);
   }
@@ -1562,31 +1561,33 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap;
 
-  keymap = WM_keymap_ensure(keyconf, "Paint Curve", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Paint Curve", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = paint_curve_poll;
 
   /* Sculpt mode */
-  keymap = WM_keymap_ensure(keyconf, "Sculpt", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Sculpt", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = SCULPT_mode_poll;
 
   /* Vertex Paint mode */
-  keymap = WM_keymap_ensure(keyconf, "Vertex Paint", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Vertex Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = vertex_paint_mode_poll;
 
   /* Weight Paint mode */
-  keymap = WM_keymap_ensure(keyconf, "Weight Paint", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Weight Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = weight_paint_mode_poll;
 
   /* Weight paint's Vertex Selection Mode. */
-  keymap = WM_keymap_ensure(keyconf, "Paint Vertex Selection (Weight, Vertex)", 0, 0);
+  keymap = WM_keymap_ensure(
+      keyconf, "Paint Vertex Selection (Weight, Vertex)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = vert_paint_poll;
 
   /* Image/Texture Paint mode */
-  keymap = WM_keymap_ensure(keyconf, "Image Paint", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Image Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = image_texture_paint_poll;
 
   /* face-mask mode */
-  keymap = WM_keymap_ensure(keyconf, "Paint Face Mask (Weight, Vertex, Texture)", 0, 0);
+  keymap = WM_keymap_ensure(
+      keyconf, "Paint Face Mask (Weight, Vertex, Texture)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = facemask_paint_poll;
 
   /* paint stroke */
@@ -1594,7 +1595,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "SCULPT_OT_brush_stroke");
 
   /* Curves Sculpt mode. */
-  keymap = WM_keymap_ensure(keyconf, "Sculpt Curves", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Sculpt Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = CURVES_SCULPT_mode_poll;
 
   /* sculpt expand. */

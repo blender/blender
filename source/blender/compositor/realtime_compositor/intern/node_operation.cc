@@ -38,8 +38,7 @@ NodeOperation::NodeOperation(Context &context, DNode node) : Operation(context),
 {
   for (const bNodeSocket *output : node->output_sockets()) {
     const ResultType result_type = get_node_socket_result_type(output);
-    const Result result = Result(result_type, texture_pool());
-    populate_result(output->identifier, result);
+    populate_result(output->identifier, context.create_result(result_type));
   }
 
   for (const bNodeSocket *input : node->input_sockets()) {

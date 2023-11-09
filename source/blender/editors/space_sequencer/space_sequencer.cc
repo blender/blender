@@ -23,7 +23,7 @@
 #include "BKE_global.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_sequencer_offscreen.h"
 
 #include "GPU_state.h"
@@ -39,10 +39,10 @@
 #include "WM_api.hh"
 #include "WM_message.hh"
 
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
@@ -95,7 +95,8 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   sseq->preview_overlay.flag = SEQ_PREVIEW_SHOW_GPENCIL | SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
   sseq->timeline_overlay.flag = SEQ_TIMELINE_SHOW_STRIP_NAME | SEQ_TIMELINE_SHOW_STRIP_SOURCE |
                                 SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
-                                SEQ_TIMELINE_SHOW_FCURVES | SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
+                                SEQ_TIMELINE_SHOW_FCURVES | SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG |
+                                SEQ_TIMELINE_SHOW_STRIP_RETIMING;
 
   BLI_rctf_init(&sseq->runtime.last_thumbnail_area, 0.0f, 0.0f, 0.0f, 0.0f);
   sseq->runtime.last_displayed_thumbnails = nullptr;
@@ -202,7 +203,11 @@ static void sequencer_free(SpaceLink *sl)
   SpaceSeq *sseq = (SpaceSeq *)sl;
   SequencerScopes *scopes = &sseq->scopes;
 
-  /* XXX  if (sseq->gpd) BKE_gpencil_free_data(sseq->gpd); */
+#if 0
+  if (sseq->gpd) {
+    BKE_gpencil_free_data(sseq->gpd);
+  }
+#endif
 
   if (scopes->zebra_ibuf) {
     IMB_freeImBuf(scopes->zebra_ibuf);
@@ -298,7 +303,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
   SpaceSeq *sseqn = static_cast<SpaceSeq *>(MEM_dupallocN(sl));
 
   /* Clear or remove stuff from old. */
-  /* XXX  sseq->gpd = gpencil_data_duplicate(sseq->gpd, false); */
+  // sseq->gpd = gpencil_data_duplicate(sseq->gpd, false);
 
   memset(&sseqn->scopes, 0, sizeof(sseqn->scopes));
   memset(&sseqn->runtime, 0, sizeof(sseqn->runtime));
@@ -424,21 +429,14 @@ static void SEQUENCER_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
 
 static void sequencer_gizmos()
 {
-  const wmGizmoMapType_Params params = {SPACE_SEQ, RGN_TYPE_PREVIEW};
-  wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&params);
-
-  WM_gizmotype_append(GIZMO_GT_retime_handle_add);
-  WM_gizmotype_append(GIZMO_GT_retime_handle);
-  WM_gizmotype_append(GIZMO_GT_retime_remove);
-  WM_gizmotype_append(GIZMO_GT_speed_set_remove);
-
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_translate);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_resize);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_rotate);
-  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo_retime);
 
-  WM_gizmogrouptype_append_and_link(gzmap_type, SEQUENCER_GGT_navigate);
+  const wmGizmoMapType_Params params_preview = {SPACE_SEQ, RGN_TYPE_PREVIEW};
+  wmGizmoMapType *gzmap_type_preview = WM_gizmomaptype_ensure(&params_preview);
+  WM_gizmogrouptype_append_and_link(gzmap_type_preview, SEQUENCER_GGT_navigate);
 }
 
 /* *********************** sequencer (main) region ************************ */
@@ -458,15 +456,15 @@ static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
-  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 #endif
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Own keymap. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Add drop boxes. */
@@ -691,7 +689,7 @@ static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -714,15 +712,15 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
-  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 #endif
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Own keymap. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
@@ -875,7 +873,7 @@ static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   UI_panel_category_active_set_default(region, "Strip");
@@ -949,7 +947,7 @@ static void sequencer_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer Channels", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer Channels", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 

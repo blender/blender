@@ -13,7 +13,7 @@
 #include "BLI_set.hh"
 
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "id.h"
 #include "material.h"

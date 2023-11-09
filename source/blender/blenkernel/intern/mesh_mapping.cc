@@ -328,12 +328,18 @@ static Array<int> reverse_indices_in_groups(const Span<int> group_indices,
   }
   BLI_assert(*std::max_element(group_indices.begin(), group_indices.end()) < offsets.size());
   BLI_assert(*std::min_element(group_indices.begin(), group_indices.end()) >= 0);
-  Array<int> counts(offsets.size(), -1);
+
+  /* `counts` keeps track of how many elements have been added to each group, and is incremented
+   * atomically by many threads in parallel. `calloc` can be measurably faster than a parallel fill
+   * of zero. Alternatively the offsets could be copied and incremented directly, but the cost of
+   * the copy is slightly higher than the cost of `calloc`. */
+  int *counts = MEM_cnew_array<int>(size_t(offsets.size()), __func__);
+  BLI_SCOPED_DEFER([&]() { MEM_freeN(counts); })
   Array<int> results(group_indices.size());
   threading::parallel_for(group_indices.index_range(), 1024, [&](const IndexRange range) {
     for (const int64_t i : range) {
       const int group_index = group_indices[i];
-      const int index_in_group = atomic_add_and_fetch_int32(&counts[group_index], 1);
+      const int index_in_group = atomic_fetch_and_add_int32(&counts[group_index], 1);
       results[offsets[group_index][index_in_group]] = int(i);
     }
   });

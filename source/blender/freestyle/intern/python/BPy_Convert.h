@@ -65,10 +65,6 @@ extern "C" {
 // CurveInternal::CurvePointIterator
 #include "../stroke/CurveIterators.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #include "generic/python_utildefines.h"
@@ -162,7 +158,3 @@ int convert_v3(PyObject *obj, void *v);
 int convert_v2(PyObject *obj, void *v);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

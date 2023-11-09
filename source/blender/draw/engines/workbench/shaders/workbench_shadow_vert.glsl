@@ -15,6 +15,8 @@ void main()
   if (LDoFP > 0) {
     float signed_distance = dot(pass_data.far_plane.xyz, pos_ws) - pass_data.far_plane.w;
     extrude_distance = -signed_distance / LDoFP;
+    /* Ensure we don't overlap the far plane. */
+    extrude_distance -= 1e-3f;
   }
   vData.backPosition = point_world_to_ndc(pos_ws +
                                           pass_data.light_direction_ws * extrude_distance);

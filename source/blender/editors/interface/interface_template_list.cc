@@ -17,7 +17,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLT_translation.h"
 
@@ -175,9 +175,9 @@ uiListNameFilter::~uiListNameFilter()
   MEM_SAFE_FREE(storage_.filter_dyn);
 }
 
-eUIListFilterResult uiListNameFilter::operator()(const PointerRNA & /* itemptr */,
+eUIListFilterResult uiListNameFilter::operator()(const PointerRNA & /*itemptr*/,
                                                  StringRefNull name,
-                                                 int /* index */)
+                                                 int /*index*/)
 {
   if (!filter_) {
     return UI_LIST_ITEM_FILTER_MATCHES;
@@ -839,7 +839,8 @@ static void ui_template_list_layout_draw(const bContext *C,
                   0,
                   "");
       }
-    } break;
+      break;
+    }
     case UILST_LAYOUT_COMPACT:
       row = uiLayoutRow(layout, true);
 

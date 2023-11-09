@@ -20,7 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -50,8 +50,8 @@
 #include "BKE_report.h"
 #include "BKE_texture.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -255,7 +255,7 @@ void BKE_keyingsets_foreach_id(LibraryForeachIDData *data, const ListBase *keyin
 
 /* Freeing Tools --------------------------- */
 
-void BKE_keyingset_free(KeyingSet *ks)
+void BKE_keyingset_free_paths(KeyingSet *ks)
 {
   KS_Path *ksp, *kspn;
 
@@ -281,11 +281,11 @@ void BKE_keyingsets_free(ListBase *list)
   }
 
   /* loop over KeyingSets freeing them
-   * - BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
+   * - BKE_keyingset_free_paths() doesn't free the set itself, but it frees its sub-data
    */
   for (ks = static_cast<KeyingSet *>(list->first); ks; ks = ksn) {
     ksn = ks->next;
-    BKE_keyingset_free(ks);
+    BKE_keyingset_free_paths(ks);
     BLI_freelinkN(list, ks);
   }
 }
@@ -963,8 +963,23 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
   /* loop over strips, checking if they fall within the range */
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* Check if current time occurs within this strip. */
-    if (IN_RANGE_INCL(ctime, strip->start, strip->end) ||
-        (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP)) {
+
+    /* This block leads to the Action Track and non-time-remapped tweak strip evaluation to respect
+     * the extrapolation modes. If in_range, these two tracks will always output NES_TIME_WITHIN so
+     * fcurve extrapolation isn't clamped to the keyframe bounds. */
+    bool in_range = IN_RANGE_INCL(ctime, strip->start, strip->end);
+    if (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP) {
+      switch (strip->extendmode) {
+        case NLASTRIP_EXTEND_HOLD:
+          in_range = true;
+          break;
+        case NLASTRIP_EXTEND_HOLD_FORWARD:
+          in_range = ctime >= strip->start;
+          break;
+      }
+    }
+
+    if (in_range) {
       /* this strip is active, so try to use it */
       estrip = strip;
       side = NES_TIME_WITHIN;
@@ -1182,7 +1197,7 @@ static void nlaeval_snapshot_init(NlaEvalSnapshot *snapshot,
                                   NlaEvalSnapshot *base)
 {
   snapshot->base = base;
-  snapshot->size = MAX2(16, nlaeval->num_channels);
+  snapshot->size = std::max(16, nlaeval->num_channels);
   snapshot->channels = static_cast<NlaEvalChannelSnapshot **>(
       MEM_callocN(sizeof(*snapshot->channels) * snapshot->size, "NlaEvalSnapshot::channels"));
 }
@@ -1753,9 +1768,9 @@ static float nla_blend_value(const int blendmode,
 
     default: /* TODO: Do we really want to blend by default? it seems more uses might prefer add...
               */
-      /* Do linear interpolation. The influence of the accumulated data (elsewhere, that is called
-       * dstweight) is 1 - influence, since the strip's influence is srcweight.
-       */
+      /* Do linear interpolation. The influence of the accumulated data
+       * (elsewhere, that is called `dstwegiht`) is 1 - influence,
+       * since the strip's influence is `srcweight`. */
       return lower_value * (1.0f - influence) + (strip_value * influence);
   }
 }
@@ -3208,25 +3223,18 @@ static void animsys_create_action_track_strip(const AnimData *adt,
    * (which making new strips doesn't do due to the troublesome nature of that). */
   BKE_action_frame_range_calc(
       r_action_strip->act, true, &r_action_strip->actstart, &r_action_strip->actend);
+  BKE_nla_clip_length_ensure_nonzero(&r_action_strip->actstart, &r_action_strip->actend);
   r_action_strip->start = r_action_strip->actstart;
-  r_action_strip->end = IS_EQF(r_action_strip->actstart, r_action_strip->actend) ?
-                            (r_action_strip->actstart + 1.0f) :
-                            (r_action_strip->actend);
+  r_action_strip->end = r_action_strip->actend;
 
   r_action_strip->blendmode = adt->act_blendmode;
   r_action_strip->extendmode = adt->act_extendmode;
   r_action_strip->influence = adt->act_influence;
 
-  /* NOTE: must set this, or else the default setting overrides,
-   * and this setting doesn't work. */
-  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
-
-  /* Unless `extendmode` is Nothing (might be useful for flattening NLA evaluation), disable range.
-   * Extend-mode Nothing and Hold will behave as normal. Hold Forward will behave just like Hold.
+  /* Must set NLASTRIP_FLAG_USR_INFLUENCE, or else the default setting overrides, and influence
+   * doesn't work.
    */
-  if (r_action_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
-    r_action_strip->flag |= NLASTRIP_FLAG_NO_TIME_MAP;
-  }
+  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
 
   const bool tweaking = (adt->flag & ADT_NLA_EDIT_ON) != 0;
   const bool soloing = (adt->flag & ADT_NLA_SOLO_TRACK) != 0;
@@ -3701,13 +3709,13 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
 void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
                                            PointerRNA *prop_ptr,
                                            PropertyRNA *prop,
-                                           float *values,
-                                           int count,
+                                           const blender::MutableSpan<float> values,
                                            int index,
                                            const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
                                            BLI_bitmap *r_successful_remaps)
 {
+  const int count = values.size();
   BLI_bitmap_set_all(r_successful_remaps, false, count);
 
   if (r_force_all != nullptr) {
@@ -3774,7 +3782,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   }
 
   NlaEvalChannelSnapshot *blended_necs = nlaeval_snapshot_ensure_channel(&blended_snapshot, nec);
-  memcpy(blended_necs->values, values, sizeof(float) * count);
+  std::copy(values.begin(), values.end(), blended_necs->values);
 
   /* Force all channels to be remapped for quaternions in a Combine or Replace strip, otherwise it
    * will always fail. See nlaevalchan_combine_quaternion_handle_undefined_blend_values().

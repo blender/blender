@@ -261,6 +261,17 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
                    const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
                    void *user_data)
 {
+  /*
+   * Some message IDs are turned of globally to reduce console flooding.
+   *
+   * - 0xec321b6c: `VUID-VkBufferCreateInfo-size-06409` is disabled as all allocations are reported
+   *   to be larger than the maximum allowed buffer size, although the buffer-size is 4GB. Detected
+   *   on Mesa 23.0.4.
+   */
+  if (ELEM(callback_data->messageIdNumber, 0xec321b6c)) {
+    return VK_FALSE;
+  }
+
   VKDebuggingTools &debugging_tools = *reinterpret_cast<VKDebuggingTools *>(user_data);
   if (debugging_tools.is_ignore(callback_data->messageIdNumber)) {
     return VK_FALSE;

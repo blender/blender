@@ -406,6 +406,11 @@ LightTreeNode *LightTree::build(Scene *scene, DeviceScene *dscene)
       left, root_.get(), num_emissive_triangles, num_local_lights, emitters_.data(), 0, 1);
   task_pool.wait_work();
 
+  if (progress_.get_cancel()) {
+    root_.reset();
+    return nullptr;
+  }
+
   /* All distant lights are grouped to the right child as a leaf node. */
   root_->get_inner().children[right] = create_node(LightTreeMeasure::empty, 1);
   for (int i = 0; i < num_distant_lights; i++) {

@@ -32,7 +32,7 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -46,7 +46,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 static void init_data(ModifierData *md)
 {

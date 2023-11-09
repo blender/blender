@@ -17,7 +17,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
 
@@ -54,7 +54,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
 
   first = texttool_suggest_first();
   last = texttool_suggest_last();
-  /* sel = texttool_suggest_selected(); */ /* UNUSED */
+  // sel = texttool_suggest_selected(); /* UNUSED. */
   top = texttool_suggest_top();
 
   if (!last || !first) {
@@ -163,13 +163,14 @@ static GHash *text_autocomplete_build(Text *text)
         i_pos = i_start;
         while ((i_start < linep->len) &&
                !text_check_identifier_nodigit_unicode(
-                   BLI_str_utf8_as_unicode_step(linep->line, linep->len, &i_pos)))
+                   BLI_str_utf8_as_unicode_step_safe(linep->line, linep->len, &i_pos)))
         {
           i_start = i_pos;
         }
         i_pos = i_end = i_start;
-        while ((i_end < linep->len) && text_check_identifier_unicode(BLI_str_utf8_as_unicode_step(
-                                           linep->line, linep->len, &i_pos)))
+        while ((i_end < linep->len) &&
+               text_check_identifier_unicode(
+                   BLI_str_utf8_as_unicode_step_safe(linep->line, linep->len, &i_pos)))
         {
           i_end = i_pos;
         }
@@ -177,8 +178,8 @@ static GHash *text_autocomplete_build(Text *text)
         if ((i_start != i_end) &&
             /* Check we're at the beginning of a line or that the previous char is not an
              * identifier this prevents digits from being added. */
-            ((i_start < 1) ||
-             !text_check_identifier_unicode(BLI_str_utf8_as_unicode(&linep->line[i_start - 1]))))
+            ((i_start < 1) || !text_check_identifier_unicode(
+                                  BLI_str_utf8_as_unicode_or_error(&linep->line[i_start - 1]))))
         {
           char *str_sub = &linep->line[i_start];
           const int choice_len = i_end - i_start;

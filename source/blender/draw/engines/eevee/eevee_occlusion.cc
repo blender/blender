@@ -10,9 +10,9 @@
 
 #include "DRW_render.h"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BKE_global.h" /* for G.debug_value */
 

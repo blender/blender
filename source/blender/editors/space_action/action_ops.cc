@@ -47,7 +47,7 @@ void action_operatortypes()
   WM_operatortype_append(ACTION_OT_extrapolation_type);
   WM_operatortype_append(ACTION_OT_easing_type);
   WM_operatortype_append(ACTION_OT_keyframe_type);
-  WM_operatortype_append(ACTION_OT_sample);
+  WM_operatortype_append(ACTION_OT_bake_keys);
   WM_operatortype_append(ACTION_OT_clean);
   WM_operatortype_append(ACTION_OT_delete);
   WM_operatortype_append(ACTION_OT_duplicate);
@@ -85,7 +85,7 @@ void ED_operatormacros_action()
   WM_operatortype_macro_define(ot, "ACTION_OT_duplicate");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
   RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_TRANSLATE);
-  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
+  RNA_boolean_set(otmacro->ptr, "use_duplicated_keyframes", true);
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 
@@ -96,7 +96,7 @@ void ED_operatormacros_action()
 void action_keymap(wmKeyConfig *keyconf)
 {
   /* keymap for all regions */
-  WM_keymap_ensure(keyconf, "Dopesheet Generic", SPACE_ACTION, 0);
+  WM_keymap_ensure(keyconf, "Dopesheet Generic", SPACE_ACTION, RGN_TYPE_WINDOW);
 
   /* channels */
   /* Channels are not directly handled by the Action Editor module,
@@ -107,5 +107,5 @@ void action_keymap(wmKeyConfig *keyconf)
    */
 
   /* keyframes */
-  WM_keymap_ensure(keyconf, "Dopesheet", SPACE_ACTION, 0);
+  WM_keymap_ensure(keyconf, "Dopesheet", SPACE_ACTION, RGN_TYPE_WINDOW);
 }

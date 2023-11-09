@@ -18,7 +18,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -27,11 +27,11 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
-#include "intern/depsgraph.h"
-#include "intern/node/deg_node_id.h"
+#include "intern/depsgraph.hh"
+#include "intern/node/deg_node_id.hh"
 
 #ifndef NDEBUG
 #  include "intern/eval/deg_eval_copy_on_write.h"
@@ -171,7 +171,7 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     temp_dupli_object->base_local_view_bits = dupli_parent->base_local_view_bits;
     temp_dupli_object->runtime.local_collections_bits =
         dupli_parent->runtime.local_collections_bits;
-    temp_dupli_object->dt = MIN2(temp_dupli_object->dt, dupli_parent->dt);
+    temp_dupli_object->dt = std::min(temp_dupli_object->dt, dupli_parent->dt);
     copy_v4_v4(temp_dupli_object->color, dupli_parent->color);
     temp_dupli_object->runtime.select_id = dupli_parent->runtime.select_id;
     if (dob->ob->data != dob->ob_data) {

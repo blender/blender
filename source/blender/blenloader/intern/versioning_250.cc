@@ -65,11 +65,11 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_texture.h"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 
 #include "BLO_readfile.h"
 
@@ -579,7 +579,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
 
   BLI_addtail(in_out == SOCK_IN ? &ngroup->inputs_legacy : &ngroup->outputs_legacy, gsock);
 
-  BKE_ntree_update_tag_interface(ngroup);
+  ngroup->tree_interface.tag_items_changed();
 
   return gsock;
 }
@@ -961,7 +961,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           key->refkey)
       {
         data = static_cast<const float *>(key->refkey->data);
-        tot = MIN2(me->totvert, key->refkey->totelem);
+        tot = std::min(me->totvert, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(
             &me->vert_data, CD_MVERT, me->totvert);
         for (a = 0; a < tot; a++, data += 3) {
@@ -976,7 +976,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           key->refkey)
       {
         data = static_cast<const float *>(key->refkey->data);
-        tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
+        tot = std::min(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
         for (a = 0; a < tot; a++, data += 3) {
           copy_v3_v3(lt->def[a].vec, data);

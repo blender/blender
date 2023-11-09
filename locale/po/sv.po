@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -263,10 +263,6 @@ msgstr "Lokalposition"
 
 msgid "Custom"
 msgstr "Anpassad"
-
-
-msgid "Bone Groups"
-msgstr "Bengrupper"
 
 
 msgid "Remove"
@@ -753,10 +749,6 @@ msgid "Vertex Group"
 msgstr "Vertexgrupp"
 
 
-msgid "Temp. Diff."
-msgstr "Temperaturskillnad"
-
-
 msgid "Mapping"
 msgstr "Mappning"
 
@@ -1229,6 +1221,10 @@ msgid "Snap"
 msgstr "Snäpp"
 
 
+msgid "Files"
+msgstr "Filer"
+
+
 msgid "Show/Hide Faces"
 msgstr "Visa/göm ytor"
 
@@ -1241,12 +1237,16 @@ msgid "Text"
 msgstr "Text"
 
 
+msgid "Node"
+msgstr "Nod"
+
+
 msgid "Instances"
 msgstr "Instanser"
 
 
-msgid "Node"
-msgstr "Nod"
+msgid "Physics"
+msgstr "Fysik"
 
 
 msgid "Frame Rate Presets"
@@ -1538,10 +1538,6 @@ msgstr "Radera markör"
 msgctxt "Operator"
 msgid "Select"
 msgstr "Markera"
-
-
-msgid "Files"
-msgstr "Filer"
 
 
 msgid "Backwards"
@@ -2086,10 +2082,6 @@ msgstr "Histogram"
 
 msgid "Kink"
 msgstr "Nyck"
-
-
-msgid "Physics"
-msgstr "Fysik"
 
 
 msgid "Border Collisions"
@@ -2731,10 +2723,6 @@ msgstr "Spanska (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Katalanska (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Tjeckiska (Český)"
 
 
 msgid "Traditional Chinese (繁體中文)"

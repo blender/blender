@@ -41,18 +41,18 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_workspace.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_armature.hh"
@@ -482,15 +482,6 @@ bool ED_operator_editmesh_region_view3d(bContext *C)
   return false;
 }
 
-bool ED_operator_editmesh_auto_smooth(bContext *C)
-{
-  Object *obedit = CTX_data_edit_object(C);
-  if (obedit && obedit->type == OB_MESH && (((Mesh *)(obedit->data))->flag & ME_AUTOSMOOTH)) {
-    return nullptr != BKE_editmesh_from_object(obedit);
-  }
-  return false;
-}
-
 bool ED_operator_editarmature(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
@@ -782,7 +773,7 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
   if (az->type == AZONE_REGION) {
     if (region->overlap && (region->v2d.keeptot != V2D_KEEPTOT_STRICT) &&
         /* Only when this isn't hidden (where it's displayed as an button that expands). */
-        ((az->region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) == 0))
+        region->visible)
     {
       /* A floating region to be resized, clip by the visible region. */
       switch (az->edge) {
@@ -856,6 +847,20 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         break;
       }
       if (az->type == AZONE_REGION) {
+        const ARegion *region = az->region;
+        const int local_xy[2] = {xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin};
+
+        /* Respect button sections: Clusters of buttons (separated using separator-spacers) are
+         * drawn with a background, in-between them the region is fully transparent (if "Region
+         * Overlap" is enabled). Only allow dragging visible edges, so at the button sections. */
+        if (region->visible && region->overlap &&
+            (region->flag & RGN_FLAG_RESIZE_RESPECT_BUTTON_SECTIONS) &&
+            !UI_region_button_sections_is_inside_x(az->region, local_xy[0]))
+        {
+          az = nullptr;
+          break;
+        }
+
         break;
       }
       if (az->type == AZONE_FULLSCREEN) {
@@ -2755,6 +2760,10 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
     {
       rmd->region = az->region->prev;
     }
+    /* Flag to always forward scaling to the previous region. */
+    else if (az->region->prev && (az->region->alignment & RGN_SPLIT_SCALE_PREV)) {
+      rmd->region = az->region->prev;
+    }
     else {
       rmd->region = az->region;
     }
@@ -2844,9 +2853,13 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* execute the events */
   switch (event->type) {
     case MOUSEMOVE: {
-      const float aspect = BLI_rctf_size_x(&rmd->region->v2d.cur) /
-                           (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1);
+      const float aspect = (rmd->region->v2d.flag & V2D_IS_INIT) ?
+                               (BLI_rctf_size_x(&rmd->region->v2d.cur) /
+                                (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1)) :
+                               1.0f;
       const int snap_size_threshold = (U.widget_unit * 2) / aspect;
+      bool size_changed = false;
+
       if (ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
         delta = event->xy[0] - rmd->orig_xy[0];
         if (rmd->edge == AE_LEFT_TO_TOPRIGHT) {
@@ -2886,6 +2899,10 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Hiding/unhiding is handled above, but still fix the size as requested. */
         if (rmd->region->flag & RGN_FLAG_NO_USER_RESIZE) {
           rmd->region->sizex = rmd->origval;
+        }
+
+        if (rmd->region->sizex != rmd->origval) {
+          size_changed = true;
         }
       }
       else {
@@ -2931,6 +2948,13 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (rmd->region->flag & RGN_FLAG_NO_USER_RESIZE) {
           rmd->region->sizey = rmd->origval;
         }
+
+        if (rmd->region->sizey != rmd->origval) {
+          size_changed = true;
+        }
+      }
+      if (size_changed && rmd->region->type->on_user_resize) {
+        rmd->region->type->on_user_resize(rmd->region);
       }
       ED_area_tag_redraw(rmd->area);
       WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
@@ -3178,6 +3202,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
     if (ob->type == OB_GPENCIL_LEGACY) {
       const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);
       gpencil_to_keylist(&ads, static_cast<bGPdata *>(ob->data), keylist, active);
+    }
+
+    if (ob->type == OB_GREASE_PENCIL) {
+      const bool active_layer_only = !(scene->flag & SCE_KEYS_NO_SELONLY);
+      grease_pencil_data_block_to_keylist(
+          nullptr, static_cast<const GreasePencil *>(ob->data), keylist, 0, active_layer_only);
     }
   }
 
@@ -4488,7 +4518,7 @@ static int screen_context_menu_invoke(bContext *C, wmOperator * /*op*/, const wm
 static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Region Context Menu";
+  ot->name = "Region";
   ot->description = "Display region context menu";
   ot->idname = "SCREEN_OT_region_context_menu";
 
@@ -5468,7 +5498,9 @@ struct RegionAlphaInfo {
 float ED_region_blend_alpha(ARegion *region)
 {
   /* check parent too */
-  if (region->regiontimer == nullptr && (region->alignment & RGN_SPLIT_PREV) && region->prev) {
+  if (region->regiontimer == nullptr &&
+      (region->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV)) && region->prev)
+  {
     region = region->prev;
   }
 
@@ -5543,7 +5575,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
   }
 
   if (region->next) {
-    if (region->next->alignment & RGN_SPLIT_PREV) {
+    if (region->next->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV)) {
       rgi->child_region = region->next;
     }
   }
@@ -5917,16 +5949,16 @@ static void blend_file_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop
 void ED_keymap_screen(wmKeyConfig *keyconf)
 {
   /* Screen Editing ------------------------------------------------ */
-  WM_keymap_ensure(keyconf, "Screen Editing", 0, 0);
+  WM_keymap_ensure(keyconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* Screen General ------------------------------------------------ */
-  WM_keymap_ensure(keyconf, "Screen", 0, 0);
+  WM_keymap_ensure(keyconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* Anim Playback ------------------------------------------------ */
-  WM_keymap_ensure(keyconf, "Frames", 0, 0);
+  WM_keymap_ensure(keyconf, "Frames", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* dropbox for entire window */
-  ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
+  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_dropbox_add(
       lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy, nullptr, nullptr);
   WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy, nullptr, nullptr);

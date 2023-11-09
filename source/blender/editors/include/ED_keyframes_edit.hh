@@ -427,11 +427,15 @@ struct FCurveSegment {
  * The caller is responsible for freeing the memory.
  */
 ListBase find_fcurve_segments(FCurve *fcu);
-void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault);
+void clean_fcurve(bAnimContext *ac,
+                  bAnimListElem *ale,
+                  float thresh,
+                  bool cleardefault,
+                  bool only_selected_keys);
 void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void scale_average_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
-
+void push_pull_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
 /**
  * Get a 1D gauss kernel. Since the kernel is symmetrical, only calculates the positive side.
  * \param sigma: The shape of the gauss distribution.
@@ -476,6 +480,7 @@ void shear_fcurve_segment(struct FCurve *fcu,
  */
 void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void blend_to_ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
+void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float frame_offset);
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max);
 bool match_slope_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 
@@ -487,7 +492,7 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, float factor);
  * Use a weighted moving-means method to reduce intensity of fluctuations.
  */
 void smooth_fcurve(FCurve *fcu);
-void sample_fcurve(FCurve *fcu);
+void bake_fcurve_segments(FCurve *fcu);
 /**
  * \param sample_rate: indicates how many samples per frame should be generated.
  */

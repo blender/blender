@@ -32,7 +32,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -40,7 +40,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -100,7 +100,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   float time;
 
   /* -------------------------------------------------------------------- */
-  /* Interpret Time (the reading functions also do some of this ) */
+  /* Interpret Time (the reading functions also do some of this). */
   if (mcmd->play_mode == MOD_MESHCACHE_PLAY_CFEA) {
     const float ctime = BKE_scene_ctime_get(scene);
 

@@ -293,8 +293,9 @@ void LightManager::device_update_distribution(Device *,
   size_t num_triangles = 0;
 
   foreach (Object *object, scene->objects) {
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
 
     if (!object->usable_as_light()) {
       continue;
@@ -338,8 +339,9 @@ void LightManager::device_update_distribution(Device *,
   int j = 0;
 
   foreach (Object *object, scene->objects) {
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
 
     if (!object->usable_as_light()) {
       j++;
@@ -414,8 +416,9 @@ void LightManager::device_update_distribution(Device *,
   if (num_lights > 0) {
     float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
     foreach (Light *light, scene->lights) {
-      if (!light->is_enabled)
+      if (!light->is_enabled) {
         continue;
+      }
 
       distribution[offset].totarea = totarea;
       distribution[offset].prim = ~light_index;
@@ -435,13 +438,15 @@ void LightManager::device_update_distribution(Device *,
   distribution[num_distribution].mesh_light.shader_flag = 0;
 
   if (totarea > 0.0f) {
-    for (size_t i = 0; i < num_distribution; i++)
+    for (size_t i = 0; i < num_distribution; i++) {
       distribution[i].totarea /= totarea;
+    }
     distribution[num_distribution].totarea = 1.0f;
   }
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   /* Update integrator state. */
   kintegrator->use_direct_light = (totarea > 0.0f);
@@ -1048,8 +1053,9 @@ void LightManager::device_update_background(Device *device,
   vector<float3> pixels;
   shade_background_pixels(device, dscene, res.x, res.y, pixels, progress);
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   /* build row distributions and column distribution for the infinite area environment light */
   int cdf_width = res.x + 1;
@@ -1090,9 +1096,11 @@ void LightManager::device_update_background(Device *device,
     background_light->set_average_radiance(map_average_radiance);
   }
 
-  if (cdf_total > 0.0f)
-    for (int i = 1; i < res.y; i++)
+  if (cdf_total > 0.0f) {
+    for (int i = 1; i < res.y; i++) {
       marg_cdf[i].y /= cdf_total;
+    }
+  }
 
   marg_cdf[res.y].y = 1.0f;
 
@@ -1199,8 +1207,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     int shader_id = scene->shader_manager->get_shader_id(shader);
     float random = (float)light->random_id * (1.0f / (float)0xFFFFFFFF);
 
-    if (!light->cast_shadow)
+    if (!light->cast_shadow) {
       shader_id &= ~SHADER_CAST_SHADOW;
+    }
 
     if (!light->use_camera) {
       shader_id |= SHADER_EXCLUDE_CAMERA;
@@ -1237,8 +1246,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       /* Convert radiant flux to radiance or radiant intensity. */
       float eval_fac = invarea * M_1_PI_F;
 
-      if (light->use_mis && radius > 0.0f)
+      if (light->use_mis && radius > 0.0f) {
         shader_id |= SHADER_USE_MIS;
+      }
 
       klights[light_index].co = light->get_co();
       klights[light_index].spot.radius = radius;
@@ -1318,8 +1328,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
 
       float3 dir = safe_normalize(light->get_dir());
 
-      if (light->use_mis && area != 0.0f)
+      if (light->use_mis && area != 0.0f) {
         shader_id |= SHADER_USE_MIS;
+      }
 
       klights[light_index].co = light->get_co();
       klights[light_index].area.axis_u = axis_u;
@@ -1384,8 +1395,9 @@ void LightManager::device_update(Device *device,
                                  Scene *scene,
                                  Progress &progress)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -1401,26 +1413,31 @@ void LightManager::device_update(Device *device,
   device_free(device, dscene, need_update_background);
 
   device_update_lights(device, dscene, scene);
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   if (need_update_background) {
     device_update_background(device, dscene, scene, progress);
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   device_update_distribution(device, dscene, scene, progress);
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   device_update_tree(device, dscene, scene, progress);
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   device_update_ies(dscene);
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   update_flags = UPDATE_NONE;
   need_update_background = false;

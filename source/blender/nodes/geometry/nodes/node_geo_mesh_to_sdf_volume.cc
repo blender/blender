@@ -2,14 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "node_geometry_util.hh"
 
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_volume.h"
 
 #include "GEO_mesh_to_volume.hh"
@@ -17,7 +17,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "NOD_rna_define.hh"
@@ -39,24 +38,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f).max(FLT_MAX);
   b.add_input<decl::Float>("Half-Band Width")
-      .description("Half the width of the narrow band in voxel units")
       .default_value(3.0f)
       .min(1.01f)
-      .max(10.0f);
+      .max(10.0f)
+      .description("Half the width of the narrow band in voxel units");
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
-}
-
-static void search_node_add_ops(GatherAddNodeSearchParams &params)
-{
-  if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_node_add_ops_for_basic_node(params);
-  }
 }
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
   if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_link_ops_for_basic_node(params);
+    nodes::search_link_ops_for_basic_node(params);
   }
 }
 
@@ -200,7 +192,6 @@ static void node_register()
   ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  ntype.gather_add_node_search_ops = search_node_add_ops;
   ntype.gather_link_search_ops = search_link_ops;
   node_type_storage(
       &ntype, "NodeGeometryMeshToVolume", node_free_standard_storage, node_copy_standard_storage);

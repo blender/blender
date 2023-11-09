@@ -59,7 +59,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -68,8 +68,8 @@
 #include "BKE_softbody.h"
 #include "BKE_workspace.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_armature.hh"
@@ -842,6 +842,15 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
     arm->needs_flush_to_id = 0;
 
+    /* WORKAROUND / FIXME: this is a temporary workaround to ensure that
+     * full bone collection data gets restored when exiting edit mode
+     * via an undo step. The correct fix is to have a full edit-mode
+     * copy of bone collections so that edit-mode changes don't modify
+     * object-mode armature data until exiting edit mode. But that
+     * change is a bit of a project, and will be done later. This line
+     * should be removed when that is done. */
+    bmain->is_memfile_undo_written = false;
+
     /* XXX: should this be ID_RECALC_GEOMETRY? */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
@@ -1126,9 +1135,11 @@ static int forcefield_toggle_exec(bContext *C, wmOperator * /*op*/)
 
   if (ob->pd == nullptr) {
     ob->pd = BKE_partdeflect_new(PFIELD_FORCE);
+    ob->empty_drawtype = OB_PLAINAXES;
   }
   else if (ob->pd->forcefield == 0) {
     ob->pd->forcefield = PFIELD_FORCE;
+    ob->empty_drawtype = OB_PLAINAXES;
   }
   else {
     ob->pd->forcefield = 0;
@@ -1556,6 +1567,7 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
+  const bool use_smooth_by_angle = STREQ(op->idname, "OBJECT_OT_shade_smooth_by_angle");
   bool changed_multi = false;
   bool has_linked_data = false;
 
@@ -1604,12 +1616,12 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
     bool changed = false;
     if (ob->type == OB_MESH) {
-      BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), use_smooth);
-      if (use_smooth) {
-        const bool use_auto_smooth = RNA_boolean_get(op->ptr, "use_auto_smooth");
-        const float auto_smooth_angle = RNA_float_get(op->ptr, "auto_smooth_angle");
-        BKE_mesh_auto_smooth_flag_set(
-            static_cast<Mesh *>(ob->data), use_auto_smooth, auto_smooth_angle);
+      BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), use_smooth || use_smooth_by_angle);
+      if (use_smooth || use_smooth_by_angle) {
+        if (use_smooth_by_angle) {
+          const float angle = RNA_float_get(op->ptr, "angle");
+          BKE_mesh_sharp_edges_set_from_angle(static_cast<Mesh *>(ob->data), angle);
+        }
       }
       BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
@@ -1683,25 +1695,25 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
 
-  /* properties */
-  PropertyRNA *prop;
+void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
+{
+  ot->name = "Shade Smooth by Angle";
+  ot->description =
+      "Set the sharpness of mesh edges based on the angle between the neighboring faces";
+  ot->idname = "OBJECT_OT_shade_smooth_by_angle";
 
-  prop = RNA_def_boolean(
-      ot->srna,
-      "use_auto_smooth",
-      false,
-      "Auto Smooth",
-      "Enable automatic smooth based on smooth/sharp faces/edges and angle between faces");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  ot->poll = shade_poll;
+  ot->exec = shade_smooth_exec;
 
-  prop = RNA_def_property(ot->srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_property(ot->srna, "angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_float_default(prop, DEG2RADF(30.0f));
-  RNA_def_property_ui_text(prop,
-                           "Angle",
-                           "Maximum angle between face normals that will be considered as smooth "
-                           "(unused if custom split normals data are available)");
+  RNA_def_property_ui_text(
+      prop, "Angle", "Maximum angle between face normals that will be considered as smooth");
 }
 
 /** \} */

@@ -36,6 +36,8 @@
 
 #include "console_intern.hh"
 
+#define TAB_LENGTH 4
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
@@ -98,6 +100,41 @@ static void console_select_update_primary_clipboard(SpaceConsole *sc)
   }
   WM_clipboard_text_set(buf, true);
   MEM_freeN(buf);
+}
+
+/* Delete selected characters in the edit line. */
+static int console_delete_editable_selection(SpaceConsole *sc)
+{
+  if (sc->sel_start == sc->sel_end) {
+    return 0;
+  }
+
+  if (sc->sel_start < 0) {
+    sc->sel_start = 0;
+  }
+
+  ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
+  if (!cl || sc->sel_start > cl->len) {
+    sc->sel_start = sc->sel_end;
+    return 0;
+  }
+
+  int del_start = sc->sel_start;
+  int del_end = sc->sel_end;
+
+  if (del_end > cl->len) {
+    /* Adjust range to only editable portion.  */
+    del_end = cl->len;
+  }
+
+  const int len = del_end - del_start;
+  memmove(cl->line + cl->len - del_end, cl->line + cl->len - del_start, del_start);
+  cl->len -= len;
+  cl->line[cl->len] = 0;
+  cl->cursor = cl->len - del_start;
+
+  sc->sel_start = sc->sel_end = cl->cursor;
+  return len;
 }
 
 /** \} */
@@ -243,14 +280,15 @@ static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, bool o
 {
   ConsoleLine *ci = static_cast<ConsoleLine *>(
       MEM_callocN(sizeof(ConsoleLine), "ConsoleLine Add"));
+  const int str_len = strlen(str);
   if (own) {
     ci->line = str;
   }
   else {
-    ci->line = BLI_strdup(str);
+    ci->line = BLI_strdupn(str, str_len);
   }
 
-  ci->len = ci->len_alloc = strlen(str);
+  ci->len = ci->len_alloc = str_len;
 
   BLI_addtail(lb, ci);
   return ci;
@@ -324,7 +362,7 @@ static bool console_line_column_from_index(
 
   for (cl = static_cast<ConsoleLine *>(sc->scrollback.last); cl; cl = cl->prev) {
     offset += cl->len + 1;
-    if (offset >= pos) {
+    if (offset > pos) {
       break;
     }
   }
@@ -358,11 +396,20 @@ static const EnumPropertyItem console_move_type_items[] = {
 
 static int console_move_exec(bContext *C, wmOperator *op)
 {
+  SpaceConsole *sc = CTX_wm_space_console(C);
   ConsoleLine *ci = console_history_verify(C);
 
   int type = RNA_enum_get(op->ptr, "type");
+  bool select = RNA_boolean_get(op->ptr, "select");
+
   bool done = false;
-  int pos;
+  int old_pos = ci->cursor;
+  int pos = 0;
+
+  if (!select && sc->sel_start != sc->sel_end) {
+    /* Clear selection if we are not extending it. */
+    sc->sel_start = sc->sel_end;
+  }
 
   switch (type) {
     case LINE_BEGIN:
@@ -400,6 +447,19 @@ static int console_move_exec(bContext *C, wmOperator *op)
       break;
   }
 
+  if (select) {
+    if (sc->sel_start == sc->sel_end || sc->sel_start > ci->len || sc->sel_end > ci->len) {
+      sc->sel_start = ci->len - old_pos;
+      sc->sel_end = sc->sel_start;
+    }
+    if (pos > old_pos) {
+      sc->sel_start = ci->len - pos;
+    }
+    else {
+      sc->sel_end = ci->len - pos;
+    }
+  }
+
   if (done) {
     ScrArea *area = CTX_wm_area(C);
     ARegion *region = CTX_wm_region(C);
@@ -425,27 +485,18 @@ void CONSOLE_OT_move(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(
       ot->srna, "type", console_move_type_items, LINE_BEGIN, "Type", "Where to move cursor to");
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "select", false, "Select", "Whether to select while moving");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-#define TAB_LENGTH 4
 static int console_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
   ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
   char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
-  int len;
-
-  if (str[0] == '\t' && str[1] == '\0') {
-    len = TAB_LENGTH;
-    MEM_freeN(str);
-    str = static_cast<char *>(MEM_mallocN(len + 1, "insert_exec"));
-    memset(str, ' ', len);
-    str[len] = '\0';
-  }
-  else {
-    len = strlen(str);
-  }
+  int len = strlen(str);
 
   /* Allow trailing newlines (but strip them). */
   while (len > 0 && str[len - 1] == '\n') {
@@ -460,6 +511,7 @@ static int console_insert_exec(bContext *C, wmOperator *op)
   }
 
   if (len != 0) {
+    console_delete_editable_selection(sc);
     console_line_insert(ci, str, len);
   }
 
@@ -690,6 +742,14 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 
   if (ci->len == 0) {
     return OPERATOR_CANCELLED;
+  }
+
+  /* If there is a selection just delete it and nothing else. */
+  if (sc->sel_start != sc->sel_end && console_delete_editable_selection(sc) > 0) {
+    console_textview_update_rect(sc, region);
+    ED_area_tag_redraw(CTX_wm_area(C));
+    console_scroll_bottom(region);
+    return OPERATOR_FINISHED;
   }
 
   switch (type) {
@@ -1043,7 +1103,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
                "Console output type");
 }
 
-static int console_copy_exec(bContext *C, wmOperator * /*op*/)
+static int console_copy_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
   char *buf = console_select_to_buffer(sc);
@@ -1052,8 +1112,20 @@ static int console_copy_exec(bContext *C, wmOperator * /*op*/)
   }
 
   WM_clipboard_text_set(buf, false);
+
+  if (RNA_boolean_get(op->ptr, "delete")) {
+    console_delete_editable_selection(sc);
+    ED_area_tag_redraw(CTX_wm_area(C));
+  }
+
   MEM_freeN(buf);
   return OPERATOR_FINISHED;
+}
+
+static bool console_copy_poll(bContext *C)
+{
+  SpaceConsole *sc = CTX_wm_space_console(C);
+  return ED_operator_console_active(C) && sc && (sc->sel_start != sc->sel_end);
 }
 
 void CONSOLE_OT_copy(wmOperatorType *ot)
@@ -1064,10 +1136,16 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
   ot->idname = "CONSOLE_OT_copy";
 
   /* api callbacks */
-  ot->poll = ED_operator_console_active;
+  ot->poll = console_copy_poll;
   ot->exec = console_copy_exec;
 
   /* properties */
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "delete",
+                                      false,
+                                      "Delete Selection",
+                                      "Whether to delete the selection after copying");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int console_paste_exec(bContext *C, wmOperator *op)
@@ -1095,6 +1173,7 @@ static int console_paste_exec(bContext *C, wmOperator *op)
       WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
       ci = console_history_verify(C);
     }
+    console_delete_editable_selection(sc);
     console_line_insert(ci, buf, buf_len);
     console_select_offset(sc, buf_len);
   } while (*buf_step ? ((void)buf_step++, true) : false);
@@ -1135,12 +1214,13 @@ struct SetConsoleCursor {
   int sel_init;
 };
 
-/* TODO: cursor placement without selection. */
-static void console_cursor_set_to_pos(
-    SpaceConsole *sc, ARegion *region, SetConsoleCursor *scu, const int mval[2], int /*sel*/)
+static void console_cursor_set_to_pos(SpaceConsole *sc,
+                                      ARegion *region,
+                                      SetConsoleCursor *scu,
+                                      const wmEvent *event)
 {
-  int pos;
-  pos = console_char_pick(sc, region, mval);
+  int pos = console_char_pick(sc, region, event->mval);
+  bool dragging = event->type == MOUSEMOVE;
 
   if (scu->sel_init == INT_MAX) {
     scu->sel_init = pos;
@@ -1159,6 +1239,22 @@ static void console_cursor_set_to_pos(
   else {
     sc->sel_start = sc->sel_end = pos;
   }
+
+  /* Move text cursor to the last selection point. */
+  ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
+
+  if (cl != nullptr) {
+    if (dragging && sc->sel_end > cl->len && pos <= cl->len) {
+      /* Do not move cursor while dragging into the editable area. */
+    }
+    else if (pos <= cl->len) {
+      console_line_cursor_set(cl, cl->len - pos);
+    }
+    else if (pos > cl->len && sc->sel_start < cl->len) {
+      /* Dragging out of editable area, move cursor to start of selection. */
+      console_line_cursor_set(cl, cl->len - sc->sel_start);
+    }
+  }
 }
 
 static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1166,16 +1262,9 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEven
   SpaceConsole *sc = CTX_wm_space_console(C);
   ARegion *region = CTX_wm_region(C);
   SetConsoleCursor *scu = static_cast<SetConsoleCursor *>(op->customdata);
-  int mval[2];
-  int sel_prev[2];
+  int sel_prev[2] = {sc->sel_start, sc->sel_end};
 
-  mval[0] = event->mval[0];
-  mval[1] = event->mval[1];
-
-  sel_prev[0] = sc->sel_start;
-  sel_prev[1] = sc->sel_end;
-
-  console_cursor_set_to_pos(sc, region, scu, mval, true);
+  console_cursor_set_to_pos(sc, region, scu, event);
 
   /* only redraw if the selection changed */
   if (sel_prev[0] != sc->sel_start || sel_prev[1] != sc->sel_end) {
@@ -1196,8 +1285,16 @@ static void console_cursor_set_exit(bContext *C, wmOperator *op)
 static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  //  ARegion *region = CTX_wm_region(C);
   SetConsoleCursor *scu;
+
+  ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
+  if (cl != nullptr) {
+    const int pos = console_char_pick(sc, CTX_wm_region(C), event->mval);
+    if (pos >= 0 && pos <= cl->len) {
+      /* Set text cursor immediately. */
+      console_line_cursor_set(cl, cl->len - pos);
+    }
+  }
 
   op->customdata = MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");
   scu = static_cast<SetConsoleCursor *>(op->customdata);
@@ -1216,11 +1313,18 @@ static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEven
 
 static int console_modal_select(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  /* Move text cursor to the last selection point. */
   switch (event->type) {
     case LEFTMOUSE:
     case MIDDLEMOUSE:
     case RIGHTMOUSE:
-      if (event->val == KM_RELEASE) {
+      if (event->val == KM_PRESS) {
+        console_modal_select_apply(C, op, event);
+        break;
+      }
+      else if (event->val == KM_RELEASE) {
+        console_modal_select_apply(C, op, event);
+        ED_area_tag_redraw(CTX_wm_area(C));
         console_cursor_set_exit(C, op);
         return OPERATOR_FINISHED;
       }
@@ -1249,6 +1353,43 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
   ot->invoke = console_modal_select_invoke;
   ot->modal = console_modal_select;
   ot->cancel = console_modal_select_cancel;
+  ot->poll = ED_operator_console_active;
+}
+
+static int console_modal_select_all_invoke(bContext *C,
+                                           wmOperator * /* op */,
+                                           const wmEvent * /* event */)
+{
+  SpaceConsole *sc = CTX_wm_space_console(C);
+
+  int offset = strlen(sc->prompt);
+
+  for (ConsoleLine *cl = static_cast<ConsoleLine *>(sc->scrollback.first); cl; cl = cl->next) {
+    offset += cl->len + 1;
+  }
+
+  ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
+  if (cl) {
+    offset += cl->len + 1;
+  }
+
+  sc->sel_start = 0;
+  sc->sel_end = offset;
+
+  ED_area_tag_redraw(CTX_wm_area(C));
+
+  return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_select_all(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select All";
+  ot->idname = "CONSOLE_OT_select_all";
+  ot->description = "Select all the text";
+
+  /* api callbacks */
+  ot->invoke = console_modal_select_all_invoke;
   ot->poll = ED_operator_console_active;
 }
 
@@ -1283,6 +1424,11 @@ static int console_selectword_invoke(bContext *C, wmOperator * /*op*/, const wmE
   }
 
   console_scrollback_prompt_end(sc, &cl_dummy);
+
+  ConsoleLine *ci = static_cast<ConsoleLine *>(sc->history.last);
+  if (ci && sc->sel_start <= ci->len) {
+    console_line_cursor_set(ci, ci->len - sc->sel_start);
+  }
 
   if (ret & OPERATOR_FINISHED) {
     console_select_update_primary_clipboard(sc);

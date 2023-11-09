@@ -36,13 +36,13 @@
 #include "BKE_mesh_mirror.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -734,6 +734,7 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
                                                     const float *mask_by_color_floodfill,
                                                     const bool invert,
                                                     const bool preserve_mask,
+                                                    const SculptMaskWriteInfo mask_write,
                                                     PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
@@ -743,12 +744,16 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    const float current_mask = *vd.mask;
+    const float current_mask = vd.mask;
     const float new_mask = mask_by_color_floodfill[vd.index];
-    *vd.mask = sculpt_mask_by_color_final_mask_get(current_mask, new_mask, invert, preserve_mask);
-    if (current_mask == *vd.mask) {
+    const float mask = sculpt_mask_by_color_final_mask_get(
+        current_mask, new_mask, invert, preserve_mask);
+    if (current_mask == mask) {
       continue;
     }
+
+    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
+
     update_node = true;
   }
   BKE_pbvh_vertex_iter_end;
@@ -818,10 +823,12 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   SCULPT_floodfill_free(&flood);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_mask_by_color_contiguous_update_node(object, new_mask, invert, preserve_mask, nodes[i]);
+      do_mask_by_color_contiguous_update_node(
+          object, new_mask, invert, preserve_mask, mask_write, nodes[i]);
     }
   });
 
@@ -833,6 +840,7 @@ static void do_mask_by_color_task(Object *ob,
                                   const bool invert,
                                   const bool preserve_mask,
                                   const PBVHVertRef mask_by_color_vertex,
+                                  const SculptMaskWriteInfo mask_write,
                                   PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
@@ -849,13 +857,16 @@ static void do_mask_by_color_task(Object *ob,
     float col[4];
     SCULPT_vertex_color_get(ss, vd.vertex, col);
 
-    const float current_mask = *vd.mask;
+    const float current_mask = vd.mask;
     const float new_mask = sculpt_mask_by_color_delta_get(active_color, col, threshold, invert);
-    *vd.mask = sculpt_mask_by_color_final_mask_get(current_mask, new_mask, invert, preserve_mask);
-
-    if (current_mask == *vd.mask) {
+    const float mask = sculpt_mask_by_color_final_mask_get(
+        current_mask, new_mask, invert, preserve_mask);
+    if (current_mask == mask) {
       continue;
     }
+
+    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
+
     update_node = true;
   }
   BKE_pbvh_vertex_iter_end;
@@ -874,10 +885,11 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
   SculptSession *ss = object->sculpt;
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
-
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_mask_by_color_task(object, threshold, invert, preserve_mask, vertex, nodes[i]);
+      do_mask_by_color_task(
+          object, threshold, invert, preserve_mask, vertex, mask_write, nodes[i]);
     }
   });
 }
@@ -931,7 +943,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     sculpt_mask_by_color_full_mesh(ob, active_vertex, threshold, invert, preserve_mask);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(ss->pbvh);
   SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -993,6 +1005,7 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
                                          AutomaskingCache *automasking,
                                          const CavityBakeMixMode mode,
                                          const float factor,
+                                         const SculptMaskWriteInfo mask_write,
                                          PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
@@ -1014,25 +1027,25 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
         mask = automask;
         break;
       case AUTOMASK_BAKE_MULTIPLY:
-        mask = *vd.mask * automask;
+        mask = vd.mask * automask;
         break;
         break;
       case AUTOMASK_BAKE_DIVIDE:
-        mask = automask > 0.00001f ? *vd.mask / automask : 0.0f;
+        mask = automask > 0.00001f ? vd.mask / automask : 0.0f;
         break;
         break;
       case AUTOMASK_BAKE_ADD:
-        mask = *vd.mask + automask;
+        mask = vd.mask + automask;
         break;
       case AUTOMASK_BAKE_SUBTRACT:
-        mask = *vd.mask - automask;
+        mask = vd.mask - automask;
         break;
     }
 
-    mask = *vd.mask + (mask - *vd.mask) * factor;
+    mask = vd.mask + (mask - vd.mask) * factor;
     CLAMP(mask, 0.0f, 1.0f);
 
-    *vd.mask = mask;
+    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -1122,16 +1135,17 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   SCULPT_stroke_id_next(ob);
 
   AutomaskingCache *automasking = SCULPT_automasking_cache_init(&sd2, &brush2, ob);
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      sculpt_bake_cavity_exec_task(ob, automasking, mode, factor, nodes[i]);
+      sculpt_bake_cavity_exec_task(ob, automasking, mode, factor, mask_write, nodes[i]);
     }
   });
 
   SCULPT_automasking_cache_free(automasking);
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(ss->pbvh);
   SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -1358,7 +1372,6 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(SCULPT_OT_set_detail_size);
   WM_operatortype_append(SCULPT_OT_mesh_filter);
   WM_operatortype_append(SCULPT_OT_mask_filter);
-  WM_operatortype_append(SCULPT_OT_mask_expand);
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
   WM_operatortype_append(SCULPT_OT_face_sets_create);
   WM_operatortype_append(SCULPT_OT_face_set_change_visibility);

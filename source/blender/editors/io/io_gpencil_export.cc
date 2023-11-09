@@ -17,7 +17,7 @@
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
-#  include "BKE_screen.h"
+#  include "BKE_screen.hh"
 
 #  include "BLT_translation.h"
 
@@ -32,8 +32,8 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_query.hh"
 
 #  include "io_gpencil.hh"
 

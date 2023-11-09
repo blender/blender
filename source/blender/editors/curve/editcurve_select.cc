@@ -39,7 +39,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities
@@ -256,8 +256,7 @@ bool ED_curve_deselect_all_multi_ex(Base **bases, int bases_len)
 bool ED_curve_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
@@ -273,16 +272,36 @@ bool ED_curve_select_swap(EditNurb *editnurb, bool hide_handles)
   int a;
   bool changed = false;
 
+  /* This could be an argument to swap individual handle selection.
+   * At the moment this is always used though. */
+  bool swap_handles = false;
+
+  /* When hiding handles, ignore handle selection. */
+  if (hide_handles) {
+    swap_handles = true;
+  }
+
   LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;
       while (a--) {
         if (bezt->hide == 0) {
-          bezt->f2 ^= SELECT; /* always do the center point */
-          if (!hide_handles) {
-            bezt->f1 ^= SELECT;
-            bezt->f3 ^= SELECT;
+          if (swap_handles) {
+            bezt->f2 ^= SELECT; /* always do the center point */
+            if (!hide_handles) {
+              bezt->f1 ^= SELECT;
+              bezt->f3 ^= SELECT;
+            }
+          }
+          else {
+            BLI_assert(!hide_handles);
+            if (BEZT_ISSEL_ANY(bezt)) {
+              BEZT_DESEL_ALL(bezt);
+            }
+            else {
+              BEZT_SEL_ALL(bezt);
+            }
           }
           changed = true;
         }
@@ -682,7 +701,6 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
@@ -691,7 +709,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
   Base *basact = nullptr;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   copy_v2_v2_int(vc.mval, event->mval);
 
   if (!ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, nullptr, &basact)) {
@@ -2008,7 +2026,6 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Nurb *nu_dst;
   BezTriple *bezt_dst;
   BPoint *bp_dst;
@@ -2017,7 +2034,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
   Base *basact = nullptr;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   copy_v2_v2_int(vc.mval, event->mval);
 
   if (!ED_curve_pick_vert(&vc, 1, &nu_dst, &bezt_dst, &bp_dst, nullptr, &basact)) {

@@ -26,9 +26,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh_iterators.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_armature.hh"
 #include "ED_curves.hh"

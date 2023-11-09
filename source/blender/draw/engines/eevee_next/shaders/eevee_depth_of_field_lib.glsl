@@ -6,8 +6,9 @@
  * Depth of Field utils.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Constants.
@@ -114,10 +115,10 @@ float dof_coc_from_depth(DepthOfFieldData dof_data, vec2 uv, float depth)
 {
   if (is_panoramic(dof_data.camera_type)) {
     /* Use radial depth. */
-    depth = -length(get_view_space_from_depth(uv, depth));
+    depth = -length(drw_point_screen_to_view(vec3(uv, depth)));
   }
   else {
-    depth = get_view_z_from_depth(depth);
+    depth = drw_depth_screen_to_view(depth);
   }
   return coc_radius_from_camera_depth(dof_data, depth);
 }
@@ -153,7 +154,7 @@ vec4 dof_layer_weight(vec4 coc)
 float dof_sample_weight(float coc)
 {
 #if 1 /* Optimized */
-  return min(1.0, 1.0 / sqr(coc));
+  return min(1.0, 1.0 / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
   const float min_coc = 1.0;
@@ -164,7 +165,7 @@ float dof_sample_weight(float coc)
 vec4 dof_sample_weight(vec4 coc)
 {
 #if 1 /* Optimized */
-  return min(vec4(1.0), 1.0 / sqr(coc));
+  return min(vec4(1.0), 1.0 / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
   const float min_coc = 1.0;

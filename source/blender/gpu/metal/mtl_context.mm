@@ -39,7 +39,11 @@ using namespace blender::gpu;
 
 /* Fire off a single dispatch per encoder. Can make debugging view clearer for texture resources
  * associated with each dispatch. */
-#define MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER 1 && !NDEBUG
+#if defined(NDEBUG)
+#  define MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER 0
+#else
+#  define MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER 1
+#endif
 
 /* Debug option to bind null buffer for missing UBOs.
  * Enabled by default. TODO: Ensure all required UBO bindings are present. */
@@ -1249,7 +1253,7 @@ bool MTLContext::ensure_buffer_bindings(
                   "[UBO] UBO (UBO Name: %s) bound at location: %d (buffer[[%d]]) with size "
                   "%lu (Expected size "
                   "%d)  (Shader Name: %s) is too small -- binding NULL buffer. This is likely an "
-                  "over-binding, which is not used,  but we need this to avoid validation "
+                  "over-binding, which is not used, but we need this to avoid validation "
                   "issues",
                   shader_interface->get_name_at_offset(ubo.name_offset),
                   ubo_location,
@@ -2186,7 +2190,7 @@ void MTLContext::compute_dispatch(int groups_x_len, int groups_y_len, int groups
   }
 
 #if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
-  GPU_finish();
+  GPU_flush();
 #endif
 
   /* Shader instance. */
@@ -2221,7 +2225,7 @@ void MTLContext::compute_dispatch(int groups_x_len, int groups_y_len, int groups
                                                     compute_pso_inst.threadgroup_y_len,
                                                     compute_pso_inst.threadgroup_z_len)];
 #if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
-  GPU_finish();
+  GPU_flush();
 #endif
 }
 
@@ -2229,7 +2233,7 @@ void MTLContext::compute_dispatch_indirect(StorageBuf *indirect_buf)
 {
 
 #if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
-  GPU_finish();
+  GPU_flush();
 #endif
 
   /* Ensure all resources required by upcoming compute submission are correctly bound. */
@@ -2275,7 +2279,7 @@ void MTLContext::compute_dispatch_indirect(StorageBuf *indirect_buf)
                                                            compute_pso_inst.threadgroup_y_len,
                                                            compute_pso_inst.threadgroup_z_len)];
 #if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
-    GPU_finish();
+    GPU_flush();
 #endif
   }
 }
@@ -2620,15 +2624,15 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
    * If latency improves, increase frames in flight to improve overall
    * performance. */
   int perf_max_drawables = MTL_MAX_DRAWABLES;
-  if (MTLContext::avg_drawable_latency_us > 185000) {
+  if (MTLContext::avg_drawable_latency_us > 150000) {
     perf_max_drawables = 1;
   }
-  else if (MTLContext::avg_drawable_latency_us > 85000) {
+  else if (MTLContext::avg_drawable_latency_us > 75000) {
     perf_max_drawables = 2;
   }
 
   while (MTLContext::max_drawables_in_flight > min_ii(perf_max_drawables, MTL_MAX_DRAWABLES)) {
-    PIL_sleep_ms(2);
+    PIL_sleep_ms(1);
   }
 
   /* Present is submitted in its own CMD Buffer to ensure drawable reference released as early as
@@ -2679,7 +2683,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
                                          .count();
     MTLContext::latency_resolve_average(microseconds_per_frame);
 
-    MTL_LOG_INFO("Frame Latency: %f ms  (Rolling avg: %f ms  Drawables: %d)",
+    MTL_LOG_INFO("Frame Latency: %f ms  (Rolling avg: %f ms Drawables: %d)",
                  ((float)microseconds_per_frame) / 1000.0f,
                  ((float)MTLContext::avg_drawable_latency_us) / 1000.0f,
                  perf_max_drawables);

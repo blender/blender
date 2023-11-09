@@ -10,7 +10,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_texture.h"
 #include "BKE_volume.h"
 #include "BKE_volume_openvdb.hh"
@@ -24,8 +24,8 @@
 #include "DNA_texture_types.h"
 #include "DNA_volume_types.h"
 
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

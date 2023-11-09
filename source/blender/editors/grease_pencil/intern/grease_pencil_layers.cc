@@ -9,7 +9,7 @@
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_grease_pencil.hh"
 
@@ -48,9 +48,9 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
       op->ptr, "new_layer_name", nullptr, 0, &new_layer_name_length);
 
   if (grease_pencil.has_active_layer()) {
-    LayerGroup &active_group = grease_pencil.get_active_layer()->parent_group();
-    Layer &new_layer = grease_pencil.add_layer_after(
-        active_group, &grease_pencil.get_active_layer_for_write()->as_node(), new_layer_name);
+    Layer &new_layer = grease_pencil.add_layer(new_layer_name);
+    grease_pencil.move_node_after(new_layer.as_node(),
+                                  grease_pencil.get_active_layer_for_write()->as_node());
     grease_pencil.set_active_layer(&new_layer);
     grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
   }
@@ -82,7 +82,7 @@ static void GREASE_PENCIL_OT_layer_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop = RNA_def_string(
-      ot->srna, "new_layer_name", "GP_Layer", INT16_MAX, "Name", "Name of the new layer");
+      ot->srna, "new_layer_name", nullptr, INT16_MAX, "Name", "Name of the new layer");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }
@@ -140,26 +140,24 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
       op->ptr, "target_layer_name", nullptr, 0, &target_layer_name_length);
   const int reorder_location = RNA_enum_get(op->ptr, "location");
 
-  Layer *target_layer = grease_pencil.find_layer_by_name(target_layer_name);
-  if (!target_layer) {
+  TreeNode *target_node = grease_pencil.find_node_by_name(target_layer_name);
+  if (!target_node || !target_node->is_layer()) {
     MEM_SAFE_FREE(target_layer_name);
     return OPERATOR_CANCELLED;
   }
 
-  Layer *active_layer = grease_pencil.get_active_layer_for_write();
-  active_layer->parent_group().unlink_node(&active_layer->as_node());
-
+  Layer &active_layer = *grease_pencil.get_active_layer_for_write();
   switch (reorder_location) {
     case LAYER_REORDER_ABOVE: {
       /* NOTE: The layers are stored from bottom to top, so inserting above (visually), means
        * inserting the link after the target. */
-      target_layer->parent_group().add_layer_after(active_layer, &target_layer->as_node());
+      grease_pencil.move_node_after(active_layer.as_node(), *target_node);
       break;
     }
     case LAYER_REORDER_BELOW: {
       /* NOTE: The layers are stored from bottom to top, so inserting below (visually), means
        * inserting the link before the target. */
-      target_layer->parent_group().add_layer_before(active_layer, &target_layer->as_node());
+      grease_pencil.move_node_before(active_layer.as_node(), *target_node);
       break;
     }
     default:
@@ -189,7 +187,7 @@ static void GREASE_PENCIL_OT_layer_reorder(wmOperatorType *ot)
 
   PropertyRNA *prop = RNA_def_string(ot->srna,
                                      "target_layer_name",
-                                     "GP_Layer",
+                                     "Layer",
                                      INT16_MAX,
                                      "Target Name",
                                      "Name of the target layer");
@@ -210,13 +208,13 @@ static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
       op->ptr, "new_layer_group_name", nullptr, 0, &new_layer_group_name_length);
 
   if (grease_pencil.has_active_layer()) {
-    LayerGroup &active_group = grease_pencil.get_active_layer()->parent_group();
-    grease_pencil.add_layer_group_after(active_group,
-                                        &grease_pencil.get_active_layer_for_write()->as_node(),
-                                        new_layer_group_name);
+    LayerGroup &new_group = grease_pencil.add_layer_group(
+        grease_pencil.get_active_layer()->parent_group(), new_layer_group_name);
+    grease_pencil.move_node_after(new_group.as_node(),
+                                  grease_pencil.get_active_layer_for_write()->as_node());
   }
   else {
-    grease_pencil.add_layer_group(new_layer_group_name);
+    grease_pencil.add_layer_group(grease_pencil.root_group(), new_layer_group_name);
   }
 
   MEM_SAFE_FREE(new_layer_group_name);
@@ -240,12 +238,8 @@ static void GREASE_PENCIL_OT_layer_group_add(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  PropertyRNA *prop = RNA_def_string(ot->srna,
-                                     "new_layer_group_name",
-                                     "GP_Group",
-                                     INT16_MAX,
-                                     "Name",
-                                     "Name of the new layer group");
+  PropertyRNA *prop = RNA_def_string(
+      ot->srna, "new_layer_group_name", nullptr, INT16_MAX, "Name", "Name of the new layer group");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }

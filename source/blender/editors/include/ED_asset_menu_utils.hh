@@ -41,8 +41,6 @@ void draw_menu_for_catalog(const bScreen &owner_screen,
                            StringRefNull menu_name,
                            uiLayout &layout);
 
-PointerRNA create_asset_rna_ptr(const asset_system::AssetRepresentation *asset);
-
 void operator_asset_reference_props_set(const asset_system::AssetRepresentation &asset,
                                         PointerRNA &ptr);
 void operator_asset_reference_props_register(StructRNA &srna);

@@ -30,8 +30,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_screen.h"
+#include "BKE_object.hh"
+#include "BKE_screen.hh"
 #include "BKE_texture.h"
 
 #include "UI_interface.hh"
@@ -40,8 +40,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -302,22 +302,15 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
-    CustomData *ldata = &mesh->loop_data;
-
-    if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
-      if (!CustomData_has_layer(ldata, CD_NORMAL)) {
-        BKE_mesh_calc_normals_split(mesh);
-      }
-
-      float(*clnors)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
+    if (CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL)) {
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
-      BKE_mesh_normals_loop_to_vertex(verts_num,
-                                      mesh->corner_verts().data(),
-                                      mesh->totloop,
-                                      (const float(*)[3])clnors,
-                                      vert_clnors);
+      BKE_mesh_normals_loop_to_vertex(
+          verts_num,
+          mesh->corner_verts().data(),
+          mesh->totloop,
+          reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
+          vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;
@@ -414,7 +407,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
   }
 
   uiItemS(layout);

@@ -11,7 +11,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 #include "DNA_ID.h"
 
@@ -25,11 +25,11 @@
 #include "intern/builder/deg_builder_map.h"
 #include "intern/builder/deg_builder_rna.h"
 #include "intern/builder/deg_builder_stack.h"
-#include "intern/depsgraph.h"
-#include "intern/node/deg_node.h"
-#include "intern/node/deg_node_component.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/depsgraph.hh"
+#include "intern/node/deg_node.hh"
+#include "intern/node/deg_node_component.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
 
 struct CacheFile;
 struct Camera;
@@ -125,6 +125,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
 
   virtual void build_idproperties(IDProperty *id_property);
 
+  virtual void build_scene_camera(Scene *scene);
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);

@@ -16,13 +16,14 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_volume.h"
 #include "BKE_volume_openvdb.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "node_geometry_util.hh"
 
@@ -96,6 +97,28 @@ static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transfo
       "position", ATTR_DOMAIN_POINT);
   transform_positions(position.span, transform);
   position.finish();
+}
+
+static void translate_greasepencil(GreasePencil &grease_pencil, const float3 translation)
+{
+  using namespace blender::bke::greasepencil;
+  for (const int layer_index : grease_pencil.layers().index_range()) {
+    if (Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                          layer_index)) {
+      drawing->strokes_for_write().translate(translation);
+    }
+  }
+}
+
+static void transform_greasepencil(GreasePencil &grease_pencil, const float4x4 &transform)
+{
+  using namespace blender::bke::greasepencil;
+  for (const int layer_index : grease_pencil.layers().index_range()) {
+    if (Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                          layer_index)) {
+      drawing->strokes_for_write().transform(transform);
+    }
+  }
 }
 
 static void translate_instances(bke::Instances &instances, const float3 translation)
@@ -216,6 +239,9 @@ static void translate_geometry_set(GeoNodeExecParams &params,
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     translate_pointcloud(*pointcloud, translation);
   }
+  if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
+    translate_greasepencil(*grease_pencil, translation);
+  }
   if (Volume *volume = geometry.get_volume_for_write()) {
     translate_volume(params, *volume, translation, depsgraph);
   }
@@ -240,6 +266,9 @@ void transform_geometry_set(GeoNodeExecParams &params,
   }
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     transform_pointcloud(*pointcloud, transform);
+  }
+  if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
+    transform_greasepencil(*grease_pencil, transform);
   }
   if (Volume *volume = geometry.get_volume_for_write()) {
     transform_volume(params, *volume, transform, depsgraph);

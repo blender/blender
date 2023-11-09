@@ -7,7 +7,7 @@
 
 #include "BKE_context.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 
@@ -67,6 +67,16 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* TODO: some output expected be implemented within the next iteration
+   * (see node-definition `<geomcolor>`). */
+  return get_output_default(socket_out_->name, NodeItem::Type::Any);
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_vertex_color_cc
 
 void register_node_type_sh_vertex_color()
@@ -82,6 +92,7 @@ void register_node_type_sh_vertex_color()
   node_type_storage(
       &ntype, "NodeShaderVertexColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_vertex_color;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

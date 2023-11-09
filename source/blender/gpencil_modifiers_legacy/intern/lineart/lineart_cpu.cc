@@ -37,10 +37,10 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -52,7 +52,12 @@
 #include "DNA_scene_types.h"
 #include "MEM_guardedalloc.h"
 
+#include "RE_pipeline.h"
+#include "intern/render_types.h"
+
 #include "lineart_intern.h"
+
+#include <algorithm> /* For `min/max`. */
 
 struct LineartIsecSingle {
   double v1[3], v2[3];
@@ -440,7 +445,7 @@ static int lineart_occlusion_make_task_info(LineartData *ld, LineartRenderTaskIn
   else {
     rti->pending_edges.array = &ld->pending_edges.array[starting_index];
     int remaining = ld->pending_edges.next - starting_index;
-    rti->pending_edges.max = MIN2(remaining, LRT_THREAD_EDGE_COUNT);
+    rti->pending_edges.max = std::min(remaining, LRT_THREAD_EDGE_COUNT);
     res = 1;
   }
 
@@ -2003,10 +2008,6 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   if (orig_ob->lineart.flags & OBJECT_LRT_OWN_CREASE) {
     crease_angle = cosf(M_PI - orig_ob->lineart.crease_threshold);
   }
-  else if (ob_info->original_me->flag & ME_AUTOSMOOTH) {
-    crease_angle = cosf(ob_info->original_me->smoothresh);
-    use_auto_smooth = true;
-  }
   else {
     crease_angle = la_data->conf.crease_threshold;
   }
@@ -3071,7 +3072,7 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
     return true;
   }
   if (dot_1f >= 0 && dot_2f <= 0 && (dot_v1 || dot_v2)) {
-    *from = MAX2(cut, cross_ratios[cross_v1]);
+    *from = std::max(cut, cross_ratios[cross_v1]);
     *to = MIN2(1, cross_ratios[cross_v2]);
     if (*from >= *to) {
       return false;
@@ -3080,7 +3081,7 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
   }
   if (dot_1f <= 0 && dot_2f >= 0 && (dot_v1 || dot_v2)) {
     *from = MAX2(0, cross_ratios[cross_v1]);
-    *to = MIN2(cut, cross_ratios[cross_v2]);
+    *to = std::min(cut, cross_ratios[cross_v2]);
     if (*from >= *to) {
       return false;
     }
@@ -3617,7 +3618,7 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     ld->qtree.recursive_level = LRT_TILE_RECURSIVE_ORTHO;
   }
 
-  double asp = (double(ld->w) / double(ld->h));
+  double asp = double(ld->w) / double(ld->h);
   int fit = BKE_camera_sensor_fit(c->sensor_fit, ld->w, ld->h);
   ld->conf.shift_x = fit == CAMERA_SENSOR_FIT_HOR ? c->shiftx : c->shiftx / asp;
   ld->conf.shift_y = fit == CAMERA_SENSOR_FIT_VERT ? c->shifty : c->shifty * asp;
@@ -4065,7 +4066,8 @@ static bool lineart_bounding_area_edge_intersect(LineartData * /*fb*/,
   double c1, c;
 
   if (((converted[0] = ba->l) > MAX2(l[0], r[0])) || ((converted[1] = ba->r) < MIN2(l[0], r[0])) ||
-      ((converted[2] = ba->b) > MAX2(l[1], r[1])) || ((converted[3] = ba->u) < MIN2(l[1], r[1])))
+      ((converted[2] = ba->b) > MAX2(l[1], r[1])) ||
+      ((converted[3] = ba->u) < std::min(l[1], r[1])))
   {
     return false;
   }
@@ -4445,9 +4447,9 @@ static bool lineart_get_edge_bounding_areas(
   }
 
   b[0] = MIN2(e->v1->fbcoord[0], e->v2->fbcoord[0]);
-  b[1] = MAX2(e->v1->fbcoord[0], e->v2->fbcoord[0]);
+  b[1] = std::max(e->v1->fbcoord[0], e->v2->fbcoord[0]);
   b[2] = MIN2(e->v1->fbcoord[1], e->v2->fbcoord[1]);
-  b[3] = MAX2(e->v1->fbcoord[1], e->v2->fbcoord[1]);
+  b[3] = std::max(e->v1->fbcoord[1], e->v2->fbcoord[1]);
 
   if (b[0] > 1 || b[1] < -1 || b[2] > 1 || b[3] < -1) {
     return false;
@@ -4991,34 +4993,42 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
   LineartData *ld;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   int intersections_only = 0; /* Not used right now, but preserve for future. */
-  Object *use_camera;
+  Object *lineart_camera = nullptr;
 
   double t_start;
   if (G.debug_value == 4000) {
     t_start = PIL_check_seconds_timer();
   }
 
+  bool use_render_camera_override = false;
   if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA) {
     if (!lmd->source_camera ||
-        (use_camera = DEG_get_evaluated_object(depsgraph, lmd->source_camera))->type != OB_CAMERA)
+        (lineart_camera = DEG_get_evaluated_object(depsgraph, lmd->source_camera))->type !=
+            OB_CAMERA)
     {
       return false;
     }
   }
   else {
-
-    BKE_scene_camera_switch_update(scene);
-
-    if (!scene->camera) {
-      return false;
+    Render *render = RE_GetSceneRender(scene);
+    if (render && render->camera_override) {
+      lineart_camera = DEG_get_evaluated_object(depsgraph, render->camera_override);
+      use_render_camera_override = true;
     }
-    use_camera = scene->camera;
+    if (!lineart_camera) {
+      BKE_scene_camera_switch_update(scene);
+      if (!scene->camera) {
+        return false;
+      }
+      lineart_camera = scene->camera;
+    }
   }
 
   LineartCache *lc = lineart_init_cache();
   *cached_result = lc;
 
-  ld = lineart_create_render_buffer(scene, lmd, use_camera, scene->camera, lc);
+  ld = lineart_create_render_buffer(
+      scene, lmd, lineart_camera, use_render_camera_override ? lineart_camera : scene->camera, lc);
 
   /* Triangle thread testing data size varies depending on the thread count.
    * See definition of LineartTriangleThread for details. */
@@ -5042,7 +5052,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
   lineart_main_load_geometries(depsgraph,
                                scene,
-                               use_camera,
+                               lineart_camera,
                                ld,
                                lmd->calculation_flags & LRT_ALLOW_DUPLI_OBJECTS,
                                false,
@@ -5375,7 +5385,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
                   if (invert_input) {
                     use_weight = 1 - use_weight;
                   }
-                  gdw->weight = MAX2(use_weight, gdw->weight);
+                  gdw->weight = std::max(use_weight, gdw->weight);
 
                   sindex++;
                 }

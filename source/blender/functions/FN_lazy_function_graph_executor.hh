@@ -56,10 +56,29 @@ class GraphExecutorSideEffectProvider {
   virtual Vector<const FunctionNode *> get_nodes_with_side_effects(const Context &context) const;
 };
 
+/**
+ * Can be used to pass extra context into the execution of a function. The main alternative to this
+ * is to create a wrapper `LazyFunction` for the `FunctionNode`s. Using this light weight wrapper
+ * is preferable if possible.
+ */
+class GraphExecutorNodeExecuteWrapper {
+ public:
+  virtual ~GraphExecutorNodeExecuteWrapper() = default;
+
+  /**
+   * Is expected to run `node.function().execute(params, context)` but might do some extra work,
+   * like adjusting the context.
+   */
+  virtual void execute_node(const FunctionNode &node,
+                            Params &params,
+                            const Context &context) const = 0;
+};
+
 class GraphExecutor : public LazyFunction {
  public:
   using Logger = GraphExecutorLogger;
   using SideEffectProvider = GraphExecutorSideEffectProvider;
+  using NodeExecuteWrapper = GraphExecutorNodeExecuteWrapper;
 
  private:
   /**
@@ -69,8 +88,10 @@ class GraphExecutor : public LazyFunction {
   /**
    * Input and output sockets of the entire graph.
    */
-  VectorSet<const OutputSocket *> graph_inputs_;
-  VectorSet<const InputSocket *> graph_outputs_;
+  Vector<const GraphInputSocket *> graph_inputs_;
+  Vector<const GraphOutputSocket *> graph_outputs_;
+  Array<int> graph_input_index_by_socket_index_;
+  Array<int> graph_output_index_by_socket_index_;
   /**
    * Optional logger for events that happen during execution.
    */
@@ -80,15 +101,32 @@ class GraphExecutor : public LazyFunction {
    * during evaluation.
    */
   const SideEffectProvider *side_effect_provider_;
+  /**
+   * Optional wrapper for node execution functions.
+   */
+  const NodeExecuteWrapper *node_execute_wrapper_;
+
+  /**
+   * When a graph is executed, various things have to be allocated (e.g. the state of all nodes).
+   * Instead of doing many small allocations, a single bigger allocation is done. This struct
+   * contains the preprocessed offsets into that bigger buffer.
+   */
+  struct {
+    int node_states_array_offset;
+    int loaded_inputs_array_offset;
+    Array<int> node_states_offsets;
+    int total_size;
+  } init_buffer_info_;
 
   friend class Executor;
 
  public:
   GraphExecutor(const Graph &graph,
-                Span<const OutputSocket *> graph_inputs,
-                Span<const InputSocket *> graph_outputs,
+                Vector<const GraphInputSocket *> graph_inputs,
+                Vector<const GraphOutputSocket *> graph_outputs,
                 const Logger *logger,
-                const SideEffectProvider *side_effect_provider);
+                const SideEffectProvider *side_effect_provider,
+                const NodeExecuteWrapper *node_execute_wrapper);
 
   void *init_storage(LinearAllocator<> &allocator) const override;
   void destruct_storage(void *storage) const override;

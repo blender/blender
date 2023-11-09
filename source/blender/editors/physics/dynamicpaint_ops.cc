@@ -32,11 +32,11 @@
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
@@ -432,13 +432,13 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
   ED_update_for_newframe(job->bmain, job->depsgraph);
 }
 
-static void dpaint_bake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
+static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   DynamicPaintBakeJob *job = static_cast<DynamicPaintBakeJob *>(customdata);
 
-  job->stop = stop;
-  job->do_update = do_update;
-  job->progress = progress;
+  job->stop = &worker_status->stop;
+  job->do_update = &worker_status->do_update;
+  job->progress = &worker_status->progress;
   job->start = PIL_check_seconds_timer();
   job->success = 1;
 
@@ -452,8 +452,8 @@ static void dpaint_bake_startjob(void *customdata, bool *stop, bool *do_update, 
 
   dynamicPaint_bakeImageSequence(job);
 
-  *do_update = true;
-  *stop = false;
+  worker_status->do_update = true;
+  worker_status->stop = false;
 }
 
 /*

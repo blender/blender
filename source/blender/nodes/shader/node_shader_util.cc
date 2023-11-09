@@ -19,7 +19,6 @@
 
 #include "node_shader_util.hh"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RE_engine.h"
@@ -55,7 +54,6 @@ void sh_node_type_base(bNodeType *ntype, int type, const char *name, short nclas
   ntype->poll = sh_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }
 
 void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
@@ -63,7 +61,6 @@ void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nc
   sh_node_type_base(ntype, type, name, nclass);
   ntype->poll = sh_fn_poll_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }
 
 bool line_style_shader_nodes_poll(const bContext *C)
@@ -167,6 +164,9 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns)
     else if (type == SOCK_INT) {
       gs->type = GPU_FLOAT; /* HACK: Support as float. */
     }
+    else if (type == SOCK_BOOLEAN) {
+      gs->type = GPU_FLOAT; /* HACK: Support as float. */
+    }
     else if (type == SOCK_VECTOR) {
       gs->type = GPU_VEC3;
     }
@@ -211,7 +211,9 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 {
   int i = 0;
   LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
-    if (ELEM(socket->type, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER)) {
+    if (ELEM(
+            socket->type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER))
+    {
       node_data_from_gpu_stack(ns[i], &gs[i]);
       i++;
     }

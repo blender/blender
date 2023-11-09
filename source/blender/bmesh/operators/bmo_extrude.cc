@@ -384,7 +384,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
       }
 
       /* avoid an extra loop */
-      if (found == true) {
+      if (found == false) {
         BM_ITER_ELEM (f, &viter, v, BM_FACES_OF_VERT) {
           if (!BMO_face_flag_test(bm, f, EXT_INPUT)) {
             found = true;
@@ -672,7 +672,7 @@ static void calc_solidify_normals(BMesh *bm)
       continue;
     }
 
-    i = edge_face_count[BM_elem_index_get(e)]++;
+    i = edge_face_count[BM_elem_index_get(e)];
 
     if (i == 0 || i > 2) {
       /* Edge & vertices are non-manifold even when considering

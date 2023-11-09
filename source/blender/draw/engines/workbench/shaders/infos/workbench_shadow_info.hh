@@ -15,7 +15,7 @@ GPU_SHADER_INTERFACE_INFO(workbench_shadow_iface, "vData")
     .smooth(Type::VEC4, "frontPosition")
     .smooth(Type::VEC4, "backPosition");
 GPU_SHADER_INTERFACE_INFO(workbench_shadow_flat_iface, "vData_flat")
-    .flat(Type::VEC3, "light_direction_os"); /*Workbench Next*/
+    .flat(Type::VEC3, "light_direction_os"); /* Workbench Next. */
 
 /* `workbench_shadow_vert.glsl` only used by geometry shader path.
  * Vertex output iface not needed by non-geometry shader variants,
@@ -109,9 +109,7 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_no_debug)
     .fragment_source("gpu_shader_depth_only_frag.glsl");
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_debug)
-    .fragment_out(0, Type::VEC4, "materialData")
-    .fragment_out(1, Type::VEC4, "normalData")
-    .fragment_out(2, Type::UINT, "objectId")
+    .fragment_out(0, Type::VEC4, "out_debug_color")
     .fragment_source("workbench_shadow_debug_frag.glsl");
 
 /** \} */

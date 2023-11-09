@@ -47,9 +47,11 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
+
+#include "GEO_randomize.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -413,7 +415,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
                                 Mesh *mesh)
 {
   Vector<const Mesh *> meshes;
-  Vector<float4x4 *> obmats;
+  Vector<float4x4> obmats;
 
   Vector<Array<short>> material_remaps;
 
@@ -426,7 +428,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   }
 
   meshes.append(mesh);
-  obmats.append((float4x4 *)&ctx->object->object_to_world);
+  obmats.append(float4x4(ctx->object->object_to_world));
   material_remaps.append({});
 
   const BooleanModifierMaterialMode material_mode = BooleanModifierMaterialMode(
@@ -449,7 +451,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     }
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     meshes.append(mesh_operand);
-    obmats.append((float4x4 *)&bmd->object->object_to_world);
+    obmats.append(float4x4(bmd->object->object_to_world));
     if (material_mode == eBooleanModifierMaterialMode_Index) {
       material_remaps.append(get_material_remap_index_based(ctx->object, bmd->object));
     }
@@ -469,7 +471,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
           }
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           meshes.append(collection_mesh);
-          obmats.append((float4x4 *)&ob->object_to_world);
+          obmats.append(float4x4(ob->object_to_world));
           if (material_mode == eBooleanModifierMaterialMode_Index) {
             material_remaps.append(get_material_remap_index_based(ctx->object, ob));
           }
@@ -487,7 +489,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   Mesh *result = blender::meshintersect::direct_mesh_boolean(
       meshes,
       obmats,
-      *(float4x4 *)&ctx->object->object_to_world,
+      float4x4(ctx->object->object_to_world),
       material_remaps,
       use_self,
       hole_tolerant,
@@ -500,6 +502,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     result->totcol = materials.size();
     MutableSpan(result->mat, result->totcol).copy_from(materials);
   }
+
+  blender::geometry::debug_randomize_mesh_order(result);
 
   return result;
 }
@@ -597,6 +601,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
+
+  blender::geometry::debug_randomize_mesh_order(result);
 
   return result;
 }

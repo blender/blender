@@ -31,7 +31,6 @@ set(INC_SYS
 
 set(SRC
   add_menu_assets.cc
-  add_node_search.cc
   clipboard.cc
   drawnode.cc
   link_drag_search.cc

@@ -12,7 +12,7 @@
 #include "DRW_render.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 

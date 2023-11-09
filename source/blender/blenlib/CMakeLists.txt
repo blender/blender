@@ -26,7 +26,7 @@ set(SRC
   intern/BLI_color.cc
   intern/BLI_dial_2d.c
   intern/BLI_dynstr.c
-  intern/BLI_filelist.c
+  intern/BLI_filelist.cc
   intern/BLI_ghash.c
   intern/BLI_ghash_utils.c
   intern/BLI_heap.c
@@ -61,12 +61,12 @@ set(SRC
   intern/cpp_types.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
-  intern/dynlib.c
+  intern/dynlib.cc
   intern/easing.c
   intern/endian_switch.c
   intern/expr_pylike_eval.c
-  intern/fileops.c
   intern/fileops.cc
+  intern/fileops_c.cc
   intern/filereader_file.c
   intern/filereader_gzip.c
   intern/filereader_memory.c
@@ -101,7 +101,7 @@ set(SRC
   intern/math_color.c
   intern/math_color_blend_inline.c
   intern/math_color_inline.c
-  intern/math_geom.c
+  intern/math_geom.cc
   intern/math_geom_inline.c
   intern/math_interp.c
   intern/math_matrix.c
@@ -120,7 +120,7 @@ set(SRC
   intern/noise.c
   intern/noise.cc
   intern/offset_indices.cc
-  intern/path_util.c
+  intern/path_util.cc
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
   intern/quadric.c
@@ -136,13 +136,13 @@ set(SRC
   intern/sort.c
   intern/sort_utils.c
   intern/stack.c
-  intern/storage.c
+  intern/storage.cc
   intern/string.c
   intern/string_cursor_utf8.c
   intern/string_ref.cc
   intern/string_search.cc
-  intern/string_utf8.c
-  intern/string_utils.c
+  intern/string_utf8.cc
+  intern/string_utils.cc
   intern/system.c
   intern/task_graph.cc
   intern/task_iterator.c
@@ -160,9 +160,9 @@ set(SRC
   intern/virtual_array.cc
   intern/voronoi_2d.c
   intern/voxel.c
-  intern/winstuff.c
-  intern/winstuff_dir.c
-
+  intern/winstuff.cc
+  intern/winstuff_dir.cc
+  intern/winstuff_registration.cc
   # Private headers.
   intern/BLI_mempool_private.h
 
@@ -354,7 +354,7 @@ set(SRC
   BLI_string_search.hh
   BLI_string_utf8.h
   BLI_string_utf8_symbols.h
-  BLI_string_utils.h
+  BLI_string_utils.hh
   BLI_sub_frame.hh
   BLI_sys_types.h
   BLI_system.h
@@ -445,6 +445,7 @@ if(WIN32)
   )
   list(APPEND LIB
     bf_intern_utfconv
+    dxgi
   )
   list(APPEND SRC
     intern/system_win32.c
@@ -549,6 +550,7 @@ if(WITH_GTESTS)
     tests/BLI_string_search_test.cc
     tests/BLI_string_test.cc
     tests/BLI_string_utf8_test.cc
+    tests/BLI_string_utils_test.cc
     tests/BLI_task_graph_test.cc
     tests/BLI_task_test.cc
     tests/BLI_tempfile_test.cc

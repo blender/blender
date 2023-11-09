@@ -394,8 +394,8 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
   View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
 
   wmWindow *source_win = CTX_wm_window(C);
-  int r_mval[2];
-  wmWindow *target_win = WM_window_find_under_cursor(source_win, event->xy, &r_mval[0]);
+  int event_xy_target[2];
+  wmWindow *target_win = WM_window_find_under_cursor(source_win, event->xy, &event_xy_target[0]);
 
   /* Exit if we release the mouse button, hit escape, or enter a different window. */
   if (event->val == KM_RELEASE || event->type == EVT_ESCKEY || source_win != target_win) {
@@ -1868,17 +1868,17 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 
 static bool scroller_activate_poll(bContext *C)
 {
+  const wmWindow *win = CTX_wm_window(C);
+  if (!(win && win->eventstate)) {
+    return false;
+  }
   if (!view2d_poll(C)) {
     return false;
   }
-
-  wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
-  wmEvent *event = win->eventstate;
-
   /* Check if mouse in scroll-bars, if they're enabled. */
-  return (UI_view2d_mouse_in_scrollers(region, v2d, event->xy) != 0);
+  return (UI_view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy) != 0);
 }
 
 /* Initialize #wmOperator.customdata for scroller manipulation operator. */
@@ -2344,7 +2344,7 @@ void ED_operatortypes_view2d()
 
 void ED_keymap_view2d(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "View2D", 0, 0);
+  WM_keymap_ensure(keyconf, "View2D", SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
 
 /** \} */

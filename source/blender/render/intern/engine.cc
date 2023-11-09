@@ -31,9 +31,9 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_debug.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_debug.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_context.h"
 
@@ -64,11 +64,6 @@ ListBase R_engines = {nullptr, nullptr};
 void RE_engines_init()
 {
   DRW_engines_register();
-}
-
-void RE_engines_init_experimental()
-{
-  DRW_engines_register_experimental();
 }
 
 void RE_engines_exit()
@@ -1179,7 +1174,7 @@ bool RE_engine_draw_acquire(Render *re)
      *
      * In the former case there will nothing to be drawn, so can simply use RenderResult drawing
      * pipeline. In the latter case the engine has destroyed its display-only resources (textures,
-     * graphics interops, etc..) so need to use use the RenderResult drawing pipeline. */
+     * graphics interops, etc..) so need to use the #RenderResult drawing pipeline. */
     BLI_mutex_unlock(&re->engine_draw_mutex);
     return false;
   }

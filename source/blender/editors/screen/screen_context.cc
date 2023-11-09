@@ -33,7 +33,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_tracking.h"
 
 #include "RNA_access.hh"
@@ -44,10 +44,10 @@
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 
-#include "SEQ_channels.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_transform.h"
+#include "SEQ_channels.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
 #include "WM_api.hh"
@@ -114,7 +114,7 @@ const char *screen_context_dir[] = {
     "selected_editable_keyframes",
     "ui_list",
     "property",
-    "asset_library_ref",
+    "asset_library_reference",
     nullptr,
 };
 
@@ -1380,7 +1380,7 @@ static void ensure_ed_screen_context_functions()
   register_context_function("selected_visible_fcurves", screen_ctx_selected_visible_fcurves);
   register_context_function("active_editable_fcurve", screen_ctx_active_editable_fcurve);
   register_context_function("selected_editable_keyframes", screen_ctx_selected_editable_keyframes);
-  register_context_function("asset_library_ref", screen_ctx_asset_library);
+  register_context_function("asset_library_reference", screen_ctx_asset_library);
   register_context_function("ui_list", screen_ctx_ui_list);
   register_context_function("property", screen_ctx_property);
 }

@@ -50,6 +50,8 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
   {
   }
 
+  void add_bone_collections(Object *ob_arm, COLLADASW::Node &node);
+
   /* write bone nodes */
   void add_armature_bones(Object *ob_arm,
                           ViewLayer *view_layer,

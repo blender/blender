@@ -538,7 +538,7 @@ BMEdge *BM_edge_find_double(BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
  *
  * \note there used to be a BM_face_exists_overlap function that checks for partial overlap.
  */
-BMFace *BM_face_exists(BMVert **varr, int len) ATTR_NONNULL(1);
+BMFace *BM_face_exists(BMVert *const *varr, int len) ATTR_NONNULL(1);
 /**
  * Check if the face has an exact duplicate (both winding directions).
  */

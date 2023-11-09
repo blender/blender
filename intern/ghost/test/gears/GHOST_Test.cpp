@@ -443,7 +443,7 @@ Application::~Application()
   }
 }
 
-bool Application::processEvent(GHOST_IEvent *event)
+bool Application::processEvent(const GHOST_IEvent *event)
 {
   GHOST_IWindow *window = event->getWindow();
   bool handled = true;
@@ -467,8 +467,8 @@ bool Application::processEvent(GHOST_IEvent *event)
       else {
         view_rotz -= 5.f;
       }
-    } break;
-
+      break;
+    }
     case GHOST_kEventKeyUp:
       break;
 
@@ -483,7 +483,8 @@ bool Application::processEvent(GHOST_IEvent *event)
           }
           m_cursor = (GHOST_TStandardCursor)cursor;
           window->setCursorShape(m_cursor);
-        } break;
+          break;
+        }
 
         case GHOST_kKeyE: {
           int x = 200, y = 200;
@@ -538,7 +539,8 @@ bool Application::processEvent(GHOST_IEvent *event)
           if (down) {
             std::cout << "right control down\n";
           }
-        } break;
+          break;
+        }
 
         case GHOST_kKeyQ:
           if (m_system->getFullScreen()) {
@@ -580,7 +582,8 @@ bool Application::processEvent(GHOST_IEvent *event)
         default:
           break;
       }
-    } break;
+      break;
+    }
 
     case GHOST_kEventWindowClose: {
       GHOST_IWindow *window2 = event->getWindow();
@@ -590,7 +593,8 @@ bool Application::processEvent(GHOST_IEvent *event)
       else {
         m_system->disposeWindow(window2);
       }
-    } break;
+      break;
+    }
 
     case GHOST_kEventWindowActivate:
       handled = false;
@@ -602,8 +606,9 @@ bool Application::processEvent(GHOST_IEvent *event)
 
     case GHOST_kEventWindowUpdate: {
       GHOST_IWindow *window2 = event->getWindow();
-      if (!m_system->validWindow(window2))
+      if (!m_system->validWindow(window2)) {
         break;
+      }
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -628,7 +633,8 @@ bool Application::processEvent(GHOST_IEvent *event)
         glPopMatrix();
       }
       window2->swapBuffers();
-    } break;
+      break;
+    }
 
     default:
       handled = false;

@@ -220,9 +220,9 @@ static PyObject *make_app_info()
 /* a few getsets because it makes sense for them to be in bpy.app even though
  * they are not static */
 
-PyDoc_STRVAR(
-    bpy_app_debug_doc,
-    "Boolean, for debug info (started with --debug / --debug_* matching this attribute name)");
+PyDoc_STRVAR(bpy_app_debug_doc,
+             "Boolean, for debug info "
+             "(started with ``--debug`` / ``--debug-*`` matching this attribute name)");
 static PyObject *bpy_app_debug_get(PyObject * /*self*/, void *closure)
 {
   const int flag = POINTER_AS_INT(closure);
@@ -249,9 +249,9 @@ static int bpy_app_debug_set(PyObject * /*self*/, PyObject *value, void *closure
   return 0;
 }
 
-PyDoc_STRVAR(
-    bpy_app_global_flag_doc,
-    "Boolean, for application behavior (started with --enable-* matching this attribute name)");
+PyDoc_STRVAR(bpy_app_global_flag_doc,
+             "Boolean, for application behavior "
+             "(started with ``--enable-*`` matching this attribute name)");
 static PyObject *bpy_app_global_flag_get(PyObject * /*self*/, void *closure)
 {
   const int flag = POINTER_AS_INT(closure);

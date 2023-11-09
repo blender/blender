@@ -36,7 +36,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_texture.h" /* Texture masking. */
 
 #include "UI_interface.hh"
@@ -47,8 +47,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -652,7 +652,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout, ptr, "vertex_group", &ob_ptr, "vertex_groups", nullptr, ICON_NONE);
+  uiItemPointerR(
+      layout, ptr, "vertex_group", &ob_ptr, "vertex_groups", nullptr, ICON_GROUP_VERTEX);
 
   uiItemR(layout, ptr, "target", UI_ITEM_NONE, nullptr, ICON_NONE);
 

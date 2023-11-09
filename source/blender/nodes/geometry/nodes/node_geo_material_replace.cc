@@ -10,16 +10,29 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
 
 namespace blender::nodes::node_geo_material_replace_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Geometry")
+      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Material>("Old");
   b.add_input<decl::Material>("New").translation_context(BLT_I18NCONTEXT_ID_MATERIAL);
   b.add_output<decl::Geometry>("Geometry").propagate_all();
+}
+
+static void replace_materials(MutableSpan<Material *> materials,
+                              Material *src_material,
+                              Material *dst_material)
+{
+  for (const int i : materials.index_range()) {
+    if (materials[i] == src_material) {
+      materials[i] = dst_material;
+    }
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -31,11 +44,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-      for (const int i : IndexRange(mesh->totcol)) {
-        if (mesh->mat[i] == old_material) {
-          mesh->mat[i] = new_material;
-        }
-      }
+      replace_materials({mesh->mat, mesh->totcol}, old_material, new_material);
+    }
+    if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+      replace_materials({grease_pencil->material_array, grease_pencil->material_array_num},
+                        old_material,
+                        new_material);
     }
   });
 

@@ -21,15 +21,27 @@ void WM_keyconfig_reload(bContext *C);
 
 wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user_defined);
 wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool user_defined);
-bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf);
+void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf);
 void WM_keyconfig_clear(wmKeyConfig *keyconf);
 void WM_keyconfig_free(wmKeyConfig *keyconf);
 
 void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname);
 
+/**
+ * \param keep_properties: When true, the properties for operators which cannot be found are kept.
+ * This is needed for operator reloading that validates key-map items for operators that may have
+ * their operators loaded back in the future, see: #113309.
+ */
+void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties);
 void WM_keyconfig_update(wmWindowManager *wm);
 void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi);
 void WM_keyconfig_update_operatortype();
+
+void WM_keyconfig_update_suppress_begin();
+void WM_keyconfig_update_suppress_end();
+
+void WM_keyconfig_update_postpone_begin();
+void WM_keyconfig_update_postpone_end();
 
 /* Keymap */
 
@@ -57,7 +69,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
                                  const KeyMapItem_Params *params);
 wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src);
 
-bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
+void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
 int WM_keymap_item_to_string(const wmKeyMapItem *kmi,
                              bool compact,
                              char *result,
@@ -75,7 +87,7 @@ wmKeyMap *WM_keymap_find_all_spaceid_or_empty(wmWindowManager *wm,
                                               int spaceid,
                                               int regionid);
 wmKeyMap *WM_keymap_active(const wmWindowManager *wm, wmKeyMap *keymap);
-bool WM_keymap_remove(wmKeyConfig *keyconfig, wmKeyMap *keymap);
+void WM_keymap_remove(wmKeyConfig *keyconfig, wmKeyMap *keymap);
 bool WM_keymap_poll(bContext *C, wmKeyMap *keymap);
 
 wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id);

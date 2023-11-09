@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 
 #include "MEM_guardedalloc.h"
 
@@ -645,6 +646,12 @@ static void rna_float_print(FILE *f, float num)
   }
   else if ((fabsf(num) < float(INT64_MAX)) && (int64_t(num) == num)) {
     fprintf(f, "%.1ff", num);
+  }
+  else if (num == std::numeric_limits<float>::infinity()) {
+    fprintf(f, "std::numeric_limits<float>::infinity()");
+  }
+  else if (num == -std::numeric_limits<float>::infinity()) {
+    fprintf(f, "-std::numeric_limits<float>::infinity()");
   }
   else {
     fprintf(f, "%.10ff", num);
@@ -2374,7 +2381,7 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
     }
     case PROP_POINTER: {
       fprintf(f, "PointerRNA %sget(PointerRNA *ptr);\n", func);
-      /*fprintf(f, "void %sset(PointerRNA *ptr, PointerRNA value);\n", func); */
+      // fprintf(f, "void %sset(PointerRNA *ptr, PointerRNA value);\n", func);
       break;
     }
     case PROP_COLLECTION: {
@@ -3954,6 +3961,12 @@ static void rna_generate_static_function_prototypes(BlenderRNA * /*brna*/,
     dfunc = rna_find_function_def(func);
 
     if (dfunc->call) {
+      if (strstr(dfunc->call, "<")) {
+        /* Can't generate the declaration for templates. We'll still get compile errors when trying
+         * to call it with a wrong signature. */
+        continue;
+      }
+
       if (first) {
         fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
         first = 0;
@@ -4217,7 +4230,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       StructRNA *type = rna_find_struct((const char *)pprop->type);
       if (type && (type->flag & STRUCT_ID) &&
           !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
-        prop->flag |= PROP_PTR_NO_OWNERSHIP;
+        RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
     }
@@ -4229,7 +4242,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       StructRNA *type = rna_find_struct((const char *)cprop->item_type);
       if (type && (type->flag & STRUCT_ID) &&
           !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
-        prop->flag |= PROP_PTR_NO_OWNERSHIP;
+        RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
     }
@@ -4732,7 +4745,9 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_dynamicpaint.cc", nullptr, RNA_def_dynamic_paint},
     {"rna_fcurve.cc", "rna_fcurve_api.cc", RNA_def_fcurve},
     {"rna_gpencil_legacy.cc", nullptr, RNA_def_gpencil},
+#ifdef WITH_GREASE_PENCIL_V3
     {"rna_grease_pencil.cc", nullptr, RNA_def_grease_pencil},
+#endif
     {"rna_curves.cc", nullptr, RNA_def_curves},
     {"rna_image.cc", "rna_image_api.cc", RNA_def_image},
     {"rna_key.cc", nullptr, RNA_def_key},
@@ -4806,6 +4821,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include <float.h>\n");
   fprintf(f, "#include <stdio.h>\n");
   fprintf(f, "#include <limits.h>\n");
+  fprintf(f, "#include <limits>\n");
   fprintf(f, "#include <string.h>\n\n");
   fprintf(f, "#include <stddef.h>\n\n");
 

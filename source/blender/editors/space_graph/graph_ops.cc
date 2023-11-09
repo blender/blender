@@ -29,7 +29,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -447,6 +447,7 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_select_more);
   WM_operatortype_append(GRAPH_OT_select_less);
   WM_operatortype_append(GRAPH_OT_select_leftright);
+  WM_operatortype_append(GRAPH_OT_select_key_handles);
 
   /* editing */
   WM_operatortype_append(GRAPH_OT_snap);
@@ -459,7 +460,7 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_interpolation_type);
   WM_operatortype_append(GRAPH_OT_extrapolation_type);
   WM_operatortype_append(GRAPH_OT_easing_type);
-  WM_operatortype_append(GRAPH_OT_sample);
+  WM_operatortype_append(GRAPH_OT_bake_keys);
   WM_operatortype_append(GRAPH_OT_keys_to_samples);
   WM_operatortype_append(GRAPH_OT_samples_to_keys);
   WM_operatortype_append(GRAPH_OT_sound_to_samples);
@@ -474,7 +475,9 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_blend_offset);
   WM_operatortype_append(GRAPH_OT_blend_to_ease);
   WM_operatortype_append(GRAPH_OT_match_slope);
+  WM_operatortype_append(GRAPH_OT_time_offset);
   WM_operatortype_append(GRAPH_OT_blend_to_default);
+  WM_operatortype_append(GRAPH_OT_push_pull);
   WM_operatortype_append(GRAPH_OT_gaussian_smooth);
   WM_operatortype_append(GRAPH_OT_butterworth_smooth);
   WM_operatortype_append(GRAPH_OT_euler_filter);
@@ -509,7 +512,7 @@ void ED_operatormacros_graph()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
+  RNA_boolean_set(otmacro->ptr, "use_duplicated_keyframes", true);
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 
@@ -522,7 +525,7 @@ void ED_operatormacros_graph()
 void graphedit_keymap(wmKeyConfig *keyconf)
 {
   /* keymap for all regions */
-  WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_GRAPH, 0);
+  WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
 
   /* channels */
   /* Channels are not directly handled by the Graph Editor module,
@@ -533,7 +536,7 @@ void graphedit_keymap(wmKeyConfig *keyconf)
    */
 
   /* keyframes */
-  WM_keymap_ensure(keyconf, "Graph Editor", SPACE_GRAPH, 0);
+  WM_keymap_ensure(keyconf, "Graph Editor", SPACE_GRAPH, RGN_TYPE_WINDOW);
 }
 
 /** \} */

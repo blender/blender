@@ -12,7 +12,7 @@
 
 #include "BLI_session_uuid.h"
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_runtime_backup_sequence.h"
 
 struct Scene;

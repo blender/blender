@@ -37,7 +37,7 @@
 /* Generic Drawing Keymap - Annotations */
 static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Grease Pencil", 0, 0);
+  WM_keymap_ensure(keyconf, "Grease Pencil", SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
 
 /* ==================== */
@@ -314,7 +314,8 @@ static bool gpencil_stroke_weightmode_smear_poll(bContext *C)
 /* Stroke Editing Keymap - Only when editmode is enabled */
 static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Edit Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* set poll callback - so that this keymap only gets enabled when stroke editmode is enabled */
   keymap->poll = gpencil_stroke_editmode_poll;
@@ -323,7 +324,8 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 /* Stroke Curve Editing Keymap - Only when editmode is enabled and in curve edit mode */
 static void ed_keymap_gpencil_curve_editing(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Curve Edit Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Curve Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* set poll callback - so that this keymap only gets enabled when curve editmode is enabled */
   keymap->poll = gpencil_stroke_editmode_curve_poll;
@@ -332,28 +334,32 @@ static void ed_keymap_gpencil_curve_editing(wmKeyConfig *keyconf)
 /* keys for draw with a drawing brush (no fill) */
 static void ed_keymap_gpencil_painting_draw(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Draw brush)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Paint (Draw brush)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_paintmode_draw_poll;
 }
 
 /* keys for draw with a eraser brush (erase) */
 static void ed_keymap_gpencil_painting_erase(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Erase)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Paint (Erase)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_paintmode_erase_poll;
 }
 
 /* keys for draw with a fill brush */
 static void ed_keymap_gpencil_painting_fill(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Fill)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Paint (Fill)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_paintmode_fill_poll;
 }
 
 /* keys for draw with a tint brush */
 static void ed_keymap_gpencil_painting_tint(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Tint)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Paint (Tint)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_paintmode_tint_poll;
 }
 
@@ -361,7 +367,8 @@ static void ed_keymap_gpencil_painting_tint(wmKeyConfig *keyconf)
 static void ed_keymap_gpencil_painting(wmKeyConfig *keyconf)
 {
   /* set poll callback - so that this keymap only gets enabled when stroke paintmode is enabled */
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Paint Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_paintmode_poll;
 }
 
@@ -369,7 +376,8 @@ static void ed_keymap_gpencil_painting(wmKeyConfig *keyconf)
 static void ed_keymap_gpencil_sculpting(wmKeyConfig *keyconf)
 {
   /* set poll callback - so that this keymap only gets enabled when stroke sculptmode is enabled */
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_poll;
 }
 
@@ -377,124 +385,144 @@ static void ed_keymap_gpencil_sculpting(wmKeyConfig *keyconf)
 static void ed_keymap_gpencil_weightpainting(wmKeyConfig *keyconf)
 {
   /* set poll callback - so that this keymap only gets enabled when stroke sculptmode is enabled */
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Weight Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_weightmode_poll;
 }
 
 static void ed_keymap_gpencil_vertexpainting(wmKeyConfig *keyconf)
 {
   /* set poll callback - so that this keymap only gets enabled when stroke vertex is enabled */
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Vertex Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Vertex Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_vertexmode_poll;
 }
 
 /* keys for vertex with a draw brush */
 static void ed_keymap_gpencil_vertexpainting_draw(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Vertex (Draw)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Vertex (Draw)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_vertexmode_draw_poll;
 }
 
 /* keys for vertex with a blur brush */
 static void ed_keymap_gpencil_vertexpainting_blur(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Vertex (Blur)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Vertex (Blur)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_vertexmode_blur_poll;
 }
 /* keys for vertex with a average brush */
 static void ed_keymap_gpencil_vertexpainting_average(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Vertex (Average)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Vertex (Average)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_vertexmode_average_poll;
 }
 /* keys for vertex with a smear brush */
 static void ed_keymap_gpencil_vertexpainting_smear(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Vertex (Smear)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Vertex (Smear)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_vertexmode_smear_poll;
 }
 /* keys for vertex with a replace brush */
 static void ed_keymap_gpencil_vertexpainting_replace(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Vertex (Replace)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Vertex (Replace)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_vertexmode_replace_poll;
 }
 /* keys for sculpt with a smooth brush */
 static void ed_keymap_gpencil_sculptpainting_smooth(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Smooth)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Smooth)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_smooth_poll;
 }
 /* keys for sculpt with a thickness brush */
 static void ed_keymap_gpencil_sculptpainting_thickness(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Thickness)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Thickness)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_thickness_poll;
 }
 /* keys for sculpt with a strength brush */
 static void ed_keymap_gpencil_sculptpainting_strength(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Strength)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Strength)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_strength_poll;
 }
 /* keys for sculpt with a grab brush */
 static void ed_keymap_gpencil_sculptpainting_grab(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Grab)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Grab)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_grab_poll;
 }
 /* keys for sculpt with a push brush */
 static void ed_keymap_gpencil_sculptpainting_push(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Push)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Push)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_push_poll;
 }
 /* keys for sculpt with a twist brush */
 static void ed_keymap_gpencil_sculptpainting_twist(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Twist)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Twist)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_twist_poll;
 }
 /* keys for sculpt with a pinch brush */
 static void ed_keymap_gpencil_sculptpainting_pinch(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Pinch)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Pinch)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_pinch_poll;
 }
 /* keys for sculpt with a randomize brush */
 static void ed_keymap_gpencil_sculptpainting_randomize(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Randomize)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Randomize)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_randomize_poll;
 }
 /* keys for sculpt with a clone brush */
 static void ed_keymap_gpencil_sculptpainting_clone(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt (Clone)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Sculpt (Clone)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_sculptmode_clone_poll;
 }
 /* keys for weight with a draw brush */
 static void ed_keymap_gpencil_weightpainting_draw(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight (Draw)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Weight (Draw)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_weightmode_draw_poll;
 }
 /* keys for weight with a blur brush */
 static void ed_keymap_gpencil_weightpainting_blur(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight (Blur)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Weight (Blur)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_weightmode_blur_poll;
 }
 /* keys for weight with a average brush */
 static void ed_keymap_gpencil_weightpainting_average(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight (Average)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Weight (Average)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_weightmode_average_poll;
 }
 /* keys for weight with a smear brush */
 static void ed_keymap_gpencil_weightpainting_smear(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight (Smear)", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Stroke Weight (Smear)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = gpencil_stroke_weightmode_smear_poll;
 }
 

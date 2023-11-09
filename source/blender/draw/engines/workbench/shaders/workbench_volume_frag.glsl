@@ -226,7 +226,8 @@ vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max
 void main()
 {
   uint stencil = texelFetch(stencil_tx, ivec2(gl_FragCoord.xy), 0).r;
-  if (stencil != 0) {
+  const uint in_front_stencil_bits = 1u << 1;
+  if ((stencil & in_front_stencil_bits) != 0) {
     /* Don't draw on top of "in front" objects. */
     discard;
     return;

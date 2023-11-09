@@ -31,7 +31,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "GHOST_C-api.h"
 
@@ -140,16 +140,16 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
        * cursor coordinates so limit reading the cursor location to when the cursor is grabbed and
        * wrapping in a region since this is the case when it would otherwise attempt to draw the
        * cursor outside the view/window. See: #102792. */
+      const int *xy = win->eventstate->xy;
+      int xy_buf[2];
       if ((WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) &&
-          wm_window_grab_warp_region_is_set(win)) {
-        int x = 0, y = 0;
-        wm_cursor_position_get(win, &x, &y);
-        pc->draw(C, x, y, pc->customdata);
-      }
-      else {
-        pc->draw(C, win->eventstate->xy[0], win->eventstate->xy[1], pc->customdata);
+          wm_window_grab_warp_region_is_set(win) &&
+          wm_cursor_position_get(win, &xy_buf[0], &xy_buf[1]))
+      {
+        xy = xy_buf;
       }
 
+      pc->draw(C, xy[0], xy[1], pc->customdata);
       GPU_scissor_test(false);
     }
   }
@@ -230,6 +230,13 @@ static void wm_software_cursor_motion_clear()
   g_software_cursor.winid = -1;
   g_software_cursor.xy[0] = -1;
   g_software_cursor.xy[1] = -1;
+}
+
+static void wm_software_cursor_motion_clear_with_window(const wmWindow *win)
+{
+  if (g_software_cursor.winid == win->winid) {
+    wm_software_cursor_motion_clear();
+  }
 }
 
 static void wm_software_cursor_draw_bitmap(const int event_xy[2],
@@ -1144,7 +1151,8 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
       wm_software_cursor_motion_update(win);
     }
     else {
-      wm_software_cursor_motion_clear();
+      /* Checking the window is needed so one window doesn't clear the cursor state of another. */
+      wm_software_cursor_motion_clear_with_window(win);
     }
   }
 
@@ -1158,7 +1166,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   bScreen *screen = WM_window_get_active_screen(win);
   bool stereo = WM_stereo3d_enabled(win, false);
 
-  /* Avoid any BGL call issued before this to alter the window drawin. */
+  /* Avoid any BGL call issued before this to alter the window drawing. */
   GPU_bgl_end();
 
   /* Draw area regions into their own frame-buffer. This way we can redraw
@@ -1486,7 +1494,7 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
     else {
       /* Detect the edge case when the previous draw used the software cursor but this one doesn't,
        * it's important to redraw otherwise the software cursor will remain displayed. */
-      if (g_software_cursor.winid != -1) {
+      if (g_software_cursor.winid == win->winid) {
         return true;
       }
     }
@@ -1583,12 +1591,9 @@ void wm_draw_region_clear(wmWindow *win, ARegion * /*region*/)
   screen->do_draw = true;
 }
 
-void WM_draw_region_free(ARegion *region, bool hide)
+void WM_draw_region_free(ARegion *region)
 {
   wm_draw_region_buffer_free(region);
-  if (hide) {
-    region->visible = 0;
-  }
 }
 
 void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)

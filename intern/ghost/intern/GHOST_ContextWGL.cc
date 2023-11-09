@@ -65,8 +65,9 @@ GHOST_ContextWGL::~GHOST_ContextWGL()
 
       s_sharedCount--;
 
-      if (s_sharedCount == 0)
+      if (s_sharedCount == 0) {
         s_sharedHGLRC = nullptr;
+      }
 
       WIN32_CHK(::wglDeleteContext(m_hGLRC));
     }
@@ -88,10 +89,12 @@ GHOST_TSuccess GHOST_ContextWGL::swapBuffers()
 
 GHOST_TSuccess GHOST_ContextWGL::setSwapInterval(int interval)
 {
-  if (epoxy_has_wgl_extension(m_hDC, "WGL_EXT_swap_control"))
+  if (epoxy_has_wgl_extension(m_hDC, "WGL_EXT_swap_control")) {
     return WIN32_CHK(::wglSwapIntervalEXT(interval)) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
-  else
+  }
+  else {
     return GHOST_kFailure;
+  }
 }
 
 GHOST_TSuccess GHOST_ContextWGL::getSwapInterval(int &intervalOut)
@@ -149,8 +152,9 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
 
   weight += pfd.cColorBits - 8;
 
-  if (preferredPFD.cAlphaBits > 0 && pfd.cAlphaBits > 0)
+  if (preferredPFD.cAlphaBits > 0 && pfd.cAlphaBits > 0) {
     weight++;
+  }
 #ifdef WIN32_COMPOSITING
   if ((preferredPFD.dwFlags & PFD_SUPPORT_COMPOSITION) && (pfd.dwFlags & PFD_SUPPORT_COMPOSITION))
     weight++;
@@ -200,8 +204,9 @@ static int choose_pixel_format_legacy(HDC hDC, PIXELFORMATDESCRIPTOR &preferredP
   }
 
   /* choose any available stereo format over a non-stereo format */
-  if (iStereoPixelFormat != 0)
+  if (iStereoPixelFormat != 0) {
     iPixelFormat = iStereoPixelFormat;
+  }
 
   if (iPixelFormat == 0) {
     fprintf(stderr, "Warning! Using result of ChoosePixelFormat.\n");
@@ -372,36 +377,44 @@ struct DummyContextWGL {
 
     dummyPixelFormat = choose_pixel_format_legacy(hDC, preferredPFD);
 
-    if (dummyPixelFormat == 0)
+    if (dummyPixelFormat == 0) {
       return;
+    }
 
     PIXELFORMATDESCRIPTOR chosenPFD;
     if (!WIN32_CHK(::DescribePixelFormat(
             hDC, dummyPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD)))
+    {
       return;
+    }
 
     if (hWnd) {
       dummyHWND = clone_window(hWnd, nullptr);
 
-      if (dummyHWND == nullptr)
+      if (dummyHWND == nullptr) {
         return;
+      }
 
       dummyHDC = GetDC(dummyHWND);
     }
 
-    if (!WIN32_CHK(dummyHDC != nullptr))
+    if (!WIN32_CHK(dummyHDC != nullptr)) {
       return;
+    }
 
-    if (!WIN32_CHK(::SetPixelFormat(dummyHDC, dummyPixelFormat, &chosenPFD)))
+    if (!WIN32_CHK(::SetPixelFormat(dummyHDC, dummyPixelFormat, &chosenPFD))) {
       return;
+    }
 
     dummyHGLRC = ::wglCreateContext(dummyHDC);
 
-    if (!WIN32_CHK(dummyHGLRC != nullptr))
+    if (!WIN32_CHK(dummyHGLRC != nullptr)) {
       return;
+    }
 
-    if (!WIN32_CHK(::wglMakeCurrent(dummyHDC, dummyHGLRC)))
+    if (!WIN32_CHK(::wglMakeCurrent(dummyHDC, dummyHGLRC))) {
       return;
+    }
 
     has_WGL_ARB_pixel_format = epoxy_has_wgl_extension(hDC, "WGL_ARB_pixel_format");
     has_WGL_ARB_create_context = epoxy_has_wgl_extension(hDC, "WGL_ARB_create_context");
@@ -523,8 +536,9 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
     if (!dummy.has_WGL_ARB_create_context || ::GetPixelFormat(m_hDC) == 0) {
       int iPixelFormat = 0;
 
-      if (dummy.has_WGL_ARB_pixel_format)
+      if (dummy.has_WGL_ARB_pixel_format) {
         iPixelFormat = choose_pixel_format_arb(m_stereoVisual, needAlpha);
+      }
 
       if (iPixelFormat == 0)
         iPixelFormat = choose_pixel_format_legacy(m_hDC, dummy.preferredPFD);
@@ -541,8 +555,9 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
         goto error;
       }
 
-      if (needAlpha && chosenPFD.cAlphaBits == 0)
+      if (needAlpha && chosenPFD.cAlphaBits == 0) {
         fprintf(stderr, "Warning! Unable to find a pixel format with an alpha channel.\n");
+      }
 
       if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD))) {
         goto error;
@@ -553,22 +568,27 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
       int profileBitCore = m_contextProfileMask & WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
       int profileBitCompat = m_contextProfileMask & WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
-      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCore)
+      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCore) {
         fprintf(stderr, "Warning! OpenGL core profile not available.\n");
+      }
 
-      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCompat)
+      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCompat) {
         fprintf(stderr, "Warning! OpenGL compatibility profile not available.\n");
+      }
 
       int profileMask = 0;
 
-      if (dummy.has_WGL_ARB_create_context_profile && profileBitCore)
+      if (dummy.has_WGL_ARB_create_context_profile && profileBitCore) {
         profileMask |= profileBitCore;
+      }
 
-      if (dummy.has_WGL_ARB_create_context_profile && profileBitCompat)
+      if (dummy.has_WGL_ARB_create_context_profile && profileBitCompat) {
         profileMask |= profileBitCompat;
+      }
 
-      if (profileMask != m_contextProfileMask)
+      if (profileMask != m_contextProfileMask) {
         fprintf(stderr, "Warning! Ignoring untested OpenGL context profile mask bits.");
+      }
 
       std::vector<int> iAttributes;
 

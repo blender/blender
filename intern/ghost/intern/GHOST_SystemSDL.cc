@@ -109,7 +109,10 @@ GHOST_TSuccess GHOST_SystemSDL::init()
 void GHOST_SystemSDL::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   SDL_DisplayMode mode;
-  SDL_GetDesktopDisplayMode(0, &mode); /* NOTE: always 0 display. */
+  const int display_index = 0; /* NOTE: always 0 display. */
+  if (SDL_GetDesktopDisplayMode(display_index, &mode) < 0) {
+    return;
+  }
   width = mode.w;
   height = mode.h;
 }
@@ -117,7 +120,10 @@ void GHOST_SystemSDL::getAllDisplayDimensions(uint32_t &width, uint32_t &height)
 void GHOST_SystemSDL::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   SDL_DisplayMode mode;
-  SDL_GetCurrentDisplayMode(0, &mode); /* NOTE: always 0 display. */
+  const int display_index = 0; /* NOTE: always 0 display. */
+  if (SDL_GetCurrentDisplayMode(display_index, &mode) < 0) {
+    return;
+  }
   width = mode.w;
   height = mode.h;
 }
@@ -775,7 +781,9 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
           /* This SDL back-end has not yet implemented color sampling the desktop. */
           GHOST_kCapabilityDesktopSample |
           /* This SDL back-end has not yet implemented image copy/paste. */
-          GHOST_kCapabilityClipboardImages));
+          GHOST_kCapabilityClipboardImages |
+          /* No support yet for IME input methods. */
+          GHOST_kCapabilityInputIME));
 }
 
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const

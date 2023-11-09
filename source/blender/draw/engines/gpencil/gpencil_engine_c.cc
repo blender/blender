@@ -12,7 +12,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_shader_fx.h"
 
@@ -33,7 +33,7 @@
 
 #include "gpencil_engine.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

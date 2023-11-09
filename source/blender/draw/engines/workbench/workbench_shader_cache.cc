@@ -23,7 +23,9 @@ ShaderCache::~ShaderCache()
     for (auto j : IndexRange(lighting_type_len)) {
       for (auto k : IndexRange(2) /*cavity*/) {
         for (auto l : IndexRange(2) /*curvature*/) {
-          DRW_SHADER_FREE_SAFE(resolve_shader_cache_[i][j][k][l]);
+          for (auto m : IndexRange(2) /*shadow*/) {
+            DRW_SHADER_FREE_SAFE(resolve_shader_cache_[i][j][k][l][m]);
+          }
         }
       }
     }
@@ -92,10 +94,11 @@ GPUShader *ShaderCache::prepass_shader_get(ePipelineType pipeline_type,
 GPUShader *ShaderCache::resolve_shader_get(ePipelineType pipeline_type,
                                            eLightingType lighting_type,
                                            bool cavity,
-                                           bool curvature)
+                                           bool curvature,
+                                           bool shadow)
 {
   GPUShader *&shader_ptr =
-      resolve_shader_cache_[int(pipeline_type)][int(lighting_type)][cavity][curvature];
+      resolve_shader_cache_[int(pipeline_type)][int(lighting_type)][cavity][curvature][shadow];
 
   if (shader_ptr != nullptr) {
     return shader_ptr;
@@ -125,6 +128,7 @@ GPUShader *ShaderCache::resolve_shader_get(ePipelineType pipeline_type,
   }
   info_name += cavity ? "_cavity" : "_no_cavity";
   info_name += curvature ? "_curvature" : "_no_curvature";
+  info_name += shadow ? "_shadow" : "_no_shadow";
 
   shader_ptr = GPU_shader_create_from_info_name(info_name.c_str());
   return shader_ptr;

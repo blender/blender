@@ -34,7 +34,7 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "IO_orientation.hh"
 #  include "IO_path_util_types.hh"
@@ -127,7 +127,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(
       sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-
+  uiItemR(sub, imfptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
@@ -334,7 +334,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
                   false,
                   "Export Materials with PBR Extensions",
                   "Export MTL library using PBR extensions (roughness, metallic, sheen, "
-                  "clearcoat, anisotropy, transmission)");
+                  "coat, anisotropy, transmission)");
   RNA_def_enum(ot->srna,
                "path_mode",
                io_obj_path_mode,

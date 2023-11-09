@@ -16,7 +16,7 @@
 namespace blender::ed::outliner {
 
 TreeElementParticleSystem::TreeElementParticleSystem(TreeElement &legacy_te,
-                                                     Object & /* object */,
+                                                     Object & /*object*/,
                                                      ParticleSystem &psys)
     : AbstractTreeElement(legacy_te), /* object_(object), */ psys_(psys)
 {

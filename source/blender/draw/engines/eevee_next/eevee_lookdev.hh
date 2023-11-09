@@ -80,6 +80,7 @@ class LookdevModule {
   LookdevParameters parameters_;
   ListBase gpu_materials_ = {nullptr, nullptr};
   GPUMaterial *gpu_material_ = nullptr;
+  eGPUMaterialStatus gpu_status_ = GPU_MAT_CREATED;
 
  public:
   LookdevModule(Instance &inst) : inst_(inst){};

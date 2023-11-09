@@ -34,9 +34,9 @@
 #include "BKE_collision.h"
 #include "BLI_kdopbvh.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_physics.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_physics.hh"
+#include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_ELTOPO
 #  include "eltopo-capi.h"
@@ -757,7 +757,7 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
       }
 
       if ((magrelVel < 0.1f * d * time_multiplier) && (d > ALMOST_ZERO)) {
-        repulse = MIN2(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
+        repulse = std::min(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
 
         /* Stay on the safe side and clamp repulse. */
         if (impulse > ALMOST_ZERO) {

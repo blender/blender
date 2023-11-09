@@ -71,12 +71,12 @@ static void APIENTRY debug_callback(GLenum /*source*/,
   if (TRIM_NVIDIA_BUFFER_INFO && STRPREFIX(message, "Buffer detailed info") &&
       GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL))
   {
-    /** Suppress buffer infos flooding the output. */
+    /* Suppress buffer infos flooding the output. */
     return;
   }
 
   if (TRIM_SHADER_STATS_INFO && STRPREFIX(message, "Shader Stats")) {
-    /** Suppress buffer infos flooding the output. */
+    /* Suppress buffer infos flooding the output. */
     return;
   }
 
@@ -94,7 +94,7 @@ static void APIENTRY debug_callback(GLenum /*source*/,
     CLG_Severity clog_severity;
 
     if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP)) {
-      /** Do not duplicate shader compilation error/warnings. */
+      /* Do not duplicate shader compilation error/warnings. */
       return;
     }
 

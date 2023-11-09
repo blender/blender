@@ -22,8 +22,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.h"
@@ -1608,9 +1608,15 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
     BKE_lib_override_library_get(bmain, id, nullptr, &id_owner);
     return lib_override_root_find(bmain, id_owner, curr_level + 1, &best_level_placeholder);
   }
-  /* This way we won't process again that ID, should we encounter it again through another
-   * relationship hierarchy. */
-  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) {
+    /* Re-processing an entry already being processed higher in the call-graph (re-entry caused by
+     * a dependency loops). Just do nothing, there is no more useful info to provide here. */
+    return nullptr;
+  }
+  /* Flag this entry to avoid re-processing it in case some dependency loop leads to it again
+   * downwards in the call-stack. */
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
 
   int best_level_candidate = curr_level;
   ID *best_root_id_candidate = id;
@@ -1652,6 +1658,11 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
 
   BLI_assert(best_root_id_candidate != nullptr);
   BLI_assert((best_root_id_candidate->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) == 0);
+
+  /* This way this ID won't be processed again, should it be encountered again through another
+   * relationship hierarchy. */
+  entry->tags &= ~MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
 
   *r_best_level = best_level_candidate;
   return best_root_id_candidate;
@@ -1698,7 +1709,10 @@ static void lib_override_root_hierarchy_set(
           bmain->relations->relations_from_pointers, id->override_library->reference));
       BLI_assert(entry != nullptr);
 
-      bool do_replace_root = false;
+      /* Enforce replacing hierarchy root if the current one is invalid. */
+      bool do_replace_root = (!id->override_library->hierarchy_root ||
+                              !ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) ||
+                              id->override_library->hierarchy_root->lib != id->lib);
       for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
            from_id_entry = from_id_entry->next)
       {
@@ -1805,6 +1819,7 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
     }
 
     BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS, false);
 
     int best_level = 0;
     ID *id_root = lib_override_root_find(bmain, id, best_level, &best_level);
@@ -3607,7 +3622,7 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 }
 
-void BKE_lib_override_library_make_local(ID *id)
+void BKE_lib_override_library_make_local(Main *bmain, ID *id)
 {
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
     return;
@@ -3636,6 +3651,13 @@ void BKE_lib_override_library_make_local(ID *id)
   bNodeTree *node_tree = ntreeFromID(id);
   if (node_tree != nullptr) {
     node_tree->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+  }
+
+  /* In case a liboverride hierarchy root is 'made local', i.e. is not a liboverride anymore, all
+   * hierarchy roots of all liboverrides need to be validated/re-generated again.
+   * Only in case `bmain` is given, otherwise caller is responsible to do this. */
+  if (bmain) {
+    BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
   }
 }
 

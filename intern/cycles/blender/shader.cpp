@@ -190,6 +190,7 @@ static SocketType::Type convert_socket_type(BL::NodeSocket &b_socket)
   switch (b_socket.type()) {
     case BL::NodeSocket::type_VALUE:
       return SocketType::FLOAT;
+    case BL::NodeSocket::type_BOOLEAN:
     case BL::NodeSocket::type_INT:
       return SocketType::INT;
     case BL::NodeSocket::type_VECTOR:
@@ -254,8 +255,9 @@ static void set_default_value(ShaderInput *input,
 
 static void get_tex_mapping(TextureNode *mapping, BL::TexMapping &b_mapping)
 {
-  if (!b_mapping)
+  if (!b_mapping) {
     return;
+  }
 
   mapping->set_tex_mapping_translation(get_float3(b_mapping.translation()));
   mapping->set_tex_mapping_rotation(get_float3(b_mapping.rotation()));
@@ -536,11 +538,11 @@ static ShaderNode *add_node(Scene *scene,
       case BL::ShaderNodeSubsurfaceScattering::falloff_BURLEY:
         subsurface->set_method(CLOSURE_BSSRDF_BURLEY_ID);
         break;
-      case BL::ShaderNodeSubsurfaceScattering::falloff_RANDOM_WALK_FIXED_RADIUS:
-        subsurface->set_method(CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
-        break;
       case BL::ShaderNodeSubsurfaceScattering::falloff_RANDOM_WALK:
         subsurface->set_method(CLOSURE_BSSRDF_RANDOM_WALK_ID);
+        break;
+      case BL::ShaderNodeSubsurfaceScattering::falloff_RANDOM_WALK_SKIN:
+        subsurface->set_method(CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID);
         break;
     }
 
@@ -650,11 +652,11 @@ static ShaderNode *add_node(Scene *scene,
       case BL::ShaderNodeBsdfPrincipled::subsurface_method_BURLEY:
         principled->set_subsurface_method(CLOSURE_BSSRDF_BURLEY_ID);
         break;
-      case BL::ShaderNodeBsdfPrincipled::subsurface_method_RANDOM_WALK_FIXED_RADIUS:
-        principled->set_subsurface_method(CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
-        break;
       case BL::ShaderNodeBsdfPrincipled::subsurface_method_RANDOM_WALK:
         principled->set_subsurface_method(CLOSURE_BSSRDF_RANDOM_WALK_ID);
+        break;
+      case BL::ShaderNodeBsdfPrincipled::subsurface_method_RANDOM_WALK_SKIN:
+        principled->set_subsurface_method(CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID);
         break;
     }
     node = principled;
@@ -1084,8 +1086,9 @@ static ShaderNode *add_node(Scene *scene,
 
 static bool node_use_modified_socket_name(ShaderNode *node)
 {
-  if (node->special_type == SHADER_SPECIAL_TYPE_OSL)
+  if (node->special_type == SHADER_SPECIAL_TYPE_OSL) {
     return false;
+  }
 
   return true;
 }
@@ -1547,7 +1550,8 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       /* settings */
       PointerRNA cmat = RNA_pointer_get(&b_mat.ptr, "cycles");
       shader->set_emission_sampling_method(get_emission_sampling(cmat));
-      shader->set_use_transparent_shadow(get_boolean(cmat, "use_transparent_shadow"));
+      shader->set_use_transparent_shadow(b_mat.use_transparent_shadow());
+      shader->set_use_bump_map_correction(get_boolean(cmat, "use_bump_map_correction"));
       shader->set_heterogeneous_volume(!get_boolean(cmat, "homogeneous_volume"));
       shader->set_volume_sampling_method(get_volume_sampling(cmat));
       shader->set_volume_interpolation_method(get_volume_interpolation(cmat));

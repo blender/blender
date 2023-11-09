@@ -243,11 +243,15 @@ def do_versions(self):
                         layer.samples *= layer.samples
                     cscene["use_square_samples"] = False
 
-            # Disable light tree for existing scenes.
             if version <= (3, 5, 3):
                 cscene = scene.cycles
+                # Disable light tree for existing scenes.
                 if not cscene.is_property_set("use_light_tree"):
                     cscene.use_light_tree = False
+                # Sampling pattern settings are hidden behind a debug menu. Switch to the
+                # default faster and fully featured (Supports Scrambling Distance)
+                # Tabulated Sobol.
+                cscene.sampling_pattern = 'TABULATED_SOBOL'
 
         # Lamps
         for light in bpy.data.lights:

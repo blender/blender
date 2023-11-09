@@ -33,6 +33,7 @@ bool BLI_mmap_read(BLI_mmap_file *file, void *dest, size_t offset, size_t length
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 void *BLI_mmap_get_pointer(BLI_mmap_file *file) ATTR_WARN_UNUSED_RESULT;
+size_t BLI_mmap_get_length(const BLI_mmap_file *file) ATTR_WARN_UNUSED_RESULT;
 
 void BLI_mmap_free(BLI_mmap_file *file) ATTR_NONNULL(1);
 

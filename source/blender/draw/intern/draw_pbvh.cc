@@ -36,7 +36,8 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_ccg.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
@@ -49,6 +50,7 @@
 #include "DRW_engine.h"
 #include "DRW_pbvh.hh"
 
+#include "attribute_convert.hh"
 #include "bmesh.h"
 #include "draw_pbvh.h"
 #include "gpu_private.h"
@@ -56,10 +58,7 @@
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
 
-using blender::char3;
-using blender::float2;
 using blender::float3;
-using blender::float4;
 using blender::FunctionRef;
 using blender::IndexRange;
 using blender::Map;
@@ -71,24 +70,28 @@ using blender::StringRef;
 using blender::StringRefNull;
 using blender::uchar3;
 using blender::uchar4;
-using blender::ushort3;
-using blender::ushort4;
 using blender::Vector;
 
-static bool valid_pbvh_attr(int type)
+static bool pbvh_attr_supported(int type, const eAttrDomain domain)
 {
-  switch (type) {
-    case CD_PBVH_CO_TYPE:
-    case CD_PBVH_NO_TYPE:
-    case CD_PBVH_FSET_TYPE:
-    case CD_PBVH_MASK_TYPE:
-    case CD_PROP_COLOR:
-    case CD_PROP_BYTE_COLOR:
-    case CD_PROP_FLOAT2:
-      return true;
+  using namespace blender;
+  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
+    /* PBVH drawing does not support edge domain attributes. */
+    return false;
   }
-
-  return false;
+  if (ELEM(type, CD_PBVH_CO_TYPE, CD_PBVH_NO_TYPE, CD_PBVH_FSET_TYPE, CD_PBVH_MASK_TYPE)) {
+    return true;
+  }
+  bool type_supported = false;
+  bke::attribute_math::convert_to_static_type(eCustomDataType(type), [&](auto dummy) {
+    using T = decltype(dummy);
+    using Converter = draw::AttributeConverter<T>;
+    using VBOType = typename Converter::VBOType;
+    if constexpr (!std::is_void_v<VBOType>) {
+      type_supported = true;
+    }
+  });
+  return type_supported;
 }
 
 struct PBVHVbo {
@@ -118,83 +121,149 @@ struct PBVHVbo {
   }
 };
 
-template<typename AttributeT, typename VBOT> VBOT convert_value(const AttributeT &value)
-{
-  if constexpr (std::is_same_v<AttributeT, VBOT>) {
-    return value;
-  }
-}
-
-template<> inline uchar convert_value(const float &value)
-{
-  return uchar(value * 255.0f);
-}
-
-template<> inline ushort4 convert_value(const MPropCol &value)
-{
-  return {unit_float_to_ushort_clamp(value.color[0]),
-          unit_float_to_ushort_clamp(value.color[1]),
-          unit_float_to_ushort_clamp(value.color[2]),
-          unit_float_to_ushort_clamp(value.color[3])};
-}
-
-template<> inline ushort4 convert_value(const MLoopCol &value)
-{
-  return {unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.r]),
-          unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.g]),
-          unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.b]),
-          ushort(value.a * 257)};
-}
-
-template<> inline short4 convert_value(const float3 &value)
+inline short4 normal_float_to_short(const float3 &value)
 {
   short3 result;
   normal_float_to_short_v3(result, value);
   return short4(result.x, result.y, result.z, 0);
 }
 
-template<typename AttributeT, typename VBOT>
-void extract_data_vert_faces(const PBVH_GPU_Args &args,
-                             const Span<AttributeT> attribute,
-                             GPUVertBuf &vbo)
+template<typename T>
+void extract_data_vert_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
+  using Converter = blender::draw::AttributeConverter<T>;
+  using VBOType = typename Converter::VBOType;
   const Span<int> corner_verts = args.corner_verts;
   const Span<MLoopTri> looptris = args.mlooptri;
   const Span<int> looptri_faces = args.looptri_faces;
   const bool *hide_poly = args.hide_poly;
 
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
   for (const int looptri_i : args.prim_indices) {
     if (hide_poly && hide_poly[looptri_faces[looptri_i]]) {
       continue;
     }
     for (int i : IndexRange(3)) {
       const int vert = corner_verts[looptris[looptri_i].tri[i]];
-      *data = convert_value<AttributeT, VBOT>(attribute[vert]);
+      *data = Converter::convert(attribute[vert]);
       data++;
     }
   }
 }
 
-template<typename AttributeT, typename VBOT>
-void extract_data_corner_faces(const PBVH_GPU_Args &args,
-                               const Span<AttributeT> attribute,
-                               GPUVertBuf &vbo)
+template<typename T>
+void extract_data_face_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
+  using Converter = blender::draw::AttributeConverter<T>;
+  using VBOType = typename Converter::VBOType;
+
+  const Span<int> looptri_faces = args.looptri_faces;
+  const bool *hide_poly = args.hide_poly;
+
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  for (const int looptri_i : args.prim_indices) {
+    const int face = looptri_faces[looptri_i];
+    if (hide_poly && hide_poly[face]) {
+      continue;
+    }
+    std::fill_n(data, 3, Converter::convert(attribute[face]));
+    data += 3;
+  }
+}
+
+template<typename T>
+void extract_data_corner_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
+{
+  using Converter = blender::draw::AttributeConverter<T>;
+  using VBOType = typename Converter::VBOType;
+
   const Span<MLoopTri> looptris = args.mlooptri;
   const Span<int> looptri_faces = args.looptri_faces;
   const bool *hide_poly = args.hide_poly;
 
-  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
   for (const int looptri_i : args.prim_indices) {
     if (hide_poly && hide_poly[looptri_faces[looptri_i]]) {
       continue;
     }
     for (int i : IndexRange(3)) {
       const int corner = looptris[looptri_i].tri[i];
-      *data = convert_value<AttributeT, VBOT>(attribute[corner]);
+      *data = Converter::convert(attribute[corner]);
       data++;
     }
+  }
+}
+
+template<typename T> const T &bmesh_cd_vert_get(const BMVert &vert, const int offset)
+{
+  return *static_cast<const T *>(POINTER_OFFSET(vert.head.data, offset));
+}
+
+template<typename T> const T &bmesh_cd_loop_get(const BMLoop &loop, const int offset)
+{
+  return *static_cast<const T *>(POINTER_OFFSET(loop.head.data, offset));
+}
+
+template<typename T> const T &bmesh_cd_face_get(const BMFace &face, const int offset)
+{
+  return *static_cast<const T *>(POINTER_OFFSET(face.head.data, offset));
+}
+
+template<typename T>
+void extract_data_vert_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
+{
+  using Converter = blender::draw::AttributeConverter<T>;
+  using VBOType = typename Converter::VBOType;
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+
+  for (const BMFace *f : *args.bm_faces) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    const BMLoop *l = f->l_first;
+    *data = Converter::convert(bmesh_cd_vert_get<T>(*l->prev->v, cd_offset));
+    data++;
+    *data = Converter::convert(bmesh_cd_vert_get<T>(*l->v, cd_offset));
+    data++;
+    *data = Converter::convert(bmesh_cd_vert_get<T>(*l->next->v, cd_offset));
+    data++;
+  }
+}
+
+template<typename T>
+void extract_data_face_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
+{
+  using Converter = blender::draw::AttributeConverter<T>;
+  using VBOType = typename Converter::VBOType;
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+
+  for (const BMFace *f : *args.bm_faces) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    std::fill_n(data, 3, Converter::convert(bmesh_cd_face_get<T>(*f, cd_offset)));
+    data += 3;
+  }
+}
+
+template<typename T>
+void extract_data_corner_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
+{
+  using Converter = blender::draw::AttributeConverter<T>;
+  using VBOType = typename Converter::VBOType;
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+
+  for (const BMFace *f : *args.bm_faces) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    const BMLoop *l = f->l_first;
+    *data = Converter::convert(bmesh_cd_loop_get<T>(*l->prev, cd_offset));
+    data++;
+    *data = Converter::convert(bmesh_cd_loop_get<T>(*l, cd_offset));
+    data++;
+    *data = Converter::convert(bmesh_cd_loop_get<T>(*l->next, cd_offset));
+    data++;
   }
 }
 
@@ -298,12 +367,11 @@ struct PBVHBatches {
         break;
       }
       case PBVH_BMESH: {
-        GSET_FOREACH_BEGIN (BMFace *, f, args.bm_faces) {
+        for (const BMFace *f : *args.bm_faces) {
           if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
             count++;
           }
         }
-        GSET_FOREACH_END();
       }
     }
 
@@ -344,7 +412,7 @@ struct PBVHBatches {
     for (int i : IndexRange(attrs_num)) {
       PBVHAttrReq *attr = attrs + i;
 
-      if (!valid_pbvh_attr(attr->type)) {
+      if (!pbvh_attr_supported(attr->type, attr->domain)) {
         continue;
       }
 
@@ -424,17 +492,16 @@ struct PBVHBatches {
       }
       if (sharp_faces && sharp_faces[face_i]) {
         if (face_i != last_face) {
-          face_no = convert_value<float3, short4>(args.face_normals[face_i]);
+          face_no = normal_float_to_short(args.face_normals[face_i]);
           last_face = face_i;
         }
-
-        *data = *(data + 1) = *(data + 2) = face_no;
+        std::fill_n(data, 3, face_no);
         data += 3;
       }
       else {
         for (const int i : IndexRange(3)) {
           const int vert = args.corner_verts[args.mlooptri[looptri_i].tri[i]];
-          *data = convert_value<float3, short4>(args.vert_normals[vert]);
+          *data = normal_float_to_short(args.vert_normals[vert]);
           data++;
         }
       }
@@ -447,6 +514,7 @@ struct PBVHBatches {
       FunctionRef<void(FunctionRef<void(int x, int y, int grid_index, CCGElem *elems[4], int i)>
                            func)> foreach_grids)
   {
+    using namespace blender;
     uint vert_per_grid = square_i(args.ccg_key.grid_size - 1) * 4;
     uint vert_count = args.grid_indices.size() * vert_per_grid;
 
@@ -461,102 +529,93 @@ struct PBVHBatches {
     GPUVertBufRaw access;
     GPU_vertbuf_attr_get_raw_data(vbo.vert_buf, 0, &access);
 
-    switch (vbo.type) {
-      case CD_PROP_COLOR:
-      case CD_PROP_BYTE_COLOR: {
-        /* TODO: Implement color support for multires similar to the mesh cache
-         * extractor code. For now just upload white.
-         */
-        const ushort4 white(USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX);
+    if (vbo.type == CD_PBVH_CO_TYPE) {
+      foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
+        float *co = CCG_elem_co(&args.ccg_key, elems[i]);
+
+        *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = co;
+      });
+    }
+    else if (vbo.type == CD_PBVH_NO_TYPE) {
+      foreach_grids([&](int /*x*/, int /*y*/, int grid_index, CCGElem *elems[4], int /*i*/) {
+        float3 no(0.0f, 0.0f, 0.0f);
+
+        const bool smooth = !args.grid_flag_mats[grid_index].sharp;
+
+        if (smooth) {
+          no = CCG_elem_no(&args.ccg_key, elems[0]);
+        }
+        else {
+          normal_quad_v3(no,
+                         CCG_elem_co(&args.ccg_key, elems[3]),
+                         CCG_elem_co(&args.ccg_key, elems[2]),
+                         CCG_elem_co(&args.ccg_key, elems[1]),
+                         CCG_elem_co(&args.ccg_key, elems[0]));
+        }
+
+        short sno[3];
+
+        normal_float_to_short_v3(sno, no);
+
+        *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = sno;
+      });
+    }
+    else if (vbo.type == CD_PBVH_MASK_TYPE) {
+      if (args.ccg_key.has_mask) {
+        foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
+          float *mask = CCG_elem_mask(&args.ccg_key, elems[i]);
+
+          *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = *mask;
+        });
+      }
+      else {
+        foreach_grids(
+            [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
+              *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
+            });
+      }
+    }
+    else if (vbo.type == CD_PBVH_FSET_TYPE) {
+      const int *face_sets = args.face_sets;
+
+      if (!face_sets) {
+        uchar white[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
         foreach_grids(
             [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-              *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = white;
+              *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
             });
-        break;
       }
-      case CD_PBVH_CO_TYPE:
-        foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
-          float *co = CCG_elem_co(&args.ccg_key, elems[i]);
+      else {
+        foreach_grids(
+            [&](int /*x*/, int /*y*/, int grid_index, CCGElem * /*elems*/[4], int /*i*/) {
+              uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
-          *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = co;
-        });
-        break;
+              if (face_sets) {
+                const int face_index = BKE_subdiv_ccg_grid_to_face_index(args.subdiv_ccg,
+                                                                         grid_index);
+                const int fset = face_sets[face_index];
 
-      case CD_PBVH_NO_TYPE:
-        foreach_grids([&](int /*x*/, int /*y*/, int grid_index, CCGElem *elems[4], int /*i*/) {
-          float3 no(0.0f, 0.0f, 0.0f);
-
-          const bool smooth = !args.grid_flag_mats[grid_index].sharp;
-
-          if (smooth) {
-            no = CCG_elem_no(&args.ccg_key, elems[0]);
-          }
-          else {
-            normal_quad_v3(no,
-                           CCG_elem_co(&args.ccg_key, elems[3]),
-                           CCG_elem_co(&args.ccg_key, elems[2]),
-                           CCG_elem_co(&args.ccg_key, elems[1]),
-                           CCG_elem_co(&args.ccg_key, elems[0]));
-          }
-
-          short sno[3];
-
-          normal_float_to_short_v3(sno, no);
-
-          *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = sno;
-        });
-        break;
-
-      case CD_PBVH_MASK_TYPE:
-        if (args.ccg_key.has_mask) {
-          foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
-            float *mask = CCG_elem_mask(&args.ccg_key, elems[i]);
-
-            *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = *mask;
-          });
-        }
-        else {
-          foreach_grids(
-              [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
-              });
-        }
-        break;
-
-      case CD_PBVH_FSET_TYPE: {
-        const int *face_sets = args.face_sets;
-
-        if (!face_sets) {
-          uchar white[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-
-          foreach_grids(
-              [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
-              });
-        }
-        else {
-          foreach_grids(
-              [&](int /*x*/, int /*y*/, int grid_index, CCGElem * /*elems*/[4], int /*i*/) {
-                uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-
-                if (face_sets) {
-                  const int face_index = BKE_subdiv_ccg_grid_to_face_index(args.subdiv_ccg,
-                                                                           grid_index);
-                  const int fset = face_sets[face_index];
-
-                  /* Skip for the default color Face Set to render it white. */
-                  if (fset != args.face_sets_color_default) {
-                    BKE_paint_face_set_overlay_color_get(
-                        fset, args.face_sets_color_seed, face_set_color);
-                  }
+                /* Skip for the default color Face Set to render it white. */
+                if (fset != args.face_sets_color_default) {
+                  BKE_paint_face_set_overlay_color_get(
+                      fset, args.face_sets_color_seed, face_set_color);
                 }
+              }
 
-                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
-              });
-        }
-        break;
+              *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
+            });
       }
+    }
+    else {
+      bke::attribute_math::convert_to_static_type(eCustomDataType(vbo.type), [&](auto dummy) {
+        using T = decltype(dummy);
+        using Converter = draw::AttributeConverter<T>;
+        using VBOType = typename Converter::VBOType;
+        std::fill_n(static_cast<VBOType *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+                    GPU_vertbuf_get_vertex_len(vbo.vert_buf),
+                    VBOType());
+      });
     }
   }
 
@@ -626,6 +685,7 @@ struct PBVHBatches {
 
   void fill_vbo_faces(PBVHVbo &vbo, const PBVH_GPU_Args &args)
   {
+    using namespace blender;
     const int totvert = this->count_faces(args) * 3;
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
@@ -638,87 +698,91 @@ struct PBVHBatches {
 
     GPUVertBuf &vert_buf = *vbo.vert_buf;
 
-    switch (vbo.type) {
-      case CD_PBVH_CO_TYPE:
-        extract_data_vert_faces<float3, float3>(args, args.vert_positions, vert_buf);
-        break;
-      case CD_PBVH_NO_TYPE:
-        fill_vbo_normal_faces(args, vert_buf);
-        break;
-      case CD_PBVH_MASK_TYPE: {
-        if (const float *mask = static_cast<const float *>(
-                CustomData_get_layer(args.vert_data, CD_PAINT_MASK)))
-        {
-          extract_data_vert_faces<float, float>(args, {mask, args.me->totvert}, vert_buf);
-        }
-        else {
-          MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)), totvert).fill(0);
-        }
-        break;
-      }
-      case CD_PBVH_FSET_TYPE: {
-        const int *face_sets = static_cast<const int *>(
-            CustomData_get_layer_named(args.face_data, CD_PROP_INT32, ".sculpt_face_set"));
-        uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
-        if (face_sets) {
-          int last_face = -1;
-          uchar4 fset_color(UCHAR_MAX);
+    if (vbo.type == CD_PBVH_CO_TYPE) {
+      extract_data_vert_faces<float3>(args, args.vert_positions, vert_buf);
+    }
+    else if (vbo.type == CD_PBVH_NO_TYPE) {
+      fill_vbo_normal_faces(args, vert_buf);
+    }
+    else if (vbo.type == CD_PBVH_MASK_TYPE) {
+      if (const float *mask = static_cast<const float *>(
+              CustomData_get_layer(args.vert_data, CD_PAINT_MASK)))
+      {
+        const Span<int> corner_verts = args.corner_verts;
+        const Span<MLoopTri> looptris = args.mlooptri;
+        const Span<int> looptri_faces = args.looptri_faces;
+        const bool *hide_poly = args.hide_poly;
 
-          for (const int looptri_i : args.prim_indices) {
-            if (args.hide_poly && args.hide_poly[args.looptri_faces[looptri_i]]) {
-              continue;
-            }
-            const int face_i = args.looptri_faces[looptri_i];
-            if (last_face != face_i) {
-              last_face = face_i;
-
-              const int fset = face_sets[face_i];
-
-              if (fset != args.face_sets_color_default) {
-                BKE_paint_face_set_overlay_color_get(fset, args.face_sets_color_seed, fset_color);
-              }
-              else {
-                /* Skip for the default color face set to render it white. */
-                fset_color[0] = fset_color[1] = fset_color[2] = UCHAR_MAX;
-              }
-            }
-            *data = *(data + 1) = *(data + 2) = fset_color;
-            data += 3;
+        float *data = static_cast<float *>(GPU_vertbuf_get_data(&vert_buf));
+        for (const int looptri_i : args.prim_indices) {
+          if (hide_poly && hide_poly[looptri_faces[looptri_i]]) {
+            continue;
+          }
+          for (int i : IndexRange(3)) {
+            const int vert = corner_verts[looptris[looptri_i].tri[i]];
+            *data = mask[vert];
+            data++;
           }
         }
-        else {
-          MutableSpan(data, totvert).fill(uchar4(255));
-        }
-        break;
       }
-      case CD_PROP_COLOR: {
-        const MPropCol *data = static_cast<const MPropCol *>(CustomData_get_layer_named(
-            get_cdata(vbo.domain, args), CD_PROP_COLOR, vbo.name.c_str()));
-        if (vbo.domain == ATTR_DOMAIN_POINT) {
-          extract_data_vert_faces<MPropCol, ushort4>(args, {data, args.me->totvert}, vert_buf);
-        }
-        else if (vbo.domain == ATTR_DOMAIN_CORNER) {
-          extract_data_corner_faces<MPropCol, ushort4>(args, {data, args.me->totloop}, vert_buf);
-        }
-        break;
+      else {
+        MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)), totvert).fill(0);
       }
-      case CD_PROP_BYTE_COLOR: {
-        const MLoopCol *data = static_cast<const MLoopCol *>(CustomData_get_layer_named(
-            get_cdata(vbo.domain, args), CD_PROP_BYTE_COLOR, vbo.name.c_str()));
-        if (vbo.domain == ATTR_DOMAIN_POINT) {
-          extract_data_vert_faces<MLoopCol, ushort4>(args, {data, args.me->totvert}, vert_buf);
+    }
+    else if (vbo.type == CD_PBVH_FSET_TYPE) {
+      const int *face_sets = static_cast<const int *>(
+          CustomData_get_layer_named(args.face_data, CD_PROP_INT32, ".sculpt_face_set"));
+      uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+      if (face_sets) {
+        int last_face = -1;
+        uchar4 fset_color(UCHAR_MAX);
+
+        for (const int looptri_i : args.prim_indices) {
+          if (args.hide_poly && args.hide_poly[args.looptri_faces[looptri_i]]) {
+            continue;
+          }
+          const int face_i = args.looptri_faces[looptri_i];
+          if (last_face != face_i) {
+            last_face = face_i;
+
+            const int fset = face_sets[face_i];
+
+            if (fset != args.face_sets_color_default) {
+              BKE_paint_face_set_overlay_color_get(fset, args.face_sets_color_seed, fset_color);
+            }
+            else {
+              /* Skip for the default color face set to render it white. */
+              fset_color[0] = fset_color[1] = fset_color[2] = UCHAR_MAX;
+            }
+          }
+          std::fill_n(data, 3, fset_color);
+          data += 3;
         }
-        else if (vbo.domain == ATTR_DOMAIN_CORNER) {
-          extract_data_corner_faces<MLoopCol, ushort4>(args, {data, args.me->totloop}, vert_buf);
+      }
+      else {
+        MutableSpan(data, totvert).fill(uchar4(255));
+      }
+    }
+    else {
+      const bke::AttributeAccessor attributes = args.me->attributes();
+      const eCustomDataType data_type = eCustomDataType(vbo.type);
+      const GVArraySpan attribute = *attributes.lookup_or_default(vbo.name, vbo.domain, data_type);
+      bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+        using T = decltype(dummy);
+        switch (vbo.domain) {
+          case ATTR_DOMAIN_POINT:
+            extract_data_vert_faces<T>(args, attribute.typed<T>(), vert_buf);
+            break;
+          case ATTR_DOMAIN_FACE:
+            extract_data_face_faces<T>(args, attribute.typed<T>(), vert_buf);
+            break;
+          case ATTR_DOMAIN_CORNER:
+            extract_data_corner_faces<T>(args, attribute.typed<T>(), vert_buf);
+            break;
+          default:
+            BLI_assert_unreachable();
         }
-        break;
-      }
-      case CD_PROP_FLOAT2: {
-        const float2 *uv_map = static_cast<const float2 *>(
-            CustomData_get_layer_named(args.loop_data, CD_PROP_FLOAT2, vbo.name.c_str()));
-        extract_data_corner_faces<float2, float2>(args, {uv_map, args.me->totloop}, vert_buf);
-        break;
-      }
+      });
     }
   }
 
@@ -742,20 +806,7 @@ struct PBVHBatches {
 
   void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
   {
-    auto foreach_bmesh = [&](FunctionRef<void(BMLoop * l)> callback) {
-      GSET_FOREACH_BEGIN (BMFace *, f, args.bm_faces) {
-        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-          continue;
-        }
-
-        BMLoop *l = f->l_first;
-        callback(l->prev);
-        callback(l);
-        callback(l->next);
-      }
-      GSET_FOREACH_END();
-    };
-
+    using namespace blender;
     faces_count = tris_count = count_faces(args);
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
@@ -779,54 +830,118 @@ struct PBVHBatches {
     }
 #endif
 
-    switch (vbo.type) {
-      case CD_PROP_COLOR:
-      case CD_PROP_BYTE_COLOR: {
-        ushort4 white = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-
-        foreach_bmesh([&](BMLoop * /*l*/) {
-          *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = white;
-        });
-        break;
+    if (vbo.type == CD_PBVH_CO_TYPE) {
+      float3 *data = static_cast<float3 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+      for (const BMFace *f : *args.bm_faces) {
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+          continue;
+        }
+        const BMLoop *l = f->l_first;
+        *data = l->prev->v->co;
+        data++;
+        *data = l->v->co;
+        data++;
+        *data = l->next->v->co;
+        data++;
       }
-      case CD_PBVH_CO_TYPE:
-        foreach_bmesh(
-            [&](BMLoop *l) { *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = l->v->co; });
-        break;
-
-      case CD_PBVH_NO_TYPE:
-        foreach_bmesh([&](BMLoop *l) {
-          short no[3];
-          bool smooth = BM_elem_flag_test(l->f, BM_ELEM_SMOOTH);
-
-          normal_float_to_short_v3(no, smooth ? l->v->no : l->f->no);
-          *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
-        });
-        break;
-
-      case CD_PBVH_MASK_TYPE: {
-        int cd_mask = args.cd_mask_layer;
-
-        if (cd_mask == -1) {
-          foreach_bmesh(
-              [&](BMLoop * /*l*/) { *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = 0; });
+    }
+    else if (vbo.type == CD_PBVH_NO_TYPE) {
+      short4 *data = static_cast<short4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+      for (const BMFace *f : *args.bm_faces) {
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+          continue;
+        }
+        if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
+          const BMLoop *l = f->l_first;
+          *data = normal_float_to_short(l->prev->v->no);
+          data++;
+          *data = normal_float_to_short(l->v->no);
+          data++;
+          *data = normal_float_to_short(l->next->v->no);
+          data++;
         }
         else {
-          foreach_bmesh([&](BMLoop *l) {
-            float mask = BM_ELEM_CD_GET_FLOAT(l->v, cd_mask);
-
-            *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = mask;
-          });
+          std::fill_n(data, 3, normal_float_to_short(f->no));
+          data += 3;
         }
-        break;
       }
-      case CD_PBVH_FSET_TYPE: {
-        uchar3 white(UCHAR_MAX, UCHAR_MAX, UCHAR_MAX);
+    }
+    else if (vbo.type == CD_PBVH_MASK_TYPE) {
+      const int cd_offset = args.cd_mask_layer;
+      if (cd_offset != -1) {
+        float *data = static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf));
 
-        foreach_bmesh([&](BMLoop * /*l*/) {
-          *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
-        });
+        for (const BMFace *f : *args.bm_faces) {
+          if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+            continue;
+          }
+          const BMLoop *l = f->l_first;
+          *data = bmesh_cd_vert_get<float>(*l->prev->v, cd_offset);
+          data++;
+          *data = bmesh_cd_vert_get<float>(*l->v, cd_offset);
+          data++;
+          *data = bmesh_cd_vert_get<float>(*l->next->v, cd_offset);
+          data++;
+        }
       }
+      else {
+        MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+                    GPU_vertbuf_get_vertex_len(vbo.vert_buf))
+            .fill(0.0f);
+      }
+    }
+    else if (vbo.type == CD_PBVH_FSET_TYPE) {
+      BLI_assert(vbo.domain == ATTR_DOMAIN_FACE);
+
+      const int cd_offset = CustomData_get_offset_named(
+          &args.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+
+      uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+      if (cd_offset != -1) {
+        for (const BMFace *f : *args.bm_faces) {
+          if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+            continue;
+          }
+
+          const int fset = bmesh_cd_face_get<int>(*f, cd_offset);
+
+          uchar4 fset_color;
+          if (fset != args.face_sets_color_default) {
+            BKE_paint_face_set_overlay_color_get(fset, args.face_sets_color_seed, fset_color);
+          }
+          else {
+            /* Skip for the default color face set to render it white. */
+            fset_color[0] = fset_color[1] = fset_color[2] = UCHAR_MAX;
+          }
+          std::fill_n(data, 3, fset_color);
+          data += 3;
+        }
+      }
+      else {
+        MutableSpan(data, GPU_vertbuf_get_vertex_len(vbo.vert_buf)).fill(uchar4(255));
+      }
+    }
+    else {
+      const eCustomDataType type = eCustomDataType(vbo.type);
+      const CustomData &custom_data = *get_cdata(vbo.domain, args);
+      const int cd_offset = CustomData_get_offset_named(&custom_data, type, vbo.name.c_str());
+
+      bke::attribute_math::convert_to_static_type(eCustomDataType(vbo.type), [&](auto dummy) {
+        using T = decltype(dummy);
+        switch (vbo.domain) {
+          case ATTR_DOMAIN_POINT:
+            extract_data_vert_bmesh<T>(args, cd_offset, *vbo.vert_buf);
+            break;
+          case ATTR_DOMAIN_FACE:
+            extract_data_face_bmesh<T>(args, cd_offset, *vbo.vert_buf);
+            break;
+          case ATTR_DOMAIN_CORNER:
+            extract_data_corner_bmesh<T>(args, cd_offset, *vbo.vert_buf);
+            break;
+          default:
+            BLI_assert_unreachable();
+        }
+      });
     }
   }
 
@@ -850,50 +965,29 @@ struct PBVHBatches {
                   const StringRefNull name,
                   const PBVH_GPU_Args &args)
   {
+    using namespace blender;
     PBVHVbo vbo(domain, type, name);
     GPUVertFormat format;
 
-    bool need_aliases = !ELEM(
-        type, CD_PBVH_CO_TYPE, CD_PBVH_NO_TYPE, CD_PBVH_FSET_TYPE, CD_PBVH_MASK_TYPE);
+    bool need_aliases = false;
 
     GPU_vertformat_clear(&format);
 
-    switch (type) {
-      case CD_PBVH_CO_TYPE:
-        GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-        break;
-      case CD_PROP_FLOAT3:
-        GPU_vertformat_attr_add(&format, "a", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-        need_aliases = true;
-        break;
-      case CD_PBVH_NO_TYPE:
-        GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-        break;
-      case CD_PROP_FLOAT2:
-        GPU_vertformat_attr_add(&format, "a", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-        need_aliases = true;
-        break;
-      case CD_PBVH_FSET_TYPE:
-        GPU_vertformat_attr_add(&format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-        break;
-      case CD_PBVH_MASK_TYPE:
-        GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-        break;
-      case CD_PROP_FLOAT:
-        GPU_vertformat_attr_add(&format, "f", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-        need_aliases = true;
-        break;
-      case CD_PROP_COLOR:
-      case CD_PROP_BYTE_COLOR: {
-        GPU_vertformat_attr_add(&format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-        need_aliases = true;
-        break;
-      }
-      default:
-        printf("%s: Unsupported attribute type %u\n", __func__, type);
-        BLI_assert_unreachable();
-
-        return;
+    if (type == CD_PBVH_CO_TYPE) {
+      GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    }
+    else if (type == CD_PBVH_NO_TYPE) {
+      GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    }
+    else if (type == CD_PBVH_FSET_TYPE) {
+      GPU_vertformat_attr_add(&format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    }
+    else if (type == CD_PBVH_MASK_TYPE) {
+      GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    }
+    else {
+      format = draw::init_format_for_attribute(eCustomDataType(type), "data");
+      need_aliases = true;
     }
 
     if (need_aliases) {
@@ -1039,7 +1133,7 @@ struct PBVHBatches {
     int v_index = 0;
     lines_count = 0;
 
-    GSET_FOREACH_BEGIN (BMFace *, f, args.bm_faces) {
+    for (const BMFace *f : *args.bm_faces) {
       if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         continue;
       }
@@ -1051,7 +1145,6 @@ struct PBVHBatches {
       lines_count += 3;
       v_index += 3;
     }
-    GSET_FOREACH_END();
 
     lines_index = GPU_indexbuf_build(&elb_lines);
   }
@@ -1289,7 +1382,7 @@ struct PBVHBatches {
     for (int i : IndexRange(attrs_num)) {
       PBVHAttrReq *attr = attrs + i;
 
-      if (!valid_pbvh_attr(attr->type)) {
+      if (!pbvh_attr_supported(attr->type, attr->domain)) {
         continue;
       }
 

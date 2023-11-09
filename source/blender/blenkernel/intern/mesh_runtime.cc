@@ -355,10 +355,16 @@ void BKE_mesh_tag_edges_split(Mesh *mesh)
   }
 }
 
+void BKE_mesh_tag_sharpness_changed(Mesh *mesh)
+{
+  mesh->runtime->corner_normals_cache.tag_dirty();
+}
+
 void BKE_mesh_tag_face_winding_changed(Mesh *mesh)
 {
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  mesh->runtime->corner_normals_cache.tag_dirty();
   mesh->runtime->vert_to_corner_map_cache.tag_dirty();
 }
 
@@ -366,6 +372,7 @@ void BKE_mesh_tag_positions_changed(Mesh *mesh)
 {
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  mesh->runtime->corner_normals_cache.tag_dirty();
   BKE_mesh_tag_positions_changed_no_normals(mesh);
 }
 

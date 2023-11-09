@@ -60,6 +60,16 @@ class VKShader : public Shader {
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
+  /* Unused: SSBO vertex fetch draw parameters. */
+  bool get_uses_ssbo_vertex_fetch() const override
+  {
+    return false;
+  }
+  int get_ssbo_vertex_fetch_output_num_verts() const override
+  {
+    return 0;
+  }
+
   /* DEPRECATED: Kept only because of BGL API. */
   int program_handle_get() const override;
 
@@ -75,6 +85,16 @@ class VKShader : public Shader {
                                 const GPUPrimType prim_type,
                                 const VKVertexAttributeObject &vertex_attribute_object);
 
+  bool is_graphics_shader() const
+  {
+    return !is_compute_shader();
+  }
+
+  bool is_compute_shader() const
+  {
+    return compute_module_ != VK_NULL_HANDLE;
+  }
+
  private:
   Vector<uint32_t> compile_glsl_to_spirv(Span<const char *> sources, shaderc_shader_kind kind);
   void build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *r_shader_module);
@@ -86,15 +106,12 @@ class VKShader : public Shader {
                                        const shader::ShaderCreateInfo &info);
   bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);
 
-  bool is_graphics_shader() const
-  {
-    return !is_compute_shader();
-  }
-
-  bool is_compute_shader() const
-  {
-    return compute_module_ != VK_NULL_HANDLE;
-  }
+  /**
+   * \brief features available on newer implementation such as native barycentric coordinates
+   * and layered rendering, necessitate a geometry shader to work on older hardware.
+   */
+  std::string workaround_geometry_shader_source_create(const shader::ShaderCreateInfo &info);
+  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info);
 };
 
 static inline VKShader &unwrap(Shader &shader)

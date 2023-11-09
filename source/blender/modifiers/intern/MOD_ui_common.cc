@@ -13,8 +13,8 @@
 
 #include "BKE_context.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_screen.h"
+#include "BKE_object.hh"
+#include "BKE_screen.hh"
 
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -134,7 +134,7 @@ void modifier_vgroup_ui(uiLayout *layout,
   bool has_vertex_group = RNA_string_length(ptr, vgroup_prop) != 0;
 
   uiLayout *row = uiLayoutRow(layout, true);
-  uiItemPointerR(row, ptr, vgroup_prop, ob_ptr, "vertex_groups", text, ICON_NONE);
+  uiItemPointerR(row, ptr, vgroup_prop, ob_ptr, "vertex_groups", text, ICON_GROUP_VERTEX);
   if (invert_vgroup_prop != nullptr) {
     uiLayout *sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_vertex_group);
@@ -281,6 +281,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   }
 
   if (md->type == eModifierType_Nodes) {
+    uiItemS(layout);
     uiItemFullO(layout,
                 "OBJECT_OT_geometry_nodes_move_to_nodes",
                 nullptr,

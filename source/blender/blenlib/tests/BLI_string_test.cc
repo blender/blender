@@ -15,7 +15,7 @@
 
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 using std::initializer_list;
@@ -71,7 +71,7 @@ TEST(string, StrCopyUTF8_TruncateEncoding)
 #define STRNCPY_UTF8_TRUNCATE(byte_size, ...) \
   { \
     const char src[] = {__VA_ARGS__, 0}; \
-    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    EXPECT_EQ(BLI_str_utf8_size_or_error(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
     STRNCPY_UTF8(dst, src); \
@@ -98,7 +98,7 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 #define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
   { \
     char src[] = {__VA_ARGS__, 0}; \
-    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    EXPECT_EQ(BLI_str_utf8_size_or_error(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
     STRNCPY_UTF8(dst, src); \
@@ -948,9 +948,10 @@ TEST(string, StrJoin_Truncate)
     EXPECT_STREQ(buffer, "");
   }
   { /* Empty array. */
-    string_join_array_test_truncate(nullptr, 0, buffer);
+    const char *strings[] = {"a"};
+    string_join_array_test_truncate(strings, 0, buffer);
     EXPECT_STREQ(buffer, "");
-    string_join_array_with_sep_char_test_truncate(nullptr, 0, buffer);
+    string_join_array_with_sep_char_test_truncate(strings, 0, buffer);
     EXPECT_STREQ(buffer, "");
   }
 }

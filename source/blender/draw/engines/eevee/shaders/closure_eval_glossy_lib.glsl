@@ -78,10 +78,7 @@ ClosureEvalGlossy closure_Glossy_eval_init(inout ClosureInputGlossy cl_in,
 
   /* The BRDF split sum LUT is applied after the radiance accumulation.
    * Correct the LTC so that its energy is constant. */
-  /* TODO(@fclem): Optimize this so that only one scale factor is stored. */
-  vec4 ltc_brdf = texture(utilTex, vec3(lut_uv, LTC_BRDF_LAYER)).barg;
-  vec2 split_sum_brdf = ltc_brdf.zw;
-  cl_eval.ltc_brdf_scale = (ltc_brdf.x + ltc_brdf.y) / (split_sum_brdf.x + split_sum_brdf.y);
+  cl_eval.ltc_brdf_scale = texture(utilTex, vec3(lut_uv, LTC_BRDF_LAYER)).g;
   return cl_eval;
 }
 
@@ -150,7 +147,7 @@ void closure_Glossy_indirect_end(ClosureInputGlossy cl_in,
 #endif
   /* Apply Ray-trace reflections after occlusion since they are direct, local reflections. */
 #if defined(RESOLVE_PROBE)
-  /* NO OP - output base radiance*/
+  /* NO OP - output base radiance. */
 #elif defined(RESOLVE_SSR)
   /* Output only ray-trace radiance. */
   cl_out.radiance = cl_eval.raytrace_radiance;

@@ -29,7 +29,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -37,8 +37,8 @@
 #include "BKE_modifier.h"
 #include "RNA_access.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_gpencil_legacy_modifiertypes.h"
@@ -545,7 +545,7 @@ static bool anything_showing_through(PointerRNA *ptr)
   const int level_start = RNA_int_get(ptr, "level_start");
   const int level_end = RNA_int_get(ptr, "level_end");
   if (use_multiple_levels) {
-    return (MAX2(level_start, level_end) > 0);
+    return (std::max(level_start, level_end) > 0);
   }
   return (level_start > 0);
 }

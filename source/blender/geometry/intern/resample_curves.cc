@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_quaternion.hh"
 
@@ -197,25 +198,25 @@ static void copy_or_defaults_for_unselected_curves(const CurvesGeometry &src_cur
 {
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
-  bke::curves::copy_point_data(src_points_by_curve,
-                               dst_points_by_curve,
-                               unselected_curves,
-                               src_curves.positions(),
-                               dst_curves.positions_for_write());
+  array_utils::copy_group_to_group(src_points_by_curve,
+                                   dst_points_by_curve,
+                                   unselected_curves,
+                                   src_curves.positions(),
+                                   dst_curves.positions_for_write());
 
   for (const int i : attributes.src.index_range()) {
-    bke::curves::copy_point_data(src_points_by_curve,
-                                 dst_points_by_curve,
-                                 unselected_curves,
-                                 attributes.src[i],
-                                 attributes.dst[i]);
+    array_utils::copy_group_to_group(src_points_by_curve,
+                                     dst_points_by_curve,
+                                     unselected_curves,
+                                     attributes.src[i],
+                                     attributes.dst[i]);
   }
   for (const int i : attributes.src_no_interpolation.index_range()) {
-    bke::curves::copy_point_data(src_points_by_curve,
-                                 dst_points_by_curve,
-                                 unselected_curves,
-                                 attributes.src_no_interpolation[i],
-                                 attributes.dst_no_interpolation[i]);
+    array_utils::copy_group_to_group(src_points_by_curve,
+                                     dst_points_by_curve,
+                                     unselected_curves,
+                                     attributes.src_no_interpolation[i],
+                                     attributes.dst_no_interpolation[i]);
   }
 
   if (!attributes.dst_tangents.is_empty()) {
@@ -245,6 +246,7 @@ static void normalize_curve_point_data(const IndexMaskSegment curve_selection,
 }
 
 static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
+                                          const fn::FieldContext &field_context,
                                           const fn::Field<bool> &selection_field,
                                           const fn::Field<int> &count_field,
                                           const ResampleCurvesOutputAttributeIDs &output_ids)
@@ -261,7 +263,6 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
-  const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(count_field, dst_offsets.drop_back(1));
@@ -394,24 +395,33 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
 }
 
 CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
+                                 const fn::FieldContext &field_context,
                                  const fn::Field<bool> &selection_field,
                                  const fn::Field<int> &count_field,
                                  const ResampleCurvesOutputAttributeIDs &output_ids)
 {
-  return resample_to_uniform(
-      src_curves, selection_field, get_count_input_max_one(count_field), output_ids);
+  return resample_to_uniform(src_curves,
+                             field_context,
+                             selection_field,
+                             get_count_input_max_one(count_field),
+                             output_ids);
 }
 
 CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
+                                  const fn::FieldContext &field_context,
                                   const fn::Field<bool> &selection_field,
                                   const fn::Field<float> &segment_length_field,
                                   const ResampleCurvesOutputAttributeIDs &output_ids)
 {
-  return resample_to_uniform(
-      src_curves, selection_field, get_count_input_from_length(segment_length_field), output_ids);
+  return resample_to_uniform(src_curves,
+                             field_context,
+                             selection_field,
+                             get_count_input_from_length(segment_length_field),
+                             output_ids);
 }
 
 CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
+                                     const fn::FieldContext &field_context,
                                      const fn::Field<bool> &selection_field,
                                      const ResampleCurvesOutputAttributeIDs &output_ids)
 {
@@ -422,7 +432,6 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
   const OffsetIndices src_evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
   const Span<float3> evaluated_positions = src_curves.evaluated_positions();
 
-  const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();

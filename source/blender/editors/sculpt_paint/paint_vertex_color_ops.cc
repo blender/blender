@@ -25,7 +25,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

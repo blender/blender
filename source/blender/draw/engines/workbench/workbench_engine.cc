@@ -4,12 +4,12 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_fluid_types.h"
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
@@ -69,12 +69,6 @@ class Instance {
 
   void begin_sync()
   {
-    const float2 viewport_size = DRW_viewport_size_get();
-    const int2 resolution = {int(viewport_size.x), int(viewport_size.y)};
-    resources.depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8,
-                                 resolution,
-                                 GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                                     GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
     resources.material_buf.clear();
 
     opaque_ps.sync(scene_state, resources);
@@ -85,7 +79,7 @@ class Instance {
     volume_ps.sync(resources);
     outline_ps.sync(resources);
     dof_ps.sync(resources);
-    anti_aliasing_ps.sync(resources, scene_state.resolution);
+    anti_aliasing_ps.sync(scene_state, resources);
   }
 
   void end_sync()
@@ -107,7 +101,7 @@ class Instance {
       case V3D_SHADING_TEXTURE_COLOR:
         ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
-        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot)) {
+        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
           return Material(*_mat);
         }
         ATTR_FALLTHROUGH;
@@ -271,8 +265,7 @@ class Instance {
             continue;
           }
 
-          /* Material slots start from 1. */
-          int material_slot = i + 1;
+          int material_slot = i;
           Material mat = get_material(ob_ref, object_state.color_type, material_slot);
           has_transparent_material = has_transparent_material || mat.is_transparent();
 
@@ -324,35 +317,34 @@ class Instance {
 
   void sculpt_sync(ObjectRef &ob_ref, ResourceHandle handle, const ObjectState &object_state)
   {
+    SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
+    if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
+      features = SCULPT_BATCH_VERTEX_COLOR;
+    }
+    else if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+      features = SCULPT_BATCH_UV;
+    }
+
     if (object_state.use_per_material_batches) {
-      const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
-      for (SculptBatch &batch : sculpt_batches_per_material_get(
-               ob_ref.object, {get_dummy_gpu_materials(material_count), material_count}))
-      {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, true, features)) {
         Material mat = get_material(ob_ref, object_state.color_type, batch.material_slot);
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
 
-        draw_mesh(ob_ref,
-                  mat,
-                  batch.batch,
-                  handle,
-                  object_state.image_paint_override,
-                  object_state.override_sampler_state);
+        ::Image *image = nullptr;
+        ImageUser *iuser = nullptr;
+        GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
+        if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+          get_material_image(ob_ref.object, batch.material_slot, image, iuser, sampler_state);
+        }
+
+        draw_mesh(ob_ref, mat, batch.batch, handle, image, sampler_state);
       }
     }
     else {
       Material mat = get_material(ob_ref, object_state.color_type);
-      SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
-      if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
-        features = SCULPT_BATCH_VERTEX_COLOR;
-      }
-      else if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-        features = SCULPT_BATCH_UV;
-      }
-
-      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, false, features)) {
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
@@ -393,12 +385,12 @@ class Instance {
     /* Skip frustum culling. */
     ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
 
-    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat);
+    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
     ::Image *image = nullptr;
     ImageUser *iuser = nullptr;
     GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
     if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-      get_material_image(ob_ref.object, psys->part->omat, image, iuser, sampler_state);
+      get_material_image(ob_ref.object, psys->part->omat - 1, image, iuser, sampler_state);
     }
     resources.material_buf.append(mat);
     int material_index = resources.material_buf.size() - 1;
@@ -438,37 +430,43 @@ class Instance {
 
     int2 resolution = scene_state.resolution;
 
+    /** Always setup in-front depth, since Overlays can be updated without causing a Workbench
+     * re-sync (See #113580). */
+    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
+                                (!opaque_ps.gbuffer_in_front_ps_.is_empty() &&
+                                 scene_state.overlays_enabled && scene_state.sample == 0);
+    resources.depth_in_front_tx.wrap(needs_depth_in_front ? depth_in_front_tx : nullptr);
+    if ((!needs_depth_in_front && scene_state.overlays_enabled) ||
+        (needs_depth_in_front && opaque_ps.gbuffer_in_front_ps_.is_empty()))
+    {
+      resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
+      resources.clear_in_front_fb.bind();
+      GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
+    }
+
     if (scene_state.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps.draw(
-          manager, view, resources, resolution, depth_tx, depth_in_front_tx, color_tx);
+      anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
       return;
     }
 
-    anti_aliasing_ps.setup_view(view, resolution);
+    anti_aliasing_ps.setup_view(view, scene_state);
 
-    resources.color_tx.acquire(
-        resolution, GPU_RGBA16F, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-    resources.color_tx.clear(resources.world_buf.background_color);
+    resources.depth_tx.wrap(depth_tx);
+    resources.color_tx.wrap(color_tx);
+    GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state.draw_object_id) {
       resources.object_id_tx.acquire(
           resolution, GPU_R16UI, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-      resources.object_id_tx.clear(uint4(0));
+      id_attachment = GPU_ATTACHMENT_TEXTURE(resources.object_id_tx);
     }
-
-    Framebuffer fb = Framebuffer("Workbench.Clear");
-    fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx));
-    fb.bind();
-    GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
-
-    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
-                                scene_state.sample == 0;
-    if (needs_depth_in_front) {
-      resources.depth_in_front_tx.acquire(resolution,
-                                          GPU_DEPTH24_STENCIL8,
-                                          GPU_TEXTURE_USAGE_SHADER_READ |
-                                              GPU_TEXTURE_USAGE_ATTACHMENT);
-    }
+    resources.clear_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx),
+                              GPU_ATTACHMENT_TEXTURE(resources.color_tx),
+                              id_attachment);
+    resources.clear_fb.bind();
+    float4 clear_colors[2] = {scene_state.background_color, float4(0.0f)};
+    GPU_framebuffer_multi_clear(resources.clear_fb, reinterpret_cast<float(*)[4]>(clear_colors));
+    GPU_framebuffer_clear_depth_stencil(resources.clear_fb, 1.0f, 0x00);
 
     opaque_ps.draw(
         manager, view, resources, resolution, scene_state.draw_shadows ? &shadow_ps : nullptr);
@@ -478,12 +476,9 @@ class Instance {
     volume_ps.draw(manager, view, resources);
     outline_ps.draw(manager, resources);
     dof_ps.draw(manager, view, resources, resolution);
-    anti_aliasing_ps.draw(
-        manager, view, resources, resolution, depth_tx, depth_in_front_tx, color_tx);
+    anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
 
-    resources.color_tx.release();
     resources.object_id_tx.release();
-    resources.depth_in_front_tx.release();
   }
 
   void draw_viewport(Manager &manager,
@@ -510,8 +505,7 @@ class Instance {
         /* Re-sync anything dependent on scene_state.sample. */
         resources.init(scene_state);
         dof_ps.init(scene_state);
-        anti_aliasing_ps.init(scene_state);
-        anti_aliasing_ps.sync(resources, scene_state.resolution);
+        anti_aliasing_ps.sync(scene_state, resources);
       }
       this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
     }
@@ -539,11 +533,6 @@ struct WORKBENCH_Data {
 
 static void workbench_engine_init(void *vedata)
 {
-  /* TODO(fclem): Remove once it is minimum required. */
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
   if (ved->instance == nullptr) {
     ved->instance = new workbench::Instance();
@@ -554,17 +543,11 @@ static void workbench_engine_init(void *vedata)
 
 static void workbench_cache_init(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->begin_sync();
 }
 
 static void workbench_cache_populate(void *vedata, Object *object)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
 
   draw::ObjectRef ref;
@@ -577,19 +560,12 @@ static void workbench_cache_populate(void *vedata, Object *object)
 
 static void workbench_cache_finish(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->end_sync();
 }
 
 static void workbench_draw_scene(void *vedata)
 {
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    STRNCPY(ved->info, "Error: No shader storage buffer support");
-    return;
-  }
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   draw::Manager *manager = DRW_manager_get();
   if (DRW_state_is_viewport_image_render()) {
@@ -603,9 +579,6 @@ static void workbench_draw_scene(void *vedata)
 
 static void workbench_instance_free(void *instance)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   delete reinterpret_cast<workbench::Instance *>(instance);
 }
 
@@ -641,9 +614,11 @@ static bool workbench_render_framebuffers_init()
         "txl.color", size.x, size.y, 1, GPU_RGBA16F, usage, nullptr);
     dtxl->depth = GPU_texture_create_2d(
         "txl.depth", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
+    dtxl->depth_in_front = GPU_texture_create_2d(
+        "txl.depth_in_front", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
   }
 
-  if (!(dtxl->depth && dtxl->color)) {
+  if (!(dtxl->depth && dtxl->color && dtxl->depth_in_front)) {
     return false;
   }
 
@@ -745,11 +720,6 @@ static void workbench_render_to_image(void *vedata,
                                       RenderLayer *layer,
                                       const rcti *rect)
 {
-  /* TODO(fclem): Remove once it is minimum required. */
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   if (!workbench_render_framebuffers_init()) {
     RE_engine_report(engine, RPT_ERROR, "Failed to allocate GPU buffers");
     return;
@@ -777,15 +747,17 @@ static void workbench_render_to_image(void *vedata,
   RE_GetCameraModelMatrix(engine->re, camera_ob, viewinv.ptr());
   viewmat = math::invert(viewinv);
 
-  DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
-  DRW_view_default_set(view);
-  DRW_view_set_active(view);
-
   /* Render */
   do {
     if (RE_engine_test_break(engine)) {
       break;
     }
+
+    /* TODO: Remove old draw manager calls. */
+    DRW_cache_restart();
+    DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
+    DRW_view_default_set(view);
+    DRW_view_set_active(view);
 
     ved->instance->init(camera_ob);
 
@@ -801,14 +773,17 @@ static void workbench_render_to_image(void *vedata,
 
     DRW_manager_get()->end_sync();
 
-    /* Also we weed to have a correct FBO bound for #DRW_curves_update */
-    // GPU_framebuffer_bind(dfbl->default_fb);
-    // DRW_curves_update(); /* TODO(@pragma37): Check this once curves are implemented */
+    /* TODO: Remove old draw manager calls. */
+    DRW_render_instance_buffer_finish();
+    DRW_curves_update();
 
     workbench_draw_scene(vedata);
 
     /* Perform render step between samples to allow
      * flushing of freed GPUBackend resources. */
+    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      GPU_flush();
+    }
     GPU_render_step();
     GPU_FINISH_DELIMITER();
   } while (ved->instance->scene_state.sample + 1 < ved->instance->scene_state.samples_len);

@@ -11,7 +11,7 @@ class MyAssetShelf(bpy.types.AssetShelf):
 
     @classmethod
     def asset_poll(cls, asset):
-        return asset.file_data.id_type in {'MATERIAL', 'OBJECT'}
+        return asset.id_type in {'MATERIAL', 'OBJECT'}
 
 
 def register():

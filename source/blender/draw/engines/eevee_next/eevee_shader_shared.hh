@@ -88,7 +88,10 @@ enum eDebugMode : uint32_t {
 
 enum PrecomputeType : uint32_t {
   LUT_GGX_BRDF_SPLIT_SUM = 0u,
-  LUT_GGX_BTDF_SPLIT_SUM = 1u,
+  LUT_GGX_BTDF_IOR_GT_ONE = 1u,
+  LUT_GGX_BSDF_SPLIT_SUM = 2u,
+  LUT_BURLEY_SSS_PROFILE = 3u,
+  LUT_RANDOM_WALK_SSS_PROFILE = 4u,
 };
 
 /** \} */
@@ -267,12 +270,13 @@ struct FilmData {
   bool1 any_render_pass_2;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
-  float _pad0, _pad1, _pad2;
+  float _pad0, _pad1;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
   int mist_id;
   int normal_id;
+  int position_id;
   int vector_id;
   int diffuse_light_id;
   int diffuse_color_id;
@@ -327,7 +331,7 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
   float weight = expf(fac * r);
 #else
   /* Blackman-Harris filter. */
-  float r = M_2PI * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_radius));
+  float r = M_TAU * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_radius));
   float weight = 0.35875 - 0.48829 * cosf(r) + 0.14128 * cosf(2.0 * r) - 0.01168 * cosf(3.0 * r);
 #endif
   return weight;
@@ -364,6 +368,7 @@ struct RenderBuffersInfoData {
   /* Color. */
   int color_len;
   int normal_id;
+  int position_id;
   int diffuse_light_id;
   int diffuse_color_id;
   int specular_light_id;
@@ -375,6 +380,7 @@ struct RenderBuffersInfoData {
   int value_len;
   int shadow_id;
   int ambient_occlusion_id;
+  int _pad0, _pad1, _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 
@@ -514,12 +520,12 @@ static inline float view_z_to_volume_z(
   }
 }
 
-static inline float3 ndc_to_volume(float4x4 projection_matrix,
-                                   float near,
-                                   float far,
-                                   float distribution,
-                                   float2 coord_scale,
-                                   float3 coord)
+static inline float3 screen_to_volume(float4x4 projection_matrix,
+                                      float near,
+                                      float far,
+                                      float distribution,
+                                      float2 coord_scale,
+                                      float3 coord)
 {
   bool is_persp = projection_matrix[3][3] == 0.0;
 
@@ -615,7 +621,7 @@ static inline float regular_polygon_side_length(float sides_count)
  * Start first corners at theta == 0. */
 static inline float circle_to_polygon_radius(float sides_count, float theta)
 {
-  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide 36). */
+  /* From Graphics Gems from CryENGINE 3 (SIGGRAPH 2013) by Tiago Sousa (slide 36). */
   float side_angle = (2.0f * M_PI) / sides_count;
   return cosf(side_angle * 0.5f) /
          cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
@@ -702,6 +708,13 @@ enum eLightType : uint32_t {
   LIGHT_ELLIPSE = 21u
 };
 
+enum LightingType : uint32_t {
+  LIGHT_DIFFUSE = 0u,
+  LIGHT_SPECULAR = 1u,
+  LIGHT_TRANSMIT = 2u,
+  LIGHT_VOLUME = 3u,
+};
+
 static inline bool is_area_light(eLightType type)
 {
   return type >= LIGHT_RECT;
@@ -736,6 +749,14 @@ struct LightData {
 #  define _back object_mat[2].xyz
 #  define _position object_mat[3].xyz
 #endif
+  /** Power depending on shader type. Referenced by LightingType. */
+  float4 power;
+  /** Light Color. */
+  packed_float3 color;
+  /** Light Type. */
+  eLightType type;
+  /** Inverse spot size (in X and Y axes). Aligned to size of float2. */
+  float2 spot_size_inv;
   /** Punctual : Influence radius (inverted and squared) adjusted for Surface / Volume power. */
   float influence_radius_invsqr_surface;
   float influence_radius_invsqr_volume;
@@ -743,25 +764,13 @@ struct LightData {
   float influence_radius_max;
   /** Special radius factor for point lighting. */
   float radius_squared;
-  /** NOTE: It is ok to use float3 here. A float is declared right after it.
-   * float3 is also aligned to 16 bytes. */
-  packed_float3 color;
-  /** Light Type. */
-  eLightType type;
-  /** Spot size. Aligned to size of float2. */
-  float2 spot_size_inv;
   /** Spot angle tangent. */
   float spot_tan;
   /** Reuse for directional LOD bias. */
 #define _clipmap_lod_bias spot_tan
-  /** Power depending on shader type. */
-  float diffuse_power;
-  float specular_power;
-  float volume_power;
-  float transmit_power;
 
   /** --- Shadow Data --- */
-  /** Directional : Near clip distance. Float stored as int for atomic operations. */
+  /** Near clip distances. Float stored as int for atomic operations. */
   int clip_near;
   int clip_far;
   /** Directional : Clip-map LOD range to avoid sampling outside of valid range. */
@@ -771,8 +780,17 @@ struct LightData {
   int tilemap_index;
   /** Directional : Offset of the LOD min in LOD min tile units. */
   int2 clipmap_base_offset;
-  /** Punctual & Directional : Normal matrix packed for automatic bias. */
-  float2 normal_mat_packed;
+  /** Number of step for shadow map tracing. */
+  int shadow_ray_step_count;
+  /** Punctual: Other parts of the perspective matrix. */
+  float clip_side;
+  /** Punctual: Shift to apply to the light origin to get the shadow projection origin. */
+  float shadow_projection_shift;
+  /** Scaling factor to the light shape for shadow ray casting. */
+  float shadow_shape_scale_or_angle;
+  /** Trace distance for directional lights. */
+  float shadow_trace_distance;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
@@ -836,7 +854,7 @@ struct ShadowTileMapData {
   /** Near and far clip distances for punctual. */
   float clip_near;
   float clip_far;
-  /** Half of the tilemap size in world units. Used to compute directional window matrix. */
+  /** Half of the tilemap size in world units. Used to compute window matrix. */
   float half_size;
   /** Offset in local space to the tilemap center in world units. Used for directional winmat. */
   float2 center_offset;
@@ -919,34 +937,33 @@ enum eShadowFlag : uint32_t {
   SHADOW_IS_USED = (1u << 31u)
 };
 
+/* NOTE: Trust the input to be in valid range (max is [3,3,255]).
+ * If it is in valid range, it should pack to 12bits so that `shadow_tile_pack()` can use it.
+ * But sometime this is used to encode invalid pages uint3(-1) and it needs to output uint(-1). */
 static inline uint shadow_page_pack(uint3 page)
 {
-  /* NOTE: Trust the input to be in valid range.
-   * But sometime this is used to encode invalid pages uint3(-1) and it needs to output uint(-1).
-   */
   return (page.x << 0u) | (page.y << 2u) | (page.z << 4u);
 }
-
 static inline uint3 shadow_page_unpack(uint data)
 {
   uint3 page;
-  /* Tweaked for SHADOW_PAGE_PER_ROW = 4. */
-  page.x = data & uint(SHADOW_PAGE_PER_ROW - 1);
-  page.y = (data >> 2u) & uint(SHADOW_PAGE_PER_COL - 1);
-  page.z = (data >> 4u);
+  BLI_STATIC_ASSERT(SHADOW_PAGE_PER_ROW <= 4 && SHADOW_PAGE_PER_COL <= 4, "Update page packing")
+  page.x = (data >> 0u) & 3u;
+  page.y = (data >> 2u) & 3u;
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 4096, "Update page packing")
+  page.z = (data >> 4u) & 255u;
   return page;
 }
 
 static inline ShadowTileData shadow_tile_unpack(ShadowTileDataPacked data)
 {
   ShadowTileData tile;
-  /* Tweaked for SHADOW_MAX_PAGE = 4096. */
-  tile.page = shadow_page_unpack(data & uint(SHADOW_MAX_PAGE - 1));
+  tile.page = shadow_page_unpack(data);
   /* -- 12 bits -- */
-  /* Tweaked for SHADOW_TILEMAP_LOD < 8. */
+  BLI_STATIC_ASSERT(SHADOW_TILEMAP_LOD < 8, "Update page packing")
   tile.lod = (data >> 12u) & 7u;
   /* -- 15 bits -- */
-  /* Tweaked for SHADOW_MAX_TILEMAP = 4096. */
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 4096, "Update page packing")
   tile.cache_index = (data >> 15u) & 4095u;
   /* -- 27 bits -- */
   tile.is_used = (data & SHADOW_IS_USED) != 0;
@@ -959,7 +976,10 @@ static inline ShadowTileData shadow_tile_unpack(ShadowTileDataPacked data)
 
 static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
 {
-  uint data = shadow_page_pack(tile.page) & uint(SHADOW_MAX_PAGE - 1);
+  uint data;
+  /* NOTE: Page might be set to invalid values for tracking invalid usages.
+   * So we have to mask the result. */
+  data = shadow_page_pack(tile.page) & uint(SHADOW_MAX_PAGE - 1);
   data |= (tile.lod & 7u) << 12u;
   data |= (tile.cache_index & 4095u) << 15u;
   data |= (tile.is_used ? uint(SHADOW_IS_USED) : 0);
@@ -969,6 +989,17 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
   data |= (tile.do_update ? uint(SHADOW_DO_UPDATE) : 0);
   return data;
 }
+
+struct ShadowSceneData {
+  /* Number of shadow rays to shoot for each light. */
+  int ray_count;
+  /* Number of shadow samples to take for each shadow ray. */
+  int step_count;
+  /* Bias the shading point by using the normal to avoid self intersection. */
+  float normal_bias;
+  int _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 
 /** \} */
 
@@ -1005,6 +1036,11 @@ struct Surfel {
   packed_float3 albedo_back;
   /** Cluster this surfel is assigned to. */
   int cluster_id;
+  /** True if the light can bounce or be emitted by the surfel back face. */
+  bool1 double_sided;
+  int _pad0;
+  int _pad1;
+  int _pad2;
   /** Surface radiance: Emission + Direct Lighting. */
   SurfelRadiance radiance_direct;
   /** Surface radiance: Indirect Lighting. Double buffered to avoid race conditions. */
@@ -1058,6 +1094,9 @@ struct CaptureInfoData {
   bool1 capture_indirect;
   bool1 capture_emission;
   int _pad0;
+  /* World light probe atlas coordinate. */
+  /* TODO(fclem): Remove this silly aliasing. */
+  int4 world_atlas_coord;
 };
 BLI_STATIC_ASSERT_ALIGN(CaptureInfoData, 16)
 
@@ -1145,6 +1184,8 @@ enum eClosureBits : uint32_t {
 struct RayTraceData {
   /** ViewProjection matrix used to render the previous frame. */
   float4x4 history_persmat;
+  /** ViewProjection matrix used to render the radiance texture. */
+  float4x4 radiance_persmat;
   /** Input resolution. */
   int2 full_resolution;
   /** Inverse of input resolution to get screen UVs. */
@@ -1164,6 +1205,9 @@ struct RayTraceData {
   bool1 skip_denoise;
   /** Closure being ray-traced. */
   eClosureBits closure_active;
+  int _pad0;
+  int _pad1;
+  int _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 
@@ -1174,9 +1218,14 @@ BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
  * \{ */
 
 struct AOData {
+  float2 pixel_size;
   float distance;
   float quality;
-  float2 pixel_size;
+
+  float thickness;
+  float angle_bias;
+  float _pad1;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(AOData, 16)
 
@@ -1190,7 +1239,7 @@ BLI_STATIC_ASSERT_ALIGN(AOData, 16)
 #define SSS_BURLEY_TRUNCATE 16.0
 #define SSS_BURLEY_TRUNCATE_CDF 0.9963790093708328
 #define SSS_TRANSMIT_LUT_SIZE 64.0
-#define SSS_TRANSMIT_LUT_RADIUS 1.218
+#define SSS_TRANSMIT_LUT_RADIUS 2.0
 #define SSS_TRANSMIT_LUT_SCALE ((SSS_TRANSMIT_LUT_SIZE - 1.0) / float(SSS_TRANSMIT_LUT_SIZE))
 #define SSS_TRANSMIT_LUT_BIAS (0.5 / float(SSS_TRANSMIT_LUT_SIZE))
 #define SSS_TRANSMIT_LUT_STEP_RES 64.0
@@ -1208,44 +1257,159 @@ struct SubsurfaceData {
 };
 BLI_STATIC_ASSERT_ALIGN(SubsurfaceData, 16)
 
+static inline float3 burley_setup(float3 radius, float3 albedo)
+{
+  /* TODO(fclem): Avoid constant duplication. */
+  const float m_1_pi = 0.318309886183790671538;
+
+  float3 A = albedo;
+  /* Diffuse surface transmission, equation (6). */
+  float3 s = 1.9 - A + 3.5 * ((A - 0.8) * (A - 0.8));
+  /* Mean free path length adapted to fit ancient Cubic and Gaussian models. */
+  float3 l = 0.25 * m_1_pi * radius;
+
+  return l / s;
+}
+
+static inline float3 burley_eval(float3 d, float r)
+{
+  /* Slide 33. */
+  float3 exp_r_3_d;
+  /* TODO(fclem): Vectorize. */
+  exp_r_3_d.x = expf(-r / (3.0 * d.x));
+  exp_r_3_d.y = expf(-r / (3.0 * d.y));
+  exp_r_3_d.z = expf(-r / (3.0 * d.z));
+  float3 exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
+  /* NOTE:
+   * - Surface albedo is applied at the end.
+   * - This is normalized diffuse model, so the equation is multiplied
+   *   by 2*pi, which also matches `cdf()`.
+   */
+  return (exp_r_d + exp_r_3_d) / (4.0 * d);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Reflection Probes
  * \{ */
 
-/** Mapping data to locate a reflection probe in texture. */
-struct ReflectionProbeData {
-  /**
-   * Position of the light probe in world space.
-   * World probe uses origin.
-   *
-   * 4th component is not used.
-   */
-  float4 pos;
+struct ReflectionProbeLowFreqLight {
+  packed_float3 direction;
+  float ambient;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeLowFreqLight, 16)
 
+enum LightProbeShape : uint32_t {
+  SHAPE_ELIPSOID = 0u,
+  SHAPE_CUBOID = 1u,
+};
+
+struct ReflectionProbeAtlasCoordinate {
   /** On which layer of the texture array is this reflection probe stored. */
   int layer;
-
   /**
    * Subdivision of the layer. 0 = no subdivision and resolution would be
    * ReflectionProbeModule::MAX_RESOLUTION.
    */
   int layer_subdivision;
-
   /**
    * Which area of the subdivided layer is the reflection probe located.
    *
    * A layer has (2^layer_subdivision)^2 areas.
    */
   int area_index;
+  int _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeAtlasCoordinate, 16)
+
+/** Mapping data to locate a reflection probe in texture. */
+struct ReflectionProbeData {
+  /** Transform to probe local position with non-uniform scaling. */
+  float3x4 world_to_probe_transposed;
+
+  packed_float3 location;
+  float _pad2;
+
+  /** Shape of the parallax projection. */
+  LightProbeShape parallax_shape;
+  LightProbeShape influence_shape;
+  float parallax_distance;
+  /** Influence factor based on the distance to the parallax shape. */
+  float influence_scale;
+  float influence_bias;
+  /** LOD factor for mipmap selection. */
+  float lod_factor;
+  float _pad0;
+  float _pad1;
+
+  ReflectionProbeAtlasCoordinate atlas_coord;
 
   /**
-   * LOD factor for mipmap selection.
+   * Irradiance at the probe location encoded as spherical harmonics.
+   * Only contain the average luminance. Used for cube-map normalization.
    */
-  float lod_factor;
+  ReflectionProbeLowFreqLight low_freq_light;
 };
 BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
+
+/** Viewport Display Pass. */
+struct ReflectionProbeDisplayData {
+  int probe_index;
+  float display_size;
+  float _pad0;
+  float _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeDisplayData, 16)
+
+struct ProbePlanarData {
+  /** Matrices used to render the planar capture. */
+  float4x4 viewmat;
+  float4x4 winmat;
+  /** Transform world to local position with influence distance as Z scale. */
+  float3x4 world_to_object_transposed;
+  /** World space plane normal. */
+  packed_float3 normal;
+  /** Layer in the planar capture textures used by this probe. */
+  int layer_id;
+};
+BLI_STATIC_ASSERT_ALIGN(ProbePlanarData, 16)
+
+struct ClipPlaneData {
+  /** World space clip plane equation. Used to render planar light-probes. */
+  float4 plane;
+};
+BLI_STATIC_ASSERT_ALIGN(ClipPlaneData, 16)
+
+/** Viewport Display Pass. */
+struct ProbePlanarDisplayData {
+  float4x4 plane_to_world;
+  int probe_index;
+  float _pad0;
+  float _pad1;
+  float _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(ProbePlanarDisplayData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform Data
+ * \{ */
+
+/* Combines data from several modules to avoid wasting binding slots. */
+struct UniformData {
+  AOData ao;
+  CameraData camera;
+  FilmData film;
+  HiZData hiz;
+  RayTraceData raytrace;
+  RenderBuffersInfoData render_pass;
+  ShadowSceneData shadow;
+  SubsurfaceData subsurface;
+  VolumesInfoData volumes;
+};
+BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 
 /** \} */
 
@@ -1263,10 +1427,9 @@ BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
 #define UTIL_BLUE_NOISE_LAYER 0
 #define UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER 1
 #define UTIL_LTC_MAT_LAYER 2
-#define UTIL_LTC_MAG_LAYER 3
 #define UTIL_BSDF_LAYER 3
 #define UTIL_BTDF_LAYER 4
-#define UTIL_DISK_INTEGRAL_LAYER 4
+#define UTIL_DISK_INTEGRAL_LAYER UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER
 #define UTIL_DISK_INTEGRAL_COMP 3
 
 /* __cplusplus is true when compiling with MSL, so include if inside a shader. */
@@ -1291,6 +1454,23 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
   return textureLod(util_tx, float3(uv, layer), 0.0);
 }
 
+/* Sample GGX BSDF LUT. */
+float4 utility_tx_sample_bsdf_lut(sampler2DArray util_tx, float2 uv, float layer)
+{
+  /* Scale and bias coordinates, for correct filtered lookup. */
+  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
+  layer = layer * UTIL_BTDF_LAYER_COUNT + UTIL_BTDF_LAYER;
+
+  float layer_floored;
+  float interp = modf(layer, layer_floored);
+
+  float4 tex_low = textureLod(util_tx, float3(uv, layer_floored), 0.0);
+  float4 tex_high = textureLod(util_tx, float3(uv, layer_floored + 1.0), 0.0);
+
+  /* Manual trilinear interpolation. */
+  return mix(tex_low, tex_high, interp);
+}
+
 /* Sample LTC or BSDF LUTs with `cos_theta` and `roughness` as inputs. */
 float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roughness, float layer)
 {
@@ -1313,8 +1493,7 @@ using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using DispatchIndirectBuf = draw::StorageBuffer<DispatchCommand>;
-using FilmDataBuf = draw::UniformBuffer<FilmData>;
-using HiZDataBuf = draw::UniformBuffer<HiZData>;
+using UniformDataBuf = draw::UniformBuffer<UniformData>;
 using IrradianceGridDataBuf = draw::UniformArrayBuffer<IrradianceGridData, IRRADIANCE_GRID_MAX>;
 using IrradianceBrickBuf = draw::StorageVectorBuffer<IrradianceBrickPacked, 16>;
 using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
@@ -1326,9 +1505,12 @@ using LightDataBuf = draw::StorageArrayBuffer<LightData, LIGHT_CHUNK>;
 using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
 using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
-using RayTraceDataBuf = draw::UniformBuffer<RayTraceData>;
+using SubsurfaceTileBuf = RayTraceTileBuf;
 using ReflectionProbeDataBuf =
     draw::UniformArrayBuffer<ReflectionProbeData, REFLECTION_PROBES_MAX>;
+using ReflectionProbeDisplayDataBuf = draw::StorageArrayBuffer<ReflectionProbeDisplayData>;
+using ProbePlanarDataBuf = draw::UniformArrayBuffer<ProbePlanarData, PLANAR_PROBES_MAX>;
+using ProbePlanarDisplayDataBuf = draw::StorageArrayBuffer<ProbePlanarDisplayData>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using ShadowStatisticsBuf = draw::StorageBuffer<ShadowStatistics>;
 using ShadowPagesInfoDataBuf = draw::StorageBuffer<ShadowPagesInfoData>;
@@ -1337,7 +1519,6 @@ using ShadowPageCacheBuf = draw::StorageArrayBuffer<uint2, SHADOW_MAX_PAGE, true
 using ShadowTileMapDataBuf = draw::StorageVectorBuffer<ShadowTileMapData, SHADOW_MAX_TILEMAP>;
 using ShadowTileMapClipBuf = draw::StorageArrayBuffer<ShadowTileMapClip, SHADOW_MAX_TILEMAP, true>;
 using ShadowTileDataBuf = draw::StorageArrayBuffer<ShadowTileDataPacked, SHADOW_MAX_TILE, true>;
-using SubsurfaceDataBuf = draw::UniformBuffer<SubsurfaceData>;
 using SurfelBuf = draw::StorageArrayBuffer<Surfel, 64>;
 using SurfelRadianceBuf = draw::StorageArrayBuffer<SurfelRadiance, 64>;
 using CaptureInfoBuf = draw::StorageBuffer<CaptureInfoData>;
@@ -1345,9 +1526,8 @@ using SurfelListInfoBuf = draw::StorageBuffer<SurfelListInfoData>;
 using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
-using VolumesInfoDataBuf = draw::UniformBuffer<VolumesInfoData>;
 using CryptomatteObjectBuf = draw::StorageArrayBuffer<float2, 16>;
-using AODataBuf = draw::UniformBuffer<AOData>;
+using ClipPlaneBuf = draw::UniformBuffer<ClipPlaneData>;
 
 }  // namespace blender::eevee
 #endif

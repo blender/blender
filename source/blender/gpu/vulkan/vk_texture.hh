@@ -19,6 +19,8 @@ namespace blender::gpu {
 class VKSampler;
 
 class VKTexture : public Texture, public VKBindableResource {
+  /** When set the instance is considered to be a texture view from `source_texture_` */
+  VKTexture *source_texture_ = nullptr;
   VkImage vk_image_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
 
@@ -30,6 +32,14 @@ class VKTexture : public Texture, public VKBindableResource {
    * conversion should happen. #current_layout_ keep track of the layout so the correct conversion
    * can be done. */
   VkImageLayout current_layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+
+  int layer_offset_ = 0;
+  bool use_stencil_ = false;
+
+  VkComponentMapping vk_component_mapping_ = {VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY};
 
   enum eDirtyFlags {
     IMAGE_VIEW_DIRTY = (1 << 0),
@@ -46,6 +56,7 @@ class VKTexture : public Texture, public VKBindableResource {
 
   void generate_mipmap() override;
   void copy_to(Texture *tex) override;
+  void copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspect);
   void clear(eGPUDataFormat format, const void *data) override;
   void clear_depth_stencil(const eGPUFrameBufferBits buffer,
                            float clear_depth,
@@ -53,7 +64,8 @@ class VKTexture : public Texture, public VKBindableResource {
   void swizzle_set(const char swizzle_mask[4]) override;
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat format) override;
-  void read_sub(int mip, eGPUDataFormat format, const int area[4], void *r_data);
+  void read_sub(
+      int mip, eGPUDataFormat format, const int area[4], IndexRange layers, void *r_data);
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) override;
   void update_sub(int offset[3],
@@ -68,11 +80,12 @@ class VKTexture : public Texture, public VKBindableResource {
 
   VkImage vk_image_handle() const
   {
+    if (is_texture_view()) {
+      return source_texture_->vk_image_handle();
+    }
     BLI_assert(vk_image_ != VK_NULL_HANDLE);
     return vk_image_;
   }
-
-  void ensure_allocated();
 
  protected:
   bool init_internal() override;
@@ -80,8 +93,8 @@ class VKTexture : public Texture, public VKBindableResource {
   bool init_internal(GPUTexture *src, int mip_offset, int layer_offset, bool use_stencil) override;
 
  private:
-  /** Is this texture already allocated on device. */
-  bool is_allocated() const;
+  /** Is this texture a view of another texture. */
+  bool is_texture_view() const;
 
   /**
    * Allocate the texture of the device. Result is `true` when texture is successfully allocated
@@ -89,9 +102,18 @@ class VKTexture : public Texture, public VKBindableResource {
    */
   bool allocate();
 
-  int layer_count();
-
   VkImageViewType vk_image_view_type() const;
+
+  /**
+   * Determine the layerCount for vulkan based on the texture type. Will pass the
+   * #non_layered_value for non layered textures.
+   */
+  int vk_layer_count(int non_layered_value) const;
+
+  /**
+   * Determine the VkExtent3D for the given mip_level.
+   */
+  VkExtent3D vk_extent_3d(int mip_level) const;
 
   /* -------------------------------------------------------------------- */
   /** \name Image Layout
@@ -119,7 +141,12 @@ class VKTexture : public Texture, public VKBindableResource {
    *
    * When texture is already in the requested layout, nothing will be done.
    */
-  void layout_ensure(VKContext &context, VkImageLayout requested_layout);
+  void layout_ensure(VKContext &context,
+                     VkImageLayout requested_layout,
+                     VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                     VkAccessFlags src_access = VK_ACCESS_MEMORY_WRITE_BIT,
+                     VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                     VkAccessFlags dst_access = VK_ACCESS_MEMORY_READ_BIT);
 
  private:
   /**
@@ -130,7 +157,11 @@ class VKTexture : public Texture, public VKBindableResource {
   void layout_ensure(VKContext &context,
                      IndexRange mipmap_range,
                      VkImageLayout current_layout,
-                     VkImageLayout requested_layout);
+                     VkImageLayout requested_layout,
+                     VkPipelineStageFlags src_stage,
+                     VkAccessFlags src_access,
+                     VkPipelineStageFlags dst_stage,
+                     VkAccessFlags dst_access);
 
   /** \} */
 
@@ -144,8 +175,14 @@ class VKTexture : public Texture, public VKBindableResource {
     return *image_view_;
   }
 
+  const VkComponentMapping &vk_component_mapping_get() const
+  {
+    return vk_component_mapping_;
+  }
+
  private:
   IndexRange mip_map_range() const;
+  IndexRange layer_range() const;
   void image_view_ensure();
   void image_view_update();
 

@@ -19,7 +19,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -647,7 +647,7 @@ IDTypeInfo IDType_ID_LS = {
     /*main_listbase_index*/ INDEX_ID_LS,
     /*struct_size*/ sizeof(FreestyleLineStyle),
     /*name*/ "FreestyleLineStyle",
-    /*name_plural*/ "linestyles",
+    /*name_plural*/ N_("linestyles"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

@@ -35,13 +35,13 @@
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -59,6 +59,8 @@
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
+
+#include "ANIM_action.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -1071,7 +1073,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     {
       /* create F-Curve for path animation */
       act = ED_id_action_ensure(bmain, &cu->id);
-      fcu = ED_action_fcurve_ensure(bmain, act, nullptr, nullptr, "eval_time", 0);
+      fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, nullptr, "eval_time", 0);
 
       /* standard vertical range - 1:1 = 100 frames */
       standardRange = 100.0f;
@@ -1095,7 +1097,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 
     /* create F-Curve for constraint */
     act = ED_id_action_ensure(bmain, &ob->id);
-    fcu = ED_action_fcurve_ensure(bmain, act, nullptr, nullptr, path, 0);
+    fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, nullptr, path, 0);
 
     /* standard vertical range - 0.0 to 1.0 */
     standardRange = 1.0f;
@@ -2019,7 +2021,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator * /*op*/)
   /* free constraints for all selected bones */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     BKE_constraints_free(&pchan->constraints);
-    pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK | PCHAN_HAS_CONST);
+    pchan->constflag = 0;
 
     if (prev_ob != ob) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -2751,7 +2753,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator * /*op*/)
         BKE_constraint_remove(&pchan->constraints, con);
       }
     }
-    pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_TARGET);
+    pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET);
 
     if (prev_ob != ob) {
       prev_ob = ob;

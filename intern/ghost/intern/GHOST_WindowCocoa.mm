@@ -175,14 +175,18 @@
   NSPoint mouseLocation = [sender draggingLocation];
   NSPasteboard *draggingPBoard = [sender draggingPasteboard];
 
-  if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF])
+  if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF]) {
     m_draggedObjectType = GHOST_kDragnDropTypeBitmap;
-  else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType])
+  }
+  else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType]) {
     m_draggedObjectType = GHOST_kDragnDropTypeFilenames;
-  else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString])
+  }
+  else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString]) {
     m_draggedObjectType = GHOST_kDragnDropTypeString;
-  else
+  }
+  else {
     return NSDragOperationNone;
+  }
 
   associatedWindow->setAcceptDragOperation(TRUE);  // Drag operation is accepted by default
   systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered,
@@ -240,8 +244,10 @@
         droppedImg = [[NSImage alloc] initWithPasteboard:draggingPBoard];
         data = droppedImg;  //[draggingPBoard dataForType:NSPasteboardTypeTIFF];
       }
-      else
+      else {
         return NO;
+      }
+
       break;
     case GHOST_kDragnDropTypeFilenames:
       data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
@@ -418,8 +424,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     [m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
   }
 
-  if (state == GHOST_kWindowStateFullScreen)
+  if (state == GHOST_kWindowStateFullScreen) {
     setState(GHOST_kWindowStateFullScreen);
+  }
 
   setNativePixelSize();
 
@@ -487,39 +494,7 @@ void GHOST_WindowCocoa::setTitle(const char *title)
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
   NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSUTF8StringEncoding];
-
-  // Set associated file if applicable
-  if (windowTitle && [windowTitle hasPrefix:@"Blender"]) {
-    NSRange fileStrRange;
-    NSString *associatedFileName;
-    int len;
-
-    fileStrRange.location = [windowTitle rangeOfString:@"["].location + 1;
-    len = [windowTitle rangeOfString:@"]"].location - fileStrRange.location;
-
-    if (len > 0) {
-      fileStrRange.length = len;
-      associatedFileName = [windowTitle substringWithRange:fileStrRange];
-      [m_window setTitle:[associatedFileName lastPathComponent]];
-
-      @try
-      {
-        [m_window setRepresentedFilename:associatedFileName];
-      }
-      @catch (NSException *e)
-      {
-        printf("\nInvalid file path given in window title");
-      }
-    }
-    else {
-      [m_window setTitle:windowTitle];
-      [m_window setRepresentedFilename:@""];
-    }
-  }
-  else {
-    [m_window setTitle:windowTitle];
-    [m_window setRepresentedFilename:@""];
-  }
+  [m_window setTitle:windowTitle];
 
   [windowTitle release];
   [pool drain];
@@ -541,6 +516,31 @@ std::string GHOST_WindowCocoa::getTitle() const
   [pool drain];
 
   return title;
+}
+
+GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
+{
+  GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setAssociatedFile(): window invalid");
+  GHOST_TSuccess success = GHOST_kSuccess;
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+  NSString *associatedFileName = [[NSString alloc] initWithCString:filepath
+                                                          encoding:NSUTF8StringEncoding];
+
+  @try
+  {
+    [m_window setRepresentedFilename:associatedFileName];
+  }
+  @catch (NSException *e)
+  {
+    printf("\nInvalid file path given for window");
+    success = GHOST_kFailure;
+  }
+
+  [associatedFileName release];
+  [pool drain];
+
+  return success;
 }
 
 void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect &bounds) const
@@ -783,10 +783,12 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
         // Lion style fullscreen
         [m_window toggleFullScreen:nil];
       }
-      else if ([m_window isMiniaturized])
+      else if ([m_window isMiniaturized]) {
         [m_window deminiaturize:nil];
-      else if ([m_window isZoomed])
+      }
+      else if ([m_window isZoomed]) {
         [m_window zoom:nil];
+      }
       [pool drain];
       break;
   }
@@ -920,8 +922,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 
 GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 {
-  if (!m_progressBarVisible)
+  if (!m_progressBarVisible) {
     return GHOST_kFailure;
+  }
   m_progressBarVisible = false;
 
   /* Reset application icon to remove the progress bar. */

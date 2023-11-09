@@ -237,10 +237,10 @@ bool NodeOperation::determine_depending_area_of_interest(rcti *input,
         first = false;
       }
       else {
-        output->xmin = MIN2(output->xmin, temp_output.xmin);
-        output->ymin = MIN2(output->ymin, temp_output.ymin);
-        output->xmax = MAX2(output->xmax, temp_output.xmax);
-        output->ymax = MAX2(output->ymax, temp_output.ymax);
+        output->xmin = std::min(output->xmin, temp_output.xmin);
+        output->ymin = std::min(output->ymin, temp_output.ymin);
+        output->xmax = std::max(output->xmax, temp_output.xmax);
+        output->ymax = std::max(output->ymax, temp_output.ymax);
       }
     }
   }

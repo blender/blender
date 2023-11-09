@@ -41,27 +41,33 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   float y0 = dot(dir, y);
   float x1 = x0 + len_u;
   float y1 = y0 + len_v;
-  /* Compute internal angles (gamma_i). */
+  /* Compute predefined constants. */
   float4 diff = make_float4(x0, y1, x1, y0) - make_float4(x1, y0, x0, y1);
   float4 nz = make_float4(y0, x1, y1, x0) * diff;
   nz = nz / sqrt(z0 * z0 * diff * diff + nz * nz);
-  float g0 = safe_acosf(-nz.x * nz.y);
-  float g1 = safe_acosf(-nz.y * nz.z);
-  float g2 = safe_acosf(-nz.z * nz.w);
-  float g3 = safe_acosf(-nz.w * nz.x);
-  /* Compute predefined constants. */
-  float b0 = nz.x;
-  float b1 = nz.z;
-  float b0sq = b0 * b0;
-  float k = M_2PI_F - g2 - g3;
-  /* Compute solid angle from internal angles. */
-  float S = g0 + g1 - k;
+  /* The original paper uses `acos()` to compute the internal angles here, and then computes the
+   * solid angle as their sum minus 2*pi. However, for very small rectangles, this results in
+   * excessive cancellation error since the sum will be almost 2*pi as well.
+   * This can be avoided by using that `asin(x) = pi/2 - acos(x)`. */
+  float g0 = safe_asinf(-nz.x * nz.y);
+  float g1 = safe_asinf(-nz.y * nz.z);
+  float g2 = safe_asinf(-nz.z * nz.w);
+  float g3 = safe_asinf(-nz.w * nz.x);
+  float S = -(g0 + g1 + g2 + g3);
 
   if (sample_coord) {
-    /* Compute cu. */
-    float au = rand.x * S + k;
-    float fu = (cosf(au) * b0 - b1) / sinf(au);
-    float cu = 1.0f / sqrtf(fu * fu + b0sq) * (fu > 0.0f ? 1.0f : -1.0f);
+    /* Compute predefined constants. */
+    float b0 = nz.x;
+    float b1 = nz.z;
+    float b0sq = b0 * b0;
+    /* Compute cu.
+     * In the original paper, an additional constant k is involved here. However, just like above,
+     * it causes cancellation issues. The same `asin()` terms from above can be used instead, and
+     * the extra +pi that would remain in the expression for au can be removed by flipping the sign
+     * of cos(au) and sin(au), which also cancels if we flip the sign of b1 in the fu term. */
+    float au = rand.x * S + g2 + g3;
+    float fu = (cosf(au) * b0 + b1) / sinf(au);
+    float cu = copysignf(1.0f / sqrtf(fu * fu + b0sq), fu);
     cu = clamp(cu, -1.0f, 1.0f);
     /* Compute xu. */
     float xu = -(cu * z0) / max(sqrtf(1.0f - cu * cu), 1e-7f);
@@ -81,10 +87,12 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   }
 
   /* return pdf */
-  if (S != 0.0f)
+  if (S != 0.0f) {
     return 1.0f / S;
-  else
+  }
+  else {
     return 0.0f;
+  }
 }
 
 /* Light spread. */

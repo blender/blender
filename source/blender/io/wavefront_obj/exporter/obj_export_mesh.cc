@@ -13,7 +13,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -22,7 +22,7 @@
 #include "BLI_map.hh"
 #include "BLI_sort.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -190,12 +190,6 @@ int OBJMesh::ith_smooth_group(const int face_index) const
   BLI_assert(tot_smooth_groups_ != -NEGATIVE_INIT);
   BLI_assert(poly_smooth_groups_);
   return poly_smooth_groups_[face_index];
-}
-
-void OBJMesh::ensure_mesh_normals() const
-{
-  /* Constant cast can be removed when calculating face corner normals lazily is possible. */
-  BKE_mesh_calc_normals_split(const_cast<Mesh *>(export_mesh_));
 }
 
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
@@ -372,16 +366,23 @@ void OBJMesh::store_normal_coords_and_indices()
   normal_to_index.reserve(export_mesh_->faces_num);
   loop_to_normal_index_.resize(export_mesh_->totloop);
   loop_to_normal_index_.fill(-1);
-  const float(*lnors)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&export_mesh_->loop_data, CD_NORMAL));
+
+  Span<float3> corner_normals;
+  if (ELEM(export_mesh_->normals_domain(),
+           bke::MeshNormalDomain::Point,
+           bke::MeshNormalDomain::Corner))
+  {
+    corner_normals = export_mesh_->corner_normals();
+  }
+
   for (int face_index = 0; face_index < export_mesh_->faces_num; ++face_index) {
     const IndexRange face = mesh_faces_[face_index];
-    bool need_per_loop_normals = lnors != nullptr || !(sharp_faces_[face_index]);
+    bool need_per_loop_normals = !corner_normals.is_empty() || !(sharp_faces_[face_index]);
     if (need_per_loop_normals) {
       for (const int corner : face) {
         float3 loop_normal;
         BLI_assert(corner < export_mesh_->totloop);
-        copy_v3_v3(loop_normal, lnors[corner]);
+        copy_v3_v3(loop_normal, corner_normals[corner]);
         mul_m3_v3(world_and_axes_normal_transform_, loop_normal);
         normalize_v3(loop_normal);
         float3 rounded_loop_normal = round_float3_to_n_digits(loop_normal, round_digits);

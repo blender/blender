@@ -34,12 +34,14 @@ void *operator new[](size_t size)
 void operator delete(void *p) throw()
 {
   /* delete NULL is valid in c++ */
-  if (p)
+  if (p) {
     MEM_freeN(p);
+  }
 }
 void operator delete[](void *p) throw()
 {
   /* delete NULL is valid in c++ */
-  if (p)
+  if (p) {
     MEM_freeN(p);
+  }
 }

@@ -15,7 +15,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 void OVERLAY_sculpt_curves_cache_init(OVERLAY_Data *vedata)
 {

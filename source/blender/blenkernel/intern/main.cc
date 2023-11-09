@@ -158,12 +158,14 @@ void BKE_main_free(Main *mainvar)
 
 bool BKE_main_is_empty(Main *bmain)
 {
+  bool result = true;
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    return false;
+    result = false;
+    break;
   }
   FOREACH_MAIN_ID_END;
-  return true;
+  return result;
 }
 
 void BKE_main_lock(Main *bmain)

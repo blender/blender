@@ -36,9 +36,9 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "view3d_intern.h" /* own include */
 

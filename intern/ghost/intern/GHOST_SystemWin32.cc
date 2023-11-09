@@ -23,8 +23,8 @@
 #include <tlhelp32.h>
 #include <windowsx.h>
 
-#include "utf_winfunc.h"
-#include "utfconv.h"
+#include "utf_winfunc.hh"
+#include "utfconv.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -487,7 +487,7 @@ GHOST_IWindow *GHOST_SystemWin32::getWindowUnderCursor(int32_t /*x*/, int32_t /*
     return nullptr;
   }
 
-  return m_windowManager->getWindowAssociatedWithOSWindow((void *)win);
+  return m_windowManager->getWindowAssociatedWithOSWindow((const void *)win);
 }
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const
@@ -1122,36 +1122,22 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
     /* Warp within bounds. */
     {
       GHOST_Rect bounds;
-      int32_t bounds_margin = 0;
-      GHOST_TAxisFlag bounds_axis = GHOST_kAxisNone;
-
-      if (window->getCursorGrabMode() == GHOST_kGrabHide) {
+      if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+        /* Use custom grab bounds if available, window bounds if not. */
         window->getClientBounds(bounds);
+      }
 
-        /* WARNING(@ideasman42): The current warping logic fails to warp on every event,
-         * so the box needs to small enough not to let the cursor escape the window but large
-         * enough that the cursor isn't being warped every time.
-         * If this was not the case it would be less trouble to simply warp the cursor to the
-         * center of the screen on every motion, see: D16558 (alternative fix for #102346). */
-        const int32_t subregion_div = 4; /* One quarter of the region. */
-        const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
-        const int32_t center[2] = {(bounds.m_l + bounds.m_r) / 2, (bounds.m_t + bounds.m_b) / 2};
-        /* Shrink the box to prevent the cursor escaping. */
-        bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
-        bounds.m_r = center[0] + (size[0] / (subregion_div * 2));
-        bounds.m_t = center[1] - (size[1] / (subregion_div * 2));
-        bounds.m_b = center[1] + (size[1] / (subregion_div * 2));
-        bounds_margin = 0;
-        bounds_axis = GHOST_TAxisFlag(GHOST_kAxisX | GHOST_kAxisY);
-      }
-      else {
-        /* Fallback to window bounds. */
-        if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-          window->getClientBounds(bounds);
-        }
-        bounds_margin = 2;
-        bounds_axis = window->getCursorGrabAxis();
-      }
+      /* WARNING(@ideasman42): The current warping logic fails to warp on every event,
+       * so the box needs to small enough not to let the cursor escape the window but large
+       * enough that the cursor isn't being warped every time. If this was not the case it
+       * would be less trouble to simply warp the cursor to the center of the screen on
+       * every motion, see: D16558 (alternative fix for #102346). */
+
+      /* Rather than adjust the bounds, use a margin based on the bounds width. */
+      int32_t bounds_margin = (window->getCursorGrabMode() == GHOST_kGrabHide) ?
+                                  bounds.getWidth() / 10 :
+                                  2;
+      GHOST_TAxisFlag bounds_axis = window->getCursorGrabAxis();
 
       /* Could also clamp to screen bounds wrap with a window outside the view will
        * fail at the moment. Use inset in case the window is at screen bounds. */

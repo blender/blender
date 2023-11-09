@@ -37,8 +37,8 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_utils.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
 
@@ -49,7 +49,7 @@
 #  include <AUD_Special.h>
 #endif
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_sound.hh"
 #include "ED_util.hh"
@@ -357,7 +357,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
-  const double fps = (double(scene_eval->r.frs_sec) / double(scene_eval->r.frs_sec_base));
+  const double fps = double(scene_eval->r.frs_sec) / double(scene_eval->r.frs_sec_base);
   const int start_frame = scene_eval->r.sfra;
   const int end_frame = scene_eval->r.efra;
 

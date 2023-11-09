@@ -30,14 +30,14 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "ED_clip.hh"
 
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
 
-#  include "SEQ_relations.h"
+#  include "SEQ_relations.hh"
 
 static void rna_MovieClip_reload_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -122,7 +122,7 @@ static PointerRNA rna_MovieClip_metadata_get(MovieClip *clip)
 static char *rna_MovieClipUser_path(const PointerRNA *ptr)
 {
   if (ptr->owner_id) {
-    /* MovieClipUser *mc_user = ptr->data; */
+    // MovieClipUser *mc_user = ptr->data;
 
     switch (GS(ptr->owner_id->name)) {
       case ID_CA:

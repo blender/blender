@@ -50,14 +50,14 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
 
-#include "SEQ_sequencer.h"
-#include "SEQ_sound.h"
-#include "SEQ_time.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_sound.hh"
+#include "SEQ_time.hh"
 
 static void sound_free_audio(bSound *sound);
 
@@ -195,7 +195,7 @@ IDTypeInfo IDType_ID_SO = {
     /*main_listbase_index*/ INDEX_ID_SO,
     /*struct_size*/ sizeof(bSound),
     /*name*/ "Sound",
-    /*name_plural*/ "sounds",
+    /*name_plural*/ N_("sounds"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_SOUND,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -259,7 +259,7 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 
   sound = static_cast<bSound *>(BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0));
   STRNCPY(sound->filepath, filepath);
-  /* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
+  // sound->type = SOUND_TYPE_FILE; /* UNUSED. */
 
   /* Extract sound specs for bSound */
   SoundInfo info;

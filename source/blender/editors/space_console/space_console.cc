@@ -16,7 +16,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -124,11 +124,11 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
   }
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Include after "Console" so cursor motion keys such as "Home" isn't overridden. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
   /* add drop boxes */
@@ -239,12 +239,13 @@ static void console_operatortypes()
   WM_operatortype_append(CONSOLE_OT_copy);
   WM_operatortype_append(CONSOLE_OT_paste);
   WM_operatortype_append(CONSOLE_OT_select_set);
+  WM_operatortype_append(CONSOLE_OT_select_all);
   WM_operatortype_append(CONSOLE_OT_select_word);
 }
 
 static void console_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Console", SPACE_CONSOLE, 0);
+  WM_keymap_ensure(keyconf, "Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 }
 
 /****************** header region ******************/

@@ -10,7 +10,6 @@
 
 #include "GEO_points_to_volume.hh"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "NOD_rna_define.hh"
@@ -46,17 +45,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
-static void search_node_add_ops(GatherAddNodeSearchParams &params)
-{
-  if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_node_add_ops_for_basic_node(params);
-  }
-}
-
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
   if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_link_ops_for_basic_node(params);
+    nodes::search_link_ops_for_basic_node(params);
   }
 }
 
@@ -141,13 +133,12 @@ static void node_register()
                     "NodeGeometryPointsToVolume",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  blender::bke::node_type_size(&ntype, 170, 120, 700);
+  bke::node_type_size(&ntype, 170, 120, 700);
   ntype.initfunc = node_init;
   ntype.updatefunc = node_update;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  ntype.gather_add_node_search_ops = search_node_add_ops;
   ntype.gather_link_search_ops = search_link_ops;
   nodeRegisterType(&ntype);
 

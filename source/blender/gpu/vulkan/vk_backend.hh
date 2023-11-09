@@ -87,6 +87,11 @@ class VKBackend : public GPUBackend {
     return device_;
   }
 
+  VKDevice &device_get()
+  {
+    return device_;
+  }
+
   static void platform_init(const VKDevice &device);
   static void capabilities_init(VKDevice &device);
 

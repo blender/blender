@@ -27,14 +27,14 @@ static const char *get_shader_name(int distance)
 
 static Result horizontal_pass(Context &context, Result &input, int distance, int falloff_type)
 {
-  GPUShader *shader = context.shader_manager().get(get_shader_name(distance));
+  GPUShader *shader = context.get_shader(get_shader_name(distance));
   GPU_shader_bind(shader);
 
   input.bind_as_texture(shader, "input_tx");
 
   const MorphologicalDistanceFeatherWeights &weights =
-      context.cache_manager().morphological_distance_feather_weights.get(falloff_type,
-                                                                         math::abs(distance));
+      context.cache_manager().morphological_distance_feather_weights.get(
+          context, falloff_type, math::abs(distance));
   weights.bind_weights_as_texture(shader, "weights_tx");
   weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");
 
@@ -49,7 +49,7 @@ static Result horizontal_pass(Context &context, Result &input, int distance, int
   const Domain domain = input.domain();
   const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
-  Result output = Result::Temporary(ResultType::Float, context.texture_pool());
+  Result output = context.create_temporary_result(ResultType::Float);
   output.allocate_texture(transposed_domain);
   output.bind_as_image(shader, "output_img");
 
@@ -71,14 +71,14 @@ static void vertical_pass(Context &context,
                           int distance,
                           int falloff_type)
 {
-  GPUShader *shader = context.shader_manager().get(get_shader_name(distance));
+  GPUShader *shader = context.get_shader(get_shader_name(distance));
   GPU_shader_bind(shader);
 
   horizontal_pass_result.bind_as_texture(shader, "input_tx");
 
   const MorphologicalDistanceFeatherWeights &weights =
-      context.cache_manager().morphological_distance_feather_weights.get(falloff_type,
-                                                                         math::abs(distance));
+      context.cache_manager().morphological_distance_feather_weights.get(
+          context, falloff_type, math::abs(distance));
   weights.bind_weights_as_texture(shader, "weights_tx");
   weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");
 

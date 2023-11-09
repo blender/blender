@@ -109,6 +109,20 @@ PACKAGES_FOR_LIBS=(
     # Required by: `external_ssl` (build dependencies).
     perl-IPC-Cmd
     perl-Pod-Html
+
+    # Required by: `external_wayland_weston`
+    cairo-devel
+    libdrm-devel
+    pixman-devel
+    libffi-devel
+    libinput-devel
+    libevdev-devel
+    mesa-libEGL-devel
+    systemd-devel # for `libudev` (not so obvious!).
+    # Required by: `weston --headless` (run-time requirement for off screen rendering).
+    mesa-dri-drivers
+    mesa-libEGL
+    mesa-libGL
 )
 
 # Additional packages needed for building Blender.

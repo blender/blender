@@ -21,7 +21,7 @@
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_types.hh"
 

@@ -28,7 +28,7 @@
 #include "GPU_capabilities.h"
 #include "GPU_texture.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DRW_render.h"
 

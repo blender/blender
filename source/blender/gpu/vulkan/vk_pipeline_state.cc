@@ -78,13 +78,8 @@ void VKPipelineStateManager::force_state(const GPUState &state,
 void VKPipelineStateManager::finalize_color_blend_state(const VKFrameBuffer &framebuffer)
 {
   color_blend_attachments.clear();
-  for (int color_slot = 0; color_slot < GPU_FB_MAX_COLOR_ATTACHMENT; color_slot++) {
-    VKTexture *texture = unwrap(unwrap(framebuffer.color_tex(color_slot)));
-    if (texture) {
-      color_blend_attachments.append(color_blend_attachment_template);
-    }
-  }
-
+  color_blend_attachments.append_n_times(color_blend_attachment_template,
+                                         framebuffer.color_attachments_resource_size());
   pipeline_color_blend_state.attachmentCount = color_blend_attachments.size();
   pipeline_color_blend_state.pAttachments = color_blend_attachments.data();
 }
@@ -260,8 +255,8 @@ void VKPipelineStateManager::set_stencil_test(const eGPUStencilTest test,
   switch (operation) {
     case GPU_STENCIL_OP_REPLACE:
       depth_stencil_state.front.failOp = VK_STENCIL_OP_KEEP;
-      depth_stencil_state.front.passOp = VK_STENCIL_OP_KEEP;
-      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_REPLACE;
+      depth_stencil_state.front.passOp = VK_STENCIL_OP_REPLACE;
+      depth_stencil_state.front.depthFailOp = VK_STENCIL_OP_KEEP;
       depth_stencil_state.back = depth_stencil_state.front;
       break;
 

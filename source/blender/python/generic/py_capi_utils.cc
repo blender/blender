@@ -766,35 +766,47 @@ PyObject *PyC_FrozenSetFromStrings(const char **strings)
 
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...)
 {
-  PyObject *error_value_prefix;
-  va_list args;
-
-  va_start(args, format);
-  error_value_prefix = PyUnicode_FromFormatV(format, args); /* can fail and be nullptr */
-  va_end(args);
+  PyObject *error_value_as_unicode = nullptr;
 
   if (PyErr_Occurred()) {
     PyObject *error_type, *error_value, *error_traceback;
     PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
     if (PyUnicode_Check(error_value)) {
-      PyErr_Format(exception_type_prefix, "%S, %S", error_value_prefix, error_value);
+      error_value_as_unicode = error_value;
+      Py_INCREF(error_value_as_unicode);
     }
     else {
-      PyErr_Format(exception_type_prefix,
-                   "%S, %.200s(%S)",
-                   error_value_prefix,
-                   Py_TYPE(error_value)->tp_name,
-                   error_value);
+      error_value_as_unicode = PyUnicode_FromFormat(
+          "%.200s(%S)", Py_TYPE(error_value)->tp_name, error_value);
     }
-  }
-  else {
-    PyErr_SetObject(exception_type_prefix, error_value_prefix);
+    PyErr_Restore(error_type, error_value, error_traceback);
   }
 
-  Py_XDECREF(error_value_prefix);
+  va_list args;
 
-  /* dumb to always return nullptr but matches PyErr_Format */
+  va_start(args, format);
+  PyObject *error_value_format = PyUnicode_FromFormatV(format, args); /* Can fail and be null. */
+  va_end(args);
+
+  if (error_value_as_unicode) {
+    if (error_value_format) {
+      PyObject *error_value_format_prev = error_value_format;
+      error_value_format = PyUnicode_FromFormat(
+          "%S, %S", error_value_format, error_value_as_unicode);
+      Py_DECREF(error_value_format_prev);
+    }
+    else {
+      /* Should never happen, hints at incorrect API use or memory corruption. */
+      error_value_format = PyUnicode_FromFormat("(internal error), %S", error_value_as_unicode);
+    }
+    Py_DECREF(error_value_as_unicode);
+  }
+
+  PyErr_SetObject(exception_type_prefix, error_value_format);
+  Py_XDECREF(error_value_format);
+
+  /* Strange to always return null, matches #PyErr_Format. */
   return nullptr;
 }
 
@@ -824,11 +836,25 @@ void PyC_Err_PrintWithFunc(PyObject *py_func)
 /** \name Exception Buffer Access
  * \{ */
 
-static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
-                                                    PyObject *error_value,
-                                                    PyObject *error_traceback)
+/**
+ * When a script calls `sys.exit(..)` it is expected that Blender quits,
+ * internally this raises as `SystemExit` exception which this function detects.
+ *
+ * Historically Blender would call `PyErr_Print` when encountering an error.
+ * In some cases `PyErr_Print` is still called, but not all.
+ * When only #PyC_ExceptionBuffer is used to access the error, it's not desirable
+ * that `sys.exit()` fails to exit, causing `sys.exit(..)` to arbitrarily work depending
+ * on the internals of Blender's error handling.
+ * To avoid this discrepancy, detect when `PyErr_Print` *would* exit and call it in that case.
+ * It's important to call `PyErr_Print` (instead of simply exiting), because the exception
+ * may contain a message which the user should see.
+ *
+ * \note No need to handle freeing resources here, Python's `atexit` is used to cleanup
+ * Blender's state when Python requests an exit (via `bpy_atexit` callback).
+ */
+static void pyc_exception_buffer_handle_system_exit()
 {
-  if (!PyErr_GivenExceptionMatches(error_type, PyExc_SystemExit)) {
+  if (!PyErr_ExceptionMatches(PyExc_SystemExit)) {
     return;
   }
   /* Inspecting, follow Python's logic in #_Py_HandleSystemExit & treat as a regular exception. */
@@ -837,10 +863,9 @@ static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
   }
 
   /* NOTE(@ideasman42): A `SystemExit` exception will exit immediately (unless inspecting).
-   * So print the error and exit now. This is necessary as the call to #PyErr_Print exits,
-   * the temporary `sys.stderr` assignment causes the output to be suppressed, failing silently.
-   * Instead, restore the error and print it. If Python changes it's behavior and doesn't exit in
-   * the future - continue to create the exception buffer, see: #99966.
+   * So print the error and exit now. Without this #PyErr_Display shows the error stack-trace
+   * as a regular exception (as if something went wrong) and fail to exit.
+   * see: #99966 for additional context.
    *
    * Arguably accessing a `SystemExit` exception as a buffer should be supported without exiting.
    * (by temporarily enabling inspection for example) however - it's not obvious exactly when this
@@ -850,159 +875,102 @@ static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
    * Especially since this exception more likely to be used for background/batch-processing
    * utilities where exiting immediately makes sense, the possibility of this being called
    * indirectly from python-drivers or modal-operators is less of a concern. */
-  PyErr_Restore(error_type, error_value, error_traceback);
   PyErr_Print();
 }
 
-/* returns the exception string as a new PyUnicode object, depends on external traceback module */
-#  if 0
-
-/* this version uses traceback module but somehow fails on UI errors */
-
 PyObject *PyC_ExceptionBuffer()
 {
-  PyObject *traceback_mod = nullptr;
-  PyObject *format_tb_func = nullptr;
-  PyObject *ret = nullptr;
+  BLI_assert(PyErr_Occurred());
 
-  if (!(traceback_mod = PyImport_ImportModule("traceback"))) {
-    goto error_cleanup;
-  }
-  else if (!(format_tb_func = PyObject_GetAttrString(traceback_mod, "format_exc"))) {
-    goto error_cleanup;
-  }
+  pyc_exception_buffer_handle_system_exit();
 
-  ret = PyObject_CallObject(format_tb_func, nullptr);
-
-  if (ret == Py_None) {
-    Py_DECREF(ret);
-    ret = nullptr;
-  }
-
-error_cleanup:
-  /* could not import the module so print the error and close */
-  Py_XDECREF(traceback_mod);
-  Py_XDECREF(format_tb_func);
-
-  return ret;
-}
-#  else /* verbose, non-threadsafe version */
-PyObject *PyC_ExceptionBuffer()
-{
-  PyObject *stdout_backup = PySys_GetObject("stdout"); /* borrowed */
-  PyObject *stderr_backup = PySys_GetObject("stderr"); /* borrowed */
-  PyObject *string_io = nullptr;
-  PyObject *string_io_buf = nullptr;
-  PyObject *string_io_mod = nullptr;
-  PyObject *string_io_getvalue = nullptr;
+  /* The resulting exception as a string (return value). */
+  PyObject *result = nullptr;
 
   PyObject *error_type, *error_value, *error_traceback;
-
-  if (!PyErr_Occurred()) {
-    return nullptr;
-  }
-
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
-  pyc_exception_buffer_handle_system_exit(error_type, error_value, error_traceback);
+  /* Normalizing is needed because it's possible the error value is a string which
+   * #PyErr_Display will fail to print. */
+  PyErr_NormalizeException(&error_type, &error_value, &error_traceback);
 
-  /* import io
-   * string_io = io.StringIO()
-   */
+  /* `io.StringIO()`. */
+  PyObject *string_io = nullptr;
+  PyObject *string_io_mod = nullptr;
+  PyObject *string_io_getvalue = nullptr;
+  if ((string_io_mod = PyImport_ImportModule("io")) &&
+      (string_io = PyObject_CallMethod(string_io_mod, "StringIO", nullptr)) &&
+      (string_io_getvalue = PyObject_GetAttrString(string_io, "getvalue")))
+  {
+    PyObject *stderr_backup = PySys_GetObject("stderr"); /* Borrowed. */
+    /* Since these were borrowed we don't want them freed when replaced. */
+    Py_INCREF(stderr_backup);
+    PySys_SetObject("stderr", string_io); /* Freed when overwriting. */
 
-  if (!(string_io_mod = PyImport_ImportModule("io"))) {
-    goto error_cleanup;
+    PyErr_Display(error_type, error_value, error_traceback);
+
+    result = PyObject_CallObject(string_io_getvalue, nullptr);
+    PySys_SetObject("stderr", stderr_backup);
+    Py_DECREF(stderr_backup); /* Now `sys` owns the reference again. */
   }
-  else if (!(string_io = PyObject_CallMethod(string_io_mod, "StringIO", nullptr))) {
-    goto error_cleanup;
+  else {
+    PySys_WriteStderr("Internal error creating: io.StringIO()!\n");
+    if (UNLIKELY(PyErr_Occurred())) {
+      PyErr_Print(); /* Show the error accessing `io.StringIO`. */
+    }
+    PyErr_Display(error_type, error_value, error_traceback);
   }
-  else if (!(string_io_getvalue = PyObject_GetAttrString(string_io, "getvalue"))) {
-    goto error_cleanup;
-  }
 
-  /* Since these were borrowed we don't want them freed when replaced. */
-  Py_INCREF(stdout_backup);
-  Py_INCREF(stderr_backup);
-
-  /* Both of these are freed when restoring. */
-  PySys_SetObject("stdout", string_io);
-  PySys_SetObject("stderr", string_io);
-
-  PyErr_Restore(error_type, error_value, error_traceback);
-  /* Printing clears (call #PyErr_Clear as well to ensure it's cleared). */
-  Py_XINCREF(error_type);
-  Py_XINCREF(error_value);
-  Py_XINCREF(error_traceback);
-  PyErr_Print(); /* print the error */
-  PyErr_Clear();
-
-  string_io_buf = PyObject_CallObject(string_io_getvalue, nullptr);
-
-  PySys_SetObject("stdout", stdout_backup);
-  PySys_SetObject("stderr", stderr_backup);
-
-  Py_DECREF(stdout_backup); /* Now `sys` owns the reference again. */
-  Py_DECREF(stderr_backup);
-
-  Py_DECREF(string_io_mod);
-  Py_DECREF(string_io_getvalue);
-  Py_DECREF(string_io); /* free the original reference */
-
-  PyErr_Restore(error_type, error_value, error_traceback);
-
-  return string_io_buf;
-
-error_cleanup:
-  /* Could not import the module so print the error and close. */
   Py_XDECREF(string_io_mod);
-  Py_XDECREF(string_io);
+  Py_XDECREF(string_io_getvalue);
+  Py_XDECREF(string_io); /* Free the original reference. */
+
+  if (result == nullptr) {
+    result = PyObject_Str(error_value);
+    /* Python does this too. */
+    if (UNLIKELY(result == nullptr)) {
+      result = PyUnicode_FromFormat("<unprintable %s object>", Py_TYPE(error_value)->tp_name);
+    }
+  }
 
   PyErr_Restore(error_type, error_value, error_traceback);
-  PyErr_Print(); /* print the error */
-  PyErr_Restore(error_type, error_value, error_traceback);
 
-  return nullptr;
+  return result;
 }
-#  endif
 
 PyObject *PyC_ExceptionBuffer_Simple()
 {
-  if (!PyErr_Occurred()) {
-    return nullptr;
-  }
+  BLI_assert(PyErr_Occurred());
 
-  PyObject *string_io_buf = nullptr;
+  pyc_exception_buffer_handle_system_exit();
+
+  /* The resulting exception as a string (return value). */
+  PyObject *result = nullptr;
 
   PyObject *error_type, *error_value, *error_traceback;
 
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
-
-  /* Since #PyErr_Print is not called it's not essential that `SystemExit` exceptions are handled.
-   * Do this to match the behavior of #PyC_ExceptionBuffer since requesting a brief exception
-   * shouldn't result in completely different behavior. */
-  pyc_exception_buffer_handle_system_exit(error_type, error_value, error_traceback);
 
   if (PyErr_GivenExceptionMatches(error_type, PyExc_SyntaxError)) {
     /* Special exception for syntax errors,
      * in these cases the full error is verbose and not very useful,
      * just use the initial text so we know what the error is. */
     if (PyTuple_CheckExact(error_value) && PyTuple_GET_SIZE(error_value) >= 1) {
-      string_io_buf = PyObject_Str(PyTuple_GET_ITEM(error_value, 0));
+      result = PyObject_Str(PyTuple_GET_ITEM(error_value, 0));
     }
   }
 
-  if (string_io_buf == nullptr) {
-    string_io_buf = PyObject_Str(error_value);
-  }
-
-  /* Python does this too */
-  if (UNLIKELY(string_io_buf == nullptr)) {
-    string_io_buf = PyUnicode_FromFormat("<unprintable %s object>", Py_TYPE(error_value)->tp_name);
+  if (result == nullptr) {
+    result = PyObject_Str(error_value);
+    /* Python does this too. */
+    if (UNLIKELY(result == nullptr)) {
+      result = PyUnicode_FromFormat("<unprintable %s object>", Py_TYPE(error_value)->tp_name);
+    }
   }
 
   PyErr_Restore(error_type, error_value, error_traceback);
 
-  return string_io_buf;
+  return result;
 }
 
 /** \} */
@@ -1162,15 +1130,25 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
 void PyC_MainModule_Backup(PyObject **r_main_mod)
 {
   PyObject *modules = PyImport_GetModuleDict();
-  *r_main_mod = PyDict_GetItemString(modules, "__main__");
-  Py_XINCREF(*r_main_mod); /* don't free */
+  PyObject *main_mod = PyDict_GetItemString(modules, "__main__");
+  if (main_mod) {
+    /* Ensure the backed up module is kept until it's ownership */
+    /* is transferred back to `sys.modules`. */
+    Py_INCREF(main_mod);
+  }
+  *r_main_mod = main_mod;
 }
 
 void PyC_MainModule_Restore(PyObject *main_mod)
 {
   PyObject *modules = PyImport_GetModuleDict();
-  PyDict_SetItemString(modules, "__main__", main_mod);
-  Py_XDECREF(main_mod);
+  if (main_mod) {
+    PyDict_SetItemString(modules, "__main__", main_mod);
+    Py_DECREF(main_mod);
+  }
+  else {
+    PyDict_DelItemString(modules, "__main__");
+  }
 }
 
 bool PyC_IsInterpreterActive()

@@ -18,7 +18,12 @@ GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_float)
     .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_color)
+GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_float2)
+    .additional_info("compositor_symmetric_separable_blur_shared")
+    .image(0, GPU_RG16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_float4)
     .additional_info("compositor_symmetric_separable_blur_shared")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .do_static_compilation(true);

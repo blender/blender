@@ -17,7 +17,7 @@
 #include "BLI_mempool.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLT_translation.h"
 
@@ -29,7 +29,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
@@ -43,9 +43,9 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_debug.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_debug.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
 
@@ -2540,6 +2540,10 @@ void BKE_view_layer_verify_aov(RenderEngine *engine, Scene *scene, ViewLayer *vi
   viewlayer_aov_make_name_unique(view_layer);
 
   GHash *name_count = BLI_ghash_str_new(__func__);
+  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
+    /* Disable conflict flag, so that the AOV is included when iterating over all passes below. */
+    aov->flag &= ~AOV_CONFLICT;
+  }
   RE_engine_update_render_passes(
       engine, scene, view_layer, bke_view_layer_verify_aov_cb, name_count);
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {

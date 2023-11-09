@@ -64,8 +64,9 @@ ccl_device_inline float wireframe(KernelGlobals kg,
       // At this point dot(crs, crs) / dot(edge, edge) is
       // the square of area / length(edge) == square of the
       // distance to the edge.
-      if (dot(crs, crs) < (dot(edge, edge) * pixelwidth))
+      if (dot(crs, crs) < (dot(edge, edge) * pixelwidth)) {
         return 1.0f;
+      }
     }
   }
   return 0.0f;

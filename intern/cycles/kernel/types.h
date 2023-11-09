@@ -75,6 +75,7 @@ CCL_NAMESPACE_BEGIN
 #define __PASSES__
 #define __PATCH_EVAL__
 #define __POINTCLOUD__
+#define __PRINCIPLED_HAIR__
 #define __RAY_DIFFERENTIALS__
 #define __SHADER_RAYTRACE__
 #define __SHADOW_CATCHER__
@@ -111,6 +112,10 @@ CCL_NAMESPACE_BEGIN
 #  undef __LIGHT_TREE__
 /* Disabled due to compiler crash on Metal/AMD. */
 #  undef __MNEE__
+/* Disable due to performance regression on Metal/AMD. */
+#  ifndef WITH_PRINCIPLED_HAIR
+#    undef __PRINCIPLED_HAIR__
+#  endif
 #endif
 
 /* Scene-based selective features compilation. */
@@ -831,6 +836,8 @@ enum ShaderDataFlag {
 
   /* Shader flags. */
 
+  /* Apply a correction term to smooth illumination on grazing angles when using bump mapping.. */
+  SD_USE_BUMP_MAP_CORRECTION = (1 << 15),
   /* Use front side for direct light sampling. */
   SD_MIS_FRONT = (1 << 16),
   /* Has transparent shadow. */
@@ -1679,9 +1686,7 @@ enum KernelFeatureFlag : uint32_t {
   KERNEL_FEATURE_NODE_RAYTRACE = (1U << 6U),
   KERNEL_FEATURE_NODE_AOV = (1U << 7U),
   KERNEL_FEATURE_NODE_LIGHT_PATH = (1U << 8U),
-
-  /* Use denoising kernels and output denoising passes. */
-  KERNEL_FEATURE_DENOISING = (1U << 9U),
+  KERNEL_FEATURE_NODE_PRINCIPLED_HAIR = (1U << 9U),
 
   /* Use path tracing kernels. */
   KERNEL_FEATURE_PATH_TRACING = (1U << 10U),
@@ -1730,6 +1735,9 @@ enum KernelFeatureFlag : uint32_t {
   /* Light and shadow linking. */
   KERNEL_FEATURE_LIGHT_LINKING = (1U << 27U),
   KERNEL_FEATURE_SHADOW_LINKING = (1U << 28U),
+
+  /* Use denoising kernels and output denoising passes. */
+  KERNEL_FEATURE_DENOISING = (1U << 29U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
@@ -1742,7 +1750,7 @@ enum KernelFeatureFlag : uint32_t {
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
   (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_BUMP | \
    KERNEL_FEATURE_NODE_BUMP_STATE | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
-   KERNEL_FEATURE_NODE_LIGHT_PATH)
+   KERNEL_FEATURE_NODE_LIGHT_PATH | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE \
   (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE | \
    KERNEL_FEATURE_NODE_AOV | KERNEL_FEATURE_NODE_LIGHT_PATH)

@@ -14,9 +14,9 @@
 #include "BKE_global.h" /* for G.debug_value */
 
 #include "BLI_hash.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "eevee_private.h"
 

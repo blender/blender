@@ -60,7 +60,7 @@
 /* Only for types. */
 #include "BKE_node.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "../generic/idprop_py_api.h" /* For IDprop lookups. */
 #include "../generic/idprop_py_ui_api.h"
@@ -1665,11 +1665,11 @@ static int pyrna_py_to_prop(
             }
           }
           else {
-            PyC_Err_Format_Prefix(PyExc_TypeError,
-                                  "%.200s %.200s.%.200s doesn't support None from string types",
-                                  error_prefix,
-                                  RNA_struct_identifier(ptr->type),
-                                  RNA_property_identifier(prop));
+            PyErr_Format(PyExc_TypeError,
+                         "%.200s %.200s.%.200s doesn't support None from string types",
+                         error_prefix,
+                         RNA_struct_identifier(ptr->type),
+                         RNA_property_identifier(prop));
             return -1;
           }
         }
@@ -4513,14 +4513,19 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
  * this is faking internal behavior in a way that's too tricky to maintain well. */
 #  if 0
   if ((ret == nullptr) /* || BPy_PropDeferred_CheckTypeExact(ret) */) {
+    PyErr_Clear(); /* Clear error from tp_getattro. */
     StructRNA *srna = srna_from_self(cls, "StructRNA.__getattr__");
     if (srna) {
       PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, PyUnicode_AsUTF8(attr));
       if (prop) {
-        PyErr_Clear(); /* Clear error from tp_getattro. */
         PointerRNA tptr = RNA_pointer_create(nullptr, &RNA_Property, prop);
         ret = pyrna_struct_CreatePyObject(&tptr);
       }
+    }
+    if (ret == nullptr) {
+      PyErr_Format(PyExc_AttributeError,
+                   "StructRNA.__getattr__: attribute \"%.200s\" not found",
+                   PyUnicode_AsUTF8(attr));
     }
   }
 #  endif
@@ -4724,28 +4729,20 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
   {
     /* Could just do this except for 1 awkward case.
      * `PyObject_GenericGetAttr((PyObject *)self, pyname);`
-     * so as to support `bpy.data.library.load()` */
+     * so as to support `bpy.data.libraries.load()` */
 
-    PyObject *ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+    PyObject *ret = _PyObject_GenericGetAttrWithDict((PyObject *)self, pyname, nullptr, 1);
 
-    if (ret == nullptr && name[0] != '_') { /* Avoid inheriting `__call__` and similar. */
+    /* Check the '_' prefix to avoid inheriting `__call__` and similar. */
+    if ((ret == nullptr) && (name[0] != '_')) {
       /* Since this is least common case, handle it last. */
       PointerRNA r_ptr;
       if (RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
-        PyObject *cls;
-
-        PyObject *error_type, *error_value, *error_traceback;
-        PyErr_Fetch(&error_type, &error_value, &error_traceback);
-
-        cls = pyrna_struct_Subtype(&r_ptr);
-        ret = PyObject_GenericGetAttr(cls, pyname);
+        PyObject *cls = pyrna_struct_Subtype(&r_ptr);
+        ret = _PyObject_GenericGetAttrWithDict(cls, pyname, nullptr, 1);
         Py_DECREF(cls);
 
-        /* Restore the original error. */
-        if (ret == nullptr) {
-          PyErr_Restore(error_type, error_value, error_traceback);
-        }
-        else {
+        if (ret != nullptr) {
           if (Py_TYPE(ret) == &PyMethodDescr_Type) {
             PyMethodDef *m = ((PyMethodDescrObject *)ret)->d_method;
             /* TODO: #METH_CLASS */
@@ -4759,6 +4756,11 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
           }
         }
       }
+    }
+
+    if (ret == nullptr) {
+      PyErr_Format(
+          PyExc_AttributeError, "bpy_prop_collection: attribute \"%.200s\" not found", name);
     }
 
     return ret;
@@ -5246,13 +5248,15 @@ static bool foreach_attr_type(BPy_PropertyRNA *self,
                               /* Values to assign. */
                               RawPropertyType *r_raw_type,
                               int *r_attr_tot,
-                              bool *r_attr_signed)
+                              bool *r_attr_signed,
+                              bool *r_is_empty)
 {
   PropertyRNA *prop;
   bool attr_ok = true;
   *r_raw_type = PROP_RAW_UNSET;
   *r_attr_tot = 0;
   *r_attr_signed = false;
+  *r_is_empty = true;
 
   /* NOTE: this is fail with zero length lists, so don't let this get called in that case. */
   RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop) {
@@ -5265,6 +5269,7 @@ static bool foreach_attr_type(BPy_PropertyRNA *self,
     else {
       attr_ok = false;
     }
+    *r_is_empty = false;
     break;
   }
   RNA_PROP_END;
@@ -5275,6 +5280,7 @@ static bool foreach_attr_type(BPy_PropertyRNA *self,
 /* pyrna_prop_collection_foreach_get/set both use this. */
 static int foreach_parse_args(BPy_PropertyRNA *self,
                               PyObject *args,
+                              const char *function_name,
 
                               /* Values to assign. */
                               const char **r_attr,
@@ -5285,9 +5291,6 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                               int *r_attr_tot,
                               bool *r_attr_signed)
 {
-  int array_tot;
-  int target_tot;
-
   *r_size = *r_attr_tot = 0;
   *r_attr_signed = false;
   *r_raw_type = PROP_RAW_UNSET;
@@ -5297,10 +5300,10 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
   }
 
   if (!PySequence_Check(*r_seq) && PyObject_CheckBuffer(*r_seq)) {
-    PyErr_Format(
-        PyExc_TypeError,
-        "foreach_get/set expected second argument to be a sequence or buffer, not a %.200s",
-        Py_TYPE(*r_seq)->tp_name);
+    PyErr_Format(PyExc_TypeError,
+                 "%s(..) expected second argument to be a sequence or buffer, not a %.200s",
+                 function_name,
+                 Py_TYPE(*r_seq)->tp_name);
     return -1;
   }
 
@@ -5308,6 +5311,10 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
   *r_tot = PySequence_Size(*r_seq);
 
   if (*r_tot > 0) {
+#if 0
+    /* Avoid a full collection count when all that's needed is to check it's empty. */
+    int array_tot;
+
     if (RNA_property_type(self->prop) == PROP_COLLECTION) {
       array_tot = RNA_property_collection_length(&self->ptr, self->prop);
     }
@@ -5316,42 +5323,63 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
     }
     if (array_tot == 0) {
       PyErr_Format(PyExc_TypeError,
-                   "foreach_get(attr, sequence) sequence length mismatch given %d, needed 0",
+                   "%s(..) sequence length mismatch given %d, needed 0",
+                   function_name,
                    *r_tot);
       return -1;
     }
+#endif
 
-    if (!foreach_attr_type(self, *r_attr, r_raw_type, r_attr_tot, r_attr_signed)) {
+    bool is_empty = false; /* `array_tot == 0`. */
+    if (!foreach_attr_type(self, *r_attr, r_raw_type, r_attr_tot, r_attr_signed, &is_empty)) {
       PyErr_Format(PyExc_AttributeError,
-                   "foreach_get/set '%.200s.%200s[...]' elements have no attribute '%.200s'",
+                   "%s(..) '%.200s.%200s[...]' elements have no attribute '%.200s'",
+                   function_name,
                    RNA_struct_identifier(self->ptr.type),
                    RNA_property_identifier(self->prop),
                    *r_attr);
       return -1;
     }
+
+    if (is_empty) {
+      PyErr_Format(PyExc_TypeError,
+                   "%s(..) sequence length mismatch given %d, needed 0",
+                   function_name,
+                   *r_tot);
+      return -1;
+    }
+
     *r_size = RNA_raw_type_sizeof(*r_raw_type);
+
+#if 0
+    /* This size check does not work as the size check is based on the size of the
+     * first element and elements in the collection/array can have different sizes
+     * (i.e. for mixed quad/triangle meshes). See for example issue #111117. */
 
     if ((*r_attr_tot) < 1) {
       *r_attr_tot = 1;
     }
 
-    target_tot = array_tot * (*r_attr_tot);
+    const int target_tot = array_tot * (*r_attr_tot);
 
     /* rna_access.cc - rna_raw_access(...) uses this same method. */
     if (target_tot != (*r_tot)) {
       PyErr_Format(PyExc_TypeError,
-                   "foreach_get(attr, sequence) sequence length mismatch given %d, needed %d",
+                   "%s(..) sequence length mismatch given %d, needed %d",
+                   function_name,
                    *r_tot,
                    target_tot);
       return -1;
     }
+#endif
   }
 
   /* Check 'r_attr_tot' otherwise we don't know if any values were set.
    * This isn't ideal because it means running on an empty list may
    * fail silently when it's not compatible. */
   if (*r_size == 0 && *r_attr_tot != 0) {
-    PyErr_SetString(PyExc_AttributeError, "attribute does not support foreach method");
+    PyErr_Format(
+        PyExc_AttributeError, "%s(..): attribute does not support foreach method", function_name);
     return -1;
   }
   return 0;
@@ -5410,8 +5438,16 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
   bool attr_signed;
   RawPropertyType raw_type;
 
-  if (foreach_parse_args(
-          self, args, &attr, &seq, &tot, &size, &raw_type, &attr_tot, &attr_signed) == -1)
+  if (foreach_parse_args(self,
+                         args,
+                         set ? "foreach_set" : "foreach_get",
+                         &attr,
+                         &seq,
+                         &tot,
+                         &size,
+                         &raw_type,
+                         &attr_tot,
+                         &attr_signed) == -1)
   {
     return nullptr;
   }
@@ -5424,7 +5460,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
         /* Request failed. A `PyExc_BufferError` will have been raised,
          * so clear it to silently fall back to accessing as a sequence. */
         PyErr_Clear();
@@ -5485,7 +5521,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
         /* Request failed. A `PyExc_BufferError` will have been raised,
          * so clear it to silently fall back to accessing as a sequence. */
         PyErr_Clear();
@@ -5629,7 +5665,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   }
 
   Py_buffer buf;
-  if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+  if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
     PyErr_Clear();
 
     switch (prop_type) {
@@ -6577,7 +6613,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 #ifdef DEBUG_STRING_FREE
 #  if 0
   if (PyList_GET_SIZE(string_free_ls)) {
-    printf("%.200s.%.200s():  has %d strings\n",
+    printf("%.200s.%.200s(): has %d strings\n",
            RNA_struct_identifier(self_ptr->type),
            RNA_function_identifier(self_func),
            int(PyList_GET_SIZE(string_free_ls)));
@@ -7952,7 +7988,6 @@ int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p)
 
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
-
   if (self == nullptr) {
     return nullptr;
   }
@@ -7964,19 +7999,8 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
   }
 
   /* These cases above not errors, they just mean the type was not compatible
-   * After this any errors will be raised in the script */
-
-  PyObject *error_type, *error_value, *error_traceback;
-  StructRNA *srna;
-
-  PyErr_Fetch(&error_type, &error_value, &error_traceback);
-  srna = pyrna_struct_as_srna(self, false, error_prefix);
-
-  if (!PyErr_Occurred()) {
-    PyErr_Restore(error_type, error_value, error_traceback);
-  }
-
-  return srna;
+   * After this any errors will be raised in the script. */
+  return pyrna_struct_as_srna(self, false, error_prefix);
 }
 
 static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item)
@@ -8686,7 +8710,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (ret_len == 1) {
       err = pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
 
-      /* When calling operator functions only gives `Function.result` with  no line number
+      /* When calling operator functions only gives `Function.result` with no line number
        * since the function has finished calling on error, re-raise the exception with more
        * information since it would be slow to create prefix on every call
        * (when there are no errors). */
@@ -8757,7 +8781,20 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       reports = CTX_wm_reports(C);
     }
 
-    BPy_errors_to_report(reports);
+    /* Typically null reports are sent to the output,
+     * in this case however PyErr_Print is responsible for that,
+     * so only run this if reports are non-null. */
+    if (reports) {
+      /* Create a temporary report list so none of the reports are printed (only stored).
+       * Only do this when reports is non-null because the error is printed to the `stderr`
+       * #PyErr_Print below. */
+      ReportList reports_temp = {{0}};
+      BKE_reports_init(&reports_temp, reports->flag | RPT_PRINT_HANDLED_BY_OWNER);
+      reports_temp.storelevel = reports->storelevel;
+      BPy_errors_to_report(&reports_temp);
+      BKE_reports_move_to_reports(reports, &reports_temp);
+      BKE_reports_free(&reports_temp);
+    }
 
     /* Also print in the console for Python. */
     PyErr_Print();
@@ -8970,11 +9007,12 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     if (!has_error) {
       BPy_reports_write_stdout(&reports, error_prefix);
     }
-    BKE_reports_clear(&reports);
     if (has_error) {
+      BKE_reports_free(&reports);
       return nullptr;
     }
   }
+  BKE_reports_free(&reports);
 
   /* Python errors validating are not converted into reports so the check above will fail.
    * the cause for returning nullptr will be printed as an error */

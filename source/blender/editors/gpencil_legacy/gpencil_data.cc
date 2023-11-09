@@ -21,7 +21,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -50,7 +50,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -68,9 +68,9 @@
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.h"
 
@@ -344,6 +344,17 @@ static int gpencil_layer_remove_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
+
+  /* Free Grease Pencil data block when last annotation layer is removed, see: #112683. */
+  if (is_annotation && gpd->layers.first == nullptr) {
+    BKE_gpencil_free_data(gpd, true);
+
+    bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, nullptr);
+    *gpd_ptr = nullptr;
+
+    Main *bmain = CTX_data_main(C);
+    BKE_id_free_us(bmain, gpd);
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -922,7 +933,7 @@ static bool gpencil_frame_is_equal(const bGPDframe *gpf_a, const bGPDframe *gpf_
     if (gps_a->caps[1] != gps_b->caps[1]) {
       return false;
     }
-    if (gps_a->hardeness != gps_b->hardeness) {
+    if (gps_a->hardness != gps_b->hardness) {
       return false;
     }
     if (!equals_v2v2(gps_a->aspect_ratio, gps_b->aspect_ratio)) {

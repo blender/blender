@@ -15,17 +15,19 @@
 
 #include "ED_keyframing.hh"
 
+#include "ANIM_fcurve.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_fcurve.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -65,7 +67,7 @@ void AnimationImporter::add_bezt(FCurve *fcu,
   bez.ipo = ipo; /* use default interpolation mode here... */
   bez.f1 = bez.f2 = bez.f3 = SELECT;
   bez.h1 = bez.h2 = HD_AUTO;
-  insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
+  blender::animrig::insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
   BKE_fcurve_handles_recalc(fcu);
 }
 
@@ -132,7 +134,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 #endif
           bez.f1 = bez.f2 = bez.f3 = SELECT;
 
-          insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
+          blender::animrig::insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
         }
 
         BKE_fcurve_handles_recalc(fcu);
@@ -140,7 +142,8 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
         fcurves.push_back(fcu);
         unused_curves.push_back(fcu);
       }
-    } break;
+      break;
+    }
     default:
       fprintf(stderr,
               "Output dimension of %d is not yet supported (animation id = %s)\n",
@@ -601,7 +604,8 @@ void AnimationImporter::Assign_transform_animations(
           else {
             unused_fcurve(curves);
           }
-        } break;
+          break;
+        }
         case COLLADAFW::AnimationList::AXISANGLE:
         /* TODO: convert axis-angle to quat? or XYZ? */
         default:
@@ -1699,7 +1703,7 @@ Object *AnimationImporter::translate_animation_OLD(
       calc_joint_parent_mat_rest(par, nullptr, root, node);
       mul_m4_m4m4(temp, par, matfra);
 
-      /* evaluate_joint_world_transform_at_frame(temp, nullptr, node, fra); */
+      // evaluate_joint_world_transform_at_frame(temp, nullptr, node, fra);
 
       /* calc special matrix */
       mul_m4_series(mat, irest, temp, irest_dae, rest);

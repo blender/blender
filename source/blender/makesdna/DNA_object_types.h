@@ -60,6 +60,16 @@ typedef struct bDeformGroup {
   char flag, _pad0[7];
 } bDeformGroup;
 
+#ifdef DNA_DEPRECATED_ALLOW
+typedef struct bFaceMap {
+  struct bFaceMap *next, *prev;
+  /** MAX_VGROUP_NAME. */
+  char name[64];
+  char flag;
+  char _pad0[7];
+} bFaceMap;
+#endif
+
 #define MAX_VGROUP_NAME 64
 
 /** #bDeformGroup::flag */
@@ -307,7 +317,10 @@ typedef struct Object {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
-  /** Runtime (must be immediately after id for utilities to use it). */
+  /**
+   * Engines draw data, must be immediately after AnimData. See IdDdtTemplate and
+   * DRW_drawdatalist_from_id to understand this requirement.
+   */
   struct DrawDataList drawdata;
 
   struct SculptSession *sculpt;
@@ -325,7 +338,7 @@ typedef struct Object {
   struct Object *proxy_from DNA_DEPRECATED;
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
-  /* struct Path *path; */
+  // struct Path *path;
   struct bAction *action DNA_DEPRECATED;  /* XXX deprecated... old animation system */
   struct bAction *poselib DNA_DEPRECATED; /* Pre-Blender 3.0 pose library, deprecated in 3.5. */
   /** Pose data, armature objects only. */
@@ -346,6 +359,7 @@ typedef struct Object {
   ListBase constraintChannels DNA_DEPRECATED; /* XXX deprecated... old animation system */
   ListBase effect DNA_DEPRECATED;             /* XXX deprecated... keep for readfile */
   ListBase defbase DNA_DEPRECATED;            /* Only for versioning, moved to object data. */
+  ListBase fmaps DNA_DEPRECATED;              /* For versioning, moved to generic attributes. */
   /** List of ModifierData structures. */
   ListBase modifiers;
   /** List of GpencilModifierData structures. */
@@ -797,7 +811,10 @@ enum {
   OB_HIDE_VOLUME_SCATTER = 1 << 7,
   OB_HIDE_SHADOW = 1 << 8,
   OB_HOLDOUT = 1 << 9,
-  OB_SHADOW_CATCHER = 1 << 10
+  OB_SHADOW_CATCHER = 1 << 10,
+  OB_HIDE_PROBE_VOLUME = 1 << 11,
+  OB_HIDE_PROBE_CUBEMAP = 1 << 12,
+  OB_HIDE_PROBE_PLANAR = 1 << 13,
 };
 
 /** #Object.shapeflag */

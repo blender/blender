@@ -15,9 +15,11 @@
 
 #include "GPU_batch.h"
 
+#include "eevee_camera.hh"
 #include "eevee_material.hh"
 #include "eevee_shader.hh"
 #include "eevee_shader_shared.hh"
+#include "eevee_sync.hh"
 
 namespace blender::eevee {
 
@@ -51,6 +53,20 @@ constexpr static const float shadow_clipmap_scale_mat[4][4] = {{SHADOW_TILEMAP_R
                                                                {0, SHADOW_TILEMAP_RES / 2, 0, 0},
                                                                {0, 0, 0.5, 0},
                                                                {0, 0, 0.5, 1}};
+
+/* Technique used for updating the virtual shadow map contents. */
+enum class ShadowTechnique {
+  /* Default virtual shadow map update using large virtual framebuffer to rasterize geometry with
+   * per-fragment textureAtomicMin to perform depth-test and indirectly store nearest depth value
+   * in the shadow atlas. */
+  ATOMIC_RASTER = 0,
+
+  /* Tile-architecture optimized virtual shadow map update, leveraging on-tile memory for clearing
+   * and depth-testing during geometry rasterization to avoid atomic operations, simplify mesh
+   * depth shader and only perform a single storage operation per pixel. This technique performs
+   * a 3-pass solution, first clearing tiles, updating depth and storing final results. */
+  TILE_COPY = 1,
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Tile-Map
@@ -87,8 +103,13 @@ struct ShadowTileMap : public ShadowTileMapData {
                          float lod_bias_,
                          eShadowProjectionType projection_type_);
 
-  void sync_cubeface(
-      const float4x4 &object_mat, float near, float far, eCubeFace face, float lod_bias_);
+  void sync_cubeface(const float4x4 &object_mat,
+                     float near,
+                     float far,
+                     float side,
+                     float shift,
+                     eCubeFace face,
+                     float lod_bias_);
 
   void debug_draw() const;
 
@@ -175,6 +196,9 @@ class ShadowModule {
   friend ShadowTileMapPool;
 
  public:
+  /* Shadowing technique. */
+  static ShadowTechnique shadow_technique;
+
   /** Need to be first because of destructor order. */
   ShadowTileMapPool tilemap_pool;
 
@@ -183,6 +207,8 @@ class ShadowModule {
 
  private:
   Instance &inst_;
+
+  ShadowSceneData &data_;
 
   /** Map of shadow casters to track deletion & update of intersected shadows. */
   Map<ObjectKey, ShadowObject> objects_;
@@ -207,10 +233,14 @@ class ShadowModule {
   StorageVectorBuffer<uint, 128> curr_casters_ = {"CurrCasters"};
 
   /** Indirect arguments for page clearing. */
-  DispatchIndirectBuf clear_dispatch_buf_;
-  /** Array containing a compact stream of tiles to clear. */
-  StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> clear_list_buf_ = {"clear_list_buf"};
-  /** Tile to pages mapping. */
+  DispatchIndirectBuf clear_dispatch_buf_ = {"clear_dispatch_buf"};
+  /** Indirect arguments for TBDR Tile Page passes. */
+  DrawIndirectBuf tile_draw_buf_ = {"tile_draw_buf"};
+  /** A compact stream of rendered tile coordinates in the shadow atlas. */
+  StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> dst_coord_buf_ = {"dst_coord_buf"};
+  /** A compact stream of rendered tile coordinates in the framebuffer. */
+  StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> src_coord_buf_ = {"src_coord_buf"};
+  /** Same as dst_coord_buf_ but is not compact. More like a linear texture. */
   StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> render_map_buf_ = {"render_map_buf"};
   /** View to viewport index mapping. */
   StorageArrayBuffer<uint, SHADOW_VIEW_MAX, true> viewport_index_buf_ = {"viewport_index_buf"};
@@ -257,7 +287,14 @@ class ShadowModule {
   /** Multi-View containing a maximum of 64 view to be rendered with the shadow pipeline. */
   View shadow_multi_view_ = {"ShadowMultiView", SHADOW_VIEW_MAX, true};
   /** Framebuffer with the atlas_tx attached. */
-  Framebuffer render_fb_;
+  Framebuffer render_fb_ = {"shadow_write_framebuffer"};
+
+  /* NOTE(Metal): Metal requires memoryless textures to be created which represent attachments in
+   * the shadow write framebuffer. These textures do not occupy any physical memory, but require a
+   * Texture object containing its parameters.*/
+  Texture shadow_depth_fb_tx_ = {"shadow_depth_fb_tx_"};
+  Texture shadow_depth_accum_tx_ = {"shadow_depth_accum_tx_"};
+
   /** Arrays of viewports to rendering each tile to. */
   std::array<int4, 16> multi_viewports_;
 
@@ -284,16 +321,16 @@ class ShadowModule {
   bool enabled_ = true;
 
  public:
-  ShadowModule(Instance &inst);
+  ShadowModule(Instance &inst, ShadowSceneData &data);
   ~ShadowModule(){};
 
   void init();
 
   void begin_sync();
   /** Register a shadow caster or receiver. */
-  void sync_object(const ObjectHandle &handle,
+  void sync_object(const Object *ob,
+                   const ObjectHandle &handle,
                    const ResourceHandle &resource_handle,
-                   bool is_shadow_caster,
                    bool is_alpha_blend);
   void end_sync();
 
@@ -304,10 +341,10 @@ class ShadowModule {
   void debug_end_sync();
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_texture(SHADOW_ATLAS_TEX_SLOT, &atlas_tx_);
-    pass->bind_texture(SHADOW_TILEMAPS_TEX_SLOT, &tilemap_pool.tilemap_tx);
+    pass.bind_texture(SHADOW_ATLAS_TEX_SLOT, &atlas_tx_);
+    pass.bind_texture(SHADOW_TILEMAPS_TEX_SLOT, &tilemap_pool.tilemap_tx);
   }
 
  private:
@@ -339,10 +376,12 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   eLightType light_type_;
   /** Light position. */
   float3 position_;
-  /** Near and far clip distances. */
-  float far_, near_;
+  /** Used to compute near and far clip distances. */
+  float max_distance_, light_radius_;
   /** Number of tile-maps needed to cover the light angular extents. */
   int tilemaps_needed_;
+  /** Scaling factor to the light shape for shadow ray casting. */
+  float softness_factor_;
 
  public:
   ShadowPunctual(ShadowModule &module) : shadows_(module){};
@@ -360,8 +399,9 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   void sync(eLightType light_type,
             const float4x4 &object_mat,
             float cone_aperture,
-            float near_clip,
-            float far_clip);
+            float light_shape_radius,
+            float max_distance,
+            float softness_factor);
 
   /**
    * Release the tile-maps that will not be used in the current frame.
@@ -372,6 +412,19 @@ class ShadowPunctual : public NonCopyable, NonMovable {
    * Allocate shadow tile-maps and setup views for rendering.
    */
   void end_sync(Light &light, float lod_bias);
+
+ private:
+  /**
+   * Compute the projection matrix inputs.
+   * Make sure that the projection encompass all possible rays that can start in the projection
+   * quadrant.
+   */
+  void compute_projection_boundaries(float light_radius,
+                                     float shadow_radius,
+                                     float max_lit_distance,
+                                     float &near,
+                                     float &far,
+                                     float &side);
 };
 
 class ShadowDirectional : public NonCopyable, NonMovable {
@@ -385,6 +438,10 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   float4x4 object_mat_;
   /** Current range of clip-map / cascades levels covered by this shadow. */
   IndexRange levels_range;
+  /** Radius of the shadowed light shape. Might be scaled compared to the shading disk. */
+  float disk_shape_angle_;
+  /** Maximum distance a shadow map ray can be travel. */
+  float trace_distance_;
 
  public:
   ShadowDirectional(ShadowModule &module) : shadows_(module){};
@@ -399,7 +456,10 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   /**
    * Sync shadow parameters but do not allocate any shadow tile-maps.
    */
-  void sync(const float4x4 &object_mat, float min_resolution);
+  void sync(const float4x4 &object_mat,
+            float min_resolution,
+            float shadow_disk_angle,
+            float trace_distance);
 
   /**
    * Release the tile-maps that will not be used in the current frame.

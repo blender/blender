@@ -54,9 +54,6 @@ void ANIM_bonecoll_free(struct BoneCollection *bcoll);
 /**
  * Recalculate the armature & bone runtime data.
  *
- * NOTE: this should only be used when the runtime structs on the Armature and Bones are still
- * empty. Any data allocated there will NOT be freed.
- *
  * TODO: move to BKE?
  */
 void ANIM_armature_runtime_refresh(struct bArmature *armature);
@@ -75,6 +72,17 @@ void ANIM_armature_runtime_free(struct bArmature *armature);
 struct BoneCollection *ANIM_armature_bonecoll_new(struct bArmature *armature, const char *name);
 
 /**
+ * Add a bone collection to the Armature.
+ *
+ * NOTE: this should not typically be used. It is only used by the library overrides system to
+ * apply override operations.
+ */
+struct BoneCollection *ANIM_armature_bonecoll_insert_copy_after(
+    struct bArmature *armature,
+    struct BoneCollection *anchor,
+    const struct BoneCollection *bcoll_to_copy);
+
+/**
  * Remove a bone collection from the armature.
  */
 void ANIM_armature_bonecoll_remove(struct bArmature *armature, struct BoneCollection *bcoll);
@@ -83,6 +91,9 @@ void ANIM_armature_bonecoll_remove(struct bArmature *armature, struct BoneCollec
  * Set the given bone collection as the active one.
  *
  * Pass `nullptr` to clear the active bone collection.
+ *
+ * The bone collection MUST already be owned by this armature. If it is not,
+ * this function will simply clear the active bone collection.
  */
 void ANIM_armature_bonecoll_active_set(struct bArmature *armature, struct BoneCollection *bcoll);
 
@@ -93,6 +104,23 @@ void ANIM_armature_bonecoll_active_set(struct bArmature *armature, struct BoneCo
  */
 void ANIM_armature_bonecoll_active_index_set(struct bArmature *armature,
                                              int bone_collection_index);
+
+/**
+ * Set the bone collection with the given name as the active one.
+ *
+ * Pass an empty name to clear the active bone collection. A non-existent name will also cause the
+ * active bone collection to be cleared.
+ */
+void ANIM_armature_bonecoll_active_name_set(struct bArmature *armature, const char *name);
+
+/**
+ * Determine whether the given bone collection is editable.
+ *
+ * Bone collections are editable when they are local, so either on a local Armature or added to a
+ * linked Armature via a library override in the local file.
+ */
+bool ANIM_armature_bonecoll_is_editable(const struct bArmature *armature,
+                                        const struct BoneCollection *bcoll);
 
 /**
  * Move the bone collection by \a step places up/down.
@@ -110,6 +138,7 @@ void ANIM_armature_bonecoll_name_set(struct bArmature *armature,
                                      struct BoneCollection *bcoll,
                                      const char *name);
 
+void ANIM_bonecoll_show(struct BoneCollection *bcoll);
 void ANIM_bonecoll_hide(struct BoneCollection *bcoll);
 
 /**
@@ -123,9 +152,13 @@ void ANIM_bonecoll_hide(struct BoneCollection *bcoll);
 bool ANIM_armature_bonecoll_assign(struct BoneCollection *bcoll, struct Bone *bone);
 bool ANIM_armature_bonecoll_assign_editbone(struct BoneCollection *bcoll, struct EditBone *ebone);
 bool ANIM_armature_bonecoll_assign_and_move(struct BoneCollection *bcoll, struct Bone *bone);
+bool ANIM_armature_bonecoll_assign_and_move_editbone(struct BoneCollection *bcoll,
+                                                     struct EditBone *ebone);
 bool ANIM_armature_bonecoll_unassign(struct BoneCollection *bcoll, struct Bone *bone);
 bool ANIM_armature_bonecoll_unassign_editbone(struct BoneCollection *bcoll,
                                               struct EditBone *ebone);
+void ANIM_armature_bonecoll_unassign_all(struct Bone *bone);
+void ANIM_armature_bonecoll_unassign_all_editbone(struct EditBone *ebone);
 
 /* Assign the edit bone to the armature's active collection. */
 void ANIM_armature_bonecoll_assign_active(const struct bArmature *armature,
@@ -181,10 +214,6 @@ inline bool ANIM_bonecoll_is_visible_actbone(const struct bArmature *armature)
 
 void ANIM_armature_bonecoll_show_all(struct bArmature *armature);
 void ANIM_armature_bonecoll_hide_all(struct bArmature *armature);
-
-/* Only used by the Collada I/O code: */
-void ANIM_armature_enable_layers(struct bArmature *armature, const int layers);
-void ANIM_bone_set_layer_ebone(struct EditBone *ebone, int layer);
 
 void ANIM_armature_bonecoll_show_from_bone(struct bArmature *armature, const struct Bone *bone);
 void ANIM_armature_bonecoll_show_from_ebone(struct bArmature *armature,

@@ -118,6 +118,16 @@ void ED_region_header_init(ARegion *region);
 void ED_region_header(const bContext *C, ARegion *region);
 void ED_region_header_layout(const bContext *C, ARegion *region);
 void ED_region_header_draw(const bContext *C, ARegion *region);
+/* Forward declare enum. */
+enum class uiButtonSectionsAlign : int8_t;
+/** Version of #ED_region_header() that draws with button sections. */
+void ED_region_header_with_button_sections(const bContext *C,
+                                           ARegion *region,
+                                           uiButtonSectionsAlign align);
+/** Version of #ED_region_header_draw() that draws with button sections. */
+void ED_region_header_draw_with_button_sections(const bContext *C,
+                                                const ARegion *region,
+                                                uiButtonSectionsAlign align);
 
 void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region);
 /**
@@ -533,7 +543,6 @@ bool ED_operator_editable_mesh(bContext *C);
 bool ED_operator_editmesh(bContext *C);
 bool ED_operator_editmesh_view3d(bContext *C);
 bool ED_operator_editmesh_region_view3d(bContext *C);
-bool ED_operator_editmesh_auto_smooth(bContext *C);
 bool ED_operator_editarmature(bContext *C);
 bool ED_operator_editcurve(bContext *C);
 bool ED_operator_editcurve_3d(bContext *C);

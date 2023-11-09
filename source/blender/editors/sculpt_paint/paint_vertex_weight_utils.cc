@@ -9,7 +9,7 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
@@ -20,11 +20,11 @@
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 /* Only for blend modes. */
 #include "IMB_imbuf.h"

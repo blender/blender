@@ -738,22 +738,28 @@ ccl_device_extern bool osl_transform_triple(ccl_private ShaderGlobals *sg,
 
   if (res) {
     if (vectype == 2 /* TypeDesc::POINT */) {
-      if (p_in_derivs)
+      if (p_in_derivs) {
         osl_transform_dvmdv(p_out, m, p_in);
-      else
+      }
+      else {
         osl_transform_vmv(p_out, m, p_in);
+      }
     }
     else if (vectype == 3 /* TypeDesc::VECTOR */) {
-      if (p_in_derivs)
+      if (p_in_derivs) {
         osl_transformv_dvmdv(p_out, m, p_in);
-      else
+      }
+      else {
         osl_transformv_vmv(p_out, m, p_in);
+      }
     }
     else if (vectype == 4 /* TypeDesc::NORMAL */) {
-      if (p_in_derivs)
+      if (p_in_derivs) {
         osl_transformn_dvmdv(p_out, m, p_in);
-      else
+      }
+      else {
         osl_transformn_vmv(p_out, m, p_in);
+      }
     }
     else {
       res = false;
@@ -1630,19 +1636,24 @@ ccl_device_extern bool osl_texture(ccl_private ShaderGlobals *sg,
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
       const float4 rgba = kernel_tex_image_interp(nullptr, slot, s, 1.0f - t);
-      if (nchannels > 0)
+      if (nchannels > 0) {
         result[0] = rgba.x;
-      if (nchannels > 1)
+      }
+      if (nchannels > 1) {
         result[1] = rgba.y;
-      if (nchannels > 2)
+      }
+      if (nchannels > 2) {
         result[2] = rgba.z;
-      if (alpha)
+      }
+      if (alpha) {
         *alpha = rgba.w;
+      }
       return true;
     }
     case OSL_TEXTURE_HANDLE_TYPE_IES: {
-      if (nchannels > 0)
+      if (nchannels > 0) {
         result[0] = kernel_ies_interp(nullptr, slot, s, t);
+      }
       return true;
     }
     default: {
@@ -1674,14 +1685,18 @@ ccl_device_extern bool osl_texture3d(ccl_private ShaderGlobals *sg,
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
       const float4 rgba = kernel_tex_image_interp_3d(nullptr, slot, *P, INTERPOLATION_NONE);
-      if (nchannels > 0)
+      if (nchannels > 0) {
         result[0] = rgba.x;
-      if (nchannels > 1)
+      }
+      if (nchannels > 1) {
         result[1] = rgba.y;
-      if (nchannels > 2)
+      }
+      if (nchannels > 2) {
         result[2] = rgba.z;
-      if (alpha)
+      }
+      if (alpha) {
         *alpha = rgba.w;
+      }
       return true;
     }
     default: {
@@ -1706,14 +1721,18 @@ ccl_device_extern bool osl_environment(ccl_private ShaderGlobals *sg,
                                        ccl_private float *dalphay,
                                        ccl_private void *errormessage)
 {
-  if (nchannels > 0)
+  if (nchannels > 0) {
     result[0] = 1.0f;
-  if (nchannels > 1)
+  }
+  if (nchannels > 1) {
     result[1] = 0.0f;
-  if (nchannels > 2)
+  }
+  if (nchannels > 2) {
     result[2] = 1.0f;
-  if (alpha)
+  }
+  if (alpha) {
     *alpha = 1.0f;
+  }
 
   return false;
 }
@@ -2095,22 +2114,25 @@ ccl_device_extern void osl_sincos_dfdff(ccl_private const float *a,
                                         ccl_private float *b,
                                         ccl_private float *c)
 {
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i) {
     sincos(a[i], b + i, c);
+  }
 }
 ccl_device_extern void osl_sincos_dffdf(ccl_private const float *a,
                                         ccl_private float *b,
                                         ccl_private float *c)
 {
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i) {
     sincos(a[i], b, c + i);
+  }
 }
 ccl_device_extern void osl_sincos_dfdfdf(ccl_private const float *a,
                                          ccl_private float *b,
                                          ccl_private float *c)
 {
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i) {
     sincos(a[i], b + i, c + i);
+  }
 }
 ccl_device_extern void osl_sincos_vvv(ccl_private const float3 *a,
                                       ccl_private float3 *b,
@@ -2232,10 +2254,12 @@ ccl_device_extern void osl_calculatenormal(ccl_private float3 *res,
                                            ccl_private ShaderGlobals *sg,
                                            ccl_private const float3 *p)
 {
-  if (sg->flipHandedness)
+  if (sg->flipHandedness) {
     *res = cross(p[2], p[1]);
-  else
+  }
+  else {
     *res = cross(p[1], p[2]);
+  }
 }
 
 ccl_device_extern float osl_area(ccl_private const float3 *p)
@@ -2250,8 +2274,9 @@ ccl_device_extern float osl_filterwidth_fdf(ccl_private const float *x)
 
 ccl_device_extern void osl_filterwidth_vdv(ccl_private float *res, ccl_private const float *x)
 {
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i) {
     res[i] = osl_filterwidth_fdf(x + i);
+  }
 }
 
 ccl_device_extern bool osl_raytype_bit(ccl_private ShaderGlobals *sg, int bit)

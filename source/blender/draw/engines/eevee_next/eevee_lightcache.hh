@@ -17,6 +17,7 @@ struct ViewLayer;
 struct Scene;
 struct Object;
 struct wmJob;
+struct wmJobWorkerStatus;
 
 /** Opaque type hiding eevee::LightBake. */
 struct EEVEE_NEXT_LightBake;
@@ -58,22 +59,20 @@ void *EEVEE_NEXT_lightbake_job_data_alloc(Main *bmain,
  * Free the job data.
  * NOTE: Does not free the GPUContext. This is the responsibility of `EEVEE_NEXT_lightbake_job()`
  */
-void EEVEE_NEXT_lightbake_job_data_free(void *job_data /* EEVEE_NEXT_LightBake */);
+void EEVEE_NEXT_lightbake_job_data_free(/*EEVEE_NEXT_LightBake*/ void *job_data);
 
 /**
  * Callback for updating original scene light cache with bake result.
  * Run by the job system for each update step and the finish step.
  * This is called manually by `EEVEE_NEXT_lightbake_job()` if not run from a job.
  */
-void EEVEE_NEXT_lightbake_update(void *job_data /* EEVEE_NEXT_LightBake */);
+void EEVEE_NEXT_lightbake_update(/*EEVEE_NEXT_LightBake*/ void *job_data);
 
 /**
  * Do the full light baking for all samples.
  * Will call `EEVEE_NEXT_lightbake_update()` on finish.
  */
-void EEVEE_NEXT_lightbake_job(void *job_data /* EEVEE_NEXT_LightBake */,
-                              bool *stop,
-                              bool *do_update,
-                              float *progress);
+void EEVEE_NEXT_lightbake_job(/*EEVEE_NEXT_LightBake*/ void *job_data,
+                              wmJobWorkerStatus *worker_status);
 
 /** \} */

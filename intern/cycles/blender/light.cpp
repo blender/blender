@@ -33,8 +33,9 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   if (!light_map.add_or_update(&light, b_ob_info.real_object, b_parent, key) && !tfm_updated) {
     Shader *shader;
     if (!shader_map.add_or_update(&shader, b_light)) {
-      if (light->get_is_portal())
+      if (light->get_is_portal()) {
         *use_portal = true;
+      }
       return;
     }
   }
@@ -126,13 +127,16 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     light->set_random_id(hash_uint2(hash_string(b_ob_info.real_object.name().c_str()), 0));
   }
 
-  if (light->get_light_type() == LIGHT_AREA)
+  if (light->get_light_type() == LIGHT_AREA) {
     light->set_is_portal(get_boolean(clight, "is_portal"));
-  else
+  }
+  else {
     light->set_is_portal(false);
+  }
 
-  if (light->get_is_portal())
+  if (light->get_is_portal()) {
     *use_portal = true;
+  }
 
   /* visibility */
   uint visibility = object_ray_visibility(b_ob_info.real_object);

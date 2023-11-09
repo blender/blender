@@ -4,7 +4,7 @@
 
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "node_geometry_util.hh"
 
@@ -20,7 +20,7 @@ static void node_exec(GeoNodeExecParams params)
 {
   const Scene *scene = DEG_get_input_scene(params.depsgraph());
   const float scene_ctime = BKE_scene_ctime_get(scene);
-  const double frame_rate = (double(scene->r.frs_sec) / double(scene->r.frs_sec_base));
+  const double frame_rate = double(scene->r.frs_sec) / double(scene->r.frs_sec_base);
   params.set_output("Seconds", float(scene_ctime / frame_rate));
   params.set_output("Frame", scene_ctime);
 }

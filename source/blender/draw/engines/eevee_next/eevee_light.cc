@@ -71,10 +71,10 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   float shape_power = shape_radiance_get(la);
   float point_power = point_radiance_get(la);
-  this->diffuse_power = la->diff_fac * shape_power;
-  this->transmit_power = la->diff_fac * point_power;
-  this->specular_power = la->spec_fac * shape_power;
-  this->volume_power = la->volume_fac * point_power;
+  this->power[LIGHT_DIFFUSE] = la->diff_fac * shape_power;
+  this->power[LIGHT_TRANSMIT] = la->diff_fac * point_power;
+  this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power;
+  this->power[LIGHT_VOLUME] = la->volume_fac * point_power;
 
   eLightType new_type = to_light_type(la->type, la->area_shape);
   if (assign_if_different(this->type, new_type)) {
@@ -84,11 +84,21 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   if (la->mode & LA_SHADOW) {
     shadow_ensure(shadows);
     if (is_sun_light(this->type)) {
-      this->directional->sync(this->object_mat, 1.0f);
+      this->directional->sync(this->object_mat,
+                              1.0f,
+                              la->sun_angle * la->shadow_softness_factor,
+                              la->shadow_trace_distance);
     }
     else {
-      this->punctual->sync(
-          this->type, this->object_mat, la->spotsize, la->clipsta, this->influence_radius_max);
+      /* Reuse shape radius as near clip plane. */
+      /* This assumes `shape_parameters_set` has already set `radius_squared`. */
+      float radius = math::sqrt(this->radius_squared);
+      this->punctual->sync(this->type,
+                           this->object_mat,
+                           la->spotsize,
+                           radius,
+                           this->influence_radius_max,
+                           la->shadow_softness_factor);
     }
   }
   else {
@@ -417,7 +427,8 @@ void LightModule::debug_pass_sync()
     debug_draw_ps_.init();
     debug_draw_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     debug_draw_ps_.shader_set(inst_.shaders.static_shader_get(LIGHT_CULLING_DEBUG));
-    inst_.hiz_buffer.bind_resources(&debug_draw_ps_);
+    inst_.bind_uniform_data(&debug_draw_ps_);
+    inst_.hiz_buffer.bind_resources(debug_draw_ps_);
     debug_draw_ps_.bind_ssbo("light_buf", &culling_light_buf_);
     debug_draw_ps_.bind_ssbo("light_cull_buf", &culling_data_buf_);
     debug_draw_ps_.bind_ssbo("light_zbin_buf", &culling_zbin_buf_);

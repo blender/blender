@@ -193,7 +193,7 @@ static const char *zstd_ensure_cache(ZstdReader *zstd, int frame)
   return uncompressed_data;
 }
 
-static ssize_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
+static int64_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
 {
   ZstdReader *zstd = (ZstdReader *)reader;
 
@@ -244,7 +244,7 @@ static off64_t zstd_seek(FileReader *reader, off64_t offset, int whence)
   return zstd->reader.offset;
 }
 
-static ssize_t zstd_read(FileReader *reader, void *buffer, size_t size)
+static int64_t zstd_read(FileReader *reader, void *buffer, size_t size)
 {
   ZstdReader *zstd = (ZstdReader *)reader;
   ZSTD_outBuffer output = {buffer, size, 0};
@@ -253,7 +253,7 @@ static ssize_t zstd_read(FileReader *reader, void *buffer, size_t size)
     if (zstd->in_buf.pos == zstd->in_buf.size) {
       /* Ran out of buffered input data, read some more. */
       zstd->in_buf.pos = 0;
-      ssize_t readsize = zstd->base->read(
+      int64_t readsize = zstd->base->read(
           zstd->base, (char *)zstd->in_buf.src, zstd->in_buf_max_size);
 
       if (readsize > 0) {

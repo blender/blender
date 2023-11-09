@@ -256,7 +256,7 @@ class GHOST_SharedOpenGLResource {
       return GHOST_kFailure;
     }
 
-    /* Build the renderbuffer. */
+    /* Build the render-buffer. */
     glGenRenderbuffers(1, &m_gl_render_target);
     glBindRenderbuffer(GL_RENDERBUFFER, m_gl_render_target);
 
@@ -273,7 +273,7 @@ class GHOST_SharedOpenGLResource {
       reregisterSharedObject(TARGET_TEX2D);
     }
 
-    /* Build the framebuffer */
+    /* Build the frame-buffer. */
     glGenFramebuffers(1, &m_shared.fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, m_shared.fbo);
     if (m_use_gl_texture2d) {

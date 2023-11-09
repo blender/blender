@@ -28,7 +28,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_query.h"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -36,10 +36,10 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_physics.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_physics.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
@@ -57,26 +57,18 @@ static void init_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-#ifndef WITH_FLUID
-  UNUSED_VARS(md, target, flag);
-#else
   const FluidModifierData *fmd = (const FluidModifierData *)md;
   FluidModifierData *tfmd = (FluidModifierData *)target;
 
   BKE_fluid_modifier_free(tfmd);
   BKE_fluid_modifier_copy(fmd, tfmd, flag);
-#endif /* WITH_FLUID */
 }
 
 static void free_data(ModifierData *md)
 {
-#ifndef WITH_FLUID
-  UNUSED_VARS(md);
-#else
   FluidModifierData *fmd = (FluidModifierData *)md;
 
   BKE_fluid_modifier_free(fmd);
-#endif /* WITH_FLUID */
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

@@ -9,13 +9,14 @@
  * We use it for depth and non-mesh objects.
  */
 
+#include "DRW_engine.h"
 #include "DRW_render.h"
 
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 
 #include "ED_image.hh"
@@ -516,6 +517,18 @@ bool DRW_engine_external_acquire_for_image_editor()
   }
 
   return RE_engine_draw_acquire(re);
+}
+
+void DRW_engine_external_free(RegionView3D *rv3d)
+{
+  if (rv3d->view_render) {
+    /* Free engine with DRW context enabled, as this may clean up per-context
+     * resources like VAOs. */
+    DRW_gpu_context_enable_ex(true);
+    RE_FreeViewRender(rv3d->view_render);
+    rv3d->view_render = nullptr;
+    DRW_gpu_context_disable_ex(true);
+  }
 }
 
 #undef EXTERNAL_ENGINE

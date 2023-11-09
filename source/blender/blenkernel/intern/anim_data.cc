@@ -39,7 +39,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BLO_read_write.hh"
 

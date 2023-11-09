@@ -17,6 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
@@ -36,18 +37,23 @@
 #include "ED_particle.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
+#include "ED_sequencer.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "UI_view2d.hh"
 
 #include "WM_types.hh"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "transform.hh"
 #include "transform_snap.hh"
 
 /* Own include. */
 #include "transform_convert.hh"
+
+using namespace blender;
 
 bool transform_mode_use_local_origins(const TransInfo *t)
 {
@@ -170,6 +176,39 @@ static void sort_trans_data_selected_first(TransInfo *t)
   }
 }
 
+static float3 prop_dist_loc_get(const TransDataContainer *tc,
+                                const TransData *td,
+                                const bool use_island,
+                                const float proj_vec[3])
+{
+  float3 r_vec;
+
+  if (use_island) {
+    if (tc->use_local_mat) {
+      mul_v3_m4v3(r_vec, tc->mat, td->iloc);
+    }
+    else {
+      mul_v3_m3v3(r_vec, td->mtx, td->iloc);
+    }
+  }
+  else {
+    if (tc->use_local_mat) {
+      mul_v3_m4v3(r_vec, tc->mat, td->center);
+    }
+    else {
+      mul_v3_m3v3(r_vec, td->mtx, td->center);
+    }
+  }
+
+  if (proj_vec) {
+    float vec_p[3];
+    project_v3_v3v3(vec_p, r_vec, proj_vec);
+    sub_v3_v3(r_vec, vec_p);
+  }
+
+  return r_vec;
+}
+
 /**
  * Distance calculated from not-selected vertex to nearest selected vertex.
  */
@@ -220,31 +259,9 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     for (a = 0; a < tc->data_len; a++, td++) {
       if (td->flag & TD_SELECTED) {
         /* Initialize, it was malloced. */
-        float vec[3];
         td->rdist = 0.0f;
 
-        if (use_island) {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->iloc);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->iloc);
-          }
-        }
-        else {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->center);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->center);
-          }
-        }
-
-        if (proj_vec) {
-          float vec_p[3];
-          project_v3_v3v3(vec_p, vec, proj_vec);
-          sub_v3_v3(vec, vec_p);
-        }
+        const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
         BLI_kdtree_3d_insert(td_tree, td_table_index, vec);
         td_table[td_table_index++] = td;
@@ -264,30 +281,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     TransData *td = tc->data;
     for (a = 0; a < tc->data_len; a++, td++) {
       if ((td->flag & TD_SELECTED) == 0) {
-        float vec[3];
-
-        if (use_island) {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->iloc);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->iloc);
-          }
-        }
-        else {
-          if (tc->use_local_mat) {
-            mul_v3_m4v3(vec, tc->mat, td->center);
-          }
-          else {
-            mul_v3_m3v3(vec, td->mtx, td->center);
-          }
-        }
-
-        if (proj_vec) {
-          float vec_p[3];
-          project_v3_v3v3(vec_p, vec, proj_vec);
-          sub_v3_v3(vec, vec_p);
-        }
+        const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
         KDTreeNearest_3d nearest;
         const int td_index = BLI_kdtree_3d_find_nearest(td_tree, vec, &nearest);
@@ -324,7 +318,7 @@ static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
   bool changed = false;
 
   /* don't bother to search if no valid constraints */
-  if ((pchan->constflag & (PCHAN_HAS_IK | PCHAN_HAS_TARGET)) == 0) {
+  if ((pchan->constflag & (PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET)) == 0) {
     return changed;
   }
 
@@ -724,23 +718,25 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 static void init_proportional_edit(TransInfo *t)
 {
   /* NOTE: Proportional editing is not usable in pose mode yet #32444. */
-  if (!ELEM(t->data_type,
-            &TransConvertType_Action,
-            &TransConvertType_Curve,
-            &TransConvertType_Curves,
-            &TransConvertType_Graph,
-            &TransConvertType_GPencil,
-            &TransConvertType_Lattice,
-            &TransConvertType_Mask,
-            &TransConvertType_MBall,
-            &TransConvertType_Mesh,
-            &TransConvertType_MeshEdge,
-            &TransConvertType_MeshSkin,
-            &TransConvertType_MeshUV,
-            &TransConvertType_MeshVertCData,
-            &TransConvertType_Node,
-            &TransConvertType_Object,
-            &TransConvertType_Particle))
+  /* NOTE: This `ELEM` uses more than 16 elements and so has been split. */
+  if (!(ELEM(t->data_type,
+             &TransConvertType_Action,
+             &TransConvertType_Curve,
+             &TransConvertType_Curves,
+             &TransConvertType_Graph,
+             &TransConvertType_GPencil,
+             &TransConvertType_GreasePencil,
+             &TransConvertType_Lattice,
+             &TransConvertType_Mask,
+             &TransConvertType_MBall,
+             &TransConvertType_Mesh,
+             &TransConvertType_MeshEdge,
+             &TransConvertType_MeshSkin,
+             &TransConvertType_MeshUV,
+             &TransConvertType_MeshVertCData,
+             &TransConvertType_Node,
+             &TransConvertType_Object) ||
+        ELEM(t->data_type, &TransConvertType_Particle)))
   {
     /* Disable proportional editing */
     t->options |= CTX_NO_PET;
@@ -803,6 +799,7 @@ static void init_TransDataContainers(TransInfo *t,
             &TransConvertType_Curve,
             &TransConvertType_Curves,
             &TransConvertType_GPencil,
+            &TransConvertType_GreasePencil,
             &TransConvertType_Lattice,
             &TransConvertType_MBall,
             &TransConvertType_Mesh,
@@ -819,6 +816,7 @@ static void init_TransDataContainers(TransInfo *t,
   const short object_type = obact ? obact->type : -1;
 
   if ((object_mode & OB_MODE_EDIT) || (t->data_type == &TransConvertType_GPencil) ||
+      (t->data_type == &TransConvertType_GreasePencil) ||
       ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE)))
   {
     if (t->data_container) {
@@ -864,6 +862,9 @@ static void init_TransDataContainers(TransInfo *t,
         tc->use_local_mat = true;
       }
       else if (t->data_type == &TransConvertType_GPencil) {
+        tc->use_local_mat = true;
+      }
+      else if (t->data_type == &TransConvertType_GreasePencil) {
         tc->use_local_mat = true;
       }
 
@@ -915,8 +916,14 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   if (t->options & CTX_EDGE_DATA) {
     return &TransConvertType_MeshEdge;
   }
-  if (t->options & CTX_GPENCIL_STROKES) {
-    return &TransConvertType_GPencil;
+  if ((t->options & CTX_GPENCIL_STROKES) && (t->spacetype == SPACE_VIEW3D)) {
+    if (t->obedit_type == OB_GREASE_PENCIL) {
+      return &TransConvertType_GreasePencil;
+    }
+    else if (t->obedit_type == OB_GPENCIL_LEGACY) {
+      return &TransConvertType_GPencil;
+    }
+    return nullptr;
   }
   if (t->spacetype == SPACE_IMAGE) {
     if (t->options & CTX_MASK) {
@@ -941,6 +948,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   if (t->spacetype == SPACE_SEQ) {
     if (t->options & CTX_SEQUENCER_IMAGE) {
       return &TransConvertType_SequencerImage;
+    }
+    if (sequencer_retiming_mode_is_active(t->context)) {
+      return &TransConvertType_SequencerRetiming;
     }
     return &TransConvertType_Sequencer;
   }
@@ -1191,7 +1201,7 @@ void animrecord_check_state(TransInfo *t, ID *id)
    * - we're not only keying for available channels
    * - the option to add new actions for each round is not enabled
    */
-  if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL) == 0 &&
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL) == 0 &&
       (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA))
   {
     /* if playback has just looped around,

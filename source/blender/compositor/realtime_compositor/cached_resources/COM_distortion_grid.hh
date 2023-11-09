@@ -19,6 +19,8 @@
 
 namespace blender::realtime_compositor {
 
+class Context;
+
 enum class DistortionType : uint8_t {
   Distort,
   Undistort,
@@ -57,7 +59,11 @@ class DistortionGrid : public CachedResource {
  public:
   /* The calibration size is the size of the image where the tracking camera was calibrated, this
    * is the size of the movie clip in most cases. */
-  DistortionGrid(MovieClip *movie_clip, int2 size, DistortionType type, int2 calibration_size);
+  DistortionGrid(Context &context,
+                 MovieClip *movie_clip,
+                 int2 size,
+                 DistortionType type,
+                 int2 calibration_size);
 
   ~DistortionGrid();
 
@@ -80,7 +86,8 @@ class DistortionGridContainer : CachedResourceContainer {
    * container, if one exists, return it, otherwise, return a newly created one and add it to the
    * container. In both cases, tag the cached resource as needed to keep it cached for the next
    * evaluation. */
-  DistortionGrid &get(MovieClip *movie_clip, int2 size, DistortionType type, int frame_number);
+  DistortionGrid &get(
+      Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int frame_number);
 };
 
 }  // namespace blender::realtime_compositor

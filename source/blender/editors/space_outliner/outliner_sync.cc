@@ -24,13 +24,13 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_armature.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 
-#include "SEQ_select.h"
+#include "SEQ_select.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

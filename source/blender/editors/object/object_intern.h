@@ -83,6 +83,7 @@ void OBJECT_OT_mode_set_with_submode(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
+void OBJECT_OT_shade_smooth_by_angle(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);
 void OBJECT_OT_paths_update(struct wmOperatorType *ot);
@@ -347,6 +348,8 @@ void OBJECT_OT_bake(wmOperatorType *ot);
 void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot);
 void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot);
 void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot);
+void OBJECT_OT_simulation_nodes_cache_bake_single(wmOperatorType *ot);
+void OBJECT_OT_simulation_nodes_cache_delete_single(wmOperatorType *ot);
 
 /* `object_random.cc` */
 

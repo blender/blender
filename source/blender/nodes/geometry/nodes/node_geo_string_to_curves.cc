@@ -20,6 +20,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_string_to_curves_cc {
@@ -233,7 +235,8 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
     layout.positions.append(float2(ct.xof, ct.yof) * layout.final_font_size);
 
     if ((info[i].flag & CU_CHINFO_OVERFLOW) && (cu.overflow == CU_OVERFLOW_TRUNCATE)) {
-      const int offset = BLI_str_utf8_offset_from_index(layout.text.c_str(), i + 1);
+      const int offset = BLI_str_utf8_offset_from_index(
+          layout.text.c_str(), layout.text.size(), i + 1);
       layout.truncated_text = layout.text.substr(offset);
       layout.text = layout.text.substr(0, offset);
       break;
@@ -294,6 +297,8 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
 
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     BKE_nurbList_free(&cu.nurb);
+
+    geometry::debug_randomize_curve_order(&curves);
 
     float4x4 size_matrix = math::from_scale<float4x4>(float3(layout.final_font_size));
     curves.transform(size_matrix);

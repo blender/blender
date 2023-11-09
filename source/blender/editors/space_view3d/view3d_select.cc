@@ -57,7 +57,7 @@
 #include "BKE_layer.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
@@ -92,11 +92,11 @@
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "ANIM_bone_collections.h"
 
@@ -113,22 +113,22 @@ float ED_view3d_select_dist_px()
   return 75.0f * U.pixelsize;
 }
 
-void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph)
+ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph)
 {
   /* TODO: should return whether there is valid context to continue. */
-
-  memset(vc, 0, sizeof(ViewContext));
-  vc->C = C;
-  vc->region = CTX_wm_region(C);
-  vc->bmain = CTX_data_main(C);
-  vc->depsgraph = depsgraph;
-  vc->scene = CTX_data_scene(C);
-  vc->view_layer = CTX_data_view_layer(C);
-  vc->v3d = CTX_wm_view3d(C);
-  vc->win = CTX_wm_window(C);
-  vc->rv3d = CTX_wm_region_view3d(C);
-  vc->obact = CTX_data_active_object(C);
-  vc->obedit = CTX_data_edit_object(C);
+  ViewContext vc = {};
+  vc.C = C;
+  vc.region = CTX_wm_region(C);
+  vc.bmain = CTX_data_main(C);
+  vc.depsgraph = depsgraph;
+  vc.scene = CTX_data_scene(C);
+  vc.view_layer = CTX_data_view_layer(C);
+  vc.v3d = CTX_wm_view3d(C);
+  vc.win = CTX_wm_window(C);
+  vc.rv3d = CTX_wm_region_view3d(C);
+  vc.obact = CTX_data_active_object(C);
+  vc.obedit = CTX_data_edit_object(C);
+  return vc;
 }
 
 void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
@@ -205,7 +205,7 @@ static void editselect_buf_cache_init(ViewContext *vc, short select_mode)
     Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
         vc->scene, vc->view_layer, vc->v3d, &bases_len);
 
-    DRW_select_buffer_context_create(bases, bases_len, select_mode);
+    DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, select_mode);
     MEM_freeN(bases);
   }
   else {
@@ -213,7 +213,7 @@ static void editselect_buf_cache_init(ViewContext *vc, short select_mode)
     if (vc->obact) {
       BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
       Base *base = BKE_view_layer_base_find(vc->view_layer, vc->obact);
-      DRW_select_buffer_context_create(&base, 1, select_mode);
+      DRW_select_buffer_context_create(vc->depsgraph, &base, 1, select_mode);
     }
   }
 }
@@ -1188,23 +1188,25 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      vc->scene->toolsettings);
 
   bool changed = false;
-  grease_pencil.foreach_editable_drawing(
-      vc->scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
-        bke::crazyspace::GeometryDeformation deformation =
-            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, drawing_index);
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
+  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
 
-        changed = ed::curves::select_lasso(
-            *vc,
-            drawing.strokes_for_write(),
-            deformation.positions,
-            selection_domain,
-            Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
-            sel_op);
-      });
+    changed = ed::curves::select_lasso(
+        *vc,
+        info.drawing.strokes_for_write(),
+        deformation.positions,
+        selection_domain,
+        Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
+        sel_op);
+  }
 
   if (changed) {
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
@@ -1460,7 +1462,6 @@ static bool view3d_lasso_select(bContext *C,
  * with short array we convert */
 static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  ViewContext vc;
   int mcoords_len;
   const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
@@ -1470,7 +1471,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
     BKE_object_update_select_id(CTX_data_main(C));
 
     /* setup view context for argument to callbacks */
-    ED_view3d_viewcontext_init(C, &vc, depsgraph);
+    ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
     eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
     bool changed_multi = view3d_lasso_select(C, &vc, mcoords, mcoords_len, sel_op);
@@ -2410,7 +2411,6 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
                                                  int *r_material_slot)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Base *basact = nullptr;
   GPUSelectResult buffer[MAXPICKELEMS];
 
@@ -2418,7 +2418,7 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
   view3d_operator_needs_opengl(C);
   BKE_object_update_select_id(CTX_data_main(C));
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
   const bool do_material_slot_selection = r_material_slot != nullptr;
@@ -2587,9 +2587,8 @@ static bool ed_object_select_pick(bContext *C,
                                   const bool object_only)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   /* Setup view context for argument to callbacks. */
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   Scene *scene = vc.scene;
   View3D *v3d = vc.v3d;
@@ -3062,9 +3061,8 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
-  ViewContext vc;
   /* Setup view context for argument to callbacks. */
-  ED_view3d_viewcontext_init(&C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(&C, depsgraph);
 
   uint bases_len;
   Base **bases_ptr = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
@@ -3110,18 +3108,19 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
       for (Base *base : bases.slice(range)) {
         Curves &curves_id = *static_cast<Curves *>(base->object->data);
         bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-        if (ed::curves::has_anything_selected(curves)) {
-          bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-              curves, selection_domain, CD_PROP_BOOL);
-          ed::curves::fill_selection_false(selection.span);
-          selection.finish();
-
-          deselected = true;
-          /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
-           * generic attribute for now. */
-          DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
-          WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
+        if (!ed::curves::has_anything_selected(curves)) {
+          continue;
         }
+        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+            curves, selection_domain, CD_PROP_BOOL);
+        ed::curves::fill_selection_false(selection.span);
+        selection.finish();
+
+        deselected = true;
+        /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+         * generic attribute for now. */
+        DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
+        WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
       }
     });
   }
@@ -3163,23 +3162,18 @@ static bool ed_grease_pencil_select_pick(bContext *C,
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   /* Setup view context for argument to callbacks. */
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   /* Collect editable drawings. */
   const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obedit->data);
-  Vector<blender::bke::greasepencil::Drawing *> drawings;
-  Vector<int> drawing_indices;
-  grease_pencil.foreach_editable_drawing(
-      vc.scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
-        drawings.append(&drawing);
-        drawing_indices.append(drawing_index);
-      });
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      vc.scene->toolsettings);
 
   const ClosestGreasePencilDrawing closest = threading::parallel_reduce(
       drawings.index_range(),
@@ -3188,21 +3182,22 @@ static bool ed_grease_pencil_select_pick(bContext *C,
       [&](const IndexRange range, const ClosestGreasePencilDrawing &init) {
         ClosestGreasePencilDrawing new_closest = init;
         for (const int i : range) {
+          ed::greasepencil::MutableDrawingInfo info = drawings[i];
           /* Get deformation by modifiers. */
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                  ob_eval, *vc.obedit, drawing_indices[i]);
+                  ob_eval, *vc.obedit, info.layer_index, info.frame_number);
           std::optional<ed::curves::FindClosestData> new_closest_elem =
               ed::curves::closest_elem_find_screen_space(vc,
                                                          *vc.obedit,
-                                                         drawings[i]->strokes_for_write(),
+                                                         info.drawing.strokes_for_write(),
                                                          deformation.positions,
                                                          selection_domain,
                                                          mval,
                                                          new_closest.elem);
           if (new_closest_elem) {
             new_closest.elem = *new_closest_elem;
-            new_closest.drawing = drawings[i];
+            new_closest.drawing = &info.drawing;
           }
         }
         return new_closest;
@@ -3215,15 +3210,17 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   if (params.deselect_all || params.sel_op == SEL_OP_SET) {
     threading::parallel_for(drawings.index_range(), 1L, [&](const IndexRange range) {
       for (const int i : range) {
-        bke::CurvesGeometry &curves = drawings[i]->geometry.wrap();
-        if (ed::curves::has_anything_selected(curves)) {
-          bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-              curves, selection_domain, CD_PROP_BOOL);
-          ed::curves::fill_selection_false(selection.span);
-          selection.finish();
-
-          deselected = true;
+        ed::greasepencil::MutableDrawingInfo info = drawings[i];
+        bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+        if (!ed::curves::has_anything_selected(curves)) {
+          continue;
         }
+        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+            curves, selection_domain, CD_PROP_BOOL);
+        ed::curves::fill_selection_false(selection.span);
+        selection.finish();
+
+        deselected = true;
       }
     });
   }
@@ -3270,8 +3267,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   SelectPick_Params params{};
   ED_select_pick_params_from_operator(op->ptr, &params);
@@ -4190,21 +4186,22 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
   bool changed = false;
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
-        bke::crazyspace::GeometryDeformation deformation =
-            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, drawing_index);
-        changed |= ed::curves::select_box(*vc,
-                                          drawing.strokes_for_write(),
-                                          deformation.positions,
-                                          selection_domain,
-                                          *rect,
-                                          sel_op);
-      });
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
+  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+    changed |= ed::curves::select_box(*vc,
+                                      info.drawing.strokes_for_write(),
+                                      deformation.positions,
+                                      selection_domain,
+                                      *rect,
+                                      sel_op);
+  }
 
   if (changed) {
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
@@ -4218,7 +4215,6 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   rcti rect;
   bool changed_multi = false;
 
@@ -4229,7 +4225,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
   BKE_object_update_select_id(CTX_data_main(C));
 
   /* setup view context for argument to callbacks */
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
   WM_operator_properties_border_to_rcti(op, &rect);
@@ -4600,7 +4596,7 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
   Object *ob = vc->obact;
   Mesh *me = static_cast<Mesh *>(ob->data);
-  /* CircleSelectUserData data = {nullptr}; */ /* UNUSED */
+  // CircleSelectUserData data = {nullptr}; /* UNUSED. */
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -5038,23 +5034,25 @@ static bool grease_pencil_circle_select(ViewContext *vc,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      vc->scene->toolsettings);
 
   bool changed = false;
-  grease_pencil.foreach_editable_drawing(
-      vc->scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
-        bke::crazyspace::GeometryDeformation deformation =
-            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *vc->obedit, drawing_index);
+  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
+  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
 
-        changed = ed::curves::select_circle(*vc,
-                                            drawing.strokes_for_write(),
-                                            deformation.positions,
-                                            selection_domain,
-                                            int2(mval),
-                                            rad,
-                                            sel_op);
-      });
+    changed = ed::curves::select_circle(*vc,
+                                        info.drawing.strokes_for_write(),
+                                        deformation.positions,
+                                        selection_domain,
+                                        int2(mval),
+                                        rad,
+                                        sel_op);
+  }
 
   if (changed) {
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
@@ -5183,8 +5181,7 @@ static void view3d_circle_select_recalc(void *user_data)
   if (obedit_active) {
     switch (obedit_active->type) {
       case OB_MESH: {
-        ViewContext vc;
-        em_setup_viewcontext(C, &vc);
+        ViewContext vc = em_setup_viewcontext(C);
         FOREACH_OBJECT_IN_MODE_BEGIN (
             vc.scene, vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter)
         {
@@ -5223,7 +5220,6 @@ static void view3d_circle_select_cancel(bContext *C, wmOperator *op)
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   const int radius = RNA_int_get(op->ptr, "radius");
   const int mval[2] = {RNA_int_get(op->ptr, "x"), RNA_int_get(op->ptr, "y")};
 
@@ -5235,7 +5231,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = ED_select_op_modal(
       static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode")), WM_gesture_is_modal_first(gesture));
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   Object *obact = vc.obact;
   Object *obedit = vc.obedit;

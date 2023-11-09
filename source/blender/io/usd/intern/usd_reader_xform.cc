@@ -11,7 +11,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -31,14 +31,14 @@
 
 namespace blender::io::usd {
 
-void USDXformReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDXformReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   object_ = BKE_object_add_only_object(bmain, OB_EMPTY, name_.c_str());
   object_->empty_drawsize = 0.1f;
   object_->data = nullptr;
 }
 
-void USDXformReader::read_object_data(Main * /* bmain */, const double motionSampleTime)
+void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampleTime)
 {
   bool is_constant;
   float transform_from_usd[4][4];

@@ -62,7 +62,6 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_TOOL_SELECTION, "Selection", NODE_CLASS_INPUT);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.gather_add_node_search_ops = search_link_ops_for_for_tool_node;
   ntype.gather_link_search_ops = search_link_ops_for_tool_node;
   nodeRegisterType(&ntype);
 }

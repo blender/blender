@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 
 vec3 g_emission;
 vec3 g_transmittance;
@@ -32,6 +34,9 @@ float g_volume_absorption_rand;
  */
 bool closure_select(float weight, inout float total_weight, inout float r)
 {
+  if (weight < 1e-5) {
+    return false;
+  }
   total_weight += weight;
   float x = weight / total_weight;
   bool chosen = (r < x);
@@ -166,11 +171,11 @@ Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection)
   return Closure(0);
 }
 
-/* ClearCoat BSDF. */
-Closure closure_eval(ClosureReflection reflection, ClosureReflection clearcoat)
+/* Coat BSDF. */
+Closure closure_eval(ClosureReflection reflection, ClosureReflection coat)
 {
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   return Closure(0);
 }
 
@@ -186,25 +191,23 @@ Closure closure_eval(ClosureVolumeScatter volume_scatter,
 }
 
 /* Specular BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse,
-                     ClosureReflection reflection,
-                     ClosureReflection clearcoat)
+Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, ClosureReflection coat)
 {
   SELECT_CLOSURE(g_diffuse_data, g_diffuse_rand, diffuse);
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   return Closure(0);
 }
 
 /* Principled BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse,
                      ClosureReflection reflection,
-                     ClosureReflection clearcoat,
+                     ClosureReflection coat,
                      ClosureRefraction refraction)
 {
   SELECT_CLOSURE(g_diffuse_data, g_diffuse_rand, diffuse);
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   SELECT_CLOSURE(g_refraction_data, g_refraction_rand, refraction);
   return Closure(0);
 }
@@ -229,12 +232,12 @@ float ambient_occlusion_eval(vec3 normal,
   // clang-format off
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && !defined(MAT_SHADOW)
   // clang-format on
-  vec3 vP = transform_point(ViewMatrix, g_data.P);
+  vec3 vP = drw_point_world_to_view(g_data.P);
   ivec2 texel = ivec2(gl_FragCoord.xy);
   OcclusionData data = ambient_occlusion_search(
       vP, hiz_tx, texel, max_distance, inverted, sample_count);
 
-  vec3 V = cameraVec(g_data.P);
+  vec3 V = drw_world_incident_vector(g_data.P);
   vec3 N = g_data.N;
   vec3 Ng = g_data.Ng;
 
@@ -281,7 +284,7 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
   vec3 Favg = f0 + (f90 - f0) / 21.0;
 
   /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
-   * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
+   * "A Journey Through Implementing Multi-scattering BRDFs and Area Lights" by Steve McAuley
    * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparable quality.
    * We handle `radiance` outside of this function, so the result simplifies to:
    * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.
@@ -299,110 +302,137 @@ vec2 brdf_lut(float cos_theta, float roughness)
 #endif
 }
 
-vec2 btdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+void brdf_f82_tint_lut(vec3 F0,
+                       vec3 F82,
+                       float cos_theta,
+                       float roughness,
+                       bool do_multiscatter,
+                       out vec3 reflectance)
 {
-  if (ior <= 1e-5) {
-    return vec2(0.0);
-  }
+#ifdef EEVEE_UTILITY_TX
+  vec3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
+#else
+  vec3 split_sum = vec3(1.0, 0.0, 0.0);
+#endif
 
-  if (ior >= 1.0) {
-    vec2 split_sum = brdf_lut(cos_theta, roughness);
-    float f0 = F0_from_ior(ior);
-    /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
-     * transition at `IOR == 1`. */
-    float f90 = fast_sqrt(saturate(f0 / 0.02));
+  reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :
+                                  F_brdf_single_scatter(F0, vec3(1.0), split_sum.xy);
 
-    float brdf = F_brdf_multi_scatter(vec3(f0), vec3(f90), split_sum).r;
-    /* Energy conservation. */
-    float btdf = 1.0 - brdf;
-    /* Assuming the energy loss caused by single-scattering is distributed proportionally in the
-     * reflection and refraction lobes. */
-    return vec2(btdf, brdf) * ((do_multiscatter == 0.0) ? sum(split_sum) : 1.0);
-  }
+  /* Precompute the F82 term factor for the Fresnel model.
+   * In the classic F82 model, the F82 input directly determines the value of the Fresnel
+   * model at ~82°, similar to F0 and F90.
+   * With F82-Tint, on the other hand, the value at 82° is the value of the classic Schlick
+   * model multiplied by the tint input.
+   * Therefore, the factor follows by setting `F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6`
+   * and `F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint` and solving for `b`. */
+  const float f = 6.0 / 7.0;
+  const float f5 = (f * f) * (f * f) * f;
+  const float f6 = (f * f) * (f * f) * (f * f);
+  vec3 F_schlick = mix(F0, vec3(1.0), f5);
+  vec3 b = F_schlick * (7.0 / f6) * (1.0 - F82);
+  reflectance -= b * split_sum.z;
+}
 
-  /* IOR is sin of critical angle. */
+/* Return texture coordinates to sample BSDF LUT. */
+vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
+{
+  /* IOR is the sine of the critical angle. */
   float critical_cos = sqrt(1.0 - ior * ior);
 
   vec3 coords;
-  coords.x = sqr(ior);
+  coords.x = square(ior);
   coords.y = cos_theta;
   coords.y -= critical_cos;
   coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
   coords.y = coords.y * 0.5 + 0.5;
   coords.z = roughness;
 
-  coords = saturate(coords);
+  return saturate(coords);
+}
 
-  float layer = coords.z * UTIL_BTDF_LAYER_COUNT;
-  float layer_floored = floor(layer);
+/* Return texture coordinates to sample Surface LUT. */
+vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
+{
+  return vec3(sqrt((ior - 1.0) / (ior + 1.0)), sqrt(1.0 - cos_theta), roughness);
+}
 
+/* Computes the reflectance and transmittance based on the tint (`f0`, `f90`, `transmission_tint`)
+ * and the BSDF LUT. */
+void bsdf_lut(vec3 F0,
+              vec3 F90,
+              vec3 transmission_tint,
+              float cos_theta,
+              float roughness,
+              float ior,
+              bool do_multiscatter,
+              out vec3 reflectance,
+              out vec3 transmittance)
+{
 #ifdef EEVEE_UTILITY_TX
-  coords.z = UTIL_BTDF_LAYER + layer_floored;
-  vec2 btdf_brdf_low = utility_tx_sample_lut(utility_tx, coords.xy, coords.z).rg;
-  vec2 btdf_brdf_high = utility_tx_sample_lut(utility_tx, coords.xy, coords.z + 1.0).rg;
-  /* Manual trilinear interpolation. */
-  vec2 btdf_brdf = mix(btdf_brdf_low, btdf_brdf_high, layer - layer_floored);
-
-  if (do_multiscatter != 0.0) {
-    /* For energy-conserving BSDF the reflection and refraction lobes should sum to one. Assuming
-     * the energy loss of single-scattering is distributed proportionally in the two lobes. */
-    btdf_brdf /= (btdf_brdf.x + btdf_brdf.y);
+  if (ior == 1.0) {
+    reflectance = vec3(0.0);
+    transmittance = transmission_tint;
+    return;
   }
 
-  return btdf_brdf;
+  vec2 split_sum;
+  float transmission_factor;
+
+  if (ior > 1.0) {
+    split_sum = brdf_lut(cos_theta, roughness);
+    vec3 coords = lut_coords_btdf(cos_theta, roughness, ior);
+    transmission_factor = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).a;
+    /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
+     * transition at `IOR == 1`. */
+    if (all(equal(F90, vec3(1.0)))) {
+      F90 = vec3(saturate(2.33 / 0.33 * (ior - 1.0) / (ior + 1.0)));
+    }
+  }
+  else {
+    vec3 coords = lut_coords_bsdf(cos_theta, roughness, ior);
+    vec3 bsdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).rgb;
+    split_sum = bsdf.rg;
+    transmission_factor = bsdf.b;
+  }
+
+  reflectance = F_brdf_single_scatter(F0, F90, split_sum);
+  transmittance = (vec3(1.0) - F0) * transmission_factor * transmission_tint;
+
+  if (do_multiscatter) {
+    float real_F0 = F0_from_ior(ior);
+    float Ess = real_F0 * split_sum.x + split_sum.y + (1.0 - real_F0) * transmission_factor;
+    float Ems = 1.0 - Ess;
+    /* Assume that the transmissive tint makes up most of the overall color if it's not zero. */
+    vec3 Favg = all(equal(transmission_tint, vec3(0.0))) ? F0 + (F90 - F0) / 21.0 :
+                                                           transmission_tint;
+
+    vec3 scale = 1.0 / (1.0 - Ems * Favg);
+    reflectance *= scale;
+    transmittance *= scale;
+  }
 #else
-  return vec2(0.0);
+  reflectance = vec3(0.0);
+  transmittance = vec3(0.0);
 #endif
+  return;
 }
 
-void output_renderpass_color(int id, vec4 color)
+/* Computes the reflectance and transmittance based on the BSDF LUT. */
+vec2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatter)
 {
-#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  if (id >= 0) {
-    ivec2 texel = ivec2(gl_FragCoord.xy);
-    imageStore(rp_color_img, ivec3(texel, id), color);
-  }
-#endif
-}
-
-void output_renderpass_value(int id, float value)
-{
-#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  if (id >= 0) {
-    ivec2 texel = ivec2(gl_FragCoord.xy);
-    imageStore(rp_value_img, ivec3(texel, id), vec4(value));
-  }
-#endif
-}
-
-void clear_aovs()
-{
-#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.color_len; i++) {
-    output_renderpass_color(rp_buf.color_len + i, vec4(0));
-  }
-  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.value_len; i++) {
-    output_renderpass_value(rp_buf.value_len + i, 0.0);
-  }
-#endif
-}
-
-void output_aov(vec4 color, float value, uint hash)
-{
-#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.color_len; i++) {
-    if (rp_buf.aovs.hash_color[i].x == hash) {
-      imageStore(rp_color_img, ivec3(ivec2(gl_FragCoord.xy), rp_buf.color_len + i), color);
-      return;
-    }
-  }
-  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.value_len; i++) {
-    if (rp_buf.aovs.hash_value[i].x == hash) {
-      imageStore(rp_value_img, ivec3(ivec2(gl_FragCoord.xy), rp_buf.value_len + i), vec4(value));
-      return;
-    }
-  }
-#endif
+  float F0 = F0_from_ior(ior);
+  vec3 color = vec3(1.0);
+  vec3 reflectance, transmittance;
+  bsdf_lut(vec3(F0),
+           color,
+           color,
+           cos_theta,
+           roughness,
+           ior,
+           do_multiscatter,
+           reflectance,
+           transmittance);
+  return vec2(reflectance.r, transmittance.r);
 }
 
 #ifdef EEVEE_MATERIAL_STUBS
@@ -472,15 +502,15 @@ void fragment_displacement()
 vec3 coordinate_camera(vec3 P)
 {
   vec3 vP;
-  if (false /* probe */) {
+  if (false /* Probe. */) {
     /* Unsupported. It would make the probe camera-dependent. */
     vP = P;
   }
   else {
 #ifdef MAT_WORLD
-    vP = transform_direction(ViewMatrix, P);
+    vP = drw_normal_world_to_view(P);
 #else
-    vP = transform_point(ViewMatrix, P);
+    vP = drw_point_world_to_view(P);
 #endif
   }
   vP.z = -vP.z;
@@ -490,14 +520,14 @@ vec3 coordinate_camera(vec3 P)
 vec3 coordinate_screen(vec3 P)
 {
   vec3 window = vec3(0.0);
-  if (false /* probe */) {
+  if (false /* Probe. */) {
     /* Unsupported. It would make the probe camera-dependent. */
     window.xy = vec2(0.5);
   }
   else {
     /* TODO(fclem): Actual camera transform. */
-    window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
-    window.xy = window.xy * camera_buf.uv_scale + camera_buf.uv_bias;
+    window.xy = drw_point_world_to_screen(P).xy;
+    window.xy = window.xy * uniform_buf.camera.uv_scale + uniform_buf.camera.uv_bias;
   }
   return window;
 }
@@ -507,7 +537,7 @@ vec3 coordinate_reflect(vec3 P, vec3 N)
 #ifdef MAT_WORLD
   return N;
 #else
-  return -reflect(cameraVec(P), N);
+  return -reflect(drw_world_incident_vector(P), N);
 #endif
 }
 
@@ -516,7 +546,7 @@ vec3 coordinate_incoming(vec3 P)
 #ifdef MAT_WORLD
   return -P;
 #else
-  return cameraVec(P);
+  return drw_world_incident_vector(P);
 #endif
 }
 

@@ -43,7 +43,10 @@ bool ED_asset_mark_id(ID *id)
 
   const IDTypeInfo *id_type_info = BKE_idtype_get_info_from_id(id);
   id->asset_data = BKE_asset_metadata_create();
-  id->asset_data->local_type_info = id_type_info->asset_type_info;
+  if (AssetTypeInfo *type_info = id_type_info->asset_type_info) {
+    id->asset_data->local_type_info = type_info;
+    type_info->on_mark_asset_fn(id, id->asset_data);
+  }
 
   /* Important for asset storage to update properly! */
   ED_assetlist_storage_tag_main_data_dirty();
@@ -92,7 +95,8 @@ void ED_assets_pre_save(Main *bmain)
 
 bool ED_asset_can_mark_single_from_context(const bContext *C)
 {
-  /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_clear() to use. */
+  /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_mark_single() and
+   * #ASSET_OT_clear()/#ASSET_OT_clear_single() to use. */
   const ID *id = static_cast<ID *>(CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data);
   if (!id) {
     return false;

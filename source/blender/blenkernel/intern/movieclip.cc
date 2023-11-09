@@ -63,8 +63,10 @@
 #include "IMB_moviecache.h"
 #include "IMB_openexr.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
+
+#include "DRW_engine.h"
 
 #include "GPU_texture.h"
 
@@ -99,6 +101,8 @@ static void movie_clip_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src,
   BKE_tracking_copy(&movie_clip_dst->tracking, &movie_clip_src->tracking, flag_subdata);
   movie_clip_dst->tracking_context = nullptr;
 
+  BLI_listbase_clear((ListBase *)&movie_clip_dst->drawdata);
+
   BKE_color_managed_colorspace_settings_copy(&movie_clip_dst->colorspace_settings,
                                              &movie_clip_src->colorspace_settings);
 }
@@ -111,6 +115,7 @@ static void movie_clip_free_data(ID *id)
   free_buffers(movie_clip);
 
   BKE_tracking_free(&movie_clip->tracking);
+  DRW_drawdata_free(id);
 }
 
 static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -283,7 +288,7 @@ IDTypeInfo IDType_ID_MC = {
     /*main_listbase_index*/ INDEX_ID_MC,
     /*struct_size*/ sizeof(MovieClip),
     /*name*/ "MovieClip",
-    /*name_plural*/ "movieclips",
+    /*name_plural*/ N_("movieclips"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MOVIECLIP,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

@@ -8,6 +8,7 @@
 
 #include "BLI_string.h"
 
+#include "GPU_capabilities.h"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 
@@ -27,7 +28,7 @@ GLStorageBuf::GLStorageBuf(size_t size, GPUUsageType usage, const char *name)
 {
   usage_ = usage;
   /* Do not create UBO GL buffer here to allow allocation from any thread. */
-  BLI_assert(size <= GLContext::max_ssbo_size);
+  BLI_assert(size <= GPU_max_storage_buffer_size());
 }
 
 GLStorageBuf::~GLStorageBuf()
@@ -158,6 +159,11 @@ void GLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uin
     glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_WRITE_BUFFER, src_offset, dst_offset, copy_size);
     glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
   }
+}
+
+void GLStorageBuf::async_flush_to_host()
+{
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 }
 
 void GLStorageBuf::read(void *data)

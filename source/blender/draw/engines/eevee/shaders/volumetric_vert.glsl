@@ -38,14 +38,38 @@ void main()
 }
 
 /* Stubs */
-vec2 btdf_lut(float a, float b, float c, float d)
+vec2 bsdf_lut(float a, float b, float c, bool d)
 {
   return vec2(0.0);
+}
+
+void bsdf_lut(vec3 F0,
+              vec3 F90,
+              vec3 transmission_tint,
+              float cos_theta,
+              float roughness,
+              float ior,
+              bool do_multiscatter,
+              out vec3 reflectance,
+              out vec3 transmittance)
+{
+  reflectance = vec3(0.0);
+  transmittance = vec3(0.0);
+  return;
 }
 
 vec2 brdf_lut(float a, float b)
 {
   return vec2(0.0);
+}
+
+void brdf_f82_tint_lut(vec3 F0,
+                       vec3 F82,
+                       float cos_theta,
+                       float roughness,
+                       bool do_multiscatter,
+                       out vec3 reflectance)
+{
 }
 
 vec3 F_brdf_multi_scatter(vec3 a, vec3 b, vec2 c)

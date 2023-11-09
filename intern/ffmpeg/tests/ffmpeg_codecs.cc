@@ -64,8 +64,9 @@ bool test_codec_video_by_codecid(AVCodecID codec_id, AVPixelFormat pixelformat)
 {
   bool result = false;
   const AVCodec *codec = avcodec_find_encoder(codec_id);
-  if (codec)
+  if (codec) {
     result = test_vcodec(codec, pixelformat);
+  }
   return result;
 }
 
@@ -73,8 +74,9 @@ bool test_codec_video_by_name(const char *codecname, AVPixelFormat pixelformat)
 {
   bool result = false;
   const AVCodec *codec = avcodec_find_encoder_by_name(codecname);
-  if (codec)
+  if (codec) {
     result = test_vcodec(codec, pixelformat);
+  }
   return result;
 }
 
@@ -82,8 +84,9 @@ bool test_codec_audio_by_codecid(AVCodecID codec_id, AVSampleFormat fmt)
 {
   bool result = false;
   const AVCodec *codec = avcodec_find_encoder(codec_id);
-  if (codec)
+  if (codec) {
     result = test_acodec(codec, fmt);
+  }
   return result;
 }
 
@@ -91,8 +94,9 @@ bool test_codec_audio_by_name(const char *codecname, AVSampleFormat fmt)
 {
   bool result = false;
   const AVCodec *codec = avcodec_find_encoder_by_name(codecname);
-  if (codec)
+  if (codec) {
     result = test_acodec(codec, fmt);
+  }
   return result;
 }
 

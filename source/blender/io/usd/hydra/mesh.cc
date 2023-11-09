@@ -8,6 +8,7 @@
 
 #include "BLI_string.h"
 
+#include "BKE_attribute.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -85,7 +86,7 @@ void MeshData::update()
   }
 }
 
-pxr::VtValue MeshData::get_data(pxr::TfToken const & /* key */) const
+pxr::VtValue MeshData::get_data(pxr::TfToken const & /*key*/) const
 {
   return pxr::VtValue();
 }
@@ -218,7 +219,8 @@ const MeshData::SubMesh &MeshData::submesh(pxr::SdfPath const &id) const
 
 void MeshData::write_submeshes(const Mesh *mesh)
 {
-  submeshes_.reinitialize(BKE_object_material_count_eval(reinterpret_cast<const Object *>(id)));
+  const int mat_count = BKE_object_material_count_eval(reinterpret_cast<const Object *>(id));
+  submeshes_.reinitialize(mat_count > 0 ? mat_count : 1);
   for (const int i : submeshes_.index_range()) {
     submeshes_[i].mat_index = i;
   }
@@ -230,9 +232,10 @@ void MeshData::write_submeshes(const Mesh *mesh)
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<MLoopTri> looptris = mesh->looptris();
 
-  Array<float3> corner_normals(mesh->totloop);
-  BKE_mesh_calc_normals_split_ex(
-      mesh, nullptr, reinterpret_cast<float(*)[3]>(corner_normals.data()));
+  Span<float3> corner_normals;
+  if (mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner) {
+    corner_normals = mesh->corner_normals();
+  }
 
   const float2 *uv_map = static_cast<const float2 *>(
       CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2));

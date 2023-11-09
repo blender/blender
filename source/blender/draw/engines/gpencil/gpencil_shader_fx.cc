@@ -57,15 +57,17 @@ struct gpIterVfxData {
   GPUTexture **source_reveal_tx;
 };
 
-static DRWShadingGroup *gpencil_vfx_pass_create(const char *name,
-                                                DRWState state,
-                                                gpIterVfxData *iter,
-                                                GPUShader *sh)
+static DRWShadingGroup *gpencil_vfx_pass_create(
+    const char *name,
+    DRWState state,
+    gpIterVfxData *iter,
+    GPUShader *sh,
+    GPUSamplerState sampler = GPUSamplerState::internal_sampler())
 {
   DRWPass *pass = DRW_pass_create(name, state);
   DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-  DRW_shgroup_uniform_texture_ref(grp, "colorBuf", iter->source_color_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "revealBuf", iter->source_reveal_tx);
+  DRW_shgroup_uniform_texture_ref_ex(grp, "colorBuf", iter->source_color_tx, sampler);
+  DRW_shgroup_uniform_texture_ref_ex(grp, "revealBuf", iter->source_reveal_tx, sampler);
 
   GPENCIL_tVfx *tgp_vfx = static_cast<GPENCIL_tVfx *>(BLI_memblock_alloc(iter->pd->gp_vfx_pool));
   tgp_vfx->target_fb = iter->target_fb;
@@ -279,7 +281,10 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
   /* Only if pixelated effect is bigger than 1px. */
   if (pixel_size[0] > vp_size_inv[0]) {
     copy_v2_fl2(pixsize_uniform, pixel_size[0], vp_size_inv[1]);
-    grp = gpencil_vfx_pass_create("Fx Pixelize X", state, iter, sh);
+    GPUSamplerState sampler = (use_antialiasing) ? GPUSamplerState::internal_sampler() :
+                                                   GPUSamplerState::default_sampler();
+
+    grp = gpencil_vfx_pass_create("Fx Pixelize X", state, iter, sh, sampler);
     DRW_shgroup_uniform_vec2_copy(grp, "targetPixelSize", pixsize_uniform);
     DRW_shgroup_uniform_vec2_copy(grp, "targetPixelOffset", ob_center);
     DRW_shgroup_uniform_vec2_copy(grp, "accumOffset", blender::float2{pixel_size[0], 0.0f});
@@ -289,8 +294,10 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
   }
 
   if (pixel_size[1] > vp_size_inv[1]) {
+    GPUSamplerState sampler = (use_antialiasing) ? GPUSamplerState::internal_sampler() :
+                                                   GPUSamplerState::default_sampler();
     copy_v2_fl2(pixsize_uniform, vp_size_inv[0], pixel_size[1]);
-    grp = gpencil_vfx_pass_create("Fx Pixelize Y", state, iter, sh);
+    grp = gpencil_vfx_pass_create("Fx Pixelize Y", state, iter, sh, sampler);
     DRW_shgroup_uniform_vec2_copy(grp, "targetPixelSize", pixsize_uniform);
     DRW_shgroup_uniform_vec2_copy(grp, "accumOffset", blender::float2{0.0f, pixel_size[1]});
     int samp_count = (pixel_size[1] / vp_size_inv[1] > 3.0) ? 2 : 1;

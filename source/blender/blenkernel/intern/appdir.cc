@@ -18,7 +18,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_tempfile.h"
 #include "BLI_utildefines.h"
 
@@ -34,8 +34,8 @@
 #include "CLG_log.h"
 
 #ifdef WIN32
-#  include "utf_winfunc.h"
-#  include "utfconv.h"
+#  include "utf_winfunc.hh"
+#  include "utfconv.hh"
 #  include <io.h>
 #  ifdef _WIN32_IE
 #    undef _WIN32_IE

@@ -34,7 +34,6 @@ bool geo_node_poll_default(const bNodeType *ntype,
 namespace blender::nodes {
 
 bool check_tool_context_and_error(GeoNodeExecParams &params);
-void search_link_ops_for_for_tool_node(GatherAddNodeSearchParams &params);
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
 void transform_mesh(Mesh &mesh,
@@ -46,36 +45,6 @@ void transform_geometry_set(GeoNodeExecParams &params,
                             GeometrySet &geometry,
                             const float4x4 &transform,
                             const Depsgraph &depsgraph);
-
-Mesh *create_line_mesh(const float3 start, const float3 delta, int count);
-
-Mesh *create_grid_mesh(
-    int verts_x, int verts_y, float size_x, float size_y, const AttributeIDRef &uv_map_id);
-
-struct ConeAttributeOutputs {
-  AnonymousAttributeIDPtr top_id;
-  AnonymousAttributeIDPtr bottom_id;
-  AnonymousAttributeIDPtr side_id;
-  AnonymousAttributeIDPtr uv_map_id;
-};
-
-Mesh *create_cylinder_or_cone_mesh(float radius_top,
-                                   float radius_bottom,
-                                   float depth,
-                                   int circle_segments,
-                                   int side_segments,
-                                   int fill_segments,
-                                   GeometryNodeMeshCircleFillType fill_type,
-                                   ConeAttributeOutputs &attribute_outputs);
-
-/**
- * Calculates the bounds of a radial primitive.
- * The algorithm assumes X-axis symmetry of primitives.
- */
-Bounds<float3> calculate_bounds_radial_primitive(float radius_top,
-                                                 float radius_bottom,
-                                                 int segments,
-                                                 float height);
 
 /**
  * Returns the parts of the geometry that are on the selection for the given domain. If the domain
@@ -97,9 +66,6 @@ void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
                             const MutableSpan<float3> r_positions);
 
 int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
-
-std::optional<eCustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
-std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
 
 #ifdef WITH_OPENVDB
 /**
@@ -130,10 +96,6 @@ class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
   }
 };
 
-std::string socket_identifier_for_simulation_item(const NodeSimulationItem &item);
-
-void socket_declarations_for_simulation_items(Span<NodeSimulationItem> items,
-                                              NodeDeclaration &r_declaration);
 const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
 const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
 
@@ -157,9 +119,6 @@ void copy_with_checked_indices(const GVArray &src,
                                const IndexMask &mask,
                                GMutableSpan dst);
 
-void socket_declarations_for_repeat_items(const Span<NodeRepeatItem> items,
-                                          NodeDeclaration &r_declaration);
-
 namespace enums {
 
 const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
@@ -168,6 +127,11 @@ const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
                                                            bool *r_free);
 
 bool generic_attribute_type_supported(const EnumPropertyItem &item);
+
+const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext * /*C*/,
+                                                                      PointerRNA * /*ptr*/,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free);
 
 }  // namespace enums
 

@@ -22,6 +22,7 @@
 
 #include "COM_cached_mask.hh"
 #include "COM_context.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -99,7 +100,8 @@ static Vector<MaskRasterHandle *> get_mask_raster_handles(Mask *mask,
   return handles;
 }
 
-CachedMask::CachedMask(Mask *mask,
+CachedMask::CachedMask(Context &context,
+                       Mask *mask,
                        int2 size,
                        int frame,
                        bool use_feather,
@@ -129,13 +131,14 @@ CachedMask::CachedMask(Mask *mask,
     BKE_maskrasterize_handle_free(handle);
   }
 
-  texture_ = GPU_texture_create_2d("Cached Mask",
-                                   size.x,
-                                   size.y,
-                                   1,
-                                   GPU_R16F,
-                                   GPU_TEXTURE_USAGE_SHADER_READ,
-                                   evaluated_mask.data());
+  texture_ = GPU_texture_create_2d(
+      "Cached Mask",
+      size.x,
+      size.y,
+      1,
+      Result::texture_format(ResultType::Float, context.get_precision()),
+      GPU_TEXTURE_USAGE_SHADER_READ,
+      evaluated_mask.data());
 }
 
 CachedMask::~CachedMask()
@@ -186,7 +189,8 @@ CachedMask &CachedMaskContainer::get(Context &context,
   }
 
   auto &cached_mask = *cached_masks_for_id.lookup_or_add_cb(key, [&]() {
-    return std::make_unique<CachedMask>(mask,
+    return std::make_unique<CachedMask>(context,
+                                        mask,
                                         size,
                                         context.get_frame_number(),
                                         use_feather,

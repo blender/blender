@@ -281,11 +281,9 @@ static bool bpy_run_string_impl(bContext *C,
 
     ReportList *wm_reports = CTX_wm_reports(C);
     if (wm_reports) {
-      BLI_movelisttolist(&wm_reports->list, &reports.list);
+      BKE_reports_move_to_reports(wm_reports, &reports);
     }
-    else {
-      BKE_reports_clear(&reports);
-    }
+    BKE_reports_free(&reports);
   }
   else {
     Py_DECREF(retval);
@@ -319,6 +317,8 @@ bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
 
 static void run_string_handle_error(BPy_RunErrInfo *err_info)
 {
+  BLI_assert(PyErr_Occurred());
+
   if (err_info == nullptr) {
     PyErr_Print();
     PyErr_Clear();
@@ -333,7 +333,7 @@ static void run_string_handle_error(BPy_RunErrInfo *err_info)
 
   PyObject *py_err_str = err_info->use_single_line_error ? PyC_ExceptionBuffer_Simple() :
                                                            PyC_ExceptionBuffer();
-  const char *err_str = py_err_str ? PyUnicode_AsUTF8(py_err_str) : "Unable to extract exception";
+  const char *err_str = PyUnicode_AsUTF8(py_err_str);
   PyErr_Clear();
 
   if (err_info->reports != nullptr) {

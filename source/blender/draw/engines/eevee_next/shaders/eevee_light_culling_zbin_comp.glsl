@@ -8,7 +8,8 @@
  * For this reason, we only dispatch 1 thread group.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 
 /* Fits the limit of 32KB. */
@@ -37,7 +38,7 @@ void main()
     vec3 P = light_buf[index]._position;
     /* TODO(fclem): Could have better bounds for spot and area lights. */
     float radius = light_buf[index].influence_radius_max;
-    float z_dist = dot(cameraForward, P) - dot(cameraForward, cameraPos);
+    float z_dist = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
     int z_min = culling_z_to_zbin(
         light_cull_buf.zbin_scale, light_cull_buf.zbin_bias, z_dist + radius);
     int z_max = culling_z_to_zbin(

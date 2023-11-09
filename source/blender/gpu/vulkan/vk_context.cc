@@ -13,6 +13,7 @@
 #include "vk_immediate.hh"
 #include "vk_memory.hh"
 #include "vk_shader.hh"
+#include "vk_shader_interface.hh"
 #include "vk_state_manager.hh"
 #include "vk_texture.hh"
 
@@ -50,10 +51,10 @@ void VKContext::sync_backbuffer()
 {
   if (ghost_context_) {
     VKDevice &device = VKBackend::get().device_;
-    if (!command_buffer_.is_initialized()) {
-      command_buffer_.init(device);
-      command_buffer_.begin_recording();
+    if (!command_buffers_.is_initialized()) {
+      command_buffers_.init(device);
       device.init_dummy_buffer(*this);
+      device.init_dummy_color_attachment();
     }
     device.descriptor_pools_get().reset();
   }
@@ -112,16 +113,20 @@ void VKContext::deactivate()
 
 void VKContext::begin_frame() {}
 
-void VKContext::end_frame() {}
+void VKContext::end_frame()
+{
+  VKDevice &device = VKBackend::get().device_get();
+  device.destroy_discarded_resources();
+}
 
 void VKContext::flush()
 {
-  command_buffer_.submit();
+  command_buffers_.submit();
 }
 
 void VKContext::finish()
 {
-  command_buffer_.submit();
+  command_buffers_.submit();
 }
 
 void VKContext::memory_statistics_get(int * /*total_mem*/, int * /*free_mem*/) {}
@@ -150,7 +155,8 @@ void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)
   BLI_assert(active_fb == nullptr);
   active_fb = &framebuffer;
   framebuffer.update_size();
-  command_buffer_.begin_render_pass(framebuffer);
+  framebuffer.update_srgb();
+  command_buffers_get().begin_render_pass(framebuffer);
 }
 
 VKFrameBuffer *VKContext::active_framebuffer_get() const
@@ -167,7 +173,7 @@ void VKContext::deactivate_framebuffer()
 {
   VKFrameBuffer *framebuffer = active_framebuffer_get();
   BLI_assert(framebuffer != nullptr);
-  command_buffer_.end_render_pass(*framebuffer);
+  command_buffers_get().end_render_pass(*framebuffer);
   active_fb = nullptr;
 }
 
@@ -197,6 +203,12 @@ void VKContext::bind_graphics_pipeline(const GPUPrimType prim_type,
 {
   VKShader *shader = unwrap(this->shader);
   BLI_assert(shader);
+  BLI_assert_msg(
+      prim_type != GPU_PRIM_POINTS || shader->interface_get().is_point_shader(),
+      "GPU_PRIM_POINTS is used with a shader that doesn't set point size before "
+      "drawing fragments. Calling code should be adapted to use a shader that sets the "
+      "gl_PointSize before entering the fragment stage. For example `GPU_SHADER_3D_POINT_*`.");
+
   shader->update_graphics_pipeline(*this, prim_type, vertex_attribute_object);
 
   VKPipeline &pipeline = shader->pipeline_get();
@@ -226,6 +238,12 @@ void VKContext::swap_buffers_post_callback()
 
 void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
+  /*
+   * Ensure no graphics/compute commands are scheduled. They could use the back buffer, which
+   * layout is altered here.
+   */
+  command_buffers_get().submit();
+
   VKFrameBuffer &framebuffer = *unwrap(back_left);
 
   VKTexture wrapper("display_texture");
@@ -235,11 +253,10 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   wrapper.layout_ensure(*this, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   framebuffer.color_attachment_layout_ensure(*this, 0, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
-  color_attachment->layout_ensure(*this, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   VkImageBlit image_blit = {};
-  image_blit.srcOffsets[0] = {0, int32_t(swap_chain_data.extent.height) - 1, 0};
-  image_blit.srcOffsets[1] = {int32_t(swap_chain_data.extent.width), 0, 1};
+  image_blit.srcOffsets[0] = {0, color_attachment->height_get() - 1, 0};
+  image_blit.srcOffsets[1] = {color_attachment->width_get(), 0, 1};
   image_blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   image_blit.srcSubresource.mipLevel = 0;
   image_blit.srcSubresource.baseArrayLayer = 0;
@@ -253,13 +270,13 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   image_blit.dstSubresource.baseArrayLayer = 0;
   image_blit.dstSubresource.layerCount = 1;
 
-  command_buffer_.blit(wrapper,
-                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                       *color_attachment,
-                       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                       Span<VkImageBlit>(&image_blit, 1));
+  command_buffers_get().blit(wrapper,
+                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                             *color_attachment,
+                             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                             Span<VkImageBlit>(&image_blit, 1));
   wrapper.layout_ensure(*this, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-  command_buffer_.submit();
+  command_buffers_get().submit();
 }
 
 void VKContext::swap_buffers_post_handler()

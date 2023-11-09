@@ -27,6 +27,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -48,13 +49,13 @@
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_physics.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_physics.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RE_texture.h"
 
@@ -636,7 +637,7 @@ float effector_falloff(EffectorCache *eff,
           break;
         }
 
-        r_fac = RAD2DEGF(saacos(fac / len_v3(efd->vec_to_point2)));
+        r_fac = RAD2DEGF(safe_acosf(fac / len_v3(efd->vec_to_point2)));
         falloff *= falloff_func_rad(eff->pd, r_fac);
 
         break;

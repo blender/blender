@@ -8,10 +8,12 @@
  * One is for the half-resolution gather passes and the other one for slight in focus regions.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_debug_gradients_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Options.
@@ -316,7 +318,7 @@ void dof_gather_accumulate_center_sample(DofGatherData center_data,
 
     if (is_foreground && !is_resolve) {
       /* Reduce issue with closer foreground over distant foreground. */
-      float ring_area = sqr(bordering_radius);
+      float ring_area = square(bordering_radius);
       dof_gather_ammend_weight(center_data, ring_area);
     }
 
@@ -468,7 +470,7 @@ void dof_gather_accumulator(sampler2D color_tx,
     int sample_pair_count = gather_ring_density * ring;
 
     float step_rot = M_PI / float(sample_pair_count);
-    mat2 step_rot_mat = rot2_from_angle(step_rot);
+    mat2 step_rot_mat = from_rotation(Angle(step_rot));
 
     float angle_offset = noise.y * step_rot;
     vec2 offset = vec2(cos(angle_offset), sin(angle_offset));
@@ -516,9 +518,9 @@ void dof_gather_accumulator(sampler2D color_tx,
     if (is_foreground) {
       /* Reduce issue with closer foreground over distant foreground. */
       /* TODO(fclem) this seems to not be completely correct as the issue remains. */
-      float ring_area = (sqr(float(ring) + 0.5 + coc_radius_error) -
-                         sqr(float(ring) - 0.5 + coc_radius_error)) *
-                        sqr(base_radius * unit_sample_radius);
+      float ring_area = (square(float(ring) + 0.5 + coc_radius_error) -
+                         square(float(ring) - 0.5 + coc_radius_error)) *
+                        square(base_radius * unit_sample_radius);
       dof_gather_ammend_weight(ring_data, ring_area);
     }
 
@@ -574,13 +576,13 @@ void dof_gather_accumulator(sampler2D color_tx,
 
   if (debug_gather_perf && density_change > 0) {
     float fac = saturate(float(density_change) / float(10.0));
-    out_color.rgb = avg(out_color.rgb) * neon_gradient(fac);
+    out_color.rgb = average(out_color.rgb) * neon_gradient(fac);
   }
   if (debug_gather_perf && do_fast_gather) {
-    out_color.rgb = avg(out_color.rgb) * vec3(0.0, 1.0, 0.0);
+    out_color.rgb = average(out_color.rgb) * vec3(0.0, 1.0, 0.0);
   }
   if (debug_scatter_perf) {
-    out_color.rgb = avg(out_color.rgb) * vec3(0.0, 1.0, 0.0);
+    out_color.rgb = average(out_color.rgb) * vec3(0.0, 1.0, 0.0);
   }
 
   /* Output premultiplied color so we can use bilinear sampler in resolve pass. */
@@ -616,7 +618,7 @@ void dof_slight_focus_gather(depth2D depth_tx,
 
   const float sample_count_max = float(DOF_SLIGHT_FOCUS_SAMPLE_MAX);
   /* Scale by search area. */
-  float sample_count = sample_count_max * saturate(sqr(radius) / sqr(dof_layer_threshold));
+  float sample_count = sample_count_max * saturate(square(radius) / square(dof_layer_threshold));
 
   bool first_ring = true;
 
@@ -632,7 +634,7 @@ void dof_slight_focus_gather(depth2D depth_tx,
       vec2 sample_uv = (frag_coord + sample_offset) / vec2(textureSize(depth_tx, 0));
       float depth = textureLod(depth_tx, sample_uv, 0.0).r;
       pair_data[i].coc = dof_coc_from_depth(dof_buf, sample_uv, depth);
-      pair_data[i].color = safe_color(textureLod(color_tx, sample_uv, 0.0));
+      pair_data[i].color = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0));
       pair_data[i].dist = ring_dist;
       if (DOF_BOKEH_TEXTURE) {
         /* Contains sub-pixel distance to bokeh shape. */
@@ -668,7 +670,7 @@ void dof_slight_focus_gather(depth2D depth_tx,
   /* Center sample. */
   vec2 sample_uv = frag_coord / vec2(textureSize(depth_tx, 0));
   DofGatherData center_data;
-  center_data.color = safe_color(textureLod(color_tx, sample_uv, 0.0));
+  center_data.color = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0));
   center_data.coc = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0).r);
   center_data.coc = clamp(center_data.coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
   center_data.dist = 0.0;

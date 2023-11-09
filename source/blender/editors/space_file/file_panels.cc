@@ -10,7 +10,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLT_translation.h"
 
@@ -56,7 +56,8 @@ static void file_panel_operator_header(const bContext *C, Panel *panel)
   SpaceFile *sfile = CTX_wm_space_file(C);
   wmOperator *op = sfile->op;
 
-  STRNCPY(panel->drawname, WM_operatortype_name(op->type, op->ptr).c_str());
+  const std::string opname = WM_operatortype_name(op->type, op->ptr);
+  UI_panel_drawname_set(panel, opname);
 }
 
 static void file_panel_operator(const bContext *C, Panel *panel)
@@ -233,7 +234,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
 
   PointerRNA params_ptr = RNA_pointer_create(&screen->id, &RNA_FileAssetSelectParams, params);
 
-  uiItemR(row, &params_ptr, "asset_library_ref", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(row, &params_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);
   if (params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {
     bContext *mutable_ctx = CTX_copy(C);
     if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
@@ -241,7 +242,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
       uiItemMenuEnumO(col,
                       C,
                       "asset.bundle_install",
-                      "asset_library_ref",
+                      "asset_library_reference",
                       "Copy Bundle to Asset Library...",
                       ICON_IMPORT);
     }

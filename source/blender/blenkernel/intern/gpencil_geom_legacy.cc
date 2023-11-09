@@ -28,7 +28,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -49,9 +49,9 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 using blender::float3;
 using blender::Span;
@@ -1717,7 +1717,7 @@ float BKE_gpencil_stroke_segment_length(const bGPDstroke *gps,
   }
 
   int index = MAX2(start_index, 0) + 1;
-  int last_index = MIN2(end_index, gps->totpoints - 1) + 1;
+  int last_index = std::min(end_index, gps->totpoints - 1) + 1;
 
   float *last_pt = &gps->points[index - 1].x;
   float total_length = 0.0f;
@@ -3560,8 +3560,8 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
   if (smooth) {
     const int sample_points = 8;
     /* Get the segment to smooth using n points on each side of the join. */
-    int start = MAX2(0, totpoints_a - sample_points);
-    int end = MIN2(gps_a->totpoints - 1, start + (sample_points * 2));
+    int start = std::max(0, totpoints_a - sample_points);
+    int end = std::min(gps_a->totpoints - 1, start + (sample_points * 2));
     const int len = (end - start);
     float step = 1.0f / ((len / 2) + 1);
 

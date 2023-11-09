@@ -38,14 +38,14 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -712,9 +712,8 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
 {
   Mesh *me = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
 
-  if (me->flag & ME_AUTOSMOOTH) {
+  if (me->normals_domain() == blender::bke::MeshNormalDomain::Corner) {
     ED_mesh_split_faces(me);
-    CustomData_free_layers(&me->loop_data, CD_NORMAL, me->totloop);
   }
 
   return me;
@@ -1916,13 +1915,13 @@ finally:
   return result;
 }
 
-static void bake_startjob(void *bkv, bool * /*stop*/, bool *do_update, float *progress)
+static void bake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
 {
   BakeAPIRender *bkr = (BakeAPIRender *)bkv;
 
   /* setup new render */
-  bkr->do_update = do_update;
-  bkr->progress = progress;
+  bkr->do_update = &worker_status->do_update;
+  bkr->progress = &worker_status->progress;
 
   RE_SetReports(bkr->render, bkr->reports);
 

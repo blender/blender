@@ -7,7 +7,7 @@
  */
 
 // #include "BLI_map.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_motion_blur.hh"
@@ -125,7 +125,9 @@ void MotionBlurModule::sync()
 {
   /* Disable motion blur in viewport when changing camera projection type.
    * Avoids really high velocities. */
-  if (inst_.velocity.camera_changed_projection() || inst_.camera.overscan_changed()) {
+  if (inst_.velocity.camera_changed_projection() ||
+      (inst_.is_viewport() && inst_.camera.overscan_changed()))
+  {
     motion_blur_fx_enabled_ = false;
   }
 
@@ -137,8 +139,8 @@ void MotionBlurModule::sync()
   RenderBuffers &render_buffers = inst_.render_buffers;
 
   motion_blur_ps_.init();
-  inst_.velocity.bind_resources(&motion_blur_ps_);
-  inst_.sampling.bind_resources(&motion_blur_ps_);
+  inst_.velocity.bind_resources(motion_blur_ps_);
+  inst_.sampling.bind_resources(motion_blur_ps_);
   {
     /* Create max velocity tiles. */
     PassSimple::Sub &sub = motion_blur_ps_.sub("TilesFlatten");

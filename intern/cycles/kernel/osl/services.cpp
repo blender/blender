@@ -162,10 +162,12 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
 #ifdef __OBJECT_MOTION__
       Transform tfm;
 
-      if (time == sd->time)
+      if (time == sd->time) {
         tfm = object_get_transform(kg, sd);
-      else
+      }
+      else {
         tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
+      }
 #else
       const Transform tfm = object_get_transform(kg, sd);
 #endif
@@ -200,10 +202,12 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
 #ifdef __OBJECT_MOTION__
       Transform itfm;
 
-      if (time == sd->time)
+      if (time == sd->time) {
         itfm = object_get_inverse_transform(kg, sd);
-      else
+      }
+      else {
         object_fetch_transform_motion_test(kg, object, time, &itfm);
+      }
 #else
       const Transform itfm = object_get_inverse_transform(kg, sd);
 #endif
@@ -740,10 +744,12 @@ static bool set_attribute_float3_3(float3 P[3], TypeDesc type, bool derivatives,
     fval[7] = P[2].y;
     fval[8] = P[2].z;
 
-    if (type.arraylen > 3)
+    if (type.arraylen > 3) {
       memset(fval + 3 * 3, 0, sizeof(float) * 3 * (type.arraylen - 3));
-    if (derivatives)
+    }
+    if (derivatives) {
       memset(fval + type.arraylen * 3, 0, sizeof(float) * 2 * 3 * type.arraylen);
+    }
 
     return true;
   }
@@ -1097,8 +1103,9 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
 
     return set_attribute_float3(ndc, type, derivatives, val);
   }
-  else
+  else {
     return false;
+  }
 }
 
 bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
@@ -1108,8 +1115,9 @@ bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
                                       OSLUStringHash name,
                                       void *val)
 {
-  if (sg == NULL || sg->renderstate == NULL)
+  if (sg == NULL || sg->renderstate == NULL) {
     return false;
+  }
 
   ShaderData *sd = (ShaderData *)(sg->renderstate);
   return get_attribute(sd, derivatives, object_name, type, name, val);
@@ -1129,8 +1137,9 @@ bool OSLRenderServices::get_attribute(ShaderData *sd,
   if (object_name != u_empty) {
     OSLGlobals::ObjectNameMap::iterator it = kg->osl->object_name_map.find(object_name);
 
-    if (it == kg->osl->object_name_map.end())
+    if (it == kg->osl->object_name_map.end()) {
       return false;
+    }
 
     object = it->second;
   }
@@ -1349,12 +1358,15 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
       }
 
       result[0] = rgba[0];
-      if (nchannels > 1)
+      if (nchannels > 1) {
         result[1] = rgba[1];
-      if (nchannels > 2)
+      }
+      if (nchannels > 2) {
         result[2] = rgba[2];
-      if (nchannels > 3)
+      }
+      if (nchannels > 3) {
         result[3] = rgba[3];
+      }
       status = true;
       break;
     }
@@ -1421,8 +1433,9 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
       result[1] = 0.0f;
       result[2] = 1.0f;
 
-      if (nchannels == 4)
+      if (nchannels == 4) {
         result[3] = 1.0f;
+      }
     }
   }
 
@@ -1459,12 +1472,15 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
       float4 rgba = kernel_tex_image_interp_3d(kernel_globals, slot, P_float3, INTERPOLATION_NONE);
 
       result[0] = rgba[0];
-      if (nchannels > 1)
+      if (nchannels > 1) {
         result[1] = rgba[1];
-      if (nchannels > 2)
+      }
+      if (nchannels > 2) {
         result[2] = rgba[2];
-      if (nchannels > 3)
+      }
+      if (nchannels > 3) {
         result[3] = rgba[3];
+      }
       status = true;
       break;
     }
@@ -1531,8 +1547,9 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
       result[1] = 0.0f;
       result[2] = 1.0f;
 
-      if (nchannels == 4)
+      if (nchannels == 4) {
         result[3] = 1.0f;
+      }
     }
   }
 
@@ -1587,8 +1604,9 @@ bool OSLRenderServices::environment(OSLUStringHash filename,
       result[1] = 0.0f;
       result[2] = 1.0f;
 
-      if (nchannels == 4)
+      if (nchannels == 4) {
         result[3] = 1.0f;
+      }
     }
   }
   else if (handle && handle->processor) {

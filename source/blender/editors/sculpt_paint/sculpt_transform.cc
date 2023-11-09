@@ -10,6 +10,8 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 
 #include "DNA_meshdata_types.h"
@@ -20,7 +22,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -38,6 +40,9 @@
 
 #include <cmath>
 #include <cstdlib>
+
+using blender::float3;
+using blender::MutableSpan;
 
 void ED_sculpt_init_transform(bContext *C,
                               Object *ob,
@@ -151,7 +156,7 @@ static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float *start_co;
     float transformed_co[3], orig_co[3], disp[3];
-    float fade = vd.mask ? *vd.mask : 0.0f;
+    float fade = vd.mask;
     copy_v3_v3(orig_co, orig_data.co);
     char symm_area = SCULPT_get_vertex_symm_area(orig_co);
 
@@ -207,7 +212,7 @@ static void sculpt_elastic_transform_task(Object *ob,
 
   SculptSession *ss = ob->sculpt;
 
-  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
@@ -227,7 +232,7 @@ static void sculpt_elastic_transform_task(Object *ob,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float transformed_co[3], orig_co[3], disp[3];
-    const float fade = vd.mask ? *vd.mask : 0.0f;
+    const float fade = vd.mask;
     copy_v3_v3(orig_co, orig_data.co);
 
     copy_v3_v3(transformed_co, vd.co);
@@ -315,9 +320,7 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
         transform_radius = BKE_brush_unprojected_radius_get(scene, brush);
       }
       else {
-        ViewContext vc;
-
-        ED_view3d_viewcontext_init(C, &vc, depsgraph);
+        ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         transform_radius = paint_calc_object_space_radius(
             &vc, ss->init_pivot_pos, BKE_brush_size_get(scene, brush));
@@ -428,7 +431,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          const float mask = (vd.mask) ? *vd.mask : 0.0f;
+          const float mask = vd.mask;
           if (mask < 1.0f) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
               add_v3_v3(avg, vd.co);
@@ -446,7 +449,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          const float mask = (vd.mask) ? *vd.mask : 0.0f;
+          const float mask = vd.mask;
           if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
               add_v3_v3(avg, vd.co);

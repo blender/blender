@@ -388,7 +388,7 @@ IDTypeInfo IDType_ID_BR = {
     /*main_listbase_index*/ INDEX_ID_BR,
     /*struct_size*/ sizeof(Brush),
     /*name*/ "Brush",
-    /*name_plural*/ "brushes",
+    /*name_plural*/ N_("brushes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_BRUSH,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NO_MEMFILE_UNDO,
     /*asset_type_info*/ nullptr,
@@ -768,7 +768,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
-      brush->gpencil_settings->hardeness = 0.9f;
+      brush->gpencil_settings->hardness = 0.9f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
@@ -791,7 +791,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
-      brush->gpencil_settings->hardeness = 1.0f;
+      brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
@@ -826,7 +826,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
-      brush->gpencil_settings->hardeness = 1.0f;
+      brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_SETTINGS;
@@ -863,7 +863,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
-      brush->gpencil_settings->hardeness = 1.0f;
+      brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
@@ -900,7 +900,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = 0.3f;
       brush->gpencil_settings->draw_angle = DEG2RAD(35.0f);
       brush->gpencil_settings->draw_angle_factor = 0.5f;
-      brush->gpencil_settings->hardeness = 1.0f;
+      brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
@@ -942,7 +942,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
-      brush->gpencil_settings->hardeness = 1.0f;
+      brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
@@ -973,7 +973,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
-      brush->gpencil_settings->hardeness = 0.8f;
+      brush->gpencil_settings->hardness = 0.8f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
@@ -1007,7 +1007,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
-      brush->gpencil_settings->hardeness = 1.0f;
+      brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
@@ -1034,7 +1034,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->fill_factor = 1.0f;
 
       brush->gpencil_settings->draw_strength = 1.0f;
-      brush->gpencil_settings->hardeness = 1.0f;
+      brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
       brush->gpencil_settings->draw_smoothfac = 0.1f;
       brush->gpencil_settings->draw_smoothlvl = 1;

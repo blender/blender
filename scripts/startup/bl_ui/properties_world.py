@@ -27,7 +27,8 @@ class WORLD_PT_context_world(WorldButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -75,7 +76,8 @@ class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
     _context_path = "world"
     _property_type = bpy.types.World
 
@@ -147,7 +149,7 @@ class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
 
 
 class EEVEE_WORLD_PT_probe(WorldButtonsPanel, Panel):
-    bl_label = "Probe"
+    bl_label = "Light Probe"
     bl_translation_context = i18n_contexts.id_id
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}

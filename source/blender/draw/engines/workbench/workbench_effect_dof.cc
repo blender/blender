@@ -20,7 +20,7 @@
 #include "workbench_private.hh"
 
 #include "BKE_camera.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 namespace blender::workbench {
 /**

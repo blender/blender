@@ -14,8 +14,6 @@
 
 #include "gpu_texture_private.hh"
 
-struct GPUFrameBuffer;
-
 namespace blender {
 namespace gpu {
 
@@ -47,7 +45,7 @@ class GLTexture : public Texture {
   /** opengl identifier for texture. */
   GLuint tex_id_ = 0;
   /** Legacy workaround for texture copy. Created when using framebuffer_get(). */
-  GPUFrameBuffer *framebuffer_ = nullptr;
+  FrameBuffer *framebuffer_ = nullptr;
   /** True if this texture is bound to at least one texture unit. */
   /* TODO(fclem): How do we ensure thread safety here? */
   bool is_bound_ = false;
@@ -124,7 +122,7 @@ class GLTexture : public Texture {
   void stencil_texture_mode_set(bool use_stencil);
   void update_sub_direct_state_access(
       int mip, int offset[3], int extent[3], GLenum gl_format, GLenum gl_type, const void *data);
-  GPUFrameBuffer *framebuffer_get();
+  FrameBuffer *framebuffer_get();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLTexture")
 };
@@ -209,7 +207,7 @@ inline GLenum to_gl_internal_format(eGPUTextureFormat format)
       return GL_R16F;
     case GPU_R16:
       return GL_R16;
-    /* Special formats texture & renderbuffer */
+    /* Special formats texture & render-buffer. */
     case GPU_RGB10_A2:
       return GL_RGB10_A2;
     case GPU_RGB10_A2UI:
@@ -425,7 +423,7 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
     case GPU_R16UI:
     case GPU_R16I:
       return GL_RED_INTEGER;
-    /* Special formats texture & renderbuffer */
+    /* Special formats texture & render-buffer. */
     case GPU_RGB10_A2UI:
     case GPU_RGB10_A2:
     case GPU_SRGB8_A8:

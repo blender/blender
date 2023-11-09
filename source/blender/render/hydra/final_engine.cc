@@ -14,7 +14,7 @@
 
 #include "BKE_lib_id.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "IMB_imbuf_types.h"
 

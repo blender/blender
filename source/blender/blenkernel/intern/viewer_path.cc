@@ -40,13 +40,15 @@ void BKE_viewer_path_copy(ViewerPath *dst, const ViewerPath *src)
   }
 }
 
-bool BKE_viewer_path_equal(const ViewerPath *a, const ViewerPath *b)
+bool BKE_viewer_path_equal(const ViewerPath *a,
+                           const ViewerPath *b,
+                           const ViewerPathEqualFlag flag)
 {
   const ViewerPathElem *elem_a = static_cast<const ViewerPathElem *>(a->path.first);
   const ViewerPathElem *elem_b = static_cast<const ViewerPathElem *>(b->path.first);
 
   while (elem_a != nullptr && elem_b != nullptr) {
-    if (!BKE_viewer_path_elem_equal(elem_a, elem_b)) {
+    if (!BKE_viewer_path_elem_equal(elem_a, elem_b, flag)) {
       return false;
     }
     elem_a = elem_a->next;
@@ -278,7 +280,9 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
   return dst;
 }
 
-bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b)
+bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
+                                const ViewerPathElem *b,
+                                const ViewerPathEqualFlag flag)
 {
   if (a->type != b->type) {
     return false;
@@ -313,7 +317,8 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b
       const auto *a_elem = reinterpret_cast<const RepeatZoneViewerPathElem *>(a);
       const auto *b_elem = reinterpret_cast<const RepeatZoneViewerPathElem *>(b);
       return a_elem->repeat_output_node_id == b_elem->repeat_output_node_id &&
-             a_elem->iteration == b_elem->iteration;
+             ((flag & VIEWER_PATH_EQUAL_FLAG_IGNORE_REPEAT_ITERATION) != 0 ||
+              a_elem->iteration == b_elem->iteration);
     }
   }
   return false;

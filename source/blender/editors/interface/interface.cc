@@ -25,7 +25,6 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
@@ -39,7 +38,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_unit.h"
 
 #include "ED_asset.hh"
@@ -52,6 +51,7 @@
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
+#include "UI_string_search.hh"
 #include "UI_view2d.hh"
 
 #include "IMB_imbuf.h"
@@ -61,6 +61,7 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.h"
@@ -71,7 +72,7 @@
 
 #include "IMB_colormanagement.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "interface_intern.hh"
 
@@ -539,8 +540,8 @@ static void ui_block_bounds_calc_popup(
   const int height = BLI_rctf_size_y(&block->rect);
 
   /* avoid divide by zero below, caused by calling with no UI, but better not crash */
-  oldwidth = oldwidth > 0 ? oldwidth : MAX2(1, width);
-  oldheight = oldheight > 0 ? oldheight : MAX2(1, height);
+  oldwidth = oldwidth > 0 ? oldwidth : std::max(1, width);
+  oldheight = oldheight > 0 ? oldheight : std::max(1, height);
 
   /* offset block based on mouse position, user offset is scaled
    * along in case we resized the block in ui_block_bounds_calc_text */
@@ -1006,7 +1007,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
     /* Stupid special case: The active button may be inside (as in, overlapped on top) a row
      * button which we also want to keep highlighted then. */
     if (ELEM(but->type, UI_BTYPE_VIEW_ITEM, UI_BTYPE_LISTROW)) {
-      flag_copy |= UI_ACTIVE;
+      flag_copy |= UI_HOVER;
     }
 
     but->flag = (but->flag & ~flag_copy) | (oldbut->flag & flag_copy);
@@ -2451,6 +2452,9 @@ bool ui_but_is_bool(const uiBut *but)
            UI_BTYPE_TOGGLE_N,
            UI_BTYPE_ICON_TOGGLE,
            UI_BTYPE_ICON_TOGGLE_N,
+           UI_BTYPE_CHECKBOX,
+           UI_BTYPE_CHECKBOX_N,
+           UI_BTYPE_BUT_TOGGLE,
            UI_BTYPE_TAB))
   {
     return true;
@@ -2489,7 +2493,8 @@ bool ui_but_is_unit(const uiBut *but)
   }
 
   if (unit->system == USER_UNIT_NONE) {
-    if (unit_type != PROP_UNIT_ROTATION) {
+    /* These types have units irrespective of scene units. */
+    if (!ELEM(unit_type, PROP_UNIT_ROTATION, PROP_UNIT_TIME_ABSOLUTE)) {
       return false;
     }
   }
@@ -2930,7 +2935,7 @@ void ui_but_string_get_ex(uiBut *but,
           BLI_snprintf(str, str_maxncpy, "%.*f", prec, value);
         }
         else {
-          BLI_snprintf(str, str_maxncpy, "%.*f", MAX2(0, prec - 2), value * 100);
+          BLI_snprintf(str, str_maxncpy, "%.*f", std::max(0, prec - 2), value * 100);
         }
       }
       else {
@@ -3341,7 +3346,8 @@ void ui_but_range_set_soft(uiBut *but)
   if (but->rnaprop) {
     const PropertyType type = RNA_property_type(but->rnaprop);
     const PropertySubType subtype = RNA_property_subtype(but->rnaprop);
-    double softmin, softmax /*, step, precision*/;
+    double softmin, softmax;
+    // double step, precision; /* UNUSED. */
     double value_min;
     double value_max;
 
@@ -3443,6 +3449,7 @@ static void ui_but_free_type_specific(uiBut *but)
   switch (but->type) {
     case UI_BTYPE_SEARCH_MENU: {
       uiButSearch *search_but = (uiButSearch *)but;
+      MEM_SAFE_FREE(search_but->item_active_str);
 
       if (search_but->arg_free_fn) {
         search_but->arg_free_fn(search_but->arg);
@@ -3473,6 +3480,10 @@ static void ui_but_free(const bContext *C, uiBut *but)
 
   if (but->hold_argN) {
     MEM_freeN(but->hold_argN);
+  }
+
+  if (but->placeholder) {
+    MEM_freeN(but->placeholder);
   }
 
   ui_but_free_type_specific(but);
@@ -3680,6 +3691,15 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eU
   return block;
 }
 
+void ui_block_add_dynamic_listener(uiBlock *block,
+                                   void (*listener_func)(const wmRegionListenerParams *params))
+{
+  uiBlockDynamicListener *listener = static_cast<uiBlockDynamicListener *>(
+      MEM_mallocN(sizeof(*listener), __func__));
+  listener->listener_func = listener_func;
+  BLI_addtail(&block->dynamic_listeners, listener);
+}
+
 eUIEmbossType UI_block_emboss_get(uiBlock *block)
 {
   return block->emboss;
@@ -3739,7 +3759,7 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
       STR_CONCATF(but->drawstr, slen, "%.*f", precision, value);
     }
     else {
-      STR_CONCATF(but->drawstr, slen, "%.*f%%", MAX2(0, precision - 2), value * 100);
+      STR_CONCATF(but->drawstr, slen, "%.*f%%", std::max(0, precision - 2), value * 100);
     }
   }
   else if (ui_but_is_unit(but)) {
@@ -5001,8 +5021,7 @@ int UI_preview_tile_size_x(const int size_px)
 
 int UI_preview_tile_size_y(const int size_px)
 {
-  const uiStyle *style = UI_style_get();
-  const float font_height = style->widget.points * UI_SCALE_FAC;
+  const float font_height = UI_UNIT_Y;
   /* Add some extra padding to make things less tight vertically. */
   const float pad = PREVIEW_TILE_PAD;
 
@@ -5896,6 +5915,36 @@ void UI_but_disable(uiBut *but, const char *disabled_hint)
   but->disabled_info = disabled_hint;
 }
 
+void UI_but_placeholder_set(uiBut *but, const char *placeholder_text)
+{
+  MEM_SAFE_FREE(but->placeholder);
+  but->placeholder = BLI_strdup_null(placeholder_text);
+}
+
+const char *ui_but_placeholder_get(uiBut *but)
+{
+  const char *placeholder = (but->placeholder) ? but->placeholder : nullptr;
+
+  if (!placeholder && but->rnaprop) {
+    if (but->type == UI_BTYPE_SEARCH_MENU) {
+      StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
+      const short idcode = RNA_type_to_ID_code(type);
+      if (idcode != 0) {
+        RNA_enum_name(rna_enum_id_type_items, idcode, &placeholder);
+        placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_ID, placeholder);
+      }
+      else if (type && !STREQ(RNA_struct_identifier(type), "UnknownType")) {
+        placeholder = RNA_struct_ui_name(type);
+      }
+    }
+    else if (but->type == UI_BTYPE_TEXT && but->icon == ICON_VIEWZOOM) {
+      placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Search");
+    }
+  }
+
+  return placeholder;
+}
+
 void UI_but_type_set_menu_from_pulldown(uiBut *but)
 {
   BLI_assert(but->type == UI_BTYPE_PULLDOWN);
@@ -6045,6 +6094,19 @@ void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const u
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg)
 {
   but->tip_func = func;
+  if (but->tip_arg_free) {
+    but->tip_arg_free(but->tip_arg);
+  }
+  but->tip_arg = arg;
+  but->tip_arg_free = free_arg;
+}
+
+void UI_but_func_tooltip_custom_set(uiBut *but,
+                                    uiButToolTipCustomFunc func,
+                                    void *arg,
+                                    uiFreeArgFunc free_arg)
+{
+  but->tip_custom_func = func;
   if (but->tip_arg_free) {
     but->tip_arg_free(but->tip_arg);
   }
@@ -6387,7 +6449,7 @@ static void operator_enum_search_update_fn(
     const EnumPropertyItem *all_items;
     RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &all_items, nullptr, &do_free);
 
-    blender::string_search::StringSearch<const EnumPropertyItem> search;
+    blender::ui::string_search::StringSearch<const EnumPropertyItem> search;
 
     for (const EnumPropertyItem *item = all_items; item->identifier; item++) {
       search.add(item->name, item);
@@ -6542,10 +6604,6 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       if (but->tip_label_func) {
         const std::string tooltip_label = but->tip_label_func(but);
         tmp = BLI_strdupn(tooltip_label.c_str(), tooltip_label.size());
-      }
-      /* Fallback to the regular label. */
-      else {
-        type = BUT_GET_LABEL;
       }
     }
 

@@ -13,7 +13,8 @@
 #  FFTW3_FOUND, If false, do not try to use Fftw3.
 #
 # also defined, but not for general use are
-#  FFTW3_LIBRARY, where to find the Fftw3 library.
+#  FFTW3_LIBRARY_F, where to find the Fftw3 library (single precision float).
+#  FFTW3_LIBRARY_D, where to find the Fftw3 library (double precision float).
 
 # If `FFTW3_ROOT_DIR` was defined in the environment, use it.
 if(DEFINED FFTW3_ROOT_DIR)
@@ -75,5 +76,6 @@ unset(_FFTW3_LIBRARIES)
 
 mark_as_advanced(
   FFTW3_INCLUDE_DIR
-  FFTW3_LIBRARY
+  FFTW3_LIBRARY_F
+  FFTW3_LIBRARY_D
 )

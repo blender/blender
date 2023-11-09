@@ -9,6 +9,7 @@
 #pragma once
 
 #include <optional>
+#include <utility>
 
 #include "AS_asset_library.hh"
 
@@ -38,9 +39,12 @@ namespace blender::asset_system {
 class AssetLibraryService {
   static std::unique_ptr<AssetLibraryService> instance_;
 
-  /* Mapping absolute path of the library's root path (normalize with #normalize_directory_path()!)
-   * the AssetLibrary instance. */
-  Map<std::string, std::unique_ptr<AssetLibrary>> on_disk_libraries_;
+  /** Identify libraries with the library type, and the absolute path of the library's root path
+   * (normalize with #normalize_directory_path()!). The type is relevant since the current file
+   * library may point to the same path as a custom library. */
+  using OnDiskLibraryIdentifier = std::pair<eAssetLibraryType, std::string>;
+  /* Mapping of a (type, root path) pair to the AssetLibrary instance. */
+  Map<OnDiskLibraryIdentifier, std::unique_ptr<AssetLibrary>> on_disk_libraries_;
   /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
    * above should be used. */
@@ -80,6 +84,7 @@ class AssetLibraryService {
   AssetLibrary *get_asset_library_current_file();
   /** Get the "All" asset library, which loads all others and merges them into one. */
   AssetLibrary *get_asset_library_all(const Main *bmain);
+  void rebuild_all_library();
 
   /**
    * Return the start position of the last blend-file extension in given path,

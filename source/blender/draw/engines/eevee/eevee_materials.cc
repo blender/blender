@@ -14,7 +14,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_memblock.h"
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_global.h"
 #include "BKE_paint.hh"
@@ -27,7 +27,7 @@
 
 #include "GPU_material.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "../eevee_next/eevee_lut.hh"
 #include "eevee_engine.h"
@@ -154,14 +154,13 @@ static void eevee_init_util_texture()
   memcpy(texels_layer, blender::eevee::lut::ltc_mat_ggx, sizeof(float[4]) * 64 * 64);
   texels_layer += 64 * 64;
 
-  /* Copy bsdf_split_sum_ggx into 2nd layer red and green channels.
-   * Copy ltc_mag_ggx into 2nd layer blue and alpha channel. */
+  /* Copy brdf_ggx into 2nd layer red, green and blue channels. */
   for (int x = 0; x < 64; x++) {
     for (int y = 0; y < 64; y++) {
-      texels_layer[y * 64 + x][0] = blender::eevee::lut::bsdf_split_sum_ggx[y][x][0];
-      texels_layer[y * 64 + x][1] = blender::eevee::lut::bsdf_split_sum_ggx[y][x][1];
-      texels_layer[y * 64 + x][2] = blender::eevee::lut::ltc_mag_ggx[y][x][0];
-      texels_layer[y * 64 + x][3] = blender::eevee::lut::ltc_mag_ggx[y][x][1];
+      texels_layer[y * 64 + x][0] = blender::eevee::lut::brdf_ggx[y][x][0];
+      texels_layer[y * 64 + x][1] = blender::eevee::lut::brdf_ggx[y][x][1];
+      texels_layer[y * 64 + x][2] = blender::eevee::lut::brdf_ggx[y][x][2];
+      texels_layer[y * 64 + x][3] = 0.0f; /* UNUSED */
     }
   }
   texels_layer += 64 * 64;
@@ -177,25 +176,33 @@ static void eevee_init_util_texture()
   }
   texels_layer += 64 * 64;
 
-  /* Copy ltc_disk_integral in 4th layer. */
+  /* Copy ltc_disk_integral in 4th layer.
+   * Copy ltc_mag_ggx into blue and alpha channel. */
   for (int x = 0; x < 64; x++) {
     for (int y = 0; y < 64; y++) {
+      float ltc_sum = blender::eevee::lut::ltc_mag_ggx[y][x][0] +
+                      blender::eevee::lut::ltc_mag_ggx[y][x][1];
+      float brdf_sum = blender::eevee::lut::brdf_ggx[y][x][0] +
+                       blender::eevee::lut::brdf_ggx[y][x][1];
       texels_layer[y * 64 + x][0] = blender::eevee::lut::ltc_disk_integral[y][x][0];
-      texels_layer[y * 64 + x][1] = 0.0; /* UNUSED */
-      texels_layer[y * 64 + x][2] = 0.0; /* UNUSED */
-      texels_layer[y * 64 + x][3] = 0.0; /* UNUSED */
+      texels_layer[y * 64 + x][1] = ltc_sum / brdf_sum;
+      texels_layer[y * 64 + x][2] = 0.0f; /* UNUSED */
+      texels_layer[y * 64 + x][3] = 0.0f; /* UNUSED */
     }
   }
   texels_layer += 64 * 64;
 
-  /* Copy Refraction GGX LUT in layer 5 - 21 */
+  /* Copy BSDF GGX LUT in layer 5 - 21 */
   for (int j = 0; j < 16; j++) {
     for (int x = 0; x < 64; x++) {
       for (int y = 0; y < 64; y++) {
-        texels_layer[y * 64 + x][0] = blender::eevee::lut::btdf_split_sum_ggx[j][y][x][0];
-        texels_layer[y * 64 + x][1] = blender::eevee::lut::btdf_split_sum_ggx[j][y][x][1];
-        texels_layer[y * 64 + x][2] = 0.0; /* UNUSED */
-        texels_layer[y * 64 + x][3] = 0.0; /* UNUSED */
+        /* BSDF LUT for `IOR < 1`. */
+        texels_layer[y * 64 + x][0] = blender::eevee::lut::bsdf_ggx[j][y][x][0];
+        texels_layer[y * 64 + x][1] = blender::eevee::lut::bsdf_ggx[j][y][x][1];
+        texels_layer[y * 64 + x][2] = blender::eevee::lut::bsdf_ggx[j][y][x][2];
+        /* BTDF LUT for `IOR > 1`, parameterized differently as above.
+         * See `eevee_lut_comp.glsl`. */
+        texels_layer[y * 64 + x][3] = blender::eevee::lut::btdf_ggx[j][y][x][0];
       }
     }
     texels_layer += 64 * 64;

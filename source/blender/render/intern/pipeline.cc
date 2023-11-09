@@ -57,19 +57,19 @@
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 #include "BKE_writeavi.h" /* <------ should be replaced once with generic movie module */
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_debug.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_debug.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -81,8 +81,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
 
 #include "GPU_context.h"
 #include "WM_api.hh"
@@ -442,7 +442,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
       /* The render result uses shallow initialization, and the caller is not expected to
        * explicitly free it. So simply assign the buffers as a shallow copy here as well.
        *
-       * The thread safety is ensured via the  re->resultmutex. */
+       * The thread safety is ensured via the `re->resultmutex`. */
       rr->ibuf = rv->ibuf;
 
       /* active layer */
@@ -2459,7 +2459,10 @@ void RE_RenderAnim(Render *re,
 void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 {
   /* Ensure within GPU render boundary. */
-  GPU_render_begin();
+  const bool use_gpu = GPU_backend_get_type() != GPU_BACKEND_NONE;
+  if (use_gpu) {
+    GPU_render_begin();
+  }
 
   Object *camera;
   int winx, winy;
@@ -2483,7 +2486,9 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
   }
 
   /* Close GPU render boundary. */
-  GPU_render_end();
+  if (use_gpu) {
+    GPU_render_end();
+  }
 }
 
 /* NOTE: repeated win/disprect calc... solve that nicer, also in compo. */

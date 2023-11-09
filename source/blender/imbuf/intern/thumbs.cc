@@ -18,7 +18,7 @@
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -47,7 +47,7 @@
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
  * because 'near' is disabled through BLI_windstuff */
 #  include "BLI_winstuff.h"
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #  include <direct.h> /* #chdir */
 #  include <shlobj.h>
 #endif
@@ -557,6 +557,17 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
   if (!uri_from_filename(file_or_lib_path, uri)) {
     return nullptr;
   }
+
+  /* Don't access offline files, only use already existing thumbnails (don't recreate). */
+  const eFileAttributes file_attributes = BLI_file_attributes(file_path);
+  if (file_attributes & FILE_ATTR_OFFLINE) {
+    char thumb_path[FILE_MAX];
+    if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), size)) {
+      return IMB_loadiffname(thumb_path, IB_rect | IB_metadata, nullptr);
+    }
+    return nullptr;
+  }
+
   char thumb_path[FILE_MAX];
   if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), THB_FAIL)) {
     /* failure thumb exists, don't try recreating */

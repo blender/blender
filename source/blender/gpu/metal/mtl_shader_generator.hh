@@ -223,7 +223,7 @@ struct MSLBufferBlock {
   std::string name;
   ShaderStage stage;
   bool is_array;
-  /* Resource index in buffer*/
+  /* Resource index in buffer. */
   uint slot;
   uint location;
   shader::Qualifier qualifiers;
@@ -377,7 +377,7 @@ struct MSLFragmentOutputAttribute {
 using MSLFragmentTileInputAttribute = MSLFragmentOutputAttribute;
 
 struct MSLSharedMemoryBlock {
-  /* e.g. shared vec4 color_cache[cache_size][cache_size]; */
+  /* e.g. `shared vec4 color_cache[cache_size][cache_size];`. */
   std::string type_name;
   std::string varname;
   bool is_array;

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -59,6 +59,10 @@ msgstr "Билдирүү"
 
 msgid "Full"
 msgstr "Толук"
+
+
+msgid "Auto"
+msgstr "Авто"
 
 
 msgid "Animation Data"
@@ -199,10 +203,6 @@ msgstr "Тазалоо"
 
 msgid "Free"
 msgstr "Бош"
-
-
-msgid "Auto"
-msgstr "Авто"
 
 
 msgid "Hide"
@@ -1402,6 +1402,10 @@ msgid "Key"
 msgstr "Ачкыч"
 
 
+msgid "Files"
+msgstr "Файлдар"
+
+
 msgid "Align"
 msgstr "Түздөө"
 
@@ -1421,6 +1425,18 @@ msgstr "Трекинг"
 
 msgid "Node"
 msgstr "Түйүн"
+
+
+msgid "Add Modifier"
+msgstr "Модификаторду кошуу"
+
+
+msgid "Physics"
+msgstr "Физика"
+
+
+msgid "Sequencer"
+msgstr "Секвенсор"
 
 
 msgid "Apply"
@@ -1694,10 +1710,6 @@ msgstr "Тандоо"
 msgctxt "Operator"
 msgid "Open Clip"
 msgstr "Видеофрагментти ачуу"
-
-
-msgid "Files"
-msgstr "Файлдар"
 
 
 msgid "Wall"
@@ -2137,6 +2149,11 @@ msgstr "Жашыруу"
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Модификаторду кошуу"
+
+
+msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Скелетти кошуу"
 
@@ -2178,11 +2195,6 @@ msgstr "Дубликаттоо"
 
 msgid "Monkey"
 msgstr "Маймыл"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Модификаторду кошуу"
 
 
 msgid "Object Data"
@@ -2271,10 +2283,6 @@ msgstr "Жаңылоо"
 
 msgid "Bake"
 msgstr "Бышыруу"
-
-
-msgid "Sequencer"
-msgstr "Секвенсор"
 
 
 msgctxt "Operator"
@@ -2708,10 +2716,6 @@ msgid "Paragraph"
 msgstr "Абзац"
 
 
-msgid "Skeleton"
-msgstr "Скелет"
-
-
 msgid "Filters"
 msgstr "Фильтрлер"
 
@@ -2736,10 +2740,6 @@ msgstr "Гистограмма"
 
 msgid "Vectorscope"
 msgstr "Вектороскоп"
-
-
-msgid "Physics"
-msgstr "Физика"
 
 
 msgid "Shadows"
@@ -3779,10 +3779,6 @@ msgid "Value:"
 msgstr "Мааниси:"
 
 
-msgid "Add Modifier"
-msgstr "Модификаторду кошуу"
-
-
 msgid "<No ID>"
 msgstr "<ID жок>"
 
@@ -3797,11 +3793,6 @@ msgstr "Сүрөттү жүктөө оңунан чыккан жок"
 
 msgid "(Key) "
 msgstr "(Ачкыч) "
-
-
-msgctxt "Action"
-msgid "Group"
-msgstr "Топ"
 
 
 msgid "(empty)"
@@ -3848,6 +3839,11 @@ msgid "(Smooth)"
 msgstr "(тегиз)"
 
 
+msgctxt "Action"
+msgid "Group"
+msgstr "Топ"
+
+
 msgid "Modify"
 msgstr "Өзгөртүү"
 
@@ -3855,11 +3851,6 @@ msgstr "Өзгөртүү"
 msgctxt "Key"
 msgid "Key"
 msgstr "Ачкыч"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Топ"
 
 
 msgid "AO"
@@ -3964,10 +3955,6 @@ msgstr "Испан (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Каталон (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Чех (Český)"
 
 
 msgid "Portuguese (Português)"

@@ -12,10 +12,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct DynStr;
 
 extern char BaseMathObject_is_wrapped_doc[];
@@ -233,8 +229,4 @@ int column_vector_multiplication(float r_vec[4], VectorObject *vec, MatrixObject
 /* dynstr as python string utility functions */
 /* dynstr as python string utility functions, frees 'ds'! */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
-#endif
-
-#ifdef __cplusplus
-}
 #endif

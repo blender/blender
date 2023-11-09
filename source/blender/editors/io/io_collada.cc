@@ -15,10 +15,10 @@
 
 #  include "BKE_context.h"
 #  include "BKE_main.h"
-#  include "BKE_object.h"
+#  include "BKE_object.hh"
 #  include "BKE_report.h"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "ED_fileselect.hh"
 #  include "ED_object.hh"

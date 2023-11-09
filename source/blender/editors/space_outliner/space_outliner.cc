@@ -22,7 +22,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_outliner_treehash.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -70,7 +70,7 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Add dropboxes */
@@ -156,6 +156,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
           break;
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
         case ND_DRAW:
         case ND_PARENT:
         case ND_OB_SHADING:
@@ -617,7 +618,6 @@ void ED_spacetype_outliner()
   st->id_remap = outliner_id_remap;
   st->foreach_id = outliner_foreach_id;
   st->deactivate = outliner_deactivate;
-  st->context = outliner_context;
   st->blend_read_data = outliner_space_blend_read_data;
   st->blend_read_after_liblink = outliner_space_blend_read_after_liblink;
   st->blend_write = outliner_space_blend_write;
@@ -632,6 +632,7 @@ void ED_spacetype_outliner()
   art->free = outliner_main_region_free;
   art->listener = outliner_main_region_listener;
   art->message_subscribe = outliner_main_region_message_subscribe;
+  art->context = outliner_main_region_context;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */

@@ -207,7 +207,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   }
   else {
     /* leave the rest to eval */
-    *eval = bsdf_ashikhmin_shirley_eval(sc, N, wi, *wo, pdf);
+    *eval = bsdf_ashikhmin_shirley_eval(sc, Ng, wi, *wo, pdf);
   }
 
   return label;

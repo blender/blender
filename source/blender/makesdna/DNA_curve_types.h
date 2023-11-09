@@ -157,7 +157,6 @@ typedef struct Nurb {
 
 typedef struct CharInfo {
   float kern;
-  /** Index start at 1, unlike mesh & nurbs. */
   short mat_nr;
   char flag;
   char _pad[1];
@@ -281,7 +280,7 @@ typedef struct Curve {
   struct CharInfo curinfo;
   /* font part end */
 
-  /** Current evaltime - for use by Objects parented to curves. */
+  /** Current evaluation-time, for use by Objects parented to curves. */
   float ctime;
   float bevfac1, bevfac2;
   char bevfac1_mapping, bevfac2_mapping;

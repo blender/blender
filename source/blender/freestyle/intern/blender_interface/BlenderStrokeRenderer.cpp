@@ -40,7 +40,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "BLI_ghash.h"
@@ -50,8 +50,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "RE_pipeline.h"
 

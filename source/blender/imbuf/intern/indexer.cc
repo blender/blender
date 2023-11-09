@@ -17,7 +17,7 @@
 #include "BLI_math_base.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #ifdef _WIN32
@@ -1252,7 +1252,7 @@ struct FallbackIndexBuilderContext {
 };
 
 static AviMovie *alloc_proxy_output_avi(
-    anim *anim, char *filepath, int width, int height, int quality)
+    anim *anim, const char *filepath, int width, int height, int quality)
 {
   int x, y;
   AviFormat format;

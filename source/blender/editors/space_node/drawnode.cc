@@ -61,10 +61,11 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_shader.h"
+#include "NOD_socket.hh"
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
@@ -1222,7 +1223,7 @@ static const SocketColorFn std_node_socket_color_funcs[] = {
     std_node_socket_color_fn<SOCK_RGBA>,
     std_node_socket_color_fn<SOCK_SHADER>,
     std_node_socket_color_fn<SOCK_BOOLEAN>,
-    nullptr /* UNUSED */,
+    nullptr /* UNUSED. */,
     std_node_socket_color_fn<SOCK_INT>,
     std_node_socket_color_fn<SOCK_STRING>,
     std_node_socket_color_fn<SOCK_OBJECT>,
@@ -1284,14 +1285,18 @@ static void node_file_output_socket_draw(bContext *C,
 
 static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
 {
-  if (node.runtime->declaration == nullptr) {
+  const nodes::NodeDeclaration *node_decl = node.declaration();
+  if (node_decl == nullptr) {
+    return false;
+  }
+  if (node_decl->skip_updating_sockets) {
     return false;
   }
   if (socket.in_out == SOCK_OUT) {
     return false;
   }
   const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node.declaration()->inputs[socket_index]->is_attribute_name;
+  return node_decl->inputs[socket_index]->is_attribute_name;
 }
 
 static void std_node_socket_draw(
@@ -1503,11 +1508,36 @@ static void std_node_socket_interface_draw(ID *id,
   }
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "hide_value", DEFAULT_FLAGS, nullptr, ICON_NONE);
 
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
   if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
-    uiItemR(col, &ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, ICON_NONE);
+    if (ELEM(type, SOCK_INT, SOCK_VECTOR)) {
+      uiItemR(col, &ptr, "default_input", DEFAULT_FLAGS, nullptr, ICON_NONE);
+    }
+  }
+
+  {
+    uiLayout *sub = uiLayoutColumn(col, false);
+    uiLayoutSetActive(sub, interface_socket->default_input == NODE_INPUT_DEFAULT_VALUE);
+    uiItemR(sub, &ptr, "hide_value", DEFAULT_FLAGS, nullptr, ICON_NONE);
+  }
+
+  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
+    if (U.experimental.use_grease_pencil_version3) {
+      if (type == SOCK_BOOLEAN) {
+        uiItemR(col, &ptr, "layer_selection_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
+      }
+    }
+    uiLayout *sub = uiLayoutColumn(col, false);
+    uiLayoutSetActive(sub, !is_layer_selection_field(*interface_socket));
+    uiItemR(sub, &ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, ICON_NONE);
+    if (nodes::socket_type_supports_fields(type)) {
+      uiLayout *sub_sub = uiLayoutColumn(col, false);
+      uiLayoutSetActive(sub_sub,
+                        (interface_socket->default_input == NODE_INPUT_DEFAULT_VALUE) &&
+                            !is_layer_selection_field(*interface_socket));
+      uiItemR(sub_sub, &ptr, "force_non_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
+    }
   }
 }
 
@@ -2080,7 +2110,8 @@ static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &lin
   return false;
 }
 
-static NodeLinkDrawConfig nodelink_get_draw_config(const View2D &v2d,
+static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
+                                                   const View2D &v2d,
                                                    const SpaceNode &snode,
                                                    const bNodeLink &link,
                                                    const int th_col1,
@@ -2118,18 +2149,24 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const View2D &v2d,
   if (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
       snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS)
   {
+    const bNodeTree &node_tree = *snode.edittree;
+    PointerRNA from_node_ptr = RNA_pointer_create(
+        &const_cast<ID &>(node_tree.id), &RNA_Node, link.fromnode);
+    PointerRNA to_node_ptr = RNA_pointer_create(
+        &const_cast<ID &>(node_tree.id), &RNA_Node, link.tonode);
+
     if (link.fromsock) {
-      node_socket_color_get(*link.fromsock->typeinfo, draw_config.start_color);
+      node_socket_color_get(C, node_tree, from_node_ptr, *link.fromsock, draw_config.start_color);
     }
     else {
-      node_socket_color_get(*link.tosock->typeinfo, draw_config.start_color);
+      node_socket_color_get(C, node_tree, to_node_ptr, *link.tosock, draw_config.start_color);
     }
 
     if (link.tosock) {
-      node_socket_color_get(*link.tosock->typeinfo, draw_config.end_color);
+      node_socket_color_get(C, node_tree, to_node_ptr, *link.tosock, draw_config.end_color);
     }
     else {
-      node_socket_color_get(*link.fromsock->typeinfo, draw_config.end_color);
+      node_socket_color_get(C, node_tree, from_node_ptr, *link.fromsock, draw_config.end_color);
     }
   }
   else {
@@ -2208,7 +2245,8 @@ static void node_draw_link_bezier_ex(const SpaceNode &snode,
   }
 }
 
-void node_draw_link_bezier(const View2D &v2d,
+void node_draw_link_bezier(const bContext &C,
+                           const View2D &v2d,
                            const SpaceNode &snode,
                            const bNodeLink &link,
                            const int th_col1,
@@ -2221,12 +2259,13 @@ void node_draw_link_bezier(const View2D &v2d,
     return;
   }
   const NodeLinkDrawConfig draw_config = nodelink_get_draw_config(
-      v2d, snode, link, th_col1, th_col2, th_col3, selected);
+      C, v2d, snode, link, th_col1, th_col2, th_col3, selected);
 
   node_draw_link_bezier_ex(snode, draw_config, points);
 }
 
-void node_draw_link(const View2D &v2d,
+void node_draw_link(const bContext &C,
+                    const View2D &v2d,
                     const SpaceNode &snode,
                     const bNodeLink &link,
                     const bool selected)
@@ -2269,7 +2308,7 @@ void node_draw_link(const View2D &v2d,
     }
   }
 
-  node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, th_col3, selected);
+  node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3, selected);
 }
 
 std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &snode,
@@ -2286,7 +2325,10 @@ std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &snode,
   return points;
 }
 
-void node_draw_link_dragged(const View2D &v2d, const SpaceNode &snode, const bNodeLink &link)
+void node_draw_link_dragged(const bContext &C,
+                            const View2D &v2d,
+                            const SpaceNode &snode,
+                            const bNodeLink &link)
 {
   if (link.fromsock == nullptr && link.tosock == nullptr) {
     return;
@@ -2295,7 +2337,7 @@ void node_draw_link_dragged(const View2D &v2d, const SpaceNode &snode, const bNo
   const std::array<float2, 4> points = node_link_bezier_points_dragged(snode, link);
 
   const NodeLinkDrawConfig draw_config = nodelink_get_draw_config(
-      v2d, snode, link, TH_ACTIVE, TH_ACTIVE, TH_WIRE, true);
+      C, v2d, snode, link, TH_ACTIVE, TH_ACTIVE, TH_WIRE, true);
   /* End marker outline. */
   node_draw_link_end_markers(link, draw_config, points, true);
   /* Link. */

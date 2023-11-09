@@ -33,12 +33,15 @@ ccl_device float bsdf_toon_get_intensity(float max_angle, float smooth, float an
 {
   float is;
 
-  if (angle < max_angle)
+  if (angle < max_angle) {
     is = 1.0f;
-  else if (angle < (max_angle + smooth) && smooth != 0.0f)
+  }
+  else if (angle < (max_angle + smooth) && smooth != 0.0f) {
     is = (1.0f - (angle - max_angle) / smooth);
-  else
+  }
+  else {
     is = 0.0f;
+  }
 
   return is;
 }

@@ -554,9 +554,12 @@ class GreasePencilMaterialsPanel:
                     icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
                     row.prop(slot, "link", icon=icon_link, icon_only=True)
 
-                if not is_grease_pencil_version3 and ob.data.use_stroke_edit_mode:
+                if is_grease_pencil_version3 and ob.mode == 'EDIT':
                     row = layout.row(align=True)
-                    row.operator("gpencil.stroke_change_color", text="Assign")
+                    row.operator("grease_pencil.stroke_material_set", text="Assign")
+                elif not is_grease_pencil_version3 and ob.data.use_stroke_edit_mode:
+                    row = layout.row(align=True)
+                    row.operator("gpencil.stroke_material_set", text="Assign")
                     row.operator("gpencil.material_select", text="Select").deselect = False
                     row.operator("gpencil.material_select", text="Deselect").deselect = True
         # stroke color

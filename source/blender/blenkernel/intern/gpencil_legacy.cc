@@ -19,7 +19,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
@@ -53,7 +53,7 @@
 
 #include "BLI_math_color.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
 
@@ -268,7 +268,7 @@ IDTypeInfo IDType_ID_GD_LEGACY = {
     /*main_listbase_index*/ INDEX_ID_GD_LEGACY,
     /*struct_size*/ sizeof(bGPdata),
     /*name*/ "GPencil",
-    /*name_plural*/ "grease_pencils",
+    /*name_plural*/ N_("grease_pencils"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_GPENCIL,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -443,10 +443,21 @@ void BKE_gpencil_free_layers(ListBase *list)
   }
 }
 
+/* Free all of the gp-palettes and colors. */
+void BKE_gpencil_free_legacy_palette_data(ListBase *list)
+{
+  LISTBASE_FOREACH_MUTABLE (bGPDpalette *, palette, list) {
+    BLI_freelistN(&palette->colors);
+    MEM_freeN(palette);
+  }
+  BLI_listbase_clear(list);
+}
+
 void BKE_gpencil_free_data(bGPdata *gpd, bool free_all)
 {
   /* free layers */
   BKE_gpencil_free_layers(&gpd->layers);
+  BKE_gpencil_free_legacy_palette_data(&gpd->palettes);
 
   /* materials */
   MEM_SAFE_FREE(gpd->mat);
@@ -727,7 +738,7 @@ bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness)
 
   gps->thickness = thickness;
   gps->fill_opacity_fac = 1.0f;
-  gps->hardeness = 1.0f;
+  gps->hardness = 1.0f;
   copy_v2_fl(gps->aspect_ratio, 1.0f);
 
   gps->uv_scale = 1.0f;
@@ -1013,7 +1024,7 @@ void BKE_gpencil_stroke_copy_settings(const bGPDstroke *gps_src, bGPDstroke *gps
   gps_dst->inittime = gps_src->inittime;
   gps_dst->mat_nr = gps_src->mat_nr;
   copy_v2_v2_short(gps_dst->caps, gps_src->caps);
-  gps_dst->hardeness = gps_src->hardeness;
+  gps_dst->hardness = gps_src->hardness;
   copy_v2_v2(gps_dst->aspect_ratio, gps_src->aspect_ratio);
   gps_dst->fill_opacity_fac = gps_dst->fill_opacity_fac;
   copy_v3_v3(gps_dst->boundbox_min, gps_src->boundbox_min);

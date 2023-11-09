@@ -26,7 +26,7 @@
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -39,10 +39,12 @@
 
 #include "BLO_read_write.hh"
 
+#include "GEO_randomize.hh"
+
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 static void init_data(ModifierData *md)
 {
@@ -191,13 +193,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  Object *ob = ctx->object;
-
-  if (harden_normals && (ob->type == OB_MESH) && !(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
-    BKE_modifier_set_error(ob, md, "Enable 'Auto Smooth' in Object Data Properties");
-    harden_normals = false;
-  }
-
   BM_mesh_bevel(bm,
                 value,
                 offset_type,
@@ -218,7 +213,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                 miter_outer,
                 miter_inner,
                 spread,
-                mesh->smoothresh,
                 bmd->custom_profile,
                 bmd->vmesh_method);
 
@@ -229,6 +223,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
              bm->ftoolflagpool == nullptr);
 
   BM_mesh_free(bm);
+
+  blender::geometry::debug_randomize_mesh_order(result);
 
   return result;
 }

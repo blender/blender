@@ -101,8 +101,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
     use_alt_click_leader: BoolProperty(
         name="Alt Click Tool Prompt",
         description=(
-            "Tapping Alt (without pressing any other keys) shows a prompt in the status-bar\n"
-            "prompting a second keystroke to activate the tool"
+            "Tapping Alt (without pressing any other keys) shows a prompt in the status-bar, prompting a second keystroke to activate the tool"
         ),
         default=False,
         update=update_fn,

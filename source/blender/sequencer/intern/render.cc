@@ -40,8 +40,8 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer_offscreen.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -54,26 +54,26 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_effects.h"
-#include "SEQ_iterator.h"
-#include "SEQ_modifier.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_channels.hh"
+#include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
-#include "effects.h"
-#include "image_cache.h"
-#include "multiview.h"
-#include "prefetch.h"
-#include "proxy.h"
-#include "render.h"
-#include "strip_time.h"
-#include "utils.h"
+#include "effects.hh"
+#include "image_cache.hh"
+#include "multiview.hh"
+#include "prefetch.hh"
+#include "proxy.hh"
+#include "render.hh"
+#include "strip_time.hh"
+#include "utils.hh"
 
 static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
                                      SeqRenderState *state,
@@ -256,7 +256,7 @@ StripElem *SEQ_render_give_stripelem(const Scene *scene, Sequence *seq, int time
      * all other strips don't use this...
      */
 
-    int frame_index = int(SEQ_give_frame_index(scene, seq, timeline_frame));
+    int frame_index = round_fl_to_int(SEQ_give_frame_index(scene, seq, timeline_frame));
 
     if (frame_index == -1 || se == nullptr) {
       return nullptr;
@@ -279,25 +279,22 @@ int seq_get_shown_sequences(const Scene *scene,
                             const int chanshown,
                             Sequence **r_seq_arr)
 {
-  SeqCollection *collection = SEQ_query_rendered_strips(
+  blender::VectorSet strips = SEQ_query_rendered_strips(
       scene, channels, seqbase, timeline_frame, chanshown);
-  const int strip_count = BLI_gset_len(collection->set);
+  const int strip_count = strips.size();
 
   if (UNLIKELY(strip_count > MAXSEQ)) {
-    SEQ_collection_free(collection);
     BLI_assert_msg(0, "Too many strips, this shouldn't happen");
     return 0;
   }
 
   /* Copy collection elements into array. */
   memset(r_seq_arr, 0, sizeof(Sequence *) * (MAXSEQ + 1));
-  Sequence *seq;
   int index = 0;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
+  for (Sequence *seq : strips) {
     r_seq_arr[index] = seq;
     index++;
   }
-  SEQ_collection_free(collection);
 
   /* Sort array by channel. */
   qsort(r_seq_arr, strip_count, sizeof(Sequence *), seq_channel_cmp_fn);
@@ -571,7 +568,7 @@ static void sequencer_preprocess_transform_crop(
   }
 }
 
-static void multibuf(ImBuf *ibuf, const float fmul)
+static void multibuf(ImBuf *ibuf, const float fmul, const bool multiply_alpha)
 {
   uchar *rt;
   float *rt_float;
@@ -588,6 +585,9 @@ static void multibuf(ImBuf *ibuf, const float fmul)
       rt[0] = min_ii((imul * rt[0]) >> 8, 255);
       rt[1] = min_ii((imul * rt[1]) >> 8, 255);
       rt[2] = min_ii((imul * rt[2]) >> 8, 255);
+      if (multiply_alpha) {
+        rt[3] = min_ii((imul * rt[3]) >> 8, 255);
+      }
 
       rt += 4;
     }
@@ -598,6 +598,9 @@ static void multibuf(ImBuf *ibuf, const float fmul)
       rt_float[0] *= fmul;
       rt_float[1] *= fmul;
       rt_float[2] *= fmul;
+      if (multiply_alpha) {
+        rt_float[3] *= fmul;
+      }
 
       rt_float += 4;
     }
@@ -669,7 +672,8 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   }
 
   if (mul != 1.0f) {
-    multibuf(preprocessed_ibuf, mul);
+    const bool multiply_alpha = (seq->flag & SEQ_MULTIPLY_ALPHA);
+    multibuf(preprocessed_ibuf, mul, multiply_alpha);
   }
 
   if (seq->modifiers.first) {
@@ -962,8 +966,7 @@ static bool seq_image_strip_is_multiview_render(
 
 static ImBuf *seq_render_image_strip(const SeqRenderData *context,
                                      Sequence *seq,
-                                     float /*frame_index*/,
-                                     float timeline_frame,
+                                     int timeline_frame,
                                      bool *r_is_proxy_image)
 {
   char filepath[FILE_MAX];
@@ -1061,7 +1064,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
     }
   }
 
-  int frameno = int(SEQ_give_frame_index(context->scene, seq, timeline_frame)) +
+  int frameno = round_fl_to_int(SEQ_give_frame_index(context->scene, seq, timeline_frame)) +
                 seq->anim_startofs;
   return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 }
@@ -1081,13 +1084,14 @@ static IMB_Timecode_Type seq_render_movie_strip_timecode_get(Sequence *seq)
  */
 static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
                                           Sequence *seq,
-                                          float frame_index,
                                           float timeline_frame,
                                           StripAnim *sanim,
                                           bool *r_is_proxy_image)
 {
   ImBuf *ibuf = nullptr;
   IMB_Proxy_Size psize = IMB_Proxy_Size(SEQ_rendersize_to_proxysize(context->preview_render_size));
+  const int frame_index = round_fl_to_int(
+      SEQ_give_frame_index(context->scene, seq, timeline_frame));
 
   if (SEQ_can_use_proxy(context, seq, psize)) {
     /* Try to get a proxy image.
@@ -1132,7 +1136,6 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
 
 static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
                                      Sequence *seq,
-                                     float frame_index,
                                      float timeline_frame,
                                      bool *r_is_proxy_image)
 {
@@ -1158,7 +1161,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     {
       if (sanim->anim) {
         ibuf_arr[ibuf_view_id] = seq_render_movie_strip_view(
-            context, seq, frame_index, timeline_frame, sanim, r_is_proxy_image);
+            context, seq, timeline_frame, sanim, r_is_proxy_image);
       }
     }
 
@@ -1195,8 +1198,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     MEM_freeN(ibuf_arr);
   }
   else {
-    ibuf = seq_render_movie_strip_view(
-        context, seq, frame_index, timeline_frame, sanim, r_is_proxy_image);
+    ibuf = seq_render_movie_strip_view(context, seq, timeline_frame, sanim, r_is_proxy_image);
   }
 
   if (ibuf == nullptr) {
@@ -1726,17 +1728,18 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
     }
 
     case SEQ_TYPE_IMAGE: {
-      ibuf = seq_render_image_strip(context, seq, frame_index, timeline_frame, r_is_proxy_image);
+      ibuf = seq_render_image_strip(context, seq, timeline_frame, r_is_proxy_image);
       break;
     }
 
     case SEQ_TYPE_MOVIE: {
-      ibuf = seq_render_movie_strip(context, seq, frame_index, timeline_frame, r_is_proxy_image);
+      ibuf = seq_render_movie_strip(context, seq, timeline_frame, r_is_proxy_image);
       break;
     }
 
     case SEQ_TYPE_MOVIECLIP: {
-      ibuf = seq_render_movieclip_strip(context, seq, frame_index, r_is_proxy_image);
+      ibuf = seq_render_movieclip_strip(
+          context, seq, round_fl_to_int(frame_index), r_is_proxy_image);
 
       if (ibuf) {
         /* duplicate frame so movie cache wouldn't be confused by sequencer's stuff */
@@ -1934,6 +1937,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
           ImBuf *ibuf2 = seq_render_strip(context, state, seq, timeline_frame);
 
           out = seq_render_strip_stack_apply_effect(context, seq, timeline_frame, ibuf1, ibuf2);
+          IMB_metadata_copy(out, ibuf2);
 
           seq_cache_put(context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out);
 

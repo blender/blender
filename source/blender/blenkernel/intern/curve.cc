@@ -16,6 +16,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -48,11 +49,11 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_vfont.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "CLG_log.h"
 
@@ -278,7 +279,7 @@ IDTypeInfo IDType_ID_CU_LEGACY = {
     /*main_listbase_index*/ INDEX_ID_CU_LEGACY,
     /*struct_size*/ sizeof(Curve),
     /*name*/ "Curve",
-    /*name_plural*/ "curves",
+    /*name_plural*/ N_("curves"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_CURVE_LEGACY,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -1908,7 +1909,7 @@ static void calc_bevel_sin_cos(
     t02 = M_PI_2;
   }
   else {
-    t02 = saacos(t02) / 2.0f;
+    t02 = safe_acosf(t02) / 2.0f;
   }
 
   t02 = sinf(t02);
@@ -2154,8 +2155,8 @@ static void bevel_list_smooth(BevList *bl, int smooth_iter)
     nr = bl->nr;
 
     if (bl->poly == -1) { /* check its not cyclic */
-      /* skip the first point */
-      /* bevp0 = bevp1; */
+      /* Skip the first point. */
+      // bevp0 = bevp1;
       bevp1 = bevp2;
       bevp2++;
       nr--;
@@ -2184,7 +2185,7 @@ static void bevel_list_smooth(BevList *bl, int smooth_iter)
       interp_qt_qtqt(bevp1->quat, bevp1->quat, q, 0.5);
       normalize_qt(bevp1->quat);
 
-      /* bevp0 = bevp1; */ /* UNUSED */
+      // bevp0 = bevp1; /* UNUSED */
       bevp1 = bevp2;
       bevp2++;
     }
@@ -2385,7 +2386,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
     normalize_v3(cross_tmp);
     tri_to_quat(bevp1->quat, zero, cross_tmp, bevp1->tan); /* XXX: could be faster. */
 
-    /* bevp0 = bevp1; */ /* UNUSED */
+    // bevp0 = bevp1; /* UNUSED */
     bevp1 = bevp2;
     bevp2++;
   }
@@ -5427,11 +5428,7 @@ void BKE_curve_material_remap(Curve *cu, const uint *remap, uint remap_len)
     }
 
     for (i = 0; i <= charinfo_len; i++) {
-      if (strinfo[i].mat_nr > 0) {
-        strinfo[i].mat_nr -= 1;
-        MAT_NR_REMAP(strinfo[i].mat_nr);
-        strinfo[i].mat_nr += 1;
-      }
+      MAT_NR_REMAP(strinfo[i].mat_nr);
     }
   }
   else {

@@ -11,8 +11,11 @@
 
 #include <atomic>
 
+#include "BLI_array_utils.hh"
+#include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_utility_mixins.hh"
@@ -20,6 +23,7 @@
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
+#include "DNA_object_types.h" /* #BoundBox. */
 
 struct Main;
 struct Depsgraph;
@@ -32,30 +36,12 @@ namespace blender::bke {
 
 namespace greasepencil {
 
-/**
- * A single point for a stroke that is currently being drawn.
- */
-struct StrokePoint {
-  float3 position;
-  float radius;
-  float opacity;
-  float4 color;
-};
+struct DrawingTransforms {
+  float4x4 world_space_to_layer_space;
+  float4x4 layer_space_to_world_space;
 
-/**
- * Stroke cache for a stroke that is currently being drawn.
- */
-struct StrokeCache {
-  Vector<StrokePoint> points;
-  Vector<uint3> triangles;
-  int mat = 0;
-
-  void clear()
-  {
-    this->points.clear_and_shrink();
-    this->triangles.clear_and_shrink();
-    this->mat = 0;
-  }
+  DrawingTransforms() = default;
+  DrawingTransforms(const Object &grease_pencil_ob);
 };
 
 class DrawingRuntime {
@@ -103,6 +89,12 @@ class Drawing : public ::GreasePencilDrawing {
   MutableSpan<float> opacities_for_write();
 
   /**
+   * Vertex colors of the points. Default is black.
+   */
+  VArray<ColorGeometry4f> vertex_colors() const;
+  MutableSpan<ColorGeometry4f> vertex_colors_for_write();
+
+  /**
    * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
    * modify this drawings data.
    */
@@ -118,6 +110,24 @@ class Drawing : public ::GreasePencilDrawing {
   bool is_instanced() const;
   bool has_users() const;
 };
+
+class DrawingReference : public ::GreasePencilDrawingReference {
+ public:
+  DrawingReference();
+  DrawingReference(const DrawingReference &other);
+  ~DrawingReference();
+};
+
+const Drawing *get_eval_grease_pencil_layer_drawing(const GreasePencil &grease_pencil,
+                                                    int layer_index);
+Drawing *get_eval_grease_pencil_layer_drawing_for_write(GreasePencil &grease_pencil,
+                                                        int layer_index);
+/**
+ * Copies the drawings from one array to another. Assumes that \a dst_drawings is allocated but not
+ * initialized, e.g. it will allocate new drawings and store the pointers.
+ */
+void copy_drawing_array(Span<const GreasePencilDrawingBase *> src_drawings,
+                        MutableSpan<GreasePencilDrawingBase *> dst_drawings);
 
 class LayerGroup;
 class Layer;
@@ -138,7 +148,8 @@ class Layer;
   bool is_editable() const; \
   bool is_selected() const; \
   void set_selected(bool selected); \
-  bool use_onion_skinning() const;
+  bool use_onion_skinning() const; \
+  bool is_child_of(const LayerGroup &group) const;
 
 /* Implements the forwarding of the methods defined by #TREENODE_COMMON_METHODS. */
 #define TREENODE_COMMON_METHODS_FORWARD_IMPL(class_name) \
@@ -181,6 +192,10 @@ class Layer;
   inline bool class_name::use_onion_skinning() const \
   { \
     return this->as_node().use_onion_skinning(); \
+  } \
+  inline bool class_name::is_child_of(const LayerGroup &group) const \
+  { \
+    return this->as_node().is_child_of(group); \
   }
 
 /**
@@ -259,6 +274,10 @@ struct LayerTransformData {
   /* Map containing the duration (in frames) for each frame in the layer that has a fixed duration,
    * i.e. each frame that is not an implicit hold. */
   Map<int, int> frames_duration;
+
+  /* Temporary copy of duplicated frames before we decide on a place to insert them.
+   * Used in the move+duplicate operator. */
+  Map<int, GreasePencilFrame> temp_frames_buffer;
 
   FrameTransformationStatus status{TRANS_CLEAR};
 };
@@ -441,6 +460,8 @@ class LayerGroupRuntime {
  * A LayerGroup is a grouping of zero or more Layers.
  */
 class LayerGroup : public ::GreasePencilLayerTreeGroup {
+  friend struct ::GreasePencil;
+
  public:
   LayerGroup();
   explicit LayerGroup(StringRefNull name);
@@ -457,36 +478,6 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   TreeNode &as_node();
 
   /**
-   * Adds a group at the end of this group.
-   */
-  LayerGroup &add_group(LayerGroup *group);
-  LayerGroup &add_group(StringRefNull name);
-
-  /**
-   * Adds a layer group after \a link and returns it.
-   */
-  LayerGroup &add_group_after(LayerGroup *group, TreeNode *link);
-  LayerGroup &add_group_after(StringRefNull name, TreeNode *link);
-
-  /**
-   * Adds a layer at the end of this group and returns it.
-   */
-  Layer &add_layer(Layer *layer);
-  Layer &add_layer(StringRefNull name);
-
-  /**
-   * Adds a layer before \a link and returns it.
-   */
-  Layer &add_layer_before(Layer *layer, TreeNode *link);
-  Layer &add_layer_before(StringRefNull name, TreeNode *link);
-
-  /**
-   * Adds a layer after \a link and returns it.
-   */
-  Layer &add_layer_after(Layer *layer, TreeNode *link);
-  Layer &add_layer_after(StringRefNull name, TreeNode *link);
-
-  /**
    * Returns the number of direct nodes in this group.
    */
   int64_t num_direct_nodes() const;
@@ -495,12 +486,6 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    * Returns the total number of nodes in this group.
    */
   int64_t num_nodes_total() const;
-
-  /**
-   * Tries to unlink the layer from the list of nodes in this group.
-   * \returns true, if the layer was successfully unlinked.
-   */
-  bool unlink_node(TreeNode *link);
 
   /**
    * Returns a `Span` of pointers to all the `TreeNode`s in this group.
@@ -521,21 +506,56 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   Span<LayerGroup *> groups_for_write();
 
   /**
-   * Returns a pointer to the layer with \a name. If no such layer was found, returns nullptr.
+   * Returns a pointer to the node with \a name. If no such node was found, returns nullptr.
    */
-  const Layer *find_layer_by_name(StringRefNull name) const;
-  Layer *find_layer_by_name(StringRefNull name);
-
-  /**
-   * Returns a pointer to the group with \a name. If no such group was found, returns nullptr.
-   */
-  const LayerGroup *find_group_by_name(StringRefNull name) const;
-  LayerGroup *find_group_by_name(StringRefNull name);
+  const TreeNode *find_node_by_name(StringRefNull name) const;
+  TreeNode *find_node_by_name(StringRefNull name);
 
   /**
    * Print the nodes. For debugging purposes.
    */
   void print_nodes(StringRefNull header) const;
+
+ protected:
+  /**
+   * Adds a new layer named \a name at the end of this group and returns it.
+   */
+  Layer &add_layer(StringRefNull name);
+  Layer &add_layer(const Layer &duplicate_layer);
+  /**
+   * Adds a new group named \a name at the end of this group and returns it.
+   */
+  LayerGroup &add_group(StringRefNull name);
+  /**
+   * Adds an existing \a node at the end of this group.
+   */
+  TreeNode &add_node(TreeNode &node);
+
+  /**
+   * Adds an existing \a node before \a link of this group.
+   */
+  void add_node_before(TreeNode &node, TreeNode &link);
+  /**
+   * Adds an existing \a node after \a link of this group.
+   */
+  void add_node_after(TreeNode &node, TreeNode &link);
+
+  /**
+   * Move child \a node up/down by \a step.
+   */
+  void move_node_up(TreeNode &node, int step = 1);
+  void move_node_down(TreeNode &node, int step = 1);
+  /**
+   * Move child \a node to the top/bottom.
+   */
+  void move_node_top(TreeNode &node);
+  void move_node_bottom(TreeNode &node);
+
+  /**
+   * Unlink the node from the list of nodes in this group.
+   * \returns true, if the node was successfully unlinked.
+   */
+  bool unlink_node(TreeNode &link);
 
  private:
   void ensure_nodes_cache() const;
@@ -601,6 +621,16 @@ inline bool TreeNode::use_onion_skinning() const
 {
   return ((this->flag & GP_LAYER_TREE_NODE_USE_ONION_SKINNING) != 0);
 }
+inline bool TreeNode::is_child_of(const LayerGroup &group) const
+{
+  if (const LayerGroup *parent = this->parent_group()) {
+    if (parent == &group) {
+      return true;
+    }
+    return parent->is_child_of(group);
+  }
+  return false;
+}
 inline StringRefNull TreeNode::name() const
 {
   return (this->GreasePencilLayerTreeNode::name != nullptr) ?
@@ -644,7 +674,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 void legacy_gpencil_to_grease_pencil(Main &main, GreasePencil &grease_pencil, bGPdata &gpd);
 
 }  // namespace convert
-
 }  // namespace greasepencil
 
 class GreasePencilRuntime {
@@ -653,19 +682,39 @@ class GreasePencilRuntime {
    * Allocated and freed by the drawing code. See `DRW_grease_pencil_batch_cache_*` functions.
    */
   void *batch_cache = nullptr;
-  bke::greasepencil::StrokeCache stroke_cache;
   /* The frame on which the object was evaluated (only valid for evaluated object). */
   int eval_frame;
 
  public:
   GreasePencilRuntime() {}
   ~GreasePencilRuntime() {}
+};
+
+class GreasePencilDrawingEditHints {
+ public:
+  std::optional<Array<float3>> positions;
+};
+
+/**
+ * Used to propagate deformation data through modifier evaluation.
+ */
+class GreasePencilEditHints {
+ public:
+  /**
+   * Original data that the edit hints below are meant to be used for.
+   */
+  const GreasePencil &grease_pencil_id_orig;
+
+  GreasePencilEditHints(const GreasePencil &grease_pencil_id_orig)
+      : grease_pencil_id_orig(grease_pencil_id_orig)
+  {
+  }
 
   /**
-   * A buffer for a single stroke while drawing.
+   * Array of #GreasePencilDrawingEditHints. There is one edit hint for each evaluated drawing.
+   * Note: The index for each element is the layer index.
    */
-  Span<bke::greasepencil::StrokePoint> stroke_buffer() const;
-  bool has_stroke_buffer() const;
+  std::optional<Array<GreasePencilDrawingEditHints>> drawing_hints;
 };
 
 }  // namespace blender::bke
@@ -677,6 +726,16 @@ inline blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap()
 inline const blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap() const
 {
   return *reinterpret_cast<const blender::bke::greasepencil::Drawing *>(this);
+}
+
+inline blender::bke::greasepencil::DrawingReference &GreasePencilDrawingReference::wrap()
+{
+  return *reinterpret_cast<blender::bke::greasepencil::DrawingReference *>(this);
+}
+inline const blender::bke::greasepencil::DrawingReference &GreasePencilDrawingReference::wrap()
+    const
+{
+  return *reinterpret_cast<const blender::bke::greasepencil::DrawingReference *>(this);
 }
 
 inline GreasePencilFrame GreasePencilFrame::null()
@@ -726,11 +785,11 @@ inline const blender::bke::greasepencil::LayerGroup &GreasePencilLayerTreeGroup:
   return *reinterpret_cast<const blender::bke::greasepencil::LayerGroup *>(this);
 }
 
-inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index) const
+inline const GreasePencilDrawingBase *GreasePencil::drawing(int64_t index) const
 {
   return this->drawings()[index];
 }
-inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index)
+inline GreasePencilDrawingBase *GreasePencil::drawing(int64_t index)
 {
   return this->drawings()[index];
 }
@@ -752,18 +811,32 @@ inline bool GreasePencil::has_active_layer() const
 void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
-BoundBox *BKE_grease_pencil_boundbox_get(Object *ob);
+BoundBox BKE_grease_pencil_boundbox_get(Object *ob);
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
+void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
+                                               GreasePencil *grease_pencil_dst);
 
+int BKE_grease_pencil_object_material_index_get(Object *ob, Material *ma);
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name);
 Material *BKE_grease_pencil_object_material_new(Main *bmain,
                                                 Object *ob,
                                                 const char *name,
                                                 int *r_index);
+Material *BKE_grease_pencil_object_material_from_brush_get(Object *ob, Brush *brush);
 Material *BKE_grease_pencil_object_material_ensure_by_name(Main *bmain,
                                                            Object *ob,
                                                            const char *name,
                                                            int *r_index);
+Material *BKE_grease_pencil_brush_material_get(Brush *brush);
+Material *BKE_grease_pencil_object_material_ensure_from_brush(Main *bmain,
+                                                              Object *ob,
+                                                              Brush *brush);
+Material *BKE_grease_pencil_object_material_ensure_from_active_input_brush(Main *bmain,
+                                                                           Object *ob,
+                                                                           Brush *brush);
+Material *BKE_grease_pencil_object_material_ensure_from_active_input_material(Object *ob);
+Material *BKE_grease_pencil_object_material_ensure_active(Object *ob);
+void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *remap, int totcol);
 
 bool BKE_grease_pencil_references_cyclic_check(const GreasePencil *id_reference,
                                                const GreasePencil *grease_pencil);

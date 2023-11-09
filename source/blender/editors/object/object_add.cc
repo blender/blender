@@ -80,7 +80,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_nla.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
@@ -89,9 +89,9 @@
 #include "BKE_vfont.h"
 #include "BKE_volume.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -118,6 +118,8 @@
 #include "ED_select_utils.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
+
+#include "ANIM_bone_collections.h"
 
 #include "UI_resources.hh"
 
@@ -162,21 +164,21 @@ static const EnumPropertyItem field_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-    {LIGHTPROBE_TYPE_CUBE,
-     "CUBEMAP",
-     ICON_LIGHTPROBE_CUBEMAP,
-     "Reflection Cubemap",
-     "Reflection probe with spherical or cubic attenuation"},
-    {LIGHTPROBE_TYPE_PLANAR,
-     "PLANAR",
-     ICON_LIGHTPROBE_PLANAR,
-     "Reflection Plane",
-     "Planar reflection probe"},
-    {LIGHTPROBE_TYPE_GRID,
-     "GRID",
-     ICON_LIGHTPROBE_GRID,
-     "Irradiance Volume",
-     "Irradiance probe to capture diffuse indirect lighting"},
+    {LIGHTPROBE_TYPE_SPHERE,
+     "SPHERE",
+     ICON_LIGHTPROBE_SPHERE,
+     "Sphere",
+     "Light probe that captures precise lighting from all directions at a single point in space"},
+    {LIGHTPROBE_TYPE_PLANE,
+     "PLANE",
+     ICON_LIGHTPROBE_PLANE,
+     "Plane",
+     "Light probe that captures incoming light from a single direction on a plane"},
+    {LIGHTPROBE_TYPE_VOLUME,
+     "VOLUME",
+     ICON_LIGHTPROBE_VOLUME,
+     "Volume",
+     "Light probe that captures low frequency lighting inside a volume"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -371,7 +373,7 @@ float ED_object_new_primitive_matrix(bContext *C,
     return dia;
   }
 
-  /* return 1.0f; */
+  // return 1.0f;
 }
 
 /** \} */
@@ -744,12 +746,12 @@ void OBJECT_OT_add(wmOperatorType *ot)
 static const char *get_lightprobe_defname(int type)
 {
   switch (type) {
-    case LIGHTPROBE_TYPE_GRID:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "IrradianceVolume");
-    case LIGHTPROBE_TYPE_PLANAR:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionPlane");
-    case LIGHTPROBE_TYPE_CUBE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionCubemap");
+    case LIGHTPROBE_TYPE_VOLUME:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Volume");
+    case LIGHTPROBE_TYPE_PLANE:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Plane");
+    case LIGHTPROBE_TYPE_SPHERE:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Sphere");
     default:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "LightProbe");
   }
@@ -1144,6 +1146,11 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Give the Armature its default bone collection. */
+  bArmature *armature = static_cast<bArmature *>(obedit->data);
+  BoneCollection *default_bonecoll = ANIM_armature_bonecoll_new(armature, "");
+  ANIM_armature_bonecoll_active_set(armature, default_bonecoll);
+
   dia = RNA_float_get(op->ptr, "radius");
   ED_armature_ebone_add_primitive(obedit, dia, view_aligned);
 
@@ -1529,8 +1536,8 @@ static EnumPropertyItem rna_enum_gpencil_add_stroke_depth_order_items[] = {
 void OBJECT_OT_gpencil_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Grease Pencil (legacy)";
-  ot->description = "Add a Grease Pencil (legacy) object to the scene";
+  ot->name = "Add Grease Pencil";
+  ot->description = "Add a Grease Pencil object to the scene";
   ot->idname = "OBJECT_OT_gpencil_add";
 
   /* api callbacks */
@@ -2906,16 +2913,8 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
-#ifdef WITH_GREASE_PENCIL_V3
-     "Grease Pencil (legacy)",
-#else
      "Grease Pencil",
-#endif
-#ifdef WITH_GREASE_PENCIL_V3
-     "Grease Pencil (legacy) from Curve or Mesh objects"},
-#else
      "Grease Pencil from Curve or Mesh objects"},
-#endif
 #ifdef WITH_POINT_CLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
@@ -2928,8 +2927,8 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_GREASE_PENCIL,
      "GREASEPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
-     "Grease Pencil",
-     "Grease Pencil from Grease Pencil (legacy)"},
+     "Grease Pencil v3",
+     "Grease Pencil v3 from Grease Pencil"},
 #endif
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -3676,8 +3675,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  // XXX  ED_object_editmode_enter(C, 0);
-  // XXX  exit_editmode(C, EM_FREEDATA|); /* free data, but no undo */
+  // XXX: ED_object_editmode_enter(C, 0);
+  // XXX: exit_editmode(C, EM_FREEDATA|); /* free data, but no undo. */
 
   if (basact) {
     /* active base was changed */
@@ -4293,7 +4292,7 @@ static bool object_join_poll(bContext *C)
   }
 
   if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL_LEGACY)) {
-    return ED_operator_screenactive(C);
+    return true;
   }
   return false;
 }

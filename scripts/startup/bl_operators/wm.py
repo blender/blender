@@ -1027,7 +1027,7 @@ class WM_OT_url_open(Operator):
 
     @staticmethod
     def _add_utm_param_to_url(url, utm_source):
-        import urllib
+        import urllib.parse
 
         # Make sure we have a scheme otherwise we can't parse the url.
         if not url.startswith(("http://", "https://")):
@@ -1409,12 +1409,18 @@ rna_custom_property_subtype_vector_items = (
     rna_custom_property_subtype_none_item,
     ('COLOR', "Linear Color", "Color in the linear space"),
     ('COLOR_GAMMA', "Gamma-Corrected Color", "Color in the gamma corrected space"),
+    ('TRANSLATION', "Translation", ""),
+    ('DIRECTION', "Direction", ""),
+    ('VELOCITY', "Velocity", ""),
+    ('ACCELERATION', "Acceleration", ""),
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
+    ('AXISANGLE', "Axis-Angle", "Angle and axis to rotate around"),
+    ('XYZ', "XYZ", ""),
 )
 
 rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
-                          for item in bpy.types.Action.bl_rna.properties['id_root'].enum_items)
+                          for item in bpy.types.Action.bl_rna.properties["id_root"].enum_items)
 
 
 class WM_OT_properties_edit(Operator):
@@ -1666,7 +1672,8 @@ class WM_OT_properties_edit(Operator):
             self.soft_max_float = rna_data["soft_max"]
             self.precision = rna_data["precision"]
             self.step_float = rna_data["step"]
-            self.subtype = rna_data["subtype"]
+            if rna_data["subtype"] in [item[0] for item in self.subtype_items_cb(None)]:
+                self.subtype = rna_data["subtype"]
             self.use_soft_limits = (
                 self.min_float != self.soft_min_float or
                 self.max_float != self.soft_max_float
@@ -2682,6 +2689,9 @@ class WM_OT_batch_rename(Operator):
             ('NODE', "Nodes", ""),
             ('SEQUENCE_STRIP', "Sequence Strips", ""),
             ('ACTION_CLIP', "Action Clips", ""),
+            None,
+            ('SCENE', "Scenes", ""),
+            ('BRUSH', "Brushes", ""),
         ),
         description="Type of data to rename",
     )
@@ -2877,6 +2887,26 @@ class WM_OT_batch_rename(Operator):
                     [id for id in bpy.data.actions if id.library is None],
                     "name",
                     iface_("Action(s)"),
+                )
+            elif data_type == 'SCENE':
+                data = (
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Scene)
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.scenes if id.library is None]
+                    ),
+                    "name",
+                    iface_("Scene(s)"),
+                )
+            elif data_type == 'BRUSH':
+                data = (
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Brush)
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.brushes if id.library is None]
+                    ),
+                    "name",
+                    iface_("Brush(es)"),
                 )
             elif data_type in object_data_type_attrs_map.keys():
                 attr, descr, ty = object_data_type_attrs_map[data_type]
@@ -3183,14 +3213,36 @@ class WM_MT_splash_quick_setup(Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
 
-        layout.label(text="Quick Setup")
+        old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
+        can_import = bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version
 
-        split = layout.split(factor=0.14)  # Left margin.
+        if can_import:
+            layout.label(text="Import Existing Settings")
+            split = layout.split(factor=0.20)  # Left margin.
+            split.label()
+
+            split = split.split(factor=0.73)  # Content width.
+            col = split.column()
+            col.operator(
+                "preferences.copy_prev",
+                text=iface_("Load Blender %d.%d Settings", "Operator") % old_version,
+                icon='DUPLICATE',
+                translate=False,
+            )
+            col.operator(
+                "wm.url_open", text="See What's New...", icon='URL',
+            ).url = "https://wiki.blender.org/wiki/Reference/Release_Notes/4.0"
+            col.separator(factor=2.0)
+
+        if can_import:
+            layout.label(text="Create New Settings")
+        else:
+            layout.label(text="Quick Setup")
+
+        split = layout.split(factor=0.20)  # Left margin.
         split.label()
         split = split.split(factor=0.73)  # Content width.
-
         col = split.column()
-
         col.use_property_split = True
         col.use_property_decorate = False
 
@@ -3219,42 +3271,22 @@ class WM_MT_splash_quick_setup(Menu):
         if has_spacebar_action:
             col.row().prop(kc_prefs, "spacebar_action", text="Spacebar")
 
-        col.separator()
-
         # Themes.
+        col.separator()
         sub = col.column(heading="Theme")
         label = bpy.types.USERPREF_MT_interface_theme_presets.bl_label
         if label == "Presets":
             label = "Blender Dark"
         sub.menu("USERPREF_MT_interface_theme_presets", text=label)
 
-        # Keep height constant.
-        if not has_select_mouse:
-            col.label()
-        if not has_spacebar_action:
-            col.label()
-
-        layout.separator(factor=2.0)
-
-        # Save settings buttons.
-        sub = layout.row()
-
-        old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
-        if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
-            sub.operator(
-                "preferences.copy_prev",
-                text=iface_(
-                    "Load %d.%d Settings",
-                    "Operator") %
-                old_version,
-                translate=False)
-            sub.operator("wm.save_userpref", text="Save New Settings")
+        if can_import:
+            sub.label()
+            sub.operator("wm.save_userpref", text="Save New Settings", icon='CHECKMARK')
         else:
             sub.label()
-            sub.label()
-            sub.operator("wm.save_userpref", text="Next")
+            sub.operator("wm.save_userpref", text="Continue")
 
-        layout.separator(factor=2.4)
+        layout.separator(factor=2.0)
 
 
 class WM_MT_splash(Menu):
@@ -3282,13 +3314,14 @@ class WM_MT_splash(Menu):
         if found_recent:
             col2_title.label(text="Recent Files")
         else:
-
-            # Links if no recent files
+            # Links if no recent files.
             col2_title.label(text="Getting Started")
 
             col2.operator("wm.url_open_preset", text="Manual", icon='URL').type = 'MANUAL'
+            col2.operator("wm.url_open", text="Tutorials", icon='URL').url = "https://www.blender.org/tutorials/"
+            col2.operator("wm.url_open", text="Support", icon='URL').url = "https://www.blender.org/support/"
+            col2.operator("wm.url_open", text="User Communities", icon='URL').url = "https://www.blender.org/community/"
             col2.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
-            col2.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
 
         layout.separator()
 
@@ -3302,8 +3335,8 @@ class WM_MT_splash(Menu):
 
         col2 = split.column()
 
-        col2.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
-        col2.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
+        col2.operator("wm.url_open_preset", text="Donate", icon='FUND').type = 'FUND'
+        col2.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
 
         layout.separator()
         layout.separator()
@@ -3321,7 +3354,7 @@ class WM_MT_splash_about(Menu):
 
         col = split.column(align=True)
         col.scale_y = 0.8
-        col.label(text=bpy.app.version_string, translate=False)
+        col.label(text=iface_("Version: %s") % bpy.app.version_string, translate=False)
         col.separator(factor=2.5)
         col.label(text=iface_("Date: %s %s") % (bpy.app.build_commit_date.decode('utf-8', 'replace'),
                                                 bpy.app.build_commit_time.decode('utf-8', 'replace')), translate=False)
@@ -3342,12 +3375,13 @@ class WM_MT_splash_about(Menu):
 
         col = split.column(align=True)
         col.emboss = 'PULLDOWN_MENU'
-        col.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
+        col.operator("wm.url_open_preset", text="Donate", icon='FUND').type = 'FUND'
+        col.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
+        col.separator(factor=2.0)
         col.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
         col.operator("wm.url_open", text="License", icon='URL').url = "https://www.blender.org/about/license/"
-        col.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
         col.operator("wm.url_open", text="Blender Store", icon='URL').url = "https://store.blender.org"
-        col.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
+        col.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
 
 
 class WM_MT_region_toggle_pie(Menu):

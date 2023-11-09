@@ -42,20 +42,26 @@ struct TextureUpdateRoutineSpecialisation {
   /* Number of channels the destination texture has (min=1, max=4). */
   int component_count_output;
 
+  /* Whether the update routine is a clear, and only the first texel of the input data buffer will
+   * be read. */
+  bool is_clear;
+
   bool operator==(const TextureUpdateRoutineSpecialisation &other) const
   {
     return ((input_data_type == other.input_data_type) &&
             (output_data_type == other.output_data_type) &&
             (component_count_input == other.component_count_input) &&
-            (component_count_output == other.component_count_output));
+            (component_count_output == other.component_count_output) &&
+            (is_clear == other.is_clear));
   }
 
   uint64_t hash() const
   {
     blender::DefaultHash<std::string> string_hasher;
-    return (uint64_t)string_hasher(
-        this->input_data_type + this->output_data_type +
-        std::to_string((this->component_count_input << 8) + this->component_count_output));
+    return (uint64_t)string_hasher(this->input_data_type + this->output_data_type +
+                                   std::to_string((this->component_count_input << 9) |
+                                                  (this->component_count_output << 5) |
+                                                  (this->is_clear ? 1 : 0)));
   }
 };
 
@@ -348,8 +354,7 @@ class MTLTexture : public Texture {
             uint dst_slice,
             int width,
             int height);
-  GPUFrameBuffer *get_blit_framebuffer(uint dst_slice, uint dst_mip);
-
+  GPUFrameBuffer *get_blit_framebuffer(int dst_slice, uint dst_mip);
   /* Texture Update function Utilities. */
   /* Metal texture updating does not provide the same range of functionality for type conversion
    * and format compatibility as are available in OpenGL. To achieve the same level of
@@ -578,19 +583,19 @@ inline MTLPixelFormat mtl_format_get_writeable_view_format(MTLPixelFormat format
     case MTLPixelFormatDepth32Float:
       return MTLPixelFormatR32Float;
     case MTLPixelFormatDepth32Float_Stencil8:
-      /* return MTLPixelFormatRG32Float; */
+      // return MTLPixelFormatRG32Float;
       /* No alternative mirror format. This should not be used for
        * manual data upload */
       return MTLPixelFormatInvalid;
     case MTLPixelFormatBGR10A2Unorm:
-      /* return MTLPixelFormatBGRA8Unorm; */
+      // return MTLPixelFormatBGRA8Unorm;
       /* No alternative mirror format. This should not be used for
        * manual data upload */
       return MTLPixelFormatInvalid;
     case MTLPixelFormatDepth24Unorm_Stencil8:
       /* No direct format, but we'll just mirror the bytes -- `Uint`
        * should ensure bytes are not re-normalized or manipulated */
-      /* return MTLPixelFormatR32Uint; */
+      // return MTLPixelFormatR32Uint;
       return MTLPixelFormatInvalid;
     default:
       return format;
@@ -618,6 +623,14 @@ inline MTLTextureUsage mtl_usage_from_gpu(eGPUTextureUsage usage)
   if (usage & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW) {
     mtl_usage = mtl_usage | MTLTextureUsagePixelFormatView;
   }
+#if defined(MAC_OS_VERSION_14_0)
+  if (@available(macOS 14.0, *)) {
+    if (usage & GPU_TEXTURE_USAGE_ATOMIC) {
+
+      mtl_usage = mtl_usage | MTLTextureUsageShaderAtomic;
+    }
+  }
+#endif
   return mtl_usage;
 }
 

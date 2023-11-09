@@ -38,8 +38,8 @@ enum class eImageViewUsage {
   Attachment,
 };
 
-VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat format);
-VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers);
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUTextureFormat format);
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers);
 VkFormat to_vk_format(const eGPUTextureFormat format);
 eGPUTextureFormat to_gpu_format(const VkFormat format);
 VkFormat to_vk_format(const GPUVertCompType type,
@@ -47,7 +47,7 @@ VkFormat to_vk_format(const GPUVertCompType type,
                       const GPUVertFetchMode fetch_mode);
 VkFormat to_vk_format(const shader::Type type);
 
-VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat format);
+VkComponentSwizzle to_vk_component_swizzle(const char swizzle);
 VkImageViewType to_vk_image_view_type(const eGPUTextureType type, eImageViewUsage view_type);
 VkImageType to_vk_image_type(const eGPUTextureType type);
 VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data);

@@ -23,13 +23,13 @@
 #include "BKE_context.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_vfont.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_mesh.hh"
 #include "ED_particle.hh"
@@ -158,10 +158,9 @@ void ViewOpsData::state_restore()
 
   /* ROTATE and ZOOM. */
   {
-    /**
-     * For Rotate this only changes when orbiting from a camera view.
-     * In this case the `dist` is calculated based on the camera relative to the `ofs`.
-     */
+    /* For Rotate this only changes when orbiting from a camera view.
+     * In this case the `dist` is calculated based on the camera relative to the `ofs`. */
+
     /* Note this does not remove auto-keys on locked cameras. */
     this->rv3d->dist = this->init.dist;
   }
@@ -410,7 +409,11 @@ struct ViewOpsData_Utility : ViewOpsData {
   {
     this->init_context(C);
 
-    wmKeyMap *keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
+    wmKeyMap *keymap = WM_keymap_find_all(
+        CTX_wm_manager(C), "3D View", SPACE_VIEW3D, RGN_TYPE_WINDOW);
+
+    WM_keyconfig_update_suppress_begin();
+
     wmKeyMap keymap_tmp = {};
 
     LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
@@ -432,14 +435,20 @@ struct ViewOpsData_Utility : ViewOpsData {
 
     /* Weak, but only the keymap items from the #wmKeyMap struct are needed here. */
     this->keymap_items = keymap_tmp.items;
+
+    WM_keyconfig_update_suppress_end();
   }
 
   ~ViewOpsData_Utility()
   {
     /* Weak, but rebuild the struct #wmKeyMap to clear the keymap items. */
+    WM_keyconfig_update_suppress_begin();
+
     wmKeyMap keymap_tmp = {};
     keymap_tmp.items = this->keymap_items;
     WM_keymap_clear(&keymap_tmp);
+
+    WM_keyconfig_update_suppress_end();
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

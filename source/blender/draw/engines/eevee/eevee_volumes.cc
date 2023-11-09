@@ -12,7 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_fluid_types.h"
 #include "DNA_object_force_types.h"
@@ -28,7 +28,7 @@
 
 #include "ED_screen.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_context.h"

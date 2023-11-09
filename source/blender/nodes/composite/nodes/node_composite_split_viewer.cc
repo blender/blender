@@ -65,7 +65,7 @@ class ViewerOperation : public NodeOperation {
      * that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
-    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
     GPU_shader_uniform_1f(shader, "split_ratio", get_split_ratio());
 
@@ -77,11 +77,12 @@ class ViewerOperation : public NodeOperation {
     const Result &second_image = get_input("Image_001");
     second_image.bind_as_texture(shader, "second_image_tx");
 
-    GPUTexture *output_texture = context().get_viewer_output_texture();
+    const int2 viewer_size = compute_domain().size;
+    GPUTexture *output_texture = context().get_viewer_output_texture(viewer_size);
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
-    compute_dispatch_threads_at_least(shader, compositing_region_size);
+    compute_dispatch_threads_at_least(shader, viewer_size);
 
     first_image.unbind_as_texture();
     second_image.unbind_as_texture();
@@ -89,20 +90,26 @@ class ViewerOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  /* The operation domain has the same size as the compositing region without any transformations
-   * applied. */
   Domain compute_domain() override
   {
-    return Domain(context().get_compositing_region_size());
+    /* The context can use the composite output and thus has a dedicated viewer of an arbitrary
+     * size, so use the input directly. Otherwise, no dedicated viewer exist so the input should be
+     * in the domain of the compositing region. */
+    if (context().use_composite_output()) {
+      return NodeOperation::compute_domain();
+    }
+    else {
+      return Domain(context().get_compositing_region_size());
+    }
   }
 
   GPUShader *get_split_viewer_shader()
   {
     if (get_split_axis() == CMP_NODE_SPLIT_VIEWER_HORIZONTAL) {
-      return shader_manager().get("compositor_split_viewer_horizontal");
+      return context().get_shader("compositor_split_viewer_horizontal", ResultPrecision::Half);
     }
 
-    return shader_manager().get("compositor_split_viewer_vertical");
+    return context().get_shader("compositor_split_viewer_vertical", ResultPrecision::Half);
   }
 
   CMPNodeSplitViewerAxis get_split_axis()

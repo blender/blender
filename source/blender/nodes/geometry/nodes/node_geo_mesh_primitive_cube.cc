@@ -9,6 +9,8 @@
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_primitive_cuboid.hh"
+#include "GEO_mesh_primitive_grid.hh"
+#include "GEO_mesh_primitive_line.hh"
 
 #include "node_geometry_util.hh"
 
@@ -40,17 +42,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("UV Map").field_on_all();
 }
 
-static Mesh *create_cuboid_mesh(const float3 &size,
-                                const int verts_x,
-                                const int verts_y,
-                                const int verts_z,
-                                const AttributeIDRef &uv_map_id)
-{
-  Mesh *mesh = geometry::create_cuboid_mesh(size, verts_x, verts_y, verts_z, uv_map_id);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  return mesh;
-}
-
 static Mesh *create_cube_mesh(const float3 size,
                               const int verts_x,
                               const int verts_y,
@@ -59,7 +50,7 @@ static Mesh *create_cube_mesh(const float3 size,
 {
   const int dimensions = (verts_x - 1 > 0) + (verts_y - 1 > 0) + (verts_z - 1 > 0);
   if (dimensions == 0) {
-    return create_line_mesh(float3(0), float3(0), 1);
+    return geometry::create_line_mesh(float3(0), float3(0), 1);
   }
   if (dimensions == 1) {
     float3 start;
@@ -77,24 +68,24 @@ static Mesh *create_cube_mesh(const float3 size,
       delta = {0, 0, size.z / (verts_z - 1)};
     }
 
-    return create_line_mesh(start, delta, verts_x * verts_y * verts_z);
+    return geometry::create_line_mesh(start, delta, verts_x * verts_y * verts_z);
   }
   if (dimensions == 2) {
     if (verts_z == 1) { /* XY plane. */
-      return create_grid_mesh(verts_x, verts_y, size.x, size.y, uv_map_id);
+      return geometry::create_grid_mesh(verts_x, verts_y, size.x, size.y, uv_map_id);
     }
     if (verts_y == 1) { /* XZ plane. */
-      Mesh *mesh = create_grid_mesh(verts_x, verts_z, size.x, size.z, uv_map_id);
+      Mesh *mesh = geometry::create_grid_mesh(verts_x, verts_z, size.x, size.z, uv_map_id);
       transform_mesh(*mesh, float3(0), float3(M_PI_2, 0.0f, 0.0f), float3(1));
       return mesh;
     }
     /* YZ plane. */
-    Mesh *mesh = create_grid_mesh(verts_z, verts_y, size.z, size.y, uv_map_id);
+    Mesh *mesh = geometry::create_grid_mesh(verts_z, verts_y, size.z, size.y, uv_map_id);
     transform_mesh(*mesh, float3(0), float3(0.0f, M_PI_2, 0.0f), float3(1));
     return mesh;
   }
 
-  return create_cuboid_mesh(size, verts_x, verts_y, verts_z, uv_map_id);
+  return geometry::create_cuboid_mesh(size, verts_x, verts_y, verts_z, uv_map_id);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -112,6 +103,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
 
   Mesh *mesh = create_cube_mesh(size, verts_x, verts_y, verts_z, uv_map_id.get());
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }

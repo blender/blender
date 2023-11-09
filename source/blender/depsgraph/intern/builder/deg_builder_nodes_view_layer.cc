@@ -31,15 +31,15 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "intern/builder/deg_builder.h"
-#include "intern/depsgraph.h"
-#include "intern/depsgraph_type.h"
-#include "intern/node/deg_node.h"
-#include "intern/node/deg_node_component.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/depsgraph.hh"
+#include "intern/depsgraph_type.hh"
+#include "intern/node/deg_node.hh"
+#include "intern/node/deg_node_component.hh"
+#include "intern/node/deg_node_operation.hh"
 
 namespace blender::deg {
 

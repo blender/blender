@@ -24,29 +24,20 @@ class OptiXDenoiser : public DenoiserGPU {
  private:
   virtual bool denoise_buffer(const DenoiseTask &task) override;
 
-  /* Read guiding passes from the render buffers, preprocess them in a way which is expected by
-   * OptiX and store in the guiding passes memory within the given context.
-   *
-   * Pre-processing of the guiding passes is to only happen once per context lifetime. DO not
-   * preprocess them for every pass which is being denoised. */
-  bool denoise_filter_guiding_preprocess(const DenoiseContext &context);
-
   /* Set fake albedo pixels in the albedo guiding pass storage.
    * After this point only passes which do not need albedo for denoising can be processed. */
   bool denoise_filter_guiding_set_fake_albedo(const DenoiseContext &context);
-  /* Make sure the OptiX denoiser is created and configured. */
-  bool denoise_ensure(DenoiseContext &context);
 
   /* Create OptiX denoiser descriptor if needed.
    * Will do nothing if the current OptiX descriptor is usable for the given parameters.
    * If the OptiX denoiser descriptor did re-allocate here it is left unconfigured. */
-  bool denoise_create_if_needed(DenoiseContext &context);
+  virtual bool denoise_create_if_needed(DenoiseContext &context) override;
 
   /* Configure existing OptiX denoiser descriptor for the use for the given task. */
-  bool denoise_configure_if_needed(DenoiseContext &context);
+  virtual bool denoise_configure_if_needed(DenoiseContext &context) override;
 
   /* Run configured denoiser. */
-  bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) override;
+  virtual bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) override;
 
   OptixDenoiser optix_denoiser_ = nullptr;
 

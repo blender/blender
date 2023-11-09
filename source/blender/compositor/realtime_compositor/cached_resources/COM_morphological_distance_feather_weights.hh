@@ -16,6 +16,8 @@
 
 namespace blender::realtime_compositor {
 
+class Context;
+
 /* ------------------------------------------------------------------------------------------------
  * Morphological Distance Feather Key.
  */
@@ -46,13 +48,13 @@ class MorphologicalDistanceFeatherWeights : public CachedResource {
   GPUTexture *distance_falloffs_texture_ = nullptr;
 
  public:
-  MorphologicalDistanceFeatherWeights(int type, int radius);
+  MorphologicalDistanceFeatherWeights(Context &context, int type, int radius);
 
   ~MorphologicalDistanceFeatherWeights();
 
-  void compute_weights(int radius);
+  void compute_weights(Context &context, int radius);
 
-  void compute_distance_falloffs(int type, int radius);
+  void compute_distance_falloffs(Context &context, int type, int radius);
 
   void bind_weights_as_texture(GPUShader *shader, const char *texture_name) const;
 
@@ -78,7 +80,7 @@ class MorphologicalDistanceFeatherWeightsContainer : CachedResourceContainer {
    * given parameters in the container, if one exists, return it, otherwise, return a newly created
    * one and add it to the container. In both cases, tag the cached resource as needed to keep it
    * cached for the next evaluation. */
-  MorphologicalDistanceFeatherWeights &get(int type, int radius);
+  MorphologicalDistanceFeatherWeights &get(Context &context, int type, int radius);
 };
 
 }  // namespace blender::realtime_compositor

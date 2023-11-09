@@ -22,7 +22,7 @@
 #include "PIL_time.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -100,7 +100,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
   pie->block_radial = UI_block_begin(C, nullptr, __func__, UI_EMBOSS);
   /* may be useful later to allow spawning pies
    * from old positions */
-  /* pie->block_radial->flag |= UI_BLOCK_POPUP_MEMORY; */
+  // pie->block_radial->flag |= UI_BLOCK_POPUP_MEMORY;
   pie->block_radial->puphash = ui_popup_menu_hash(title);
   pie->block_radial->flag |= UI_BLOCK_RADIAL;
 

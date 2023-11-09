@@ -11,7 +11,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${Epoxy_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
 )
 
@@ -36,18 +35,28 @@ set(SRC
   py_capi_utils.h
 
   # header-only
-  python_utildefines.h
   python_compat.h
+  python_utildefines.h
 )
 
 set(LIB
-  ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )
+
+# NOTE: use irrespective of `WITH_OPENGL_BACKEND` as the `bgl` module uses this for constants.
+list(APPEND INC_SYS
+  ${Epoxy_INCLUDE_DIRS}
+)
+
+if(WITH_OPENGL_BACKEND)
+  list(APPEND LIB
+    ${Epoxy_LIBRARIES}
+  )
+endif()
 
 if(WITH_PYTHON_MODULE)
   add_definitions(-DWITH_PYTHON_MODULE)

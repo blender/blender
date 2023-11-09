@@ -17,7 +17,7 @@
 
 #include "GPU_context.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "RE_engine.h"
 
@@ -89,6 +89,7 @@ void Engine::sync(Depsgraph *depsgraph, bContext *context)
       pxr::SdfPath scene_path = pxr::SdfPath::AbsoluteRootPath().AppendElementString("scene");
       hydra_scene_delegate_ = std::make_unique<io::hydra::HydraSceneDelegate>(render_index_.get(),
                                                                               scene_path);
+      hydra_scene_delegate_->use_materialx = bl_engine_->type->flag & RE_USE_MATERIALX;
     }
     hydra_scene_delegate_->populate(depsgraph, context ? CTX_wm_view3d(context) : nullptr);
   }

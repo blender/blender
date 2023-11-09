@@ -1,22 +1,30 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
-"PO-Revision-Date: 2012-10-07 13:56+0300\n"
-"Last-Translator: Barak Itkin <lightningismyname@gmail.com>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"PO-Revision-Date: 2023-10-06 09:54+0000\n"
+"Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
+"Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Virtaal 0.7.0"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Valid"
+msgstr "ףקת"
 
 
 msgid "Name"
 msgstr "םש"
+
+
+msgid "Name of the AOV"
+msgstr "AOV-ה םש"
 
 
 msgid "Color"
@@ -27,24 +35,193 @@ msgid "Value"
 msgstr "ךרע"
 
 
+msgid "List of AOVs"
+msgstr "AOVs לש תמישר"
+
+
+msgid "Collection of AOVs"
+msgstr "AOVs לש ףסוא"
+
+
+msgid "Color Set"
+msgstr "םיעבצ טס"
+
+
+msgid "Default Colors"
+msgstr "לדחמ תרירב יעבצ"
+
+
+msgid "Colors"
+msgstr "םיעבצ"
+
+
+msgid "Select"
+msgstr "רחוב"
+
+
+msgid "Module"
+msgstr "לודומ"
+
+
+msgid "Module name"
+msgstr "לודומה םש"
+
+
+msgid "Password"
+msgstr "המסיס"
+
+
+msgid "Error Message"
+msgstr "האיגש תעדוה"
+
+
+msgid "Message"
+msgstr "העדוה"
+
+
 msgid "Off"
 msgstr "יובכ"
+
+
+msgid "Full"
+msgstr "אלמ"
+
+
+msgid "Animation Data"
+msgstr "היצמינא ינותנ"
+
+
+msgid "Replace"
+msgstr "ףלחה"
 
 
 msgid "Add"
 msgstr "ףסוה"
 
 
+msgid "Subtract"
+msgstr "ריסחהל"
+
+
+msgid "Multiply"
+msgstr "ליפכהל"
+
+
+msgid "Hold"
+msgstr "קיזחהל"
+
+
+msgid "Heads"
+msgstr "םישאר"
+
+
+msgid "Tails"
+msgstr "תובנז"
+
+
+msgid "After Current"
+msgstr "יחכונה ירחא"
+
+
+msgid "Before Current"
+msgstr "יחכונה ינפל"
+
+
 msgid "Width"
 msgstr "בחור"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "ףסוא"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "הנומת"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "טסקט"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "םקרמ"
+
+
+msgid "Data Type"
+msgstr "םינותנ סופיט"
 
 
 msgid "Vector"
 msgstr "רוטקו"
 
 
+msgid "Edge"
+msgstr "עלצ"
+
+
+msgid "Face"
+msgstr "האפ"
+
+
 msgid "Indirect"
 msgstr "ףיקע"
+
+
+msgid "Collections"
+msgstr "םיפסוא"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "Images"
+msgstr "תונומת"
+
+
+msgid "Texts"
+msgstr "םיטסקט"
+
+
+msgid "Textures"
+msgstr "םימקרמ"
+
+
+msgid "Collection of cameras"
+msgstr "תומלצמ לש ףסוא"
+
+
+msgid "Collection of collections"
+msgstr "םיפסוא לש ףסוא"
+
+
+msgid "Collection of images"
+msgstr "תונומת לש ףסוא"
+
+
+msgid "Collection of lights"
+msgstr "תורוא לש ףסוא"
+
+
+msgid "Collection of texts"
+msgstr "םיטסקט לש ףסוא"
+
+
+msgid "Collection of textures"
+msgstr "םימקרמ לש ףסוא"
+
+
+msgid "Collection of worlds"
+msgstr "תומלוע לש ףסוא"
 
 
 msgid "Speed"
@@ -59,6 +236,22 @@ msgid "Random"
 msgstr "יארקא"
 
 
+msgid "Head"
+msgstr "שאר"
+
+
+msgid "Select Head"
+msgstr "שאר רחוב"
+
+
+msgid "Select Tail"
+msgstr "בנז רחוב"
+
+
+msgid "Tail"
+msgstr "בנז"
+
+
 msgid "Remove"
 msgstr "רסה"
 
@@ -67,8 +260,35 @@ msgid "Vertex Color"
 msgstr "דוקדוק עבצ"
 
 
+msgid "Pencil"
+msgstr "ןורפע"
+
+
+msgid "Pen"
+msgstr "טע"
+
+
+msgctxt "GPencil"
+msgid "Smooth"
+msgstr "קלח"
+
+
+msgctxt "GPencil"
+msgid "Strength"
+msgstr "המצוע"
+
+
+msgctxt "Amount"
+msgid "Smooth"
+msgstr "קלח"
+
+
 msgid "Saturation"
 msgstr "היוור"
+
+
+msgid "Image"
+msgstr "הנומת"
 
 
 msgid "Rotation"
@@ -103,6 +323,14 @@ msgid "Output"
 msgstr "טלפ"
 
 
+msgid "Error"
+msgstr "האיגש"
+
+
+msgid "Head/Tail"
+msgstr "בנז/שאר"
+
+
 msgid "Default"
 msgstr "לדחמ תרירב"
 
@@ -127,8 +355,37 @@ msgid "Scene"
 msgstr "הנצס"
 
 
+msgid "Only Show Selected"
+msgstr "םירחבנ גצה קר"
+
+
+msgid "Bone Name"
+msgstr "םצעה םש"
+
+
+msgctxt "Brush"
+msgid "Smooth"
+msgstr "קלח"
+
+
 msgid "Shrink"
 msgstr "ץווכ"
+
+
+msgid "UV Texture"
+msgstr "UV םקרמ"
+
+
+msgid "Texture"
+msgstr "םקרמ"
+
+
+msgid "Vertex"
+msgstr "דוקדוק"
+
+
+msgid "Head Select"
+msgstr "שאר תריחב"
 
 
 msgid "Modifiers"
@@ -139,12 +396,25 @@ msgid "Frequency"
 msgstr "תורידת"
 
 
+msgctxt "ParticleSettings"
+msgid "Rotation"
+msgstr "בוביס"
+
+
 msgid "Size"
 msgstr "לדוג"
 
 
+msgid "Animations"
+msgstr "תויצמינא"
+
+
 msgid "Environment"
 msgstr "הביבס"
+
+
+msgid "Sort"
+msgstr "ןיימ"
 
 
 msgid "End"
@@ -155,12 +425,24 @@ msgid "Start"
 msgstr "הלחתה"
 
 
+msgid "Time"
+msgstr "ןמז"
+
+
 msgid "Density"
 msgstr "תופיפצ"
 
 
+msgid "Vertex Group"
+msgstr "דוקדוק תצובק"
+
+
 msgid "Generated"
 msgstr "רצוימ"
+
+
+msgid "Collection"
+msgstr "ףסוא"
 
 
 msgid "Window"
@@ -173,6 +455,10 @@ msgstr "תרתוכ"
 
 msgid "Tools"
 msgstr "םילכ"
+
+
+msgid "Tool Header"
+msgstr "ילכ תרתוכ"
 
 
 msgid "Edit Mode"
@@ -191,6 +477,10 @@ msgid "Space"
 msgstr "חוור"
 
 
+msgid "Red Green Blue"
+msgstr "לוחכ קורי םודא"
+
+
 msgid "Red"
 msgstr "םודא"
 
@@ -201,6 +491,29 @@ msgstr "קורי"
 
 msgid "Blue"
 msgstr "לוחכ"
+
+
+msgid "Full Name"
+msgstr "אלמ םש"
+
+
+msgctxt "Curves"
+msgid "Smooth"
+msgstr "קלח"
+
+
+msgctxt "Mask"
+msgid "Smooth"
+msgstr "קלח"
+
+
+msgctxt "Brush"
+msgid "Sculpt Tool"
+msgstr "לוסיפ ילכ"
+
+
+msgid "Sculpt Tool"
+msgstr "לוסיפ ילכ"
 
 
 msgid "Up"
@@ -219,12 +532,37 @@ msgid "Movie"
 msgstr "טרס"
 
 
+msgctxt "Material"
+msgid "Hair"
+msgstr "רעיש"
+
+
 msgid "Roughness"
 msgstr "תוסג"
 
 
 msgid "Specular"
 msgstr "רלקפסא"
+
+
+msgid "Edges"
+msgstr "תועלצ"
+
+
+msgid "Vertex Colors"
+msgstr "דוקדוק יעבצ"
+
+
+msgid "Vertices"
+msgstr "םידוקדוק"
+
+
+msgid "Tool"
+msgstr "ילכ"
+
+
+msgid "Faces"
+msgstr "תואפ"
 
 
 msgid "Sculpt Mode"
@@ -239,6 +577,18 @@ msgid "Weight Paint"
 msgstr "לקשמ תעיבצ"
 
 
+msgid "Vertex Groups"
+msgstr "דוקדוק תוצובק"
+
+
+msgid "Number"
+msgstr "רפסמ"
+
+
+msgid "Hair"
+msgstr "רעיש"
+
+
 msgid "Quadratic"
 msgstr "יעוביר"
 
@@ -247,12 +597,55 @@ msgid "Mist"
 msgstr "לפרע"
 
 
+msgid "Animation"
+msgstr "היצמינא"
+
+
+msgid "Black"
+msgstr "רוחש"
+
+
+msgid "White"
+msgstr "ןבל"
+
+
 msgid "Color Management"
 msgstr "עבצ לוהינ"
 
 
+msgctxt "UI_Events_KeyMaps"
+msgid "Pen"
+msgstr "טע"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Eraser"
+msgstr "קחמ"
+
+
+msgid "Group Name"
+msgstr "הצובק םש"
+
+
+msgctxt "FreestyleLineStyle"
+msgid "Smooth"
+msgstr "קלח"
+
+
+msgid "Grease Pencil Color"
+msgstr "Grease Pencil יאבצ"
+
+
 msgid "Mask"
 msgstr "הכסמ"
+
+
+msgid "Languages..."
+msgstr "..תופש"
+
+
+msgid "Add Modifier"
+msgstr "הנשמ ףסוה"
 
 
 msgid "Apply"
@@ -267,8 +660,24 @@ msgid "System"
 msgstr "תכרעמ"
 
 
+msgid "Face Data"
+msgstr "האפ ינותנ"
+
+
 msgid "Convert"
 msgstr "רמה"
+
+
+msgid "Vertex group name"
+msgstr "דוקדוק תצובק םש"
+
+
+msgid "Edge Data"
+msgstr "עלצ ינותנ"
+
+
+msgid "Vertex Data"
+msgstr "דוקדוק ינותנ"
 
 
 msgid "World"
@@ -277,6 +686,19 @@ msgstr "םלוע"
 
 msgid "Lift"
 msgstr "יוליע"
+
+
+msgid "Combine Color"
+msgstr "עבצ בלש"
+
+
+msgctxt "Image"
+msgid "Edge"
+msgstr "עלצ"
+
+
+msgid "Combined"
+msgstr "בלשמ"
 
 
 msgid "Y Axis"
@@ -295,28 +717,184 @@ msgid "Emission"
 msgstr "הטילפ"
 
 
-msgid "Both"
-msgstr "םהינש"
+msgctxt "Operator"
+msgid "Select All"
+msgstr "לכה רחוב"
 
 
 msgid "Down"
 msgstr "הטמ"
 
 
+msgid "Flip Names"
+msgstr "תומש ךופיה"
+
+
+msgctxt "Operator"
+msgid "Flip Names"
+msgstr "תומש ךופיה"
+
+
+msgctxt "Operator"
+msgid "Select Grouped"
+msgstr "םיצבוקמ רחב"
+
+
+msgctxt "Python console"
+msgid "Language"
+msgstr "הפש"
+
+
 msgid "Lamp"
 msgstr "הרונמ"
+
+
+msgid "Eraser"
+msgstr "קחמ"
+
+
+msgctxt "Operator"
+msgid "Select Vertex Color"
+msgstr "דוקדוק עבצ רחוב"
+
+
+msgid "Both"
+msgstr "םהינש"
+
+
+msgctxt "Operator"
+msgid "Select Vertex Group"
+msgstr "דוקדוק תצובק רחב"
+
+
+msgid "Image Name"
+msgstr "הנומת םש"
+
+
+msgctxt "Mesh"
+msgid "Vertex Groups"
+msgstr "דוקדוק תוצובק"
+
+
+msgctxt "Operator"
+msgid "Sort Vertex Groups"
+msgstr "דוקדוק תוצובק ןיימ"
+
+
+msgid "Sort vertex groups"
+msgstr "דוקדוק תוצובק ןיימ"
+
+
+msgid "Rename"
+msgstr "םש הנש"
+
+
+msgctxt "Operator"
+msgid "Rename"
+msgstr "םש הנש"
 
 
 msgid "Reset"
 msgstr "לוחתא"
 
 
+msgctxt "Operator"
+msgid "Replace"
+msgstr "ףילחהל"
+
+
+msgid "Select All"
+msgstr "לכה רחוב"
+
+
+msgid "Header Text"
+msgstr "תרתוכ טסקט"
+
+
+msgid "Export Vertex Colors"
+msgstr "דוקדוק יעבצ אציי"
+
+
+msgid "Import Vertex Colors"
+msgstr "דוקדוק יעבצ אביי"
+
+
+msgid "UV Sculpting"
+msgstr "UV לוסיפ"
+
+
+msgid "Color Picker"
+msgstr "םיעבצ רחוב"
+
+
 msgid "Manual"
 msgstr "ינדי"
 
 
+msgid "Header Position"
+msgstr "תרתוכ םוקימ"
+
+
+msgid "Language"
+msgstr "הפש"
+
+
+msgid "Language Name"
+msgstr "הפשה םש"
+
+
+msgid "Languages"
+msgstr "תופש"
+
+
+msgid "Hide Names"
+msgstr "תומש רתסה"
+
+
+msgctxt "Sequence"
+msgid "Image"
+msgstr "הנומת"
+
+
+msgctxt "Sequence"
+msgid "Movie"
+msgstr "טרס"
+
+
+msgid "Grease Pencil Sculpt"
+msgstr "Grease Pencil לוסיפ"
+
+
+msgid "Sort by Name"
+msgstr "םש יפל ןיימ"
+
+
+msgid "AOV"
+msgstr "AOV"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "WindowManager"
+msgid "Image"
+msgstr "הנומת"
+
+
+msgctxt "WindowManager"
+msgid "Animation"
+msgstr "היצמינא"
+
+
 msgid "Credits"
 msgstr "תודות"
+
+
+msgctxt "Operator"
+msgid "Sort by Name"
+msgstr "םש יפל ןיימ"
 
 
 msgid "Detail"
@@ -327,8 +905,41 @@ msgid "Dimension"
 msgstr "דמימ"
 
 
+msgid "name"
+msgstr "םש"
+
+
+msgid "Sort By"
+msgstr "יפל ןיימ"
+
+
+msgctxt "Operator"
+msgid "Vertex"
+msgstr "דוקדוק"
+
+
+msgctxt "Operator"
+msgid "Edge"
+msgstr "עלצ"
+
+
+msgctxt "Operator"
+msgid "Face"
+msgstr "האפ"
+
+
+msgctxt "Operator"
+msgid "Movie"
+msgstr "טרס"
+
+
 msgid "Location:"
 msgstr "‏:םוקימ"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
 
 
 msgid "Nothing selected"
@@ -350,8 +961,20 @@ msgid "Remove Shortcut"
 msgstr "ךרד־רוציק רסה"
 
 
-msgid "(Gamma Corrected)"
-msgstr "(אמג ןקותמ)"
+msgid "Red:"
+msgstr ":םודא"
+
+
+msgid "Green:"
+msgstr ":קורי"
+
+
+msgid "Blue:"
+msgstr ":לוחכ"
+
+
+msgid "Saturation:"
+msgstr ":היוור"
 
 
 msgid "Shortcut: %s"
@@ -386,6 +1009,10 @@ msgid "No Properties"
 msgstr "םינייפאמ אלל"
 
 
+msgid "Sort By:"
+msgstr ":יפל ןיימ"
+
+
 msgid "Delete points"
 msgstr "תודוקנ קחמ"
 
@@ -396,6 +1023,18 @@ msgstr "וז הדובע רוצע"
 
 msgid "%d items"
 msgstr "‪%d‬ םיטירפ"
+
+
+msgid "vertex data"
+msgstr "דוקדוק ינותנ"
+
+
+msgid "edge data"
+msgstr "עלצ ינותנ"
+
+
+msgid "face data"
+msgstr "האפ ינותנ"
 
 
 msgid "Fields"
@@ -418,12 +1057,12 @@ msgid "File name"
 msgstr "ץבוק םש"
 
 
+msgid "Movies"
+msgstr "םיטרס"
+
+
 msgid "Value:"
 msgstr ":ךרע"
-
-
-msgid "Add Modifier"
-msgstr "הנשמ ףסוה"
 
 
 msgid "Select Layer"
@@ -454,12 +1093,20 @@ msgid "Median:"
 msgstr ":ןויצח"
 
 
+msgid "Vertex Data:"
+msgstr ":דוקדוק ינותנ"
+
+
 msgid "Radius X:"
 msgstr ":X סוידר"
 
 
 msgid "Radius Y:"
 msgstr ":Y סוידר"
+
+
+msgid "Edge Data:"
+msgstr ":עלצ ינותנ"
 
 
 msgid "Weight:"
@@ -476,6 +1123,10 @@ msgstr ":עצוממ סוידר"
 
 msgid "Modify"
 msgstr "הנש"
+
+
+msgid "Missing header"
+msgstr "תרתוכ הרסח"
 
 
 msgid "Color Space:"
@@ -506,6 +1157,11 @@ msgid "Add Input"
 msgstr "טלק ףסוה"
 
 
+msgctxt "NodeTree"
+msgid "Rotations"
+msgstr "םיבוביס"
+
+
 msgid "Incoming"
 msgstr "סנכנ"
 
@@ -524,4 +1180,14 @@ msgstr "1 םינבל"
 
 msgid "Bricks 2"
 msgstr "2 םינבל"
+
+
+msgctxt "WorkSpace"
+msgid "Animation"
+msgstr "היצמינא"
+
+
+msgctxt "WorkSpace"
+msgid "Modeling"
+msgstr "תונמגוד"
 

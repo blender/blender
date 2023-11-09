@@ -24,7 +24,7 @@
 
 #  include "BLI_span.hh"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 static GreasePencil *rna_grease_pencil(const PointerRNA *ptr)
 {
@@ -161,7 +161,7 @@ static void rna_iterator_grease_pencil_layer_groups_begin(CollectionPropertyIter
   using namespace blender::bke::greasepencil;
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
 
-  blender::Span<LayerGroup *> groups = grease_pencil->groups_for_write();
+  blender::Span<LayerGroup *> groups = grease_pencil->layer_groups_for_write();
 
   rna_iterator_array_begin(
       iter, (void *)groups.data(), sizeof(LayerGroup *), groups.size(), 0, nullptr);
@@ -170,7 +170,7 @@ static void rna_iterator_grease_pencil_layer_groups_begin(CollectionPropertyIter
 static int rna_iterator_grease_pencil_layer_groups_length(PointerRNA *ptr)
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
-  return grease_pencil->groups().size();
+  return grease_pencil->layer_groups().size();
 }
 
 #else
@@ -296,6 +296,9 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "GreasePencil");
   RNA_def_struct_ui_text(srna, "Grease Pencil", "Grease Pencil data-block");
   RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_GREASEPENCIL);
+
+  /* attributes */
+  rna_def_attributes_common(srna);
 
   /* Animation Data */
   rna_def_animdata_common(srna);

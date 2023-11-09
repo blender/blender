@@ -17,6 +17,7 @@
 
 #include "vk_buffer.hh"
 #include "vk_context.hh"
+#include "vk_data_conversion.hh"
 #include "vk_mem_alloc.h"
 #include "vk_resource_tracker.hh"
 #include "vk_vertex_attribute_object.hh"
@@ -32,6 +33,7 @@ class VKImmediate : public Immediate, VKResourceTracker<VKBuffer> {
 
   VkDeviceSize buffer_offset_ = 0;
   VkDeviceSize current_subbuffer_len_ = 0;
+  VertexFormatConverter vertex_format_converter;
 
  public:
   VKImmediate();

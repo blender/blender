@@ -10,7 +10,7 @@
 
 #include "BKE_modifier.h"
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 namespace blender::deg {
 

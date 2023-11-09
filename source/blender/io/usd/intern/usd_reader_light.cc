@@ -7,7 +7,7 @@
 #include "BLI_math_rotation.h"
 
 #include "BKE_light.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
@@ -22,7 +22,7 @@
 
 namespace blender::io::usd {
 
-void USDLightReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDLightReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   Light *blight = static_cast<Light *>(BKE_light_add(bmain, name_.c_str()));
 

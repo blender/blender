@@ -176,7 +176,7 @@
     .factor = 1.0f, \
     .modify_color = GP_MODIFY_COLOR_BOTH, \
     .layer_pass = 0, \
-    .hardeness = 1.0f, \
+    .hardness = 1.0f, \
     .curve_intensity = NULL, \
   }
 

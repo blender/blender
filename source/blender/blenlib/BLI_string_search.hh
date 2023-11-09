@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_linear_allocator.hh"
+#include "BLI_map.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -12,10 +13,46 @@
 namespace blender::string_search {
 
 struct SearchItem {
-  Span<blender::StringRef> normalized_words;
-  int length;
   void *user_data;
+  Span<StringRef> normalized_words;
+  /**
+   * When using menu-search, the search item is often split into multiple groups of words, each of
+   * which corresponds to a menu entry. This id is the same for words in the same group and
+   * different otherwise.
+   */
+  Span<int> word_group_ids;
+  /**
+   * The id of the group that is highlighted in the UI. In some places, the words in this group are
+   * given higher weight.
+   */
+  int main_group_id;
+  int main_group_length;
+  int total_length;
   int weight;
+  /**
+   * This is a logical time stamp, i.e. the greater it is, the more recent the item was used. The
+   * number is not based on an actual clock.
+   */
+  int recent_time;
+};
+
+struct RecentCache {
+  /**
+   * Stores a logical time stamp for each previously chosen search item. The higher the time
+   * stamp, the more recently the item has been selected.
+   */
+  Map<std::string, int> logical_time_by_str;
+};
+
+/**
+ * Sometimes every search item has multiple parts. For example, when using menu search, each nested
+ * menu is a separate part. Usually, one of those parts is highlighted in the UI and should be
+ * prioritized in the search.
+ */
+enum class MainWordsHeuristic {
+  FirstGroup,
+  LastGroup,
+  All,
 };
 
 /**
@@ -25,6 +62,8 @@ class StringSearchBase {
  protected:
   LinearAllocator<> allocator_;
   Vector<SearchItem> items_;
+  const RecentCache *recent_cache_ = nullptr;
+  MainWordsHeuristic main_words_heuristic_;
 
  protected:
   void add_impl(StringRef str, void *user_data, int weight);
@@ -43,6 +82,12 @@ class StringSearchBase {
  */
 template<typename T> class StringSearch : private StringSearchBase {
  public:
+  StringSearch(const RecentCache *recent_cache, const MainWordsHeuristic main_words_heuristic)
+  {
+    recent_cache_ = recent_cache;
+    main_words_heuristic_ = main_words_heuristic;
+  }
+
   /**
    * Add a new possible result to the search.
    *
@@ -86,6 +131,7 @@ int get_fuzzy_match_errors(StringRef query, StringRef full);
  */
 void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
-                              Vector<StringRef, 64> &r_words);
+                              Vector<StringRef, 64> &r_words,
+                              Vector<int, 64> &r_word_group_ids);
 
 }  // namespace blender::string_search

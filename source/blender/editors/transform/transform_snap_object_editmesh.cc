@@ -13,9 +13,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
@@ -406,14 +406,10 @@ static bool nearest_world_editmesh(SnapCache_EditMesh *em_cache,
     return false;
   }
 
-  float4x4 imat = math::invert(obmat);
-  float3 init_co = math::transform_point(imat, float3(sctx->runtime.init_co));
-  float3 curr_co = math::transform_point(imat, float3(sctx->runtime.curr_co));
-
   BVHTreeNearest nearest{};
-  nearest.dist_sq = sctx->ret.dist_px_sq;
+  nearest.dist_sq = sctx->ret.dist_nearest_sq;
   if (nearest_world_tree(
-          sctx, em_cache->bvhtree[2], em_cache->nearest_callback, init_co, curr_co, em, &nearest))
+          sctx, em_cache->bvhtree[2], em_cache->nearest_callback, obmat, em, &nearest))
   {
     SnapData::register_result(sctx, ob_eval, nullptr, obmat, &nearest);
     return true;

@@ -55,9 +55,11 @@ string string_printf(const char *format, ...)
 bool string_iequals(const string &a, const string &b)
 {
   if (a.size() == b.size()) {
-    for (size_t i = 0; i < a.size(); i++)
-      if (toupper(a[i]) != toupper(b[i]))
+    for (size_t i = 0; i < a.size(); i++) {
+      if (toupper(a[i]) != toupper(b[i])) {
         return false;
+      }
+    }
 
     return true;
   }
@@ -167,10 +169,12 @@ string string_remove_trademark(const string &s)
 
 string string_from_bool(bool var)
 {
-  if (var)
+  if (var) {
     return "True";
-  else
+  }
+  else {
     return "False";
+  }
 }
 
 string to_string(const char *str)
@@ -240,10 +244,12 @@ string string_human_readable_size(size_t size)
     suffix++;
   }
 
-  if (*suffix != 'B')
+  if (*suffix != 'B') {
     return string_printf("%.2f%c", double(size * 1024 + r) / 1024.0, *suffix);
-  else
+  }
+  else {
     return string_printf("%zu", size);
+  }
 }
 
 string string_human_readable_number(size_t num)
@@ -260,8 +266,9 @@ string string_human_readable_number(size_t num)
 
   int i = -1;
   while (num) {
-    if (++i && i % 3 == 0)
+    if (++i && i % 3 == 0) {
       *(--p) = ',';
+    }
 
     *(--p) = '0' + (num % 10);
 

@@ -37,14 +37,14 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 
 #include "NOD_texture.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
@@ -811,14 +811,14 @@ static blender::float3 paint_init_pivot_mesh(Object *ob)
 
 static void paint_init_pivot_curves(Object *ob, float location[3])
 {
-  const BoundBox *bbox = BKE_object_boundbox_get(ob);
-  interp_v3_v3v3(location, bbox->vec[0], bbox->vec[6], 0.5f);
+  const BoundBox bbox = *BKE_object_boundbox_get(ob);
+  interp_v3_v3v3(location, bbox.vec[0], bbox.vec[6], 0.5f);
 }
 
 static void paint_init_pivot_grease_pencil(Object *ob, float location[3])
 {
-  const BoundBox *bbox = BKE_object_boundbox_get(ob);
-  interp_v3_v3v3(location, bbox->vec[0], bbox->vec[6], 0.5f);
+  const BoundBox bbox = *BKE_object_boundbox_get(ob);
+  interp_v3_v3v3(location, bbox.vec[0], bbox.vec[6], 0.5f);
 }
 
 void paint_init_pivot(Object *ob, Scene *scene)

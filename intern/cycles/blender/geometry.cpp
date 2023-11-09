@@ -56,10 +56,12 @@ array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
   }
 
   if (used_shaders.size() == 0) {
-    if (material_override)
+    if (material_override) {
       find_shader(material_override, used_shaders, default_shader);
-    else
+    }
+    else {
       used_shaders.push_back_slow(default_shader);
+    }
   }
 
   return used_shaders;
@@ -149,8 +151,9 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   geom->set_used_shaders(used_shaders);
 
   auto sync_func = [=]() mutable {
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
 
     progress.set_sync_status("Synchronizing object", b_ob_info.real_object.name());
 
@@ -203,8 +206,9 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
 
   /* Ensure we only motion sync geometry that also had geometry synced, to avoid
    * unnecessary work and to ensure that its attributes were clear. */
-  if (geometry_synced.find(geom) == geometry_synced.end())
+  if (geometry_synced.find(geom) == geometry_synced.end()) {
     return;
+  }
 
   /* Find time matching motion step required by geometry. */
   int motion_step = geom->motion_step(motion_time);
@@ -213,8 +217,9 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   }
 
   auto sync_func = [=]() mutable {
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
 
     if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
       Hair *hair = static_cast<Hair *>(geom);

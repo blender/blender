@@ -191,8 +191,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess cursor_shape_check(GHOST_TStandardCursor cursorShape);
 
-  GHOST_TSuccess cursor_shape_custom_set(uint8_t *bitmap,
-                                         uint8_t *mask,
+  GHOST_TSuccess cursor_shape_custom_set(const uint8_t *bitmap,
+                                         const uint8_t *mask,
                                          int sizex,
                                          int sizey,
                                          int hotX,
@@ -235,6 +235,10 @@ class GHOST_SystemWayland : public GHOST_System {
   const std::vector<GWL_Output *> &outputs_get() const;
 
   struct wl_shm *wl_shm_get() const;
+
+  void ime_begin(
+      GHOST_WindowWayland *win, int32_t x, int32_t y, int32_t w, int32_t h, bool completed) const;
+  void ime_end(GHOST_WindowWayland *win) const;
 
   static const char *xdg_app_id_get();
 

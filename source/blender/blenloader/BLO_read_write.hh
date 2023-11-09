@@ -159,7 +159,7 @@ void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_addr
  */
 struct BLO_Write_IDBuffer;
 
-BLO_Write_IDBuffer *BLO_write_allocate_id_buffer(void);
+BLO_Write_IDBuffer *BLO_write_allocate_id_buffer();
 void BLO_write_init_id_buffer_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const bool is_undo);
 ID *BLO_write_get_id_buffer_temp_id(BLO_Write_IDBuffer *id_buffer);
 void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer);

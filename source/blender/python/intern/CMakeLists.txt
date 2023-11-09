@@ -126,6 +126,7 @@ set(LIB
   bf_editor_interface
   bf_editor_space_api
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
   bf_python_gpu
 
   ${PYTHON_LINKFLAGS}
@@ -139,6 +140,27 @@ endif()
 
 if(WITH_PYTHON_MODULE)
   add_definitions(-DWITH_PYTHON_MODULE)
+endif()
+
+
+# Find the SSL certificate for the portable Blender installation.
+# Without this, the absolute path on the builder is used, causing HTTPS access to fail.
+# For example `urllib.request.urlopen("https://projects.blender.org")` fails
+# (or any other HTTPS site). see: #102300 for details.
+# NOTE: that this isn't necessary on WIN32.
+if(WITH_PYTHON AND WITH_PYTHON_INSTALL AND (APPLE OR WITH_INSTALL_PORTABLE) AND (NOT WIN32))
+  # - `PYTHON_SSL_CERT_FILE` absolute path to the PEM file.
+  find_python_module_file("certifi/cacert.pem" PYTHON_SSL_CERT_FILE _python_ssl_cert_file_relative)
+  mark_as_advanced(PYTHON_SSL_CERT_FILE)
+  if (PYTHON_SSL_CERT_FILE)
+    add_definitions(-DPYTHON_SSL_CERT_FILE="${_python_ssl_cert_file_relative}")
+  else()
+    message(WARNING
+      "Unable to find \"certifi/cacert.pem\" within \"${PYTHON_LIBPATH}\", "
+      "this build will not be able to use bundled certificates with the \"ssl\" module!"
+    )
+  endif()
+  unset(_python_ssl_cert_file_relative)
 endif()
 
 if(WITH_PYTHON_SAFETY)

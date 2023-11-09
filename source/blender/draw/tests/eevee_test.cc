@@ -8,8 +8,10 @@
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
-#include "DEG_depsgraph.h"
+#include "BKE_object.hh"
+
+#include "DEG_depsgraph.hh"
+
 #include "RNA_define.hh"
 
 #include "GPU_batch.h"
@@ -231,7 +233,7 @@ static void test_eevee_shadow_tag_update()
 
   {
     ShadowTileMap tilemap(0 * SHADOW_TILEDATA_PER_TILEMAP);
-    tilemap.sync_cubeface(float4x4::identity(), 0.01f, 1.0f, Z_NEG, 0.0f);
+    tilemap.sync_cubeface(float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG, 0.0f);
     tilemaps_data.append(tilemap);
   }
   {
@@ -500,7 +502,8 @@ class TestDefrag {
   ShadowPageHeapBuf pages_free_data = {"PagesFreeBuf"};
   ShadowPageCacheBuf pages_cached_data = {"PagesCachedBuf"};
   ShadowPagesInfoDataBuf pages_infos_data = {"PagesInfosBuf"};
-  StorageBuffer<DispatchCommand> clear_draw_buf;
+  StorageBuffer<DispatchCommand> clear_dispatch_buf;
+  StorageBuffer<DrawCommand> tile_draw_buf;
   ShadowStatisticsBuf statistics_buf = {"statistics_buf"};
 
  public:
@@ -570,8 +573,9 @@ class TestDefrag {
     pass.bind_ssbo("pages_infos_buf", pages_infos_data);
     pass.bind_ssbo("pages_free_buf", pages_free_data);
     pass.bind_ssbo("pages_cached_buf", pages_cached_data);
+    pass.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf);
+    pass.bind_ssbo("tile_draw_buf", tile_draw_buf);
     pass.bind_ssbo("statistics_buf", statistics_buf);
-    pass.bind_ssbo("clear_draw_buf", clear_draw_buf);
     pass.dispatch(int3(1, 1, 1));
     pass.barrier(GPU_BARRIER_BUFFER_UPDATE);
 
@@ -643,6 +647,10 @@ class TestAlloc {
   {
     GPU_render_begin();
     int tiles_index = 1;
+
+    for (int i : IndexRange(SHADOW_MAX_TILE)) {
+      tiles_data[i] = 0;
+    }
 
     for (uint i : IndexRange(0, page_free_count)) {
       uint2 page = {i % SHADOW_PAGE_PER_ROW, i / SHADOW_PAGE_PER_ROW};
@@ -805,6 +813,9 @@ static void test_eevee_shadow_finalize()
     tilemap.viewmat = float4x4::identity();
     tilemap.tiles_index = 0;
     tilemap.clip_data_index = 0;
+    tilemap.clip_far = 10.0f;
+    tilemap.clip_near = 1.0f;
+    tilemap.half_size = 1.0f;
     tilemap.projection_type = SHADOW_PROJECTION_CUBEFACE;
     tilemaps_data.append(tilemap);
 
@@ -839,7 +850,9 @@ static void test_eevee_shadow_finalize()
 
   StorageArrayBuffer<ViewMatrices, DRW_VIEW_MAX> shadow_multi_view_buf = {"ShadowMultiView"};
   StorageBuffer<DispatchCommand> clear_dispatch_buf;
-  StorageArrayBuffer<uint, SHADOW_MAX_PAGE> clear_list_buf = {"clear_list_buf"};
+  StorageBuffer<DrawCommand> tile_draw_buf;
+  StorageArrayBuffer<uint, SHADOW_MAX_PAGE> dst_coord_buf = {"dst_coord_buf"};
+  StorageArrayBuffer<uint, SHADOW_MAX_PAGE> src_coord_buf = {"src_coord_buf"};
   StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE> render_map_buf = {"render_map_buf"};
   StorageArrayBuffer<uint, SHADOW_VIEW_MAX> viewport_index_buf = {"viewport_index_buf"};
 
@@ -855,7 +868,9 @@ static void test_eevee_shadow_finalize()
   pass.bind_ssbo("view_infos_buf", shadow_multi_view_buf);
   pass.bind_ssbo("statistics_buf", statistics_buf);
   pass.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf);
-  pass.bind_ssbo("clear_list_buf", clear_list_buf);
+  pass.bind_ssbo("tile_draw_buf", tile_draw_buf);
+  pass.bind_ssbo("dst_coord_buf", dst_coord_buf);
+  pass.bind_ssbo("src_coord_buf", src_coord_buf);
   pass.bind_ssbo("render_map_buf", render_map_buf);
   pass.bind_ssbo("viewport_index_buf", viewport_index_buf);
   pass.bind_ssbo("pages_infos_buf", pages_infos_data);
@@ -1157,7 +1172,7 @@ static void test_eevee_shadow_page_mask()
 
   {
     ShadowTileMap tilemap(0);
-    tilemap.sync_cubeface(float4x4::identity(), 0.01f, 1.0f, Z_NEG, 0.0f);
+    tilemap.sync_cubeface(float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG, 0.0f);
     tilemaps_data.append(tilemap);
   }
 
@@ -1448,14 +1463,24 @@ static void test_eevee_lut_gen()
   Manager manager;
 
   /* Check if LUT generation matches the header version. */
-  auto bsdf_ggx_gen = Precompute(manager, LUT_GGX_BRDF_SPLIT_SUM, {64, 64, 1}).data<float2>();
-  auto btdf_ggx_gen = Precompute(manager, LUT_GGX_BTDF_SPLIT_SUM, {64, 64, 16}).data<float2>();
+  auto brdf_ggx_gen = Precompute(manager, LUT_GGX_BRDF_SPLIT_SUM, {64, 64, 1}).data<float3>();
+  auto btdf_ggx_gen = Precompute(manager, LUT_GGX_BTDF_IOR_GT_ONE, {64, 64, 16}).data<float1>();
+  auto bsdf_ggx_gen = Precompute(manager, LUT_GGX_BSDF_SPLIT_SUM, {64, 64, 16}).data<float3>();
+  auto burley_gen = Precompute(manager, LUT_BURLEY_SSS_PROFILE, {64, 1, 1}).data<float1>();
+  auto rand_walk_gen = Precompute(manager, LUT_RANDOM_WALK_SSS_PROFILE, {64, 1, 1}).data<float1>();
 
-  Span<float2> bsdf_ggx_lut((const float2 *)&eevee::lut::bsdf_split_sum_ggx, 64 * 64);
-  Span<float2> btdf_ggx_lut((const float2 *)&eevee::lut::btdf_split_sum_ggx, 64 * 64 * 16);
+  Span<float3> brdf_ggx_lut((const float3 *)&eevee::lut::brdf_ggx, 64 * 64);
+  Span<float1> btdf_ggx_lut((const float1 *)&eevee::lut::btdf_ggx, 64 * 64 * 16);
+  Span<float3> bsdf_ggx_lut((const float3 *)&eevee::lut::bsdf_ggx, 64 * 64 * 16);
+  Span<float1> burley_sss_lut((const float1 *)&eevee::lut::burley_sss_profile, 64);
+  Span<float1> rand_walk_lut((const float1 *)&eevee::lut::random_walk_sss_profile, 64);
 
-  EXPECT_NEAR_ARRAY_ND(bsdf_ggx_lut.data(), bsdf_ggx_gen.data(), bsdf_ggx_gen.size(), 2, 1e-4f);
-  EXPECT_NEAR_ARRAY_ND(btdf_ggx_lut.data(), btdf_ggx_gen.data(), btdf_ggx_gen.size(), 2, 1e-4f);
+  const float eps = 3e-3f;
+  EXPECT_NEAR_ARRAY_ND(brdf_ggx_lut.data(), brdf_ggx_gen.data(), brdf_ggx_gen.size(), 3, eps);
+  EXPECT_NEAR_ARRAY_ND(btdf_ggx_lut.data(), btdf_ggx_gen.data(), btdf_ggx_gen.size(), 1, eps);
+  EXPECT_NEAR_ARRAY_ND(bsdf_ggx_lut.data(), bsdf_ggx_gen.data(), bsdf_ggx_gen.size(), 3, eps);
+  EXPECT_NEAR_ARRAY_ND(burley_gen.data(), burley_sss_lut.data(), burley_sss_lut.size(), 1, eps);
+  EXPECT_NEAR_ARRAY_ND(rand_walk_gen.data(), rand_walk_lut.data(), rand_walk_lut.size(), 1, eps);
 
   GPU_render_end();
 }

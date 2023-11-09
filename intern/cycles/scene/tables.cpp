@@ -26,8 +26,9 @@ LookupTables::~LookupTables()
 
 void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -37,8 +38,9 @@ void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
 
   VLOG_INFO << "Total " << lookup_tables.size() << " lookup tables.";
 
-  if (lookup_tables.size() > 0)
+  if (lookup_tables.size() > 0) {
     dscene->lookup_table.copy_to_device();
+  }
 
   need_update_ = false;
 }
@@ -76,8 +78,9 @@ size_t LookupTables::add_table(DeviceScene *dscene, vector<float> &data)
       lookup_tables.insert(table, new_table);
       break;
     }
-    else
+    else {
       new_table.offset = table->offset + table->size;
+    }
   }
 
   if (table == lookup_tables.end()) {

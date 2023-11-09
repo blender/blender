@@ -82,7 +82,7 @@ void ACTION_OT_keyframe_insert(wmOperatorType *ot);
 void ACTION_OT_duplicate(wmOperatorType *ot);
 void ACTION_OT_delete(wmOperatorType *ot);
 void ACTION_OT_clean(wmOperatorType *ot);
-void ACTION_OT_sample(wmOperatorType *ot);
+void ACTION_OT_bake_keys(wmOperatorType *ot);
 
 void ACTION_OT_keyframe_type(wmOperatorType *ot);
 void ACTION_OT_handle_type(wmOperatorType *ot);

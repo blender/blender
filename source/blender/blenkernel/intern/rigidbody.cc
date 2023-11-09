@@ -43,7 +43,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
@@ -53,8 +53,8 @@
 #  include "BKE_lib_query.h"
 #endif
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_BULLET
 static CLG_LogRef LOG = {"bke.rigidbody"};
@@ -492,8 +492,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
    */
   /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
   /* get object dimensions without scaling */
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
-  if (bb) {
+  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
     size[0] = (bb->vec[4][0] - bb->vec[0][0]);
     size[1] = (bb->vec[2][1] - bb->vec[0][1]);
     size[2] = (bb->vec[1][2] - bb->vec[0][2]);
@@ -502,7 +501,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
 
   if (ELEM(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
     /* take radius as largest x/y dimension, and height as z-dimension */
-    radius = MAX2(size[0], size[1]);
+    radius = std::max(size[0], size[1]);
     height = size[2];
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {
@@ -1769,7 +1768,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
       float(*positions)[3] = reinterpret_cast<float(*)[3]>(
           mesh->vert_positions_for_write().data());
       int totvert = mesh->totvert;
-      const BoundBox *bb = BKE_object_boundbox_get(ob);
+      const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
 
       RB_shape_trimesh_update(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
                               (float *)positions,

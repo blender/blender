@@ -29,6 +29,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -37,11 +38,11 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLT_translation.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
 
@@ -105,12 +106,15 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Curves *curves = (Curves *)id;
 
+  blender::bke::CurvesGeometry::BlendWriteData write_data =
+      curves->geometry.wrap().blend_write_prepare();
+
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
   BKE_id_blend_write(writer, &curves->id);
 
   /* Direct data */
-  curves->geometry.wrap().blend_write(*writer, curves->id);
+  curves->geometry.wrap().blend_write(*writer, curves->id, write_data);
 
   BLO_write_string(writer, curves->surface_uv_map);
 
@@ -136,7 +140,7 @@ IDTypeInfo IDType_ID_CV = {
     /*main_listbase_index*/ INDEX_ID_CV,
     /*struct_size*/ sizeof(Curves),
     /*name*/ "Curves",
-    /*name_plural*/ "hair_curves",
+    /*name_plural*/ N_("hair_curves"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_CURVES,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -166,28 +170,21 @@ void *BKE_curves_add(Main *bmain, const char *name)
   return curves;
 }
 
-BoundBox *BKE_curves_boundbox_get(Object *ob)
+BoundBox BKE_curves_boundbox_get(Object *ob)
 {
   using namespace blender;
   BLI_assert(ob->type == OB_CURVES);
   const Curves *curves_id = static_cast<const Curves *>(ob->data);
+  const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
-    return ob->runtime.bb;
+  BoundBox bb;
+  if (const std::optional<Bounds<float3>> bounds = curves.bounds_min_max()) {
+    BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
   }
-
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-    const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-    if (const std::optional<Bounds<float3>> bounds = curves.bounds_min_max()) {
-      BKE_boundbox_init_from_minmax(ob->runtime.bb, bounds->min, bounds->max);
-    }
-    else {
-      BKE_boundbox_init_from_minmax(ob->runtime.bb, float3(-1), float3(1));
-    }
+  else {
+    BKE_boundbox_init_from_minmax(&bb, float3(-1), float3(1));
   }
-
-  return ob->runtime.bb;
+  return bb;
 }
 
 bool BKE_curves_attribute_required(const Curves * /*curves*/, const char *name)
@@ -362,6 +359,15 @@ bool CurvesEditHints::is_valid() const
     }
   }
   return true;
+}
+
+void curves_normals_point_domain_calc(const CurvesGeometry &curves, MutableSpan<float3> normals)
+{
+  const bke::CurvesFieldContext context(curves, ATTR_DOMAIN_POINT);
+  fn::FieldEvaluator evaluator(context, curves.points_num());
+  fn::Field<float3> field(std::make_shared<bke::NormalFieldInput>());
+  evaluator.add_with_destination(std::move(field), normals);
+  evaluator.evaluate();
 }
 
 }  // namespace blender::bke

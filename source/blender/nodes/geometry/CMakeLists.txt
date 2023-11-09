@@ -16,6 +16,7 @@ set(INC
   ../../gpu
   ../../imbuf
   ../../makesrna
+  ../../modifiers
   ../../render
   ../../windowmanager
   ../../../../extern/fmtlib/include
@@ -83,6 +84,8 @@ set(SRC
   nodes/node_geo_index_of_nearest.cc
   nodes/node_geo_input_curve_handles.cc
   nodes/node_geo_input_curve_tilt.cc
+  nodes/node_geo_input_edge_smooth.cc
+  nodes/node_geo_input_face_smooth.cc
   nodes/node_geo_input_id.cc
   nodes/node_geo_input_index.cc
   nodes/node_geo_input_instance_rotation.cc
@@ -98,12 +101,11 @@ set(SRC
   nodes/node_geo_input_mesh_island.cc
   nodes/node_geo_input_mesh_vertex_neighbors.cc
   nodes/node_geo_input_named_attribute.cc
+  nodes/node_geo_input_named_layer_selection.cc
   nodes/node_geo_input_normal.cc
   nodes/node_geo_input_position.cc
   nodes/node_geo_input_radius.cc
   nodes/node_geo_input_scene_time.cc
-  nodes/node_geo_input_edge_smooth.cc
-  nodes/node_geo_input_face_smooth.cc
   nodes/node_geo_input_shortest_edge_paths.cc
   nodes/node_geo_input_signed_distance.cc
   nodes/node_geo_input_spline_cyclic.cc
@@ -181,6 +183,7 @@ set(SRC
   nodes/node_geo_set_spline_resolution.cc
   nodes/node_geo_simulation_input.cc
   nodes/node_geo_simulation_output.cc
+  nodes/node_geo_split_to_instances.cc
   nodes/node_geo_store_named_attribute.cc
   nodes/node_geo_string_join.cc
   nodes/node_geo_string_to_curves.cc

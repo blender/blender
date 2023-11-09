@@ -9,9 +9,9 @@
 #include "BLI_math_rotation.h"
 #include "BLI_sys_types.h" /* bool */
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "eevee_private.h"
 

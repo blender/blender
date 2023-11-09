@@ -55,15 +55,15 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "BKE_movieclip.h"
 #  include "BKE_node.h"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "ED_node.hh"
 
 #  include "IMB_colormanagement.h"
 #  include "IMB_imbuf.h"
 
-#  include "SEQ_iterator.h"
-#  include "SEQ_relations.h"
+#  include "SEQ_iterator.hh"
+#  include "SEQ_relations.hh"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
@@ -1285,7 +1285,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
       "High Dynamic Range",
       "Enable high dynamic range display in rendered viewport, uncapping display brightness. This "
       "requires a monitor with HDR support and a view transform designed for HDR. "
-      "'Filmic' does not generate HDR colors");
+      "'Filmic' and 'AgX' do not generate HDR colors");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 
   /* ** Color-space ** */

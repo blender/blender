@@ -916,7 +916,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   float zoomx, zoomy;
 
-  ED_view3d_viewcontext_init(C, &stroke->vc, depsgraph);
+  stroke->vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   stroke->get_location = get_location;
   stroke->test_start = test_start;
@@ -1611,7 +1611,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     redraw = true;
   }
 
-  /* Don't update the paint cursor in INBETWEEN_MOUSEMOVE events.*/
+  /* Don't update the paint cursor in #INBETWEEN_MOUSEMOVE events. */
   if (event->type != INBETWEEN_MOUSEMOVE) {
     wmWindow *window = CTX_wm_window(C);
     ARegion *region = CTX_wm_region(C);

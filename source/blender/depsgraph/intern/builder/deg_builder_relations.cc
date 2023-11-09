@@ -74,7 +74,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
@@ -88,28 +88,28 @@
 #include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_pchanmap.h"
 #include "intern/builder/deg_builder_relations_drivers.h"
 #include "intern/debug/deg_debug.h"
-#include "intern/depsgraph_physics.h"
-#include "intern/depsgraph_tag.h"
+#include "intern/depsgraph_physics.hh"
+#include "intern/depsgraph_tag.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
 
-#include "intern/node/deg_node.h"
-#include "intern/node/deg_node_component.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
-#include "intern/node/deg_node_time.h"
+#include "intern/node/deg_node.hh"
+#include "intern/node/deg_node_component.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
+#include "intern/node/deg_node_time.hh"
 
-#include "intern/depsgraph.h"
-#include "intern/depsgraph_relation.h"
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph.hh"
+#include "intern/depsgraph_relation.hh"
+#include "intern/depsgraph_type.hh"
 
 namespace blender::deg {
 
@@ -2935,6 +2935,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     }
   }
 
+  ntree->ensure_interface_cache();
   for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
     build_idproperties(socket->properties);
   }

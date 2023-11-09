@@ -400,10 +400,12 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
 
     bool has_receiver_ancestor = INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_RECEIVER_ANCESTOR;
     INTEGRATOR_STATE_WRITE(state, path, mnee) &= ~PATH_MNEE_CULL_LIGHT_CONNECTION;
-    if (from_caustic_caster && has_receiver_ancestor)
+    if (from_caustic_caster && has_receiver_ancestor) {
       INTEGRATOR_STATE_WRITE(state, path, mnee) |= PATH_MNEE_CULL_LIGHT_CONNECTION;
-    if (from_caustic_receiver)
+    }
+    if (from_caustic_receiver) {
       INTEGRATOR_STATE_WRITE(state, path, mnee) |= PATH_MNEE_RECEIVER_ANCESTOR;
+    }
   }
 #endif /* __MNEE__ */
 

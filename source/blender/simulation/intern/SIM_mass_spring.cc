@@ -27,8 +27,8 @@
 #include "SIM_mass_spring.h"
 #include "implicit.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 static float I3[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 
@@ -244,7 +244,7 @@ void SIM_cloth_solver_set_volume(ClothModifierData *clmd)
 
 /* Init constraint matrix
  * This is part of the modified CG method suggested by Baraff/Witkin in
- * "Large Steps in Cloth Simulation" (Siggraph 1998)
+ * "Large Steps in Cloth Simulation" (SIGGRAPH 1998)
  */
 static void cloth_setup_constraints(ClothModifierData *clmd)
 {
@@ -301,7 +301,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
   steps = 55;
   for (i = 0; i < steps; i++) {
     for (node = cloth->springs; node; node = node->next) {
-      /* ClothVertex *cv1, *cv2; */ /* UNUSED */
+      // ClothVertex *cv1, *cv2; /* UNUSED */
       int v1, v2;
       float len, c, l, vec[3];
 
@@ -312,8 +312,8 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
 
       v1 = spring->ij;
       v2 = spring->kl;
-      /* cv1 = cloth->verts + v1; */ /* UNUSED */
-      /* cv2 = cloth->verts + v2; */ /* UNUSED */
+      // cv1 = cloth->verts + v1; /* UNUSED. */
+      // cv2 = cloth->verts + v2; /* UNUSED. */
       len = len_v3v3(cos[v1], cos[v2]);
 
       sub_v3_v3v3(vec, cos[v1], cos[v2]);
@@ -566,7 +566,7 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 static void cloth_calc_force(
     Scene *scene, ClothModifierData *clmd, float /*frame*/, ListBase *effectors, float time)
 {
-  /* Collect forces and derivatives:  F, dFdX, dFdV */
+  /* Collect forces and derivatives: F, dFdX, dFdV. */
   Cloth *cloth = clmd->clothObject;
   ClothSimSettings *parms = clmd->sim_parms;
   Implicit_Data *data = cloth->implicit;

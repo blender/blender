@@ -102,7 +102,7 @@ static bool vklayer_config_exist(const char *vk_extension_config)
 {
   const char *ev_val = getenv("VK_LAYER_PATH");
   if (ev_val == nullptr) {
-    return false;
+    return true;
   }
   std::stringstream filename;
   filename << ev_val;
@@ -148,7 +148,10 @@ class GHOST_DeviceVK {
   uint32_t generic_queue_family = 0;
 
   VkPhysicalDeviceProperties properties = {};
-  VkPhysicalDeviceFeatures features = {};
+  VkPhysicalDeviceFeatures2 features = {};
+  VkPhysicalDeviceVulkan11Features features_11 = {};
+  VkPhysicalDeviceVulkan12Features features_12 = {};
+
   int users = 0;
 
  public:
@@ -156,7 +159,14 @@ class GHOST_DeviceVK {
       : instance(vk_instance), physical_device(vk_physical_device)
   {
     vkGetPhysicalDeviceProperties(physical_device, &properties);
-    vkGetPhysicalDeviceFeatures(physical_device, &features);
+
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    features_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+    features_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    features.pNext = &features_11;
+    features_11.pNext = &features_12;
+
+    vkGetPhysicalDeviceFeatures2(physical_device, &features);
   }
   ~GHOST_DeviceVK()
   {
@@ -172,7 +182,7 @@ class GHOST_DeviceVK {
     }
   }
 
-  bool extensions_support(const vector<const char *> &required_extensions)
+  bool has_extensions(const vector<const char *> &required_extensions)
   {
     uint32_t ext_count;
     vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &ext_count, nullptr);
@@ -221,24 +231,47 @@ class GHOST_DeviceVK {
     device_features.imageCubeArray = VK_TRUE;
     device_features.multiViewport = VK_TRUE;
 #endif
-
-    VkPhysicalDeviceMaintenance4FeaturesKHR maintenance_4 = {};
-    maintenance_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;
-    maintenance_4.maintenance4 = VK_TRUE;
+    device_features.drawIndirectFirstInstance = VK_TRUE;
+    device_features.fragmentStoresAndAtomics = VK_TRUE;
 
     VkDeviceCreateInfo device_create_info = {};
-    device_create_info.pNext = &maintenance_4;
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.queueCreateInfoCount = uint32_t(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
-    /* layers_enabled are the same as instance extensions.
-     * This is only needed for 1.0 implementations. */
     device_create_info.enabledLayerCount = uint32_t(layers_enabled.size());
     device_create_info.ppEnabledLayerNames = layers_enabled.data();
     device_create_info.enabledExtensionCount = uint32_t(extensions_device.size());
     device_create_info.ppEnabledExtensionNames = extensions_device.data();
     device_create_info.pEnabledFeatures = &device_features;
 
+    void *device_create_info_p_next = nullptr;
+
+    /* Enable optional vulkan 12 features when supported on physical device. */
+    VkPhysicalDeviceVulkan12Features vulkan_12_features = {};
+    vulkan_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    vulkan_12_features.shaderOutputLayer = features_12.shaderOutputLayer;
+    vulkan_12_features.shaderOutputViewportIndex = features_12.shaderOutputViewportIndex;
+    vulkan_12_features.pNext = device_create_info_p_next;
+    device_create_info_p_next = &vulkan_12_features;
+
+    /* Enable shader draw parameters on logical device when supported on physical device. */
+    VkPhysicalDeviceShaderDrawParametersFeatures shader_draw_parameters = {};
+    shader_draw_parameters.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
+    shader_draw_parameters.shaderDrawParameters = features_11.shaderDrawParameters;
+    shader_draw_parameters.pNext = device_create_info_p_next;
+    device_create_info_p_next = &shader_draw_parameters;
+
+    /* Query for Mainenance4 (core in Vulkan 1.3). */
+    VkPhysicalDeviceMaintenance4FeaturesKHR maintenance_4 = {};
+    maintenance_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;
+    maintenance_4.maintenance4 = VK_TRUE;
+    if (has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
+      maintenance_4.pNext = device_create_info_p_next;
+      device_create_info_p_next = &maintenance_4;
+    }
+
+    device_create_info.pNext = device_create_info_p_next;
     vkCreateDevice(physical_device, &device_create_info, nullptr, &device);
   }
 
@@ -298,7 +331,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
   for (const auto &physical_device : physical_devices) {
     GHOST_DeviceVK device_vk(vk_instance, physical_device);
 
-    if (!device_vk.extensions_support(required_extensions)) {
+    if (!device_vk.has_extensions(required_extensions)) {
       continue;
     }
 
@@ -318,8 +351,8 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
     }
 
 #if STRICT_REQUIREMENTS
-    if (!device_vk.features.geometryShader || !device_vk.features.dualSrcBlend ||
-        !device_vk.features.logicOp || !device_vk.features.imageCubeArray)
+    if (!device_vk.features.features.geometryShader || !device_vk.features.features.dualSrcBlend ||
+        !device_vk.features.features.logicOp || !device_vk.features.features.imageCubeArray)
     {
       continue;
     }
@@ -373,6 +406,7 @@ GHOST_ContextVK::GHOST_ContextVK(bool stereoVisual,
                                  /* Wayland */
                                  wl_surface *wayland_surface,
                                  wl_display *wayland_display,
+                                 const GHOST_ContextVK_WindowInfo *wayland_window_info,
 #endif
                                  int contextMajorVersion,
                                  int contextMinorVersion,
@@ -390,6 +424,7 @@ GHOST_ContextVK::GHOST_ContextVK(bool stereoVisual,
       /* Wayland */
       m_wayland_surface(wayland_surface),
       m_wayland_display(wayland_display),
+      m_wayland_window_info(wayland_window_info),
 #endif
       m_context_major_version(contextMajorVersion),
       m_context_minor_version(contextMinorVersion),
@@ -448,6 +483,25 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   if (m_swapchain == VK_NULL_HANDLE) {
     return GHOST_kFailure;
   }
+
+#ifdef WITH_GHOST_WAYLAND
+  /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether the
+   * swap-chain needs to be recreated. But as a side effect we can recreate the swap chain before
+   * presenting. */
+  if (m_wayland_window_info) {
+    const bool recreate_swapchain =
+        ((m_wayland_window_info->size[0] !=
+          std::max(m_render_extent.width, m_render_extent_min.width)) ||
+         (m_wayland_window_info->size[1] !=
+          std::max(m_render_extent.height, m_render_extent_min.height)));
+
+    if (recreate_swapchain) {
+      /* Swap-chain is out of date. Recreate swap-chain. */
+      destroySwapchain();
+      createSwapchain();
+    }
+  }
+#endif
 
   assert(vulkan_device.has_value() && vulkan_device->device != VK_NULL_HANDLE);
   VkDevice device = vulkan_device->device;
@@ -768,11 +822,29 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, m_surface, &capabilities);
 
   m_render_extent = capabilities.currentExtent;
+  m_render_extent_min = capabilities.minImageExtent;
   if (m_render_extent.width == UINT32_MAX) {
     /* Window Manager is going to set the surface size based on the given size.
      * Choose something between minImageExtent and maxImageExtent. */
-    m_render_extent.width = 1280;
-    m_render_extent.height = 720;
+    int width = 0;
+    int height = 0;
+
+#ifdef WITH_GHOST_WAYLAND
+    /* Wayland doesn't provide a windowing API via WSI. */
+    if (m_wayland_window_info) {
+      width = m_wayland_window_info->size[0];
+      height = m_wayland_window_info->size[1];
+    }
+#endif
+
+    if (width == 0 || height == 0) {
+      width = 1280;
+      height = 720;
+    }
+
+    m_render_extent.width = width;
+    m_render_extent.height = height;
+
     if (capabilities.minImageExtent.width > m_render_extent.width) {
       m_render_extent.width = capabilities.minImageExtent.width;
     }
@@ -926,8 +998,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   }
   extensions_device.push_back("VK_KHR_dedicated_allocation");
   extensions_device.push_back("VK_KHR_get_memory_requirements2");
-  /* Allow relaxed interface matching between shader stages.*/
-  extensions_device.push_back("VK_KHR_maintenance4");
   /* Enable MoltenVK required instance extensions. */
 #ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
   requireExtension(
@@ -944,6 +1014,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     app_info.apiVersion = VK_MAKE_VERSION(m_context_major_version, m_context_minor_version, 0);
 
+    /* Create Instance */
     VkInstanceCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     create_info.pApplicationInfo = &app_info;
@@ -951,6 +1022,19 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     create_info.ppEnabledLayerNames = layers_enabled.data();
     create_info.enabledExtensionCount = uint32_t(extensions_enabled.size());
     create_info.ppEnabledExtensionNames = extensions_enabled.data();
+
+    /* VkValidationFeaturesEXT */
+    VkValidationFeaturesEXT validationFeatures = {};
+    validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+    validationFeatures.enabledValidationFeatureCount = 1;
+
+    VkValidationFeatureEnableEXT enabledValidationFeatures[1] = {
+        VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT};
+    validationFeatures.pEnabledValidationFeatures = enabledValidationFeatures;
+    if (m_debug) {
+      create_info.pNext = &validationFeatures;
+    }
+
     VK_CHECK(vkCreateInstance(&create_info, nullptr, &instance));
   }
   else {
@@ -1004,7 +1088,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   /* According to the Vulkan specs, when `VK_KHR_portability_subset` is available it should be
    * enabled. See
    * https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451*/
-  if (vulkan_device->extensions_support({VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME})) {
+  if (vulkan_device->has_extensions({VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME})) {
     extensions_device.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
 #endif

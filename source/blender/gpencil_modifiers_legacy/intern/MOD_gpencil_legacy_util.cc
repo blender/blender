@@ -27,7 +27,7 @@
 #include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_util.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
 {

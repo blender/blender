@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
 #include "DNA_anim_types.h"
 #include "RNA_types.hh"
 
@@ -53,23 +54,6 @@ eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, bool use_autokey_mode);
  */
 bAction *ED_id_action_ensure(Main *bmain, ID *id);
 
-/**
- * Get (or add relevant data to be able to do so) F-Curve from the Active Action,
- * for the given Animation Data block. This assumes that all the destinations are valid.
- */
-FCurve *ED_action_fcurve_ensure(Main *bmain,
-                                bAction *act,
-                                const char group[],
-                                PointerRNA *ptr,
-                                const char rna_path[],
-                                int array_index);
-
-/**
- * Find the F-Curve from the Active Action,
- * for the given Animation Data block. This assumes that all the destinations are valid.
- */
-FCurve *ED_action_fcurve_find(bAction *act, const char rna_path[], int array_index);
-
 /* -------- */
 
 /**
@@ -79,40 +63,9 @@ FCurve *ED_action_fcurve_find(bAction *act, const char rna_path[], int array_ind
  * but also through RNA when editing an ID prop, see #37103).
  */
 void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, PointerRNA *ptr);
+void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
 
 /* -------- */
-
-/**
- * \brief Lesser Key-framing API call.
- *
- * Use this when validation of necessary animation data isn't necessary as it already
- * exists, and there is a #BezTriple that can be directly copied into the array.
- *
- * This function adds a given #BezTriple to an F-Curve. It will allocate
- * memory for the array if needed, and will insert the #BezTriple into a
- * suitable place in chronological order.
- *
- * \note any recalculate of the F-Curve that needs to be done will need to be done by the caller.
- */
-int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag);
-
-/**
- * \brief Main Key-framing API call.
- *
- * Use this when validation of necessary animation data isn't necessary as it
- * already exists. It will insert a keyframe using the current value being keyframed.
- * Returns the index at which a keyframe was added (or -1 if failed).
- *
- * This function is a wrapper for #insert_bezt_fcurve(), and should be used when
- * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet.
- * It returns the index at which the keyframe was added.
- *
- * \param keyframe_type: The type of keyframe (#eBezTriple_KeyframeType).
- * \param flag: Optional flags (#eInsertKeyFlags) for controlling how keys get added
- * and/or whether updates get done.
- */
-int insert_vert_fcurve(
-    FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag);
 
 /**
  * Add the given number of keyframes to the FCurve. Their coordinates are
@@ -124,74 +77,6 @@ int insert_vert_fcurve(
  * afterwards.
  */
 void ED_keyframes_add(FCurve *fcu, int num_keys_to_add);
-
-/* -------- */
-
-/**
- * \brief Secondary Insert Key-framing API call.
- *
- * Use this when validation of necessary animation data is not necessary,
- * since an RNA-pointer to the necessary data being keyframed,
- * and a pointer to the F-Curve to use have both been provided.
- *
- * This function can't keyframe quaternion channels on some NLA strip types.
- *
- * \param keytype: The "keyframe type" (eBezTriple_KeyframeType), as shown in the Dope Sheet.
- *
- * \param flag: Used for special settings that alter the behavior of the keyframe insertion.
- * These include the 'visual' key-framing modes, quick refresh,
- * and extra keyframe filtering.
- * \return Success.
- */
-bool insert_keyframe_direct(ReportList *reports,
-                            PointerRNA ptr,
-                            PropertyRNA *prop,
-                            FCurve *fcu,
-                            const AnimationEvalContext *anim_eval_context,
-                            eBezTriple_KeyframeType keytype,
-                            NlaKeyframingContext *nla,
-                            eInsertKeyFlags flag);
-
-/* -------- */
-
-/**
- * \brief Main Insert Key-framing API call.
- *
- * Use this to create any necessary animation data, and then insert a keyframe
- * using the current value being keyframed, in the relevant place.
- *
- * \param flag: Used for special settings that alter the behavior of the keyframe insertion.
- * These include the 'visual' key-framing modes, quick refresh, and extra keyframe filtering.
- *
- * \param array_index: The index to key or -1 keys all array indices.
- * \return The number of key-frames inserted.
- */
-int insert_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    bAction *act,
-                    const char group[],
-                    const char rna_path[],
-                    int array_index,
-                    const AnimationEvalContext *anim_eval_context,
-                    eBezTriple_KeyframeType keytype,
-                    ListBase *nla_cache,
-                    eInsertKeyFlags flag);
-
-/**
- * \brief Main Delete Key-Framing API call.
- *
- * Use this to delete keyframe on current frame for relevant channel.
- * Will perform checks just in case.
- * \return The number of key-frames deleted.
- */
-int delete_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    bAction *act,
-                    const char rna_path[],
-                    int array_index,
-                    float cfra);
 
 /** \} */
 
@@ -249,7 +134,11 @@ struct KeyingSetInfo {
 /**
  * Add another data source for Relative Keying Sets to be evaluated with.
  */
-void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *srna, void *data);
+void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources,
+                                        ID *id,
+                                        StructRNA *srna,
+                                        void *data);
+void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID *id);
 
 /* mode for modify_keyframes */
 enum eModifyKey_Modes {
@@ -259,6 +148,7 @@ enum eModifyKey_Modes {
 
 /* return codes for errors (with Relative KeyingSets) */
 enum eModifyKey_Returns {
+  MODIFYKEY_SUCCESS = 0,
   /** Context info was invalid for using the Keying Set. */
   MODIFYKEY_INVALID_CONTEXT = -1,
   /** There isn't any type-info for generating paths from context. */
@@ -271,9 +161,13 @@ enum eModifyKey_Returns {
  * where their list of paths is dynamically generated based on the
  * current context info.
  *
+ * \note Passing sources as pointer because it can be a nullptr.
+ *
  * \return 0 if succeeded, otherwise an error code: #eModifyKey_Returns.
  */
-eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks);
+eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
+                                           blender::Vector<PointerRNA> *sources,
+                                           KeyingSet *ks);
 
 /**
  * Use the specified #KeyingSet and context info (if required)
@@ -286,17 +180,16 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, Keyi
  * an #eModifyKey_Returns value (always a negative number).
  */
 int ANIM_apply_keyingset(
-    bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra);
+    bContext *C, blender::Vector<PointerRNA> *sources, KeyingSet *ks, short mode, float cfra);
 
 /* -------- */
 
 /**
  * Find builtin #KeyingSet by name.
  *
- * \return The first builtin #KeyingSet with the given name, which occurs after the given one
- * (or start of list if none given).
+ * \return The first builtin #KeyingSet with the given name
  */
-KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[]);
+KeyingSet *ANIM_builtin_keyingset_get_named(const char name[]);
 
 /**
  * Find KeyingSet type info given a name.
@@ -551,39 +444,6 @@ void ANIM_copy_as_driver(ID *target_id, const char *target_path, const char *var
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Auto-Key-Framing
- *
- * Notes:
- * - All the defines for this (User-Pref settings and Per-Scene settings)
- *   are defined in DNA_userdef_types.h
- * - Scene settings take precedence over those for user-preferences, with old files
- *   inheriting user-preferences settings for the scene settings
- * - "On/Off + Mode" are stored per Scene, but "settings" are currently stored as user-preferences.
- * \{ */
-
-/* Auto-Keying macros for use by various tools. */
-
-/** Check if auto-key-framing is enabled (per scene takes precedence). */
-#define IS_AUTOKEY_ON(scene) \
-  ((scene) ? ((scene)->toolsettings->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
-/** Check the mode for auto-keyframing (per scene takes precedence). */
-#define IS_AUTOKEY_MODE(scene, mode) \
-  ((scene) ? ((scene)->toolsettings->autokey_mode == AUTOKEY_MODE_##mode) : \
-             (U.autokey_mode == AUTOKEY_MODE_##mode))
-/** Check if a flag is set for auto-key-framing (per scene takes precedence). */
-#define IS_AUTOKEY_FLAG(scene, flag) \
-  ((scene) ? (((scene)->toolsettings->autokey_flag & AUTOKEY_FLAG_##flag) || \
-              (U.autokey_flag & AUTOKEY_FLAG_##flag)) : \
-             (U.autokey_flag & AUTOKEY_FLAG_##flag))
-
-/**
- * Auto-keyframing feature - checks for whether anything should be done for the current frame.
- */
-bool autokeyframe_cfra_can_key(const Scene *scene, ID *id);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Keyframe Checking
  * \{ */
 
@@ -615,26 +475,6 @@ bool fcurve_is_changed(PointerRNA ptr,
  * \param frame: The value of this is quite often result of #BKE_scene_ctime_get()
  */
 bool id_frame_has_keyframe(ID *id, float frame);
-
-/* Utility functions for auto key-frame. */
-
-bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks);
-bool ED_autokeyframe_pchan(
-    bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks);
-
-/**
- * Use for auto-key-framing.
- * \param only_if_property_keyed: if true, auto-key-framing only creates keyframes on already keyed
- * properties. This is by design when using buttons. For other callers such as gizmos or sequencer
- * preview transform, creating new animation/keyframes also on non-keyed properties is desired.
- */
-bool ED_autokeyframe_property(bContext *C,
-                              Scene *scene,
-                              PointerRNA *ptr,
-                              PropertyRNA *prop,
-                              int rnaindex,
-                              float cfra,
-                              bool only_if_property_keyed);
 
 /* Names for builtin keying sets so we don't confuse these with labels/text,
  * defined in python script: `keyingsets_builtins.py`. */

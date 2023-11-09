@@ -50,6 +50,9 @@ BMUVOffsets BM_uv_map_get_offsets_from_layer(const BMesh *bm, const int layer)
 BMUVOffsets BM_uv_map_get_offsets(const BMesh *bm)
 {
   const int layer = CustomData_get_active_layer(&bm->ldata, CD_PROP_FLOAT2);
+  if (layer == -1) {
+    return {-1, -1, -1, -1};
+  }
   return BM_uv_map_get_offsets_from_layer(bm, layer);
 }
 
@@ -205,6 +208,5 @@ bool BM_face_uv_point_inside_test(const BMFace *f, const float co[2], const int 
     projverts[i] = BM_ELEM_CD_GET_FLOAT2_P(l_iter, cd_loop_uv_offset);
   }
 
-  return isect_point_poly_v2(
-      co, reinterpret_cast<const float(*)[2]>(projverts.data()), f->len, false);
+  return isect_point_poly_v2(co, reinterpret_cast<const float(*)[2]>(projverts.data()), f->len);
 }

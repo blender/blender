@@ -54,8 +54,9 @@ class DualConInputReader : public ModelReader {
     /* initialize maxsize */
     for (int i = 0; i < 3; i++) {
       float d = max[i] - min[i];
-      if (d > maxsize)
+      if (d > maxsize) {
         maxsize = d;
+      }
     }
 
     /* redo the bounds */
@@ -64,15 +65,17 @@ class DualConInputReader : public ModelReader {
       max[i] = (max[i] + min[i]) / 2 + maxsize / 2;
     }
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
       min[i] -= maxsize * (1 / scale - 1) / 2;
+    }
     maxsize *= 1 / scale;
   }
 
   Triangle *getNextTriangle()
   {
-    if (curtri == input_mesh->tottri)
+    if (curtri == input_mesh->tottri) {
       return NULL;
+    }
 
     Triangle *t = new Triangle();
 
@@ -97,8 +100,9 @@ class DualConInputReader : public ModelReader {
 
   int getNextTriangle(int t[3])
   {
-    if (curtri == input_mesh->tottri)
+    if (curtri == input_mesh->tottri) {
       return 0;
+    }
 
     unsigned int *tr = GET_TRI(input_mesh, curtri);
     t[0] = tr[0];

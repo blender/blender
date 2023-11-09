@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstdlib>
+#include <iostream>
 
 #include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
@@ -16,7 +17,6 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -41,9 +41,10 @@
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+#include "UI_string_search.hh"
 #include "UI_view2d.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -126,8 +127,7 @@ static bool node_frame_select_isect_mouse(const SpaceNode &snode,
 
 static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse)
 {
-  const bNodeTree &ntree = *snode.edittree;
-  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
+  for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
     switch (node->type) {
       case NODE_FRAME: {
         if (node_frame_select_isect_mouse(snode, *node, mouse)) {
@@ -148,8 +148,7 @@ static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse
 
 static bool node_under_mouse_tweak(const SpaceNode &snode, const float2 &mouse)
 {
-  const bNodeTree &ntree = *snode.edittree;
-  LISTBASE_FOREACH_BACKWARD (const bNode *, node, &ntree.nodes) {
+  for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
     switch (node->type) {
       case NODE_REROUTE: {
         const float2 location = node_to_view(*node, {node->locx, node->locy});
@@ -315,25 +314,15 @@ void node_deselect_all_output_sockets(bNodeTree &node_tree, const bool deselect_
 
 void node_select_paired(bNodeTree &node_tree)
 {
-  for (bNode *input_node : node_tree.nodes_by_type("GeometryNodeSimulationInput")) {
-    const auto *storage = static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
-    if (bNode *output_node = node_tree.node_by_id(storage->output_node_id)) {
-      if (input_node->flag & NODE_SELECT) {
-        output_node->flag |= NODE_SELECT;
-      }
-      if (output_node->flag & NODE_SELECT) {
-        input_node->flag |= NODE_SELECT;
-      }
-    }
-  }
-  for (bNode *input_node : node_tree.nodes_by_type("GeometryNodeRepeatInput")) {
-    const auto *storage = static_cast<const NodeGeometryRepeatInput *>(input_node->storage);
-    if (bNode *output_node = node_tree.node_by_id(storage->output_node_id)) {
-      if (input_node->flag & NODE_SELECT) {
-        output_node->flag |= NODE_SELECT;
-      }
-      if (output_node->flag & NODE_SELECT) {
-        input_node->flag |= NODE_SELECT;
+  for (const bke::bNodeZoneType *zone_type : bke::all_zone_types()) {
+    for (bNode *input_node : node_tree.nodes_by_type(zone_type->input_idname)) {
+      if (bNode *output_node = zone_type->get_corresponding_output(node_tree, *input_node)) {
+        if (input_node->flag & NODE_SELECT) {
+          output_node->flag |= NODE_SELECT;
+        }
+        if (output_node->flag & NODE_SELECT) {
+          input_node->flag |= NODE_SELECT;
+        }
       }
     }
   }
@@ -471,7 +460,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
   }
 
   if (changed) {
-    node_sort(node_tree);
+    tree_draw_order_update(node_tree);
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
     return OPERATOR_FINISHED;
   }
@@ -539,7 +528,7 @@ void node_select_single(bContext &C, bNode &node)
   ED_node_set_active(bmain, &snode, &node_tree, &node, &active_texture_changed);
   ED_node_set_active_viewer_key(&snode);
 
-  node_sort(node_tree);
+  tree_draw_order_update(node_tree);
   if (active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) {
     DEG_id_tag_update(&node_tree.id, ID_RECALC_COPY_ON_WRITE);
   }
@@ -697,7 +686,7 @@ static bool node_mouse_select(bContext *C,
     viewer_path::activate_geometry_node(bmain, snode, *node);
   }
   ED_node_set_active_viewer_key(&snode);
-  node_sort(node_tree);
+  tree_draw_order_update(node_tree);
   if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
       viewer_node_changed)
   {
@@ -828,7 +817,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  node_sort(node_tree);
+  tree_draw_order_update(node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
 
@@ -1138,7 +1127,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  node_sort(node_tree);
+  tree_draw_order_update(node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;
@@ -1190,7 +1179,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  node_sort(node_tree);
+  tree_draw_order_update(node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;
@@ -1240,7 +1229,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  node_sort(node_tree);
+  tree_draw_order_update(node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;
@@ -1356,7 +1345,7 @@ static void node_find_update_fn(const bContext *C,
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  string_search::StringSearch<bNode> search;
+  ui::string_search::StringSearch<bNode> search;
 
   for (bNode *node : snode->edittree->all_nodes()) {
     char name[256];

@@ -11,11 +11,11 @@
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_key.h"
 #include "intern/builder/deg_builder_map.h"
-#include "intern/depsgraph_type.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/depsgraph_type.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 struct CacheFile;
 struct Camera;
@@ -156,7 +156,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   OperationNode *find_operation_node(const OperationKey &key);
 
-  virtual void build_id(ID *id);
+  virtual void build_id(ID *id, bool force_be_visible = false);
 
   /* Build function for ID types that do not need their own build_xxx() function. */
   virtual void build_generic_id(ID *id);

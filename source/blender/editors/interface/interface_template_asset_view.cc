@@ -11,7 +11,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -47,6 +47,8 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
 {
   blender::asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(
       asset_handle);
+
+  UI_but_dragflag_enable(but, UI_BUT_DRAG_FULL_BUT);
 
   ID *id = asset->local_id();
   if (id != nullptr) {

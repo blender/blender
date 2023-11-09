@@ -33,11 +33,6 @@ struct EEVEE_Data {
 
 static void eevee_engine_init(void *vedata)
 {
-  /* TODO(fclem): Remove once it is minimum required. */
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   EEVEE_Data *ved = reinterpret_cast<EEVEE_Data *>(vedata);
   if (ved->instance == nullptr) {
     ved->instance = new eevee::Instance();
@@ -68,7 +63,8 @@ static void eevee_engine_init(void *vedata)
       rctf default_border;
       BLI_rctf_init(&default_border, 0.0f, 1.0f, 0.0f, 1.0f);
       bool is_default_border = BLI_rctf_compare(&scene->r.border, &default_border, 0.0f);
-      if (!is_default_border) {
+      bool use_border = scene->r.mode & R_BORDER;
+      if (!is_default_border && use_border) {
         rctf viewborder;
         /* TODO(fclem) Might be better to get it from DRW. */
         ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &viewborder, false);
@@ -94,10 +90,6 @@ static void eevee_engine_init(void *vedata)
 static void eevee_draw_scene(void *vedata)
 {
   EEVEE_Data *ved = reinterpret_cast<EEVEE_Data *>(vedata);
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    STRNCPY(ved->info, "Error: No shader storage buffer support");
-    return;
-  }
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   ved->instance->draw_viewport(dfbl);
   STRNCPY(ved->info, ved->instance->info.c_str());
@@ -107,25 +99,16 @@ static void eevee_draw_scene(void *vedata)
 
 static void eevee_cache_init(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->begin_sync();
 }
 
 static void eevee_cache_populate(void *vedata, Object *object)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->object_sync(object);
 }
 
 static void eevee_cache_finish(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->end_sync();
 }
 
@@ -136,9 +119,6 @@ static void eevee_engine_free()
 
 static void eevee_instance_free(void *instance)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   delete reinterpret_cast<eevee::Instance *>(instance);
 }
 
@@ -147,10 +127,6 @@ static void eevee_render_to_image(void *vedata,
                                   RenderLayer *layer,
                                   const rcti * /*rect*/)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   eevee::Instance *instance = new eevee::Instance();
 
   Render *render = engine->re;
@@ -173,9 +149,6 @@ static void eevee_render_to_image(void *vedata,
 
 static void eevee_store_metadata(void *vedata, RenderResult *render_result)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   EEVEE_Data *ved = static_cast<EEVEE_Data *>(vedata);
   eevee::Instance *instance = ved->instance;
   instance->store_metadata(render_result);
@@ -185,9 +158,6 @@ static void eevee_store_metadata(void *vedata, RenderResult *render_result)
 
 static void eevee_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   eevee::Instance::update_passes(engine, scene, view_layer);
 }
 
@@ -198,7 +168,7 @@ extern "C" {
 DrawEngineType draw_engine_eevee_next_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
-    /*idname*/ N_("Eevee"),
+    /*idname*/ N_("EEVEE"),
     /*vedata_size*/ &eevee_data_size,
     /*engine_init*/ &eevee_engine_init,
     /*engine_free*/ &eevee_engine_free,
@@ -217,7 +187,7 @@ RenderEngineType DRW_engine_viewport_eevee_next_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ "BLENDER_EEVEE_NEXT",
-    /*name*/ N_("Eevee Next"),
+    /*name*/ N_("EEVEE"),
     /*flag*/ RE_INTERNAL | RE_USE_PREVIEW | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     /*update*/ nullptr,
     /*render*/ &DRW_render_to_image,

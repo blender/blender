@@ -25,7 +25,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_unit.h"
 
 #include "RNA_access.hh"
@@ -54,8 +54,8 @@
 #include "ED_transform.hh"
 #include "ED_util.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Marker API
@@ -1907,7 +1907,7 @@ void ED_operatortypes_marker()
 
 void ED_keymap_marker(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Markers", 0, 0);
+  WM_keymap_ensure(keyconf, "Markers", SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
 
 /** \} */

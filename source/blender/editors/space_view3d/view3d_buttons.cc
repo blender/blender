@@ -40,12 +40,12 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1220,7 +1220,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
       }
     }
 
-    /*      ED_undo_push(C, "Transform properties"); */
+    // ED_undo_push(C, "Transform properties");
   }
 }
 
@@ -1850,7 +1850,7 @@ void view3d_buttons_register(ARegionType *art)
   WM_menutype_add(mt);
 }
 
-static int view3d_object_mode_menu(bContext *C, wmOperator *op)
+static int view3d_object_mode_menu_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == nullptr) {
@@ -1871,7 +1871,7 @@ void VIEW3D_OT_object_mode_pie_or_toggle(wmOperatorType *ot)
   ot->name = "Object Mode Menu";
   ot->idname = "VIEW3D_OT_object_mode_pie_or_toggle";
 
-  ot->exec = view3d_object_mode_menu;
+  ot->exec = view3d_object_mode_menu_exec;
   ot->poll = ED_operator_view3d_active;
 
   /* flags */

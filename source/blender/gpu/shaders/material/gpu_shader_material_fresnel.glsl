@@ -33,7 +33,7 @@ float fresnel_dielectric(vec3 Incoming, vec3 Normal, float eta)
 void node_fresnel(float ior, vec3 N, out float result)
 {
   N = normalize(N);
-  vec3 V = cameraVec(g_data.P);
+  vec3 V = coordinate_incoming(g_data.P);
 
   float eta = max(ior, 0.00001);
   result = fresnel_dielectric(V, N, (FrontFacing) ? eta : 1.0 / eta);

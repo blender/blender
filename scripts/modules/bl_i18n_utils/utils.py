@@ -55,7 +55,7 @@ def get_best_similar(data):
     return key, tmp
 
 
-_locale_explode_re = re.compile(r"^([a-z]{2,})(?:_([A-Z]{2,}))?(?:@([a-z]{2,}))?$")
+_locale_explode_re = re.compile(r"^([a-z]{2,})(?:_([A-Za-z]{2,}))?(?:@([a-z]{2,}))?$")
 
 
 def locale_explode(locale):

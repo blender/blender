@@ -41,12 +41,12 @@
 #  include "BKE_node.h"
 #  include "BKE_scene.h"
 
-#  include "NOD_composite.h"
+#  include "NOD_composite.hh"
 
 #  include "BLI_listbase.h"
 
-#  include "DEG_depsgraph_build.h"
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph_build.hh"
+#  include "DEG_depsgraph_query.hh"
 
 /***********************************/
 

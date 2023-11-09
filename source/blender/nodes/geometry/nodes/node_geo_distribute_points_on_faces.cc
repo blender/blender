@@ -24,6 +24,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_distribute_points_on_faces_cc {
@@ -336,15 +338,36 @@ static void compute_normal_outputs(const Mesh &mesh,
                                    const Span<int> looptri_indices,
                                    MutableSpan<float3> r_normals)
 {
-  Array<float3> corner_normals(mesh.totloop);
-  BKE_mesh_calc_normals_split_ex(
-      &mesh, nullptr, reinterpret_cast<float(*)[3]>(corner_normals.data()));
-
-  const Span<MLoopTri> looptris = mesh.looptris();
-  threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
-    bke::mesh_surface_sample::sample_corner_normals(
-        looptris, looptri_indices, bary_coords, corner_normals, range, r_normals);
-  });
+  switch (mesh.normals_domain()) {
+    case bke::MeshNormalDomain::Point: {
+      const Span<int> corner_verts = mesh.corner_verts();
+      const Span<MLoopTri> looptris = mesh.looptris();
+      const Span<float3> vert_normals = mesh.vert_normals();
+      threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
+        bke::mesh_surface_sample::sample_point_normals(
+            corner_verts, looptris, looptri_indices, bary_coords, vert_normals, range, r_normals);
+      });
+      break;
+    }
+    case bke::MeshNormalDomain::Face: {
+      const Span<int> looptri_faces = mesh.looptri_faces();
+      VArray<float3> face_normals = VArray<float3>::ForSpan(mesh.face_normals());
+      threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
+        bke::mesh_surface_sample::sample_face_attribute(
+            looptri_faces, looptri_indices, face_normals, range, r_normals);
+      });
+      break;
+    }
+    case bke::MeshNormalDomain::Corner: {
+      const Span<MLoopTri> looptris = mesh.looptris();
+      const Span<float3> corner_normals = mesh.corner_normals();
+      threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
+        bke::mesh_surface_sample::sample_corner_normals(
+            looptris, looptri_indices, bary_coords, corner_normals, range, r_normals);
+      });
+      break;
+    }
+  }
 }
 
 static void compute_legacy_normal_outputs(const Mesh &mesh,
@@ -556,6 +579,8 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   const bool use_legacy_normal = params.node().custom2 != 0;
   compute_attribute_outputs(
       mesh, *pointcloud, bary_coords, looptri_indices, attribute_outputs, use_legacy_normal);
+
+  geometry::debug_randomize_point_order(pointcloud);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

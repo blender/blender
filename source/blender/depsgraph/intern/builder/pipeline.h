@@ -10,7 +10,7 @@
 
 #include "deg_builder_cache.h"
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 struct Depsgraph;
 struct Main;

@@ -15,6 +15,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -389,8 +390,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* handle custom split normals */
-  if (ob->type == OB_MESH && (((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) &&
-      CustomData_has_layer(&result->loop_data, CD_CUSTOMLOOPNORMAL) && result->faces_num > 0)
+  if (ob->type == OB_MESH && CustomData_has_layer(&result->loop_data, CD_CUSTOMLOOPNORMAL) &&
+      result->faces_num > 0)
   {
     blender::Array<blender::float3> loop_normals(result_corner_verts.size());
     blender::short2 *clnors = static_cast<blender::short2 *>(
@@ -420,8 +421,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                           sharp_edges,
                                           sharp_faces,
                                           clnors,
-                                          true,
-                                          result->smoothresh,
                                           &lnors_spacearr,
                                           loop_normals);
 

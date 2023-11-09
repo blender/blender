@@ -447,8 +447,8 @@ def km_property_editor(params):
         ("object.modifier_remove", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("report", True)]}),
         ("object.modifier_copy", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         # Grease pencil modifier panels
-        ("object.gpencil_modifier_remove", {"type": 'BACK_SPACE',
-         "value": 'PRESS'}, {"properties": [("report", True)]}),
+        ("object.gpencil_modifier_remove",
+         {"type": 'BACK_SPACE', "value": 'PRESS'}, {"properties": [("report", True)]}),
         ("object.gpencil_modifier_remove", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("report", True)]}),
         ("object.gpencil_modifier_copy", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         # ShaderFX panels
@@ -586,7 +586,7 @@ def km_uv_editor(params):
          {"properties": [("extend", True)]}),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
          {"properties": [("extend", False)]}),
-        ("uv.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'}, None),
+        ("uv.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("uv.select_more", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("uv.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("uv.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
@@ -631,6 +631,8 @@ def km_view3d_generic(_params):
          {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_region_ui')]}),
+        ("wm.context_toggle", {"type": 'SPACE', "value": 'PRESS', "shift": True},
+         {"properties": [("data_path", 'space_data.show_region_asset_shelf')]}),
     ])
 
     return keymap
@@ -895,6 +897,10 @@ def km_graph_editor(params):
 
     items.extend([
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_channels')]}),
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
         *_template_items_animation(),
         ("graph.cursor_set", {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ("graph.clickselect", {"type": 'LEFTMOUSE', "value": 'PRESS'},
@@ -931,7 +937,7 @@ def km_graph_editor(params):
          {"properties": [("tweak", True), ("axis_range", False), ("mode", 'SUB')]}),
         ("graph.select_more", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("graph.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
-        ("graph.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'}, None),
+        ("graph.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         op_menu("GRAPH_MT_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
         ("graph.delete", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("confirm", False)]}),
         *_template_items_context_menu("GRAPH_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
@@ -975,6 +981,10 @@ def km_image_generic(params):
 
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("image.new", {"type": 'N', "value": 'PRESS', "alt": True}, None),
         ("image.open", {"type": 'O', "value": 'PRESS', "alt": True}, None),
@@ -1064,7 +1074,12 @@ def km_node_generic(_params):
 
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
-        ("node.add_search", {"type": 'TAB', "value": 'PRESS'}, None),
+        ("wm.search_single_menu", {"type": 'TAB', "value": 'PRESS'},
+         {"properties": [("menu_idname", 'NODE_MT_add')]}),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
     ])
 
     return keymap
@@ -1202,6 +1217,8 @@ def km_file_browser(params):
     )
 
     items.extend([
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_tool_props')]}),
         ("file.parent", {"type": 'UP_ARROW', "value": 'PRESS', "alt": True}, None),
         ("file.parent", {"type": 'UP_ARROW', "value": 'PRESS', "ctrl": True}, None),
         ("file.previous", {"type": 'LEFT_ARROW', "value": 'PRESS', "alt": True}, None),
@@ -1345,6 +1362,8 @@ def km_dopesheet_generic(params):
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_channels')]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_region_ui')]}),
     ])
@@ -1404,7 +1423,7 @@ def km_dopesheet(params):
          {"properties": [("mode", 'MARKERS_BETWEEN')]}),
         ("action.select_more", {"type": 'UP_ARROW', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("action.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
-        ("action.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'}, None),
+        ("action.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("action.frame_jump", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("wm.context_menu_enum", {"type": 'X', "value": 'PRESS'},
          {"properties": [("data_path", 'space_data.auto_snap')]}),
@@ -1457,6 +1476,10 @@ def km_nla_generic(params):
 
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_channels')]}),
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         *_template_items_animation(),
         ("nla.tweakmode_enter", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
@@ -1724,6 +1747,8 @@ def km_sequencercommon(_params):
 
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_channels')]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_region_ui')]}),
     ])
@@ -1815,11 +1840,11 @@ def km_sequencer(params):
          {"properties": [("extend", True), ("side_of_frame", True), ("linked_time", True)]}),
         ("sequencer.select_more", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("sequencer.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
-        ("sequencer.select_linked_pick", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
+        ("sequencer.select_linked_pick", {"type": 'L', "value": 'PRESS', "ctrl": True},
          {"properties": [("extend", False)]}),
         ("sequencer.select_linked_pick", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "shift": True},
          {"properties": [("extend", True)]}),
-        ("sequencer.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True}, None),
+        ("sequencer.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("tweak", True), ("mode", 'SET')]}),
         ("sequencer.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
@@ -1894,12 +1919,20 @@ def km_console(params):
     items.extend([
         ("console.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("type", 'PREVIOUS_WORD')]}),
+        ("console.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "ctrl": True, "shift": True, "repeat": True},
+         {"properties": [("type", 'PREVIOUS_WORD'), ("select", True)]}),
         ("console.move", {"type": 'RIGHT_ARROW', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("type", 'NEXT_WORD')]}),
+        ("console.move", {"type": 'RIGHT_ARROW', "value": 'PRESS', "ctrl": True, "shift": True, "repeat": True},
+         {"properties": [("type", 'NEXT_WORD'), ("select", True)]}),
         ("console.move", {"type": 'HOME', "value": 'PRESS'},
          {"properties": [("type", 'LINE_BEGIN')]}),
+        ("console.move", {"type": 'HOME', "value": 'PRESS', "shift": True},
+         {"properties": [("type", 'LINE_BEGIN'), ("select", True)]}),
         ("console.move", {"type": 'END', "value": 'PRESS'},
          {"properties": [("type", 'LINE_END')]}),
+        ("console.move", {"type": 'END', "value": 'PRESS', "shift": True},
+         {"properties": [("type", 'LINE_END'), ("select", True)]}),
         ("wm.context_cycle_int", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.font_size'), ("reverse", False)]}),
         ("wm.context_cycle_int", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True},
@@ -1910,8 +1943,12 @@ def km_console(params):
          {"properties": [("data_path", 'space_data.font_size'), ("reverse", True)]}),
         ("console.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'PREVIOUS_CHARACTER')]}),
+        ("console.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True, "shift": True},
+         {"properties": [("type", 'PREVIOUS_CHARACTER'), ("select", True)]}),
         ("console.move", {"type": 'RIGHT_ARROW', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'NEXT_CHARACTER')]}),
+        ("console.move", {"type": 'RIGHT_ARROW', "value": 'PRESS', "repeat": True, "shift": True},
+         {"properties": [("type", 'NEXT_CHARACTER'), ("select", True)]}),
         ("console.history_cycle", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True},
          {"properties": [("reverse", True)]}),
         ("console.history_cycle", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True},
@@ -1934,8 +1971,10 @@ def km_console(params):
          {"properties": [("interactive", True)]}),
         ("console.copy_as_script", {"type": 'C', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("console.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
+        ("console.copy", {"type": 'X', "value": 'PRESS', "ctrl": True}, {"properties": [("delete", True)]}),
         ("console.paste", {"type": 'V', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("console.select_set", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("console.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, None),
         ("console.select_word", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
         ("console.insert", {"type": 'TAB', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("text", '\t')]}),
@@ -1986,6 +2025,10 @@ def km_clip_editor(params):
     )
 
     items.extend([
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("clip.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         ("clip.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "shift": True}, None),
@@ -2166,6 +2209,8 @@ def km_spreadsheet_generic(_params):
         *_template_space_region_type_toggle(
             channels_key={"type": 'T', "value": 'PRESS'},
         ),
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
     ])
 
     return keymap
@@ -2360,7 +2405,7 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("gpencil.stroke_join", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
         ("gpencil.stroke_join", {"type": 'J', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("type", 'JOINCOPY')]}),
-        # Copy + paset
+        # Copy + paste.
         ("gpencil.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("gpencil.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         # Snap
@@ -2384,6 +2429,13 @@ def km_grease_pencil_stroke_edit_mode(params):
          {"properties": [("mode", 1)]}),
         ("gpencil.selectmode_toggle", {"type": 'THREE', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 2)]}),
+        # Active layer
+        op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
+        # Keyframes
+        op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
+        ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Tools
         *_template_items_basic_tools(),
         op_tool_cycle("builtin.extrude", {"type": 'E', "value": 'PRESS', "ctrl": True}),
@@ -2421,9 +2473,13 @@ def km_grease_pencil_stroke_paint_mode(params):
         ("gpencil.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         ("gpencil.hide", {"type": 'H', "value": 'PRESS', "ctrl": True}, {"properties": [("unselected", False)]}),
         ("gpencil.hide", {"type": 'H', "value": 'PRESS', "shift": True}, {"properties": [("unselected", True)]}),
-        # Draw delete menu
-        op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
-        op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'DEL', "value": 'PRESS'}),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.dissolve", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True}, None),
+        ("gpencil.dissolve", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Box delete
         ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
         # Lasso delete
@@ -2434,6 +2490,8 @@ def km_grease_pencil_stroke_paint_mode(params):
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Material menu
         op_menu("GPENCIL_MT_material_active", {"type": 'Y', "value": 'PRESS', "alt": True}),
         # Keyframes
@@ -2574,15 +2632,25 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("gpencil.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         # Display
         *_grease_pencil_display(),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Keyframes
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
         ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Material menu
         op_menu("GPENCIL_MT_material_active", {"type": 'Y', "value": 'PRESS', "alt": True}),
         # Context menu
         op_panel("VIEW3D_PT_gpencil_sculpt_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        op_menu_pie(
+            "VIEW3D_MT_sculpt_gpencil_automasking_pie",
+            {"type": 'A', "alt": True, "value": 'PRESS'}),
     ])
 
     return keymap
@@ -2793,11 +2861,18 @@ def km_grease_pencil_stroke_weight_mode(params):
         ("gpencil.weight_sample", {"type": 'I', "value": 'PRESS'}, None),
         # Tools
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Keyframes
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
         ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Context menu
         *_template_items_context_panel("VIEW3D_PT_gpencil_weight_context_menu",
                                        {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
@@ -2909,11 +2984,18 @@ def km_grease_pencil_stroke_vertex_mode(params):
         ("gpencil.tint_flip", {"type": 'X', "value": 'PRESS'}, None),
         # Display
         *_grease_pencil_display(),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Keyframes
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
         ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
@@ -3095,7 +3177,7 @@ def km_weight_paint_vertex_selection(params):
         ("paint.vert_select_hide", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("paint.vert_select_linked", {"type": 'L', "value": 'PRESS', "alt": True}, None),
+        ("paint.vert_select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("paint.vert_select_linked_pick", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "alt": True},
          {"properties": [("select", True)]}),
         ("paint.vert_select_linked_pick", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "ctrl": True, "alt": True},
@@ -3143,7 +3225,6 @@ def km_pose(params):
         ("pose.select_hierarchy", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("direction", 'CHILD'), ("extend", True)]}),
         ("pose.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
-        ("pose.bone_layers", {"type": 'G', "value": 'PRESS'}, None),
         ("anim.keyframe_insert_menu", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("anim.keyframe_insert_by_name", {"type": 'S', "value": 'PRESS'},
          {"properties": [("type", 'LocRotScale')]}),
@@ -3717,6 +3798,8 @@ def km_mesh(params):
 
         ("mesh.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("use_fill", False)]}),
+        ("mesh.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True},
+         {"properties": [("use_fill", True)]}),
 
         ("mesh.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("mesh.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True,
@@ -4109,7 +4192,8 @@ def km_object_non_modal(params):
 
     items.extend([
         ("object.transfer_mode", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}, None),
-        op_menu_pie("VIEW3D_MT_object_mode_pie", {"type": 'FOUR', "value": 'PRESS'}),
+        ("object.mode_set", {"type": 'FOUR', "value": 'PRESS'}, {"properties": [("mode", 'OBJECT')]}),
+        op_menu_pie("VIEW3D_MT_object_mode_pie", {"type": 'FIVE', "value": 'PRESS'}),
     ])
 
     return keymap

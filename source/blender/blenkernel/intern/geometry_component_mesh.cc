@@ -858,103 +858,17 @@ static void tag_component_positions_changed(void *owner)
   }
 }
 
-class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
- private:
-  MDeformVert *dverts_;
-  const int dvert_index_;
-
- public:
-  VArrayImpl_For_VertexWeights(MutableSpan<MDeformVert> dverts, const int dvert_index)
-      : VMutableArrayImpl<float>(dverts.size()), dverts_(dverts.data()), dvert_index_(dvert_index)
-  {
+static void tag_component_sharpness_changed(void *owner)
+{
+  if (Mesh *mesh = static_cast<Mesh *>(owner)) {
+    BKE_mesh_tag_sharpness_changed(mesh);
   }
-
-  VArrayImpl_For_VertexWeights(Span<MDeformVert> dverts, const int dvert_index)
-      : VMutableArrayImpl<float>(dverts.size()),
-        dverts_(const_cast<MDeformVert *>(dverts.data())),
-        dvert_index_(dvert_index)
-  {
-  }
-
-  float get(const int64_t index) const override
-  {
-    if (dverts_ == nullptr) {
-      return 0.0f;
-    }
-    if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
-      return weight->weight;
-    }
-    return 0.0f;
-  }
-
-  void set(const int64_t index, const float value) override
-  {
-    MDeformVert &dvert = dverts_[index];
-    if (value == 0.0f) {
-      if (MDeformWeight *weight = this->find_weight_at_index(index)) {
-        weight->weight = 0.0f;
-      }
-    }
-    else {
-      MDeformWeight *weight = BKE_defvert_ensure_index(&dvert, dvert_index_);
-      weight->weight = value;
-    }
-  }
-
-  void set_all(Span<float> src) override
-  {
-    threading::parallel_for(src.index_range(), 4096, [&](const IndexRange range) {
-      for (const int64_t i : range) {
-        this->set(i, src[i]);
-      }
-    });
-  }
-
-  void materialize(const IndexMask &mask, float *dst) const override
-  {
-    if (dverts_ == nullptr) {
-      mask.foreach_index([&](const int i) { dst[i] = 0.0f; });
-    }
-    mask.foreach_index(GrainSize(4096), [&](const int64_t i) {
-      if (const MDeformWeight *weight = this->find_weight_at_index(i)) {
-        dst[i] = weight->weight;
-      }
-      else {
-        dst[i] = 0.0f;
-      }
-    });
-  }
-
-  void materialize_to_uninitialized(const IndexMask &mask, float *dst) const override
-  {
-    this->materialize(mask, dst);
-  }
-
- private:
-  MDeformWeight *find_weight_at_index(const int64_t index)
-  {
-    for (MDeformWeight &weight : MutableSpan(dverts_[index].dw, dverts_[index].totweight)) {
-      if (weight.def_nr == dvert_index_) {
-        return &weight;
-      }
-    }
-    return nullptr;
-  }
-  const MDeformWeight *find_weight_at_index(const int64_t index) const
-  {
-    for (const MDeformWeight &weight : Span(dverts_[index].dw, dverts_[index].totweight)) {
-      if (weight.def_nr == dvert_index_) {
-        return &weight;
-      }
-    }
-    return nullptr;
-  }
-};
+}
 
 /**
  * This provider makes vertex groups available as float attributes.
  */
-class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
+class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider {
  public:
   GAttributeReader try_get_for_read(const void *owner,
                                     const AttributeIDRef &attribute_id) const final
@@ -977,8 +891,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
       static const float default_value = 0.0f;
       return {VArray<float>::ForSingle(default_value, mesh->totvert), ATTR_DOMAIN_POINT};
     }
-    return {VArray<float>::For<VArrayImpl_For_VertexWeights>(dverts, vertex_group_index),
-            ATTR_DOMAIN_POINT};
+    return {bke::varray_for_deform_verts(dverts, vertex_group_index), ATTR_DOMAIN_POINT};
   }
 
   GAttributeWriter try_get_for_write(void *owner, const AttributeIDRef &attribute_id) const final
@@ -998,8 +911,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
       return {};
     }
     MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
-    return {VMutableArray<float>::For<VArrayImpl_For_VertexWeights>(dverts, vertex_group_index),
-            ATTR_DOMAIN_POINT};
+    return {bke::varray_for_mutable_deform_verts(dverts, vertex_group_index), ATTR_DOMAIN_POINT};
   }
 
   bool try_delete(void *owner, const AttributeIDRef &attribute_id) const final
@@ -1026,17 +938,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     }
 
     MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
-    threading::parallel_for(dverts.index_range(), 1024, [&](IndexRange range) {
-      for (MDeformVert &dvert : dverts.slice(range)) {
-        MDeformWeight *weight = BKE_defvert_find_index(&dvert, index);
-        BKE_defvert_remove_group(&dvert, weight);
-        for (MDeformWeight &weight : MutableSpan(dvert.dw, dvert.totweight)) {
-          if (weight.def_nr > index) {
-            weight.def_nr--;
-          }
-        }
-      }
-    });
+    bke::remove_defgroup_index(dverts, index);
     return true;
   }
 
@@ -1180,7 +1082,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                    BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    face_access,
-                                                   nullptr);
+                                                   tag_component_sharpness_changed);
 
   static BuiltinCustomDataLayerProvider sharp_edge("sharp_edge",
                                                    ATTR_DOMAIN_EDGE,
@@ -1189,9 +1091,9 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                    BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    edge_access,
-                                                   nullptr);
+                                                   tag_component_sharpness_changed);
 
-  static VertexGroupsAttributeProvider vertex_groups;
+  static MeshVertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
   static CustomDataAttributeProvider edge_custom_data(ATTR_DOMAIN_EDGE, edge_access);

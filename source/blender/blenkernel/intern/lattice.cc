@@ -42,9 +42,9 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
 
@@ -165,7 +165,7 @@ IDTypeInfo IDType_ID_LT = {
     /*main_listbase_index*/ INDEX_ID_LT,
     /*struct_size*/ sizeof(Lattice),
     /*name*/ "Lattice",
-    /*name_plural*/ "lattices",
+    /*name_plural*/ N_("lattices"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_LATTICE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

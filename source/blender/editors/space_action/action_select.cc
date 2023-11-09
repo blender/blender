@@ -129,7 +129,7 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
   else if (ale->type == ANIMTYPE_GROUP) {
     /* TODO: why don't we just give groups key_data too? */
     bActionGroup *agrp = (bActionGroup *)ale->data;
-    agroup_to_keylist(adt, agrp, keylist, 0);
+    action_group_to_keylist(adt, agrp, keylist, 0);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
     /* TODO: why don't we just give grease pencil layers key_data too? */
@@ -144,7 +144,7 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_DATABLOCK) {
     /* TODO: why don't we just give grease pencil layers key_data too? */
     grease_pencil_data_block_to_keylist(
-        adt, static_cast<const GreasePencil *>(ale->data), keylist, 0);
+        adt, static_cast<const GreasePencil *>(ale->data), keylist, 0, false);
   }
   else if (ale->type == ANIMTYPE_GPLAYER) {
     /* TODO: why don't we just give gplayers key_data too? */
@@ -2049,7 +2049,7 @@ static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
   }
 
   /* get useful pointers from animation context data */
-  /* region = ac.region; */ /* UNUSED */
+  // region = ac.region; /* UNUSED. */
 
   /* select mode is either replace (deselect all, then add) or add/extend */
   const short selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT : SELECT_REPLACE;

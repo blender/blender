@@ -15,13 +15,12 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 struct LocalStatistics {
   vec3 mean;
@@ -57,7 +56,7 @@ LocalStatistics local_statistics_get(ivec2 texel, vec3 center_radiance)
       }
 
       /* Weight corners less to avoid box artifacts.
-       * Same idea as in "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014
+       * Same idea as in "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
        * (Slide 32) Simple clamp to min/max of 8 neighbors results in 3x3 box artifacts. */
       float weight = (x == y) ? 0.25 : 1.0;
       /* Use YCoCg for clamping and accumulation to avoid color shift artifacts. */
@@ -111,7 +110,7 @@ vec4 radiance_history_fetch(ivec2 texel, float bilinear_weight)
 
 vec4 radiance_history_sample(vec3 P, LocalStatistics local)
 {
-  vec2 uv = project_point(raytrace_buf.history_persmat, P).xy * 0.5 + 0.5;
+  vec2 uv = project_point(uniform_buf.raytrace.history_persmat, P).xy * 0.5 + 0.5;
 
   /* FIXME(fclem): Find why we need this half pixel offset. */
   vec2 texel_co = uv * vec2(textureSize(radiance_history_tx, 0).xy) - 0.5;
@@ -139,7 +138,7 @@ vec4 radiance_history_sample(vec3 P, LocalStatistics local)
 
 vec2 variance_history_sample(vec3 P)
 {
-  vec2 uv = project_point(raytrace_buf.history_persmat, P).xy * 0.5 + 0.5;
+  vec2 uv = project_point(uniform_buf.raytrace.history_persmat, P).xy * 0.5 + 0.5;
 
   if (!in_range_exclusive(uv, vec2(0.0), vec2(1.0))) {
     /* Out of history view. Return sample without weight. */
@@ -164,7 +163,7 @@ void main()
   const uint tile_size = RAYTRACE_GROUP_SIZE;
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel_fullres = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
-  vec2 uv = (vec2(texel_fullres) + 0.5) * raytrace_buf.full_resolution_inv;
+  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
 
   float in_variance = imageLoad(in_variance_img, texel_fullres).r;
   vec3 in_radiance = imageLoad(in_radiance_img, texel_fullres).rgb;
@@ -182,12 +181,12 @@ void main()
 
   /* Surface reprojection. */
   /* TODO(fclem): Use per pixel velocity. Is this worth it? */
-  float scene_depth = texelFetch(hiz_tx, texel_fullres, 0).r;
-  vec3 P = get_world_space_from_depth(uv, scene_depth);
+  float scene_depth = texelFetch(depth_tx, texel_fullres, 0).r;
+  vec3 P = drw_point_screen_to_world(vec3(uv, scene_depth));
   vec4 history_radiance = radiance_history_sample(P, local);
   /* Reflection reprojection. */
   float hit_depth = imageLoad(hit_depth_img, texel_fullres).r;
-  vec3 P_hit = get_world_space_from_depth(uv, hit_depth);
+  vec3 P_hit = drw_point_screen_to_world(vec3(uv, hit_depth));
   history_radiance += radiance_history_sample(P_hit, local);
   /* Finalize accumulation. */
   history_radiance *= safe_rcp(history_radiance.w);
@@ -199,7 +198,8 @@ void main()
   float mix_fac = (history_radiance.w > 1e-3) ? 0.97 : 0.0;
   /* Reduce blend factor to improve low roughness reflections. Use variance instead for speed. */
   mix_fac *= mix(0.75, 1.0, saturate(in_variance * 20.0));
-  vec3 out_radiance = mix(safe_color(in_radiance), safe_color(history_radiance.rgb), mix_fac);
+  vec3 out_radiance = mix(
+      colorspace_safe_color(in_radiance), colorspace_safe_color(history_radiance.rgb), mix_fac);
   /* This is feedback next frame as radiance_history_tx. */
   imageStore(out_radiance_img, texel_fullres, vec4(out_radiance, 0.0));
 

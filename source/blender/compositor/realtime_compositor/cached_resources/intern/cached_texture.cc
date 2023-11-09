@@ -24,6 +24,7 @@
 
 #include "COM_cached_texture.hh"
 #include "COM_context.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -50,8 +51,12 @@ bool operator==(const CachedTextureKey &a, const CachedTextureKey &b)
  * Cached Texture.
  */
 
-CachedTexture::CachedTexture(
-    Tex *texture, bool use_color_management, int2 size, float2 offset, float2 scale)
+CachedTexture::CachedTexture(Context &context,
+                             Tex *texture,
+                             bool use_color_management,
+                             int2 size,
+                             float2 offset,
+                             float2 scale)
 {
   ImagePool *image_pool = BKE_image_pool_new();
   BKE_texture_fetch_images_for_pool(texture, image_pool);
@@ -78,21 +83,23 @@ CachedTexture::CachedTexture(
 
   BKE_image_pool_free(image_pool);
 
-  color_texture_ = GPU_texture_create_2d("Cached Color Texture",
-                                         size.x,
-                                         size.y,
-                                         1,
-                                         GPU_RGBA16F,
-                                         GPU_TEXTURE_USAGE_SHADER_READ,
-                                         *color_pixels.data());
+  color_texture_ = GPU_texture_create_2d(
+      "Cached Color Texture",
+      size.x,
+      size.y,
+      1,
+      Result::texture_format(ResultType::Color, context.get_precision()),
+      GPU_TEXTURE_USAGE_SHADER_READ,
+      *color_pixels.data());
 
-  value_texture_ = GPU_texture_create_2d("Cached Value Texture",
-                                         size.x,
-                                         size.y,
-                                         1,
-                                         GPU_R16F,
-                                         GPU_TEXTURE_USAGE_SHADER_READ,
-                                         value_pixels.data());
+  value_texture_ = GPU_texture_create_2d(
+      "Cached Value Texture",
+      size.x,
+      size.y,
+      1,
+      Result::texture_format(ResultType::Float, context.get_precision()),
+      GPU_TEXTURE_USAGE_SHADER_READ,
+      value_pixels.data());
 }
 
 CachedTexture::~CachedTexture()
@@ -149,7 +156,8 @@ CachedTexture &CachedTextureContainer::get(Context &context,
   }
 
   auto &cached_texture = *cached_textures_for_id.lookup_or_add_cb(key, [&]() {
-    return std::make_unique<CachedTexture>(texture, use_color_management, size, offset, scale);
+    return std::make_unique<CachedTexture>(
+        context, texture, use_color_management, size, offset, scale);
   });
 
   cached_texture.needed = true;

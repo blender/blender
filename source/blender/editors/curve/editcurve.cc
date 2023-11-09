@@ -37,9 +37,9 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -3720,7 +3720,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
           }
         }
 
-        if (sel) { /* V ! */
+        if (sel) { /* V direction. */
           bpn = bpnew = static_cast<BPoint *>(
               MEM_mallocN((sel + nu->pntsv) * nu->pntsu * sizeof(BPoint), "subdivideNurb4"));
           bp = nu->bp;
@@ -3768,7 +3768,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
             }
           }
 
-          if (sel) { /* U ! */
+          if (sel) { /* U direction. */
             /* Inserting U points is sort of 'default' Flat curves only get
              * U points inserted in them. */
             bpn = bpnew = static_cast<BPoint *>(
@@ -4667,7 +4667,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
           MEM_freeN(nu1->bp);
           nu1->bp = bp;
 
-          /* a = nu1->pntsu + nu1->orderu; */ /* UNUSED */
+          // a = nu1->pntsu + nu1->orderu; /* UNUSED */
 
           nu1->pntsu += nu2->pntsu;
           BLI_remlink(nubase, nu2);
@@ -4792,7 +4792,6 @@ bool ED_curve_editnurb_select_pick(bContext *C,
                                    const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Nurb *nu;
   BezTriple *bezt = nullptr;
   BPoint *bp = nullptr;
@@ -4801,7 +4800,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   bool changed = false;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
   const bool use_handle_select = (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
@@ -5616,15 +5615,14 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   if (vc.rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
     Curve *cu;
     float location[3];
     const bool use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
-                           (vc.scene->toolsettings->snap_mode == SCE_SNAP_TO_FACE));
+                           (vc.scene->toolsettings->snap_mode &
+                            (SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_PROJECT)));
 
     Nurb *nu;
     BezTriple *bezt;
@@ -5705,7 +5703,12 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     RNA_float_set_array(op->ptr, "location", location);
   }
 
-  return add_vertex_exec(C, op);
+  /* Support dragging to move after extrude, see: #114282. */
+  int retval = add_vertex_exec(C, op);
+  if (retval & OPERATOR_FINISHED) {
+    retval |= OPERATOR_PASS_THROUGH;
+  }
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void CURVE_OT_vertex_add(wmOperatorType *ot)

@@ -647,6 +647,20 @@ template<typename T> class VArrayCommon {
     }
     return impl_->size();
   }
+  /**
+   * Get the first element.
+   */
+  T first() const
+  {
+    return (*this)[0];
+  }
+  /**
+   * Get the nth last element.
+   */
+  T last(const int64_t n = 0) const
+  {
+    return (*this)[this->size() - 1 - n];
+  }
 
   /** True when the size is zero or when there is no virtual array. */
   bool is_empty() const
@@ -797,12 +811,12 @@ template<typename T> class VArray : public VArrayCommon<T> {
 
   VArray(std::shared_ptr<const VArrayImpl<T>> impl) : VArrayCommon<T>(std::move(impl)) {}
 
-  VArray(varray_tag::span /* tag */, Span<T> span)
+  VArray(varray_tag::span /*tag*/, Span<T> span)
   {
     this->template emplace<VArrayImpl_For_Span_final<T>>(span);
   }
 
-  VArray(varray_tag::single /* tag */, T value, const int64_t size)
+  VArray(varray_tag::single /*tag*/, T value, const int64_t size)
   {
     this->template emplace<VArrayImpl_For_Single<T>>(std::move(value), size);
   }

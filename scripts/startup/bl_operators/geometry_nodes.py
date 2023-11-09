@@ -12,33 +12,39 @@ from bpy.props import (
 )
 
 
-def build_default_empty_geometry_node_group(name):
+def add_empty_geometry_node_group(name):
     group = bpy.data.node_groups.new(name, 'GeometryNodeTree')
-    group.interface.new_socket(data_("Geometry"), in_out={'OUTPUT'}, socket_type='NodeSocketGeometry')
-    group.interface.new_socket(data_("Geometry"), in_out={'INPUT'}, socket_type='NodeSocketGeometry')
+
+    group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
     input_node = group.nodes.new('NodeGroupInput')
+    input_node.select = False
+    input_node.location.x = -200 - input_node.width
+
+    group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
     output_node = group.nodes.new('NodeGroupOutput')
     output_node.is_active_output = True
-
-    input_node.select = False
     output_node.select = False
-
-    input_node.location.x = -200 - input_node.width
     output_node.location.x = 200
 
     return group
 
 
-def geometry_node_group_empty_new():
-    group = build_default_empty_geometry_node_group(data_("Geometry Nodes"))
+def geometry_node_group_empty_new(name):
+    group = add_empty_geometry_node_group(name)
     group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
     return group
 
 
+def geometry_node_group_empty_modifier_new(name):
+    group = geometry_node_group_empty_new(data_("Geometry Nodes"))
+    group.is_modifier = True
+    return group
+
+
 def geometry_node_group_empty_tool_new(context):
-    group = build_default_empty_geometry_node_group(data_("Tool"))
-    group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
-    group.asset_mark()
+    group = geometry_node_group_empty_new(data_("Tool"))
+    # Node tools have fake users by default, otherwise Blender will delete them since they have no users.
+    group.use_fake_user = True
     group.is_tool = True
 
     ob_type = context.object.type if context.object else 'MESH'
@@ -62,7 +68,7 @@ def geometry_modifier_poll(context):
     ob = context.object
 
     # Test object support for geometry node modifier
-    if not ob or ob.type not in {'MESH', 'POINTCLOUD', 'VOLUME', 'CURVE', 'FONT', 'CURVES'}:
+    if not ob or ob.type not in {'MESH', 'POINTCLOUD', 'VOLUME', 'CURVE', 'FONT', 'CURVES', 'GREASEPENCIL'}:
         return False
 
     return True
@@ -87,17 +93,16 @@ def edit_geometry_nodes_modifier_poll(context):
 
 def socket_idname_to_attribute_type(idname):
     if idname.startswith("NodeSocketInt"):
-        return "INT"
+        return 'INT'
     elif idname.startswith("NodeSocketColor"):
-        return "FLOAT_COLOR"
+        return 'FLOAT_COLOR'
     elif idname.startswith("NodeSocketVector"):
-        return "FLOAT_VECTOR"
+        return 'FLOAT_VECTOR'
     elif idname.startswith("NodeSocketBool"):
-        return "BOOLEAN"
+        return 'BOOLEAN'
     elif idname.startswith("NodeSocketFloat"):
-        return "FLOAT"
+        return 'FLOAT'
     raise ValueError("Unsupported socket type")
-    return ""
 
 
 def modifier_attribute_name_get(modifier, identifier):
@@ -148,18 +153,31 @@ class MoveModifierToNodes(Operator):
             return {'CANCELLED'}
 
         wrapper_name = old_group.name + ".wrapper"
-        group = build_default_empty_geometry_node_group(wrapper_name)
+        group = bpy.data.node_groups.new(wrapper_name, 'GeometryNodeTree')
+        group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
+        group.is_modifier = True
+
+        first_geometry_input = next((item for item in old_group.interface.items_tree if item.item_type == 'SOCKET' and
+                                    item.in_out == 'INPUT' and
+                                    item.bl_socket_idname == 'NodeSocketGeometry'), None)
+        if first_geometry_input:
+            group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
+            group_input_node = group.nodes.new('NodeGroupInput')
+            group_input_node.location.x = -200 - group_input_node.width
+            group_input_node.select = False
+
+        group_output_node = group.nodes.new('NodeGroupOutput')
+        group_output_node.is_active_output = True
+        group_output_node.location.x = 200
+        group_output_node.select = False
+
         group_node = group.nodes.new("GeometryNodeGroup")
         group_node.node_tree = old_group
         group_node.update()
 
-        group_input_node = group.nodes[data_("Group Input")]
-        group_output_node = group.nodes[data_("Group Output")]
-
         # Copy default values for inputs and create named attribute input nodes.
         input_nodes = []
-        first_geometry_input = None
-        for input_socket in old_group.interface.ui_items:
+        for input_socket in old_group.interface.items_tree:
             if input_socket.item_type != 'SOCKET' or (input_socket.in_out not in {'INPUT', 'BOTH'}):
                 continue
             identifier = input_socket.identifier
@@ -174,26 +192,22 @@ class MoveModifierToNodes(Operator):
                 group.links.new(output_socket, group_node_input)
             elif hasattr(input_socket, "default_value"):
                 group_node_input.default_value = modifier[identifier]
-            elif input_socket.bl_socket_idname == 'NodeSocketGeometry':
-                if not first_geometry_input:
-                    first_geometry_input = group_node_input
 
-        if not first_geometry_input:
-            self.report({"WARNING"}, "Node group must have a geometry input")
-            return {'CANCELLED'}
-        group.links.new(group_input_node.outputs[0], first_geometry_input)
+        if first_geometry_input:
+            group.links.new(group_input_node.outputs[0],
+                            get_socket_with_identifier(group_node.inputs, first_geometry_input.identifier))
 
-        # Adjust locations of named attribute input nodes and group input node to make some space.
-        if input_nodes:
-            for i, node in enumerate(input_nodes):
-                node.location.x = -175
-                node.location.y = i * -50
-            group_input_node.location.x = -350
+            # Adjust locations of named attribute input nodes and group input node to make some space.
+            if input_nodes:
+                for i, node in enumerate(input_nodes):
+                    node.location.x = -175
+                    node.location.y = i * -50
+                group_input_node.location.x = -350
 
         # Connect outputs to store named attribute nodes to replace modifier attribute outputs.
         store_nodes = []
         first_geometry_output = None
-        for output_socket in old_group.interface.ui_items:
+        for output_socket in old_group.interface.items_tree:
             if output_socket.item_type != 'SOCKET' or (output_socket.in_out not in {'OUTPUT', 'BOTH'}):
                 continue
             identifier = output_socket.identifier
@@ -226,8 +240,8 @@ class MoveModifierToNodes(Operator):
             group.links.new(store_nodes[-1].outputs["Geometry"], group_output_node.inputs[data_("Geometry")])
         else:
             if not first_geometry_output:
-                self.report({"WARNING"}, "Node group must have a geometry output")
-                return {"CANCELLED"}
+                self.report({'WARNING'}, "Node group must have a geometry output")
+                return {'CANCELLED'}
             group.links.new(first_geometry_output, group_output_node.inputs[data_("Geometry")])
 
         modifier.node_group = group
@@ -252,8 +266,7 @@ class NewGeometryNodesModifier(Operator):
         if not modifier:
             return {'CANCELLED'}
 
-        group = geometry_node_group_empty_new()
-        group.is_modifier = True
+        group = geometry_node_group_empty_modifier_new(data_("Geometry Nodes"))
         modifier.node_group = group
 
         return {'FINISHED'}
@@ -272,23 +285,17 @@ class NewGeometryNodeTreeAssign(Operator):
 
     def execute(self, context):
         space = context.space_data
-        if space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL':
-            group = geometry_node_group_empty_new()
-            space.node_tree = group
-            return {'FINISHED'}
-        else:
-            modifier = get_context_modifier(context)
-            if not modifier:
-                return {'CANCELLED'}
-            group = geometry_node_group_empty_new()
-            group.is_modifier = True
-            modifier.node_group = group
+        modifier = get_context_modifier(context)
+        if not modifier:
+            return {'CANCELLED'}
+        group = geometry_node_group_empty_modifier_new(data_("Geometry Nodes"))
+        modifier.node_group = group
 
         return {'FINISHED'}
 
 
 class NewGeometryNodeGroupTool(Operator):
-    """Create a new geometry node group for an tool"""
+    """Create a new geometry node group for a tool"""
     bl_idname = "node.new_geometry_node_group_tool"
     bl_label = "New Geometry Node Tool Group"
     bl_options = {'REGISTER', 'UNDO'}
@@ -300,14 +307,11 @@ class NewGeometryNodeGroupTool(Operator):
 
     def execute(self, context):
         group = geometry_node_group_empty_tool_new(context)
-        context.space_data.node_tree = group
+        context.space_data.geometry_nodes_tool_tree = group
         return {'FINISHED'}
 
 
-class SimulationZoneOperator:
-    input_node_type = 'GeometryNodeSimulationInput'
-    output_node_type = 'GeometryNodeSimulationOutput'
-
+class ZoneOperator:
     @classmethod
     def get_output_node(cls, context):
         node = context.active_node
@@ -330,175 +334,128 @@ class SimulationZoneOperator:
         return True
 
 
-class SimulationZoneItemAddOperator(SimulationZoneOperator, Operator):
+class ZoneItemAddOperator:
+    items_name = None
+    active_index_name = None
+    default_socket_type = 'GEOMETRY'
+
+    def execute(self, context):
+        node = self.get_output_node(context)
+        items = getattr(node, self.items_name)
+        # Remember index to move the item.
+        old_active_index = getattr(node, self.active_index_name)
+        if 0 <= old_active_index < len(items):
+            old_active_item = items[old_active_index]
+            dst_index = old_active_index + 1
+            dst_type = old_active_item.socket_type
+            dst_name = old_active_item.name
+        else:
+            dst_index = len(items)
+            dst_type = self.default_socket_type
+            # Empty name so it is based on the type.
+            dst_name = ""
+        items.new(dst_type, dst_name)
+        items.move(len(items) - 1, dst_index)
+        setattr(node, self.active_index_name, dst_index)
+        return {'FINISHED'}
+
+
+class ZoneItemRemoveOperator:
+    items_name = None
+    active_index_name = None
+
+    def execute(self, context):
+        node = self.get_output_node(context)
+        items = getattr(node, self.items_name)
+        old_active_index = getattr(node, self.active_index_name)
+
+        if 0 <= old_active_index < len(items):
+            items.remove(items[old_active_index])
+
+        return {'FINISHED'}
+
+
+class ZoneMoveItemOperator:
+    items_name = None
+    active_index_name = None
+
+    direction: EnumProperty(
+        name="Direction",
+        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
+        default='UP',
+    )
+
+    def execute(self, context):
+        node = self.get_output_node(context)
+        items = getattr(node, self.items_name)
+        old_active_index = getattr(node, self.active_index_name)
+
+        if self.direction == 'UP' and old_active_index > 0:
+            items.move(old_active_index, old_active_index - 1)
+            setattr(node, self.active_index_name, old_active_index - 1)
+        elif self.direction == 'DOWN' and old_active_index < len(items) - 1:
+            items.move(old_active_index, old_active_index + 1)
+            setattr(node, self.active_index_name, old_active_index + 1)
+
+        return {'FINISHED'}
+
+
+class SimulationZoneOperator(ZoneOperator):
+    input_node_type = 'GeometryNodeSimulationInput'
+    output_node_type = 'GeometryNodeSimulationOutput'
+
+    items_name = "state_items"
+    active_index_name = "active_index"
+
+
+class SimulationZoneItemAddOperator(SimulationZoneOperator, ZoneItemAddOperator, Operator):
     """Add a state item to the simulation zone"""
     bl_idname = "node.simulation_zone_item_add"
     bl_label = "Add State Item"
     bl_options = {'REGISTER', 'UNDO'}
 
-    default_socket_type = 'GEOMETRY'
 
-    def execute(self, context):
-        node = self.get_output_node(context)
-        state_items = node.state_items
-
-        # Remember index to move the item.
-        if node.active_item:
-            dst_index = node.active_index + 1
-            dst_type = node.active_item.socket_type
-            dst_name = node.active_item.name
-        else:
-            dst_index = len(state_items)
-            dst_type = self.default_socket_type
-            # Empty name so it is based on the type.
-            dst_name = ""
-        state_items.new(dst_type, dst_name)
-        state_items.move(len(state_items) - 1, dst_index)
-        node.active_index = dst_index
-
-        return {'FINISHED'}
-
-
-class SimulationZoneItemRemoveOperator(SimulationZoneOperator, Operator):
+class SimulationZoneItemRemoveOperator(SimulationZoneOperator, ZoneItemRemoveOperator, Operator):
     """Remove a state item from the simulation zone"""
     bl_idname = "node.simulation_zone_item_remove"
     bl_label = "Remove State Item"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        node = self.get_output_node(context)
-        state_items = node.state_items
 
-        if node.active_item:
-            state_items.remove(node.active_item)
-            node.active_index = min(node.active_index, len(state_items) - 1)
-
-        return {'FINISHED'}
-
-
-class SimulationZoneItemMoveOperator(SimulationZoneOperator, Operator):
+class SimulationZoneItemMoveOperator(SimulationZoneOperator, ZoneMoveItemOperator, Operator):
     """Move a simulation state item up or down in the list"""
     bl_idname = "node.simulation_zone_item_move"
     bl_label = "Move State Item"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction: EnumProperty(
-        name="Direction",
-        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
-        default='UP',
-    )
 
-    def execute(self, context):
-        node = self.get_output_node(context)
-        state_items = node.state_items
-
-        if self.direction == 'UP' and node.active_index > 0:
-            state_items.move(node.active_index, node.active_index - 1)
-            node.active_index = node.active_index - 1
-        elif self.direction == 'DOWN' and node.active_index < len(state_items) - 1:
-            state_items.move(node.active_index, node.active_index + 1)
-            node.active_index = node.active_index + 1
-
-        return {'FINISHED'}
-
-
-class RepeatZoneOperator:
+class RepeatZoneOperator(ZoneOperator):
     input_node_type = 'GeometryNodeRepeatInput'
     output_node_type = 'GeometryNodeRepeatOutput'
 
-    @classmethod
-    def get_output_node(cls, context):
-        node = context.active_node
-        if node.bl_idname == cls.input_node_type:
-            return node.paired_output
-        if node.bl_idname == cls.output_node_type:
-            return node
-        return None
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        # Needs active node editor and a tree.
-        if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or space.edit_tree.library:
-            return False
-        node = context.active_node
-        if node is None or node.bl_idname not in [cls.input_node_type, cls.output_node_type]:
-            return False
-        if cls.get_output_node(context) is None:
-            return False
-        return True
+    items_name = "repeat_items"
+    active_index_name = "active_index"
 
 
-class RepeatZoneItemAddOperator(RepeatZoneOperator, Operator):
+class RepeatZoneItemAddOperator(RepeatZoneOperator, ZoneItemAddOperator, Operator):
     """Add a repeat item to the repeat zone"""
     bl_idname = "node.repeat_zone_item_add"
     bl_label = "Add Repeat Item"
     bl_options = {'REGISTER', 'UNDO'}
 
-    default_socket_type = 'GEOMETRY'
 
-    def execute(self, context):
-        node = self.get_output_node(context)
-        repeat_items = node.repeat_items
-
-        # Remember index to move the item.
-        if node.active_item:
-            dst_index = node.active_index + 1
-            dst_type = node.active_item.socket_type
-            dst_name = node.active_item.name
-        else:
-            dst_index = len(repeat_items)
-            dst_type = self.default_socket_type
-            # Empty name so it is based on the type.
-            dst_name = ""
-        repeat_items.new(dst_type, dst_name)
-        repeat_items.move(len(repeat_items) - 1, dst_index)
-        node.active_index = dst_index
-
-        return {'FINISHED'}
-
-
-class RepeatZoneItemRemoveOperator(RepeatZoneOperator, Operator):
+class RepeatZoneItemRemoveOperator(RepeatZoneOperator, ZoneItemRemoveOperator, Operator):
     """Remove a repeat item from the repeat zone"""
     bl_idname = "node.repeat_zone_item_remove"
     bl_label = "Remove Repeat Item"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        node = self.get_output_node(context)
-        repeat_items = node.repeat_items
 
-        if node.active_item:
-            repeat_items.remove(node.active_item)
-            node.active_index = min(node.active_index, len(repeat_items) - 1)
-
-        return {'FINISHED'}
-
-
-class RepeatZoneItemMoveOperator(RepeatZoneOperator, Operator):
+class RepeatZoneItemMoveOperator(RepeatZoneOperator, ZoneMoveItemOperator, Operator):
     """Move a repeat item up or down in the list"""
     bl_idname = "node.repeat_zone_item_move"
     bl_label = "Move Repeat Item"
     bl_options = {'REGISTER', 'UNDO'}
-
-    direction: EnumProperty(
-        name="Direction",
-        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
-        default='UP',
-    )
-
-    def execute(self, context):
-        node = self.get_output_node(context)
-        repeat_items = node.repeat_items
-
-        if self.direction == 'UP' and node.active_index > 0:
-            repeat_items.move(node.active_index, node.active_index - 1)
-            node.active_index = node.active_index - 1
-        elif self.direction == 'DOWN' and node.active_index < len(repeat_items) - 1:
-            repeat_items.move(node.active_index, node.active_index + 1)
-            node.active_index = node.active_index + 1
-
-        return {'FINISHED'}
 
 
 classes = (
