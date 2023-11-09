@@ -135,13 +135,13 @@ static void do_draw_face_sets_brush_faces(Object *ob, const Brush *brush, PBVHNo
       SCULPT_vertex_count_get(ss));
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
   bool changed = false;
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     for (const int face_i : ss->pmap[vd.index]) {
       const blender::IndexRange face = ss->faces[face_i];
@@ -196,13 +196,13 @@ static void do_draw_face_sets_brush_grids(Object *ob, const Brush *brush, PBVHNo
       ss, &test, brush->falloff_shape);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
   bool changed = false;
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -256,7 +256,7 @@ static void do_draw_face_sets_brush_bmesh(Object *ob, const Brush *brush, PBVHNo
    * Do it locally here for the Draw Face Set brush here, to mimic the behavior of the other
    * brushes but without marking the brush as supporting dynamic topology. */
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, nullptr, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, nullptr, &automask_data, node);
 
   bool changed = false;
 
@@ -286,7 +286,7 @@ static void do_draw_face_sets_brush_bmesh(Object *ob, const Brush *brush, PBVHNo
        * typical code flow for it here for the reference, and ease of looking at what needs to be
        * done for such integration.
        *
-       * SCULPT_automasking_node_update(ss, &automask_data, &vd); */
+       * SCULPT_automasking_node_update(&automask_data, &vd); */
 
       const float fade = bstrength *
                          SCULPT_brush_strength_factor(ss,
@@ -358,10 +358,10 @@ static void do_relax_face_sets_brush_task(Object *ob,
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;

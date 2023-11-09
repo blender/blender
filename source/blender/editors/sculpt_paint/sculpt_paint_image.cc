@@ -368,7 +368,7 @@ static void do_paint_pixels(void *__restrict userdata,
   brush_color[3] = 1.0f;
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   ImageUser image_user = *data->image_data.image_user;
   bool pixels_updated = false;

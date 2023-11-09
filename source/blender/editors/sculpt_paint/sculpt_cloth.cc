@@ -470,11 +470,10 @@ static void do_cloth_brush_apply_forces_task(Object *ob,
   }
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      ob, ss, SCULPT_automasking_active_cache_get(ss), &automask_data, node);
+  SCULPT_automasking_node_begin(ob, SCULPT_automasking_active_cache_get(ss), &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float force[3];
     float sim_location[3];
@@ -735,11 +734,10 @@ static void do_cloth_brush_solve_simulation_task(Object *ob,
 
   AutomaskingCache *automasking = SCULPT_automasking_active_cache_get(ss);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      ob, ss, SCULPT_automasking_active_cache_get(ss), &automask_data, node);
+  SCULPT_automasking_node_begin(ob, SCULPT_automasking_active_cache_get(ss), &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float sim_location[3];
     cloth_brush_simulation_location_get(ss, brush, sim_location);
@@ -1377,12 +1375,11 @@ static void cloth_filter_apply_forces_task(Object *ob,
   }
   mul_v3_fl(sculpt_gravity, sd->gravity_factor * filter_strength);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      ob, ss, SCULPT_automasking_active_cache_get(ss), &automask_data, node);
+  SCULPT_automasking_node_begin(ob, SCULPT_automasking_active_cache_get(ss), &automask_data, node);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float fade = vd.mask;
     fade *= SCULPT_automasking_factor_get(

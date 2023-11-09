@@ -1278,15 +1278,12 @@ struct AutomaskingNodeData {
  * \param automask_data: pointer to an uninitialized #AutomaskingNodeData struct.
  */
 void SCULPT_automasking_node_begin(Object *ob,
-                                   const SculptSession *ss,
                                    AutomaskingCache *automasking,
                                    AutomaskingNodeData *automask_data,
                                    PBVHNode *node);
 
 /* Call before SCULPT_automasking_factor_get and SCULPT_brush_strength_factor. */
-void SCULPT_automasking_node_update(SculptSession *ss,
-                                    AutomaskingNodeData *automask_data,
-                                    PBVHVertexIter *vd);
+void SCULPT_automasking_node_update(AutomaskingNodeData *automask_data, PBVHVertexIter *vd);
 
 float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     SculptSession *ss,
