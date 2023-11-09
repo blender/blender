@@ -936,7 +936,7 @@ bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
   }
   else {
     MTL_LOG_ERROR(
-        "Passing in null texture to MTLFrameBuffer::addColourAttachment (This could be due to not "
+        "Passing in null texture to MTLFrameBuffer::add_color_attachment (This could be due to not "
         "all texture types being supported).");
   }
   return true;

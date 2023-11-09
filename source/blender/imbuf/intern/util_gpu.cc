@@ -34,18 +34,18 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
     if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
         IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
-      /* Gresycale byte buffers with these color transforms utilise float buffers under the hood
+      /* Grey-scale byte buffers with these color transforms utilize float buffers under the hood
        * and can therefore be optimized. */
       return true;
     }
     else {
-      /* TODO: Support grayscale byte buffers.
+      /* TODO: Support gray-scale byte buffers.
        * The challenge is that Blender always stores byte images as RGBA. */
       return false;
     }
   }
 
-  /* Only imbufs with colorspace that do not modify the chrominance of the texture data relative
+  /* Only #IMBuf's with color-space that do not modify the chrominance of the texture data relative
    * to the scene color space can be uploaded as single channel textures. */
   if (IMB_colormanagement_space_is_data(ibuf->float_buffer.colorspace) ||
       IMB_colormanagement_space_is_srgb(ibuf->float_buffer.colorspace) ||
