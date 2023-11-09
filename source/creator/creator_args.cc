@@ -1389,11 +1389,6 @@ static int arg_handle_playback_mode(int argc, const char **argv, void * /*data*/
 {
   /* Ignore the animation player if `-b` was given first. */
   if (G.background == 0) {
-#  ifdef WITH_FFMPEG
-    /* Setup FFmpeg with current debug flags. */
-    IMB_ffmpeg_init();
-#  endif
-
     /* Skip this argument (`-a`). */
     WM_main_playanim(argc - 1, argv + 1);
 

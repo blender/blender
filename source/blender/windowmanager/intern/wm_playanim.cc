@@ -1712,6 +1712,11 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   ps.font_id = -1;
 
+  IMB_init();
+#ifdef WITH_FFMPEG
+  IMB_ffmpeg_init();
+#endif
+
   STRNCPY(ps.display_ctx.display_settings.display_device,
           IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
   IMB_colormanagement_init_default_view_settings(&ps.display_ctx.view_settings,
@@ -2145,7 +2150,8 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   BLF_exit();
 
   /* NOTE: Must happen before GPU Context destruction as GPU resources are released via
-   * Color Management module. Must be re-initialized in the case of drag & drop. */
+   * Color Management module.
+   * NOTE: there is no #IMB_ffmpeg_exit. */
   IMB_exit();
 
   if (ps.ghost_data.gpu_context) {
@@ -2161,9 +2167,6 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   /* Early exit, IMB and BKE should be exited only in end. */
   if (ps.argv_next) {
-    /* Ensure drag & drop runs with a valid IMB state. */
-    IMB_init();
-
     args_next->argc = ps.argc_next;
     args_next->argv = ps.argv_next;
     return true;
