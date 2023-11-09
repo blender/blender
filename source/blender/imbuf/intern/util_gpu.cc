@@ -25,14 +25,24 @@
 
 static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
 {
-  if (ibuf->byte_buffer.data && !ibuf->float_buffer.data) {
-    /* TODO: Support grayscale byte buffers.
-     * The challenge is that Blender always stores byte images as RGBA. */
+  if (ibuf->planes > 8) {
     return false;
   }
 
-  if (ibuf->channels != 1) {
-    return false;
+  if (ibuf->byte_buffer.data && !ibuf->float_buffer.data) {
+
+    if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
+        IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
+    {
+      /* Gresycale byte buffers with these color transforms utilise float buffers under the hood
+       * and can therefore be optimized. */
+      return true;
+    }
+    else {
+      /* TODO: Support grayscale byte buffers.
+       * The challenge is that Blender always stores byte images as RGBA. */
+      return false;
+    }
   }
 
   /* Only imbufs with colorspace that do not modify the chrominance of the texture data relative
@@ -119,7 +129,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
                               const bool do_rescale,
                               const int rescale_size[2],
                               const bool store_premultiplied,
-                              bool *r_freedata)
+                              bool *r_freedata,
+                              eGPUDataFormat *out_data_format)
 {
   bool is_float_rect = (ibuf->float_buffer.data != nullptr);
   const bool is_grayscale = imb_is_grayscale_texture_format_compatible(ibuf);
@@ -245,6 +256,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       }
     }
   }
+
+  *out_data_format = (is_float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
   return data_rect;
 }
 
@@ -307,7 +320,7 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
 
   bool freebuf = false;
 
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf, &data_format);
 
   /* Update Texture. */
   GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
@@ -391,7 +404,7 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
     do_rescale = true;
   }
   BLI_assert(tex != nullptr);
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf, &data_format);
   GPU_texture_update(tex, data_format, data);
 
   GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));
