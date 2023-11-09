@@ -4,12 +4,6 @@
 
 from __future__ import annotations
 
-if "bpy" in locals():
-    from importlib import reload
-    if "anim_utils" in locals():
-        reload(anim_utils)
-    del reload
-
 
 import bpy
 from bpy.types import Operator

@@ -284,7 +284,6 @@ class NewGeometryNodeTreeAssign(Operator):
         return geometry_modifier_poll(context)
 
     def execute(self, context):
-        space = context.space_data
         modifier = get_context_modifier(context)
         if not modifier:
             return {'CANCELLED'}

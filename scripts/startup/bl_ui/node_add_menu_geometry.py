@@ -662,7 +662,6 @@ class NODE_MT_geometry_node_add_all(Menu):
     bl_label = ""
 
     def draw(self, context):
-        snode = context.space_data
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_ATTRIBUTE")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT")

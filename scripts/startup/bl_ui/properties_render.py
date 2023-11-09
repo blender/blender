@@ -595,9 +595,6 @@ class EeveeRaytracingOptionsPanel(RenderButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        scene = context.scene
-        eevee = scene.eevee
-
         layout.prop(props, "resolution_scale")
         layout.prop(props, "sample_clamp")
 
