@@ -82,7 +82,11 @@ class HIPRTDevice : public HIPDevice {
    * are defined on the GPU side as members of KernelParamsHIPRT struct the host memory is copied
    * to GPU through const_copy_to() function. */
 
-  device_vector<uint32_t> visibility;
+  /* Originally, visibility was only passed to HIP RT but after a bug report it was noted it was
+   * required for custom primitives (i.e., motion triangles). This buffer, however, has visibility
+   * per object not per primitive so the same buffer as the one that is passed to HIP RT can be
+   * used. */
+  device_vector<uint32_t> prim_visibility;
 
   /* instance_transform_matrix passes transform matrix of instances converted from Cycles Transform
    * format to instanceFrames member of hiprtSceneBuildInput. */
