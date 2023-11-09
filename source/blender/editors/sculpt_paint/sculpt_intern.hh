@@ -1269,7 +1269,6 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
  * \{ */
 
 struct AutomaskingNodeData {
-  PBVHNode *node;
   SculptOrigVertData orig_data;
   bool have_orig_data;
 };

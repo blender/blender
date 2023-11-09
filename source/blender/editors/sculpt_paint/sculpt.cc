@@ -6185,7 +6185,6 @@ void SCULPT_automasking_node_begin(Object *ob,
     return;
   }
 
-  automask_data->node = node;
   automask_data->have_orig_data = automasking->settings.flags &
                                   (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
 

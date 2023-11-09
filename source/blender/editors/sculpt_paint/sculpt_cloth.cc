@@ -795,7 +795,7 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
 {
 
   AutomaskingCache *automasking = SCULPT_automasking_active_cache_get(ss);
-  AutomaskingNodeData automask_data = {nullptr};
+  AutomaskingNodeData automask_data{};
 
   automask_data.have_orig_data = true;
 
