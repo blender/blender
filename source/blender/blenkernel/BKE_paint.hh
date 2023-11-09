@@ -273,13 +273,13 @@ struct SculptVertexPaintGeomMap {
 
 /** Pose Brush IK Chain. */
 struct SculptPoseIKChainSegment {
-  float orig[3];
-  float head[3];
+  blender::float3 orig;
+  blender::float3 head;
 
-  float initial_orig[3];
-  float initial_head[3];
+  blender::float3 initial_orig;
+  blender::float3 initial_head;
   float len;
-  float scale[3];
+  blender::float3 scale;
   float rot[4];
   float *weights;
 
@@ -293,7 +293,7 @@ struct SculptPoseIKChainSegment {
 struct SculptPoseIKChain {
   SculptPoseIKChainSegment *segments;
   int tot_segments;
-  float grab_delta_offset[3];
+  blender::float3 grab_delta_offset;
 };
 
 /* Cloth Brush */
@@ -380,8 +380,8 @@ struct SculptClothSimulation {
 };
 
 struct SculptPersistentBase {
-  float co[3];
-  float no[3];
+  blender::float3 co;
+  blender::float3 no;
   float disp;
 };
 
@@ -438,8 +438,8 @@ struct SculptBoundary {
   /* Stores the initial positions of the pivot and boundary initial vertex as they may be deformed
    * during the brush action. This allows to use them as a reference positions and vectors for some
    * brush effects. */
-  float initial_vertex_position[3];
-  float initial_pivot_position[3];
+  blender::float3 initial_vertex_position;
+  blender::float3 initial_pivot_position;
 
   /* Maximum number of topology steps that were calculated from the boundary. */
   int max_propagation_steps;
@@ -461,8 +461,8 @@ struct SculptBoundary {
 
   /* Twist Deform type. */
   struct {
-    float rotation_axis[3];
-    float pivot_position[3];
+    blender::float3 rotation_axis;
+    blender::float3 pivot_position;
   } twist;
 };
 
@@ -649,17 +649,17 @@ struct SculptSession {
    */
   bool draw_faded_cursor;
   float cursor_radius;
-  float cursor_location[3];
-  float cursor_normal[3];
-  float cursor_sampled_normal[3];
-  float cursor_view_normal[3];
+  blender::float3 cursor_location;
+  blender::float3 cursor_normal;
+  blender::float3 cursor_sampled_normal;
+  blender::float3 cursor_view_normal;
 
   /* For Sculpt trimming gesture tools, initial ray-cast data from the position of the mouse
    * when
    * the gesture starts (intersection with the surface and if they ray hit the surface or not).
    */
-  float gesture_initial_location[3];
-  float gesture_initial_normal[3];
+  blender::float3 gesture_initial_location;
+  blender::float3 gesture_initial_normal;
   bool gesture_initial_hit;
 
   /* TODO(jbakker): Replace rv3d and v3d with ViewContext */
@@ -672,7 +672,7 @@ struct SculptSession {
   int preview_vert_count;
 
   /* Pose Brush Preview */
-  float pose_origin[3];
+  blender::float3 pose_origin;
   SculptPoseIKChain *pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
@@ -682,17 +682,17 @@ struct SculptSession {
   SculptFakeNeighbors fake_neighbors;
 
   /* Transform operator */
-  float pivot_pos[3];
+  blender::float3 pivot_pos;
   float pivot_rot[4];
-  float pivot_scale[3];
+  blender::float3 pivot_scale;
 
-  float init_pivot_pos[3];
+  blender::float3 init_pivot_pos;
   float init_pivot_rot[4];
-  float init_pivot_scale[3];
+  blender::float3 init_pivot_scale;
 
-  float prev_pivot_pos[3];
+  blender::float3 prev_pivot_pos;
   float prev_pivot_rot[4];
-  float prev_pivot_scale[3];
+  blender::float3 prev_pivot_scale;
 
   struct {
     struct {
@@ -745,7 +745,7 @@ struct SculptSession {
    * Last used painting canvas key.
    */
   char *last_paint_canvas_key;
-  float last_normal[3];
+  blender::float3 last_normal;
 
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;

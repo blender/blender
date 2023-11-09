@@ -77,9 +77,9 @@ enum SculptUpdateType {
 };
 
 struct SculptCursorGeometryInfo {
-  float location[3];
-  float normal[3];
-  float active_vertex_co[3];
+  blender::float3 location;
+  blender::float3 normal;
+  blender::float3 active_vertex_co;
 };
 
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
@@ -227,7 +227,7 @@ struct SculptUndoNode {
   SculptUndoNodeGeometry geometry_bmesh_enter;
 
   /* pivot */
-  float pivot_pos[3];
+  blender::float3 pivot_pos;
   float pivot_rot[4];
 
   /* Sculpt Face Sets */
@@ -244,7 +244,7 @@ struct SculptUndoNode {
 
 struct SculptRakeData {
   float follow_dist;
-  float follow_co[3];
+  blender::float3 follow_co;
   float angle;
 };
 
@@ -252,7 +252,7 @@ struct SculptRakeData {
 struct SculptBrushTest {
   float radius_squared;
   float radius;
-  float location[3];
+  blender::float3 location;
   float dist;
   ePaintSymmetryFlags mirror_symmetry_pass;
 
@@ -375,7 +375,7 @@ struct FilterCache {
   float *normal_factor;
   float *edge_factor;
   float *prev_mask;
-  float mask_expand_initial_co[3];
+  blender::float3 mask_expand_initial_co;
 
   int new_face_set;
   int *prev_face_set;
@@ -386,8 +386,8 @@ struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
-  float initial_normal[3];
-  float view_normal[3];
+  blender::float3 initial_normal;
+  blender::float3 view_normal;
 
   /* Pre-smoothed colors used by sharpening. Colors are HSL. */
   float (*pre_smoothed_color)[4];
@@ -404,19 +404,19 @@ struct FilterCache {
 struct StrokeCache {
   /* Invariants */
   float initial_radius;
-  float scale[3];
+  blender::float3 scale;
   int flag;
-  float clip_tolerance[3];
+  blender::float3 clip_tolerance;
   float clip_mirror_mtx[4][4];
   float initial_mouse[2];
 
   /* Variants */
   float radius;
   float radius_squared;
-  float true_location[3];
-  float true_last_location[3];
-  float location[3];
-  float last_location[3];
+  blender::float3 true_location;
+  blender::float3 true_last_location;
+  blender::float3 location;
+  blender::float3 last_location;
   float stroke_distance;
 
   /* Used for alternating between deformation in brushes that need to apply different ones to
@@ -461,8 +461,8 @@ struct StrokeCache {
   const Brush *brush;
 
   float special_rotation;
-  float grab_delta[3], grab_delta_symmetry[3];
-  float old_grab_location[3], orig_grab_location[3];
+  blender::float3 grab_delta, grab_delta_symmetry;
+  blender::float3 old_grab_location, orig_grab_location;
 
   /* screen-space rotation defined by mouse motion */
   float rake_rotation[4], rake_rotation_symmetry[4];
@@ -477,14 +477,14 @@ struct StrokeCache {
   int symmetry;
   ePaintSymmetryFlags
       mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
-  float true_view_normal[3];
-  float view_normal[3];
+  blender::float3 true_view_normal;
+  blender::float3 view_normal;
 
   /* sculpt_normal gets calculated by calc_sculpt_normal(), then the
    * sculpt_normal_symm gets updated quickly with the usual symmetry
    * transforms */
-  float sculpt_normal[3];
-  float sculpt_normal_symm[3];
+  blender::float3 sculpt_normal;
+  blender::float3 sculpt_normal_symm;
 
   /* Used for area texture mode, local_mat gets calculated by
    * calc_brush_local_mat() and used in sculpt_apply_texture().
@@ -495,10 +495,10 @@ struct StrokeCache {
    * displacement in area plane mode. */
   float brush_local_mat_inv[4][4];
 
-  float plane_offset[3]; /* used to shift the plane around when doing tiled strokes */
+  blender::float3 plane_offset; /* used to shift the plane around when doing tiled strokes */
   int tile_pass;
 
-  float last_center[3];
+  blender::float3 last_center;
   int radial_symmetry_pass;
   float symm_rot_mat[4][4];
   float symm_rot_mat_inv[4][4];
@@ -506,7 +506,7 @@ struct StrokeCache {
   /* Accumulate mode. Note: inverted for SCULPT_TOOL_DRAW_SHARP. */
   bool accum;
 
-  float anchored_location[3];
+  blender::float3 anchored_location;
 
   /* Paint Brush. */
   struct {
@@ -532,10 +532,10 @@ struct StrokeCache {
 
   /* Cloth brush */
   SculptClothSimulation *cloth_sim;
-  float initial_location[3];
-  float true_initial_location[3];
-  float initial_normal[3];
-  float true_initial_normal[3];
+  blender::float3 initial_location;
+  blender::float3 true_initial_location;
+  blender::float3 initial_normal;
+  blender::float3 true_initial_normal;
 
   /* Boundary brush */
   SculptBoundary *boundaries[PAINT_SYMM_AREAS];
@@ -558,8 +558,8 @@ struct StrokeCache {
   float plane_trim_squared;
 
   bool supports_gravity;
-  float true_gravity_direction[3];
-  float gravity_direction[3];
+  blender::float3 true_gravity_direction;
+  blender::float3 gravity_direction;
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
