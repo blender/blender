@@ -334,7 +334,6 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     if (STR_ELEM(input->socket_type,
                  "NodeSocketObject",
                  "NodeSocketImage",
-                 "NodeSocketGeometry",
                  "NodeSocketCollection",
                  "NodeSocketTexture",
                  "NodeSocketMaterial"))

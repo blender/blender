@@ -976,7 +976,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
         storage_mode = MTLResourceStorageModeShared;
       }
 
-      id<MTLBuffer> nullBuf = [device newBufferWithLength:0 options:storage_mode];
+      id<MTLBuffer> nullBuf = [device newBufferWithLength:sizeof(float3) options:storage_mode];
 
       /* Create an acceleration structure. */
       MTLAccelerationStructureTriangleGeometryDescriptor *geomDesc =
