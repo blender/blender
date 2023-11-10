@@ -102,7 +102,7 @@ static int remapTime(struct GpencilModifierData *md,
     offset = abs(efra - sfra + offset + 1);
   }
   /* Avoid inverse ranges. */
-  if (efra <= sfra) {
+  if (efra < sfra) {
     return cfra;
   }
 
