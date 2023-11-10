@@ -39,6 +39,7 @@ void VKTexture::init(VkImage vk_image, VkImageLayout layout, eGPUTextureFormat t
   vk_image_ = vk_image;
   current_layout_ = layout;
   format_ = texture_format;
+  device_format_ = texture_format;
 }
 
 void VKTexture::generate_mipmap()
@@ -91,14 +92,14 @@ void VKTexture::generate_mipmap()
     VkImageBlit image_blit = {};
     image_blit.srcOffsets[0] = {0, 0, 0};
     image_blit.srcOffsets[1] = {src_size.x, src_size.y, src_size.z};
-    image_blit.srcSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+    image_blit.srcSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
     image_blit.srcSubresource.mipLevel = src_mipmap;
     image_blit.srcSubresource.baseArrayLayer = 0;
     image_blit.srcSubresource.layerCount = vk_layer_count(1);
 
     image_blit.dstOffsets[0] = {0, 0, 0};
     image_blit.dstOffsets[1] = {dst_size.x, dst_size.y, dst_size.z};
-    image_blit.dstSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+    image_blit.dstSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
     image_blit.dstSubresource.mipLevel = dst_mipmap;
     image_blit.dstSubresource.baseArrayLayer = 0;
     image_blit.dstSubresource.layerCount = vk_layer_count(1);
@@ -148,11 +149,11 @@ void VKTexture::copy_to(Texture *tex)
   VKTexture *src = this;
   BLI_assert(dst);
   BLI_assert(src->w_ == dst->w_ && src->h_ == dst->h_ && src->d_ == dst->d_);
-  BLI_assert(src->format_ == dst->format_);
+  BLI_assert(src->device_format_ == dst->device_format_);
   BLI_assert(!is_texture_view());
   UNUSED_VARS_NDEBUG(src);
 
-  copy_to(*dst, to_vk_image_aspect_flag_bits(format_));
+  copy_to(*dst, to_vk_image_aspect_flag_bits(device_format_));
 }
 
 void VKTexture::clear(eGPUDataFormat format, const void *data)
@@ -163,7 +164,7 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
   VKCommandBuffers &command_buffers = context.command_buffers_get();
   VkClearColorValue clear_color = to_vk_clear_color_value(format, data);
   VkImageSubresourceRange range = {0};
-  range.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  range.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
   range.levelCount = VK_REMAINING_MIP_LEVELS;
   range.layerCount = VK_REMAINING_ARRAY_LAYERS;
   layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
@@ -223,7 +224,7 @@ void VKTexture::read_sub(
   VKBuffer staging_buffer;
 
   size_t sample_len = (region[2] - region[0]) * (region[3] - region[1]) * layers.size();
-  size_t device_memory_size = sample_len * to_bytesize(format_);
+  size_t device_memory_size = sample_len * to_bytesize(device_format_);
 
   staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
@@ -233,7 +234,7 @@ void VKTexture::read_sub(
   buffer_image_copy.imageExtent.width = region[2];
   buffer_image_copy.imageExtent.height = region[3];
   buffer_image_copy.imageExtent.depth = 1;
-  buffer_image_copy.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  buffer_image_copy.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
   buffer_image_copy.imageSubresource.mipLevel = mip;
   buffer_image_copy.imageSubresource.baseArrayLayer = layers.start();
   buffer_image_copy.imageSubresource.layerCount = layers.size();
@@ -242,7 +243,8 @@ void VKTexture::read_sub(
   command_buffers.copy(staging_buffer, *this, Span<VkBufferImageCopy>(&buffer_image_copy, 1));
   context.flush();
 
-  convert_device_to_host(r_data, staging_buffer.mapped_memory_get(), sample_len, format, format_);
+  convert_device_to_host(
+      r_data, staging_buffer.mapped_memory_get(), sample_len, format, device_format_);
 }
 
 void *VKTexture::read(int mip, eGPUDataFormat format)
@@ -269,7 +271,7 @@ void VKTexture::update_sub(
   int layers = vk_layer_count(1);
   int3 extent = int3(extent_[0], max_ii(extent_[1], 1), max_ii(extent_[2], 1));
   size_t sample_len = extent.x * extent.y * extent.z;
-  size_t device_memory_size = sample_len * to_bytesize(format_);
+  size_t device_memory_size = sample_len * to_bytesize(device_format_);
 
   if (type_ & GPU_TEXTURE_1D) {
     extent.y = 1;
@@ -281,7 +283,8 @@ void VKTexture::update_sub(
 
   VKBuffer staging_buffer;
   staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-  convert_host_to_device(staging_buffer.mapped_memory_get(), data, sample_len, format, format_);
+  convert_host_to_device(
+      staging_buffer.mapped_memory_get(), data, sample_len, format, device_format_);
 
   VkBufferImageCopy region = {};
   region.imageExtent.width = extent.x;
@@ -291,7 +294,7 @@ void VKTexture::update_sub(
   region.imageOffset.x = offset[0];
   region.imageOffset.y = offset[1];
   region.imageOffset.z = offset[2];
-  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
   region.imageSubresource.mipLevel = mip;
   region.imageSubresource.layerCount = layers;
 
@@ -320,11 +323,12 @@ bool VKTexture::init_internal()
 {
   const VKDevice &device = VKBackend::get().device_get();
   const VKWorkarounds &workarounds = device.workarounds_get();
-  if (format_ == GPU_DEPTH_COMPONENT24 && workarounds.not_aligned_pixel_formats) {
-    format_ = GPU_DEPTH_COMPONENT32F;
+  device_format_ = format_;
+  if (device_format_ == GPU_DEPTH_COMPONENT24 && workarounds.not_aligned_pixel_formats) {
+    device_format_ = GPU_DEPTH_COMPONENT32F;
   }
-  if (format_ == GPU_DEPTH24_STENCIL8 && workarounds.not_aligned_pixel_formats) {
-    format_ = GPU_DEPTH32F_STENCIL8;
+  if (device_format_ == GPU_DEPTH24_STENCIL8 && workarounds.not_aligned_pixel_formats) {
+    device_format_ = GPU_DEPTH32F_STENCIL8;
   }
 
   if (!allocate()) {
@@ -346,7 +350,7 @@ bool VKTexture::init_internal(GPUVertBuf *vbo)
   region.imageExtent.width = w_;
   region.imageExtent.height = 1;
   region.imageExtent.depth = 1;
-  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
   region.imageSubresource.mipLevel = 0;
   region.imageSubresource.layerCount = 1;
 
@@ -366,6 +370,7 @@ bool VKTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset,
 
   VKTexture *texture = unwrap(unwrap(src));
   source_texture_ = texture;
+  device_format_ = texture->device_format_;
   mip_min_ = mip_offset;
   mip_max_ = mip_offset;
   layer_offset_ = layer_offset;
@@ -454,7 +459,7 @@ bool VKTexture::allocate()
   image_info.extent = vk_extent_3d(0);
   image_info.mipLevels = max_ii(mipmaps_, 1);
   image_info.arrayLayers = vk_layer_count(1);
-  image_info.format = to_vk_format(format_);
+  image_info.format = to_vk_format(device_format_);
   /* Some platforms (NVIDIA) requires that attached textures are always tiled optimal.
    *
    * As image data are always accessed via an staging buffer we can enable optimal tiling for all
@@ -581,7 +586,7 @@ void VKTexture::layout_ensure(VKContext &context,
   barrier.srcAccessMask = src_access;
   barrier.dstAccessMask = dst_access;
   barrier.image = vk_image_;
-  barrier.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  barrier.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
   barrier.subresourceRange.baseMipLevel = uint32_t(mipmap_range.start());
   barrier.subresourceRange.levelCount = uint32_t(mipmap_range.size());
   barrier.subresourceRange.baseArrayLayer = 0;

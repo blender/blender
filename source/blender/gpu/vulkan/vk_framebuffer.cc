@@ -296,7 +296,7 @@ static void blit_aspect(VKCommandBuffers &command_buffer,
   /* Prefer texture copy, as some platforms don't support using D32_SFLOAT_S8_UINT to be used as
    * a blit destination. */
   if (dst_offset_x == 0 && dst_offset_y == 0 &&
-      dst_texture.format_get() == src_texture.format_get() &&
+      dst_texture.device_format_get() == src_texture.device_format_get() &&
       src_texture.width_get() == dst_texture.width_get() &&
       src_texture.height_get() == dst_texture.height_get())
   {
