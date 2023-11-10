@@ -687,9 +687,20 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
            TFM_EDGE_SLIDE,
            TFM_VERT_SLIDE))
   {
-    const bool use_alt_navigation = (prop = RNA_struct_find_property(op->ptr, "alt_navigation")) &&
-                                    RNA_property_boolean_get(op->ptr, prop);
-    t->vod = ED_view3d_navigation_init(C, use_alt_navigation);
+    wmWindowManager *wm = CTX_wm_manager(C);
+    wmKeyMap *keymap = WM_keymap_active(wm, op->type->modalkeymap);
+    const wmKeyMapItem *kmi_passthrough = nullptr;
+    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
+      if (kmi->flag & KMI_INACTIVE) {
+        continue;
+      }
+
+      if (kmi->propvalue == TFM_MODAL_PASSTHROUGH_NAVIGATE) {
+        kmi_passthrough = kmi;
+        break;
+      }
+    }
+    t->vod = ED_view3d_navigation_init(C, kmi_passthrough);
   }
 
   setTransformViewMatrices(t);

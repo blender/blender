@@ -1200,14 +1200,10 @@ class VIEW3D_MT_transform_base:
     # TODO: get rid of the custom text strings?
     def draw(self, context):
         layout = self.layout
-        alt_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_alt_navigation",
-            False)
 
-        layout.operator("transform.translate").alt_navigation = alt_navigation
-        layout.operator("transform.rotate").alt_navigation = alt_navigation
-        layout.operator("transform.resize", text="Scale").alt_navigation = alt_navigation
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize", text="Scale")
 
         layout.separator()
 
@@ -1228,18 +1224,13 @@ class VIEW3D_MT_transform_base:
 # Generic transform menu - geometry types
 class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
     def draw(self, context):
-        alt_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_alt_navigation",
-            False)
-
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
 
         # generic...
         layout = self.layout
         if context.mode == 'EDIT_MESH':
-            layout.operator("transform.shrink_fatten", text="Shrink/Fatten").alt_navigation = alt_navigation
+            layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
             layout.operator("transform.skin_resize")
         elif context.mode in ['EDIT_CURVE', 'EDIT_GREASE_PENCIL', 'EDIT_CURVES']:
             layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
@@ -1248,10 +1239,8 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
             layout.separator()
             props = layout.operator("transform.translate", text="Move Texture Space")
             props.texture_space = True
-            props.alt_navigation = alt_navigation
             props = layout.operator("transform.resize", text="Scale Texture Space")
             props.texture_space = True
-            props.alt_navigation = alt_navigation
 
 
 # Object-specific extensions to Transform menu
@@ -4480,11 +4469,6 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.delete", text="Delete Edges").type = 'EDGE'
 
         if is_face_mode:
-            alt_navigation = getattr(
-                context.window_manager.keyconfigs.active.preferences,
-                "use_alt_navigation",
-                False)
-
             col = row.column(align=True)
 
             col.label(text="Face", icon='FACESEL')
@@ -4496,11 +4480,11 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.separator()
 
             col.operator("view3d.edit_mesh_extrude_move_normal",
-                         text="Extrude Faces").alt_navigation = alt_navigation
+                         text="Extrude Faces")
             col.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                         text="Extrude Faces Along Normals").alt_navigation = alt_navigation
+                         text="Extrude Faces Along Normals")
             col.operator("mesh.extrude_faces_move",
-                         text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.alt_navigation = alt_navigation
+                         text="Extrude Individual Faces")
 
             col.operator("mesh.inset")
             col.operator("mesh.poke")
@@ -4552,11 +4536,6 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
     def draw(self, context):
         from math import pi
 
-        alt_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_alt_navigation",
-            False)
-
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -4566,22 +4545,22 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
         if mesh.total_face_sel:
             layout.operator("view3d.edit_mesh_extrude_move_normal",
-                            text="Extrude Faces").alt_navigation = alt_navigation
+                            text="Extrude Faces")
             layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                            text="Extrude Faces Along Normals").alt_navigation = alt_navigation
+                            text="Extrude Faces Along Normals")
             layout.operator(
                 "mesh.extrude_faces_move",
-                text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.alt_navigation = alt_navigation
+                text="Extrude Individual Faces")
             layout.operator("view3d.edit_mesh_extrude_manifold_normal",
-                            text="Extrude Manifold").alt_navigation = alt_navigation
+                            text="Extrude Manifold")
 
         if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
             layout.operator("mesh.extrude_edges_move",
-                            text="Extrude Edges").TRANSFORM_OT_translate.alt_navigation = alt_navigation
+                            text="Extrude Edges")
 
         if mesh.total_vert_sel and select_mode[0]:
             layout.operator("mesh.extrude_vertices_move",
-                            text="Extrude Vertices").TRANSFORM_OT_translate.alt_navigation = alt_navigation
+                            text="Extrude Vertices")
 
         layout.separator()
 
@@ -4740,22 +4719,15 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
     bl_idname = "VIEW3D_MT_edit_mesh_faces"
 
     def draw(self, context):
-        alt_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_alt_navigation",
-            False)
-
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("view3d.edit_mesh_extrude_move_normal",
-                        text="Extrude Faces").alt_navigation = alt_navigation
+                        text="Extrude Faces")
         layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                        text="Extrude Faces Along Normals").alt_navigation = alt_navigation
-        layout.operator(
-            "mesh.extrude_faces_move",
-            text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.alt_navigation = alt_navigation
+                        text="Extrude Faces Along Normals")
+        layout.operator("mesh.extrude_faces_move", text="Extrude Individual Faces")
 
         layout.separator()
 

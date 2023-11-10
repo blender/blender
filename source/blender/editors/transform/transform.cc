@@ -709,6 +709,8 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
+    case TFM_MODAL_PASSTHROUGH_NAVIGATE:
+      return t->vod != nullptr;
   }
   return true;
 }
@@ -763,6 +765,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
       {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
+      {TFM_MODAL_PASSTHROUGH_NAVIGATE, "PASSTHROUGH_NAVIGATE", 0, "Navigate", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
