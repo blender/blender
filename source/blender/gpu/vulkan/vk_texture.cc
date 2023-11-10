@@ -244,7 +244,7 @@ void VKTexture::read_sub(
   context.flush();
 
   convert_device_to_host(
-      r_data, staging_buffer.mapped_memory_get(), sample_len, format, device_format_);
+      r_data, staging_buffer.mapped_memory_get(), sample_len, format, format_, device_format_);
 }
 
 void *VKTexture::read(int mip, eGPUDataFormat format)
@@ -284,7 +284,7 @@ void VKTexture::update_sub(
   VKBuffer staging_buffer;
   staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
   convert_host_to_device(
-      staging_buffer.mapped_memory_get(), data, sample_len, format, device_format_);
+      staging_buffer.mapped_memory_get(), data, sample_len, format, format_, device_format_);
 
   VkBufferImageCopy region = {};
   region.imageExtent.width = extent.x;
@@ -329,6 +329,14 @@ bool VKTexture::init_internal()
   }
   if (device_format_ == GPU_DEPTH24_STENCIL8 && workarounds.not_aligned_pixel_formats) {
     device_format_ = GPU_DEPTH32F_STENCIL8;
+  }
+  /* R16G16F16 formats are typically not supported (<1%) but R16G16B16A16 is
+   * typically supported (+90%). */
+  if (device_format_ == GPU_RGB16F) {
+    device_format_ = GPU_RGBA16F;
+  }
+  if (device_format_ == GPU_RGB32F) {
+    device_format_ = GPU_RGBA32F;
   }
 
   if (!allocate()) {

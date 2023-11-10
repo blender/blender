@@ -24,6 +24,7 @@ struct VKWorkarounds;
  * \param src_buffer: host buffer.
  * \param buffer_size: number of pixels to convert from the start of the given buffer.
  * \param host_format: format of the host buffer.
+ * \param host_texture_format: texture format of the host buffer.
  * \param device_format: format of the device buffer.
  *
  * \note Will assert when the host_format/device_format combination isn't valid
@@ -34,6 +35,7 @@ void convert_host_to_device(void *dst_buffer,
                             const void *src_buffer,
                             size_t buffer_size,
                             eGPUDataFormat host_format,
+                            eGPUTextureFormat host_texture_format,
                             eGPUTextureFormat device_format);
 
 /**
@@ -43,6 +45,7 @@ void convert_host_to_device(void *dst_buffer,
  * \param src_buffer: device buffer.
  * \param buffer_size: number of pixels to convert from the start of the given buffer.
  * \param host_format: format of the host buffer
+ * \param host_texture_format: texture format of the host buffer.
  * \param device_format: format of the device buffer.
  *
  * \note Will assert when the host_format/device_format combination isn't valid
@@ -53,6 +56,7 @@ void convert_device_to_host(void *dst_buffer,
                             const void *src_buffer,
                             size_t buffer_size,
                             eGPUDataFormat host_format,
+                            eGPUTextureFormat host_texture_format,
                             eGPUTextureFormat device_format);
 
 /**
