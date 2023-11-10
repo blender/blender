@@ -192,10 +192,10 @@ template<typename T> inline T safe_acos(const T &a)
   return math::acos((a));
 }
 
-/** Faster/approximate version of `acosf`. Max error 4.51803e-5 (0.00258 degrees). */
+/** Faster/approximate version of #safe_acos. Max error 4.51803e-5 (0.00258 degrees). */
 inline float safe_acos_approx(float x)
 {
-  const float f = fabsf(x);
+  const float f = std::abs(x);
   /* Clamp and crush denormals. */
   const float m = (f < 1.0f) ? 1.0f - (1.0f - f) : 1.0f;
   /* Based on http://www.pouet.net/topic.php?which=9132&page=2
@@ -205,9 +205,9 @@ inline float safe_acos_approx(float x)
    * Examined 2130706434 values of `acos`:
    *   15.2007108 avg ULP diff, 4492 max ULP, 4.51803e-05 max error // with "denormal crush".
    */
-  const float a = sqrtf(1.0f - m) *
+  const float a = std::sqrt(1.0f - m) *
                   (1.5707963267f + m * (-0.213300989f + m * (0.077980478f + m * -0.02164095f)));
-  return x < 0 ? (float)M_PI - a : a;
+  return x < 0.0f ? float(M_PI) - a : a;
 }
 
 template<typename T> inline T asin(const T &a)
