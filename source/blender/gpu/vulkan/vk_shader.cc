@@ -1092,6 +1092,15 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   }
   ss << "\n";
 
+  /* Retarget depth from -1..1 to 0..1. This will be done by geometry stage, when geometry shaders
+   * are used. */
+  const bool has_geometry_stage = bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD) ||
+                                  !info.geometry_source_.is_empty();
+  const bool retarget_depth = !has_geometry_stage;
+  if (retarget_depth) {
+    post_main += "gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
+  }
+
   if (post_main.empty() == false) {
     std::string pre_main;
     ss << main_function_wrapper(pre_main, post_main);
@@ -1220,6 +1229,14 @@ static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInf
   return nullptr;
 }
 
+static void declare_emit_vertex(std::stringstream &ss)
+{
+  ss << "void gpu_EmitVertex() {\n";
+  ss << "  gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
+  ss << "  EmitVertex();\n";
+  ss << "}\n";
+}
+
 std::string VKShader::geometry_layout_declare(const shader::ShaderCreateInfo &info) const
 {
   std::stringstream ss;
@@ -1242,6 +1259,8 @@ std::string VKShader::geometry_layout_declare(const shader::ShaderCreateInfo &in
     print_interface(ss, "out", *iface, location, suffix);
   }
   ss << "\n";
+
+  declare_emit_vertex(ss);
 
   return ss.str();
 }

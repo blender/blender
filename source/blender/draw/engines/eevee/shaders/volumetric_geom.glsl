@@ -16,19 +16,19 @@ void main()
   pass_attr(0);
 #  endif
   gl_Position = volumetric_vert_iface[0].vPos.xyww;
-  EmitVertex();
+  gpu_EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(1);
 #  endif
   gl_Position = volumetric_vert_iface[1].vPos.xyww;
-  EmitVertex();
+  gpu_EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(2);
 #  endif
   gl_Position = volumetric_vert_iface[2].vPos.xyww;
-  EmitVertex();
+  gpu_EmitVertex();
 
   EndPrimitive();
 }
@@ -48,19 +48,19 @@ void main()
   pass_attr(0);
 #  endif
   gl_Position = volumetric_vert_iface[0].vPos.xyww;
-  EmitVertex();
+  gpu_EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(1);
 #  endif
   gl_Position = volumetric_vert_iface[1].vPos.xyww;
-  EmitVertex();
+  gpu_EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(2);
 #  endif
   gl_Position = volumetric_vert_iface[2].vPos.xyww;
-  EmitVertex();
+  gpu_EmitVertex();
 
   EndPrimitive();
 }
