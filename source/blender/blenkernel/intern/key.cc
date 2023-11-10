@@ -2265,6 +2265,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         positions,
         faces,
         corner_verts,
+        mesh->vert_to_face_map(),
         {reinterpret_cast<const blender::float3 *>(face_normals), faces.size()},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }

@@ -84,6 +84,7 @@ void normals_calc_faces(Span<float3> vert_positions,
 void normals_calc_verts(Span<float3> vert_positions,
                         OffsetIndices<int> faces,
                         Span<int> corner_verts,
+                        GroupedSpan<int> vert_to_face_map,
                         Span<float3> face_normals,
                         MutableSpan<float3> vert_normals);
 
