@@ -26,12 +26,6 @@ set(_shaderc_SEARCH_DIRS
   ${SHADERC_ROOT_DIR}
 )
 
-# FIXME: These finder modules typically don't use LIBDIR,
-# this should be set by `./build_files/cmake/platform/` instead.
-if(DEFINED LIBDIR)
-  set(_shaderc_SEARCH_DIRS ${_shaderc_SEARCH_DIRS} ${LIBDIR}/shaderc)
-endif()
-
 find_path(SHADERC_INCLUDE_DIR
   NAMES
     shaderc/shaderc.h
