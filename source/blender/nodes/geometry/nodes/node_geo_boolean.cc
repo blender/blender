@@ -67,6 +67,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom1 = GEO_NODE_BOOLEAN_DIFFERENCE;
 }
 
+#ifdef WITH_GMP
 static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material *> &all_materials)
 {
   Array<short> map(mesh.totcol);
@@ -76,6 +77,7 @@ static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material 
   }
   return map;
 }
+#endif /* WITH_GMP */
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
