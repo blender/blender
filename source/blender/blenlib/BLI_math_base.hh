@@ -12,7 +12,6 @@
 #include <cmath>
 #include <type_traits>
 
-#include "BLI_math_base_safe.h"
 #include "BLI_utildefines.h"
 
 namespace blender::math {

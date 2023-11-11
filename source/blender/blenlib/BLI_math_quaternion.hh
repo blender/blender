@@ -569,7 +569,7 @@ template<typename T>
 
   Mat4T R, scale;
   const bool has_scale = !is_orthonormal(mat) || is_negative(mat) ||
-                         length_squared(to_scale(baseRS) - T(1)) > square_f(1e-4f);
+                         length_squared(to_scale(baseRS) - T(1)) > square(1e-4f);
   if (has_scale) {
     /* Extract Rotation and Scale. */
     const Mat4T baseinv = invert(basemat);

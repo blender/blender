@@ -51,7 +51,7 @@ static openvdb::FloatGrid::Ptr points_to_sdf_grid(const Span<float3> positions,
   openvdb::tools::ParticlesToLevelSet op{*new_grid};
   /* Don't ignore particles based on their radius. */
   op.setRmin(0.0f);
-  op.setRmax(FLT_MAX);
+  op.setRmax(std::numeric_limits<float>::max());
   OpenVDBParticleList particles{positions, radii};
   op.rasterizeSpheres(particles);
   op.finalize();
