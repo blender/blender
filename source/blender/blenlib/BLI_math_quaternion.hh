@@ -153,7 +153,8 @@ template<typename T> QuaternionBase<T> QuaternionBase<T>::swing(const Axis axis)
   /* Compute swing by multiplying the original quaternion by inverted twist. */
   QuaternionBase<T> swing = input * invert_normalized(input.twist(axis));
 
-  BLI_assert(math::abs(VecBase<T, 4>(swing)[axis.as_int() + 1]) < BLI_ASSERT_UNIT_EPSILON);
+  BLI_assert(math::abs(VecBase<T, 4>(swing)[axis.as_int() + 1]) <
+             0.0002f /*BLI_ASSERT_UNIT_EPSILON*/);
   return swing;
 }
 
