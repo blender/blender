@@ -130,6 +130,25 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+
+    /* Forward compatibility with repurposed #RGN_FLAG_PREFSIZE_OR_HIDDEN (in 4.0:
+     * #RGN_FLAG_NO_USER_RESIZE), which is set for more regions now. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          LISTBASE_FOREACH (ARegion *, region, regionbase) {
+            /* The Properties editor navigation region is the only one using the
+             * #RGN_FLAG_PREFSIZE_OR_HIDDEN flag in 3.6. Unset it for others. */
+            if (!((sl->spacetype == SPACE_PROPERTIES) && (region->regiontype == RGN_TYPE_NAV_BAR)))
+            {
+              region->flag &= ~RGN_FLAG_PREFSIZE_OR_HIDDEN;
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
