@@ -32,10 +32,12 @@
 #include "transform_snap.hh"
 
 struct TransSeqSnapData {
-  int *source_snap_points;
-  int *target_snap_points;
-  int source_snap_point_count;
-  int target_snap_point_count;
+  blender::Array<int> source_snap_points;
+  blender::Array<int> target_snap_points;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("TransSeqSnapData")
+#endif
 };
 
 /* -------------------------------------------------------------------- */
@@ -47,25 +49,21 @@ static int seq_get_snap_source_points_len(blender::Span<Sequence *> snap_sources
   return snap_sources.size() * 2;
 }
 
-static void seq_snap_source_points_alloc(TransSeqSnapData *snap_data,
-                                         blender::Span<Sequence *> snap_sources)
-{
-  const size_t point_count = seq_get_snap_source_points_len(snap_sources);
-  snap_data->source_snap_points = static_cast<int *>(
-      MEM_callocN(sizeof(int) * point_count, __func__));
-  memset(snap_data->source_snap_points, 0, sizeof(int));
-  snap_data->source_snap_point_count = point_count;
-}
-
 static int cmp_fn(const void *a, const void *b)
 {
   return (*(int *)a - *(int *)b);
 }
 
-static void seq_snap_source_points_build(const Scene *scene,
+static bool seq_snap_source_points_build(const Scene *scene,
                                          TransSeqSnapData *snap_data,
                                          blender::Span<Sequence *> snap_sources)
 {
+  const size_t point_count_source = seq_get_snap_source_points_len(snap_sources);
+  if (point_count_source == 0) {
+    return false;
+  }
+
+  snap_data->source_snap_points.reinitialize(point_count_source);
   int i = 0;
   for (Sequence *seq : snap_sources) {
     int left = 0, right = 0;
@@ -83,10 +81,15 @@ static void seq_snap_source_points_build(const Scene *scene,
     snap_data->source_snap_points[i] = left;
     snap_data->source_snap_points[i + 1] = right;
     i += 2;
-    BLI_assert(i <= snap_data->source_snap_point_count);
+    BLI_assert(i <= snap_data->source_snap_points.size());
   }
 
-  qsort(snap_data->source_snap_points, snap_data->source_snap_point_count, sizeof(int), cmp_fn);
+  qsort(snap_data->source_snap_points.data(),
+        snap_data->source_snap_points.size(),
+        sizeof(int),
+        cmp_fn);
+
+  return true;
 }
 
 /** \} */
@@ -169,22 +172,17 @@ static int seq_get_snap_target_points_count(short snap_mode,
   return count;
 }
 
-static void seq_snap_target_points_alloc(short snap_mode,
-                                         TransSeqSnapData *snap_data,
-                                         blender::Span<Sequence *> snap_targets)
-{
-  const size_t point_count = seq_get_snap_target_points_count(snap_mode, snap_targets);
-  snap_data->target_snap_points = static_cast<int *>(
-      MEM_callocN(sizeof(int) * point_count, __func__));
-  memset(snap_data->target_snap_points, 0, sizeof(int));
-  snap_data->target_snap_point_count = point_count;
-}
-
-static void seq_snap_target_points_build(Scene *scene,
+static bool seq_snap_target_points_build(Scene *scene,
                                          short snap_mode,
                                          TransSeqSnapData *snap_data,
                                          blender::Span<Sequence *> snap_targets)
 {
+  const size_t point_count_target = seq_get_snap_target_points_count(snap_mode, snap_targets);
+  if (point_count_target == 0) {
+    return false;
+  }
+
+  snap_data->target_snap_points.reinitialize(point_count_target);
   int i = 0;
 
   if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
@@ -220,8 +218,12 @@ static void seq_snap_target_points_build(Scene *scene,
       i += 2;
     }
   }
-  BLI_assert(i <= snap_data->target_snap_point_count);
-  qsort(snap_data->target_snap_points, snap_data->target_snap_point_count, sizeof(int), cmp_fn);
+  BLI_assert(i <= snap_data->target_snap_points.size());
+  qsort(snap_data->target_snap_points.data(),
+        snap_data->target_snap_points.size(),
+        sizeof(int),
+        cmp_fn);
+  return true;
 }
 
 /** \} */
@@ -246,35 +248,29 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
     return nullptr;
   }
 
+  TransSeqSnapData *snap_data = MEM_new<TransSeqSnapData>(__func__);
+
   Scene *scene = t->scene;
-  TransSeqSnapData *snap_data = static_cast<TransSeqSnapData *>(
-      MEM_callocN(sizeof(TransSeqSnapData), __func__));
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  short snap_mode = t->tsnap.mode;
 
   blender::VectorSet<Sequence *> snap_sources = SEQ_query_selected_strips(seqbase);
   blender::VectorSet<Sequence *> snap_targets = query_snap_targets(scene, snap_sources, true);
 
-  if (snap_sources.is_empty()) {
-    MEM_freeN(snap_data);
+  /* Build arrays of snap points. */
+  if (!seq_snap_source_points_build(scene, snap_data, snap_sources) ||
+      !seq_snap_target_points_build(scene, snap_mode, snap_data, snap_targets))
+  {
+    MEM_delete(snap_data);
     return nullptr;
   }
-
-  /* Build arrays of snap points. */
-  seq_snap_source_points_alloc(snap_data, snap_sources);
-  seq_snap_source_points_build(scene, snap_data, snap_sources);
-
-  short snap_mode = t->tsnap.mode;
-  seq_snap_target_points_alloc(snap_mode, snap_data, snap_targets);
-  seq_snap_target_points_build(scene, snap_mode, snap_data, snap_targets);
 
   return snap_data;
 }
 
 void transform_snap_sequencer_data_free(TransSeqSnapData *data)
 {
-  MEM_freeN(data->source_snap_points);
-  MEM_freeN(data->target_snap_points);
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 bool transform_snap_sequencer_calc(TransInfo *t)
@@ -291,11 +287,9 @@ bool transform_snap_sequencer_calc(TransInfo *t)
 
   int best_dist = MAXFRAME, best_target_frame = 0, best_source_frame = 0;
 
-  for (int i = 0; i < snap_data->source_snap_point_count; i++) {
-    int snap_source_frame = snap_data->source_snap_points[i] + round_fl_to_int(t->values[0]);
-    for (int j = 0; j < snap_data->target_snap_point_count; j++) {
-      int snap_target_frame = snap_data->target_snap_points[j];
-
+  for (int frame_src : snap_data->source_snap_points) {
+    int snap_source_frame = frame_src + round_fl_to_int(t->values[0]);
+    for (int snap_target_frame : snap_data->target_snap_points) {
       int dist = abs(snap_target_frame - snap_source_frame);
       if (dist > best_dist) {
         continue;
@@ -324,21 +318,19 @@ void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec)
 static int transform_snap_sequencer_to_closest_strip_ex(TransInfo *t, int frame_1, int frame_2)
 {
   Scene *scene = t->scene;
-  TransSeqSnapData *snap_data = static_cast<TransSeqSnapData *>(
-      MEM_callocN(sizeof(TransSeqSnapData), __func__));
+  TransSeqSnapData *snap_data = MEM_new<TransSeqSnapData>(__func__);
 
   blender::VectorSet<Sequence *> empty_col;
   blender::VectorSet<Sequence *> snap_targets = query_snap_targets(scene, empty_col, false);
 
-  snap_data->source_snap_points = static_cast<int *>(MEM_callocN(sizeof(int) * 2, __func__));
-  snap_data->source_snap_point_count = 2;
   BLI_assert(frame_1 <= frame_2);
+  snap_data->source_snap_points.reinitialize(2);
   snap_data->source_snap_points[0] = frame_1;
   snap_data->source_snap_points[1] = frame_2;
 
   short snap_mode = t->tsnap.mode;
+
   /* Build arrays of snap points. */
-  seq_snap_target_points_alloc(snap_mode, snap_data, snap_targets);
   seq_snap_target_points_build(scene, snap_mode, snap_data, snap_targets);
 
   t->tsnap.seq_context = snap_data;
