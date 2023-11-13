@@ -34,6 +34,8 @@
  * they share common sub-fields and a common context.
  */
 
+#include <iostream>
+
 #include "BLI_function_ref.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_string_ref.hh"

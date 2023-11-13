@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <iostream>
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"

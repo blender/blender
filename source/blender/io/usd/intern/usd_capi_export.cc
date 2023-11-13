@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <iostream>
+
 #include "usd.h"
 #include "usd.hh"
 #include "usd_hierarchy_iterator.h"

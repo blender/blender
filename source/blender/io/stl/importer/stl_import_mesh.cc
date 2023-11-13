@@ -6,6 +6,8 @@
  * \ingroup stl
  */
 
+#include <iostream>
+
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"

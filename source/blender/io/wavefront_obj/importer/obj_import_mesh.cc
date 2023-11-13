@@ -6,6 +6,8 @@
  * \ingroup obj
  */
 
+#include <iostream>
+
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"

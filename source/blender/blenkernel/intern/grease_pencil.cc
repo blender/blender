@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <iostream>
+
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
