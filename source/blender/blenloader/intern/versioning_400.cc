@@ -1901,6 +1901,24 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 36)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                       &sl->regionbase;
+          LISTBASE_FOREACH (ARegion *, region, regionbase) {
+            if (region->regiontype != RGN_TYPE_ASSET_SHELF_HEADER) {
+              continue;
+            }
+            region->alignment &= ~RGN_SPLIT_PREV;
+            region->alignment |= RGN_ALIGN_HIDE_WITH_PREV;
+          }
+        }
+      }
+    }
+  }
+
   if (MAIN_VERSION_FILE_ATLEAST(bmain, 401, 4)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_CUSTOM) {
@@ -1922,21 +1940,5 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                       &sl->regionbase;
-          LISTBASE_FOREACH (ARegion *, region, regionbase) {
-            if (region->regiontype != RGN_TYPE_ASSET_SHELF_HEADER) {
-              continue;
-            }
-            region->alignment &= ~RGN_SPLIT_PREV;
-            region->alignment |= RGN_ALIGN_HIDE_WITH_PREV;
-          }
-        }
-      }
-    }
   }
 }
