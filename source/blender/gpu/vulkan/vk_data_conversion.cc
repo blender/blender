@@ -85,6 +85,10 @@ static ConversionType type_of_conversion_float(const eGPUTextureFormat host_form
     if (host_format == GPU_RGB32F && device_format == GPU_RGBA32F) {
       return ConversionType::FLOAT3_TO_FLOAT4;
     }
+    if (host_format == GPU_DEPTH_COMPONENT24 && device_format == GPU_DEPTH_COMPONENT32F) {
+      return ConversionType::PASS_THROUGH;
+    }
+
     return ConversionType::UNSUPPORTED;
   }
 
