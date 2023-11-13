@@ -15,7 +15,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.h"
-#include "BKE_crazyspace.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_editmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"

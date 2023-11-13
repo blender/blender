@@ -54,7 +54,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_bvhutils.h"
 #  include "BKE_constraint.h"
 #  include "BKE_context.h"
-#  include "BKE_crazyspace.h"
+#  include "BKE_crazyspace.hh"
 #  include "BKE_customdata.h"
 #  include "BKE_global.h"
 #  include "BKE_layer.h"

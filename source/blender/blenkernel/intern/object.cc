@@ -76,7 +76,7 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
-#include "BKE_crazyspace.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_curve.h"
 #include "BKE_curves.hh"
 #include "BKE_deform.h"

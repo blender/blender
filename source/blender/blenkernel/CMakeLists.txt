@@ -363,7 +363,6 @@ set(SRC
   BKE_constraint.h
   BKE_context.h
   BKE_cpp_types.h
-  BKE_crazyspace.h
   BKE_crazyspace.hh
   BKE_cryptomatte.h
   BKE_cryptomatte.hh

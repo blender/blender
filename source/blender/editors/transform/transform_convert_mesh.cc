@@ -21,7 +21,7 @@
 #include "BLI_memarena.h"
 
 #include "BKE_context.h"
-#include "BKE_crazyspace.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"

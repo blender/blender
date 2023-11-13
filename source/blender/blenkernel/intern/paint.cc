@@ -41,7 +41,7 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_crazyspace.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.h"
