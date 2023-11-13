@@ -411,6 +411,7 @@ void ForwardPipeline::render(View &view,
 
   inst_.volume.draw_resolve(view);
 
+  combined_fb.bind();
   inst_.manager->submit(transparent_ps_, view);
 
   // if (inst_.raytracing.enabled()) {
