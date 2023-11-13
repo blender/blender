@@ -395,13 +395,12 @@ MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 namespace blender::bke::mesh {
 
 static CornerNormalSpace lnor_space_define(const float3 &lnor,
-                                           float3 vec_ref,
+                                           const float3 &vec_ref,
                                            float3 vec_other,
                                            const Span<float3> edge_vectors)
 {
   CornerNormalSpace lnor_space{};
   const float pi2 = float(M_PI) * 2.0f;
-  float tvec[3], dtp;
   const float dtp_ref = math::dot(vec_ref, lnor);
   const float dtp_other = math::dot(vec_other, lnor);
 
@@ -437,20 +436,14 @@ static CornerNormalSpace lnor_space_define(const float3 &lnor,
   }
 
   /* Project vec_ref on lnor's ortho plane. */
-  mul_v3_v3fl(tvec, lnor, dtp_ref);
-  sub_v3_v3(vec_ref, tvec);
-  normalize_v3_v3(lnor_space.vec_ref, vec_ref);
-
-  cross_v3_v3v3(tvec, lnor, lnor_space.vec_ref);
-  normalize_v3_v3(lnor_space.vec_ortho, tvec);
+  lnor_space.vec_ref = math::normalize(vec_ref - lnor * dtp_ref);
+  lnor_space.vec_ortho = math::normalize(math::cross(lnor, lnor_space.vec_ref));
 
   /* Project vec_other on lnor's ortho plane. */
-  mul_v3_v3fl(tvec, lnor, dtp_other);
-  sub_v3_v3(vec_other, tvec);
-  normalize_v3(vec_other);
+  vec_other = math::normalize(vec_other - lnor * dtp_other);
 
   /* Beta is angle between ref_vec and other_vec, around lnor. */
-  dtp = math::dot(lnor_space.vec_ref, vec_other);
+  const float dtp = math::dot(lnor_space.vec_ref, vec_other);
   if (LIKELY(dtp < LNOR_SPACE_TRIGO_THRESHOLD)) {
     const float beta = math::safe_acos_approx(dtp);
     lnor_space.ref_beta = (math::dot(lnor_space.vec_ortho, vec_other) < 0.0f) ? pi2 - beta : beta;
@@ -592,10 +585,7 @@ short2 lnor_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
   }
 
   /* Project custom lnor on (vec_ref, vec_ortho) plane. */
-  float3 vec;
-  mul_v3_v3fl(vec, lnor_space.vec_lnor, -cos_alpha);
-  add_v3_v3(vec, custom_lnor);
-  normalize_v3(vec);
+  const float3 vec = math::normalize(lnor_space.vec_lnor * -cos_alpha + custom_lnor);
 
   const float cos_beta = math::dot(lnor_space.vec_ref, vec);
 
@@ -871,8 +861,6 @@ static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
     const Span<int> corner_edges = common_data->corner_edges;
     const Span<short2> clnors_data = common_data->clnors_data;
 
-    float3 vec_curr;
-    float3 vec_prev;
     const int face_index = loop_to_face[ml_curr_index];
     const int ml_prev_index = mesh::face_corner_prev(faces[face_index], ml_curr_index);
 
@@ -881,10 +869,8 @@ static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
     const int vert_2 = edge_other_vert(edges[corner_edges[ml_curr_index]], vert_pivot);
     const int vert_3 = edge_other_vert(edges[corner_edges[ml_prev_index]], vert_pivot);
 
-    sub_v3_v3v3(vec_curr, positions[vert_2], positions[vert_pivot]);
-    normalize_v3(vec_curr);
-    sub_v3_v3v3(vec_prev, positions[vert_3], positions[vert_pivot]);
-    normalize_v3(vec_prev);
+    const float3 vec_curr = math::normalize(positions[vert_2] - positions[vert_pivot]);
+    const float3 vec_prev = math::normalize(positions[vert_3] - positions[vert_pivot]);
 
     CornerNormalSpace &lnor_space = lnors_spacearr->spaces[space_index];
     lnor_space = lnor_space_define(loop_normals[ml_curr_index], vec_curr, vec_prev, {});
@@ -953,9 +939,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   /* Only need to compute previous edge's vector once, then we can just reuse old current one! */
   {
     const int vert_2 = edge_other_vert(edge_orig, vert_pivot);
-    sub_v3_v3v3(vec_org, positions[vert_2], positions[vert_pivot]);
-    normalize_v3(vec_org);
-    copy_v3_v3(vec_prev, vec_org);
+    vec_org = math::normalize(positions[vert_2] - positions[vert_pivot]);
+    vec_prev = vec_org;
 
     if (lnors_spacearr) {
       edge_vectors->append(vec_org);
@@ -973,8 +958,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
      */
     {
       const int vert_2 = edge_other_vert(edge, vert_pivot);
-      sub_v3_v3v3(vec_curr, positions[vert_2], positions[vert_pivot]);
-      normalize_v3(vec_curr);
+      vec_curr = math::normalize(positions[vert_2] - positions[vert_pivot]);
     }
 
     // printf("\thandling edge %d / loop %d\n", corner_edges[mlfan_curr_index], mlfan_curr_index);
