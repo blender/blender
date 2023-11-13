@@ -29,6 +29,21 @@ VKPipelineStateManager::VKPipelineStateManager()
                                                    VK_COLOR_COMPONENT_G_BIT |
                                                    VK_COLOR_COMPONENT_B_BIT |
                                                    VK_COLOR_COMPONENT_A_BIT;
+
+  /* Set default state. */
+  current_.write_mask = GPU_WRITE_COLOR;
+  current_.blend = GPU_BLEND_NONE;
+  current_.culling_test = GPU_CULL_NONE;
+  current_.depth_test = GPU_DEPTH_NONE;
+  current_.stencil_test = GPU_STENCIL_NONE;
+  current_.stencil_op = GPU_STENCIL_OP_NONE;
+  current_.provoking_vert = GPU_VERTEX_LAST;
+  current_.logic_op_xor = false;
+  current_.invert_facing = false;
+  current_.shadow_bias = false;
+  current_.clip_distances = 0;
+  current_.polygon_smooth = false;
+  current_.line_smooth = false;
 }
 
 void VKPipelineStateManager::set_state(const GPUState &state, const GPUStateMutable &mutable_state)
