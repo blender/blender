@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,7 @@ namespace Freestyle {
 
 class HeuristicGridDensityProviderFactory : public GridDensityProviderFactory {
  public:
-  HeuristicGridDensityProviderFactory(real sizeFactor, unsigned numFaces);
+  HeuristicGridDensityProviderFactory(real sizeFactor, uint numFaces);
 
   AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
                                                       const real proscenium[4]);
@@ -30,7 +30,7 @@ class HeuristicGridDensityProviderFactory : public GridDensityProviderFactory {
 
  protected:
   real sizeFactor;
-  unsigned numFaces;
+  uint numFaces;
 };
 
 } /* namespace Freestyle */

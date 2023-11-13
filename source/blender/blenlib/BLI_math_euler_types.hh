@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,7 +26,7 @@
  * eg: `Euler3 my_euler(EulerOrder::XYZ); my_euler = my_quaternion:`
  */
 
-#include <iostream>
+#include <ostream>
 
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"

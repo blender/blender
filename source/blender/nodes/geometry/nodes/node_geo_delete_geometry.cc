@@ -1,34 +1,39 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
 
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "DNA_grease_pencil_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 
 #include "GEO_mesh_copy_selection.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_delete_geometry_cc {
 
 /** \return std::nullopt if the geometry should remain unchanged. */
-static std::optional<Curves *> separate_curves_selection(
-    const Curves &src_curves_id,
+static std::optional<bke::CurvesGeometry> separate_curves_selection(
+    const bke::CurvesGeometry &src_curves,
+    const fn::FieldContext &field_context,
     const Field<bool> &selection_field,
     const eAttrDomain domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
-
   const int domain_size = src_curves.attributes().domain_size(domain);
-  const bke::CurvesFieldContext context{src_curves, domain};
-  fn::FieldEvaluator evaluator{context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
@@ -36,23 +41,17 @@ static std::optional<Curves *> separate_curves_selection(
     return std::nullopt;
   }
   if (selection.is_empty()) {
-    return nullptr;
+    return bke::CurvesGeometry();
   }
 
-  Curves *dst_curves_id = nullptr;
   if (domain == ATTR_DOMAIN_POINT) {
-    bke::CurvesGeometry dst_curves = bke::curves_copy_point_selection(
-        src_curves, selection, propagation_info);
-    dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+    return bke::curves_copy_point_selection(src_curves, selection, propagation_info);
   }
   else if (domain == ATTR_DOMAIN_CURVE) {
-    bke::CurvesGeometry dst_curves = bke::curves_copy_curve_selection(
-        src_curves, selection, propagation_info);
-    dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+    return bke::curves_copy_curve_selection(src_curves, selection, propagation_info);
   }
-
-  bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
-  return dst_curves_id;
+  BLI_assert_unreachable();
+  return std::nullopt;
 }
 
 /** \return std::nullopt if the geometry should remain unchanged. */
@@ -104,11 +103,18 @@ static void delete_selected_instances(GeometrySet &geometry_set,
 
 static std::optional<Mesh *> separate_mesh_selection(
     const Mesh &mesh,
-    const Field<bool> &selection,
+    const Field<bool> &selection_field,
     const eAttrDomain selection_domain,
     const GeometryNodeDeleteGeometryMode mode,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const bke::MeshFieldContext context(mesh, selection_domain);
+  fn::FieldEvaluator evaluator(context, attributes.domain_size(selection_domain));
+  evaluator.add(selection_field);
+  evaluator.evaluate();
+  const VArray<bool> selection = evaluator.get_evaluated<bool>(0);
+
   switch (mode) {
     case GEO_NODE_DELETE_GEOMETRY_MODE_ALL:
       return geometry::mesh_copy_selection(mesh, selection, selection_domain, propagation_info);
@@ -120,6 +126,44 @@ static std::optional<Mesh *> separate_mesh_selection(
           mesh, selection, selection_domain, propagation_info);
   }
   return nullptr;
+}
+
+static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
+    const GreasePencil &src_grease_pencil,
+    const Field<bool> &selection_field,
+    const AnonymousAttributePropagationInfo &propagation_info)
+{
+  const bke::AttributeAccessor attributes = src_grease_pencil.attributes();
+  const bke::GeometryFieldContext context(src_grease_pencil);
+
+  fn::FieldEvaluator evaluator(context, attributes.domain_size(ATTR_DOMAIN_LAYER));
+  evaluator.set_selection(selection_field);
+  evaluator.evaluate();
+
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.size() == attributes.domain_size(ATTR_DOMAIN_LAYER)) {
+    return std::nullopt;
+  }
+  if (selection.is_empty()) {
+    return nullptr;
+  }
+
+  GreasePencil *dst_grease_pencil = BKE_grease_pencil_new_nomain();
+  BKE_grease_pencil_duplicate_drawing_array(&src_grease_pencil, dst_grease_pencil);
+  selection.foreach_index([&](const int index) {
+    const bke::greasepencil::Layer &src_layer = *src_grease_pencil.layers()[index];
+    dst_grease_pencil->add_layer(src_layer);
+  });
+  dst_grease_pencil->remove_drawings_with_no_users();
+
+  bke::gather_attributes(src_grease_pencil.attributes(),
+                         ATTR_DOMAIN_LAYER,
+                         propagation_info,
+                         {},
+                         selection,
+                         dst_grease_pencil->attributes_for_write());
+
+  return dst_grease_pencil;
 }
 
 }  // namespace blender::nodes::node_geo_delete_geometry_cc
@@ -136,7 +180,7 @@ void separate_geometry(GeometrySet &geometry_set,
   namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
 
   bool some_valid_domain = false;
-  if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
+  if (const PointCloud *points = geometry_set.get_pointcloud()) {
     if (domain == ATTR_DOMAIN_POINT) {
       std::optional<PointCloud *> dst_points = file_ns::separate_point_cloud_selection(
           *points, selection, propagation_info);
@@ -146,7 +190,7 @@ void separate_geometry(GeometrySet &geometry_set,
       some_valid_domain = true;
     }
   }
-  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+  if (const Mesh *mesh = geometry_set.get_mesh()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
       std::optional<Mesh *> dst_mesh = file_ns::separate_mesh_selection(
           *mesh, selection, domain, mode, propagation_info);
@@ -156,14 +200,57 @@ void separate_geometry(GeometrySet &geometry_set,
       some_valid_domain = true;
     }
   }
-  if (const Curves *curves_id = geometry_set.get_curves_for_read()) {
+  if (const Curves *src_curves_id = geometry_set.get_curves()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-      std::optional<Curves *> dst_curves = file_ns::separate_curves_selection(
-          *curves_id, selection, domain, propagation_info);
+      const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
+      const bke::CurvesFieldContext field_context{src_curves, domain};
+      std::optional<bke::CurvesGeometry> dst_curves = file_ns::separate_curves_selection(
+          src_curves, field_context, selection, domain, propagation_info);
       if (dst_curves) {
-        geometry_set.replace_curves(*dst_curves);
+        if (dst_curves->points_num() == 0) {
+          geometry_set.remove<CurveComponent>();
+        }
+        else {
+          Curves *dst_curves_id = bke::curves_new_nomain(*dst_curves);
+          bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
+          geometry_set.replace_curves(dst_curves_id);
+        }
       }
       some_valid_domain = true;
+    }
+  }
+  if (geometry_set.get_grease_pencil()) {
+    using namespace blender::bke::greasepencil;
+    if (domain == ATTR_DOMAIN_LAYER) {
+      const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
+      std::optional<GreasePencil *> dst_grease_pencil =
+          file_ns::separate_grease_pencil_layer_selection(
+              grease_pencil, selection, propagation_info);
+      if (dst_grease_pencil) {
+        geometry_set.replace_grease_pencil(*dst_grease_pencil);
+      }
+      some_valid_domain = true;
+    }
+    else if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+      GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+      for (const int layer_index : grease_pencil.layers().index_range()) {
+        Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                          layer_index);
+        if (drawing == nullptr) {
+          continue;
+        }
+        const bke::CurvesGeometry &src_curves = drawing->strokes();
+        const bke::GreasePencilLayerFieldContext field_context(
+            grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+        std::optional<bke::CurvesGeometry> dst_curves = file_ns::separate_curves_selection(
+            src_curves, field_context, selection, domain, propagation_info);
+        if (!dst_curves) {
+          continue;
+        }
+        drawing->strokes_for_write() = std::move(*dst_curves);
+        drawing->tag_topology_changed();
+        some_valid_domain = true;
+      }
     }
   }
   if (geometry_set.has_instances()) {
@@ -198,10 +285,10 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   const NodeGeometryDeleteGeometry &storage = node_storage(*node);
   const eAttrDomain domain = eAttrDomain(storage.domain);
 
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
   /* Only show the mode when it is relevant. */
   if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
-    uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
+    uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
 
@@ -246,12 +333,35 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_delete_geometry_cc
-
-void register_node_type_geo_delete_geometry()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_DELETE_GEOMETRY_MODE_ALL, "ALL", 0, "All", ""},
+      {GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE, "EDGE_FACE", 0, "Only Edges & Faces", ""},
+      {GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE, "ONLY_FACE", 0, "Only Faces", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "Which parts of the mesh component to delete",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_DELETE_GEOMETRY_MODE_ALL);
+
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain",
+                    "Which domain to delete in",
+                    rna_enum_attribute_domain_without_corner_items,
+                    NOD_storage_enum_accessors(domain),
+                    ATTR_DOMAIN_POINT,
+                    enums::domain_experimental_grease_pencil_version3_fn);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY);
@@ -261,10 +371,14 @@ void register_node_type_geo_delete_geometry()
                     node_free_standard_storage,
                     node_copy_standard_storage);
 
-  ntype.initfunc = file_ns::node_init;
-
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.initfunc = node_init;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_delete_geometry_cc

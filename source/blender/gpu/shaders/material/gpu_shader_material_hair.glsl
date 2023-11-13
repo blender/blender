@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_bsdf_hair(vec4 color,
                     float offset,
@@ -38,6 +41,10 @@ void node_bsdf_hair_principled(vec4 color,
                                float coat,
                                float ior,
                                float offset,
+                               float aspect_ratio,
+                               float R,
+                               float TT,
+                               float TRT,
                                float random_color,
                                float random_roughness,
                                float random,

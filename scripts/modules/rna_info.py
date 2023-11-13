@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -397,8 +397,10 @@ class InfoPropertyRNA:
                             type_str = (mathutils_fmt % "Euler") + " rotation" + dimension_str
                         elif self.array_length == 4:
                             type_str = (mathutils_fmt % "Quaternion") + " rotation" + dimension_str
-                    elif self.subtype in {"COORDINATES", "TRANSLATION", "DIRECTION", "VELOCITY",
-                                          "ACCELERATION", "XYZ", "XYZ_LENGTH"}:
+                    elif self.subtype in {
+                            'COORDINATES', 'TRANSLATION', 'DIRECTION', 'VELOCITY',
+                            'ACCELERATION', 'XYZ', 'XYZ_LENGTH',
+                    }:
                         if 2 <= self.array_length <= 4:
                             type_str = (mathutils_fmt % "Vector") + dimension_str
 

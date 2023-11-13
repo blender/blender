@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2021-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -137,6 +137,7 @@ download_source(XR_OPENXR_SDK)
 download_source(WL_PROTOCOLS)
 download_source(WAYLAND)
 download_source(WAYLAND_LIBDECOR)
+download_source(WAYLAND_WESTON)
 download_source(ISPC)
 download_source(GMP)
 download_source(POTRACE)

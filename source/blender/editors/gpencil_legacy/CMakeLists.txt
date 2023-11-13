@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,16 +6,13 @@ set(INC
   ../include
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
+  ../../bmesh
   ../../depsgraph
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
-  ../../bmesh
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -24,50 +21,53 @@ set(INC_SYS
 )
 
 set(SRC
-  annotate_draw.c
-  annotate_paint.c
-  drawgpencil.c
-  editaction_gpencil.c
-  gpencil_add_blank.c
-  gpencil_add_lineart.c
-  gpencil_add_monkey.c
-  gpencil_add_stroke.c
-  gpencil_armature.c
+  annotate_draw.cc
+  annotate_paint.cc
+  drawgpencil.cc
+  editaction_gpencil.cc
+  gpencil_add_blank.cc
+  gpencil_add_lineart.cc
+  gpencil_add_monkey.cc
+  gpencil_add_stroke.cc
+  gpencil_armature.cc
   gpencil_bake_animation.cc
-  gpencil_convert.c
-  gpencil_data.c
-  gpencil_edit.c
-  gpencil_edit_curve.c
-  gpencil_fill.c
-  gpencil_interpolate.c
-  gpencil_merge.c
+  gpencil_convert.cc
+  gpencil_data.cc
+  gpencil_edit.cc
+  gpencil_edit_curve.cc
+  gpencil_fill.cc
+  gpencil_interpolate.cc
+  gpencil_merge.cc
   gpencil_mesh.cc
-  gpencil_ops.c
-  gpencil_ops_versioning.c
-  gpencil_paint.c
-  gpencil_primitive.c
-  gpencil_sculpt_paint.c
-  gpencil_select.c
+  gpencil_ops.cc
+  gpencil_ops_versioning.cc
+  gpencil_paint.cc
+  gpencil_primitive.cc
+  gpencil_sculpt_paint.cc
+  gpencil_select.cc
   gpencil_undo.cc
-  gpencil_utils.c
-  gpencil_uv.c
-  gpencil_vertex_ops.c
-  gpencil_vertex_paint.c
-  gpencil_weight_paint.c
+  gpencil_utils.cc
+  gpencil_uv.cc
+  gpencil_vertex_ops.cc
+  gpencil_vertex_paint.cc
+  gpencil_weight_paint.cc
 
   gpencil_intern.h
   gpencil_trace.h
 )
 
 set(LIB
+  PRIVATE bf::animrig
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_POTRACE)
   list(APPEND SRC
-    gpencil_trace_ops.c
-    gpencil_trace_utils.c
+    gpencil_trace_ops.cc
+    gpencil_trace_utils.cc
   )
   list(APPEND INC
     ${POTRACE_INCLUDE_DIRS}

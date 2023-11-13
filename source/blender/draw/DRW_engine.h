@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,6 +31,7 @@ struct GPUViewport;
 struct ID;
 struct Main;
 struct Object;
+struct RegionView3D;
 struct Render;
 struct RenderEngine;
 struct RenderEngineType;
@@ -41,11 +42,12 @@ struct bContext;
 struct rcti;
 
 void DRW_engines_register(void);
-void DRW_engines_register_experimental(void);
 void DRW_engines_free(void);
 
 bool DRW_engine_render_support(struct DrawEngineType *draw_engine_type);
 void DRW_engine_register(struct DrawEngineType *draw_engine_type);
+
+void DRW_engine_external_free(struct RegionView3D *rv3d);
 
 typedef struct DRWUpdateContext {
   struct Main *bmain;
@@ -139,10 +141,7 @@ void DRW_draw_depth_object(struct Scene *scene,
                            struct View3D *v3d,
                            struct GPUViewport *viewport,
                            struct Object *object);
-void DRW_draw_select_id(struct Depsgraph *depsgraph,
-                        struct ARegion *region,
-                        struct View3D *v3d,
-                        const struct rcti *rect);
+void DRW_draw_select_id(struct Depsgraph *depsgraph, struct ARegion *region, struct View3D *v3d);
 
 /* Grease pencil render. */
 

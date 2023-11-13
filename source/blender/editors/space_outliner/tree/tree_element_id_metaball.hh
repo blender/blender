@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,10 +21,9 @@ class TreeElementIDMetaBall final : public TreeElementID {
   TreeElementIDMetaBall(TreeElement &legacy_te, MetaBall &metaball);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 
  private:
-  void expandMaterials(SpaceOutliner &) const;
+  void expand_materials() const;
 };
 
 }  // namespace blender::ed::outliner

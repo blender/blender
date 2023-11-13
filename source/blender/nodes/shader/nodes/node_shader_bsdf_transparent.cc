@@ -1,8 +1,10 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+
+#include "BLI_math_vector.h"
 
 namespace blender::nodes::node_shader_bsdf_transparent_cc {
 
@@ -25,6 +27,28 @@ static int node_shader_gpu_bsdf_transparent(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_bsdf_transparent", in, out);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  switch (to_type_) {
+    case NodeItem::Type::BSDF: {
+      NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
+      /* Returning diffuse node as BSDF component */
+      return create_node("oren_nayar_diffuse_bsdf", NodeItem::Type::BSDF, {{"color", color}});
+    }
+    case NodeItem::Type::SurfaceOpacity: {
+      NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
+      /* Returning: 1 - <average of color components> */
+      return val(1.0f) - color.dotproduct(val(1.0f / 3.0f));
+    }
+    default:
+      break;
+  }
+  return empty();
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_bsdf_transparent_cc
 
 /* node type definition */
@@ -38,6 +62,7 @@ void register_node_type_sh_bsdf_transparent()
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_transparent;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

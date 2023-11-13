@@ -70,6 +70,8 @@ void BLI_rctf_transform_calc_m4_pivot_min(const rctf *dst, const rctf *src, floa
 
 void BLI_rctf_translate(struct rctf *rect, float x, float y);
 void BLI_rcti_translate(struct rcti *rect, int x, int y);
+void BLI_rctf_mul(struct rctf *rect, float factor);
+void BLI_rcti_mul(struct rcti *rect, int factor);
 void BLI_rcti_recenter(struct rcti *rect, int x, int y);
 void BLI_rctf_recenter(struct rctf *rect, float x, float y);
 void BLI_rcti_resize(struct rcti *rect, int x, int y);

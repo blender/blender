@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,6 @@ namespace blender::compositor {
  * \brief KuwaharaNode
  * \ingroup Node
  */
-
 class KuwaharaNode : public Node {
  public:
   KuwaharaNode(bNode *editor_node) : Node(editor_node) {}

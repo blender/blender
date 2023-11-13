@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,8 +21,8 @@ class TreeElementAnimData final : public AbstractTreeElement {
   void expand(SpaceOutliner &space_outliner) const override;
 
  private:
-  void expand_drivers(SpaceOutliner &space_outliner) const;
-  void expand_NLA_tracks(SpaceOutliner &space_outliner) const;
+  void expand_drivers() const;
+  void expand_NLA_tracks() const;
 };
 
 }  // namespace blender::ed::outliner

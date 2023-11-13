@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(engine_eevee_shared_defines.h)
 #pragma BLENDER_REQUIRE(engine_eevee_legacy_shared.h)
@@ -164,7 +167,7 @@ float sample_cube_shadow(int shadow_id, vec3 P)
   /* TODO: Shadow Cube Array. */
   float face = cubeFaceIndexEEVEE(cubevec);
   vec2 coord = cubeFaceCoordEEVEE(cubevec, face, shadowCubeTexture);
-  /* tex_id == data_id for cube shadowmap */
+  /* `tex_id == data_id` for cube shadow-map. */
   float tex_id = float(data_id);
   return texture(shadowCubeTexture, vec4(coord, tex_id * 6.0 + face, dist));
 }
@@ -325,6 +328,20 @@ float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 
     return ltc_evaluate_disk(N, V, mat3(1.0), points);
   }
+  else if (ld.l_type == POINT) {
+    if (l_vector.w < ld.l_radius) {
+      /* Inside, treat as hemispherical light. */
+      return 1.0;
+    }
+    else {
+      /* Outside, treat as disk light spanning the same solid angle. */
+      /* The result is the same as passing the scaled radius to #ltc_evaluate_disk_simple (see
+       * #light_specular), using simplified math here. */
+      float r_sq = sqr(ld.l_radius / l_vector.w);
+      vec3 L = l_vector.xyz / l_vector.w;
+      return r_sq * diffuse_sphere_integral(dot(N, L), r_sq);
+    }
+  }
   else {
     float radius = ld.l_radius;
     radius /= (ld.l_type == SUN) ? 1.0 : l_vector.w;
@@ -347,10 +364,21 @@ float light_specular(LightData ld, vec4 ltc_mat, vec3 N, vec3 V, vec4 l_vector)
 
     return ltc_evaluate_quad(corners, vec3(0.0, 0.0, 1.0));
   }
+  else if (ld.l_type == POINT && l_vector.w < ld.l_radius) {
+    /* Inside the sphere light, integrate over the hemisphere. */
+    return 1.0;
+  }
   else {
     bool is_ellipse = (ld.l_type == AREA_ELLIPSE);
     float radius_x = is_ellipse ? ld.l_sizex : ld.l_radius;
     float radius_y = is_ellipse ? ld.l_sizey : ld.l_radius;
+
+    if (ld.l_type == POINT) {
+      /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
+       * half-angle spanned by a disk light with the same radius. */
+      radius_x *= inversesqrt(1.0 - sqr(radius_x / l_vector.w));
+      radius_y *= inversesqrt(1.0 - sqr(radius_y / l_vector.w));
+    }
 
     vec3 L = (ld.l_type == SUN) ? -ld.l_forward : l_vector.xyz;
     vec3 Px = ld.l_right;

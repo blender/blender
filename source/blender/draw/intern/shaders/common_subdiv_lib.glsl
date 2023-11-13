@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
@@ -15,7 +18,7 @@ layout(std140) uniform shader_data
   int patches_are_triangular;
 
   /* Coarse topology information. */
-  int coarse_poly_count;
+  int coarse_face_count;
   uint edge_loose_offset;
 
   /* Subdiv topology information. */
@@ -75,20 +78,20 @@ struct PatchCoord {
 };
 
 /* This structure is a carbon copy of OpenSubDiv's PatchCoord.QuadNode.
- * Each child is a bitfield. */
+ * Each child is a bit-field. */
 struct QuadNode {
   uvec4 child;
 };
 
 bool is_set(uint i)
 {
-  /* QuadNode.Child.isSet is the first bit of the bitfield. */
+  /* QuadNode.Child.isSet is the first bit of the bit-field. */
   return (i & 0x1u) != 0;
 }
 
 bool is_leaf(uint i)
 {
-  /* QuadNode.Child.isLeaf is the second bit of the bitfield. */
+  /* QuadNode.Child.isLeaf is the second bit of the bit-field. */
   return (i & 0x2u) != 0;
 }
 
@@ -168,21 +171,21 @@ void add_newell_cross_v3_v3v3(inout vec3 n, vec3 v_prev, vec3 v_curr)
 #ifdef SUBDIV_POLYGON_OFFSET
 layout(std430, binding = 0) readonly buffer inputSubdivPolygonOffset
 {
-  uint subdiv_polygon_offset[];
+  uint subdiv_face_offset[];
 };
 
 /* Given the index of the subdivision quad, return the index of the corresponding coarse polygon.
- * This uses subdiv_polygon_offset and since it is a growing list of offsets, we can use binary
+ * This uses subdiv_face_offset and since it is a growing list of offsets, we can use binary
  * search to locate the right index. */
-uint coarse_polygon_index_from_subdiv_quad_index(uint subdiv_quad_index, uint coarse_poly_count)
+uint coarse_face_index_from_subdiv_quad_index(uint subdiv_quad_index, uint coarse_face_count)
 {
   uint first = 0;
-  uint last = coarse_poly_count;
+  uint last = coarse_face_count;
 
   while (first != last) {
     uint middle = (first + last) / 2;
 
-    if (subdiv_polygon_offset[middle] < subdiv_quad_index) {
+    if (subdiv_face_offset[middle] < subdiv_quad_index) {
       first = middle + 1;
     }
     else {
@@ -190,7 +193,7 @@ uint coarse_polygon_index_from_subdiv_quad_index(uint subdiv_quad_index, uint co
     }
   }
 
-  if (subdiv_polygon_offset[first] == subdiv_quad_index) {
+  if (subdiv_face_offset[first] == subdiv_quad_index) {
     return first;
   }
 

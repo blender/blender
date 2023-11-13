@@ -1,21 +1,17 @@
-# SPDX-FileCopyrightText: 2014 Blender Foundation
+# SPDX-FileCopyrightText: 2014 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   .
   ../blenkernel
-  ../blenlib
   ../bmesh
   ../draw
   ../functions
-  ../makesdna
   ../makesrna
   ../modifiers
   ../sequencer
   ../windowmanager
-  ../../../intern/atomic
-  ../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -82,7 +78,7 @@ set(SRC
   intern/depsgraph_debug.cc
   intern/depsgraph_eval.cc
   intern/depsgraph_light_linking.cc
-  intern/depsgraph_light_linking.h
+  intern/depsgraph_light_linking.hh
   intern/depsgraph_physics.cc
   intern/depsgraph_query.cc
   intern/depsgraph_query_foreach.cc
@@ -93,13 +89,12 @@ set(SRC
   intern/depsgraph_type.cc
   intern/depsgraph_update.cc
 
-  DEG_depsgraph.h
-  DEG_depsgraph_build.h
-  DEG_depsgraph_debug.h
-  DEG_depsgraph_light_linking.h
+  DEG_depsgraph.hh
+  DEG_depsgraph_build.hh
+  DEG_depsgraph_debug.hh
   DEG_depsgraph_light_linking.hh
-  DEG_depsgraph_physics.h
-  DEG_depsgraph_query.h
+  DEG_depsgraph_physics.hh
+  DEG_depsgraph_query.hh
 
   intern/builder/deg_builder.h
   intern/builder/deg_builder_cache.h
@@ -121,7 +116,6 @@ set(SRC
   intern/builder/pipeline_render.h
   intern/builder/pipeline_view_layer.h
   intern/debug/deg_debug.h
-  intern/debug/deg_time_average.h
   intern/eval/deg_eval.h
   intern/eval/deg_eval_copy_on_write.h
   intern/eval/deg_eval_flush.h
@@ -138,24 +132,28 @@ set(SRC
   intern/eval/deg_eval_runtime_backup_sound.h
   intern/eval/deg_eval_runtime_backup_volume.h
   intern/eval/deg_eval_stats.h
-  intern/node/deg_node.h
-  intern/node/deg_node_component.h
-  intern/node/deg_node_factory.h
-  intern/node/deg_node_factory_impl.h
-  intern/node/deg_node_id.h
-  intern/node/deg_node_operation.h
-  intern/node/deg_node_time.h
-  intern/depsgraph.h
-  intern/depsgraph_physics.h
-  intern/depsgraph_registry.h
-  intern/depsgraph_relation.h
-  intern/depsgraph_tag.h
-  intern/depsgraph_type.h
-  intern/depsgraph_update.h
+  intern/node/deg_node.hh
+  intern/node/deg_node_component.hh
+  intern/node/deg_node_factory.hh
+  intern/node/deg_node_factory_impl.hh
+  intern/node/deg_node_id.hh
+  intern/node/deg_node_operation.hh
+  intern/node/deg_node_time.hh
+  intern/depsgraph.hh
+  intern/depsgraph_physics.hh
+  intern/depsgraph_registry.hh
+  intern/depsgraph_relation.hh
+  intern/depsgraph_tag.hh
+  intern/depsgraph_type.hh
+  intern/depsgraph_update.hh
 )
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_PYTHON)
@@ -171,6 +169,8 @@ blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_dependencies(bf_depsgraph bf_rna)
 
 if(WITH_GTESTS)
+  set(TEST_INC
+  )
   set(TEST_SRC
     intern/builder/deg_builder_rna_test.cc
   )

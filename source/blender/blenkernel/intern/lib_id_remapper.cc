@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -138,7 +138,7 @@ static const blender::bke::id::remapper::IDRemapper *unwrap(const IDRemapper *re
 
 extern "C" {
 
-IDRemapper *BKE_id_remapper_create(void)
+IDRemapper *BKE_id_remapper_create()
 {
   blender::bke::id::remapper::IDRemapper *remapper =
       MEM_new<blender::bke::id::remapper::IDRemapper>(__func__);

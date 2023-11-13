@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -149,8 +149,9 @@ class GHOST_Wintab {
    * \param wtY: Wintab cursor y position.
    * \return True if Win32 and Wintab cursor positions match within tolerance.
    *
-   * NOTE: Only test coordinates on button press, not release. This prevents issues when async
-   * mismatch causes mouse movement to replay and snap back, which is only an issue while drawing.
+   * NOTE: Only test coordinates on button press, not release.
+   * This prevents issues when asynchronous mismatch causes mouse movement to replay
+   * and snap back, which is only an issue while drawing.
    */
   bool testCoordinates(int sysX, int sysY, int wtX, int wtY);
 
@@ -237,7 +238,7 @@ class GHOST_Wintab {
                unique_hctx hctx,
                Coord tablet,
                Coord system,
-               int queueSize);
+               size_t queueSize);
 
   /**
    * Convert Wintab system mapped (mouse) buttons into Ghost button mask.

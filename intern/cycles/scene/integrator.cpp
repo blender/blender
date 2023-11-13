@@ -158,8 +158,9 @@ Integrator::~Integrator() {}
 
 void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
-  if (!is_modified())
+  if (!is_modified()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -322,15 +323,6 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
     /* tag only the ao_bounces socket as modified so we avoid updating sample_pattern_lut
      * unnecessarily */
     tag_ao_bounces_modified();
-  }
-
-  if (filter_glossy_is_modified()) {
-    foreach (Shader *shader, scene->shaders) {
-      if (shader->has_integrator_dependency) {
-        scene->shader_manager->tag_update(scene, ShaderManager::INTEGRATOR_MODIFIED);
-        break;
-      }
-    }
   }
 
   if (motion_blur_is_modified()) {

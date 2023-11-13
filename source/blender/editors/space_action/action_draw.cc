@@ -14,7 +14,7 @@
 #include <cstring>
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
 /* Types --------------------------------------------------------------- */
@@ -29,10 +29,10 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h"
+#include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_context.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_pointcache.h"
-#include "BKE_simulation_state.hh"
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */
 
@@ -40,12 +40,14 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_draw.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_draw.hh"
+
+#include "MOD_nodes.hh"
 
 #include "action_intern.hh"
 
@@ -179,21 +181,12 @@ static void draw_channel_action_ranges(ListBase *anim_data, View2D *v2d)
   }
 }
 
-void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)
+static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, uint pos)
 {
-  ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
-
-  View2D *v2d = &region->v2d;
-  bDopeSheet *ads = &saction->ads;
-  AnimData *adt = nullptr;
-
   uchar col1[4], col2[4];
   uchar col1a[4], col2a[4];
   uchar col1b[4], col2b[4];
   uchar col_summary[4];
-
-  const bool show_group_colors = U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
 
   /* get theme colors */
   UI_GetThemeColor4ubv(TH_SHADE2, col2);
@@ -205,6 +198,268 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
 
   UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELOB, col1b);
   UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
+
+  float ymax = ANIM_UI_get_first_channel_top(v2d);
+  const float channel_step = ANIM_UI_get_channel_step();
+  bAnimListElem *ale;
+  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+       ale = ale->next, ymax -= channel_step)
+  {
+    const float ymin = ymax - ANIM_UI_get_channel_height();
+
+    /* check if visible */
+    if (!(IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)))
+    {
+      continue;
+    }
+    const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+    int sel = 0;
+
+    /* determine if any need to draw channel */
+    if (ale->datatype == ALE_NONE) {
+      continue;
+    }
+    /* determine if channel is selected */
+    if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT)) {
+      sel = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
+    }
+
+    if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
+      switch (ale->type) {
+        case ANIMTYPE_SUMMARY: {
+          /* reddish color from NLA */
+          immUniformThemeColor(TH_ANIM_ACTIVE);
+          break;
+        }
+        case ANIMTYPE_SCENE:
+        case ANIMTYPE_OBJECT: {
+          immUniformColor3ubvAlpha(col1b, sel ? col1[3] : col1b[3]);
+          break;
+        }
+        case ANIMTYPE_FILLACTD:
+        case ANIMTYPE_DSSKEY:
+        case ANIMTYPE_DSWOR: {
+          immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
+          break;
+        }
+        case ANIMTYPE_GROUP:
+          immUniformColor4ubv(sel ? col1a : col2a);
+          break;
+        default: {
+          immUniformColor4ubv(sel ? col1 : col2);
+        }
+      }
+
+      /* draw region twice: firstly backdrop, then the current range */
+      immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+    }
+    else if (ac->datatype == ANIMCONT_GPENCIL) {
+      uchar *color;
+      switch (ale->type) {
+        case ANIMTYPE_SUMMARY:
+          color = col_summary;
+          break;
+
+        case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+          color = sel ? col1a : col2a;
+          break;
+
+        case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+          color = col2b;
+          color[3] = sel ? col1[3] : col2b[3];
+          break;
+
+        default:
+          color = sel ? col1 : col2;
+          break;
+      }
+
+      /* Color overlay on frames between the start/end frames. */
+      immUniformColor4ubv(color);
+      immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+      /* Color overlay outside the start/end frame range get a more transparent overlay. */
+      immUniformColor3ubvAlpha(color, std::min(255, color[3] / 2));
+      immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+      immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+    }
+    else if (ac->datatype == ANIMCONT_MASK) {
+      /* TODO: this is a copy of gpencil. */
+      uchar *color;
+      if (ale->type == ANIMTYPE_SUMMARY) {
+        color = col_summary;
+      }
+      else {
+        color = sel ? col1 : col2;
+      }
+
+      /* Color overlay on frames between the start/end frames. */
+      immUniformColor4ubv(color);
+      immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+      /* Color overlay outside the start/end frame range get a more transparent overlay. */
+      immUniformColor3ubvAlpha(color, std::min(255, color[3] / 2));
+      immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+      immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+    }
+
+    /* Alpha-over the channel color, if it's there. */
+    {
+      const bool show_group_colors = U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
+      uint8_t color[3];
+      if (show_group_colors && acf->get_channel_color && acf->get_channel_color(ale, color)) {
+        immUniformColor3ubvAlpha(color, 32);
+        immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+      }
+    }
+  }
+}
+
+static void draw_keyframes(bAnimContext *ac,
+                           View2D *v2d,
+                           SpaceAction *saction,
+                           ListBase &anim_data)
+{
+  /* Draw keyframes
+   * 1) Only channels that are visible in the Action Editor get drawn/evaluated.
+   *    This is to try to optimize this for heavier data sets
+   * 2) Keyframes which are out of view horizontally are disregarded
+   */
+  int action_flag = saction->flag;
+  bDopeSheet *ads = &saction->ads;
+
+  if (saction->mode == SACTCONT_TIMELINE) {
+    action_flag &= ~(SACTION_SHOW_INTERPOLATION | SACTION_SHOW_EXTREMES);
+  }
+
+  const float channel_step = ANIM_UI_get_channel_step();
+  float ymax = ANIM_UI_get_first_channel_top(v2d);
+
+  ChannelDrawList *draw_list = ED_channel_draw_list_create();
+
+  const float scale_factor = ANIM_UI_get_keyframe_scale_factor();
+
+  bAnimListElem *ale;
+  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+       ale = ale->next, ymax -= channel_step)
+  {
+    const float ymin = ymax - ANIM_UI_get_channel_height();
+    float ycenter = (ymin + ymax) / 2.0f;
+
+    /* check if visible */
+    if (!(IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)))
+    {
+      continue;
+    }
+
+    /* check if anything to show for this channel */
+    if (ale->datatype == ALE_NONE) {
+      continue;
+    }
+
+    AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+
+    /* Add channels to list to draw later. */
+    switch (ale->datatype) {
+      case ALE_ALL:
+        ED_add_summary_channel(
+            draw_list, static_cast<bAnimContext *>(ale->data), ycenter, scale_factor, action_flag);
+        break;
+      case ALE_SCE:
+        ED_add_scene_channel(draw_list,
+                             ads,
+                             static_cast<Scene *>(ale->key_data),
+                             ycenter,
+                             scale_factor,
+                             action_flag);
+        break;
+      case ALE_OB:
+        ED_add_object_channel(draw_list,
+                              ads,
+                              static_cast<Object *>(ale->key_data),
+                              ycenter,
+                              scale_factor,
+                              action_flag);
+        break;
+      case ALE_ACT:
+        ED_add_action_channel(draw_list,
+                              adt,
+                              static_cast<bAction *>(ale->key_data),
+                              ycenter,
+                              scale_factor,
+                              action_flag);
+        break;
+      case ALE_GROUP:
+        ED_add_action_group_channel(draw_list,
+                                    adt,
+                                    static_cast<bActionGroup *>(ale->data),
+                                    ycenter,
+                                    scale_factor,
+                                    action_flag);
+        break;
+      case ALE_FCURVE:
+        ED_add_fcurve_channel(draw_list,
+                              adt,
+                              static_cast<FCurve *>(ale->key_data),
+                              ycenter,
+                              scale_factor,
+                              action_flag);
+        break;
+      case ALE_GREASE_PENCIL_CEL:
+        ED_add_grease_pencil_cels_channel(draw_list,
+                                          ads,
+                                          static_cast<const GreasePencilLayer *>(ale->data),
+                                          ycenter,
+                                          scale_factor,
+                                          action_flag);
+        break;
+      case ALE_GREASE_PENCIL_GROUP:
+        ED_add_grease_pencil_layer_group_channel(
+            draw_list,
+            ads,
+            static_cast<const GreasePencilLayerTreeGroup *>(ale->data),
+            ycenter,
+            scale_factor,
+            action_flag);
+        break;
+      case ALE_GREASE_PENCIL_DATA:
+        ED_add_grease_pencil_datablock_channel(draw_list,
+                                               ads,
+                                               static_cast<const GreasePencil *>(ale->data),
+                                               ycenter,
+                                               scale_factor,
+                                               action_flag);
+        break;
+      case ALE_GPFRAME:
+        ED_add_grease_pencil_layer_legacy_channel(draw_list,
+                                                  ads,
+                                                  static_cast<bGPDlayer *>(ale->data),
+                                                  ycenter,
+                                                  scale_factor,
+                                                  action_flag);
+        break;
+      case ALE_MASKLAY:
+        ED_add_mask_layer_channel(draw_list,
+                                  ads,
+                                  static_cast<MaskLayer *>(ale->data),
+                                  ycenter,
+                                  scale_factor,
+                                  action_flag);
+        break;
+    }
+  }
+
+  /* Drawing happens in here. */
+  ED_channel_list_flush(draw_list, v2d);
+  ED_channel_list_free(draw_list);
+}
+
+void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)
+{
+  ListBase anim_data = {nullptr, nullptr};
+  View2D *v2d = &region->v2d;
 
   /* build list of channels to draw */
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -231,139 +486,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* first backdrop strips */
-  float ymax = ANIM_UI_get_first_channel_top(v2d);
-  const float channel_step = ANIM_UI_get_channel_step();
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step)
-  {
-    const float ymin = ymax - ANIM_UI_get_channel_height();
+  draw_backdrops(ac, anim_data, v2d, pos);
 
-    /* check if visible */
-    if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
-      const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-      int sel = 0;
-
-      /* determine if any need to draw channel */
-      if (ale->datatype != ALE_NONE) {
-        /* determine if channel is selected */
-        if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT)) {
-          sel = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
-        }
-
-        if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
-          switch (ale->type) {
-            case ANIMTYPE_SUMMARY: {
-              /* reddish color from NLA */
-              immUniformThemeColor(TH_ANIM_ACTIVE);
-              break;
-            }
-            case ANIMTYPE_SCENE:
-            case ANIMTYPE_OBJECT: {
-              immUniformColor3ubvAlpha(col1b, sel ? col1[3] : col1b[3]);
-              break;
-            }
-            case ANIMTYPE_FILLACTD:
-            case ANIMTYPE_DSSKEY:
-            case ANIMTYPE_DSWOR: {
-              immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
-              break;
-            }
-            case ANIMTYPE_GROUP: {
-              bActionGroup *agrp = static_cast<bActionGroup *>(ale->data);
-              if (show_group_colors && agrp->customCol) {
-                if (sel) {
-                  immUniformColor3ubvAlpha((uchar *)agrp->cs.select, col1a[3]);
-                }
-                else {
-                  immUniformColor3ubvAlpha((uchar *)agrp->cs.solid, col2a[3]);
-                }
-              }
-              else {
-                immUniformColor4ubv(sel ? col1a : col2a);
-              }
-              break;
-            }
-            case ANIMTYPE_FCURVE: {
-              FCurve *fcu = static_cast<FCurve *>(ale->data);
-              if (show_group_colors && fcu->grp && fcu->grp->customCol) {
-                immUniformColor3ubvAlpha((uchar *)fcu->grp->cs.active, sel ? col1[3] : col2[3]);
-              }
-              else {
-                immUniformColor4ubv(sel ? col1 : col2);
-              }
-              break;
-            }
-            case ANIMTYPE_GPLAYER: {
-              if (show_group_colors) {
-                uchar gpl_col[4];
-                bGPDlayer *gpl = (bGPDlayer *)ale->data;
-                rgb_float_to_uchar(gpl_col, gpl->color);
-                gpl_col[3] = col1[3];
-
-                immUniformColor4ubv(sel ? col1 : gpl_col);
-              }
-              else {
-                immUniformColor4ubv(sel ? col1 : col2);
-              }
-              break;
-            }
-            default: {
-              immUniformColor4ubv(sel ? col1 : col2);
-            }
-          }
-
-          /* draw region twice: firstly backdrop, then the current range */
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
-        }
-        else if (ac->datatype == ANIMCONT_GPENCIL) {
-          uchar *color;
-          uchar gpl_col[4];
-          if (ale->type == ANIMTYPE_SUMMARY) {
-            color = col_summary;
-          }
-          else if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
-            bGPDlayer *gpl = (bGPDlayer *)ale->data;
-            rgb_float_to_uchar(gpl_col, gpl->color);
-            gpl_col[3] = col1[3];
-
-            color = sel ? col1 : gpl_col;
-          }
-          else {
-            color = sel ? col1 : col2;
-          }
-
-          /* Color overlay on frames between the start/end frames. */
-          immUniformColor4ubv(color);
-          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
-
-          /* Color overlay outside the start/end frame range get a more transparent overlay. */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
-          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
-          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
-        }
-        else if (ac->datatype == ANIMCONT_MASK) {
-          /* TODO: this is a copy of gpencil. */
-          uchar *color;
-          if (ale->type == ANIMTYPE_SUMMARY) {
-            color = col_summary;
-          }
-          else {
-            color = sel ? col1 : col2;
-          }
-
-          /* Color overlay on frames between the start/end frames. */
-          immUniformColor4ubv(color);
-          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
-
-          /* Color overlay outside the start/end frame range get a more transparent overlay. */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
-          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
-          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
-        }
-      }
-    }
-  }
   GPU_blend(GPU_BLEND_NONE);
 
   /* black line marking 'current frame' for Time-Slide transform mode */
@@ -377,108 +501,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   }
   immUnbindProgram();
 
-  /* Draw keyframes
-   * 1) Only channels that are visible in the Action Editor get drawn/evaluated.
-   *    This is to try to optimize this for heavier data sets
-   * 2) Keyframes which are out of view horizontally are disregarded
-   */
-  int action_flag = saction->flag;
-
-  if (saction->mode == SACTCONT_TIMELINE) {
-    action_flag &= ~(SACTION_SHOW_INTERPOLATION | SACTION_SHOW_EXTREMES);
-  }
-
-  ymax = ANIM_UI_get_first_channel_top(v2d);
-
-  AnimKeylistDrawList *draw_list = ED_keylist_draw_list_create();
-
-  const float scale_factor = ANIM_UI_get_keyframe_scale_factor();
-
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step)
-  {
-    const float ymin = ymax - ANIM_UI_get_channel_height();
-    float ycenter = (ymin + ymax) / 2.0f;
-
-    /* check if visible */
-    if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
-      /* check if anything to show for this channel */
-      if (ale->datatype != ALE_NONE) {
-        adt = ANIM_nla_mapping_get(ac, ale);
-
-        /* draw 'keyframes' for each specific datatype */
-        switch (ale->datatype) {
-          case ALE_ALL:
-            draw_summary_channel(draw_list,
-                                 static_cast<bAnimContext *>(ale->data),
-                                 ycenter,
-                                 scale_factor,
-                                 action_flag);
-            break;
-          case ALE_SCE:
-            draw_scene_channel(draw_list,
-                               ads,
-                               static_cast<Scene *>(ale->key_data),
-                               ycenter,
-                               scale_factor,
-                               action_flag);
-            break;
-          case ALE_OB:
-            draw_object_channel(draw_list,
-                                ads,
-                                static_cast<Object *>(ale->key_data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_ACT:
-            draw_action_channel(draw_list,
-                                adt,
-                                static_cast<bAction *>(ale->key_data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_GROUP:
-            draw_agroup_channel(draw_list,
-                                adt,
-                                static_cast<bActionGroup *>(ale->data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_FCURVE:
-            draw_fcurve_channel(draw_list,
-                                adt,
-                                static_cast<FCurve *>(ale->key_data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_GPFRAME:
-            draw_gpl_channel(draw_list,
-                             ads,
-                             static_cast<bGPDlayer *>(ale->data),
-                             ycenter,
-                             scale_factor,
-                             action_flag);
-            break;
-          case ALE_MASKLAY:
-            draw_masklay_channel(draw_list,
-                                 ads,
-                                 static_cast<MaskLayer *>(ale->data),
-                                 ycenter,
-                                 scale_factor,
-                                 action_flag);
-            break;
-        }
-      }
-    }
-  }
-
-  ED_keylist_draw_list_flush(draw_list, v2d);
-  ED_keylist_draw_list_free(draw_list);
+  draw_keyframes(ac, v2d, saction, anim_data);
 
   /* free temporary channels used for drawing */
   ANIM_animdata_freelist(&anim_data);
@@ -578,17 +601,19 @@ static void timeline_cache_color_get(PTCacheID *pid, float color[4])
   }
 }
 
-static void timeline_cache_modify_color_based_on_state(PointCache *cache, float color[4])
+static void timeline_cache_modify_color_based_on_state(PointCache *cache,
+                                                       float color[4],
+                                                       float color_state[4])
 {
   if (cache->flag & PTCACHE_BAKED) {
-    color[0] -= 0.4f;
-    color[1] -= 0.4f;
-    color[2] -= 0.4f;
+    color[3] = color_state[3] = 1.0f;
   }
   else if (cache->flag & PTCACHE_OUTDATED) {
-    color[0] += 0.4f;
-    color[1] += 0.4f;
-    color[2] += 0.4f;
+    color[3] = color_state[3] = 0.7f;
+    mul_v3_fl(color_state, 0.5f);
+  }
+  else {
+    color[3] = color_state[3] = 0.7f;
   }
 }
 
@@ -654,7 +679,7 @@ static void timeline_cache_draw_cached_segments(PointCache *cache, uint pos_id)
   int segment_start;
   int segment_end;
   while (timeline_cache_find_next_cached_segment(cache, current, &segment_start, &segment_end)) {
-    immRectf_fast(pos_id, segment_start - 0.5f, 0, segment_end + 0.5f, 1.0f);
+    immRectf_fast(pos_id, segment_start, 0, segment_end + 1.0f, 1.0f);
     current = segment_end + 1;
   }
 
@@ -667,65 +692,143 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
   GPU_matrix_scale_2f(1.0, height);
 
-  float color[4];
+  blender::ColorTheme4f color;
   timeline_cache_color_get(pid, color);
 
-  immUniformColor4fv(color);
+  /* Mix in the background color to tone it down a bit. */
+  blender::ColorTheme4f background;
+  UI_GetThemeColor4fv(TH_BACK, background);
+
+  interp_v3_v3v3(color, color, background, 0.6f);
+
+  /* Highlight the frame range of the simulation. */
+  immUniform4fv("color1", color);
+  immUniform4fv("color2", color);
   immRectf(pos_id, float(pid->cache->startframe), 0.0, float(pid->cache->endframe), 1.0);
 
-  color[3] = 0.4f;
-  timeline_cache_modify_color_based_on_state(pid->cache, color);
-  immUniformColor4fv(color);
+  /* Now show the cached frames on top. */
+  blender::ColorTheme4f color_state;
+  copy_v4_v4(color_state, color);
+
+  timeline_cache_modify_color_based_on_state(pid->cache, color, color_state);
+
+  immUniform4fv("color1", color);
+  immUniform4fv("color2", color_state);
 
   timeline_cache_draw_cached_segments(pid->cache, pos_id);
 
   GPU_matrix_pop();
 }
 
+struct SimulationRange {
+  blender::IndexRange frames;
+  blender::bke::bake::CacheStatus status;
+};
+
 static void timeline_cache_draw_simulation_nodes(
-    const Scene &scene,
-    const blender::bke::sim::ModifierSimulationCache &cache,
-    const float y_offset,
-    const float height,
+    const blender::Span<SimulationRange> simulation_ranges,
+    const bool all_simulations_baked,
+    float *y_offset,
+    const float line_height,
     const uint pos_id)
 {
+  if (simulation_ranges.is_empty()) {
+    return;
+  }
+
+  bool has_bake = false;
+
+  for (const SimulationRange &sim_range : simulation_ranges) {
+    switch (sim_range.status) {
+      case blender::bke::bake::CacheStatus::Invalid:
+      case blender::bke::bake::CacheStatus::Valid:
+        break;
+      case blender::bke::bake::CacheStatus::Baked:
+        has_bake = true;
+        break;
+    }
+  }
+
+  blender::Set<int> status_change_frames_set;
+  for (const SimulationRange &sim_range : simulation_ranges) {
+    status_change_frames_set.add(sim_range.frames.first());
+    status_change_frames_set.add(sim_range.frames.one_after_last());
+  }
+  blender::Vector<int> status_change_frames;
+  status_change_frames.extend(status_change_frames_set.begin(), status_change_frames_set.end());
+  std::sort(status_change_frames.begin(), status_change_frames.end());
+  const blender::OffsetIndices<int> frame_ranges = status_change_frames.as_span();
+
   GPU_matrix_push();
-  GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
-  GPU_matrix_scale_2f(1.0, height);
+  GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + *y_offset);
+  GPU_matrix_scale_2f(1.0, line_height);
 
-  float color[4];
-  UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, color);
-  switch (cache.cache_state()) {
-    case blender::bke::sim::CacheState::Invalid: {
-      color[3] = 0.4f;
-      break;
+  blender::ColorTheme4f base_color;
+  UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, base_color);
+  blender::ColorTheme4f invalid_color = base_color;
+  mul_v3_fl(invalid_color, 0.5f);
+  invalid_color.a *= 0.7f;
+  blender::ColorTheme4f valid_color = base_color;
+  valid_color.a *= 0.7f;
+  blender::ColorTheme4f baked_color = base_color;
+
+  float max_used_height = 1.0f;
+  for (const int range_i : frame_ranges.index_range()) {
+    const blender::IndexRange frame_range = frame_ranges[range_i];
+    const int start_frame = frame_range.first();
+    const int end_frame = frame_range.last();
+
+    bool has_bake_at_frame = false;
+    bool has_valid_at_frame = false;
+    bool has_invalid_at_frame = false;
+    for (const SimulationRange &sim_range : simulation_ranges) {
+      if (sim_range.frames.contains(start_frame)) {
+        switch (sim_range.status) {
+          case blender::bke::bake::CacheStatus::Invalid:
+            has_invalid_at_frame = true;
+            break;
+          case blender::bke::bake::CacheStatus::Valid:
+            has_valid_at_frame = true;
+            break;
+          case blender::bke::bake::CacheStatus::Baked:
+            has_bake_at_frame = true;
+            break;
+        }
+      }
     }
-    case blender::bke::sim::CacheState::Valid: {
-      color[3] = 0.7f;
-      break;
+    if (!(has_bake_at_frame || has_valid_at_frame || has_invalid_at_frame)) {
+      continue;
     }
-    case blender::bke::sim::CacheState::Baked: {
-      color[3] = 1.0f;
-      break;
+
+    if (all_simulations_baked) {
+      immUniform4fv("color1", baked_color);
+      immUniform4fv("color2", baked_color);
+      immBeginAtMost(GPU_PRIM_TRIS, 6);
+      immRectf_fast(pos_id, start_frame, 0, end_frame + 1.0f, 1.0f);
+      immEnd();
+    }
+    else {
+      if (has_valid_at_frame || has_invalid_at_frame) {
+        immUniform4fv("color1", valid_color);
+        immUniform4fv("color2", has_invalid_at_frame ? invalid_color : valid_color);
+        immBeginAtMost(GPU_PRIM_TRIS, 6);
+        const float top = has_bake ? 2.0f : 1.0f;
+        immRectf_fast(pos_id, start_frame, 0.0f, end_frame + 1.0f, top);
+        immEnd();
+        max_used_height = top;
+      }
+      if (has_bake_at_frame) {
+        immUniform4fv("color1", baked_color);
+        immUniform4fv("color2", baked_color);
+        immBeginAtMost(GPU_PRIM_TRIS, 6);
+        immRectf_fast(pos_id, start_frame, 0, end_frame + 1.0f, 1.0f);
+        immEnd();
+      }
     }
   }
-
-  immUniformColor4fv(color);
-
-  const int start_frame = scene.r.sfra;
-  const int end_frame = scene.r.efra;
-  const int frames_num = end_frame - start_frame + 1;
-  const blender::IndexRange frames_range(start_frame, frames_num);
-
-  immBeginAtMost(GPU_PRIM_TRIS, frames_num * 6);
-  for (const int frame : frames_range) {
-    if (cache.has_state_at_frame(frame)) {
-      immRectf_fast(pos_id, frame - 0.5f, 0, frame + 0.5f, 1.0f);
-    }
-  }
-  immEnd();
-
   GPU_matrix_pop();
+
+  *y_offset += max_used_height * 2;
 }
 
 void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene)
@@ -739,13 +842,17 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
 
   uint pos_id = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Iterate over point-caches on the active object, and draw each one's range. */
   float y_offset = 0.0f;
   const float cache_draw_height = 4.0f * UI_SCALE_FAC * U.pixelsize;
+
+  immUniform1i("size1", cache_draw_height * 2.0f);
+  immUniform1i("size2", cache_draw_height);
+
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
     if (timeline_cache_is_hidden_by_setting(saction, pid)) {
       continue;
@@ -760,6 +867,8 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     y_offset += cache_draw_height;
   }
   if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
+    blender::Vector<SimulationRange> simulation_ranges;
+    bool all_simulations_baked = true;
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type != eModifierType_Nodes) {
         continue;
@@ -768,16 +877,35 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
       if (nmd->node_group == nullptr) {
         continue;
       }
-      if (nmd->simulation_cache == nullptr) {
+      if (!nmd->runtime->cache) {
         continue;
       }
       if ((nmd->node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE) == 0) {
         continue;
       }
-      timeline_cache_draw_simulation_nodes(
-          *scene, *nmd->simulation_cache->ptr, y_offset, cache_draw_height, pos_id);
-      y_offset += cache_draw_height;
+      const blender::bke::bake::ModifierCache &modifier_cache = *nmd->runtime->cache;
+      {
+        std::lock_guard lock{modifier_cache.mutex};
+        for (const std::unique_ptr<blender::bke::bake::NodeCache> &node_cache_ptr :
+             modifier_cache.cache_by_id.values())
+        {
+          const blender::bke::bake::NodeCache &node_cache = *node_cache_ptr;
+          if (node_cache.frame_caches.is_empty()) {
+            all_simulations_baked = false;
+            continue;
+          }
+          if (node_cache.cache_status != blender::bke::bake::CacheStatus::Baked) {
+            all_simulations_baked = false;
+          }
+          const int start_frame = node_cache.frame_caches.first()->frame.frame();
+          const int end_frame = node_cache.frame_caches.last()->frame.frame();
+          const blender::IndexRange frame_range{start_frame, end_frame - start_frame + 1};
+          simulation_ranges.append({frame_range, node_cache.cache_status});
+        }
+      }
     }
+    timeline_cache_draw_simulation_nodes(
+        simulation_ranges, all_simulations_baked, &y_offset, cache_draw_height, pos_id);
   }
 
   GPU_blend(GPU_BLEND_NONE);

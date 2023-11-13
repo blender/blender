@@ -36,6 +36,7 @@ extern "C" {
   * \endcode
   *
   * In order to use this module, the PaSTiX headers must be accessible from the include paths, and your binary must be linked to the PaSTiX library and its dependencies.
+  * This wrapper resuires PaStiX version 5.x compiled without MPI support.
   * The dependencies depend on how PaSTiX has been compiled.
   * For a cmake based project, you can use our FindPaSTiX.cmake module to help you in this task.
   *

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -40,10 +43,10 @@ void main()
                                unused_color,
                                unused_strength,
                                unused_uv,
-                               gp_interp.sspos,
-                               gp_interp.aspect,
-                               gp_interp.thickness,
-                               gp_interp.hardness);
+                               gp_interp_flat.sspos,
+                               gp_interp_flat.aspect,
+                               gp_interp_noperspective.thickness,
+                               gp_interp_noperspective.hardness);
 
   /* Small bias to always be on top of the geom. */
   gl_Position.z -= 1e-3;

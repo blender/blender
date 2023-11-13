@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,13 +13,15 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_fileops.h"
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #ifdef __LITTLE_ENDIAN__
 #  include "BLI_endian_switch.h"
 #endif
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
+
+#include "BLT_translation.h"
 
 #include "DNA_modifier_types.h"
 
@@ -36,7 +38,7 @@ static bool meshcache_read_mdd_head(FILE *fp,
                                     const char **err_str)
 {
   if (!fread(mdd_head, sizeof(*mdd_head), 1, fp)) {
-    *err_str = "Missing header";
+    *err_str = TIP_("Missing header");
     return false;
   }
 
@@ -45,12 +47,12 @@ static bool meshcache_read_mdd_head(FILE *fp,
 #endif
 
   if (mdd_head->verts_tot != verts_tot) {
-    *err_str = "Vertex count mismatch";
+    *err_str = TIP_("Vertex count mismatch");
     return false;
   }
 
   if (mdd_head->frame_tot <= 0) {
-    *err_str = "Invalid frame total";
+    *err_str = TIP_("Invalid frame total");
     return false;
   }
   /* Intentionally don't seek back. */
@@ -114,7 +116,7 @@ static bool meshcache_read_mdd_range_from_time(FILE *fp,
   }
 
   if (frames_num_read != frames_num_expect) {
-    *err_str = errno ? strerror(errno) : "Timestamp read failed";
+    *err_str = errno ? strerror(errno) : TIP_("Timestamp read failed");
     return false;
   }
 
@@ -150,12 +152,12 @@ bool MOD_meshcache_read_mdd_index(FILE *fp,
   }
 
   if (BLI_fseek(fp, mdd_head.frame_tot * sizeof(int), SEEK_CUR) != 0) {
-    *err_str = "Header seek failed";
+    *err_str = TIP_("Header seek failed");
     return false;
   }
 
   if (BLI_fseek(fp, sizeof(float[3]) * index * mdd_head.verts_tot, SEEK_CUR) != 0) {
-    *err_str = "Failed to seek frame";
+    *err_str = TIP_("Failed to seek frame");
     return false;
   }
 
@@ -177,7 +179,7 @@ bool MOD_meshcache_read_mdd_index(FILE *fp,
 #else
     /* no blending */
     if (!fread(vertexCos, sizeof(float[3]), mdd_head.verts_tot, f)) {
-      *err_str = errno ? strerror(errno) : "Failed to read frame";
+      *err_str = errno ? strerror(errno) : TIP_("Failed to read frame");
       return false;
     }
 #  ifdef __LITTLE_ENDIAN__
@@ -206,7 +208,7 @@ bool MOD_meshcache_read_mdd_index(FILE *fp,
   }
 
   if (verts_read_num != mdd_head.verts_tot) {
-    *err_str = errno ? strerror(errno) : "Vertex coordinate read failed";
+    *err_str = errno ? strerror(errno) : TIP_("Vertex coordinate read failed");
     return false;
   }
 
@@ -272,7 +274,7 @@ bool MOD_meshcache_read_mdd_times(const char *filepath,
   bool ok;
 
   if (fp == nullptr) {
-    *err_str = errno ? strerror(errno) : "Unknown error opening file";
+    *err_str = errno ? strerror(errno) : TIP_("Unknown error opening file");
     return false;
   }
 

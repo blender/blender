@@ -84,7 +84,7 @@ MatrixBase<Derived>::eigenvalues() const
   * \sa SelfAdjointEigenSolver::eigenvalues(), MatrixBase::eigenvalues()
   */
 template<typename MatrixType, unsigned int UpLo> 
-inline typename SelfAdjointView<MatrixType, UpLo>::EigenvaluesReturnType
+EIGEN_DEVICE_FUNC inline typename SelfAdjointView<MatrixType, UpLo>::EigenvaluesReturnType
 SelfAdjointView<MatrixType, UpLo>::eigenvalues() const
 {
   PlainObject thisAsMatrix(*this);
@@ -147,7 +147,7 @@ MatrixBase<Derived>::operatorNorm() const
   * \sa eigenvalues(), MatrixBase::operatorNorm()
   */
 template<typename MatrixType, unsigned int UpLo>
-inline typename SelfAdjointView<MatrixType, UpLo>::RealScalar
+EIGEN_DEVICE_FUNC inline typename SelfAdjointView<MatrixType, UpLo>::RealScalar
 SelfAdjointView<MatrixType, UpLo>::operatorNorm() const
 {
   return eigenvalues().cwiseAbs().maxCoeff();

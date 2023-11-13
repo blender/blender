@@ -1,8 +1,13 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
+
+#include "BKE_texture.h"
+
+#include "NOD_multi_function.hh"
 
 namespace blender::nodes::node_shader_tex_checker_cc {
 
@@ -97,6 +102,28 @@ static void sh_node_tex_checker_build_multi_function(NodeMultiFunctionBuilder &b
   builder.set_matching_fn(fn);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector2);
+  if (!vector) {
+    vector = texcoord_node();
+  }
+  NodeItem value1 = val(1.0f);
+  NodeItem value2 = val(0.0f);
+  if (STREQ(socket_out_->name, "Color")) {
+    value1 = get_input_value("Color1", NodeItem::Type::Color4);
+    value2 = get_input_value("Color2", NodeItem::Type::Color4);
+  }
+  NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
+
+  vector = (vector * scale) % val(2.0f);
+  return (vector[0].floor() + vector[1].floor())
+      .if_else(NodeItem::CompareOp::Eq, val(1.0f), value1, value2);
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_tex_checker_cc
 
 void register_node_type_sh_tex_checker()
@@ -112,6 +139,7 @@ void register_node_type_sh_tex_checker()
       &ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_checker;
   ntype.build_multi_function = file_ns::sh_node_tex_checker_build_multi_function;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

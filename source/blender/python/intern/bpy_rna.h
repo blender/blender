@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,7 +32,7 @@
 
 #endif /* !WITH_PYTHON_SAFETY */
 
-/* sanity checks on above defs */
+/* Sanity checks on above defines. */
 #if defined(USE_PYRNA_INVALIDATE_WEAKREF) && !defined(USE_WEAKREFS)
 #  define USE_WEAKREFS
 #endif
@@ -109,7 +109,7 @@ typedef struct {
   PointerRNA ptr;
 } BPy_DummyPointerRNA;
 
-typedef struct {
+typedef struct BPy_StructRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;
@@ -122,8 +122,9 @@ typedef struct {
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
 #ifdef PYRNA_FREE_SUPPORT
-  bool freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
-#endif          /* PYRNA_FREE_SUPPORT */
+  /** Needed in some cases if ptr.data is created on the fly, free when deallocating. */
+  bool freeptr;
+#endif /* PYRNA_FREE_SUPPORT */
 } BPy_StructRNA;
 
 typedef struct {

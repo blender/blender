@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -45,7 +45,7 @@ PyDoc_STRVAR(Integrator_integrate_doc,
              "   :arg integration_type: The integration method used to compute a\n"
              "      single value from a set of values.\n"
              "   :type integration_type: :class:`IntegrationType`\n"
-             "   :return: The single value obtained for the 1D element.  The return\n"
+             "   :return: The single value obtained for the 1D element. The return\n"
              "      value type is float if func is of the :class:`UnaryFunction0DDouble`\n"
              "      or :class:`UnaryFunction0DFloat` type, and int if func is of the\n"
              "      :class:`UnaryFunction0DUnsigned` type.\n"
@@ -114,7 +114,7 @@ static PyMethodDef module_functions[] = {
 /*-----------------------Integrator module definition--------------------------------------*/
 
 static PyModuleDef module_definition = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "Freestyle.Integrator",
     /*m_doc*/ module_docstring,
     /*m_size*/ -1,
@@ -146,7 +146,7 @@ PyDoc_STRVAR(IntegrationType_doc,
              "  last of the values obtained for the 0D elements.");
 
 PyTypeObject IntegrationType_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "IntegrationType",
     /*tp_basicsize*/ sizeof(PyLongObject),
     /*tp_itemsize*/ 0,

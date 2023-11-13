@@ -206,7 +206,7 @@ ccl_device_forceinline float3 primitive_uv(KernelGlobals kg, ccl_private const S
   return make_float3(uv.x, uv.y, 1.0f);
 }
 
-/* Ptex coordinates */
+/* PTEX coordinates. */
 
 ccl_device bool primitive_ptex(KernelGlobals kg,
                                ccl_private ShaderData *sd,

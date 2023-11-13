@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Simple shader that just draw multiple icons at the specified locations
  * does not need any vertex input (producing less call to immBegin/End)

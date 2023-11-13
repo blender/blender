@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -208,7 +208,7 @@ class BitVector {
   /**
    * Get a read-only reference to a specific bit.
    */
-  BitRef operator[](const int64_t index) const
+  [[nodiscard]] BitRef operator[](const int64_t index) const
   {
     BLI_assert(index >= 0);
     BLI_assert(index < size_in_bits_);
@@ -218,7 +218,7 @@ class BitVector {
   /**
    * Get a mutable reference to a specific bit.
    */
-  MutableBitRef operator[](const int64_t index)
+  [[nodiscard]] MutableBitRef operator[](const int64_t index)
   {
     BLI_assert(index >= 0);
     BLI_assert(index < size_in_bits_);

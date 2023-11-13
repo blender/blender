@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
  * \ingroup depsgraph
  */
 
-#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_id.hh"
 
 #include <cstdio>
 #include <cstring> /* required for STREQ later on. */
@@ -19,12 +19,12 @@
 
 #include "BKE_lib_id.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
-#include "intern/node/deg_node_component.h"
-#include "intern/node/deg_node_factory.h"
-#include "intern/node/deg_node_time.h"
+#include "intern/node/deg_node_component.hh"
+#include "intern/node/deg_node_factory.hh"
+#include "intern/node/deg_node_time.hh"
 
 namespace blender::deg {
 

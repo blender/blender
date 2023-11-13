@@ -1,8 +1,7 @@
-# SPDX-FileCopyrightText: 2014-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2014-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : shaders.py
 #  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin
 #  Date     : 11/08/2005
 #  Purpose  : Stroke shaders to be used for creation of stylized strokes
@@ -834,7 +833,7 @@ class pyPerlinNoise1DShader(StrokeShader):
     """
     Displaces the stroke using the curvilinear abscissa.  This means
     that lines with the same length and sampling interval will be
-    identically distorded.
+    identically distorted.
     """
 
     def __init__(self, freq=10, amp=10, oct=4, seed=-1):
@@ -855,10 +854,10 @@ class pyPerlinNoise1DShader(StrokeShader):
 class pyPerlinNoise2DShader(StrokeShader):
     """
     Displaces the stroke using the strokes coordinates.  This means
-    that in a scene no strokes will be distorded identically.
+    that in a scene no strokes will be distorted identically.
 
     More information on the noise shaders can be found at:
-    freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
+    https://freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
     """
 
     def __init__(self, freq=10, amp=10, oct=4, seed=-1):
@@ -898,7 +897,7 @@ class pyBluePrintCirclesShader(StrokeShader):
         C = self.__random_center
 
         # The directions (and phases) are calculated using a separate
-        # function decorated with an lru-cache. This guarantees that
+        # function decorated with an LRU-cache. This guarantees that
         # the directions (involving sin and cos) are calculated as few
         # times as possible.
         #
@@ -977,7 +976,7 @@ class pyBluePrintEllipsesShader(StrokeShader):
 class pyBluePrintSquaresShader(StrokeShader):
     def __init__(self, turns=1, bb_len=10, bb_rand=0):
         StrokeShader.__init__(self)
-        self.__turns = turns  # does not have any effect atm
+        self.__turns = turns  # Does not have any effect ATM.
         self.__bb_len = bb_len
         self.__bb_rand = bb_rand
 

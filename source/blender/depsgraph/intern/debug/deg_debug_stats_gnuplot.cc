@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
  * \ingroup depsgraph
  */
 
-#include "DEG_depsgraph_debug.h"
+#include "DEG_depsgraph_debug.hh"
 
 #include <algorithm>
 #include <cstdarg>
@@ -14,8 +14,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_base.h"
 
-#include "intern/depsgraph.h"
-#include "intern/node/deg_node_id.h"
+#include "intern/depsgraph.hh"
+#include "intern/node/deg_node_id.hh"
 
 #include "DNA_ID.h"
 

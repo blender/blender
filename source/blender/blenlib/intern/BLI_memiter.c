@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -133,7 +133,7 @@ BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 {
   const uint data_offset = data_offset_from_size(elem_size);
-  data_t *data_curr_next = mi->data_curr + (1 + data_offset);
+  data_t *data_curr_next = LIKELY(mi->data_curr) ? mi->data_curr + (1 + data_offset) : NULL;
 
   if (UNLIKELY(mi->data_curr == NULL) || (data_curr_next > mi->data_last)) {
 

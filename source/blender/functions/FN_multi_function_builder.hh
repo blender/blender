@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -191,8 +191,8 @@ execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
  * chunks, which reduces virtual function call overhead.
  */
 template<typename... ParamTags, size_t... I, typename ElementFn, typename... LoadedParams>
-inline void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
-                                 std::index_sequence<I...> /* indices */,
+inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
+                                 std::index_sequence<I...> /*indices*/,
                                  const ElementFn element_fn,
                                  const IndexMaskSegment mask,
                                  const std::tuple<LoadedParams...> &loaded_params)

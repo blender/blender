@@ -1,10 +1,17 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
+#include "BKE_image.h"
 #include "BKE_node_runtime.hh"
+#include "BKE_texture.h"
+
+#include "IMB_colormanagement.h"
+
+#include "DEG_depsgraph_query.hh"
 
 namespace blender::nodes::node_shader_tex_image_cc {
 
@@ -167,6 +174,86 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   return true;
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* Getting node name for Color output. This name will be used for <image> node. */
+  std::string image_node_name = node_name(false) + "_Color";
+
+  NodeItem res = empty();
+  res.node = graph_->getNode(image_node_name);
+  if (!res.node) {
+    res = val(MaterialX::Color4(1.0f, 0.0f, 1.0f, 1.0f));
+
+    Image *image = (Image *)node_->id;
+    if (image) {
+      NodeTexImage *tex_image = static_cast<NodeTexImage *>(node_->storage);
+
+      std::string image_path = image->id.name;
+      if (export_image_fn_) {
+        Scene *scene = DEG_get_input_scene(depsgraph_);
+        Main *bmain = DEG_get_bmain(depsgraph_);
+        image_path = export_image_fn_(bmain, scene, image, &tex_image->iuser);
+      }
+
+      NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector2);
+      if (!vector) {
+        vector = texcoord_node();
+      }
+      /* TODO: add math to vector depending of tex_image->projection */
+
+      std::string filtertype;
+      switch (tex_image->interpolation) {
+        case SHD_INTERP_LINEAR:
+          filtertype = "linear";
+          break;
+        case SHD_INTERP_CLOSEST:
+          filtertype = "closest";
+          break;
+        case SHD_INTERP_CUBIC:
+        case SHD_INTERP_SMART:
+          filtertype = "cubic";
+          break;
+        default:
+          BLI_assert_unreachable();
+      }
+      std::string addressmode;
+      switch (tex_image->extension) {
+        case SHD_IMAGE_EXTENSION_REPEAT:
+          addressmode = "periodic";
+          break;
+        case SHD_IMAGE_EXTENSION_EXTEND:
+          addressmode = "clamp";
+          break;
+        case SHD_IMAGE_EXTENSION_CLIP:
+          addressmode = "constant";
+          break;
+        case SHD_IMAGE_EXTENSION_MIRROR:
+          addressmode = "mirror";
+          break;
+        default:
+          BLI_assert_unreachable();
+      }
+
+      res = create_node("image",
+                        NodeItem::Type::Color4,
+                        {{"texcoord", vector},
+                         {"filtertype", val(filtertype)},
+                         {"uaddressmode", val(addressmode)},
+                         {"vaddressmode", val(addressmode)}});
+      res.set_input("file", image_path, NodeItem::Type::Filename);
+      res.node->setName(image_node_name);
+    }
+  }
+
+  if (STREQ(socket_out_->name, "Alpha")) {
+    res = res[3];
+  }
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_tex_image_cc
 
 void register_node_type_sh_tex_image()
@@ -183,6 +270,7 @@ void register_node_type_sh_tex_image()
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_image;
   ntype.labelfunc = node_image_label;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

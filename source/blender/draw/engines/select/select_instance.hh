@@ -1,10 +1,9 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
- *
  */
 
 #pragma once
@@ -20,7 +19,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-#include "select_defines.h"
+#include "select_defines.hh"
 #include "select_shader_shared.hh"
 
 namespace blender::draw::select {

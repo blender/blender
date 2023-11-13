@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Temporal Stabilization of the Depth of field input.
@@ -6,15 +9,14 @@
  * - We run this pass at half resolution.
  * - We store CoC instead of Opacity in the alpha channel of the history.
  *
- * This is and adaption of the code found in eevee_film_lib.glsl
+ * This is and adaption of the code found in `eevee_film_lib.glsl`.
  *
  * Inputs:
- * - Output of setup pass (halfres).
+ * - Output of setup pass (half-resolution).
  * Outputs:
- * - Stabilized Color and CoC (halfres).
- **/
+ * - Stabilized Color and CoC (half-resolution).
+ */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
@@ -78,7 +80,7 @@ void dof_cache_init()
       if (all(lessThan(gl_LocalInvocationID.xy, uvec2(cache_depth_size / 2u)))) {
         ivec2 offset = ivec2(x, y) * ivec2(cache_depth_size / 2u);
         ivec2 cache_texel = ivec2(gl_LocalInvocationID.xy) + offset;
-        /* Depth is fullres. Load every 2 pixels. */
+        /* Depth is full-resolution. Load every 2 pixels. */
         ivec2 load_texel = clamp((texel + offset - 2) * 2, ivec2(0), textureSize(depth_tx, 0) - 1);
 
         depth_cache[cache_texel.y][cache_texel.x] = texelFetch(depth_tx, load_texel, 0).x;
@@ -105,7 +107,7 @@ float dof_fetch_half_depth(ivec2 offset)
 
 float dof_luma_weight(float luma)
 {
-  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014. */
+  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
   const float exposure_scale = 1.0; /* TODO. */
   return 1.0 / (4.0 + luma * exposure_scale);
@@ -113,7 +115,7 @@ float dof_luma_weight(float luma)
 
 float dof_bilateral_weight(float reference_coc, float sample_coc)
 {
-  /* NOTE: The difference between the cocs should be inside a abs() function,
+  /* NOTE: The difference between the COCS should be inside a abs() function,
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19).
    * Effectively bleed background into foreground.
    * Compared to dof_bilateral_coc_weights() this saturates as 2x the reference CoC. */
@@ -166,7 +168,7 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
   const ivec2 plus_offsets[4] = ivec2[4](ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
   /**
    * Simple bounding box calculation in YCoCg as described in:
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
    */
   DofSample min_c = dof_fetch_input_sample(ivec2(0));
   DofSample max_c = min_c;
@@ -202,7 +204,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
 {
   /**
    * Dilate velocity by using the nearest pixel in a cross pattern.
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 27)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
   const ivec2 corners[4] = ivec2[4](ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
   float min_depth = dof_fetch_half_depth(ivec2(0));
@@ -223,7 +225,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
 }
 
 /* Load color using a special filter to avoid losing detail.
- * \a texel is sample position with subpixel accuracy. */
+ * \a texel is sample position with sub-pixel accuracy. */
 DofSample dof_sample_history(vec2 input_texel)
 {
 #if 1 /* Bilinar. */
@@ -239,16 +241,16 @@ DofSample dof_sample_history(vec2 input_texel)
   /**
    * Use optimized version by leveraging bilinear filtering from hardware sampler and by removing
    * corner taps.
-   * From "Filmic SMAA" by Jorge Jimenez at Siggraph 2016
+   * From "Filmic SMAA" by Jorge Jimenez at SIGGRAPH 2016
    * http://advances.realtimerendering.com/s2016/Filmic%20SMAA%20v7.pptx
    */
   center_texel += 0.5;
 
   /* Slide 92. */
   vec2 weight_12 = weights[1] + weights[2];
-  vec2 uv_12 = (center_texel + weights[2] / weight_12) * film_buf.extent_inv;
-  vec2 uv_0 = (center_texel - 1.0) * film_buf.extent_inv;
-  vec2 uv_3 = (center_texel + 2.0) * film_buf.extent_inv;
+  vec2 uv_12 = (center_texel + weights[2] / weight_12) * uniform_buf.film.extent_inv;
+  vec2 uv_0 = (center_texel - 1.0) * uniform_buf.film.extent_inv;
+  vec2 uv_3 = (center_texel + 2.0) * uniform_buf.film.extent_inv;
 
   vec4 color;
   vec4 weight_cross = weight_12.xyyx * vec4(weights[0].yx, weights[3].xy);
@@ -260,7 +262,7 @@ DofSample dof_sample_history(vec2 input_texel)
   color += textureLod(in_history_tx, vec2(uv_3.x, uv_12.y), 0.0) * weight_cross.z;
   color += textureLod(in_history_tx, vec2(uv_12.x, uv_3.y), 0.0) * weight_cross.w;
   /* Re-normalize for the removed corners. */
-  color /= (weight_center + sum(weight_cross));
+  color /= (weight_center + reduce_add(weight_cross));
 #endif
   /* NOTE(fclem): Opacity is wrong on purpose. Final Opacity does not rely on history. */
   return DofSample(color.xyzz, color.w);
@@ -280,7 +282,7 @@ DofSample dof_amend_history(DofNeighborhoodMinMax bbox, DofSample history, DofSa
   /* More responsive. */
   history.color = clamp(history.color, bbox.min.color, bbox.max.color);
 #endif
-  /* Clamp CoC to reduce convergence time. Otherwise the result is laggy. */
+  /* Clamp CoC to reduce convergence time. Otherwise the result lags. */
   history.coc = clamp(history.coc, bbox.min.coc, bbox.max.coc);
 
   return history;
@@ -300,10 +302,10 @@ float dof_history_blend_factor(
   /* NOTE(fclem): velocity threshold multiplied by 2 because of half resolution. */
   blend = mix(blend, 0.20, saturate(velocity * 0.02 * 2.0));
   /**
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
-  float distance_to_luma_clip = min_v2(vec2(luma_history - luma_min, luma_max - luma_history));
+  float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
   distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */

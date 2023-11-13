@@ -31,14 +31,12 @@ void ordering_helper_at_plus_a(const MatrixType& A, MatrixType& symmat)
   for (int i = 0; i < C.rows(); i++) 
   {
       for (typename MatrixType::InnerIterator it(C, i); it; ++it)
-        it.valueRef() = 0.0;
+        it.valueRef() = typename MatrixType::Scalar(0);
   }
   symmat = C + A;
 }
     
 }
-
-#ifndef EIGEN_MPL2_ONLY
 
 /** \ingroup OrderingMethods_Module
   * \class AMDOrdering
@@ -80,8 +78,6 @@ class AMDOrdering
       internal::minimum_degree_ordering(C, perm);
     }
 };
-
-#endif // EIGEN_MPL2_ONLY
 
 /** \ingroup OrderingMethods_Module
   * \class NaturalOrdering
@@ -133,17 +129,17 @@ class COLAMDOrdering
       StorageIndex n = StorageIndex(mat.cols());
       StorageIndex nnz = StorageIndex(mat.nonZeros());
       // Get the recommended value of Alen to be used by colamd
-      StorageIndex Alen = internal::colamd_recommended(nnz, m, n); 
+      StorageIndex Alen = internal::Colamd::recommended(nnz, m, n); 
       // Set the default parameters
-      double knobs [COLAMD_KNOBS]; 
-      StorageIndex stats [COLAMD_STATS];
-      internal::colamd_set_defaults(knobs);
+      double knobs [internal::Colamd::NKnobs]; 
+      StorageIndex stats [internal::Colamd::NStats];
+      internal::Colamd::set_defaults(knobs);
       
       IndexVector p(n+1), A(Alen); 
       for(StorageIndex i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
       for(StorageIndex i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
       // Call Colamd routine to compute the ordering 
-      StorageIndex info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+      StorageIndex info = internal::Colamd::compute_ordering(m, n, Alen, A.data(), p.data(), knobs, stats); 
       EIGEN_UNUSED_VARIABLE(info);
       eigen_assert( info && "COLAMD failed " );
       

@@ -165,10 +165,10 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     /* check for empty path */
     if (guess_path && opts->filepath[0] == 0) {
-      const bool is_prev_save = !STREQ(G.ima, "//");
+      const bool is_prev_save = !STREQ(G.filepath_last_image, "//");
       if (opts->save_as_render) {
         if (is_prev_save) {
-          STRNCPY(opts->filepath, G.ima);
+          STRNCPY(opts->filepath, G.filepath_last_image);
         }
         else {
           BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", DATA_("untitled"));
@@ -178,7 +178,8 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       else {
         BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", ima->id.name + 2);
         BLI_path_make_safe(opts->filepath);
-        BLI_path_abs(opts->filepath, is_prev_save ? G.ima : BKE_main_blendfile_path(bmain));
+        BLI_path_abs(opts->filepath,
+                     is_prev_save ? G.filepath_last_image : BKE_main_blendfile_path(bmain));
       }
 
       /* append UDIM marker if not present */
@@ -301,8 +302,6 @@ static void image_save_post(ReportList *reports,
      * created. */
     imb_freerectImBuf(ibuf);
     imb_freerectfloatImBuf(ibuf);
-    IMB_freezbufImBuf(ibuf);
-    IMB_freezbuffloatImBuf(ibuf);
   }
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;
@@ -717,7 +716,6 @@ bool BKE_image_render_write_exr(ReportList *reports,
   void *exrhandle = IMB_exr_get_handle();
   const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
-  const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
   const int channels = (!multi_layer && imf && imf->planes == R_IMF_PLANES_RGB) ? 3 : 4;
   Vector<float *> tmp_output_rects;
 
@@ -739,7 +737,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   /* Compositing result. */
   if (rr->have_combined) {
     LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-      if (!rview->combined_buffer.data) {
+      if (!rview->ibuf || !rview->ibuf->float_buffer.data) {
         continue;
       }
 
@@ -760,8 +758,8 @@ bool BKE_image_render_write_exr(ReportList *reports,
       float *output_rect =
           (save_as_render) ?
               image_exr_from_scene_linear_to_output(
-                  rview->combined_buffer.data, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
-              rview->combined_buffer.data;
+                  rview->ibuf->float_buffer.data, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
+              rview->ibuf->float_buffer.data;
 
       for (int a = 0; a < channels; a++) {
         char passname[EXR_PASS_MAXNAME];
@@ -782,12 +780,6 @@ bool BKE_image_render_write_exr(ReportList *reports,
         IMB_exr_add_channel(
             exrhandle, layname, passname, viewname, 4, 4 * rr->rectx, output_rect + a, half_float);
       }
-
-      if (write_z && rview->z_buffer.data) {
-        const char *layname = (multi_layer) ? "Composite" : "";
-        IMB_exr_add_channel(
-            exrhandle, layname, "Z", viewname, 1, rr->rectx, rview->z_buffer.data, false);
-      }
     }
   }
 
@@ -803,9 +795,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
     LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       /* Skip non-RGBA and Z passes if not using multi layer. */
-      if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, "") ||
-                            (STREQ(rp->name, RE_PASSNAME_Z) && write_z)))
-      {
+      if (!multi_layer && !STR_ELEM(rp->name, RE_PASSNAME_COMBINED, "")) {
         continue;
       }
 
@@ -825,11 +815,14 @@ bool BKE_image_render_write_exr(ReportList *reports,
       const bool pass_half_float = half_float && pass_RGBA;
 
       /* Color-space conversion only happens on RGBA passes. */
-      float *output_rect =
-          (save_as_render && pass_RGBA) ?
-              image_exr_from_scene_linear_to_output(
-                  rp->buffer.data, rr->rectx, rr->recty, rp->channels, imf, tmp_output_rects) :
-              rp->buffer.data;
+      float *output_rect = (save_as_render && pass_RGBA) ?
+                               image_exr_from_scene_linear_to_output(rp->ibuf->float_buffer.data,
+                                                                     rr->rectx,
+                                                                     rr->recty,
+                                                                     rp->channels,
+                                                                     imf,
+                                                                     tmp_output_rects) :
+                               rp->ibuf->float_buffer.data;
 
       for (int a = 0; a < std::min(channels, rp->channels); a++) {
         /* Save Combined as RGBA or RGB if single layer save. */

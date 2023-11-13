@@ -1,8 +1,10 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_FullFrameExecutionModel.h"
+
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
@@ -247,7 +249,7 @@ void FullFrameExecutionModel::get_output_render_area(NodeOperation *output_op, r
     /* Get border with normalized coordinates. */
     const rctf *norm_border = has_viewer_border ? border_.viewer_border : border_.render_border;
 
-    /* Return de-normalized border within canvas. */
+    /* Return denormalized border within canvas. */
     const int w = output_op->get_width();
     const int h = output_op->get_height();
     r_area.xmin = canvas.xmin + norm_border->xmin * w;

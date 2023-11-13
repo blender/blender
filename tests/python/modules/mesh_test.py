@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -768,7 +768,7 @@ class GeoNodesSimulationTest(MeshTest):
             raise Exception("The object has no modifiers.")
 
         scene = bpy.context.scene
-        for frame in range(1, self.frames_num+1):
+        for frame in range(1, self.frames_num + 1):
             scene.frame_set(frame)
 
         for modifier in modifiers_list:

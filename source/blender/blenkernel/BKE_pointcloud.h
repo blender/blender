@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,8 @@
  * \ingroup bke
  * \brief General operations for point clouds.
  */
+
+#include "DNA_object_types.h" /* #BoundBox. */
 
 #ifdef __cplusplus
 #  include <mutex>
@@ -74,7 +76,7 @@ struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
                                          struct PointCloud *pointcloud_dst);
 
-struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
+BoundBox BKE_pointcloud_boundbox_get(struct Object *ob);
 
 bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, const char *name);
 

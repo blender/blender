@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -92,6 +92,7 @@ class CONSOLE_MT_console(Menu):
         layout.separator()
 
         layout.operator("console.copy_as_script", text="Copy as Script")
+        layout.operator("console.copy", text="Cut").delete = True
         layout.operator("console.copy", text="Copy")
         layout.operator("console.paste", text="Paste")
 
@@ -111,7 +112,7 @@ class CONSOLE_MT_console(Menu):
 
 
 class CONSOLE_MT_context_menu(Menu):
-    bl_label = "Console Context Menu"
+    bl_label = "Console"
 
     def draw(self, _context):
         layout = self.layout
@@ -124,6 +125,7 @@ class CONSOLE_MT_context_menu(Menu):
         layout.separator()
 
         layout.operator("console.copy_as_script", text="Copy as Script")
+        layout.operator("console.copy", text="Cut").delete = True
         layout.operator("console.copy", text="Copy")
         layout.operator("console.paste", text="Paste")
 

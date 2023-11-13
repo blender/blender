@@ -1,8 +1,7 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : parameter_editor.py
 #  Authors  : Tamito Kajiyama
 #  Date     : 26/07/2010
 #  Purpose  : Interactive manipulation of stylization parameters
@@ -811,7 +810,7 @@ class PerlinNoise1DShader(StrokeShader):
     """
     Displaces the stroke using the curvilinear abscissa.  This means
     that lines with the same length and sampling interval will be
-    identically distorded.
+    identically distorted.
     """
 
     def __init__(self, freq=10, amp=10, oct=4, angle=radians(45), seed=-1):
@@ -836,7 +835,7 @@ class PerlinNoise2DShader(StrokeShader):
     that in a scene no strokes will be distorted identically.
 
     More information on the noise shaders can be found at:
-    freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
+    https://freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
     """
 
     def __init__(self, freq=10, amp=10, oct=4, angle=radians(45), seed=-1):

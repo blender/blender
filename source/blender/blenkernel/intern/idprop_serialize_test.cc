@@ -1,8 +1,10 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
+
+#include "BLI_listbase.h"
 
 #include "DNA_ID.h"
 

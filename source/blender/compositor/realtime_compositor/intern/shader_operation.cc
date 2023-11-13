@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <memory>
 #include <string>
 
+#include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
@@ -30,6 +31,8 @@
 #include "COM_shader_node.hh"
 #include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
+
+#include <sstream>
 
 namespace blender::realtime_compositor {
 
@@ -71,6 +74,15 @@ void ShaderOperation::execute()
   GPU_shader_unbind();
 }
 
+void ShaderOperation::compute_preview()
+{
+  for (const DOutputSocket &output : preview_outputs_) {
+    Result &result = get_result(get_output_identifier_from_output_socket(output));
+    compute_preview_from_result(context(), output.node(), result);
+    result.release();
+  }
+}
+
 StringRef ShaderOperation::get_output_identifier_from_output_socket(DOutputSocket output_socket)
 {
   return output_sockets_to_output_identifiers_map_.lookup(output_socket);
@@ -84,8 +96,17 @@ Map<std::string, DOutputSocket> &ShaderOperation::get_inputs_to_linked_outputs_m
 void ShaderOperation::compute_results_reference_counts(const Schedule &schedule)
 {
   for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
-    const int reference_count = number_of_inputs_linked_to_output_conditioned(
-        item.key, [&](DInputSocket input) { return schedule.contains(input.node()); });
+    int reference_count = number_of_inputs_linked_to_output_conditioned(
+        item.key, [&](DInputSocket input) {
+          /* We only consider inputs that are not part of the shader operations, because inputs
+           * that are part of the shader operations are internal and do not deal with the result
+           * directly. */
+          return schedule.contains(input.node()) && !compile_unit_.contains(input.node());
+        });
+
+    if (preview_outputs_.contains(item.key)) {
+      reference_count++;
+    }
 
     get_result(item.value).set_initial_reference_count(reference_count);
   }
@@ -207,6 +228,9 @@ static const char *get_set_function_name(ResultType type)
       return "set_rgb";
     case ResultType::Color:
       return "set_rgba";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -243,17 +267,41 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
   inputs_to_linked_outputs_map_.add_new(input_identifier, output_socket);
 }
 
+static DOutputSocket find_preview_output_socket(const DNode &node)
+{
+  if (!is_node_preview_needed(node)) {
+    return DOutputSocket();
+  }
+
+  for (const bNodeSocket *output : node->output_sockets()) {
+    if (output->is_logically_linked()) {
+      return DOutputSocket(node.context(), output);
+    }
+  }
+
+  return DOutputSocket();
+}
+
 void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *material)
 {
+  const DOutputSocket preview_output = find_preview_output_socket(node);
+
   for (const bNodeSocket *output : node->output_sockets()) {
     const DOutputSocket doutput{node.context(), output};
 
     /* If any of the nodes linked to the output are not part of the shader operation, then an
      * output result needs to be populated for it. */
-    const bool need_to_populate_result = is_output_linked_to_node_conditioned(
+    const bool is_operation_output = is_output_linked_to_node_conditioned(
         doutput, [&](DNode node) { return !compile_unit_.contains(node); });
 
-    if (need_to_populate_result) {
+    /* If the output is used as the node preview, then an output result needs to be populated for
+     * it, and we additionally keep track of that output to later compute the previews from. */
+    const bool is_preview_output = doutput == preview_output;
+    if (is_preview_output) {
+      preview_outputs_.add(doutput);
+    }
+
+    if (is_operation_output || is_preview_output) {
       populate_operation_result(doutput, material);
     }
   }
@@ -268,6 +316,9 @@ static const char *get_store_function_name(ResultType type)
       return "node_compositor_store_output_vector";
     case ResultType::Color:
       return "node_compositor_store_output_color";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -280,7 +331,7 @@ void ShaderOperation::populate_operation_result(DOutputSocket output_socket, GPU
   std::string output_identifier = "output" + std::to_string(output_id);
 
   const ResultType result_type = get_node_socket_result_type(output_socket.bsocket());
-  const Result result = Result(result_type, texture_pool());
+  const Result result = context().create_result(result_type);
   populate_result(output_identifier, result);
 
   /* Map the output socket to the identifier of the newly populated result. */
@@ -349,21 +400,6 @@ void ShaderOperation::generate_code(void *thunk,
   shader_create_info.compute_source_generated += "}\n";
 }
 
-static eGPUTextureFormat texture_format_from_result_type(ResultType type)
-{
-  switch (type) {
-    case ResultType::Float:
-      return GPU_R16F;
-    case ResultType::Vector:
-      return GPU_RGBA16F;
-    case ResultType::Color:
-      return GPU_RGBA16F;
-  }
-
-  BLI_assert_unreachable();
-  return GPU_RGBA16F;
-}
-
 /* Texture storers in the shader always take a vec4 as an argument, so encode each type in a vec4
  * appropriately. */
 static const char *glsl_store_expression_from_result_type(ResultType type)
@@ -375,6 +411,9 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
       return "vec4(vector, 0.0)";
     case ResultType::Color:
       return "color";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -413,11 +452,11 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
 
     /* Add a write-only image for this output where its values will be written. */
     shader_create_info.image(0,
-                             texture_format_from_result_type(result.type()),
+                             result.get_texture_format(),
                              Qualifier::WRITE,
                              ImageType::FLOAT_2D,
                              output_identifier,
-                             Frequency::BATCH);
+                             Frequency::PASS);
 
     /* Add a case for the index of this output followed by a break statement. */
     std::stringstream case_code;
@@ -437,6 +476,10 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
         break;
       case ResultType::Color:
         store_color_function << case_code.str();
+        break;
+      default:
+        /* Other types are internal and needn't be handled by operations. */
+        BLI_assert_unreachable();
         break;
     }
   }
@@ -461,6 +504,9 @@ static const char *glsl_type_from_result_type(ResultType type)
       return "vec3";
     case ResultType::Color:
       return "vec4";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -478,6 +524,9 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
       return "xyz";
     case ResultType::Color:
       return "rgba";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -496,7 +545,7 @@ void ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
 
   /* Add a texture sampler for each of the inputs with the same name as the attribute. */
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
-    shader_create_info.sampler(0, ImageType::FLOAT_2D, attribute->name, Frequency::BATCH);
+    shader_create_info.sampler(0, ImageType::FLOAT_2D, attribute->name, Frequency::PASS);
   }
 
   /* Declare a struct called var_attrs that includes an appropriately typed member for each of the

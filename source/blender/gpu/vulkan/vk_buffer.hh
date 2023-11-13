@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,9 +32,10 @@ class VKBuffer {
   /** Has this buffer been allocated? */
   bool is_allocated() const;
 
-  bool create(int64_t size, GPUUsageType usage, VkBufferUsageFlagBits buffer_usage);
+  bool create(int64_t size, GPUUsageType usage, VkBufferUsageFlags buffer_usage);
   void clear(VKContext &context, uint32_t clear_value);
   void update(const void *data) const;
+  void flush() const;
   void read(void *data) const;
   bool free();
 
@@ -71,7 +72,7 @@ class VKBuffer {
  * VKIndexBuffer uses this when it is a subrange of another buffer.
  */
 struct VKBufferWithOffset {
-  VKBuffer &buffer;
+  const VKBuffer &buffer;
   VkDeviceSize offset;
 };
 

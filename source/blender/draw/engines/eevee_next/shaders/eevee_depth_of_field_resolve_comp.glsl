@@ -1,10 +1,13 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Recombine Pass: Load separate convolution layer and composite with self
  * slight defocus convolution and in-focus fields.
  *
- * The halfres gather methods are fast but lack precision for small CoC areas.
- * To fix this we do a bruteforce gather to have a smooth transition between
+ * The half-resolution gather methods are fast but lack precision for small CoC areas.
+ * To fix this we do a brute-force gather to have a smooth transition between
  * in-focus and defocus regions.
  */
 
@@ -49,8 +52,8 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
   const vec2 corners[4] = vec2[4](vec2(-1, -1), vec2(1, -1), vec2(-1, 1), vec2(1, 1));
   for (int i = 0; i < 4; i++) {
     /**
-     * Visit the 4 half-res texels around (and containing) the fullres texel.
-     * Here a diagram of a fullscreen texel (f) in the bottom left corner of a half res texel.
+     * Visit the 4 half-res texels around (and containing) the full-resolution texel.
+     * Here a diagram of a full-screen texel (f) in the bottom left corner of a half res texel.
      * We sample the stable half-resolution texture at the 4 location denoted by (h).
      * ┌───────┬───────┐
      * │     h │     h │
@@ -69,11 +72,11 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
     neighbor_max = (i == 0) ? ycocg_sample : max(neighbor_max, ycocg_sample);
   }
   /* Pad the bounds in the near in focus region to get back a bit of detail. */
-  float padding = 0.125 * saturate(1.0 - sqr(center_coc) / sqr(8.0));
+  float padding = 0.125 * saturate(1.0 - square(center_coc) / square(8.0));
   neighbor_max += abs(neighbor_min) * padding;
   neighbor_min -= abs(neighbor_min) * padding;
   /* Progressively apply the clamp to avoid harsh transition. Also mask by weight. */
-  float fac = saturate(sqr(center_coc) * 4.0) * weight;
+  float fac = saturate(square(center_coc) * 4.0) * weight;
   /* Clamp in YCoCg space to avoid too much color drift. */
   color = colorspace_YCoCg_from_scene_linear(color);
   color = mix(color, clamp(color, neighbor_min, neighbor_max), fac);
@@ -151,7 +154,7 @@ void main()
   }
 
   if (!no_focus_pass && prediction.do_focus) {
-    layer_color = safe_color(textureLod(color_tx, uv, 0.0));
+    layer_color = colorspace_safe_color(textureLod(color_tx, uv, 0.0));
     layer_weight = 1.0;
     /* Composite in focus. */
     out_color = out_color * (1.0 - layer_weight) + layer_color;

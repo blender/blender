@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,17 +11,17 @@
 #  include "BKE_context.h"
 #  include "BKE_report.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  include "DNA_space_types.h"
 
-#  include "ED_outliner.h"
+#  include "ED_outliner.hh"
 
-#  include "RNA_access.h"
-#  include "RNA_define.h"
+#  include "RNA_access.hh"
+#  include "RNA_define.hh"
 
-#  include "IO_stl.h"
+#  include "IO_stl.hh"
 #  include "io_stl_ops.hh"
 
 static int wm_stl_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -29,7 +29,7 @@ static int wm_stl_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return WM_operator_filesel(C, op, event);
 }
 
-static int wm_stl_import_execute(bContext *C, wmOperator *op)
+static int wm_stl_import_exec(bContext *C, wmOperator *op)
 {
   STLImportParams params{};
   params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
@@ -95,7 +95,7 @@ void WM_OT_stl_import(wmOperatorType *ot)
   ot->idname = "WM_OT_stl_import";
 
   ot->invoke = wm_stl_import_invoke;
-  ot->exec = wm_stl_import_execute;
+  ot->exec = wm_stl_import_exec;
   ot->poll = WM_operator_winactive;
   ot->check = wm_stl_import_check;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;

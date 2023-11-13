@@ -17,7 +17,7 @@ namespace Eigen {
   */
 template<typename Derived>
 template<typename DiagonalDerived>
-inline const Product<Derived, DiagonalDerived, LazyProduct>
+EIGEN_DEVICE_FUNC inline const Product<Derived, DiagonalDerived, LazyProduct>
 MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &a_diagonal) const
 {
   return Product<Derived, DiagonalDerived, LazyProduct>(derived(),a_diagonal.derived());

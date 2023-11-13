@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,6 +21,7 @@ struct Render;
 struct RenderData;
 struct RenderLayer;
 struct RenderResult;
+struct ReportList;
 struct rcti;
 
 #ifdef __cplusplus
@@ -95,9 +96,10 @@ struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
 /**
  * Called for reading temp files, and for external engines.
  */
-int render_result_exr_file_read_path(struct RenderResult *rr,
-                                     struct RenderLayer *rl_single,
-                                     const char *filepath);
+bool render_result_exr_file_read_path(struct RenderResult *rr,
+                                      struct RenderLayer *rl_single,
+                                      struct ReportList *reports,
+                                      const char *filepath);
 
 /* EXR cache */
 

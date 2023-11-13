@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,6 +25,14 @@ void FileBufferBinary::write_UV(float u, float v)
   float2 vector(u, v);
   char *bits = reinterpret_cast<char *>(&vector);
   Span<char> span(bits, sizeof(float2));
+
+  write_bytes(span);
+}
+
+void FileBufferBinary::write_data(float v)
+{
+  char *bits = reinterpret_cast<char *>(&v);
+  Span<char> span(bits, sizeof(float));
 
   write_bytes(span);
 }

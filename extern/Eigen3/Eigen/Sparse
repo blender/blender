@@ -25,9 +25,7 @@
 
 #include "SparseCore"
 #include "OrderingMethods"
-#ifndef EIGEN_MPL2_ONLY
 #include "SparseCholesky"
-#endif
 #include "SparseLU"
 #include "SparseQR"
 #include "IterativeLinearSolvers"

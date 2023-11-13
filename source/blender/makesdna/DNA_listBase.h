@@ -12,10 +12,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** Generic - all structs which are put into linked lists begin with this. */
 typedef struct Link {
   struct Link *next, *prev;
@@ -27,13 +23,9 @@ typedef struct LinkData {
   void *data;
 } LinkData;
 
-/** Never change the size of this! dna_genfile.c detects pointer_size with it. */
+/** Never change the size of this! dna_genfile.cc detects pointer_size with it. */
 typedef struct ListBase {
   void *first, *last;
 } ListBase;
 
 /* 8 byte alignment! */
-
-#ifdef __cplusplus
-}
-#endif

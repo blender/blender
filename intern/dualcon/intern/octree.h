@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -509,10 +509,12 @@ class Octree {
   {
     printf("INFO AT: %d %d %d\n", st[0] >> minshift, st[1] >> minshift, st[2] >> minshift);
     LeafNode *leaf = (LeafNode *)locateLeafCheck(st);
-    if (leaf)
+    if (leaf) {
       printInfo(leaf);
-    else
+    }
+    else {
       printf("Leaf not exists!\n");
+    }
   }
 
   void printInfo(const LeafNode *leaf)

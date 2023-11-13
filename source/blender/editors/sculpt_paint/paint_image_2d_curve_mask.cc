@@ -6,13 +6,13 @@
  * \ingroup ed
  */
 
-#include "BLI_math.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
+
+#include "BLI_math_vector.h"
 
 #include "paint_intern.hh"
 

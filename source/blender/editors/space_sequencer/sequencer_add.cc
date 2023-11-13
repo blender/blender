@@ -6,16 +6,15 @@
  * \ingroup spseq
  */
 
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -37,41 +36,41 @@
 
 #include "IMB_imbuf.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "SEQ_add.h"
-#include "SEQ_effects.h"
-#include "SEQ_iterator.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_add.hh"
+#include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
-#include "ED_scene.h"
+#include "ED_scene.hh"
 /* For menu, popup, icons, etc. */
-#include "ED_screen.h"
-#include "ED_sequencer.h"
+#include "ED_screen.hh"
+#include "ED_sequencer.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Sequence.h>
 #endif
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct SequencerAddData {
   ImageFormatData im_format;
@@ -352,15 +351,13 @@ static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Sequence
 
   if (RNA_boolean_get(op->ptr, "overlap_shuffle_override")) {
     /* Use set overlap_mode to fix overlaps. */
-    SeqCollection *strip_col = SEQ_collection_create(__func__);
-    SEQ_collection_append_strip(seq, strip_col);
+    blender::VectorSet<Sequence *> strip_col;
+    strip_col.add(seq);
 
     ScrArea *area = CTX_wm_area(C);
     const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag & SEQ_MARKER_TRANS) !=
                                   0;
-    SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, nullptr, use_sync_markers);
-
-    SEQ_collection_free(strip_col);
+    SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, use_sync_markers);
   }
   else {
     /* Shuffle strip channel to fix overlaps. */
@@ -371,8 +368,7 @@ static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Sequence
 /* In this alternative version we only check for overlap, but do not do anything about them. */
 static bool seq_load_apply_generic_options_only_test_overlap(bContext *C,
                                                              wmOperator *op,
-                                                             Sequence *seq,
-                                                             SeqCollection *strip_col)
+                                                             Sequence *seq)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -385,8 +381,6 @@ static bool seq_load_apply_generic_options_only_test_overlap(bContext *C,
     seq->flag |= SELECT;
     SEQ_select_active_set(scene, seq);
   }
-
-  SEQ_collection_append_strip(seq, strip_col);
 
   return SEQ_transform_test_overlap(scene, ed->seqbasep, seq);
 }
@@ -485,7 +479,7 @@ void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+  prop = RNA_def_enum(ot->srna, "scene", rna_enum_dummy_NULL_items, 0, "Scene", "");
   RNA_def_enum_funcs(prop, RNA_scene_without_active_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -668,7 +662,7 @@ void SEQUENCER_OT_movieclip_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
+  prop = RNA_def_enum(ot->srna, "clip", rna_enum_dummy_NULL_items, 0, "Clip", "");
   RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
@@ -732,7 +726,7 @@ void SEQUENCER_OT_mask_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "mask", DummyRNA_NULL_items, 0, "Mask", "");
+  prop = RNA_def_enum(ot->srna, "mask", rna_enum_dummy_NULL_items, 0, "Mask", "");
   RNA_def_enum_funcs(prop, RNA_mask_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -780,7 +774,7 @@ static IMB_Proxy_Size seq_get_proxy_size_flags(bContext *C)
   return proxy_sizes;
 }
 
-static void seq_build_proxy(bContext *C, SeqCollection *movie_strips)
+static void seq_build_proxy(bContext *C, blender::Span<Sequence *> movie_strips)
 {
   if (U.sequencer_proxy_setup != USER_SEQ_PROXY_SETUP_AUTOMATIC) {
     return;
@@ -789,8 +783,7 @@ static void seq_build_proxy(bContext *C, SeqCollection *movie_strips)
   wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
   ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
 
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, movie_strips) {
+  for (Sequence *seq : movie_strips) {
     /* Enable and set proxy size. */
     SEQ_proxy_set(seq, true);
     seq->strip->proxy->build_size_flags = seq_get_proxy_size_flags(C);
@@ -822,7 +815,7 @@ static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
 static void sequencer_add_movie_multiple_strips(bContext *C,
                                                 wmOperator *op,
                                                 SeqLoadData *load_data,
-                                                SeqCollection *r_movie_strips)
+                                                blender::VectorSet<Sequence *> &r_movie_strips)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -830,11 +823,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
   bool overlap_shuffle_override = RNA_boolean_get(op->ptr, "overlap") == false &&
                                   RNA_boolean_get(op->ptr, "overlap_shuffle_override");
   bool has_seq_overlap = false;
-  SeqCollection *strip_col = nullptr;
-
-  if (overlap_shuffle_override) {
-    strip_col = SEQ_collection_create(__func__);
-  }
+  blender::Vector<Sequence *> added_strips;
 
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char dir_only[FILE_MAX];
@@ -855,10 +844,12 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
       if (RNA_boolean_get(op->ptr, "sound")) {
         seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
         sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
+        added_strips.append(seq_movie);
 
         if (seq_sound) {
           /* The video has sound, shift the video strip up a channel to make room for the sound
            * strip. */
+          added_strips.append(seq_sound);
           seq_movie->machine++;
         }
       }
@@ -866,16 +857,14 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
       load_data->start_frame += SEQ_time_right_handle_frame_get(scene, seq_movie) -
                                 SEQ_time_left_handle_frame_get(scene, seq_movie);
       if (overlap_shuffle_override) {
-        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(
-            C, op, seq_sound, strip_col);
-        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(
-            C, op, seq_movie, strip_col);
+        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_sound);
+        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_movie);
       }
       else {
         seq_load_apply_generic_options(C, op, seq_sound);
         seq_load_apply_generic_options(C, op, seq_movie);
       }
-      SEQ_collection_append_strip(seq_movie, r_movie_strips);
+      r_movie_strips.add(seq_movie);
     }
   }
   RNA_END;
@@ -885,17 +874,15 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
       ScrArea *area = CTX_wm_area(C);
       const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag &
                                      SEQ_MARKER_TRANS) != 0;
-      SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, nullptr, use_sync_markers);
+      SEQ_transform_handle_overlap(scene, ed->seqbasep, added_strips, use_sync_markers);
     }
-
-    SEQ_collection_free(strip_col);
   }
 }
 
 static bool sequencer_add_movie_single_strip(bContext *C,
                                              wmOperator *op,
                                              SeqLoadData *load_data,
-                                             SeqCollection *r_movie_strips)
+                                             blender::VectorSet<Sequence *> &r_movie_strips)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -903,6 +890,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
 
   Sequence *seq_movie = nullptr;
   Sequence *seq_sound = nullptr;
+  blender::Vector<Sequence *> added_strips;
 
   seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data);
 
@@ -913,7 +901,10 @@ static bool sequencer_add_movie_single_strip(bContext *C,
   if (RNA_boolean_get(op->ptr, "sound")) {
     seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
     sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
+    added_strips.append(seq_movie);
+
     if (seq_sound) {
+      added_strips.append(seq_sound);
       /* The video has sound, shift the video strip up a channel to make room for the sound
        * strip. */
       seq_movie->machine++;
@@ -923,28 +914,23 @@ static bool sequencer_add_movie_single_strip(bContext *C,
   bool overlap_shuffle_override = RNA_boolean_get(op->ptr, "overlap") == false &&
                                   RNA_boolean_get(op->ptr, "overlap_shuffle_override");
   if (overlap_shuffle_override) {
-    SeqCollection *strip_col = SEQ_collection_create(__func__);
     bool has_seq_overlap = false;
 
-    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(
-        C, op, seq_sound, strip_col);
-    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(
-        C, op, seq_movie, strip_col);
+    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_sound);
+    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_movie);
 
     if (has_seq_overlap) {
       ScrArea *area = CTX_wm_area(C);
       const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag &
                                      SEQ_MARKER_TRANS) != 0;
-      SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, nullptr, use_sync_markers);
+      SEQ_transform_handle_overlap(scene, ed->seqbasep, added_strips, use_sync_markers);
     }
-
-    SEQ_collection_free(strip_col);
   }
   else {
     seq_load_apply_generic_options(C, op, seq_sound);
     seq_load_apply_generic_options(C, op, seq_movie);
   }
-  SEQ_collection_append_strip(seq_movie, r_movie_strips);
+  r_movie_strips.add(seq_movie);
 
   return true;
 }
@@ -961,7 +947,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
     ED_sequencer_deselect_all(scene);
   }
 
-  SeqCollection *movie_strips = SEQ_collection_create(__func__);
+  blender::VectorSet<Sequence *> movie_strips;
   const int tot_files = RNA_property_collection_length(op->ptr,
                                                        RNA_struct_find_property(op->ptr, "files"));
   if (tot_files > 1) {
@@ -971,8 +957,8 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
     sequencer_add_movie_single_strip(C, op, &load_data, movie_strips);
   }
 
-  if (SEQ_collection_len(movie_strips) == 0) {
-    SEQ_collection_free(movie_strips);
+  if (movie_strips.is_empty()) {
+    sequencer_add_cancel(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -983,7 +969,6 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 
   /* Free custom data. */
   sequencer_add_cancel(C, op);
-  SEQ_collection_free(movie_strips);
 
   return OPERATOR_FINISHED;
 }
@@ -1023,7 +1008,6 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
   ImageFormatData *imf = &sad->im_format;
-  PointerRNA imf_ptr;
 
   /* Main draw call. */
   uiDefAutoButsRNA(layout,
@@ -1035,7 +1019,7 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
                    false);
 
   /* Image template. */
-  RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf, &imf_ptr);
+  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf);
 
   /* Multiview template. */
   if (RNA_boolean_get(op->ptr, "show_multiview")) {
@@ -1482,55 +1466,55 @@ static int sequencer_add_effect_strip_invoke(bContext *C,
   return sequencer_add_effect_strip_exec(C, op);
 }
 
-static char *sequencer_add_effect_strip_desc(bContext * /*C*/,
-                                             wmOperatorType * /*op*/,
-                                             PointerRNA *ptr)
+static std::string sequencer_add_effect_strip_desc(bContext * /*C*/,
+                                                   wmOperatorType * /*ot*/,
+                                                   PointerRNA *ptr)
 {
   const int type = RNA_enum_get(ptr, "type");
 
   switch (type) {
     case SEQ_TYPE_CROSS:
-      return BLI_strdup(TIP_("Add a crossfade transition to the sequencer"));
+      return TIP_("Add a crossfade transition to the sequencer");
     case SEQ_TYPE_ADD:
-      return BLI_strdup(TIP_("Add an add effect strip to the sequencer"));
+      return TIP_("Add an add effect strip to the sequencer");
     case SEQ_TYPE_SUB:
-      return BLI_strdup(TIP_("Add a subtract effect strip to the sequencer"));
+      return TIP_("Add a subtract effect strip to the sequencer");
     case SEQ_TYPE_ALPHAOVER:
-      return BLI_strdup(TIP_("Add an alpha over effect strip to the sequencer"));
+      return TIP_("Add an alpha over effect strip to the sequencer");
     case SEQ_TYPE_ALPHAUNDER:
-      return BLI_strdup(TIP_("Add an alpha under effect strip to the sequencer"));
+      return TIP_("Add an alpha under effect strip to the sequencer");
     case SEQ_TYPE_GAMCROSS:
-      return BLI_strdup(TIP_("Add a gamma cross transition to the sequencer"));
+      return TIP_("Add a gamma cross transition to the sequencer");
     case SEQ_TYPE_MUL:
-      return BLI_strdup(TIP_("Add a multiply effect strip to the sequencer"));
+      return TIP_("Add a multiply effect strip to the sequencer");
     case SEQ_TYPE_OVERDROP:
-      return BLI_strdup(TIP_("Add an alpha over drop effect strip to the sequencer"));
+      return TIP_("Add an alpha over drop effect strip to the sequencer");
     case SEQ_TYPE_WIPE:
-      return BLI_strdup(TIP_("Add a wipe transition to the sequencer"));
+      return TIP_("Add a wipe transition to the sequencer");
     case SEQ_TYPE_GLOW:
-      return BLI_strdup(TIP_("Add a glow effect strip to the sequencer"));
+      return TIP_("Add a glow effect strip to the sequencer");
     case SEQ_TYPE_TRANSFORM:
-      return BLI_strdup(TIP_("Add a transform effect strip to the sequencer"));
+      return TIP_("Add a transform effect strip to the sequencer");
     case SEQ_TYPE_COLOR:
-      return BLI_strdup(TIP_("Add a color strip to the sequencer"));
+      return TIP_("Add a color strip to the sequencer");
     case SEQ_TYPE_SPEED:
-      return BLI_strdup(TIP_("Add a speed effect strip to the sequencer"));
+      return TIP_("Add a speed effect strip to the sequencer");
     case SEQ_TYPE_MULTICAM:
-      return BLI_strdup(TIP_("Add a multicam selector effect strip to the sequencer"));
+      return TIP_("Add a multicam selector effect strip to the sequencer");
     case SEQ_TYPE_ADJUSTMENT:
-      return BLI_strdup(TIP_("Add an adjustment layer effect strip to the sequencer"));
+      return TIP_("Add an adjustment layer effect strip to the sequencer");
     case SEQ_TYPE_GAUSSIAN_BLUR:
-      return BLI_strdup(TIP_("Add a gaussian blur effect strip to the sequencer"));
+      return TIP_("Add a gaussian blur effect strip to the sequencer");
     case SEQ_TYPE_TEXT:
-      return BLI_strdup(TIP_("Add a text strip to the sequencer"));
+      return TIP_("Add a text strip to the sequencer");
     case SEQ_TYPE_COLORMIX:
-      return BLI_strdup(TIP_("Add a color mix effect strip to the sequencer"));
+      return TIP_("Add a color mix effect strip to the sequencer");
     default:
       break;
   }
 
   /* Use default description. */
-  return nullptr;
+  return "";
 }
 
 void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
@@ -1552,12 +1536,13 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(ot->srna,
-               "type",
-               sequencer_prop_effect_types,
-               SEQ_TYPE_CROSS,
-               "Type",
-               "Sequencer effect type");
+  prop = RNA_def_enum(ot->srna,
+                      "type",
+                      sequencer_prop_effect_types,
+                      SEQ_TYPE_CROSS,
+                      "Type",
+                      "Sequencer effect type");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
   /* Only used when strip is of the Color type. */
   prop = RNA_def_float_color(ot->srna,

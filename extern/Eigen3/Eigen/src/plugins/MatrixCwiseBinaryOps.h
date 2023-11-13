@@ -39,10 +39,10 @@ cwiseProduct(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   */
 template<typename OtherDerived>
 EIGEN_DEVICE_FUNC
-inline const CwiseBinaryOp<std::equal_to<Scalar>, const Derived, const OtherDerived>
+inline const CwiseBinaryOp<numext::equal_to<Scalar>, const Derived, const OtherDerived>
 cwiseEqual(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<std::equal_to<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<numext::equal_to<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise != operator of *this and \a other
@@ -59,10 +59,10 @@ cwiseEqual(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   */
 template<typename OtherDerived>
 EIGEN_DEVICE_FUNC
-inline const CwiseBinaryOp<std::not_equal_to<Scalar>, const Derived, const OtherDerived>
+inline const CwiseBinaryOp<numext::not_equal_to<Scalar>, const Derived, const OtherDerived>
 cwiseNotEqual(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<std::not_equal_to<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<numext::not_equal_to<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise min of *this and \a other

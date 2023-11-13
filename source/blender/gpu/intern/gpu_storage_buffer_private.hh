@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -47,6 +47,7 @@ class StorageBuf {
   virtual void clear(uint32_t clear_value) = 0;
   virtual void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) = 0;
   virtual void read(void *data) = 0;
+  virtual void async_flush_to_host() = 0;
 };
 
 /* Syntactic sugar. */

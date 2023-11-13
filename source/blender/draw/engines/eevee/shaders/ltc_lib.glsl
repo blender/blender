@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Adapted from :
  * Real-Time Polygonal-Light Shading with Linearly Transformed Cosines.
@@ -19,7 +23,7 @@ float diffuse_sphere_integral(float avg_dir_z, float form_factor)
   vec2 uv = vec2(avg_dir_z * 0.5 + 0.5, form_factor);
   uv = uv * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
 
-  return texture(utilTex, vec3(uv, 3.0)).x;
+  return texture(utilTex, vec3(uv, LTC_DISK_LAYER)).x;
 #else
   /* Cheap approximation. Less smooth and have energy issues. */
   return max((form_factor * form_factor + avg_dir_z) / (form_factor + 1.0), 0.0);

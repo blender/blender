@@ -14,6 +14,7 @@
 
 typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> CwiseAbsReturnType;
 typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> CwiseAbs2ReturnType;
+typedef CwiseUnaryOp<internal::scalar_arg_op<Scalar>, const Derived> CwiseArgReturnType;
 typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> CwiseSqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_sign_op<Scalar>, const Derived> CwiseSignReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> CwiseInverseReturnType;
@@ -82,4 +83,13 @@ EIGEN_DEVICE_FUNC
 inline const CwiseInverseReturnType
 cwiseInverse() const { return CwiseInverseReturnType(derived()); }
 
+/// \returns an expression of the coefficient-wise phase angle of \c *this
+///
+/// Example: \include MatrixBase_cwiseArg.cpp
+/// Output: \verbinclude MatrixBase_cwiseArg.out
+///
+EIGEN_DOC_UNARY_ADDONS(cwiseArg,arg)
 
+EIGEN_DEVICE_FUNC
+inline const CwiseArgReturnType
+cwiseArg() const { return CwiseArgReturnType(derived()); }

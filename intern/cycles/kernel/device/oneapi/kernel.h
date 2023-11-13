@@ -20,7 +20,7 @@ enum DeviceKernel : int;
 #        define CYCLES_KERNEL_ONEAPI_EXPORT extern __declspec(dllimport)
 #      endif
 #    else
-#      define CYCLES_KERNEL_ONEAPI_EXPORT
+#      define CYCLES_KERNEL_ONEAPI_EXPORT extern __attribute__((visibility("default")))
 #    endif
 #  endif
 
@@ -45,11 +45,11 @@ extern "C" {
 
 CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_run_test_kernel(SyclQueue *queue_);
 CYCLES_KERNEL_ONEAPI_EXPORT void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr);
-CYCLES_KERNEL_ONEAPI_EXPORT size_t oneapi_kernel_preferred_local_size(
-    SyclQueue *queue, const DeviceKernel kernel, const size_t kernel_global_size);
+CYCLES_KERNEL_ONEAPI_EXPORT size_t oneapi_suggested_gpu_kernel_size(const DeviceKernel kernel);
 CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_enqueue_kernel(KernelContext *context,
                                                        int kernel,
                                                        size_t global_size,
+                                                       size_t local_size,
                                                        const unsigned int kernel_features,
                                                        bool use_hardware_raytracing,
                                                        void **args);

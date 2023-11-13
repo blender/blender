@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -38,7 +38,7 @@ class MTLShaderInterface;
 class MTLContext;
 
 /* Debug control. */
-#define MTL_SHADER_DEBUG_EXPORT_SOURCE 1
+#define MTL_SHADER_DEBUG_EXPORT_SOURCE 0
 #define MTL_SHADER_TRANSLATION_DEBUG_OUTPUT 0
 
 /* Separate print used only during development and debugging. */
@@ -198,7 +198,10 @@ class MTLShader : public Shader {
   MTLComputePipelineStateInstance compute_pso_instance_;
 
   /* True to enable multi-layered rendering support. */
-  bool uses_mtl_array_index_ = false;
+  bool uses_gpu_layer = false;
+
+  /* True to enable multi-viewport rendering support. */
+  bool uses_gpu_viewport_index = false;
 
   /** SSBO Vertex fetch pragma options. */
   /* Indicates whether to pass in VertexBuffer's as regular buffer bindings
@@ -304,23 +307,25 @@ class MTLShader : public Shader {
   bool get_push_constant_is_dirty();
   void push_constant_bindstate_mark_dirty(bool is_dirty);
 
+  /* SSBO vertex fetch draw parameters. */
+  bool get_uses_ssbo_vertex_fetch() const override
+  {
+    return use_ssbo_vertex_fetch_mode_;
+  }
+  int get_ssbo_vertex_fetch_output_num_verts() const override
+  {
+    return ssbo_vertex_fetch_output_num_verts_;
+  }
+
   /* DEPRECATED: Kept only because of BGL API. (Returning -1 in METAL). */
   int program_handle_get() const override
   {
     return -1;
   }
 
-  bool get_uses_ssbo_vertex_fetch()
-  {
-    return use_ssbo_vertex_fetch_mode_;
-  }
   MTLPrimitiveType get_ssbo_vertex_fetch_output_prim_type()
   {
     return ssbo_vertex_fetch_output_prim_type_;
-  }
-  uint32_t get_ssbo_vertex_fetch_output_num_verts()
-  {
-    return ssbo_vertex_fetch_output_num_verts_;
   }
   static int ssbo_vertex_type_to_attr_type(MTLVertexFormat attribute_type);
   void prepare_ssbo_vertex_fetch_metadata();

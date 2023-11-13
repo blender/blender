@@ -41,27 +41,33 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   float y0 = dot(dir, y);
   float x1 = x0 + len_u;
   float y1 = y0 + len_v;
-  /* Compute internal angles (gamma_i). */
+  /* Compute predefined constants. */
   float4 diff = make_float4(x0, y1, x1, y0) - make_float4(x1, y0, x0, y1);
   float4 nz = make_float4(y0, x1, y1, x0) * diff;
   nz = nz / sqrt(z0 * z0 * diff * diff + nz * nz);
-  float g0 = safe_acosf(-nz.x * nz.y);
-  float g1 = safe_acosf(-nz.y * nz.z);
-  float g2 = safe_acosf(-nz.z * nz.w);
-  float g3 = safe_acosf(-nz.w * nz.x);
-  /* Compute predefined constants. */
-  float b0 = nz.x;
-  float b1 = nz.z;
-  float b0sq = b0 * b0;
-  float k = M_2PI_F - g2 - g3;
-  /* Compute solid angle from internal angles. */
-  float S = g0 + g1 - k;
+  /* The original paper uses `acos()` to compute the internal angles here, and then computes the
+   * solid angle as their sum minus 2*pi. However, for very small rectangles, this results in
+   * excessive cancellation error since the sum will be almost 2*pi as well.
+   * This can be avoided by using that `asin(x) = pi/2 - acos(x)`. */
+  float g0 = safe_asinf(-nz.x * nz.y);
+  float g1 = safe_asinf(-nz.y * nz.z);
+  float g2 = safe_asinf(-nz.z * nz.w);
+  float g3 = safe_asinf(-nz.w * nz.x);
+  float S = -(g0 + g1 + g2 + g3);
 
   if (sample_coord) {
-    /* Compute cu. */
-    float au = rand.x * S + k;
-    float fu = (cosf(au) * b0 - b1) / sinf(au);
-    float cu = 1.0f / sqrtf(fu * fu + b0sq) * (fu > 0.0f ? 1.0f : -1.0f);
+    /* Compute predefined constants. */
+    float b0 = nz.x;
+    float b1 = nz.z;
+    float b0sq = b0 * b0;
+    /* Compute cu.
+     * In the original paper, an additional constant k is involved here. However, just like above,
+     * it causes cancellation issues. The same `asin()` terms from above can be used instead, and
+     * the extra +pi that would remain in the expression for au can be removed by flipping the sign
+     * of cos(au) and sin(au), which also cancels if we flip the sign of b1 in the fu term. */
+    float au = rand.x * S + g2 + g3;
+    float fu = (cosf(au) * b0 + b1) / sinf(au);
+    float cu = copysignf(1.0f / sqrtf(fu * fu + b0sq), fu);
     cu = clamp(cu, -1.0f, 1.0f);
     /* Compute xu. */
     float xu = -(cu * z0) / max(sqrtf(1.0f - cu * cu), 1e-7f);
@@ -81,10 +87,12 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   }
 
   /* return pdf */
-  if (S != 0.0f)
+  if (S != 0.0f) {
     return 1.0f / S;
-  else
+  }
+  else {
     return 0.0f;
+  }
 }
 
 /* Light spread. */
@@ -96,14 +104,13 @@ ccl_device float area_light_spread_attenuation(const float3 D,
 {
   /* Model a soft-box grid, computing the ratio of light not hidden by the
    * slats of the grid at a given angle. (see D10594). */
-  const float cos_a = -dot(D, lightNg);
+  const float tan_a = tan_angle(-D, lightNg);
+
   if (tan_half_spread == 0.0f) {
-    /* cos(0.05°) ≈ 0.9999997 */
     /* The factor M_PI_F comes from integrating the radiance over the hemisphere */
-    return (cos_a > 0.9999997f) ? M_PI_F : 0.0f;
+    return (tan_a > 1e-5f) ? 0.0f : M_PI_F;
   }
-  const float sin_a = sin_from_cos(cos_a);
-  const float tan_a = sin_a / cos_a;
+
   return max((tan_half_spread - tan_a) * normalize_spread, 0.0f);
 }
 
@@ -119,9 +126,9 @@ ccl_device bool area_light_spread_clamp_light(const float3 P,
                                               const float tan_half_spread,
                                               ccl_private bool *sample_rectangle)
 {
-  /* Closest point in area light plane and distance to that plane. */
-  const float3 closest_P = P - dot(lightNg, P - *lightP) * lightNg;
-  const float t = len(closest_P - P);
+  /* Distance from shading point to area light plane and the closest point on that plane. */
+  const float t = dot(lightNg, P - *lightP);
+  const float3 closest_P = P - t * lightNg;
 
   /* Radius of circle on area light that actually affects the shading point. */
   const float r_spread = t * tan_half_spread;
@@ -291,7 +298,8 @@ ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
     ls->D = normalize_len(*light_P - ray_P, &ls->t);
   }
 
-  ls->eval_fac = 0.25f * invarea;
+  /* Convert radiant flux to radiance. */
+  ls->eval_fac = M_1_PI_F * invarea;
 
   if (klight->area.normalize_spread > 0) {
     /* Area Light spread angle attenuation */

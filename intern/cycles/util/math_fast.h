@@ -336,6 +336,12 @@ ccl_device float fast_atan2f(float y, float x)
   return copysignf(r, y);
 }
 
+/* Same as precise_angle, but using fast_atan2f. Still much better that acos(dot(a, b)). */
+ccl_device_inline float vector_angle(float3 a, float3 b)
+{
+  return 2.0f * fast_atan2f(len(a - b), len(a + b));
+}
+
 /* Based on:
  *
  *   https://github.com/LiraNuna/glsl-sse2/blob/master/source/vec4.h

@@ -1,6 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "BLI_assert.h"
 
 #include "GPU_state.h"
 #include "GPU_texture.h"
@@ -20,7 +22,7 @@ ReduceToSingleValueOperation::ReduceToSingleValueOperation(Context &context, Res
   InputDescriptor input_descriptor;
   input_descriptor.type = type;
   declare_input_descriptor(input_descriptor);
-  populate_result(Result(type, texture_pool()));
+  populate_result(context.create_result(type));
 }
 
 void ReduceToSingleValueOperation::execute()
@@ -42,6 +44,10 @@ void ReduceToSingleValueOperation::execute()
       break;
     case ResultType::Float:
       result.set_float_value(*pixel);
+      break;
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      BLI_assert_unreachable();
       break;
   }
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2013-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2013-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,8 +28,8 @@ def init_spell_check(settings, lang="en_US"):
     try:
         from bl_i18n_utils import utils_spell_check
         return utils_spell_check.SpellChecker(settings, lang)
-    except Exception as e:
-        print("Failed to import utils_spell_check ({})".format(str(e)))
+    except BaseException as ex:
+        print("Failed to import utils_spell_check ({})".format(str(ex)))
         return None
 
 
@@ -560,9 +560,9 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             op = getattr(op, n)
         try:
             return op.get_rna_type().translation_context
-        except Exception as e:
+        except BaseException as ex:
             default_op_context = i18n_contexts.operator_default
-            print("ERROR: ", str(e))
+            print("ERROR: ", str(ex))
             print("       Assuming default operator context '{}'".format(default_op_context))
             return default_op_context
 
@@ -588,6 +588,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                   ),
         "message": (),
         "heading": (),
+        "placeholder": ((("text_ctxt",), _ctxt_to_ctxt),),
     }
 
     context_kw_set = {}
@@ -621,7 +622,8 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
             if (not arg.is_output) and (arg.type == 'STRING'):
                 for msgid, msgctxts in context_kw_set.items():
-                    if arg_kw in msgctxts:
+                    # The msgid can be missing if it is used in only some UILayout functions but not all
+                    if arg_kw in msgctxts and msgid in func_translate_args[func_id]:
                         func_translate_args[func_id][msgid][1][arg_kw] = arg_pos
     # The report() func of operators.
     for func_id, func in bpy.types.Operator.bl_rna.functions.items():
@@ -853,7 +855,7 @@ def dump_src_messages(msgs, reports, settings):
                 elif l[0] != '#':
                     forced.add(l.rstrip('\n'))
     for root, dirs, files in os.walk(settings.POTFILES_SOURCE_DIR):
-        if "/.svn" in root:
+        if "/.git" in root:
             continue
         for fname in files:
             if os.path.splitext(fname)[1] not in settings.PYGETTEXT_ALLOWED_EXTS:
@@ -939,6 +941,14 @@ def dump_asset_messages(msgs, reports, settings):
 
     # Parse the asset blend files
     asset_files = {}
+    # Store assets according to this structure:
+    # {"basename": [
+    #     {"name": "Name",
+    #      "description": "Description",
+    #      "sockets": [
+    #          ("Name", "Description"),
+    #      ]},
+    # ]}
 
     bfiles = glob.glob(assets_dir + "/**/*.blend", recursive=True)
     for bfile in bfiles:
@@ -951,17 +961,33 @@ def dump_asset_messages(msgs, reports, settings):
                 if asset.asset_data is None:  # Not an asset
                     continue
                 assets = asset_files.setdefault(basename, [])
-                assets.append((asset.name, asset.asset_data.description))
+                asset_data = {"name": asset.name,
+                              "description": asset.asset_data.description}
+                for interface in asset.interface.items_tree:
+                    if interface.name == "Geometry":  # Ignore common socket
+                        continue
+                    socket_data = asset_data.setdefault("sockets", [])
+                    socket_data.append((interface.name, interface.description))
+                assets.append(asset_data)
 
     for asset_file in sorted(asset_files):
-        for asset in sorted(asset_files[asset_file]):
-            name, description = asset
+        for asset in sorted(asset_files[asset_file], key=lambda a: a["name"]):
+            name, description = asset["name"], asset["description"]
             msgsrc = "Asset name from file " + asset_file
             process_msg(msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
                         reports, None, settings)
             msgsrc = "Asset description from file " + asset_file
             process_msg(msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
                         reports, None, settings)
+
+            if "sockets" in asset:
+                for socket_name, socket_description in asset["sockets"]:
+                    msgsrc = f"Socket name from node group {name}, file {asset_file}"
+                    process_msg(msgs, settings.DEFAULT_CONTEXT, socket_name, msgsrc,
+                                reports, None, settings)
+                    msgsrc = f"Socket description from node group {name}, file {asset_file}"
+                    process_msg(msgs, settings.DEFAULT_CONTEXT, socket_description, msgsrc,
+                                reports, None, settings)
 
 
 def dump_addon_bl_info(msgs, reports, module, settings):
@@ -1105,7 +1131,7 @@ def dump_addon_messages(module_name, do_checks, settings):
     dump_rna_messages(msgs, reports, settings)
     print("C")
 
-    # Now disable our addon, and rescan RNA.
+    # Now disable our addon, and re-scan RNA.
     utils.enable_addons(addons={module_name}, disable=True)
     print("D")
     reports["check_ctxt"] = minus_check_ctxt

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,7 +26,7 @@ void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock);
  */
 int BLI_hash_md5_stream(FILE *stream, void *resblock);
 
-char *BLI_hash_md5_to_hexdigest(void *resblock, char r_hex_digest[33]);
+char *BLI_hash_md5_to_hexdigest(const void *resblock, char r_hex_digest[33]);
 
 #ifdef __cplusplus
 }

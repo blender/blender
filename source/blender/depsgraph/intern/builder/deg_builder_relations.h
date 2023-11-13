@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,11 +11,11 @@
 #include <cstdio>
 #include <cstring>
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 #include "DNA_ID.h"
 
-#include "RNA_path.h"
+#include "RNA_path.hh"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -25,11 +25,11 @@
 #include "intern/builder/deg_builder_map.h"
 #include "intern/builder/deg_builder_rna.h"
 #include "intern/builder/deg_builder_stack.h"
-#include "intern/depsgraph.h"
-#include "intern/node/deg_node.h"
-#include "intern/node/deg_node_component.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/depsgraph.hh"
+#include "intern/node/deg_node.hh"
+#include "intern/node/deg_node_component.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
 
 struct CacheFile;
 struct Camera;
@@ -54,7 +54,6 @@ struct Object;
 struct ParticleSettings;
 struct ParticleSystem;
 struct Scene;
-struct Simulation;
 struct Speaker;
 struct Tex;
 struct VFont;
@@ -126,6 +125,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
 
   virtual void build_idproperties(IDProperty *id_property);
 
+  virtual void build_scene_camera(Scene *scene);
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
@@ -178,6 +178,16 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_driver_data(ID *id, FCurve *fcurve);
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
 
+  virtual void build_driver_scene_camera_variable(const OperationKey &driver_key,
+                                                  const RNAPathKey &self_key,
+                                                  Scene *scene,
+                                                  const char *rna_path);
+  virtual void build_driver_rna_path_variable(const OperationKey &driver_key,
+                                              const RNAPathKey &self_key,
+                                              ID *target_id,
+                                              const PointerRNA &target_prop,
+                                              const char *rna_path);
+
   /* Build operations of a property value from which is read by a driver target.
    *
    * The driver target points to a data-block (or a sub-data-block like View Layer).
@@ -216,6 +226,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_shapekeys(Key *key);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
+  virtual void build_armature_bone_collections(ListBase *collections);
   virtual void build_camera(Camera *camera);
   virtual void build_light(Light *lamp);
   virtual void build_nodetree(bNodeTree *ntree);
@@ -232,7 +243,6 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_lightprobe(LightProbe *probe);
   virtual void build_speaker(Speaker *speaker);
   virtual void build_sound(bSound *sound);
-  virtual void build_simulation(Simulation *simulation);
   virtual void build_scene_sequencer(Scene *scene);
   virtual void build_scene_audio(Scene *scene);
   virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);

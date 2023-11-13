@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
 /** \file
  * \ingroup bmesh
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct CurveProfile;
 struct MDeformVert;
@@ -43,6 +47,9 @@ void BM_mesh_bevel(BMesh *bm,
                    int miter_outer,
                    int miter_inner,
                    float spread,
-                   float smoothresh,
                    const struct CurveProfile *custom_profile,
                    int vmesh_method);
+
+#ifdef __cplusplus
+}
+#endif

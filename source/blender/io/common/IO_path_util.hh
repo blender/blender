@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -6,7 +6,7 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
-#include "IO_path_util_types.h"
+#include "IO_path_util_types.hh"
 
 namespace blender::io {
 

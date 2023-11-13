@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <ostream>
+#include <iosfwd>
 
 #include "util/types.h"
 

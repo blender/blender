@@ -112,12 +112,12 @@ public:
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    TrOptions = RowsAtCompileTime==1 ? (MatrixType::Options & ~(RowMajor))
-              : ColsAtCompileTime==1 ? (MatrixType::Options |   RowMajor)
-              : MatrixType::Options
+    Options = MatrixType::Options
   };
-  typedef Matrix<Scalar, ColsAtCompileTime, RowsAtCompileTime, TrOptions, MaxColsAtCompileTime, MaxRowsAtCompileTime>
-          TransposeTypeWithSameStorageOrder;
+
+  typedef typename internal::make_proper_matrix_type<
+    Scalar, ColsAtCompileTime, RowsAtCompileTime, Options, MaxColsAtCompileTime, MaxRowsAtCompileTime
+  >::type TransposeTypeWithSameStorageOrder;
 
   void allocate(const JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd)
   {
@@ -202,13 +202,12 @@ public:
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    TrOptions = RowsAtCompileTime==1 ? (MatrixType::Options & ~(RowMajor))
-              : ColsAtCompileTime==1 ? (MatrixType::Options |   RowMajor)
-              : MatrixType::Options
+    Options = MatrixType::Options
   };
 
-  typedef Matrix<Scalar, ColsAtCompileTime, RowsAtCompileTime, TrOptions, MaxColsAtCompileTime, MaxRowsAtCompileTime>
-          TransposeTypeWithSameStorageOrder;
+  typedef typename internal::make_proper_matrix_type<
+    Scalar, ColsAtCompileTime, RowsAtCompileTime, Options, MaxColsAtCompileTime, MaxRowsAtCompileTime
+  >::type TransposeTypeWithSameStorageOrder;
 
   void allocate(const JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd)
   {
@@ -303,8 +302,9 @@ public:
     Options = MatrixType::Options
   };
 
-  typedef Matrix<Scalar, ColsAtCompileTime, RowsAtCompileTime, Options, MaxColsAtCompileTime, MaxRowsAtCompileTime>
-          TransposeTypeWithSameStorageOrder;
+  typedef typename internal::make_proper_matrix_type<
+    Scalar, ColsAtCompileTime, RowsAtCompileTime, Options, MaxColsAtCompileTime, MaxRowsAtCompileTime
+  >::type TransposeTypeWithSameStorageOrder;
 
   void allocate(const JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd)
   {
@@ -425,6 +425,7 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
 
 template<typename _MatrixType, int QRPreconditioner> 
 struct traits<JacobiSVD<_MatrixType,QRPreconditioner> >
+        : traits<_MatrixType>
 {
   typedef _MatrixType MatrixType;
 };
@@ -584,6 +585,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     using Base::m_matrixU;
     using Base::m_matrixV;
     using Base::m_singularValues;
+    using Base::m_info;
     using Base::m_isInitialized;
     using Base::m_isAllocated;
     using Base::m_usePrescribedThreshold;
@@ -610,7 +612,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
 };
 
 template<typename MatrixType, int QRPreconditioner>
-void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, unsigned int computationOptions)
+void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Eigen::Index rows, Eigen::Index cols, unsigned int computationOptions)
 {
   eigen_assert(rows >= 0 && cols >= 0);
 
@@ -624,6 +626,7 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
 
   m_rows = rows;
   m_cols = cols;
+  m_info = Success;
   m_isInitialized = false;
   m_isAllocated = true;
   m_computationOptions = computationOptions;
@@ -673,7 +676,12 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   const RealScalar considerAsZero = (std::numeric_limits<RealScalar>::min)();
 
   // Scaling factor to reduce over/under-flows
-  RealScalar scale = matrix.cwiseAbs().maxCoeff();
+  RealScalar scale = matrix.cwiseAbs().template maxCoeff<PropagateNaN>();
+  if (!(numext::isfinite)(scale)) {
+    m_isInitialized = true;
+    m_info = InvalidInput;
+    return *this;
+  }
   if(scale==RealScalar(0)) scale = RealScalar(1);
   
   /*** step 1. The R-SVD step: we use a QR decomposition to reduce to the case of a square matrix */

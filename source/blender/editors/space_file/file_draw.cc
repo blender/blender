@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,20 +12,22 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
+#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "BKE_blendfile.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 #include "BLT_translation.h"
 
@@ -36,40 +38,39 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_fileselect.h"
-#include "ED_screen.h"
+#include "ED_fileselect.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
-#include "filelist.h"
+#include "filelist.hh"
 
-#include "file_intern.h" /* own include */
+#include "file_intern.hh" /* own include */
 
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,
                          FileSelectParams *params,
                          uiBlock *block)
 {
-  PointerRNA params_rna_ptr;
   uiBut *but;
 
   BLI_assert_msg(params != nullptr,
                  "File select parameters not set. The caller is expected to check this.");
 
-  RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
+  PointerRNA params_rna_ptr = RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params);
 
   /* callbacks for operator check functions */
   UI_block_func_set(block, file_draw_check_cb, nullptr, nullptr);
@@ -116,9 +117,9 @@ static char *file_draw_tooltip_func(bContext * /*C*/, void *argN, const char * /
 
 static char *file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
 {
-  const AssetRepresentation *asset = static_cast<AssetRepresentation *>(argN);
-  std::string complete_string = AS_asset_representation_name_get(asset);
-  const AssetMetaData &meta_data = *AS_asset_representation_metadata_get(asset);
+  const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
+  std::string complete_string = asset->get_name();
+  const AssetMetaData &meta_data = asset->get_metadata();
   if (meta_data.description) {
     complete_string += '\n';
     complete_string += meta_data.description;
@@ -141,7 +142,7 @@ static void file_but_enable_drag(uiBut *but,
                                  const SpaceFile *sfile,
                                  const FileDirEntry *file,
                                  const char *path,
-                                 ImBuf *preview_image,
+                                 const ImBuf *preview_image,
                                  int icon,
                                  float scale)
 {
@@ -184,7 +185,7 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   const int x = tile_draw_rect->xmin;
   const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
 
-  /* For uiDefIconBut(), if a1==1.0 then a2 is alpha 0.0 - 1.0 */
+  /* For #uiDefIconBut(): if `a1==1.0` then a2 is alpha `0.0 - 1.0`. */
   const float a1 = dimmed ? 1.0f : 0.0f;
   const float a2 = dimmed ? 0.3f : 0.0f;
   but = uiDefIconBut(
@@ -304,7 +305,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                                       const FileDirEntry *file,
                                       const char *path,
                                       const rcti *tile_draw_rect,
-                                      ImBuf *preview_image,
+                                      const ImBuf *preview_image,
                                       const int icon,
                                       const float scale)
 {
@@ -338,10 +339,11 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
   }
 }
 
-static void file_draw_preview(const FileDirEntry *file,
+static void file_draw_preview(const FileList *files,
+                              const FileDirEntry *file,
                               const rcti *tile_draw_rect,
                               const float icon_aspect,
-                              ImBuf *imb,
+                              const ImBuf *imb,
                               const int icon,
                               FileLayout *layout,
                               const bool is_icon,
@@ -356,9 +358,10 @@ static void file_draw_preview(const FileDirEntry *file,
   float scaledx, scaledy;
   float scale;
   int ex, ey;
-  bool show_outline = !is_icon &&
-                      (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
+  bool show_outline = !is_icon && (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_OBJECT_IO |
+                                                     FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
+  const bool is_loading = filelist_file_is_preview_pending(files, file);
 
   BLI_assert(imb != nullptr);
 
@@ -415,25 +418,33 @@ static void file_draw_preview(const FileDirEntry *file,
     document_img_col[3] *= 0.3f;
   }
 
+  if (!is_icon && ELEM(file->typeflag, FILE_TYPE_IMAGE, FILE_TYPE_OBJECT_IO)) {
+    /* Draw checker pattern behind image previews in case they have transparency. */
+    imm_draw_box_checker_2d(float(xco), float(yco), float(xco + ex), float(yco + ey));
+  }
+
   if (!is_icon && file->typeflag & FILE_TYPE_BLENDERLIB) {
     /* Datablock preview images use premultiplied alpha. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-  immDrawPixelsTexTiled_scaling(&state,
-                                float(xco),
-                                float(yco),
-                                imb->x,
-                                imb->y,
-                                GPU_RGBA8,
-                                true,
-                                imb->byte_buffer.data,
-                                scale,
-                                scale,
-                                1.0f,
-                                1.0f,
-                                document_img_col);
+  if (!is_loading) {
+    /* Don't show outer document image if loading - too flashy. */
+    IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
+    immDrawPixelsTexTiled_scaling(&state,
+                                  float(xco),
+                                  float(yco),
+                                  imb->x,
+                                  imb->y,
+                                  GPU_RGBA8,
+                                  true,
+                                  imb->byte_buffer.data,
+                                  scale,
+                                  scale,
+                                  1.0f,
+                                  1.0f,
+                                  document_img_col);
+  }
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -448,11 +459,17 @@ static void file_draw_preview(const FileDirEntry *file,
       icon_color[1] = 255;
       icon_color[2] = 255;
     }
+
+    if (is_loading) {
+      /* Contrast with background since we are not showing the large document image. */
+      UI_GetThemeColor4ubv(TH_TEXT, icon_color);
+    }
+
     icon_x = xco + (ex / 2.0f) - (icon_size / 2.0f);
     icon_y = yco + (ey / 2.0f) - (icon_size * ((file->typeflag & FILE_TYPE_DIR) ? 0.78f : 0.75f));
     UI_icon_draw_ex(icon_x,
                     icon_y,
-                    icon,
+                    is_loading ? ICON_TEMP : icon,
                     icon_aspect / UI_SCALE_FAC,
                     icon_opacity,
                     0.0f,
@@ -507,7 +524,7 @@ static void file_draw_preview(const FileDirEntry *file,
                       UI_NO_ICON_OVERLAY_TEXT);
     }
   }
-  else if (icon && !is_icon && !(file->typeflag & FILE_TYPE_FTFONT)) {
+  else if (icon && ((!is_icon && !(file->typeflag & FILE_TYPE_FTFONT)) || is_loading)) {
     /* Smaller, fainter icon at bottom-left for preview image thumbnail, but not for fonts. */
     float icon_x, icon_y;
     const uchar dark[4] = {0, 0, 0, 255};
@@ -558,7 +575,7 @@ static void file_draw_preview(const FileDirEntry *file,
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    float border_color[4] = {1.0f, 1.0f, 1.0f, 0.4f};
+    float border_color[4] = {1.0f, 1.0f, 1.0f, 0.15f};
     float bgcolor[4];
     UI_GetThemeColor4fv(TH_BACK, bgcolor);
     if (rgb_to_grayscale(bgcolor) > 0.5f) {
@@ -567,7 +584,7 @@ static void file_draw_preview(const FileDirEntry *file,
       border_color[2] = 0.0f;
     }
     immUniformColor4fv(border_color);
-    imm_draw_box_wire_2d(pos, float(xco), float(yco), float(xco + ex), float(yco + ey));
+    imm_draw_box_wire_2d(pos, float(xco), float(yco), float(xco + ex + 1), float(yco + ey + 1));
     immUnbindProgram();
   }
 
@@ -599,7 +616,7 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
       errno = 0;
       if ((BLI_rename(orgname, newname) != 0) || !BLI_exists(newname)) {
         WM_reportf(RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
-        WM_report_banner_show();
+        WM_report_banner_show(wm, win);
       }
       else {
         /* If rename is successful, scroll to newly renamed entry. */
@@ -789,22 +806,20 @@ static void draw_columnheader_columns(const FileSelectParams *params,
 static const char *filelist_get_details_column_string(
     FileAttributeColumnType column,
     /* Generated string will be cached in the file, so non-const. */
-    FileDirEntry *file,
-    const bool small_size,
-    const bool update_stat_strings)
+    FileDirEntry *file)
 {
   switch (column) {
     case COLUMN_DATETIME:
       if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath)) {
-        if ((file->draw_data.datetime_str[0] == '\0') || update_stat_strings) {
+        if (file->draw_data.datetime_str[0] == '\0') {
           char date[FILELIST_DIRENTRY_DATE_LEN], time[FILELIST_DIRENTRY_TIME_LEN];
           bool is_today, is_yesterday;
 
           BLI_filelist_entry_datetime_to_string(
-              nullptr, file->time, small_size, time, date, &is_today, &is_yesterday);
+              nullptr, file->time, false, time, date, &is_today, &is_yesterday);
 
           if (is_today || is_yesterday) {
-            STRNCPY(date, is_today ? N_("Today") : N_("Yesterday"));
+            STRNCPY(date, is_today ? IFACE_("Today") : IFACE_("Yesterday"));
           }
           SNPRINTF(file->draw_data.datetime_str, "%s %s", date, time);
         }
@@ -816,9 +831,8 @@ static const char *filelist_get_details_column_string(
       if ((file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) ||
           !(file->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB)))
       {
-        if ((file->draw_data.size_str[0] == '\0') || update_stat_strings) {
-          BLI_filelist_entry_size_to_string(
-              nullptr, file->size, small_size, file->draw_data.size_str);
+        if (file->draw_data.size_str[0] == '\0') {
+          BLI_filelist_entry_size_to_string(nullptr, file->size, false, file->draw_data.size_str);
         }
 
         return file->draw_data.size_str;
@@ -837,8 +851,6 @@ static void draw_details_columns(const FileSelectParams *params,
                                  const rcti *tile_draw_rect,
                                  const uchar text_col[4])
 {
-  const bool small_size = SMALL_SIZE_CHECK(params->thumbnail_size);
-  const bool update_stat_strings = small_size != SMALL_SIZE_CHECK(layout->curr_size);
   int sx = tile_draw_rect->xmin - layout->tile_border_x - (UI_UNIT_X * 0.1f);
 
   for (int column_type = 0; column_type < ATTRIBUTE_COLUMN_MAX; column_type++) {
@@ -853,8 +865,8 @@ static void draw_details_columns(const FileSelectParams *params,
       continue;
     }
 
-    const char *str = filelist_get_details_column_string(
-        FileAttributeColumnType(column_type), file, small_size, update_stat_strings);
+    const char *str = filelist_get_details_column_string(FileAttributeColumnType(column_type),
+                                                         file);
 
     if (str) {
       file_draw_string(sx + ATTRIBUTE_COLUMN_PADDING,
@@ -902,7 +914,6 @@ void file_draw_list(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   FileList *files = sfile->files;
   FileDirEntry *file;
-  ImBuf *imb;
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   int numfiles;
   int numfiles_layout;
@@ -914,7 +925,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   bool do_drag;
   uchar text_col[4];
   const bool draw_columnheader = (params->display == FILE_VERTICALDISPLAY);
-  const float thumb_icon_aspect = MIN2(64.0f / float(params->thumbnail_size), 1.0f);
+  const float thumb_icon_aspect = std::min(64.0f / float(params->thumbnail_size), 1.0f);
 
   numfiles = filelist_files_ensure(files);
 
@@ -964,13 +975,13 @@ void file_draw_list(const bContext *C, ARegion *region)
                                     !filelist_cache_previews_done(files);
       //          printf("%s: preview task: %d\n", __func__, previews_running);
       if (previews_running && !sfile->previews_timer) {
-        sfile->previews_timer = WM_event_add_timer_notifier(
+        sfile->previews_timer = WM_event_timer_add_notifier(
             wm, win, NC_SPACE | ND_SPACE_FILE_PREVIEW, 0.01);
       }
       if (!previews_running && sfile->previews_timer) {
         /* Preview is not running, no need to keep generating update events! */
         //              printf("%s: Inactive preview task, sleeping!\n", __func__);
-        WM_event_remove_timer_notifier(wm, win, sfile->previews_timer);
+        WM_event_timer_remove_notifier(wm, win, sfile->previews_timer);
         sfile->previews_timer = nullptr;
       }
     }
@@ -1018,15 +1029,16 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     if (FILE_IMGDISPLAY == params->display) {
       const int icon = filelist_geticon(files, i, false);
-      is_icon = 0;
-      imb = filelist_getimage(files, i);
+      is_icon = false;
+      const ImBuf *imb = filelist_getimage(files, i);
       if (!imb) {
         imb = filelist_geticon_image(files, i);
-        is_icon = 1;
+        is_icon = true;
       }
 
       float scale = 0;
-      file_draw_preview(file,
+      file_draw_preview(files,
+                        file,
                         &tile_draw_rect,
                         thumb_icon_aspect,
                         imb,
@@ -1066,7 +1078,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                      0,
                                      0,
                                      0,
-                                     0);
+                                     nullptr);
           UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
         }
@@ -1161,12 +1173,11 @@ void file_draw_list(const bContext *C, ARegion *region)
   layout->curr_size = params->thumbnail_size;
 }
 
-static void file_draw_invalid_library_hint(const bContext *C,
-                                           const SpaceFile *sfile,
-                                           ARegion *region)
+static void file_draw_invalid_asset_library_hint(const bContext *C,
+                                                 const SpaceFile *sfile,
+                                                 ARegion *region,
+                                                 FileAssetSelectParams *asset_params)
 {
-  const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-
   char library_ui_path[PATH_MAX];
   file_path_to_ui_path(asset_params->base_params.dir, library_ui_path, sizeof(library_ui_path));
 
@@ -1238,21 +1249,112 @@ static void file_draw_invalid_library_hint(const bContext *C,
   }
 }
 
+static void file_draw_invalid_library_hint(const bContext * /*C*/,
+                                           const SpaceFile *sfile,
+                                           ARegion *region,
+                                           const char *blendfile_path,
+                                           ReportList *reports)
+{
+  uchar text_col[4];
+  UI_GetThemeColor4ubv(TH_TEXT, text_col);
+
+  const View2D *v2d = &region->v2d;
+  const int pad = sfile->layout->tile_border_x;
+  const int width = BLI_rctf_size_x(&v2d->tot) - (2 * pad);
+  const int line_height = sfile->layout->textheight;
+  int sx = v2d->tot.xmin + pad;
+  /* For some reason no padding needed. */
+  int sy = v2d->tot.ymax;
+
+  {
+    const char *message = TIP_("Unreadable Blender library file:");
+    file_draw_string_multiline(sx, sy, message, width, line_height, text_col, nullptr, &sy);
+
+    sy -= line_height;
+    file_draw_string(sx, sy, blendfile_path, width, line_height, UI_STYLE_TEXT_LEFT, text_col);
+  }
+
+  /* Separate a bit further. */
+  sy -= line_height * 2.2f;
+
+  LISTBASE_FOREACH (Report *, report, &reports->list) {
+    const short report_type = report->type;
+    if (report_type <= RPT_INFO) {
+      continue;
+    }
+
+    int icon = ICON_INFO;
+    if (report_type > RPT_WARNING) {
+      icon = ICON_ERROR;
+    }
+    UI_icon_draw(sx, sy - UI_UNIT_Y, icon);
+
+    file_draw_string_multiline(sx + UI_UNIT_X,
+                               sy,
+                               TIP_(report->message),
+                               width - UI_UNIT_X,
+                               line_height,
+                               text_col,
+                               nullptr,
+                               &sy);
+    sy -= line_height;
+  }
+}
+
 bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegion *region)
 {
-  FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-  /* Only for asset browser. */
-  if (!ED_fileselect_is_asset_browser(sfile)) {
-    return false;
-  }
-  /* Check if the library exists. */
-  if ((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
-      filelist_is_dir(sfile->files, asset_params->base_params.dir))
-  {
-    return false;
+  char blendfile_path[FILE_MAX_LIBEXTRA];
+  const bool is_asset_browser = ED_fileselect_is_asset_browser(sfile);
+  const bool is_library_browser = !is_asset_browser &&
+                                  filelist_islibrary(sfile->files, blendfile_path, nullptr);
+
+  if (is_asset_browser) {
+    FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+
+    /* Check if the asset library exists. */
+    if (!((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
+          filelist_is_dir(sfile->files, asset_params->base_params.dir)))
+    {
+      file_draw_invalid_asset_library_hint(C, sfile, region, asset_params);
+      return true;
+    }
   }
 
-  file_draw_invalid_library_hint(C, sfile, region);
+  /* Check if the blendfile library is valid (has entries). */
+  if (is_library_browser) {
+    if (!filelist_is_ready(sfile->files)) {
+      return false;
+    }
 
-  return true;
+    const int numfiles = filelist_files_num_entries(sfile->files);
+    if (numfiles > 0) {
+      return false;
+    }
+
+    /* This could all be part of the file-list loading:
+     *   - When loading fails this could be saved in the file-list, e.g. when
+     *     `BLO_blendhandle_from_file()` returns null in `filelist_readjob_list_lib()`, a
+     *     `FL_HAS_INVALID_LIBRARY` file-list flag could be set.
+     *   - Reports from it could also be stored in `FileList` rather than being ignored
+     *     (`RPT_STORE` must be set!).
+     *   - Then we could just check for `is_library_browser` and the `FL_HAS_INVALID_LIBRARY` flag
+     *     here, and draw the hint with the reports in the file-list. (We would not draw a hint for
+     *     recursive loading, even if the file-list has the "has invalid library" flag set, which
+     *     seems like the wanted behavior.)
+     *   - The call to BKE_blendfile_is_readable() would not be needed then.
+     */
+    if (!sfile->runtime->is_blendfile_status_set) {
+      BKE_reports_clear(&sfile->runtime->is_blendfile_readable_reports);
+      sfile->runtime->is_blendfile_readable = BKE_blendfile_is_readable(
+          blendfile_path, &sfile->runtime->is_blendfile_readable_reports);
+      sfile->runtime->is_blendfile_status_set = true;
+    }
+    if (!sfile->runtime->is_blendfile_readable) {
+      file_draw_invalid_library_hint(
+          C, sfile, region, blendfile_path, &sfile->runtime->is_blendfile_readable_reports);
+      return true;
+    }
+  }
+
+  return false;
 }

@@ -39,8 +39,9 @@ int main(int argc, char *argv[])
   switch (argc) {
     case 2:
       verbose = atoi(argv[1]);
-      if (verbose < 0)
+      if (verbose < 0) {
         verbose = 0;
+      }
       break;
     case 1:
     default:
@@ -59,15 +60,17 @@ int main(int argc, char *argv[])
   for (i = 0; i < NUM_BLOCKS; i++) {
     int blocksize = 10000;
     char tagstring[1000];
-    if (verbose > 1)
+    if (verbose > 1) {
       printf("|--* Allocating block %d\n", i);
+    }
     sprintf(tagstring, "Memblock no. %d : ", i);
     p[i] = MEM_callocN(blocksize, strdup(tagstring));
   }
 
   /* report on that */
-  if (verbose > 1)
+  if (verbose > 1) {
     MEM_printmemlist();
+  }
 
   /* memory is there: test it */
   error_status = MEM_consistency_check();
@@ -94,16 +97,18 @@ int main(int argc, char *argv[])
   for (i = 0; i < NUM_BLOCKS; i++) {
     int blocksize = 10000;
     char tagstring[1000];
-    if (verbose > 1)
+    if (verbose > 1) {
       printf("|--* Allocating block %d\n", i);
+    }
     sprintf(tagstring, "Memblock no. %d : ", i);
     p[i] = MEM_callocN(blocksize, strdup(tagstring));
   }
 
   /* Now corrupt a few blocks. */
   ip = (int *)p[5] - 50;
-  for (i = 0; i < 1000; i++, ip++)
+  for (i = 0; i < 1000; i++, ip++) {
     *ip = i + 1;
+  }
   ip = (int *)p[6];
   *(ip + 10005) = 0;
 

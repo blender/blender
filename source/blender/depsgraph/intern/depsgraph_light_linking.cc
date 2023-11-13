@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
  *
  * Light linking utilities. */
 
-#include "intern/depsgraph_light_linking.h"
+#include "intern/depsgraph_light_linking.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -23,11 +23,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph_light_linking.h"
 #include "DEG_depsgraph_light_linking.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
-#include "intern/depsgraph.h"
+#include "intern/depsgraph.hh"
 
 namespace deg = blender::deg;
 
@@ -45,7 +44,7 @@ void eval_runtime_data(const ::Depsgraph *depsgraph, Object &object_eval)
 
 }  // namespace blender::deg::light_linking
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal builder API
@@ -504,4 +503,4 @@ void Cache::eval_runtime_data(Object &object_eval) const
 
 }  // namespace blender::deg::light_linking
 
-/* \} */
+/** \} */

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +19,7 @@ class DataButtonsPanel:
 class DATA_PT_context_lightprobe(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -46,7 +46,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
 #        layout.prop(probe, "type")
 
-        if probe.type == 'GRID':
+        if probe.type == 'VOLUME':
             col = layout.column()
             col.prop(probe, "influence_distance", text="Distance")
             col.prop(probe, "falloff")
@@ -57,7 +57,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             sub.prop(probe, "grid_resolution_y", text="Y")
             sub.prop(probe, "grid_resolution_z", text="Z")
 
-        elif probe.type == 'PLANAR':
+        elif probe.type == 'PLANE':
             col = layout.column()
             col.prop(probe, "influence_distance", text="Distance")
             col.prop(probe, "falloff")
@@ -74,13 +74,111 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.prop(probe, "intensity")
 
         sub = col.column(align=True)
-        if probe.type != 'PLANAR':
+        if probe.type != 'PLANE':
             sub.prop(probe, "clip_start", text="Clipping Start")
         else:
             sub.prop(probe, "clip_start", text="Clipping Offset")
 
-        if probe.type != 'PLANAR':
+        if probe.type != 'PLANE':
             sub.prop(probe, "clip_end", text="End")
+
+
+class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
+    bl_label = "Probe"
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        probe = context.lightprobe
+
+        if probe.type == 'VOLUME':
+            col = layout.column()
+
+            sub = col.column(align=True)
+            sub.prop(probe, "grid_resolution_x", text="Resolution X")
+            sub.prop(probe, "grid_resolution_y", text="Y")
+            sub.prop(probe, "grid_resolution_z", text="Z")
+
+            col.separator()
+
+            col.prop(probe, "intensity")
+
+            col.separator()
+
+            col.operator("object.lightprobe_cache_bake").subset = 'ACTIVE'
+            col.operator("object.lightprobe_cache_free").subset = 'ACTIVE'
+
+            col.separator()
+
+            row = col.row(align=True)
+            row.prop(probe, "data_display_size", text="Display Data")
+            row.prop(probe, "use_data_display", text="", toggle=True)
+
+            col.separator()
+
+            col.prop(probe, "grid_bake_samples")
+            col.prop(probe, "surfel_density")
+            col.prop(probe, "clip_end", text="Capture Distance")
+
+            col.separator()
+
+            col.prop(probe, "grid_clamp_direct")
+            col.prop(probe, "grid_clamp_indirect")
+
+            col.separator()
+
+            col.prop(probe, "grid_normal_bias")
+            col.prop(probe, "grid_view_bias")
+            col.prop(probe, "grid_irradiance_smoothing")
+            col.prop(probe, "grid_validity_threshold")
+
+            col.separator()
+
+            col.prop(probe, "grid_surface_bias")
+            col.prop(probe, "grid_escape_bias")
+
+            col.separator()
+
+            col.prop(probe, "grid_dilation_threshold")
+            col.prop(probe, "grid_dilation_radius")
+
+            col.separator()
+
+            col.prop(probe, "grid_capture_world")
+            col.prop(probe, "grid_capture_indirect")
+            col.prop(probe, "grid_capture_emission")
+
+        elif probe.type == 'SPHERE':
+            col = layout.column()
+            col.prop(probe, "influence_type")
+
+            if probe.influence_type == 'ELIPSOID':
+                influence_text = "Radius"
+            else:
+                influence_text = "Size"
+
+            col.prop(probe, "influence_distance", text=influence_text)
+            col.prop(probe, "falloff")
+
+            sub = layout.column(align=True)
+            sub.prop(probe, "clip_start", text="Clipping Start")
+            sub.prop(probe, "clip_end", text="End")
+
+            row = col.row(align=True)
+            row.prop(probe, "data_display_size", text="Display Data")
+            row.prop(probe, "use_data_display", text="", toggle=True)
+
+        elif probe.type == 'PLANE':
+            col = layout.column()
+            col.prop(probe, "clip_start", text="Clipping Offset")
+            col.prop(probe, "influence_distance", text="Distance")
+            col.prop(probe, "use_data_display", toggle=True)
+            pass
+        else:
+            # Currently unsupported
+            pass
 
 
 class DATA_PT_lightprobe_visibility(DataButtonsPanel, Panel):
@@ -96,7 +194,7 @@ class DATA_PT_lightprobe_visibility(DataButtonsPanel, Panel):
 
         col = layout.column()
 
-        if probe.type == 'GRID':
+        if probe.type == 'VOLUME':
             col.prop(probe, "visibility_buffer_bias", text="Bias")
             col.prop(probe, "visibility_bleed_bias", text="Bleed Bias")
             col.prop(probe, "visibility_blur", text="Blur")
@@ -109,12 +207,12 @@ class DATA_PT_lightprobe_visibility(DataButtonsPanel, Panel):
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
     bl_label = "Custom Parallax"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT'}
 
     @classmethod
     def poll(cls, context):
         engine = context.engine
-        return context.lightprobe and context.lightprobe.type == 'CUBEMAP' and (engine in cls.COMPAT_ENGINES)
+        return context.lightprobe and context.lightprobe.type == 'SPHERE' and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         probe = context.lightprobe
@@ -151,16 +249,16 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
 
         col = layout.column()
 
-        if probe.type == 'PLANAR':
+        if probe.type == 'PLANE':
             col.prop(ob, "empty_display_size", text="Arrow Size")
             col.prop(probe, "show_influence")
             col.prop(probe, "show_data")
 
-        if probe.type in {'GRID', 'CUBEMAP'}:
+        if probe.type in {'VOLUME', 'SPHERE'}:
             col.prop(probe, "show_influence")
             col.prop(probe, "show_clip")
 
-        if probe.type == 'CUBEMAP':
+        if probe.type == 'SPHERE':
             sub = col.column()
             sub.active = probe.use_custom_parallax
             sub.prop(probe, "show_parallax")
@@ -169,6 +267,7 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
 classes = (
     DATA_PT_context_lightprobe,
     DATA_PT_lightprobe,
+    DATA_PT_lightprobe_eevee_next,
     DATA_PT_lightprobe_visibility,
     DATA_PT_lightprobe_parallax,
     DATA_PT_lightprobe_display,

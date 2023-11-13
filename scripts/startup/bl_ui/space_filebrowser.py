@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,8 +24,8 @@ class FILEBROWSER_HT_header(Header):
 
         layout.separator_spacer()
 
-        if params.asset_library_ref not in {'LOCAL', 'ESSENTIALS'}:
-            layout.prop(params, "import_type", text="")
+        if params.asset_library_reference not in {'LOCAL', 'ESSENTIALS'}:
+            layout.prop(params, "import_method", text="")
 
         layout.separator_spacer()
 
@@ -327,6 +327,15 @@ class FILEBROWSER_PT_bookmarks_favorites(FileBrowserPanel, Panel):
             layout.operator("file.bookmark_add", icon='ADD')
 
 
+class FILEBROWSER_MT_bookmarks_recents_specials_menu(Menu):
+    bl_label = "Recent Items Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("file.reset_recent", icon='X', text="Clear Recent Items")
+
+
 class FILEBROWSER_PT_bookmarks_recents(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
@@ -351,7 +360,7 @@ class FILEBROWSER_PT_bookmarks_recents(Panel):
                               space, "recent_folders_active", item_dyntip_propname="path", rows=1, maxrows=10)
 
             col = row.column(align=True)
-            col.operator("file.reset_recent", icon='X', text="")
+            col.menu("FILEBROWSER_MT_bookmarks_recents_specials_menu", icon='DOWNARROW_HLT', text="")
 
 
 class FILEBROWSER_PT_advanced_filter(Panel):
@@ -505,7 +514,7 @@ class FILEBROWSER_MT_view(FileBrowserMenu, Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(params, "display_size")
+        layout.prop_menu_enum(params, "display_size_discrete")
         layout.prop_menu_enum(params, "recursion_level")
 
         layout.separator()
@@ -529,7 +538,7 @@ class FILEBROWSER_MT_select(FileBrowserMenu, Menu):
 
 
 class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
-    bl_label = "Files Context Menu"
+    bl_label = "Files"
 
     def draw(self, context):
         layout = self.layout
@@ -567,7 +576,7 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
 
         layout.prop_menu_enum(params, "display_type")
         if params.display_type == 'THUMBNAIL':
-            layout.prop_menu_enum(params, "display_size")
+            layout.prop_menu_enum(params, "display_size_discrete")
         layout.prop_menu_enum(params, "recursion_level", text="Recursions")
         layout.prop_menu_enum(params, "sort_method")
 
@@ -667,7 +676,7 @@ class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(params, "display_size")
+        layout.prop_menu_enum(params, "display_size_discrete")
 
         layout.separator()
 
@@ -709,58 +718,58 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
     bl_options = {'HIDE_HEADER'}
 
     @staticmethod
-    def metadata_prop(layout, asset_data, propname):
+    def metadata_prop(layout, asset_metadata, propname):
         """
         Only display properties that are either set or can be modified (i.e. the
         asset is in the current file). Empty, non-editable fields are not really useful.
         """
-        if getattr(asset_data, propname) or not asset_data.is_property_readonly(propname):
-            layout.prop(asset_data, propname)
+        if getattr(asset_metadata, propname) or not asset_metadata.is_property_readonly(propname):
+            layout.prop(asset_metadata, propname)
 
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
-        asset_file_handle = context.asset_file_handle
+        asset = context.asset
 
-        if asset_file_handle is None:
+        if asset is None:
             layout.label(text="No active asset", icon='INFO')
             return
 
         prefs = context.preferences
         show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
-        is_local_asset = bool(asset_file_handle.local_id)
+        is_local_asset = bool(asset.local_id)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
         if is_local_asset:
             # If the active file is an ID, use its name directly so renaming is possible from right here.
-            layout.prop(asset_file_handle.local_id, "name")
+            layout.prop(asset.local_id, "name")
 
             if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.label(text="Asset Catalog:")
-                col.prop(asset_file_handle.local_id.asset_data, "catalog_id", text="UUID")
-                col.prop(asset_file_handle.local_id.asset_data, "catalog_simple_name", text="Simple Name")
+                col.prop(asset.local_id.asset_data, "catalog_id", text="UUID")
+                col.prop(asset.local_id.asset_data, "catalog_simple_name", text="Simple Name")
         else:
-            layout.prop(asset_file_handle, "name")
+            layout.prop(asset, "name")
 
             if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.enabled = False
                 col.label(text="Asset Catalog:")
-                col.prop(asset_file_handle.asset_data, "catalog_id", text="UUID")
-                col.prop(asset_file_handle.asset_data, "catalog_simple_name", text="Simple Name")
+                col.prop(asset.metadata, "catalog_id", text="UUID")
+                col.prop(asset.metadata, "catalog_simple_name", text="Simple Name")
 
         row = layout.row(align=True)
         row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
         row.operator("asset.open_containing_blend_file", text="", icon='TOOL_SETTINGS')
 
-        asset_data = asset_file_handle.asset_data
-        self.metadata_prop(layout, asset_data, "description")
-        self.metadata_prop(layout, asset_data, "license")
-        self.metadata_prop(layout, asset_data, "copyright")
-        self.metadata_prop(layout, asset_data, "author")
+        metadata = asset.metadata
+        self.metadata_prop(layout, metadata, "description")
+        self.metadata_prop(layout, metadata, "license")
+        self.metadata_prop(layout, metadata, "copyright")
+        self.metadata_prop(layout, metadata, "author")
 
 
 class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
@@ -818,7 +827,7 @@ class ASSETBROWSER_UL_metadata_tags(UIList):
 
 
 class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
-    bl_label = "Assets Context Menu"
+    bl_label = "Assets"
 
     def draw(self, context):
         layout = self.layout
@@ -841,7 +850,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         layout.separator()
 
         if params.display_type == 'THUMBNAIL':
-            layout.prop_menu_enum(params, "display_size")
+            layout.prop_menu_enum(params, "display_size_discrete")
 
 
 classes = (
@@ -849,10 +858,11 @@ classes = (
     FILEBROWSER_PT_display,
     FILEBROWSER_PT_filter,
     FILEBROWSER_UL_dir,
-    FILEBROWSER_PT_bookmarks_volumes,
-    FILEBROWSER_PT_bookmarks_system,
     FILEBROWSER_MT_bookmarks_context_menu,
     FILEBROWSER_PT_bookmarks_favorites,
+    FILEBROWSER_PT_bookmarks_system,
+    FILEBROWSER_PT_bookmarks_volumes,
+    FILEBROWSER_MT_bookmarks_recents_specials_menu,
     FILEBROWSER_PT_bookmarks_recents,
     FILEBROWSER_PT_advanced_filter,
     FILEBROWSER_PT_directory_path,
@@ -877,14 +887,14 @@ classes = (
 
 
 def asset_path_str_get(_self):
-    asset_file_handle = bpy.context.asset_file_handle
-    if asset_file_handle is None:
+    asset = bpy.context.asset
+    if asset is None:
         return ""
 
-    if asset_file_handle.local_id:
+    if asset.local_id:
         return "Current File"
 
-    return bpy.types.AssetHandle.get_full_library_path(asset_file_handle)
+    return asset.full_library_path
 
 
 def register_props():

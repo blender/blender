@@ -5,6 +5,8 @@
 
 struct Main;
 
+#include "WM_types.hh"
+
 #include "usd.h"
 #include "usd_reader_prim.h"
 
@@ -45,6 +47,13 @@ class USDStageReader {
 
   void collect_readers(struct Main *bmain);
 
+  /**
+   * Complete setting up the armature modifiers that
+   * were created for skinned meshes by setting the
+   * modifier object on the corresponding modifier.
+   */
+  void process_armature_modifiers() const;
+
   /* Convert every material prim on the stage to a Blender
    * material, including materials not used by any geometry.
    * Note that collect_readers() must be called before calling
@@ -70,6 +79,12 @@ class USDStageReader {
   const ImportSettings &settings() const
   {
     return settings_;
+  }
+
+  /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
+  ReportList *reports() const
+  {
+    return params_.worker_status ? params_.worker_status->reports : nullptr;
   }
 
   void clear_readers();
@@ -102,7 +117,7 @@ class USDStageReader {
    */
   bool include_by_purpose(const pxr::UsdGeomImageable &imageable) const;
 
-  /*
+  /**
    * Returns true if the specified UsdPrim is a UsdGeom primitive,
    * procedural shape, such as UsdGeomCube.
    */

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,15 @@
  */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
+
+#include "BKE_material.h"
+
+#include "BLI_math_vector.h"
+
+#include "DNA_material_types.h"
+
+#include "NOD_multi_function.hh"
 
 namespace blender::nodes::node_shader_mix_rgb_cc {
 
@@ -155,6 +164,5 @@ void register_node_type_sh_mix_rgb()
   ntype.gpu_fn = file_ns::gpu_shader_mix_rgb;
   ntype.build_multi_function = file_ns::sh_node_mix_rgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
-  ntype.gather_add_node_search_ops = nullptr;
   nodeRegisterType(&ntype);
 }

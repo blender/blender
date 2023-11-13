@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,10 +26,10 @@ using namespace Freestyle;
 PyDoc_STRVAR(FEdgeSharp_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`FEdge` > :class:`FEdgeSharp`\n"
              "\n"
-             "Class defining a sharp FEdge.  A Sharp FEdge corresponds to an initial\n"
-             "edge of the input mesh.  It can be a silhouette, a crease or a border.\n"
+             "Class defining a sharp FEdge. A Sharp FEdge corresponds to an initial\n"
+             "edge of the input mesh. It can be a silhouette, a crease or a border.\n"
              "If it is a crease edge, then it is bordered by two faces of the mesh.\n"
-             "Face a lies on its right whereas Face b lies on its left.  If it is a\n"
+             "Face a lies on its right whereas Face b lies on its left. If it is a\n"
              "border edge, then it doesn't have any face on its right, and thus Face\n"
              "a is None.\n"
              "\n"
@@ -100,13 +100,15 @@ static int FEdgeSharp_mathutils_get(BaseMathObject *bmo, int subtype)
       bmo->data[0] = p[0];
       bmo->data[1] = p[1];
       bmo->data[2] = p[2];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(self->fes->normalB());
       bmo->data[0] = p[0];
       bmo->data[1] = p[1];
       bmo->data[2] = p[2];
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -120,11 +122,13 @@ static int FEdgeSharp_mathutils_set(BaseMathObject *bmo, int subtype)
     case MATHUTILS_SUBTYPE_NORMAL_A: {
       Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
       self->fes->setNormalA(p);
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
       self->fes->setNormalB(p);
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -138,11 +142,13 @@ static int FEdgeSharp_mathutils_get_index(BaseMathObject *bmo, int subtype, int 
     case MATHUTILS_SUBTYPE_NORMAL_A: {
       Vec3r p(self->fes->normalA());
       bmo->data[index] = p[index];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(self->fes->normalB());
       bmo->data[index] = p[index];
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -157,12 +163,14 @@ static int FEdgeSharp_mathutils_set_index(BaseMathObject *bmo, int subtype, int 
       Vec3r p(self->fes->normalA());
       p[index] = bmo->data[index];
       self->fes->setNormalA(p);
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(self->fes->normalB());
       p[index] = bmo->data[index];
       self->fes->setNormalB(p);
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -187,7 +195,7 @@ void FEdgeSharp_mathutils_register_callback()
 /*----------------------FEdgeSharp get/setters ----------------------------*/
 
 PyDoc_STRVAR(FEdgeSharp_normal_right_doc,
-             "The normal to the face lying on the right of the FEdge.  If this FEdge\n"
+             "The normal to the face lying on the right of the FEdge. If this FEdge\n"
              "is a border, it has no Face on its right and therefore no normal.\n"
              "\n"
              ":type: :class:`mathutils.Vector`");
@@ -278,7 +286,7 @@ static int FEdgeSharp_material_index_left_set(BPy_FEdgeSharp *self,
 }
 
 PyDoc_STRVAR(FEdgeSharp_material_right_doc,
-             "The material of the face lying on the right of the FEdge.  If this FEdge\n"
+             "The material of the face lying on the right of the FEdge. If this FEdge\n"
              "is a border, it has no Face on its right and therefore no material.\n"
              "\n"
              ":type: :class:`Material`");
@@ -299,7 +307,7 @@ static PyObject *FEdgeSharp_material_left_get(BPy_FEdgeSharp *self, void * /*clo
 }
 
 PyDoc_STRVAR(FEdgeSharp_face_mark_right_doc,
-             "The face mark of the face lying on the right of the FEdge.  If this FEdge\n"
+             "The face mark of the face lying on the right of the FEdge. If this FEdge\n"
              "is a border, it has no face on the right and thus this property is set to\n"
              "false.\n"
              "\n"
@@ -387,7 +395,7 @@ static PyGetSetDef BPy_FEdgeSharp_getseters[] = {
 /*-----------------------BPy_FEdgeSharp type definition ------------------------------*/
 
 PyTypeObject FEdgeSharp_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "FEdgeSharp",
     /*tp_basicsize*/ sizeof(BPy_FEdgeSharp),
     /*tp_itemsize*/ 0,

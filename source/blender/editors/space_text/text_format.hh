@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
  */
 
 #pragma once
+
+#include "BLI_span.hh"
+
+using blender::Span;
 
 struct Text;
 
@@ -35,7 +39,7 @@ enum {
 #define FMT_CONT_ALL \
   (FMT_CONT_QUOTESINGLE | FMT_CONT_QUOTEDOUBLE | FMT_CONT_TRIPLE | FMT_CONT_COMMENT_C)
 
-int flatten_string(const struct SpaceText *st, FlattenString *fs, const char *in);
+int flatten_string(const SpaceText *st, FlattenString *fs, const char *in);
 void flatten_string_free(FlattenString *fs);
 /**
  * Takes a string within `fs->buf` and returns its length.
@@ -61,8 +65,8 @@ void text_format_fill(const char **str_p, char **fmt_p, char type, int len);
 void text_format_fill_ascii(const char **str_p, char **fmt_p, char type, int len);
 
 /* *** Generalize Formatting *** */
-typedef struct TextFormatType {
-  struct TextFormatType *next, *prev;
+struct TextFormatType {
+  TextFormatType *next, *prev;
 
   char (*format_identifier)(const char *string);
 
@@ -81,7 +85,7 @@ typedef struct TextFormatType {
 
   /** The prefix of a single-line line comment (without trailing space). */
   const char *comment_line;
-} TextFormatType;
+};
 
 enum {
   /** White-space */
@@ -106,7 +110,7 @@ enum {
   FMT_TYPE_DEFAULT = 'q',
 };
 
-TextFormatType *ED_text_format_get(struct Text *text);
+TextFormatType *ED_text_format_get(Text *text);
 void ED_text_format_register(TextFormatType *tft);
 
 /* formatters */
@@ -115,24 +119,21 @@ void ED_text_format_register_osl();
 void ED_text_format_register_pov();
 void ED_text_format_register_pov_ini();
 
-#define STR_LITERAL_STARTSWITH(str, str_literal, len_var) \
-  (strncmp(str, str_literal, len_var = (sizeof(str_literal) - 1)) == 0)
-
-/* Workaround `C1061` with MSVC (looks like a bug),
- * this can be removed if the issue is resolved.
+/**
+ * Checks the specified source string #text for a string literal in #string_literals array.
+ * This string literal must start at the beginning of the source string.
  *
- * Add #MSVC_WORKAROUND_BREAK to break up else-if's blocks to be under 128.
- * `_keep_me` just ensures #MSVC_WORKAROUND_BREAK follows an #MSVC_WORKAROUND_INIT. */
-#ifdef _MSC_VER
-#  define MSVC_WORKAROUND_INIT(i) \
-    char _keep_me = 0; \
-    i = -1; \
-    ((void)0)
-#  define MSVC_WORKAROUND_BREAK(i) \
-    } \
-    ((void)_keep_me); \
-    if (i != -1) {
-#else
-#  define MSVC_WORKAROUND_INIT(i) ((void)0)
-#  define MSVC_WORKAROUND_BREAK(i)
+ * If a string literal is found, the length of the string literal is returned.
+ * Otherwise, 0.
+ */
+int text_format_string_literal_find(const Span<const char *> string_literals, const char *text);
+
+#ifndef NDEBUG
+/**
+ * Check if #string_literals array is shorted. This validation is required since text formatters do
+ * binary search on these string literals arrays. Used only for assertions.
+ */
+const bool text_format_string_literals_check_sorted_array(
+    const Span<const char *> &string_literals);
+
 #endif

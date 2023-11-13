@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <sstream>
 #include <string.h>
 #include <string>
 
@@ -17,10 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-using std::istringstream;
-using std::ostringstream;
 using std::string;
-using std::stringstream;
 using std::to_string;
 
 using OIIO::string_view;

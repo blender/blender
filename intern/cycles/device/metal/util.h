@@ -31,6 +31,7 @@ enum AppleGPUArchitecture {
   APPLE_M1,
   APPLE_M2,
   APPLE_M2_BIG,
+  APPLE_M3,
 };
 
 /* Contains static Metal helper functions. */

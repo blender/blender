@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,14 +18,14 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_outliner_treehash.hh"
 
-#include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"

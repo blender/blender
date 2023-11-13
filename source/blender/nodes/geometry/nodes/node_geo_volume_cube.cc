@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,36 +19,37 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 namespace blender::nodes::node_geo_volume_cube_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("Density")
+      .default_value(1.0f)
       .description("Volume density per voxel")
-      .supports_field()
-      .default_value(1.0f);
+      .supports_field();
   b.add_input<decl::Float>("Background").description("Value for voxels outside of the cube");
 
   b.add_input<decl::Vector>("Min")
-      .description("Minimum boundary of volume")
-      .default_value(float3(-1.0f));
+      .default_value(float3(-1.0f))
+      .description("Minimum boundary of volume");
   b.add_input<decl::Vector>("Max")
-      .description("Maximum boundary of volume")
-      .default_value(float3(1.0f));
+      .default_value(float3(1.0f))
+      .description("Maximum boundary of volume");
 
   b.add_input<decl::Int>("Resolution X")
-      .description("Number of voxels in the X axis")
       .default_value(32)
-      .min(2);
+      .min(2)
+      .description("Number of voxels in the X axis");
   b.add_input<decl::Int>("Resolution Y")
-      .description("Number of voxels in the Y axis")
       .default_value(32)
-      .min(2);
+      .min(2)
+      .description("Number of voxels in the Y axis");
   b.add_input<decl::Int>("Resolution Z")
-      .description("Number of voxels in the Z axis")
       .default_value(32)
-      .min(2);
+      .min(2)
+      .description("Number of voxels in the Z axis");
 
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
@@ -182,17 +183,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_volume_cube_cc
-
-void register_node_type_geo_volume_cube()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_volume_cube_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_VOLUME_CUBE, "Volume Cube", NODE_CLASS_GEOMETRY);
 
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_volume_cube_cc

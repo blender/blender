@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,21 +6,23 @@
 
 #include "curves_sculpt_intern.hh"
 
+#include "BLI_math_geom.h"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLI_length_parameterize.hh"
 #include "BLI_task.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLT_translation.h"
 
@@ -374,7 +376,7 @@ void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
   /* Find the factor by which the new curve is shorter or longer than the original. */
   const float new_last_segment_length = math::distance(positions.last(1), new_last_position);
   const float new_total_length = buffer.orig_lengths.last(1) + new_last_segment_length;
-  const float length_factor = safe_divide(new_total_length, orig_total_length);
+  const float length_factor = math::safe_divide(new_total_length, orig_total_length);
 
   /* Calculate the lengths to sample the original curve with by scaling the original lengths. */
   buffer.new_lengths.reinitialize(positions.size() - 1);

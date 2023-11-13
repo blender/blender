@@ -22,7 +22,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 #include "BLI_span.hh"
@@ -39,13 +39,13 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_vfont.h"
 
 #include "BLI_sys_types.h" /* For #intptr_t support. */
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 using blender::IndexRange;
 
@@ -67,9 +67,7 @@ static void displist_elem_free(DispList *dl)
 
 void BKE_displist_free(ListBase *lb)
 {
-  DispList *dl;
-
-  while ((dl = (DispList *)BLI_pophead(lb))) {
+  while (DispList *dl = (DispList *)BLI_pophead(lb)) {
     displist_elem_free(dl);
   }
 }
@@ -137,10 +135,10 @@ static void curve_to_displist(const Curve *cu,
 
     const int resolution = (for_render && cu->resolu_ren != 0) ? cu->resolu_ren : nu->resolu;
     const bool is_cyclic = nu->flagu & CU_NURB_CYCLIC;
-    const BezTriple *bezt_first = &nu->bezt[0];
-    const BezTriple *bezt_last = &nu->bezt[nu->pntsu - 1];
 
     if (nu->type == CU_BEZIER) {
+      const BezTriple *bezt_first = &nu->bezt[0];
+      const BezTriple *bezt_last = &nu->bezt[nu->pntsu - 1];
       int samples_len = 0;
       for (int i = 1; i < nu->pntsu; i++) {
         const BezTriple *prevbezt = &nu->bezt[i - 1];
@@ -514,8 +512,8 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
                                                 const bool for_render,
                                                 const bool editmode)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
   ModifierMode required_mode = for_render ? eModifierMode_Render : eModifierMode_Realtime;
   if (editmode) {
@@ -602,8 +600,8 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
   ModifierData *pretessellatePoint = curve_get_tessellate_point(scene, ob, for_render, editmode);
 
   if (pretessellatePoint) {
-    VirtualModifierData virtualModifierData;
-    for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData); md;
+    VirtualModifierData virtual_modifier_data;
+    for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
          md = md->next)
     {
       const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
@@ -621,7 +619,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
         deformedVerts = BKE_curve_nurbs_vert_coords_alloc(source_nurb, &numVerts);
       }
 
-      mti->deformVerts(md, &mectx, nullptr, deformedVerts, numVerts);
+      mti->deform_verts(md, &mectx, nullptr, deformedVerts, numVerts);
 
       if (md == pretessellatePoint) {
         break;
@@ -709,9 +707,9 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   ModifierData *pretessellatePoint = curve_get_tessellate_point(scene, ob, for_render, editmode);
 
-  VirtualModifierData virtualModifierData;
+  VirtualModifierData virtual_modifier_data;
   ModifierData *md = pretessellatePoint == nullptr ?
-                         BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
+                         BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data) :
                          pretessellatePoint->next;
 
   blender::bke::GeometrySet geometry_set;
@@ -730,12 +728,12 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
       continue;
     }
 
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
+
     if (md->type == eModifierType_Nodes) {
-      mti->modifyGeometrySet(md, &mectx_apply, &geometry_set);
+      mti->modify_geometry_set(md, &mectx_apply, &geometry_set);
       continue;
     }
-
-    blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     if (!geometry_set.has_mesh()) {
       geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
@@ -743,15 +741,15 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      mti->deformVerts(md,
-                       &mectx_deform,
-                       mesh,
-                       reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
-                       mesh->totvert);
+      mti->deform_verts(md,
+                        &mectx_deform,
+                        mesh,
+                        reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+                        mesh->totvert);
       BKE_mesh_tag_positions_changed(mesh);
     }
     else {
-      Mesh *output_mesh = mti->modifyMesh(md, &mectx_apply, mesh);
+      Mesh *output_mesh = mti->modify_mesh(md, &mectx_apply, mesh);
       if (mesh != output_mesh) {
         geometry_set.replace_mesh(output_mesh);
       }
@@ -760,9 +758,6 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   if (geometry_set.has_mesh()) {
     Mesh *final_mesh = geometry_set.get_mesh_for_write();
-
-    BKE_mesh_ensure_normals_for_display(final_mesh);
-
     STRNCPY(final_mesh->id.name, cu->id.name);
     *((short *)final_mesh->id.name) = ID_ME;
   }
@@ -1363,7 +1358,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
        */
       Curve &cow_curve = *reinterpret_cast<Curve *>(
           BKE_id_copy_ex(nullptr, &original_curve.id, nullptr, LIB_ID_COPY_LOCALIZE));
-      cow_curve.curve_eval = geometry.get_curves_for_read();
+      cow_curve.curve_eval = geometry.get_curves();
       /* Copy edit mode pointers necessary for drawing to the duplicated curve. */
       cow_curve.editnurb = original_curve.editnurb;
       cow_curve.editfont = original_curve.editfont;

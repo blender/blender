@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -551,7 +551,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
 #if LOGGING
         if (_global.debug & G_DEBUG_FREESTYLE) {
-          cout << "\tFEdge: occludee only (" << (wFace != NULL ? "found" : "not found") << ")"
+          cout << "\tFEdge: occludee only (" << (wFace != nullptr ? "found" : "not found") << ")"
                << endl;
         }
 #endif
@@ -750,7 +750,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
 #if LOGGING
         if (_global.debug & G_DEBUG_FREESTYLE) {
-          cout << "\tFEdge: occludee only (" << (wFace != NULL ? "found" : "not found") << ")"
+          cout << "\tFEdge: occludee only (" << (wFace != nullptr ? "found" : "not found") << ")"
                << endl;
         }
 #endif
@@ -1631,7 +1631,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
         FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
 #if LOGGING
         if (_global.debug & G_DEBUG_FREESTYLE) {
-          cout << "\tFEdge: occludee only (" << (aFace != NULL ? "found" : "not found") << ")"
+          cout << "\tFEdge: occludee only (" << (aFace != nullptr ? "found" : "not found") << ")"
                << endl;
         }
 #endif
@@ -2075,9 +2075,10 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
   SilhouetteGeomEngine::retrieveViewport(viewport);
   if ((A.x() < viewport[0]) || (A.x() > viewport[2]) || (A.y() < viewport[1]) ||
       (A.y() > viewport[3]) || (B.x() < viewport[0]) || (B.x() > viewport[2]) ||
-      (B.y() < viewport[1]) || (B.y() > viewport[3])) {
+      (B.y() < viewport[1]) || (B.y() > viewport[3]))
+  {
     cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
-    //return 0;
+    // return 0;
   }
 #endif
 
@@ -2259,7 +2260,8 @@ void ViewMapBuilder::ComputeIntersections(ViewMap *ioViewMap,
     ViewMap::viewvertices_container &vvertices = ioViewMap->ViewVertices();
     for (ViewMap::viewvertices_container::iterator vv = vvertices.begin(), vvend = vvertices.end();
          vv != vvend;
-         ++vv) {
+         ++vv)
+    {
       if ((*vv)->getNature() == Nature::T_VERTEX) {
         TVertex *tvertex = (TVertex *)(*vv);
         cout << "TVertex " << tvertex->getId() << " has :" << endl;
@@ -2349,7 +2351,8 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
     ViewMap::fedges_container &fedges = ioViewMap->FEdges();
     for (ViewMap::fedges_container::const_iterator f = fedges.begin(), end = fedges.end();
          f != end;
-         ++f) {
+         ++f)
+    {
       cout << (*f)->aMaterialIndex() << "-" << (*f)->bMaterialIndex() << endl;
     }
   }
@@ -2489,8 +2492,8 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
         printf("tb %.12e\n", tb);
         printf("a1 %e, %e -- a2 %e, %e\n", a1[0], a1[1], a2[0], a2[1]);
         printf("b1 %e, %e -- b2 %e, %e\n", b1[0], b1[1], b2[0], b2[1]);
-        //printf("line([%e, %e], [%e, %e]);\n", a1[0], a2[0], a1[1], a2[1]);
-        //printf("line([%e, %e], [%e, %e]);\n", b1[0], b2[0], b1[1], b2[1]);
+        // printf("line([%e, %e], [%e, %e]);\n", a1[0], a2[0], a1[1], a2[1]);
+        // printf("line([%e, %e], [%e, %e]);\n", b1[0], b2[0], b1[1], b2[1]);
         if ((Ta < -epsilon) || (Ta > 1 + epsilon)) {
           printf("Ta %.12e\n", Ta);
         }

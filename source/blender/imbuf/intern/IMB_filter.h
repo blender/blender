@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup imbuf
- * \brief Function declarations for filter.c
+ * \brief Function declarations for `filter.cc`.
  */
 
 #pragma once

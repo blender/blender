@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -156,7 +156,6 @@ void MTLBackend::render_step()
       MTLContext::get_global_memory_manager()->get_current_safe_list();
   if (cmd_free_buffer_list->should_flush()) {
     MTLContext::get_global_memory_manager()->begin_new_safe_list();
-    cmd_free_buffer_list->decrement_reference();
   }
 }
 
@@ -194,6 +193,8 @@ void MTLBackend::platform_init(MTLContext *ctx)
   if (G.debug & G_DEBUG_GPU) {
     printf("METAL API - DETECTED GPU: %s\n", vendor);
   }
+  GPUArchitectureType architecture_type = (mtl_device.hasUnifiedMemory) ? GPU_ARCHITECTURE_TBDR :
+                                                                          GPU_ARCHITECTURE_IMR;
 
   /* macOS is the only supported platform, but check to ensure we are not building with Metal
    * enablement on another platform. */
@@ -240,7 +241,15 @@ void MTLBackend::platform_init(MTLContext *ctx)
     printf("Renderer: %s\n", renderer);
   }
 
-  GPG.init(device, os, driver, support_level, GPU_BACKEND_METAL, vendor, renderer, version);
+  GPG.init(device,
+           os,
+           driver,
+           support_level,
+           GPU_BACKEND_METAL,
+           vendor,
+           renderer,
+           version,
+           architecture_type);
 }
 
 void MTLBackend::platform_exit()
@@ -256,7 +265,7 @@ void MTLBackend::platform_exit()
  * \{ */
 MTLCapabilities MTLBackend::capabilities = {};
 
-static const char *mtl_extensions_get_null(int i)
+static const char *mtl_extensions_get_null(int /*i*/)
 {
   return nullptr;
 }
@@ -315,6 +324,19 @@ bool MTLBackend::metal_is_supported()
         if (_device.lowPower) {
           device = _device;
         }
+      }
+    }
+
+    /* If Intel, we must be on macOS 11.2+ for full Metal backend support. */
+    NSString *gpu_name = [device name];
+    const char *vendor = [gpu_name UTF8String];
+    if ((strstr(vendor, "Intel") || strstr(vendor, "INTEL"))) {
+      if (@available(macOS 11.2, *)) {
+        /* Intel device supported -- Carry on.
+         * NOTE: @available syntax cannot be negated. */
+      }
+      else {
+        return false;
       }
     }
 
@@ -405,14 +427,15 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                                            MTLBackend::capabilities.supports_family_mac1 ||
                                            MTLBackend::capabilities.supports_family_mac2);
   GCaps.compute_shader_support = true;
-  GCaps.shader_storage_buffer_objects_support = true;
   GCaps.shader_draw_parameters_support = true;
+  GCaps.hdr_viewport_support = true;
 
   GCaps.geometry_shader_support = false;
 
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */
   GCaps.max_shader_storage_buffer_bindings = 14;
+  GCaps.max_storage_buffer_size = size_t(ctx->device.maxBufferLength);
 
   if (GCaps.compute_shader_support) {
     GCaps.max_work_group_count[0] = 65535;

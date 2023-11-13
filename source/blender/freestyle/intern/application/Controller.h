@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -62,21 +62,21 @@ class Controller {
   int DrawStrokes();
   void ResetRenderCount();
   Render *RenderStrokes(Render *re, bool render);
-  void SwapStyleModules(unsigned i1, unsigned i2);
-  void InsertStyleModule(unsigned index, const char *iFileName);
-  void InsertStyleModule(unsigned index, const char *iName, const char *iBuffer);
-  void InsertStyleModule(unsigned index, const char *iName, struct Text *iText);
+  void SwapStyleModules(uint i1, uint i2);
+  void InsertStyleModule(uint index, const char *iFileName);
+  void InsertStyleModule(uint index, const char *iName, const char *iBuffer);
+  void InsertStyleModule(uint index, const char *iName, struct Text *iText);
   void AddStyleModule(const char *iFileName);
-  void RemoveStyleModule(unsigned index);
-  void ReloadStyleModule(unsigned index, const char *iFileName);
+  void RemoveStyleModule(uint index);
+  void ReloadStyleModule(uint index, const char *iFileName);
   void Clear();
   void ClearRootNode();
   void DeleteWingedEdge();
   void DeleteViewMap(bool freeCache = false);
-  void toggleLayer(unsigned index, bool iDisplay);
-  void setModified(unsigned index, bool iMod);
+  void toggleLayer(uint index, bool iDisplay);
+  void setModified(uint index, bool iMod);
   void resetModified(bool iMod = false);
-  void updateCausalStyleModules(unsigned index);
+  void updateCausalStyleModules(uint index);
   void displayDensityCurves(int x, int y);
 
   ViewEdge *SelectViewEdge(real x, real y);
@@ -223,7 +223,7 @@ class Controller {
   // HashGrid _Grid;
 
   BBox<Vec3r> _Scene3dBBox;
-  unsigned int _SceneNumFaces;
+  uint _SceneNumFaces;
 #if 0
   real _minEdgeSize;
 #endif

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,9 +27,7 @@ class BaseImageOperation : public MultiThreadedOperation {
   /* TODO: Remove raw buffers when removing Tiled implementation. */
   float *image_float_buffer_;
   uint8_t *image_byte_buffer_;
-  float *image_depth_buffer_;
 
-  MemoryBuffer *depth_buffer_;
   int imageheight_;
   int imagewidth_;
   int framenumber_;
@@ -93,17 +91,4 @@ class ImageAlphaOperation : public BaseImageOperation {
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
 };
-class ImageDepthOperation : public BaseImageOperation {
- public:
-  /**
-   * Constructor
-   */
-  ImageDepthOperation();
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  void update_memory_buffer_partial(MemoryBuffer *output,
-                                    const rcti &area,
-                                    Span<MemoryBuffer *> inputs) override;
-};
-
 }  // namespace blender::compositor

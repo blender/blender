@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,15 +11,15 @@
 
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_mask.h" /* own include */
-#include "ED_sequencer.h"
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_mask.hh" /* own include */
+#include "ED_sequencer.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "mask_intern.h" /* own include */
 
@@ -97,7 +97,7 @@ bool ED_maskedit_mask_visible_splines_poll(bContext *C)
 /** \name Registration
  * \{ */
 
-void ED_operatortypes_mask(void)
+void ED_operatortypes_mask()
 {
   WM_operatortype_append(MASK_OT_new);
 
@@ -163,11 +163,11 @@ void ED_operatortypes_mask(void)
 
 void ED_keymap_mask(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Mask Editing", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_maskedit_poll;
 }
 
-void ED_operatormacros_mask(void)
+void ED_operatormacros_mask()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

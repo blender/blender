@@ -22,11 +22,12 @@ template<typename T> struct add_const_on_value_type_if_arithmetic
 /** \brief Base class providing read-only coefficient access to matrices and arrays.
   * \ingroup Core_Module
   * \tparam Derived Type of the derived class
-  * \tparam #ReadOnlyAccessors Constant indicating read-only access
+  *
+  * \note #ReadOnlyAccessors Constant indicating read-only access
   *
   * This class defines the \c operator() \c const function and friends, which can be used to read specific
   * entries of a matrix or array.
-  * 
+  *
   * \sa DenseCoeffsBase<Derived, WriteAccessors>, DenseCoeffsBase<Derived, DirectAccessors>,
   *     \ref TopicClassHierarchy
   */
@@ -288,12 +289,13 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
 /** \brief Base class providing read/write coefficient access to matrices and arrays.
   * \ingroup Core_Module
   * \tparam Derived Type of the derived class
-  * \tparam #WriteAccessors Constant indicating read/write access
+  *
+  * \note #WriteAccessors Constant indicating read/write access
   *
   * This class defines the non-const \c operator() function and friends, which can be used to write specific
   * entries of a matrix or array. This class inherits DenseCoeffsBase<Derived, ReadOnlyAccessors> which
   * defines the const variant for reading specific entries.
-  * 
+  *
   * \sa DenseCoeffsBase<Derived, DirectAccessors>, \ref TopicClassHierarchy
   */
 template<typename Derived>
@@ -466,7 +468,8 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
 /** \brief Base class providing direct read-only coefficient access to matrices and arrays.
   * \ingroup Core_Module
   * \tparam Derived Type of the derived class
-  * \tparam #DirectAccessors Constant indicating direct access
+  *
+  * \note #DirectAccessors Constant indicating direct access
   *
   * This class defines functions to work with strides which can be used to access entries directly. This class
   * inherits DenseCoeffsBase<Derived, ReadOnlyAccessors> which defines functions to access entries read-only using
@@ -492,7 +495,7 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa outerStride(), rowStride(), colStride()
       */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
     inline Index innerStride() const
     {
       return derived().innerStride();
@@ -503,14 +506,14 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa innerStride(), rowStride(), colStride()
       */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
     inline Index outerStride() const
     {
       return derived().outerStride();
     }
 
     // FIXME shall we remove it ?
-    inline Index stride() const
+    EIGEN_CONSTEXPR inline Index stride() const
     {
       return Derived::IsVectorAtCompileTime ? innerStride() : outerStride();
     }
@@ -519,7 +522,7 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa innerStride(), outerStride(), colStride()
       */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
     inline Index rowStride() const
     {
       return Derived::IsRowMajor ? outerStride() : innerStride();
@@ -529,7 +532,7 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa innerStride(), outerStride(), rowStride()
       */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
     inline Index colStride() const
     {
       return Derived::IsRowMajor ? innerStride() : outerStride();
@@ -539,7 +542,8 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
 /** \brief Base class providing direct read/write coefficient access to matrices and arrays.
   * \ingroup Core_Module
   * \tparam Derived Type of the derived class
-  * \tparam #DirectWriteAccessors Constant indicating direct access
+  *
+  * \note #DirectWriteAccessors Constant indicating direct access
   *
   * This class defines functions to work with strides which can be used to access entries directly. This class
   * inherits DenseCoeffsBase<Derived, WriteAccessors> which defines functions to access entries read/write using
@@ -566,8 +570,8 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa outerStride(), rowStride(), colStride()
       */
-    EIGEN_DEVICE_FUNC
-    inline Index innerStride() const
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index innerStride() const EIGEN_NOEXCEPT
     {
       return derived().innerStride();
     }
@@ -577,14 +581,14 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa innerStride(), rowStride(), colStride()
       */
-    EIGEN_DEVICE_FUNC
-    inline Index outerStride() const
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index outerStride() const EIGEN_NOEXCEPT
     {
       return derived().outerStride();
     }
 
     // FIXME shall we remove it ?
-    inline Index stride() const
+    EIGEN_CONSTEXPR inline Index stride() const EIGEN_NOEXCEPT
     {
       return Derived::IsVectorAtCompileTime ? innerStride() : outerStride();
     }
@@ -593,8 +597,8 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa innerStride(), outerStride(), colStride()
       */
-    EIGEN_DEVICE_FUNC
-    inline Index rowStride() const
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index rowStride() const EIGEN_NOEXCEPT
     {
       return Derived::IsRowMajor ? outerStride() : innerStride();
     }
@@ -603,8 +607,8 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa innerStride(), outerStride(), rowStride()
       */
-    EIGEN_DEVICE_FUNC
-    inline Index colStride() const
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index colStride() const EIGEN_NOEXCEPT
     {
       return Derived::IsRowMajor ? innerStride() : outerStride();
     }
@@ -615,7 +619,7 @@ namespace internal {
 template<int Alignment, typename Derived, bool JustReturnZero>
 struct first_aligned_impl
 {
-  static inline Index run(const Derived&)
+  static EIGEN_CONSTEXPR inline Index run(const Derived&) EIGEN_NOEXCEPT
   { return 0; }
 };
 

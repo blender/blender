@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -131,7 +131,7 @@ const char *BKE_appdir_program_dir(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NO
 /**
  * Gets a good default directory for fonts.
  */
-bool BKE_appdir_font_folder_default(char *dir);
+bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy);
 
 /**
  * Find Python executable.
@@ -188,6 +188,7 @@ enum {
 #define BLENDER_QUIT_FILE "quit.blend"
 #define BLENDER_BOOKMARK_FILE "bookmarks.txt"
 #define BLENDER_HISTORY_FILE "recent-files.txt"
+#define BLENDER_RECENT_SEARCHES_FILE "recent-searches.txt"
 #define BLENDER_PLATFORM_SUPPORT_FILE "platform_support.txt"
 
 #ifdef __cplusplus

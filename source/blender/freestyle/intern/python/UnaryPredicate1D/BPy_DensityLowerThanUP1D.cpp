@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,7 +27,7 @@ static char DensityLowerThanUP1D___doc__[] =
     "\n"
     "   Builds a DensityLowerThanUP1D object.\n"
     "\n"
-    "   :arg threshold: The value of the threshold density.  Any Interface1D\n"
+    "   :arg threshold: The value of the threshold density. Any Interface1D\n"
     "      having a density lower than this threshold will match.\n"
     "   :type threshold: float\n"
     "   :arg sigma: The sigma value defining the density evaluation window\n"
@@ -61,7 +61,7 @@ static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D *self,
 /*-----------------------BPy_DensityLowerThanUP1D type definition ------------------------------*/
 
 PyTypeObject DensityLowerThanUP1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "DensityLowerThanUP1D",
     /*tp_basicsize*/ sizeof(BPy_DensityLowerThanUP1D),
     /*tp_itemsize*/ 0,

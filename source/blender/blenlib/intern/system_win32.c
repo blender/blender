@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -227,8 +227,9 @@ static void bli_windows_system_backtrace_modules(FILE *fp)
 {
   fprintf(fp, "Loaded Modules :\n");
   HANDLE hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, 0);
-  if (hModuleSnap == INVALID_HANDLE_VALUE)
+  if (hModuleSnap == INVALID_HANDLE_VALUE) {
     return;
+  }
 
   MODULEENTRY32 me32;
   me32.dwSize = sizeof(MODULEENTRY32);

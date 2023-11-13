@@ -33,6 +33,7 @@ class NoAlias
   public:
     typedef typename ExpressionType::Scalar Scalar;
     
+    EIGEN_DEVICE_FUNC
     explicit NoAlias(ExpressionType& expression) : m_expression(expression) {}
     
     template<typename OtherDerived>
@@ -74,10 +75,10 @@ class NoAlias
   *
   * More precisely, noalias() allows to bypass the EvalBeforeAssignBit flag.
   * Currently, even though several expressions may alias, only product
-  * expressions have this flag. Therefore, noalias() is only usefull when
+  * expressions have this flag. Therefore, noalias() is only useful when
   * the source expression contains a matrix product.
   *
-  * Here are some examples where noalias is usefull:
+  * Here are some examples where noalias is useful:
   * \code
   * D.noalias()  = A * B;
   * D.noalias() += A.transpose() * B;
@@ -98,7 +99,7 @@ class NoAlias
   * \sa class NoAlias
   */
 template<typename Derived>
-NoAlias<Derived,MatrixBase> MatrixBase<Derived>::noalias()
+NoAlias<Derived,MatrixBase> EIGEN_DEVICE_FUNC MatrixBase<Derived>::noalias()
 {
   return NoAlias<Derived, Eigen::MatrixBase >(derived());
 }

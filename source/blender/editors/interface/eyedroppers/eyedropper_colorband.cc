@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,13 +26,13 @@
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "interface_intern.hh"
 
@@ -223,7 +223,7 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
         return is_undo ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
       }
       case EYE_MODAL_SAMPLE_BEGIN:
-        /* enable accum and make first sample */
+        /* Enable accumulate and make first sample. */
         eye->sample_start = true;
         eyedropper_colorband_sample_point(C, eye, event->xy);
         eyedropper_colorband_apply(C, op);

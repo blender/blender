@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -38,7 +38,7 @@ class CulledOccluderSource : public OccluderSource {
   real occluderProscenium[4];
   real gridSpaceOccluderProscenium[4];
 
-  unsigned long rejected;
+  ulong rejected;
   bool gridSpaceOccluderProsceniumInitialized;
 };
 

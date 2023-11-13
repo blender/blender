@@ -1,10 +1,13 @@
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
   /* Constant array moved inside function scope.
-   * Minimises local register allocation in MSL. */
+   * Minimizes local register allocation in MSL. */
   const vec2 pos[6] = vec2[6](vec2(-1.0, -1.0),
                               vec2(1.0, -1.0),
                               vec2(-1.0, 1.0),
@@ -24,5 +27,5 @@ void main()
   ws_location += screen_pos * sphere_size;
 
   gl_Position = ProjectionMatrix * (ViewMatrix * vec4(ws_location, 1.0));
-  gl_Position.z += 0.0001; /* Small bias to let the icon draw without zfighting */
+  gl_Position.z += 0.0001; /* Small bias to let the icon draw without Z-fighting. */
 }

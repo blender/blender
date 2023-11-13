@@ -1,16 +1,18 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
+#include "BLI_string.h"
+
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "IO_ply.h"
+#include "IO_ply.hh"
 #include "intern/ply_data.hh"
 
 #include "ply_export_data.hh"
@@ -74,7 +76,7 @@ static std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
   plyData->face_vertices = {0, 2, 6, 4, 3, 7, 6, 2, 7, 5, 4, 6,
                             5, 7, 3, 1, 1, 3, 2, 0, 5, 1, 0, 4};
 
-  if (params.export_normals)
+  if (params.export_normals) {
     plyData->vertex_normals = {
         {-0.5773503, -0.5773503, -0.5773503},
         {-0.5773503, -0.5773503, 0.5773503},
@@ -85,6 +87,7 @@ static std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
         {0.5773503, 0.5773503, -0.5773503},
         {0.5773503, 0.5773503, 0.5773503},
     };
+  }
 
   return plyData;
 }
@@ -520,6 +523,18 @@ TEST_F(ply_exporter_ply_data_test, CubeLooseEdgesLoadPLYDataUV)
   EXPECT_EQ_ARRAY(exp_edges, plyData.edges.data(), ARRAY_SIZE(exp_edges));
   EXPECT_EQ_ARRAY(exp_face_sizes, plyData.face_sizes.data(), ARRAY_SIZE(exp_face_sizes));
   EXPECT_EQ_ARRAY(exp_faces, plyData.face_vertices.data(), ARRAY_SIZE(exp_faces));
+}
+
+TEST_F(ply_exporter_ply_data_test, CubesVertexAttrs)
+{
+  PLYExportParams params = {};
+  params.export_uv = true;
+  params.export_attributes = true;
+  PlyData plyData = load_ply_data_from_blendfile(
+      "io_tests/blend_geometry/cubes_vertex_attrs.blend", params);
+  EXPECT_EQ(plyData.vertices.size(), 28);
+  EXPECT_EQ(plyData.vertex_custom_attr.size(), 11); /* Float 1 + Color 4 + ByteColor 4 + Int2D 2*/
+  EXPECT_EQ(plyData.vertex_custom_attr[0].data.size(), 28);
 }
 
 TEST_F(ply_exporter_ply_data_test, SuzanneLoadPLYDataUV)

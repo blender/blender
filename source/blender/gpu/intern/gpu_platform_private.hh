@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,6 +25,7 @@ class GPUPlatformGlobal {
   char *support_key = nullptr;
   char *gpu_name = nullptr;
   eGPUBackendType backend = GPU_BACKEND_NONE;
+  GPUArchitectureType architecture_type = GPU_ARCHITECTURE_IMR;
 
  public:
   void init(eGPUDeviceType gpu_device,
@@ -34,7 +35,8 @@ class GPUPlatformGlobal {
             eGPUBackendType backend,
             const char *vendor_str,
             const char *renderer_str,
-            const char *version_str);
+            const char *version_str,
+            GPUArchitectureType arch_type);
 
   void clear();
 };

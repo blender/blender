@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -52,7 +52,14 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
  * this is not supported and will likely generate corrupted geometry.
  *
  * \param vert_dest_map_len: The number of non '-1' values in `vert_dest_map`. (not the size)
+ * \param do_mix_data: If true, the groups of vertices in the `vert_dest_map_len`, defined by
+ * source vertices with the same target plus the target vertex, will have their custom data
+ * interpolated into the resulting vertex. If false, only the custom data of the target vertex will
+ * remain.
  */
-Mesh *mesh_merge_verts(const Mesh &mesh, MutableSpan<int> vert_dest_map, int vert_dest_map_len);
+Mesh *mesh_merge_verts(const Mesh &mesh,
+                       MutableSpan<int> vert_dest_map,
+                       int vert_dest_map_len,
+                       const bool do_mix_data);
 
 }  // namespace blender::geometry

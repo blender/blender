@@ -13,6 +13,16 @@
 namespace Eigen {
 
 namespace internal{
+
+template<typename _MatrixType, int _UpLo> struct traits<LLT<_MatrixType, _UpLo> >
+ : traits<_MatrixType>
+{
+  typedef MatrixXpr XprKind;
+  typedef SolverStorage StorageKind;
+  typedef int StorageIndex;
+  enum { Flags = 0 };
+};
+
 template<typename MatrixType, int UpLo> struct LLT_Traits;
 }
 
@@ -54,18 +64,17 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * \sa MatrixBase::llt(), SelfAdjointView::llt(), class LDLT
   */
 template<typename _MatrixType, int _UpLo> class LLT
+        : public SolverBase<LLT<_MatrixType, _UpLo> >
 {
   public:
     typedef _MatrixType MatrixType;
+    typedef SolverBase<LLT> Base;
+    friend class SolverBase<LLT>;
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(LLT)
     enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
-    typedef typename MatrixType::StorageIndex StorageIndex;
 
     enum {
       PacketSize = internal::packet_traits<Scalar>::size,
@@ -100,7 +109,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       compute(matrix.derived());
     }
 
-    /** \brief Constructs a LDLT factorization from a given matrix
+    /** \brief Constructs a LLT factorization from a given matrix
       *
       * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when
       * \c MatrixType is a Eigen::Ref.
@@ -129,6 +138,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       return Traits::getL(m_matrix);
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
       *
       * Since this LLT class assumes anyway that the matrix A is invertible, the solution
@@ -141,13 +151,8 @@ template<typename _MatrixType, int _UpLo> class LLT
       */
     template<typename Rhs>
     inline const Solve<LLT, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "LLT is not initialized.");
-      eigen_assert(m_matrix.rows()==b.rows()
-                && "LLT::solve(): invalid number of rows of the right hand side matrix b");
-      return Solve<LLT, Rhs>(*this, b.derived());
-    }
+    solve(const MatrixBase<Rhs>& b) const;
+    #endif
 
     template<typename Derived>
     void solveInPlace(const MatrixBase<Derived> &bAndX) const;
@@ -180,7 +185,7 @@ template<typename _MatrixType, int _UpLo> class LLT
 
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix.appears not to be positive definite.
       */
     ComputationInfo info() const
@@ -194,18 +199,20 @@ template<typename _MatrixType, int _UpLo> class LLT
       * This method is provided for compatibility with other matrix decompositions, thus enabling generic code such as:
       * \code x = decomposition.adjoint().solve(b) \endcode
       */
-    const LLT& adjoint() const { return *this; };
+    const LLT& adjoint() const EIGEN_NOEXCEPT { return *this; };
 
-    inline Index rows() const { return m_matrix.rows(); }
-    inline Index cols() const { return m_matrix.cols(); }
+    inline EIGEN_CONSTEXPR Index rows() const EIGEN_NOEXCEPT { return m_matrix.rows(); }
+    inline EIGEN_CONSTEXPR Index cols() const EIGEN_NOEXCEPT { return m_matrix.cols(); }
 
     template<typename VectorType>
-    LLT rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
+    LLT & rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
-    EIGEN_DEVICE_FUNC
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
+
+    template<bool Conjugate, typename RhsType, typename DstType>
+    void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const;
     #endif
 
   protected:
@@ -459,7 +466,7 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
   */
 template<typename _MatrixType, int _UpLo>
 template<typename VectorType>
-LLT<_MatrixType,_UpLo> LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
+LLT<_MatrixType,_UpLo> & LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType);
   eigen_assert(v.size()==m_matrix.cols());
@@ -477,8 +484,17 @@ template<typename _MatrixType,int _UpLo>
 template<typename RhsType, typename DstType>
 void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
 {
-  dst = rhs;
-  solveInPlace(dst);
+  _solve_impl_transposed<true>(rhs, dst);
+}
+
+template<typename _MatrixType,int _UpLo>
+template<bool Conjugate, typename RhsType, typename DstType>
+void LLT<_MatrixType,_UpLo>::_solve_impl_transposed(const RhsType &rhs, DstType &dst) const
+{
+    dst = rhs;
+
+    matrixL().template conjugateIf<!Conjugate>().solveInPlace(dst);
+    matrixU().template conjugateIf<!Conjugate>().solveInPlace(dst);
 }
 #endif
 

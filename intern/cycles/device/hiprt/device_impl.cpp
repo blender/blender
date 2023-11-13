@@ -65,7 +65,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
       functions_table(NULL),
       scratch_buffer_size(0),
       scratch_buffer(this, "scratch_buffer", MEM_DEVICE_ONLY),
-      visibility(this, "visibility", MEM_READ_ONLY),
+      prim_visibility(this, "prim_visibility", MEM_GLOBAL),
       instance_transform_matrix(this, "instance_transform_matrix", MEM_READ_ONLY),
       transform_headers(this, "transform_headers", MEM_READ_ONLY),
       user_instance_id(this, "user_instance_id", MEM_GLOBAL),
@@ -96,13 +96,15 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     set_error(string_printf("Failed to create HIPRT Function Table"));
     return;
   }
+
+  hiprtSetLogLevel(hiprtLogLevelNone);
 }
 
 HIPRTDevice::~HIPRTDevice()
 {
   HIPContextScope scope(this);
   user_instance_id.free();
-  visibility.free();
+  prim_visibility.free();
   hiprt_blas_ptr.free();
   blas_ptr.free();
   instance_transform_matrix.free();
@@ -261,8 +263,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   linker_options.append(" --offload-arch=").append(arch);
   linker_options.append(" -fgpu-rdc --hip-link --cuda-device-only ");
   string hiprt_ver(HIPRT_VERSION_STR);
-  string hiprt_bc;
-  hiprt_bc = hiprt_path + "\\hiprt" + hiprt_ver + "_amd_lib_win.bc";
+  string hiprt_bc = hiprt_path + "\\dist\\bin\\Release\\hiprt" + hiprt_ver + "_amd_lib_win.bc";
 
   string linker_command = string_printf("clang++ %s \"%s\" %s -o \"%s\"",
                                         linker_options.c_str(),
@@ -387,54 +388,72 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
   hiprtGeometryBuildInput geom_input;
   geom_input.geomType = Triangle;
 
-  if (mesh->has_motion_blur() &&
-      !(bvh->params.num_motion_triangle_steps == 0 || bvh->params.use_spatial_split))
-  {
+  if (mesh->has_motion_blur()) {
 
     const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+    const float3 *vert_steps = attr_mP->data_float3();
+    const size_t num_verts = mesh->get_verts().size();
+    const size_t num_steps = mesh->get_motion_steps();
     const size_t num_triangles = mesh->num_triangles();
-
-    const int num_bvh_steps = bvh->params.num_motion_triangle_steps * 2 + 1;
-    const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-
+    const float3 *verts = mesh->get_verts().data();
     int num_bounds = 0;
-    bvh->custom_primitive_bound.alloc(num_triangles * num_bvh_steps);
 
-    for (uint j = 0; j < num_triangles; j++) {
-      Mesh::Triangle t = mesh->get_triangle(j);
-      const float3 *verts = mesh->get_verts().data();
+    if (bvh->params.num_motion_triangle_steps == 0 || bvh->params.use_spatial_split) {
+      bvh->custom_primitive_bound.alloc(num_triangles);
+      bvh->custom_prim_info.resize(num_triangles);
+      for (uint j = 0; j < num_triangles; j++) {
+        Mesh::Triangle t = mesh->get_triangle(j);
+        BoundBox bounds = BoundBox::empty;
+        t.bounds_grow(verts, bounds);
+        for (size_t step = 0; step < num_steps - 1; step++) {
+          t.bounds_grow(vert_steps + step * num_verts, bounds);
+        }
 
-      const size_t num_verts = mesh->get_verts().size();
-      const size_t num_steps = mesh->get_motion_steps();
-      const float3 *vert_steps = attr_mP->data_float3();
-
-      float3 prev_verts[3];
-      t.motion_verts(verts, vert_steps, num_verts, num_steps, 0.0f, prev_verts);
-      BoundBox prev_bounds = BoundBox::empty;
-      prev_bounds.grow(prev_verts[0]);
-      prev_bounds.grow(prev_verts[1]);
-      prev_bounds.grow(prev_verts[2]);
-
-      for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
-        const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
-        float3 curr_verts[3];
-        t.motion_verts(verts, vert_steps, num_verts, num_steps, curr_time, curr_verts);
-        BoundBox curr_bounds = BoundBox::empty;
-        curr_bounds.grow(curr_verts[0]);
-        curr_bounds.grow(curr_verts[1]);
-        curr_bounds.grow(curr_verts[2]);
-        BoundBox bounds = prev_bounds;
-        bounds.grow(curr_bounds);
         if (bounds.valid()) {
-          const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
           bvh->custom_primitive_bound[num_bounds] = bounds;
           bvh->custom_prim_info[num_bounds].x = j;
           bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
-          bvh->prims_time[num_bounds].x = curr_time;
-          bvh->prims_time[num_bounds].y = prev_time;
           num_bounds++;
         }
-        prev_bounds = curr_bounds;
+      }
+    }
+    else {
+      const int num_bvh_steps = bvh->params.num_motion_triangle_steps * 2 + 1;
+      const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
+
+      bvh->custom_primitive_bound.alloc(num_triangles * num_bvh_steps);
+      bvh->custom_prim_info.resize(num_triangles * num_bvh_steps);
+
+      for (uint j = 0; j < num_triangles; j++) {
+        Mesh::Triangle t = mesh->get_triangle(j);
+        float3 prev_verts[3];
+        t.motion_verts(verts, vert_steps, num_verts, num_steps, 0.0f, prev_verts);
+        BoundBox prev_bounds = BoundBox::empty;
+        prev_bounds.grow(prev_verts[0]);
+        prev_bounds.grow(prev_verts[1]);
+        prev_bounds.grow(prev_verts[2]);
+
+        for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
+          const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
+          float3 curr_verts[3];
+          t.motion_verts(verts, vert_steps, num_verts, num_steps, curr_time, curr_verts);
+          BoundBox curr_bounds = BoundBox::empty;
+          curr_bounds.grow(curr_verts[0]);
+          curr_bounds.grow(curr_verts[1]);
+          curr_bounds.grow(curr_verts[2]);
+          BoundBox bounds = prev_bounds;
+          bounds.grow(curr_bounds);
+          if (bounds.valid()) {
+            const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
+            bvh->custom_primitive_bound[num_bounds] = bounds;
+            bvh->custom_prim_info[num_bounds].x = j;
+            bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
+            bvh->prims_time[num_bounds].x = curr_time;
+            bvh->prims_time[num_bounds].y = prev_time;
+            num_bounds++;
+          }
+          prev_bounds = curr_bounds;
+        }
       }
     }
 
@@ -448,7 +467,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     geom_input.geomType = Motion_Triangle;
   }
   else {
-
     size_t triangle_size = mesh->get_triangles().size();
     void *triangle_data = mesh->get_triangles().data();
 
@@ -479,6 +497,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     geom_input.type = hiprtPrimitiveTypeTriangleMesh;
     geom_input.triangleMesh.primitive = &(bvh->triangle_mesh);
   }
+
   return geom_input;
 }
 
@@ -617,7 +636,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   const float3 *points_data = pointcloud->get_points().data();
   const float *radius_data = pointcloud->get_radius().data();
   const size_t num_points = pointcloud->num_points();
-  const float3 *motion_data = (point_attr_mP) ? point_attr_mP->data_float3() : NULL;
+  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : NULL;
   const size_t num_steps = pointcloud->get_motion_steps();
 
   int num_bounds = 0;
@@ -645,7 +664,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       BoundBox bounds = BoundBox::empty;
       point.bounds_grow(points_data, radius_data, bounds);
       for (size_t step = 0; step < num_steps - 1; step++) {
-        point.bounds_grow(motion_data + step * num_points, radius_data, bounds);
+        point.bounds_grow(motion_data[step * num_points + j], bounds);
       }
       if (bounds.valid()) {
         bvh->custom_primitive_bound[num_bounds] = bounds;
@@ -665,7 +684,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
       const size_t num_steps = pointcloud->get_motion_steps();
-      const float3 *point_steps = point_attr_mP->data_float3();
+      const float4 *point_steps = point_attr_mP->data_float4();
 
       float4 prev_key = point.motion_key(
           points_data, radius_data, point_steps, num_points, num_steps, 0.0f, j);
@@ -799,7 +818,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   size_t num_object = objects.size();
   user_instance_id.alloc(num_object);
-  visibility.alloc(num_object);
+  prim_visibility.alloc(num_object);
   hiprt_blas_ptr.alloc(num_object);
   blas_ptr.alloc(num_object);
   transform_headers.alloc(num_object);
@@ -912,7 +931,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
       transform_headers[num_instances] = current_header;
 
       user_instance_id[num_instances] = blender_instance_id;
-      visibility[num_instances] = mask;
+      prim_visibility[num_instances] = mask;
       hiprt_blas_ptr[num_instances] = (uint64_t)hiprt_geom_current;
       num_instances++;
     }
@@ -927,7 +946,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   scene_input_ptr.frameType = hiprtFrameTypeMatrix;
 
   user_instance_id.copy_to_device();
-  visibility.copy_to_device();
+  prim_visibility.copy_to_device();
   hiprt_blas_ptr.copy_to_device();
   blas_ptr.copy_to_device();
   transform_headers.copy_to_device();
@@ -941,7 +960,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     instance_transform_matrix.host_pointer = 0;
   }
 
-  scene_input_ptr.instanceMasks = (void *)visibility.device_pointer;
+  scene_input_ptr.instanceMasks = (void *)prim_visibility.device_pointer;
   scene_input_ptr.instanceGeometries = (void *)hiprt_blas_ptr.device_pointer;
   scene_input_ptr.instanceTransformHeaders = (void *)transform_headers.device_pointer;
   scene_input_ptr.instanceFrames = (void *)instance_transform_matrix.device_pointer;

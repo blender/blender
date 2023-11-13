@@ -307,10 +307,10 @@ TEST(ArrayND, MultiplyElementsGeneric) {
   MultiplyElements(A, B, &C);
 
   ArrayND<double, 5>::Index cIndex;
-  for (int d0 = 0; d0 < shape[0]; ++d0)
-    for (int d1 = 0; d1 < shape[1]; ++d1)
-      for (int d2 = 0; d2 < shape[2]; ++d2)
-        for (int d3 = 0; d3 < shape[3]; ++d3)
+  for (int d0 = 0; d0 < shape[0]; ++d0) {
+    for (int d1 = 0; d1 < shape[1]; ++d1) {
+      for (int d2 = 0; d2 < shape[2]; ++d2) {
+        for (int d3 = 0; d3 < shape[3]; ++d3) {
           for (int d4 = 0; d4 < shape[4]; ++d4) {
             cIndex(0) = d0;
             cIndex(1) = d1;
@@ -319,6 +319,10 @@ TEST(ArrayND, MultiplyElementsGeneric) {
             cIndex(4) = d4;
             EXPECT_EQ(2.2, C(cIndex));
           }
+        }
+      }
+    }
+  }
 }
 
 }  // namespace

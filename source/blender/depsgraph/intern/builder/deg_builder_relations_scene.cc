@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -29,6 +29,18 @@ void DepsgraphRelationBuilder::build_scene_render(Scene *scene, ViewLayer *view_
   }
   if (scene->camera != nullptr) {
     build_object(scene->camera);
+  }
+}
+
+void DepsgraphRelationBuilder::build_scene_camera(Scene *scene)
+{
+  if (scene->camera != nullptr) {
+    build_object(scene->camera);
+  }
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      build_object(marker->camera);
+    }
   }
 }
 

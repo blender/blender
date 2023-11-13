@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -610,7 +610,7 @@ void GLStateManager::image_bind_apply()
   int last = 32 - bitscan_reverse_uint(dirty_bind);
   int count = last - first;
 
-  if (GLContext::multi_bind_support) {
+  if (GLContext::multi_bind_image_support) {
     glBindImageTextures(first, count, images_ + first);
   }
   else {

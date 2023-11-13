@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,8 @@
  */
 
 #pragma once
+
+#include "DNA_sequence_types.h"
 
 #include "tree_element.hh"
 
@@ -21,10 +23,11 @@ class TreeElementSequence : public AbstractTreeElement {
  public:
   TreeElementSequence(TreeElement &legacy_te, Sequence &sequence);
 
-  bool expandPoll(const SpaceOutliner &) const override;
+  bool expand_poll(const SpaceOutliner &) const override;
   void expand(SpaceOutliner &) const override;
 
-  Sequence &getSequence() const;
+  Sequence &get_sequence() const;
+  SequenceType get_sequence_type() const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -42,7 +45,7 @@ class TreeElementSequenceStripDuplicate : public AbstractTreeElement {
  public:
   TreeElementSequenceStripDuplicate(TreeElement &legacy_te, Sequence &sequence);
 
-  Sequence &getSequence() const;
+  Sequence &get_sequence() const;
 };
 
 }  // namespace blender::ed::outliner

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Blender Foundation
+# SPDX-FileCopyrightText: 2022 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -13,22 +13,26 @@
 #  MOLTENVK_FOUND, If false, do not try to use MoltenVK.
 #
 
-# If MOLTENVK_ROOT_DIR was defined in the environment, use it.
-IF(NOT MOLTENVK_ROOT_DIR AND NOT $ENV{MOLTENVK_ROOT_DIR} STREQUAL "")
-  SET(MOLTENVK_ROOT_DIR $ENV{MOLTENVK_ROOT_DIR})
-ENDIF()
+# If `MOLTENVK_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED MOLTENVK_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{MOLTENVK_ROOT_DIR})
+  set(MOLTENVK_ROOT_DIR $ENV{MOLTENVK_ROOT_DIR})
+else()
+  set(MOLTENVK_ROOT_DIR "")
+endif()
 
-SET(_moltenvk_SEARCH_DIRS
+set(_moltenvk_SEARCH_DIRS
   ${MOLTENVK_ROOT_DIR}
 )
 
 # FIXME: These finder modules typically don't use LIBDIR,
 # this should be set by `./build_files/cmake/platform/` instead.
-IF(DEFINED LIBDIR)
-  SET(_moltenvk_SEARCH_DIRS ${_moltenvk_SEARCH_DIRS} ${LIBDIR}/moltenvk)
-ENDIF()
+if(DEFINED LIBDIR)
+  set(_moltenvk_SEARCH_DIRS ${_moltenvk_SEARCH_DIRS} ${LIBDIR}/moltenvk)
+endif()
 
-FIND_PATH(MOLTENVK_INCLUDE_DIR
+find_path(MOLTENVK_INCLUDE_DIR
   NAMES
     MoltenVK/vk_mvk_moltenvk.h
   HINTS
@@ -37,7 +41,7 @@ FIND_PATH(MOLTENVK_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(MOLTENVK_LIBRARY
+find_library(MOLTENVK_LIBRARY
   NAMES
     MoltenVK
   HINTS
@@ -48,17 +52,17 @@ FIND_LIBRARY(MOLTENVK_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set MOLTENVK_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(MoltenVK DEFAULT_MSG MOLTENVK_LIBRARY MOLTENVK_INCLUDE_DIR)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(MoltenVK DEFAULT_MSG MOLTENVK_LIBRARY MOLTENVK_INCLUDE_DIR)
 
-IF(MOLTENVK_FOUND)
-  SET(MOLTENVK_LIBRARIES ${MOLTENVK_LIBRARY})
-  SET(MOLTENVK_INCLUDE_DIRS ${MOLTENVK_INCLUDE_DIR})
-ENDIF()
+if(MOLTENVK_FOUND)
+  set(MOLTENVK_LIBRARIES ${MOLTENVK_LIBRARY})
+  set(MOLTENVK_INCLUDE_DIRS ${MOLTENVK_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   MOLTENVK_INCLUDE_DIR
   MOLTENVK_LIBRARY
 )
 
-UNSET(_moltenvk_SEARCH_DIRS)
+unset(_moltenvk_SEARCH_DIRS)

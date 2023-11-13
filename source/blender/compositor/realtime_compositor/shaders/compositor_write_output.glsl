@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
 void main()
@@ -14,5 +18,5 @@ void main()
   vec4 output_color = vec4(input_color.rgb, alpha);
 #endif
 
-  imageStore(output_img, texel + compositing_region_lower_bound, output_color);
+  imageStore(output_img, texel + lower_bound, output_color);
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2010 Blender Foundation
+/* SPDX-FileCopyrightText: 2010 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,10 +10,6 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct Collection;
 struct FreestyleLineStyle;
@@ -135,7 +131,3 @@ typedef struct FreestyleConfig {
 
   ListBase linesets;
 } FreestyleConfig;
-
-#ifdef __cplusplus
-}
-#endif

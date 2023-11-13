@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* MATCHING eGPUTextureType. */
 #define GPU_TEXTURE_1D (1 << 0)
 #define GPU_TEXTURE_2D (1 << 1)
@@ -37,7 +41,7 @@
 #  define DIMS 3
 #endif
 
-/* Position dimensionality for threadgroup. */
+/* Position dimensionality for thread-group. */
 #if DIMS == 1
 #  define POSITION_TYPE uint
 #elif DIMS == 2
@@ -62,19 +66,19 @@ template<> uint denormalize<uint>(float val)
   return uint(float(DEPTH_SCALE_FACTOR) * val);
 }
 
-/* Float to other type case. */
+/* `float` to other type case. */
 template<typename T> T convert_type(float type)
 {
   return T(type);
 }
 
-/* Uint to other types. */
+/* `uint` to other types. */
 template<typename T> T convert_type(uint type)
 {
   return T(type);
 }
 
-/* Int to other types. */
+/* `int` to other types. */
 template<typename T> T convert_type(int type)
 {
   return T(type);

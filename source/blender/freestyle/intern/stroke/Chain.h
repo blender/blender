@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Class to define a chain of viewedges.
+ * \brief Class to define a chain of view-edges.
  */
 
 #include "Curve.h"

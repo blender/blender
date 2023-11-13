@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,8 +10,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -64,7 +64,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   float fps = 0.0f;
 
   if (ImageAnim *ianim = static_cast<ImageAnim *>(image->anims.first)) {
-    auto *anim = ianim->anim;
+    anim *anim = ianim->anim;
     if (anim) {
       frames = IMB_anim_get_duration(anim, IMB_TC_NONE);
 
@@ -79,17 +79,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("FPS", fps);
 }
 
-}  // namespace blender::nodes::node_geo_image_info_cc
-
-void register_node_type_geo_image_info()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_image_info_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IMAGE_INFO, "Image Info", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_image_info_cc

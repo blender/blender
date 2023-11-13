@@ -1,0 +1,1950 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"PO-Revision-Date: 2023-09-26 10:37+0000\n"
+"Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
+"Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1\n"
+"X-Poedit-Bookmarks: 4082,-1,-1,-1,-1,-1,-1,-1,-1,-1"
+
+
+msgid "Name"
+msgstr "Име"
+
+
+msgid "Type"
+msgstr "Тип"
+
+
+msgid "Color"
+msgstr "Цвят"
+
+
+msgid "Mute"
+msgstr "Загл"
+
+
+msgid "Select"
+msgstr "Избор"
+
+
+msgid "Module"
+msgstr "Модул"
+
+
+msgid "On"
+msgstr "Върху"
+
+
+msgid "Action"
+msgstr "Действие"
+
+
+msgid "Replace"
+msgstr "Замени"
+
+
+msgid "Add"
+msgstr "Добави"
+
+
+msgid "Subtract"
+msgstr "Основа"
+
+
+msgid "Multiply"
+msgstr "Умножение"
+
+
+msgid "Nothing"
+msgstr "Нищо"
+
+
+msgid "Hold"
+msgstr "Задържане"
+
+
+msgid "Empty"
+msgstr "Празно"
+
+
+msgid "Node Editor"
+msgstr "Възлов Редактор"
+
+
+msgid "Info"
+msgstr "Информация"
+
+
+msgid "Author"
+msgstr "Автор"
+
+
+msgid "Space Type"
+msgstr "Тип на Пространството"
+
+
+msgid "Point"
+msgstr "Точка"
+
+
+msgid "Extend"
+msgstr "Разширяване"
+
+
+msgid "Object"
+msgstr "Обект"
+
+
+msgid "Emit"
+msgstr "Излч."
+
+
+msgid "Clear"
+msgstr "Изчистване"
+
+
+msgid "Hide"
+msgstr "Скриване"
+
+
+msgid "Tilt"
+msgstr "Наклон"
+
+
+msgid "Speed"
+msgstr "Скорст"
+
+
+msgid "Parent"
+msgstr "Родителска"
+
+
+msgid "Deform"
+msgstr "Деформиране"
+
+
+msgid "Custom"
+msgstr "Потребителски"
+
+
+msgid "Remove"
+msgstr "Премахване"
+
+
+msgid "All"
+msgstr "Всички"
+
+
+msgid "Fill"
+msgstr "Запълни"
+
+
+msgid "Draw"
+msgstr "Изчертаване"
+
+
+msgid "Smear"
+msgstr "Мажа"
+
+
+msgid "Thickness"
+msgstr "Дебелина"
+
+
+msgid "Active Layer"
+msgstr "Активен Слой"
+
+
+msgid "Crop"
+msgstr "Отрязване"
+
+
+msgid "Left"
+msgstr "Ляво"
+
+
+msgid "Center"
+msgstr "Център"
+
+
+msgid "Default Goal (vertex target position) value, when no Vertex Group used"
+msgstr "Стойност за цел по подразбиране (целево положение на на върховете),когато се използва група върхове"
+
+
+msgid "Goal (vertex target position) friction"
+msgstr "Триене на целта (целево положение на групата върхове)"
+
+
+msgid "Goal maximum, vertex group weights are scaled to match this range"
+msgstr "Максимум·на·целта,·теглата·на·групите·върхове·се·мащабират·до·съвпадане·с·този·интервал"
+
+
+msgid "Goal minimum, vertex group weights are scaled to match this range"
+msgstr "Минимум на целта, теглата на групите върхове се мащабират до съвпадане с този интервал"
+
+
+msgid "Goal (vertex target position) spring stiffness"
+msgstr "Цел (целева позиция на върха) твърдост на отскачане"
+
+
+msgid "Quality"
+msgstr "Качество"
+
+
+msgid "Amount of damping during particle collision"
+msgstr "Сила на овлажняването при сблъсъка на частиците"
+
+
+msgid "Random variation of damping"
+msgstr "Произволно променяне на овлажняването"
+
+
+msgid "Chance that the particle will pass through the mesh"
+msgstr "Шанс частицата да мине през меша"
+
+
+msgid "Outer face thickness"
+msgstr "Плътност на външното лице"
+
+
+msgid "Gamma"
+msgstr "Гама"
+
+
+msgid "Mix"
+msgstr "Смесване"
+
+
+msgid "Difference"
+msgstr "Разлика"
+
+
+msgid "Divide"
+msgstr "Делене"
+
+
+msgid "RGB"
+msgstr "ЧЗС"
+
+
+msgid "Clockwise"
+msgstr "По часовника"
+
+
+msgid "Alpha"
+msgstr "Запълненост"
+
+
+msgid "Output"
+msgstr "Получен"
+
+
+msgid "Input"
+msgstr "Вход"
+
+
+msgid "Armature"
+msgstr "Арматура"
+
+
+msgid "Floor"
+msgstr "Под"
+
+
+msgid "Additive"
+msgstr "Натрупващо се"
+
+
+msgid "Camera"
+msgstr "Камера"
+
+
+msgid "Always"
+msgstr "Винаги"
+
+
+msgid "Front"
+msgstr "Отпред"
+
+
+msgid "Back"
+msgstr "Гръб"
+
+
+msgid "Poly"
+msgstr "Поли"
+
+
+msgid "Bezier"
+msgstr "Беазие"
+
+
+msgid "Split"
+msgstr "Разделяне"
+
+
+msgid "Plane"
+msgstr "Равнина"
+
+
+msgid "View"
+msgstr "Изглед"
+
+
+msgid "Index"
+msgstr "Индекс"
+
+
+msgid "Render"
+msgstr "Генериране"
+
+
+msgid "Driver type"
+msgstr "Водач тип"
+
+
+msgid "Variables"
+msgstr "Променливи"
+
+
+msgid "Factor"
+msgstr "Фактор"
+
+
+msgid "Format"
+msgstr "Фoрмат"
+
+
+msgid "Force"
+msgstr "Сила"
+
+
+msgid "Harmonic"
+msgstr "Хармоничен"
+
+
+msgid "Lennard-Jones"
+msgstr "Lennard-Jones"
+
+
+msgid "Magnetic"
+msgstr "Магнитен"
+
+
+msgid "Wind"
+msgstr "Вятър"
+
+
+msgid "Identifier"
+msgstr "Идентификатор"
+
+
+msgid "User Defined"
+msgstr "Потребителски"
+
+
+msgid "Maximum distance for the field to work"
+msgstr "Максимално разстояние за работа на полето"
+
+
+msgid "Cone"
+msgstr "Конус"
+
+
+msgid "Tube"
+msgstr "Тръба"
+
+
+msgid "Axis"
+msgstr "Ос"
+
+
+msgid "Inflow"
+msgstr "Приток"
+
+
+msgid "Noise"
+msgstr "Шум"
+
+
+msgid "Based on distance/falloff it adds a portion of the entire path"
+msgstr "Базирано на разстояние/отслабване, добавя част на целия път"
+
+
+msgid "Use a maximum distance for the field to work"
+msgstr "Използване на максимално разстояние за работа на полето"
+
+
+msgid "Save"
+msgstr "Запази"
+
+
+msgid "Relative Path"
+msgstr "Относителна пътека"
+
+
+msgid "Sort"
+msgstr "Сортирай"
+
+
+msgid "Link"
+msgstr "Връзка"
+
+
+msgid "Append"
+msgstr "Добави"
+
+
+msgid "End"
+msgstr "Край"
+
+
+msgid "Smoke"
+msgstr "Пушек"
+
+
+msgid "Fluid"
+msgstr "Флуид"
+
+
+msgid "Obstacle"
+msgstr "Препятствие"
+
+
+msgid "Outflow"
+msgstr "Отток"
+
+
+msgid "Delete"
+msgstr "Изтриване"
+
+
+msgid "Bottom"
+msgstr "Дъно"
+
+
+msgid "Collision"
+msgstr "Противоречия"
+
+
+msgid "Density"
+msgstr "Плътност"
+
+
+msgid "Exclusive"
+msgstr "Изключващ"
+
+
+msgid "Frames"
+msgstr "Кадри"
+
+
+msgid "Onion Skinning"
+msgstr "Onion Skinning"
+
+
+msgid "Layer"
+msgstr "Слой"
+
+
+msgid "Grid"
+msgstr "Мрежа"
+
+
+msgid "Triangle"
+msgstr "Триъгълник"
+
+
+msgid "Region Type"
+msgstr "Тип на Региона"
+
+
+msgid "Subdivide"
+msgstr "Подразделяне"
+
+
+msgid "Hook"
+msgstr "Кука"
+
+
+msgid "Lattice"
+msgstr "Решетка"
+
+
+msgid "Shaded"
+msgstr "Светлосенки"
+
+
+msgid "Merge"
+msgstr "Слей"
+
+
+msgid "Wire"
+msgstr "Мрежа"
+
+
+msgid "Box"
+msgstr "Кутия"
+
+
+msgid "Dynamic"
+msgstr "Динамика"
+
+
+msgid "Brush"
+msgstr "Четка"
+
+
+msgid "Perspective"
+msgstr "Перспектива"
+
+
+msgid "Orthographic"
+msgstr "Ортографиране"
+
+
+msgid "Extrude"
+msgstr "Изтегляне"
+
+
+msgid "Small Caps"
+msgstr "Малки Главни"
+
+
+msgid "Square"
+msgstr "Квадр"
+
+
+msgid "Min"
+msgstr "Мин"
+
+
+msgid "Max"
+msgstr "Макс"
+
+
+msgid "Layers"
+msgstr "Слоеве"
+
+
+msgid "AVI Raw"
+msgstr "AVI Суров"
+
+
+msgid "Movie"
+msgstr "Преместване"
+
+
+msgid "Render polygon transparent, depending on alpha channel of the texture"
+msgstr "Генериране на полигона като прозрачен, според канала за запълненост на текстурата"
+
+
+msgid "Cube"
+msgstr "Куб"
+
+
+msgid "Cloth"
+msgstr "Тъкан"
+
+
+msgid "Opaque"
+msgstr "Плътно"
+
+
+msgid "Sculpt"
+msgstr "Скулпт"
+
+
+msgid "Tool"
+msgstr "Прибор"
+
+
+msgid "Mesh"
+msgstr "Меш"
+
+
+msgid "Constraints"
+msgstr "Ограничители"
+
+
+msgid "Cylinder"
+msgstr "Цилиндър"
+
+
+msgid "Solid"
+msgstr "Солиден"
+
+
+msgid "Pose"
+msgstr "Поза"
+
+
+msgid "Halo"
+msgstr "Сияние"
+
+
+msgid "Unborn"
+msgstr "Неродени"
+
+
+msgid "3D Cursor"
+msgstr "3D Курсор"
+
+
+msgid "Sound"
+msgstr "Звук"
+
+
+msgid "Blend"
+msgstr "Смесване"
+
+
+msgid "Soft"
+msgstr "Мек"
+
+
+msgid "Hard"
+msgstr "Остр"
+
+
+msgid "Area"
+msgstr "Площ"
+
+
+msgid "Pattern"
+msgstr "Модел"
+
+
+msgid "Sharp"
+msgstr "Рязък"
+
+
+msgid "Mist"
+msgstr "Мъгла"
+
+
+msgid "IK Solver"
+msgstr "ИК решение"
+
+
+msgid "Images are saved with RGB (color) data"
+msgstr "Изображенията се запазват с ЧЗС (цветни) данни"
+
+
+msgid "RGBA"
+msgstr "ЧЗСП"
+
+
+msgid "Images are saved with RGB and Alpha data (if supported)"
+msgstr "Изображенията се запазват с данни за ЧЗС и Прозрачност (ако се поддържа)"
+
+
+msgid "Codec"
+msgstr "Кодек"
+
+
+msgid "Key Configuration"
+msgstr "Клавишна настройка"
+
+
+msgid "Name of the key configuration"
+msgstr "Име на клавишната настройка"
+
+
+msgid "Key Map"
+msgstr "Клавишна Карта"
+
+
+msgid "Owner"
+msgstr "Собственик"
+
+
+msgid "Name of the key map"
+msgstr "Име на клавишната карта"
+
+
+msgid "Key Map Item"
+msgstr "Артикул"
+
+
+msgid "Item in a Key Map"
+msgstr "Артикул в Клавишна Карта"
+
+
+msgid "Activate or deactivate item"
+msgstr "Активирай или деактивирай атикула"
+
+
+msgid "Alt key pressed"
+msgstr "Натиснат клавиш ALT"
+
+
+msgid "Any"
+msgstr "Всеки"
+
+
+msgid "Any modifier keys pressed"
+msgstr "Който и да е клавиш е натиснат"
+
+
+msgid "Control key pressed"
+msgstr "Натиснат клавиш CTRL"
+
+
+msgid "ID of the item"
+msgstr "ID на артикула"
+
+
+msgid "Map Type"
+msgstr "Вид Карта"
+
+
+msgid "Type of event"
+msgstr "Вид събитие"
+
+
+msgid "Release"
+msgstr "Освобождаване"
+
+
+msgid "Click"
+msgstr "Клик"
+
+
+msgid "Languages..."
+msgstr "Езици..."
+
+
+msgid "Key"
+msgstr "Клавиш"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Cache"
+msgstr "Кеш"
+
+
+msgid "System"
+msgstr "Система"
+
+
+msgid "File"
+msgstr "Файл"
+
+
+msgid "External Data"
+msgstr "Външни Данни"
+
+
+msgid "Import"
+msgstr "Внеси"
+
+
+msgid "Help"
+msgstr "Помощ"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
+
+
+msgid "UV Mapping"
+msgstr "UV Картиране"
+
+
+msgid "Ball"
+msgstr "Топка"
+
+
+msgid "Screw"
+msgstr "Извиване"
+
+
+msgid "Warp"
+msgstr "Изкр"
+
+
+msgid "New"
+msgstr "Нов"
+
+
+msgid "Randomize"
+msgstr "Произволно"
+
+
+msgid "Protect"
+msgstr "Предпази"
+
+
+msgid "Overwrite"
+msgstr "Презаписване"
+
+
+msgid "Copy"
+msgstr "Копиране"
+
+
+msgid "World"
+msgstr "Свят"
+
+
+msgid "Even"
+msgstr "Равн"
+
+
+msgid "Lines"
+msgstr "Линии"
+
+
+msgid "Spin"
+msgstr "Завъртане"
+
+
+msgid "Soften"
+msgstr "Мекост"
+
+
+msgid "Shadow"
+msgstr "Сянка"
+
+
+msgid "Combined"
+msgstr "Комбиниран"
+
+
+msgid "Rotate"
+msgstr "Завърти"
+
+
+msgid "Nor"
+msgstr "Нор"
+
+
+msgid "Star"
+msgstr "Звезда"
+
+
+msgid "Ambient Occlusion"
+msgstr "Оклузия"
+
+
+msgid "Subsurface Scattering"
+msgstr "Подповърхностно Разпръскване"
+
+
+msgid "Turbidity"
+msgstr "Мътност"
+
+
+msgid "Mouse X"
+msgstr "Мишка X"
+
+
+msgid "Mouse Y"
+msgstr "Мишка Y"
+
+
+msgid "Deselect"
+msgstr "Деселектиране"
+
+
+msgid "Set"
+msgstr "Задаване"
+
+
+msgid "Collapse all channels (not just selected ones)"
+msgstr "Прибери всички канали (не само избраните)"
+
+
+msgid "Expand all channels (not just selected ones)"
+msgstr "Разгърни всички канали (не само избраните)"
+
+
+msgctxt "Operator"
+msgid "Disable Channel Setting"
+msgstr "Изключи Канална Настройка"
+
+
+msgid "Disable specified setting on all selected animation channels"
+msgstr "Изключва дадената настройка за всички избрани анимационни канали"
+
+
+msgid "Enable specified setting on all selected animation channels"
+msgstr "Включва дадената настройка за всички избрани анимационни канали"
+
+
+msgid "Toggle specified setting on all selected animation channels"
+msgstr "Превключи дадената настройка за всички избрани анимационни канали"
+
+
+msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
+msgstr "Вмъкни ключови кадри в текущия кадър за всички свойства на дадената Ключова Група"
+
+
+msgid "Top/Bottom"
+msgstr "Връх/Дъно"
+
+
+msgid "Make copies of the selected bones within the same armature"
+msgstr "Направи копия на избраните кости в същата арматура"
+
+
+msgctxt "Operator"
+msgid "Extrude"
+msgstr "Изтегляне"
+
+
+msgid "Forked"
+msgstr "Раздвоен"
+
+
+msgctxt "Operator"
+msgid "Fill Between Joints"
+msgstr "Запълни Между сглобките"
+
+
+msgctxt "Operator"
+msgid "Split"
+msgstr "Разделяне"
+
+
+msgctxt "Operator"
+msgid "Subdivide"
+msgstr "Подразделяне"
+
+
+msgid "Path to file"
+msgstr "Пътека към файла"
+
+
+msgid "Filter .blend files"
+msgstr "Филтрирай .blend файловете"
+
+
+msgid "Filter text files"
+msgstr "Филтрирай текстовите файлове"
+
+
+msgid "Add brush by mode type"
+msgstr "Добави честка според вид на режима"
+
+
+msgid "Set brush shape"
+msgstr "Задай форма на четка"
+
+
+msgctxt "Operator"
+msgid "Accept"
+msgstr "Приеми"
+
+
+msgid "Directory of the file"
+msgstr "Директория на файла"
+
+
+msgid "Select the file relative to the blend file"
+msgstr "Избери файл, относителен към blend файла"
+
+
+msgctxt "Operator"
+msgid "Select"
+msgstr "Избор"
+
+
+msgid "Copy selected text to clipboard"
+msgstr "Копирай избрания текст в клипборда"
+
+
+msgctxt "Operator"
+msgid "Delete"
+msgstr "Изтриване"
+
+
+msgid "Next Character"
+msgstr "Следващ Символ"
+
+
+msgctxt "Operator"
+msgid "Insert"
+msgstr "Вмъкване"
+
+
+msgid "Paste text from clipboard"
+msgstr "Постави текст от клипборда"
+
+
+msgctxt "Operator"
+msgid "Select Word"
+msgstr "Избери Дума"
+
+
+msgid "Report"
+msgstr "Докладвай"
+
+
+msgid "Shrink/Fatten"
+msgstr "Смали/Удебели"
+
+
+msgid "Push/Pull"
+msgstr "Натиск/Дърпане"
+
+
+msgctxt "Operator"
+msgid "Add Bezier Circle"
+msgstr "Добави Кръг на Безие"
+
+
+msgid "Construct a Bezier Circle"
+msgstr "Конструира Кръг на Безие"
+
+
+msgid "Construct a Bezier Curve"
+msgstr "Конструира Крива на Безие"
+
+
+msgctxt "Operator"
+msgid "Add Nurbs Circle"
+msgstr "Добави Nurbs Кръг"
+
+
+msgid "Construct a Nurbs Circle"
+msgstr "Конструира Nurbs Кръг"
+
+
+msgctxt "Operator"
+msgid "Add Nurbs Curve"
+msgstr "Добави Nurbs Крива"
+
+
+msgid "Construct a Nurbs Curve"
+msgstr "Конструира Nurbs Крива"
+
+
+msgid "Less"
+msgstr "По-малко"
+
+
+msgctxt "Operator"
+msgid "Spin"
+msgstr "Завъртане"
+
+
+msgid "Handles"
+msgstr "Дръжки"
+
+
+msgid "Item"
+msgstr "Артикул"
+
+
+msgid "Lamp"
+msgstr "Лампа"
+
+
+msgid "Other"
+msgstr "Колеб"
+
+
+msgid "Compress"
+msgstr "Компресирай"
+
+
+msgid "End frame for baking"
+msgstr "Краен кадър за изпичане"
+
+
+msgid "Open"
+msgstr "Отвори"
+
+
+msgid "Delta"
+msgstr "Делта"
+
+
+msgid "Select word under cursor"
+msgstr "Избери дума под курсора"
+
+
+msgid "Style"
+msgstr "Стил"
+
+
+msgid "Bold"
+msgstr "Bold"
+
+
+msgid "Italic"
+msgstr "Курсив"
+
+
+msgctxt "Operator"
+msgid "Insert Text"
+msgstr "Вмъкване на текст"
+
+
+msgctxt "Operator"
+msgid "Unlink"
+msgstr "Развържи"
+
+
+msgid "Both"
+msgstr "Двете"
+
+
+msgid "Join"
+msgstr "Събери"
+
+
+msgid "Next Keyframe"
+msgstr "Следващ Ключов Кадър"
+
+
+msgid "Mouse cursor style to use during the modal operator"
+msgstr "Стил на курсора по време на режимните оператори"
+
+
+msgid "X Start"
+msgstr "X Начало"
+
+
+msgid "Y Start"
+msgstr "Y Начало"
+
+
+msgid "Shadeless"
+msgstr "Без сенки"
+
+
+msgctxt "Operator"
+msgid "Set Restrict View"
+msgstr "Ограничи Изглед"
+
+
+msgid "Method used for deleting mesh data"
+msgstr "Метод за изтриване на мрежови данни"
+
+
+msgid "Rotate Source"
+msgstr "Завърти Източника"
+
+
+msgid "Add an edge or face to selected"
+msgstr "Добави ръб или лице към избраното"
+
+
+msgctxt "Operator"
+msgid "Fill"
+msgstr "Запълни"
+
+
+msgid "Occlude Geometry"
+msgstr "Закривай Геометрията"
+
+
+msgid "X-Ray"
+msgstr "Рентген"
+
+
+msgid "Ring"
+msgstr "Прстн"
+
+
+msgctxt "Operator"
+msgid "Loop Cut and Slide"
+msgstr "Режи Примка и Плъзгай"
+
+
+msgctxt "Operator"
+msgid "Merge"
+msgstr "Слей"
+
+
+msgid "Merge selected vertices"
+msgstr "Скриване на избраните лица"
+
+
+msgid "Construct a filled planar mesh with 4 vertices"
+msgstr "Конструирай запълненa плоска мрежа с 4 върха "
+
+
+msgctxt "Operator"
+msgid "Screw"
+msgstr "Извиване"
+
+
+msgid "Extrude selected vertices in screw-shaped rotation around the cursor in indicated viewport"
+msgstr "Създава копия от избраните върхове в кръг около показалеца в маркираната гледна точка"
+
+
+msgid "Extrude selected vertices in a circle around the cursor in indicated viewport"
+msgstr "Създава копия от избраните върхове в кръг около показалеца в маркираната гледна точка"
+
+
+msgid "Fractal"
+msgstr "Фрактално"
+
+
+msgctxt "Operator"
+msgid "Tris to Quads"
+msgstr "Триъгълници към Четириъгълници"
+
+
+msgid "Smooth along the X axis"
+msgstr "Ограничение на въртенето по хоризонталната ос"
+
+
+msgid "Smooth along the Y axis"
+msgstr "Ограничение·на·въртенето·по·вертикалната·ос"
+
+
+msgid "Smooth along the Z axis"
+msgstr "Ограничение на въртенето по дълбочинната ос"
+
+
+msgctxt "Operator"
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Скриване"
+
+
+msgctxt "Operator"
+msgid "Bake"
+msgstr "Изпечи"
+
+
+msgctxt "Operator"
+msgid "Add Constraint"
+msgstr "Добавяне на ограничител"
+
+
+msgid "Monkey"
+msgstr "Маймуна"
+
+
+msgctxt "Operator"
+msgid "Join"
+msgstr "Събери"
+
+
+msgctxt "Operator"
+msgid "Join as Shapes"
+msgstr "Събери като Форми"
+
+
+msgid "Origin to Geometry"
+msgstr "Начало към Геометрия"
+
+
+msgid "Edge Length"
+msgstr "Дължина на ръба"
+
+
+msgid "Maximum scale randomization over each axis"
+msgstr "Максимална случайност на размера върху всяка ос"
+
+
+msgid "Randomize delta transform values instead of regular transform"
+msgstr "Направи делта стойностите случайни вместо обикновена трансформация"
+
+
+msgid "Randomize the location values"
+msgstr "Случайни стойности за местоположение"
+
+
+msgid "Randomize the rotation values"
+msgstr "Случайни стойности за завъртане"
+
+
+msgid "Randomize the scale values"
+msgstr "Случайни стойности за мащаб"
+
+
+msgid "Child"
+msgstr "Дъщерни"
+
+
+msgid "Case Sensitive"
+msgstr "Главни и Малки букви"
+
+
+msgid "Do a case sensitive compare"
+msgstr "Сравни главни и малки букви"
+
+
+msgctxt "Operator"
+msgid "Add Shape Key"
+msgstr "Добавяне ключ на форма"
+
+
+msgid "Apply the relative positional offset"
+msgstr "Приложи осносителното отместване на местоположението"
+
+
+msgid "Unlink"
+msgstr "Развържи"
+
+
+msgid "Reload"
+msgstr "Презареждане"
+
+
+msgctxt "Operator"
+msgid "Image from View"
+msgstr "Изображение от Изглед"
+
+
+msgid "Connect hair to the emitter mesh"
+msgstr "Закачи косата към излъчвателя"
+
+
+msgid "Connect all hair systems to the emitter mesh"
+msgstr "Закачва всички системи на коса към излъчвателя"
+
+
+msgctxt "Operator"
+msgid "Disconnect Hair"
+msgstr "Откачи Косата"
+
+
+msgid "Disconnect hair from the emitter mesh"
+msgstr "Откача косата от излъчвателя"
+
+
+msgid "Disconnect all hair systems from the emitter mesh"
+msgstr "Откача всички системи на коса от излъчвателя"
+
+
+msgctxt "Operator"
+msgid "Reveal"
+msgstr "Показване"
+
+
+msgctxt "Operator"
+msgid "Pose Breakdowner"
+msgstr "Разбивач на Пози"
+
+
+msgid "Create a suitable breakdown pose on the current frame"
+msgstr "Прави подходяща междинна поза от текущия кадър"
+
+
+msgid "Flipped on X-Axis"
+msgstr "Обърнат по Оста X"
+
+
+msgid "Paste the stored pose flipped on to current pose"
+msgstr "Поставя обърната версия на запазената поза върху текущата поза"
+
+
+msgid "Select all visible bones grouped by similar properties"
+msgstr "Избери всички видими кости според общи свойства"
+
+
+msgctxt "Operator"
+msgid "Export Key Configuration..."
+msgstr "Изнеси Клавишна Настройка..."
+
+
+msgctxt "Operator"
+msgid "Import Key Configuration..."
+msgstr "Внеси Клавишна Настройка..."
+
+
+msgid "Keep Original"
+msgstr "Запазване на оригинала"
+
+
+msgid "Keep original file after copying to configuration folder"
+msgstr "Запази оригиналния файл след копиране в папката с настройката"
+
+
+msgctxt "Operator"
+msgid "Test Key Configuration for Conflicts"
+msgstr "Провери Клавишната Настройка за Конфликти"
+
+
+msgid "Bake"
+msgstr "Изпечи"
+
+
+msgctxt "Operator"
+msgid "Render"
+msgstr "Генериране"
+
+
+msgid "Add new scene by type"
+msgstr "Добави нова сцена според вид"
+
+
+msgid "Sync"
+msgstr "Синх"
+
+
+msgctxt "Operator"
+msgid "Toggle Quad View"
+msgstr "Превключване на Четворен Иглед"
+
+
+msgid "Themes"
+msgstr "Теми"
+
+
+msgid "Editing"
+msgstr "Редактиране"
+
+
+msgid "Menu ID Name"
+msgstr "Име на Menu ID"
+
+
+msgid "ID name of the menu this was called from"
+msgstr "ID име на менюто, от което се повиква"
+
+
+msgctxt "Operator"
+msgid "Copy"
+msgstr "Копиране"
+
+
+msgctxt "Operator"
+msgid "Add Surface Circle"
+msgstr "Добави Повърхностен Кръг"
+
+
+msgid "Construct a Nurbs surface Circle"
+msgstr "Конструира Nurbs-повърхностен Кръг"
+
+
+msgid "Construct a Nurbs surface Curve"
+msgstr "Конструира Nurbs-повърхностна Крива"
+
+
+msgctxt "Operator"
+msgid "Add Surface Cylinder"
+msgstr "Добави Повърхностен Цилиндър"
+
+
+msgid "Construct a Nurbs surface Cylinder"
+msgstr "Конструира Nurbs-повърхностен Цилиндър"
+
+
+msgctxt "Operator"
+msgid "Add Surface Sphere"
+msgstr "Добави Повърхностна Сфера"
+
+
+msgid "Construct a Nurbs surface Sphere"
+msgstr "Конструира Nurbs-повърхностна Сфера"
+
+
+msgctxt "Operator"
+msgid "Add Surface Patch"
+msgstr "Добави Повърхностно Парче"
+
+
+msgid "Construct a Nurbs surface Patch"
+msgstr "Конструира Nurbs-повърхностно Парче"
+
+
+msgctxt "Operator"
+msgid "Add Surface Torus"
+msgstr "Добави Nurbs-повърхностен Тороид"
+
+
+msgid "Construct a Nurbs surface Torus"
+msgstr "Конструира Nurbs-повърхностен Тороид"
+
+
+msgctxt "Operator"
+msgid "Line Number"
+msgstr "Номер на ред:"
+
+
+msgid "The current line number"
+msgstr "Име на текущия ред"
+
+
+msgctxt "Operator"
+msgid "Reload"
+msgstr "Презареждане"
+
+
+msgctxt "Operator"
+msgid "Replace"
+msgstr "Замени"
+
+
+msgctxt "Operator"
+msgid "Save"
+msgstr "Запази"
+
+
+msgctxt "Operator"
+msgid "Save As"
+msgstr "Запази Като"
+
+
+msgctxt "Operator"
+msgid "Push/Pull"
+msgstr "Натиск/Дърпане"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Завърти"
+
+
+msgctxt "Operator"
+msgid "Shrink/Fatten"
+msgstr "Смали/Удебели"
+
+
+msgctxt "Operator"
+msgid "Tilt"
+msgstr "Наклон"
+
+
+msgctxt "Operator"
+msgid "Warp"
+msgstr "Изкр"
+
+
+msgid "Reset this property's value to its default value"
+msgstr "Върни стойността на свойството към стойността по подразбиране"
+
+
+msgid "Polar ZX"
+msgstr "Полярно ZX"
+
+
+msgid "Polar ZY"
+msgstr "Полярно ZY"
+
+
+msgid "Delta X"
+msgstr "Делта X"
+
+
+msgctxt "Operator"
+msgid "Zoom Camera 1:1"
+msgstr "Увеличи Камера 1:1"
+
+
+msgid "Wrap"
+msgstr "Обвив"
+
+
+msgid "Doc ID"
+msgstr "Doc ID"
+
+
+msgctxt "Operator"
+msgid "Memory Statistics"
+msgstr "Статистики на Паметта"
+
+
+msgid "Print memory statistics to the console"
+msgstr "Принтирай статистиката на паметта в конзолата"
+
+
+msgid "Open a Blender file"
+msgstr "Отваряне на Blender файл"
+
+
+msgid "Trusted Source"
+msgstr "Надежден Източник"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "Списък с Оператори"
+
+
+msgctxt "Operator"
+msgid "Quit Blender"
+msgstr "Излез от Blender"
+
+
+msgid "Quit Blender"
+msgstr "Излез от Blender"
+
+
+msgid "Color Path"
+msgstr "Пътека на цвета"
+
+
+msgid "Rotation Path"
+msgstr "Пътека на завъртането"
+
+
+msgctxt "Operator"
+msgid "Load Factory Settings"
+msgstr "Фабрични Настройки"
+
+
+msgctxt "Operator"
+msgid "Recover Auto Save"
+msgstr "Възстанови Автоматично Запазване"
+
+
+msgid "Open an automatically saved file to recover it"
+msgstr "Отвори автоматично запазен файл, за да бъде възстановен"
+
+
+msgctxt "Operator"
+msgid "Recover Last Session"
+msgstr "Върни Предишната Сесия"
+
+
+msgid "Open the last closed file (\"quit.blend\")"
+msgstr "Отвори последно затворения файл (\"quit.blend\")"
+
+
+msgid "Undo/Redo"
+msgstr "Отмяна/Връщане"
+
+
+msgid "Save the current file in the desired location"
+msgstr "Запазва текущия файл в желаната директория"
+
+
+msgid "Write compressed .blend file"
+msgstr "Запиши компресиран .blend файл"
+
+
+msgid "Save Copy"
+msgstr "Запази Kопие"
+
+
+msgid "Remap Relative"
+msgstr "Преначертай относителните"
+
+
+msgctxt "Operator"
+msgid "Save Blender File"
+msgstr "Запази Blender Файл"
+
+
+msgid "Save the current Blender file"
+msgstr "Запази текущия Blender файл"
+
+
+msgctxt "Operator"
+msgid "Search Menu"
+msgstr "Търсене..."
+
+
+msgid "Anaglyph"
+msgstr "Стероескопично"
+
+
+msgctxt "Operator"
+msgid "Splash Screen"
+msgstr "Начален Екран"
+
+
+msgid "URL to open"
+msgstr "URL за отваряне"
+
+
+msgid "Dither"
+msgstr "Колеб"
+
+
+msgid "Threads"
+msgstr "Нишки"
+
+
+msgid "Viscosity"
+msgstr "Вискозитет"
+
+
+msgid "Note"
+msgstr "Бележка"
+
+
+msgid "Timeline"
+msgstr "Времева линия"
+
+
+msgid "Pose Library"
+msgstr "Библиотека с Пози"
+
+
+msgid "Sub"
+msgstr "Изв"
+
+
+msgid "Allow scaling of the bone for IK"
+msgstr "Позволяване разтягането на костта за ИК"
+
+
+msgid "44.1 kHz"
+msgstr "44.1·kHz"
+
+
+msgid "Language"
+msgstr "Език"
+
+
+msgid "Minimal Info"
+msgstr "Минимална Информация"
+
+
+msgid "Sky"
+msgstr "Небе"
+
+
+msgid "Strand"
+msgstr "Нишка"
+
+
+msgid "Bias"
+msgstr "Отклонение"
+
+
+msgid "FPS"
+msgstr "FPS"
+
+
+msgid "Edge spring friction"
+msgstr "Триене на ръбовите пружини"
+
+
+msgid "General media friction for point movements"
+msgstr "Общо триене за точкови движения"
+
+
+msgid "Apply gravitation to point movement"
+msgstr "Прилагане на гравитация към точково движение"
+
+
+msgid "Tweak timing for physics to control frequency and speed"
+msgstr "Промяна на тайминга за физика за контролиране на честота и скорост"
+
+
+msgid "Use Edges as springs"
+msgstr "Използване на ръбовете като пружини"
+
+
+msgid "Use Goal"
+msgstr "Използване на цел"
+
+
+msgid "Define forces for vertices to stick to animated position"
+msgstr "Задава сили за върховете, които да се залепят за анимираното местоположение"
+
+
+msgid "Stiff Quads"
+msgstr "Твърди квадрати"
+
+
+msgid "UV Editor"
+msgstr "УВ Редактор"
+
+
+msgid "Pivot around the 3D cursor"
+msgstr "Върти около 3D курсора"
+
+
+msgid "Chroma Vectorscope"
+msgstr "Цветен Векторскоп"
+
+
+msgid "Flat"
+msgstr "Дъска"
+
+
+msgid "Bezier U"
+msgstr "Беазие U"
+
+
+msgid "Stencil"
+msgstr "Шаблон"
+
+
+msgid "Animated"
+msgstr "Анимирани"
+
+
+msgid "Torus"
+msgstr "Тороид"
+
+
+msgid "Python API Reference"
+msgstr "Python API Справка"
+
+
+msgid "Passepartout"
+msgstr "Зона на видимост"
+
+
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Изчистване"
+
+
+msgid "Date"
+msgstr "Дата"
+
+
+msgid "Structural"
+msgstr "Структурен"
+
+
+msgid "Cache is disabled until the file is saved"
+msgstr "Кешът е изключен докато файла не бъде запазен"
+
+
+msgid "Unpack"
+msgstr "Разпакетирай"
+
+
+msgid "Pack"
+msgstr "Пакетирай"
+
+
+msgid "Minimum Grid Spacing"
+msgstr "Минимален Интервал на Мрежата"
+
+
+msgid "Invert Wheel Zoom Direction"
+msgstr "Обърни посоката на увеличение"
+
+
+msgid "Missing script files"
+msgstr "Липсват скриптови файлове"
+
+
+msgid "Author:"
+msgstr "Автор"
+
+
+msgid "Layer:"
+msgstr "Слой"
+
+
+msgid "Stop this job"
+msgstr "Спри тази задача"
+
+
+msgid "%d items"
+msgstr "%d артикули"
+
+
+msgid "OK"
+msgstr "ОК"
+
+
+msgid "Fields"
+msgstr "Полета"
+
+
+msgid "Cancel"
+msgstr "Отказ"
+
+
+msgid "{} (String)"
+msgstr "{} (String)"
+
+
+msgid "{} (Integer)"
+msgstr "{} (Integer)"
+
+
+msgid "OK?"
+msgstr "ОК?"
+
+
+msgid "English (English)"
+msgstr "Английски (English)"
+
+
+msgid "Japanese (日本語)"
+msgstr "Японски (日本語)"
+
+
+msgid "Italian (Italiano)"
+msgstr "Италиански (Italiano)"
+
+
+msgid "German (Deutsch)"
+msgstr "Германски (Deutsch)"
+
+
+msgid "Swedish (Svenska)"
+msgstr "Шведски (Svenska)"
+
+
+msgid "Spanish (Español)"
+msgstr "Испански (Español)"
+
+
+msgid "Catalan (Català)"
+msgstr "Каталонски (Català)"
+
+
+msgid "Simplified Chinese (简体中文)"
+msgstr "Опростен Китайски (简体中文)"
+
+
+msgid "Traditional Chinese (繁體中文)"
+msgstr "Традиционен Китайски (繁體中文)"
+
+
+msgid "Russian (Русский)"
+msgstr "Руски (Русский)"
+
+
+msgid "Croatian (Hrvatski)"
+msgstr "Хърватски (Hrvatski)"
+
+
+msgid "Polish (Polski)"
+msgstr "Полски (Polski)"
+
+
+msgid "Romanian (Român)"
+msgstr "Румънски (Român)"
+
+
+msgid "Bulgarian (Български)"
+msgstr "Български (Български)"
+
+
+msgid "Greek (Ελληνικά)"
+msgstr "Гръцки (Ελληνικά)"
+

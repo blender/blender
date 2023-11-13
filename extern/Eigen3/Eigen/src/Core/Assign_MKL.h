@@ -68,16 +68,16 @@ class vml_assign_traits
 
 #define EIGEN_PP_EXPAND(ARG) ARG
 #if !defined (EIGEN_FAST_MATH) || (EIGEN_FAST_MATH != 1)
-#define EIGEN_VMLMODE_EXPAND_LA , VML_HA
+#define EIGEN_VMLMODE_EXPAND_xLA , VML_HA
 #else
-#define EIGEN_VMLMODE_EXPAND_LA , VML_LA
+#define EIGEN_VMLMODE_EXPAND_xLA , VML_LA
 #endif
 
-#define EIGEN_VMLMODE_EXPAND__ 
+#define EIGEN_VMLMODE_EXPAND_x_
 
-#define EIGEN_VMLMODE_PREFIX_LA vm
-#define EIGEN_VMLMODE_PREFIX__  v
-#define EIGEN_VMLMODE_PREFIX(VMLMODE) EIGEN_CAT(EIGEN_VMLMODE_PREFIX_,VMLMODE)
+#define EIGEN_VMLMODE_PREFIX_xLA vm
+#define EIGEN_VMLMODE_PREFIX_x_  v
+#define EIGEN_VMLMODE_PREFIX(VMLMODE) EIGEN_CAT(EIGEN_VMLMODE_PREFIX_x,VMLMODE)
 
 #define EIGEN_MKL_VML_DECLARE_UNARY_CALL(EIGENOP, VMLOP, EIGENTYPE, VMLTYPE, VMLMODE)                                           \
   template< typename DstXprType, typename SrcXprNested>                                                                         \
@@ -89,7 +89,7 @@ class vml_assign_traits
       eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());                                                       \
       if(vml_assign_traits<DstXprType,SrcXprNested>::Traversal==LinearTraversal) {                                              \
         VMLOP(dst.size(), (const VMLTYPE*)src.nestedExpression().data(),                                                        \
-              (VMLTYPE*)dst.data() EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_##VMLMODE) );                                           \
+              (VMLTYPE*)dst.data() EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_x##VMLMODE) );                                           \
       } else {                                                                                                                  \
         const Index outerSize = dst.outerSize();                                                                                \
         for(Index outer = 0; outer < outerSize; ++outer) {                                                                      \
@@ -97,7 +97,7 @@ class vml_assign_traits
                                                       &(src.nestedExpression().coeffRef(0, outer));                             \
           EIGENTYPE *dst_ptr = dst.IsRowMajor ? &(dst.coeffRef(outer,0)) : &(dst.coeffRef(0, outer));                           \
           VMLOP( dst.innerSize(), (const VMLTYPE*)src_ptr,                                                                      \
-                (VMLTYPE*)dst_ptr EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_##VMLMODE));                                             \
+                (VMLTYPE*)dst_ptr EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_x##VMLMODE));                                             \
         }                                                                                                                       \
       }                                                                                                                         \
     }                                                                                                                           \
@@ -152,7 +152,7 @@ EIGEN_MKL_VML_DECLARE_UNARY_CALLS_REAL(ceil,  Ceil,   _)
       if(vml_assign_traits<DstXprType,SrcXprNested>::Traversal==LinearTraversal)                                              \
       {                                                                                                                       \
         VMLOP( dst.size(), (const VMLTYPE*)src.lhs().data(), exponent,                                                        \
-              (VMLTYPE*)dst.data() EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_##VMLMODE) );                                         \
+              (VMLTYPE*)dst.data() EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_x##VMLMODE) );                                         \
       } else {                                                                                                                \
         const Index outerSize = dst.outerSize();                                                                              \
         for(Index outer = 0; outer < outerSize; ++outer) {                                                                    \
@@ -160,7 +160,7 @@ EIGEN_MKL_VML_DECLARE_UNARY_CALLS_REAL(ceil,  Ceil,   _)
                                                       &(src.lhs().coeffRef(0, outer));                                        \
           EIGENTYPE *dst_ptr = dst.IsRowMajor ? &(dst.coeffRef(outer,0)) : &(dst.coeffRef(0, outer));                         \
           VMLOP( dst.innerSize(), (const VMLTYPE*)src_ptr, exponent,                                                          \
-                 (VMLTYPE*)dst_ptr EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_##VMLMODE));                                          \
+                 (VMLTYPE*)dst_ptr EIGEN_PP_EXPAND(EIGEN_VMLMODE_EXPAND_x##VMLMODE));                                          \
         }                                                                                                                     \
       }                                                                                                                       \
     }                                                                                                                         \

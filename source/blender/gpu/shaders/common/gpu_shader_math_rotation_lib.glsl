@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 
@@ -81,7 +84,7 @@ EulerXYZ EulerXYZ_identity()
  * (quaternions and spherical vector coords).
  *
  * \param t: factor in [0..1]
- * \param cosom: dot product from normalized vectors/quats.
+ * \param cosom: dot product from normalized vectors/quaternions.
  * \param r_w: calculated weights.
  */
 vec2 interpolate_dot_slerp(float t, float cosom)

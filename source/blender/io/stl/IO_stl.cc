@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 
 #include "BLI_timeit.hh"
 
-#include "IO_stl.h"
+#include "IO_stl.hh"
 #include "stl_import.hh"
 
 void STL_import(bContext *C, const STLImportParams *import_params)

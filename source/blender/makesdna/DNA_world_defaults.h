@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,6 +27,8 @@
     .preview = NULL, \
     .miststa = 5.0f, \
     .mistdist = 25.0f, \
+  \
+    .probe_resolution = LIGHT_PROBE_RESOLUTION_1024, \
   }
 
 /** \} */

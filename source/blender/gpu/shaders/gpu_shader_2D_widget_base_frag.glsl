@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_colorspace_lib.glsl)
 
 vec3 compute_masks(vec2 uv)
@@ -83,14 +87,14 @@ void main()
     fragColor.a = 1.0;
   }
   else {
-    /* Premultiply here. */
+    /* Pre-multiply here. */
     fragColor = innerColor * vec4(innerColor.aaa, 1.0);
   }
   fragColor *= masks.y;
   fragColor += masks.x * borderColor;
   fragColor += masks.z * embossColor;
 
-  /* Un-premult because the blend equation is already doing the mult. */
+  /* Un-pre-multiply because the blend equation is already doing the multiplication. */
   if (fragColor.a > 0.0) {
     fragColor.rgb /= fragColor.a;
   }

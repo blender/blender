@@ -1,9 +1,9 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# panels get subclassed (not registered directly)
-# menus are referenced `as is`
+# Panels get sub-classed (not registered directly).
+# Menus are referenced as-is.
 
 from bpy.types import Menu, UIList
 from bpy.app.translations import contexts as i18n_contexts

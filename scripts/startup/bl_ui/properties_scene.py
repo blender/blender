@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -235,7 +235,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         # TODO: 1) the template_any_ID needs to be fixed for the text alignment.
         #       2) use_property_decorate has to properly skip the non animatable properties.
         #          Properties affected with needless draw:
-        #          group_method, template_any_ID dropdown, use_entire_array
+        #          group_method, template_any_ID drop-down, use_entire_array.
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation (remove this later on).
@@ -310,6 +310,24 @@ class SCENE_PT_physics(SceneButtonsPanel, Panel):
         layout.active = scene.use_gravity
 
         layout.prop(scene, "gravity")
+
+
+class SCENE_PT_simulation(SceneButtonsPanel, Panel):
+    bl_label = "Simulation"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+
+        col = layout.column()
+        col.prop(scene, "use_custom_simulation_range", text="Simulation Range")
+        subcol = col.column(align=True)
+        subcol.active = scene.use_custom_simulation_range
+        subcol.prop(scene, "simulation_frame_start", text="Start")
+        subcol.prop(scene, "simulation_frame_end", text="End")
 
 
 class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
@@ -409,6 +427,7 @@ classes = (
     SCENE_PT_scene,
     SCENE_PT_unit,
     SCENE_PT_physics,
+    SCENE_PT_simulation,
     SCENE_PT_keying_sets,
     SCENE_PT_keying_set_paths,
     SCENE_PT_keyframing_settings,

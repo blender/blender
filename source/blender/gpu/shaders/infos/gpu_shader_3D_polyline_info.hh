@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,9 @@
 
 GPU_SHADER_INTERFACE_INFO(gpu_shader_3D_polyline_iface, "interp")
     .smooth(Type::VEC4, "final_color")
-    .smooth(Type::FLOAT, "clip")
+    .smooth(Type::FLOAT, "clip");
+
+GPU_SHADER_INTERFACE_INFO(gpu_shader_3D_polyline_noperspective_iface, "interp_noperspective")
     .no_perspective(Type::FLOAT, "smoothline");
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_polyline)
@@ -22,8 +24,10 @@ GPU_SHADER_CREATE_INFO(gpu_shader_3D_polyline)
     .push_constant(Type::BOOL, "lineSmooth")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_out(gpu_shader_3D_polyline_iface)
+    .vertex_out(gpu_shader_3D_polyline_noperspective_iface)
     .geometry_layout(PrimitiveIn::LINES, PrimitiveOut::TRIANGLE_STRIP, 4)
     .geometry_out(gpu_shader_3D_polyline_iface)
+    .geometry_out(gpu_shader_3D_polyline_noperspective_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("gpu_shader_3D_polyline_vert.glsl")
     .geometry_source("gpu_shader_3D_polyline_geom.glsl")
@@ -38,6 +42,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_3D_polyline_no_geom)
     .push_constant(Type::BOOL, "lineSmooth")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_out(gpu_shader_3D_polyline_iface)
+    .vertex_out(gpu_shader_3D_polyline_noperspective_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("gpu_shader_3D_polyline_vert_no_geom.glsl")
     .fragment_source("gpu_shader_3D_polyline_frag.glsl")

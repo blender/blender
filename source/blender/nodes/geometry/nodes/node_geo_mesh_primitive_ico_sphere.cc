@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+
+#include "GEO_randomize.hh"
 
 #include "bmesh.h"
 
@@ -62,6 +64,12 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions,
                                     const float radius,
                                     const AttributeIDRef &uv_map_id)
 {
+  if (subdivisions >= 3) {
+    /* Most nodes don't need this because they internally use multi-threading which triggers
+     * lazy-threading without any extra code. */
+    lazy_threading::send_hint();
+  }
+
   const float4x4 transform = float4x4::identity();
 
   const bool create_uv_map = bool(uv_map_id);
@@ -103,6 +111,8 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions,
   }
   attributes.remove("UVMap");
 
+  geometry::debug_randomize_mesh_order(mesh);
+
   mesh->bounds_set_eager(calculate_bounds_ico_sphere(radius, subdivisions));
 
   return mesh;
@@ -116,20 +126,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
 
   Mesh *mesh = create_ico_sphere_mesh(subdivisions, radius, uv_map_id.get());
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
-}  // namespace blender::nodes::node_geo_mesh_primitive_ico_sphere_cc
-
-void register_node_type_geo_mesh_primitive_ico_sphere()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_primitive_ico_sphere_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, "Ico Sphere", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_primitive_ico_sphere_cc

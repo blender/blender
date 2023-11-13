@@ -10,6 +10,11 @@ body:
 
         By submitting code here, you agree that the code is (compatible with) GNU GPL v2 or later.
 
+        By default, all contributors are added to the AUTHORS file as part of a semi-automated process.
+
+        If you do not wish to be listed there and rather transfer copyright to the Blender Foundation please mention so at the bottom of the PR.
+        This request only needs to be made once and applies to future PR's.
+
   - type: textarea
     id: body
     attributes:

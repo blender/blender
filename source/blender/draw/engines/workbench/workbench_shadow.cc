@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,8 +15,7 @@
  * Then the shading pass will shade the areas with stencil not equal 0 differently.
  */
 
-#include "BKE_object.h"
-#include "BLI_math.h"
+#include "BKE_object.hh"
 #include "DRW_render.h"
 #include "GPU_compute.h"
 
@@ -184,11 +183,11 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
 bool ShadowPass::ShadowView::debug_object_culling(Object *ob)
 {
   printf("Test %s\n", ob->id.name);
-  const BoundBox *_bbox = BKE_object_boundbox_get(ob);
+  const BoundBox _bbox = *BKE_object_boundbox_get(ob);
   for (int p : IndexRange(extruded_frustum_.planes_count)) {
     float4 plane = extruded_frustum_.planes[p];
     bool separating_axis = true;
-    for (float3 corner : _bbox->vec) {
+    for (float3 corner : _bbox.vec) {
       corner = math::transform_point(float4x4(ob->object_to_world), corner);
       float signed_distance = math::dot(corner, float3(plane)) - plane.w;
       if (signed_distance <= 0) {
@@ -246,11 +245,11 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
 
     if (dynamic_pass_type_shader_ == nullptr) {
       dynamic_pass_type_shader_ = GPU_shader_create_from_info_name(
-          "workbench_next_shadow_visibility_compute_dynamic_pass_type");
+          "workbench_shadow_visibility_compute_dynamic_pass_type");
     }
     if (static_pass_type_shader_ == nullptr) {
       static_pass_type_shader_ = GPU_shader_create_from_info_name(
-          "workbench_next_shadow_visibility_compute_static_pass_type");
+          "workbench_shadow_visibility_compute_static_pass_type");
     }
 
     GPUShader *shader = current_pass_type_ == ShadowPass::FORCED_FAIL ? static_pass_type_shader_ :
@@ -306,17 +305,17 @@ ShadowPass::~ShadowPass()
   }
 }
 
-PassMain::Sub *&ShadowPass::get_pass_ptr(PassType type, bool manifold, bool cap /*= false*/)
+PassMain::Sub *&ShadowPass::get_pass_ptr(PassType type, bool manifold, bool cap /*=false*/)
 {
   return passes_[type][manifold][cap];
 }
 
-GPUShader *ShadowPass::get_shader(bool depth_pass, bool manifold, bool cap /*= false*/)
+GPUShader *ShadowPass::get_shader(bool depth_pass, bool manifold, bool cap /*=false*/)
 {
   GPUShader *&shader = shaders_[depth_pass][manifold][cap];
 
   if (shader == nullptr) {
-    std::string create_info_name = "workbench_next_shadow";
+    std::string create_info_name = "workbench_shadow";
     create_info_name += (depth_pass) ? "_pass" : "_fail";
     create_info_name += (manifold) ? "_manifold" : "_no_manifold";
     create_info_name += (cap) ? "_caps" : "_no_caps";
@@ -479,6 +478,11 @@ void ShadowPass::draw(Manager &manager,
   manager.submit(fail_ps_, view_);
   view_.set_mode(FORCED_FAIL);
   manager.submit(forced_fail_ps_, view_);
+}
+
+bool ShadowPass::is_debug()
+{
+  return DEBUG_SHADOW_VOLUME;
 }
 
 }  // namespace blender::workbench

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** Storing/merging and sorting cryptomatte samples. */
 
 bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)
@@ -41,7 +45,7 @@ void cryptomatte_store_film_sample(FilmSample dst,
   if (crypto_sample.y == 0.0) {
     return;
   }
-  for (int i = 0; i < film_buf.cryptomatte_samples_len / 2; i++) {
+  for (int i = 0; i < uniform_buf.film.cryptomatte_samples_len / 2; i++) {
     ivec3 img_co = ivec3(dst.texel, cryptomatte_layer_id + i);
     vec4 sample_pair = imageLoad(cryptomatte_img, img_co);
     if (cryptomatte_can_merge_sample(sample_pair.xy, crypto_sample)) {
@@ -56,7 +60,7 @@ void cryptomatte_store_film_sample(FilmSample dst,
     else if (cryptomatte_can_merge_sample(sample_pair.zw, crypto_sample)) {
       sample_pair.zw = cryptomatte_merge_sample(sample_pair.zw, crypto_sample);
     }
-    else if (i == film_buf.cryptomatte_samples_len / 2 - 1) {
+    else if (i == uniform_buf.film.cryptomatte_samples_len / 2 - 1) {
       /* TODO(jbakker): New hash detected, but there is no space left to store it. Currently we
        * will ignore this sample, but ideally we could replace a sample with a lowest weight. */
       continue;

@@ -25,7 +25,7 @@ class ImportSomeData(Operator, ImportHelper):
     bl_idname = "import_test.some_data"  # important since its how bpy.ops.import_test.some_data is constructed
     bl_label = "Import Some Data"
 
-    # ImportHelper mixin class uses this
+    # ImportHelper mix-in class uses this.
     filename_ext = ".txt"
 
     filter_glob: StringProperty(

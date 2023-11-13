@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.hh"
 
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "GEO_points_to_volume.hh"
 
@@ -50,7 +51,7 @@ static openvdb::FloatGrid::Ptr points_to_sdf_grid(const Span<float3> positions,
   openvdb::tools::ParticlesToLevelSet op{*new_grid};
   /* Don't ignore particles based on their radius. */
   op.setRmin(0.0f);
-  op.setRmax(FLT_MAX);
+  op.setRmax(std::numeric_limits<float>::max());
   OpenVDBParticleList particles{positions, radii};
   op.rasterizeSpheres(particles);
   op.finalize();

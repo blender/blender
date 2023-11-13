@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,7 +49,7 @@ class DenoiseFilter {
      * nonetheless. */
     BLI_mutex_lock(&oidn_lock);
 
-    device_ = oidn::newDevice();
+    device_ = oidn::newDevice(oidn::DeviceType::CPU);
     device_.set("setAffinity", false);
     device_.commit();
     filter_ = device_.newFilter("RT");

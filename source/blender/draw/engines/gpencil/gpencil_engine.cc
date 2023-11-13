@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,12 +8,12 @@
 
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BLI_listbase_wrapper.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_shader_fx_types.h"
 #include "DRW_engine.h"
 #include "DRW_render.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 #include "GPU_capabilities.h"
 #include "IMB_imbuf_types.h"
 
@@ -108,7 +108,7 @@ class Instance {
     anti_aliasing.init(v3d, scene);
   }
 
-  void begin_sync(Manager & /* manager */)
+  void begin_sync(Manager & /*manager*/)
   {
     /* TODO(fclem): Remove global draw manager access. */
     View main_view("GPencil_MainView", DRW_view_default_get());
@@ -140,7 +140,7 @@ class Instance {
   {
     switch (object_ref.object->type) {
       case OB_GREASE_PENCIL:
-        objects.sync_grease_pencil(manager, object_ref, main_fb_, main_ps_);
+        objects.sync_grease_pencil(manager, object_ref, main_fb_, depth_tx_, main_ps_);
         break;
       case OB_LAMP:
         lights.sync(object_ref);
@@ -150,7 +150,7 @@ class Instance {
     }
   }
 
-  void end_sync(Manager & /* manager */)
+  void end_sync(Manager & /*manager*/)
   {
     objects.end_sync();
     layers.end_sync();
@@ -214,11 +214,6 @@ struct GPENCIL_NEXT_Data {
 
 static void gpencil_engine_init(void *vedata)
 {
-  /* TODO(fclem): Remove once it is minimum required. */
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   GPENCIL_NEXT_Data *ved = reinterpret_cast<GPENCIL_NEXT_Data *>(vedata);
   if (ved->instance == nullptr) {
     ved->instance = new draw::greasepencil::Instance();
@@ -232,10 +227,6 @@ static void gpencil_engine_init(void *vedata)
 static void gpencil_draw_scene(void *vedata)
 {
   GPENCIL_NEXT_Data *ved = reinterpret_cast<GPENCIL_NEXT_Data *>(vedata);
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    STRNCPY(ved->info, "Error: No shader storage buffer support");
-    return;
-  }
   if (DRW_state_is_select() || DRW_state_is_depth()) {
     return;
   }
@@ -248,18 +239,12 @@ static void gpencil_draw_scene(void *vedata)
 
 static void gpencil_cache_init(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
   reinterpret_cast<GPENCIL_NEXT_Data *>(vedata)->instance->begin_sync(*manager);
 }
 
 static void gpencil_cache_populate(void *vedata, Object *object)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
 
   draw::ObjectRef ref;
@@ -272,18 +257,12 @@ static void gpencil_cache_populate(void *vedata, Object *object)
 
 static void gpencil_cache_finish(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
   reinterpret_cast<GPENCIL_NEXT_Data *>(vedata)->instance->end_sync(*manager);
 }
 
 static void gpencil_instance_free(void *instance)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   delete reinterpret_cast<draw::greasepencil::Instance *>(instance);
 }
 
@@ -304,21 +283,21 @@ extern "C" {
 static const DrawEngineDataSize gpencil_data_size = DRW_VIEWPORT_DATA_SIZE(GPENCIL_NEXT_Data);
 
 DrawEngineType draw_engine_gpencil_next_type = {
-    nullptr,
-    nullptr,
-    N_("Gpencil"),
-    &gpencil_data_size,
-    &gpencil_engine_init,
-    &gpencil_engine_free,
-    &gpencil_instance_free,
-    &gpencil_cache_init,
-    &gpencil_cache_populate,
-    &gpencil_cache_finish,
-    &gpencil_draw_scene,
-    nullptr,
-    nullptr,
-    &gpencil_render_to_image,
-    nullptr,
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ N_("Gpencil"),
+    /*vedata_size*/ &gpencil_data_size,
+    /*engine_init*/ &gpencil_engine_init,
+    /*engine_free*/ &gpencil_engine_free,
+    /*instance_free*/ &gpencil_instance_free,
+    /*cache_init*/ &gpencil_cache_init,
+    /*cache_populate*/ &gpencil_cache_populate,
+    /*cache_finish*/ &gpencil_cache_finish,
+    /*draw_scene*/ &gpencil_draw_scene,
+    /*view_update*/ nullptr,
+    /*id_update*/ nullptr,
+    /*render_to_image*/ &gpencil_render_to_image,
+    /*store_metadata*/ nullptr,
 };
 }
 

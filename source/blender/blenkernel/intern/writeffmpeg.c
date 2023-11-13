@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  * Partial Copyright 2006 Peter Schlaile. */
@@ -1428,7 +1428,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   BLI_path_suffix(filepath, FILE_MAX, suffix, "");
 }
 
-void BKE_ffmpeg_filepath_get(char *filepath,
+void BKE_ffmpeg_filepath_get(char filepath[/*FILE_MAX*/ 1024],
                              const RenderData *rd,
                              bool preview,
                              const char *suffix)

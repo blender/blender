@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -38,10 +41,10 @@ void main()
   //  return;
 
   vert_from_gl_in(1);
-  EmitVertex();
+  gpu_EmitVertex();
 
   vert_from_gl_in(2);
-  EmitVertex();
+  gpu_EmitVertex();
 
   EndPrimitive();
 }

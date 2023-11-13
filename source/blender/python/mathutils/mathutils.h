@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,10 +11,6 @@
 /* Can cast different mathutils types to this, use for generic functions. */
 
 #include "BLI_compiler_attrs.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct DynStr;
 
@@ -233,8 +229,4 @@ int column_vector_multiplication(float r_vec[4], VectorObject *vec, MatrixObject
 /* dynstr as python string utility functions */
 /* dynstr as python string utility functions, frees 'ds'! */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
-#endif
-
-#ifdef __cplusplus
-}
 #endif

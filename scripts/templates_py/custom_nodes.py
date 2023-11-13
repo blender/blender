@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import NodeTree, Node, NodeSocket
+from bpy.types import NodeTree, Node, NodeSocket, NodeTreeInterfaceSocket
 
 # Implementation of custom nodes from Python
 
@@ -25,19 +25,9 @@ class MyCustomSocket(NodeSocket):
     # Label for nice name display
     bl_label = "Custom Node Socket"
 
-    # Enum items list
-    my_items = (
-        ('DOWN', "Down", "Where your feet are"),
-        ('UP', "Up", "Where your head should be"),
-        ('LEFT', "Left", "Not right"),
-        ('RIGHT', "Right", "Not left"),
-    )
-
-    my_enum_prop: bpy.props.EnumProperty(
-        name="Direction",
-        description="Just an example",
-        items=my_items,
-        default='UP',
+    input_value: bpy.props.FloatProperty(
+        name="Value",
+        description="Value when the socket is not connected",
     )
 
     # Optional function for drawing the socket input value
@@ -45,11 +35,33 @@ class MyCustomSocket(NodeSocket):
         if self.is_output or self.is_linked:
             layout.label(text=text)
         else:
-            layout.prop(self, "my_enum_prop", text=text)
+            layout.prop(self, "input_value", text=text)
 
     # Socket color
-    def draw_color(self, context, node):
+    @classmethod
+    def draw_color_simple(cls):
         return (1.0, 0.4, 0.216, 0.5)
+
+
+# Customizable interface properties to generate a socket from.
+class MyCustomInterfaceSocket(NodeTreeInterfaceSocket):
+    # The type of socket that is generated.
+    bl_socket_idname = 'CustomSocketType'
+
+    default_value: bpy.props.FloatProperty(default=1.0, description="Default input value for new sockets",)
+
+    def draw(self, context, layout):
+        # Display properties of the interface.
+        layout.prop(self, "default_value")
+
+    # Set properties of newly created sockets
+    def init_socket(self, node, socket, data_path):
+        socket.input_value = self.default_value
+
+    # Use an existing socket to initialize the group interface
+    def from_socket(self, node, socket):
+        # Current value of the socket becomes the default
+        self.default_value = socket.input_value
 
 
 # Mix-in class for all custom nodes in this tree type.
@@ -75,7 +87,7 @@ class MyCustomNode(MyCustomTreeNode, Node):
     # === Custom Properties ===
     # These work just like custom properties in ID data blocks
     # Extensive information can be found under
-    # http://wiki.blender.org/index.php/Doc:2.6/Manual/Extensions/Python/Properties
+    # https://docs.blender.org/api/current/bpy.props.html
     my_string_prop: bpy.props.StringProperty()
     my_float_prop: bpy.props.FloatProperty(default=3.1415926)
 
@@ -163,6 +175,7 @@ node_categories = [
 classes = (
     MyCustomTree,
     MyCustomSocket,
+    MyCustomInterfaceSocket,
     MyCustomNode,
 )
 

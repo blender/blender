@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Adapted from :
@@ -6,6 +9,12 @@
  * ACM Transactions on Graphics (Proceedings of ACM SIGGRAPH 2016) 35(4), 2016.
  * Project page: https://eheitzresearch.wordpress.com/415-2/
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+
+#define LTC_LAMBERT_MAT vec4(1.0, 0.0, 0.0, 1.0)
+#define LTC_GGX_MAT(cos_theta, roughness) \
+  utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_LTC_MAT_LAYER)
 
 /* Diffuse *clipped* sphere integral. */
 float ltc_diffuse_sphere_integral(sampler2DArray utility_tx, float avg_dir_z, float form_factor)
@@ -199,9 +208,9 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
 
   /* Intermediate step: init ellipse. */
   vec3 L_[3];
-  L_[0] = mul(R, disk_points[0]);
-  L_[1] = mul(R, disk_points[1]);
-  L_[2] = mul(R, disk_points[2]);
+  L_[0] = R * disk_points[0];
+  L_[1] = R * disk_points[1];
+  L_[2] = R * disk_points[2];
 
   vec3 C = 0.5 * (L_[0] + L_[2]);
   vec3 V1 = 0.5 * (L_[1] - L_[2]);

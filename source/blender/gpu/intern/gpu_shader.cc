@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
-#include "BLI_string_utils.h"
+#include "BLI_string.h"
+#include "BLI_string_utils.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_debug.h"
@@ -274,8 +275,8 @@ GPUShader *GPU_shader_create_from_info_name(const char *info_name)
   const GPUShaderCreateInfo *_info = gpu_shader_create_info_get(info_name);
   const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
   if (!info.do_static_compilation_) {
-    printf("Warning: Trying to compile \"%s\" which was not marked for static compilation.\n",
-           info.name_.c_str());
+    std::cerr << "Warning: Trying to compile \"" << info.name_.c_str()
+              << "\" which was not marked for static compilation.\n";
   }
   return GPU_shader_create_from_info(_info);
 }
@@ -291,7 +292,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
   const std::string error = info.check_error();
   if (!error.empty()) {
-    printf("%s\n", error.c_str());
+    std::cerr << error.c_str() << "\n";
     BLI_assert(false);
   }
 
@@ -633,6 +634,16 @@ bool GPU_shader_get_attribute_info(const GPUShader *shader,
 int GPU_shader_get_program(GPUShader *shader)
 {
   return unwrap(shader)->program_handle_get();
+}
+
+int GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(GPUShader *shader)
+{
+  return unwrap(shader)->get_ssbo_vertex_fetch_output_num_verts();
+}
+
+bool GPU_shader_uses_ssbo_vertex_fetch(GPUShader *shader)
+{
+  return unwrap(shader)->get_uses_ssbo_vertex_fetch();
 }
 
 /** \} */

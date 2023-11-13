@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * 2D Culling pass for lights.
@@ -5,7 +8,7 @@
  * Dispatch one thread per word.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 
@@ -18,7 +21,7 @@ struct CullingTile {
   vec4 bounds;
 };
 
-/* Corners are expected to be in viewspace so that the cone is starting from the origin.
+/* Corners are expected to be in view-space so that the cone is starting from the origin.
  * Corner order does not matter. */
 vec4 tile_bound_cone(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
 {
@@ -34,7 +37,7 @@ vec4 tile_bound_cone(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
   return vec4(center, angle_cosine);
 }
 
-/* Corners are expected to be in viewspace. Returns Z-aligned bounding cylinder.
+/* Corners are expected to be in view-space. Returns Z-aligned bounding cylinder.
  * Corner order does not matter. */
 vec4 tile_bound_cylinder(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
 {
@@ -145,10 +148,10 @@ void main()
     LightData light = light_buf[l_idx];
 
     /* Culling in view space for precision and simplicity. */
-    vec3 vP = transform_point(ViewMatrix, light._position);
-    vec3 v_right = transform_direction(ViewMatrix, light._right);
-    vec3 v_up = transform_direction(ViewMatrix, light._up);
-    vec3 v_back = transform_direction(ViewMatrix, light._back);
+    vec3 vP = drw_point_world_to_view(light._position);
+    vec3 v_right = drw_normal_world_to_view(light._right);
+    vec3 v_up = drw_normal_world_to_view(light._up);
+    vec3 v_back = drw_normal_world_to_view(light._back);
     float radius = light.influence_radius_max;
 
     Sphere sphere = shape_sphere(vP, radius);
@@ -156,7 +159,7 @@ void main()
 
     switch (light.type) {
       case LIGHT_SPOT:
-        /* Only for < ~170° Cone due to plane extraction precision. */
+        /* Only for < ~170 degree Cone due to plane extraction precision. */
         if (light.spot_tan < 10.0) {
           Pyramid pyramid = shape_pyramid_non_oblique(
               vP,
@@ -166,7 +169,7 @@ void main()
           intersect_tile = intersect_tile && intersect(tile, pyramid);
           break;
         }
-        /* Fallthrough to the hemispheric case. */
+        /* Fall-through to the hemispheric case. */
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {
         vec3 v000 = vP - v_right * radius - v_up * radius;

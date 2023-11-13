@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,11 +11,11 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "overlay_private.hh"
 
@@ -33,11 +33,11 @@ static void gpencil_depth_plane(Object *ob, float r_plane[4])
    * strokes not aligned with the object axes. Maybe we could try to
    * compute the minimum axis of all strokes. But this would be more
    * computationally heavy and should go into the GPData evaluation. */
-  const BoundBox *bbox = BKE_object_boundbox_get(ob);
+  const BoundBox bbox = *BKE_object_boundbox_get(ob);
   /* Convert bbox to matrix */
   float mat[4][4], size[3], center[3];
-  BKE_boundbox_calc_size_aabb(bbox, size);
-  BKE_boundbox_calc_center_aabb(bbox, center);
+  BKE_boundbox_calc_size_aabb(&bbox, size);
+  BKE_boundbox_calc_center_aabb(&bbox, center);
   unit_m4(mat);
   copy_v3_v3(mat[3], center);
   /* Avoid division by 0.0 later. */
@@ -171,12 +171,12 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-typedef struct iterData {
+struct iterData {
   Object *ob;
   DRWShadingGroup *stroke_grp;
   int cfra;
   float plane[4];
-} iterData;
+};
 
 static void gpencil_layer_cache_populate(bGPDlayer *gpl,
                                          bGPDframe * /*gpf*/,

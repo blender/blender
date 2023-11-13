@@ -184,8 +184,9 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
          << current_keyframe << " and " << candidate_image;
 
       // Not enough points to construct fundamental matrix
-      if (x1.cols() < 8 || x2.cols() < 8)
+      if (x1.cols() < 8 || x2.cols() < 8) {
         continue;
+      }
 
       // STEP 1: Correspondence ratio constraint
       int Tc = tracked_markers.size();
@@ -195,8 +196,9 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
       LG << "Correspondence between " << current_keyframe << " and "
          << candidate_image << ": " << Rc;
 
-      if (Rc < Tmin || Rc > Tmax)
+      if (Rc < Tmin || Rc > Tmax) {
         continue;
+      }
 
       Mat3 H, F;
 
@@ -246,8 +248,9 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
       LG << "GRIC values for frames " << current_keyframe << " and "
          << candidate_image << ", H-GRIC: " << GRIC_H << ", F-GRIC: " << GRIC_F;
 
-      if (GRIC_H <= GRIC_F)
+      if (GRIC_H <= GRIC_F) {
         continue;
+      }
 
       // TODO(sergey): STEP 4: PELC criterion
 
@@ -386,8 +389,9 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
          << candidate_image << ": " << Sc;
 
       // Pairing with a lower Sc indicates a better choice
-      if (Sc > Sc_best_candidate)
+      if (Sc > Sc_best_candidate) {
         continue;
+      }
 
       Sc_best_candidate = Sc;
 
@@ -405,8 +409,9 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
     if (next_keyframe == -1) {
       next_keyframe = current_keyframe + 10;
 
-      if (next_keyframe >= max_image)
+      if (next_keyframe >= max_image) {
         break;
+      }
 
       LG << "Starting searching for keyframes starting from " << next_keyframe;
     } else {

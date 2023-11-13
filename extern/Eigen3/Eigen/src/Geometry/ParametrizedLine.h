@@ -87,7 +87,7 @@ public:
   /** \returns the distance of a point \a p to its projection onto the line \c *this.
     * \sa squaredDistance()
     */
-  EIGEN_DEVICE_FUNC RealScalar distance(const VectorType& p) const { EIGEN_USING_STD_MATH(sqrt) return sqrt(squaredDistance(p)); }
+  EIGEN_DEVICE_FUNC RealScalar distance(const VectorType& p) const { EIGEN_USING_STD(sqrt) return sqrt(squaredDistance(p)); }
 
   /** \returns the projection of a point \a p onto the line \c *this. */
   EIGEN_DEVICE_FUNC VectorType projection(const VectorType& p) const
@@ -104,7 +104,44 @@ public:
   template <int OtherOptions>
   EIGEN_DEVICE_FUNC VectorType intersectionPoint(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const;
 
-  /** \returns \c *this with scalar type casted to \a NewScalarType
+  /** Applies the transformation matrix \a mat to \c *this and returns a reference to \c *this.
+    *
+    * \param mat the Dim x Dim transformation matrix
+    * \param traits specifies whether the matrix \a mat represents an #Isometry
+    *               or a more generic #Affine transformation. The default is #Affine.
+    */
+  template<typename XprType>
+  EIGEN_DEVICE_FUNC inline ParametrizedLine& transform(const MatrixBase<XprType>& mat, TransformTraits traits = Affine)
+  {
+    if (traits==Affine)
+      direction() = (mat * direction()).normalized();
+    else if (traits==Isometry)
+      direction() = mat * direction();
+    else
+    {
+      eigen_assert(0 && "invalid traits value in ParametrizedLine::transform()");
+    }
+    origin() = mat * origin();
+    return *this;
+  }
+
+  /** Applies the transformation \a t to \c *this and returns a reference to \c *this.
+    *
+    * \param t the transformation of dimension Dim
+    * \param traits specifies whether the transformation \a t represents an #Isometry
+    *               or a more generic #Affine transformation. The default is #Affine.
+    *               Other kind of transformations are not supported.
+    */
+  template<int TrOptions>
+  EIGEN_DEVICE_FUNC inline ParametrizedLine& transform(const Transform<Scalar,AmbientDimAtCompileTime,Affine,TrOptions>& t,
+                                                       TransformTraits traits = Affine)
+  {
+    transform(t.linear(), traits);
+    origin() += t.translation();
+    return *this;
+  }
+
+/** \returns \c *this with scalar type casted to \a NewScalarType
     *
     * Note that if \a NewScalarType is equal to the current scalar type of \c *this
     * then this function smartly returns a const reference to \c *this.

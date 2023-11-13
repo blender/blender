@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,12 +12,7 @@
 #include <new>
 #include <string>
 
-#include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
-
-#include "DNA_space_types.h"
-
-#include "ED_asset.h"
 
 #include "BKE_report.h"
 
@@ -32,11 +27,13 @@
 using namespace blender;
 
 class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
-  const AssetRepresentation *asset_;
+  const blender::asset_system::AssetRepresentation *asset_;
   TempLibraryContext *temp_lib_context_ = nullptr;
 
  public:
-  AssetTemporaryIDConsumer(const AssetRepresentation *asset) : asset_(asset) {}
+  AssetTemporaryIDConsumer(const blender::asset_system::AssetRepresentation *asset) : asset_(asset)
+  {
+  }
   ~AssetTemporaryIDConsumer()
   {
     if (temp_lib_context_) {
@@ -46,13 +43,13 @@ class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
 
   ID *get_local_id()
   {
-    return AS_asset_representation_local_id_get(asset_);
+    return asset_->local_id();
   }
 
   ID *import_id(ID_Type id_type, Main &bmain, ReportList &reports)
   {
-    const char *asset_name = AS_asset_representation_name_get(asset_);
-    std::string blend_file_path = AS_asset_representation_full_library_path_get(asset_);
+    const char *asset_name = asset_->get_name().c_str();
+    std::string blend_file_path = asset_->get_identifier().full_library_path();
 
     temp_lib_context_ = BLO_library_temp_load_id(
         &bmain, blend_file_path.c_str(), id_type, asset_name, &reports);
@@ -68,14 +65,14 @@ class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
   }
 };
 
-AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const AssetHandle *handle)
+AssetTempIDConsumer *ED_asset_temp_id_consumer_create(
+    const asset_system::AssetRepresentation *asset)
 {
-  if (!handle) {
+  if (!asset) {
     return nullptr;
   }
-  BLI_assert(handle->file_data->asset != nullptr);
   return reinterpret_cast<AssetTempIDConsumer *>(
-      MEM_new<AssetTemporaryIDConsumer>(__func__, ED_asset_handle_get_representation(handle)));
+      MEM_new<AssetTemporaryIDConsumer>(__func__, asset));
 }
 
 void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer)

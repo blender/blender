@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,30 +21,33 @@ TreeElementIDMesh::TreeElementIDMesh(TreeElement &legacy_te_, Mesh &mesh)
 {
 }
 
-bool TreeElementIDMesh::isExpandValid() const
+void TreeElementIDMesh::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  return true;
+  expand_animation_data(mesh_.adt);
+
+  expand_key();
+  expand_materials();
 }
 
-void TreeElementIDMesh::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDMesh::expand_key() const
 {
-  expand_animation_data(space_outliner, mesh_.adt);
-
-  expandKey(space_outliner);
-  expandMaterials(space_outliner);
+  add_element(&legacy_te_.subtree,
+              reinterpret_cast<ID *>(mesh_.key),
+              nullptr,
+              &legacy_te_,
+              TSE_SOME_ID,
+              0);
 }
 
-void TreeElementIDMesh::expandKey(SpaceOutliner &space_outliner) const
-{
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, mesh_.key, &legacy_te_, TSE_SOME_ID, 0);
-}
-
-void TreeElementIDMesh::expandMaterials(SpaceOutliner &space_outliner) const
+void TreeElementIDMesh::expand_materials() const
 {
   for (int a = 0; a < mesh_.totcol; a++) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, mesh_.mat[a], &legacy_te_, TSE_SOME_ID, a);
+    add_element(&legacy_te_.subtree,
+                reinterpret_cast<ID *>(mesh_.mat[a]),
+                nullptr,
+                &legacy_te_,
+                TSE_SOME_ID,
+                a);
   }
 }
 

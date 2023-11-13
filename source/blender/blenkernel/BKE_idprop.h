@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,7 +16,6 @@ extern "C" {
 #endif
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct ID;
@@ -92,7 +91,7 @@ void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
 
 /*-------- ID Type -------*/
 
-typedef void (*IDPWalkFunc)(void *userData, struct IDProperty *idp);
+typedef void (*IDPWalkFunc)(void *user_data, struct IDProperty *idp);
 
 void IDP_AssignID(struct IDProperty *prop, struct ID *id, int flag);
 
@@ -150,7 +149,7 @@ bool IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONN
  */
 bool IDP_InsertToGroup(struct IDProperty *group,
                        struct IDProperty *previous,
-                       struct IDProperty *pnew) ATTR_NONNULL(1 /* group */, 3 /* pnew */);
+                       struct IDProperty *pnew) ATTR_NONNULL(1 /*group*/, 3 /*pnew*/);
 /**
  * \note this does not free the property!
  *
@@ -176,12 +175,12 @@ struct IDProperty *IDP_GetPropertyTypeFromGroup(const struct IDProperty *prop,
 /*-------- Main Functions --------*/
 /**
  * Get the Group property that contains the id properties for ID `id`.
- *
- * \param create_if_needed: Set to create the group property and attach it to id if it doesn't
- * exist; otherwise the function will return NULL if there's no Group property attached to the ID.
  */
-struct IDProperty *IDP_GetProperties(struct ID *id, bool create_if_needed) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+struct IDProperty *IDP_GetProperties(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * Ensure the Group property that contains the id properties for ID `id` exists & return it.
+ */
+struct IDProperty *IDP_EnsureProperties(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 struct IDProperty *IDP_CopyProperty(const struct IDProperty *prop) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 struct IDProperty *IDP_CopyProperty_ex(const struct IDProperty *prop,
@@ -220,7 +219,7 @@ bool IDP_EqualsProperties(const struct IDProperty *prop1,
  * val.array.type = IDP_FLOAT;
  * color = IDP_New(IDP_ARRAY, val, "color1");
  *
- * idgroup = IDP_GetProperties(some_id, 1);
+ * idgroup = IDP_EnsureProperties(some_id);
  * IDP_AddToGroup(idgroup, color);
  * IDP_AddToGroup(idgroup, group);
  * \endcode
@@ -315,8 +314,6 @@ void IDP_BlendReadData_impl(struct BlendDataReader *reader,
                             struct IDProperty **prop,
                             const char *caller_func_id);
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
-void IDP_BlendReadLib(struct BlendLibReader *reader, struct ID *self_id, struct IDProperty *prop);
-void IDP_BlendReadExpand(struct BlendExpander *expander, struct IDProperty *prop);
 
 typedef enum eIDPropertyUIDataType {
   /** Other properties types that don't support RNA UI data. */

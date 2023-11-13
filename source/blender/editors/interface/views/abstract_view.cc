@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -63,10 +63,38 @@ void AbstractView::update_from_old(uiBlock &new_block)
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name State Management
+ * \{ */
+
+void AbstractView::change_state_delayed()
+{
+  BLI_assert_msg(
+      is_reconstructed(),
+      "These state changes are supposed to be delayed until reconstruction is completed");
+
+/* Debug-only sanity check: Ensure only one item requests to be active. */
+#ifndef NDEBUG
+  bool has_active = false;
+  foreach_view_item([&has_active](AbstractViewItem &item) {
+    if (item.should_be_active().value_or(false)) {
+      BLI_assert_msg(
+          !has_active,
+          "Only one view item should ever return true for its `should_be_active()` method");
+      has_active = true;
+    }
+  });
+#endif
+
+  foreach_view_item([](AbstractViewItem &item) { item.change_state_delayed(); });
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Default implementations of virtual functions
  * \{ */
 
-std::unique_ptr<AbstractViewDropTarget> AbstractView::create_drop_target()
+std::unique_ptr<DropTargetInterface> AbstractView::create_drop_target()
 {
   /* There's no drop target (and hence no drop support) by default. */
   return nullptr;
@@ -81,6 +109,11 @@ bool AbstractView::listen(const wmNotifier & /*notifier*/) const
 bool AbstractView::begin_filtering(const bContext & /*C*/) const
 {
   return false;
+}
+
+void AbstractView::draw_overlays(const ARegion & /*region*/) const
+{
+  /* Nothing by default. */
 }
 
 /** \} */

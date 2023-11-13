@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
- * SPDX-FileCopyrightText: 2023 Blender Foundation
+ * SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
@@ -9,6 +9,9 @@
 
 #include "usd.h"
 
+#include "WM_types.hh"
+
+#include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/prim.h>
 
 #include <map>
@@ -57,6 +60,8 @@ struct ImportSettings {
    * correct millimeter scale that Blender uses for camera parameters. */
   double stage_meters_per_unit;
 
+  pxr::SdfPath skip_prefix;
+
   ImportSettings()
       : do_convert_mat(false),
         from_up(0),
@@ -69,7 +74,8 @@ struct ImportSettings {
         read_flag(0),
         validate_meshes(false),
         cache_file(NULL),
-        stage_meters_per_unit(1.0)
+        stage_meters_per_unit(1.0),
+        skip_prefix(pxr::SdfPath{})
   {
   }
 };
@@ -99,7 +105,7 @@ class USDPrimReader {
   virtual bool valid() const;
 
   virtual void create_object(Main *bmain, double motionSampleTime) = 0;
-  virtual void read_object_data(Main * /* bmain */, double /* motionSampleTime */){};
+  virtual void read_object_data(Main * /*bmain*/, double /*motionSampleTime*/){};
 
   Object *object() const;
   void object(Object *ob);
@@ -111,6 +117,12 @@ class USDPrimReader {
   void parent(USDPrimReader *parent)
   {
     parent_reader_ = parent;
+  }
+
+  /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
+  ReportList *reports() const
+  {
+    return import_params_.worker_status ? import_params_.worker_status->reports : nullptr;
   }
 
   /* Since readers might be referenced through handles

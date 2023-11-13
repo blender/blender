@@ -33,12 +33,15 @@ ccl_device float bsdf_toon_get_intensity(float max_angle, float smooth, float an
 {
   float is;
 
-  if (angle < max_angle)
+  if (angle < max_angle) {
     is = 1.0f;
-  else if (angle < (max_angle + smooth) && smooth != 0.0f)
+  }
+  else if (angle < (max_angle + smooth) && smooth != 0.0f) {
     is = (1.0f - (angle - max_angle) / smooth);
-  else
+  }
+  else {
     is = 0.0f;
+  }
 
   return is;
 }
@@ -90,7 +93,8 @@ ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
   float angle = sample_angle * rand.x;
 
   if (sample_angle > 0.0f) {
-    sample_uniform_cone(bsdf->N, sample_angle, rand, wo, pdf);
+    float unused;
+    *wo = sample_uniform_cone(bsdf->N, one_minus_cos(sample_angle), rand, &unused, pdf);
 
     if (dot(Ng, *wo) > 0.0f) {
       *eval = make_spectrum(*pdf * bsdf_toon_get_intensity(max_angle, smooth, angle));
@@ -167,7 +171,8 @@ ccl_device int bsdf_glossy_toon_sample(ccl_private const ShaderClosure *sc,
     float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
     float angle = sample_angle * rand.x;
 
-    sample_uniform_cone(R, sample_angle, rand, wo, pdf);
+    float unused;
+    *wo = sample_uniform_cone(R, one_minus_cos(sample_angle), rand, &unused, pdf);
 
     if (dot(Ng, *wo) > 0.0f) {
       float cosNO = dot(bsdf->N, *wo);

@@ -446,8 +446,9 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
       printf("Render statistics:\n%s\n", stats.full_report().c_str());
     }
 
-    if (session->progress.get_cancel())
+    if (session->progress.get_cancel()) {
       break;
+    }
   }
 
   /* add metadata */
@@ -741,8 +742,9 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
 {
   /* only used for viewport render */
-  if (!b_v3d)
+  if (!b_v3d) {
     return;
+  }
 
   /* on session/scene parameter changes, we recreate session entirely */
   const SessionParams session_params = BlenderSync::get_session_params(
@@ -786,10 +788,12 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   sync->sync_data(
       b_render, b_depsgraph, b_v3d, b_camera_override, width, height, &python_thread_state);
 
-  if (b_rv3d)
+  if (b_rv3d) {
     sync->sync_view(b_v3d, b_rv3d, width, height);
-  else
+  }
+  else {
     sync->sync_camera(b_render, b_camera_override, width, height, "");
+  }
 
   /* get buffer parameters */
   const BufferParams buffer_params = BlenderSync::get_buffer_params(
@@ -891,8 +895,9 @@ void BlenderSession::view_draw(int w, int h)
 
       sync->sync_view(b_v3d, b_rv3d, width, height);
 
-      if (scene->camera->is_modified())
+      if (scene->camera->is_modified()) {
         reset = true;
+      }
 
       session->scene->mutex.unlock();
     }
@@ -960,13 +965,16 @@ void BlenderSession::update_status_progress()
   }
 
   if (background) {
-    if (scene)
+    if (scene) {
       scene_status += " | " + scene->name;
-    if (b_rlay_name != "")
+    }
+    if (b_rlay_name != "") {
       scene_status += ", " + b_rlay_name;
+    }
 
-    if (b_rview_name != "")
+    if (b_rview_name != "") {
       scene_status += ", " + b_rview_name;
+    }
 
     if (remaining_time > 0) {
       timestatus += "Remaining:" + time_human_readable_from_seconds(remaining_time) + " | ";
@@ -974,10 +982,12 @@ void BlenderSession::update_status_progress()
 
     timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);
 
-    if (status.size() > 0)
+    if (status.size() > 0) {
       status = " | " + status;
-    if (substatus.size() > 0)
+    }
+    if (substatus.size() > 0) {
       status += " | " + substatus;
+    }
   }
 
   double current_time = time_dt();
@@ -1046,9 +1056,11 @@ void BlenderSession::tag_redraw()
 void BlenderSession::test_cancel()
 {
   /* test if we need to cancel rendering */
-  if (background)
-    if (b_engine.test_break())
+  if (background) {
+    if (b_engine.test_break()) {
       session->progress.set_cancel("Cancelled");
+    }
+  }
 }
 
 void BlenderSession::free_blender_memory_if_possible()

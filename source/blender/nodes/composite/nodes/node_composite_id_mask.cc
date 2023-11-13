@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,8 +8,8 @@
 
 #include <cmath>
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 
@@ -53,7 +53,7 @@ class IDMaskOperation : public NodeOperation {
       return;
     }
 
-    GPUShader *shader = shader_manager().get("compositor_id_mask");
+    GPUShader *shader = context().get_shader("compositor_id_mask");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "index", get_index());
@@ -62,7 +62,7 @@ class IDMaskOperation : public NodeOperation {
 
     /* If anti-aliasing is disabled, write to the output directly, otherwise, write to a temporary
      * result to later perform anti-aliasing. */
-    Result non_anti_aliased_mask = Result::Temporary(ResultType::Float, texture_pool());
+    Result non_anti_aliased_mask = context().create_temporary_result(ResultType::Float);
     Result &output_mask = use_anti_aliasing() ? non_anti_aliased_mask : get_result("Alpha");
 
     const Domain domain = compute_domain();

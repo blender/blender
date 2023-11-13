@@ -13,11 +13,8 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
+/** Used in `readfile.cc` and `editfont.cc`. */
+#define MAXTEXTBOX 256
 
 struct AnimData;
 struct Curves;
@@ -30,7 +27,7 @@ struct Material;
 struct Object;
 struct VFont;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct BevPoint {
@@ -42,7 +39,7 @@ typedef struct BevPoint {
   short dupe_tag;
 } BevPoint;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct BevList {
@@ -160,7 +157,6 @@ typedef struct Nurb {
 
 typedef struct CharInfo {
   float kern;
-  /** Index start at 1, unlike mesh & nurbs. */
   short mat_nr;
   char flag;
   char _pad[1];
@@ -170,7 +166,7 @@ typedef struct TextBox {
   float x, y, w, h;
 } TextBox;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct EditNurb {
@@ -284,7 +280,7 @@ typedef struct Curve {
   struct CharInfo curinfo;
   /* font part end */
 
-  /** Current evaltime - for use by Objects parented to curves. */
+  /** Current evaluation-time, for use by Objects parented to curves. */
   float ctime;
   float bevfac1, bevfac2;
   char bevfac1_mapping, bevfac2_mapping;
@@ -611,8 +607,4 @@ enum {
 #define KEY_CU_EASE 3
 
 /* indicates point has been seen during surface duplication */
-#define SURF_SEEN 4
-
-#ifdef __cplusplus
-}
-#endif
+#define SURF_SEEN (1 << 2)

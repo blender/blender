@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,8 +12,8 @@
 namespace blender::gpu {
 bool VKSubmissionTracker::is_changed(VKContext &context)
 {
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  const VKSubmissionID &current_id = command_buffer.submission_id_get();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  const VKSubmissionID &current_id = command_buffers.submission_id_get();
   if (last_known_id_ != current_id) {
     last_known_id_ = current_id;
     return true;

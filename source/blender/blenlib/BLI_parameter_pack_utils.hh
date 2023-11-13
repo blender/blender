@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -87,7 +87,7 @@ namespace detail {
 
 template<typename T, T Value, size_t... I>
 inline ValueSequence<T, ((I == 0) ? Value : Value)...> make_value_sequence_impl(
-    std::index_sequence<I...> /* indices */)
+    std::index_sequence<I...> /*indices*/)
 {
   return {};
 }
@@ -96,8 +96,8 @@ template<typename T, T Value1, T Value2, size_t... Value1Indices, size_t... I>
 inline ValueSequence<T,
                      (ValueSequence<size_t, Value1Indices...>::template contains<I>() ? Value1 :
                                                                                         Value2)...>
-    make_two_value_sequence_impl(ValueSequence<size_t, Value1Indices...> /* value1_indices */,
-                                 std::index_sequence<I...> /* indices */)
+    make_two_value_sequence_impl(ValueSequence<size_t, Value1Indices...> /*value1_indices*/,
+                                 std::index_sequence<I...> /*indices*/)
 {
   return {};
 };

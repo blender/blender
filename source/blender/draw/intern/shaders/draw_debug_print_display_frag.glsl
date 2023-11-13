@@ -1,7 +1,10 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Display characters using an ascii table.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 

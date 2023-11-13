@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,6 +37,9 @@ class ExtraTags {
   /** Set given char pointer to value of tag, if it exists. */
   bool setData(std::string tag, char *data);
   std::string setData(std::string tag, std::string &data);
+
+  /** Get a string from the data, and split it by newlines. */
+  std::vector<std::string> dataSplitString(const std::string &tag);
 
   /** Return true if the extra tags is for specified profile. */
   bool isProfile(std::string profile);

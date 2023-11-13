@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
@@ -21,6 +21,8 @@
 #include "IMB_colormanagement.h"
 
 #include "MEM_guardedalloc.h"
+
+#include <cstring>
 
 void IMB_blend_color_byte(uchar dst[4],
                           const uchar src1[4],
@@ -255,8 +257,6 @@ void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
 
   /* TODO(sergey: Validate ownership. */
   rect_crop_4bytes((void **)&ibuf->byte_buffer.data, size_src, crop);
-  rect_crop_4bytes((void **)&ibuf->z_buffer.data, size_src, crop);
-  rect_crop_4bytes((void **)&ibuf->float_z_buffer.data, size_src, crop);
   rect_crop_16bytes((void **)&ibuf->float_buffer.data, size_src, crop);
 
   ibuf->x = size_dst[0];
@@ -293,8 +293,6 @@ void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
 
   /* TODO(sergey: Validate ownership. */
   rect_realloc_4bytes((void **)&ibuf->byte_buffer.data, size);
-  rect_realloc_4bytes((void **)&ibuf->z_buffer.data, size);
-  rect_realloc_4bytes((void **)&ibuf->float_z_buffer.data, size);
   rect_realloc_16bytes((void **)&ibuf->float_buffer.data, size);
 
   ibuf->x = size[0];
@@ -490,8 +488,8 @@ void IMB_rectcpy(ImBuf *dbuf,
                 false);
 }
 
-typedef void (*IMB_blend_func)(uchar *dst, const uchar *src1, const uchar *src2);
-typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
+using IMB_blend_func = void (*)(uchar *dst, const uchar *src1, const uchar *src2);
+using IMB_blend_func_float = void (*)(float *dst, const float *src1, const float *src2);
 
 void IMB_rectblend(ImBuf *dbuf,
                    const ImBuf *obuf,
@@ -956,7 +954,7 @@ void IMB_rectblend(ImBuf *dbuf,
   }
 }
 
-typedef struct RectBlendThreadData {
+struct RectBlendThreadData {
   ImBuf *dbuf;
   const ImBuf *obuf, *sbuf;
   ushort *dmask;
@@ -966,7 +964,7 @@ typedef struct RectBlendThreadData {
   int srcx, srcy, width;
   IMB_BlendMode mode;
   bool accumulate;
-} RectBlendThreadData;
+};
 
 static void rectblend_thread_do(void *data_v, int scanline)
 {

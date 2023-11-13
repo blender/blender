@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -33,7 +33,7 @@ static char ShapeIdF0D___doc__[] =
     "   Returns the :class:`freestyle.types.Id` of the Shape the\n"
     "   :class:`freestyle.types.Interface0D` pointed by the\n"
     "   Interface0DIterator belongs to. This evaluation can be ambiguous (in\n"
-    "   the case of a :class:`freestyle.types.TVertex` for example).  This\n"
+    "   the case of a :class:`freestyle.types.TVertex` for example). This\n"
     "   functor tries to remove this ambiguity using the context offered by\n"
     "   the 1D element to which the Interface0DIterator belongs to. However,\n"
     "   there still can be problematic cases, and the user willing to deal\n"
@@ -60,7 +60,7 @@ static int ShapeIdF0D___init__(BPy_ShapeIdF0D *self, PyObject *args, PyObject *k
 /*-----------------------BPy_ShapeIdF0D type definition ------------------------------*/
 
 PyTypeObject ShapeIdF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ShapeIdF0D",
     /*tp_basicsize*/ sizeof(BPy_ShapeIdF0D),
     /*tp_itemsize*/ 0,

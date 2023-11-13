@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Required by some nodes. */
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
@@ -46,7 +49,7 @@ float hashed_alpha_threshold(vec3 co)
   /* Interpolate alpha threshold from noise at two scales. */
   float x = mix(alpha.x, alpha.y, fac);
 
-  /* Pass into CDF to compute uniformly distrib threshold. */
+  /* Pass into CDF to compute uniformly distributed threshold. */
   float a = min(fac, 1.0 - fac);
   float one_a = 1.0 - a;
   float denom = 1.0 / (2 * a * one_a);

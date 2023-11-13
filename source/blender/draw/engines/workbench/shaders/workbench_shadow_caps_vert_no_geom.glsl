@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 6)
 
@@ -29,19 +33,16 @@ vec4 get_pos(int v, bool backface)
 
 vec3 extrude_offset(vec3 ls_P)
 {
-#ifdef WORKBENCH_NEXT
   vec3 ws_P = point_object_to_world(ls_P);
   float extrude_distance = 1e5f;
   float L_dot_FP = dot(pass_data.light_direction_ws, pass_data.far_plane.xyz);
   if (L_dot_FP > 0.0) {
     float signed_distance = dot(pass_data.far_plane.xyz, ws_P) - pass_data.far_plane.w;
     extrude_distance = -signed_distance / L_dot_FP;
+    /* Ensure we don't overlap the far plane. */
+    extrude_distance -= 1e-3f;
   }
-  vec3 ls_light_direction = normal_world_to_object(vec3(pass_data.light_direction_ws));
-  return ls_light_direction * extrude_distance;
-#else
-  return lightDirection * lightDistance;
-#endif
+  return pass_data.light_direction_ws * extrude_distance;
 }
 
 void emit_cap(const bool front, bool reversed, int triangle_vertex_id)
@@ -53,15 +54,16 @@ void emit_cap(const bool front, bool reversed, int triangle_vertex_id)
   switch (triangle_vertex_id) {
     case 0: {
       gl_Position = (front) ? vData[0].frontPosition : vData[0].backPosition;
-    } break;
-
+      break;
+    }
     case 1: {
       gl_Position = (front) ? vData[idx.x].frontPosition : vData[idx.y].backPosition;
-    } break;
-
+      break;
+    }
     case 2: {
       gl_Position = (front) ? vData[idx.y].frontPosition : vData[idx.x].backPosition;
-    } break;
+      break;
+    }
   }
 
   /* Apply depth bias. Prevents Z-fighting artifacts when fast-math is enabled. */
@@ -86,21 +88,22 @@ void main()
 
   /* Calculate front/back Positions. */
   vData[0].frontPosition = point_object_to_ndc(vData[0].pos);
-  vData[0].backPosition = point_object_to_ndc(vData[0].pos + extrude_offset(vData[0].pos));
+  vData[0].backPosition = point_world_to_ndc(point_object_to_world(vData[0].pos) +
+                                             extrude_offset(vData[0].pos));
 
   vData[1].frontPosition = point_object_to_ndc(vData[1].pos);
-  vData[1].backPosition = point_object_to_ndc(vData[1].pos + extrude_offset(vData[1].pos));
+  vData[1].backPosition = point_world_to_ndc(point_object_to_world(vData[1].pos) +
+                                             extrude_offset(vData[1].pos));
 
   vData[2].frontPosition = point_object_to_ndc(vData[2].pos);
-  vData[2].backPosition = point_object_to_ndc(vData[2].pos + extrude_offset(vData[2].pos));
+  vData[2].backPosition = point_world_to_ndc(point_object_to_world(vData[2].pos) +
+                                             extrude_offset(vData[2].pos));
 
   /* Geometry shader equivalent calc. */
   vec3 v10 = vData[0].pos - vData[1].pos;
   vec3 v12 = vData[2].pos - vData[1].pos;
 
-#ifdef WORKBENCH_NEXT
   vec3 lightDirection = normal_world_to_object(vec3(pass_data.light_direction_ws));
-#endif
 
   vec3 n = cross(v12, v10);
   float facing = dot(n, lightDirection);

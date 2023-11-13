@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2014-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2014-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,7 +27,9 @@ endif()
 # To suit different needs, the user can pass `-DTEST_PYTHON_EXE=/path/to/python` to CMake.
 if(NOT TEST_PYTHON_EXE)
   set(TEST_PYTHON_EXE ${PYTHON_EXECUTABLE})
-  message(STATUS "Tests: Using Python executable: ${TEST_PYTHON_EXE}")
+  if(FIRST_RUN)
+    message(STATUS "Tests: Using Python executable: ${TEST_PYTHON_EXE}")
+  endif()
 elseif(NOT EXISTS ${TEST_PYTHON_EXE})
   message(FATAL_ERROR "Tests: TEST_PYTHON_EXE ${TEST_PYTHON_EXE} does not exist")
 endif()

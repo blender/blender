@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020 Blender Foundation
+# SPDX-FileCopyrightText: 2020 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -15,19 +15,23 @@
 # also defined, but not for general use are
 #  POTRACE_LIBRARY, where to find the POTRACE library.
 
-# If POTRACE_ROOT_DIR was defined in the environment, use it.
-IF(NOT POTRACE_ROOT_DIR AND NOT $ENV{POTRACE_ROOT_DIR} STREQUAL "")
-  SET(POTRACE_ROOT_DIR $ENV{POTRACE_ROOT_DIR})
-ENDIF()
+# If `POTRACE_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED POTRACE_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{POTRACE_ROOT_DIR})
+  set(POTRACE_ROOT_DIR $ENV{POTRACE_ROOT_DIR})
+else()
+  set(POTRACE_ROOT_DIR "")
+endif()
 
-SET(_potrace_SEARCH_DIRS
+set(_potrace_SEARCH_DIRS
   ${POTRACE_ROOT_DIR}
   /opt/lib/potrace
   /usr/include
   /usr/local/include
 )
 
-FIND_PATH(POTRACE_INCLUDE_DIR
+find_path(POTRACE_INCLUDE_DIR
   NAMES
     potracelib.h
   HINTS
@@ -36,7 +40,7 @@ FIND_PATH(POTRACE_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(POTRACE_LIBRARY
+find_library(POTRACE_LIBRARY
   NAMES
     potrace
   HINTS
@@ -47,16 +51,16 @@ FIND_LIBRARY(POTRACE_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set POTRACE_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Potrace DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Potrace DEFAULT_MSG
     POTRACE_LIBRARY POTRACE_INCLUDE_DIR)
 
-IF(POTRACE_FOUND)
-  SET(POTRACE_LIBRARIES ${POTRACE_LIBRARY})
-  SET(POTRACE_INCLUDE_DIRS ${POTRACE_INCLUDE_DIR})
-ENDIF()
+if(POTRACE_FOUND)
+  set(POTRACE_LIBRARIES ${POTRACE_LIBRARY})
+  set(POTRACE_INCLUDE_DIRS ${POTRACE_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   POTRACE_INCLUDE_DIR
   POTRACE_LIBRARY
 )

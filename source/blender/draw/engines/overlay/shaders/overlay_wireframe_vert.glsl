@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
@@ -47,7 +51,7 @@ void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
   int flag = int(abs(ObjectInfo.w));
   bool is_selected = (flag & DRW_BASE_SELECTED) != 0;
 
-  if (isObjectColor) {
+  if (colorType == V3D_SHADING_OBJECT_COLOR) {
     rim_col = wire_col = ObjectColor.rgb * 0.5;
   }
   else {
@@ -90,7 +94,7 @@ void main()
 
 #ifndef CUSTOM_DEPTH_BIAS
   float facing_ratio = clamp(1.0 - facing * facing, 0.0, 1.0);
-  float flip = sign(facing);           /* Flip when not facing the normal (i.e.: backfacing). */
+  float flip = sign(facing);           /* Flip when not facing the normal (i.e.: back-facing). */
   float curvature = (1.0 - wd * 0.75); /* Avoid making things worse for curvy areas. */
   vec3 wofs = wnor * (facing_ratio * curvature * flip);
   wofs = normal_world_to_view(wofs);
@@ -109,7 +113,7 @@ void main()
   edgePos = edgeStart;
 
   vec3 rim_col, wire_col;
-  if (isObjectColor || isRandomColor) {
+  if (colorType == V3D_SHADING_OBJECT_COLOR || colorType == V3D_SHADING_RANDOM_COLOR) {
     wire_object_color_get(rim_col, wire_col);
   }
   else {

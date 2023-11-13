@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
 /** \file
  * \ingroup bmesh
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \param use_snap_center: Snap verts onto the plane.
@@ -20,3 +24,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
                           short oflag_center,
                           short oflag_new,
                           float eps);
+
+#ifdef __cplusplus
+}
+#endif

@@ -272,7 +272,7 @@ Editing is where the three data types vary most.
 - Polygons are very limited for editing,
   changing materials and options like smooth works, but for anything else
   they are too inflexible and are only intended for storage.
-- Tessfaces should not be used for editing geometry because doing so will cause existing n-gons to be tessellated.
+- Loop-triangles should not be used for editing geometry because doing so will cause existing n-gons to be tessellated.
 - BMesh-faces are by far the best way to manipulate geometry.
 
 
@@ -283,7 +283,7 @@ All three data types can be used for exporting,
 the choice mostly depends on whether the target format supports n-gons or not.
 
 - Polygons are the most direct and efficient way to export providing they convert into the output format easily enough.
-- Tessfaces work well for exporting to formats which don't support n-gons,
+- Loop-triangles work well for exporting to formats which don't support n-gons,
   in fact this is the only place where their use is encouraged.
 - BMesh-Faces can work for exporting too but may not be necessary if polygons can be used
   since using BMesh gives some overhead because it's not the native storage format in Object-Mode.

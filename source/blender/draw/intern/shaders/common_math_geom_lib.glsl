@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
@@ -171,7 +174,7 @@ void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
 
 /* ---- Encode / Decode Normal buffer data ---- */
 /* From http://aras-p.info/texts/CompactNormalStorage.html
- * Using Method #4: Spheremap Transform */
+ * Using Method #4: Sphere-map Transform */
 vec2 normal_encode(vec3 n, vec3 view)
 {
   float p = sqrt(n.z * 8.0 + 8.0);

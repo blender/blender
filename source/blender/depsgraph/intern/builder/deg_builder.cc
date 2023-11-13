@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,18 +27,18 @@
 
 #include "intern/builder/deg_builder_cache.h"
 #include "intern/builder/deg_builder_remove_noop.h"
-#include "intern/depsgraph.h"
-#include "intern/depsgraph_relation.h"
-#include "intern/depsgraph_tag.h"
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph.hh"
+#include "intern/depsgraph_relation.hh"
+#include "intern/depsgraph_tag.hh"
+#include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/eval/deg_eval_visibility.h"
-#include "intern/node/deg_node.h"
-#include "intern/node/deg_node_component.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node.hh"
+#include "intern/node/deg_node_component.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 namespace blender::deg {
 
@@ -146,6 +146,27 @@ bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object, cons
 {
   const bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
   return check_pchan_has_bbone_segments(object, pchan);
+}
+
+const char *DepsgraphBuilder::get_rna_path_relative_to_scene_camera(const Scene *scene,
+                                                                    const PointerRNA &target_prop,
+                                                                    const char *rna_path)
+{
+  if (rna_path == nullptr || target_prop.data != scene || target_prop.type != &RNA_Scene ||
+      !BLI_str_startswith(rna_path, "camera"))
+  {
+    return nullptr;
+  }
+
+  /* Return the part of the path relative to the camera. */
+  switch (rna_path[6]) {
+    case '.':
+      return rna_path + 7;
+    case '[':
+      return rna_path + 6;
+    default:
+      return nullptr;
+  }
 }
 
 /** \} */

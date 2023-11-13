@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,8 @@
  */
 
 #pragma once
+
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +36,7 @@ int GPU_max_varying_floats(void);
 int GPU_max_shader_storage_buffer_bindings(void);
 int GPU_max_compute_shader_storage_blocks(void);
 int GPU_max_samplers(void);
+size_t GPU_max_storage_buffer_size(void);
 
 int GPU_extensions_len(void);
 const char *GPU_extension_get(int i);
@@ -49,9 +52,10 @@ bool GPU_crappy_amd_driver(void);
 
 bool GPU_geometry_shader_support(void);
 bool GPU_compute_shader_support(void);
-bool GPU_shader_storage_buffer_objects_support(void);
 bool GPU_shader_image_load_store_support(void);
 bool GPU_shader_draw_parameters_support(void);
+bool GPU_hdr_support(void);
+bool GPU_texture_view_support();
 
 bool GPU_mem_stats_supported(void);
 void GPU_mem_stats_get(int *totalmem, int *freemem);

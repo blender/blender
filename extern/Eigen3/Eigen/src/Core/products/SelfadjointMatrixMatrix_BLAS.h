@@ -44,16 +44,18 @@ namespace internal {
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
-struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLhs,RhsStorageOrder,false,ConjugateRhs,ColMajor> \
+struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLhs,RhsStorageOrder,false,ConjugateRhs,ColMajor,1> \
 {\
 \
   static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
-    EIGTYPE* res,        Index resStride, \
+    EIGTYPE* res,        Index resIncr, Index resStride, \
     EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
+    EIGEN_ONLY_USED_FOR_DEBUG(resIncr); \
+    eigen_assert(resIncr == 1); \
     char side='L', uplo='L'; \
     BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \
@@ -91,15 +93,17 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
-struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLhs,RhsStorageOrder,false,ConjugateRhs,ColMajor> \
+struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLhs,RhsStorageOrder,false,ConjugateRhs,ColMajor,1> \
 {\
   static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
-    EIGTYPE* res,        Index resStride, \
+    EIGTYPE* res,        Index resIncr, Index resStride, \
     EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
+    EIGEN_ONLY_USED_FOR_DEBUG(resIncr); \
+    eigen_assert(resIncr == 1); \
     char side='L', uplo='L'; \
     BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \
@@ -167,16 +171,18 @@ EIGEN_BLAS_HEMM_L(scomplex, float, cf, chemm_)
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
-struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateLhs,RhsStorageOrder,true,ConjugateRhs,ColMajor> \
+struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateLhs,RhsStorageOrder,true,ConjugateRhs,ColMajor,1> \
 {\
 \
   static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
-    EIGTYPE* res,        Index resStride, \
+    EIGTYPE* res,        Index resIncr, Index resStride, \
     EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
+    EIGEN_ONLY_USED_FOR_DEBUG(resIncr); \
+    eigen_assert(resIncr == 1); \
     char side='R', uplo='L'; \
     BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \
@@ -213,15 +219,17 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
-struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateLhs,RhsStorageOrder,true,ConjugateRhs,ColMajor> \
+struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateLhs,RhsStorageOrder,true,ConjugateRhs,ColMajor,1> \
 {\
   static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
-    EIGTYPE* res,        Index resStride, \
+    EIGTYPE* res,        Index resIncr, Index resStride, \
     EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
+    EIGEN_ONLY_USED_FOR_DEBUG(resIncr); \
+    eigen_assert(resIncr == 1); \
     char side='R', uplo='L'; \
     BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \

@@ -12,26 +12,28 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_brush.h"
+#include "BLI_math_color.h"
+
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_undo_system.h"
 
-#include "ED_paint.h"
-#include "ED_view3d.h"
+#include "ED_paint.hh"
+#include "ED_view3d.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 #include "paint_intern.hh"
 
@@ -281,7 +283,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
   PaintOperation *pop = MEM_new<PaintOperation>("PaintOperation"); /* caller frees */
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
   int mode = RNA_enum_get(op->ptr, "mode");
-  ED_view3d_viewcontext_init(C, &pop->vc, depsgraph);
+  pop->vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   copy_v2_v2(pop->prevmouse, mouse);
   copy_v2_v2(pop->startmouse, mouse);

@@ -128,7 +128,7 @@ DenseBase<Derived>::Random()
   * \sa class CwiseNullaryOp, setRandom(Index), setRandom(Index,Index)
   */
 template<typename Derived>
-inline Derived& DenseBase<Derived>::setRandom()
+EIGEN_DEVICE_FUNC inline Derived& DenseBase<Derived>::setRandom()
 {
   return *this = Random(rows(), cols());
 }
@@ -175,6 +175,42 @@ PlainObjectBase<Derived>::setRandom(Index rows, Index cols)
 {
   resize(rows, cols);
   return setRandom();
+}
+
+/** Resizes to the given size, changing only the number of columns, and sets all
+  * coefficients in this expression to random values. For the parameter of type
+  * NoChange_t, just pass the special value \c NoChange.
+  *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
+  *
+  * \not_reentrant
+  *
+  * \sa DenseBase::setRandom(), setRandom(Index), setRandom(Index, NoChange_t), class CwiseNullaryOp, DenseBase::Random()
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived&
+PlainObjectBase<Derived>::setRandom(NoChange_t, Index cols)
+{
+  return setRandom(rows(), cols);
+}
+
+/** Resizes to the given size, changing only the number of rows, and sets all
+  * coefficients in this expression to random values. For the parameter of type
+  * NoChange_t, just pass the special value \c NoChange.
+  *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
+  *
+  * \not_reentrant
+  *
+  * \sa DenseBase::setRandom(), setRandom(Index), setRandom(NoChange_t, Index), class CwiseNullaryOp, DenseBase::Random()
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived&
+PlainObjectBase<Derived>::setRandom(Index rows, NoChange_t)
+{
+  return setRandom(rows, cols());
 }
 
 } // end namespace Eigen

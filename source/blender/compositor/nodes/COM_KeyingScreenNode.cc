@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,6 +25,7 @@ void KeyingScreenNode::convert_to_operations(NodeConverter &converter,
   KeyingScreenOperation *operation = new KeyingScreenOperation();
   operation->set_movie_clip(clip);
   operation->set_tracking_object(keyingscreen_data->tracking_object);
+  operation->set_smoothness(keyingscreen_data->smoothness);
   operation->set_framenumber(context.get_framenumber());
   converter.add_operation(operation);
 

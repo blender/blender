@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,7 @@ extern "C" {
 #define BLF_DATAFILES_FONTS_DIR "fonts"
 
 /* File name of the default variable-width font. */
-#define BLF_DEFAULT_PROPORTIONAL_FONT "DejaVuSans.woff2"
+#define BLF_DEFAULT_PROPORTIONAL_FONT "Inter.woff2"
 
 /* File name of the default fixed-pitch font. */
 #define BLF_DEFAULT_MONOSPACED_FONT "DejaVuSansMono.woff2"
@@ -33,6 +33,12 @@ struct rcti;
 
 int BLF_init(void);
 void BLF_exit(void);
+
+/**
+ * Close any user-loaded fonts that are not used by the Interface. Call when
+ * loading new blend files so that the old fonts are not still taking resources.
+ */
+void BLF_reset_fonts(void);
 
 void BLF_cache_clear(void);
 
@@ -79,6 +85,11 @@ void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
 void BLF_size(int fontid, float size);
 
+/**
+ * Weight class: 100 (Thin) - 400 (Normal) - 900 (Heavy).
+ */
+void BLF_character_weight(int fontid, int weight);
+
 /* Goal: small but useful color API. */
 
 void BLF_color4ubv(int fontid, const unsigned char rgba[4]);
@@ -95,10 +106,10 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
 
 /**
  * Set a 4x4 matrix to be multiplied before draw the text.
- * Remember that you need call BLF_enable(BLF_MATRIX)
+ * Remember that you need call `BLF_enable(BLF_MATRIX)`
  * to enable this.
  *
- * The order of the matrix is like GL:
+ * The order of the matrix is column major (following the GPU module):
  * \code{.unparsed}
  *  | m[0]  m[4]  m[8]  m[12] |
  *  | m[1]  m[5]  m[9]  m[13] |
@@ -122,7 +133,8 @@ void BLF_batch_draw_end(void);
 void BLF_draw_ex(int fontid, const char *str, size_t str_len, struct ResultBLF *r_info)
     ATTR_NONNULL(2);
 void BLF_draw(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2);
-int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth) ATTR_NONNULL(2);
+int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth, int tab_columns)
+    ATTR_NONNULL(2);
 
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
                                   size_t str_step_ofs,
@@ -285,7 +297,7 @@ void BLF_draw_buffer_ex(int fontid, const char *str, size_t str_len, struct Resu
     ATTR_NONNULL(2);
 void BLF_draw_buffer(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2);
 
-/* blf_thumbs.c */
+/* `blf_thumbs.cc` */
 
 /**
  * This function is used for generating thumbnail previews.
@@ -295,7 +307,7 @@ void BLF_draw_buffer(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2
 bool BLF_thumb_preview(const char *filename, unsigned char *buf, int w, int h, int channels)
     ATTR_NONNULL();
 
-/* blf_default.c */
+/* `blf_default.cc` */
 
 void BLF_default_size(float size);
 void BLF_default_set(int fontid);
@@ -312,7 +324,7 @@ void BLF_draw_default(float x, float y, float z, const char *str, size_t str_len
  */
 int BLF_set_default(void);
 
-/* blf_font_default.c */
+/* `blf_font_default.cc` */
 
 int BLF_load_default(bool unique);
 int BLF_load_mono_default(bool unique);
@@ -348,6 +360,8 @@ enum {
   BLF_BAD_FONT = 1 << 16,
   /** This font is managed by the FreeType cache subsystem. */
   BLF_CACHED = 1 << 17,
+  /** At small sizes glyphs are rendered at multiple sub-pixel positions. */
+  BLF_RENDER_SUBPIXELAA = 1 << 18,
 };
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024

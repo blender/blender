@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void valtorgb_opti_constant(
     float fac, float edge, vec4 color1, vec4 color2, out vec4 outcol, out float outalpha)
 {

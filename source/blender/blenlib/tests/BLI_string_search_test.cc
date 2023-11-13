@@ -1,16 +1,16 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
 #include "BLI_array.hh"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 #include "BLI_vector.hh"
 
 namespace blender::string_search::tests {
 
-/* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.h`. */
+/* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.hh`. */
 #define UI_MENU_ARROW_SEP "\xe2\x96\xb8"
 
 TEST(string_search, damerau_levenshtein_distance)
@@ -42,17 +42,25 @@ TEST(string_search, extract_normalized_words)
 {
   LinearAllocator<> allocator;
   Vector<StringRef, 64> words;
+  Vector<int, 64> word_group_ids;
   extract_normalized_words("hello world" UI_MENU_ARROW_SEP "test   another test" UI_MENU_ARROW_SEP
                            " 3",
                            allocator,
-                           words);
+                           words,
+                           word_group_ids);
   EXPECT_EQ(words.size(), 6);
   EXPECT_EQ(words[0], "hello");
+  EXPECT_EQ(word_group_ids[0], 0);
   EXPECT_EQ(words[1], "world");
+  EXPECT_EQ(word_group_ids[1], 0);
   EXPECT_EQ(words[2], "test");
+  EXPECT_EQ(word_group_ids[2], 1);
   EXPECT_EQ(words[3], "another");
+  EXPECT_EQ(word_group_ids[3], 1);
   EXPECT_EQ(words[4], "test");
+  EXPECT_EQ(word_group_ids[4], 1);
   EXPECT_EQ(words[5], "3");
+  EXPECT_EQ(word_group_ids[5], 2);
 }
 
 }  // namespace blender::string_search::tests

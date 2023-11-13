@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,14 +6,19 @@
  * \ingroup edmesh
  */
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_bits.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
@@ -23,24 +28,24 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_report.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_transform.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_transform.hh"
+#include "ED_view3d.hh"
 
 #include "BLT_translation.h"
 
@@ -48,14 +53,14 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "bmesh_tools.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "mesh_intern.h" /* own include */
 
@@ -224,12 +229,12 @@ struct NearestVertUserData {
   NearestVertUserData_Hit hit_cycle;
 };
 
-static void findnearestvert__doClosest(void *userData,
+static void findnearestvert__doClosest(void *user_data,
                                        BMVert *eve,
                                        const float screen_co[2],
                                        int index)
 {
-  NearestVertUserData *data = static_cast<NearestVertUserData *>(userData);
+  NearestVertUserData *data = static_cast<NearestVertUserData *>(user_data);
   float dist_test, dist_test_bias;
 
   dist_test = dist_test_bias = len_manhattan_v2v2(data->mval_fl, screen_co);
@@ -275,7 +280,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
 
     /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_VERTEX);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_VERTEX);
 
       index = DRW_select_buffer_find_nearest_to_point(
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
@@ -374,13 +379,13 @@ struct NearestEdgeUserData_ZBuf {
   const BMEdge *edge_test;
 };
 
-static void find_nearest_edge_center__doZBuf(void *userData,
+static void find_nearest_edge_center__doZBuf(void *user_data,
                                              BMEdge *eed,
                                              const float screen_co_a[2],
                                              const float screen_co_b[2],
                                              int /*index*/)
 {
-  NearestEdgeUserData_ZBuf *data = static_cast<NearestEdgeUserData_ZBuf *>(userData);
+  NearestEdgeUserData_ZBuf *data = static_cast<NearestEdgeUserData_ZBuf *>(user_data);
 
   if (eed == data->edge_test) {
     float dist_test;
@@ -418,10 +423,13 @@ struct NearestEdgeUserData {
 };
 
 /* NOTE: uses v3d, so needs active 3d window. */
-static void find_nearest_edge__doClosest(
-    void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
+static void find_nearest_edge__doClosest(void *user_data,
+                                         BMEdge *eed,
+                                         const float screen_co_a[2],
+                                         const float screen_co_b[2],
+                                         int index)
 {
-  NearestEdgeUserData *data = static_cast<NearestEdgeUserData *>(userData);
+  NearestEdgeUserData *data = static_cast<NearestEdgeUserData *>(user_data);
   float dist_test, dist_test_bias;
 
   float fac = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
@@ -503,7 +511,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
 
     /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_EDGE);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_EDGE);
 
       index = DRW_select_buffer_find_nearest_to_point(
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
@@ -632,12 +640,12 @@ struct NearestFaceUserData_ZBuf {
   const BMFace *face_test;
 };
 
-static void find_nearest_face_center__doZBuf(void *userData,
+static void find_nearest_face_center__doZBuf(void *user_data,
                                              BMFace *efa,
                                              const float screen_co[2],
                                              int /*index*/)
 {
-  NearestFaceUserData_ZBuf *data = static_cast<NearestFaceUserData_ZBuf *>(userData);
+  NearestFaceUserData_ZBuf *data = static_cast<NearestFaceUserData_ZBuf *>(user_data);
 
   if (efa == data->face_test) {
     const float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
@@ -665,12 +673,12 @@ struct NearestFaceUserData {
   NearestFaceUserData_Hit hit_cycle;
 };
 
-static void findnearestface__doClosest(void *userData,
+static void findnearestface__doClosest(void *user_data,
                                        BMFace *efa,
                                        const float screen_co[2],
                                        int index)
 {
-  NearestFaceUserData *data = static_cast<NearestFaceUserData *>(userData);
+  NearestFaceUserData *data = static_cast<NearestFaceUserData *>(user_data);
   float dist_test, dist_test_bias;
 
   dist_test = dist_test_bias = len_manhattan_v2v2(data->mval_fl, screen_co);
@@ -723,7 +731,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
             ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
       }
 
-      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_FACE);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_FACE);
 
       if (dist_px_manhattan_test == 0) {
         index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, vc->mval);
@@ -1075,8 +1083,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
       {
         Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(vc->depsgraph,
                                                      static_cast<ID *>(obedit->data));
-        if (me_eval->runtime->edit_data) {
-          coords = me_eval->runtime->edit_data->vertexCos;
+        if (BKE_mesh_wrapper_vert_len(me_eval) == bm->totvert) {
+          coords = BKE_mesh_wrapper_vert_coords(me_eval);
         }
       }
 
@@ -1302,10 +1310,9 @@ static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
     MEM_freeN(fg);
 
     if (tot) {
-      LinkData *link;
-      while ((link = static_cast<LinkData *>(BLI_pophead(&faces_regions)))) {
-        BMFace *f, **faces = static_cast<BMFace **>(link->data);
-        while ((f = *(faces++))) {
+      while (LinkData *link = static_cast<LinkData *>(BLI_pophead(&faces_regions))) {
+        BMFace **faces = static_cast<BMFace **>(link->data);
+        while (BMFace *f = *(faces++)) {
           BM_face_select_set(bm, f, true);
         }
         MEM_freeN(link->data);
@@ -1390,9 +1397,9 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return edbm_select_mode_exec(C, op);
 }
 
-static char *edbm_select_mode_get_description(bContext * /*C*/,
-                                              wmOperatorType * /*op*/,
-                                              PointerRNA *values)
+static std::string edbm_select_mode_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *values)
 {
   const int type = RNA_enum_get(values, "type");
 
@@ -1407,19 +1414,18 @@ static char *edbm_select_mode_get_description(bContext * /*C*/,
   {
     switch (type) {
       case SCE_SELECT_VERTEX:
-        return BLI_strdup(TIP_(
-            "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
+        return TIP_(
+            "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection");
       case SCE_SELECT_EDGE:
-        return BLI_strdup(
-            TIP_("Edge select - Shift-Click for multiple modes, "
-                 "Ctrl-Click expands/contracts selection depending on the current mode"));
+        return TIP_(
+            "Edge select - Shift-Click for multiple modes, "
+            "Ctrl-Click expands/contracts selection depending on the current mode");
       case SCE_SELECT_FACE:
-        return BLI_strdup(
-            TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
+        return TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection");
     }
   }
 
-  return nullptr;
+  return "";
 }
 
 void MESH_OT_select_mode(wmOperatorType *ot)
@@ -1685,14 +1691,13 @@ static bool mouse_mesh_loop(
   BMEdge *eed = nullptr;
   BMFace *efa = nullptr;
 
-  ViewContext vc;
   BMEditMesh *em;
   bool select = true;
   bool select_clear = false;
   bool select_cycle = true;
   float mvalf[2];
 
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
   mvalf[0] = float(vc.mval[0] = mval[0]);
   mvalf[1] = float(vc.mval[1] = mval[1]);
 
@@ -1916,7 +1921,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
+  prop = RNA_def_boolean(ot->srna, "ring", true, "Select Ring", "Select ring");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -2045,15 +2050,13 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
 
 bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
 {
-  ViewContext vc;
-
   int base_index_active = -1;
   BMVert *eve = nullptr;
   BMEdge *eed = nullptr;
   BMFace *efa = nullptr;
 
   /* setup view context for argument to callbacks */
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
   vc.mval[0] = mval[0];
   vc.mval[1] = mval[1];
 
@@ -2733,8 +2736,7 @@ bool EDBM_mesh_deselect_all_multi_ex(Base **bases, const uint bases_len)
 bool EDBM_mesh_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
@@ -2768,8 +2770,7 @@ bool EDBM_selectmode_disable_multi(bContext *C,
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, nullptr, &bases_len);
@@ -3024,8 +3025,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
     fgroup_table[i_min] = nullptr;
     changed = true;
 
-    BMFaceLink *f_link;
-    while ((f_link = static_cast<BMFaceLink *>(BLI_pophead(&fgroup_listbase[i_min])))) {
+    while (BMFaceLink *f_link = static_cast<BMFaceLink *>(BLI_pophead(&fgroup_listbase[i_min]))) {
       BMFace *f = f_link->face;
       BM_face_select_set(bm, f, true);
       BM_elem_index_set(f, -1); /* set-dirty */
@@ -3612,7 +3612,6 @@ static void edbm_select_linked_pick_ex(BMEditMesh *em, BMElem *ele, bool sel, in
 
 static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ViewContext vc;
   Base *basact = nullptr;
   BMVert *eve;
   BMEdge *eed;
@@ -3628,7 +3627,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
   view3d_operator_needs_opengl(C);
 
   /* setup view context for argument to callbacks */
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
 
   uint bases_len;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
@@ -3842,7 +3841,7 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Select Faces by Sides";
-  ot->description = "Select vertices or faces by the number of polygon sides";
+  ot->description = "Select vertices or faces by the number of face sides";
   ot->idname = "MESH_OT_select_face_by_sides";
 
   /* api callbacks */
@@ -4383,14 +4382,15 @@ void MESH_OT_select_nth(wmOperatorType *ot)
   WM_operator_properties_checker_interval(ot, false);
 }
 
-void em_setup_viewcontext(bContext *C, ViewContext *vc)
+ViewContext em_setup_viewcontext(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ED_view3d_viewcontext_init(C, vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
-  if (vc->obedit) {
-    vc->em = BKE_editmesh_from_object(vc->obedit);
+  if (vc.obedit) {
+    vc.em = BKE_editmesh_from_object(vc.obedit);
   }
+  return vc;
 }
 
 /** \} */
@@ -5353,6 +5353,110 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
                   false,
                   "Select Bigger",
                   "Select bigger regions instead of smaller ones");
+}
+
+static bool edbm_select_by_attribute_poll(bContext *C)
+{
+  if (!ED_operator_editmesh(C)) {
+    return false;
+  }
+  Object *obedit = CTX_data_edit_object(C);
+  const Mesh *mesh = static_cast<const Mesh *>(obedit->data);
+  const CustomDataLayer *layer = BKE_id_attributes_active_get(&const_cast<ID &>(mesh->id));
+  if (!layer) {
+    CTX_wm_operator_poll_msg_set(C, "There must be an active attribute");
+    return false;
+  }
+  if (layer->type != CD_PROP_BOOL) {
+    CTX_wm_operator_poll_msg_set(C, "The active attribute must have a boolean type");
+    return false;
+  }
+  if (BKE_id_attribute_domain(&mesh->id, layer) == ATTR_DOMAIN_CORNER) {
+    CTX_wm_operator_poll_msg_set(
+        C, "The active attribute must be on the vertex, edge, or face domain");
+    return false;
+  }
+  return true;
+}
+
+static std::optional<BMIterType> domain_to_iter_type(const eAttrDomain domain)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      return BM_VERTS_OF_MESH;
+    case ATTR_DOMAIN_EDGE:
+      return BM_EDGES_OF_MESH;
+    case ATTR_DOMAIN_FACE:
+      return BM_FACES_OF_MESH;
+    default:
+      return std::nullopt;
+  }
+}
+
+static int edbm_select_by_attribute_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMesh *bm = em->bm;
+
+    const CustomDataLayer *layer = BKE_id_attributes_active_get(&mesh->id);
+    if (!layer) {
+      continue;
+    }
+    if (layer->type != CD_PROP_BOOL) {
+      continue;
+    }
+    if (BKE_id_attribute_domain(&mesh->id, layer) == ATTR_DOMAIN_CORNER) {
+      continue;
+    }
+    const std::optional<BMIterType> iter_type = domain_to_iter_type(
+        BKE_id_attribute_domain(&mesh->id, layer));
+    if (!iter_type) {
+      continue;
+    }
+
+    bool changed = false;
+    BMElem *elem;
+    BMIter iter;
+    BM_ITER_MESH (elem, &iter, bm, *iter_type) {
+      if (BM_elem_flag_test(elem, BM_ELEM_HIDDEN | BM_ELEM_SELECT)) {
+        continue;
+      }
+      if (BM_ELEM_CD_GET_BOOL(elem, layer->offset)) {
+        BM_elem_select_set(bm, elem, true);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      EDBM_selectmode_flush(em);
+
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+    }
+  }
+  MEM_freeN(objects);
+
+  return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_by_attribute(wmOperatorType *ot)
+{
+  ot->name = "Select by Attribute";
+  ot->idname = "MESH_OT_select_by_attribute";
+  ot->description = "Select elements based on the active boolean attribute";
+
+  ot->exec = edbm_select_by_attribute_exec;
+  ot->poll = edbm_select_by_attribute_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -176,7 +176,7 @@
     .factor = 1.0f, \
     .modify_color = GP_MODIFY_COLOR_BOTH, \
     .layer_pass = 0, \
-    .hardeness = 1.0f, \
+    .hardness = 1.0f, \
     .curve_intensity = NULL, \
   }
 

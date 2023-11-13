@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Reduce copy pass: filter fireflies and split color between scatter and gather input.
@@ -6,13 +9,14 @@
  * that during the convolution phase.
  *
  * Inputs:
- * - Output of setup pass (halfres) and reduce downsample pass (quarter res).
+ * - Output of setup pass (half-resolution) and reduce downsample pass (quarter res).
  * Outputs:
- * - Halfres padded to avoid mipmap misalignment (so possibly not matching input size).
+ * - Half-resolution padded to avoid mipmap misalignment (so possibly not matching input size).
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 
 /* NOTE: Do not compare alpha as it is not scattered by the scatter pass. */
 float dof_scatter_neighborhood_rejection(vec3 color)
@@ -31,7 +35,7 @@ float dof_scatter_neighborhood_rejection(vec3 color)
     vec3 ref = textureLod(downsample_tx, sample_uv, 0.0).rgb;
 
     ref = min(vec3(dof_buf.scatter_neighbor_max_color), ref);
-    float diff = max_v3(max(vec3(0.0), abs(ref - color)));
+    float diff = reduce_max(max(vec3(0.0), abs(ref - color)));
 
     const float rejection_threshold = 0.7;
     diff = saturate(diff / rejection_threshold - 1.0);
@@ -48,18 +52,18 @@ float dof_scatter_screen_border_rejection(float coc, ivec2 texel)
   vec2 screen_size = vec2(imageSize(inout_color_lod0_img));
   vec2 uv = (vec2(texel) + 0.5) / screen_size;
   vec2 screen_pos = uv * screen_size;
-  float min_screen_border_distance = min_v2(min(screen_pos, screen_size - screen_pos));
-  /* Fullres to halfres CoC. */
+  float min_screen_border_distance = reduce_min(min(screen_pos, screen_size - screen_pos));
+  /* Full-resolution to half-resolution CoC. */
   coc *= 0.5;
   /* Allow 10px transition. */
-  const float rejection_hardeness = 1.0 / 10.0;
-  return saturate((min_screen_border_distance - abs(coc)) * rejection_hardeness + 1.0);
+  const float rejection_hardness = 1.0 / 10.0;
+  return saturate((min_screen_border_distance - abs(coc)) * rejection_hardness + 1.0);
 }
 
 float dof_scatter_luminosity_rejection(vec3 color)
 {
   const float rejection_hardness = 1.0;
-  return saturate(max_v3(color - dof_buf.scatter_color_threshold) * rejection_hardness);
+  return saturate(reduce_max(color - dof_buf.scatter_color_threshold) * rejection_hardness);
 }
 
 float dof_scatter_coc_radius_rejection(float coc)
@@ -115,7 +119,7 @@ void main()
     do_scatter4.w = do_scatter[LOCAL_OFFSET(0, 0)];
     if (any(greaterThan(do_scatter4, vec4(0.0)))) {
       /* Apply energy conservation to anamorphic scattered bokeh. */
-      do_scatter4 *= max_v2(dof_buf.bokeh_anisotropic_scale_inv);
+      do_scatter4 *= reduce_max(dof_buf.bokeh_anisotropic_scale_inv);
 
       /* Circle of Confusion. */
       vec4 coc4;
@@ -129,7 +133,7 @@ void main()
       vec2 offset = vec2(gl_GlobalInvocationID.xy) + 1;
       /* Add 2.5 to max_coc because the max_coc may not be centered on the sprite origin
        * and because we smooth the bokeh shape a bit in the pixel shader. */
-      vec2 half_extent = max_v4(abs(coc4)) * dof_buf.bokeh_anisotropic_scale + 2.5;
+      vec2 half_extent = reduce_max(abs(coc4)) * dof_buf.bokeh_anisotropic_scale + 2.5;
       /* Issue a sprite for each field if any CoC matches. */
       if (any(lessThan(do_scatter4 * sign(coc4), vec4(0.0)))) {
         /* Same value for all threads. Not an issue if we don't sync access to it. */
@@ -147,10 +151,10 @@ void main()
           rect_fg.offset = offset;
           /* Negate extent to flip the sprite. Mimics optical phenomenon. */
           rect_fg.half_extent = -half_extent;
-          /* NOTE: Since we fliped the quad along (1,-1) line, we need to also swap the (1,1) and
+          /* NOTE: Since we flipped the quad along (1,-1) line, we need to also swap the (1,1) and
            * (0,0) values so that quad_offsets is in the right order in the vertex shader. */
 
-          /* Circle of Confusion absolute radius in halfres pixels. */
+          /* Circle of Confusion absolute radius in half-resolution pixels. */
           rect_fg.color_and_coc[0].a = coc4_fg[0];
           rect_fg.color_and_coc[1].a = coc4_fg[3];
           rect_fg.color_and_coc[2].a = coc4_fg[2];
@@ -179,7 +183,7 @@ void main()
           rect_bg.offset = offset;
           rect_bg.half_extent = half_extent;
 
-          /* Circle of Confusion absolute radius in halfres pixels. */
+          /* Circle of Confusion absolute radius in half-resolution pixels. */
           rect_bg.color_and_coc[0].a = coc4_bg[0];
           rect_bg.color_and_coc[1].a = coc4_bg[1];
           rect_bg.color_and_coc[2].a = coc4_bg[2];
@@ -223,7 +227,7 @@ void main()
       vec4 weights = dof_bilateral_coc_weights(coc4);
       weights *= dof_bilateral_color_weights(colors);
       /* Normalize so that the sum is 1. */
-      weights *= safe_rcp(sum(weights));
+      weights *= safe_rcp(reduce_add(weights));
 
       color_cache[LOCAL_INDEX] = weighted_sum_array(colors, weights);
       coc_cache[LOCAL_INDEX] = dot(coc4, weights);

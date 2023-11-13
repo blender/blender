@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,6 +17,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_2D_image_overlays_merge)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .push_constant(Type::BOOL, "display_transform")
     .push_constant(Type::BOOL, "overlay")
+    .push_constant(Type::BOOL, "use_hdr")
     /* Sampler slots should match OCIO's. */
     .sampler(0, ImageType::FLOAT_2D, "image_texture")
     .sampler(1, ImageType::FLOAT_2D, "overlays_texture")

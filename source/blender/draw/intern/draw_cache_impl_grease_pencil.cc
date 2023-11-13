@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,9 +19,11 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "ED_grease_pencil.hh"
+
 #include "GPU_batch.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "../engines/gpencil/gpencil_defines.h"
 #include "../engines/gpencil/gpencil_shader_shared.h"
@@ -37,11 +39,14 @@ struct GreasePencilBatchCache {
   /** Batches */
   GPUBatch *geom_batch;
   GPUBatch *edit_points;
+  GPUBatch *edit_lines;
 
   /* Crazy-space point positions for original points. */
   GPUVertBuf *edit_points_pos;
   /* Selection of original points. */
   GPUVertBuf *edit_points_selection;
+  /* Indices for lines segments. */
+  GPUIndexBuf *edit_line_indices;
 
   /** Cache is dirty. */
   bool is_dirty;
@@ -96,16 +101,16 @@ static GPUVertFormat *grease_pencil_color_format()
 /** \name Internal Utilities
  * \{ */
 
-static bool grease_pencil_batch_cache_valid(const GreasePencil &grease_pencil, int cfra)
+static bool grease_pencil_batch_cache_valid(const GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
   const GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
       grease_pencil.runtime->batch_cache);
-  return (cache && cache->is_dirty == false && cache->cache_frame == cfra);
+  return (cache && cache->is_dirty == false &&
+          cache->cache_frame == grease_pencil.runtime->eval_frame);
 }
 
-static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grease_pencil,
-                                                              int cfra)
+static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
   GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
@@ -119,7 +124,7 @@ static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grea
   }
 
   cache->is_dirty = false;
-  cache->cache_frame = cfra;
+  cache->cache_frame = grease_pencil.runtime->eval_frame;
 
   return cache;
 }
@@ -139,20 +144,22 @@ static void grease_pencil_batch_cache_clear(GreasePencil &grease_pencil)
   GPU_INDEXBUF_DISCARD_SAFE(cache->ibo);
 
   GPU_BATCH_DISCARD_SAFE(cache->edit_points);
+  GPU_BATCH_DISCARD_SAFE(cache->edit_lines);
   GPU_VERTBUF_DISCARD_SAFE(cache->edit_points_pos);
   GPU_VERTBUF_DISCARD_SAFE(cache->edit_points_selection);
+  GPU_INDEXBUF_DISCARD_SAFE(cache->edit_line_indices);
 
   cache->is_dirty = true;
 }
 
-static GreasePencilBatchCache *grease_pencil_batch_cache_get(GreasePencil &grease_pencil, int cfra)
+static GreasePencilBatchCache *grease_pencil_batch_cache_get(GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
   GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
       grease_pencil.runtime->batch_cache);
-  if (!grease_pencil_batch_cache_valid(grease_pencil, cfra)) {
+  if (!grease_pencil_batch_cache_valid(grease_pencil)) {
     grease_pencil_batch_cache_clear(grease_pencil);
-    return grease_pencil_batch_cache_init(grease_pencil, cfra);
+    return grease_pencil_batch_cache_init(grease_pencil);
   }
 
   return cache;
@@ -187,8 +194,67 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   return packed;
 }
 
-static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfra)
+static void grease_pencil_edit_lines_batch_ensure(
+    const Span<blender::ed::greasepencil::DrawingInfo> drawings, GreasePencilBatchCache *cache)
 {
+  using namespace blender::bke::greasepencil;
+  int total_line_ids_num = 0;
+
+  for (const ed::greasepencil::DrawingInfo &info : drawings) {
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    /* Add one id for the restart after every curve. */
+    total_line_ids_num += curves.curves_num();
+    /* Add one id for every non-cyclic segment. */
+    total_line_ids_num += curves.points_num();
+    /* Add one id for the last segment of every cyclic curve. */
+    total_line_ids_num += array_utils::count_booleans(curves.cyclic());
+  }
+
+  GPUIndexBufBuilder elb;
+  GPU_indexbuf_init_ex(&elb,
+                       GPU_PRIM_LINE_STRIP,
+                       total_line_ids_num,
+                       GPU_vertbuf_get_vertex_len(cache->edit_points_pos));
+
+  /* Fill buffers with data. */
+  int drawing_start_offset = 0;
+  for (const int drawing_i : drawings.index_range()) {
+    const ed::greasepencil::DrawingInfo &info = drawings[drawing_i];
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+    const VArray<bool> cyclic = curves.cyclic();
+
+    threading::parallel_for(curves.curves_range(), 512, [&](IndexRange range) {
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+        const bool is_cyclic = cyclic[curve_i];
+
+        for (const int point : points) {
+          GPU_indexbuf_add_generic_vert(&elb, point + drawing_start_offset);
+        }
+
+        if (is_cyclic) {
+          GPU_indexbuf_add_generic_vert(&elb, points.first() + drawing_start_offset);
+        }
+
+        GPU_indexbuf_add_primitive_restart(&elb);
+      }
+    });
+    drawing_start_offset += curves.points_num();
+  }
+
+  cache->edit_line_indices = GPU_indexbuf_build(&elb);
+
+  cache->edit_lines = GPU_batch_create(
+      GPU_PRIM_LINE_STRIP, cache->edit_points_pos, cache->edit_line_indices);
+  GPU_batch_vertbuf_add(cache->edit_lines, cache->edit_points_selection, false);
+}
+
+static void grease_pencil_geom_batch_ensure(const GreasePencil &grease_pencil,
+                                            const Scene &scene,
+                                            const bool lines)
+{
+  using namespace blender::bke::greasepencil;
   BLI_assert(grease_pencil.runtime != nullptr);
   GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
       grease_pencil.runtime->batch_cache);
@@ -202,10 +268,8 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
   BLI_assert(cache->geom_batch == nullptr);
 
   /* Get the visible drawings. */
-  Vector<const GreasePencilDrawing *> drawings;
-  grease_pencil.foreach_visible_drawing(
-      cfra,
-      [&](int /*drawing_index*/, GreasePencilDrawing &drawing) { drawings.append(&drawing); });
+  const Array<ed::greasepencil::DrawingInfo> drawings =
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil);
 
   /* First, count how many vertices and triangles are needed for the whole object. Also record the
    * offsets into the curves for the vertices and triangles. */
@@ -215,19 +279,13 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
   int v_offset = 0;
   Vector<Array<int>> verts_start_offsets_per_visible_drawing;
   Vector<Array<int>> tris_start_offsets_per_visible_drawing;
-  for (const int drawing_i : drawings.index_range()) {
-    const GreasePencilDrawing &drawing = *drawings[drawing_i];
-    const bke::CurvesGeometry &curves = drawing.geometry.wrap();
+  for (const ed::greasepencil::DrawingInfo &info : drawings) {
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     const VArray<bool> cyclic = curves.cyclic();
 
     int verts_start_offsets_size = curves.curves_num();
     int tris_start_offsets_size = curves.curves_num();
-    if (drawing.has_stroke_buffer()) {
-      verts_start_offsets_size++;
-      /* TODO: triangles for stroke buffer. */
-      // tris_start_offsets_size++;
-    }
     Array<int> verts_start_offsets(verts_start_offsets_size);
     Array<int> tris_start_offsets(tris_start_offsets_size);
 
@@ -253,20 +311,10 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
 
     total_points_num += curves.points_num();
 
-    /* One vertex is stored before and after as padding. Cyclic strokes have one extra
-     * vertex.*/
+    /* One vertex is stored before and after as padding. Cyclic strokes have one extra vertex. */
     total_verts_num += curves.points_num() + num_cyclic + curves.curves_num() * 2;
     total_triangles_num += (curves.points_num() + num_cyclic) * 2;
-    total_triangles_num += drawing.triangles().size();
-
-    if (drawing.has_stroke_buffer()) {
-      const int num_buffer_points = drawing.stroke_buffer().size();
-      total_verts_num += 1 + num_buffer_points + 1;
-      total_triangles_num += num_buffer_points * 2;
-      verts_start_offsets[curves.curves_range().size()] = v_offset;
-      /* TODO: triangles for stroke buffer. */
-      v_offset += 1 + num_buffer_points + 1;
-    }
+    total_triangles_num += info.drawing.triangles().size();
 
     verts_start_offsets_per_visible_drawing.append(std::move(verts_start_offsets));
     tris_start_offsets_per_visible_drawing.append(std::move(tris_start_offsets));
@@ -317,16 +365,16 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
   /* Fill buffers with data. */
   int drawing_start_offset = 0;
   for (const int drawing_i : drawings.index_range()) {
-    const GreasePencilDrawing &drawing = *drawings[drawing_i];
-    const bke::CurvesGeometry &curves = drawing.geometry.wrap();
+    const ed::greasepencil::DrawingInfo &info = drawings[drawing_i];
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
     const bke::AttributeAccessor attributes = curves.attributes();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     const Span<float3> positions = curves.positions();
     const VArray<bool> cyclic = curves.cyclic();
-    const VArray<float> radii = *attributes.lookup_or_default<float>(
-        "radius", ATTR_DOMAIN_POINT, 1.0f);
-    const VArray<float> opacities = *attributes.lookup_or_default<float>(
-        "opacity", ATTR_DOMAIN_POINT, 1.0f);
+    const VArray<float> radii = info.drawing.radii();
+    const VArray<float> opacities = info.drawing.opacities();
+    const VArray<ColorGeometry4f> vertex_colors = *attributes.lookup_or_default<ColorGeometry4f>(
+        "vertex_color", ATTR_DOMAIN_POINT, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
         ".selection", ATTR_DOMAIN_POINT, true);
@@ -336,7 +384,7 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
         "end_cap", ATTR_DOMAIN_CURVE, 0);
     const VArray<int> materials = *attributes.lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_CURVE, -1);
-    const Span<uint3> triangles = drawing.triangles();
+    const Span<uint3> triangles = info.drawing.triangles();
     const Span<int> verts_start_offsets = verts_start_offsets_per_visible_drawing[drawing_i];
     const Span<int> tris_start_offsets = tris_start_offsets_per_visible_drawing[drawing_i];
 
@@ -369,9 +417,8 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
       /* TODO: Populate fill UVs. */
       s_vert.uv_fill[0] = s_vert.uv_fill[1] = 0;
 
-      /* TODO: Populate vertex color and fill color. */
-      copy_v4_v4(c_vert.vcol, float4(0.0f, 0.0f, 0.0f, 0.0f));
-      copy_v4_v4(c_vert.fcol, float4(0.0f, 0.0f, 0.0f, 0.0f));
+      copy_v4_v4(c_vert.vcol, vertex_colors[point_i]);
+      copy_v4_v4(c_vert.fcol, vertex_colors[point_i]);
       c_vert.fcol[3] = (int(c_vert.fcol[3] * 10000.0f) * 10.0f) + 1.0f;
 
       int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
@@ -433,51 +480,10 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
         verts_slice.last().mat = -1;
       }
     });
+  }
 
-    if (drawing.has_stroke_buffer()) {
-      Span<bke::greasepencil::StrokePoint> points = drawing.stroke_buffer();
-      const int verts_start_offset = verts_start_offsets.last();
-      const int num_verts = 1 + points.size() + 1;
-      IndexRange verts_range = IndexRange(verts_start_offset, num_verts);
-      MutableSpan<GreasePencilStrokeVert> verts_slice = verts.slice(verts_range);
-      MutableSpan<GreasePencilColorVert> cols_slice = cols.slice(verts_range);
-      const int material_nr = drawing.runtime->stroke_cache.mat;
-
-      verts_slice.first().mat = -1;
-      for (const int i : IndexRange(points.size())) {
-        const int idx = i + 1;
-        GreasePencilStrokeVert &s_vert = verts_slice[idx];
-        GreasePencilColorVert &c_vert = cols_slice[idx];
-        const bke::greasepencil::StrokePoint &point = points[i];
-
-        copy_v3_v3(s_vert.pos, point.position);
-        s_vert.radius = point.radius;
-        s_vert.opacity = point.opacity;
-        s_vert.point_id = verts_range[idx];
-        s_vert.stroke_id = verts_range.first();
-        s_vert.mat = material_nr;
-
-        /* TODO */
-        s_vert.packed_asp_hard_rot = pack_rotation_aspect_hardness(0.0f, 1.0f, 1.0f);
-        /* TODO */
-        s_vert.u_stroke = 0;
-        /* TODO */
-        s_vert.uv_fill[0] = s_vert.uv_fill[1] = 0;
-
-        /* TODO */
-        copy_v4_v4(c_vert.vcol, float4(0.0f, 0.0f, 0.0f, 0.0f));
-        copy_v4_v4(c_vert.fcol, float4(0.0f, 0.0f, 0.0f, 0.0f));
-
-        /* TODO */
-        c_vert.fcol[3] = (int(c_vert.fcol[3] * 10000.0f) * 10.0f) + 1.0f;
-
-        int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
-        GPU_indexbuf_add_tri_verts(&ibo, v_mat + 0, v_mat + 1, v_mat + 2);
-        GPU_indexbuf_add_tri_verts(&ibo, v_mat + 2, v_mat + 1, v_mat + 3);
-      }
-
-      verts_slice.last().mat = -1;
-    }
+  if (lines) {
+    grease_pencil_edit_lines_batch_ensure(drawings, cache);
   }
 
   /* Mark last 2 verts as invalid. */
@@ -527,11 +533,9 @@ void DRW_grease_pencil_batch_cache_validate(GreasePencil *grease_pencil)
 {
   using namespace blender::draw;
   BLI_assert(grease_pencil->runtime != nullptr);
-  /* TODO: pass correct frame here? */
-  if (!grease_pencil_batch_cache_valid(*grease_pencil, 0)) {
+  if (!grease_pencil_batch_cache_valid(*grease_pencil)) {
     grease_pencil_batch_cache_clear(*grease_pencil);
-    /* TODO: pass correct frame here? */
-    grease_pencil_batch_cache_init(*grease_pencil, 0);
+    grease_pencil_batch_cache_init(*grease_pencil);
   }
 }
 
@@ -543,42 +547,52 @@ void DRW_grease_pencil_batch_cache_free(GreasePencil *grease_pencil)
   grease_pencil->runtime->batch_cache = nullptr;
 }
 
-GPUBatch *DRW_cache_grease_pencil_get(Object *ob, int cfra)
+GPUBatch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
-  grease_pencil_geom_batch_ensure(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
+  grease_pencil_geom_batch_ensure(grease_pencil, *scene, false);
 
   return cache->geom_batch;
 }
 
-GPUBatch *DRW_cache_grease_pencil_edit_points_get(Object *ob, int cfra)
+GPUBatch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
-  grease_pencil_geom_batch_ensure(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
+  grease_pencil_geom_batch_ensure(grease_pencil, *scene, false);
 
   return cache->edit_points;
 }
 
-GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(Object *ob, int cfra)
+GPUBatch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
-  grease_pencil_geom_batch_ensure(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
+  grease_pencil_geom_batch_ensure(grease_pencil, *scene, true);
+
+  return cache->edit_lines;
+}
+
+GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(const Scene *scene, Object *ob)
+{
+  using namespace blender::draw;
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
+  grease_pencil_geom_batch_ensure(grease_pencil, *scene, true);
 
   return cache->vbo;
 }
 
-GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(Object *ob, int cfra)
+GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(const Scene *scene, Object *ob)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
-  grease_pencil_geom_batch_ensure(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
+  grease_pencil_geom_batch_ensure(grease_pencil, *scene, false);
 
   return cache->vbo_col;
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,12 +28,12 @@ TreeDisplayScenes::TreeDisplayScenes(SpaceOutliner &space_outliner)
 {
 }
 
-bool TreeDisplayScenes::supportsModeColumn() const
+bool TreeDisplayScenes::supports_mode_column() const
 {
   return true;
 }
 
-ListBase TreeDisplayScenes::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayScenes::build_tree(const TreeSourceData &source_data)
 {
   /* On first view we open scenes. */
   const int show_opened = !space_outliner_.treestore ||
@@ -42,8 +42,7 @@ ListBase TreeDisplayScenes::buildTree(const TreeSourceData &source_data)
 
   for (ID *id : List<ID>(source_data.bmain->scenes)) {
     Scene *scene = reinterpret_cast<Scene *>(id);
-    TreeElement *te = outliner_add_element(
-        &space_outliner_, &tree, scene, nullptr, TSE_SOME_ID, 0);
+    TreeElement *te = add_element(&tree, id, nullptr, nullptr, TSE_SOME_ID, 0);
     TreeStoreElem *tselem = TREESTORE(te);
 
     /* New scene elements open by default */

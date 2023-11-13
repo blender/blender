@@ -464,8 +464,9 @@ static char *concat_string_list (char **t, int *bytes)
             break;
         if (!(t[n][0]))
             break;
-        strcpy (s + l, t[n]);
-        l += strlen (t[n]) + 1;
+        int t_size = strlen (t[n]) + 1;
+        memcpy (s + l, t[n], t_size);
+        l += t_size;
     }
     *bytes = l;
     s[l] = '\0';

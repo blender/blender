@@ -24,11 +24,13 @@ ccl_device_noinline int svm_node_normal(KernelGlobals kg,
   direction.z = __int_as_float(node1.z);
   direction = normalize(direction);
 
-  if (stack_valid(out_normal_offset))
+  if (stack_valid(out_normal_offset)) {
     stack_store_float3(stack, out_normal_offset, direction);
+  }
 
-  if (stack_valid(out_dot_offset))
+  if (stack_valid(out_dot_offset)) {
     stack_store_float(stack, out_dot_offset, dot(direction, normalize(normal)));
+  }
   return offset;
 }
 

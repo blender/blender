@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 float sky_angle_between(float thetav, float phiv, float theta, float phi)
 {
   float cospsi = sin(thetav) * sin(theta) * cos(phi - phiv) + cos(thetav) * cos(theta);
@@ -162,7 +166,8 @@ void node_tex_sky_nishita(vec3 co,
   }
   else {
     /* evaluate longitudinal position on the map */
-    float x = (spherical.y + M_PI + sun_rotation) / M_2PI;
+    const float tau = 6.28318530717958647692;
+    float x = (spherical.y + M_PI + sun_rotation) / tau;
     if (x > 1.0) {
       x -= 1.0;
     }

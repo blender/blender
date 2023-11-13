@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,8 +8,8 @@
 
 #include "node_shader_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_mapping_cc {
 
@@ -74,6 +74,38 @@ static void node_shader_update_mapping(bNodeTree *ntree, bNode *node)
       ntree, sock, ELEM(node->custom1, NODE_MAPPING_TYPE_POINT, NODE_MAPPING_TYPE_TEXTURE));
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  NodeItem vector = get_input_value("Vector", NodeItem::Type::Vector3);
+  NodeItem scale = get_input_value("Scale", NodeItem::Type::Vector3);
+  NodeItem rotation = get_input_value("Rotation", NodeItem::Type::Vector3) *
+                      val(float(180.0f / M_PI));
+
+  int type = node_->custom1;
+  switch (type) {
+    case NODE_MAPPING_TYPE_POINT: {
+      NodeItem location = get_input_value("Location", NodeItem::Type::Vector3);
+      return (vector * scale).rotate(rotation) + location;
+    }
+    case NODE_MAPPING_TYPE_TEXTURE: {
+      NodeItem location = get_input_value("Location", NodeItem::Type::Vector3);
+      return (vector - location).rotate(rotation, true) / scale;
+    }
+    case NODE_MAPPING_TYPE_VECTOR: {
+      return (vector * scale).rotate(rotation * val(MaterialX::Vector3(1.0f, 1.0f, -1.0f)));
+    }
+    case NODE_MAPPING_TYPE_NORMAL: {
+      return (vector / scale).rotate(rotation).normalize();
+    }
+    default:
+      BLI_assert_unreachable();
+  }
+  return empty();
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_mapping_cc
 
 void register_node_type_sh_mapping()
@@ -87,6 +119,7 @@ void register_node_type_sh_mapping()
   ntype.draw_buttons = file_ns::node_shader_buts_mapping;
   ntype.gpu_fn = file_ns::gpu_shader_mapping;
   ntype.updatefunc = file_ns::node_shader_update_mapping;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

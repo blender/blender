@@ -32,7 +32,6 @@ class GHOST_DropTargetX11;
  * Dimensions are given in screen coordinates that are
  * relative to the upper-left corner of the screen.
  */
-
 class GHOST_WindowX11 : public GHOST_Window {
  public:
   /**

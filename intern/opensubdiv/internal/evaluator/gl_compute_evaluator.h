@@ -134,8 +134,9 @@ class GLComputeEvaluator {
   {
     (void)deviceContext;  // not used
     GLComputeEvaluator *instance = new GLComputeEvaluator();
-    if (instance->Compile(srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc))
+    if (instance->Compile(srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc)) {
       return instance;
+    }
     delete instance;
     return NULL;
   }

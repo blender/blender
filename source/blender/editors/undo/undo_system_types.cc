@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,27 +6,27 @@
  * \ingroup edundo
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
-#include "ED_armature.h"
-#include "ED_curve.h"
-#include "ED_curves.h"
-#include "ED_lattice.h"
-#include "ED_mball.h"
-#include "ED_mesh.h"
-#include "ED_paint.h"
-#include "ED_particle.h"
-#include "ED_sculpt.h"
-#include "ED_text.h"
-#include "ED_undo.h"
+#include "ED_armature.hh"
+#include "ED_curve.hh"
+#include "ED_curves.hh"
+#include "ED_lattice.hh"
+#include "ED_mball.hh"
+#include "ED_mesh.hh"
+#include "ED_paint.hh"
+#include "ED_particle.hh"
+#include "ED_sculpt.hh"
+#include "ED_text.hh"
+#include "ED_undo.hh"
 #include "undo_intern.hh"
 
 /* Keep last */
 #include "BKE_undo_system.h"
 
-void ED_undosys_type_init(void)
+void ED_undosys_type_init()
 {
   /* Edit Modes */
   BKE_undosys_type_append(ED_armature_undosys_type);
@@ -53,7 +53,7 @@ void ED_undosys_type_init(void)
   BKE_UNDOSYS_TYPE_MEMFILE = BKE_undosys_type_append(ED_memfile_undosys_type);
 }
 
-void ED_undosys_type_free(void)
+void ED_undosys_type_free()
 {
   BKE_undosys_type_free_all();
 }

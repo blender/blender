@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,12 +12,12 @@
 
 #include "PIL_time.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -26,10 +26,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:
@@ -192,7 +192,7 @@ struct PinchOperationExecutor {
           }
 
           const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-          const float t = safe_divide(dist_to_brush_re, brush_radius_base_re_);
+          const float t = math::safe_divide(dist_to_brush_re, brush_radius_base_re_);
           const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
           const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
                                point_factors_[point_i];
@@ -261,7 +261,7 @@ struct PinchOperationExecutor {
           }
 
           const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-          const float t = safe_divide(dist_to_brush_cu, brush_radius_cu);
+          const float t = math::safe_divide(dist_to_brush_cu, brush_radius_cu);
           const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
           const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
                                point_factors_[point_i];

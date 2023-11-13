@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -457,7 +457,7 @@ void BLI_box_pack_2d(
             tot_y = max_ff(box_ymax_get(box), tot_y);
 
             /* Place the box */
-            vert->free &= (signed char)(~quad_flag(j));
+            vert->free &= (signed char)~quad_flag(j);
 
             switch (j) {
               case TR:

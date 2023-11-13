@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -38,9 +38,8 @@
  */
 
 #include <algorithm>
-#include <atomic>
 #include <cmath>
-#include <iostream>
+#include <iosfwd>
 
 #include "BLI_utildefines.h"
 
@@ -324,11 +323,7 @@ class IndexRange {
     return IndexRange(start_ + n, size_);
   }
 
-  friend std::ostream &operator<<(std::ostream &stream, IndexRange range)
-  {
-    stream << "[" << range.start() << ", " << range.one_after_last() << ")";
-    return stream;
-  }
+  friend std::ostream &operator<<(std::ostream &stream, IndexRange range);
 };
 
 struct AlignedIndexRanges {

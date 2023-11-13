@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -144,7 +144,7 @@ class SignatureBuilder {
   }
 
   template<ParamCategory Category, typename T>
-  void add(ParamTag<Category, T> /* tag */, const char *name)
+  void add(ParamTag<Category, T> /*tag*/, const char *name)
   {
     switch (Category) {
       case ParamCategory::SingleInput:

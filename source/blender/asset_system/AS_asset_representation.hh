@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -84,8 +84,10 @@ class AssetRepresentation {
    * Create a weak reference for this asset that can be written to files, but can break under a
    * number of conditions.
    * A weak reference can only be created if an asset representation is owned by an asset library.
+   *
+   * Must be freed using #BKE_asset_weak_reference_free().
    */
-  std::unique_ptr<AssetWeakReference> make_weak_reference() const;
+  AssetWeakReference *make_weak_reference() const;
 
   StringRefNull get_name() const;
   ID_Type get_id_type() const;
@@ -114,19 +116,3 @@ class AssetRepresentation {
 };
 
 }  // namespace blender::asset_system
-
-/* C-Handle */
-struct AssetRepresentation;
-
-const blender::StringRefNull AS_asset_representation_library_relative_identifier_get(
-    const AssetRepresentation *asset_handle);
-
-std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *asset);
-/**
- * Get the absolute path to the .blend file containing the given asset. String will be empty if
- * the asset could not be mapped to a valid .blend file path. Valid in this case also means that
- * the file needs to exist on disk.
- */
-std::string AS_asset_representation_full_library_path_get(const ::AssetRepresentation *asset);
-std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
-    const ::AssetRepresentation *asset_handle);

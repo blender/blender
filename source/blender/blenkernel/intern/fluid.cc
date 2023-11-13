@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,9 @@
 
 #include "BLI_fileops.h"
 #include "BLI_hash.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -58,14 +60,14 @@
 #  include "BKE_customdata.h"
 #  include "BKE_deform.h"
 #  include "BKE_mesh.hh"
-#  include "BKE_mesh_runtime.h"
-#  include "BKE_object.h"
+#  include "BKE_mesh_runtime.hh"
+#  include "BKE_object.hh"
 #  include "BKE_particle.h"
 #  include "BKE_scene.h"
 #  include "BKE_texture.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_query.hh"
 
 #  include "RE_texture.h"
 
@@ -225,12 +227,14 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
 
           /* Skip if trying to copy from old boundary cell. */
           if (xo < bwidth || yo < bwidth || zo < bwidth || xo >= o_res[0] - bwidth ||
-              yo >= o_res[1] - bwidth || zo >= o_res[2] - bwidth) {
+              yo >= o_res[1] - bwidth || zo >= o_res[2] - bwidth)
+          {
             continue;
           }
           /* Skip if trying to copy into new boundary cell. */
           if (xn < bwidth || yn < bwidth || zn < bwidth || xn >= n_res[0] - bwidth ||
-              yn >= n_res[1] - bwidth || zn >= n_res[2] - bwidth) {
+              yn >= n_res[1] - bwidth || zn >= n_res[2] - bwidth)
+          {
             continue;
           }
 #  endif
@@ -446,7 +450,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
     fds->base_res[1] = max_ii(int(size[1] * scale + 0.5f), 4);
     fds->base_res[2] = max_ii(int(size[2] * scale + 0.5f), 4);
   }
-  else if (size[1] >= MAX2(size[0], size[2])) {
+  else if (size[1] >= std::max(size[0], size[2])) {
     scale = res / size[1];
     fds->scale = size[1] / fabsf(ob->scale[1]);
     fds->base_res[0] = max_ii(int(size[0] * scale + 0.5f), 4);
@@ -608,8 +612,8 @@ static void clamp_bounds_in_domain(FluidDomainSettings *fds,
 static bool is_static_object(Object *ob)
 {
   /* Check if the object has modifiers that might make the object "dynamic". */
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   for (; md; md = md->next) {
     if (ELEM(md->type,
              eModifierType_Cloth,
@@ -732,8 +736,8 @@ static void bb_combineMaps(FluidObjectBB *output,
 
   for (i = 0; i < 3; i++) {
     if (bb1.valid) {
-      output->min[i] = MIN2(bb1.min[i], bb2->min[i]);
-      output->max[i] = MAX2(bb1.max[i], bb2->max[i]);
+      output->min[i] = std::min(bb1.min[i], bb2->min[i]);
+      output->max[i] = std::max(bb1.max[i], bb2->max[i]);
     }
     else {
       output->min[i] = bb2->min[i];
@@ -779,14 +783,15 @@ static void bb_combineMaps(FluidObjectBB *output,
               x - bb2->min[0], bb2->res[0], y - bb2->min[1], bb2->res[1], z - bb2->min[2]);
 
           /* Values. */
-          output->numobjs[index_out] = MAX2(bb2->numobjs[index_in], output->numobjs[index_out]);
+          output->numobjs[index_out] = std::max(bb2->numobjs[index_in],
+                                                output->numobjs[index_out]);
           if (output->influence && bb2->influence) {
             if (additive) {
               output->influence[index_out] += bb2->influence[index_in] * sample_size;
             }
             else {
-              output->influence[index_out] = MAX2(bb2->influence[index_in],
-                                                  output->influence[index_out]);
+              output->influence[index_out] = std::max(bb2->influence[index_in],
+                                                      output->influence[index_out]);
             }
           }
           output->distances[index_out] = MIN2(bb2->distances[index_in],
@@ -859,7 +864,7 @@ static void update_velocities(FluidEffectorSettings *fes,
   nearest.index = -1;
 
   /* Distance between two opposing vertices in a unit cube.
-   * I.e. the unit cube diagonal or sqrt(3).
+   * I.e. the unit cube diagonal or `sqrt(3)`.
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
   /* find_nearest uses squared distance */
@@ -1584,7 +1589,7 @@ static void emit_from_particles(Object *flow_ob,
       /* `DEG_get_ctime(depsgraph)` does not give sub-frame time. */
       state.time = BKE_scene_ctime_get(scene);
 
-      if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
+      if (psys_get_particle_state(&sim, p, &state, false) == 0) {
         continue;
       }
 
@@ -1703,7 +1708,7 @@ static void update_distances(int index,
     BVHTreeNearest nearest = {0};
     nearest.index = -1;
     /* Distance between two opposing vertices in a unit cube.
-     * I.e. the unit cube diagonal or sqrt(3).
+     * I.e. the unit cube diagonal or `sqrt(3)`.
      * This value is our nearest neighbor search distance. */
     const float surface_distance = 1.732;
     /* find_nearest uses squared distance. */
@@ -1825,7 +1830,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
   nearest.index = -1;
 
   /* Distance between two opposing vertices in a unit cube.
-   * I.e. the unit cube diagonal or sqrt(3).
+   * I.e. the unit cube diagonal or `sqrt(3)`.
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
   /* find_nearest uses squared distance. */
@@ -2082,7 +2087,7 @@ static void emit_from_mesh(
     const int numverts = me->totvert;
     const MDeformVert *dvert = BKE_mesh_deform_verts(me);
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
-        CustomData_get_layer_named(&me->ldata, CD_PROP_FLOAT2, ffs->uvlayer_name));
+        CustomData_get_layer_named(&me->loop_data, CD_PROP_FLOAT2, ffs->uvlayer_name));
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
       vert_vel = static_cast<float *>(
@@ -2477,7 +2482,7 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *ffs,
   /* Set emission value for smoke inflow.
    * Ensure that emission value is "maximized". */
   if (emission_in) {
-    emission_in[index] = MAX2(emission_value, emission_in[index]);
+    emission_in[index] = std::max(emission_value, emission_in[index]);
   }
 
   /* Set inflow for smoke from here on. */
@@ -2498,13 +2503,13 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *ffs,
     if (density && density_in) {
       if (ffs->type != FLUID_FLOW_TYPE_FIRE && dens_flow > density[index]) {
         /* Use MAX2 to preserve values from other emitters at this cell. */
-        density_in[index] = MAX2(dens_flow, density_in[index]);
+        density_in[index] = std::max(dens_flow, density_in[index]);
       }
     }
     if (fuel && fuel_in) {
       if (ffs->type != FLUID_FLOW_TYPE_SMOKE && fuel_flow && fuel_flow > fuel[index]) {
         /* Use MAX2 to preserve values from other emitters at this cell. */
-        fuel_in[index] = MAX2(fuel_flow, fuel_in[index]);
+        fuel_in[index] = std::max(fuel_flow, fuel_in[index]);
       }
     }
   }
@@ -3247,7 +3252,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     return nullptr;
   }
   blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
-  blender::MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = me->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = me->corner_verts_for_write();
 
   const bool is_sharp = orgmesh->attributes()
@@ -3262,7 +3267,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   madd_v3fl_v3fl_v3fl_v3i(max, fds->p0, cell_size_scaled, fds->res_max);
   sub_v3_v3v3(size, max, min);
 
-  /* Biggest dimension will be used for upscaling. */
+  /* Biggest dimension will be used for up-scaling. */
   float max_size = MAX3(size[0], size[1], size[2]);
 
   float co_scale[3];
@@ -3339,11 +3344,11 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   int *material_indices = BKE_mesh_material_indices_for_write(me);
 
   /* Loop for triangles. */
-  for (const int i : poly_offsets.index_range().drop_back(1)) {
+  for (const int i : face_offsets.index_range().drop_back(1)) {
     /* Initialize from existing face. */
     material_indices[i] = mp_mat_nr;
 
-    poly_offsets[i] = i * 3;
+    face_offsets[i] = i * 3;
 
     corner_verts[i * 3 + 0] = manta_liquid_get_triangle_x_at(fds->fluid, i);
     corner_verts[i * 3 + 1] = manta_liquid_get_triangle_y_at(fds->fluid, i);
@@ -3382,7 +3387,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
   result = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 4);
   blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
-  blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
 
   if (num_verts) {
@@ -3426,8 +3431,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     co[1] = max[1];
     co[2] = min[2];
 
-    poly_offsets.fill(4);
-    blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
+    face_offsets.fill(4);
+    blender::offset_indices::accumulate_counts_to_offsets(face_offsets);
 
     /* Create faces. */
     /* Top side. */
@@ -4410,7 +4415,7 @@ float BKE_fluid_get_velocity_at(Object *ob, float position[3], float velocity[3]
     if (manta_smoke_has_fuel(fds->fluid)) {
       fuel = BLI_voxel_sample_trilinear(manta_smoke_get_fuel(fds->fluid), fds->res, pos);
     }
-    return MAX2(density, fuel);
+    return std::max(density, fuel);
   }
   return -1.0f;
 }
@@ -4570,21 +4575,21 @@ void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, in
   /* Set values for border collision:
    * Liquids should have a closed domain, smoke domains should be open. */
   if (type == FLUID_DOMAIN_TYPE_GAS) {
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, 1);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, true);
     object->dt = OB_WIRE;
   }
   else if (type == FLUID_DOMAIN_TYPE_LIQUID) {
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, 0);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, false);
     object->dt = OB_SOLID;
   }
 

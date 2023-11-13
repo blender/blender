@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 /* #pragma (common_math_geom_lib.glsl) */
@@ -64,20 +67,18 @@ Closure closure_eval(ClosureHair hair);
 Closure closure_eval(ClosureReflection reflection, ClosureRefraction refraction);
 /* Dielectric BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection);
-/* ClearCoat BSDF. */
-Closure closure_eval(ClosureReflection reflection, ClosureReflection clearcoat);
+/* Coat BSDF. */
+Closure closure_eval(ClosureReflection reflection, ClosureReflection coat);
 /* Volume BSDF. */
 Closure closure_eval(ClosureVolumeScatter volume_scatter,
                      ClosureVolumeAbsorption volume_absorption,
                      ClosureEmission emission);
 /* Specular BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse,
-                     ClosureReflection reflection,
-                     ClosureReflection clearcoat);
+Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, ClosureReflection coat);
 /* Principled BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse,
                      ClosureReflection reflection,
-                     ClosureReflection clearcoat,
+                     ClosureReflection coat,
                      ClosureRefraction refraction);
 
 Closure closure_add(inout Closure cl1, inout Closure cl2);
@@ -88,15 +89,31 @@ float ambient_occlusion_eval(vec3 normal,
                              const float inverted,
                              const float sample_count);
 
-/* WORKAROUND: Included later with libs. This is because we are mixing include systems. */
+/* WORKAROUND: Included later with libraries. This is because we are mixing include systems. */
 vec3 safe_normalize(vec3 N);
 float fast_sqrt(float a);
 vec3 cameraVec(vec3 P);
-vec2 btdf_lut(float a, float b, float c);
+vec2 bsdf_lut(float a, float b, float c, bool d);
+void bsdf_lut(vec3 F0,
+              vec3 F90,
+              vec3 transmission_tint,
+              float cos_theta,
+              float roughness,
+              float ior,
+              bool do_multiscatter,
+              out vec3 reflectance,
+              out vec3 transmittance);
 vec2 brdf_lut(float a, float b);
+void brdf_f82_tint_lut(vec3 F0,
+                       vec3 F82,
+                       float cos_theta,
+                       float roughness,
+                       bool do_multiscatter,
+                       out vec3 reflectance);
 vec3 F_brdf_multi_scatter(vec3 a, vec3 b, vec2 c);
 vec3 F_brdf_single_scatter(vec3 a, vec3 b, vec2 c);
 float F_eta(float a, float b);
+float F0_from_ior(float a);
 #endif
 
 #ifdef VOLUMETRICS

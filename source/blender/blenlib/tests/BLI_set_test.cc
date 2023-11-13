@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -639,6 +639,7 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, int amount, int factor)
   BLI_rng_free(rng);
 
   SetT set;
+  // set.reserve(amount);
   {
     SCOPED_TIMER(name + " Add");
     for (int value : values) {
@@ -663,71 +664,154 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, int amount, int factor)
   std::cout << "Count: " << count << "\n";
 }
 
+/**
+ * A wrapper for std::unordered_set with the API of blender::Set. This can be used for
+ * benchmarking.
+ */
+template<typename Key> class StdUnorderedSetWrapper {
+ private:
+  using SetType = std::unordered_set<Key, blender::DefaultHash<Key>>;
+  SetType set_;
+
+ public:
+  int64_t size() const
+  {
+    return int64_t(set_.size());
+  }
+
+  bool is_empty() const
+  {
+    return set_.empty();
+  }
+
+  void reserve(int64_t n)
+  {
+    set_.reserve(size_t(n));
+  }
+
+  void add_new(const Key &key)
+  {
+    set_.insert(key);
+  }
+  void add_new(Key &&key)
+  {
+    set_.insert(std::move(key));
+  }
+
+  bool add(const Key &key)
+  {
+    return set_.insert(key).second;
+  }
+  bool add(Key &&key)
+  {
+    return set_.insert(std::move(key)).second;
+  }
+
+  void add_multiple(Span<Key> keys)
+  {
+    for (const Key &key : keys) {
+      set_.insert(key);
+    }
+  }
+
+  bool contains(const Key &key) const
+  {
+    return set_.find(key) != set_.end();
+  }
+
+  bool remove(const Key &key)
+  {
+    return bool(set_.erase(key));
+  }
+
+  void remove_contained(const Key &key)
+  {
+    return set_.erase(key);
+  }
+
+  void clear()
+  {
+    set_.clear();
+  }
+
+  typename SetType::iterator begin() const
+  {
+    return set_.begin();
+  }
+
+  typename SetType::iterator end() const
+  {
+    return set_.end();
+  }
+};
+
 TEST(set, Benchmark)
 {
   for (int i = 0; i < 3; i++) {
-    benchmark_random_ints<blender::Set<int>>("blender::Set      ", 100000, 1);
-    benchmark_random_ints<blender::StdUnorderedSetWrapper<int>>("std::unordered_set", 100000, 1);
+    benchmark_random_ints<Set<int>>("blender::Set      ", 100000, 1);
+    benchmark_random_ints<StdUnorderedSetWrapper<int>>("std::unordered_set", 100000, 1);
   }
   std::cout << "\n";
   for (int i = 0; i < 3; i++) {
     uint32_t factor = (3 << 10);
-    benchmark_random_ints<blender::Set<int>>("blender::Set      ", 100000, factor);
-    benchmark_random_ints<blender::StdUnorderedSetWrapper<int>>("std::unordered_set", 100000, factor);
+    benchmark_random_ints<Set<int>>("blender::Set      ", 100000, int(factor));
+    benchmark_random_ints<StdUnorderedSetWrapper<int>>("std::unordered_set", 100000, int(factor));
   }
 }
 
 /**
- * Output of the rudimentary benchmark above on my hardware.
+ * Output of the rudimentary benchmark above on an AMD Ryzen 9 3900X using gcc 12.3.1.
+ * The difference is more pronounced when `reserve` is used.
+ * When using clang 15.0.7 the numbers fairly similar.
  *
- * Timer 'blender::Set       Add' took 5.5573 ms
- * Timer 'blender::Set       Contains' took 0.807384 ms
- * Timer 'blender::Set       Remove' took 0.953436 ms
+ * Timer 'blender::Set       Add' took 2.9 ms
+ * Timer 'blender::Set       Contains' took 0.4 ms
+ * Timer 'blender::Set       Remove' took 0.5 ms
  * Count: 199998
- * Timer 'std::unordered_set Add' took 12.551 ms
- * Timer 'std::unordered_set Contains' took 2.3323 ms
- * Timer 'std::unordered_set Remove' took 5.07082 ms
+ * Timer 'std::unordered_set Add' took 6.4 ms
+ * Timer 'std::unordered_set Contains' took 1.2 ms
+ * Timer 'std::unordered_set Remove' took 4.0 ms
  * Count: 199998
- * Timer 'blender::Set       Add' took 2.62526 ms
- * Timer 'blender::Set       Contains' took 0.407499 ms
- * Timer 'blender::Set       Remove' took 0.472981 ms
+ * Timer 'blender::Set       Add' took 2.1 ms
+ * Timer 'blender::Set       Contains' took 0.4 ms
+ * Timer 'blender::Set       Remove' took 0.4 ms
  * Count: 199998
- * Timer 'std::unordered_set Add' took 6.26945 ms
- * Timer 'std::unordered_set Contains' took 1.17236 ms
- * Timer 'std::unordered_set Remove' took 3.77402 ms
+ * Timer 'std::unordered_set Add' took 5.5 ms
+ * Timer 'std::unordered_set Contains' took 1.2 ms
+ * Timer 'std::unordered_set Remove' took 4.0 ms
  * Count: 199998
- * Timer 'blender::Set       Add' took 2.59152 ms
- * Timer 'blender::Set       Contains' took 0.415254 ms
- * Timer 'blender::Set       Remove' took 0.477559 ms
+ * Timer 'blender::Set       Add' took 2.0 ms
+ * Timer 'blender::Set       Contains' took 0.4 ms
+ * Timer 'blender::Set       Remove' took 0.5 ms
  * Count: 199998
- * Timer 'std::unordered_set Add' took 6.28129 ms
- * Timer 'std::unordered_set Contains' took 1.17562 ms
- * Timer 'std::unordered_set Remove' took 3.77811 ms
+ * Timer 'std::unordered_set Add' took 5.6 ms
+ * Timer 'std::unordered_set Contains' took 1.2 ms
+ * Timer 'std::unordered_set Remove' took 4.0 ms
  * Count: 199998
  *
- * Timer 'blender::Set       Add' took 3.16514 ms
- * Timer 'blender::Set       Contains' took 0.732895 ms
- * Timer 'blender::Set       Remove' took 1.08171 ms
+ * Timer 'blender::Set       Add' took 2.7 ms
+ * Timer 'blender::Set       Contains' took 0.8 ms
+ * Timer 'blender::Set       Remove' took 1.1 ms
  * Count: 198790
- * Timer 'std::unordered_set Add' took 6.57377 ms
- * Timer 'std::unordered_set Contains' took 1.17008 ms
- * Timer 'std::unordered_set Remove' took 3.7946 ms
+ * Timer 'std::unordered_set Add' took 6.3 ms
+ * Timer 'std::unordered_set Contains' took 1.5 ms
+ * Timer 'std::unordered_set Remove' took 4.4 ms
  * Count: 198790
- * Timer 'blender::Set       Add' took 3.11439 ms
- * Timer 'blender::Set       Contains' took 0.740159 ms
- * Timer 'blender::Set       Remove' took 1.06749 ms
+ * Timer 'blender::Set       Add' took 2.6 ms
+ * Timer 'blender::Set       Contains' took 0.8 ms
+ * Timer 'blender::Set       Remove' took 1.1 ms
  * Count: 198790
- * Timer 'std::unordered_set Add' took 6.35597 ms
- * Timer 'std::unordered_set Contains' took 1.17713 ms
- * Timer 'std::unordered_set Remove' took 3.77826 ms
+ * Timer 'std::unordered_set Add' took 6.4 ms
+ * Timer 'std::unordered_set Contains' took 1.5 ms
+ * Timer 'std::unordered_set Remove' took 4.4 ms
  * Count: 198790
- * Timer 'blender::Set       Add' took 3.09876 ms
- * Timer 'blender::Set       Contains' took 0.742072 ms
- * Timer 'blender::Set       Remove' took 1.06622 ms
+ * Timer 'blender::Set       Add' took 2.7 ms
+ * Timer 'blender::Set       Contains' took 0.8 ms
+ * Timer 'blender::Set       Remove' took 1.1 ms
  * Count: 198790
- * Timer 'std::unordered_set Add' took 6.4469 ms
- * Timer 'std::unordered_set Contains' took 1.16515 ms
- * Timer 'std::unordered_set Remove' took 3.80639 ms
+ * Timer 'std::unordered_set Add' took 6.3 ms
+ * Timer 'std::unordered_set Contains' took 1.5 ms
+ * Timer 'std::unordered_set Remove' took 4.3 ms
  * Count: 198790
  */
 

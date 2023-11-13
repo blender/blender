@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,6 +16,7 @@
  */
 #  define WL_ARRAY_FOR_EACH(pos, array) \
     for (pos = (decltype(pos))((array)->data); \
-         (const char *)pos < ((const char *)(array)->data + (array)->size); \
+         reinterpret_cast<const char *>(pos) < \
+         (reinterpret_cast<const char *>((array)->data) + (array)->size); \
          (pos)++)
 #endif

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -63,6 +63,8 @@
 
 #include "draw_manager.h"
 #include "draw_texture_pool.h"
+
+#include "BKE_global.h"
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
@@ -177,8 +179,11 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
 #endif
 
  public:
-  UniformCommon()
+  UniformCommon(const char *name = nullptr)
   {
+    if (name) {
+      name_ = name;
+    }
     ubo_ = GPU_uniformbuf_create_ex(sizeof(T) * len, nullptr, name_);
   }
 
@@ -243,6 +248,11 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     GPU_storagebuf_clear_to_zero(ssbo_);
   }
 
+  void async_flush_to_host()
+  {
+    GPU_storagebuf_sync_to_host(ssbo_);
+  }
+
   void read()
   {
     GPU_storagebuf_read(ssbo_, this->data_);
@@ -277,7 +287,7 @@ template<
     /* bool device_only = false */>
 class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
  public:
-  UniformArrayBuffer()
+  UniformArrayBuffer(const char *name = nullptr) : detail::UniformCommon<T, len, false>(name)
   {
     /* TODO(@fclem): We should map memory instead. */
     this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
@@ -296,7 +306,7 @@ template<
     /* bool device_only = false */>
 class UniformBuffer : public T, public detail::UniformCommon<T, 1, false> {
  public:
-  UniformBuffer()
+  UniformBuffer(const char *name = nullptr) : detail::UniformCommon<T, 1, false>(name)
   {
     /* TODO(@fclem): How could we map this? */
     this->data_ = static_cast<T *>(this);
@@ -368,6 +378,11 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
     return this->len_;
   }
 
+  MutableSpan<T> as_span() const
+  {
+    return {this->data_, this->len_};
+  }
+
   static void swap(StorageArrayBuffer &a, StorageArrayBuffer &b)
   {
     SWAP(T *, a.data_, b.data_);
@@ -421,6 +436,14 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
     }
     T *ptr = &this->data_[item_len_++];
     new (ptr) T(std::forward<ForwardT>(value)...);
+  }
+
+  void extend(const Span<T> &values)
+  {
+    /* TODO(fclem): Optimize to a single memcpy. */
+    for (auto v : values) {
+      this->append(v);
+    }
   }
 
   int64_t size() const
@@ -546,6 +569,7 @@ class Texture : NonCopyable {
     tx_ = create(UNPACK3(extent), mip_len, format, usage, data, false, false);
   }
 
+  Texture(Texture &&other) = default;
   ~Texture()
   {
     free();
@@ -562,6 +586,12 @@ class Texture : NonCopyable {
   GPUTexture **operator&()
   {
     return &tx_;
+  }
+
+  /** WORKAROUND: used when needing a ref to the Texture and not the GPUTexture. */
+  Texture *ptr()
+  {
+    return this;
   }
 
   Texture &operator=(Texture &&a)
@@ -608,6 +638,7 @@ class Texture : NonCopyable {
                        float *data = nullptr,
                        int mip_len = 1)
   {
+    BLI_assert(layers > 0);
     return ensure_impl(extent, layers, 0, mip_len, format, usage, data, true, false);
   }
 
@@ -635,6 +666,7 @@ class Texture : NonCopyable {
                        float *data = nullptr,
                        int mip_len = 1)
   {
+    BLI_assert(layers > 0);
     return ensure_impl(UNPACK2(extent), layers, mip_len, format, usage, data, true, false);
   }
 
@@ -675,7 +707,7 @@ class Texture : NonCopyable {
                          float *data = nullptr,
                          int mip_len = 1)
   {
-    return ensure_impl(extent, extent, layers, mip_len, format, usage, data, false, true);
+    return ensure_impl(extent, extent, layers, mip_len, format, usage, data, true, true);
   }
 
   /**
@@ -834,6 +866,25 @@ class Texture : NonCopyable {
   }
 
   /**
+   * Clear the texture to NaN for floats, or a to debug value for integers.
+   * (For debugging uninitialized data issues)
+   */
+  void debug_clear()
+  {
+    if (GPU_texture_has_float_format(this->tx_) || GPU_texture_has_normalized_format(this->tx_)) {
+      this->clear(float4(NAN_FLT));
+    }
+    else if (GPU_texture_has_integer_format(this->tx_)) {
+      if (GPU_texture_has_signed_format(this->tx_)) {
+        this->clear(int4(0xF0F0F0F0));
+      }
+      else {
+        this->clear(uint4(0xF0F0F0F0));
+      }
+    }
+  }
+
+  /**
    * Returns a buffer containing the texture data for the specified miplvl.
    * The memory block needs to be manually freed by MEM_freeN().
    */
@@ -898,6 +949,9 @@ class Texture : NonCopyable {
     }
     if (tx_ == nullptr) {
       tx_ = create(w, h, d, mip_len, format, usage, data, layered, cubemap);
+      if (data == nullptr && (G.debug & G_DEBUG_GPU)) {
+        debug_clear();
+      }
       return true;
     }
     return false;
@@ -956,6 +1010,10 @@ class TextureFromPool : public Texture, NonMovable {
 
     this->tx_ = DRW_texture_pool_texture_acquire(
         DST.vmempool->texture_pool, UNPACK2(extent), format, usage);
+
+    if (G.debug & G_DEBUG_GPU) {
+      debug_clear();
+    }
   }
 
   void release()
@@ -985,6 +1043,12 @@ class TextureFromPool : public Texture, NonMovable {
   static void swap(TextureFromPool &a, TextureFromPool &b)
   {
     Texture::swap(a, b);
+  }
+
+  /** WORKAROUND: used when needing a ref to the Texture and not the GPUTexture. */
+  TextureFromPool *ptr()
+  {
+    return this;
   }
 
   /** Remove methods that are forbidden with this type of textures. */

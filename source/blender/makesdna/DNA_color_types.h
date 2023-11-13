@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,10 +10,6 @@
 
 #include "DNA_defs.h"
 #include "DNA_vec_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* general defines for kernel functions */
 #define CM_RESOL 32
@@ -60,6 +56,8 @@ typedef struct CurveMap {
   /** For RGB curves, pre-multiplied extrapolation vector. */
   float premul_ext_in[2];
   float premul_ext_out[2];
+  short default_handle_type;
+  char _pad[6];
 } CurveMap;
 
 typedef struct CurveMapping {
@@ -107,6 +105,7 @@ typedef enum eCurveMappingPreset {
   CURVE_PRESET_ROOT = 6,
   CURVE_PRESET_GAUSS = 7,
   CURVE_PRESET_BELL = 8,
+  CURVE_PRESET_CONSTANT_MEDIAN = 9,
 } eCurveMappingPreset;
 
 /** #CurveMapping.tone */
@@ -207,8 +206,5 @@ typedef struct ColorManagedColorspaceSettings {
 /** #ColorManagedViewSettings.flag */
 enum {
   COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
+  COLORMANAGE_VIEW_USE_HDR = (1 << 1),
 };
-
-#ifdef __cplusplus
-}
-#endif

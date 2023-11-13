@@ -56,7 +56,7 @@ void BKE_text_write(struct Text *text, const char *str, int str_len) ATTR_NONNUL
  * -  2 if filepath on disk has been deleted.
  * - -1 is returned if an error occurs.
  */
-int BKE_text_file_modified_check(struct Text *text);
+int BKE_text_file_modified_check(const struct Text *text);
 void BKE_text_file_modified_ignore(struct Text *text);
 
 char *txt_to_buf(struct Text *text, size_t *r_buf_strlen)
@@ -130,7 +130,7 @@ bool text_check_identifier_nodigit(char ch);
 bool text_check_whitespace(char ch);
 int text_find_identifier_start(const char *str, int i);
 
-/* EVIL: defined in `bpy_interface.c`. */
+/* EVIL: defined in `bpy_interface.cc`. */
 extern int text_check_identifier_unicode(unsigned int ch);
 extern int text_check_identifier_nodigit_unicode(unsigned int ch);
 

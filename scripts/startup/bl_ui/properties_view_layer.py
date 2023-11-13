@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -35,7 +35,7 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -53,7 +53,7 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
 
 class VIEWLAYER_PT_layer_passes(ViewLayerButtonsPanel, Panel):
     bl_label = "Passes"
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
 
     def draw(self, context):
         pass
@@ -83,7 +83,32 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
     bl_label = "Data"
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
 
-    COMPAT_ENGINES = {'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        view_layer = context.view_layer
+
+        col = layout.column()
+        col.prop(view_layer, "use_pass_combined")
+        col.prop(view_layer, "use_pass_z")
+        col.prop(view_layer, "use_pass_mist")
+        col.prop(view_layer, "use_pass_normal")
+        col.prop(view_layer, "use_pass_position")
+        sub = col.column()
+        sub.active = not scene.eevee.use_motion_blur
+        sub.prop(view_layer, "use_pass_vector")
+
+
+class VIEWLAYER_PT_workbench_layer_passes_data(ViewLayerButtonsPanel, Panel):
+    bl_label = "Data"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+
+    COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -100,7 +125,7 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
 class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
     bl_label = "Light"
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -128,6 +153,44 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_shadow")
         col.prop(view_layer, "use_pass_ambient_occlusion",
                  text="Ambient Occlusion")
+
+
+class VIEWLAYER_PT_eevee_next_layer_passes_light(ViewLayerButtonsPanel, Panel):
+    bl_label = "Light"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        view_layer = context.view_layer
+        view_layer_eevee = view_layer.eevee
+
+        col = layout.column(heading="Diffuse", align=True)
+        col.prop(view_layer, "use_pass_diffuse_direct", text="Light")
+        col.prop(view_layer, "use_pass_diffuse_color", text="Color")
+
+        col = layout.column(heading="Specular", align=True)
+        col.prop(view_layer, "use_pass_glossy_direct", text="Light")
+        col.prop(view_layer, "use_pass_glossy_color", text="Color")
+
+        col = layout.column(heading="Volume", heading_ctxt=i18n_contexts.id_id, align=True)
+        col.prop(view_layer_eevee, "use_pass_volume_direct", text="Light")
+
+        col = layout.column(heading="Other", align=True)
+        col.prop(view_layer, "use_pass_emit", text="Emission")
+        col.prop(view_layer, "use_pass_environment")
+        col.prop(view_layer, "use_pass_shadow")
+        col.prop(view_layer, "use_pass_ambient_occlusion",
+                 text="Ambient Occlusion")
+
+        col = layout.column()
+        col.active = view_layer.use_pass_ambient_occlusion
+        # TODO Move to view layer.
+        col.prop(context.scene.eevee, "gtao_distance", text="Occlusion Distance")
 
 
 class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
@@ -268,9 +331,11 @@ classes = (
     VIEWLAYER_MT_lightgroup_sync,
     VIEWLAYER_PT_layer,
     VIEWLAYER_PT_layer_passes,
-    VIEWLAYER_PT_eevee_next_layer_passes_data,
+    VIEWLAYER_PT_workbench_layer_passes_data,
     VIEWLAYER_PT_eevee_layer_passes_data,
+    VIEWLAYER_PT_eevee_next_layer_passes_data,
     VIEWLAYER_PT_eevee_layer_passes_light,
+    VIEWLAYER_PT_eevee_next_layer_passes_light,
     VIEWLAYER_PT_eevee_layer_passes_effects,
     VIEWLAYER_PT_layer_passes_cryptomatte,
     VIEWLAYER_PT_layer_passes_aov,

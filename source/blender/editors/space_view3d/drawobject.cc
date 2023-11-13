@@ -18,20 +18,20 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_object.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_object.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
 #include "GPU_shader.h"
 #include "GPU_state.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DRW_engine.h"
 

@@ -18,6 +18,63 @@ template <typename _MatrixType, typename _OrderingType = COLAMDOrdering<typename
 template <typename MappedSparseMatrixType> struct SparseLUMatrixLReturnType;
 template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixUReturnType;
 
+template <bool Conjugate,class SparseLUType>
+class SparseLUTransposeView : public SparseSolverBase<SparseLUTransposeView<Conjugate,SparseLUType> >
+{
+protected:
+  typedef SparseSolverBase<SparseLUTransposeView<Conjugate,SparseLUType> > APIBase;
+  using APIBase::m_isInitialized;
+public:
+  typedef typename SparseLUType::Scalar Scalar;
+  typedef typename SparseLUType::StorageIndex StorageIndex;
+  typedef typename SparseLUType::MatrixType MatrixType;
+  typedef typename SparseLUType::OrderingType OrderingType;
+
+  enum {
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+
+  SparseLUTransposeView() : m_sparseLU(NULL) {}
+  SparseLUTransposeView(const SparseLUTransposeView& view) {
+    this->m_sparseLU = view.m_sparseLU;
+  }
+  void setIsInitialized(const bool isInitialized) {this->m_isInitialized = isInitialized;}
+  void setSparseLU(SparseLUType* sparseLU) {m_sparseLU = sparseLU;}
+  using APIBase::_solve_impl;
+  template<typename Rhs, typename Dest>
+  bool _solve_impl(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X_base) const
+  {
+    Dest& X(X_base.derived());
+    eigen_assert(m_sparseLU->info() == Success && "The matrix should be factorized first");
+    EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
+                        THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
+
+
+    // this ugly const_cast_derived() helps to detect aliasing when applying the permutations
+    for(Index j = 0; j < B.cols(); ++j){
+      X.col(j) = m_sparseLU->colsPermutation() * B.const_cast_derived().col(j);
+    }
+    //Forward substitution with transposed or adjoint of U
+    m_sparseLU->matrixU().template solveTransposedInPlace<Conjugate>(X);
+
+    //Backward substitution with transposed or adjoint of L
+    m_sparseLU->matrixL().template solveTransposedInPlace<Conjugate>(X);
+
+    // Permute back the solution
+    for (Index j = 0; j < B.cols(); ++j)
+      X.col(j) = m_sparseLU->rowsPermutation().transpose() * X.col(j);
+    return true;
+  }
+  inline Index rows() const { return m_sparseLU->rows(); }
+  inline Index cols() const { return m_sparseLU->cols(); }
+
+private:
+  SparseLUType *m_sparseLU;
+  SparseLUTransposeView& operator=(const SparseLUTransposeView&);
+};
+
+
 /** \ingroup SparseLU_Module
   * \class SparseLU
   * 
@@ -26,7 +83,7 @@ template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixURetu
   * This class implements the supernodal LU factorization for general matrices.
   * It uses the main techniques from the sequential SuperLU package 
   * (http://crd-legacy.lbl.gov/~xiaoye/SuperLU/). It handles transparently real 
-  * and complex arithmetics with single and double precision, depending on the 
+  * and complex arithmetic with single and double precision, depending on the 
   * scalar type of your input matrix. 
   * The code has been optimized to provide BLAS-3 operations during supernode-panel updates. 
   * It benefits directly from the built-in high-performant Eigen BLAS routines. 
@@ -43,8 +100,8 @@ template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixURetu
   * Simple example with key steps 
   * \code
   * VectorXd x(n), b(n);
-  * SparseMatrix<double, ColMajor> A;
-  * SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<Index> >   solver;
+  * SparseMatrix<double> A;
+  * SparseLU<SparseMatrix<double>, COLAMDOrdering<int> >   solver;
   * // fill A and b;
   * // Compute the ordering permutation vector from the structural pattern of A
   * solver.analyzePattern(A); 
@@ -97,6 +154,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     };
     
   public:
+
     SparseLU():m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
     {
       initperfvalues(); 
@@ -128,6 +186,45 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
       //Factorize
       factorize(matrix);
     } 
+
+    /** \returns an expression of the transposed of the factored matrix.
+      *
+      * A typical usage is to solve for the transposed problem A^T x = b:
+      * \code
+      * solver.compute(A);
+      * x = solver.transpose().solve(b);
+      * \endcode
+      *
+      * \sa adjoint(), solve()
+      */
+    const SparseLUTransposeView<false,SparseLU<_MatrixType,_OrderingType> > transpose()
+    {
+      SparseLUTransposeView<false,  SparseLU<_MatrixType,_OrderingType> > transposeView;
+      transposeView.setSparseLU(this);
+      transposeView.setIsInitialized(this->m_isInitialized);
+      return transposeView;
+    }
+
+
+    /** \returns an expression of the adjoint of the factored matrix
+      *
+      * A typical usage is to solve for the adjoint problem A' x = b:
+      * \code
+      * solver.compute(A);
+      * x = solver.adjoint().solve(b);
+      * \endcode
+      *
+      * For real scalar types, this function is equivalent to transpose().
+      *
+      * \sa transpose(), solve()
+      */
+    const SparseLUTransposeView<true, SparseLU<_MatrixType,_OrderingType> > adjoint()
+    {
+      SparseLUTransposeView<true,  SparseLU<_MatrixType,_OrderingType> > adjointView;
+      adjointView.setSparseLU(this);
+      adjointView.setIsInitialized(this->m_isInitialized);
+      return adjointView;
+    }
     
     inline Index rows() const { return m_mat.rows(); }
     inline Index cols() const { return m_mat.cols(); }
@@ -193,7 +290,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the LU factorization reports a problem, zero diagonal for instance
       *          \c InvalidInput if the input matrix is invalid
       *
@@ -355,6 +452,9 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
       return (m_detPermR * m_detPermC) > 0 ? det : -det;
     }
 
+    Index nnzL() const { return m_nnzL; };
+    Index nnzU() const { return m_nnzU; };
+
   protected:
     // Functions 
     void initperfvalues()
@@ -391,7 +491,6 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
   private:
     // Disable copy constructor 
     SparseLU (const SparseLU& );
-  
 }; // End class SparseLU
 
 
@@ -501,7 +600,6 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   m_isInitialized = true;
   
-  
   // Apply the column permutation computed in analyzepattern()
   //   m_mat = matrix * m_perm_c.inverse(); 
   m_mat = matrix;
@@ -585,7 +683,6 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   //  (a) a relaxed supernode at the bottom of the etree, or
   //  (b) panel_size contiguous columns, <panel_size> defined by the user
   Index jcol; 
-  IndexVector panel_histo(n);
   Index pivrow; // Pivotal row number in the original row matrix
   Index nseg1; // Number of segments in U-column above panel row jcol
   Index nseg; // Number of segments in each U-column 
@@ -704,13 +801,19 @@ struct SparseLUMatrixLReturnType : internal::no_assignment_operator
   typedef typename MappedSupernodalType::Scalar Scalar;
   explicit SparseLUMatrixLReturnType(const MappedSupernodalType& mapL) : m_mapL(mapL)
   { }
-  Index rows() { return m_mapL.rows(); }
-  Index cols() { return m_mapL.cols(); }
+  Index rows() const { return m_mapL.rows(); }
+  Index cols() const { return m_mapL.cols(); }
   template<typename Dest>
   void solveInPlace( MatrixBase<Dest> &X) const
   {
     m_mapL.solveInPlace(X);
   }
+  template<bool Conjugate, typename Dest>
+  void solveTransposedInPlace( MatrixBase<Dest> &X) const
+  {
+    m_mapL.template solveTransposedInPlace<Conjugate>(X);
+  }
+
   const MappedSupernodalType& m_mapL;
 };
 
@@ -721,8 +824,8 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
   SparseLUMatrixUReturnType(const MatrixLType& mapL, const MatrixUType& mapU)
   : m_mapL(mapL),m_mapU(mapU)
   { }
-  Index rows() { return m_mapL.rows(); }
-  Index cols() { return m_mapL.cols(); }
+  Index rows() const { return m_mapL.rows(); }
+  Index cols() const { return m_mapL.cols(); }
 
   template<typename Dest>   void solveInPlace(MatrixBase<Dest> &X) const
   {
@@ -745,8 +848,9 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
       }
       else
       {
+        // FIXME: the following lines should use Block expressions and not Map!
         Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > A( &(m_mapL.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
-        Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
+        Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X.coeffRef(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
         U = A.template triangularView<Upper>().solve(U);
       }
 
@@ -764,6 +868,52 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
       }
     } // End For U-solve
   }
+
+  template<bool Conjugate, typename Dest>   void solveTransposedInPlace(MatrixBase<Dest> &X) const
+  {
+    using numext::conj;
+    Index nrhs = X.cols();
+    Index n    = X.rows();
+    // Forward solve with U
+    for (Index k = 0; k <=  m_mapL.nsuper(); k++)
+    {
+      Index fsupc = m_mapL.supToCol()[k];
+      Index lda = m_mapL.colIndexPtr()[fsupc+1] - m_mapL.colIndexPtr()[fsupc]; // leading dimension
+      Index nsupc = m_mapL.supToCol()[k+1] - fsupc;
+      Index luptr = m_mapL.colIndexPtr()[fsupc];
+
+      for (Index j = 0; j < nrhs; ++j)
+      {
+        for (Index jcol = fsupc; jcol < fsupc + nsupc; jcol++)
+        {
+          typename MatrixUType::InnerIterator it(m_mapU, jcol);
+          for ( ; it; ++it)
+          {
+            Index irow = it.index();
+            X(jcol, j) -= X(irow, j) * (Conjugate? conj(it.value()): it.value());
+          }
+        }
+      }
+      if (nsupc == 1)
+      {
+        for (Index j = 0; j < nrhs; j++)
+        {
+          X(fsupc, j) /= (Conjugate? conj(m_mapL.valuePtr()[luptr]) : m_mapL.valuePtr()[luptr]);
+        }
+      }
+      else
+      {
+        Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > A( &(m_mapL.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
+        Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
+        if(Conjugate)
+          U = A.adjoint().template triangularView<Lower>().solve(U);
+        else
+          U = A.transpose().template triangularView<Lower>().solve(U);
+      }
+    }// End For U-solve
+  }
+
+
   const MatrixLType& m_mapL;
   const MatrixUType& m_mapU;
 };

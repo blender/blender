@@ -1,5 +1,5 @@
 #!/bin/sh
-# SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2011-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -97,7 +97,7 @@ cat > CMakeLists.txt << EOF
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2011, Blender Foundation
+# The Original Code is Copyright (C) 2011, Blender Authors
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 

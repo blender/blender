@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -86,7 +86,6 @@ class TonemapOperation : public MultiThreadedOperation {
  * most parts have already been done in #TonemapOperation.
  * \ingroup operation
  */
-
 class PhotoreceptorTonemapOperation : public TonemapOperation {
  public:
   /**

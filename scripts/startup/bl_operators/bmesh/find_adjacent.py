@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2016-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2016-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -89,15 +89,18 @@ def elems_depth_search(ele_init, depths, other_edges_over_cb, results_init=None)
     if type(ele_init) is bmesh.types.BMFace:
         test_ele = {
             l.face for v, depth in vert_depths.items()
-            if depth >= depth_min for l in v.link_loops}
+            if depth >= depth_min for l in v.link_loops
+        }
     elif type(ele_init) is bmesh.types.BMEdge:
         test_ele = {
             e for v, depth in vert_depths.items()
-            if depth >= depth_min for e in v.link_edges if not e.is_wire}
+            if depth >= depth_min for e in v.link_edges if not e.is_wire
+        }
     else:
         test_ele = {
             v for v, depth in vert_depths.items()
-            if depth >= depth_min}
+            if depth >= depth_min
+        }
 
     result_ele = set()
 

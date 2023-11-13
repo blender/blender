@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,12 +12,12 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_subdiv.h"
-#include "BKE_subdiv_eval.h"
+#include "BKE_subdiv.hh"
+#include "BKE_subdiv_eval.hh"
 
 #include "multires_reshape.hh"
 #include "opensubdiv_converter_capi.h"
-#include "subdiv_converter.h"
+#include "subdiv_converter.hh"
 
 static float simple_to_catmull_clark_get_edge_sharpness(const OpenSubdiv_Converter * /*converter*/,
                                                         int /*manifold_edge_index*/)

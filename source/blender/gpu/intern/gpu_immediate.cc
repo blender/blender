@@ -9,7 +9,7 @@
  */
 
 #ifndef GPU_STANDALONE
-#  include "UI_resources.h"
+#  include "UI_resources.hh"
 #endif
 
 #include "GPU_immediate.h"

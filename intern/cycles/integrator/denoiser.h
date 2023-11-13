@@ -97,6 +97,11 @@ class Denoiser {
     return is_cancelled_cb();
   }
 
+  void set_error(const string &error)
+  {
+    path_trace_device_->set_error(error);
+  }
+
  protected:
   Denoiser(Device *path_trace_device, const DenoiseParams &params);
 

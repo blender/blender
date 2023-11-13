@@ -13,7 +13,9 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.hh"
+#ifdef WITH_METAL_BACKEND
+#  include "GHOST_ContextCGL.hh"
+#endif
 
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
@@ -173,14 +175,18 @@
   NSPoint mouseLocation = [sender draggingLocation];
   NSPasteboard *draggingPBoard = [sender draggingPasteboard];
 
-  if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF])
+  if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF]) {
     m_draggedObjectType = GHOST_kDragnDropTypeBitmap;
-  else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType])
+  }
+  else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType]) {
     m_draggedObjectType = GHOST_kDragnDropTypeFilenames;
-  else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString])
+  }
+  else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString]) {
     m_draggedObjectType = GHOST_kDragnDropTypeString;
-  else
+  }
+  else {
     return NSDragOperationNone;
+  }
 
   associatedWindow->setAcceptDragOperation(TRUE);  // Drag operation is accepted by default
   systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered,
@@ -238,8 +244,10 @@
         droppedImg = [[NSImage alloc] initWithPasteboard:draggingPBoard];
         data = droppedImg;  //[draggingPBoard dataForType:NSPasteboardTypeTIFF];
       }
-      else
+      else {
         return NO;
+      }
+
       break;
     case GHOST_kDragnDropTypeFilenames:
       data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
@@ -345,6 +353,21 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     [m_metalLayer removeAllAnimations];
     [m_metalLayer setDevice:metalDevice];
 
+    if (type == GHOST_kDrawingContextTypeMetal) {
+      /* Enable EDR support. This is done by:
+       * 1. Using a floating point render target, so that values outside 0..1 can be used
+       * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
+       * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
+       *    values.
+       */
+      m_metalLayer.wantsExtendedDynamicRangeContent = YES;
+      m_metalLayer.pixelFormat = MTLPixelFormatRGBA16Float;
+      const CFStringRef name = kCGColorSpaceExtendedSRGB;
+      CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
+      m_metalLayer.colorspace = colorspace;
+      CGColorSpaceRelease(colorspace);
+    }
+
     m_metalView = [[CocoaMetalView alloc] initWithFrame:rect];
     [m_metalView setWantsLayer:YES];
     [m_metalView setLayer:m_metalLayer];
@@ -401,8 +424,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     [m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
   }
 
-  if (state == GHOST_kWindowStateFullScreen)
+  if (state == GHOST_kWindowStateFullScreen) {
     setState(GHOST_kWindowStateFullScreen);
+  }
 
   setNativePixelSize();
 
@@ -456,7 +480,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 bool GHOST_WindowCocoa::getValid() const
 {
   NSView *view = (m_openGLView) ? m_openGLView : m_metalView;
-  return GHOST_Window::getValid() && m_window != NULL && view != NULL;
+  return GHOST_Window::getValid() && m_window != nullptr && view != nullptr;
 }
 
 void *GHOST_WindowCocoa::getOSWindow() const
@@ -470,39 +494,7 @@ void GHOST_WindowCocoa::setTitle(const char *title)
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
   NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSUTF8StringEncoding];
-
-  // Set associated file if applicable
-  if (windowTitle && [windowTitle hasPrefix:@"Blender"]) {
-    NSRange fileStrRange;
-    NSString *associatedFileName;
-    int len;
-
-    fileStrRange.location = [windowTitle rangeOfString:@"["].location + 1;
-    len = [windowTitle rangeOfString:@"]"].location - fileStrRange.location;
-
-    if (len > 0) {
-      fileStrRange.length = len;
-      associatedFileName = [windowTitle substringWithRange:fileStrRange];
-      [m_window setTitle:[associatedFileName lastPathComponent]];
-
-      @try
-      {
-        [m_window setRepresentedFilename:associatedFileName];
-      }
-      @catch (NSException *e)
-      {
-        printf("\nInvalid file path given in window title");
-      }
-    }
-    else {
-      [m_window setTitle:windowTitle];
-      [m_window setRepresentedFilename:@""];
-    }
-  }
-  else {
-    [m_window setTitle:windowTitle];
-    [m_window setRepresentedFilename:@""];
-  }
+  [m_window setTitle:windowTitle];
 
   [windowTitle release];
   [pool drain];
@@ -524,6 +516,31 @@ std::string GHOST_WindowCocoa::getTitle() const
   [pool drain];
 
   return title;
+}
+
+GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
+{
+  GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setAssociatedFile(): window invalid");
+  GHOST_TSuccess success = GHOST_kSuccess;
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+  NSString *associatedFileName = [[NSString alloc] initWithCString:filepath
+                                                          encoding:NSUTF8StringEncoding];
+
+  @try
+  {
+    [m_window setRepresentedFilename:associatedFileName];
+  }
+  @catch (NSException *e)
+  {
+    printf("\nInvalid file path given for window");
+    success = GHOST_kFailure;
+  }
+
+  [associatedFileName release];
+  [pool drain];
+
+  return success;
 }
 
 void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect &bounds) const
@@ -766,10 +783,12 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
         // Lion style fullscreen
         [m_window toggleFullScreen:nil];
       }
-      else if ([m_window isMiniaturized])
+      else if ([m_window isMiniaturized]) {
         [m_window deminiaturize:nil];
-      else if ([m_window isZoomed])
+      }
+      else if ([m_window isZoomed]) {
         [m_window zoom:nil];
+      }
       [pool drain];
       break;
   }
@@ -816,31 +835,34 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 
 GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType type)
 {
+  switch (type) {
 #ifdef WITH_VULKAN_BACKEND
-  if (type == GHOST_kDrawingContextTypeVulkan) {
-    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 2, true);
-
-    if (!context->initializeDrawingContext()) {
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 2, true);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
       delete context;
-      return NULL;
+      return nullptr;
     }
-
-    return context;
-  }
 #endif
 
-  if (type == GHOST_kDrawingContextTypeOpenGL || type == GHOST_kDrawingContextTypeMetal) {
-
-    GHOST_Context *context = new GHOST_ContextCGL(
-        m_wantStereoVisual, m_metalView, m_metalLayer, m_openGLView, type);
-
-    if (context->initializeDrawingContext())
-      return context;
-    else
+#ifdef WITH_METAL_BACKEND
+    case GHOST_kDrawingContextTypeMetal: {
+      GHOST_Context *context = new GHOST_ContextCGL(
+          m_wantStereoVisual, m_metalView, m_metalLayer, false);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
       delete context;
-  }
+      return nullptr;
+    }
+#endif
 
-  return NULL;
+    default:
+      /* Unsupported backend. */
+      return nullptr;
+  }
 }
 
 #pragma mark invalidate
@@ -900,8 +922,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 
 GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 {
-  if (!m_progressBarVisible)
+  if (!m_progressBarVisible) {
     return GHOST_kFailure;
+  }
   m_progressBarVisible = false;
 
   /* Reset application icon to remove the progress bar. */
@@ -935,7 +958,7 @@ static NSCursor *getImageCursor(GHOST_TStandardCursor shape, NSString *name, NSP
     @autoreleasepool {
       /* clang-format on */
       NSImage *image = [NSImage imageNamed:name];
-      if (image != NULL) {
+      if (image != nullptr) {
         cursors[index] = [[NSCursor alloc] initWithImage:image hotSpot:hotspot];
       }
     }
@@ -954,7 +977,7 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
         return m_customCursor;
       }
       else {
-        return NULL;
+        return nullptr;
       }
     case GHOST_kStandardCursorDestroy:
       return [NSCursor disappearingItemCursor];
@@ -1019,7 +1042,7 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
     case GHOST_kStandardCursorCrosshairC:
       return getImageCursor(shape, @"crossc.pdf", NSMakePoint(16, 16));
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1038,7 +1061,7 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor shape) co
   }
 
   NSCursor *cursor = getStandardCursor(shape);
-  if (cursor == NULL) {
+  if (cursor == nullptr) {
     cursor = getStandardCursor(GHOST_kStandardCursorDefault);
   }
 

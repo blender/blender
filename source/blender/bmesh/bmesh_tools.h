@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,10 +10,6 @@
  * Utility functions that operate directly on the BMesh,
  * These can be used by both Modifiers and BMesh-Operators.
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "tools/bmesh_beautify.h"
 #include "tools/bmesh_bevel.h"
@@ -29,7 +25,3 @@ extern "C" {
 #include "tools/bmesh_region_match.h"
 #include "tools/bmesh_separate.h"
 #include "tools/bmesh_triangulate.h"
-
-#ifdef __cplusplus
-}
-#endif

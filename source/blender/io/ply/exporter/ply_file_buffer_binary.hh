@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,6 +18,8 @@ class FileBufferBinary : public FileBuffer {
   void write_vertex(float x, float y, float z) override;
 
   void write_UV(float u, float v) override;
+
+  void write_data(float v) override;
 
   void write_vertex_normal(float nx, float ny, float nz) override;
 

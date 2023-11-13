@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,7 @@
 
 namespace blender::gpu {
 class VKContext;
-class VKCommandBuffer;
+class VKCommandBuffers;
 
 /**
  * In vulkan multiple commands can be in flight simultaneously.
@@ -81,7 +81,7 @@ struct VKSubmissionID {
     return id_ != other.id_;
   }
 
-  friend class VKCommandBuffer;
+  friend class VKCommandBuffers;
 };
 
 /**

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -168,10 +168,12 @@ if(UNIX AND NOT APPLE)
   # Can be removed when the build-bot upgrades to v1.20.x or newer.
   include(cmake/wayland.cmake)
   include(cmake/wayland_libdecor.cmake)
+  include(cmake/wayland_weston.cmake)
 endif()
 include(cmake/shaderc_deps.cmake)
 include(cmake/shaderc.cmake)
 include(cmake/vulkan.cmake)
 include(cmake/pybind11.cmake)
 include(cmake/harvest.cmake)
+include(cmake/deps_html.cmake)
 include(cmake/cve_check.cmake)

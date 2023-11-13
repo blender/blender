@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,9 +8,16 @@
 
 #include "DNA_texture_types.h"
 
+#include "BKE_colorband.h"
+
 #include "BLI_color.hh"
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 namespace blender::nodes::node_shader_color_ramp_cc {
 
@@ -129,6 +136,16 @@ static void sh_node_valtorgb_build_multi_function(nodes::NodeMultiFunctionBuilde
   builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* TODO: Implement */
+  NodeItem res = empty();
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_color_ramp_cc
 
 void register_node_type_sh_valtorgb()
@@ -144,6 +161,7 @@ void register_node_type_sh_valtorgb()
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::gpu_shader_valtorgb;
   ntype.build_multi_function = file_ns::sh_node_valtorgb_build_multi_function;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

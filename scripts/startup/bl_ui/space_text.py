@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -264,7 +264,7 @@ class TEXT_MT_text(Menu):
             row.enabled = not text.is_in_memory
 
             row = layout.row()
-            op = row.operator("text.jump_to_file_at_point", text="Edit Externally")
+            row.operator("text.jump_to_file_at_point", text="Edit Externally")
             row.enabled = (not text.is_in_memory and context.preferences.filepaths.text_editor != "")
 
             layout.separator()

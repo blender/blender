@@ -225,68 +225,7 @@ bool OptiXDenoiser::denoise_buffer(const DenoiseTask &task)
 
   const CUDAContextScope scope(optix_device);
 
-  DenoiseContext context(optix_device, task);
-
-  if (!denoise_ensure(context)) {
-    return false;
-  }
-
-  if (!denoise_filter_guiding_preprocess(context)) {
-    LOG(ERROR) << "Error preprocessing guiding passes.";
-    return false;
-  }
-
-  /* Passes which will use real albedo when it is available. */
-  denoise_pass(context, PASS_COMBINED);
-  denoise_pass(context, PASS_SHADOW_CATCHER_MATTE);
-
-  /* Passes which do not need albedo and hence if real is present it needs to become fake. */
-  denoise_pass(context, PASS_SHADOW_CATCHER);
-
-  return true;
-}
-
-bool OptiXDenoiser::denoise_filter_guiding_preprocess(const DenoiseContext &context)
-{
-  const BufferParams &buffer_params = context.buffer_params;
-
-  const int work_size = buffer_params.width * buffer_params.height;
-
-  DeviceKernelArguments args(&context.guiding_params.device_pointer,
-                             &context.guiding_params.pass_stride,
-                             &context.guiding_params.pass_albedo,
-                             &context.guiding_params.pass_normal,
-                             &context.guiding_params.pass_flow,
-                             &context.render_buffers->buffer.device_pointer,
-                             &buffer_params.offset,
-                             &buffer_params.stride,
-                             &buffer_params.pass_stride,
-                             &context.pass_sample_count,
-                             &context.pass_denoising_albedo,
-                             &context.pass_denoising_normal,
-                             &context.pass_motion,
-                             &buffer_params.full_x,
-                             &buffer_params.full_y,
-                             &buffer_params.width,
-                             &buffer_params.height,
-                             &context.num_samples);
-
-  return denoiser_queue_->enqueue(DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS, work_size, args);
-}
-
-bool OptiXDenoiser::denoise_ensure(DenoiseContext &context)
-{
-  if (!denoise_create_if_needed(context)) {
-    LOG(ERROR) << "OptiX denoiser creation has failed.";
-    return false;
-  }
-
-  if (!denoise_configure_if_needed(context)) {
-    LOG(ERROR) << "OptiX denoiser configuration has failed.";
-    return false;
-  }
-
-  return true;
+  return DenoiserGPU::denoise_buffer(task);
 }
 
 bool OptiXDenoiser::denoise_create_if_needed(DenoiseContext &context)

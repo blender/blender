@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  * Adapted from the Blender Alembic importer implementation. Copyright 2016 Kévin Dietrich.
@@ -8,7 +8,7 @@
 
 #include "BKE_curve.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_listbase.h"
 
@@ -26,7 +26,7 @@
 
 namespace blender::io::usd {
 
-void USDCurvesReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDCurvesReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   curve_ = BKE_curve_add(bmain, name_.c_str(), OB_CURVES_LEGACY);
 
@@ -163,9 +163,9 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
   }
 }
 
-Mesh *USDCurvesReader::read_mesh(struct Mesh *existing_mesh,
+Mesh *USDCurvesReader::read_mesh(Mesh *existing_mesh,
                                  const USDMeshReadParams params,
-                                 const char ** /* err_str */)
+                                 const char ** /*err_str*/)
 {
   if (!curve_prim_) {
     return existing_mesh;

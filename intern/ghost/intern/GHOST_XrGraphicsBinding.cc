@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -153,7 +153,13 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
 #  if defined(WITH_GHOST_X11)
         /* #GHOST_SystemX11. */
         oxr_binding.egl.type = XR_TYPE_GRAPHICS_BINDING_EGL_MNDX;
-        oxr_binding.egl.getProcAddress = eglGetProcAddress;
+#    if XR_CURRENT_API_VERSION >= XR_MAKE_VERSION(1, 0, 29)
+        oxr_binding.egl.getProcAddress = reinterpret_cast<PFN_xrEglGetProcAddressMNDX>(
+            eglGetProcAddress);
+#    else
+        oxr_binding.egl.getProcAddress = reinterpret_cast<PFNEGLGETPROCADDRESSPROC>(
+            eglGetProcAddress);
+#    endif
         oxr_binding.egl.display = ctx_egl.getDisplay();
         oxr_binding.egl.config = ctx_egl.getConfig();
         oxr_binding.egl.context = ctx_egl.getContext();

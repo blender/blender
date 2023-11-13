@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,26 +8,25 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "sculpt_intern.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "bmesh.h"
 
@@ -61,16 +60,14 @@ static EnumPropertyItem prop_mask_filter_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void mask_filter_task_cb(void *__restrict userdata,
-                                const int i,
-                                const TaskParallelTLS *__restrict /*tls*/)
+static void mask_filter_task(SculptSession *ss,
+                             const int mode,
+                             float *prev_mask,
+                             const SculptMaskWriteInfo mask_write,
+                             PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
   bool update = false;
 
-  const int mode = data->filter_type;
   float contrast = 0.0f;
 
   PBVHVertexIter vd;
@@ -85,50 +82,51 @@ static void mask_filter_task_cb(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float delta, gain, offset, max, min;
-    float prev_val = *vd.mask;
+
+    float mask = vd.mask;
     SculptVertexNeighborIter ni;
     switch (mode) {
       case MASK_FILTER_SMOOTH:
       case MASK_FILTER_SHARPEN: {
         float val = SCULPT_neighbor_mask_average(ss, vd.vertex);
 
-        val -= *vd.mask;
+        val -= mask;
 
         if (mode == MASK_FILTER_SMOOTH) {
-          *vd.mask += val;
+          mask += val;
         }
         else if (mode == MASK_FILTER_SHARPEN) {
-          if (*vd.mask > 0.5f) {
-            *vd.mask += 0.05f;
+          if (mask > 0.5f) {
+            mask += 0.05f;
           }
           else {
-            *vd.mask -= 0.05f;
+            mask -= 0.05f;
           }
-          *vd.mask += val / 2.0f;
+          mask += val / 2.0f;
         }
         break;
       }
       case MASK_FILTER_GROW:
         max = 0.0f;
         SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-          float vmask_f = data->prev_mask[ni.index];
+          float vmask_f = prev_mask[ni.index];
           if (vmask_f > max) {
             max = vmask_f;
           }
         }
         SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-        *vd.mask = max;
+        mask = max;
         break;
       case MASK_FILTER_SHRINK:
         min = 1.0f;
         SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-          float vmask_f = data->prev_mask[ni.index];
+          float vmask_f = prev_mask[ni.index];
           if (vmask_f < min) {
             min = vmask_f;
           }
         }
         SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-        *vd.mask = min;
+        mask = min;
         break;
       case MASK_FILTER_CONTRAST_INCREASE:
       case MASK_FILTER_CONTRAST_DECREASE:
@@ -142,11 +140,12 @@ static void mask_filter_task_cb(void *__restrict userdata,
           delta *= -1.0f;
           offset = gain * (delta);
         }
-        *vd.mask = gain * (*vd.mask) + offset;
+        mask = gain * (mask) + offset;
         break;
     }
-    *vd.mask = clamp_f(*vd.mask, 0.0f, 1.0f);
-    if (*vd.mask != prev_val) {
+    mask = clamp_f(mask, 0.0f, 1.0f);
+    if (mask != vd.mask) {
+      SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
       update = true;
     }
   }
@@ -159,10 +158,10 @@ static void mask_filter_task_cb(void *__restrict userdata,
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Scene *scene = CTX_data_scene(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
@@ -177,7 +176,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   int num_verts = SCULPT_vertex_count_get(ss);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
   SCULPT_undo_push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
@@ -195,6 +194,8 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     iterations = int(num_verts / 50000.0f) + 1;
   }
 
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
+
   for (int i = 0; i < iterations; i++) {
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
       prev_mask = static_cast<float *>(MEM_mallocN(num_verts * sizeof(float), __func__));
@@ -204,16 +205,11 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
       }
     }
 
-    SculptThreadedTaskData data{};
-    data.sd = sd;
-    data.ob = ob;
-    data.nodes = nodes;
-    data.filter_type = filter_type;
-    data.prev_mask = prev_mask;
-
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-    BLI_task_parallel_range(0, nodes.size(), &data, mask_filter_task_cb, &settings);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        mask_filter_task(ss, filter_type, prev_mask, mask_write, nodes[i]);
+      }
+    });
 
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
       MEM_freeN(prev_mask);
@@ -227,21 +223,19 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SCULPT_mask_filter_smooth_apply(Sculpt *sd,
+void SCULPT_mask_filter_smooth_apply(Sculpt * /*sd*/,
                                      Object *ob,
                                      Span<PBVHNode *> nodes,
                                      const int smooth_iterations)
 {
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.nodes = nodes;
-  data.filter_type = MASK_FILTER_SMOOTH;
-
+  using namespace blender;
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
   for (int i = 0; i < smooth_iterations; i++) {
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-    BLI_task_parallel_range(0, nodes.size(), &data, mask_filter_task_cb, &settings);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        mask_filter_task(ob->sculpt, MASK_FILTER_SMOOTH, nullptr, mask_write, nodes[i]);
+      }
+    });
   }
 }
 

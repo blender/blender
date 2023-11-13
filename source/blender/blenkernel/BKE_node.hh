@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 #include "DNA_listBase.h"
 
@@ -19,7 +20,7 @@
 /* for FOREACH_NODETREE_BEGIN */
 #include "DNA_node_types.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
@@ -43,6 +44,9 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node);
 
 void ntreeUpdateAllNew(Main *main);
 
+/** Update asset meta-data cache of data-block properties. */
+void node_update_asset_metadata(bNodeTree &node_tree);
+
 void ntreeNodeFlagSet(const bNodeTree *ntree, int flag, bool enable);
 
 /**
@@ -56,40 +60,6 @@ void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
  * \note `ntree` itself has been read!
  */
 void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
-void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree);
-
-void ntreeBlendReadExpand(BlendExpander *expander, bNodeTree *ntree);
-
-/* -------------------------------------------------------------------- */
-/** \name Node Tree Interface
- * \{ */
-
-bNodeSocket *ntreeFindSocketInterface(bNodeTree *ntree,
-                                      eNodeSocketInOut in_out,
-                                      const char *identifier);
-
-bNodeSocket *ntreeInsertSocketInterface(bNodeTree *ntree,
-                                        eNodeSocketInOut in_out,
-                                        const char *idname,
-                                        bNodeSocket *next_sock,
-                                        const char *name);
-
-bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
-                                               const bNode *from_node,
-                                               const bNodeSocket *from_sock);
-
-bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
-                                                       const bNode *from_node,
-                                                       const bNodeSocket *from_sock,
-                                                       const char *idname,
-                                                       const char *name);
-
-bNodeSocket *ntreeInsertSocketInterfaceFromSocket(bNodeTree *ntree,
-                                                  bNodeSocket *next_sock,
-                                                  const bNode *from_node,
-                                                  const bNodeSocket *from_sock);
-
-/** \} */
 
 bool node_type_is_undefined(const bNode *node);
 
@@ -98,8 +68,6 @@ bool nodeIsStaticSocketType(const bNodeSocketType *stype);
 const char *nodeSocketSubTypeLabel(int subtype);
 
 void nodeRemoveSocketEx(bNodeTree *ntree, bNode *node, bNodeSocket *sock, bool do_id_user);
-
-void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node);
 
 void nodeModifySocketType(bNodeTree *ntree, bNode *node, bNodeSocket *sock, const char *idname);
 
@@ -319,6 +287,12 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int maxle
 const char *nodeSocketLabel(const bNodeSocket *sock);
 
 /**
+ * Get node socket short label if it is set.
+ * It is used when grouping sockets under panels, to avoid redundancy in the label.
+ */
+const char *nodeSocketShortLabel(const bNodeSocket *sock);
+
+/**
  * Initialize a new node type struct with default values and callbacks.
  */
 void node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
@@ -353,6 +327,47 @@ bNodeSocket *node_find_enabled_output_socket(bNode &node, StringRef name);
 extern bNodeTreeType NodeTreeTypeUndefined;
 extern bNodeType NodeTypeUndefined;
 extern bNodeSocketType NodeSocketTypeUndefined;
+
+std::optional<eCustomDataType> socket_type_to_custom_data_type(eNodeSocketDatatype type);
+std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataType type);
+
+/**
+ * Contains information about a specific kind of zone (e.g. simulation or repeat zone in geometry
+ * nodes). This allows writing code that works for all kinds of zones automatically, reducing
+ * redundancy and the amount of boilerplate needed when adding a new zone type.
+ */
+class bNodeZoneType {
+ public:
+  std::string input_idname;
+  std::string output_idname;
+  int input_type;
+  int output_type;
+  int theme_id;
+
+  virtual ~bNodeZoneType() = default;
+
+  virtual const int &get_corresponding_output_id(const bNode &input_bnode) const = 0;
+
+  int &get_corresponding_output_id(bNode &input_bnode) const
+  {
+    return const_cast<int &>(
+        this->get_corresponding_output_id(const_cast<const bNode &>(input_bnode)));
+  }
+
+  const bNode *get_corresponding_input(const bNodeTree &tree, const bNode &output_bnode) const;
+  bNode *get_corresponding_input(bNodeTree &tree, const bNode &output_bnode) const;
+
+  const bNode *get_corresponding_output(const bNodeTree &tree, const bNode &input_bnode) const;
+  bNode *get_corresponding_output(bNodeTree &tree, const bNode &input_bnode) const;
+};
+
+void register_node_zone_type(const bNodeZoneType &zone_type);
+
+Span<const bNodeZoneType *> all_zone_types();
+Span<int> all_zone_node_types();
+Span<int> all_zone_input_node_types();
+Span<int> all_zone_output_node_types();
+const bNodeZoneType *zone_type_by_node_type(const int node_type);
 
 }  // namespace blender::bke
 

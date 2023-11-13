@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,7 +26,7 @@ PyDoc_STRVAR(
     "Class hierarchy: :class:`Iterator` > :class:`AdjacencyIterator`\n"
     "\n"
     "Class for representing adjacency iterators used in the chaining\n"
-    "process.  An AdjacencyIterator is created in the increment() and\n"
+    "process. An AdjacencyIterator is created in the increment() and\n"
     "decrement() methods of a :class:`ChainingIterator` and passed to the\n"
     "traverse() method of the ChainingIterator.\n"
     "\n"
@@ -173,7 +173,7 @@ static PyGetSetDef BPy_AdjacencyIterator_getseters[] = {
 /*-----------------------BPy_AdjacencyIterator type definition ------------------------------*/
 
 PyTypeObject AdjacencyIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "AdjacencyIterator",
     /*tp_basicsize*/ sizeof(BPy_AdjacencyIterator),
     /*tp_itemsize*/ 0,

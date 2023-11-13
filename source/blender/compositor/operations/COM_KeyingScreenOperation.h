@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,10 +10,11 @@
 
 #include "DNA_movieclip_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_base.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
-
-#include "BLI_voronoi_2d.h"
 
 namespace blender::compositor {
 
@@ -22,22 +23,15 @@ namespace blender::compositor {
  */
 class KeyingScreenOperation : public MultiThreadedOperation {
  protected:
-  typedef struct TriangulationData {
-    VoronoiTriangulationPoint *triangulated_points;
-    int (*triangles)[3];
-    int triangulated_points_total, triangles_total;
-    rcti *triangles_AABB;
-  } TriangulationData;
-
-  /* TODO(manzanilla): rename to #TrianguledArea on removing tiled implementation. */
-  typedef struct TileData {
-    int *triangles;
-    int triangles_total;
-  } TileData;
+  struct MarkerPoint {
+    float2 position;
+    float4 color;
+  };
 
   MovieClip *movie_clip_;
+  float smoothness_;
   int framenumber_;
-  TriangulationData *cached_triangulation_;
+  Array<MarkerPoint> *cached_marker_points_;
   char tracking_object_[64];
 
   /**
@@ -45,7 +39,7 @@ class KeyingScreenOperation : public MultiThreadedOperation {
    */
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
-  TriangulationData *build_voronoi_triangulation();
+  Array<MarkerPoint> *compute_marker_points();
 
  public:
   KeyingScreenOperation();
@@ -54,7 +48,6 @@ class KeyingScreenOperation : public MultiThreadedOperation {
   void deinit_execution() override;
 
   void *initialize_tile_data(rcti *rect) override;
-  void deinitialize_tile_data(rcti *rect, void *data) override;
 
   void set_movie_clip(MovieClip *clip)
   {
@@ -63,6 +56,10 @@ class KeyingScreenOperation : public MultiThreadedOperation {
   void set_tracking_object(const char *object)
   {
     BLI_strncpy(tracking_object_, object, sizeof(tracking_object_));
+  }
+  void set_smoothness(float smoothness)
+  {
+    smoothness_ = math::interpolate(0.15f, 1.0f, smoothness);
   }
   void set_framenumber(int framenumber)
   {
@@ -74,9 +71,6 @@ class KeyingScreenOperation : public MultiThreadedOperation {
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
-
- private:
-  TileData *triangulate(const rcti *rect);
 };
 
 }  // namespace blender::compositor

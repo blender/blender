@@ -150,12 +150,14 @@ template<class T> inline int PatchMap::transformUVToQuadQuadrant(T const &median
 {
 
   int uHalf = (u >= median);
-  if (uHalf)
+  if (uHalf) {
     u -= median;
+  }
 
   int vHalf = (v >= median);
-  if (vHalf)
+  if (vHalf) {
     v -= median;
+  }
 
   return (vHalf << 1) | uHalf;
 }
@@ -207,13 +209,15 @@ inline PatchMap::Handle const *PatchMap::FindPatch(int faceid, double u, double 
   //  to holes or otherwise unassigned (the root node for a patch will
   //  have all or no quadrants set):
   //
-  if ((faceid < _minPatchFace) || (faceid > _maxPatchFace))
+  if ((faceid < _minPatchFace) || (faceid > _maxPatchFace)) {
     return 0;
+  }
 
   QuadNode const *node = &_quadtree[faceid - _minPatchFace];
 
-  if (!node->children[0].isSet)
+  if (!node->children[0].isSet) {
     return 0;
+  }
 
   //
   //  Search the tree for the sub-patch containing the given (u,v)

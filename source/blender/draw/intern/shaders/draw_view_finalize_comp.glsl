@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Compute culling data for each views of a given view buffer.
@@ -112,7 +115,7 @@ vec4 frustum_culling_sphere_calc(FrustumCorners frustum_corners)
 
 void main()
 {
-  drw_view_id = int(gl_LocalInvocationID.x);
+  drw_view_id = gl_LocalInvocationID.x;
 
   /* Invalid views are disabled. */
   if (all(equal(drw_view.viewinv[2].xyz, vec3(0.0)))) {

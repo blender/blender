@@ -90,8 +90,9 @@ namespace Eigen {
         m_Z(size, size),
         m_workspace(size*2),
         m_maxIters(400),
-        m_isInitialized(false)
-        { }
+        m_isInitialized(false),
+        m_computeQZ(true)
+      {}
 
       /** \brief Constructor; computes real QZ decomposition of given matrices
        * 
@@ -108,9 +109,11 @@ namespace Eigen {
         m_Z(A.rows(),A.cols()),
         m_workspace(A.rows()*2),
         m_maxIters(400),
-        m_isInitialized(false) {
-          compute(A, B, computeQZ);
-        }
+        m_isInitialized(false),
+        m_computeQZ(true)
+      {
+        compute(A, B, computeQZ);
+      }
 
       /** \brief Returns matrix Q in the QZ decomposition. 
        *
@@ -161,7 +164,7 @@ namespace Eigen {
 
       /** \brief Reports whether previous computation was successful.
        *
-       * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
+       * \returns \c Success if computation was successful, \c NoConvergence otherwise.
        */
       ComputationInfo info() const
       {

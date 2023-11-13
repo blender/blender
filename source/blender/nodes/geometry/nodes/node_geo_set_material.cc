@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
@@ -13,6 +13,8 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_volume_types.h"
 
+#include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 
@@ -24,39 +26,48 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type({GeometryComponent::Type::Mesh,
                        GeometryComponent::Type::Volume,
                        GeometryComponent::Type::PointCloud,
-                       GeometryComponent::Type::Curve});
+                       GeometryComponent::Type::Curve,
+                       GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Material>("Material").hide_label();
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
-static void assign_material_to_faces(Mesh &mesh, const IndexMask &selection, Material *material)
+static void assign_material_to_id_geometry(ID *id,
+                                           const fn::FieldContext &field_context,
+                                           const Field<bool> &selection_field,
+                                           MutableAttributeAccessor &attributes,
+                                           const eAttrDomain domain,
+                                           Material *material)
 {
-  if (selection.size() != mesh.totpoly) {
-    /* If the entire mesh isn't selected, and there is no material slot yet, add an empty
+  const int domain_size = attributes.domain_size(domain);
+  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
+  selection_evaluator.set_selection(selection_field);
+  selection_evaluator.evaluate();
+  const IndexMask selection = selection_evaluator.get_evaluated_selection_as_mask();
+
+  if (selection.size() != attributes.domain_size(domain)) {
+    /* If the entire geometry isn't selected, and there is no material slot yet, add an empty
      * slot so that the faces that aren't selected can still refer to the default material. */
-    BKE_id_material_eval_ensure_default_slot(&mesh.id);
+    BKE_id_material_eval_ensure_default_slot(id);
   }
 
-  int new_material_index = -1;
-  for (const int i : IndexRange(mesh.totcol)) {
-    Material *other_material = mesh.mat[i];
-    if (other_material == material) {
-      new_material_index = i;
-      break;
-    }
+  int new_index = -1;
+  const int orig_materials_num = *BKE_id_material_len_p(id);
+  if (Material **materials = *BKE_id_material_array_p(id)) {
+    new_index = Span(materials, orig_materials_num).first_index_try(material);
   }
-  if (new_material_index == -1) {
+
+  if (new_index == -1) {
     /* Append a new material index. */
-    new_material_index = mesh.totcol;
-    BKE_id_material_eval_assign(&mesh.id, new_material_index + 1, material);
+    new_index = orig_materials_num;
+    BKE_id_material_eval_assign(id, new_index + 1, material);
   }
 
-  MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
-  index_mask::masked_fill(material_indices.span, new_material_index, selection);
-  material_indices.finish();
+  SpanAttributeWriter<int> indices = attributes.lookup_or_add_for_write_span<int>("material_index",
+                                                                                  domain);
+  index_mask::masked_fill(indices.span, new_index, selection);
+  indices.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -74,19 +85,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-      if (mesh->totpoly == 0) {
+      if (mesh->faces_num == 0) {
         if (mesh->totvert > 0) {
           no_faces_warning = true;
         }
       }
       else {
         const bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_FACE};
-        fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
-        selection_evaluator.add(selection_field);
-        selection_evaluator.evaluate();
-        const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
-
-        assign_material_to_faces(*mesh, selection, material);
+        MutableAttributeAccessor attributes = mesh->attributes_for_write();
+        assign_material_to_id_geometry(
+            &mesh->id, field_context, selection_field, attributes, ATTR_DOMAIN_FACE, material);
       }
     }
     if (Volume *volume = geometry_set.get_volume_for_write()) {
@@ -105,6 +113,31 @@ static void node_geo_exec(GeoNodeExecParams params)
       BKE_id_material_eval_assign(&curves->id, 1, material);
       if (selection_field.node().depends_on_input()) {
         curves_selection_warning = true;
+      }
+    }
+    if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+      using namespace blender::bke::greasepencil;
+      Vector<Mesh *> mesh_by_layer(grease_pencil->layers().size(), nullptr);
+      for (const int layer_index : grease_pencil->layers().index_range()) {
+        Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(*grease_pencil,
+                                                                          layer_index);
+        if (drawing == nullptr) {
+          continue;
+        }
+        bke::CurvesGeometry &curves = drawing->strokes_for_write();
+        if (curves.curves_num() == 0) {
+          continue;
+        }
+
+        const bke::GreasePencilLayerFieldContext field_context{
+            *grease_pencil, ATTR_DOMAIN_CURVE, layer_index};
+        MutableAttributeAccessor attributes = curves.attributes_for_write();
+        assign_material_to_id_geometry(&grease_pencil->id,
+                                       field_context,
+                                       selection_field,
+                                       attributes,
+                                       ATTR_DOMAIN_CURVE,
+                                       material);
       }
     }
   });
@@ -132,16 +165,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_set_material_cc
-
-void register_node_type_geo_set_material()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_set_material_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_MATERIAL, "Set Material", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_set_material_cc

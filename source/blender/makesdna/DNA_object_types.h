@@ -33,10 +33,6 @@ using GeometrySetHandle = blender::bke::GeometrySet;
 typedef struct GeometrySetHandle GeometrySetHandle;
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct BoundBox;
 struct Collection;
@@ -64,10 +60,22 @@ typedef struct bDeformGroup {
   char flag, _pad0[7];
 } bDeformGroup;
 
+#ifdef DNA_DEPRECATED_ALLOW
+typedef struct bFaceMap {
+  struct bFaceMap *next, *prev;
+  /** MAX_VGROUP_NAME. */
+  char name[64];
+  char flag;
+  char _pad0[7];
+} bFaceMap;
+#endif
+
 #define MAX_VGROUP_NAME 64
 
-/* bDeformGroup->flag */
-#define DG_LOCK_WEIGHT 1
+/** #bDeformGroup::flag */
+enum {
+  DG_LOCK_WEIGHT = 1,
+};
 
 /**
  * The following illustrates the orientation of the
@@ -309,7 +317,10 @@ typedef struct Object {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
-  /** Runtime (must be immediately after id for utilities to use it). */
+  /**
+   * Engines draw data, must be immediately after AnimData. See IdDdtTemplate and
+   * DRW_drawdatalist_from_id to understand this requirement.
+   */
   struct DrawDataList drawdata;
 
   struct SculptSession *sculpt;
@@ -327,7 +338,7 @@ typedef struct Object {
   struct Object *proxy_from DNA_DEPRECATED;
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
-  /* struct Path *path; */
+  // struct Path *path;
   struct bAction *action DNA_DEPRECATED;  /* XXX deprecated... old animation system */
   struct bAction *poselib DNA_DEPRECATED; /* Pre-Blender 3.0 pose library, deprecated in 3.5. */
   /** Pose data, armature objects only. */
@@ -348,6 +359,7 @@ typedef struct Object {
   ListBase constraintChannels DNA_DEPRECATED; /* XXX deprecated... old animation system */
   ListBase effect DNA_DEPRECATED;             /* XXX deprecated... keep for readfile */
   ListBase defbase DNA_DEPRECATED;            /* Only for versioning, moved to object data. */
+  ListBase fmaps DNA_DEPRECATED;              /* For versioning, moved to generic attributes. */
   /** List of ModifierData structures. */
   ListBase modifiers;
   /** List of GpencilModifierData structures. */
@@ -612,6 +624,7 @@ typedef enum ObjectType {
         OB_LATTICE, \
         OB_ARMATURE, \
         OB_CURVES, \
+        OB_POINTCLOUD, \
         OB_GREASE_PENCIL))
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
   (ELEM(_type, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_LATTICE))
@@ -755,34 +768,36 @@ enum {
 
 /* **************** BASE ********************* */
 
-/** #Base.flag_legacy */
+/** #Base::flag_legacy (also used for #Object::flag). */
 enum {
   BA_WAS_SEL = (1 << 1),
-  /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in readfile.c. */
-  // BA_HAS_RECALC_OB = (1 << 2),  /* DEPRECATED */
-  // BA_HAS_RECALC_DATA =  (1 << 3),  /* DEPRECATED */
+  /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in `readfile.cc`. */
+  // BA_HAS_RECALC_OB = 1 << 2, /* DEPRECATED */
+  // BA_HAS_RECALC_DATA = 1 << 3, /* DEPRECATED */
   /** DEPRECATED, was runtime only, but was reusing an older flag. */
   BA_SNAP_FIX_DEPS_FIASCO = (1 << 2),
-};
 
-/* NOTE: this was used as a proper setting in past, so nullify before using */
-#define BA_TEMP_TAG (1 << 5)
+  /** NOTE: this was used as a proper setting in past, so nullify before using */
+  BA_TEMP_TAG = 1 << 5,
+  /**
+   * Even if this is tagged for transform, this flag means it's being locked in place.
+   * Use for #SCE_XFORM_SKIP_CHILDREN.
+   */
+  BA_TRANSFORM_LOCKED_IN_PLACE = 1 << 7,
 
-/**
- * Even if this is tagged for transform, this flag means it's being locked in place.
- * Use for #SCE_XFORM_SKIP_CHILDREN.
- */
-#define BA_TRANSFORM_LOCKED_IN_PLACE (1 << 7)
+  /** Child of a transformed object. */
+  BA_TRANSFORM_CHILD = 1 << 8,
+  /** Parent of a transformed object. */
+  BA_TRANSFORM_PARENT = 1 << 13,
 
-#define BA_TRANSFORM_CHILD (1 << 8)   /* child of a transformed object */
-#define BA_TRANSFORM_PARENT (1 << 13) /* parent of a transformed object */
-
-#define OB_FROMDUPLI (1 << 9)
-#define OB_DONE (1 << 10) /* unknown state, clear before use */
-#define OB_FLAG_USE_SIMULATION_CACHE (1 << 11)
+  OB_FROMDUPLI = 1 << 9,
+  /** Unknown state, clear before use. */
+  OB_DONE = 1 << 10,
+  OB_FLAG_USE_SIMULATION_CACHE = 1 << 11,
 #ifdef DNA_DEPRECATED_ALLOW
-#  define OB_FLAG_UNUSED_12 (1 << 12) /* cleared */
+  OB_FLAG_UNUSED_12 = 1 << 12, /* cleared */
 #endif
+};
 
 /** #Object.visibility_flag */
 enum {
@@ -796,7 +811,10 @@ enum {
   OB_HIDE_VOLUME_SCATTER = 1 << 7,
   OB_HIDE_SHADOW = 1 << 8,
   OB_HOLDOUT = 1 << 9,
-  OB_SHADOW_CATCHER = 1 << 10
+  OB_SHADOW_CATCHER = 1 << 10,
+  OB_HIDE_PROBE_VOLUME = 1 << 11,
+  OB_HIDE_PROBE_CUBEMAP = 1 << 12,
+  OB_HIDE_PROBE_PLANAR = 1 << 13,
 };
 
 /** #Object.shapeflag */
@@ -849,9 +867,11 @@ enum {
 };
 
 /** #Object.empty_image_depth */
-#define OB_EMPTY_IMAGE_DEPTH_DEFAULT 0
-#define OB_EMPTY_IMAGE_DEPTH_FRONT 1
-#define OB_EMPTY_IMAGE_DEPTH_BACK 2
+enum {
+  OB_EMPTY_IMAGE_DEPTH_DEFAULT = 0,
+  OB_EMPTY_IMAGE_DEPTH_FRONT = 1,
+  OB_EMPTY_IMAGE_DEPTH_BACK = 2,
+};
 
 /** #Object.empty_image_visibility_flag */
 enum {
@@ -872,7 +892,3 @@ typedef enum ObjectModifierFlag {
 } ObjectModifierFlag;
 
 #define MAX_DUPLI_RECUR 8
-
-#ifdef __cplusplus
-}
-#endif

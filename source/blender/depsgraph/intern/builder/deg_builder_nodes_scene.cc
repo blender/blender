@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,8 +31,18 @@ void DepsgraphNodeBuilder::build_scene_render(Scene *scene, ViewLayer *view_laye
     build_scene_sequencer(scene);
     build_scene_speakers(scene, view_layer);
   }
+  build_scene_camera(scene);
+}
+
+void DepsgraphNodeBuilder::build_scene_camera(Scene *scene)
+{
   if (scene->camera != nullptr) {
-    build_object(-1, scene->camera, DEG_ID_LINKED_DIRECTLY, true);
+    build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
+  }
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      build_object(-1, marker->camera, DEG_ID_LINKED_INDIRECTLY, true);
+    }
   }
 }
 

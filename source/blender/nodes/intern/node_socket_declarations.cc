@@ -1,6 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "BLI_string.h"
 
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
@@ -270,7 +272,6 @@ bNodeSocket &Vector::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
   value.subtype = this->subtype;
   value.min = this->soft_min_value;
   value.max = this->soft_max_value;
-  STRNCPY(socket.name, this->name.c_str());
   return socket;
 }
 
@@ -321,7 +322,6 @@ bNodeSocket &Bool::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &s
     return this->build(ntree, node);
   }
   this->set_common_flags(socket);
-  STRNCPY(socket.name, this->name.c_str());
   return socket;
 }
 
@@ -349,12 +349,7 @@ bNodeSocket &Color::build(bNodeTree &ntree, bNode &node) const
 bool Color::matches(const bNodeSocket &socket) const
 {
   if (!this->matches_common_data(socket)) {
-    if (socket.name != this->name) {
-      return false;
-    }
-    if (socket.identifier != this->identifier) {
-      return false;
-    }
+    return false;
   }
   if (socket.type != SOCK_RGBA) {
     return false;
@@ -377,7 +372,6 @@ bNodeSocket &Color::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &
     return this->build(ntree, node);
   }
   this->set_common_flags(socket);
-  STRNCPY(socket.name, this->name.c_str());
   return socket;
 }
 
@@ -404,12 +398,7 @@ bNodeSocket &Rotation::build(bNodeTree &ntree, bNode &node) const
 bool Rotation::matches(const bNodeSocket &socket) const
 {
   if (!this->matches_common_data(socket)) {
-    if (socket.name != this->name) {
-      return false;
-    }
-    if (socket.identifier != this->identifier) {
-      return false;
-    }
+    return false;
   }
   if (socket.type != SOCK_ROTATION) {
     return false;
@@ -432,7 +421,6 @@ bNodeSocket &Rotation::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocke
     return this->build(ntree, node);
   }
   this->set_common_flags(socket);
-  STRNCPY(socket.name, this->name.c_str());
   return socket;
 }
 
@@ -479,7 +467,6 @@ bNodeSocket &String::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
     return this->build(ntree, node);
   }
   this->set_common_flags(socket);
-  STRNCPY(socket.name, this->name.c_str());
   return socket;
 }
 
@@ -583,26 +570,46 @@ bool Geometry::only_instances() const
 
 GeometryBuilder &GeometryBuilder::supported_type(bke::GeometryComponent::Type supported_type)
 {
-  decl_->supported_types_ = {supported_type};
+  if (decl_in_) {
+    decl_in_->supported_types_ = {supported_type};
+  }
+  if (decl_out_) {
+    decl_out_->supported_types_ = {supported_type};
+  }
   return *this;
 }
 
 GeometryBuilder &GeometryBuilder::supported_type(
     blender::Vector<bke::GeometryComponent::Type> supported_types)
 {
-  decl_->supported_types_ = std::move(supported_types);
+  if (decl_in_) {
+    decl_in_->supported_types_ = supported_types;
+  }
+  if (decl_out_) {
+    decl_out_->supported_types_ = supported_types;
+  }
   return *this;
 }
 
 GeometryBuilder &GeometryBuilder::only_realized_data(bool value)
 {
-  decl_->only_realized_data_ = value;
+  if (decl_in_) {
+    decl_in_->only_realized_data_ = value;
+  }
+  if (decl_out_) {
+    decl_out_->only_realized_data_ = value;
+  }
   return *this;
 }
 
 GeometryBuilder &GeometryBuilder::only_instances(bool value)
 {
-  decl_->only_instances_ = value;
+  if (decl_in_) {
+    decl_in_->only_instances_ = value;
+  }
+  if (decl_out_) {
+    decl_out_->only_instances_ = value;
+  }
   return *this;
 }
 
@@ -695,6 +702,9 @@ bNodeSocket &Custom::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *nodeAddSocket(
       &ntree, &node, this->in_out, idname_, this->identifier.c_str(), this->name.c_str());
+  if (this->init_socket_fn) {
+    this->init_socket_fn(node, socket, "interface");
+  }
   return socket;
 }
 
@@ -706,6 +716,9 @@ bool Custom::matches(const bNodeSocket &socket) const
   if (socket.type != SOCK_CUSTOM) {
     return false;
   }
+  if (!STREQ(socket.typeinfo->idname, idname_)) {
+    return false;
+  }
   return true;
 }
 
@@ -714,10 +727,12 @@ bool Custom::can_connect(const bNodeSocket &socket) const
   return sockets_can_connect(*this, socket) && STREQ(socket.idname, idname_);
 }
 
-bNodeSocket &Custom::update_or_build(bNodeTree & /*ntree*/,
-                                     bNode & /*node*/,
-                                     bNodeSocket &socket) const
+bNodeSocket &Custom::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
 {
+  if (!STREQ(socket.typeinfo->idname, idname_)) {
+    return this->build(ntree, node);
+  }
+  this->set_common_flags(socket);
   return socket;
 }
 

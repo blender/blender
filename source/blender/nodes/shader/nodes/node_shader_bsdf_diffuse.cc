@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,6 +34,24 @@ static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_bsdf_diffuse", in, out);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  if (to_type_ != NodeItem::Type::BSDF) {
+    return empty();
+  }
+
+  NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
+  NodeItem roughness = get_input_value("Roughness", NodeItem::Type::Float);
+  NodeItem normal = get_input_link("Normal", NodeItem::Type::Vector3);
+
+  return create_node("oren_nayar_diffuse_bsdf",
+                     NodeItem::Type::BSDF,
+                     {{"color", color}, {"roughness", roughness}, {"normal", normal}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_bsdf_diffuse_cc
 
 /* node type definition */
@@ -48,6 +66,7 @@ void register_node_type_sh_bsdf_diffuse()
   ntype.add_ui_poll = object_shader_nodes_poll;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_diffuse;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

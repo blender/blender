@@ -1,4 +1,6 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* The Morphological Distance Threshold operation is effectively three consecutive operations
  * implemented as a single operation. The three operations are as follows:
@@ -46,6 +48,9 @@
  *
  * Since the erode/dilate distance is already signed appropriately as described before, we just add
  * it in both cases. */
+
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);

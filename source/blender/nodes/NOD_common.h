@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -30,9 +30,7 @@ struct bNodeSocket *node_group_output_find_socket(struct bNode *node, const char
 
 namespace blender::nodes {
 
-void node_group_declare_dynamic(const bNodeTree &node_tree,
-                                const bNode &node,
-                                NodeDeclaration &r_declaration);
+void node_group_declare(NodeDeclarationBuilder &b);
 
 }  // namespace blender::nodes
 

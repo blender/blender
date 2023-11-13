@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,6 @@
  */
 
 #include "BLI_array.hh"
-#include "BLI_math.h"
 #include "BLI_math_mpq.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
@@ -217,7 +216,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
 
   /* Save the original #BMEdge's so we can use them as examples. */
   Array<BMEdge *> old_edges(bm->totedge);
-  std::copy(bm->etable, bm->etable + bm->totedge, old_edges.begin());
+  std::copy_n(bm->etable, bm->totedge, old_edges.begin());
 
   /* Reuse or make new #BMFace's, as the faces are identical to old ones or not.
    * If reusing, mark them as "keep". First find the maximum face length
@@ -471,7 +470,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
 }
 #else
 bool BM_mesh_boolean(BMesh * /*bm*/,
-                     struct BMLoop *(*looptris)[3],
+                     BMLoop *(*looptris)[3],
                      const int /*looptris_tot*/,
                      int (*test_fn)(BMFace *, void *),
                      void * /*user_data*/,
@@ -494,7 +493,7 @@ bool BM_mesh_boolean(BMesh * /*bm*/,
  * to the intersection result faces.
  */
 bool BM_mesh_boolean_knife(BMesh * /*bm*/,
-                           struct BMLoop *(*looptris)[3],
+                           BMLoop *(*looptris)[3],
                            const int /*looptris_tot*/,
                            int (*test_fn)(BMFace *, void *),
                            void * /*user_data*/,

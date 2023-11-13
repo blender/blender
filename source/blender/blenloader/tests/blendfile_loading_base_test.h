@@ -1,10 +1,10 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 #include "testing/testing.h"
 
 struct BlendFileData;

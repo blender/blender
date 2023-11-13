@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,12 +8,11 @@
 
 #pragma once
 
-#include "intern/debug/deg_time_average.h"
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 #include "BKE_global.h"
 
-#include "DEG_depsgraph_debug.h"
+#include "DEG_depsgraph_debug.hh"
 
 namespace blender::deg {
 
@@ -33,10 +32,6 @@ class DepsgraphDebug {
    * created for different view layer). */
   string name;
 
-  /* Is true when dependency graph was evaluated at least once.
-   * This is NOT an indication that depsgraph is at its evaluated state. */
-  bool is_ever_evaluated;
-
  protected:
   /* Maximum number of counters used to calculate frame rate of depsgraph update. */
   static const constexpr int MAX_FPS_COUNTERS = 64;
@@ -45,8 +40,6 @@ class DepsgraphDebug {
    * Is initialized from begin_graph_evaluation() when time debug is enabled.
    */
   double graph_evaluation_start_time_;
-
-  AveragedTimeSampler<MAX_FPS_COUNTERS> fps_samples_;
 };
 
 #define DEG_DEBUG_PRINTF(depsgraph, type, ...) \

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,18 +24,11 @@ class TreeElementID : public AbstractTreeElement {
  public:
   TreeElementID(TreeElement &legacy_te, ID &id);
 
-  static std::unique_ptr<TreeElementID> createFromID(TreeElement &legacy_te, ID &id);
+  static std::unique_ptr<TreeElementID> create_from_id(TreeElement &legacy_te, ID &id);
 
-  bool expandPoll(const SpaceOutliner &) const override;
+  bool expand_poll(const SpaceOutliner &) const override;
 
-  /**
-   * Expanding not implemented for all types yet. Once it is, this can be set to true or
-   * `AbstractTreeElement::expandValid()` can be removed altogether.
-   */
-  bool isExpandValid() const override
-  {
-    return false;
-  }
+  void expand(SpaceOutliner &) const override;
 
   ID &get_ID()
   {
@@ -44,7 +37,7 @@ class TreeElementID : public AbstractTreeElement {
 
  protected:
   /* ID types with animation data can use this. */
-  void expand_animation_data(SpaceOutliner &, const AnimData *) const;
+  void expand_animation_data(AnimData *) const;
 };
 
 }  // namespace blender::ed::outliner

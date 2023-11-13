@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BPy_IDGroup_Iter;
 struct ID;
@@ -99,3 +103,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, struct IDProperty *grou
 void IDProp_Init_Types(void);
 
 PyObject *BPyInit_idprop(void);
+
+#ifdef __cplusplus
+}
+#endif

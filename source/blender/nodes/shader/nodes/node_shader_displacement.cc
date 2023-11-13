@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,6 +37,21 @@ static int gpu_shader_displacement(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_displacement_world", in, out);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* NOTE: Normal input and Space feature don't have an implementation in MaterialX.*/
+  NodeItem midlevel = get_input_value("Midlevel", NodeItem::Type::Float);
+  NodeItem height = get_input_value("Height", NodeItem::Type::Float) - midlevel;
+  NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
+
+  return create_node("displacement",
+                     NodeItem::Type::DisplacementShader,
+                     {{"displacement", height}, {"scale", scale}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_displacement_cc
 
 /* node type definition */
@@ -50,6 +65,7 @@ void register_node_type_sh_displacement()
   ntype.declare = file_ns::node_declare;
   ntype.initfunc = file_ns::node_shader_init_displacement;
   ntype.gpu_fn = file_ns::gpu_shader_displacement;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

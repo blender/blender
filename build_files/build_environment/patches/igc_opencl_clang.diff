@@ -1,13 +1,13 @@
-diff -Naur external_igc_opencl_clang.orig/CMakeLists.txt external_igc_opencl_clang/CMakeLists.txt
---- external_igc_opencl_clang.orig/CMakeLists.txt	2022-03-16 05:51:10 -0600
-+++ external_igc_opencl_clang/CMakeLists.txt	2022-05-23 10:40:09 -0600
-@@ -147,22 +147,24 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1e972e6..84f9674 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -147,21 +147,24 @@ if(NOT USE_PREBUILT_LLVM)
          )
      endif()
- 
--
--    set(SPIRV_BASE_REVISION llvm_release_110)
--    set(TARGET_BRANCH "ocl-open-110")
+     
+-    set(SPIRV_BASE_REVISION llvm_release_140)
+-    set(TARGET_BRANCH "ocl-open-140")
 -    get_filename_component(LLVM_MONOREPO_DIR ${LLVM_SOURCE_DIR} DIRECTORY)
 -    set(LLVM_PATCHES_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/patches/llvm
 -                          ${CMAKE_CURRENT_SOURCE_DIR}/patches/clang)
@@ -22,10 +22,10 @@ diff -Naur external_igc_opencl_clang.orig/CMakeLists.txt external_igc_opencl_cla
 -                  ${TARGET_BRANCH}
 -                  ret)
 +    #
-+    # Blender: Why apply these manually in igc.cmake
++    # Blender: We apply these manually in igc.cmake
 +    #
-+    #set(SPIRV_BASE_REVISION llvm_release_110)
-+    #set(TARGET_BRANCH "ocl-open-110")
++    #set(SPIRV_BASE_REVISION llvm_release_140)
++    #set(TARGET_BRANCH "ocl-open-140")
 +    #get_filename_component(LLVM_MONOREPO_DIR ${LLVM_SOURCE_DIR} DIRECTORY)
 +    #set(LLVM_PATCHES_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/patches/llvm
 +    #                      ${CMAKE_CURRENT_SOURCE_DIR}/patches/clang)

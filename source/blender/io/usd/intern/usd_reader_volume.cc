@@ -4,7 +4,9 @@
 
 #include "usd_reader_volume.h"
 
-#include "BKE_object.h"
+#include "BLI_string.h"
+
+#include "BKE_object.hh"
 #include "BKE_volume.h"
 
 #include "DNA_object_types.h"
@@ -23,7 +25,7 @@ static const pxr::TfToken density("density", pxr::TfToken::Immortal);
 
 namespace blender::io::usd {
 
-void USDVolumeReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDVolumeReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   Volume *volume = (Volume *)BKE_volume_add(bmain, name_.c_str());
 
@@ -77,7 +79,7 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
 
       std::string filepath = fp.GetResolvedPath();
 
-      strcpy(volume->filepath, filepath.c_str());
+      STRNCPY(volume->filepath, filepath.c_str());
     }
   }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -107,7 +107,7 @@ bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string lab
   bNode *node = nodeAddStaticNode(mContext, ntree, node_type);
   if (node) {
     if (label.length() > 0) {
-      strcpy(node->label, label.c_str());
+      STRNCPY(node->label, label.c_str());
     }
     node->locx = locx;
     node->locy = locy;
@@ -330,7 +330,7 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
   int locy = -300 * (node_map.size() - 2);
   if (cot.isColor()) {
     COLLADAFW::Color col = cot.getColor();
-    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Emission");
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Emission Color");
     float *fcol = (float *)socket->default_value;
 
     fcol[0] = col.getRed();
@@ -340,9 +340,9 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
   }
   // texture
   else if (cot.isTexture()) {
-    bNode *texture_node = add_texture_node(cot, -300, locy, "Emission");
+    bNode *texture_node = add_texture_node(cot, -300, locy, "Emission Color");
     if (texture_node != nullptr) {
-      add_link(texture_node, "Color", shader_node, "Emission");
+      add_link(texture_node, "Color", shader_node, "Emission Color");
     }
   }
 
@@ -388,13 +388,13 @@ void MaterialNode::set_specular(COLLADAFW::ColorOrTexture &cot)
       has_specularity = false;
     }
     else {
-      bNode *node = add_node(SH_NODE_RGB, -300, locy, "Specular");
+      bNode *node = add_node(SH_NODE_RGB, -300, locy, "Specular IOR Level");
       set_color(node, col);
       /* TODO: Connect node */
     }
   }
   else if (cot.isTexture()) {
-    add_texture_node(cot, -300, locy, "Specular");
+    add_texture_node(cot, -300, locy, "Specular IOR Level");
     /* TODO: Connect node */
   }
   else {
@@ -407,7 +407,7 @@ void MaterialNode::set_specular(COLLADAFW::ColorOrTexture &cot)
      * TODO: This is a solution only for a corner case. We must find a better
      * way to handle specularity in general. Also note that currently we
      * do not export specularity values, see EffectExporter::operator() */
-    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Specular");
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Specular IOR Level");
     ((bNodeSocketValueFloat *)socket->default_value)->value = 0.0f;
   }
 }

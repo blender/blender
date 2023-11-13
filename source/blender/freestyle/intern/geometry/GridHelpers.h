@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -69,7 +69,7 @@ inline Vec3r closestPointOnPolygon(const Vec3r &point, const Polygon3r &poly)
   real distance;
   Vec3r closest = closestPointToSegment(
       point, poly.getVertices()[2], poly.getVertices()[0], distance);
-  for (unsigned int i = 0; i < 2; ++i) {
+  for (uint i = 0; i < 2; ++i) {
     real t;
     Vec3r p = closestPointToSegment(point, poly.getVertices()[i], poly.getVertices()[i + 1], t);
     if (t < distance) {
@@ -92,7 +92,7 @@ inline real distancePointToPolygon(const Vec3r &point, const Polygon3r &poly)
 
   // Otherwise, get the nearest point on each edge, and take the closest
   real distance = GeomUtils::distPointSegment(point, poly.getVertices()[2], poly.getVertices()[0]);
-  for (unsigned int i = 0; i < 2; ++i) {
+  for (uint i = 0; i < 2; ++i) {
     real t = GeomUtils::distPointSegment(point, poly.getVertices()[i], poly.getVertices()[i + 1]);
     if (t < distance) {
       distance = t;

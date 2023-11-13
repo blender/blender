@@ -86,14 +86,14 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 
 //---------- implementation of L2 norm and related functions ----------
 
-/** \returns, for vectors, the squared \em l2 norm of \c *this, and for matrices the Frobenius norm.
+/** \returns, for vectors, the squared \em l2 norm of \c *this, and for matrices the squared Frobenius norm.
   * In both cases, it consists in the sum of the square of all the matrix entries.
   * For vectors, this is also equals to the dot product of \c *this with itself.
   *
   * \sa dot(), norm(), lpNorm()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
 {
   return numext::real((*this).cwiseAbs2().sum());
 }
@@ -105,7 +105,7 @@ EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scala
   * \sa lpNorm(), dot(), squaredNorm()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
 {
   return numext::sqrt(squaredNorm());
 }
@@ -120,7 +120,7 @@ EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scala
   * \sa norm(), normalize()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::PlainObject
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::PlainObject
 MatrixBase<Derived>::normalized() const
 {
   typedef typename internal::nested_eval<Derived,2>::type _Nested;
@@ -142,7 +142,7 @@ MatrixBase<Derived>::normalized() const
   * \sa norm(), normalized()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::normalize()
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void MatrixBase<Derived>::normalize()
 {
   RealScalar z = squaredNorm();
   // NOTE: after extensive benchmarking, this conditional does not impact performance, at least on recent x86 CPU
@@ -163,7 +163,7 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::normalize()
   * \sa stableNorm(), stableNormalize(), normalized()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::PlainObject
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::PlainObject
 MatrixBase<Derived>::stableNormalized() const
 {
   typedef typename internal::nested_eval<Derived,3>::type _Nested;
@@ -188,7 +188,7 @@ MatrixBase<Derived>::stableNormalized() const
   * \sa stableNorm(), stableNormalized(), normalize()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::stableNormalize()
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void MatrixBase<Derived>::stableNormalize()
 {
   RealScalar w = cwiseAbs().maxCoeff();
   RealScalar z = (derived()/w).squaredNorm();
@@ -207,7 +207,7 @@ struct lpNorm_selector
   EIGEN_DEVICE_FUNC
   static inline RealScalar run(const MatrixBase<Derived>& m)
   {
-    EIGEN_USING_STD_MATH(pow)
+    EIGEN_USING_STD(pow)
     return pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
   }
 };
@@ -260,9 +260,9 @@ struct lpNorm_selector<Derived, Infinity>
 template<typename Derived>
 template<int p>
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
+EIGEN_DEVICE_FUNC inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 #else
-MatrixBase<Derived>::RealScalar
+EIGEN_DEVICE_FUNC MatrixBase<Derived>::RealScalar
 #endif
 MatrixBase<Derived>::lpNorm() const
 {

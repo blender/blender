@@ -1,11 +1,14 @@
-
-#pragma BLENDER_REQUIRE(volumetric_lib.glsl)
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
+
+#pragma BLENDER_REQUIRE(volumetric_lib.glsl)
 
 void main()
 {
@@ -51,7 +54,7 @@ void main()
 #endif
 
   /* Temporal supersampling */
-  /* Note : this uses the cell non-jittered position (texel center). */
+  /* NOTE: this uses the cell non-jittered position (texel center). */
   vec3 curr_ndc = volume_to_ndc(vec3(gl_FragCoord.xy, float(volumetric_geom_iface.slice) + 0.5) *
                                 volInvTexSize.xyz);
   vec3 wpos = get_world_space_from_depth(curr_ndc.xy, curr_ndc.z);

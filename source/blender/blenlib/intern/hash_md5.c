@@ -379,7 +379,7 @@ void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock)
   return md5_read_ctx(&ctx, resblock);
 }
 
-char *BLI_hash_md5_to_hexdigest(void *resblock, char r_hex_digest[33])
+char *BLI_hash_md5_to_hexdigest(const void *resblock, char r_hex_digest[33])
 {
   static const char hex_map[17] = "0123456789abcdef";
   const unsigned char *p;

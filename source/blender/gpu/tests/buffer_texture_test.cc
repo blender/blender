@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -18,7 +18,7 @@ namespace blender::gpu::tests {
 
 static void test_buffer_texture()
 {
-  if (!GPU_compute_shader_support() && !GPU_shader_storage_buffer_objects_support()) {
+  if (!GPU_compute_shader_support()) {
     /* We can't test as a the platform does not support compute shaders. */
     std::cout << "Skipping compute shader test: platform not supported";
     GTEST_SKIP();
@@ -42,7 +42,7 @@ static void test_buffer_texture()
 
   /* Construct SSBO. */
   GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
-      4 * sizeof(float), nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
+      4 * sizeof(float), nullptr, GPU_USAGE_STATIC, __func__);
   GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));
 
   /* Dispatch compute task. */

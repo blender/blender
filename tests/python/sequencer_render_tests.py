@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2015-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2015-2022 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
 import os
-import shlex
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -37,6 +34,7 @@ def create_argparse():
     parser.add_argument("-testdir", nargs=1)
     parser.add_argument("-outdir", nargs=1)
     parser.add_argument("-idiff", nargs=1)
+    parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
 
@@ -55,7 +53,7 @@ def main():
     report.set_reference_dir("reference")
 
     test_dir_name = Path(test_dir).name
-    ok = report.run(test_dir, blender, get_arguments, batch=True)
+    ok = report.run(test_dir, blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)
 

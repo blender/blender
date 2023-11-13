@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -30,21 +30,21 @@ class RenderMonitor {
   {
     if (_re && !info.empty()) {
       _re->i.infostr = info.c_str();
-      _re->stats_draw(_re->sdh, &_re->i);
-      _re->i.infostr = NULL;
+      _re->stats_draw(&_re->i);
+      _re->i.infostr = nullptr;
     }
   }
 
   inline void progress(float i)
   {
     if (_re) {
-      _re->progress(_re->prh, i);
+      _re->progress(i);
     }
   }
 
   inline bool testBreak()
   {
-    return _re && _re->test_break(_re->tbh);
+    return _re && _re->test_break();
   }
 
  protected:

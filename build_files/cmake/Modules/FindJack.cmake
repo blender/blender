@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011 Blender Foundation
+# SPDX-FileCopyrightText: 2011 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -15,16 +15,20 @@
 # also defined, but not for general use are
 #  JACK_LIBRARY, where to find the JACK library.
 
-# If JACK_ROOT_DIR was defined in the environment, use it.
-IF(NOT JACK_ROOT_DIR AND NOT $ENV{JACK_ROOT_DIR} STREQUAL "")
-  SET(JACK_ROOT_DIR $ENV{JACK_ROOT_DIR})
-ENDIF()
+# If `JACK_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED JACK_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{JACK_ROOT_DIR})
+  set(JACK_ROOT_DIR $ENV{JACK_ROOT_DIR})
+else()
+  set(JACK_ROOT_DIR "")
+endif()
 
-SET(_jack_SEARCH_DIRS
+set(_jack_SEARCH_DIRS
   ${JACK_ROOT_DIR}
 )
 
-FIND_PATH(JACK_INCLUDE_DIR
+find_path(JACK_INCLUDE_DIR
   NAMES
     jack.h
   HINTS
@@ -33,7 +37,7 @@ FIND_PATH(JACK_INCLUDE_DIR
     include/jack
 )
 
-FIND_LIBRARY(JACK_LIBRARY
+find_library(JACK_LIBRARY
   NAMES
     jack
   HINTS
@@ -44,16 +48,16 @@ FIND_LIBRARY(JACK_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set JACK_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Jack DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Jack DEFAULT_MSG
     JACK_LIBRARY JACK_INCLUDE_DIR)
 
-IF(JACK_FOUND)
-  SET(JACK_LIBRARIES ${JACK_LIBRARY})
-  SET(JACK_INCLUDE_DIRS ${JACK_INCLUDE_DIR})
-ENDIF()
+if(JACK_FOUND)
+  set(JACK_LIBRARIES ${JACK_LIBRARY})
+  set(JACK_INCLUDE_DIRS ${JACK_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   JACK_INCLUDE_DIR
   JACK_LIBRARY
 )

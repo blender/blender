@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -84,6 +84,8 @@ bool BKE_gpencil_free_strokes(struct bGPDframe *gpf);
 void BKE_gpencil_free_frames(struct bGPDlayer *gpl);
 /** Free all of the gp-layers for a viewport (list should be `&gpd->layers` or so). */
 void BKE_gpencil_free_layers(struct ListBase *list);
+/** Free all of the palettes (list should be `&gpd->palettes` or so). */
+void BKE_gpencil_free_legacy_palette_data(struct ListBase *list);
 /** Free (or release) any data used by this grease pencil (does not free the gpencil itself). */
 void BKE_gpencil_free_data(struct bGPdata *gpd, bool free_all);
 /**
@@ -461,7 +463,7 @@ void BKE_gpencil_layer_mask_cleanup_all_layers(struct bGPdata *gpd);
 void BKE_gpencil_layer_frames_sort(struct bGPDlayer *gpl, bool *r_has_duplicate_frames);
 
 struct bGPDlayer *BKE_gpencil_layer_get_by_name(struct bGPdata *gpd,
-                                                char *name,
+                                                const char *name,
                                                 int first_if_not_found);
 
 /* Brush */

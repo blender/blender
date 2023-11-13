@@ -53,12 +53,12 @@ class GHOST_EventManager {
    * Do not delete the event!
    * \param event: The event to push on the stack.
    */
-  GHOST_TSuccess pushEvent(GHOST_IEvent *event);
+  GHOST_TSuccess pushEvent(const GHOST_IEvent *event);
 
   /**
    * Dispatches the given event directly, bypassing the event stack.
    */
-  void dispatchEvent(GHOST_IEvent *event);
+  void dispatchEvent(const GHOST_IEvent *event);
 
   /**
    * Dispatches the event at the back of the stack.
@@ -90,7 +90,7 @@ class GHOST_EventManager {
    * Removes all events for a window from the stack.
    * \param window: The window to remove events for.
    */
-  void removeWindowEvents(GHOST_IWindow *window);
+  void removeWindowEvents(const GHOST_IWindow *window);
 
   /**
    * Removes all events of a certain type from the stack.
@@ -99,7 +99,7 @@ class GHOST_EventManager {
    * \param type: The type of events to be removed.
    * \param window: The window to remove the events for.
    */
-  void removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window = NULL);
+  void removeTypeEvents(GHOST_TEventType type, const GHOST_IWindow *window = nullptr);
 
  protected:
   /**
@@ -108,11 +108,11 @@ class GHOST_EventManager {
   void disposeEvents();
 
   /** A stack with events. */
-  typedef std::deque<GHOST_IEvent *> TEventStack;
+  typedef std::deque<const GHOST_IEvent *> TEventStack;
 
   /** The event stack. */
-  std::deque<GHOST_IEvent *> m_events;
-  std::deque<GHOST_IEvent *> m_handled_events;
+  std::deque<const GHOST_IEvent *> m_events;
+  std::deque<const GHOST_IEvent *> m_handled_events;
 
   /** A vector with event consumers. */
   typedef std::vector<GHOST_IEventConsumer *> TConsumerVector;

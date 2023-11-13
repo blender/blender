@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2009-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,8 +19,9 @@ class Cubes {
   /// Get a triangle
   void getTriangle(int mask, int index, int indices[3])
   {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
       indices[i] = marching_cubes_tris[mask][index][i];
+    }
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

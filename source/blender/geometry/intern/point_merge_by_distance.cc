@@ -1,7 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
 #include "BLI_kdtree.h"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
@@ -13,6 +14,7 @@
 #include "BKE_pointcloud.h"
 
 #include "GEO_point_merge_by_distance.hh"
+#include "GEO_randomize.hh"
 
 namespace blender::geometry {
 
@@ -49,7 +51,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
    * finding, converting from indices into the selection to indices into the full input point
    * cloud. */
   Array<int> merge_indices(src_size);
-  std::iota(merge_indices.begin(), merge_indices.end(), 0);
+  array_utils::fill_index_range<int>(merge_indices);
 
   selection.foreach_index([&](const int src_index, const int pos) {
     const int merge_index = selection_merge_indices[pos];
@@ -153,6 +155,8 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
       }
     });
   }
+
+  debug_randomize_point_order(dst_pointcloud);
 
   return dst_pointcloud;
 }

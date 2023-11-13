@@ -11,7 +11,7 @@
 #ifndef EIGEN_CWISE_UNARY_OP_H
 #define EIGEN_CWISE_UNARY_OP_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
 template<typename UnaryOp, typename XprType>
@@ -24,7 +24,7 @@ struct traits<CwiseUnaryOp<UnaryOp, XprType> >
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
   enum {
-    Flags = _XprTypeNested::Flags & RowMajorBit 
+    Flags = _XprTypeNested::Flags & RowMajorBit
   };
 };
 }
@@ -65,10 +65,10 @@ class CwiseUnaryOp : public CwiseUnaryOpImpl<UnaryOp, XprType, typename internal
     explicit CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
       : m_xpr(xpr), m_functor(func) {}
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    Index rows() const { return m_xpr.rows(); }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    Index cols() const { return m_xpr.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
+    Index rows() const EIGEN_NOEXCEPT { return m_xpr.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
+    Index cols() const EIGEN_NOEXCEPT { return m_xpr.cols(); }
 
     /** \returns the functor representing the unary operation */
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE

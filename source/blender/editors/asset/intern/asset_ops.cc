@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,9 @@
 
 #include "AS_asset_library.h"
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 
+#include "BKE_asset.h"
 #include "BKE_asset_library_custom.h"
 #include "BKE_bpath.h"
 #include "BKE_context.h"
@@ -21,20 +23,21 @@
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 #include "ED_asset_catalog.hh"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DNA_space_types.h"
 
@@ -43,6 +46,16 @@ using namespace blender;
 /* -------------------------------------------------------------------- */
 
 using PointerRNAVec = blender::Vector<PointerRNA>;
+
+static PointerRNAVec get_single_id_vec_from_context(const bContext *C)
+{
+  PointerRNAVec ids;
+  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  if (idptr.data) {
+    ids.append(idptr);
+  }
+  return ids;
+}
 
 /**
  * Return the IDs to operate on as PointerRNA vector. Prioritizes multiple selected ones
@@ -68,12 +81,7 @@ static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C)
   }
 
   /* "id" context member. */
-  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
-  if (idptr.data) {
-    ids.append(idptr);
-  }
-
-  return ids;
+  return get_single_id_vec_from_context(C);
 }
 
 /**
@@ -90,14 +98,13 @@ struct IDVecStats {
  * Helper to report stats about the IDs in context. Operator polls use this, also to report a
  * helpful disabled hint to the user.
  */
-static IDVecStats asset_operation_get_id_vec_stats_from_context(const bContext *C)
+static IDVecStats asset_operation_get_id_vec_stats_from_ids(const PointerRNAVec &id_pointers)
 {
-  PointerRNAVec pointers = asset_operation_get_ids_from_context(C);
   IDVecStats stats;
 
-  stats.is_single = pointers.size() == 1;
+  stats.is_single = id_pointers.size() == 1;
 
-  for (PointerRNA &ptr : pointers) {
+  for (const PointerRNA &ptr : id_pointers) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
 
     ID *id = static_cast<ID *>(ptr.data);
@@ -127,7 +134,7 @@ static const char *asset_operation_unsupported_type_msg(const bool is_single)
 
 class AssetMarkHelper {
  public:
-  void operator()(const bContext &C, PointerRNAVec &ids);
+  void operator()(const bContext &C, const PointerRNAVec &ids);
 
   void reportResults(ReportList &reports) const;
   bool wasSuccessful() const;
@@ -142,9 +149,9 @@ class AssetMarkHelper {
   Stats stats;
 };
 
-void AssetMarkHelper::operator()(const bContext &C, PointerRNAVec &ids)
+void AssetMarkHelper::operator()(const bContext &C, const PointerRNAVec &ids)
 {
-  for (PointerRNA &ptr : ids) {
+  for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
 
     ID *id = static_cast<ID *>(ptr.data);
@@ -192,10 +199,8 @@ void AssetMarkHelper::reportResults(ReportList &reports) const
   }
 }
 
-static int asset_mark_exec(bContext *C, wmOperator *op)
+static int asset_mark_exec(const bContext *C, const wmOperator *op, const PointerRNAVec &ids)
 {
-  PointerRNAVec ids = asset_operation_get_ids_from_context(C);
-
   AssetMarkHelper mark_helper;
   mark_helper(*C, ids);
   mark_helper.reportResults(*op->reports);
@@ -210,9 +215,9 @@ static int asset_mark_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool asset_mark_poll(bContext *C)
+static bool asset_mark_poll(bContext *C, const PointerRNAVec &ids)
 {
-  IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_context(C);
+  IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
   if (!ctx_stats.has_supported_type) {
     CTX_wm_operator_poll_msg_set(C, asset_operation_unsupported_type_msg(ctx_stats.is_single));
@@ -230,8 +235,33 @@ static void ASSET_OT_mark(wmOperatorType *ot)
       "customizable metadata (like previews, descriptions and tags)";
   ot->idname = "ASSET_OT_mark";
 
-  ot->exec = asset_mark_exec;
-  ot->poll = asset_mark_poll;
+  ot->exec = [](bContext *C, wmOperator *op) -> int {
+    return asset_mark_exec(C, op, asset_operation_get_ids_from_context(C));
+  };
+  ot->poll = [](bContext *C) -> bool {
+    return asset_mark_poll(C, asset_operation_get_ids_from_context(C));
+  };
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/**
+ * Variant of #ASSET_OT_mark that only works on the "id" context member.
+ */
+static void ASSET_OT_mark_single(wmOperatorType *ot)
+{
+  ot->name = "Mark as Single Asset";
+  ot->description =
+      "Enable easier reuse of a data-block through the Asset Browser, with the help of "
+      "customizable metadata (like previews, descriptions and tags)";
+  ot->idname = "ASSET_OT_mark_single";
+
+  ot->exec = [](bContext *C, wmOperator *op) -> int {
+    return asset_mark_exec(C, op, get_single_id_vec_from_context(C));
+  };
+  ot->poll = [](bContext *C) -> bool {
+    return asset_mark_poll(C, get_single_id_vec_from_context(C));
+  };
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -244,7 +274,7 @@ class AssetClearHelper {
  public:
   AssetClearHelper(const bool set_fake_user) : set_fake_user_(set_fake_user) {}
 
-  void operator()(PointerRNAVec &ids);
+  void operator()(const PointerRNAVec &ids);
 
   void reportResults(const bContext *C, ReportList &reports) const;
   bool wasSuccessful() const;
@@ -258,9 +288,9 @@ class AssetClearHelper {
   Stats stats;
 };
 
-void AssetClearHelper::operator()(PointerRNAVec &ids)
+void AssetClearHelper::operator()(const PointerRNAVec &ids)
 {
-  for (PointerRNA &ptr : ids) {
+  for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
 
     ID *id = static_cast<ID *>(ptr.data);
@@ -284,12 +314,9 @@ void AssetClearHelper::operator()(PointerRNAVec &ids)
 void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) const
 {
   if (!wasSuccessful()) {
-    bool is_valid;
     /* Dedicated error message for when there is an active asset detected, but it's not an ID local
      * to this file. Helps users better understanding what's going on. */
-    if (AssetHandle active_asset = CTX_wm_asset_handle(C, &is_valid);
-        is_valid && !ED_asset_handle_get_local_id(&active_asset))
-    {
+    if (AssetRepresentationHandle *active_asset = CTX_wm_asset(C); !active_asset->is_local_id()) {
       BKE_report(&reports,
                  RPT_ERROR,
                  "No asset data-blocks from the current file selected (assets must be stored in "
@@ -314,10 +341,8 @@ bool AssetClearHelper::wasSuccessful() const
   return stats.tot_cleared > 0;
 }
 
-static int asset_clear_exec(bContext *C, wmOperator *op)
+static int asset_clear_exec(const bContext *C, const wmOperator *op, const PointerRNAVec &ids)
 {
-  PointerRNAVec ids = asset_operation_get_ids_from_context(C);
-
   const bool set_fake_user = RNA_boolean_get(op->ptr, "set_fake_user");
   AssetClearHelper clear_helper(set_fake_user);
   clear_helper(ids);
@@ -333,9 +358,9 @@ static int asset_clear_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool asset_clear_poll(bContext *C)
+static bool asset_clear_poll(bContext *C, const PointerRNAVec &ids)
 {
-  IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_context(C);
+  IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
   if (!ctx_stats.has_asset) {
     const char *msg_single = TIP_("Data-block is not marked as asset");
@@ -351,20 +376,22 @@ static bool asset_clear_poll(bContext *C)
   return true;
 }
 
-static char *asset_clear_get_description(bContext * /*C*/,
-                                         wmOperatorType * /*op*/,
-                                         PointerRNA *values)
+static std::string asset_clear_get_description(bContext * /*C*/,
+                                               wmOperatorType * /*ot*/,
+                                               PointerRNA *values)
 {
   const bool set_fake_user = RNA_boolean_get(values, "set_fake_user");
   if (!set_fake_user) {
-    return nullptr;
+    return "";
   }
-
-  return BLI_strdup(
-      TIP_("Delete all asset metadata, turning the selected asset data-blocks back into normal "
-           "data-blocks, and set Fake User to ensure the data-blocks will still be saved"));
+  return TIP_(
+      "Delete all asset metadata, turning the selected asset data-blocks back into normal "
+      "data-blocks, and set Fake User to ensure the data-blocks will still be saved");
 }
 
+/**
+ * Variant of #ASSET_OT_clear that only works on the "id" context member.
+ */
 static void ASSET_OT_clear(wmOperatorType *ot)
 {
   ot->name = "Clear Asset";
@@ -374,8 +401,36 @@ static void ASSET_OT_clear(wmOperatorType *ot)
   ot->get_description = asset_clear_get_description;
   ot->idname = "ASSET_OT_clear";
 
-  ot->exec = asset_clear_exec;
-  ot->poll = asset_clear_poll;
+  ot->exec = [](bContext *C, wmOperator *op) -> int {
+    return asset_clear_exec(C, op, asset_operation_get_ids_from_context(C));
+  };
+  ot->poll = [](bContext *C) -> bool {
+    return asset_clear_poll(C, asset_operation_get_ids_from_context(C));
+  };
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "set_fake_user",
+                  false,
+                  "Set Fake User",
+                  "Ensure the data-block is saved, even when it is no longer marked as asset");
+}
+
+static void ASSET_OT_clear_single(wmOperatorType *ot)
+{
+  ot->name = "Clear Single Asset";
+  ot->description =
+      "Delete all asset metadata and turn the asset data-block back into a normal data-block";
+  ot->get_description = asset_clear_get_description;
+  ot->idname = "ASSET_OT_clear_single";
+
+  ot->exec = [](bContext *C, wmOperator *op) -> int {
+    return asset_clear_exec(C, op, get_single_id_vec_from_context(C));
+  };
+  ot->poll = [](bContext *C) -> bool {
+    return asset_clear_poll(C, get_single_id_vec_from_context(C));
+  };
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -818,7 +873,7 @@ static void ASSET_OT_bundle_install(wmOperatorType *ot)
   ot->invoke = asset_bundle_install_invoke;
   ot->poll = asset_bundle_install_poll;
 
-  ot->prop = RNA_def_property(ot->srna, "asset_library_ref", PROP_ENUM, PROP_NONE);
+  ot->prop = RNA_def_property(ot->srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
   RNA_def_enum_funcs(ot->prop, rna_asset_library_reference_itemf);
 
@@ -841,9 +896,9 @@ static bool could_be_asset_bundle(const Main *bmain)
 
 static const CustomAssetLibraryDefinition *selected_asset_library(wmOperator *op)
 {
-  const int enum_value = RNA_enum_get(op->ptr, "asset_library_ref");
+  const int enum_value = RNA_enum_get(op->ptr, "asset_library_reference");
   const AssetLibraryReference lib_ref = ED_asset_library_reference_from_enum_value(enum_value);
-  const CustomAssetLibraryDefinition *lib = BKE_asset_library_custom_find_from_index(
+  const CustomAssetLibraryDefinition *lib = BKE_asset_library_custom_find_index(
       &U.asset_libraries, lib_ref.custom_library_index);
   return lib;
 }
@@ -858,7 +913,7 @@ static bool is_contained_in_selected_asset_library(wmOperator *op, const char *f
 }
 
 /**
- * Set the "filepath" RNA property based on selected "asset_library_ref".
+ * Set the "filepath" RNA property based on selected "asset_library_reference".
  * \return true if ok, false if error.
  */
 static bool set_filepath_for_asset_lib(const Main *bmain, wmOperator *op)
@@ -889,6 +944,7 @@ struct FileCheckCallbackInfo {
 
 static bool external_file_check_callback(BPathForeachPathData *bpath_data,
                                          char * /*path_dst*/,
+                                         size_t /*path_dst_maxncpy*/,
                                          const char *path_src)
 {
   FileCheckCallbackInfo *callback_info = static_cast<FileCheckCallbackInfo *>(
@@ -955,7 +1011,9 @@ static bool has_external_files(Main *bmain, ReportList *reports)
 void ED_operatortypes_asset()
 {
   WM_operatortype_append(ASSET_OT_mark);
+  WM_operatortype_append(ASSET_OT_mark_single);
   WM_operatortype_append(ASSET_OT_clear);
+  WM_operatortype_append(ASSET_OT_clear_single);
 
   WM_operatortype_append(ASSET_OT_catalog_new);
   WM_operatortype_append(ASSET_OT_catalog_delete);

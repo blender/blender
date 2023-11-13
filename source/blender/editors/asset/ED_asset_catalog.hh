@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,6 +24,7 @@
 #include "BLI_string_ref.hh"
 
 struct AssetLibrary;
+struct bScreen;
 
 /**
  * Returns if the catalogs of \a library are allowed to be editable, or if the UI should forbid

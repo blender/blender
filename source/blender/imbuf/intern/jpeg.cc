@@ -7,8 +7,8 @@
  */
 
 /* This little block needed for linking to Blender... */
-#include <setjmp.h>
-#include <stdio.h>
+#include <csetjmp>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 
@@ -27,6 +27,7 @@
 #include "IMB_metadata.h"
 #include "imbuf.h"
 
+#include <cstring>
 #include <jerror.h>
 #include <jpeglib.h>
 
@@ -60,13 +61,13 @@ bool imb_is_a_jpeg(const uchar *mem, const size_t size)
  * JPG ERROR HANDLING
  *---------------------------------------------------------- */
 
-typedef struct my_error_mgr {
+struct my_error_mgr {
   jpeg_error_mgr pub; /* "public" fields */
 
   jmp_buf setjmp_buffer; /* for return to caller */
-} my_error_mgr;
+};
 
-typedef my_error_mgr *my_error_ptr;
+using my_error_ptr = my_error_mgr *;
 
 static void jpeg_error(j_common_ptr cinfo)
 {
@@ -86,22 +87,15 @@ static void jpeg_error(j_common_ptr cinfo)
  * INPUT HANDLER FROM MEMORY
  *---------------------------------------------------------- */
 
-#if 0
-typedef struct {
-  uchar *buffer;
-  int filled;
-} buffer_struct;
-#endif
-
-typedef struct {
+struct my_source_mgr {
   jpeg_source_mgr pub; /* public fields */
 
   const uchar *buffer;
   int size;
   JOCTET terminal[2];
-} my_source_mgr;
+};
 
-typedef my_source_mgr *my_src_ptr;
+using my_src_ptr = my_source_mgr *;
 
 static void init_source(j_decompress_ptr cinfo)
 {
@@ -284,7 +278,7 @@ static ImBuf *ibJpegImageFromCinfo(
     if (max_size > 0) {
       /* `libjpeg` can more quickly decompress while scaling down to 1/2, 1/4, 1/8,
        * while `libjpeg-turbo` can also do 3/8, 5/8, etc. But max is 1/8. */
-      float scale = float(max_size) / MAX2(cinfo->image_width, cinfo->image_height);
+      float scale = float(max_size) / std::max(cinfo->image_width, cinfo->image_height);
       cinfo->scale_denom = 8;
       cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * float(cinfo->scale_denom))));
       cinfo->dct_method = JDCT_FASTEST;
@@ -358,10 +352,13 @@ static ImBuf *ibJpegImageFromCinfo(
         }
 
         /*
-         * JPEG marker strings are not null-terminated,
-         * create a null-terminated copy before going further
-         */
-        str = BLI_strdupn((char *)marker->data, marker->data_length);
+         * JPEG marker strings are not meant to be null-terminated,
+         * create a null-terminated copy before going further.
+         *
+         * Files saved from Blender pre v4.0 were null terminated,
+         * use `BLI_strnlen` to prevent assertion on passing in too short a string. */
+        str = BLI_strdupn((const char *)marker->data,
+                          BLI_strnlen((const char *)marker->data, marker->data_length));
 
         /*
          * Because JPEG format don't support the
@@ -424,12 +421,12 @@ static ImBuf *ibJpegImageFromCinfo(
       /* Density_unit may be 0 for unknown, 1 for dots/inch, or 2 for dots/cm. */
       if (cinfo->density_unit == 1) {
         /* Convert inches to meters. */
-        ibuf->ppm[0] = cinfo->X_density / 0.0254f;
-        ibuf->ppm[1] = cinfo->Y_density / 0.0254f;
+        ibuf->ppm[0] = double(cinfo->X_density) / 0.0254;
+        ibuf->ppm[1] = double(cinfo->Y_density) / 0.0254;
       }
       else if (cinfo->density_unit == 2) {
-        ibuf->ppm[0] = cinfo->X_density * 100.0f;
-        ibuf->ppm[1] = cinfo->Y_density * 100.0f;
+        ibuf->ppm[0] = double(cinfo->X_density) * 100.0;
+        ibuf->ppm[1] = double(cinfo->Y_density) * 100.0;
       }
 
       ibuf->ftype = IMB_FTYPE_JPG;
@@ -567,7 +564,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
 
   jpeg_start_compress(cinfo, true);
 
-  strcpy(neogeo, "NeoGeo");
+  STRNCPY(neogeo, "NeoGeo");
   neogeo_word = (NeoGeo_Word *)(neogeo + 6);
   memset(neogeo_word, 0, sizeof(*neogeo_word));
   neogeo_word->quality = ibuf->foptions.quality;
@@ -581,13 +578,14 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
       if (prop->type == IDP_STRING) {
         int text_len;
         if (STREQ(prop->name, "None")) {
-          jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_String(prop), prop->len + 1);
+          jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_String(prop), prop->len);
         }
 
         char *text = static_text;
         int text_size = static_text_size;
         /* 7 is for Blender, 2 colon separators, length of property
-         * name and property value, followed by the nullptr-terminator. */
+         * name and property value, followed by the nullptr-terminator
+         * which isn't needed by JPEG but #BLI_snprintf_rlen requires it. */
         const int text_length_required = 7 + 2 + strlen(prop->name) + strlen(IDP_String(prop)) + 1;
         if (text_length_required <= static_text_size) {
           text = static_cast<char *>(MEM_mallocN(text_length_required, "jpeg metadata field"));
@@ -605,7 +603,8 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
          */
         text_len = BLI_snprintf_rlen(
             text, text_size, "Blender:%s:%s", prop->name, IDP_String(prop));
-        jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, text_len + 1);
+        /* Don't write the null byte (not expected by the JPEG format). */
+        jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, text_len);
 
         /* TODO(sergey): Ideally we will try to re-use allocation as
          * much as possible. In practice, such long fields don't happen
@@ -717,7 +716,7 @@ static bool save_stdjpeg(const char *filepath, ImBuf *ibuf)
   my_error_mgr jerr;
 
   if ((outfile = BLI_fopen(filepath, "wb")) == nullptr) {
-    return 0;
+    return false;
   }
 
   cinfo->err = jpeg_std_error(&jerr.pub);
@@ -731,7 +730,7 @@ static bool save_stdjpeg(const char *filepath, ImBuf *ibuf)
     jpeg_destroy_compress(cinfo);
     fclose(outfile);
     remove(filepath);
-    return 0;
+    return false;
   }
 
   init_jpeg(outfile, cinfo, ibuf);
@@ -741,7 +740,7 @@ static bool save_stdjpeg(const char *filepath, ImBuf *ibuf)
   fclose(outfile);
   jpeg_destroy_compress(cinfo);
 
-  return 1;
+  return true;
 }
 
 bool imb_savejpeg(ImBuf *ibuf, const char *filepath, int flags)

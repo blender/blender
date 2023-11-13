@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
 #include "BKE_context.h"
 #include "BKE_node.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
@@ -30,6 +30,11 @@ void GatherLinkSearchOpParams::add_item(std::string socket_name,
 const bNodeSocket &GatherLinkSearchOpParams::other_socket() const
 {
   return other_socket_;
+}
+
+const SpaceNode &GatherLinkSearchOpParams::space_node() const
+{
+  return snode_;
 }
 
 const bNodeTree &GatherLinkSearchOpParams::node_tree() const
@@ -89,7 +94,7 @@ void LinkSearchOpParams::update_and_connect_available_socket(bNode &new_node,
 }
 
 void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
-                                      Span<SocketDeclarationPtr> declarations)
+                                      Span<SocketDeclaration *> declarations)
 {
   const bNodeType &node_type = params.node_type();
 
@@ -136,18 +141,10 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
 void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  if (!node_type.declare) {
+  if (!node_type.static_declaration) {
     return;
   }
-
-  if (node_type.declare_dynamic) {
-    /* Dynamic declarations aren't supported here, but avoid crashing in release builds. */
-    BLI_assert_unreachable();
-    return;
-  }
-
-  const NodeDeclaration &declaration = *node_type.fixed_declaration;
-
+  const NodeDeclaration &declaration = *node_type.static_declaration;
   search_link_ops_for_declarations(params, declaration.sockets(params.in_out()));
 }
 

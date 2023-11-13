@@ -195,6 +195,18 @@ BlendFileData *BLO_read_from_memfile(struct Main *oldmain,
  */
 void BLO_blendfiledata_free(BlendFileData *bfd);
 
+/**
+ * Does versioning code that requires the Main data-base to be fully loaded and valid.
+ *
+ * readfile's `do_versions` does not allow to create (or delete) IDs, and only operates on a single
+ * library at a time.
+ *
+ * Called at the end of #setup_add_data from BKE's `blendfile.cc`.
+ *
+ * \param new_bmain: the newly read Main data-base.
+ */
+void BLO_read_do_version_after_setup(struct Main *new_bmain, struct BlendFileReadReport *reports);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -204,6 +216,8 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
 typedef struct BLODataBlockInfo {
   char name[64]; /* MAX_NAME */
   struct AssetMetaData *asset_data;
+  /** Ownership over #asset_data above can be "stolen out" of this struct, for more permanent
+   * storage. In that case, set this to false to avoid double freeing of the stolen data. */
   bool free_asset_data;
   /**
    * Optimization: Tag data-blocks for which we know there is no preview.
@@ -484,7 +498,7 @@ void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
  * Loop over all ID data in Main to mark relations.
  * Set (id->tag & LIB_TAG_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
  *
- * \param fdhandle: usually file-data, or own handle.
+ * \param fdhandle: usually file-data, or own handle. May be nullptr.
  * \param mainvar: the Main database to expand.
  */
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);

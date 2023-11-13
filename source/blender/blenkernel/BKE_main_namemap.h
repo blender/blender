@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -45,9 +45,15 @@ void BKE_main_namemap_clear(struct Main *bmain) ATTR_NONNULL();
  *
  * In case of name collisions, the name will be adjusted to be unique.
  *
+ * \param do_unique_in_bmain: if `true`, ensure that the final name is unique in the whole Main
+ * (for the given ID type), not only in the set of IDs from the same library.
+ *
  * \return true if the name had to be adjusted for uniqueness.
  */
-bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name) ATTR_NONNULL();
+bool BKE_main_namemap_get_name(struct Main *bmain,
+                               struct ID *id,
+                               char *name,
+                               const bool do_unique_in_bmain) ATTR_NONNULL();
 
 /**
  * Remove a given name from usage.

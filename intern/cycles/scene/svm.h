@@ -106,6 +106,10 @@ class SVMCompiler {
   {
     return mix_weight_offset;
   }
+  uint get_bump_state_offset()
+  {
+    return bump_state_offset;
+  }
 
   ShaderType output_type()
   {
@@ -135,9 +139,11 @@ class SVMCompiler {
 
     bool empty()
     {
-      for (int i = 0; i < SVM_STACK_SIZE; i++)
-        if (users[i])
+      for (int i = 0; i < SVM_STACK_SIZE; i++) {
+        if (users[i]) {
           return false;
+        }
+      }
 
       return true;
     }
@@ -146,8 +152,9 @@ class SVMCompiler {
     {
       printf("stack <");
 
-      for (int i = 0; i < SVM_STACK_SIZE; i++)
+      for (int i = 0; i < SVM_STACK_SIZE; i++) {
         printf((users[i]) ? "*" : " ");
+      }
 
       printf(">\n");
     }
@@ -219,6 +226,7 @@ class SVMCompiler {
   Stack active_stack;
   int max_stack_use;
   uint mix_weight_offset;
+  uint bump_state_offset;
   bool compile_failed;
 };
 

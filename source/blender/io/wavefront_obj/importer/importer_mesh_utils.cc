@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,15 +7,18 @@
  */
 
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_delaunay_2d.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 
 #include "DNA_object_types.h"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 
 #include "importer_mesh_utils.hh"
 
@@ -80,7 +83,7 @@ Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
          * we won't quite know what to do with it (how to create normal/UV
          * for it, for example). Such vertices are often due to
          * self-intersecting polygons. Just skip them from the output
-         * polygon. */
+         * face. */
       }
       else {
         /* Vertex corresponds to one or more of the input vertices, use it. */
@@ -113,8 +116,8 @@ void transform_object(Object *object, const OBJImportParams &import_params)
   if (import_params.clamp_size != 0.0f) {
     float3 max_coord(-INT_MAX);
     float3 min_coord(INT_MAX);
-    BoundBox *bb = BKE_mesh_boundbox_get(object);
-    for (const float(&vertex)[3] : bb->vec) {
+    const BoundBox bb = BKE_mesh_boundbox_get(object);
+    for (const float(&vertex)[3] : bb.vec) {
       for (int axis = 0; axis < 3; axis++) {
         max_coord[axis] = max_ff(max_coord[axis], vertex[axis]);
         min_coord[axis] = min_ff(min_coord[axis], vertex[axis]);

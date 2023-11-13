@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,13 +15,24 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "BLI_math_matrix_types.hh"
+
 #include "GHOST_C-api.h"
 
 namespace blender::gpu {
 
 void VKDevice::deinit()
 {
+  VK_ALLOCATION_CALLBACKS;
+  vkDestroyCommandPool(vk_device_, vk_command_pool_, vk_allocation_callbacks);
+
+  dummy_buffer_.free();
+  if (dummy_color_attachment_.has_value()) {
+    delete &(*dummy_color_attachment_).get();
+    dummy_color_attachment_.reset();
+  }
   sampler_.free();
+  destroy_discarded_resources();
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
   debugging_tools_.deinit(vk_instance_);
@@ -50,10 +61,12 @@ void VKDevice::init(void *ghost_context)
                          &vk_queue_);
 
   init_physical_device_properties();
+  init_physical_device_features();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
   init_debug_callbacks();
   init_memory_allocator();
+  init_command_pools();
   init_descriptor_pools();
 
   sampler_.create();
@@ -73,6 +86,24 @@ void VKDevice::init_physical_device_properties()
   vkGetPhysicalDeviceProperties(vk_physical_device_, &vk_physical_device_properties_);
 }
 
+void VKDevice::init_physical_device_features()
+{
+  BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
+
+  VkPhysicalDeviceFeatures2 features = {};
+  features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  vk_physical_device_vulkan_11_features_.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+  vk_physical_device_vulkan_12_features_.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+
+  features.pNext = &vk_physical_device_vulkan_11_features_;
+  vk_physical_device_vulkan_11_features_.pNext = &vk_physical_device_vulkan_12_features_;
+
+  vkGetPhysicalDeviceFeatures2(vk_physical_device_, &features);
+  vk_physical_device_features_ = features.features;
+}
+
 void VKDevice::init_memory_allocator()
 {
   VK_ALLOCATION_CALLBACKS;
@@ -85,9 +116,45 @@ void VKDevice::init_memory_allocator()
   vmaCreateAllocator(&info, &mem_allocator_);
 }
 
+void VKDevice::init_command_pools()
+{
+  VK_ALLOCATION_CALLBACKS;
+  VkCommandPoolCreateInfo command_pool_info = {};
+  command_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  command_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  command_pool_info.queueFamilyIndex = vk_queue_family_;
+
+  vkCreateCommandPool(vk_device_, &command_pool_info, vk_allocation_callbacks, &vk_command_pool_);
+}
+
 void VKDevice::init_descriptor_pools()
 {
   descriptor_pools_.init(vk_device_);
+}
+
+void VKDevice::init_dummy_buffer(VKContext &context)
+{
+  if (dummy_buffer_.is_allocated()) {
+    return;
+  }
+
+  dummy_buffer_.create(sizeof(float4x4),
+                       GPU_USAGE_DEVICE_ONLY,
+                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+  dummy_buffer_.clear(context, 0);
+}
+
+void VKDevice::init_dummy_color_attachment()
+{
+  if (dummy_color_attachment_.has_value()) {
+    return;
+  }
+
+  GPUTexture *texture = GPU_texture_create_2d(
+      "dummy_attachment", 1, 1, 1, GPU_R32F, GPU_TEXTURE_USAGE_ATTACHMENT, nullptr);
+  BLI_assert(texture);
+  VKTexture &vk_texture = *unwrap(unwrap(texture));
+  dummy_color_attachment_ = std::make_optional(std::reference_wrapper(vk_texture));
 }
 
 /* -------------------------------------------------------------------- */
@@ -203,6 +270,60 @@ const Vector<std::reference_wrapper<VKContext>> &VKDevice::contexts_get() const
 {
   return contexts_;
 };
+
+void VKDevice::discard_image(VkImage vk_image, VmaAllocation vma_allocation)
+{
+  discarded_images_.append(std::pair(vk_image, vma_allocation));
+}
+
+void VKDevice::discard_image_view(VkImageView vk_image_view)
+{
+  discarded_image_views_.append(vk_image_view);
+}
+
+void VKDevice::discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation)
+{
+  discarded_buffers_.append(std::pair(vk_buffer, vma_allocation));
+}
+
+void VKDevice::discard_render_pass(VkRenderPass vk_render_pass)
+{
+  discarded_render_passes_.append(vk_render_pass);
+}
+void VKDevice::discard_frame_buffer(VkFramebuffer vk_frame_buffer)
+{
+  discarded_frame_buffers_.append(vk_frame_buffer);
+}
+
+void VKDevice::destroy_discarded_resources()
+{
+  VK_ALLOCATION_CALLBACKS
+
+  while (!discarded_image_views_.is_empty()) {
+    VkImageView vk_image_view = discarded_image_views_.pop_last();
+    vkDestroyImageView(vk_device_, vk_image_view, vk_allocation_callbacks);
+  }
+
+  while (!discarded_images_.is_empty()) {
+    std::pair<VkImage, VmaAllocation> image_allocation = discarded_images_.pop_last();
+    vmaDestroyImage(mem_allocator_get(), image_allocation.first, image_allocation.second);
+  }
+
+  while (!discarded_buffers_.is_empty()) {
+    std::pair<VkBuffer, VmaAllocation> buffer_allocation = discarded_buffers_.pop_last();
+    vmaDestroyBuffer(mem_allocator_get(), buffer_allocation.first, buffer_allocation.second);
+  }
+
+  while (!discarded_render_passes_.is_empty()) {
+    VkRenderPass vk_render_pass = discarded_render_passes_.pop_last();
+    vkDestroyRenderPass(vk_device_, vk_render_pass, vk_allocation_callbacks);
+  }
+
+  while (!discarded_frame_buffers_.is_empty()) {
+    VkFramebuffer vk_frame_buffer = discarded_frame_buffers_.pop_last();
+    vkDestroyFramebuffer(vk_device_, vk_frame_buffer, vk_allocation_callbacks);
+  }
+}
 
 /** \} */
 

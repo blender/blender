@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -249,7 +249,7 @@ typedef struct PTCacheEdit {
   struct ParticleSystemModifierData *psmd;
   struct ParticleSystemModifierData *psmd_eval;
   struct KDTree_3d *emitter_field;
-  /* Localspace face centers and normals (average of its verts), from the derived mesh. */
+  /** Local-space face centers and normals (average of its verts), from the derived mesh. */
   float *emitter_cosnos;
   int *mirror_cache;
 

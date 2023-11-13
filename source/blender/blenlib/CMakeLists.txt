@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,13 +7,8 @@ if(HAVE_EXECINFO_H)
 endif()
 
 set(INC
-  .
-  ..
-  # ../blenkernel  # don't add this back!
-  ../makesdna
-  ../../../intern/atomic
+  PUBLIC .
   ../../../intern/eigen
-  ../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -23,7 +18,6 @@ set(INC_SYS
   ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
-  ${GMP_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -32,7 +26,7 @@ set(SRC
   intern/BLI_color.cc
   intern/BLI_dial_2d.c
   intern/BLI_dynstr.c
-  intern/BLI_filelist.c
+  intern/BLI_filelist.cc
   intern/BLI_ghash.c
   intern/BLI_ghash_utils.c
   intern/BLI_heap.c
@@ -54,6 +48,7 @@ set(SRC
   intern/array_utils.cc
   intern/astar.c
   intern/atomic_disjoint_set.cc
+  intern/bit_ref.cc
   intern/bit_span.cc
   intern/bitmap.c
   intern/bitmap_draw_2d.c
@@ -62,16 +57,16 @@ set(SRC
   intern/cache_mutex.cc
   intern/compute_context.cc
   intern/convexhull_2d.c
+  intern/cpp_type.cc
   intern/cpp_types.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
-  intern/dynlib.c
+  intern/dynlib.cc
   intern/easing.c
-  intern/edgehash.c
   intern/endian_switch.c
   intern/expr_pylike_eval.c
-  intern/fileops.c
   intern/fileops.cc
+  intern/fileops_c.cc
   intern/filereader_file.c
   intern/filereader_gzip.c
   intern/filereader_memory.c
@@ -84,8 +79,10 @@ set(SRC
   intern/hash_md5.c
   intern/hash_mm2a.c
   intern/hash_mm3.c
+  intern/hash_tables.cc
   intern/implicit_sharing.cc
   intern/index_mask.cc
+  intern/index_range.cc
   intern/jitter_2d.c
   intern/kdtree_1d.c
   intern/kdtree_2d.c
@@ -98,12 +95,13 @@ set(SRC
   intern/math_base.c
   intern/math_base_inline.c
   intern/math_base_safe_inline.c
+  intern/math_basis_types.cc
   intern/math_bits_inline.c
   intern/math_boolean.cc
   intern/math_color.c
   intern/math_color_blend_inline.c
   intern/math_color_inline.c
-  intern/math_geom.c
+  intern/math_geom.cc
   intern/math_geom_inline.c
   intern/math_interp.c
   intern/math_matrix.c
@@ -122,7 +120,7 @@ set(SRC
   intern/noise.c
   intern/noise.cc
   intern/offset_indices.cc
-  intern/path_util.c
+  intern/path_util.cc
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
   intern/quadric.c
@@ -138,12 +136,13 @@ set(SRC
   intern/sort.c
   intern/sort_utils.c
   intern/stack.c
-  intern/storage.c
+  intern/storage.cc
   intern/string.c
   intern/string_cursor_utf8.c
+  intern/string_ref.cc
   intern/string_search.cc
-  intern/string_utf8.c
-  intern/string_utils.c
+  intern/string_utf8.cc
+  intern/string_utils.cc
   intern/system.c
   intern/task_graph.cc
   intern/task_iterator.c
@@ -157,11 +156,13 @@ set(SRC
   intern/timeit.cc
   intern/uuid.cc
   intern/uvproject.c
+  intern/vector.cc
+  intern/virtual_array.cc
   intern/voronoi_2d.c
   intern/voxel.c
-  intern/winstuff.c
-  intern/winstuff_dir.c
-
+  intern/winstuff.cc
+  intern/winstuff_dir.cc
+  intern/winstuff_registration.cc
   # Private headers.
   intern/BLI_mempool_private.h
 
@@ -219,7 +220,6 @@ set(SRC
   BLI_dynlib.h
   BLI_dynstr.h
   BLI_easing.h
-  BLI_edgehash.h
   BLI_endian_defines.h
   BLI_endian_switch.h
   BLI_endian_switch_inline.h
@@ -271,7 +271,6 @@ set(SRC
   BLI_listbase_wrapper.hh
   BLI_map.hh
   BLI_map_slots.hh
-  BLI_math.h
   BLI_math_angle_types.hh
   BLI_math_axis_angle.hh
   BLI_math_axis_angle_types.hh
@@ -352,9 +351,10 @@ set(SRC
   BLI_string.h
   BLI_string_cursor_utf8.h
   BLI_string_ref.hh
-  BLI_string_search.h
+  BLI_string_search.hh
   BLI_string_utf8.h
-  BLI_string_utils.h
+  BLI_string_utf8_symbols.h
+  BLI_string_utils.hh
   BLI_sub_frame.hh
   BLI_sys_types.h
   BLI_system.h
@@ -382,6 +382,7 @@ set(SRC
   BLI_voronoi_2d.h
   BLI_voxel.h
   BLI_winstuff.h
+  BLI_winstuff_com.hh
   PIL_time.h
   PIL_time_utildefines.h
 
@@ -390,10 +391,11 @@ set(SRC
 )
 
 set(LIB
+  PUBLIC bf::dna
   bf_intern_eigen
-  bf_intern_guardedalloc
+  PRIVATE bf::intern::guardedalloc
   extern_wcwidth
-
+  PRIVATE bf::intern::atomic
   ${ZLIB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )
@@ -444,6 +446,7 @@ if(WIN32)
   )
   list(APPEND LIB
     bf_intern_utfconv
+    dxgi
   )
   list(APPEND SRC
     intern/system_win32.c
@@ -476,6 +479,7 @@ set_source_files_properties(
 )
 
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::blenlib ALIAS bf_blenlib)
 
 if(WITH_GTESTS)
   set(TEST_SRC
@@ -494,7 +498,6 @@ if(WITH_GTESTS)
     tests/BLI_cpp_type_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
-    tests/BLI_edgehash_test.cc
     tests/BLI_expr_pylike_eval_test.cc
     tests/BLI_fileops_test.cc
     tests/BLI_function_ref_test.cc
@@ -548,6 +551,7 @@ if(WITH_GTESTS)
     tests/BLI_string_search_test.cc
     tests/BLI_string_test.cc
     tests/BLI_string_utf8_test.cc
+    tests/BLI_string_utils_test.cc
     tests/BLI_task_graph_test.cc
     tests/BLI_task_test.cc
     tests/BLI_tempfile_test.cc

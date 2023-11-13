@@ -1,6 +1,5 @@
 Project: Eigen, template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms
 URL: http://eigen.tuxfamily.org/index.php?title=Main_Page
-License: GPLv3+
-Upstream version: 3.2.7
-Local modifications:
-- OpenMP fix for MSVC2015, see http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1131
+License: MPL 2.0
+Upstream version: 3.4.0
+Local modifications: None

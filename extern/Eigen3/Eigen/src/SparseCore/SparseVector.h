@@ -281,7 +281,7 @@ class SparseVector
     }
 
     /** Swaps the values of \c *this and \a other.
-      * Overloaded for performance: this version performs a \em shallow swap by swaping pointers and attributes only.
+      * Overloaded for performance: this version performs a \em shallow swap by swapping pointers and attributes only.
       * \sa SparseMatrixBase::swap()
       */
     inline void swap(SparseVector& other)

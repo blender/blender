@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -46,7 +46,7 @@ AxisAngleBase<T, AngleT>::AxisAngleBase(const VecBase<T, 3> &from, const VecBase
   T cos = dot(from, to);
   axis_ = normalize_and_get_length(cross(from, to), sin);
 
-  if (sin <= FLT_EPSILON) {
+  if (sin <= std::numeric_limits<T>::epsilon()) {
     if (cos > T(0)) {
       /* Same vectors, zero rotation... */
       *this = identity();

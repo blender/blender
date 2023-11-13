@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,16 +24,16 @@
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_undo_system.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "ED_curve.h"
-#include "ED_undo.h"
+#include "ED_curve.hh"
+#include "ED_undo.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "curve_intern.h"
 
@@ -44,7 +44,7 @@ static CLG_LogRef LOG = {"ed.undo.curve"};
 /** \name Undo Conversion
  * \{ */
 
-typedef struct {
+struct UndoCurve {
   ListBase nubase;
   int actvert;
   GHash *undoIndex;
@@ -58,13 +58,12 @@ typedef struct {
   } obedit;
 
   size_t undo_size;
-} UndoCurve;
+};
 
 static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short *r_shapenr)
 {
   ListBase *undobase = &ucu->nubase;
   ListBase *editbase = BKE_curve_editNurbs_get(cu);
-  Nurb *nu, *newnu;
   EditNurb *editnurb = cu->editnurb;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 
@@ -86,8 +85,8 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
   }
 
   /* Copy. */
-  for (nu = static_cast<Nurb *>(undobase->first); nu; nu = nu->next) {
-    newnu = BKE_nurb_duplicate(nu);
+  LISTBASE_FOREACH (Nurb *, nu, undobase) {
+    Nurb *newnu = BKE_nurb_duplicate(nu);
 
     if (editnurb->keyindex) {
       ED_curve_keyindex_update_nurb(editnurb, nu, newnu);
@@ -108,7 +107,6 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   BLI_assert(BLI_array_is_zeroed(ucu, 1));
   ListBase *nubase = BKE_curve_editNurbs_get(cu);
   EditNurb *editnurb = cu->editnurb, tmpEditnurb;
-  Nurb *nu, *newnu;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 
   /* TODO: include size of fcurve & undoIndex */
@@ -128,8 +126,8 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   }
 
   /* Copy. */
-  for (nu = static_cast<Nurb *>(nubase->first); nu; nu = nu->next) {
-    newnu = BKE_nurb_duplicate(nu);
+  LISTBASE_FOREACH (Nurb *, nu, nubase) {
+    Nurb *newnu = BKE_nurb_duplicate(nu);
 
     if (ucu->undoIndex) {
       ED_curve_keyindex_update_nurb(&tmpEditnurb, nu, newnu);
@@ -183,16 +181,18 @@ static Object *editcurve_object_from_context(bContext *C)
  * \note This is similar for all edit-mode types.
  * \{ */
 
-typedef struct CurveUndoStep_Elem {
+struct CurveUndoStep_Elem {
   UndoRefID_Object obedit_ref;
   UndoCurve data;
-} CurveUndoStep_Elem;
+};
 
-typedef struct CurveUndoStep {
+struct CurveUndoStep {
   UndoStep step;
+  /** See #ED_undo_object_editmode_validate_scene_from_windows code comment for details. */
+  UndoRefID_Scene scene_ref;
   CurveUndoStep_Elem *elems;
   uint elems_len;
-} CurveUndoStep;
+};
 
 static bool curve_undosys_poll(bContext *C)
 {
@@ -211,6 +211,7 @@ static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   uint objects_len = 0;
   Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_len);
 
+  us->scene_ref.ptr = scene;
   us->elems = static_cast<CurveUndoStep_Elem *>(
       MEM_callocN(sizeof(*us->elems) * objects_len, __func__));
   us->elems_len = objects_len;
@@ -236,9 +237,13 @@ static void curve_undosys_step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
+  ED_undo_object_editmode_validate_scene_from_windows(
+      CTX_wm_manager(C), us->scene_ref.ptr, &scene, &view_layer);
   ED_undo_object_editmode_restore_helper(
-      C, &us->elems[0].obedit_ref.ptr, us->elems_len, sizeof(*us->elems));
+      scene, view_layer, &us->elems[0].obedit_ref.ptr, us->elems_len, sizeof(*us->elems));
 
   BLI_assert(BKE_object_is_in_editmode(us->elems[0].obedit_ref.ptr));
 
@@ -262,10 +267,10 @@ static void curve_undosys_step_decode(
 
   /* The first element is always active */
   ED_undo_object_set_active_or_warn(
-      CTX_data_scene(C), CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+      scene, view_layer, us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
 
-  /* Check after setting active. */
-  BLI_assert(curve_undosys_poll(C));
+  /* Check after setting active (unless undoing into another scene). */
+  BLI_assert(curve_undosys_poll(C) || (scene != CTX_data_scene(C)));
 
   bmain->is_memfile_undo_flush_needed = true;
 
@@ -289,6 +294,7 @@ static void curve_undosys_foreach_ID_ref(UndoStep *us_p,
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
 
+  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
   for (uint i = 0; i < us->elems_len; i++) {
     CurveUndoStep_Elem *elem = &us->elems[i];
     foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));

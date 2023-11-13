@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -418,8 +418,8 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
     return nil;
   }
 
-  /* Verify Shader. */
-  active_shader_ = (shader) ? static_cast<MTLShader *>(unwrap(shader)) : nullptr;
+  /* Fetch bound shader from context. */
+  active_shader_ = static_cast<MTLShader *>(ctx->shader);
 
   if (active_shader_ == nullptr || !active_shader_->is_valid()) {
     /* Skip drawing if there is no valid Metal shader.
@@ -903,15 +903,39 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
     return;
   }
 
-  /* Render using SSBO Vertex Fetch not supported by Draw Indirect.
-   * NOTE: Add support? */
-  if (active_shader_->get_uses_ssbo_vertex_fetch()) {
-    printf("Draw indirect for SSBO vertex fetch disabled\n");
+  /* Fetch indirect buffer Metal handle. */
+  MTLStorageBuf *mtlssbo = static_cast<MTLStorageBuf *>(unwrap(indirect_buf));
+  id<MTLBuffer> mtl_indirect_buf = mtlssbo->get_metal_buffer();
+  BLI_assert(mtl_indirect_buf != nil);
+  if (mtl_indirect_buf == nil) {
+    MTL_LOG_WARNING("Metal Indirect Draw Storage Buffer is nil.");
 
     /* End of draw. */
     this->unbind(rec);
     return;
   }
+
+  /* Indirect SSBO vertex fetch calls require the draw command in the buffer to be mutated at
+   * command encoding time. This takes place within the draw manager when a shader supporting
+   * SSBO Vertex-Fetch is used. */
+  if (active_shader_->get_uses_ssbo_vertex_fetch())
+  { /* Set depth stencil state (requires knowledge of primitive type). */
+    ctx->ensure_depth_stencil_state(active_shader_->get_ssbo_vertex_fetch_output_prim_type());
+
+    /* Issue draw call. */
+    [rec drawPrimitives:active_shader_->get_ssbo_vertex_fetch_output_prim_type()
+              indirectBuffer:mtl_indirect_buf
+        indirectBufferOffset:offset];
+    ctx->main_command_buffer.register_draw_counters(1);
+
+    /* End of draw. */
+    this->unbind(rec);
+    return;
+  }
+
+  /* Unsupported primitive type check. */
+  BLI_assert_msg(this->prim_type != GPU_PRIM_TRI_FAN,
+                 "TriangleFan is not supported in Metal for Indirect draws.");
 
   /* Fetch IndexBuffer and resolve primitive type. */
   MTLIndexBuf *mtl_elem = static_cast<MTLIndexBuf *>(reinterpret_cast<IndexBuf *>(this->elem));
@@ -919,18 +943,6 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
 
   if (mtl_needs_topology_emulation(this->prim_type)) {
     BLI_assert_msg(false, "Metal Topology emulation unsupported for draw indirect.\n");
-
-    /* End of draw. */
-    this->unbind(rec);
-    return;
-  }
-
-  /* Fetch indirect buffer Metal handle. */
-  MTLStorageBuf *mtlssbo = static_cast<MTLStorageBuf *>(unwrap(indirect_buf));
-  id<MTLBuffer> mtl_indirect_buf = mtlssbo->get_metal_buffer();
-  BLI_assert(mtl_indirect_buf != nil);
-  if (mtl_indirect_buf == nil) {
-    MTL_LOG_WARNING("Metal Indirect Draw Storage Buffer is nil.");
 
     /* End of draw. */
     this->unbind(rec);
@@ -952,6 +964,9 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
     MTLIndexType index_type = MTLIndexBuf::gpu_index_type_to_metal(mtl_elem->index_type_);
     GPUPrimType final_prim_type = this->prim_type;
     uint index_count = 0;
+
+    /* Disable index optimization for indirect draws. */
+    mtl_elem->flag_can_optimize(false);
 
     id<MTLBuffer> index_buffer = mtl_elem->get_index_buffer(final_prim_type, index_count);
     mtl_prim_type = gpu_prim_type_to_metal(final_prim_type);

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -185,7 +185,7 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
         AddVertexToLine(line, nextFEdge->vertexA());
         currentEdge = nextFEdge;
         nextFEdge = nextFEdge->nextEdge();
-      } while ((nextFEdge != NULL) && (nextFEdge != firstEdge));
+      } while ((nextFEdge != nullptr) && (nextFEdge != firstEdge));
       // Add the last vertex
       // line->AddVertex(currentEdge->vertexB()->point3D());
       AddVertexToLine(line, currentEdge->vertexB());

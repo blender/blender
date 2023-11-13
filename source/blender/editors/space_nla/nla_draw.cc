@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,21 +27,21 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_draw.h"
-#include "ED_keyframes_keylist.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_draw.hh"
+#include "ED_keyframes_keylist.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "nla_intern.hh" /* own include */
 #include "nla_private.h"
@@ -326,7 +326,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
 
     /* plot the curve (over the strip's main region) */
     if (fcu) {
-      immBegin(GPU_PRIM_LINE_STRIP, abs((int)(strip->end - strip->start) + 1));
+      immBegin(GPU_PRIM_LINE_STRIP, abs(int(strip->end - strip->start) + 1));
 
       /* sample at 1 frame intervals, and draw
        * - min y-val is yminc, max is y-maxc, so clamp in those regions
@@ -688,9 +688,9 @@ static void nla_draw_strip_frames_text(
   /* Always draw times above the strip, whereas sequencer drew below + above.
    * However, we should be fine having everything on top, since these tend to be
    * quite spaced out.
-   * - 1 dp is compromise between lack of precision (ints only, as per sequencer)
-   *   while also preserving some accuracy, since we do use floats
-   */
+   * NOTE: 1 decimal point is a compromise between lack of precision (ints only, as per sequencer)
+   * while also preserving some accuracy, since we do use floats. */
+
   /* start frame */
   numstr_len = SNPRINTF_RLEN(numstr, "%.1f", strip->start);
   UI_view2d_text_cache_add(v2d, strip->start - 1.0f, ymaxc + ytol, numstr, numstr_len, col);
@@ -888,7 +888,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
             case NLASTRIP_EXTEND_HOLD_FORWARD: {
               float r_start;
               float r_end;
-              BKE_action_get_frame_range(static_cast<bAction *>(ale->data), &r_start, &r_end);
+              BKE_action_frame_range_get(static_cast<bAction *>(ale->data), &r_start, &r_end);
+              BKE_nla_clip_length_ensure_nonzero(&r_start, &r_end);
 
               immRectf(pos, r_end, ymin + NLACHANNEL_SKIP, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
               break;

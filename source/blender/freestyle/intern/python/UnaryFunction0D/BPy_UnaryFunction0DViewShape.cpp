@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -120,7 +120,7 @@ static PyObject *UnaryFunction0DViewShape___call__(BPy_UnaryFunction0DViewShape 
 /*-----------------------BPy_UnaryFunction0DViewShape type definition ---------------------------*/
 
 PyTypeObject UnaryFunction0DViewShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DViewShape",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DViewShape),
     /*tp_itemsize*/ 0,

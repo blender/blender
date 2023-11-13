@@ -1,9 +1,9 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
-#include "select_defines.h"
+#include "select_defines.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Select ID for Edit Mesh Selection

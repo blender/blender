@@ -1,14 +1,14 @@
-Index: nanovdb/nanovdb/NanoVDB.h
-===================================================================
---- nanovdb/nanovdb/NanoVDB.h	(revision 63215)
-+++ nanovdb/nanovdb/NanoVDB.h	(working copy)
-@@ -140,8 +140,28 @@
+diff --git a/nanovdb/nanovdb/NanoVDB.h b/nanovdb/nanovdb/NanoVDB.h
+index fde5c47..cff460a 100644
+--- a/nanovdb/nanovdb/NanoVDB.h
++++ b/nanovdb/nanovdb/NanoVDB.h
+@@ -140,7 +140,27 @@
  #define NANOVDB_ALIGN(n) alignas(n)
  #endif // !defined(NANOVDB_ALIGN)
  
 -#ifdef __CUDACC_RTC__
 +#ifdef __KERNEL_METAL__
- 
++
 +using namespace metal;
 +#define std metal
 +#define double uint64_t
@@ -28,11 +28,10 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +#define NANOVDB_ASSERT(x)
 +
 +#elif defined(__CUDACC_RTC__)
-+
+ 
  typedef signed char        int8_t;
  typedef short              int16_t;
- typedef int                int32_t;
-@@ -157,6 +177,10 @@
+@@ -157,6 +177,10 @@ typedef unsigned long long uint64_t;
  
  #else // !__CUDACC_RTC__
  
@@ -43,7 +42,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #include <stdlib.h> //    for abs in clang7
  #include <stdint.h> //    for types like int32_t etc
  #include <stddef.h> //    for size_t type
-@@ -262,7 +286,7 @@
+@@ -262,7 +286,7 @@ enum class GridType : uint32_t { Unknown = 0,
                                   Index   = 19,// index into an external array of values
                                   End     = 20 };
  
@@ -52,7 +51,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  /// @brief Retuns a c-string used to describe a GridType
  inline const char* toStr(GridType gridType)
  {
-@@ -289,7 +313,7 @@
+@@ -289,7 +313,7 @@ enum class GridClass : uint32_t { Unknown = 0,
                                    IndexGrid = 8,//    grid whose values are offsets, e.g. into an external array
                                    End = 9 };
  
@@ -61,7 +60,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  /// @brief Retuns a c-string used to describe a GridClass
  inline const char* toStr(GridClass gridClass)
  {
-@@ -313,7 +337,7 @@
+@@ -313,7 +337,7 @@ enum class GridFlags : uint32_t {
      End = 1 << 6,
  };
  
@@ -70,7 +69,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  /// @brief Retuns a c-string used to describe a GridFlags
  inline const char* toStr(GridFlags gridFlags)
  {
-@@ -355,13 +379,13 @@
+@@ -355,13 +379,13 @@ enum class GridBlindDataSemantic : uint32_t { Unknown = 0,
  template<typename T1, typename T2>
  struct is_same
  {
@@ -86,7 +85,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  };
  
  // --------------------------> enable_if <------------------------------------
-@@ -383,13 +407,13 @@
+@@ -383,13 +407,13 @@ struct enable_if<true, T>
  template<typename T>
  struct is_const
  {
@@ -102,7 +101,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  };
  
  // --------------------------> remove_const <------------------------------------
-@@ -412,7 +436,7 @@
+@@ -412,7 +436,7 @@ struct remove_const<const T>
  template<typename T>
  struct is_floating_point
  {
@@ -111,7 +110,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  };
  
  // --------------------------> is_specialization <------------------------------------
-@@ -425,12 +449,12 @@
+@@ -425,12 +449,12 @@ struct is_floating_point
  template<typename AnyType, template<typename...> class TemplateType>
  struct is_specialization
  {
@@ -126,7 +125,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  };
  
  // --------------------------> Value Map <------------------------------------
-@@ -495,19 +519,19 @@
+@@ -495,19 +519,19 @@ struct BuildToValueMap<FpN>
  // --------------------------> utility functions related to alignment <------------------------------------
  
  /// @brief return true if the specified pointer is aligned
@@ -149,7 +148,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
      NANOVDB_ASSERT(p);
      return (NANOVDB_DATA_ALIGNMENT - (uint64_t(p) % NANOVDB_DATA_ALIGNMENT)) % NANOVDB_DATA_ALIGNMENT;
-@@ -515,43 +539,66 @@
+@@ -515,43 +539,66 @@ __hostdev__ inline static uint64_t alignmentPadding(const void* p)
  
  /// @brief offset the specified pointer so it is aligned.
  template <typename T>
@@ -227,7 +226,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  // --------------------------> Rgba8 <------------------------------------
  
  /// @brief 8-bit red, green, blue, alpha packed into 32 bit unsigned int
-@@ -562,13 +609,13 @@
+@@ -562,13 +609,13 @@ class Rgba8
          uint32_t packed;// 32 bit packed representation
      } mData;
  public:
@@ -246,7 +245,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      __hostdev__ Rgba8() : mData{0,0,0,0} {static_assert(sizeof(uint32_t) == sizeof(Rgba8),"Unexpected sizeof");}
      __hostdev__ Rgba8(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u) : mData{r, g, b, a} {}
      explicit __hostdev__ Rgba8(uint8_t v) : Rgba8(v,v,v,v) {}
-@@ -579,8 +626,8 @@
+@@ -579,8 +626,8 @@ public:
                  (uint8_t(0.5f + a * 255.0f))}// round to nearest
      {
      }
@@ -257,7 +256,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      __hostdev__ float lengthSqr() const
      {
          return 0.0000153787005f*(float(mData.c[0])*mData.c[0] +
-@@ -588,18 +635,18 @@
+@@ -588,18 +635,18 @@ public:
                                   float(mData.c[2])*mData.c[2]);//1/255^2
      }
      __hostdev__ float length() const { return sqrtf(this->lengthSqr() ); }
@@ -288,7 +287,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  };// Rgba8
  
  using PackedRGBA8 = Rgba8;// for backwards compatibility
-@@ -660,17 +707,17 @@
+@@ -660,17 +707,17 @@ public:
          NANOVDB_ASSERT(minor < (1u << 11));// max value of minor is 2047
          NANOVDB_ASSERT(patch < (1u << 10));// max value of patch is 1023
      }
@@ -312,7 +311,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      const char* c_str() const
      {
          char *buffer = (char*)malloc(4 + 1 + 4 + 1 + 4 + 1);// xxxx.xxxx.xxxx\0
-@@ -749,7 +796,7 @@
+@@ -749,7 +796,7 @@ struct Maximum
  //@}
  
  template<typename Type>
@@ -321,7 +320,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
      return !(x > Tolerance<Type>::value()) && !(x < -Tolerance<Type>::value());
  }
-@@ -771,10 +818,12 @@
+@@ -771,10 +818,12 @@ __hostdev__ inline float Min(float a, float b)
  {
      return fminf(a, b);
  }
@@ -334,7 +333,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  template<typename Type>
  __hostdev__ inline Type Max(Type a, Type b)
  {
-@@ -793,45 +842,55 @@
+@@ -793,45 +842,55 @@ __hostdev__ inline float Max(float a, float b)
  {
      return fmaxf(a, b);
  }
@@ -390,7 +389,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  template<typename T>
  __hostdev__ inline T Pow2(T x)
-@@ -875,28 +934,54 @@
+@@ -875,46 +934,78 @@ __hostdev__ inline int Abs(int x)
  }
  
  template<typename CoordT, typename RealT, template<typename> class Vec3T>
@@ -450,7 +449,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
  //@{
  /// Return the square root of a floating-point value.
  __hostdev__ inline float Sqrt(float x)
-@@ -903,18 +988,24 @@
  {
      return sqrtf(x);
  }
@@ -477,7 +475,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
  #if 0
      static const int hashTable[8] = {2, 1, 9, 1, 2, 9, 0, 0}; //9 are dummy values
-@@ -930,11 +1021,30 @@
+@@ -930,8 +1021,27 @@ __hostdev__ inline int MinIndex(const Vec3T& v)
  #endif
  }
  
@@ -485,9 +483,9 @@ Index: nanovdb/nanovdb/NanoVDB.h
  template<typename Vec3T>
 -__hostdev__ inline int MaxIndex(const Vec3T& v)
 +__hostdev__ inline int MinIndex(__local__ const Vec3T& v)
- {
- #if 0
-     static const int hashTable[8] = {2, 1, 9, 1, 2, 9, 0, 0}; //9 are dummy values
++{
++#if 0
++    static const int hashTable[8] = {2, 1, 9, 1, 2, 9, 0, 0}; //9 are dummy values
 +    const int        hashKey = ((v[0] < v[1]) << 2) + ((v[0] < v[2]) << 1) + (v[1] < v[2]); // ?*4+?*2+?*1
 +    return hashTable[hashKey];
 +#else
@@ -503,13 +501,10 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +
 +template<typename Vec3T>
 +__hostdev__ inline int MaxIndex(__global__ const Vec3T& v)
-+{
-+#if 0
-+    static const int hashTable[8] = {2, 1, 9, 1, 2, 9, 0, 0}; //9 are dummy values
-     const int        hashKey = ((v[0] > v[1]) << 2) + ((v[0] > v[2]) << 1) + (v[1] > v[2]); // ?*4+?*2+?*1
-     return hashTable[hashKey];
- #else
-@@ -947,6 +1057,25 @@
+ {
+ #if 0
+     static const int hashTable[8] = {2, 1, 9, 1, 2, 9, 0, 0}; //9 are dummy values
+@@ -947,6 +1057,25 @@ __hostdev__ inline int MaxIndex(const Vec3T& v)
  #endif
  }
  
@@ -535,7 +530,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  /// @brief round up byteSize to the nearest wordSize, e.g. to align to machine word: AlignUp<sizeof(size_t)(n)
  ///
  /// @details both wordSize and byteSize are in byte units
-@@ -988,7 +1117,7 @@
+@@ -988,7 +1117,7 @@ public:
      {
      }
  
@@ -544,7 +539,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          : mVec{ptr[0], ptr[1], ptr[2]}
      {
      }
-@@ -997,9 +1126,9 @@
+@@ -997,9 +1126,9 @@ public:
      __hostdev__ int32_t y() const { return mVec[1]; }
      __hostdev__ int32_t z() const { return mVec[2]; }
  
@@ -557,7 +552,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      __hostdev__ static Coord max() { return Coord(int32_t((1u << 31) - 1)); }
  
-@@ -1009,15 +1138,21 @@
+@@ -1009,15 +1138,21 @@ public:
  
      /// @brief Return a const reference to the given Coord component.
      /// @warning The argument is assumed to be 0, 1, or 2.
@@ -582,7 +577,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          static_assert(sizeof(Coord) == sizeof(CoordT), "Mis-matched sizeof");
          mVec[0] = other[0];
-@@ -1025,6 +1160,17 @@
+@@ -1025,6 +1160,17 @@ public:
          mVec[2] = other[2];
          return *this;
      }
@@ -600,7 +595,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Return a new instance with coordinates masked by the given unsigned integer.
      __hostdev__ Coord operator&(IndexType n) const { return Coord(mVec[0] & n, mVec[1] & n, mVec[2] & n); }
-@@ -1036,15 +1182,15 @@
+@@ -1036,52 +1182,52 @@ public:
      __hostdev__ Coord operator>>(IndexType n) const { return Coord(mVec[0] >> n, mVec[1] >> n, mVec[2] >> n); }
  
      /// @brief Return true if this Coord is lexicographically less than the given Coord.
@@ -620,7 +615,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] &= n;
          mVec[1] &= n;
-@@ -1051,7 +1197,7 @@
          mVec[2] &= n;
          return *this;
      }
@@ -629,7 +623,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] <<= n;
          mVec[1] <<= n;
-@@ -1058,7 +1204,7 @@
          mVec[2] <<= n;
          return *this;
      }
@@ -638,7 +631,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] >>= n;
          mVec[1] >>= n;
-@@ -1065,7 +1211,7 @@
          mVec[2] >>= n;
          return *this;
      }
@@ -647,7 +639,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] += n;
          mVec[1] += n;
-@@ -1072,9 +1218,9 @@
          mVec[2] += n;
          return *this;
      }
@@ -660,7 +651,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] += rhs[0];
          mVec[1] += rhs[1];
-@@ -1081,7 +1227,7 @@
          mVec[2] += rhs[2];
          return *this;
      }
@@ -669,7 +659,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] -= rhs[0];
          mVec[1] -= rhs[1];
-@@ -1090,7 +1236,7 @@
+@@ -1090,7 +1236,7 @@ public:
      }
  
      /// @brief Perform a component-wise minimum with the other Coord.
@@ -678,7 +668,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (other[0] < mVec[0])
              mVec[0] = other[0];
-@@ -1102,7 +1248,7 @@
+@@ -1102,7 +1248,7 @@ public:
      }
  
      /// @brief Perform a component-wise maximum with the other Coord.
@@ -687,7 +677,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (other[0] > mVec[0])
              mVec[0] = other[0];
-@@ -1113,16 +1259,16 @@
+@@ -1113,16 +1259,16 @@ public:
          return *this;
      }
  
@@ -707,7 +697,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return (a[0] < b[0] || a[1] < b[1] || a[2] < b[2]);
      }
-@@ -1130,7 +1276,13 @@
+@@ -1130,7 +1276,13 @@ public:
      /// @brief Return the largest integer coordinates that are not greater
      /// than @a xyz (node centered conversion).
      template<typename Vec3T>
@@ -722,7 +712,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Return a hash key derived from the existing coordinates.
      /// @details For details on this hash function please see the VDB paper.
-@@ -1159,7 +1311,7 @@
+@@ -1159,7 +1311,7 @@ class Vec3
      T mVec[3];
  
  public:
@@ -731,7 +721,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      using ValueType = T;
      Vec3() = default;
      __hostdev__ explicit Vec3(T x)
-@@ -1171,18 +1323,18 @@
+@@ -1171,30 +1323,36 @@ public:
      {
      }
      template<typename T2>
@@ -755,7 +745,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] = rhs[0];
          mVec[1] = rhs[1];
-@@ -1189,12 +1341,18 @@
          mVec[2] = rhs[2];
          return *this;
      }
@@ -778,7 +767,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return Vec3(mVec[1] * v[2] - mVec[2] * v[1],
                      mVec[2] * v[0] - mVec[0] * v[2],
-@@ -1206,13 +1364,26 @@
+@@ -1206,37 +1364,62 @@ public:
      }
      __hostdev__ T    length() const { return Sqrt(this->lengthSqr()); }
      __hostdev__ Vec3 operator-() const { return Vec3(-mVec[0], -mVec[1], -mVec[2]); }
@@ -812,7 +801,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] += v[0];
          mVec[1] += v[1];
-@@ -1219,7 +1390,7 @@
          mVec[2] += v[2];
          return *this;
      }
@@ -821,7 +809,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] -= v[0];
          mVec[1] -= v[1];
-@@ -1226,7 +1397,7 @@
          mVec[2] -= v[2];
          return *this;
      }
@@ -830,7 +817,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] *= s;
          mVec[1] *= s;
-@@ -1233,10 +1404,22 @@
          mVec[2] *= s;
          return *this;
      }
@@ -856,7 +842,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (other[0] < mVec[0])
              mVec[0] = other[0];
-@@ -1248,7 +1431,7 @@
+@@ -1248,7 +1431,7 @@ public:
      }
  
      /// @brief Perform a component-wise maximum with the other Coord.
@@ -865,7 +851,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (other[0] > mVec[0])
              mVec[0] = other[0];
-@@ -1274,15 +1457,29 @@
+@@ -1274,15 +1457,29 @@ public:
  }; // Vec3<T>
  
  template<typename T1, typename T2>
@@ -878,13 +864,13 @@ Index: nanovdb/nanovdb/NanoVDB.h
  template<typename T1, typename T2>
 -__hostdev__ inline Vec3<T2> operator/(T1 scalar, const Vec3<T2>& vec)
 +__hostdev__ inline Vec3<T2> operator*(T1 scalar, __local__ const Vec3<T2>& vec)
- {
++{
 +    return Vec3<T2>(scalar * vec[0], scalar * vec[1], scalar * vec[2]);
 +}
 +#endif
 +template<typename T1, typename T2>
 +__hostdev__ inline Vec3<T2> operator/(T1 scalar, __global__ const Vec3<T2>& vec)
-+{
+ {
      return Vec3<T2>(scalar / vec[0], scalar / vec[1], scalar / vec[2]);
  }
 +#if defined(__KERNEL_METAL__)
@@ -897,7 +883,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  using Vec3R = Vec3<double>;
  using Vec3d = Vec3<double>;
-@@ -1304,7 +1501,7 @@
+@@ -1304,7 +1501,7 @@ class Vec4
      T mVec[4];
  
  public:
@@ -906,7 +892,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      using ValueType = T;
      Vec4() = default;
      __hostdev__ explicit Vec4(T x)
-@@ -1316,14 +1513,14 @@
+@@ -1316,14 +1513,14 @@ public:
      {
      }
      template<typename T2>
@@ -925,7 +911,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] = rhs[0];
          mVec[1] = rhs[1];
-@@ -1331,10 +1528,10 @@
+@@ -1331,23 +1528,23 @@ public:
          mVec[3] = rhs[3];
          return *this;
      }
@@ -939,7 +925,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      __hostdev__ T lengthSqr() const
      {
          return mVec[0] * mVec[0] + mVec[1] * mVec[1] + mVec[2] * mVec[2] + mVec[3] * mVec[3]; // 7 flops
-@@ -1341,13 +1538,13 @@
      }
      __hostdev__ T    length() const { return Sqrt(this->lengthSqr()); }
      __hostdev__ Vec4 operator-() const { return Vec4(-mVec[0], -mVec[1], -mVec[2], -mVec[3]); }
@@ -960,7 +945,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] += v[0];
          mVec[1] += v[1];
-@@ -1355,7 +1552,7 @@
+@@ -1355,7 +1552,7 @@ public:
          mVec[3] += v[3];
          return *this;
      }
@@ -969,7 +954,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] -= v[0];
          mVec[1] -= v[1];
-@@ -1363,7 +1560,7 @@
+@@ -1363,7 +1560,7 @@ public:
          mVec[3] -= v[3];
          return *this;
      }
@@ -978,7 +963,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mVec[0] *= s;
          mVec[1] *= s;
-@@ -1371,10 +1568,10 @@
+@@ -1371,10 +1568,10 @@ public:
          mVec[3] *= s;
          return *this;
      }
@@ -992,7 +977,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (other[0] < mVec[0])
              mVec[0] = other[0];
-@@ -1388,7 +1585,7 @@
+@@ -1388,7 +1585,7 @@ public:
      }
  
      /// @brief Perform a component-wise maximum with the other Coord.
@@ -1001,7 +986,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (other[0] > mVec[0])
              mVec[0] = other[0];
-@@ -1403,12 +1600,12 @@
+@@ -1403,12 +1600,12 @@ public:
  }; // Vec4<T>
  
  template<typename T1, typename T2>
@@ -1016,7 +1001,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
      return Vec4<T2>(scalar / vec[0], scalar / vec[1], scalar / vec[2], scalar / vec[3]);
  }
-@@ -1428,23 +1625,23 @@
+@@ -1428,23 +1625,23 @@ struct TensorTraits;
  template<typename T>
  struct TensorTraits<T, 0>
  {
@@ -1050,7 +1035,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  };
  
  // ----------------------------> FloatTraits <--------------------------------------
-@@ -1528,71 +1725,80 @@
+@@ -1528,71 +1725,80 @@ __hostdev__ inline GridType mapToGridType()
  // ----------------------------> matMult <--------------------------------------
  
  template<typename Vec3T>
@@ -1066,7 +1051,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  template<typename Vec3T>
 -__hostdev__ inline Vec3T matMult(const double* mat, const Vec3T& xyz)
 +__hostdev__ inline Vec3T matMult(__global__ const float* mat, __local__ const Vec3T& xyz)
- {
++{
 +    return Vec3T(fmaf(xyz[0], mat[0], fmaf(xyz[1], mat[1], xyz[2] * mat[2])),
 +                 fmaf(xyz[0], mat[3], fmaf(xyz[1], mat[4], xyz[2] * mat[5])),
 +                 fmaf(xyz[0], mat[6], fmaf(xyz[1], mat[7], xyz[2] * mat[8]))); // 6 fmaf + 3 mult = 9 flops
@@ -1075,7 +1060,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +#ifndef __KERNEL_METAL__
 +template<typename Vec3T>
 +__hostdev__ inline Vec3T matMult(__global__ const double* mat, __global__ const Vec3T& xyz)
-+{
+ {
      return Vec3T(fma(static_cast<double>(xyz[0]), mat[0], fma(static_cast<double>(xyz[1]), mat[1], static_cast<double>(xyz[2]) * mat[2])),
                   fma(static_cast<double>(xyz[0]), mat[3], fma(static_cast<double>(xyz[1]), mat[4], static_cast<double>(xyz[2]) * mat[5])),
                   fma(static_cast<double>(xyz[0]), mat[6], fma(static_cast<double>(xyz[1]), mat[7], static_cast<double>(xyz[2]) * mat[8]))); // 6 fmaf + 3 mult = 9 flops
@@ -1147,7 +1132,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  // ----------------------------> BBox <-------------------------------------
  
  // Base-class for static polymorphism (cannot be constructed directly)
-@@ -1600,15 +1806,27 @@
+@@ -1600,22 +1806,34 @@ template<typename Vec3T>
  struct BaseBBox
  {
      Vec3T             mCoord[2];
@@ -1184,7 +1169,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mCoord[0] += xyz;
          mCoord[1] += xyz;
-@@ -1615,7 +1833,7 @@
          return *this;
      }
      // @brief Expand this bounding box to enclose point (i, j, k).
@@ -1193,7 +1177,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mCoord[0].minComponent(xyz);
          mCoord[1].maxComponent(xyz);
-@@ -1623,7 +1841,7 @@
+@@ -1623,7 +1841,7 @@ struct BaseBBox
      }
  
      /// @brief Intersect this bounding box with the given bounding box.
@@ -1202,7 +1186,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mCoord[0].maxComponent(bbox.min());
          mCoord[1].minComponent(bbox.max());
-@@ -1634,7 +1852,7 @@
+@@ -1634,7 +1852,7 @@ struct BaseBBox
      //{
      //    return BaseBBox(mCoord[0].offsetBy(-padding),mCoord[1].offsetBy(padding));
      //}
@@ -1211,7 +1195,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (xyz[0] < mCoord[0][0] || xyz[1] < mCoord[0][1] || xyz[2] < mCoord[0][2])
              return false;
-@@ -1642,10 +1860,20 @@
+@@ -1642,10 +1860,20 @@ struct BaseBBox
              return false;
          return true;
      }
@@ -1233,7 +1217,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          : mCoord{min, max}
      {
      }
-@@ -1659,38 +1887,45 @@
+@@ -1659,38 +1887,45 @@ struct BBox;
  /// @note Min is inclusive and max is exclusive. If min = max the dimension of
  ///       the bounding box is zero and therefore it is also empty.
  template<typename Vec3T>
@@ -1286,7 +1270,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return p[0] > mCoord[0][0] && p[1] > mCoord[0][1] && p[2] > mCoord[0][2] &&
                 p[0] < mCoord[1][0] && p[1] < mCoord[1][1] && p[2] < mCoord[1][2];
-@@ -1703,24 +1938,32 @@
+@@ -1703,24 +1938,32 @@ struct BBox<Vec3T, true> : public BaseBBox<Vec3T>
  /// @note Both min and max are INCLUDED in the bbox so dim = max - min + 1. So,
  ///       if min = max the bounding box contains exactly one point and dim = 1!
  template<typename CoordT>
@@ -1323,7 +1307,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          {
              if (mPos[2] < mBBox[1][2]) {// this is the most common case
                  ++mPos[2];
-@@ -1734,7 +1977,7 @@
+@@ -1734,7 +1977,7 @@ struct BBox<CoordT, false> : public BaseBBox<CoordT>
              }
              return *this;
          }
@@ -1332,7 +1316,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          {
              auto tmp = *this;
              ++(*this);
-@@ -1742,7 +1985,7 @@
+@@ -1742,20 +1985,20 @@ struct BBox<CoordT, false> : public BaseBBox<CoordT>
          }
          /// @brief Return @c true if the iterator still points to a valid coordinate.
          __hostdev__       operator bool() const { return mPos[0] <= mBBox[1][0]; }
@@ -1341,7 +1325,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      }; // Iterator
      __hostdev__ Iterator begin() const { return Iterator{*this}; }
      __hostdev__          BBox()
-@@ -1749,13 +1992,13 @@
          : BaseT(CoordT::max(), CoordT::min())
      {
      }
@@ -1357,7 +1340,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          : BaseT(other.mCoord[0], other.mCoord[1])
      {
          NANOVDB_ASSERT(this->is_divisible());
-@@ -1764,7 +2007,7 @@
+@@ -1764,7 +2007,7 @@ struct BBox<CoordT, false> : public BaseBBox<CoordT>
          other.mCoord[0][n] = mCoord[1][n] + 1;
      }
  
@@ -1366,7 +1349,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return BBox(min, min.offsetBy(dim - 1));
      }
-@@ -1778,15 +2021,23 @@
+@@ -1778,15 +2021,23 @@ struct BBox<CoordT, false> : public BaseBBox<CoordT>
                                                mCoord[0][2] > mCoord[1][2]; }
      __hostdev__ CoordT dim() const { return this->empty() ? Coord(0) : this->max() - this->min() + Coord(1); }
      __hostdev__ uint64_t volume() const { auto d = this->dim(); return uint64_t(d[0])*uint64_t(d[1])*uint64_t(d[2]); }
@@ -1394,7 +1377,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return !(CoordT::lessThan(this->max(), b.min()) || CoordT::lessThan(b.max(), this->min()));
      }
-@@ -1826,6 +2077,8 @@
+@@ -1826,6 +2077,8 @@ __hostdev__ static inline uint32_t FindLowestOn(uint32_t v)
      return static_cast<uint32_t>(index);
  #elif (defined(__GNUC__) || defined(__clang__)) && defined(NANOVDB_USE_INTRINSICS)
      return static_cast<uint32_t>(__builtin_ctzl(v));
@@ -1403,7 +1386,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #else
  //#warning Using software implementation for FindLowestOn(uint32_t)
      static const unsigned char DeBruijn[32] = {
-@@ -1856,6 +2109,8 @@
+@@ -1856,6 +2109,8 @@ __hostdev__ static inline uint32_t FindHighestOn(uint32_t v)
      return static_cast<uint32_t>(index);
  #elif (defined(__GNUC__) || defined(__clang__)) && defined(NANOVDB_USE_INTRINSICS)
      return sizeof(unsigned long) * 8 - 1 - __builtin_clzl(v);
@@ -1412,7 +1395,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #else
  //#warning Using software implementation for FindHighestOn(uint32_t)
      static const unsigned char DeBruijn[32] = {
-@@ -1884,6 +2139,8 @@
+@@ -1884,6 +2139,8 @@ __hostdev__ static inline uint32_t FindLowestOn(uint64_t v)
      return static_cast<uint32_t>(index);
  #elif (defined(__GNUC__) || defined(__clang__)) && defined(NANOVDB_USE_INTRINSICS)
      return static_cast<uint32_t>(__builtin_ctzll(v));
@@ -1421,7 +1404,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #else
  //#warning Using software implementation for FindLowestOn(uint64_t)
      static const unsigned char DeBruijn[64] = {
-@@ -1918,6 +2175,8 @@
+@@ -1918,6 +2175,8 @@ __hostdev__ static inline uint32_t FindHighestOn(uint64_t v)
      return static_cast<uint32_t>(index);
  #elif (defined(__GNUC__) || defined(__clang__)) && defined(NANOVDB_USE_INTRINSICS)
      return sizeof(unsigned long) * 8 - 1 - __builtin_clzll(v);
@@ -1430,7 +1413,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #else
      const uint32_t* p = reinterpret_cast<const uint32_t*>(&v);
      return p[1] ? 32u + FindHighestOn(p[1]) : FindHighestOn(p[0]);
-@@ -1955,8 +2214,8 @@
+@@ -1955,8 +2214,8 @@ __hostdev__ inline uint32_t CountOn(uint64_t v)
  template<uint32_t LOG2DIM>
  class Mask
  {
@@ -1441,7 +1424,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      uint64_t                  mWords[WORD_COUNT];
  
  public:
-@@ -1973,7 +2232,7 @@
+@@ -1973,7 +2232,7 @@ public:
      __hostdev__ uint32_t countOn() const
      {
          uint32_t sum = 0, n = WORD_COUNT;
@@ -1450,7 +1433,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
              sum += CountOn(*w);
          return sum;
      }
-@@ -1982,7 +2241,7 @@
+@@ -1982,7 +2241,7 @@ public:
      inline __hostdev__ uint32_t countOn(uint32_t i) const
      {
          uint32_t n = i >> 6, sum = CountOn( mWords[n] & ((uint64_t(1) << (i & 63u))-1u) );
@@ -1459,7 +1442,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          return sum;
      }
  
-@@ -1990,13 +2249,21 @@
+@@ -1990,13 +2249,21 @@ public:
      class Iterator
      {
      public:
@@ -1485,7 +1468,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          {
              mPos = mParent->findNext<On>(mPos + 1);
              return *this;
-@@ -2010,7 +2277,7 @@
+@@ -2010,7 +2277,7 @@ public:
  
      private:
          uint32_t    mPos;
@@ -1494,7 +1477,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      }; // Member class Iterator
  
      using OnIterator = Iterator<true>;
-@@ -2034,7 +2301,7 @@
+@@ -2034,7 +2301,7 @@ public:
      }
  
      /// @brief Copy constructor
@@ -1503,7 +1486,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          for (uint32_t i = 0; i < WORD_COUNT; ++i)
              mWords[i] = other.mWords[i];
-@@ -2042,29 +2309,29 @@
+@@ -2042,36 +2309,36 @@ public:
  
      /// @brief Return a const reference to the <i>n</i>th word of the bit mask, for a word of arbitrary size.
      template<typename WordT>
@@ -1540,7 +1523,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
          for (uint32_t i = 0; i < WORD_COUNT; ++i) {
              *dst++ = *src++;
          }
-@@ -2071,7 +2338,7 @@
          return *this;
      }
  
@@ -1549,7 +1531,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          for (uint32_t i = 0; i < WORD_COUNT; ++i) {
              if (mWords[i] != other.mWords[i]) return false;
-@@ -2079,16 +2346,18 @@
+@@ -2079,22 +2346,33 @@ public:
          return true;
      }
  
@@ -1573,7 +1555,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          for (uint32_t i = 0; i < WORD_COUNT; ++i)
              if (mWords[i] != ~uint64_t(0))
-@@ -2095,6 +2364,15 @@
                  return false;
          return true;
      }
@@ -1589,7 +1570,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Return true if none of the bits are set in this Mask.
      __hostdev__ bool isOff() const
-@@ -2115,7 +2393,7 @@
+@@ -2115,7 +2393,7 @@ public:
      __hostdev__ void set(uint32_t n, bool On)
      {
  #if 1   // switch between branchless
@@ -1598,7 +1579,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          n &= 63;
          word &= ~(uint64_t(1) << n);
          word |=   uint64_t(On) << n;
-@@ -2149,40 +2427,40 @@
+@@ -2149,40 +2427,40 @@ public:
      __hostdev__ void toggle()
      {
          uint32_t n = WORD_COUNT;
@@ -1652,7 +1633,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          for (uint32_t n = WORD_COUNT; n--;  ++w1, ++w2) *w1 ^= *w2;
          return *this;
      }
-@@ -2194,7 +2472,7 @@
+@@ -2194,7 +2472,7 @@ private:
      __hostdev__ uint32_t findFirst() const
      {
          uint32_t n = 0;
@@ -1661,7 +1642,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          for (; n<WORD_COUNT && !(On ? *w : ~*w); ++w, ++n);
          return n==WORD_COUNT ? SIZE : (n << 6) + FindLowestOn(On ? *w : ~*w);
      }
-@@ -2233,53 +2511,73 @@
+@@ -2233,53 +2511,73 @@ struct Map
  
      /// @brief Initialize the member data
      template<typename Mat3T, typename Vec3T>
@@ -1702,13 +1683,13 @@ Index: nanovdb/nanovdb/NanoVDB.h
      template<typename Vec3T>
 -    __hostdev__ Vec3T applyInverseMapF(const Vec3T& xyz) const
 +    __hostdev__ Vec3T applyInverseMap(__local__ const Vec3T& xyz) const __global__
-     {
++    {
 +        return matMult(mInvMatD, Vec3T(xyz[0] - mVecD[0], xyz[1] - mVecD[1], xyz[2] - mVecD[2]));
 +    }
 +#endif
 +    template<typename Vec3T>
 +    __hostdev__ Vec3T applyInverseMapF(const __global__ Vec3T& xyz) const __global__
-+    {
+     {
          return matMult(mInvMatF, Vec3T(xyz[0] - mVecF[0], xyz[1] - mVecF[1], xyz[2] - mVecF[2]));
      }
 +#if defined(__KERNEL_METAL__)
@@ -1751,7 +1732,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      mTaperF = static_cast<float>(taper);
      mTaperD = taper;
      for (int i = 0; i < 3; ++i) {
-@@ -2295,8 +2593,19 @@
+@@ -2295,8 +2593,19 @@ __hostdev__ inline void Map::set(const Mat3T& mat, const Mat3T& invMat, const Ve
  }
  
  template<typename Vec3T>
@@ -1772,7 +1753,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      const double mat[3][3] = {
          {dx, 0.0, 0.0}, // row 0
          {0.0, dx, 0.0}, // row 1
-@@ -2306,6 +2615,7 @@
+@@ -2306,6 +2615,7 @@ __hostdev__ inline void Map::set(double dx, const Vec3T &trans, double taper)
          {0.0, idx, 0.0}, // row 1
          {0.0, 0.0, idx}, // row 2
      };
@@ -1780,7 +1761,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      this->set(mat, invMat, trans, taper);
  }
  
-@@ -2313,7 +2623,7 @@
+@@ -2313,7 +2623,7 @@ __hostdev__ inline void Map::set(double dx, const Vec3T &trans, double taper)
  
  struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridBlindMetaData
  {
@@ -1789,7 +1770,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      int64_t               mByteOffset; // byte offset to the blind data, relative to the GridData.
      uint64_t              mElementCount; // number of elements, e.g. point count
      uint32_t              mFlags; // flags
-@@ -2328,10 +2638,10 @@
+@@ -2328,10 +2638,10 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridBlindMetaData
          return blindDataCount * sizeof(GridBlindMetaData);
      }
  
@@ -1802,7 +1783,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  }; // GridBlindMetaData
  
-@@ -2430,7 +2740,7 @@
+@@ -2430,7 +2740,7 @@ struct NodeTrait<const GridOrTreeOrRootT, 3>
  /// @note No client code should (or can) interface with this struct so it can safely be ignored!
  struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
  {// sizeof(GridData) = 672B
@@ -1811,7 +1792,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      uint64_t         mMagic; // 8B (0) magic to validate it is valid grid data.
      uint64_t         mChecksum; // 8B (8). Checksum of grid buffer.
      Version          mVersion;// 4B (16) major, minor, and patch version numbers
-@@ -2450,8 +2760,8 @@
+@@ -2450,8 +2760,8 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
      uint64_t         mData1, mData2;// 2x8B (656) padding to 32 B alignment. mData1 is use for the total number of values indexed by an IndexGrid
  
      // Set and unset various bit flags
@@ -1822,7 +1803,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (on) {
              mFlags |= static_cast<uint32_t>(GridFlags::HasMinMax);
-@@ -2459,7 +2769,7 @@
+@@ -2459,7 +2769,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
              mFlags &= ~static_cast<uint32_t>(GridFlags::HasMinMax);
          }
      }
@@ -1831,7 +1812,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (on) {
              mFlags |= static_cast<uint32_t>(GridFlags::HasBBox);
-@@ -2467,7 +2777,7 @@
+@@ -2467,7 +2777,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
              mFlags &= ~static_cast<uint32_t>(GridFlags::HasBBox);
          }
      }
@@ -1840,7 +1821,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (on) {
              mFlags |= static_cast<uint32_t>(GridFlags::HasLongGridName);
-@@ -2475,7 +2785,7 @@
+@@ -2475,7 +2785,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
              mFlags &= ~static_cast<uint32_t>(GridFlags::HasLongGridName);
          }
      }
@@ -1849,7 +1830,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (on) {
              mFlags |= static_cast<uint32_t>(GridFlags::HasAverage);
-@@ -2483,7 +2793,7 @@
+@@ -2483,7 +2793,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
              mFlags &= ~static_cast<uint32_t>(GridFlags::HasAverage);
          }
      }
@@ -1858,7 +1839,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (on) {
              mFlags |= static_cast<uint32_t>(GridFlags::HasStdDeviation);
-@@ -2491,7 +2801,7 @@
+@@ -2491,7 +2801,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
              mFlags &= ~static_cast<uint32_t>(GridFlags::HasStdDeviation);
          }
      }
@@ -1867,7 +1848,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (on) {
              mFlags |= static_cast<uint32_t>(GridFlags::IsBreadthFirst);
-@@ -2502,37 +2812,49 @@
+@@ -2502,37 +2812,49 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) GridData
  
      // Affine transformations based on double precision
      template<typename Vec3T>
@@ -1930,7 +1911,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          NANOVDB_ASSERT(n < mBlindMetadataCount);
          return PtrAdd<GridBlindMetaData>(this, mBlindMetadataOffset) + n;
-@@ -2552,8 +2874,17 @@
+@@ -2552,8 +2874,17 @@ using DefaultReadAccessor = ReadAccessor<BuildT, 0, 1, 2>;
  ///
  /// @note This the API of this class to interface with client code
  template<typename TreeT>
@@ -1949,7 +1930,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  public:
      using TreeType  = TreeT;
      using RootType  = typename TreeT::RootType;
-@@ -2566,183 +2897,195 @@
+@@ -2566,183 +2897,195 @@ public:
      /// @brief Disallow constructions, copy and assignment
      ///
      /// @note Only a Serializer, defined elsewhere, can instantiate this class
@@ -1987,7 +1968,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      ///
      /// @note This method is only defined for IndexGrid = NanoGrid<ValueIndex>
      template <typename T = BuildType>
--    __hostdev__ typename enable_if<is_same<T, ValueIndex>::value, uint64_t>::type valueCount() const {return DataType::mData1;}
+-    __hostdev__ typename enable_if<is_same<T, ValueIndex>::value, const uint64_t&>::type valueCount() const {return DataType::mData1;}
 +    __hostdev__ typename enable_if<is_same<T, ValueIndex>::value, uint64_t>::type valueCount() const {return BASE(mData1);}
  
      /// @brief Return a const reference to the tree
@@ -2014,12 +1995,12 @@ Index: nanovdb/nanovdb/NanoVDB.h
      template<typename Vec3T>
 -    __hostdev__ Vec3T worldToIndex(const Vec3T& xyz) const { return this->applyInverseMap(xyz); }
 +    __hostdev__ Vec3T worldToIndex(__global__ const Vec3T& xyz) const __global__ { return BASE(applyInverseMap)(xyz);  }
- 
++
 +#if defined(__KERNEL_METAL__)
 +    template<typename Vec3T>
 +    __hostdev__ Vec3T worldToIndex(__local__ const Vec3T& xyz) const __global__ { return BASE(applyInverseMap)(xyz); }
 +#endif
-+
+ 
      /// @brief index to world space transformation
      template<typename Vec3T>
 -    __hostdev__ Vec3T indexToWorld(const Vec3T& xyz) const { return this->applyMap(xyz); }
@@ -2190,11 +2171,11 @@ Index: nanovdb/nanovdb/NanoVDB.h
          NANOVDB_ASSERT(n < DataType::mBlindMetadataCount);
          return this->blindMetaData(n).template getBlindData<void>();
      }
+-
+-    __hostdev__ const GridBlindMetaData& blindMetaData(uint32_t n) const { return *DataType::blindMetaData(n); }
 +	
 +    __hostdev__ __global__ const GridBlindMetaData& blindMetaData(uint32_t n) const __global__ { return *BASE(blindMetaData)(n); }
  
--    __hostdev__ const GridBlindMetaData& blindMetaData(uint32_t n) const { return *DataType::blindMetaData(n); }
--
  private:
      static_assert(sizeof(GridData) % NANOVDB_DATA_ALIGNMENT == 0, "sizeof(GridData) is misaligned");
  }; // Class Grid
@@ -2205,7 +2186,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
      for (uint32_t i = 0, n = this->blindDataCount(); i < n; ++i)
          if (this->blindMetaData(i).mSemantic == semantic)
-@@ -2762,14 +3105,14 @@
+@@ -2762,14 +3105,14 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) TreeData
      uint64_t mVoxelCount;//    8B, total number of active voxels in the root and all its child nodes.
      // No padding since it's always 32B aligned
      template <typename RootT>
@@ -2224,7 +2205,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mNodeOffset[NodeT::LEVEL] = node ? PtrDiff(node, this) : 0;
      }
-@@ -2795,8 +3138,17 @@
+@@ -2795,8 +3138,17 @@ struct GridTree<const GridT>
  
  /// @brief VDB Tree, which is a thin wrapper around a RootNode.
  template<typename RootT>
@@ -2243,7 +2224,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      static_assert(RootT::LEVEL == 3, "Tree depth is not supported");
      static_assert(RootT::ChildNodeType::LOG2DIM == 5, "Tree configuration is not supported");
      static_assert(RootT::ChildNodeType::ChildNodeType::LOG2DIM == 4, "Tree configuration is not supported");
-@@ -2817,47 +3169,54 @@
+@@ -2817,79 +3169,86 @@ public:
      using Node0 = LeafNodeType;
  
      /// @brief This class cannot be constructed or deleted
@@ -2315,7 +2296,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief   Return the total number of active tiles at the specified level of the tree.
      ///
-@@ -2864,23 +3223,23 @@
      /// @details level = 1,2,3 corresponds to active tile count in lower internal nodes, upper
      ///          internal nodes, and the root level. Note active values at the leaf level are
      ///          referred to as active voxels (see activeVoxelCount defined above).
@@ -2345,7 +2325,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      }
  
      /// @brief return a pointer to the first node of the specified type
-@@ -2887,9 +3246,9 @@
      ///
      /// @warning Note it may return NULL if no nodes exist
      template <typename NodeT>
@@ -2357,7 +2336,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          return offset>0 ? PtrAdd<NodeT>(this, offset) : nullptr;
      }
  
-@@ -2897,9 +3256,9 @@
+@@ -2897,9 +3256,9 @@ public:
      ///
      /// @warning Note it may return NULL if no nodes exist
      template <typename NodeT>
@@ -2369,7 +2348,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          return offset>0 ? PtrAdd<NodeT>(this, offset) : nullptr;
      }
  
-@@ -2907,8 +3266,8 @@
+@@ -2907,8 +3266,8 @@ public:
      ///
      /// @warning Note it may return NULL if no nodes exist
      template <int LEVEL>
@@ -2380,7 +2359,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return this->template getFirstNode<typename NodeTrait<RootT,LEVEL>::type>();
      }
-@@ -2917,27 +3276,28 @@
+@@ -2917,27 +3276,28 @@ public:
      ///
      /// @warning Note it may return NULL if no nodes exist
      template <int LEVEL>
@@ -2418,7 +2397,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
      min = this->root().minimum();
      max = this->root().maximum();
-@@ -2955,13 +3315,13 @@
+@@ -2955,13 +3315,13 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) RootData
      using BuildT = typename ChildT::BuildType;// in rare cases BuildType != ValueType, e.g. then BuildType = ValueMask and ValueType = bool
      using CoordT = typename ChildT::CoordType;
      using StatsT = typename ChildT::FloatType;
@@ -2434,7 +2413,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          static_assert(sizeof(CoordT) == sizeof(CoordType), "Mismatching sizeof");
          static_assert(32 - ChildT::TOTAL <= 21, "Cannot use 64 bit root keys");
-@@ -2969,9 +3329,20 @@
+@@ -2969,17 +3329,28 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) RootData
                 (KeyT(uint32_t(ijk[1]) >> ChildT::TOTAL) << 21) | // y is the middle 21 bits
                 (KeyT(uint32_t(ijk[0]) >> ChildT::TOTAL) << 42); //  x is the upper 21 bits
      }
@@ -2442,8 +2421,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +#if defined(__KERNEL_METAL__)
 +    template <typename CoordType>
 +    __hostdev__ static KeyT CoordToKey(__local__ const CoordType& ijk)
-     {
--        static constexpr uint64_t MASK = (1u << 21) - 1;
++    {
 +        static_assert(sizeof(CoordT) == sizeof(CoordType), "Mismatching sizeof");
 +        static_assert(32 - ChildT::TOTAL <= 21, "Cannot use 64 bit root keys");
 +        return (KeyT(uint32_t(ijk[2]) >> ChildT::TOTAL)) | //       z is the lower 21 bits
@@ -2453,11 +2431,11 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +#endif
 +    static __constant__ constexpr uint64_t MASK = (1u << 21) - 1;
 +    __hostdev__ static CoordT KeyToCoord(__global__ const KeyT& key)
-+    {
+     {
+-        static constexpr uint64_t MASK = (1u << 21) - 1;
          return CoordT(((key >> 42) & MASK) << ChildT::TOTAL,
                        ((key >> 21) & MASK) << ChildT::TOTAL,
                         (key & MASK) << ChildT::TOTAL);
-@@ -2978,8 +3349,8 @@
      }
  #else
      using KeyT = CoordT;
@@ -2468,7 +2446,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #endif
      BBox<CoordT> mBBox; // 24B. AABB of active values in index space.
      uint32_t     mTableSize; // 4B. number of tiles and child pointers in the root node
-@@ -3000,13 +3371,13 @@
+@@ -3000,23 +3371,23 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) RootData
      struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) Tile
      {
          template <typename CoordType>
@@ -2484,7 +2462,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
          {
              key = CoordToKey(k);
              state = s;
-@@ -3013,10 +3384,10 @@
              value = v;
              child = 0;
          }
@@ -2499,7 +2476,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          KeyT               key; // USE_SINGLE_ROOT_KEY ? 8B : 12B
          int64_t            child; // 8B. signed byte offset from this node to the child node.  0 means it is a constant tile, so use value.
          uint32_t           state; // 4B. state of tile value
-@@ -3026,53 +3397,64 @@
+@@ -3026,53 +3397,64 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) RootData
      /// @brief Returns a non-const reference to the tile at the specified linear offset.
      ///
      /// @warning The linear offset is assumed to be in the valid range
@@ -2581,7 +2558,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      using DataType = RootData<ChildT>;
      using LeafNodeType = typename ChildT::LeafNodeType;
      using ChildNodeType = ChildT;
-@@ -3086,27 +3468,27 @@
+@@ -3086,27 +3468,27 @@ public:
      using BBoxType  = BBox<CoordType>;
      using AccessorType = DefaultReadAccessor<BuildType>;
      using Tile = typename DataType::Tile;
@@ -2618,7 +2595,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
              NANOVDB_ASSERT(mParent);
              ++mPos;
              while (mPos < mSize && mParent->tile(mPos)->isValue()) ++mPos;
-@@ -3123,21 +3505,21 @@
+@@ -3123,21 +3505,21 @@ public:
  
      class ValueIterator
      {
@@ -2645,7 +2622,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
              NANOVDB_ASSERT(mParent);
              ++mPos;
              while (mPos < mSize && mParent->tile(mPos)->isChild()) ++mPos;
-@@ -3154,20 +3536,20 @@
+@@ -3154,20 +3536,20 @@ public:
  
      class ValueOnIterator
      {
@@ -2670,7 +2647,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
              NANOVDB_ASSERT(mParent);
              ++mPos;
              while (mPos < mSize && !mParent->tile(mPos)->isActive()) ++mPos;
-@@ -3183,75 +3565,107 @@
+@@ -3183,75 +3565,107 @@ public:
      ValueOnIterator beginValueOn() const {return ValueOnIterator(this);}
  
      /// @brief This class cannot be constructed or deleted
@@ -2744,9 +2721,13 @@ Index: nanovdb/nanovdb/NanoVDB.h
          }
          return DataType::mBackground;
      }
+-
+-    __hostdev__ bool isActive(const CoordType& ijk) const
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ ValueType getValue(__local__ const CoordType& ijk) const __global__
-+    {
+     {
+-        if (const Tile* tile = this->probeTile(ijk)) {
+-            return tile->isChild() ? this->getChild(tile)->isActive(ijk) : tile->state;
 +        if (__global__ const Tile* tile = this->findTile(ijk)) {
 +            return tile->isChild() ? this->getChild(tile)->getValue(ijk) : tile->value;
 +        }
@@ -2760,12 +2741,9 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +        return DataType::mBackground;
 +    }
 +#endif
- 
--    __hostdev__ bool isActive(const CoordType& ijk) const
++
 +    __hostdev__ bool isActive(__global__ const CoordType& ijk) const __global__
-     {
--        if (const Tile* tile = this->probeTile(ijk)) {
--            return tile->isChild() ? this->getChild(tile)->isActive(ijk) : tile->state;
++    {
 +        if (__global__ const Tile* tile = this->findTile(ijk)) {
 +            return tile->isChild() ? BASE(getChild)(tile)->isActive(ijk) : tile->state;
          }
@@ -2803,13 +2781,16 @@ Index: nanovdb/nanovdb/NanoVDB.h
                  return child->probeValue(ijk, v);
              }
              v = tile->value;
-@@ -3260,20 +3674,35 @@
+@@ -3260,33 +3674,49 @@ public:
          v = DataType::mBackground;
          return false;
      }
+-
+-    __hostdev__ const LeafNodeType* probeLeaf(const CoordType& ijk) const
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ bool probeValue(__local__ const CoordType& ijk, __local__ ValueType& v) const __global__
-+    {
+     {
+-        const Tile* tile = this->probeTile(ijk);
 +        if (__global__ const Tile* tile = this->findTile(ijk)) {
 +            if (tile->isChild()) {
 +                __global__ const auto *child = BASE(getChild)(tile);
@@ -2822,11 +2803,9 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +        return false;
 +    }
 +#endif
- 
--    __hostdev__ const LeafNodeType* probeLeaf(const CoordType& ijk) const
++
 +    __hostdev__ __global__ const LeafNodeType* probeLeaf(__global__ const CoordType& ijk) const
-     {
--        const Tile* tile = this->probeTile(ijk);
++    {
 +        __global__ const Tile* tile = this->probeTile(ijk);
          if (tile && tile->isChild()) {
 -            const auto *child = this->getChild(tile);
@@ -2844,7 +2823,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
          if (tile && tile->isChild()) {
              return this->getChild(tile);
          }
-@@ -3280,13 +3709,14 @@
          return nullptr;
      }
  
@@ -2863,7 +2841,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
              if (tiles[i].key == key) return &tiles[i];
          }
  #else// do not enable binary search if tiles are not guaranteed to be sorted!!!!!!
-@@ -3306,6 +3736,33 @@
+@@ -3306,6 +3736,33 @@ public:
  #endif
          return nullptr;
      }
@@ -2897,7 +2875,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  private:
      static_assert(sizeof(DataType) % NANOVDB_DATA_ALIGNMENT == 0, "sizeof(RootData) is misaligned");
-@@ -3319,12 +3776,12 @@
+@@ -3319,12 +3776,12 @@ private:
  
      /// @brief Private method to return node information and update a ReadAccessor
      template<typename AccT>
@@ -2913,7 +2891,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
                  acc.insert(ijk, child);
                  return child->getNodeInfoAndCache(ijk, acc);
              }
-@@ -3337,11 +3794,11 @@
+@@ -3337,11 +3794,11 @@ private:
  
      /// @brief Private method to return a voxel value and update a ReadAccessor
      template<typename AccT>
@@ -2928,7 +2906,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
                  acc.insert(ijk, child);
                  return child->getValueAndCache(ijk, acc);
              }
-@@ -3349,25 +3806,66 @@
+@@ -3349,25 +3806,66 @@ private:
          }
          return DataType::mBackground;
      }
@@ -3001,7 +2979,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
                  acc.insert(ijk, child);
                  return child->probeValueAndCache(ijk, v, acc);
              }
-@@ -3379,11 +3877,11 @@
+@@ -3379,11 +3877,11 @@ private:
      }
  
      template<typename AccT>
@@ -3016,7 +2994,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
              acc.insert(ijk, child);
              return child->probeLeafAndCache(ijk, acc);
          }
-@@ -3391,11 +3889,11 @@
+@@ -3391,11 +3889,11 @@ private:
      }
  
      template<typename RayT, typename AccT>
@@ -3031,7 +3009,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
                  acc.insert(ijk, child);
                  return child->getDimAndCache(ijk, ray, acc);
              }
-@@ -3403,7 +3901,23 @@
+@@ -3403,7 +3901,23 @@ private:
          }
          return ChildNodeType::dim(); // background
      }
@@ -3055,7 +3033,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // RootNode class
  
  // After the RootNode the memory layout is assumed to be the sorted Tiles
-@@ -3421,7 +3935,7 @@
+@@ -3421,7 +3935,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) InternalData
      using StatsT = typename ChildT::FloatType;
      using CoordT = typename ChildT::CoordType;
      using MaskT  = typename ChildT::template MaskType<LOG2DIM>;
@@ -3064,7 +3042,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      union Tile
      {
-@@ -3429,8 +3943,8 @@
+@@ -3429,8 +3943,8 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) InternalData
          int64_t child;//signed 64 bit byte offset relative to the InternalData!!
          /// @brief This class cannot be constructed or deleted
          Tile() = delete;
@@ -3075,7 +3053,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          ~Tile() = delete;
      };
  
-@@ -3456,7 +3970,7 @@
+@@ -3456,32 +3970,32 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) InternalData
  
      __hostdev__ static uint64_t memUsage() { return sizeof(InternalData); }
  
@@ -3084,7 +3062,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          NANOVDB_ASSERT(mChildMask.isOn(n));
          mTable[n].child = PtrDiff(ptr, this);
-@@ -3463,7 +3977,7 @@
      }
  
      template <typename ValueT>
@@ -3093,7 +3070,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          NANOVDB_ASSERT(!mChildMask.isOn(n));
          mTable[n].value = v;
-@@ -3470,18 +3984,18 @@
      }
  
      /// @brief Returns a pointer to the child node at the specifed linear offset.
@@ -3115,7 +3091,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          NANOVDB_ASSERT(!mChildMask.isOn(n));
          return mTable[n].value;
-@@ -3496,29 +4010,38 @@
+@@ -3496,29 +4010,38 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) InternalData
      __hostdev__ bool isChild(uint32_t n) const {return mChildMask.isOn(n);}
  
      template <typename T>
@@ -3166,7 +3142,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  public:
      using DataType = InternalData<ChildT, Log2Dim>;
      using ValueType = typename DataType::ValueT;
-@@ -3527,31 +4050,40 @@
+@@ -3527,76 +4050,109 @@ public:
      using LeafNodeType = typename ChildT::LeafNodeType;
      using ChildNodeType = ChildT;
      using CoordType = typename ChildT::CoordType;
@@ -3221,7 +3197,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
          __hostdev__ CoordType getOrigin() const { NANOVDB_ASSERT(*this); return (*this)->origin();}
      }; // Member class ChildIterator
  
-@@ -3558,45 +4090,69 @@
      ChildIterator beginChild() const {return ChildIterator(this);}
  
      /// @brief Visits all tile values in this node, i.e. both inactive and active tiles
@@ -3309,7 +3284,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Return the dimension, in voxel units, of this internal node (typically 8*16 or 8*16*32)
      __hostdev__ static uint32_t dim() { return 1u << TOTAL; }
-@@ -3605,47 +4161,66 @@
+@@ -3605,47 +4161,66 @@ public:
      __hostdev__ static size_t memUsage() { return DataType::memUsage(); }
  
      /// @brief Return a const reference to the bit mask of active voxels in this internal node
@@ -3388,7 +3363,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          const uint32_t n = CoordToOffset(ijk);
          if (DataType::mChildMask.isOn(n))
-@@ -3653,8 +4228,18 @@
+@@ -3653,8 +4228,18 @@ public:
          v = DataType::getValue(n);
          return DataType::isActive(n);
      }
@@ -3408,7 +3383,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          const uint32_t n = CoordToOffset(ijk);
          if (DataType::mChildMask.isOn(n))
-@@ -3662,7 +4247,7 @@
+@@ -3662,14 +4247,14 @@ public:
          return nullptr;
      }
  
@@ -3417,7 +3392,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          const uint32_t n = CoordToOffset(ijk);
          return DataType::mChildMask.isOn(n) ? this->getChild(n) : nullptr;
-@@ -3669,7 +4254,7 @@
      }
  
      /// @brief Return the linear offset corresponding to the given coordinate
@@ -3426,7 +3400,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
  #if 0
          return (((ijk[0] & MASK) >> ChildT::TOTAL) << (2 * LOG2DIM)) +
-@@ -3681,6 +4266,20 @@
+@@ -3681,6 +4266,20 @@ public:
                  ((ijk[2] & MASK) >> ChildT::TOTAL);
  #endif
      }
@@ -3447,7 +3421,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @return the local coordinate of the n'th tile or child node
      __hostdev__ static Coord OffsetToLocalCoord(uint32_t n)
-@@ -3691,13 +4290,13 @@
+@@ -3691,13 +4290,13 @@ public:
      }
  
      /// @brief modifies local coordinates to global coordinates of a tile or child node
@@ -3463,7 +3437,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          Coord ijk = InternalNode::OffsetToLocalCoord(n);
          this->localToGlobalCoord(ijk);
-@@ -3705,13 +4304,24 @@
+@@ -3705,13 +4304,24 @@ public:
      }
  
      /// @brief Return true if this node or any of its child nodes contain active values
@@ -3489,7 +3463,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      //static_assert(offsetof(DataType, mTable) % 32 == 0, "InternalData::mTable is misaligned");
  
      template<typename, int, int, int>
-@@ -3724,18 +4334,30 @@
+@@ -3724,18 +4334,30 @@ private:
  
      /// @brief Private read access method used by the ReadAccessor
      template<typename AccT>
@@ -3524,7 +3498,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          using NodeInfoT = typename AccT::NodeInfo;
          const uint32_t n = CoordToOffset(ijk);
-@@ -3743,24 +4365,36 @@
+@@ -3743,61 +4365,91 @@ private:
              return NodeInfoT{LEVEL, this->dim(), this->minimum(), this->maximum(), this->average(),
                               this->stdDeviation(), this->bbox()[0], this->bbox()[1]};
          }
@@ -3565,7 +3539,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          const uint32_t n = CoordToOffset(ijk);
          if (!DataType::mChildMask.isOn(n)) {
-@@ -3767,24 +4401,24 @@
              v = DataType::getValue(n);
              return DataType::isActive(n);
          }
@@ -3594,7 +3567,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (DataType::mFlags & uint32_t(1u)) return this->dim(); // skip this node if the 1st bit is set
          //if (!ray.intersects( this->bbox() )) return 1<<TOTAL;
-@@ -3791,13 +4425,31 @@
  
          const uint32_t n = CoordToOffset(ijk);
          if (DataType::mChildMask.isOn(n)) {
@@ -3627,7 +3599,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // InternalNode class
  
  // --------------------------> LeafNode <------------------------------------
-@@ -3814,7 +4466,7 @@
+@@ -3814,7 +4466,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData
      using BuildType = ValueT;
      using FloatType = typename FloatTraits<ValueT>::FloatType;
      using ArrayType = ValueT;// type used for the internal mValue array
@@ -3636,7 +3608,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      CoordT         mBBoxMin; // 12B.
      uint8_t        mBBoxDif[3]; // 3B.
-@@ -3826,7 +4478,7 @@
+@@ -3826,7 +4478,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData
      FloatType mAverage; // typically 4B, average of all the active values in this node and its child nodes
      FloatType mStdDevi; // typically 4B, standard deviation of all the active values in this node and its child nodes
      alignas(32) ValueType mValues[1u << 3 * LOG2DIM];
@@ -3645,7 +3617,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      /// @brief Return padding of this class in bytes, due to aliasing and 32B alignment
      ///
      /// @note The extra bytes are not necessarily at the end, but can come from aliasing of individual data members.
-@@ -3838,32 +4490,35 @@
+@@ -3838,32 +4490,35 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData
      __hostdev__ static uint64_t memUsage() { return sizeof(LeafData); }
  
      //__hostdev__ const ValueType* values() const { return mValues; }
@@ -3697,7 +3669,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // LeafData<ValueT>
  
  /// @brief Base-class for quantized float leaf nodes
-@@ -3892,7 +4547,7 @@
+@@ -3892,39 +4547,39 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafFnBase
      __hostdev__ static constexpr uint32_t padding() {
          return sizeof(LeafFnBase) - (12 + 3 + 1 + sizeof(MaskT<LOG2DIM>) + 2*4 + 4*2);
      }
@@ -3706,7 +3678,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mMinimum = min;
          mQuantum = (max - min)/float((1 << bitWidth)-1);
-@@ -3899,32 +4554,32 @@
      }
  
      /// @brief return the quantized minimum of the active values in this node
@@ -3748,7 +3719,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  };// LeafFnBase
  
  /// @brief Stuct with all the member data of the LeafNode (useful during serialization of an openvdb LeafNode)
-@@ -3932,12 +4587,24 @@
+@@ -3932,12 +4587,24 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafFnBase
  /// @note No client code should (or can) interface with this struct so it can safely be ignored!
  template<typename CoordT, template<uint32_t> class MaskT, uint32_t LOG2DIM>
  struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<Fp4, CoordT, MaskT, LOG2DIM>
@@ -3774,7 +3745,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      alignas(32) uint8_t mCode[1u << (3 * LOG2DIM - 1)];// LeafFnBase is 32B aligned and so is mCode
  
      __hostdev__ static constexpr uint64_t memUsage() { return sizeof(LeafData); }
-@@ -3947,31 +4614,53 @@
+@@ -3947,31 +4614,53 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<Fp4, CoordT, MaskT, LOG2DI
      }
  
      __hostdev__ static constexpr uint8_t bitWidth() { return 4u; }
@@ -3835,7 +3806,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      alignas(32) uint8_t mCode[1u << 3 * LOG2DIM];
      __hostdev__ static constexpr int64_t memUsage() { return sizeof(LeafData); }
      __hostdev__ static constexpr uint32_t padding() {
-@@ -3980,25 +4669,44 @@
+@@ -3980,25 +4669,44 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<Fp8, CoordT, MaskT, LOG2DI
      }
  
      __hostdev__ static constexpr uint8_t bitWidth() { return 8u; }
@@ -3886,7 +3857,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      alignas(32) uint16_t mCode[1u << 3 * LOG2DIM];
  
      __hostdev__ static constexpr uint64_t memUsage() { return sizeof(LeafData); }
-@@ -4008,37 +4716,95 @@
+@@ -4008,35 +4716,93 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<Fp16, CoordT, MaskT, LOG2D
      }
  
      __hostdev__ static constexpr uint8_t bitWidth() { return 16u; }
@@ -3948,8 +3919,8 @@ Index: nanovdb/nanovdb/NanoVDB.h
      __hostdev__ static size_t memUsage(uint32_t bitWidth) { return 96u + bitWidth*64; }
 -    __hostdev__ float getValue(uint32_t i) const
 +    __hostdev__ float getValue(uint32_t i) const __global__
-     {
- #ifdef NANOVDB_FPN_BRANCHLESS// faster
++    {
++#ifdef NANOVDB_FPN_BRANCHLESS// faster
 +        const int b = BASE(mFlags) >> 5;// b = 0, 1, 2, 3, 4 corresponding to 1, 2, 4, 8, 16 bits
 +#if 0// use LUT
 +        uint16_t code = reinterpret_cast<const uint16_t*>(this + 1)[i >> (4 - b)];
@@ -3987,12 +3958,10 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +    }
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ float getValue(uint32_t i) const __local__
-+    {
-+#ifdef NANOVDB_FPN_BRANCHLESS// faster
+     {
+ #ifdef NANOVDB_FPN_BRANCHLESS// faster
          const int b = BaseT::mFlags >> 5;// b = 0, 1, 2, 3, 4 corresponding to 1, 2, 4, 8, 16 bits
- #if 0// use LUT
-         uint16_t code = reinterpret_cast<const uint16_t*>(this + 1)[i >> (4 - b)];
-@@ -4047,7 +4813,7 @@
+@@ -4047,14 +4813,14 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<FpN, CoordT, MaskT, LOG2DI
          code >>= (i & shift[b]) << b;
          code  &= mask[b];
  #else// no LUT
@@ -4001,7 +3970,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
          //code >>= (i & ((16 >> b) - 1)) << b;
          code >>= (i & ((32 >> b) - 1)) << b;
          code  &= (1 << (1 << b)) - 1;
-@@ -4054,7 +4820,7 @@
  #endif
  #else// use branched version (slow)
          float code;
@@ -4010,7 +3978,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          switch (BaseT::mFlags >> 5) {
              case 0u:// 1 bit float
                  code = float((values[i>>3] >>  (i&7)    ) & uint8_t(1));
-@@ -4074,12 +4840,15 @@
+@@ -4074,12 +4840,15 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<FpN, CoordT, MaskT, LOG2DI
  #endif
          return float(code) * BaseT::mQuantum + BaseT::mMinimum;// code * (max-min)/UNITS + min
      }
@@ -4030,7 +3998,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // LeafData<FpN>
  
  // Partial template specialization of LeafData with bool
-@@ -4092,7 +4861,7 @@
+@@ -4092,7 +4861,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<bool, CoordT, MaskT, LOG2D
      using BuildType = bool;
      using FloatType = bool;// dummy value type
      using ArrayType = MaskT<LOG2DIM>;// type used for the internal mValue array
@@ -4039,7 +4007,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      CoordT         mBBoxMin; // 12B.
      uint8_t        mBBoxDif[3]; // 3B.
-@@ -4104,31 +4873,34 @@
+@@ -4104,31 +4873,34 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<bool, CoordT, MaskT, LOG2D
      __hostdev__ static constexpr uint32_t padding() {return sizeof(LeafData) - 12u - 3u - 1u - 2*sizeof(MaskT<LOG2DIM>) - 16u;}
      __hostdev__ static uint64_t memUsage() { return sizeof(LeafData); }
  
@@ -4090,7 +4058,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // LeafData<bool>
  
  // Partial template specialization of LeafData with ValueMask
-@@ -4141,7 +4913,7 @@
+@@ -4141,7 +4913,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<ValueMask, CoordT, MaskT,
      using BuildType = ValueMask;
      using FloatType = bool;// dummy value type
      using ArrayType = void;// type used for the internal mValue array - void means missing
@@ -4099,7 +4067,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      CoordT         mBBoxMin; // 12B.
      uint8_t        mBBoxDif[3]; // 3B.
-@@ -4156,29 +4928,32 @@
+@@ -4156,29 +4928,32 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<ValueMask, CoordT, MaskT,
      }
  
      //__hostdev__ const ValueType* values() const { return nullptr; }
@@ -4147,7 +4115,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // LeafData<ValueMask>
  
  // Partial template specialization of LeafData with ValueIndex
-@@ -4191,7 +4966,7 @@
+@@ -4191,7 +4966,7 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<ValueIndex, CoordT, MaskT,
      using BuildType = ValueIndex;
      using FloatType = uint64_t;
      using ArrayType = void;// type used for the internal mValue array - void means missing
@@ -4156,7 +4124,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      CoordT         mBBoxMin; // 12B.
      uint8_t        mBBoxDif[3]; // 3B.
-@@ -4208,16 +4983,16 @@
+@@ -4208,39 +4983,47 @@ struct NANOVDB_ALIGN(NANOVDB_DATA_ALIGNMENT) LeafData<ValueIndex, CoordT, MaskT,
  
      __hostdev__ static uint64_t memUsage() { return sizeof(LeafData); }
  
@@ -4178,7 +4146,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (mFlags & uint8_t(16u)) {// if 4th bit is set only active voxels are indexed
              return mValueMask.isOn(i) ? mValueOff + mValueMask.countOn(i) : 0;// 0 is background
-@@ -4224,23 +4999,31 @@
          }
          return mValueOff + i;// dense array of active and inactive voxels
      }
@@ -4220,7 +4187,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // LeafData<ValueIndex>
  
  /// @brief Leaf nodes of the VDB tree. (defaults to 8x8x8 = 512 voxels)
-@@ -4248,13 +5031,22 @@
+@@ -4248,13 +5031,22 @@ template<typename BuildT,
           typename CoordT = Coord,
           template<uint32_t> class MaskT = Mask,
           uint32_t Log2Dim = 3>
@@ -4246,7 +4213,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          __hostdev__ static uint32_t dim() { return 1u; }
      }; // Voxel
      using LeafNodeType = LeafNode<BuildT, CoordT, MaskT, Log2Dim>;
-@@ -4263,7 +5055,7 @@
+@@ -4263,38 +5055,56 @@ public:
      using FloatType = typename DataType::FloatType;
      using BuildType = typename DataType::BuildType;
      using CoordType = CoordT;
@@ -4255,7 +4222,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      template<uint32_t LOG2>
      using MaskType = MaskT<LOG2>;
      template<bool ON>
-@@ -4270,31 +5062,49 @@
      using MaskIterT = typename Mask<Log2Dim>::template Iterator<ON>;
  
      /// @brief Visits all active values in a leaf node
@@ -4317,7 +4283,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      }; // Member class ValueOffIterator
  
      ValueOffIterator beginValueOff() const {return ValueOffIterator(this);}
-@@ -4302,17 +5112,17 @@
+@@ -4302,17 +5112,17 @@ public:
      /// @brief Visits all values in a leaf node, i.e. both active and inactive values
      class ValueIterator
      {
@@ -4339,7 +4305,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          __hostdev__ ValueIterator operator++(int) {
              auto tmp = *this;
              ++(*this);
-@@ -4320,43 +5130,49 @@
+@@ -4320,43 +5130,49 @@ public:
          }
      }; // Member class ValueIterator
  
@@ -4406,7 +4372,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      __hostdev__ static CoordT OffsetToLocalCoord(uint32_t n)
      {
-@@ -4366,9 +5182,9 @@
+@@ -4366,9 +5182,9 @@ public:
      }
  
      /// @brief Converts (in place) a local index coordinate to a global index coordinate
@@ -4418,7 +4384,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return OffsetToLocalCoord(n) + this->origin();
      }
-@@ -4377,7 +5193,7 @@
+@@ -4377,7 +5193,7 @@ public:
      __hostdev__ static uint32_t dim() { return 1u << LOG2DIM; }
  
      /// @brief Return the bounding box in index space of active values in this leaf node
@@ -4427,7 +4393,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          BBox<CoordT> bbox(DataType::mBBoxMin, DataType::mBBoxMin);
          if ( this->hasBBox() ) {
-@@ -4399,54 +5215,85 @@
+@@ -4399,54 +5215,85 @@ public:
      __hostdev__ uint64_t memUsage() { return DataType::memUsage(); }
  
      /// @brief This class cannot be constructed or deleted
@@ -4442,12 +4408,12 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Return the voxel value at the given offset.
 -    __hostdev__ ValueType getValue(uint32_t offset) const { return DataType::getValue(offset); }
- 
++
 +    __hostdev__ ValueType getValue(uint32_t offset) const __global__ { return DataType::getValue(offset); }
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ ValueType getValue(uint32_t offset) const __local__ { return DataType::getValue(offset); }
 +#endif
-+
+ 
      /// @brief Return the voxel value at the given coordinate.
 -    __hostdev__ ValueType getValue(const CoordT& ijk) const { return DataType::getValue(CoordToOffset(ijk)); }
 +    __hostdev__ ValueType getValue(__global__ const CoordT& ijk) const __global__ { return  BASE(getValue)(CoordToOffset(ijk)); }
@@ -4478,12 +4444,12 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +    __hostdev__ bool isActive(__local__ const CoordT& ijk) const __global__ { return BASE(mValueMask).isOn(CoordToOffset(ijk)); }
 +    __hostdev__ bool isActive(__local__ const CoordT& ijk) const __local__ { return BASE(mValueMask).isOn(CoordToOffset(ijk)); }
 +#endif
- 
++
 +    __hostdev__ bool isActive(uint32_t n) const __global__ { return BASE(mValueMask).isOn(n); }
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ bool isActive(uint32_t n) const __local__ { return BASE(mValueMask).isOn(n); }
 +#endif
-+
+ 
      /// @brief Return @c true if any of the voxel value are active in this leaf node.
 -    __hostdev__ bool isActive() const
 +    __hostdev__ bool isActive() const __global__
@@ -4529,7 +4495,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
      #if 0
          return ((ijk[0] & MASK) << (2 * LOG2DIM)) + ((ijk[1] & MASK) << LOG2DIM) + (ijk[2] & MASK);
-@@ -4454,6 +5301,16 @@
+@@ -4454,6 +5301,16 @@ public:
          return ((ijk[0] & MASK) << (2 * LOG2DIM)) | ((ijk[1] & MASK) << LOG2DIM) | (ijk[2] & MASK);
      #endif
      }
@@ -4546,7 +4512,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Updates the local bounding box of active voxels in this node. Return true if bbox was updated.
      ///
-@@ -4461,8 +5318,9 @@
+@@ -4461,8 +5318,9 @@ public:
      ///
      /// @details This method is based on few (intrinsic) bit operations and hence is relatively fast.
      ///          However, it should only only be called of either the value mask has changed or if the
@@ -4557,7 +4523,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  private:
      static_assert(sizeof(DataType) % NANOVDB_DATA_ALIGNMENT == 0, "sizeof(LeafData) is misaligned");
-@@ -4478,11 +5336,15 @@
+@@ -4478,49 +5336,77 @@ private:
  
      /// @brief Private method to return a voxel value and update a (dummy) ReadAccessor
      template<typename AccT>
@@ -4575,7 +4541,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
          using NodeInfoT = typename AccT::NodeInfo;
          return NodeInfoT{LEVEL, this->dim(), this->minimum(), this->maximum(),
                           this->average(), this->stdDeviation(), this->bbox()[0], this->bbox()[1]};
-@@ -4489,16 +5351,20 @@
      }
  
      template<typename AccT>
@@ -4600,7 +4565,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (DataType::mFlags & uint8_t(1u)) return this->dim(); // skip this node if the 1st bit is set
  
-@@ -4505,11 +5371,21 @@
          //if (!ray.intersects( this->bbox() )) return 1 << LOG2DIM;
          return ChildNodeType::dim();
      }
@@ -4624,7 +4588,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
      static_assert(LOG2DIM == 3, "LeafNode::updateBBox: only supports LOGDIM = 3!");
      if (DataType::mValueMask.isOff()) {
-@@ -4516,11 +5392,21 @@
          DataType::mFlags &= ~uint8_t(2);// set 2nd bit off, which indicates that this nodes has no bbox
          return false;
      }
@@ -4646,7 +4609,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      uint64_t word64 = DataType::mValueMask.template getWord<uint64_t>(0);
      uint32_t Xmin = word64 ? 0u : 8u;
      uint32_t Xmax = Xmin;
-@@ -4534,6 +5420,17 @@
+@@ -4534,6 +5420,17 @@ __hostdev__ inline bool LeafNode<ValueT, CoordT, MaskT, LOG2DIM>::updateBBox()
          }
      }
      NANOVDB_ASSERT(word64);
@@ -4664,7 +4627,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      update(Xmin, Xmax, 0);
      update(FindLowestOn(word64) >> 3, FindHighestOn(word64) >> 3, 1);
      const uint32_t *p = reinterpret_cast<const uint32_t*>(&word64), word32 = p[0] | p[1];
-@@ -4541,8 +5438,9 @@
+@@ -4541,8 +5438,9 @@ __hostdev__ inline bool LeafNode<ValueT, CoordT, MaskT, LOG2DIM>::updateBBox()
      const uint8_t  *b = reinterpret_cast<const uint8_t* >(&word16), byte   = b[0] | b[1];
      NANOVDB_ASSERT(byte);
      update(FindLowestOn(static_cast<uint32_t>(byte)), FindHighestOn(static_cast<uint32_t>(byte)), 2);
@@ -4675,7 +4638,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  } // LeafNode::updateBBox
  
  // --------------------------> Template specializations and traits <------------------------------------
-@@ -4651,12 +5549,12 @@
+@@ -4651,12 +5549,12 @@ class ReadAccessor<BuildT, -1, -1, -1>
      using FloatType = typename RootT::FloatType;
      using CoordValueType = typename RootT::CoordType::ValueType;
  
@@ -4690,7 +4653,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      struct NodeInfo {
          uint32_t  mLevel; //   4B
-@@ -4670,60 +5568,77 @@
+@@ -4670,60 +5568,77 @@ public:
      };
  
      /// @brief Constructor from a root node
@@ -4732,13 +4695,13 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ ValueType getValue(__local__ const CoordType& ijk) const __local__
-     {
++    {
 +        return mRoot->getValueAndCache(ijk, *this);
 +    }
 +#endif
 +
 +    __hostdev__ ValueType operator()(__global__ const CoordType& ijk) const __local__
-+    {
+     {
          return this->getValue(ijk);
      }
 -    __hostdev__ ValueType operator()(int i, int j, int k) const
@@ -4783,7 +4746,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return mRoot->getDimAndCache(ijk, ray, *this);
      }
-@@ -4739,7 +5654,11 @@
+@@ -4739,7 +5654,11 @@ private:
  
      /// @brief No-op
      template<typename NodeT>
@@ -4796,7 +4759,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // ReadAccessor<ValueT, -1, -1, -1> class
  
  /// @brief Node caching at a single tree level
-@@ -4761,19 +5680,19 @@
+@@ -4761,19 +5680,19 @@ class ReadAccessor<BuildT, LEVEL0, -1, -1>//e.g. 0, 1, 2
  
      // All member data are mutable to allow for access methods to be const
      mutable CoordT       mKey; // 3*4 = 12 bytes
@@ -4820,7 +4783,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          : mKey(CoordType::max())
          , mRoot(&root)
          , mNode(nullptr)
-@@ -4781,10 +5700,10 @@
+@@ -4781,10 +5700,10 @@ public:
      }
  
      /// @brief Constructor from a grid
@@ -4833,7 +4796,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Reset this access to its initial state, i.e. with an empty cache
      __hostdev__ void clear()
-@@ -4793,21 +5712,38 @@
+@@ -4793,37 +5712,64 @@ public:
          mNode = nullptr;
      }
  
@@ -4878,14 +4841,13 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (this->isCached(ijk)) {
              return mNode->getValueAndCache(ijk, *this);
-@@ -4814,16 +5750,26 @@
          }
          return mRoot->getValueAndCache(ijk, *this);
      }
 -    __hostdev__ ValueType operator()(const CoordType& ijk) const
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ ValueType getValue(__local__ const CoordType& ijk) const __global__
-     {
++    {
 +        if (this->isCached(ijk)) {
 +            return mNode->getValueAndCache(ijk, *this);
 +        }
@@ -4894,7 +4856,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +#endif
 +
 +    __hostdev__ ValueType operator()(__global__ const CoordType& ijk) const __global__
-+    {
+     {
          return this->getValue(ijk);
      }
 -    __hostdev__ ValueType operator()(int i, int j, int k) const
@@ -4908,7 +4870,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (this->isCached(ijk)) {
              return mNode->getNodeInfoAndCache(ijk, *this);
-@@ -4831,7 +5777,7 @@
+@@ -4831,15 +5777,24 @@ public:
          return mRoot->getNodeInfoAndCache(ijk, *this);
      }
  
@@ -4917,7 +4879,6 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (this->isCached(ijk)) {
              return mNode->isActiveAndCache(ijk, *this);
-@@ -4838,8 +5784,17 @@
          }
          return mRoot->isActiveAndCache(ijk, *this);
      }
@@ -4936,7 +4897,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (this->isCached(ijk)) {
              return mNode->probeValueAndCache(ijk, v, *this);
-@@ -4847,7 +5802,7 @@
+@@ -4847,7 +5802,7 @@ public:
          return mRoot->probeValueAndCache(ijk, v, *this);
      }
  
@@ -4945,7 +4906,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (this->isCached(ijk)) {
              return mNode->probeLeafAndCache(ijk, *this);
-@@ -4856,7 +5811,7 @@
+@@ -4856,7 +5811,7 @@ public:
      }
  
      template<typename RayT>
@@ -4954,7 +4915,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (this->isCached(ijk)) {
              return mNode->getDimAndCache(ijk, ray, *this);
-@@ -4874,15 +5829,26 @@
+@@ -4874,15 +5829,26 @@ private:
      friend class LeafNode;
  
      /// @brief Inserts a leaf node and key pair into this ReadAccessor
@@ -4983,7 +4944,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  }; // ReadAccessor<ValueT, LEVEL0>
  
-@@ -4909,20 +5875,20 @@
+@@ -4909,20 +5875,20 @@ class ReadAccessor<BuildT, LEVEL0, LEVEL1, -1>//e.g. (0,1), (1,2), (0,2)
  #else // 68 bytes total
      mutable CoordT mKeys[2]; // 2*3*4 = 24 bytes
  #endif
@@ -5009,7 +4970,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #ifdef USE_SINGLE_ACCESSOR_KEY
          : mKey(CoordType::max())
  #else
-@@ -4935,10 +5901,10 @@
+@@ -4935,10 +5901,10 @@ public:
      }
  
       /// @brief Constructor from a grid
@@ -5022,7 +4983,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      /// @brief Reset this access to its initial state, i.e. with an empty cache
      __hostdev__ void clear()
-@@ -4952,15 +5918,18 @@
+@@ -4952,15 +5918,18 @@ public:
          mNode2 = nullptr;
      }
  
@@ -5045,7 +5006,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (!mNode1)
              return false;
-@@ -4970,7 +5939,7 @@
+@@ -4970,7 +5939,7 @@ public:
          }
          return true;
      }
@@ -5054,7 +5015,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (!mNode2)
              return false;
-@@ -4980,18 +5949,18 @@
+@@ -4980,18 +5949,18 @@ public:
          }
          return true;
      }
@@ -5076,7 +5037,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          return (ijk[0] & int32_t(~Node2T::MASK)) == mKeys[1][0] &&
                 (ijk[1] & int32_t(~Node2T::MASK)) == mKeys[1][1] &&
-@@ -4999,12 +5968,12 @@
+@@ -4999,12 +5968,12 @@ public:
      }
  #endif
  
@@ -5091,17 +5052,27 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #endif
          if (this->isCached1(dirty)) {
              return mNode1->getValueAndCache(ijk, *this);
-@@ -5013,21 +5982,37 @@
+@@ -5013,21 +5982,37 @@ public:
          }
          return mRoot->getValueAndCache(ijk, *this);
      }
 -    __hostdev__ ValueType operator()(const CoordType& ijk) const
+-    {
+-        return this->getValue(ijk);
+-    }
+-    __hostdev__ ValueType operator()(int i, int j, int k) const
+-    {
+-        return this->getValue(CoordType(i,j,k));
+-    }
+-
+-    __hostdev__ NodeInfo getNodeInfo(const CoordType& ijk) const
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ ValueType getValue(__local__ const CoordType& ijk) const __global__
      {
-+#ifdef USE_SINGLE_ACCESSOR_KEY
-+        const CoordValueType dirty = this->computeDirty(ijk);
-+#else
+ #ifdef USE_SINGLE_ACCESSOR_KEY
+         const CoordValueType dirty = this->computeDirty(ijk);
+ #else
+-        auto&& dirty = ijk;
 +        __global__ auto&& dirty = ijk;
 +#endif
 +        if (this->isCached1(dirty)) {
@@ -5114,26 +5085,23 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +#endif
 +    __hostdev__ ValueType operator()(__global__ const CoordType& ijk) const __global__
 +    {
-         return this->getValue(ijk);
-     }
--    __hostdev__ ValueType operator()(int i, int j, int k) const
++        return this->getValue(ijk);
++    }
 +    __hostdev__ ValueType operator()(int i, int j, int k) const __global__
-     {
-         return this->getValue(CoordType(i,j,k));
-     }
- 
--    __hostdev__ NodeInfo getNodeInfo(const CoordType& ijk) const
++    {
++        return this->getValue(CoordType(i,j,k));
++    }
++
 +    __hostdev__ NodeInfo getNodeInfo(__global__ const CoordType& ijk) const __global__
-     {
- #ifdef USE_SINGLE_ACCESSOR_KEY
-         const CoordValueType dirty = this->computeDirty(ijk);
- #else
--        auto&& dirty = ijk;
++    {
++#ifdef USE_SINGLE_ACCESSOR_KEY
++        const CoordValueType dirty = this->computeDirty(ijk);
++#else
 +        __global__ auto&& dirty = ijk;
  #endif
          if (this->isCached1(dirty)) {
              return mNode1->getNodeInfoAndCache(ijk, *this);
-@@ -5037,12 +6022,12 @@
+@@ -5037,12 +6022,12 @@ public:
          return mRoot->getNodeInfoAndCache(ijk, *this);
      }
  
@@ -5148,7 +5116,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #endif
          if (this->isCached1(dirty)) {
              return mNode1->isActiveAndCache(ijk, *this);
-@@ -5052,12 +6037,12 @@
+@@ -5052,12 +6037,12 @@ public:
          return mRoot->isActiveAndCache(ijk, *this);
      }
  
@@ -5163,7 +5131,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #endif
          if (this->isCached1(dirty)) {
              return mNode1->probeValueAndCache(ijk, v, *this);
-@@ -5067,12 +6052,12 @@
+@@ -5067,12 +6052,12 @@ public:
          return mRoot->probeValueAndCache(ijk, v, *this);
      }
  
@@ -5178,7 +5146,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #endif
          if (this->isCached1(dirty)) {
              return mNode1->probeLeafAndCache(ijk, *this);
-@@ -5083,12 +6068,12 @@
+@@ -5083,12 +6068,12 @@ public:
      }
  
      template<typename RayT>
@@ -5193,7 +5161,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #endif
          if (this->isCached1(dirty)) {
              return mNode1->getDimAndCache(ijk, ray, *this);
-@@ -5108,7 +6093,7 @@
+@@ -5108,7 +6093,7 @@ private:
      friend class LeafNode;
  
      /// @brief Inserts a leaf node and key pair into this ReadAccessor
@@ -5202,7 +5170,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
  #ifdef USE_SINGLE_ACCESSOR_KEY
          mKey = ijk;
-@@ -5117,7 +6102,7 @@
+@@ -5117,7 +6102,7 @@ private:
  #endif
          mNode1 = node;
      }
@@ -5211,7 +5179,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
  #ifdef USE_SINGLE_ACCESSOR_KEY
          mKey = ijk;
-@@ -5127,7 +6112,11 @@
+@@ -5127,7 +6112,11 @@ private:
          mNode2 = node;
      }
      template <typename OtherNodeT>
@@ -5224,7 +5192,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // ReadAccessor<BuildT, LEVEL0, LEVEL1>
  
  
-@@ -5145,7 +6134,7 @@
+@@ -5145,7 +6134,7 @@ class ReadAccessor<BuildT, 0, 1, 2>
      using ValueT = typename RootT::ValueType;
  
      using FloatType = typename RootT::FloatType;
@@ -5233,7 +5201,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
      // All member data are mutable to allow for access methods to be const
  #ifdef USE_SINGLE_ACCESSOR_KEY // 44 bytes total
-@@ -5153,19 +6142,19 @@
+@@ -5153,19 +6142,19 @@ class ReadAccessor<BuildT, 0, 1, 2>
  #else // 68 bytes total
      mutable CoordT mKeys[3]; // 3*3*4 = 36 bytes
  #endif
@@ -5257,7 +5225,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  #ifdef USE_SINGLE_ACCESSOR_KEY
          : mKey(CoordType::max())
  #else
-@@ -5177,35 +6166,38 @@
+@@ -5177,35 +6166,38 @@ public:
      }
  
       /// @brief Constructor from a grid
@@ -5306,7 +5274,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      }
  
  
-@@ -5222,7 +6214,7 @@
+@@ -5222,7 +6214,7 @@ public:
  
  #ifdef USE_SINGLE_ACCESSOR_KEY
      template<typename NodeT>
@@ -5315,7 +5283,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          if (!mNode[NodeT::LEVEL])
              return false;
-@@ -5233,128 +6225,229 @@
+@@ -5233,128 +6225,229 @@ public:
          return true;
      }
  
@@ -5369,7 +5337,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
 -    __hostdev__ ValueType operator()(const CoordType& ijk) const
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ ValueType getValue(__local__ const CoordType& ijk) const __global__
-     {
++    {
 +#ifdef USE_SINGLE_ACCESSOR_KEY
 +        const CoordValueType dirty = this->computeDirty(ijk);
 +#else
@@ -5403,7 +5371,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
 +#endif // __KERNEL_METAL__
 +
 +    __hostdev__ ValueType operator()(__global__ const CoordType& ijk) const __global__
-+    {
+     {
          return this->getValue(ijk);
      }
 -    __hostdev__ ValueType operator()(int i, int j, int k) const
@@ -5455,42 +5423,43 @@ Index: nanovdb/nanovdb/NanoVDB.h
          }
          return mRoot->isActiveAndCache(ijk, *this);
      }
+-
+-    __hostdev__ bool probeValue(const CoordType& ijk, ValueType& v) const
 +#if defined(__KERNEL_METAL__)
 +    __hostdev__ bool isActive(__local__ const CoordType& ijk) const __local__
-+    {
-+#ifdef USE_SINGLE_ACCESSOR_KEY
-+        const CoordValueType dirty = this->computeDirty(ijk);
-+#else
-+        __local__ auto&& dirty = ijk;
-+#endif
-+        if (this->isCached<LeafT>(dirty)) {
-+            return ((__global__ LeafT*)mNode[0])->isActive(ijk);
-+        } else if (this->isCached<NodeT1>(dirty)) {
-+            return ((__global__ NodeT1*)mNode[1])->isActiveAndCache(ijk, *this);
-+        } else if (this->isCached<NodeT2>(dirty)) {
-+            return ((__global__ NodeT2*)mNode[2])->isActiveAndCache(ijk, *this);
-+        }
-+        return mRoot->isActiveAndCache(ijk, *this);
-+    }
-+#endif
- 
--    __hostdev__ bool probeValue(const CoordType& ijk, ValueType& v) const
-+    __hostdev__ bool probeValue(__global__ const CoordType& ijk, __global__ ValueType& v) const __global__
      {
  #ifdef USE_SINGLE_ACCESSOR_KEY
          const CoordValueType dirty = this->computeDirty(ijk);
  #else
 -        auto&& dirty = ijk;
-+        __global__ auto&& dirty = ijk;
++        __local__ auto&& dirty = ijk;
  #endif
          if (this->isCached<LeafT>(dirty)) {
 -            return ((LeafT*)mNode[0])->probeValue(ijk, v);
-+            return ((__global__ LeafT*)mNode[0])->probeValue(ijk, v);
++            return ((__global__ LeafT*)mNode[0])->isActive(ijk);
          } else if (this->isCached<NodeT1>(dirty)) {
 -            return ((NodeT1*)mNode[1])->probeValueAndCache(ijk, v, *this);
-+            return ((__global__ NodeT1*)mNode[1])->probeValueAndCache(ijk, v, *this);
++            return ((__global__ NodeT1*)mNode[1])->isActiveAndCache(ijk, *this);
          } else if (this->isCached<NodeT2>(dirty)) {
 -            return ((NodeT2*)mNode[2])->probeValueAndCache(ijk, v, *this);
++            return ((__global__ NodeT2*)mNode[2])->isActiveAndCache(ijk, *this);
++        }
++        return mRoot->isActiveAndCache(ijk, *this);
++    }
++#endif
++
++    __hostdev__ bool probeValue(__global__ const CoordType& ijk, __global__ ValueType& v) const __global__
++    {
++#ifdef USE_SINGLE_ACCESSOR_KEY
++        const CoordValueType dirty = this->computeDirty(ijk);
++#else
++        __global__ auto&& dirty = ijk;
++#endif
++        if (this->isCached<LeafT>(dirty)) {
++            return ((__global__ LeafT*)mNode[0])->probeValue(ijk, v);
++        } else if (this->isCached<NodeT1>(dirty)) {
++            return ((__global__ NodeT1*)mNode[1])->probeValueAndCache(ijk, v, *this);
++        } else if (this->isCached<NodeT2>(dirty)) {
 +            return ((__global__ NodeT2*)mNode[2])->probeValueAndCache(ijk, v, *this);
          }
          return mRoot->probeValueAndCache(ijk, v, *this);
@@ -5579,7 +5548,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  private:
      /// @brief Allow nodes to insert themselves into the cache.
-@@ -5367,7 +6460,7 @@
+@@ -5367,7 +6460,7 @@ private:
  
      /// @brief Inserts a leaf node and key pair into this ReadAccessor
      template<typename NodeT>
@@ -5588,7 +5557,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
  #ifdef USE_SINGLE_ACCESSOR_KEY
          mKey = ijk;
-@@ -5376,6 +6469,28 @@
+@@ -5376,6 +6469,28 @@ private:
  #endif
          mNode[NodeT::LEVEL] = node;
      }
@@ -5617,7 +5586,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  }; // ReadAccessor<BuildT, 0, 1, 2>
  
  //////////////////////////////////////////////////
-@@ -5393,19 +6508,19 @@
+@@ -5393,19 +6508,19 @@ private:
  ///          createAccessor<0,1,2>(grid): Caching of all nodes at all tree levels
  
  template <int LEVEL0 = -1, int LEVEL1 = -1, int LEVEL2 = -1, typename ValueT = float>
@@ -5640,7 +5609,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  {
      return ReadAccessor<ValueT, LEVEL0, LEVEL1, LEVEL2>(root);
  }
-@@ -5424,52 +6539,59 @@
+@@ -5424,52 +6539,59 @@ class GridMetaData
      // memory-layout of the data structure and the reasons why certain methods are safe
      // to call and others are not!
      using GridT = NanoGrid<int>;
@@ -5732,7 +5701,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          NANOVDB_ASSERT(grid.gridType() == GridType::UInt32);
          NANOVDB_ASSERT((grid.gridClass() == GridClass::PointIndex && is_same<uint32_t, AttT>::value) ||
-@@ -5478,7 +6600,7 @@
+@@ -5478,7 +6600,7 @@ public:
      }
      /// @brief Return the total number of point in the grid and set the
      ///        iterators to the complete range of points.
@@ -5741,7 +5710,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          const uint64_t count = mGrid->blindMetaData(0u).mElementCount;
          begin = mData;
-@@ -5488,9 +6610,9 @@
+@@ -5488,9 +6610,9 @@ public:
      /// @brief Return the number of points in the leaf node containing the coordinate @a ijk.
      ///        If this return value is larger than zero then the iterators @a begin and @a end
      ///        will point to all the attributes contained within that leaf node.
@@ -5753,7 +5722,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          if (leaf == nullptr) {
              return 0;
          }
-@@ -5500,14 +6622,14 @@
+@@ -5500,14 +6622,14 @@ public:
      }
  
      /// @brief get iterators over offsets to points at a specific voxel location
@@ -5771,7 +5740,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
              begin = p + (offset == 0 ? 0 : leaf->getValue(offset - 1));
              end = p + leaf->getValue(offset);
              return end - begin;
-@@ -5520,11 +6642,20 @@
+@@ -5520,11 +6642,20 @@ public:
  ///
  /// @note The ChannelT template parameter can be either const and non-const.
  template<typename ChannelT>
@@ -5795,7 +5764,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  public:
      using ValueType = ChannelT;
-@@ -5533,7 +6664,7 @@
+@@ -5533,7 +6664,7 @@ public:
  
      /// @brief Ctor from an IndexGrid and an integer ID of an internal channel
      ///        that is assumed to exist as blind data in the IndexGrid.
@@ -5804,7 +5773,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          : BaseT(grid.tree().root())
          , mGrid(grid)
          , mChannel(nullptr)
-@@ -5544,7 +6675,7 @@
+@@ -5544,7 +6675,7 @@ public:
      }
  
      /// @brief Ctor from an IndexGrid and an external channel
@@ -5813,7 +5782,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          : BaseT(grid.tree().root())
          , mGrid(grid)
          , mChannel(channelPtr)
-@@ -5555,19 +6686,19 @@
+@@ -5555,19 +6686,19 @@ public:
      }
  
      /// @brief Return a const reference to the IndexGrid
@@ -5838,7 +5807,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
      {
          mChannel = channelPtr;
          NANOVDB_ASSERT(mChannel);
-@@ -5577,23 +6708,24 @@
+@@ -5577,23 +6708,24 @@ public:
     ///        in the IndexGrid.
      __hostdev__ void setChannel(uint32_t channelID)
      {
@@ -5871,7 +5840,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
          v = mChannel[idx];
          return isActive;
      }
-@@ -5601,7 +6733,7 @@
+@@ -5601,7 +6733,7 @@ public:
      ///
      /// @note The template parameter can be either const or non-const
      template <typename T>
@@ -5880,7 +5849,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  
  }; // ChannelAccessor
  
-@@ -5643,6 +6775,7 @@
+@@ -5643,6 +6775,7 @@ namespace io {
  /// @throw std::invalid_argument if buffer does not point to a valid NanoVDB grid.
  ///
  /// @warning This is pretty ugly code that involves lots of pointer and bit manipulations - not for the faint of heart :)
@@ -5888,7 +5857,7 @@ Index: nanovdb/nanovdb/NanoVDB.h
  template <typename StreamT>// StreamT class must support: "void write(char*, size_t)"
  void writeUncompressedGrid(StreamT &os, const void *buffer)
  {
-@@ -5768,7 +6901,7 @@
+@@ -5768,7 +6901,7 @@ VecT<GridHandleT> readUncompressedGrids(const char *fileName, const typename Gri
    }
    return readUncompressedGrids<GridHandleT, StreamT, VecT>(is, buffer);
  }// readUncompressedGrids
@@ -5897,10 +5866,10 @@ Index: nanovdb/nanovdb/NanoVDB.h
  } // namespace io
  
  #endif// if !defined(__CUDA_ARCH__) && !defined(__HIP__)
-Index: nanovdb/nanovdb/util/SampleFromVoxels.h
-===================================================================
---- nanovdb/nanovdb/util/SampleFromVoxels.h	(revision 63221)
-+++ nanovdb/nanovdb/util/SampleFromVoxels.h	(working copy)
+diff --git a/nanovdb/nanovdb/util/SampleFromVoxels.h b/nanovdb/nanovdb/util/SampleFromVoxels.h
+index e779d66..e2f9283 100644
+--- a/nanovdb/nanovdb/util/SampleFromVoxels.h
++++ b/nanovdb/nanovdb/util/SampleFromVoxels.h
 @@ -1,983 +1,1120 @@
 -// Copyright Contributors to the OpenVDB Project
 -// SPDX-License-Identifier: MPL-2.0

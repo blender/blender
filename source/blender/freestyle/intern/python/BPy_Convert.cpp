@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -44,10 +44,6 @@
 #include "Iterator/BPy_orientedViewEdgeIterator.h"
 
 #include "../stroke/StrokeRep.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 using namespace Freestyle;
 using namespace Freestyle::Geometry;
@@ -803,7 +799,3 @@ int convert_v2(PyObject *obj, void *v)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

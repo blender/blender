@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "util/hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Linear Congruential Generator */
@@ -36,7 +38,7 @@ ccl_device_inline uint lcg_state_init(const uint rng_hash,
                                       const uint sample,
                                       const uint scramble)
 {
-  return lcg_init(rng_hash + rng_offset + sample * scramble);
+  return hash_uint3(rng_hash ^ scramble, rng_offset, sample);
 }
 
 CCL_NAMESPACE_END

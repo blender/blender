@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Simple shader that just draw one icon at the specified location
  * does not need any vertex input (producing less call to immBegin/End)

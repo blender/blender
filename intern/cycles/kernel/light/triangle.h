@@ -42,8 +42,9 @@ ccl_device_inline float triangle_light_pdf_area_sampling(const float3 Ng, const 
 {
   float cos_pi = fabsf(dot(Ng, I));
 
-  if (cos_pi == 0.0f)
+  if (cos_pi == 0.0f) {
     return 0.0f;
+  }
 
   return t * t / cos_pi;
 }
@@ -78,8 +79,8 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
     const float3 B = safe_normalize(V[1] - Px);
     const float3 C = safe_normalize(V[2] - Px);
 
-    const float solid_angle = 2.0f * fast_atanf(fabsf(dot(A, cross(B, C))) /
-                                                (1.0f + dot(B, C) + dot(A, C) + dot(A, B)));
+    const float solid_angle = 2.0f * fast_atan2f(fabsf(dot(A, cross(B, C))),
+                                                 (1.0f + dot(B, C) + dot(A, C) + dot(A, B)));
 
     /* distribution_pdf_triangles is calculated over triangle area, but we're not sampling over
      * its area */
@@ -173,7 +174,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
     const float mixed_product = fabsf(dot(A, cross(B, C)));
 
     /* The area of the spherical triangle is equal to the subtended solid angle. */
-    const float solid_angle = 2.0f * fast_atanf(mixed_product / (1.0f + cos_a + cos_b + cos_c));
+    const float solid_angle = 2.0f * fast_atan2f(mixed_product, (1.0f + cos_a + cos_b + cos_c));
 
     /* Select a random sub-area of the spherical triangle and calculate the third vertex C_ of that
      * new triangle. */

@@ -1,11 +1,10 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   ..
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../depsgraph
@@ -13,11 +12,9 @@ set(INC
   ../../gpu
   ../../imbuf
   ../../imbuf/intern/oiio
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   ../../../../intern/mantaflow/extern
   ../../../../intern/opencolorio
   # RNA_prototypes.h
@@ -29,52 +26,52 @@ set(INC_SYS
 )
 
 set(SRC
-  bpy.c
-  bpy_app.c
-  bpy_app_alembic.c
-  bpy_app_build_options.c
-  bpy_app_ffmpeg.c
-  bpy_app_handlers.c
-  bpy_app_icons.c
-  bpy_app_ocio.c
-  bpy_app_oiio.c
-  bpy_app_opensubdiv.c
-  bpy_app_openvdb.c
-  bpy_app_sdl.c
-  bpy_app_timers.c
-  bpy_app_translations.c
-  bpy_app_usd.c
-  bpy_capi_utils.c
-  bpy_driver.c
-  bpy_gizmo_wrap.c
-  bpy_interface.c
-  bpy_interface_atexit.c
-  bpy_interface_run.c
-  bpy_intern_string.c
-  bpy_library_load.c
-  bpy_library_write.c
-  bpy_msgbus.c
-  bpy_operator.c
-  bpy_operator_wrap.c
-  bpy_path.c
-  bpy_props.c
-  bpy_rna.c
-  bpy_rna_anim.c
-  bpy_rna_array.c
-  bpy_rna_callback.c
-  bpy_rna_context.c
-  bpy_rna_data.c
-  bpy_rna_driver.c
-  bpy_rna_gizmo.c
-  bpy_rna_id_collection.c
-  bpy_rna_operator.c
-  bpy_rna_text.c
-  bpy_rna_types_capi.c
-  bpy_rna_ui.c
-  bpy_traceback.c
-  bpy_utils_previews.c
-  bpy_utils_units.c
-  stubs.c
+  bpy.cc
+  bpy_app.cc
+  bpy_app_alembic.cc
+  bpy_app_build_options.cc
+  bpy_app_ffmpeg.cc
+  bpy_app_handlers.cc
+  bpy_app_icons.cc
+  bpy_app_ocio.cc
+  bpy_app_oiio.cc
+  bpy_app_opensubdiv.cc
+  bpy_app_openvdb.cc
+  bpy_app_sdl.cc
+  bpy_app_timers.cc
+  bpy_app_translations.cc
+  bpy_app_usd.cc
+  bpy_capi_utils.cc
+  bpy_driver.cc
+  bpy_gizmo_wrap.cc
+  bpy_interface.cc
+  bpy_interface_atexit.cc
+  bpy_interface_run.cc
+  bpy_intern_string.cc
+  bpy_library_load.cc
+  bpy_library_write.cc
+  bpy_msgbus.cc
+  bpy_operator.cc
+  bpy_operator_wrap.cc
+  bpy_path.cc
+  bpy_props.cc
+  bpy_rna.cc
+  bpy_rna_anim.cc
+  bpy_rna_array.cc
+  bpy_rna_callback.cc
+  bpy_rna_context.cc
+  bpy_rna_data.cc
+  bpy_rna_driver.cc
+  bpy_rna_gizmo.cc
+  bpy_rna_id_collection.cc
+  bpy_rna_operator.cc
+  bpy_rna_text.cc
+  bpy_rna_types_capi.cc
+  bpy_rna_ui.cc
+  bpy_traceback.cc
+  bpy_utils_previews.cc
+  bpy_utils_units.cc
+  stubs.cc
 
   bpy.h
   bpy_app.h
@@ -123,9 +120,13 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   bf_editor_animation
   bf_editor_interface
   bf_editor_space_api
+  PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
   bf_python_gpu
 
   ${PYTHON_LINKFLAGS}
@@ -139,6 +140,27 @@ endif()
 
 if(WITH_PYTHON_MODULE)
   add_definitions(-DWITH_PYTHON_MODULE)
+endif()
+
+
+# Find the SSL certificate for the portable Blender installation.
+# Without this, the absolute path on the builder is used, causing HTTPS access to fail.
+# For example `urllib.request.urlopen("https://projects.blender.org")` fails
+# (or any other HTTPS site). see: #102300 for details.
+# NOTE: that this isn't necessary on WIN32.
+if(WITH_PYTHON AND WITH_PYTHON_INSTALL AND (APPLE OR WITH_INSTALL_PORTABLE) AND (NOT WIN32))
+  # - `PYTHON_SSL_CERT_FILE` absolute path to the PEM file.
+  find_python_module_file("certifi/cacert.pem" PYTHON_SSL_CERT_FILE _python_ssl_cert_file_relative)
+  mark_as_advanced(PYTHON_SSL_CERT_FILE)
+  if (PYTHON_SSL_CERT_FILE)
+    add_definitions(-DPYTHON_SSL_CERT_FILE="${_python_ssl_cert_file_relative}")
+  else()
+    message(WARNING
+      "Unable to find \"certifi/cacert.pem\" within \"${PYTHON_LIBPATH}\", "
+      "this build will not be able to use bundled certificates with the \"ssl\" module!"
+    )
+  endif()
+  unset(_python_ssl_cert_file_relative)
 endif()
 
 if(WITH_PYTHON_SAFETY)
@@ -362,6 +384,13 @@ endif()
 
 if(WITH_HARU)
   add_definitions(-DWITH_HARU)
+endif()
+
+if(WITH_HYDRA)
+  list(APPEND LIB
+    bf_render_hydra
+  )
+  add_definitions(-DWITH_HYDRA)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

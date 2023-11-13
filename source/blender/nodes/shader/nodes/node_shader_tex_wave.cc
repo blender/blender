@@ -1,13 +1,21 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
+#include "BKE_texture.h"
+
+#include "BLI_math_vector.h"
 #include "BLI_noise.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_multi_function.hh"
+
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_tex_wave_cc {
 
@@ -175,7 +183,8 @@ class WaveFunction : public mf::MultiFunction {
 
       if (distortion[i] != 0.0f) {
         n += distortion[i] *
-             (noise::perlin_fractal(p * dscale[i], detail[i], droughness[i]) * 2.0f - 1.0f);
+             (noise::perlin_fractal(p * dscale[i], detail[i], droughness[i], 2.0f, true) * 2.0f -
+              1.0f);
       }
 
       switch (wave_profile_) {
@@ -210,6 +219,96 @@ static void sh_node_wave_tex_build_multi_function(NodeMultiFunctionBuilder &buil
       tex->wave_type, tex->bands_direction, tex->rings_direction, tex->wave_profile);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  NodeTexWave *tex = (NodeTexWave *)node_->storage;
+
+  NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
+  NodeItem distortion = get_input_value("Distortion", NodeItem::Type::Float);
+  NodeItem detail = get_input_default("Detail", NodeItem::Type::Float);
+  NodeItem detail_scale = get_input_value("Detail Scale", NodeItem::Type::Float);
+  NodeItem detail_rough = get_input_value("Detail Roughness", NodeItem::Type::Float);
+  NodeItem phase_offset = get_input_value("Phase Offset", NodeItem::Type::Float);
+  NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector3);
+  if (!vector) {
+    vector = texcoord_node(NodeItem::Type::Vector3);
+  }
+
+  /* Adjustment to get result as Cycles. */
+  distortion = distortion * val(10.0f);
+  detail_scale = detail_scale * val(10.0f);
+
+  NodeItem pos = vector * scale;
+  NodeItem fractal = create_node("fractal3d",
+                                 NodeItem::Type::Float,
+                                 {{"position", pos},
+                                  {"octaves", val(int(detail.value->asA<float>()))},
+                                  {"lacunarity", val(2.0f)}});
+  NodeItem value = val(0.0f);
+  switch (tex->wave_type) {
+    case SHD_WAVE_BANDS:
+      switch (tex->bands_direction) {
+        case SHD_WAVE_BANDS_DIRECTION_X:
+          value = pos[0] * val(20.0f);
+          break;
+        case SHD_WAVE_BANDS_DIRECTION_Y:
+          value = pos[1] * val(20.0f);
+          break;
+        case SHD_WAVE_BANDS_DIRECTION_Z:
+          value = pos[2] * val(20.0f);
+          break;
+        case SHD_WAVE_BANDS_DIRECTION_DIAGONAL:
+          value = (pos[0] + pos[1] + pos[2]) * val(10.0f);
+          break;
+        default:
+          BLI_assert_unreachable();
+      }
+      break;
+    case SHD_WAVE_RINGS:
+      NodeItem rpos = pos;
+      switch (tex->rings_direction) {
+        case SHD_WAVE_RINGS_DIRECTION_X:
+          rpos = pos * val(MaterialX::Vector3(0.0f, 1.0f, 1.0f));
+          break;
+        case SHD_WAVE_RINGS_DIRECTION_Y:
+          rpos = pos * val(MaterialX::Vector3(1.0f, 0.0f, 1.0f));
+          break;
+        case SHD_WAVE_RINGS_DIRECTION_Z:
+          rpos = pos * val(MaterialX::Vector3(1.0f, 1.0f, 0.0f));
+          break;
+        case SHD_WAVE_RINGS_DIRECTION_SPHERICAL:
+          /* Ignore. */
+          break;
+        default:
+          BLI_assert_unreachable();
+      }
+      value = rpos.length() * val(20.0f);
+      break;
+  }
+  value = value + phase_offset + distortion * detail_scale * fractal;
+
+  NodeItem res = empty();
+  switch (tex->wave_profile) {
+    case SHD_WAVE_PROFILE_SIN:
+      res = val(0.5f) + val(0.5f) * (value - val(float(M_PI_2))).sin();
+      break;
+    case SHD_WAVE_PROFILE_SAW:
+      value = value / val(float(M_PI * 2.0f));
+      res = value - value.floor();
+      break;
+    case SHD_WAVE_PROFILE_TRI:
+      value = value / val(float(M_PI * 2.0f));
+      res = (value - (value + val(0.5f)).floor()).abs() * val(2.0f);
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_tex_wave_cc
 
 void register_node_type_sh_tex_wave()
@@ -226,6 +325,7 @@ void register_node_type_sh_tex_wave()
   node_type_storage(&ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_wave;
   ntype.build_multi_function = file_ns::sh_node_wave_tex_build_multi_function;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

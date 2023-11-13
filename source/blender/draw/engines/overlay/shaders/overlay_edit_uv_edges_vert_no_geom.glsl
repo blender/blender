@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 6)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -11,9 +14,9 @@ void do_vertex(
     vec4 pos, float selection_fac, vec2 stipple_start, vec2 stipple_pos, float coord, vec2 offset)
 {
   geom_out.selectionFac = selection_fac;
-  geom_out.edgeCoord = coord;
-  geom_out.stippleStart = stipple_start;
-  geom_out.stipplePos = stipple_pos;
+  geom_noperspective_out.edgeCoord = coord;
+  geom_flat_out.stippleStart = stipple_start;
+  geom_noperspective_out.stipplePos = stipple_pos;
 
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
@@ -95,7 +98,7 @@ void main()
   half_size += (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) ?
                    max(sizeEdge * (doSmoothWire ? 1.0 : 3.0), 1.0) :
                    0.0;
-  /* Add 1 px for AA */
+  /* Add 1px for AA */
   if (doSmoothWire) {
     half_size += 0.5;
   }

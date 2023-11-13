@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2006-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -196,8 +196,9 @@ template<class T> class MEM_CacheLimiter {
     while (!queue.empty() && mem_in_use > max) {
       MEM_CacheElementPtr elem = get_least_priority_destroyable_element();
 
-      if (!elem)
+      if (!elem) {
         break;
+      }
 
       if (data_size_func) {
         cur_size = data_size_func(elem->get()->get_data());
@@ -255,24 +256,27 @@ template<class T> class MEM_CacheLimiter {
       return false;
     }
     if (item_destroyable_func) {
-      if (!item_destroyable_func(elem->get()->get_data()))
+      if (!item_destroyable_func(elem->get()->get_data())) {
         return false;
+      }
     }
     return true;
   }
 
   MEM_CacheElementPtr get_least_priority_destroyable_element(void)
   {
-    if (queue.empty())
+    if (queue.empty()) {
       return NULL;
+    }
 
     MEM_CacheElementPtr best_match_elem = NULL;
 
     if (!item_priority_func) {
       for (iterator it = queue.begin(); it != queue.end(); it++) {
         MEM_CacheElementPtr elem = *it;
-        if (!can_destroy_element(elem))
+        if (!can_destroy_element(elem)) {
           continue;
+        }
         best_match_elem = elem;
         break;
       }
@@ -284,8 +288,9 @@ template<class T> class MEM_CacheLimiter {
       for (i = 0; i < queue.size(); i++) {
         MEM_CacheElementPtr elem = queue[i];
 
-        if (!can_destroy_element(elem))
+        if (!can_destroy_element(elem)) {
           continue;
+        }
 
         /* By default 0 means highest priority element. */
         /* Casting a size type to int is questionable,

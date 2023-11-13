@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,7 +49,8 @@ class CachedMask : public CachedResource {
   GPUTexture *texture_ = nullptr;
 
  public:
-  CachedMask(Mask *mask,
+  CachedMask(Context &context,
+             Mask *mask,
              int2 size,
              int frame,
              bool use_feather,

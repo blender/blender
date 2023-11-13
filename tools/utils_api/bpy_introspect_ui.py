@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -100,7 +100,7 @@ class AttributeBuilder:
         return attr_obj
 
     # def __setattr__(self, attr, value):
-    #     setatte
+    #     pass
 
     def __getitem__(self, item):
         item_obj = NewAttr(self._attr + "[" + repr(item) + "]", item)

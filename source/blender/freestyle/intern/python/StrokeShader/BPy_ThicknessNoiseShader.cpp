@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -58,7 +58,7 @@ static int ThicknessNoiseShader___init__(BPy_ThicknessNoiseShader *self,
 /*-----------------------BPy_ThicknessNoiseShader type definition ------------------------------*/
 
 PyTypeObject ThicknessNoiseShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ThicknessNoiseShader",
     /*tp_basicsize*/ sizeof(BPy_ThicknessNoiseShader),
     /*tp_itemsize*/ 0,

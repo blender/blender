@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup imbuf
- * \brief Header file for allocimbuf.c
+ * \brief Header file for `allocimbuf.cc`.
  */
 #pragma once
 

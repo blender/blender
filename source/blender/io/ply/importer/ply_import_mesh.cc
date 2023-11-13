@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,10 +11,11 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 
 #include "GEO_mesh_merge_by_distance.hh"
 
+#include "BLI_math_color.hh"
 #include "BLI_math_vector.h"
 
 #include "ply_import_mesh.hh"
@@ -48,14 +49,14 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 
   /* Add faces to the mesh. */
   if (!data.face_sizes.is_empty()) {
-    MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+    MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
     MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
     /* Fill in face data. */
     uint32_t offset = 0;
     for (const int i : data.face_sizes.index_range()) {
       uint32_t size = data.face_sizes[i];
-      poly_offsets[i] = offset;
+      face_offsets[i] = offset;
       for (int j = 0; j < size; j++) {
         uint32_t v = data.face_vertices[offset + j];
         if (v >= mesh->totvert) {
@@ -102,13 +103,35 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Calculate edges from the rest of the mesh. */
   BKE_mesh_calc_edges(mesh, true, false);
 
-  /* Note: This is important to do after initializing the loops. */
+  /* If we have custom vertex normals, set them (note: important to do this
+   * after initializing the loops). */
   if (!data.vertex_normals.is_empty()) {
-    BKE_mesh_set_custom_normals_from_verts(
-        mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
+    if (!data.face_sizes.is_empty()) {
+      /* For a non-point-cloud mesh, set custom normals. */
+      BKE_mesh_set_custom_normals_from_verts(
+          mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
+    }
+    else if (params.import_attributes) {
+      /* If we have no faces, add vertex normals as custom attribute. */
+      attributes.add<float3>(
+          "normal",
+          ATTR_DOMAIN_POINT,
+          bke::AttributeInitVArray(VArray<float3>::ForSpan(data.vertex_normals)));
+    }
+  }
+  else {
+    /* No vertex normals: set faces to sharp. */
+    BKE_mesh_smooth_flag_set(mesh, false);
   }
 
-  BKE_mesh_smooth_flag_set(mesh, false);
+  /* Custom attributes: add them after anything above. */
+  if (params.import_attributes && !data.vertex_custom_attr.is_empty()) {
+    for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
+      attributes.add<float>(attr.name,
+                            ATTR_DOMAIN_POINT,
+                            bke::AttributeInitVArray(VArray<float>::ForSpan(attr.data)));
+    }
+  }
 
   /* Merge all vertices on the same location. */
   if (params.merge_verts) {

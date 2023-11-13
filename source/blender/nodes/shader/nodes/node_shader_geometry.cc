@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -58,6 +58,30 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
   return success;
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* NOTE: Some outputs aren't supported by MaterialX.*/
+  NodeItem res = empty();
+  std::string name = socket_out_->name;
+
+  if (name == "Position") {
+    res = create_node("position", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
+  }
+  else if (name == "Normal") {
+    res = create_node("normal", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
+  }
+  else if (ELEM(name, "Tangent", "True Normal")) {
+    res = create_node("tangent", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
+  }
+  else {
+    res = get_output_default(name, NodeItem::Type::Any);
+  }
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_geometry_cc
 
 /* node type definition */
@@ -70,6 +94,7 @@ void register_node_type_sh_geometry()
   sh_node_type_base(&ntype, SH_NODE_NEW_GEOMETRY, "Geometry", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_geometry;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

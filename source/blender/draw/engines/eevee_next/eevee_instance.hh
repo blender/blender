@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,11 +10,12 @@
 
 #pragma once
 
-#include "BKE_object.h"
-#include "DEG_depsgraph.h"
+#include "BKE_object.hh"
+#include "DEG_depsgraph.hh"
 #include "DNA_lightprobe_types.h"
 #include "DRW_render.h"
 
+#include "eevee_ambient_occlusion.hh"
 #include "eevee_camera.hh"
 #include "eevee_cryptomatte.hh"
 #include "eevee_depth_of_field.hh"
@@ -23,9 +24,14 @@
 #include "eevee_hizbuffer.hh"
 #include "eevee_irradiance_cache.hh"
 #include "eevee_light.hh"
+#include "eevee_lightprobe.hh"
+#include "eevee_lookdev.hh"
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
 #include "eevee_pipeline.hh"
+#include "eevee_planar_probes.hh"
+#include "eevee_raytrace.hh"
+#include "eevee_reflection_probes.hh"
 #include "eevee_renderbuffers.hh"
 #include "eevee_sampling.hh"
 #include "eevee_shader.hh"
@@ -33,6 +39,7 @@
 #include "eevee_subsurface.hh"
 #include "eevee_sync.hh"
 #include "eevee_view.hh"
+#include "eevee_volume.hh"
 #include "eevee_world.hh"
 
 namespace blender::eevee {
@@ -45,6 +52,8 @@ class Instance {
   friend VelocityModule;
   friend MotionBlurModule;
 
+  UniformDataBuf global_ubo_;
+
  public:
   ShaderModule &shaders;
   SyncModule sync;
@@ -53,6 +62,10 @@ class Instance {
   PipelineModule pipelines;
   ShadowModule shadows;
   LightModule lights;
+  AmbientOcclusion ambient_occlusion;
+  RayTraceModule raytracing;
+  ReflectionProbeModule reflection_probes;
+  PlanarProbeModule planar_probes;
   VelocityModule velocity;
   MotionBlurModule motion_blur;
   DepthOfField depth_of_field;
@@ -64,8 +77,12 @@ class Instance {
   Film film;
   RenderBuffers render_buffers;
   MainView main_view;
+  CaptureView capture_view;
   World world;
+  LookdevModule lookdev;
+  LightProbeModule light_probes;
   IrradianceCache irradiance_cache;
+  VolumeModule volume;
 
   /** Input data. */
   Depsgraph *depsgraph;
@@ -73,6 +90,7 @@ class Instance {
   /** Evaluated IDs. */
   Scene *scene;
   ViewLayer *view_layer;
+  /** Camera object if rendering through a camera. nullptr otherwise. */
   Object *camera_eval_object;
   Object *camera_orig_object;
   /** Only available when rendering for final render. */
@@ -85,6 +103,8 @@ class Instance {
 
   /** True if the grease pencil engine might be running. */
   bool gpencil_engine_enabled;
+  /** True if the instance is created for light baking. */
+  bool is_light_bake = false;
 
   /** Info string displayed at the top of the render / viewport. */
   std::string info = "";
@@ -96,29 +116,38 @@ class Instance {
       : shaders(*ShaderModule::module_get()),
         sync(*this),
         materials(*this),
-        subsurface(*this),
+        subsurface(*this, global_ubo_.subsurface),
         pipelines(*this),
-        shadows(*this),
+        shadows(*this, global_ubo_.shadow),
         lights(*this),
+        ambient_occlusion(*this, global_ubo_.ao),
+        raytracing(*this, global_ubo_.raytrace),
+        reflection_probes(*this),
+        planar_probes(*this),
         velocity(*this),
         motion_blur(*this),
         depth_of_field(*this),
         cryptomatte(*this),
-        hiz_buffer(*this),
+        hiz_buffer(*this, global_ubo_.hiz),
         sampling(*this),
-        camera(*this),
-        film(*this),
-        render_buffers(*this),
+        camera(*this, global_ubo_.camera),
+        film(*this, global_ubo_.film),
+        render_buffers(*this, global_ubo_.render_pass),
         main_view(*this),
+        capture_view(*this),
         world(*this),
-        irradiance_cache(*this){};
+        lookdev(*this),
+        light_probes(*this),
+        irradiance_cache(*this),
+        volume(*this, global_ubo_.volumes){};
   ~Instance(){};
 
+  /* Render & Viewport. */
+  /* TODO(fclem): Split for clarity. */
   void init(const int2 &output_res,
             const rcti *output_rect,
             RenderEngine *render,
             Depsgraph *depsgraph,
-            const LightProbe *light_probe_ = nullptr,
             Object *camera_object = nullptr,
             const RenderLayer *render_layer = nullptr,
             const DRWView *drw_view = nullptr,
@@ -129,17 +158,42 @@ class Instance {
   void object_sync(Object *ob);
   void end_sync();
 
+  /**
+   * Return true when probe pipeline is used during this sample.
+   */
+  bool do_reflection_probe_sync() const;
+  bool do_planar_probe_sync() const;
+
+  /* Render. */
+
   void render_sync();
   void render_frame(RenderLayer *render_layer, const char *view_name);
   void store_metadata(RenderResult *render_result);
 
+  /* Viewport. */
+
   void draw_viewport(DefaultFramebufferList *dfbl);
+
+  /* Light bake. */
+
+  void init_light_bake(Depsgraph *depsgraph, draw::Manager *manager);
+  void light_bake_irradiance(
+      Object &probe,
+      FunctionRef<void()> context_enable,
+      FunctionRef<void()> context_disable,
+      FunctionRef<bool()> stop,
+      FunctionRef<void(LightProbeGridCacheFrame *, float progress)> result_update);
 
   static void update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer);
 
   bool is_viewport() const
   {
-    return render == nullptr;
+    return render == nullptr && !is_baking();
+  }
+
+  bool is_baking() const
+  {
+    return is_light_bake;
   }
 
   bool overlays_enabled() const
@@ -163,6 +217,16 @@ class Instance {
                       ((v3d->shading.flag & V3D_SHADING_SCENE_WORLD) == 0)) ||
                      ((v3d->shading.type == OB_RENDER) &&
                       ((v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER) == 0)));
+  }
+
+  void push_uniform_data()
+  {
+    global_ubo_.push_update();
+  }
+
+  template<typename T> void bind_uniform_data(draw::detail::PassBase<T> *pass)
+  {
+    pass->bind_ubo(UNIFORM_BUF_SLOT, &global_ubo_);
   }
 
  private:

@@ -8,9 +8,9 @@
  * Cineon image file format library routines.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "logImageCore.h"
 #include "logmemfile.h"
@@ -45,7 +45,7 @@ int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
   return 0;
 }
 
-int logimage_fwrite(void *buffer, size_t size, uint count, LogImageFile *logFile)
+int logimage_fwrite(const void *buffer, size_t size, uint count, LogImageFile *logFile)
 {
   if (logFile->file) {
     return fwrite(buffer, size, count, logFile->file);

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,8 @@
 #include "AS_asset_catalog_path.hh"
 
 #include "BLI_path_util.h"
+
+#include <sstream>
 
 namespace blender::asset_system {
 

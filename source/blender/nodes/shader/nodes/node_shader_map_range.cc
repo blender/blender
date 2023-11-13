@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,13 +9,21 @@
 #include <algorithm>
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 #include "BLI_math_base_safe.h"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_map_range_cc {
 
@@ -434,6 +442,80 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
   }
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  const NodeMapRange *map_range = static_cast<NodeMapRange *>(node_->storage);
+  NodeItem::Type type;
+  NodeItem value = empty();
+  NodeItem from_min = empty();
+  NodeItem from_max = empty();
+  NodeItem to_min = empty();
+  NodeItem to_max = empty();
+  NodeItem steps = empty();
+  switch (map_range->data_type) {
+    case CD_PROP_FLOAT:
+      type = NodeItem::Type::Float;
+      value = get_input_value("Value", type);
+      from_min = get_input_value(1, type);
+      from_max = get_input_value(2, type);
+      to_min = get_input_value(3, type);
+      to_max = get_input_value(4, type);
+      if (map_range->interpolation_type == NODE_MAP_RANGE_STEPPED) {
+        steps = get_input_value(5, type);
+      }
+      break;
+    case CD_PROP_FLOAT3:
+      type = NodeItem::Type::Vector3;
+      value = get_input_value("Vector", type);
+      from_min = get_input_value(7, type);
+      from_max = get_input_value(8, type);
+      to_min = get_input_value(9, type);
+      to_max = get_input_value(10, type);
+      if (map_range->interpolation_type == NODE_MAP_RANGE_STEPPED) {
+        steps = get_input_value(11, type);
+      }
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+
+  NodeItem res = empty();
+  switch (map_range->interpolation_type) {
+    case NODE_MAP_RANGE_LINEAR:
+      res = create_node("remap",
+                        type,
+                        {{"in", value},
+                         {"inlow", from_min},
+                         {"inhigh", from_max},
+                         {"outlow", to_min},
+                         {"outhigh", to_max}});
+      break;
+    case NODE_MAP_RANGE_STEPPED: {
+      NodeItem factor = create_node(
+          "remap", type, {{"in", value}, {"inlow", from_min}, {"inhigh", from_max}});
+      value = (factor * (steps + val(1.0f))).floor() / steps;
+      res = create_node("remap", type, {{"in", value}, {"outlow", to_min}, {"outhigh", to_max}});
+      break;
+    }
+    case NODE_MAP_RANGE_SMOOTHSTEP:
+    case NODE_MAP_RANGE_SMOOTHERSTEP:
+      value = create_node(
+          "smoothstep", type, {{"in", value}, {"low", from_min}, {"high", from_max}});
+      res = create_node("remap", type, {{"in", value}, {"outlow", to_min}, {"outhigh", to_max}});
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+
+  if (map_range->clamp != 0) {
+    res = res.clamp(to_min, to_max);
+  }
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_map_range_cc
 
 void register_node_type_sh_map_range()
@@ -453,5 +535,6 @@ void register_node_type_sh_map_range()
   ntype.gpu_fn = file_ns::gpu_shader_map_range;
   ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
   ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
   nodeRegisterType(&ntype);
 }

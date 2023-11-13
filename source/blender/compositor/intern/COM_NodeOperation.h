@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -470,7 +470,7 @@ class NodeOperation {
    * \param rect: the rectangle of the chunk (location and size)
    * \param chunk_number: the chunk_number to be calculated
    * \param memory_buffers: all input MemoryBuffer's needed
-   * \param output_buffer: the outputbuffer to write to
+   * \param output_buffer: the output-buffer to write to
    */
   virtual void execute_opencl_region(OpenCLDevice * /*device*/,
                                      rcti * /*rect*/,

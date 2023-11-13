@@ -1,10 +1,12 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Depth shader that can stochastically discard transparent pixel.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
@@ -16,7 +18,7 @@ vec4 closure_to_rgba(Closure cl)
 {
   vec4 out_color;
   out_color.rgb = g_emission;
-  out_color.a = saturate(1.0 - avg(g_transmittance));
+  out_color.a = saturate(1.0 - average(g_transmittance));
 
   /* Reset for the next closure tree. */
   closure_weights_reset();
@@ -31,11 +33,26 @@ void main()
 
   nodetree_surface();
 
+#  ifdef MAT_FORWARD
+  /* Pre-pass only allows fully opaque areas to cut through all transparent layers. */
+  float threshold = 0.0;
+#  else
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
-  float random_threshold = transparency_hashed_alpha_threshold(1.0, noise_offset, g_data.P);
+  float threshold = transparency_hashed_alpha_threshold(1.0, noise_offset, g_data.P);
+#  endif
 
-  float transparency = avg(g_transmittance);
-  if (transparency > random_threshold) {
+  float transparency = average(g_transmittance);
+  if (transparency > threshold) {
+    discard;
+    return;
+  }
+#endif
+
+#ifdef MAT_CLIP_PLANE
+  /* Do not use hardware clip planes as they modify the rasterization (some GPUs add vertices).
+   * This would in turn create a discrepancy between the pre-pass depth and the G-buffer depth
+   * which exhibits missing pixels data. */
+  if (clip_interp.clip_distance > 0.0) {
     discard;
     return;
   }

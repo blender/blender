@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,6 +13,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.hh"
 
 #include "GPU_platform.h"
 
@@ -45,8 +46,8 @@ static char *create_key(eGPUSupportLevel support_level,
 
   char *support_key = BLI_dynstr_get_cstring(ds);
   BLI_dynstr_free(ds);
-  BLI_str_replace_char(support_key, '\n', ' ');
-  BLI_str_replace_char(support_key, '\r', ' ');
+  BLI_string_replace_char(support_key, '\n', ' ');
+  BLI_string_replace_char(support_key, '\r', ' ');
   return support_key;
 }
 
@@ -57,8 +58,8 @@ static char *create_gpu_name(const char *vendor, const char *renderer, const cha
 
   char *gpu_name = BLI_dynstr_get_cstring(ds);
   BLI_dynstr_free(ds);
-  BLI_str_replace_char(gpu_name, '\n', ' ');
-  BLI_str_replace_char(gpu_name, '\r', ' ');
+  BLI_string_replace_char(gpu_name, '\n', ' ');
+  BLI_string_replace_char(gpu_name, '\r', ' ');
   return gpu_name;
 }
 
@@ -69,7 +70,8 @@ void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
                              eGPUBackendType backend,
                              const char *vendor_str,
                              const char *renderer_str,
-                             const char *version_str)
+                             const char *version_str,
+                             GPUArchitectureType arch_type)
 {
   this->clear();
 
@@ -90,6 +92,7 @@ void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
   this->support_key = create_key(gpu_support_level, vendor, renderer, version);
   this->gpu_name = create_gpu_name(vendor, renderer, version);
   this->backend = backend;
+  this->architecture_type = arch_type;
 }
 
 void GPUPlatformGlobal::clear()
@@ -146,6 +149,12 @@ const char *GPU_platform_gpu_name()
 {
   BLI_assert(GPG.initialized);
   return GPG.gpu_name;
+}
+
+GPUArchitectureType GPU_platform_architecture()
+{
+  BLI_assert(GPG.initialized);
+  return GPG.architecture_type;
 }
 
 bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver)

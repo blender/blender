@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2014 Blender Foundation
+/* SPDX-FileCopyrightText: 2014 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,7 +17,8 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -42,7 +43,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
@@ -51,9 +52,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_light_linking.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 namespace deg = blender::deg;
 
@@ -242,13 +243,11 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 /** Bounding box from evaluated geometry. */
 static void object_sync_boundbox_to_original(Object *object_orig, Object *object_eval)
 {
-  const BoundBox *bb = object_eval->runtime.bb;
-  if (!bb || (bb->flag & BOUNDBOX_DIRTY)) {
+  if (!object_eval->runtime.bb || (object_eval->runtime.bb->flag & BOUNDBOX_DIRTY)) {
     BKE_object_boundbox_calc_from_evaluated_geometry(object_eval);
   }
 
-  bb = BKE_object_boundbox_get(object_eval);
-  if (bb != nullptr) {
+  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(object_eval)) {
     if (object_orig->runtime.bb == nullptr) {
       object_orig->runtime.bb = MEM_new<BoundBox>(__func__);
     }

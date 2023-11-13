@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_function_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_fn_input_string_cc {
 
@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "string", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "string", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -57,20 +57,18 @@ static void node_storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const
   dest_node->storage = destination_storage;
 }
 
-}  // namespace blender::nodes::node_fn_input_string_cc
-
-void register_node_type_fn_input_string()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_fn_input_string_cc;
-
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_STRING, "String", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  node_type_storage(
-      &ntype, "NodeInputString", file_ns::node_storage_free, file_ns::node_storage_copy);
-  ntype.build_multi_function = file_ns::node_build_multi_function;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  node_type_storage(&ntype, "NodeInputString", node_storage_free, node_storage_copy);
+  ntype.build_multi_function = node_build_multi_function;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_fn_input_string_cc

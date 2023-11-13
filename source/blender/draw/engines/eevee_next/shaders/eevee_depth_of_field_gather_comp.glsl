@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Gather pass: Convolve foreground and background parts in separate passes.
@@ -10,7 +13,7 @@
  *
  * Outputs:
  * - Color * Weight, Weight, Occlusion 'CoC' Depth (mean and variance)
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_accumulator_lib.glsl)
 

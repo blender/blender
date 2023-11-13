@@ -566,8 +566,9 @@ bool Node::equals(const Node &other) const
   assert(type == other.type);
 
   foreach (const SocketType &socket, type->inputs) {
-    if (!equals_value(other, socket))
+    if (!equals_value(other, socket)) {
       return false;
+    }
   }
 
   return true;

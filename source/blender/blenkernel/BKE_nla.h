@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,6 +18,7 @@ extern "C" {
 #endif
 
 struct AnimData;
+struct ID;
 struct LibraryForeachIDData;
 struct Main;
 struct NlaStrip;
@@ -27,7 +28,6 @@ struct Speaker;
 struct bAction;
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct PointerRNA;
@@ -152,6 +152,38 @@ void BKE_nlatrack_remove(ListBase *tracks, struct NlaTrack *nlt);
 void BKE_nlatrack_remove_and_free(ListBase *tracks, struct NlaTrack *nlt, bool do_id_user);
 
 /**
+ * Compute the length of the passed strip's clip, unless the clip length
+ * is zero in which case a non-zero value is returned.
+ *
+ * WARNING: this function is *very narrow* and special-cased in its
+ * application.  It was introduced as part of the fix for issue #107030,
+ * as a way to collect a bunch of whack-a-mole inline applications of this
+ * logic in one place.  The logic itself isn't principled in any way,
+ * and should almost certainly not be used anywhere that it isn't already,
+ * short of one of those whack-a-mole inline places being overlooked.
+ *
+ * The underlying purpose of this function is to ensure that the computed
+ * clip length for an NLA strip is (in certain places) never zero, in order to
+ * avoid the strip's scale having to be infinity.  In other words, it's a
+ * hack.  But at least now it's a hack collected in one place.
+ *
+ */
+float BKE_nla_clip_length_get_nonzero(const NlaStrip *strip);
+
+/**
+ * Ensure the passed range has non-zero length, using the same logic as
+ * `BKE_nla_clip_length_get_nonzero` to determine the new non-zero length.
+ *
+ * See the documentation for `BKE_nla_clip_length_get_nonzero` for the
+ * reason this function exists and the issues around its use.
+ *
+ * Usage: both `actstart` and `r_actend` should already be set to the
+ * start/end values of a strip's clip.  `r_actend` will be modified
+ * if necessary to ensure the range is non-zero in length.
+ */
+void BKE_nla_clip_length_ensure_nonzero(const float *actstart, float *r_actend);
+
+/**
  * Create a NLA Strip referencing the given Action.
  */
 struct NlaStrip *BKE_nlastrip_new(struct bAction *act);
@@ -272,6 +304,12 @@ void BKE_nlatrack_solo_toggle(struct AnimData *adt, struct NlaTrack *nlt);
  * Check if there is any space in the given track to add a strip of the given length.
  */
 bool BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
+
+/**
+ * Check to see if there are any NLA strips in the NLA tracks.
+ */
+bool BKE_nlatrack_has_strips(ListBase *tracks);
+
 /**
  * Rearrange the strips in the track so that they are always in order
  * (usually only needed after a strip has been moved).
@@ -484,9 +522,9 @@ float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
 /* .blend file API */
 
 void BKE_nla_blend_write(struct BlendWriter *writer, struct ListBase *tracks);
-void BKE_nla_blend_read_data(struct BlendDataReader *reader, struct ListBase *tracks);
-void BKE_nla_blend_read_lib(struct BlendLibReader *reader, struct ID *id, struct ListBase *tracks);
-void BKE_nla_blend_read_expand(struct BlendExpander *expander, struct ListBase *tracks);
+void BKE_nla_blend_read_data(struct BlendDataReader *reader,
+                             struct ID *id_owner,
+                             struct ListBase *tracks);
 
 #ifdef __cplusplus
 }

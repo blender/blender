@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -54,7 +54,7 @@ class FrsImage {
   /** Builds an FrsImage from its width and height.
    *  The memory is allocated consequently.
    */
-  FrsImage(unsigned w, unsigned h)
+  FrsImage(uint w, uint h)
   {
     _width = w;
     _height = h;
@@ -78,7 +78,7 @@ class FrsImage {
    *  \param oy:
    *    The x-abscissa of the origin of the rectangle that will actually be stored.
    */
-  FrsImage(unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy)
+  FrsImage(uint w, uint h, uint sw, uint sh, uint ox, uint oy)
   {
     _width = w;
     _height = h;
@@ -104,19 +104,19 @@ class FrsImage {
   virtual ~FrsImage() {}
 
   /** Returns the width of the complete image */
-  inline unsigned width() const
+  inline uint width() const
   {
     return _width;
   }
 
   /** Returns the height of the complete image */
-  inline unsigned height() const
+  inline uint height() const
   {
     return _height;
   }
 
   /** Returns the gray value for pixel x,y */
-  virtual float pixel(unsigned x, unsigned y) const = 0;
+  virtual float pixel(uint x, uint y) const = 0;
 
   /** Sets the array.
    *  \param array:
@@ -138,12 +138,12 @@ class FrsImage {
    *    If true, the array is copied, otherwise the pointer is copied
    */
   virtual void setArray(float *array,
-                        unsigned width,
-                        unsigned height,
-                        unsigned sw,
-                        unsigned sh,
-                        unsigned x,
-                        unsigned y,
+                        uint width,
+                        uint height,
+                        uint sw,
+                        uint sh,
+                        uint x,
+                        uint y,
                         bool copy = true) = 0;
 
   /** Returns the array containing the pixels values.
@@ -152,12 +152,12 @@ class FrsImage {
   virtual float *getArray() = 0;
 
  protected:
-  unsigned _width;
-  unsigned _height;
-  unsigned _storedWidth;
-  unsigned _storedHeight;
-  unsigned _Ox;  // origin of the stored part
-  unsigned _Oy;  // origin of the stored part
+  uint _width;
+  uint _height;
+  uint _storedWidth;
+  uint _storedHeight;
+  uint _Ox;  // origin of the stored part
+  uint _Oy;  // origin of the stored part
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FrsImage")
@@ -181,12 +181,12 @@ class RGBImage : public FrsImage {
     memcpy(_rgb, brother._rgb, 3 * _storedWidth * _storedHeight * sizeof(float));
   }
 
-  RGBImage(unsigned w, unsigned h) : FrsImage(w, h)
+  RGBImage(uint w, uint h) : FrsImage(w, h)
   {
     _rgb = new float[3 * _width * _height];
   }
 
-  RGBImage(float *rgb, unsigned w, unsigned h) : FrsImage(w, h)
+  RGBImage(float *rgb, uint w, uint h) : FrsImage(w, h)
   {
     _rgb = new float[3 * _width * _height];
     memcpy(_rgb, rgb, 3 * _width * _height * sizeof(float));
@@ -206,7 +206,7 @@ class RGBImage : public FrsImage {
    *  \param sh:
    *    The height of the part of the image we want to store and work on
    */
-  RGBImage(float *rgb, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy)
+  RGBImage(float *rgb, uint w, uint h, uint sw, uint sh, uint ox, uint oy)
       : FrsImage(w, h, sw, sh, ox, oy)
   {
     _rgb = new float[3 * _storedWidth * _storedHeight];
@@ -228,22 +228,22 @@ class RGBImage : public FrsImage {
     }
   }
 
-  inline float getR(unsigned x, unsigned y) const
+  inline float getR(uint x, uint y) const
   {
     return _rgb[3 * (y - _Oy) * _storedWidth + (x - _Ox) * 3];
   }
 
-  inline float getG(unsigned x, unsigned y) const
+  inline float getG(uint x, uint y) const
   {
     return _rgb[3 * (y - _Oy) * _storedWidth + (x - _Ox) * 3 + 1];
   }
 
-  inline float getB(unsigned x, unsigned y) const
+  inline float getB(uint x, uint y) const
   {
     return _rgb[3 * (y - _Oy) * _storedWidth + (x - _Ox) * 3 + 2];
   }
 
-  virtual void setPixel(unsigned x, unsigned y, float r, float g, float b)
+  virtual void setPixel(uint x, uint y, float r, float g, float b)
   {
     float *tmp = &(_rgb[3 * (y - _Oy) * _storedWidth + (x - _Ox) * 3]);
     *tmp = r;
@@ -253,7 +253,7 @@ class RGBImage : public FrsImage {
     *tmp = b;
   }
 
-  virtual float pixel(unsigned x, unsigned y) const
+  virtual float pixel(uint x, uint y) const
   {
     float res = 0.0f;
     float *tmp = &(_rgb[3 * (y - _Oy) * _storedWidth + (x - _Ox) * 3]);
@@ -269,14 +269,8 @@ class RGBImage : public FrsImage {
    *    copy
    *      If true, the array is copied, otherwise the pointer is copied
    */
-  virtual void setArray(float *rgb,
-                        unsigned width,
-                        unsigned height,
-                        unsigned sw,
-                        unsigned sh,
-                        unsigned x,
-                        unsigned y,
-                        bool copy = true)
+  virtual void setArray(
+      float *rgb, uint width, uint height, uint sw, uint sh, uint x, uint y, bool copy = true)
   {
     _width = width;
     _height = height;
@@ -320,12 +314,12 @@ class GrayImage : public FrsImage {
   }
 
   /** Builds an empty gray image */
-  GrayImage(unsigned w, unsigned h) : FrsImage(w, h)
+  GrayImage(uint w, uint h) : FrsImage(w, h)
   {
     _lvl = new float[_width * _height];
   }
 
-  GrayImage(float *lvl, unsigned w, unsigned h) : FrsImage(w, h)
+  GrayImage(float *lvl, uint w, uint h) : FrsImage(w, h)
   {
     _lvl = new float[_width * _height];
     memcpy(_lvl, lvl, _width * _height * sizeof(*_lvl));
@@ -345,7 +339,7 @@ class GrayImage : public FrsImage {
    *  \param sh:
    *    The height of the part of the image we want to store and work on
    */
-  GrayImage(float *lvl, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy)
+  GrayImage(float *lvl, uint w, uint h, uint sw, uint sh, uint ox, uint oy)
       : FrsImage(w, h, sw, sh, ox, oy)
   {
     _lvl = new float[_storedWidth * _storedHeight];
@@ -367,12 +361,12 @@ class GrayImage : public FrsImage {
     }
   }
 
-  inline void setPixel(unsigned x, unsigned y, float v)
+  inline void setPixel(uint x, uint y, float v)
   {
     _lvl[(y - _Oy) * _storedWidth + (x - _Ox)] = v;
   }
 
-  inline float pixel(unsigned x, unsigned y) const
+  inline float pixel(uint x, uint y) const
   {
     return _lvl[(y - _Oy) * _storedWidth + (x - _Ox)];
   }
@@ -381,14 +375,8 @@ class GrayImage : public FrsImage {
    *    copy
    *      If true, the array is copied, otherwise the pounsigneder is copied
    */
-  void setArray(float *lvl,
-                unsigned width,
-                unsigned height,
-                unsigned sw,
-                unsigned sh,
-                unsigned x,
-                unsigned y,
-                bool copy = true)
+  void setArray(
+      float *lvl, uint width, uint height, uint sw, uint sh, uint x, uint y, bool copy = true)
   {
     _width = width;
     _height = height;

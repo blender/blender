@@ -10,10 +10,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Ipo;
 struct PackedFile;
 
@@ -77,7 +73,7 @@ typedef struct bSound {
   /** Spin-lock for asynchronous loading of sounds. */
   void *spinlock;
   /* XXX unused currently (SOUND_TYPE_LIMITER) */
-  /* float start, end; */
+  // float start, end;
 
   /* Description of Audio channels, as of #eSoundChannels. */
   int audio_channels;
@@ -112,7 +108,3 @@ enum {
   SOUND_TAGS_WAVEFORM_NO_RELOAD = 1 << 0,
   SOUND_TAGS_WAVEFORM_LOADING = (1 << 6),
 };
-
-#ifdef __cplusplus
-}
-#endif

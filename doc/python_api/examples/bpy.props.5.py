@@ -8,6 +8,7 @@ automatically. Instead, the `get` and `set` functions will be called when the pr
 is respectively read or written from the API.
 
 .. warning::
+
    Remember that these callbacks may be executed in threaded context.
 
 """

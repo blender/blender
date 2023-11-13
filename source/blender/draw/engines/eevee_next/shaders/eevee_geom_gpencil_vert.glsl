@@ -1,6 +1,10 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_model_lib.glsl)
+/* Grease pencil includes commmon_view_lib. */
+// #pragma BLENDER_REQUIRE(common_gpencil_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
@@ -9,7 +13,7 @@ void main()
 {
   DRW_VIEW_FROM_RESOURCE_ID;
 #ifdef MAT_SHADOW
-  shadow_interp.view_id = drw_view_id;
+  shadow_viewport_layer_set(int(drw_view_id), int(viewport_index_buf[drw_view_id]));
 #endif
 
   init_interface();
@@ -35,12 +39,12 @@ void main()
       hardness);
 #ifdef MAT_VELOCITY
   /* GPencil do not support deformation motion blur. */
-  vec3 lP_curr = transform_point(ModelMatrixInverse, interp.P);
+  vec3 lP_curr = drw_point_world_to_object(interp.P);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
-   * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated at
-   * different times, but also with different attributes (maybe we could assume static attribute at
-   * least). */
+   * would require evaluating the node-tree multiple time with different node-tree UBOs evaluated
+   * at different times, but also with different attributes (maybe we could assume static attribute
+   * at least). */
   velocity_vertex(lP_curr, lP_curr, lP_curr, motion.prev, motion.next);
 #endif
 
@@ -48,4 +52,8 @@ void main()
   attrib_load();
 
   interp.P += nodetree_displacement();
+
+#ifdef MAT_CLIP_PLANE
+  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
+#endif
 }

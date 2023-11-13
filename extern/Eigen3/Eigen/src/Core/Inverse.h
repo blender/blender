@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2014-2019 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -10,7 +10,7 @@
 #ifndef EIGEN_INVERSE_H
 #define EIGEN_INVERSE_H
 
-namespace Eigen { 
+namespace Eigen {
 
 template<typename XprType,typename StorageKind> class InverseImpl;
 
@@ -44,19 +44,18 @@ class Inverse : public InverseImpl<XprType,typename internal::traits<XprType>::S
 {
 public:
   typedef typename XprType::StorageIndex StorageIndex;
-  typedef typename XprType::PlainObject                       PlainObject;
   typedef typename XprType::Scalar                            Scalar;
   typedef typename internal::ref_selector<XprType>::type      XprTypeNested;
   typedef typename internal::remove_all<XprTypeNested>::type  XprTypeNestedCleaned;
   typedef typename internal::ref_selector<Inverse>::type Nested;
   typedef typename internal::remove_all<XprType>::type NestedExpression;
-  
+
   explicit EIGEN_DEVICE_FUNC Inverse(const XprType &xpr)
     : m_xpr(xpr)
   {}
 
-  EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
-  EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR  Index rows() const EIGEN_NOEXCEPT { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR  Index cols() const EIGEN_NOEXCEPT { return m_xpr.rows(); }
 
   EIGEN_DEVICE_FUNC const XprTypeNestedCleaned& nestedExpression() const { return m_xpr; }
 
@@ -82,7 +81,7 @@ namespace internal {
 
 /** \internal
   * \brief Default evaluator for Inverse expression.
-  * 
+  *
   * This default evaluator for Inverse expression simply evaluate the inverse into a temporary
   * by a call to internal::call_assignment_no_alias.
   * Therefore, inverse implementers only have to specialize Assignment<Dst,Inverse<...>, ...> for
@@ -97,7 +96,7 @@ struct unary_evaluator<Inverse<ArgType> >
   typedef Inverse<ArgType> InverseType;
   typedef typename InverseType::PlainObject PlainObject;
   typedef evaluator<PlainObject> Base;
-  
+
   enum { Flags = Base::Flags | EvalBeforeNestingBit };
 
   unary_evaluator(const InverseType& inv_xpr)
@@ -106,11 +105,11 @@ struct unary_evaluator<Inverse<ArgType> >
     ::new (static_cast<Base*>(this)) Base(m_result);
     internal::call_assignment_no_alias(m_result, inv_xpr);
   }
-  
+
 protected:
   PlainObject m_result;
 };
-  
+
 } // end namespace internal
 
 } // end namespace Eigen

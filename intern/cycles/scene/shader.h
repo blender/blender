@@ -77,6 +77,7 @@ class Shader : public Node {
   /* sampling */
   NODE_SOCKET_API(EmissionSampling, emission_sampling_method)
   NODE_SOCKET_API(bool, use_transparent_shadow)
+  NODE_SOCKET_API(bool, use_bump_map_correction)
   NODE_SOCKET_API(bool, heterogeneous_volume)
   NODE_SOCKET_API(VolumeSampling, volume_sampling_method)
   NODE_SOCKET_API(int, volume_interpolation_method)
@@ -113,7 +114,6 @@ class Shader : public Node {
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;
   bool has_volume_attribute_dependency;
-  bool has_integrator_dependency;
 
   float3 emission_estimate;
   EmissionSampling emission_sampling;
@@ -168,7 +168,6 @@ class ShaderManager {
   enum : uint32_t {
     SHADER_ADDED = (1 << 0),
     SHADER_MODIFIED = (1 << 2),
-    INTEGRATOR_MODIFIED = (1 << 3),
 
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,

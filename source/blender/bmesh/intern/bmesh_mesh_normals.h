@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -62,7 +62,6 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                const float (*vnos)[3],
                                const float (*fnos)[3],
                                bool use_split_normals,
-                               float split_angle,
                                float (*r_lnos)[3],
                                struct MLoopNorSpaceArray *r_lnors_spacearr,
                                short (*clnors_data)[2],

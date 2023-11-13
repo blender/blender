@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,43 +21,39 @@ TreeElementIDScene::TreeElementIDScene(TreeElement &legacy_te, Scene &scene)
 {
 }
 
-bool TreeElementIDScene::isExpandValid() const
+void TreeElementIDScene::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  return true;
+  expand_view_layers();
+  expand_world();
+  expand_collections();
+  expand_objects();
+
+  expand_animation_data(scene_.adt);
 }
 
-void TreeElementIDScene::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_view_layers() const
 {
-  expandViewLayers(space_outliner);
-  expandWorld(space_outliner);
-  expandCollections(space_outliner);
-  expandObjects(space_outliner);
-
-  expand_animation_data(space_outliner, scene_.adt);
+  add_element(&legacy_te_.subtree, &scene_.id, nullptr, &legacy_te_, TSE_R_LAYER_BASE, 0);
 }
 
-void TreeElementIDScene::expandViewLayers(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_world() const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_R_LAYER_BASE, 0);
+  add_element(&legacy_te_.subtree,
+              reinterpret_cast<ID *>(scene_.world),
+              nullptr,
+              &legacy_te_,
+              TSE_SOME_ID,
+              0);
 }
 
-void TreeElementIDScene::expandWorld(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_collections() const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, scene_.world, &legacy_te_, TSE_SOME_ID, 0);
+  add_element(&legacy_te_.subtree, &scene_.id, nullptr, &legacy_te_, TSE_SCENE_COLLECTION_BASE, 0);
 }
 
-void TreeElementIDScene::expandCollections(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_objects() const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_COLLECTION_BASE, 0);
-}
-
-void TreeElementIDScene::expandObjects(SpaceOutliner &space_outliner) const
-{
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_OBJECTS_BASE, 0);
+  add_element(&legacy_te_.subtree, &scene_.id, nullptr, &legacy_te_, TSE_SCENE_OBJECTS_BASE, 0);
 }
 
 }  // namespace blender::ed::outliner

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,6 +32,10 @@ void write_vertices(FileBuffer &buffer, const PlyData &ply_data)
 
     if (!ply_data.uv_coordinates.is_empty()) {
       buffer.write_UV(ply_data.uv_coordinates[i].x, ply_data.uv_coordinates[i].y);
+    }
+
+    for (const PlyCustomAttribute &attr : ply_data.vertex_custom_attr) {
+      buffer.write_data(attr.data[i]);
     }
 
     buffer.write_vertex_end();

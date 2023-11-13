@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -35,12 +35,12 @@ class ProgressBar {
     _progress = 0;
   }
 
-  virtual void setTotalSteps(unsigned n)
+  virtual void setTotalSteps(uint n)
   {
     _numtotalsteps = n;
   }
 
-  virtual void setProgress(unsigned i)
+  virtual void setProgress(uint i)
   {
     _progress = i;
   }
@@ -51,12 +51,12 @@ class ProgressBar {
   }
 
   /** accessors */
-  inline unsigned int getTotalSteps() const
+  inline uint getTotalSteps() const
   {
     return _numtotalsteps;
   }
 
-  inline unsigned int getProgress() const
+  inline uint getProgress() const
   {
     return _progress;
   }
@@ -67,8 +67,8 @@ class ProgressBar {
   }
 
  protected:
-  unsigned _numtotalsteps;
-  unsigned _progress;
+  uint _numtotalsteps;
+  uint _progress;
   string _label;
 
 #ifdef WITH_CXX_GUARDEDALLOC

@@ -1,0 +1,20 @@
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "node_fresnel.h"
+#include "stdcycles.h"
+
+shader node_sheen_bsdf(color Color = 0.8,
+                       string distribution = "microfiber",
+                       float Roughness = 0.0,
+                       normal Normal = N,
+                       output closure color BSDF = 0)
+{
+  float roughness = clamp(Roughness, 0.0, 1.0);
+
+  if (distribution == "ashikhmin")
+    BSDF = Color * ashikhmin_velvet(Normal, roughness);
+  else if (distribution == "microfiber")
+    BSDF = Color * sheen(Normal, roughness);
+}

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -106,7 +106,7 @@ def rna2xml(
         if issubclass(value_type, skip_classes):
             return
 
-        # XXX, fixme, pointcache has eternal nested pointer to itself.
+        # XXX, FIXME, point-cache has eternal nested pointer to itself.
         if value == parent:
             return
 
@@ -139,8 +139,8 @@ def rna2xml(
                     # check if the list contains native types
                     subvalue_rna = value.path_resolve(prop, False)
                     if type(subvalue_rna).__name__ == "bpy_prop_array":
-                        # check if this is a 0-1 color (rgb, rgba)
-                        # in that case write as a hexadecimal
+                        # Check if this is a 0-1 color (RGB, RGBA)
+                        # in that case write as a hexadecimal.
                         prop_rna = value.bl_rna.properties[prop]
                         if (prop_rna.subtype == 'COLOR_GAMMA' and
                                 prop_rna.hard_min == 0.0 and
@@ -347,7 +347,7 @@ def xml2rna(
 def _get_context_val(context, path):
     try:
         value = context.path_resolve(path)
-    except Exception as ex:
+    except BaseException as ex:
         print("Error: %r, path %r not found" % (ex, path))
         value = Ellipsis
 

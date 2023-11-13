@@ -110,7 +110,7 @@ template<typename _MatrixType> class EigenSolver
       *
       * \sa compute() for an example.
       */
-    EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false), m_realSchur(), m_matT(), m_tmp() {}
+    EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false), m_eigenvectorsOk(false), m_realSchur(), m_matT(), m_tmp() {}
 
     /** \brief Default constructor with memory preallocation
       *
@@ -277,7 +277,7 @@ template<typename _MatrixType> class EigenSolver
     template<typename InputType>
     EigenSolver& compute(const EigenBase<InputType>& matrix, bool computeEigenvectors = true);
 
-    /** \returns NumericalIssue if the input contains INF or NaN values or overflow occured. Returns Success otherwise. */
+    /** \returns NumericalIssue if the input contains INF or NaN values or overflow occurred. Returns Success otherwise. */
     ComputationInfo info() const
     {
       eigen_assert(m_isInitialized && "EigenSolver is not initialized.");

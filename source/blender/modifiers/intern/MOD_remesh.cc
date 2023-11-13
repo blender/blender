@@ -23,18 +23,20 @@
 
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_remesh_voxel.h"
-#include "BKE_mesh_runtime.h"
-#include "BKE_screen.h"
+#include "BKE_mesh_remesh_voxel.hh"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
+
+#include "GEO_randomize.hh"
 
 #include <cstdlib>
 #include <cstring>
@@ -45,7 +47,7 @@
 #  include "dualcon.h"
 #endif
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   RemeshModifierData *rmd = (RemeshModifierData *)md;
 
@@ -71,19 +73,20 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->tri_stride = sizeof(MLoopTri);
   input->tottri = BKE_mesh_runtime_looptri_len(mesh);
 
-  INIT_MINMAX(input->min, input->max);
-  BKE_mesh_minmax(mesh, input->min, input->max);
+  const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
+  copy_v3_v3(input->min, bounds.min);
+  copy_v3_v3(input->max, bounds.max);
 }
 
 /* simple structure to hold the output: a CDDM and two counters to
  * keep track of the current elements */
-typedef struct {
+struct DualConOutput {
   Mesh *mesh;
   blender::float3 *vert_positions;
-  int *poly_offsets;
+  int *face_offsets;
   int *corner_verts;
   int curvert, curface;
-} DualConOutput;
+};
 
 /* allocate and initialize a DualConOutput */
 static void *dualcon_alloc_output(int totvert, int totquad)
@@ -96,7 +99,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, totquad, 4 * totquad);
   output->vert_positions = output->mesh->vert_positions_for_write().data();
-  output->poly_offsets = output->mesh->poly_offsets_for_write().data();
+  output->face_offsets = output->mesh->face_offsets_for_write().data();
   output->corner_verts = output->mesh->corner_verts_for_write().data();
 
   return output;
@@ -118,10 +121,10 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   Mesh *mesh = output->mesh;
   int i;
 
-  BLI_assert(output->curface < mesh->totpoly);
+  BLI_assert(output->curface < mesh->faces_num);
   UNUSED_VARS_NDEBUG(mesh);
 
-  output->poly_offsets[output->curface] = output->curface * 4;
+  output->face_offsets[output->curface] = output->curface * 4;
   for (i = 0; i < 4; i++) {
     output->corner_verts[output->curface * 4 + i] = vert_indices[i];
   }
@@ -129,7 +132,7 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   output->curface++;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   RemeshModifierData *rmd;
   DualConOutput *output;
@@ -197,12 +200,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
   BKE_mesh_calc_edges(result, true, false);
+
+  blender::geometry::debug_randomize_mesh_order(result);
+
   return result;
 }
 
 #else /* !WITH_MOD_REMESH */
 
-static Mesh *modifyMesh(ModifierData * /*md*/, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData * /*md*/, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   return mesh;
 }
@@ -226,23 +232,23 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   if (mode == MOD_REMESH_VOXEL) {
-    uiItemR(col, ptr, "voxel_size", 0, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "adaptivity", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "voxel_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "adaptivity", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "octree_depth", 0, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "scale", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "octree_depth", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     if (mode == MOD_REMESH_SHARP_FEATURES) {
-      uiItemR(col, ptr, "sharpness", 0, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "sharpness", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
 
-    uiItemR(layout, ptr, "use_remove_disconnected", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_remove_disconnected", UI_ITEM_NONE, nullptr, ICON_NONE);
     row = uiLayoutRow(layout, false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "use_remove_disconnected"));
-    uiItemR(layout, ptr, "threshold", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "threshold", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
-  uiItemR(layout, ptr, "use_smooth_shade", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_smooth_shade", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 
@@ -251,41 +257,42 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 #endif /* WITH_MOD_REMESH */
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Remesh, panel_draw);
 }
 
 ModifierTypeInfo modifierType_Remesh = {
+    /*idname*/ "Remesh",
     /*name*/ N_("Remesh"),
-    /*structName*/ "RemeshModifierData",
-    /*structSize*/ sizeof(RemeshModifierData),
+    /*struct_name*/ "RemeshModifierData",
+    /*struct_size*/ sizeof(RemeshModifierData),
     /*srna*/ &RNA_RemeshModifier,
     /*type*/ eModifierTypeType_Nonconstructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_REMESH,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

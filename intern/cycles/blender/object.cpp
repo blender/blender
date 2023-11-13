@@ -260,9 +260,10 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
       }
 
       /* mesh deformation */
-      if (object->get_geometry())
+      if (object->get_geometry()) {
         sync_geometry_motion(
             b_depsgraph, b_ob_info, object, motion_time, use_particle_hair, object_geom_task_pool);
+      }
     }
 
     return object;
@@ -669,13 +670,15 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
                               int height,
                               void **python_thread_state)
 {
-  if (scene->need_motion() == Scene::MOTION_NONE)
+  if (scene->need_motion() == Scene::MOTION_NONE) {
     return;
+  }
 
   /* get camera object here to deal with camera switch */
   BL::Object b_cam = b_scene.camera();
-  if (b_override)
+  if (b_override) {
     b_cam = b_override;
+  }
 
   int frame_center = b_scene.frame_current();
   float subframe_center = b_scene.frame_subframe();

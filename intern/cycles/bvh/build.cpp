@@ -271,7 +271,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
   const float3 *points_data = &pointcloud->points[0];
   const float *radius_data = &pointcloud->radius[0];
   const size_t num_points = pointcloud->num_points();
-  const float3 *motion_data = (point_attr_mP) ? point_attr_mP->data_float3() : NULL;
+  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : NULL;
   const size_t num_steps = pointcloud->get_motion_steps();
 
   if (point_attr_mP == NULL) {
@@ -298,7 +298,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
       BoundBox bounds = BoundBox::empty;
       point.bounds_grow(points_data, radius_data, bounds);
       for (size_t step = 0; step < num_steps - 1; step++) {
-        point.bounds_grow(motion_data + step * num_points, radius_data, bounds);
+        point.bounds_grow(motion_data[step * num_points + j], bounds);
       }
       if (bounds.valid()) {
         references.push_back(BVHReference(bounds, j, i, PRIMITIVE_MOTION_POINT));
@@ -318,7 +318,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
       const size_t num_steps = pointcloud->get_motion_steps();
-      const float3 *point_steps = point_attr_mP->data_float3();
+      const float4 *point_steps = point_attr_mP->data_float4();
 
       /* Calculate bounding box of the previous time step.
        * Will be reused later to avoid duplicated work on
@@ -383,8 +383,9 @@ static size_t count_curve_segments(Hair *hair)
 {
   size_t num = 0, num_curves = hair->num_curves();
 
-  for (size_t i = 0; i < num_curves; i++)
+  for (size_t i = 0; i < num_curves; i++) {
     num += hair->get_curve(i).num_keys - 1;
+  }
 
   return num;
 }
@@ -441,23 +442,28 @@ void BVHBuild::add_references(BVHRange &root)
         ++i;
         continue;
       }
-      if (!ob->get_geometry()->is_instanced())
+      if (!ob->get_geometry()->is_instanced()) {
         add_reference_geometry(bounds, center, ob->get_geometry(), i);
-      else
+      }
+      else {
         add_reference_object(bounds, center, ob, i);
+      }
     }
-    else
+    else {
       add_reference_geometry(bounds, center, ob->get_geometry(), i);
+    }
 
     i++;
 
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   /* happens mostly on empty meshes */
-  if (!bounds.valid())
+  if (!bounds.valid()) {
     bounds.grow(zero_float3());
+  }
 
   root = BVHRange(bounds, center, 0, references.size());
 }
@@ -471,8 +477,9 @@ BVHNode *BVHBuild::run()
   /* add references */
   add_references(root);
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return NULL;
+  }
 
   /* init spatial splits */
   if (params.top_level) {
@@ -566,8 +573,9 @@ BVHNode *BVHBuild::run()
 
 void BVHBuild::progress_update()
 {
-  if (time_dt() - progress_start_time < 0.25)
+  if (time_dt() - progress_start_time < 0.25) {
     return;
+  }
 
   double progress_start = (double)progress_count / (double)progress_total;
   double duplicates = (double)(progress_total - progress_original_total) / (double)progress_total;
@@ -584,8 +592,9 @@ void BVHBuild::thread_build_node(InnerNode *inner,
                                  const BVHObjectBinning &range,
                                  int level)
 {
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   /* build nodes */
   BVHNode *node = build_node(range, level);
@@ -631,8 +640,9 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
   size_t max_leaf_size = max(max(params.max_triangle_leaf_size, params.max_curve_leaf_size),
                              params.max_point_leaf_size);
 
-  if (size > max_leaf_size)
+  if (size > max_leaf_size) {
     return false;
+  }
 
   size_t num_triangles = 0;
   size_t num_motion_triangles = 0;
@@ -804,14 +814,14 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
 
   BVHMixedSplit unaligned_split;
   float unalignedSplitSAH = FLT_MAX;
-  /* float unalignedLeafSAH = FLT_MAX; */
+  // float unalignedLeafSAH = FLT_MAX;
   Transform aligned_space;
   bool do_unalinged_split = false;
   if (params.use_unaligned_nodes && splitSAH > params.unaligned_split_threshold * leafSAH) {
     aligned_space = unaligned_heuristic.compute_aligned_space(range, &references.at(0));
     unaligned_split = BVHMixedSplit(
         this, storage, range, references, level, &unaligned_heuristic, &aligned_space);
-    /* unalignedLeafSAH = params.sah_primitive_cost * split.leafSAH; */
+    // unalignedLeafSAH = params.sah_primitive_cost * split.leafSAH;
     unalignedSplitSAH = params.sah_node_cost * unaligned_split.bounds.half_area() +
                         params.sah_primitive_cost * unaligned_split.nodeSAH;
     /* TODO(sergey): Check we can create leaf already. */
@@ -1174,22 +1184,26 @@ void BVHBuild::rotate(BVHNode *node, int max_depth, int iterations)
 {
   /* In tested scenes, this resulted in slightly slower ray-tracing, so disabled
    * it for now. could be implementation bug, or depend on the scene. */
-  if (node)
-    for (int i = 0; i < iterations; i++)
+  if (node) {
+    for (int i = 0; i < iterations; i++) {
       rotate(node, max_depth);
+    }
+  }
 }
 
 void BVHBuild::rotate(BVHNode *node, int max_depth)
 {
   /* nothing to rotate if we reached a leaf node. */
-  if (node->is_leaf() || max_depth < 0)
+  if (node->is_leaf() || max_depth < 0) {
     return;
+  }
 
   InnerNode *parent = (InnerNode *)node;
 
   /* rotate all children first */
-  for (size_t c = 0; c < 2; c++)
+  for (size_t c = 0; c < 2; c++) {
     rotate(parent->children[c], max_depth - 1);
+  }
 
   /* compute current area of all children */
   BoundBox bounds0 = parent->children[0]->bounds;
@@ -1206,8 +1220,9 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 
   for (size_t c = 0; c < 2; c++) {
     /* ignore leaf nodes as we cannot descent into */
-    if (parent->children[c]->is_leaf())
+    if (parent->children[c]->is_leaf()) {
       continue;
+    }
 
     InnerNode *child = (InnerNode *)parent->children[c];
     BoundBox &other = (c == 0) ? bounds1 : bounds0;
@@ -1236,8 +1251,9 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
   }
 
   /* if we did not find a swap that improves the SAH then do nothing */
-  if (best_cost >= 0)
+  if (best_cost >= 0) {
     return;
+  }
 
   assert(best_child == 0 || best_child == 1);
   assert(best_target != -1);

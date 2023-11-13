@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -194,8 +194,6 @@ BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr);
  * \note Typically we shouldn't care about this, however it's used when extruding wire edges.
  */
 void BM_edge_verts_swap(BMEdge *e);
-
-bool BM_face_validate(BMFace *face, FILE *err);
 
 /**
  * Calculate the 2 loops which _would_ make up the newly rotated Edge

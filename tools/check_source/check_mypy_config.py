@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,6 +13,7 @@ PATHS: Tuple[Tuple[str, Tuple[Any, ...], Dict[str, str]], ...] = (
     ("build_files/cmake/", (), {'MYPYPATH': "modules"}),
     ("build_files/utils/", (), {'MYPYPATH': "modules"}),
     ("doc/manpage/blender.1.py", (), {}),
+    ("tests/utils/", (), {}),
     ("tools/check_blender_release/", (), {}),
     ("tools/check_source/", (), {'MYPYPATH': "modules"}),
     ("tools/check_wiki/", (), {}),
@@ -37,6 +38,8 @@ PATHS_EXCLUDE = set(
         "build_files/cmake/cmake_static_check_smatch.py",
         "build_files/cmake/cmake_static_check_sparse.py",
         "build_files/cmake/cmake_static_check_splint.py",
+        "tests/utils/bl_run_operators.py",  # Uses `bpy` too much.
+        "tests/utils/bl_run_operators_event_simulate.py",  # Uses `bpy` too much.
         "tools/check_blender_release/check_module_enabled.py",
         "tools/check_blender_release/check_module_numpy.py",
         "tools/check_blender_release/check_module_requests.py",
@@ -53,11 +56,9 @@ PATHS_EXCLUDE = set(
         "tools/utils/blender_keyconfig_export_permutations.py",
         "tools/utils/blender_merge_format_changes.py",
         "tools/utils/blender_theme_as_c.py",
-        "tools/utils/credits_git_gen.py",
         "tools/utils/cycles_commits_sync.py",
         "tools/utils/cycles_timeit.py",
         "tools/utils/gdb_struct_repr_c99.py",
-        "tools/utils/git_log.py",
         "tools/utils/git_log_review_commits.py",
         "tools/utils/git_log_review_commits_advanced.py",
         "tools/utils/gitea_inactive_developers.py",

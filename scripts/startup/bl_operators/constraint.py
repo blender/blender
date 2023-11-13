@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -84,7 +84,7 @@ class CONSTRAINT_OT_disable_keep_transform(Operator):
         return constraint and constraint.influence > 0.0
 
     def execute(self, context):
-        """Disable constraint while maintaining the visual transform."""
+        """Disable constraint while maintaining the visual transform"""
 
         # This works most of the time, but when there are multiple constraints active
         # there could still be one that overrides the visual transform.

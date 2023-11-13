@@ -1,11 +1,10 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 #include <cstring>
 
-#include "BLI_array.h"
 #include "BLI_stack.h"
 #include "BLI_utildefines.h"
 

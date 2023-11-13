@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h" /* Needed here for inline functions. */
+#include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
 #include <math.h>
@@ -743,13 +743,16 @@ BLI_INLINE int lineart_intersect_seg_seg(const double a1[2],
 
   if (LRT_DOUBLE_CLOSE_ENOUGH(b1[0], b2[0])) {
     y = interpd(a2[1], a1[1], ratio);
-    if (y > MAX2(b1[1], b2[1]) || y < MIN2(b1[1], b2[1]))
+    if (y > MAX2(b1[1], b2[1]) || y < MIN2(b1[1], b2[1])) {
       return 0;
+    }
   }
   else if (ratio <= 0 || ratio > 1 || (b1[0] > b2[0] && x > b1[0]) ||
            (b1[0] < b2[0] && x < b1[0]) || (b2[0] > b1[0] && x > b2[0]) ||
            (b2[0] < b1[0] && x < b2[0]))
+  {
     return 0;
+  }
 
   if (LRT_DOUBLE_CLOSE_ENOUGH_TRI(*r_ratio, 1)) {
     *r_ratio = 1;

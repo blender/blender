@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +6,7 @@
 # -----------------------------------------------------------------------------
 # Build datatoc executable
 set(SRC
-  datatoc.c
+  datatoc.cc
 )
 
 # SRC_DNA_INC is defined in the parent dir
@@ -19,7 +19,7 @@ add_executable(datatoc ${SRC})
 if(NOT WITH_HEADLESS)
 
   set(SRC
-    datatoc_icon.c
+    datatoc_icon.cc
   )
   setup_platform_linker_flags(datatoc)
   if(WIN32)
@@ -28,12 +28,12 @@ if(NOT WITH_HEADLESS)
       ../../../intern/utfconv
     )
 
-    # for winstuff_dir.c
+    # for winstuff_dir.cc
     add_definitions(-DUSE_STANDALONE)
 
     list(APPEND SRC
-      ../blenlib/intern/winstuff_dir.c
-      ../../../intern/utfconv/utfconv.c
+      ../blenlib/intern/winstuff_dir.cc
+      ../../../intern/utfconv/utfconv.cc
     )
 
   endif()

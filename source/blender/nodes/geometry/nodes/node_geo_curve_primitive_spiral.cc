@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Rotations")
       .default_value(2.0f)
       .min(0.0f)
-      .description("Number of times the spiral makes a full rotation");
+      .description("Number of times the spiral makes a full rotation")
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
   b.add_input<decl::Float>("Start Radius")
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
@@ -82,19 +83,18 @@ static void node_geo_exec(GeoNodeExecParams params)
                                        params.extract_input<float>("End Radius"),
                                        params.extract_input<float>("Height"),
                                        params.extract_input<bool>("Reverse"));
-  params.set_output("Curve", GeometrySet::create_with_curves(curves));
+  params.set_output("Curve", GeometrySet::from_curves(curves));
 }
 
-}  // namespace blender::nodes::node_geo_curve_primitive_spiral_cc
-
-void register_node_type_geo_curve_primitive_spiral()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_primitive_spiral_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, "Spiral", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_primitive_spiral_cc

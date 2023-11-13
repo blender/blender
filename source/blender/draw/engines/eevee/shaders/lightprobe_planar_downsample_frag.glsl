@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Simple down-sample shader. Takes the average of the 4 texels of lower mip.
  */

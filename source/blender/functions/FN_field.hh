@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -33,6 +33,8 @@
  * Whenever possible, multiple fields should be evaluated together to avoid duplicate work when
  * they share common sub-fields and a common context.
  */
+
+#include <iostream>
 
 #include "BLI_function_ref.hh"
 #include "BLI_generic_virtual_array.hh"

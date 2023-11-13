@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,21 +8,15 @@ set(INC
   ../../asset_system
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/atomic
-  ../../../../intern/guardedalloc
   ../../../../extern/fmtlib/include
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -32,26 +26,32 @@ set(INC_SYS
 
 set(SRC
   asset_catalog_tree_view.cc
+  file_context.cc
   file_draw.cc
   file_indexer.cc
-  file_ops.c
-  file_panels.c
-  file_utils.c
+  file_ops.cc
+  file_panels.cc
+  file_utils.cc
   filelist.cc
   filesel.cc
   folder_history.cc
-  fsmenu.c
-  space_file.c
+  fsmenu.cc
+  fsmenu_system.cc
+  space_file.cc
 
-  file_indexer.h
-  file_intern.h
-  filelist.h
+  file_indexer.hh
+  file_intern.hh
+  filelist.hh
   fsmenu.h
 )
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
   extern_fmtlib
+  PRIVATE bf::intern::atomic
 )
 
 if(WIN32)

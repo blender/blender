@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Kévin Dietrich & Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Kévin Dietrich & Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void set_value(float val, out float outval)
 {
   outval = val;

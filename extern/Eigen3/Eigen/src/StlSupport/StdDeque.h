@@ -36,7 +36,7 @@ namespace std \
     deque(InputIterator first, InputIterator last, const allocator_type& a = allocator_type()) : deque_base(first, last, a) {} \
     deque(const deque& c) : deque_base(c) {}  \
     explicit deque(size_type num, const value_type& val = value_type()) : deque_base(num, val) {} \
-    deque(iterator start, iterator end) : deque_base(start, end) {}  \
+    deque(iterator start_, iterator end_) : deque_base(start_, end_) {}  \
     deque& operator=(const deque& x) {  \
       deque_base::operator=(x);  \
       return *this;  \
@@ -62,7 +62,7 @@ namespace std {
     : deque_base(first, last, a) {} \
     deque(const deque& c) : deque_base(c) {}  \
     explicit deque(size_type num, const value_type& val = value_type()) : deque_base(num, val) {} \
-    deque(iterator start, iterator end) : deque_base(start, end) {}  \
+    deque(iterator start_, iterator end_) : deque_base(start_, end_) {}  \
     deque& operator=(const deque& x) {  \
       deque_base::operator=(x);  \
       return *this;  \
@@ -98,17 +98,7 @@ namespace std {
   { return deque_base::insert(position,x); }
   void insert(const_iterator position, size_type new_size, const value_type& x)
   { deque_base::insert(position, new_size, x); }
-#elif defined(_GLIBCXX_DEQUE) && EIGEN_GNUC_AT_LEAST(4,2)
-  // workaround GCC std::deque implementation
-  void resize(size_type new_size, const value_type& x)
-  {
-    if (new_size < deque_base::size())
-      deque_base::_M_erase_at_end(this->_M_impl._M_start + new_size);
-    else
-      deque_base::insert(deque_base::end(), new_size - deque_base::size(), x);
-  }
 #else
-  // either GCC 4.1 or non-GCC
   // default implementation which should always work.
   void resize(size_type new_size, const value_type& x)
   {

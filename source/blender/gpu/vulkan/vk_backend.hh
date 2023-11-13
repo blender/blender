@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -83,6 +83,11 @@ class VKBackend : public GPUBackend {
   }
 
   const VKDevice &device_get() const
+  {
+    return device_;
+  }
+
+  VKDevice &device_get()
   {
     return device_;
   }

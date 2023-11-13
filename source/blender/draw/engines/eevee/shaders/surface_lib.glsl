@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** This describe the entire interface of the shader. */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -76,7 +80,7 @@ IN_OUT ShaderPointCloudInterface
 #  endif
 
 #else
-/** Checks to ensure create-info is setup correctly. **/
+/* Checks to ensure create-info is setup correctly. */
 #  ifdef HAIR_SHADER
 #    ifndef USE_SURFACE_LIB_HAIR
 #      error Ensure CreateInfo eevee_legacy_surface_lib_hair is included if using surface library with a hair shader.

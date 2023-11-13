@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* types */
 
 /** vector of two shorts. */
@@ -63,6 +59,17 @@ typedef struct vec4d {
 typedef struct rcti {
   int xmin, xmax;
   int ymin, ymax;
+
+#ifdef __cplusplus
+  inline bool operator==(const rcti &other) const
+  {
+    return xmin == other.xmin && xmax == other.xmax && ymin == other.ymin && ymax == other.ymax;
+  }
+  inline bool operator!=(const rcti &other) const
+  {
+    return !(*this == other);
+  }
+#endif
 } rcti;
 
 /** float rectangle. */
@@ -79,7 +86,3 @@ typedef struct DualQuat {
   float scale[4][4];
   float scale_weight;
 } DualQuat;
-
-#ifdef __cplusplus
-}
-#endif

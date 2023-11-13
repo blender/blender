@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2012-2021 Meta Platforms, Inc. and affiliates.
- * SPDX-FileCopyrightText: 2022 Blender Foundation
+ * SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -106,8 +106,9 @@ class AtomicHashSet {
     /* Get next power of two. Could be done more effiently with builtin_clz, but this is not
      * performance-critical. */
     kAnchorMask_ = 1;
-    while (kAnchorMask_ < capacity_)
+    while (kAnchorMask_ < capacity_) {
       kAnchorMask_ *= 2;
+    }
     /* Get mask for lower bits. */
     kAnchorMask_ -= 1;
 

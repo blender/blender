@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 Blender Foundation
+# SPDX-FileCopyrightText: 2018 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,17 +7,14 @@ set(INC
   intern
   ../blenfont
   ../blenkernel
-  ../blenlib
   ../blentranslation
   ../bmesh
   ../depsgraph
   ../editors/include
-  ../makesdna
   ../makesrna
   ../render
   ../windowmanager
   ../../../intern/eigen
-  ../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -28,24 +25,27 @@ set(INC_SYS
 
 set(SRC
   intern/FX_shader_util.h
-  intern/FX_ui_common.c
+  intern/FX_ui_common.cc
 
-  intern/FX_shader_blur.c
-  intern/FX_shader_colorize.c
-  intern/FX_shader_flip.c
-  intern/FX_shader_glow.c
-  intern/FX_shader_pixel.c
-  intern/FX_shader_rim.c
-  intern/FX_shader_shadow.c
-  intern/FX_shader_swirl.c
-  intern/FX_shader_util.c
-  intern/FX_shader_wave.c
+  intern/FX_shader_blur.cc
+  intern/FX_shader_colorize.cc
+  intern/FX_shader_flip.cc
+  intern/FX_shader_glow.cc
+  intern/FX_shader_pixel.cc
+  intern/FX_shader_rim.cc
+  intern/FX_shader_shadow.cc
+  intern/FX_shader_swirl.cc
+  intern/FX_shader_util.cc
+  intern/FX_shader_wave.cc
 
   intern/FX_ui_common.h
   FX_shader_types.h
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 

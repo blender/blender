@@ -20,7 +20,7 @@ class GHOST_EventString : public GHOST_Event {
    * Constructor.
    * \param msec: The time this event was generated.
    * \param type: The type of this event.
-   * \param window: The generating window (or NULL if system event).
+   * \param window: The generating window (or nullptr if system event).
    * \param data_ptr: Pointer to the (un-formatted) data associated with the event.
    */
   GHOST_EventString(uint64_t msec,
@@ -34,7 +34,8 @@ class GHOST_EventString : public GHOST_Event {
 
   ~GHOST_EventString()
   {
-    if (m_data)
-      free(m_data);
+    if (m_data) {
+      free((void *)m_data);
+    }
   }
 };

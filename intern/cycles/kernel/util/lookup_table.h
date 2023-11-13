@@ -17,8 +17,9 @@ ccl_device float lookup_table_read(KernelGlobals kg, float x, int offset, int si
   float t = x - index;
 
   float data0 = kernel_data_fetch(lookup_table, index + offset);
-  if (t == 0.0f)
+  if (t == 0.0f) {
     return data0;
+  }
 
   float data1 = kernel_data_fetch(lookup_table, nindex + offset);
   return (1.0f - t) * data0 + t * data1;
@@ -34,8 +35,9 @@ ccl_device float lookup_table_read_2D(
   float t = y - index;
 
   float data0 = lookup_table_read(kg, x, offset + xsize * index, xsize);
-  if (t == 0.0f)
+  if (t == 0.0f) {
     return data0;
+  }
 
   float data1 = lookup_table_read(kg, x, offset + xsize * nindex, xsize);
   return (1.0f - t) * data0 + t * data1;
@@ -51,8 +53,9 @@ ccl_device float lookup_table_read_3D(
   float t = z - index;
 
   float data0 = lookup_table_read_2D(kg, x, y, offset + xsize * ysize * index, xsize, ysize);
-  if (t == 0.0f)
+  if (t == 0.0f) {
     return data0;
+  }
 
   float data1 = lookup_table_read_2D(kg, x, y, offset + xsize * ysize * nindex, xsize, ysize);
   return (1.0f - t) * data0 + t * data1;

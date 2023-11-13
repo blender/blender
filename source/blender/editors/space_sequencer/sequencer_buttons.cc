@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,26 +12,27 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
-#include "ED_screen.h"
-#include "ED_sequencer.h"
+#include "ED_screen.hh"
+#include "ED_sequencer.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* **************************** buttons ********************************* */
 
 #if 0
-static bool sequencer_grease_pencil_panel_poll(const bContext *C, PanelType */*pt*/)
+static bool sequencer_grease_pencil_panel_poll(const bContext *C, PanelType * /*pt*/)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
@@ -85,9 +86,9 @@ void sequencer_buttons_register(ARegionType *art)
 
 #if 0
   pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel gpencil");
-  strcpy(pt->idname, "SEQUENCER_PT_gpencil");
-  strcpy(pt->label, N_("Grease Pencil"));
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "SEQUENCER_PT_gpencil");
+  STRNCPY(pt->label, N_("Grease Pencil"));
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw_header = ED_gpencil_panel_standard_header;
   pt->draw = ED_gpencil_panel_standard;
   pt->poll = sequencer_grease_pencil_panel_poll;
@@ -95,10 +96,10 @@ void sequencer_buttons_register(ARegionType *art)
 #endif
 
   pt = MEM_cnew<PanelType>("spacetype sequencer panel metadata");
-  strcpy(pt->idname, "SEQUENCER_PT_metadata");
-  strcpy(pt->label, N_("Metadata"));
-  strcpy(pt->category, "Metadata");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "SEQUENCER_PT_metadata");
+  STRNCPY(pt->label, N_("Metadata"));
+  STRNCPY(pt->category, "Metadata");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->poll = metadata_panel_context_poll;
   pt->draw = metadata_panel_context_draw;
   pt->order = 10;

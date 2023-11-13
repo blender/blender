@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -140,12 +140,12 @@ void UV_OT_smart_project(struct wmOperatorType *ot);
 void UV_OT_copy(wmOperatorType *ot);
 void UV_OT_paste(wmOperatorType *ot);
 
-/* uvedit_path.c */
+/* `uvedit_path.cc` */
 
 void UV_OT_shortest_path_pick(struct wmOperatorType *ot);
 void UV_OT_shortest_path_select(struct wmOperatorType *ot);
 
-/* uvedit_select.c */
+/* `uvedit_select.cc` */
 
 bool uvedit_select_is_any_selected(const struct Scene *scene, struct Object *obedit);
 bool uvedit_select_is_any_selected_multi(const struct Scene *scene,

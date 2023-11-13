@@ -398,8 +398,9 @@ void Hair::compute_bounds()
   size_t curve_keys_size = curve_keys.size();
 
   if (curve_keys_size > 0) {
-    for (size_t i = 0; i < curve_keys_size; i++)
+    for (size_t i = 0; i < curve_keys_size; i++) {
       bnds.grow(curve_keys[i], curve_radius[i]);
+    }
 
     Attribute *curve_attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && curve_attr) {
@@ -408,16 +409,18 @@ void Hair::compute_bounds()
       // interchangeable with float3
       float4 *key_steps = curve_attr->data_float4();
 
-      for (size_t i = 0; i < steps_size; i++)
+      for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(float4_to_float3(key_steps[i]));
+      }
     }
 
     if (!bnds.valid()) {
       bnds = BoundBox::empty;
 
       /* skip nan or inf coordinates */
-      for (size_t i = 0; i < curve_keys_size; i++)
+      for (size_t i = 0; i < curve_keys_size; i++) {
         bnds.grow_safe(curve_keys[i], curve_radius[i]);
+      }
 
       if (use_motion_blur && curve_attr) {
         size_t steps_size = curve_keys.size() * (motion_steps - 1);
@@ -425,8 +428,9 @@ void Hair::compute_bounds()
         // interchangeable with float4
         float4 *key_steps = curve_attr->data_float4();
 
-        for (size_t i = 0; i < steps_size; i++)
+        for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(float4_to_float3(key_steps[i]));
+        }
       }
     }
   }
@@ -492,8 +496,9 @@ void Hair::pack_curves(Scene *scene,
     float3 *keys_ptr = curve_keys.data();
     float *radius_ptr = curve_radius.data();
 
-    for (size_t i = 0; i < curve_keys_size; i++)
+    for (size_t i = 0; i < curve_keys_size; i++) {
       curve_key_co[i] = make_float4(keys_ptr[i].x, keys_ptr[i].y, keys_ptr[i].z, radius_ptr[i]);
+    }
   }
 
   /* pack curve segments */

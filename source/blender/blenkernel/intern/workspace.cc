@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -24,7 +24,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
@@ -35,11 +35,11 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 /* -------------------------------------------------------------------- */
 
@@ -122,24 +122,21 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
 
   workspace->status_text = nullptr;
 
+  /* Do not keep the scene reference when appending a workspace. Setting a scene for a workspace is
+   * a convenience feature, but the workspace should never truly depend on scene data. */
+  if (ID_IS_LINKED(workspace)) {
+    workspace->pin_scene = nullptr;
+  }
+
   id_us_ensure_real(&workspace->id);
 
   BKE_viewer_path_blend_read_data(reader, &workspace->viewer_path);
 }
 
-static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
+static void workspace_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 {
-  WorkSpace *workspace = (WorkSpace *)id;
+  WorkSpace *workspace = reinterpret_cast<WorkSpace *>(id);
   Main *bmain = BLO_read_lib_get_main(reader);
-
-  /* Do not keep the scene reference when appending a workspace. Setting a scene for a workspace is
-   * a convenience feature, but the workspace should never truly depend on scene data. */
-  if (ID_IS_LINKED(id)) {
-    workspace->pin_scene = nullptr;
-  }
-  else {
-    BLO_read_id_address(reader, id, &workspace->pin_scene);
-  }
 
   /* Restore proper 'parent' pointers to relevant data, and clean up unused/invalid entries. */
   LISTBASE_FOREACH_MUTABLE (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
@@ -157,8 +154,6 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BLO_read_id_address(reader, id, &layout->screen);
-
     if (layout->screen) {
       if (ID_IS_LINKED(id)) {
         layout->screen->winid = 0;
@@ -174,17 +169,6 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
       BKE_workspace_layout_remove(bmain, workspace, layout);
     }
   }
-
-  BKE_viewer_path_blend_read_lib(reader, id, &workspace->viewer_path);
-}
-
-static void workspace_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  WorkSpace *workspace = (WorkSpace *)id;
-
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BLO_expand(expander, BKE_workspace_layout_screen_get(layout));
-  }
 }
 
 IDTypeInfo IDType_ID_WS = {
@@ -193,7 +177,7 @@ IDTypeInfo IDType_ID_WS = {
     /*main_listbase_index*/ INDEX_ID_WS,
     /*struct_size*/ sizeof(WorkSpace),
     /*name*/ "WorkSpace",
-    /*name_plural*/ "workspaces",
+    /*name_plural*/ N_("workspaces"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_WORKSPACE,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA |
         IDTYPE_FLAGS_NO_MEMFILE_UNDO,
@@ -210,8 +194,7 @@ IDTypeInfo IDType_ID_WS = {
 
     /*blend_write*/ workspace_blend_write,
     /*blend_read_data*/ workspace_blend_read_data,
-    /*blend_read_lib*/ workspace_blend_read_lib,
-    /*blend_read_expand*/ workspace_blend_read_expand,
+    /*blend_read_after_liblink*/ workspace_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -541,7 +524,7 @@ void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
       }
       idname_suffix += idname_prefix_len;
     }
-    BLI_str_replace_table_exact(
+    BLI_string_replace_table_exact(
         idname_suffix, idname_suffix_len, replace_table, replace_table_num);
   }
 }

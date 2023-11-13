@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -79,13 +79,13 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 USE_ONLY_BUILTIN_RNA_TYPES = True
 
 # Write a page for each static enum defined in:
-# `source/blender/makesrna/RNA_enum_items.h` so the enums can be linked to instead of being expanded everywhere.
+# `source/blender/makesrna/RNA_enum_items.hh` so the enums can be linked to instead of being expanded everywhere.
 USE_SHARED_RNA_ENUM_ITEMS_STATIC = True
 
 if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
     from _bpy import rna_enum_items_static
     rna_enum_dict = rna_enum_items_static()
-    for key in ("DummyRNA_DEFAULT_items", "DummyRNA_NULL_items"):
+    for key in ("rna_enum_dummy_NULL_items", "rna_enum_dummy_DEFAULT_items"):
         del rna_enum_dict[key]
     del key, rna_enum_items_static
 
@@ -986,9 +986,21 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
         # `type_name` is only used for examples and messages:
         # `<class 'bpy.app.handlers'>` -> `bpy.app.handlers`.
         type_name = str(type(module)).strip("<>").split(" ", 1)[-1][1:-1]
+
+        # The type typically contains the module in the case of PyStruct's (defined by Blender).
+        # Assign a temporary module name: `module_name_split`.
+        if module_name == type_name:
+            assert "." in module_name
+            module_name_split, type_name = module_name.rpartition(".")[0::2]
+        elif type_name.startswith(module_name + "."):
+            type_name = type_name.removeprefix(module_name + ".")
+        else:
+            module_name_split = module_name
+
         if type(descr) == types.GetSetDescriptorType:
-            py_descr2sphinx("", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("", fw, descr, module_name_split, type_name, key)
             attribute_set.add(key)
+        del module_name_split
     descr_sorted = []
     for key, descr in sorted(type(module).__dict__.items()):
         if key.startswith("__"):
@@ -1162,7 +1174,7 @@ context_type_map = {
     "annotation_data": ("GreasePencil", False),
     "annotation_data_owner": ("ID", False),
     "armature": ("Armature", False),
-    "asset_library_ref": ("AssetLibraryReference", False),
+    "asset_library_reference": ("AssetLibraryReference", False),
     "bone": ("Bone", False),
     "brush": ("Brush", False),
     "camera": ("Camera", False),
@@ -1185,6 +1197,7 @@ context_type_map = {
     "fluid": ("FluidSimulationModifier", False),
     "gpencil": ("GreasePencil", False),
     "gpencil_data": ("GreasePencil", False),
+    "grease_pencil": ("GreasePencilv3", False),
     "gpencil_data_owner": ("ID", False),
     "curves": ("Hair Curves", False),
     "id": ("ID", False),
@@ -1211,7 +1224,7 @@ context_type_map = {
     "scene": ("Scene", False),
     "sculpt_object": ("Object", False),
     "selectable_objects": ("Object", True),
-    "selected_asset_files": ("FileSelectEntry", True),
+    "selected_assets": ("AssetRepresentation", True),
     "selected_bones": ("EditBone", True),
     "selected_editable_actions": ("Action", True),
     "selected_editable_bones": ("EditBone", True),
@@ -1895,7 +1908,7 @@ def write_sphinx_conf_py(basepath):
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
     fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_STRING)
     fw("root_doc = 'index'\n")
-    fw("copyright = 'Blender Foundation'\n")
+    fw("copyright = 'Blender Authors'\n")
     fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
     fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
 

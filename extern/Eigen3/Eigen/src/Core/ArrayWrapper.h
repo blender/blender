@@ -10,7 +10,7 @@
 #ifndef EIGEN_ARRAYWRAPPER_H
 #define EIGEN_ARRAYWRAPPER_H
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \class ArrayWrapper
   * \ingroup Core_Module
@@ -60,14 +60,14 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
-    EIGEN_DEVICE_FUNC
-    inline Index rows() const { return m_expression.rows(); }
-    EIGEN_DEVICE_FUNC
-    inline Index cols() const { return m_expression.cols(); }
-    EIGEN_DEVICE_FUNC
-    inline Index outerStride() const { return m_expression.outerStride(); }
-    EIGEN_DEVICE_FUNC
-    inline Index innerStride() const { return m_expression.innerStride(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index rows() const EIGEN_NOEXCEPT { return m_expression.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index cols() const EIGEN_NOEXCEPT { return m_expression.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index outerStride() const EIGEN_NOEXCEPT { return m_expression.outerStride(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index innerStride() const EIGEN_NOEXCEPT { return m_expression.innerStride(); }
 
     EIGEN_DEVICE_FUNC
     inline ScalarWithConstIfNotLvalue* data() { return m_expression.data(); }
@@ -90,9 +90,9 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     EIGEN_DEVICE_FUNC
     inline void evalTo(Dest& dst) const { dst = m_expression; }
 
-    const typename internal::remove_all<NestedExpressionType>::type& 
     EIGEN_DEVICE_FUNC
-    nestedExpression() const 
+    const typename internal::remove_all<NestedExpressionType>::type&
+    nestedExpression() const
     {
       return m_expression;
     }
@@ -158,14 +158,14 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     EIGEN_DEVICE_FUNC
     explicit inline MatrixWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
-    EIGEN_DEVICE_FUNC
-    inline Index rows() const { return m_expression.rows(); }
-    EIGEN_DEVICE_FUNC
-    inline Index cols() const { return m_expression.cols(); }
-    EIGEN_DEVICE_FUNC
-    inline Index outerStride() const { return m_expression.outerStride(); }
-    EIGEN_DEVICE_FUNC
-    inline Index innerStride() const { return m_expression.innerStride(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index rows() const EIGEN_NOEXCEPT { return m_expression.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index cols() const EIGEN_NOEXCEPT { return m_expression.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index outerStride() const EIGEN_NOEXCEPT { return m_expression.outerStride(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index innerStride() const EIGEN_NOEXCEPT { return m_expression.innerStride(); }
 
     EIGEN_DEVICE_FUNC
     inline ScalarWithConstIfNotLvalue* data() { return m_expression.data(); }
@@ -185,8 +185,8 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<NestedExpressionType>::type& 
-    nestedExpression() const 
+    const typename internal::remove_all<NestedExpressionType>::type&
+    nestedExpression() const
     {
       return m_expression;
     }

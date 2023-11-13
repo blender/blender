@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,9 +11,9 @@
 #  include "DNA_space_types.h"
 
 #  include "BKE_context.h"
-#  include "BKE_screen.h"
+#  include "BKE_screen.hh"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "io_gpencil.hh"
 

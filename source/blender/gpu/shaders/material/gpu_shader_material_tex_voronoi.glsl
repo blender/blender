@@ -1,11 +1,9 @@
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_voronoi.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_voronoi.glsl)
+/* SPDX-FileCopyrightText: 2013 Inigo Quilez
+ * SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: MIT AND GPL-2.0-or-later */
 
 /*
- * Original code is under the MIT License, Copyright (c) 2013 Inigo Quilez.
- *
  * Smooth Voronoi:
  *
  * - https://wiki.blender.org/wiki/User:OmarSquircleArt/GSoC2019/Documentation/Smooth_Voronoi
@@ -18,6 +16,11 @@
  * With optimization to change -2..2 scan window to -1..1 for better performance,
  * as explained in https://www.shadertoy.com/view/llG3zy.
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_voronoi.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_voronoi.glsl)
 
 #define INITIALIZE_VORONOIPARAMS(FEATURE) \
   params.feature = FEATURE; \
@@ -53,7 +56,7 @@ void node_tex_voronoi_f1_1d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(0)  // SHD_VORONOI_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F1)
 
   w *= scale;
 
@@ -83,7 +86,7 @@ void node_tex_voronoi_smooth_f1_1d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(2)  // SHD_VORONOI_SMOOTH_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_SMOOTH_F1)
 
   w *= scale;
 
@@ -113,7 +116,7 @@ void node_tex_voronoi_f2_1d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(1)  // SHD_VORONOI_F2
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F2)
 
   w *= scale;
 
@@ -143,10 +146,11 @@ void node_tex_voronoi_distance_to_edge_1d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(3)  // SHD_VORONOI_DISTANCE_TO_EDGE
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_DISTANCE_TO_EDGE)
 
   w *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, w);
 }
 
@@ -169,7 +173,7 @@ void node_tex_voronoi_n_sphere_radius_1d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(4)  // SHD_VORONOI_N_SPHERE_RADIUS
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_N_SPHERE_RADIUS)
 
   w *= scale;
 
@@ -197,7 +201,7 @@ void node_tex_voronoi_f1_2d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(0)  // SHD_VORONOI_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F1)
 
   coord *= scale;
 
@@ -227,7 +231,7 @@ void node_tex_voronoi_smooth_f1_2d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(2)  // SHD_VORONOI_SMOOTH_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_SMOOTH_F1)
 
   coord *= scale;
 
@@ -257,7 +261,7 @@ void node_tex_voronoi_f2_2d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(1)  // SHD_VORONOI_F2
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F2)
 
   coord *= scale;
 
@@ -288,10 +292,11 @@ void node_tex_voronoi_distance_to_edge_2d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(3)  // SHD_VORONOI_DISTANCE_TO_EDGE
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_DISTANCE_TO_EDGE)
 
   coord *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, coord.xy);
 }
 
@@ -314,7 +319,7 @@ void node_tex_voronoi_n_sphere_radius_2d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(4)  // SHD_VORONOI_N_SPHERE_RADIUS
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_N_SPHERE_RADIUS)
 
   coord *= scale;
 
@@ -342,7 +347,7 @@ void node_tex_voronoi_f1_3d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(0)  // SHD_VORONOI_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F1)
 
   coord *= scale;
 
@@ -372,7 +377,7 @@ void node_tex_voronoi_smooth_f1_3d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(2)  // SHD_VORONOI_SMOOTH_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_SMOOTH_F1)
 
   coord *= scale;
 
@@ -402,7 +407,7 @@ void node_tex_voronoi_f2_3d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(1)  // SHD_VORONOI_F2
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F2)
 
   coord *= scale;
 
@@ -433,10 +438,11 @@ void node_tex_voronoi_distance_to_edge_3d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(3)  // SHD_VORONOI_DISTANCE_TO_EDGE
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_DISTANCE_TO_EDGE)
 
   coord *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, coord);
 }
 
@@ -459,7 +465,7 @@ void node_tex_voronoi_n_sphere_radius_3d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(4)  // SHD_VORONOI_N_SPHERE_RADIUS
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_N_SPHERE_RADIUS)
 
   coord *= scale;
 
@@ -487,7 +493,7 @@ void node_tex_voronoi_f1_4d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(0)  // SHD_VORONOI_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F1)
 
   w *= scale;
   coord *= scale;
@@ -519,7 +525,7 @@ void node_tex_voronoi_smooth_f1_4d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(2)  // SHD_VORONOI_SMOOTH_F1
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_SMOOTH_F1)
 
   w *= scale;
   coord *= scale;
@@ -551,7 +557,7 @@ void node_tex_voronoi_f2_4d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(1)  // SHD_VORONOI_F2
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_F2)
 
   w *= scale;
   coord *= scale;
@@ -584,11 +590,12 @@ void node_tex_voronoi_distance_to_edge_4d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(3)  // SHD_VORONOI_DISTANCE_TO_EDGE
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_DISTANCE_TO_EDGE)
 
   w *= scale;
   coord *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, vec4(coord, w));
 }
 
@@ -611,7 +618,7 @@ void node_tex_voronoi_n_sphere_radius_4d(vec3 coord,
 {
   VoronoiParams params;
 
-  INITIALIZE_VORONOIPARAMS(4)  // SHD_VORONOI_N_SPHERE_RADIUS
+  INITIALIZE_VORONOIPARAMS(SHD_VORONOI_N_SPHERE_RADIUS)
 
   w *= scale;
   coord *= scale;

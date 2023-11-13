@@ -16,7 +16,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* XXX(@ideasman42): why is this function better than BLI_math version?
  * only difference is it does some normalize after, need to double check on this. */
@@ -319,10 +319,10 @@ ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
   return make_sep_waveform_view_from_ibuf_byte(ibuf);
 }
 
-static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
+static void draw_zebra_byte(const ImBuf *src, ImBuf *ibuf, float perc)
 {
   uint limit = 255.0f * perc / 100.0f;
-  uchar *p = src->byte_buffer.data;
+  const uchar *p = src->byte_buffer.data;
   uchar *o = ibuf->byte_buffer.data;
   int x;
   int y;
@@ -429,7 +429,7 @@ static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
                                                   const int y,
                                                   const TaskParallelTLS *__restrict tls)
 {
-  MakeHistogramViewData *data = static_cast<MakeHistogramViewData *>(userdata);
+  const MakeHistogramViewData *data = static_cast<MakeHistogramViewData *>(userdata);
   const ImBuf *ibuf = data->ibuf;
   const uchar *src = ibuf->byte_buffer.data;
 
@@ -492,16 +492,16 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
   for (x = 0; x < HIS_STEPS; x++) {
     if (nr) {
-      draw_histogram_bar(rval, x * 2 + 1, (float(bins[0][x])) / nr, 0);
-      draw_histogram_bar(rval, x * 2 + 2, (float(bins[0][x])) / nr, 0);
+      draw_histogram_bar(rval, x * 2 + 1, float(bins[0][x]) / nr, 0);
+      draw_histogram_bar(rval, x * 2 + 2, float(bins[0][x]) / nr, 0);
     }
     if (ng) {
-      draw_histogram_bar(rval, x * 2 + 1, (float(bins[1][x])) / ng, 1);
-      draw_histogram_bar(rval, x * 2 + 2, (float(bins[1][x])) / ng, 1);
+      draw_histogram_bar(rval, x * 2 + 1, float(bins[1][x]) / ng, 1);
+      draw_histogram_bar(rval, x * 2 + 2, float(bins[1][x]) / ng, 1);
     }
     if (nb) {
-      draw_histogram_bar(rval, x * 2 + 1, (float(bins[2][x])) / nb, 2);
-      draw_histogram_bar(rval, x * 2 + 2, (float(bins[2][x])) / nb, 2);
+      draw_histogram_bar(rval, x * 2 + 1, float(bins[2][x]) / nb, 2);
+      draw_histogram_bar(rval, x * 2 + 2, float(bins[2][x]) / nb, 2);
     }
   }
 
@@ -576,13 +576,13 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
   for (x = 0; x < HIS_STEPS; x++) {
     if (nr) {
-      draw_histogram_bar(rval, x + 1, (float(bins[0][x])) / nr, 0);
+      draw_histogram_bar(rval, x + 1, float(bins[0][x]) / nr, 0);
     }
     if (ng) {
-      draw_histogram_bar(rval, x + 1, (float(bins[1][x])) / ng, 1);
+      draw_histogram_bar(rval, x + 1, float(bins[1][x]) / ng, 1);
     }
     if (nb) {
-      draw_histogram_bar(rval, x + 1, (float(bins[2][x])) / nb, 2);
+      draw_histogram_bar(rval, x + 1, float(bins[2][x]) / nb, 2);
     }
   }
 

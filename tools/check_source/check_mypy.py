@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -95,7 +95,7 @@ def main() -> None:
             f,
             *extra_args,
         )
-        # p = subprocess.Popen(cmd, env=extra_env, stdout=sys.stdout, stderr=sys.stderr)
+        # `p = subprocess.Popen(cmd, env=extra_env, stdout=sys.stdout, stderr=sys.stderr)`
 
         if extra_env:
             for k, v in extra_env.items():

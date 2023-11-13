@@ -10,7 +10,7 @@
 #ifndef EIGEN_CONSERVATIVESPARSESPARSEPRODUCT_H
 #define EIGEN_CONSERVATIVESPARSESPARSEPRODUCT_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
 
@@ -25,16 +25,16 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
   Index rows = lhs.innerSize();
   Index cols = rhs.outerSize();
   eigen_assert(lhs.outerSize() == rhs.innerSize());
-  
+
   ei_declare_aligned_stack_constructed_variable(bool,   mask,     rows, 0);
   ei_declare_aligned_stack_constructed_variable(ResScalar, values,   rows, 0);
   ei_declare_aligned_stack_constructed_variable(Index,  indices,  rows, 0);
-  
+
   std::memset(mask,0,sizeof(bool)*rows);
 
   evaluator<Lhs> lhsEval(lhs);
   evaluator<Rhs> rhsEval(rhs);
-  
+
   // estimate the number of non zero entries
   // given a rhs column containing Y non zeros, we assume that the respective Y columns
   // of the lhs differs in average of one non zeros, thus the number of non zeros for
@@ -141,7 +141,7 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     typedef SparseMatrix<typename ResultType::Scalar,RowMajor,typename ResultType::StorageIndex> RowMajorMatrix;
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::StorageIndex> ColMajorMatrixAux;
     typedef typename sparse_eval<ColMajorMatrixAux,ResultType::RowsAtCompileTime,ResultType::ColsAtCompileTime,ColMajorMatrixAux::Flags>::type ColMajorMatrix;
-    
+
     // If the result is tall and thin (in the extreme case a column vector)
     // then it is faster to sort the coefficients inplace instead of transposing twice.
     // FIXME, the following heuristic is probably not very good.
@@ -155,7 +155,7 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     else
     {
       ColMajorMatrixAux resCol(lhs.rows(),rhs.cols());
-      // ressort to transpose to sort the entries
+      // resort to transpose to sort the entries
       internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrixAux>(lhs, rhs, resCol, false);
       RowMajorMatrix resRow(resCol);
       res = resRow.markAsRValue();

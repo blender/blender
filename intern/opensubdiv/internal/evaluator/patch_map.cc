@@ -133,7 +133,7 @@ void PatchMap::initializeQuadtree(PatchTable const &patchTable)
   //
   int nPatchFaces = (_maxPatchFace - _minPatchFace) + 1;
 
-  int nHandles = (int)_handles.size();
+  int nHandles = int(_handles.size());
 
   _quadtree.reserve(nPatchFaces + nHandles);
   _quadtree.resize(nPatchFaces);

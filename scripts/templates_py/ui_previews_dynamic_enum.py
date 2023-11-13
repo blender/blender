@@ -42,7 +42,7 @@ def enum_previews_from_directory_items(self, context):
     print("Scanning directory: %s" % directory)
 
     if directory and os.path.exists(directory):
-        # Scan the directory for png files
+        # Scan the directory for `*.png` files
         image_paths = []
         for fn in os.listdir(directory):
             if fn.lower().endswith(".png"):

@@ -127,7 +127,7 @@ void upperbidiagonalization_inplace_unblocked(MatrixType& mat,
        .makeHouseholderInPlace(mat.coeffRef(k,k+1), upper_diagonal[k]);
     // apply householder transform to remaining part of mat on the left
     mat.bottomRightCorner(remainingRows-1, remainingCols)
-       .applyHouseholderOnTheRight(mat.row(k).tail(remainingCols-1).transpose(), mat.coeff(k,k+1), tempData);
+       .applyHouseholderOnTheRight(mat.row(k).tail(remainingCols-1).adjoint(), mat.coeff(k,k+1), tempData);
   }
 }
 
@@ -202,7 +202,7 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
       {
         SubColumnType y_k( Y.col(k).tail(remainingCols) );
         
-        // let's use the begining of column k of Y as a temporary vector
+        // let's use the beginning of column k of Y as a temporary vector
         SubColumnType tmp( Y.col(k).head(k) );
         y_k.noalias()  = A.block(k,k+1, remainingRows,remainingCols).adjoint() * v_k; // bottleneck
         tmp.noalias()  = V_k1.adjoint()  * v_k;
@@ -231,7 +231,7 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
       {
         SubColumnType x_k ( X.col(k).tail(remainingRows-1) );
         
-        // let's use the begining of column k of X as a temporary vectors
+        // let's use the beginning of column k of X as a temporary vectors
         // note that tmp0 and tmp1 overlaps
         SubColumnType tmp0 ( X.col(k).head(k) ),
                       tmp1 ( X.col(k).head(k+1) );

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
@@ -6,5 +10,6 @@ void main()
   uv_image = uv;
 
   vec4 position = point_world_to_ndc(image_pos);
+  position.z = 0.0;
   gl_Position = position;
 }

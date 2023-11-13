@@ -748,21 +748,119 @@ void OneapiDevice::set_global_memory(SyclQueue *queue_,
 #  undef KERNEL_DATA_ARRAY
 }
 
-bool OneapiDevice::enqueue_kernel(KernelContext *kernel_context,
-                                  int kernel,
-                                  size_t global_size,
-                                  void **args)
+bool OneapiDevice::enqueue_kernel(
+    KernelContext *kernel_context, int kernel, size_t global_size, size_t local_size, void **args)
 {
-  return oneapi_enqueue_kernel(
-      kernel_context, kernel, global_size, kernel_features, use_hardware_raytracing, args);
+  return oneapi_enqueue_kernel(kernel_context,
+                               kernel,
+                               global_size,
+                               local_size,
+                               kernel_features,
+                               use_hardware_raytracing,
+                               args);
+}
+
+void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
+                                                       const DeviceKernel kernel,
+                                                       size_t &kernel_global_size,
+                                                       size_t &kernel_local_size)
+{
+  assert(queue);
+
+  const static size_t preferred_work_group_size_intersect_shading = 32;
+  /* Shader evaluation kernels seems to use some amount of shared memory, so better
+   * to avoid usage of maximum work group sizes for them. */
+  const static size_t preferred_work_group_size_shader_evaluation = 256;
+  /* NOTE(@nsirgien): 1024 currently may lead to issues with cryptomatte kernels, so
+   * for now their work-group size is restricted to 512. */
+  const static size_t preferred_work_group_size_cryptomatte = 512;
+  const static size_t preferred_work_group_size_default = 1024;
+
+  size_t preferred_work_group_size = 0;
+  switch (kernel) {
+    case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA:
+    case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_BAKE:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
+      preferred_work_group_size = preferred_work_group_size_intersect_shading;
+      break;
+
+    case DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS:
+      preferred_work_group_size = preferred_work_group_size_cryptomatte;
+      break;
+
+    case DEVICE_KERNEL_SHADER_EVAL_DISPLACE:
+    case DEVICE_KERNEL_SHADER_EVAL_BACKGROUND:
+    case DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
+      preferred_work_group_size = preferred_work_group_size_shader_evaluation;
+      break;
+
+    default:
+      /* Do nothing and keep initial zero value. */
+      break;
+  }
+
+  /* Such order of logic allow us to override Blender default values, if needed,
+   * yet respect them otherwise. */
+  if (preferred_work_group_size == 0) {
+    preferred_work_group_size = oneapi_suggested_gpu_kernel_size((::DeviceKernel)kernel);
+  }
+
+  /* If there is no recommendation, then use manual default value. */
+  if (preferred_work_group_size == 0) {
+    preferred_work_group_size = preferred_work_group_size_default;
+  }
+
+  const size_t limit_work_group_size = reinterpret_cast<sycl::queue *>(queue)
+                                           ->get_device()
+                                           .get_info<sycl::info::device::max_work_group_size>();
+
+  kernel_local_size = std::min(limit_work_group_size, preferred_work_group_size);
+
+  /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
+   * we extend work size to fit uniformity requirements. */
+  kernel_global_size = round_up(kernel_global_size, kernel_local_size);
+
+#  ifdef WITH_ONEAPI_SYCL_HOST_TASK
+  /* Kernels listed below need a specific number of work groups. */
+  if (kernel == DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY)
+  {
+    /* Path array implementation is serial in case of SYCL Host Task execution. */
+    kernel_global_size = 1;
+    kernel_local_size = 1;
+  }
+#  endif
+
+  assert(kernel_global_size % kernel_local_size == 0);
 }
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
-/* The same min compute-runtime version is currently required across Windows and Linux.
- * For Windows driver 101.4032, compute-runtime version is 24931. */
-static const int lowest_supported_driver_version_win = 1014032;
-static const int lowest_supported_driver_version_neo = 24931;
+static const int lowest_supported_driver_version_win = 1014824;
+#  ifdef _WIN32
+/* For Windows driver 101.4824, compute-runtime version is 26957.
+ * This information is returned by `ocloc query OCL_DRIVER_VERSION`.*/
+static const int lowest_supported_driver_version_neo = 26957;
+#  else
+static const int lowest_supported_driver_version_neo = 26918;
+#  endif
 
 int OneapiDevice::parse_driver_build_version(const sycl::device &device)
 {
@@ -882,66 +980,96 @@ char *OneapiDevice::device_capabilities()
 #  endif
 
     capabilities << std::string("\t") << name << "\n";
+    capabilities << "\t\tsycl::info::platform::name\t\t\t"
+                 << device.get_platform().get_info<sycl::info::platform::name>() << "\n";
+
 #  define WRITE_ATTR(attribute_name, attribute_variable) \
     capabilities << "\t\tsycl::info::device::" #attribute_name "\t\t\t" << attribute_variable \
                  << "\n";
-#  define GET_NUM_ATTR(attribute) \
+#  define GET_ATTR(attribute) \
     { \
-      size_t attribute = (size_t)device.get_info<sycl::info::device ::attribute>(); \
-      capabilities << "\t\tsycl::info::device::" #attribute "\t\t\t" << attribute << "\n"; \
+      capabilities << "\t\tsycl::info::device::" #attribute "\t\t\t" \
+                   << device.get_info<sycl::info::device ::attribute>() << "\n"; \
+    }
+#  define GET_INTEL_ATTR(attribute) \
+    { \
+      if (device.has(sycl::aspect::ext_intel_##attribute)) { \
+        capabilities << "\t\tsycl::ext::intel::info::device::" #attribute "\t\t\t" \
+                     << device.get_info<sycl::ext::intel::info::device ::attribute>() << "\n"; \
+      } \
+    }
+#  define GET_ASPECT(aspect_) \
+    { \
+      capabilities << "\t\tdevice::has(" #aspect_ ")\t\t\t" << device.has(sycl::aspect ::aspect_) \
+                   << "\n"; \
     }
 
-    GET_NUM_ATTR(vendor_id)
-    GET_NUM_ATTR(max_compute_units)
-    GET_NUM_ATTR(max_work_item_dimensions)
-
+    GET_ATTR(vendor)
+    GET_ATTR(driver_version)
+    GET_ATTR(max_compute_units)
+    GET_ATTR(max_clock_frequency)
+    GET_ATTR(global_mem_size)
+    GET_INTEL_ATTR(pci_address)
+    GET_INTEL_ATTR(gpu_eu_simd_width)
+    GET_INTEL_ATTR(gpu_eu_count)
+    GET_INTEL_ATTR(gpu_slices)
+    GET_INTEL_ATTR(gpu_subslices_per_slice)
+    GET_INTEL_ATTR(gpu_eu_count_per_subslice)
+    GET_INTEL_ATTR(gpu_hw_threads_per_eu)
+    GET_INTEL_ATTR(max_mem_bandwidth)
+    GET_ATTR(max_work_group_size)
+    GET_ATTR(max_work_item_dimensions)
     sycl::id<3> max_work_item_sizes =
         device.get_info<sycl::info::device::max_work_item_sizes<3>>();
-    WRITE_ATTR(max_work_item_sizes_dim0, ((size_t)max_work_item_sizes.get(0)))
-    WRITE_ATTR(max_work_item_sizes_dim1, ((size_t)max_work_item_sizes.get(1)))
-    WRITE_ATTR(max_work_item_sizes_dim2, ((size_t)max_work_item_sizes.get(2)))
+    WRITE_ATTR(max_work_item_sizes[0], max_work_item_sizes.get(0))
+    WRITE_ATTR(max_work_item_sizes[1], max_work_item_sizes.get(1))
+    WRITE_ATTR(max_work_item_sizes[2], max_work_item_sizes.get(2))
 
-    GET_NUM_ATTR(max_work_group_size)
-    GET_NUM_ATTR(max_num_sub_groups)
-    GET_NUM_ATTR(sub_group_independent_forward_progress)
+    GET_ATTR(max_num_sub_groups)
+    for (size_t sub_group_size : device.get_info<sycl::info::device::sub_group_sizes>()) {
+      WRITE_ATTR(sub_group_size[], sub_group_size)
+    }
+    GET_ATTR(sub_group_independent_forward_progress)
 
-    GET_NUM_ATTR(preferred_vector_width_char)
-    GET_NUM_ATTR(preferred_vector_width_short)
-    GET_NUM_ATTR(preferred_vector_width_int)
-    GET_NUM_ATTR(preferred_vector_width_long)
-    GET_NUM_ATTR(preferred_vector_width_float)
-    GET_NUM_ATTR(preferred_vector_width_double)
-    GET_NUM_ATTR(preferred_vector_width_half)
+    GET_ATTR(preferred_vector_width_char)
+    GET_ATTR(preferred_vector_width_short)
+    GET_ATTR(preferred_vector_width_int)
+    GET_ATTR(preferred_vector_width_long)
+    GET_ATTR(preferred_vector_width_float)
+    GET_ATTR(preferred_vector_width_double)
+    GET_ATTR(preferred_vector_width_half)
 
-    GET_NUM_ATTR(native_vector_width_char)
-    GET_NUM_ATTR(native_vector_width_short)
-    GET_NUM_ATTR(native_vector_width_int)
-    GET_NUM_ATTR(native_vector_width_long)
-    GET_NUM_ATTR(native_vector_width_float)
-    GET_NUM_ATTR(native_vector_width_double)
-    GET_NUM_ATTR(native_vector_width_half)
+    GET_ATTR(address_bits)
+    GET_ATTR(max_mem_alloc_size)
+    GET_ATTR(mem_base_addr_align)
+    GET_ATTR(error_correction_support)
+    GET_ATTR(is_available)
 
-    size_t max_clock_frequency = device.get_info<sycl::info::device::max_clock_frequency>();
-    WRITE_ATTR(max_clock_frequency, max_clock_frequency)
+    GET_ASPECT(cpu)
+    GET_ASPECT(gpu)
+    GET_ASPECT(fp16)
+    GET_ASPECT(atomic64)
+    GET_ASPECT(usm_host_allocations)
+    GET_ASPECT(usm_device_allocations)
+    GET_ASPECT(usm_shared_allocations)
+    GET_ASPECT(usm_system_allocations)
 
-    GET_NUM_ATTR(address_bits)
-    GET_NUM_ATTR(max_mem_alloc_size)
+#  ifdef __SYCL_ANY_DEVICE_HAS_ext_oneapi_non_uniform_groups__
+    GET_ASPECT(ext_oneapi_non_uniform_groups)
+#  endif
+#  ifdef __SYCL_ANY_DEVICE_HAS_ext_oneapi_bindless_images__
+    GET_ASPECT(ext_oneapi_bindless_images)
+#  endif
+#  ifdef __SYCL_ANY_DEVICE_HAS_ext_oneapi_interop_semaphore_import__
+    GET_ASPECT(ext_oneapi_interop_semaphore_import)
+#  endif
+#  ifdef __SYCL_ANY_DEVICE_HAS_ext_oneapi_interop_semaphore_export__
+    GET_ASPECT(ext_oneapi_interop_semaphore_export)
+#  endif
 
-    /* NOTE(@nsirgien): Implementation doesn't use image support as bindless images aren't
-     * supported so we always return false, even if device supports HW texture usage acceleration.
-     */
-    bool image_support = false;
-    WRITE_ATTR(image_support, (size_t)image_support)
-
-    GET_NUM_ATTR(max_parameter_size)
-    GET_NUM_ATTR(mem_base_addr_align)
-    GET_NUM_ATTR(global_mem_size)
-    GET_NUM_ATTR(local_mem_size)
-    GET_NUM_ATTR(error_correction_support)
-    GET_NUM_ATTR(profiling_timer_resolution)
-    GET_NUM_ATTR(is_available)
-
-#  undef GET_NUM_ATTR
+#  undef GET_INTEL_ATTR
+#  undef GET_ASPECT
+#  undef GET_ATTR
 #  undef WRITE_ATTR
     capabilities << "\n";
   }

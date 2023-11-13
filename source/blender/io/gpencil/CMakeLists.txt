@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +6,6 @@ set(INC
   .
   ../common
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../bmesh
   ../../depsgraph
@@ -17,7 +16,6 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
-  ../../../../extern/nanosvg
 )
 
 set(INC_SYS
@@ -34,14 +32,14 @@ set(SRC
   intern/gpencil_io_export_base.hh
   intern/gpencil_io_import_base.hh
   intern/gpencil_io_import_svg.hh
-
-  # Only so this file is known by CMake.
-  ../../../../extern/nanosvg/nanosvg.h
 )
 
 set(LIB
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::extern::nanosvg
+  PRIVATE bf::intern::guardedalloc
   bf_io_common
 )
 

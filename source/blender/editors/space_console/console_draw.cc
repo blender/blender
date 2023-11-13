@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,9 +18,9 @@
 
 #include "GPU_immediate.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "console_intern.hh"
 
@@ -112,9 +112,11 @@ static void console_cursor_wrap_offset(
     const char *str, int width, int *row, int *column, const char *end)
 {
   int col;
+  const int tab_width = 4;
 
   for (; *str; str += BLI_str_utf8_size_safe(str)) {
-    col = BLI_str_utf8_char_width_safe(str);
+    col = UNLIKELY(*str == '\t') ? (tab_width - (*column % tab_width)) :
+                                   BLI_str_utf8_char_width_safe(str);
 
     if (*column + col > width) {
       (*row)++;
@@ -217,8 +219,15 @@ static int console_textview_main__internal(SpaceConsole *sc,
 
   console_textview_draw_rect_calc(region, &tvc.draw_rect, &tvc.draw_rect_outer);
 
+  /* Nudge right by half a column to break selection mid-character. */
+  int m_pos[2] = {mval[0], mval[1]};
+  /* Mouse position is initialized with max int. */
+  if (m_pos[0] != INT_MAX) {
+    m_pos[0] += tvc.lheight / 4;
+  }
+
   console_scrollback_prompt_begin(sc, &cl_dummy);
-  ret = textview_draw(&tvc, do_draw, mval, r_mval_pick_item, r_mval_pick_offset);
+  ret = textview_draw(&tvc, do_draw, m_pos, r_mval_pick_item, r_mval_pick_offset);
   console_scrollback_prompt_end(sc, &cl_dummy);
 
   return ret;

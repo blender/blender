@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2001-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2001-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -23,8 +23,8 @@
 
 #include "BLT_translation.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 void BKE_light_linking_free_if_empty(Object *object)
 {
@@ -133,6 +133,29 @@ void BKE_light_linking_collection_assign(Main *bmain,
   DEG_relations_tag_update(bmain);
 }
 
+static CollectionObject *find_collection_object(const Collection *collection, const Object *object)
+{
+  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
+    if (collection_object->ob == object) {
+      return collection_object;
+    }
+  }
+
+  return nullptr;
+}
+
+static CollectionChild *find_collection_child(const Collection *collection,
+                                              const Collection *child)
+{
+  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
+    if (collection_child->collection == child) {
+      return collection_child;
+    }
+  }
+
+  return nullptr;
+}
+
 /* Add object to the light linking collection and return corresponding CollectionLightLinking
  * settings.
  *
@@ -144,15 +167,14 @@ static CollectionLightLinking *light_linking_collection_add_object(Main *bmain,
 {
   BKE_collection_object_add(bmain, collection, object);
 
-  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
-    if (collection_object->ob == object) {
-      return &collection_object->light_linking;
-    }
+  CollectionObject *collection_object = find_collection_object(collection, object);
+
+  if (!collection_object) {
+    BLI_assert_msg(0, "Object was not found after added to the light linking collection");
+    return nullptr;
   }
 
-  BLI_assert_msg(0, "Object was not found after added to the light linking collection");
-
-  return nullptr;
+  return &collection_object->light_linking;
 }
 
 /* Add child collection to the light linking collection and return corresponding
@@ -166,15 +188,14 @@ static CollectionLightLinking *light_linking_collection_add_collection(Main *bma
 {
   BKE_collection_child_add(bmain, collection, child);
 
-  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-    if (collection_child->collection == child) {
-      return &collection_child->light_linking;
-    }
+  CollectionChild *collection_child = find_collection_child(collection, child);
+
+  if (!collection_child) {
+    BLI_assert_msg(0, "Collection was not found after added to the light linking collection");
+    return nullptr;
   }
 
-  BLI_assert_msg(0, "Collection was not found after added to the light linking collection");
-
-  return nullptr;
+  return &collection_child->light_linking;
 }
 
 void BKE_light_linking_add_receiver_to_collection(Main *bmain,
@@ -211,6 +232,182 @@ void BKE_light_linking_add_receiver_to_collection(Main *bmain,
   DEG_id_tag_update(receiver, ID_RECALC_SHADING);
 
   DEG_relations_tag_update(bmain);
+}
+
+static void order_collection_receiver_before(Collection *collection,
+                                             Collection *receiver,
+                                             const ID *before)
+{
+  CollectionChild *receiver_collection_child = find_collection_child(collection, receiver);
+  if (!receiver_collection_child) {
+    BLI_assert_msg(0, "Receiver child was not found after adding collection to light linking");
+    return;
+  }
+
+  const ID_Type before_id_type = GS(before->name);
+
+  if (before_id_type != ID_GR) {
+    /* Adding before object: move the collection to the very bottom.
+     * This is as far to the bottom as the receiver can be in the flattened list of the collection.
+     */
+    BLI_remlink(&collection->children, receiver_collection_child);
+    BLI_addtail(&collection->children, receiver_collection_child);
+    return;
+  }
+
+  CollectionChild *before_collection_child = find_collection_child(
+      collection, reinterpret_cast<const Collection *>(before));
+  if (!before_collection_child) {
+    BLI_assert_msg(0, "Before child was not found");
+    return;
+  }
+
+  BLI_remlink(&collection->children, receiver_collection_child);
+  BLI_insertlinkbefore(&collection->children, before_collection_child, receiver_collection_child);
+}
+
+static void order_collection_receiver_after(Collection *collection,
+                                            Collection *receiver,
+                                            const ID *after)
+{
+  CollectionChild *receiver_collection_child = find_collection_child(collection, receiver);
+  if (!receiver_collection_child) {
+    BLI_assert_msg(0, "Receiver child was not found after adding collection to light linking");
+    return;
+  }
+
+  const ID_Type after_id_type = GS(after->name);
+
+  if (after_id_type != ID_GR) {
+    /* Adding before object: move the collection to the very bottom.
+     * This is as far to the bottom as the receiver can be in the flattened list of the collection.
+     */
+    BLI_remlink(&collection->children, receiver_collection_child);
+    BLI_addtail(&collection->children, receiver_collection_child);
+    return;
+  }
+
+  CollectionChild *after_collection_child = find_collection_child(
+      collection, reinterpret_cast<const Collection *>(after));
+  if (!after_collection_child) {
+    BLI_assert_msg(0, "After child was not found");
+    return;
+  }
+
+  BLI_remlink(&collection->children, receiver_collection_child);
+  BLI_insertlinkafter(&collection->children, after_collection_child, receiver_collection_child);
+}
+
+static void order_object_receiver_before(Collection *collection,
+                                         Object *receiver,
+                                         const ID *before)
+{
+  CollectionObject *receiver_collection_object = find_collection_object(collection, receiver);
+  if (!receiver_collection_object) {
+    BLI_assert_msg(
+        0, "Receiver collection object was not found after adding collection to light linking");
+    return;
+  }
+
+  const ID_Type before_id_type = GS(before->name);
+
+  if (before_id_type != ID_OB) {
+    /* Adding before collection: move the receiver to the very beginning of the child objects list.
+     * This is as close to the top of the flattened list of the collection content the object can
+     * possibly be. */
+    BLI_remlink(&collection->gobject, receiver_collection_object);
+    BLI_addhead(&collection->gobject, receiver_collection_object);
+    return;
+  }
+
+  CollectionObject *before_collection_object = find_collection_object(
+      collection, reinterpret_cast<const Object *>(before));
+  if (!before_collection_object) {
+    BLI_assert_msg(0, "Before collection object was not found");
+    return;
+  }
+
+  BLI_remlink(&collection->gobject, receiver_collection_object);
+  BLI_insertlinkbefore(&collection->gobject, before_collection_object, receiver_collection_object);
+}
+
+static void order_object_receiver_after(Collection *collection, Object *receiver, const ID *after)
+{
+  CollectionObject *receiver_collection_object = find_collection_object(collection, receiver);
+  if (!receiver_collection_object) {
+    BLI_assert_msg(
+        0, "Receiver collection object was not found after adding collection to light linking");
+    return;
+  }
+
+  const ID_Type after_id_type = GS(after->name);
+
+  if (after_id_type != ID_OB) {
+    /* Adding after collection: move the receiver to the very beginning of the child objects list.
+     * This is as close to the top of the flattened list of the collection content the object can
+     * possibly be. */
+    BLI_remlink(&collection->gobject, receiver_collection_object);
+    BLI_addhead(&collection->gobject, receiver_collection_object);
+    return;
+  }
+
+  CollectionObject *after_collection_object = find_collection_object(
+      collection, reinterpret_cast<const Object *>(after));
+  if (!after_collection_object) {
+    BLI_assert_msg(0, "After collection object was not found");
+    return;
+  }
+
+  BLI_remlink(&collection->gobject, receiver_collection_object);
+  BLI_insertlinkafter(&collection->gobject, after_collection_object, receiver_collection_object);
+}
+
+void BKE_light_linking_add_receiver_to_collection_before(
+    Main *bmain,
+    Collection *collection,
+    ID *receiver,
+    const ID *before,
+    const eCollectionLightLinkingState link_state)
+{
+  BLI_assert(before);
+
+  BKE_light_linking_add_receiver_to_collection(bmain, collection, receiver, link_state);
+
+  if (!before) {
+    return;
+  }
+
+  const ID_Type id_type = GS(receiver->name);
+  if (id_type == ID_OB) {
+    order_object_receiver_before(collection, reinterpret_cast<Object *>(receiver), before);
+  }
+  else if (id_type == ID_GR) {
+    order_collection_receiver_before(collection, reinterpret_cast<Collection *>(receiver), before);
+  }
+}
+
+void BKE_light_linking_add_receiver_to_collection_after(
+    Main *bmain,
+    Collection *collection,
+    ID *receiver,
+    const ID *after,
+    const eCollectionLightLinkingState link_state)
+{
+  BLI_assert(after);
+
+  BKE_light_linking_add_receiver_to_collection(bmain, collection, receiver, link_state);
+
+  if (!after) {
+    return;
+  }
+
+  const ID_Type id_type = GS(receiver->name);
+  if (id_type == ID_OB) {
+    order_object_receiver_after(collection, reinterpret_cast<Object *>(receiver), after);
+  }
+  else if (id_type == ID_GR) {
+    order_collection_receiver_after(collection, reinterpret_cast<Collection *>(receiver), after);
+  }
 }
 
 bool BKE_light_linking_unlink_id_from_collection(Main *bmain,

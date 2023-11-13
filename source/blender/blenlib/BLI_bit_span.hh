@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -100,14 +100,14 @@ class BitSpan {
     return IndexRange(bit_range_.size());
   }
 
-  BitRef operator[](const int64_t index) const
+  [[nodiscard]] BitRef operator[](const int64_t index) const
   {
     BLI_assert(index >= 0);
     BLI_assert(index < bit_range_.size());
     return {data_, bit_range_.start() + index};
   }
 
-  BitSpan slice(const IndexRange range) const
+  [[nodiscard]] BitSpan slice(const IndexRange range) const
   {
     return {data_, bit_range_.slice(range)};
   }

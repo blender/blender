@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,12 +8,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
-#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_task.h"
@@ -24,10 +25,10 @@
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
-#include "BKE_subdiv_ccg.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
+#include "BKE_subdiv_ccg.hh"
 
 #include "PIL_time.h"
 
@@ -93,13 +94,13 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
     int count = 0;
     zero_v4(r_color);
-    for (const int i_poly : pbvh.pmap[index]) {
-      const IndexRange poly = pbvh.polys[i_poly];
-      Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + poly.start(), poly.size()};
-      Span<int> poly_verts{pbvh.corner_verts + poly.start(), poly.size()};
+    for (const int i_face : pbvh.pmap[index]) {
+      const IndexRange face = pbvh.faces[i_face];
+      Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + face.start(), face.size()};
+      Span<int> face_verts = pbvh.corner_verts.slice(face);
 
-      for (const int i : IndexRange(poly.size())) {
-        if (poly_verts[i] == index) {
+      for (const int i : IndexRange(face.size())) {
+        if (face_verts[i] == index) {
           float temp[4];
           to_float(colors[i], temp);
 
@@ -124,13 +125,13 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
   int index = vertex.i;
 
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    for (const int i_poly : pbvh.pmap[index]) {
-      const IndexRange poly = pbvh.polys[i_poly];
-      MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + poly.start(), poly.size()};
-      Span<int> poly_verts{pbvh.corner_verts + poly.start(), poly.size()};
+    for (const int i_face : pbvh.pmap[index]) {
+      const IndexRange face = pbvh.faces[i_face];
+      MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + face.start(), face.size()};
+      Span<int> face_verts = pbvh.corner_verts.slice(face);
 
-      for (const int i : IndexRange(poly.size())) {
-        if (poly_verts[i] == index) {
+      for (const int i : IndexRange(face.size())) {
+        if (face_verts[i] == index) {
           from_float(color, colors[i]);
         }
       }
@@ -143,7 +144,6 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
 
 }  // namespace blender::bke
 
-extern "C" {
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4])
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
@@ -161,14 +161,13 @@ void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color
 }
 
 void BKE_pbvh_swap_colors(PBVH *pbvh,
-                          const int *indices,
-                          const int indices_num,
-                          float (*r_colors)[4])
+                          const blender::Span<int> indices,
+                          blender::MutableSpan<blender::float4> r_colors)
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     T *pbvh_colors = static_cast<T *>(pbvh->color_layer->data);
-    for (const int i : IndexRange(indices_num)) {
+    for (const int i : indices.index_range()) {
       T temp = pbvh_colors[indices[i]];
       blender::bke::from_float(r_colors[i], pbvh_colors[indices[i]]);
       blender::bke::to_float(temp, r_colors[i]);
@@ -177,34 +176,31 @@ void BKE_pbvh_swap_colors(PBVH *pbvh,
 }
 
 void BKE_pbvh_store_colors(PBVH *pbvh,
-                           const int *indices,
-                           const int indices_num,
-                           float (*r_colors)[4])
+                           const blender::Span<int> indices,
+                           blender::MutableSpan<blender::float4> r_colors)
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     T *pbvh_colors = static_cast<T *>(pbvh->color_layer->data);
-    for (const int i : IndexRange(indices_num)) {
+    for (const int i : indices.index_range()) {
       blender::bke::to_float(pbvh_colors[indices[i]], r_colors[i]);
     }
   });
 }
 
 void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
-                                  const int *indices,
-                                  const int indices_num,
-                                  float (*r_colors)[4])
+                                  const blender::Span<int> indices,
+                                  blender::MutableSpan<blender::float4> r_colors)
 {
   if (pbvh->color_domain == ATTR_DOMAIN_POINT) {
-    BKE_pbvh_store_colors(pbvh, indices, indices_num, r_colors);
+    BKE_pbvh_store_colors(pbvh, indices, r_colors);
   }
   else {
     blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
       using T = decltype(dummy);
-      for (const int i : IndexRange(indices_num)) {
+      for (const int i : indices.index_range()) {
         blender::bke::pbvh_vertex_color_get<T>(*pbvh, BKE_pbvh_make_vref(indices[i]), r_colors[i]);
       }
     });
   }
-}
 }

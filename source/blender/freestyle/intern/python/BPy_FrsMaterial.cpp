@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,8 @@
 #include "BPy_FrsMaterial.h"
 
 #include "BPy_Convert.h"
+
+#include "BLI_math_vector.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -218,23 +220,28 @@ static int FrsMaterial_mathutils_get_index(BaseMathObject *bmo, int subtype, int
     case MATHUTILS_SUBTYPE_LINE: {
       const float *color = self->m->line();
       bmo->data[index] = color[index];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_DIFFUSE: {
       const float *color = self->m->diffuse();
       bmo->data[index] = color[index];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_SPECULAR: {
       const float *color = self->m->specular();
       bmo->data[index] = color[index];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_AMBIENT: {
       const float *color = self->m->ambient();
       bmo->data[index] = color[index];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_EMISSION: {
       const float *color = self->m->emission();
       bmo->data[index] = color[index];
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -525,7 +532,7 @@ static Py_hash_t FrsMaterial_hash(PyObject *self)
 /*-----------------------BPy_FrsMaterial type definition ------------------------------*/
 
 PyTypeObject FrsMaterial_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Material",
     /*tp_basicsize*/ sizeof(BPy_FrsMaterial),
     /*tp_itemsize*/ 0,

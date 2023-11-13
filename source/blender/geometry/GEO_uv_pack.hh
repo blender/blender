@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,12 +49,18 @@ enum eUVPackIsland_ShapeMethod {
 };
 
 enum eUVPackIsland_PinMethod {
-  ED_UVPACK_PIN_IGNORE = 0,
-  ED_UVPACK_PIN_PACK,
+  /** Pin has no impact on packing. */
+  ED_UVPACK_PIN_NONE = 0,
+  /**
+   * Ignore islands containing any pinned UV's.
+   * \note Not exposed in the UI, used only for live-unwrap.
+   */
+  ED_UVPACK_PIN_IGNORE,
   ED_UVPACK_PIN_LOCK_ROTATION,
   ED_UVPACK_PIN_LOCK_ROTATION_SCALE,
   ED_UVPACK_PIN_LOCK_SCALE,
-  ED_UVPACK_PIN_LOCK_ALL, /* Lock translation, rotation and scale. */
+  /** Lock the island in-place (translation, rotation and scale). */
+  ED_UVPACK_PIN_LOCK_ALL,
 };
 
 namespace blender::geometry {
@@ -107,7 +113,7 @@ class UVPackIsland_Params {
   float *progress;
 };
 
-class uv_phi;
+class UVPhi;
 class PackIsland {
  public:
   PackIsland();
@@ -124,7 +130,7 @@ class PackIsland {
   int caller_index;
 
   void add_triangle(const float2 uv0, const float2 uv1, const float2 uv2);
-  void add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap);
+  void add_polygon(const Span<float2> uvs, MemArena *arena, Heap *heap);
 
   void build_transformation(const float scale, const double rotation, float r_matrix[2][2]) const;
   void build_inverse_transformation(const float scale,
@@ -142,14 +148,14 @@ class PackIsland {
   float2 half_diagonal_;
   float pre_rotate_;
 
-  void place_(const float scale, const uv_phi phi);
+  void place_(const float scale, const UVPhi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
   bool can_rotate_(const UVPackIsland_Params &params) const;
   bool can_scale_(const UVPackIsland_Params &params) const;
   bool can_translate_(const UVPackIsland_Params &params) const;
 
-  blender::Vector<float2> triangle_vertices_;
+  Vector<float2> triangle_vertices_;
 
  private:
   void calculate_pivot_(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */

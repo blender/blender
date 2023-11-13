@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -48,7 +48,12 @@ class CachedTexture : public CachedResource {
   GPUTexture *value_texture_ = nullptr;
 
  public:
-  CachedTexture(Tex *texture, bool use_color_management, int2 size, float2 offset, float2 scale);
+  CachedTexture(Context &context,
+                Tex *texture,
+                bool use_color_management,
+                int2 size,
+                float2 offset,
+                float2 scale);
 
   ~CachedTexture();
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,10 +14,23 @@ if(CMAKE_COMPILER_IS_GNUCC)
   remove_cc_flag(
     "-Wmisleading-indentation"
   )
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  remove_cc_flag(
+    "-Weverything"
+  )
+endif()
+
+if(WITH_COMPILER_ASAN AND NOT WITH_COMPILER_ASAN_EXTERN)
+  # Disable ASAN for extern dependencies, as it can lead to linking issues due to too large binaries.
+  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
+  string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
+  string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=all")
+  string(APPEND CMAKE_C_FLAGS_DEBUG " -fno-sanitize=all")
 endif()
 
 
 add_subdirectory(rangetree)
+add_subdirectory(nanosvg)
 add_subdirectory(wcwidth)
 
 if(WITH_BULLET)
@@ -78,7 +91,9 @@ endif()
 
 if(WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE)
   set(AUDASPACE_CMAKE_CFG ${CMAKE_CURRENT_SOURCE_DIR}/audaspace/blender_config.cmake)
+  set(LIB_SUFFIX "")  # Quiet uninitialized warning.
   add_subdirectory(audaspace)
+  unset(LIB_SUFFIX)
 endif()
 
 if(WITH_QUADRIFLOW)

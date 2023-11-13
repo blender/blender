@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2010-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2010-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -80,8 +80,8 @@ def write_sysinfo(filepath):
                     sys.executable,
                     "--version",
                 ]).strip())
-            except Exception as e:
-                py_ver = str(e)
+            except BaseException as ex:
+                py_ver = str(ex)
             output.write("version: %s\n" % py_ver)
             del py_ver
 
@@ -212,8 +212,6 @@ def write_sysinfo(filepath):
                 output.write("\nFeatures:\n")
                 output.write("Compute Shader Support:               \t%d\n" %
                              gpu.capabilities.compute_shader_support_get())
-                output.write("Shader Storage Buffer Objects Support:\t%d\n" %
-                             gpu.capabilities.shader_storage_buffer_objects_support_get())
                 output.write("Image Load/Store Support:             \t%d\n" %
                              gpu.capabilities.shader_image_load_store_support_get())
 
@@ -232,5 +230,5 @@ def write_sysinfo(filepath):
                 else:
                     output.write("%s (version: %s, path: %s)\n" %
                                  (addon, addon_mod.bl_info.get('version', "UNKNOWN"), addon_mod.__file__))
-        except Exception as e:
-            output.write("ERROR: %s\n" % e)
+        except BaseException as ex:
+            output.write("ERROR: %s\n" % ex)

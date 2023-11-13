@@ -1,10 +1,13 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Sampling data accessors and random number generators.
  * Also contains some sample mapping functions.
- **/
+ */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Sampling data.
@@ -50,6 +53,19 @@ float interlieved_gradient_noise(vec2 pixel, float seed, float offset)
   return fract(offset + 52.9829189 * fract(0.06711056 * pixel.x + 0.00583715 * pixel.y));
 }
 
+vec2 interlieved_gradient_noise(vec2 pixel, vec2 seed, vec2 offset)
+{
+  return vec2(interlieved_gradient_noise(pixel, seed.x, offset.x),
+              interlieved_gradient_noise(pixel, seed.y, offset.y));
+}
+
+vec3 interlieved_gradient_noise(vec2 pixel, vec3 seed, vec3 offset)
+{
+  return vec3(interlieved_gradient_noise(pixel, seed.x, offset.x),
+              interlieved_gradient_noise(pixel, seed.y, offset.y),
+              interlieved_gradient_noise(pixel, seed.z, offset.z));
+}
+
 /* From: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
 float van_der_corput_radical_inverse(uint bits)
 {
@@ -74,6 +90,19 @@ vec2 hammersley_2d(float i, float sample_count)
   return rand;
 }
 
+vec2 hammersley_2d(uint i, uint sample_count)
+{
+  vec2 rand;
+  rand.x = float(i) / float(sample_count);
+  rand.y = van_der_corput_radical_inverse(i);
+  return rand;
+}
+
+vec2 hammersley_2d(int i, int sample_count)
+{
+  return hammersley_2d(uint(i), uint(sample_count));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -82,11 +111,19 @@ vec2 hammersley_2d(float i, float sample_count)
  * Functions mapping input random numbers to sampling shapes (i.e: hemisphere).
  * \{ */
 
-/* Given 2 random number in [0..1] range, return a random unit disk sample. */
-vec2 sample_disk(vec2 noise)
+/* Given 1 random number in [0..1] range, return a random unit circle sample. */
+vec2 sample_circle(float rand)
 {
-  float angle = noise.x * M_2PI;
-  return vec2(cos(angle), sin(angle)) * sqrt(noise.y);
+  float phi = (rand - 0.5) * M_TAU;
+  float cos_phi = cos(phi);
+  float sin_phi = sqrt(1.0 - square(cos_phi)) * sign(phi);
+  return vec2(cos_phi, sin_phi);
+}
+
+/* Given 2 random number in [0..1] range, return a random unit disk sample. */
+vec2 sample_disk(vec2 rand)
+{
+  return sample_circle(rand.y) * sqrt(rand.x);
 }
 
 /* This transform a 2d random sample (in [0..1] range) to a sample located on a cylinder of the
@@ -94,11 +131,26 @@ vec2 sample_disk(vec2 noise)
  * normally precomputed. */
 vec3 sample_cylinder(vec2 rand)
 {
-  float theta = rand.x;
-  float phi = (rand.y - 0.5) * M_2PI;
-  float cos_phi = cos(phi);
-  float sin_phi = sqrt(1.0 - sqr(cos_phi)) * sign(phi);
-  return vec3(theta, cos_phi, sin_phi);
+  return vec3(rand.x, sample_circle(rand.y));
+}
+
+vec3 sample_sphere(vec2 rand)
+{
+  float cos_theta = rand.x * 2.0 - 1.0;
+  float sin_theta = safe_sqrt(1.0 - cos_theta * cos_theta);
+  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
+}
+
+/**
+ * Uniform hemisphere distribution.
+ * \a rand is 2 random float in the [0..1] range.
+ * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
+ */
+vec3 sample_hemisphere(vec2 rand)
+{
+  float cos_theta = rand.x;
+  float sin_theta = safe_sqrt(1.0 - square(cos_theta));
+  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
 /** \} */

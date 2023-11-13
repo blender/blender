@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -104,6 +104,11 @@ void GPU_storagebuf_copy_sub_from_vertbuf(
     GPUStorageBuf *ssbo, GPUVertBuf *src, uint dst_offset, uint src_offset, uint copy_size)
 {
   unwrap(ssbo)->copy_sub(unwrap(src), dst_offset, src_offset, copy_size);
+}
+
+void GPU_storagebuf_sync_to_host(GPUStorageBuf *ssbo)
+{
+  unwrap(ssbo)->async_flush_to_host();
 }
 
 void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data)

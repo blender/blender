@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -115,6 +115,7 @@ AntiAliasingPass::AntiAliasingPass()
   smaa_edge_detect_sh_ = GPU_shader_create_from_info_name("workbench_smaa_stage_0");
   smaa_aa_weight_sh_ = GPU_shader_create_from_info_name("workbench_smaa_stage_1");
   smaa_resolve_sh_ = GPU_shader_create_from_info_name("workbench_smaa_stage_2");
+  overlay_depth_sh_ = GPU_shader_create_from_info_name("workbench_overlay_depth");
 
   smaa_search_tx_.ensure_2d(
       GPU_R8, {SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT}, GPU_TEXTURE_USAGE_SHADER_READ);
@@ -132,32 +133,44 @@ AntiAliasingPass::~AntiAliasingPass()
   DRW_SHADER_FREE_SAFE(smaa_edge_detect_sh_);
   DRW_SHADER_FREE_SAFE(smaa_aa_weight_sh_);
   DRW_SHADER_FREE_SAFE(smaa_resolve_sh_);
+  DRW_SHADER_FREE_SAFE(overlay_depth_sh_);
 }
 
 void AntiAliasingPass::init(const SceneState &scene_state)
 {
   enabled_ = scene_state.draw_aa;
-  sample_ = scene_state.sample;
-  samples_len_ = scene_state.samples_len;
 }
 
-void AntiAliasingPass::sync(SceneResources &resources, int2 resolution)
+void AntiAliasingPass::sync(const SceneState &scene_state, SceneResources &resources)
 {
+  overlay_depth_ps_.init();
+  overlay_depth_ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
+                              DRW_STATE_STENCIL_EQUAL);
+  overlay_depth_ps_.state_stencil(0x00, 0xFF, uint8_t(StencilBits::OBJECT_IN_FRONT));
+  overlay_depth_ps_.shader_set(overlay_depth_sh_);
+  overlay_depth_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
   if (!enabled_) {
     taa_accumulation_tx_.free();
     sample0_depth_tx_.free();
     return;
   }
 
-  taa_accumulation_tx_.ensure_2d(
-      GPU_RGBA16F, resolution, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  smaa_viewport_metrics_ = float4(float2(1.0f / float2(scene_state.resolution)),
+                                  scene_state.resolution);
+  smaa_mix_factor_ = 1.0f - clamp_f(scene_state.sample / 4.0f, 0.0f, 1.0f);
+
+  taa_accumulation_tx_.ensure_2d(GPU_RGBA16F,
+                                 scene_state.resolution,
+                                 GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
   sample0_depth_tx_.ensure_2d(GPU_DEPTH24_STENCIL8,
-                              resolution,
+                              scene_state.resolution,
                               GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
   taa_accumulation_ps_.init();
-  taa_accumulation_ps_.state_set(sample_ == 0 ? DRW_STATE_WRITE_COLOR :
-                                                DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+  taa_accumulation_ps_.state_set(scene_state.sample == 0 ?
+                                     DRW_STATE_WRITE_COLOR :
+                                     DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
   taa_accumulation_ps_.shader_set(taa_accumulation_sh_);
   taa_accumulation_ps_.bind_texture("colorBuffer", &resources.color_tx);
   taa_accumulation_ps_.push_constant("samplesWeights", weights_, 9);
@@ -193,7 +206,7 @@ void AntiAliasingPass::sync(SceneResources &resources, int2 resolution)
   smaa_resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
-void AntiAliasingPass::setup_view(View &view, int2 resolution)
+void AntiAliasingPass::setup_view(View &view, const SceneState &scene_state)
 {
   if (!enabled_) {
     return;
@@ -202,22 +215,22 @@ void AntiAliasingPass::setup_view(View &view, int2 resolution)
   const TaaSamples &taa_samples = get_taa_samples();
 
   float2 sample_offset;
-  switch (samples_len_) {
+  switch (scene_state.samples_len) {
     default:
     case 5:
-      sample_offset = taa_samples.x5[sample_];
+      sample_offset = taa_samples.x5[scene_state.sample];
       break;
     case 8:
-      sample_offset = taa_samples.x8[sample_];
+      sample_offset = taa_samples.x8[scene_state.sample];
       break;
     case 11:
-      sample_offset = taa_samples.x11[sample_];
+      sample_offset = taa_samples.x11[scene_state.sample];
       break;
     case 16:
-      sample_offset = taa_samples.x16[sample_];
+      sample_offset = taa_samples.x16[scene_state.sample];
       break;
     case 32:
-      sample_offset = taa_samples.x32[sample_];
+      sample_offset = taa_samples.x32[scene_state.sample];
       break;
   }
 
@@ -231,26 +244,54 @@ void AntiAliasingPass::setup_view(View &view, int2 resolution)
   DRW_view_viewmat_get(default_view, viewmat.ptr(), false);
   DRW_view_persmat_get(default_view, persmat.ptr(), false);
 
-  window_translate_m4(
-      winmat.ptr(), persmat.ptr(), sample_offset.x / resolution.x, sample_offset.y / resolution.y);
+  window_translate_m4(winmat.ptr(),
+                      persmat.ptr(),
+                      sample_offset.x / scene_state.resolution.x,
+                      sample_offset.y / scene_state.resolution.y);
 
   view.sync(viewmat, winmat);
 }
 
 void AntiAliasingPass::draw(Manager &manager,
                             View &view,
+                            const SceneState &scene_state,
                             SceneResources &resources,
-                            int2 resolution,
-                            GPUTexture *depth_tx,
-                            GPUTexture *color_tx)
+                            GPUTexture *depth_in_front_tx)
 {
+  if (resources.depth_in_front_tx.is_valid() && scene_state.sample == 0 &&
+      scene_state.overlays_enabled)
+  {
+    overlay_depth_fb_.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx));
+    overlay_depth_fb_.bind();
+    manager.submit(overlay_depth_ps_);
+  }
+
   if (!enabled_) {
-    /* TODO(@pragma37): Should render to the input color_tx and depth_tx in the first place.
-     * This requires the use of TextureRefs with stencil_view() support,
-     * but whether TextureRef will stay is still TBD. */
-    GPU_texture_copy(color_tx, resources.color_tx);
-    GPU_texture_copy(depth_tx, resources.depth_tx);
     return;
+  }
+
+  const bool last_sample = scene_state.sample + 1 == scene_state.samples_len;
+
+  if (scene_state.samples_len > 1 && (scene_state.overlays_enabled || DRW_state_is_scene_render()))
+  {
+    if (scene_state.sample == 0) {
+      GPU_texture_copy(sample0_depth_tx_, resources.depth_tx);
+      if (resources.depth_in_front_tx.is_valid()) {
+        sample0_depth_in_front_tx_.ensure_2d(
+            GPU_DEPTH24_STENCIL8, scene_state.resolution, GPU_TEXTURE_USAGE_ATTACHMENT);
+        GPU_texture_copy(sample0_depth_in_front_tx_, resources.depth_in_front_tx);
+      }
+      else {
+        sample0_depth_in_front_tx_.free();
+      }
+    }
+    else if (!DRW_state_is_scene_render() || last_sample) {
+      /* Copy back the saved depth buffer for correct overlays. */
+      GPU_texture_copy(resources.depth_tx, sample0_depth_tx_);
+      if (sample0_depth_in_front_tx_.is_valid()) {
+        GPU_texture_copy(depth_in_front_tx, sample0_depth_in_front_tx_);
+      }
+    }
   }
 
   /**
@@ -258,11 +299,9 @@ void AntiAliasingPass::draw(Manager &manager,
    * high. This ensure a smoother transition.
    * If TAA accumulation is finished, we only blit the result.
    */
-  const bool last_sample = sample_ + 1 == samples_len_;
-  const bool taa_finished = sample_ >= samples_len_;
-
+  const bool taa_finished = scene_state.sample >= scene_state.samples_len;
   if (!taa_finished) {
-    if (sample_ == 0) {
+    if (scene_state.sample == 0) {
       weight_accum_ = 0;
     }
     /* Accumulate result to the TAA buffer. */
@@ -272,32 +311,17 @@ void AntiAliasingPass::draw(Manager &manager,
     weight_accum_ += weights_sum_;
   }
 
-  if (sample_ == 0) {
-    if (sample0_depth_tx_.is_valid()) {
-      GPU_texture_copy(sample0_depth_tx_, resources.depth_tx);
-    }
-    /* TODO(@pragma37): Should render to the input depth_tx in the first place
-     * This requires the use of TextureRef with stencil_view() support,
-     * but whether TextureRef will stay is still TBD. */
-
-    /* Copy back the saved depth buffer for correct overlays. */
-    GPU_texture_copy(depth_tx, resources.depth_tx);
-  }
-  else {
-    /* Copy back the saved depth buffer for correct overlays. */
-    GPU_texture_copy(depth_tx, sample0_depth_tx_);
-  }
+  /** Always acquire to avoid constant allocation/deallocation. */
+  smaa_weight_tx_.acquire(scene_state.resolution,
+                          GPU_RGBA8,
+                          GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  smaa_edge_tx_.acquire(scene_state.resolution,
+                        GPU_RG8,
+                        GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
   if (!DRW_state_is_image_render() || last_sample) {
-    smaa_weight_tx_.acquire(
-        resolution, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-    smaa_mix_factor_ = 1.0f - clamp_f(sample_ / 4.0f, 0.0f, 1.0f);
-    smaa_viewport_metrics_ = float4(float2(1.0f / float2(resolution)), resolution);
-
     /* After a certain point SMAA is no longer necessary. */
     if (smaa_mix_factor_ > 0.0f) {
-      smaa_edge_tx_.acquire(
-          resolution, GPU_RG8, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
       smaa_edge_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(smaa_edge_tx_));
       smaa_edge_fb_.bind();
       manager.submit(smaa_edge_detect_ps_, view);
@@ -305,13 +329,14 @@ void AntiAliasingPass::draw(Manager &manager,
       smaa_weight_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(smaa_weight_tx_));
       smaa_weight_fb_.bind();
       manager.submit(smaa_aa_weight_ps_, view);
-      smaa_edge_tx_.release();
     }
-    smaa_resolve_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_tx));
+    smaa_resolve_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
     smaa_resolve_fb_.bind();
     manager.submit(smaa_resolve_ps_, view);
-    smaa_weight_tx_.release();
   }
+
+  smaa_edge_tx_.release();
+  smaa_weight_tx_.release();
 }
 
 }  // namespace blender::workbench

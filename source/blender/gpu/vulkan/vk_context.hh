@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,10 @@
 #pragma once
 
 #include "gpu_context_private.hh"
-#include "vk_command_buffer.hh"
+
+#include "GHOST_Types.h"
+
+#include "vk_command_buffers.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
@@ -22,8 +25,11 @@ class VKStateManager;
 
 class VKContext : public Context, NonCopyable {
  private:
-  VKCommandBuffer command_buffer_;
+  VKCommandBuffers command_buffers_;
 
+  VkExtent2D vk_extent_ = {};
+  VkFormat swap_chain_format_ = {};
+  GPUTexture *surface_texture_ = nullptr;
   void *ghost_context_;
 
  public:
@@ -58,17 +64,24 @@ class VKContext : public Context, NonCopyable {
                               const VKVertexAttributeObject &vertex_attribute_object);
   void sync_backbuffer();
 
-  static VKContext *get(void)
+  static VKContext *get()
   {
     return static_cast<VKContext *>(Context::get());
   }
 
-  VKCommandBuffer &command_buffer_get()
+  VKCommandBuffers &command_buffers_get()
   {
-    return command_buffer_;
+    return command_buffers_;
   }
 
   VKStateManager &state_manager_get() const;
+
+  static void swap_buffers_pre_callback(const GHOST_VulkanSwapChainData *data);
+  static void swap_buffers_post_callback();
+
+ private:
+  void swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &data);
+  void swap_buffers_post_handler();
 };
 
 BLI_INLINE bool operator==(const VKContext &a, const VKContext &b)

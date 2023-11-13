@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -217,7 +217,7 @@ bool BKE_tracking_track_has_enabled_marker_at_frame(struct MovieTrackingTrack *t
  * \note frame number should be in clip space, not scene space.
  */
 typedef enum eTrackClearAction {
-  /* Clear path from `ref_frame+1` up to the . */
+  /* Clear path from `ref_frame+1` up to the. */
   TRACK_CLEAR_UPTO,
   /* Clear path from the beginning up to `ref_frame-1`. */
   TRACK_CLEAR_REMAINED,

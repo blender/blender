@@ -1,16 +1,19 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BLI_task.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
 
 #include "GEO_trim_curves.hh"
+
+#include "NOD_rna_define.hh"
 
 #include "node_geometry_util.hh"
 
@@ -20,7 +23,8 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
+  b.add_input<decl::Geometry>("Curve").supported_type(
+      {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Float>("Start")
       .min(0.0f)
@@ -92,7 +96,7 @@ class SocketSearchOp {
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
 
   search_link_ops_for_declarations(params, declaration.outputs);
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
@@ -111,23 +115,18 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void geometry_set_curve_trim(GeometrySet &geometry_set,
-                                    const GeometryNodeCurveSampleMode mode,
-                                    Field<bool> &selection_field,
-                                    Field<float> &start_field,
-                                    Field<float> &end_field,
-                                    const AnonymousAttributePropagationInfo &propagation_info)
+static bool trim_curves(const bke::CurvesGeometry &src_curves,
+                        const GeometryNodeCurveSampleMode mode,
+                        const fn::FieldContext &field_context,
+                        Field<bool> &selection_field,
+                        Field<float> &start_field,
+                        Field<float> &end_field,
+                        const AnonymousAttributePropagationInfo &propagation_info,
+                        bke::CurvesGeometry &dst_curves)
 {
-  if (!geometry_set.has_curves()) {
-    return;
-  }
-  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
-  const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
   if (src_curves.curves_num() == 0) {
-    return;
+    return false;
   }
-
-  const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.add(selection_field);
   evaluator.add(start_field);
@@ -139,14 +138,66 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   const VArray<float> ends = evaluator.get_evaluated<float>(2);
 
   if (selection.is_empty()) {
-    return;
+    return false;
   }
 
-  bke::CurvesGeometry dst_curves = geometry::trim_curves(
-      src_curves, selection, starts, ends, mode, propagation_info);
-  Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
-  bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
-  geometry_set.replace_curves(dst_curves_id);
+  dst_curves = geometry::trim_curves(src_curves, selection, starts, ends, mode, propagation_info);
+  return true;
+}
+
+static void geometry_set_curve_trim(GeometrySet &geometry_set,
+                                    const GeometryNodeCurveSampleMode mode,
+                                    Field<bool> &selection_field,
+                                    Field<float> &start_field,
+                                    Field<float> &end_field,
+                                    const AnonymousAttributePropagationInfo &propagation_info)
+{
+  if (geometry_set.has_curves()) {
+    const Curves &src_curves_id = *geometry_set.get_curves();
+    const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
+    const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+    bke::CurvesGeometry dst_curves;
+    if (trim_curves(src_curves,
+                    mode,
+                    field_context,
+                    selection_field,
+                    start_field,
+                    end_field,
+                    propagation_info,
+                    dst_curves))
+    {
+      Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+      bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
+      geometry_set.replace_curves(dst_curves_id);
+    }
+  }
+  if (geometry_set.has_grease_pencil()) {
+    using namespace bke::greasepencil;
+    GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+    for (const int layer_index : grease_pencil.layers().index_range()) {
+      Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                        layer_index);
+      if (drawing == nullptr) {
+        continue;
+      }
+      const bke::CurvesGeometry &src_curves = drawing->strokes();
+      const bke::GreasePencilLayerFieldContext field_context{
+          grease_pencil, ATTR_DOMAIN_CURVE, layer_index};
+      bke::CurvesGeometry dst_curves;
+      if (trim_curves(src_curves,
+                      mode,
+                      field_context,
+                      selection_field,
+                      start_field,
+                      end_field,
+                      propagation_info,
+                      dst_curves))
+      {
+        drawing->strokes_for_write() = std::move(dst_curves);
+        drawing->tag_topology_changed();
+      }
+    }
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -155,7 +206,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
+  GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
   const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
       "Curve");
@@ -181,21 +232,46 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_curve_trim_cc
-
-void register_node_type_geo_curve_trim()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_curve_trim_cc;
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_SAMPLE_FACTOR,
+       "FACTOR",
+       0,
+       "Factor",
+       "Find the endpoint positions using a factor of each spline's length"},
+      {GEO_NODE_CURVE_RESAMPLE_LENGTH,
+       "LENGTH",
+       0,
+       "Length",
+       "Find the endpoint positions using a length from the start of each spline"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "How to find endpoint positions for the trimmed spline",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode));
+}
+
+static void node_register()
+{
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_TRIM_CURVE, "Trim Curve", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.declare = node_declare;
   node_type_storage(
       &ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_trim_cc

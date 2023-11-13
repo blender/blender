@@ -572,6 +572,21 @@ void BLI_rctf_translate(rctf *rect, float x, float y)
   rect->ymax += y;
 }
 
+void BLI_rcti_mul(rcti *rect, const int factor)
+{
+  rect->xmin *= factor;
+  rect->ymin *= factor;
+  rect->xmax *= factor;
+  rect->ymax *= factor;
+}
+void BLI_rctf_mul(rctf *rect, const float factor)
+{
+  rect->xmin *= factor;
+  rect->ymin *= factor;
+  rect->xmax *= factor;
+  rect->ymax *= factor;
+}
+
 void BLI_rcti_recenter(rcti *rect, int x, int y)
 {
   const int dx = x - BLI_rcti_cent_x(rect);
@@ -825,10 +840,10 @@ bool BLI_rcti_clamp(rcti *rect, const rcti *rect_bounds, int r_xy[2])
 
 bool BLI_rctf_compare(const rctf *rect_a, const rctf *rect_b, const float limit)
 {
-  if (fabsf(rect_a->xmin - rect_b->xmin) < limit) {
-    if (fabsf(rect_a->xmax - rect_b->xmax) < limit) {
-      if (fabsf(rect_a->ymin - rect_b->ymin) < limit) {
-        if (fabsf(rect_a->ymax - rect_b->ymax) < limit) {
+  if (fabsf(rect_a->xmin - rect_b->xmin) <= limit) {
+    if (fabsf(rect_a->xmax - rect_b->xmax) <= limit) {
+      if (fabsf(rect_a->ymin - rect_b->ymin) <= limit) {
+        if (fabsf(rect_a->ymax - rect_b->ymax) <= limit) {
           return true;
         }
       }

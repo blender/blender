@@ -75,6 +75,32 @@ max
   return (max)(Derived::PlainObject::Constant(rows(), cols(), other));
 }
 
+/** \returns an expression of the coefficient-wise absdiff of \c *this and \a other
+  *
+  * Example: \include Cwise_absolute_difference.cpp
+  * Output: \verbinclude Cwise_absolute_difference.out
+  *
+  * \sa absolute_difference()
+  */
+EIGEN_MAKE_CWISE_BINARY_OP(absolute_difference,absolute_difference)
+
+/** \returns an expression of the coefficient-wise absolute_difference of \c *this and scalar \a other
+  *
+  * \sa absolute_difference()
+  */
+EIGEN_DEVICE_FUNC
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_absolute_difference_op<Scalar,Scalar>, const Derived,
+                                        const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> >
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+absolute_difference
+#else
+(absolute_difference)
+#endif
+(const Scalar &other) const
+{
+  return (absolute_difference)(Derived::PlainObject::Constant(rows(), cols(), other));
+}
+
 /** \returns an expression of the coefficient-wise power of \c *this to the given array of \a exponents.
   *
   * This function computes the coefficient-wise power.
@@ -119,7 +145,7 @@ OP(const Scalar& s) const { \
   return this->OP(Derived::PlainObject::Constant(rows(), cols(), s)); \
 } \
 EIGEN_DEVICE_FUNC friend EIGEN_STRONG_INLINE const RCmp ## COMPARATOR ## ReturnType \
-OP(const Scalar& s, const Derived& d) { \
+OP(const Scalar& s, const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& d) { \
   return Derived::PlainObject::Constant(d.rows(), d.cols(), s).OP(d); \
 }
 
@@ -314,9 +340,9 @@ polygamma(const EIGEN_CURRENT_STORAGE_BASE_CLASS<DerivedN> &n) const
   *
   * It returns the Riemann zeta function of two arguments \c *this and \a q:
   *
-  * \param *this is the exposent, it must be > 1
   * \param q is the shift, it must be > 0
   *
+  * \note *this is the exponent, it must be > 1.
   * \note This function supports only float and double scalar types. To support other scalar types, the user has
   * to provide implementations of zeta(T,T) for any scalar type T to be supported.
   *

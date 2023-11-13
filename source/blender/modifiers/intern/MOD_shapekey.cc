@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,8 @@
  * \ingroup modifiers
  */
 
+#include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -19,18 +18,18 @@
 #include "BKE_key.h"
 #include "BKE_particle.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-static void deformVerts(ModifierData * /*md*/,
-                        const ModifierEvalContext *ctx,
-                        Mesh * /*mesh*/,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData * /*md*/,
+                         const ModifierEvalContext *ctx,
+                         Mesh * /*mesh*/,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   Key *key = BKE_key_from_object(ctx->object);
 
@@ -44,12 +43,12 @@ static void deformVerts(ModifierData * /*md*/,
   }
 }
 
-static void deformMatrices(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh,
-                           float (*vertexCos)[3],
-                           float (*defMats)[3][3],
-                           int verts_num)
+static void deform_matrices(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            Mesh *mesh,
+                            float (*vertexCos)[3],
+                            float (*defMats)[3][3],
+                            int verts_num)
 {
   Key *key = BKE_key_from_object(ctx->object);
   KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
@@ -72,30 +71,30 @@ static void deformMatrices(ModifierData *md,
     }
   }
 
-  deformVerts(md, ctx, mesh, vertexCos, verts_num);
+  deform_verts(md, ctx, mesh, vertexCos, verts_num);
 }
 
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh * /*editData*/,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
+static void deform_verts_EM(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            BMEditMesh * /*em*/,
+                            Mesh *mesh,
+                            float (*vertexCos)[3],
+                            int verts_num)
 {
   Key *key = BKE_key_from_object(ctx->object);
 
   if (key && key->type == KEY_RELATIVE) {
-    deformVerts(md, ctx, mesh, vertexCos, verts_num);
+    deform_verts(md, ctx, mesh, vertexCos, verts_num);
   }
 }
 
-static void deformMatricesEM(ModifierData * /*md*/,
-                             const ModifierEvalContext *ctx,
-                             BMEditMesh * /*editData*/,
-                             Mesh * /*mesh*/,
-                             float (*vertexCos)[3],
-                             float (*defMats)[3][3],
-                             int verts_num)
+static void deform_matrices_EM(ModifierData * /*md*/,
+                               const ModifierEvalContext *ctx,
+                               BMEditMesh * /*em*/,
+                               Mesh * /*mesh*/,
+                               float (*vertexCos)[3],
+                               float (*defMats)[3][3],
+                               int verts_num)
 {
   Key *key = BKE_key_from_object(ctx->object);
   KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
@@ -113,35 +112,36 @@ static void deformMatricesEM(ModifierData * /*md*/,
 }
 
 ModifierTypeInfo modifierType_ShapeKey = {
+    /*idname*/ "ShapeKey",
     /*name*/ N_("ShapeKey"),
-    /*structName*/ "ShapeKeyModifierData",
-    /*structSize*/ sizeof(ShapeKeyModifierData),
+    /*struct_name*/ "ShapeKeyModifierData",
+    /*struct_size*/ sizeof(ShapeKeyModifierData),
     /*srna*/ &RNA_Modifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_DOT,
 
-    /*copyData*/ nullptr,
+    /*copy_data*/ nullptr,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ deformMatrices,
-    /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ deformMatricesEM,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ deform_matrices,
+    /*deform_verts_EM*/ deform_verts_EM,
+    /*deform_matrices_EM*/ deform_matrices_EM,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ nullptr,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ nullptr,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ nullptr,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ nullptr,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

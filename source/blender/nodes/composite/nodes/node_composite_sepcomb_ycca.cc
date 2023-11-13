@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -87,7 +87,6 @@ void register_node_type_cmp_sepycca()
   ntype.declare = file_ns::cmp_node_sepycca_declare;
   ntype.initfunc = file_ns::node_composit_init_mode_sepycca;
   ntype.gather_link_search_ops = nullptr;
-  ntype.gather_add_node_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);
@@ -173,7 +172,6 @@ void register_node_type_cmp_combycca()
   ntype.declare = file_ns::cmp_node_combycca_declare;
   ntype.initfunc = file_ns::node_composit_init_mode_combycca;
   ntype.gather_link_search_ops = nullptr;
-  ntype.gather_add_node_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);

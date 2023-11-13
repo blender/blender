@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #define EEVEE_AOV_HASH_COLOR_TYPE_MASK 1u
 
 /* ---------------------------------------------------------------------- */

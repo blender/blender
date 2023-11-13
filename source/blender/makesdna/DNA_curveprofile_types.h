@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,10 +9,6 @@
 #pragma once
 
 #include "DNA_vec_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Each control point that makes up the profile.
@@ -80,7 +76,3 @@ typedef enum eCurveProfilePresets {
   PROF_PRESET_CROWN = 3,    /* Second molding example. */
   PROF_PRESET_STEPS = 4,    /* Dynamic number of steps defined by segments_len. */
 } eCurveProfilePresets;
-
-#ifdef __cplusplus
-}
-#endif

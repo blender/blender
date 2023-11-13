@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -140,6 +140,8 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         topcol = layout.column()
         topcol.active = bone.bbone_segments > 1
 
+        topcol.prop(bone, "bbone_mapping_mode", text="Vertex Mapping")
+
         col = topcol.column(align=True)
         col.prop(bbone, "bbone_curveinx", text="Curve In X")
         col.prop(bbone, "bbone_curveinz", text="Z")
@@ -224,12 +226,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
             bone = context.edit_bone
 
         col = layout.column()
-        col.use_property_split = False
-        col.prop(bone, "layers", text="")
-        col.use_property_split = True
-        col = layout.column()
-
-        col.separator()
 
         if context.bone:
             col.prop(bone, "parent")
@@ -238,7 +234,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
         if ob and pchan:
             col.prop(bone, "use_relative_parent")
-            col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="Bone Group")
 
         sub = col.column()
         sub.active = (bone.parent is not None)
@@ -252,27 +247,117 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         sub.prop(bone, "inherit_scale")
 
 
+class BONE_PT_collections(BoneButtonsPanel, Panel):
+    bl_label = "Bone Collections"
+    bl_parent_id = "BONE_PT_relations"
+
+    @classmethod
+    def poll(cls, context):
+        return context.bone or context.edit_bone
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+
+        bone = context.bone or context.edit_bone
+
+        if not bone.collections:
+            layout.active = False
+            layout.label(text="Not assigned to any bone collection.")
+            return
+
+        box = layout.box()
+        sub = box.column(align=True)
+        for bcoll in bone.collections:
+            bcoll_row = sub.row()
+            bcoll_row.emboss = 'NONE'
+
+            # Name & visibility of bcoll. Safe things, so aligned together.
+            row = bcoll_row.row(align=True)
+            row.label(text=bcoll.name)
+            row.prop(bcoll, "is_visible", text="",
+                     icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
+
+            # Unassignment operator, less safe so with a bit of spacing.
+            props = bcoll_row.operator("armature.collection_unassign_named",
+                                       text="", icon='X')
+            props.name = bcoll.name
+            props.bone_name = bone.name
+
+
 class BONE_PT_display(BoneButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
-        return context.bone
+        return context.bone or context.edit_bone
 
     def draw(self, context):
-        # note. this works ok in edit-mode but isn't
+        # NOTE: this works ok in edit-mode but isn't
         # all that useful so disabling for now.
         layout = self.layout
         layout.use_property_split = True
 
-        bone = context.bone
-        if bone is None:
-            bone = context.edit_bone
+        if context.bone is None:
+            self.draw_edit_bone(context, layout)
+        else:
+            self.draw_bone(context, layout)
 
-        if bone:
-            col = layout.column()
-            col.prop(bone, "hide", text="Hide", toggle=False)
+    def draw_bone(self, context, layout):
+        bone = context.bone
+
+        col = layout.column()
+        col.prop(bone, "hide", text="Hide", toggle=False)
+
+        # Figure out the pose bone.
+        ob = context.object
+        if not ob:
+            return
+        pose_bone = ob.pose.bones[bone.name]
+
+        # Allow the layout to use the space normally occupied by the 'set a key' diamond.
+        layout.use_property_decorate = False
+
+        row = layout.row(align=True)
+        row.prop(bone.color, "palette", text="Bone Color")
+        props = row.operator("armature.copy_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props.bone_type = 'EDIT'
+        self.draw_bone_color_ui(layout, bone.color)
+
+        row = layout.row(align=True)
+        row.prop(pose_bone.color, "palette", text="Pose Bone Color")
+        props = row.operator("armature.copy_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props.bone_type = 'POSE'
+        self.draw_bone_color_ui(layout, pose_bone.color)
+
+    def draw_edit_bone(self, context, layout):
+        bone = context.edit_bone
+        if bone is None:
+            return
+
+        col = layout.column()
+        col.prop(bone, "hide", text="Hide", toggle=False)
+        layout.prop(bone.color, "palette", text="Bone Color")
+        self.draw_bone_color_ui(layout, bone.color)
+
+    def draw_bone_color_ui(self, layout, bone_color):
+        if not bone_color.is_custom:
+            return
+
+        split = layout.split(factor=0.401)
+
+        col = split.column()
+        row = col.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Custom Colors")
+
+        col = split.column(align=True)
+        row = col.row(align=True)
+        row.use_property_split = False
+        row.prop(bone_color.custom, "normal", text="")
+        row.prop(bone_color.custom, "select", text="")
+        row.prop(bone_color.custom, "active", text="")
 
 
 class BONE_PT_display_custom_shape(BoneButtonsPanel, Panel):
@@ -451,7 +536,7 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
     _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property
@@ -468,6 +553,7 @@ classes = (
     BONE_PT_transform,
     BONE_PT_curved,
     BONE_PT_relations,
+    BONE_PT_collections,
     BONE_PT_inverse_kinematics,
     BONE_PT_deform,
     BONE_PT_display,

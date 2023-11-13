@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,17 +6,19 @@
  * \ingroup draw_engine
  */
 
+#include "BLI_math_color.h"
+
 #include "DRW_render.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
-#include "ED_image.h"
-#include "ED_view3d.h"
+#include "ED_image.hh"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "overlay_next_instance.hh"
 #include "overlay_private.hh"

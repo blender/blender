@@ -24,8 +24,9 @@ bool device_cuda_init()
   static bool initialized = false;
   static bool result = false;
 
-  if (initialized)
+  if (initialized) {
     return result;
+  }
 
   initialized = true;
   int cuew_result = cuewInit(CUEW_INIT_CUDA);
@@ -99,8 +100,9 @@ void device_cuda_info(vector<DeviceInfo> &devices)
 #ifdef WITH_CUDA
   CUresult result = device_cuda_safe_init();
   if (result != CUDA_SUCCESS) {
-    if (result != CUDA_ERROR_NO_DEVICE)
+    if (result != CUDA_ERROR_NO_DEVICE) {
       fprintf(stderr, "CUDA cuInit: %s\n", cuewErrorString(result));
+    }
     return;
   }
 
@@ -188,8 +190,9 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
   }
 
-  if (!display_devices.empty())
+  if (!display_devices.empty()) {
     devices.insert(devices.end(), display_devices.begin(), display_devices.end());
+  }
 #else  /* WITH_CUDA */
   (void)devices;
 #endif /* WITH_CUDA */

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,14 +17,14 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_edgehash.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_collection.h"
 #include "BKE_effect.h"
 #include "BKE_layer.h"
@@ -34,9 +34,9 @@
 #include "BKE_collision.h"
 #include "BLI_kdopbvh.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_physics.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_physics.hh"
+#include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_ELTOPO
 #  include "eltopo-capi.h"
@@ -757,7 +757,7 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
       }
 
       if ((magrelVel < 0.1f * d * time_multiplier) && (d > ALMOST_ZERO)) {
-        repulse = MIN2(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
+        repulse = std::min(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
 
         /* Stay on the safe side and clamp repulse. */
         if (impulse > ALMOST_ZERO) {
@@ -1078,7 +1078,7 @@ static bool cloth_bvh_selfcollision_is_active(const ClothModifierData *clmd,
       }
 
       if (sewing_active) {
-        if (BLI_edgeset_haskey(cloth->sew_edge_graph, tri_a->tri[i], tri_b->tri[j])) {
+        if (cloth->sew_edge_graph.contains({tri_a->tri[i], tri_b->tri[j]})) {
           return false;
         }
       }

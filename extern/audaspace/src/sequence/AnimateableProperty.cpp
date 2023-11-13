@@ -184,6 +184,12 @@ void AnimateableProperty::read(float position, float* out)
 		t = 0;
 	}
 
+	if(position < 0)
+	{
+		position = 0;
+		t = 0;
+	}
+
 	if(t == 0)
 	{
 		std::memcpy(out, getBuffer() + int(std::floor(position)) * m_count, m_count * sizeof(float));

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -36,15 +36,12 @@ static void translate_instances(GeoNodeExecParams &params, bke::Instances &insta
 
   MutableSpan<float4x4> transforms = instances.transforms();
 
-  threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
-    for (const int i_selection : range) {
-      const int i = selection[i_selection];
-      if (local_spaces[i]) {
-        transforms[i] *= math::from_location<float4x4>(translations[i]);
-      }
-      else {
-        transforms[i].location() += translations[i];
-      }
+  selection.foreach_index(GrainSize(1024), [&](const int64_t i) {
+    if (local_spaces[i]) {
+      transforms[i] *= math::from_location<float4x4>(translations[i]);
+    }
+    else {
+      transforms[i].location() += translations[i];
     }
   });
 }
@@ -58,17 +55,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Instances", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_translate_instances_cc
-
-void register_node_type_geo_translate_instances()
+static void register_node()
 {
-  namespace file_ns = blender::nodes::node_geo_translate_instances_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_TRANSLATE_INSTANCES, "Translate Instances", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(register_node)
+
+}  // namespace blender::nodes::node_geo_translate_instances_cc

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,10 +9,6 @@
 #pragma once
 
 #include "DNA_listBase.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct PaintSurfaceData;
 
@@ -261,7 +257,3 @@ typedef struct DynamicPaintBrushSettings {
   float wave_factor, wave_clamp;
   float max_velocity, smudge_strength;
 } DynamicPaintBrushSettings;
-
-#ifdef __cplusplus
-}
-#endif

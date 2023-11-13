@@ -137,18 +137,18 @@ void BKE_keyblock_convert_to_mesh(const struct KeyBlock *kb,
                                   int totvert);
 
 /**
- * Computes normals (vertices, polygons and/or loops ones) of given mesh for given shape key.
+ * Computes normals (vertices, faces and/or loops ones) of given mesh for given shape key.
  *
  * \param kb: the KeyBlock to use to compute normals.
  * \param mesh: the Mesh to apply key-block to.
  * \param r_vert_normals: if non-NULL, an array of vectors, same length as number of vertices.
- * \param r_poly_normals: if non-NULL, an array of vectors, same length as number of polygons.
+ * \param r_face_normals: if non-NULL, an array of vectors, same length as number of faces.
  * \param r_loop_normals: if non-NULL, an array of vectors, same length as number of loops.
  */
 void BKE_keyblock_mesh_calc_normals(const struct KeyBlock *kb,
                                     struct Mesh *mesh,
                                     float (*r_vert_normals)[3],
-                                    float (*r_poly_normals)[3],
+                                    float (*r_face_normals)[3],
                                     float (*r_loop_normals)[3]);
 
 void BKE_keyblock_update_from_vertcos(const struct Object *ob,
@@ -181,6 +181,12 @@ bool BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
  * Check if given key-block (as index) is used as basis by others in given key.
  */
 bool BKE_keyblock_is_basis(const struct Key *key, int index);
+
+/**
+ * Returns a newly allocated array containing true for every key that has this one as basis.
+ * If none are found, returns null.
+ */
+bool *BKE_keyblock_get_dependent_keys(const struct Key *key, int index);
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Block Data Access

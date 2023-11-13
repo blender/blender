@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Must match eGPLayerBlendModes */
 #define MODE_REGULAR 0
@@ -13,7 +16,8 @@ void blend_mode_output(
 {
   switch (blend_mode) {
     case MODE_REGULAR:
-      /* Reminder: Blending func is premult alpha blend `(dst.rgba * (1 - src.a) + src.rgb)`. */
+      /* Reminder: Blending func is pre-multiply alpha blend
+       * `(dst.rgba * (1 - src.a) + src.rgb)`. */
       color *= opacity;
       frag_color = color;
       frag_revealage = vec4(0.0, 0.0, 0.0, color.a);
@@ -31,7 +35,7 @@ void blend_mode_output(
     case MODE_HARDLIGHT: {
       /* Reminder: Blending func is multiply blend `(dst.rgba * src.rgba)`. */
       /**
-       * We need to separate the overlay equation into 2 term (one mul and one add).
+       * We need to separate the overlay equation into 2 term (one multiply and one add).
        * This is the standard overlay equation (per channel):
        * `rtn = (src < 0.5) ? (2.0 * src * dst) : (1.0 - 2.0 * (1.0 - src) * (1.0 - dst));`
        * We rewrite the second branch like this:
@@ -48,7 +52,7 @@ void blend_mode_output(
       break;
     }
     case MODE_HARDLIGHT_SECOND_PASS:
-      /* Reminder: Blending func is additive blend (dst.rgba + src.rgba). */
+      /* Reminder: Blending func is additive blend `(dst.rgba + src.rgba)`. */
       color = mix(vec4(0.5), color, color.a * opacity);
       frag_revealage = frag_color = (-1.0 + 2.0 * color) * step(-0.5, -color);
       frag_revealage = max(vec4(0.0), frag_revealage);

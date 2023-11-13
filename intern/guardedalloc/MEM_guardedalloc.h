@@ -100,7 +100,7 @@ extern void *(*MEM_callocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_
  * Allocate a block of memory of size (len * size), with tag name
  * str, aborting in case of integer overflows to prevent vulnerabilities.
  * The memory is cleared. The name must be static, because only a
- * pointer to it is stored ! */
+ * pointer to it is stored! */
 extern void *(*MEM_calloc_arrayN)(size_t len,
                                   size_t size,
                                   const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
@@ -108,7 +108,7 @@ extern void *(*MEM_calloc_arrayN)(size_t len,
 
 /**
  * Allocate a block of memory of size len, with tag name str. The
- * name must be a static, because only a pointer to it is stored !
+ * name must be a static, because only a pointer to it is stored!
  */
 extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
@@ -116,7 +116,7 @@ extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_
 /**
  * Allocate a block of memory of size (len * size), with tag name str,
  * aborting in case of integer overflow to prevent vulnerabilities. The
- * name must be a static, because only a pointer to it is stored !
+ * name must be a static, because only a pointer to it is stored!
  */
 extern void *(*MEM_malloc_arrayN)(size_t len,
                                   size_t size,
@@ -125,7 +125,7 @@ extern void *(*MEM_malloc_arrayN)(size_t len,
 
 /**
  * Allocate an aligned block of memory of size len, with tag name str. The
- * name must be a static, because only a pointer to it is stored !
+ * name must be a static, because only a pointer to it is stored!
  */
 extern void *(*MEM_mallocN_aligned)(size_t len,
                                     size_t alignment,
@@ -173,13 +173,13 @@ extern void (*MEM_reset_peak_memory)(void);
 /** Get the peak memory usage in bytes, including `mmap` allocations. */
 extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
-#ifdef __GNUC__
+#ifdef __cplusplus
 #  define MEM_SAFE_FREE(v) \
     do { \
-      typeof(&(v)) _v = &(v); \
+      static_assert(std::is_pointer_v<std::decay_t<decltype(v)>>); \
+      void **_v = (void **)&(v); \
       if (*_v) { \
-        /* Cast so we can free constant arrays. */ \
-        MEM_freeN((void *)*_v); \
+        MEM_freeN(*_v); \
         *_v = NULL; \
       } \
     } while (0)

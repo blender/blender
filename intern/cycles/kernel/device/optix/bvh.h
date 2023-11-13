@@ -185,7 +185,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   }
 
 #  ifdef __SHADOW_LINKING__
-  if (intersection_skip_shadow_link(nullptr, ray, object)) {
+  if (intersection_skip_shadow_link(nullptr, ray->self, object)) {
     return optixIgnoreIntersection();
   }
 #  endif
@@ -334,7 +334,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {
 #ifdef __SHADOW_LINKING__
-    if (intersection_skip_shadow_link(nullptr, ray, object)) {
+    if (intersection_skip_shadow_link(nullptr, ray->self, object)) {
       return optixIgnoreIntersection();
     }
 #endif

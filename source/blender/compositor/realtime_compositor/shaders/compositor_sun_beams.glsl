@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
 void main()
@@ -16,7 +20,7 @@ void main()
    * pixels along the integration path. Assume a minimum number of steps of 1 to avoid zero
    * division handling and return source pixels as is. */
   float integration_length = min(distance_to_source, max_ray_length);
-  float integration_length_in_pixels = length(input_size) * integration_length;
+  float integration_length_in_pixels = length(vec2(input_size)) * integration_length;
   int steps = max(1, int(integration_length_in_pixels));
   vec2 step_vector = (direction_to_source * integration_length) / steps;
 

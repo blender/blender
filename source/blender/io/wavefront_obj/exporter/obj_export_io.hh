@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -42,16 +42,18 @@ class FormatHandler : NonCopyable, NonMovable {
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
   void write_to_file(FILE *f)
   {
-    for (const auto &b : blocks_)
+    for (const auto &b : blocks_) {
       fwrite(b.data(), 1, b.size(), f);
+    }
     blocks_.clear();
   }
 
   std::string get_as_string() const
   {
     std::string s;
-    for (const auto &b : blocks_)
+    for (const auto &b : blocks_) {
       s.append(b.data(), b.size());
+    }
     return s;
   }
   size_t get_block_count() const

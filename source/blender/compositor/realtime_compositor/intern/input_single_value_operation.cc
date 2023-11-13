@@ -1,7 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_assert.h"
 #include "BLI_math_vector_types.hh"
 
 #include "COM_input_single_value_operation.hh"
@@ -17,7 +18,7 @@ InputSingleValueOperation::InputSingleValueOperation(Context &context, DInputSoc
     : Operation(context), input_socket_(input_socket)
 {
   const ResultType result_type = get_node_socket_result_type(input_socket_.bsocket());
-  Result result = Result(result_type, texture_pool());
+  Result result = context.create_result(result_type);
 
   /* The result of an input single value operation is guaranteed to have a single user. */
   result.set_initial_reference_count(1);
@@ -44,6 +45,10 @@ void InputSingleValueOperation::execute()
       break;
     case ResultType::Color:
       result.set_color_value(float4(bsocket->default_value_typed<bNodeSocketValueRGBA>()->value));
+      break;
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      BLI_assert_unreachable();
       break;
   }
 }

@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Copyright (c) 2009 www.stani.be
+# Copyright (c) 2009 https://www.stani.be
 
 """This module provides intellisense features such as:
 
@@ -81,7 +81,7 @@ def complete(line, cursor, namespace, private):
 
 
 def expand(line, cursor, namespace, *, private=True):
-    """This method is invoked when the user asks autocompletion,
+    """This method is invoked when the user asks auto-completion,
     e.g. when Ctrl+Space is clicked.
 
     :arg line: incomplete text line

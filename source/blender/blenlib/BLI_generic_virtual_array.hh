@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -185,9 +185,9 @@ class GVArray : public GVArrayCommon {
   GVArray(const GVArrayImpl *impl);
   GVArray(std::shared_ptr<const GVArrayImpl> impl);
 
-  GVArray(varray_tag::span /* tag */, GSpan span);
-  GVArray(varray_tag::single_ref /* tag */, const CPPType &type, int64_t size, const void *value);
-  GVArray(varray_tag::single /* tag */, const CPPType &type, int64_t size, const void *value);
+  GVArray(varray_tag::span /*tag*/, GSpan span);
+  GVArray(varray_tag::single_ref /*tag*/, const CPPType &type, int64_t size, const void *value);
+  GVArray(varray_tag::single /*tag*/, const CPPType &type, int64_t size, const void *value);
 
   template<typename T> GVArray(const VArray<T> &varray);
   template<typename T> VArray<T> typed() const;
@@ -822,7 +822,7 @@ template<typename T, bool UseSingle, bool UseSpan> struct GVArrayDevirtualizer {
 /** \name Inline methods for #GVArray.
  * \{ */
 
-inline GVArray::GVArray(varray_tag::span /* tag */, const GSpan span)
+inline GVArray::GVArray(varray_tag::span /*tag*/, const GSpan span)
 {
   /* Use const-cast because the underlying virtual array implementation is shared between const
    * and non const data. */
@@ -830,7 +830,7 @@ inline GVArray::GVArray(varray_tag::span /* tag */, const GSpan span)
   this->emplace<GVArrayImpl_For_GSpan_final>(mutable_span);
 }
 
-inline GVArray::GVArray(varray_tag::single_ref /* tag */,
+inline GVArray::GVArray(varray_tag::single_ref /*tag*/,
                         const CPPType &type,
                         const int64_t size,
                         const void *value)

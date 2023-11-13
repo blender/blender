@@ -33,8 +33,9 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   if (!light_map.add_or_update(&light, b_ob_info.real_object, b_parent, key) && !tfm_updated) {
     Shader *shader;
     if (!shader_map.add_or_update(&shader, b_light)) {
-      if (light->get_is_portal())
+      if (light->get_is_portal()) {
         *use_portal = true;
+      }
       return;
     }
   }
@@ -52,8 +53,6 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     case BL::Light::type_SPOT: {
       BL::SpotLight b_spot_light(b_light);
       light->set_size(b_spot_light.shadow_soft_size());
-      light->set_axisu(transform_get_column(&tfm, 0));
-      light->set_axisv(transform_get_column(&tfm, 1));
       light->set_light_type(LIGHT_SPOT);
       light->set_spot_angle(b_spot_light.spot_size());
       light->set_spot_smooth(b_spot_light.spot_blend());
@@ -74,8 +73,6 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     case BL::Light::type_AREA: {
       BL::AreaLight b_area_light(b_light);
       light->set_size(1.0f);
-      light->set_axisu(transform_get_column(&tfm, 0));
-      light->set_axisv(transform_get_column(&tfm, 1));
       light->set_sizeu(b_area_light.size());
       light->set_spread(b_area_light.spread());
       switch (b_area_light.shape()) {
@@ -106,8 +103,6 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_strength(strength);
 
   /* location and (inverted!) direction */
-  light->set_co(transform_get_column(&tfm, 3));
-  light->set_dir(-transform_get_column(&tfm, 2));
   light->set_tfm(tfm);
 
   /* shader */
@@ -132,13 +127,16 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     light->set_random_id(hash_uint2(hash_string(b_ob_info.real_object.name().c_str()), 0));
   }
 
-  if (light->get_light_type() == LIGHT_AREA)
+  if (light->get_light_type() == LIGHT_AREA) {
     light->set_is_portal(get_boolean(clight, "is_portal"));
-  else
+  }
+  else {
     light->set_is_portal(false);
+  }
 
-  if (light->get_is_portal())
+  if (light->get_is_portal()) {
     *use_portal = true;
+  }
 
   /* visibility */
   uint visibility = object_ray_visibility(b_ob_info.real_object);

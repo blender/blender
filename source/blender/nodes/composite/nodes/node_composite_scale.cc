@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,15 +7,19 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
+#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -44,11 +48,10 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 
 static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock;
   bool use_xy_scale = ELEM(node->custom1, CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE);
 
   /* Only show X/Y scale factor inputs for modes using them! */
-  for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STR_ELEM(sock->name, "X", "Y")) {
       bke::nodeSetSocketAvailability(ntree, sock, use_xy_scale);
     }
@@ -82,13 +85,15 @@ class ScaleOperation : public NodeOperation {
   void execute() override
   {
     Result &input = get_input("Image");
-    Result &result = get_result("Image");
-    input.pass_through(result);
+    Result &output = get_result("Image");
 
+    const float2 scale = get_scale();
+    const math::AngleRadian rotation = 0.0f;
+    const float2 translation = get_translation();
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
-        get_translation(), math::AngleRadian(0.0f), get_scale());
+        translation, rotation, scale);
 
-    result.transform(transformation);
+    transform(context(), input, output, transformation, input.get_realization_options());
   }
 
   float2 get_scale()

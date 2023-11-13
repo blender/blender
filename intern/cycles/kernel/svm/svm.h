@@ -223,6 +223,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
                                uint32_t path_flag)
 {
   float stack[SVM_STACK_SIZE];
+  Spectrum closure_weight;
   int offset = sd->shader & SHADER_MASK;
 
   while (1) {
@@ -233,54 +234,60 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       return;
       SVM_CASE(NODE_SHADER_JUMP)
       {
-        if (type == SHADER_TYPE_SURFACE)
+        if (type == SHADER_TYPE_SURFACE) {
           offset = node.y;
-        else if (type == SHADER_TYPE_VOLUME)
+        }
+        else if (type == SHADER_TYPE_VOLUME) {
           offset = node.z;
-        else if (type == SHADER_TYPE_DISPLACEMENT)
+        }
+        else if (type == SHADER_TYPE_DISPLACEMENT) {
           offset = node.w;
-        else
+        }
+        else {
           return;
+        }
         break;
       }
       SVM_CASE(NODE_CLOSURE_BSDF)
       offset = svm_node_closure_bsdf<node_feature_mask, type>(
-          kg, sd, stack, node, path_flag, offset);
+          kg, sd, stack, closure_weight, node, path_flag, offset);
       break;
       SVM_CASE(NODE_CLOSURE_EMISSION)
       IF_KERNEL_NODES_FEATURE(EMISSION)
       {
-        svm_node_closure_emission(sd, stack, node);
+        svm_node_closure_emission(sd, stack, closure_weight, node);
       }
       break;
       SVM_CASE(NODE_CLOSURE_BACKGROUND)
       IF_KERNEL_NODES_FEATURE(EMISSION)
       {
-        svm_node_closure_background(sd, stack, node);
+        svm_node_closure_background(sd, stack, closure_weight, node);
       }
       break;
       SVM_CASE(NODE_CLOSURE_SET_WEIGHT)
-      svm_node_closure_set_weight(sd, node.y, node.z, node.w);
+      svm_node_closure_set_weight(sd, &closure_weight, node.y, node.z, node.w);
       break;
       SVM_CASE(NODE_CLOSURE_WEIGHT)
-      svm_node_closure_weight(sd, stack, node.y);
+      svm_node_closure_weight(sd, stack, &closure_weight, node.y);
       break;
       SVM_CASE(NODE_EMISSION_WEIGHT)
       IF_KERNEL_NODES_FEATURE(EMISSION)
       {
-        svm_node_emission_weight(kg, sd, stack, node);
+        svm_node_emission_weight(kg, sd, stack, &closure_weight, node);
       }
       break;
       SVM_CASE(NODE_MIX_CLOSURE)
       svm_node_mix_closure(sd, stack, node);
       break;
       SVM_CASE(NODE_JUMP_IF_ZERO)
-      if (stack_load_float(stack, node.z) <= 0.0f)
+      if (stack_load_float(stack, node.z) <= 0.0f) {
         offset += node.y;
+      }
       break;
       SVM_CASE(NODE_JUMP_IF_ONE)
-      if (stack_load_float(stack, node.z) >= 1.0f)
+      if (stack_load_float(stack, node.z) >= 1.0f) {
         offset += node.y;
+      }
       break;
       SVM_CASE(NODE_GEOMETRY)
       svm_node_geometry(kg, sd, stack, node.y, node.z);
@@ -394,7 +401,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       svm_node_hsv(kg, sd, stack, node);
       break;
       SVM_CASE(NODE_CLOSURE_HOLDOUT)
-      svm_node_closure_holdout(sd, stack, node);
+      svm_node_closure_holdout(sd, stack, closure_weight, node);
       break;
       SVM_CASE(NODE_FRESNEL)
       svm_node_fresnel(sd, stack, node.y, node.z, node.w);
@@ -405,13 +412,14 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_CLOSURE_VOLUME)
       IF_KERNEL_NODES_FEATURE(VOLUME)
       {
-        svm_node_closure_volume<type>(kg, sd, stack, node);
+        svm_node_closure_volume<type>(kg, sd, stack, closure_weight, node);
       }
       break;
       SVM_CASE(NODE_PRINCIPLED_VOLUME)
       IF_KERNEL_NODES_FEATURE(VOLUME)
       {
-        offset = svm_node_principled_volume<type>(kg, sd, stack, node, path_flag, offset);
+        offset = svm_node_principled_volume<type>(
+            kg, sd, stack, closure_weight, node, path_flag, offset);
       }
       break;
       SVM_CASE(NODE_MATH)
@@ -570,10 +578,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
 #endif
 
       SVM_CASE(NODE_TEX_VOXEL)
-      IF_KERNEL_NODES_FEATURE(VOLUME)
-      {
-        offset = svm_node_tex_voxel(kg, sd, stack, node, offset);
-      }
+      offset = svm_node_tex_voxel<node_feature_mask>(kg, sd, stack, node, offset);
       break;
       SVM_CASE(NODE_AOV_START)
       if (!svm_node_aov_check(path_flag, render_buffer)) {

@@ -51,7 +51,7 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
     return;
   }
   const RealScalar considerAsZero = (std::numeric_limits<RealScalar>::min)();
-  RealScalar threshold = numext::maxi(tol*tol*rhsNorm2,considerAsZero);
+  RealScalar threshold = numext::maxi(RealScalar(tol*tol*rhsNorm2),considerAsZero);
   RealScalar residualNorm2 = residual.squaredNorm();
   if (residualNorm2 < threshold)
   {
@@ -195,7 +195,7 @@ public:
 
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solve_with_guess_impl(const Rhs& b, Dest& x) const
+  void _solve_vector_with_guess_impl(const Rhs& b, Dest& x) const
   {
     typedef typename Base::MatrixWrapper MatrixWrapper;
     typedef typename Base::ActualMatrixType ActualMatrixType;
@@ -211,30 +211,13 @@ public:
                                            RowMajorWrapper,
                                            typename MatrixWrapper::template ConstSelfAdjointViewReturnType<UpLo>::Type
                                           >::type SelfAdjointWrapper;
+
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
-    for(Index j=0; j<b.cols(); ++j)
-    {
-      m_iterations = Base::maxIterations();
-      m_error = Base::m_tolerance;
-
-      typename Dest::ColXpr xj(x,j);
-      RowMajorWrapper row_mat(matrix());
-      internal::conjugate_gradient(SelfAdjointWrapper(row_mat), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
-    }
-
-    m_isInitialized = true;
+    RowMajorWrapper row_mat(matrix());
+    internal::conjugate_gradient(SelfAdjointWrapper(row_mat), b, x, Base::m_preconditioner, m_iterations, m_error);
     m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
-  }
-  
-  /** \internal */
-  using Base::_solve_impl;
-  template<typename Rhs,typename Dest>
-  void _solve_impl(const MatrixBase<Rhs>& b, Dest& x) const
-  {
-    x.setZero();
-    _solve_with_guess_impl(b.derived(),x);
   }
 
 protected:

@@ -16,14 +16,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_dynstr.h"
 #include "BLI_string.h"
 
 #include "BLI_utildefines.h"
 
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
-#endif
+#include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */
 /** \name String Duplicate/Copy
@@ -31,6 +28,8 @@
 
 char *BLI_strdupn(const char *str, const size_t len)
 {
+  BLI_assert_msg(BLI_strnlen(str, len) == len, "strlen(str) must be greater or equal to 'len'!");
+
   char *n = MEM_mallocN(len + 1, "strdup");
   memcpy(n, str, len);
   n[len] = '\0';
@@ -41,6 +40,11 @@ char *BLI_strdupn(const char *str, const size_t len)
 char *BLI_strdup(const char *str)
 {
   return BLI_strdupn(str, strlen(str));
+}
+
+char *BLI_strdup_null(const char *str)
+{
+  return (str != NULL) ? BLI_strdupn(str, strlen(str)) : NULL;
 }
 
 char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
@@ -123,12 +127,7 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
   return srclen;
 }
 
-size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
-{
-  size_t srclen = strlen(src);
-  memcpy(dst, src, srclen + 1);
-  return srclen;
-}
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name String Append
@@ -166,7 +165,7 @@ size_t BLI_vsnprintf(char *__restrict dst,
 
   n = (size_t)vsnprintf(dst, dst_maxncpy, format, arg);
 
-  if (n != -1 && n < dst_maxncpy) {
+  if (n != (size_t)-1 && n < dst_maxncpy) {
     dst[n] = '\0';
   }
   else {
@@ -191,7 +190,7 @@ size_t BLI_vsnprintf_rlen(char *__restrict dst,
 
   n = (size_t)vsnprintf(dst, dst_maxncpy, format, arg);
 
-  if (n != -1 && n < dst_maxncpy) {
+  if (n != (size_t)-1 && n < dst_maxncpy) {
     /* pass */
   }
   else {
@@ -233,32 +232,99 @@ size_t BLI_snprintf_rlen(char *__restrict dst,
   return n;
 }
 
-char *BLI_sprintfN(const char *__restrict format, ...)
+char *BLI_sprintfN_with_buffer(
+    char *fixed_buf, size_t fixed_buf_size, size_t *result_len, const char *__restrict format, ...)
 {
-  DynStr *ds;
-  va_list arg;
-  char *n;
+  va_list args;
+  va_start(args, format);
+  int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args);
+  va_end(args);
+  if (UNLIKELY(retval < 0)) {
+    /* Return an empty string as there was an error there is no valid output. */
+    *result_len = 0;
+    if (UNLIKELY(fixed_buf_size == 0)) {
+      return MEM_callocN(sizeof(char), __func__);
+    }
+    *fixed_buf = '\0';
+    return fixed_buf;
+  }
+  *result_len = (size_t)retval;
+  if ((size_t)retval < fixed_buf_size) {
+    return fixed_buf;
+  }
 
-  va_start(arg, format);
-
-  ds = BLI_dynstr_new();
-  BLI_dynstr_vappendf(ds, format, arg);
-  n = BLI_dynstr_get_cstring(ds);
-  BLI_dynstr_free(ds);
-
-  va_end(arg);
-
-  return n;
+  /* `retval` doesn't include null terminator. */
+  const size_t size = (size_t)retval + 1;
+  char *result = MEM_mallocN(sizeof(char) * size, __func__);
+  va_start(args, format);
+  retval = vsnprintf(result, size, format, args);
+  va_end(args);
+  BLI_assert((size_t)(retval + 1) == size);
+  return result;
 }
 
-int BLI_sprintf(char *__restrict str, const char *__restrict format, ...)
+char *BLI_vsprintfN_with_buffer(char *fixed_buf,
+                                size_t fixed_buf_size,
+                                size_t *result_len,
+                                const char *__restrict format,
+                                va_list args)
 {
-  va_list arg;
+  va_list args_copy;
+  va_copy(args_copy, args);
+  int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args_copy);
+  va_end(args_copy);
+  if (UNLIKELY(retval < 0)) {
+    /* Return an empty string as there was an error there is no valid output. */
+    *result_len = 0;
+    if (UNLIKELY(fixed_buf_size == 0)) {
+      return MEM_callocN(sizeof(char), __func__);
+    }
+    *fixed_buf = '\0';
+    return fixed_buf;
+  }
+  *result_len = (size_t)retval;
+  if ((size_t)retval < fixed_buf_size) {
+    return fixed_buf;
+  }
 
-  va_start(arg, format);
-  const int result = vsprintf(str, format, arg);
-  va_end(arg);
+  /* `retval` doesn't include null terminator. */
+  const size_t size = (size_t)retval + 1;
+  char *result = MEM_mallocN(sizeof(char) * size, __func__);
+  retval = vsnprintf(result, size, format, args);
+  BLI_assert((size_t)(retval + 1) == size);
+  return result;
+}
 
+char *BLI_sprintfN(const char *__restrict format, ...)
+{
+  char fixed_buf[256];
+  size_t result_len;
+  va_list args;
+  va_start(args, format);
+  char *result = BLI_vsprintfN_with_buffer(
+      fixed_buf, sizeof(fixed_buf), &result_len, format, args);
+  va_end(args);
+  if (result != fixed_buf) {
+    return result;
+  }
+  size_t size = result_len + 1;
+  result = MEM_mallocN(sizeof(char) * size, __func__);
+  memcpy(result, fixed_buf, size);
+  return result;
+}
+
+char *BLI_vsprintfN(const char *__restrict format, va_list args)
+{
+  char fixed_buf[256];
+  size_t result_len;
+  char *result = BLI_vsprintfN_with_buffer(
+      fixed_buf, sizeof(fixed_buf), &result_len, format, args);
+  if (result != fixed_buf) {
+    return result;
+  }
+  size_t size = result_len + 1;
+  result = MEM_mallocN(sizeof(char) * size, __func__);
+  memcpy(result, fixed_buf, size);
   return result;
 }
 
@@ -469,142 +535,6 @@ bool BLI_str_quoted_substr(const char *__restrict str,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name String Replace
- * \{ */
-
-char *BLI_str_replaceN(const char *__restrict str,
-                       const char *__restrict substr_old,
-                       const char *__restrict substr_new)
-{
-  DynStr *ds = NULL;
-  size_t len_old = strlen(substr_old);
-  const char *match;
-
-  BLI_assert(substr_old[0] != '\0');
-
-  /* While we can still find a match for the old sub-string that we're searching for,
-   * keep dicing and replacing. */
-  while ((match = strstr(str, substr_old))) {
-    /* the assembly buffer only gets created when we actually need to rebuild the string */
-    if (ds == NULL) {
-      ds = BLI_dynstr_new();
-    }
-
-    /* If the match position does not match the current position in the string,
-     * copy the text up to this position and advance the current position in the string. */
-    if (str != match) {
-      /* Add the segment of the string from `str` to match to the buffer,
-       * then restore the value at match. */
-      BLI_dynstr_nappend(ds, str, (match - str));
-
-      /* now our current position should be set on the start of the match */
-      str = match;
-    }
-
-    /* Add the replacement text to the accumulation buffer. */
-    BLI_dynstr_append(ds, substr_new);
-
-    /* Advance the current position of the string up to the end of the replaced segment. */
-    str += len_old;
-  }
-
-  /* Finish off and return a new string that has had all occurrences of. */
-  if (ds) {
-    char *str_new;
-
-    /* Add what's left of the string to the assembly buffer
-     * - we've been adjusting `str` to point at the end of the replaced segments. */
-    BLI_dynstr_append(ds, str);
-
-    /* Convert to new c-string (MEM_malloc'd), and free the buffer. */
-    str_new = BLI_dynstr_get_cstring(ds);
-    BLI_dynstr_free(ds);
-
-    return str_new;
-  }
-  /* Just create a new copy of the entire string - we avoid going through the assembly buffer
-   * for what should be a bit more efficiency. */
-  return BLI_strdup(str);
-}
-
-void BLI_str_replace_char(char *str, char src, char dst)
-{
-  while (*str) {
-    if (*str == src) {
-      *str = dst;
-    }
-    str++;
-  }
-}
-
-bool BLI_str_replace_table_exact(char *string,
-                                 const size_t string_maxncpy,
-                                 const char *replace_table[][2],
-                                 int replace_table_len)
-{
-  BLI_string_debug_size_after_nil(string, string_maxncpy);
-
-  for (int i = 0; i < replace_table_len; i++) {
-    if (STREQ(string, replace_table[i][0])) {
-      BLI_strncpy(string, replace_table[i][1], string_maxncpy);
-      return true;
-    }
-  }
-  return false;
-}
-
-size_t BLI_str_replace_range(
-    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst)
-{
-  int string_len = strlen(string);
-  BLI_assert(src_beg <= src_end);
-  BLI_assert(src_end <= string_len);
-  const int src_len = src_end - src_beg;
-  int dst_len = strlen(dst);
-
-  if (src_len < dst_len) {
-    /* Grow, first handle special cases. */
-
-    /* Special case, the src_end is entirely clipped. */
-    if (UNLIKELY(string_maxncpy <= src_beg + dst_len)) {
-      /* There is only room for the destination. */
-      dst_len = ((int)string_maxncpy - src_beg) - 1;
-      string_len = src_end;
-      string[string_len] = '\0';
-    }
-
-    const int ofs = dst_len - src_len;
-    /* Clip the string when inserting the destination string exceeds `string_maxncpy`. */
-    if (string_len + ofs >= string_maxncpy) {
-      string_len = ((int)string_maxncpy - ofs) - 1;
-      string[string_len] = '\0';
-      BLI_assert(src_end <= string_len);
-    }
-
-    /* Grow. */
-    memmove(string + (src_end + ofs), string + src_end, (size_t)(string_len - src_end) + 1);
-    string_len += ofs;
-  }
-  else if (src_len > dst_len) {
-    /* Shrink. */
-    const int ofs = src_len - dst_len;
-    memmove(string + (src_end - ofs), string + src_end, (size_t)(string_len - src_end) + 1);
-    string_len -= ofs;
-  }
-  else { /* Simple case, no resizing. */
-    BLI_assert(src_len == dst_len);
-  }
-
-  if (dst_len > 0) {
-    memcpy(string + src_beg, dst, (size_t)dst_len);
-  }
-  BLI_assert(string[string_len] == '\0');
-  return (size_t)string_len;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name String Comparison/Matching
  * \{ */
 
@@ -619,14 +549,14 @@ char *BLI_strcasestr(const char *s, const char *find)
   size_t len;
 
   if ((c = *find++) != 0) {
-    c = tolower(c);
+    c = (char)tolower(c);
     len = strlen(find);
     do {
       do {
         if ((sc = *s++) == 0) {
           return NULL;
         }
-        sc = tolower(sc);
+        sc = (char)tolower(sc);
       } while (sc != c);
     } while (BLI_strncasecmp(s, find, len) != 0);
     s--;
@@ -672,14 +602,14 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len)
   char c, sc;
 
   if ((c = *find++) != 0) {
-    c = tolower(c);
+    c = (char)tolower(c);
     if (len > 1) {
       do {
         do {
           if ((sc = *s++) == 0) {
             return NULL;
           }
-          sc = tolower(sc);
+          sc = (char)tolower(sc);
         } while (sc != c);
       } while (BLI_strncasecmp(s, find, len - 1) != 0);
     }
@@ -689,7 +619,7 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len)
           if ((sc = *s++) == 0) {
             return NULL;
           }
-          sc = tolower(sc);
+          sc = (char)tolower(sc);
         } while (sc != c);
       }
     }
@@ -704,8 +634,8 @@ int BLI_strcasecmp(const char *s1, const char *s2)
   char c1, c2;
 
   for (i = 0;; i++) {
-    c1 = tolower(s1[i]);
-    c2 = tolower(s2[i]);
+    c1 = (char)tolower(s1[i]);
+    c2 = (char)tolower(s2[i]);
 
     if (c1 < c2) {
       return -1;
@@ -727,8 +657,8 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
   char c1, c2;
 
   for (i = 0; i < len; i++) {
-    c1 = tolower(s1[i]);
-    c2 = tolower(s2[i]);
+    c1 = (char)tolower(s1[i]);
+    c2 = (char)tolower(s2[i]);
 
     if (c1 < c2) {
       return -1;
@@ -828,8 +758,8 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2)
       break;
     }
 
-    c1 = tolower(s1[d1]);
-    c2 = tolower(s2[d2]);
+    c1 = (char)tolower(s1[d1]);
+    c2 = (char)tolower(s2[d2]);
 
     if (c1 == c2) {
       /* Continue iteration */
@@ -1076,7 +1006,7 @@ int BLI_str_rstrip_float_zero(char *str, const char pad)
 int BLI_str_rstrip_digits(char *str)
 {
   int totstrip = 0;
-  int str_len = strlen(str);
+  int str_len = (int)strlen(str);
   while (str_len > 0 && isdigit(str[--str_len])) {
     str[str_len] = '\0';
     totstrip++;
@@ -1157,13 +1087,13 @@ int BLI_string_find_split_words(
   bool charsearch = true;
 
   /* Skip leading spaces */
-  for (i = 0; (i < str_maxlen) && (str[i] != '\0'); i++) {
+  for (i = 0; (i < (int)str_maxlen) && (str[i] != '\0'); i++) {
     if (str[i] != delim) {
       break;
     }
   }
 
-  for (; (i < str_maxlen) && (str[i] != '\0') && (n < words_max); i++) {
+  for (; (i < (int)str_maxlen) && (str[i] != '\0') && (n < words_max); i++) {
     if ((str[i] != delim) && (charsearch == true)) {
       r_words[n][0] = i;
       charsearch = false;
@@ -1222,7 +1152,7 @@ size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], i
   UNUSED_VARS_NDEBUG(dst_maxncpy);
 
   char src[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
-  const int num_len = SNPRINTF(src, "%d", num);
+  const int num_len = (int)SNPRINTF(src, "%d", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
@@ -1234,7 +1164,7 @@ size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE
   UNUSED_VARS_NDEBUG(dst_maxncpy);
 
   char src[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
-  const int num_len = SNPRINTF(src, "%" PRIu64 "", num);
+  const int num_len = (int)SNPRINTF(src, "%" PRIu64 "", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
@@ -1246,7 +1176,7 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
   const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE;
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  double bytes_converted = bytes;
+  double bytes_converted = (double)bytes;
   int order = 0;
   int decimals;
   const int base = base_10 ? 1000 : 1024;
@@ -1274,7 +1204,7 @@ void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE
 {
   BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE);
 
-  float number_to_format_converted = number_to_format;
+  float number_to_format_converted = (float)number_to_format;
   int order = 0;
   const float base = 1000;
   const char *units[] = {"", "K", "M", "B"};
@@ -1299,7 +1229,7 @@ void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE
   const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE;
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  float number_to_format_converted = number_to_format;
+  float number_to_format_converted = (float)number_to_format;
   int order = 0;
   const float base = 1000;
   const char *units[] = {"", "K", "M", "B"};

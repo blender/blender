@@ -26,11 +26,11 @@
 
 #endif
 
-#include <ctype.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cctype>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/types.h>
 #ifndef _WIN32
 #  include <dirent.h>
@@ -93,58 +93,6 @@ static ImBuf *movie_fetchibuf(anim * /*anim*/, int /*position*/)
 static void free_anim_movie(anim * /*anim*/)
 {
   /* pass */
-}
-
-static int an_stringdec(const char *filepath, char *head, char *tail, ushort *numlen)
-{
-  ushort len, nume, nums = 0;
-  short i;
-  bool found = false;
-
-  len = strlen(filepath);
-  nume = len;
-
-  for (i = len - 1; i >= 0; i--) {
-    if (filepath[i] == SEP) {
-      break;
-    }
-    if (isdigit(filepath[i])) {
-      if (found) {
-        nums = i;
-      }
-      else {
-        nume = i;
-        nums = i;
-        found = true;
-      }
-    }
-    else {
-      if (found) {
-        break;
-      }
-    }
-  }
-  if (found) {
-    strcpy(tail, &filepath[nume + 1]);
-    strcpy(head, filepath);
-    head[nums] = '\0';
-    *numlen = nume - nums + 1;
-    return int(atoi(&(filepath)[nums]));
-  }
-  tail[0] = '\0';
-  strcpy(head, filepath);
-  *numlen = 0;
-  return true;
-}
-
-static void an_stringenc(char *filepath,
-                         const size_t string_maxncpy,
-                         const char *head,
-                         const char *tail,
-                         ushort numlen,
-                         int pic)
-{
-  BLI_path_sequence_encode(filepath, string_maxncpy, head, tail, numlen, pic);
 }
 
 #ifdef WITH_AVI
@@ -485,7 +433,7 @@ static ImBuf *avi_fetchibuf(anim *anim, int position)
     MEM_freeN(tmp);
   }
 
-  ibuf->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
+  ibuf->byte_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
 
   return ibuf;
 }
@@ -610,10 +558,20 @@ static int startffmpeg(anim *anim)
       }
     }
   }
-  /* Fall back to manually estimating the video stream duration.
-   * This is because the video stream duration can be shorter than the pFormatCtx->duration.
-   */
-  if (anim->duration_in_frames == 0) {
+
+  if (anim->duration_in_frames != 0) {
+    /* Pass (already valid). */
+  }
+  else if (pFormatCtx->duration == AV_NOPTS_VALUE) {
+    /* The duration has not been set, happens for single JPEG2000 images.
+     * NOTE: Leave the duration zeroed, although it could set to 1 so the file is recognized
+     * as a movie with 1 frame, leave as-is since image loading code-paths are preferred
+     * in this case. */
+  }
+  else {
+    /* Fall back to manually estimating the video stream duration.
+     * This is because the video stream duration can be shorter than the `pFormatCtx->duration`. */
+    BLI_assert(anim->duration_in_frames == 0);
     double stream_dur;
 
     if (video_stream->duration != AV_NOPTS_VALUE) {
@@ -666,7 +624,7 @@ static int startffmpeg(anim *anim)
    * starts. */
   anim->start_offset = video_start;
 
-  anim->params = 0;
+  anim->params = nullptr;
 
   anim->x = pCodecCtx->width;
   anim->y = pCodecCtx->height;
@@ -681,7 +639,6 @@ static int startffmpeg(anim *anim)
   anim->framesize = anim->x * anim->y * 4;
 
   anim->cur_position = 0;
-  anim->cur_frame_final = 0;
   anim->cur_pts = -1;
   anim->cur_key_frame_pts = -1;
   anim->cur_packet = av_packet_alloc();
@@ -850,16 +807,17 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(anim *anim)
 /**
  * Postprocess the image in anim->pFrame and do color conversion and de-interlacing stuff.
  *
- * Output is `anim->cur_frame_final`.
+ * \param ibuf: The frame just read by `ffmpeg_fetchibuf`, processed in-place.
  */
-static void ffmpeg_postprocess(anim *anim, AVFrame *input)
+static void ffmpeg_postprocess(anim *anim, AVFrame *input, ImBuf *ibuf)
 {
-  ImBuf *ibuf = anim->cur_frame_final;
   int filter_y = 0;
 
   /* This means the data wasn't read properly,
    * this check stops crashing */
-  if (input->data[0] == 0 && input->data[1] == 0 && input->data[2] == 0 && input->data[3] == 0) {
+  if (input->data[0] == nullptr && input->data[1] == nullptr && input->data[2] == nullptr &&
+      input->data[3] == nullptr)
+  {
     fprintf(stderr,
             "ffmpeg_fetchibuf: "
             "data not read properly...\n");
@@ -899,7 +857,7 @@ static void ffmpeg_postprocess(anim *anim, AVFrame *input)
   /* Copy the valid bytes from the aligned buffer vertically flipped into ImBuf */
   int aligned_stride = anim->pFrameRGB->linesize[0];
   const uint8_t *const src[4] = {
-      anim->pFrameRGB->data[0] + (anim->y - 1) * aligned_stride, 0, 0, 0};
+      anim->pFrameRGB->data[0] + (anim->y - 1) * aligned_stride, nullptr, nullptr, nullptr};
   /* NOTE: Negative linesize is used to copy and flip image at once with function
    * `av_image_copy_to_buffer`. This could cause issues in future and image may need to be flipped
    * explicitly. */
@@ -1090,7 +1048,7 @@ static int match_format(const char *name, AVFormatContext *pFormatCtx)
 
 static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 {
-  static const char *byte_seek_list[] = {"mpegts", 0};
+  static const char *byte_seek_list[] = {"mpegts", nullptr};
   const char **p;
 
   if (pFormatCtx->iformat->flags & AVFMT_TS_DISCONT) {
@@ -1110,12 +1068,12 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 
 static int64_t ffmpeg_get_seek_pts(anim *anim, int64_t pts_to_search)
 {
-  /* FFmpeg seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
-   * offset and sometimes ffmpeg fails to take this into account when seeking.
+  /* FFMPEG seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
+   * offset and sometimes FFMPEG fails to take this into account when seeking.
    * Therefore we need to seek backwards a certain offset to make sure the frame we want is in
-   * front of us. It is not possible to determine the exact needed offset, this value is determined
-   * experimentally. Note: Too big offset can impact performance. Current 3 frame offset has no
-   * measurable impact.
+   * front of us. It is not possible to determine the exact needed offset,
+   * this value is determined experimentally.
+   * NOTE: Too big offset can impact performance. Current 3 frame offset has no measurable impact.
    */
   int64_t seek_pts = pts_to_search - (ffmpeg_steps_per_frame_get(anim) * 3);
 
@@ -1431,8 +1389,6 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
   anim->x = anim->pCodecCtx->width;
   anim->y = anim->pCodecCtx->height;
 
-  IMB_freeImBuf(anim->cur_frame_final);
-
   /* Certain versions of FFmpeg have a bug in libswscale which ends up in crash
    * when destination buffer is not properly aligned. For example, this happens
    * in FFmpeg 4.3.1. It got fixed later on, but for compatibility reasons is
@@ -1459,14 +1415,14 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
     planes = R_IMF_PLANES_RGB;
   }
 
-  anim->cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
+  ImBuf *cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
 
   /* Allocate the storage explicitly to ensure the memory is aligned. */
   uint8_t *buffer_data = static_cast<uint8_t *>(
       MEM_mallocN_aligned(size_t(4) * anim->x * anim->y, 32, "ffmpeg ibuf"));
-  IMB_assign_byte_buffer(anim->cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
+  IMB_assign_byte_buffer(cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
 
-  anim->cur_frame_final->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
+  cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
 
   AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, pts_to_search);
   if (final_frame == nullptr) {
@@ -1478,14 +1434,12 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
   /* Even with the fallback from above it is possible that the current decode frame is nullptr. In
    * this case skip post-processing and return current image buffer. */
   if (final_frame != nullptr) {
-    ffmpeg_postprocess(anim, final_frame);
+    ffmpeg_postprocess(anim, final_frame, cur_frame_final);
   }
 
   anim->cur_position = position;
 
-  IMB_refImBuf(anim->cur_frame_final);
-
-  return anim->cur_frame_final;
+  return cur_frame_final;
 }
 
 static void free_anim_ffmpeg(anim *anim)
@@ -1505,7 +1459,6 @@ static void free_anim_ffmpeg(anim *anim)
     av_frame_free(&anim->pFrameDeinterlaced);
 
     sws_freeContext(anim->img_convert_ctx);
-    IMB_freeImBuf(anim->cur_frame_final);
   }
   anim->duration_in_frames = 0;
 }
@@ -1593,9 +1546,6 @@ ImBuf *IMB_anim_absolute(anim *anim,
                          IMB_Proxy_Size preview_size)
 {
   ImBuf *ibuf = nullptr;
-  char head[256], tail[256];
-  ushort digits;
-  int pic;
   int filter_y;
   if (anim == nullptr) {
     return nullptr;
@@ -1628,15 +1578,20 @@ ImBuf *IMB_anim_absolute(anim *anim,
   }
 
   switch (anim->curtype) {
-    case ANIM_SEQUENCE:
-      pic = an_stringdec(anim->filepath_first, head, tail, &digits);
-      pic += position;
-      an_stringenc(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
+    case ANIM_SEQUENCE: {
+      constexpr size_t filepath_size = BOUNDED_ARRAY_TYPE_SIZE<decltype(anim->filepath_first)>();
+      char head[filepath_size], tail[filepath_size];
+      ushort digits;
+      const int pic = BLI_path_sequence_decode(
+                          anim->filepath_first, head, sizeof(head), tail, sizeof(tail), &digits) +
+                      position;
+      BLI_path_sequence_encode(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
       ibuf = IMB_loadiffname(anim->filepath, IB_rect, anim->colorspace);
       if (ibuf) {
         anim->cur_position = position;
       }
       break;
+    }
     case ANIM_MOVIE:
       ibuf = movie_fetchibuf(anim, position);
       if (ibuf) {

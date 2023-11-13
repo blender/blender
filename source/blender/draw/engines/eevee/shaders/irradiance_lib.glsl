@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
@@ -134,7 +137,7 @@ float load_visibility_cell(int cell, vec3 L, float dist, float bias, float bleed
   /* Increase contrast in the weight by squaring it */
   p_max *= p_max;
 
-  /* Now reduce light-bleeding by removing the [0, x] tail and linearly rescaling (x, 1] */
+  /* Now reduce light-bleeding by removing the [0, x] tail and linearly re-scaling [x, 1]. */
   p_max = clamp((p_max - bleed_bias) / (1.0 - bleed_bias), 0.0, 1.0);
 
   return (dist <= moments.x) ? 1.0 : p_max;

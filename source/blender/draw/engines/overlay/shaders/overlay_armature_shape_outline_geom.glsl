@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 
@@ -28,7 +31,7 @@ void main(void)
     }
   }
 
-  n0 = (geom_in[0].inverted == 1) ? -n0 : n0;
+  n0 = (geom_flat_in[0].inverted == 1) ? -n0 : n0;
   /* Don't outline if concave edge. */
   if (dot(n0, v13) > 0.0001) {
     return;
@@ -61,7 +64,7 @@ void main(void)
   gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
   view_clipping_distances_set(gl_in[1]);
-  EmitVertex();
+  gpu_EmitVertex();
 
   gl_Position = geom_in[2].pPos;
   /* Offset away from the center to avoid overlap with solid shape. */
@@ -70,7 +73,7 @@ void main(void)
   gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
   view_clipping_distances_set(gl_in[2]);
-  EmitVertex();
+  gpu_EmitVertex();
 
   EndPrimitive();
 }

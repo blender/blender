@@ -9,7 +9,6 @@
 #include <math.h>
 
 #include "util/math.h"
-#include "util/string.h"
 #include "util/transform.h"
 #include "util/types.h"
 
@@ -93,8 +92,9 @@ class BoundBox {
   /* todo: avoid using this */
   __forceinline float safe_area() const
   {
-    if (!((min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z)))
+    if (!((min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z))) {
       return 0.0f;
+    }
 
     return area();
   }

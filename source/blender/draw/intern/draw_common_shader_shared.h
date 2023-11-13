@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -40,7 +40,8 @@ struct GlobalsUboStorage {
   float4 color_vertex_unreferenced;
   float4 color_vertex_missing_data;
   float4 color_edit_mesh_active;
-  float4 color_edge_select;
+  float4 color_edge_select;      /* Stands for edge selection, not edge select mode. */
+  float4 color_edge_mode_select; /* Stands for edge mode selection. */
   float4 color_edge_seam;
   float4 color_edge_sharp;
   float4 color_edge_crease;
@@ -48,7 +49,8 @@ struct GlobalsUboStorage {
   float4 color_edge_face_select;
   float4 color_edge_freestyle;
   float4 color_face;
-  float4 color_face_select;
+  float4 color_face_select;      /* Stands for face selection, not face select mode. */
+  float4 color_face_mode_select; /* Stands for face mode selection. */
   float4 color_face_retopology;
   float4 color_face_freestyle;
   float4 color_gpencil_vertex;
@@ -92,7 +94,7 @@ struct GlobalsUboStorage {
   float4 color_bone_pose_constraint;
   float4 color_bone_pose_ik;
   float4 color_bone_pose_spline_ik;
-  float4 color_bone_pose_target;
+  float4 color_bone_pose_no_target;
   float4 color_bone_solid;
   float4 color_bone_locked;
   float4 color_bone_active;
@@ -134,6 +136,8 @@ struct GlobalsUboStorage {
   float size_vertex, size_edge, size_edge_fix, size_face_dot;
   float size_checker;
   float size_vertex_gpencil;
+  float fresnel_mix_edit;
+  float _pad1, _pad2, _pad3;
 };
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 
@@ -158,6 +162,7 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorVertexMissingData globalsBlock.color_vertex_missing_data
 #  define colorEditMeshActive globalsBlock.color_edit_mesh_active
 #  define colorEdgeSelect globalsBlock.color_edge_select
+#  define colorEdgeModeSelect globalsBlock.color_edge_mode_select
 #  define colorEdgeSeam globalsBlock.color_edge_seam
 #  define colorEdgeSharp globalsBlock.color_edge_sharp
 #  define colorEdgeCrease globalsBlock.color_edge_crease
@@ -166,6 +171,7 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorEdgeFreestyle globalsBlock.color_edge_freestyle
 #  define colorFace globalsBlock.color_face
 #  define colorFaceSelect globalsBlock.color_face_select
+#  define colorFaceModeSelect globalsBlock.color_face_mode_select
 #  define colorFaceRetopology globalsBlock.color_face_retopology
 #  define colorFaceFreestyle globalsBlock.color_face_freestyle
 #  define colorGpencilVertex globalsBlock.color_gpencil_vertex
@@ -205,7 +211,7 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorBonePoseConstraint globalsBlock.color_bone_pose_constraint
 #  define colorBonePoseIK globalsBlock.color_bone_pose_ik
 #  define colorBonePoseSplineIK globalsBlock.color_bone_pose_spline_ik
-#  define colorBonePoseTarget globalsBlock.color_bone_pose_target
+#  define colorBonePoseTarget globalsBlock.color_bone_pose_no_target
 #  define colorBoneSolid globalsBlock.color_bone_solid
 #  define colorBoneLocked globalsBlock.color_bone_locked
 #  define colorBoneActive globalsBlock.color_bone_active
@@ -244,9 +250,10 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define sizeFaceDot globalsBlock.size_face_dot
 #  define sizeChecker globalsBlock.size_checker
 #  define sizeVertexGpencil globalsBlock.size_vertex_gpencil
+#  define fresnelMixEdit globalsBlock.fresnel_mix_edit
 #endif
 
-/* See: 'draw_cache_impl.h' for matching includes. */
+/* See: 'draw_cache_impl.hh' for matching includes. */
 #define VERT_GPENCIL_BEZT_HANDLE (1u << 30)
 /* data[0] (1st byte flags) */
 #define FACE_ACTIVE (1u << 0)

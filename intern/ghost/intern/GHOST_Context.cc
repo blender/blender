@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,7 +22,9 @@
 #  endif
 #endif
 
-#include <epoxy/gl.h>
+#ifdef WITH_OPENGL_BACKEND
+#  include <epoxy/gl.h>
+#endif
 
 #include <cstdio>
 #include <cstring>
@@ -127,9 +129,11 @@ bool win32_chk(bool result, const char *file, int line, const char *text)
 
 #endif  // _WIN32
 
+#ifdef WITH_OPENGL_BACKEND
 void GHOST_Context::initClearGL()
 {
   glClearColor(0.294, 0.294, 0.294, 0.000);
   glClear(GL_COLOR_BUFFER_BIT);
   glClearColor(0.000, 0.000, 0.000, 0.000);
 }
+#endif

@@ -1,11 +1,15 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "BKE_node.h"
+
+#include "GPU_material.h"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_wireframe_cc {
 
@@ -17,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_wireframe(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "use_pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+  uiItemR(layout, ptr, "use_pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
 static int node_shader_gpu_wireframe(GPUMaterial *mat,
@@ -36,6 +40,15 @@ static int node_shader_gpu_wireframe(GPUMaterial *mat,
   }
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* NOTE: This node isn't supported by MaterialX.*/
+  return get_output_default(socket_out_->name, NodeItem::Type::Float);
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_wireframe_cc
 
 /* node type definition */
@@ -49,6 +62,7 @@ void register_node_type_sh_wireframe()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_wireframe;
   ntype.gpu_fn = file_ns::node_shader_gpu_wireframe;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

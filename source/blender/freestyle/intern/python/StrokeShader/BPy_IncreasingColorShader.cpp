@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,8 +49,8 @@ static char IncreasingColorShader___doc__[] =
     "\n"
     ".. method:: shade(stroke)\n"
     "\n"
-    "   Assigns a varying color to the stroke.  The user specifies two\n"
-    "   colors A and B.  The stroke color will change linearly from A to B\n"
+    "   Assigns a varying color to the stroke. The user specifies two\n"
+    "   colors A and B. The stroke color will change linearly from A to B\n"
     "   between the first and the last vertex.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
@@ -85,7 +85,7 @@ static int IncreasingColorShader___init__(BPy_IncreasingColorShader *self,
 /*-----------------------BPy_IncreasingColorShader type definition ------------------------------*/
 
 PyTypeObject IncreasingColorShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "IncreasingColorShader",
     /*tp_basicsize*/ sizeof(BPy_IncreasingColorShader),
     /*tp_itemsize*/ 0,

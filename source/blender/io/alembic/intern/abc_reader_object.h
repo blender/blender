@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -81,8 +81,8 @@ class AbcObjectReader {
 
   /* XXX - TODO(kevindietrich) : this references stack memory... */
   ImportSettings *m_settings;
-  /* This is initialised from the ImportSettings above on construction. It will need to be removed
-   * once we fix the stack memory reference situation.  */
+  /* This is initialized from the ImportSettings above on construction. It will need to be removed
+   * once we fix the stack memory reference situation. */
   bool m_is_reading_a_file_sequence = false;
 
   chrono_t m_min_time;

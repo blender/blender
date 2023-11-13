@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,12 +16,12 @@ class ChannelMatteOperation : public MultiThreadedOperation {
  private:
   SocketReader *input_image_program_;
 
-  /* int color_space_; */ /* node->custom1 */ /* UNUSED */ /* TODO ? */
-  int matte_channel_;                                      /* node->custom2 */
-  int limit_method_;                                       /* node->algorithm */
-  int limit_channel_;                                      /* node->channel */
-  float limit_max_;                                        /* node->storage->t1 */
-  float limit_min_;                                        /* node->storage->t2 */
+  // int color_space_; /* node->custom1 */ /* UNUSED */ /* TODO? */
+  int matte_channel_; /* node->custom2 */
+  int limit_method_;  /* node->algorithm */
+  int limit_channel_; /* node->channel */
+  float limit_max_;   /* node->storage->t1 */
+  float limit_min_;   /* node->storage->t2 */
 
   float limit_range_;
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,13 +13,13 @@ GPU_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten)
     .image(1, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_tiles_img")
     .compute_source("eevee_motion_blur_flatten_comp.glsl");
 
-GPU_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten_viewport)
+GPU_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten_rg)
     .do_static_compilation(true)
-    .define("FLATTEN_VIEWPORT")
+    .define("FLATTEN_RG")
     .image(0, GPU_RG16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "velocity_img")
     .additional_info("eevee_motion_blur_tiles_flatten");
 
-GPU_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten_render)
+GPU_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten_rgba)
     .do_static_compilation(true)
     .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "velocity_img")
     .additional_info("eevee_motion_blur_tiles_flatten");

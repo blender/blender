@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
@@ -57,6 +57,8 @@ TEST(lib_id_main_sort, local_ids_1)
   EXPECT_TRUE(ctx.bmain->objects.first == id_a);
   EXPECT_TRUE(ctx.bmain->objects.last == id_c);
   test_lib_id_main_sort_check_order({id_a, id_b, id_c});
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 static void change_lib(Main *bmain, ID *id, Library *lib)
@@ -66,7 +68,7 @@ static void change_lib(Main *bmain, ID *id, Library *lib)
   }
   BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   id->lib = lib;
-  BKE_main_namemap_get_name(bmain, id, id->name + 2);
+  BKE_main_namemap_get_name(bmain, id, id->name + 2, false);
 }
 
 static void change_name(Main *bmain, ID *id, const char *name)
@@ -108,6 +110,8 @@ TEST(lib_id_main_sort, linked_ids_1)
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, local_ids_1)
@@ -131,6 +135,8 @@ TEST(lib_id_main_unique_name, local_ids_1)
   test_lib_id_main_sort_check_order({id_a, id_c, id_b});
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, linked_ids_1)
@@ -170,6 +176,73 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
+}
+
+static void change_name_global(Main *bmain, ID *id, const char *name)
+{
+  BKE_main_namemap_remove_name(bmain, id, id->name + 2);
+  BLI_strncpy(id->name + 2, name, MAX_NAME);
+
+  BKE_main_namemap_get_name(bmain, id, id->name + 2, true);
+
+  id_sort_by_name(&bmain->objects, id, nullptr);
+}
+
+TEST(lib_id_main_global_unique_name, linked_ids_1)
+{
+  LibIDMainSortTestContext ctx;
+  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+
+  Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
+  Library *lib_b = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_B"));
+  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  change_lib(ctx.bmain, id_a, lib_a);
+  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  change_lib(ctx.bmain, id_b, lib_b);
+  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+
+  change_name_global(ctx.bmain, id_b, "OB_A");
+  EXPECT_NE(ctx.bmain->name_map_global, nullptr);
+  EXPECT_STREQ(id_b->name + 2, "OB_A.001");
+  EXPECT_STREQ(id_a->name + 2, "OB_A");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  change_lib(ctx.bmain, id_b, lib_a);
+  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  change_name_global(ctx.bmain, id_b, "OB_C");
+  EXPECT_STREQ(id_b->name + 2, "OB_C.001");
+  EXPECT_STREQ(id_a->name + 2, "OB_A");
+  EXPECT_STREQ(id_c->name + 2, "OB_C");
+  change_name_global(ctx.bmain, id_a, "OB_C");
+  EXPECT_STREQ(id_b->name + 2, "OB_C.001");
+  EXPECT_STREQ(id_a->name + 2, "OB_C.002");
+  EXPECT_STREQ(id_c->name + 2, "OB_C");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_a);
+  test_lib_id_main_sort_check_order({id_c, id_b, id_a});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  change_name(ctx.bmain, id_b, "OB_C");
+  EXPECT_STREQ(id_b->name + 2, "OB_C");
+  EXPECT_STREQ(id_a->name + 2, "OB_C.002");
+  EXPECT_STREQ(id_c->name + 2, "OB_C");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_a);
+  test_lib_id_main_sort_check_order({id_c, id_b, id_a});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, ids_sorted_by_default)
@@ -183,6 +256,8 @@ TEST(lib_id_main_unique_name, ids_sorted_by_default)
   test_lib_id_main_sort_check_order({id_bar, id_baz, id_foo, id_yes});
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 static ID *add_id_in_library(Main *bmain, const char *name, Library *lib)
@@ -213,6 +288,8 @@ TEST(lib_id_main_unique_name, ids_sorted_by_default_with_libraries)
   test_lib_id_main_sort_check_order({id_bar, id_baz, id_foo, id_yes, id_l1a, id_l1c, id_l2b});
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, name_too_long_handling)
@@ -231,6 +308,8 @@ TEST(lib_id_main_unique_name, name_too_long_handling)
   EXPECT_STREQ(id_c->name + 2, "Name_That_Has_Too_Long_Number_Suffix.1234567890"); /* Unchanged */
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, create_equivalent_numeric_suffixes)
@@ -292,6 +371,8 @@ TEST(lib_id_main_unique_name, create_equivalent_numeric_suffixes)
   EXPECT_STREQ(id_k->name + 2, "Foo..004");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, zero_suffix_is_never_assigned)
@@ -309,6 +390,8 @@ TEST(lib_id_main_unique_name, zero_suffix_is_never_assigned)
   EXPECT_STREQ(id_003->name + 2, "Foo.003");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, remove_after_dup_get_original_name)
@@ -328,6 +411,8 @@ TEST(lib_id_main_unique_name, remove_after_dup_get_original_name)
   EXPECT_STREQ(id_a->name + 2, "Foo");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, name_number_suffix_assignment)
@@ -398,6 +483,8 @@ TEST(lib_id_main_unique_name, name_number_suffix_assignment)
   EXPECT_STREQ(id_fo180->name + 2, "Fo.180");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, renames_with_duplicates)
@@ -424,6 +511,8 @@ TEST(lib_id_main_unique_name, renames_with_duplicates)
   EXPECT_STREQ(id_b->name + 2, "Bar");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, names_are_unique_per_id_type)
@@ -439,6 +528,8 @@ TEST(lib_id_main_unique_name, names_are_unique_per_id_type)
   EXPECT_STREQ(id_c->name + 2, "Foo.001");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 TEST(lib_id_main_unique_name, name_huge_number_suffix)
@@ -454,6 +545,8 @@ TEST(lib_id_main_unique_name, name_huge_number_suffix)
   EXPECT_STREQ(id_b->name + 2, "SuperLong.001");
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
 }  // namespace blender::bke::tests

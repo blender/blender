@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -81,7 +81,7 @@ void InstancesComponent::ensure_owns_direct_data()
   }
 }
 
-const Instances *InstancesComponent::get_for_read() const
+const Instances *InstancesComponent::get() const
 {
   return instances_;
 }
@@ -169,11 +169,11 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   static CustomDataAccessInfo instance_custom_data_access = {
       [](void *owner) -> CustomData * {
         Instances *instances = static_cast<Instances *>(owner);
-        return &instances->custom_data_attributes().data;
+        return &instances->custom_data_attributes();
       },
       [](const void *owner) -> const CustomData * {
         const Instances *instances = static_cast<const Instances *>(owner);
-        return &instances->custom_data_attributes().data;
+        return &instances->custom_data_attributes();
       },
       [](const void *owner) -> int {
         const Instances *instances = static_cast<const Instances *>(owner);

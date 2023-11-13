@@ -55,5 +55,6 @@ if(NOT APPLE)
 endif()
 
 if(WITH_GTESTS AND WITH_CYCLES_LOGGING)
-  blender_src_gtest(cycles "${SRC}" "${LIB}")
+  set(INC_SYS )
+  blender_add_test_executable(cycles "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 endif()

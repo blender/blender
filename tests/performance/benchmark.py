@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -10,7 +10,6 @@ import glob
 import pathlib
 import shutil
 import sys
-import time
 from typing import List
 
 

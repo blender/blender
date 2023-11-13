@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -96,13 +96,13 @@ IFACEMETHODIMP CBlendThumb::Initialize(IStream *pStream, DWORD)
 /**
  * #FileReader compatible wrapper around the Windows stream that gives access to the .blend file.
  */
-typedef struct {
+struct StreamReader {
   FileReader reader;
 
   IStream *_pStream;
-} StreamReader;
+};
 
-static ssize_t stream_read(FileReader *reader, void *buffer, size_t size)
+static int64_t stream_read(FileReader *reader, void *buffer, size_t size)
 {
   StreamReader *stream = (StreamReader *)reader;
 
@@ -110,7 +110,7 @@ static ssize_t stream_read(FileReader *reader, void *buffer, size_t size)
   stream->_pStream->Read(buffer, size, &readsize);
   stream->reader.offset += readsize;
 
-  return ssize_t(readsize);
+  return int64_t(readsize);
 }
 
 static off64_t stream_seek(FileReader *reader, off64_t offset, int whence)

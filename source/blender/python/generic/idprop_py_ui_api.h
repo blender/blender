@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct IDProperty;
 
@@ -18,3 +22,7 @@ typedef struct BPy_IDPropertyUIManager {
 } BPy_IDPropertyUIManager;
 
 void IDPropertyUIData_Init_Types(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
@@ -24,7 +27,7 @@ void main()
   PASS_SURFACE_INTERFACE(0);
   gl_Position = gl_in[0].gl_Position;
   gl_ClipDistance[0] = gl_in[0].gl_ClipDistance[0];
-  EmitVertex();
+  gpu_EmitVertex();
 
 #ifdef USE_ATTR
   pass_attr(1);
@@ -32,7 +35,7 @@ void main()
   PASS_SURFACE_INTERFACE(1);
   gl_Position = gl_in[1].gl_Position;
   gl_ClipDistance[0] = gl_in[1].gl_ClipDistance[0];
-  EmitVertex();
+  gpu_EmitVertex();
 
 #ifdef USE_ATTR
   pass_attr(2);
@@ -40,7 +43,7 @@ void main()
   PASS_SURFACE_INTERFACE(2);
   gl_Position = gl_in[2].gl_Position;
   gl_ClipDistance[0] = gl_in[2].gl_ClipDistance[0];
-  EmitVertex();
+  gpu_EmitVertex();
 
   EndPrimitive();
 }

@@ -22,14 +22,17 @@ ccl_device_noinline void svm_node_camera(KernelGlobals kg,
   zdepth = vector.z;
   distance = len(vector);
 
-  if (stack_valid(out_vector))
+  if (stack_valid(out_vector)) {
     stack_store_float3(stack, out_vector, normalize(vector));
+  }
 
-  if (stack_valid(out_zdepth))
+  if (stack_valid(out_zdepth)) {
     stack_store_float(stack, out_zdepth, zdepth);
+  }
 
-  if (stack_valid(out_distance))
+  if (stack_valid(out_distance)) {
     stack_store_float(stack, out_distance, distance);
+  }
 }
 
 CCL_NAMESPACE_END

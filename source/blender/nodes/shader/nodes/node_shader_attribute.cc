@@ -1,11 +1,13 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "node_util.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_attribute_cc {
 
@@ -75,6 +77,16 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   return 1;
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* TODO: some outputs expected be implemented within the next iteration
+   * (see node-definition `<geompropvalue>`). */
+  return get_output_default(socket_out_->name, NodeItem::Type::Any);
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_attribute_cc
 
 /* node type definition */
@@ -91,6 +103,7 @@ void register_node_type_sh_attribute()
   node_type_storage(
       &ntype, "NodeShaderAttribute", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_attribute;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

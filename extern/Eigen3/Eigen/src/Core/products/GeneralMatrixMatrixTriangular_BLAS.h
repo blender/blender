@@ -37,10 +37,10 @@ namespace Eigen {
 
 namespace internal {
 
-template <typename Index, typename Scalar, int AStorageOrder, bool ConjugateA, int ResStorageOrder, int  UpLo>
+template <typename Index, typename Scalar, int AStorageOrder, bool ConjugateA, int ResStorageOrder, int UpLo>
 struct general_matrix_matrix_rankupdate :
        general_matrix_matrix_triangular_product<
-         Index,Scalar,AStorageOrder,ConjugateA,Scalar,AStorageOrder,ConjugateA,ResStorageOrder,UpLo,BuiltIn> {};
+         Index,Scalar,AStorageOrder,ConjugateA,Scalar,AStorageOrder,ConjugateA,ResStorageOrder,1,UpLo,BuiltIn> {};
 
 
 // try to go to BLAS specialization
@@ -48,9 +48,9 @@ struct general_matrix_matrix_rankupdate :
 template <typename Index, int LhsStorageOrder, bool ConjugateLhs, \
                           int RhsStorageOrder, bool ConjugateRhs, int  UpLo> \
 struct general_matrix_matrix_triangular_product<Index,Scalar,LhsStorageOrder,ConjugateLhs, \
-               Scalar,RhsStorageOrder,ConjugateRhs,ColMajor,UpLo,Specialized> { \
+               Scalar,RhsStorageOrder,ConjugateRhs,ColMajor,1,UpLo,Specialized> { \
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const Scalar* lhs, Index lhsStride, \
-                          const Scalar* rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha, level3_blocking<Scalar, Scalar>& blocking) \
+                          const Scalar* rhs, Index rhsStride, Scalar* res, Index resIncr, Index resStride, Scalar alpha, level3_blocking<Scalar, Scalar>& blocking) \
   { \
     if ( lhs==rhs && ((UpLo&(Lower|Upper))==UpLo) ) { \
       general_matrix_matrix_rankupdate<Index,Scalar,LhsStorageOrder,ConjugateLhs,ColMajor,UpLo> \
@@ -59,8 +59,8 @@ struct general_matrix_matrix_triangular_product<Index,Scalar,LhsStorageOrder,Con
       general_matrix_matrix_triangular_product<Index, \
         Scalar, LhsStorageOrder, ConjugateLhs, \
         Scalar, RhsStorageOrder, ConjugateRhs, \
-        ColMajor, UpLo, BuiltIn> \
-      ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resStride,alpha,blocking); \
+        ColMajor, 1, UpLo, BuiltIn> \
+      ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resIncr,resStride,alpha,blocking); \
     } \
   } \
 };

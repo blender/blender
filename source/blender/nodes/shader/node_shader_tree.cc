@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,29 +20,34 @@
 #include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
+#include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "GPU_material.h"
 
 #include "RE_texture.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "NOD_common.h"
+#include "NOD_shader.h"
 
 #include "node_common.h"
 #include "node_exec.hh"
@@ -164,11 +169,11 @@ void register_node_tree_type_sh()
   bNodeTreeType *tt = ntreeType_Shader = MEM_cnew<bNodeTreeType>("shader node tree type");
 
   tt->type = NTREE_SHADER;
-  strcpy(tt->idname, "ShaderNodeTree");
-  strcpy(tt->group_idname, "ShaderNodeGroup");
-  strcpy(tt->ui_name, N_("Shader Editor"));
+  STRNCPY(tt->idname, "ShaderNodeTree");
+  STRNCPY(tt->group_idname, "ShaderNodeGroup");
+  STRNCPY(tt->ui_name, N_("Shader Editor"));
   tt->ui_icon = ICON_NODE_MATERIAL;
-  strcpy(tt->ui_description, N_("Shader nodes"));
+  STRNCPY(tt->ui_description, N_("Shader nodes"));
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;
@@ -271,6 +276,7 @@ static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
   bNodeSocketValueRGBA *src_rgba, *dst_rgba;
   bNodeSocketValueFloat *src_float, *dst_float;
   bNodeSocketValueInt *src_int;
+  bNodeSocketValueBoolean *src_bool;
 
   switch (socket->type) {
     case SOCK_VECTOR:
@@ -289,6 +295,15 @@ static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
       src_rgba = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
       dst_rgba = static_cast<bNodeSocketValueRGBA *>(value_socket->default_value);
       copy_v4_v4(dst_rgba->value, src_rgba->value);
+      break;
+    case SOCK_BOOLEAN:
+      /* HACK: Support as float. */
+      value_node = nodeAddStaticNode(nullptr, localtree, SH_NODE_VALUE);
+      value_socket = ntree_shader_node_find_output(value_node, "Value");
+      BLI_assert(value_socket != nullptr);
+      src_bool = static_cast<bNodeSocketValueBoolean *>(socket->default_value);
+      dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
+      dst_float->value = float(src_bool->value);
       break;
     case SOCK_INT:
       /* HACK: Support as float. */
@@ -893,7 +908,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
             case SH_NODE_BSDF_TOON:
             case SH_NODE_BSDF_TRANSLUCENT:
             case SH_NODE_BSDF_TRANSPARENT:
-            case SH_NODE_BSDF_VELVET:
+            case SH_NODE_BSDF_SHEEN:
             case SH_NODE_EEVEE_SPECULAR:
             case SH_NODE_EMISSION:
             case SH_NODE_HOLDOUT:
@@ -950,7 +965,7 @@ static bool closure_node_filter(const bNode *node)
     case SH_NODE_BSDF_TOON:
     case SH_NODE_BSDF_TRANSLUCENT:
     case SH_NODE_BSDF_TRANSPARENT:
-    case SH_NODE_BSDF_VELVET:
+    case SH_NODE_BSDF_SHEEN:
     case SH_NODE_EEVEE_SPECULAR:
     case SH_NODE_EMISSION:
     case SH_NODE_HOLDOUT:
@@ -1113,9 +1128,10 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
   }
 
   /* Avoid deleting the output node if it is the only node in the tree. */
-  output_node->runtime->tmp_flag = 1;
-
-  blender::bke::nodeChainIterBackwards(ntree, output_node, ntree_branch_node_tag, nullptr, 0);
+  if (output_node) {
+    output_node->runtime->tmp_flag = 1;
+    blender::bke::nodeChainIterBackwards(ntree, output_node, ntree_branch_node_tag, nullptr, 0);
+  }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
@@ -1149,10 +1165,12 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
   /* Tree is valid if it contains no undefined implicit socket type cast. */
   bool valid_tree = ntree_shader_implicit_closure_cast(localtree);
 
-  if (valid_tree && output != nullptr) {
+  if (valid_tree) {
     ntree_shader_pruned_unused(localtree, output);
-    ntree_shader_shader_to_rgba_branch(localtree, output);
-    ntree_shader_weight_tree_invert(localtree, output);
+    if (output != nullptr) {
+      ntree_shader_shader_to_rgba_branch(localtree, output);
+      ntree_shader_weight_tree_invert(localtree, output);
+    }
   }
 
   exec = ntreeShaderBeginExecTree(localtree);

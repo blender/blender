@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 vec3 linear_to_srgb_attr(vec3 c)
 {
   c = max(c, vec3(0.0));

@@ -119,7 +119,7 @@ public:
     * If the dimension of the ambient space is greater than 2, then there isn't uniqueness,
     * so an arbitrary choice is made.
     */
-  // FIXME to be consitent with the rest this could be implemented as a static Through function ??
+  // FIXME to be consistent with the rest this could be implemented as a static Through function ??
   EIGEN_DEVICE_FUNC explicit Hyperplane(const ParametrizedLine<Scalar, AmbientDimAtCompileTime>& parametrized)
   {
     normal() = parametrized.direction().unitOrthogonal();

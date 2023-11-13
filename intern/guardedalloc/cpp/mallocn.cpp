@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2002-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2002-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,12 +34,14 @@ void *operator new[](size_t size)
 void operator delete(void *p) throw()
 {
   /* delete NULL is valid in c++ */
-  if (p)
+  if (p) {
     MEM_freeN(p);
+  }
 }
 void operator delete[](void *p) throw()
 {
   /* delete NULL is valid in c++ */
-  if (p)
+  if (p) {
     MEM_freeN(p);
+  }
 }

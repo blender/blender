@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_eevee_specular(vec4 diffuse,
                          vec4 specular,
@@ -15,7 +18,7 @@ void node_eevee_specular(vec4 diffuse,
 {
   N = safe_normalize(N);
   CN = safe_normalize(CN);
-  vec3 V = cameraVec(g_data.P);
+  vec3 V = coordinate_incoming(g_data.P);
 
   ClosureEmission emission_data;
   emission_data.weight = weight;

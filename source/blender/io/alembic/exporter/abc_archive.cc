@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_scene_types.h"
 
@@ -19,7 +19,7 @@
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #endif
 
 namespace blender::io::alembic {
@@ -156,7 +156,7 @@ static void get_frames(double scene_fps,
 ABCArchive::ABCArchive(const Main *bmain,
                        const Scene *scene,
                        AlembicExportParams params,
-                       std::string filepath)
+                       const std::string &filepath)
     : archive(nullptr)
 {
   double scene_fps = FPS;

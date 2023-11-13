@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,6 +6,8 @@
  * \ingroup bgpencil
  */
 
+#include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -21,17 +23,17 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_view3d.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_view3d.hh"
 
 #ifdef WIN32
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #endif
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "gpencil_io.h"
 #include "gpencil_io_export_svg.hh"
@@ -313,7 +315,7 @@ void GpencilExporterSVG::export_stroke_to_polyline(bGPDlayer *gpl,
     const float estimated_width = (radius * 2.0f) + gpl->line_change;
     const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
                                                        estimated_width;
-    node_gps.append_attribute("stroke-width").set_value(MAX2(final_width, 1.0f));
+    node_gps.append_attribute("stroke-width").set_value(std::max(final_width, 1.0f));
   }
 
   std::string txt;

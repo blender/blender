@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2010 Blender Foundation
+/* SPDX-FileCopyrightText: 2010 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -67,7 +67,7 @@ typedef struct BakeHighPolyData {
   float imat[4][4];
 } BakeHighPolyData;
 
-/* external_engine.c */
+/* `external_engine.cc` */
 
 bool RE_bake_has_engine(const struct Render *re);
 
@@ -81,7 +81,7 @@ bool RE_bake_engine(struct Render *re,
                     int pass_filter,
                     float result[]);
 
-/* bake.c */
+/* `bake.cc` */
 
 int RE_pass_depth(eScenePassType pass_type);
 

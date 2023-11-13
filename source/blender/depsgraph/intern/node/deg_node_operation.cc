@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,16 +6,16 @@
  * \ingroup depsgraph
  */
 
-#include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node_operation.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 
-#include "intern/depsgraph.h"
-#include "intern/node/deg_node_component.h"
-#include "intern/node/deg_node_factory.h"
-#include "intern/node/deg_node_id.h"
+#include "intern/depsgraph.hh"
+#include "intern/node/deg_node_component.hh"
+#include "intern/node/deg_node_factory.hh"
+#include "intern/node/deg_node_id.hh"
 
 namespace blender::deg {
 
@@ -200,8 +200,6 @@ const char *operationCodeAsString(OperationCode opcode)
     /* instancing/duplication. */
     case OperationCode::DUPLI:
       return "DUPLI";
-    case OperationCode::SIMULATION_EVAL:
-      return "SIMULATION_EVAL";
   }
   BLI_assert_msg(0, "Unhandled operation code, should never happen.");
   return "UNKNOWN";

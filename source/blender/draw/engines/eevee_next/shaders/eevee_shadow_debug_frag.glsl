@@ -1,19 +1,21 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Debug drawing for virtual shadowmaps.
+ * Debug drawing for virtual shadow-maps.
  * See eShadowDebug for more information.
  */
 
-#pragma BLENDER_REQUIRE(common_debug_print_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_debug_gradients_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
-/** Control the scaling of the tilemap splat. */
+/** Control the scaling of the tile-map splat. */
 const float pixel_scale = 4.0;
 
 vec3 debug_random_color(ivec2 v)
@@ -29,10 +31,12 @@ vec3 debug_random_color(int v)
 
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
+#ifdef DRW_DEBUG_PRINT
   drw_print("Tile (", tile_coord.x, ",", tile_coord.y, ") in Tilemap ", tile_coord.z, " : ");
   drw_print(tile.lod);
   drw_print(tile.page);
   drw_print(tile.cache_index);
+#endif
 }
 
 vec3 debug_tile_state_color(ShadowTileData tile)
@@ -59,17 +63,17 @@ vec3 debug_tile_state_color(ShadowTileData tile)
   return col;
 }
 
-ShadowSample debug_tile_get(vec3 P, LightData light)
-{
-  vec3 lNg = vec3(1.0, 0.0, 0.0);
-  if (is_sun_light(light.type)) {
-    return shadow_directional_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, P, lNg);
-  }
-  else {
-    vec3 lL = light_world_to_local(light, P - light._position);
-    return shadow_punctual_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, lL, lNg);
-  }
-}
+// ShadowSample debug_tile_get(vec3 P, LightData light)
+// {
+//   vec3 lNg = vec3(1.0, 0.0, 0.0);
+//   if (is_sun_light(light.type)) {
+//     return shadow_directional_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, P, lNg);
+//   }
+//   else {
+//     vec3 lL = light_world_to_local(light, P - light._position);
+//     return shadow_punctual_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, lL, lNg);
+//   }
+// }
 
 LightData debug_light_get()
 {
@@ -99,20 +103,23 @@ bool debug_tilemaps(vec3 P, LightData light)
   int tilemap = px.x / SHADOW_TILEMAP_RES;
   int tilemap_index = light.tilemap_index + tilemap;
   if ((px.y < SHADOW_TILEMAP_RES) && (tilemap_index <= light_tilemap_max_get(light))) {
-    /* Debug actual values in the tilemap buffer. */
+    /* Debug actual values in the tile-map buffer. */
     ShadowTileMapData tilemap = tilemaps_buf[tilemap_index];
-    int tile_index = shadow_tile_offset(px % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
+    int tile_index = shadow_tile_offset(
+        (px + SHADOW_TILEMAP_RES) % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
-    /* Leave 1 px border between tilemaps. */
+    /* Leave 1 px border between tile-maps. */
     if (!any(equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0))))
     {
       gl_FragDepth = 0.0;
       out_color_add = vec4(debug_tile_state_color(tile), 0.0);
       out_color_mul = vec4(0.0);
 
+#ifdef DRW_DEBUG_PRINT
       if (all(equal(ivec2(gl_FragCoord.xy), ivec2(0)))) {
         drw_print(light.object_mat);
       }
+#endif
       return true;
     }
   }
@@ -121,30 +128,30 @@ bool debug_tilemaps(vec3 P, LightData light)
 
 void debug_tile_state(vec3 P, LightData light)
 {
-  ShadowSample samp = debug_tile_get(P, light);
-  out_color_add = vec4(debug_tile_state_color(samp.tile), 0) * 0.5;
-  out_color_mul = vec4(0.5);
+  // ShadowSample samp = debug_tile_get(P, light);
+  // out_color_add = vec4(debug_tile_state_color(samp.tile), 0) * 0.5;
+  // out_color_mul = vec4(0.5);
 }
 
 void debug_atlas_values(vec3 P, LightData light)
 {
-  ShadowSample samp = debug_tile_get(P, light);
-  out_color_add = vec4(vec3(samp.occluder_dist), 0);
-  out_color_mul = vec4(0.0);
+  // ShadowSample samp = debug_tile_get(P, light);
+  // out_color_add = vec4(vec3(samp.occluder_dist), 0);
+  // out_color_mul = vec4(0.0);
 }
 
 void debug_random_tile_color(vec3 P, LightData light)
 {
-  ShadowSample samp = debug_tile_get(P, light);
-  out_color_add = vec4(debug_random_color(ivec2(samp.tile.page)), 0) * 0.5;
-  out_color_mul = vec4(0.5);
+  // ShadowSample samp = debug_tile_get(P, light);
+  // out_color_add = vec4(debug_random_color(ivec2(samp.tile.page.xy)), 0) * 0.5;
+  // out_color_mul = vec4(0.5);
 }
 
 void debug_random_tilemap_color(vec3 P, LightData light)
 {
   ShadowCoordinates coord;
   if (is_sun_light(light.type)) {
-    vec3 lP = shadow_world_to_local(light, P);
+    vec3 lP = light_world_to_local(light, P);
     coord = shadow_directional_coordinates(light, lP);
   }
   else {
@@ -166,7 +173,7 @@ void main()
   out_color_mul = vec4(1.0);
 
   float depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), 0).r;
-  vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
+  vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
   /* Make it pass the depth test. */
   gl_FragDepth = depth - 1e-6;
 

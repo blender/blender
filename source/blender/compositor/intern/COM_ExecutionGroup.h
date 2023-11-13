@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -294,7 +294,7 @@ class ExecutionGroup {
 
   /**
    * \brief compose multiple chunks into a single chunk
-   * \return Memorybuffer *consolidated chunk
+   * \return `(Memorybuffer *)` consolidated chunk
    */
   MemoryBuffer *construct_consolidated_memory_buffer(MemoryProxy &memory_proxy, rcti &rect);
 
@@ -305,15 +305,15 @@ class ExecutionGroup {
   void init_execution();
 
   /**
-   * \brief get all inputbuffers needed to calculate an chunk
-   * \note all inputbuffers must be executed
+   * \brief get all input-buffers needed to calculate an chunk
+   * \note all input-buffers must be executed
    * \param chunk_number: the chunk to be calculated
-   * \return (MemoryBuffer **) the inputbuffers
+   * \return `(MemoryBuffer **)` the input-buffers.
    */
   MemoryBuffer **get_input_buffers_opencl(int chunk_number);
 
   /**
-   * \brief allocate the outputbuffer of a chunk
+   * \brief allocate the output-buffer of a chunk
    * \param chunk_number: the number of the chunk in the ExecutionGroup
    * \param rect: the rect of that chunk
    * \see determine_chunk_rect

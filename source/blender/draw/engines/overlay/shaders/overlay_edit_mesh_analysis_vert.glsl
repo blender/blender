@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2016-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -5,11 +8,11 @@
 vec3 weight_to_rgb(float t)
 {
   if (t < 0.0) {
-    /* Minimum color, grey */
+    /* Minimum color, gray */
     return vec3(0.25, 0.25, 0.25);
   }
   else if (t > 1.0) {
-    /* Error color */
+    /* Error color. */
     return vec3(1.0, 0.0, 1.0);
   }
   else {

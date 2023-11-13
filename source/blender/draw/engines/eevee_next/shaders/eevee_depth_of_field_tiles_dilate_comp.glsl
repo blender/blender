@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Tile dilate pass: Takes the 8x8 Tiles buffer and converts dilates the tiles with large CoC to
@@ -5,7 +8,7 @@
  *
  * Input & Output:
  * - Separated foreground and background CoC. 1/8th of half-res resolution. So 1/16th of full-res.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 

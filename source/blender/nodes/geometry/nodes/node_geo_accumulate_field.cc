@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,12 +8,15 @@
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_virtual_array.hh"
 
+#include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_geo_accumulate_field_cc {
 
@@ -78,8 +81,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -227,8 +230,7 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
       return {};
     }
 
-    const bke::GeometryFieldContext source_context{
-        context.geometry(), context.type(), source_domain_};
+    const bke::GeometryFieldContext source_context{context, source_domain_};
     fn::FieldEvaluator evaluator{source_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
@@ -333,8 +335,7 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
       return {};
     }
 
-    const bke::GeometryFieldContext source_context{
-        context.geometry(), context.type(), source_domain_};
+    const bke::GeometryFieldContext source_context{context, source_domain_};
     fn::FieldEvaluator evaluator{source_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
@@ -418,7 +419,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     using T = decltype(dummy);
     if constexpr (is_same_any_v<T, int, float, float3>) {
       const std::string suffix = " " + identifier_suffix<T>();
-      Field<T> input_field = params.extract_input<Field<T>>("Value" + suffix);
+      GField input_field = params.extract_input<GField>("Value" + suffix);
       if (params.output_is_required("Leading" + suffix)) {
         params.set_output(
             "Leading" + suffix,
@@ -439,22 +440,51 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 }
-}  // namespace blender::nodes::node_geo_accumulate_field_cc
 
-void register_node_type_geo_accumulate_field()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_accumulate_field_cc;
+  RNA_def_node_enum(
+      srna,
+      "data_type",
+      "Data Type",
+      "Type of data stored in attribute",
+      rna_enum_attribute_type_items,
+      NOD_storage_enum_accessors(data_type),
+      CD_PROP_FLOAT,
+      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
+        *r_free = true;
+        return enum_items_filter(rna_enum_attribute_type_items, [](const EnumPropertyItem &item) {
+          return ELEM(item.value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_INT32);
+        });
+      });
 
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain",
+                    "",
+                    rna_enum_attribute_domain_items,
+                    NOD_storage_enum_accessors(domain),
+                    ATTR_DOMAIN_POINT,
+                    enums::domain_experimental_grease_pencil_version3_fn);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_ACCUMULATE_FIELD, "Accumulate Field", NODE_CLASS_CONVERTER);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.declare = file_ns::node_declare;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.draw_buttons = node_layout;
+  ntype.declare = node_declare;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   node_type_storage(
       &ntype, "NodeAccumulateField", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_accumulate_field_cc

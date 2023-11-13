@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "node_noise.h"
 #include "stdcycles.h"
@@ -55,7 +56,7 @@ float wave(point p_input,
   n += phase;
 
   if (distortion != 0.0) {
-    n = n + (distortion * (fractal_noise(p * dscale, detail, droughness) * 2.0 - 1.0));
+    n = n + (distortion * (fractal_noise(p * dscale, detail, droughness, 2.0, 1) * 2.0 - 1.0));
   }
 
   if (profile == "sine") {

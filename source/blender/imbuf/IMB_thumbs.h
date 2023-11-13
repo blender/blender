@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,6 +31,7 @@ typedef enum ThumbSource {
   THB_SOURCE_MOVIE,
   THB_SOURCE_BLEND,
   THB_SOURCE_FONT,
+  THB_SOURCE_OBJECT_IO,
 } ThumbSource;
 
 /**
@@ -50,6 +51,7 @@ typedef enum ThumbSource {
 
 /**
  * Create thumbnail for file and returns new imbuf for thumbnail.
+ * \param filepath: File path (but not a library path!) to the thumbnail to be created.
  */
 struct ImBuf *IMB_thumb_create(const char *filepath,
                                ThumbSize size,
@@ -58,18 +60,27 @@ struct ImBuf *IMB_thumb_create(const char *filepath,
 
 /**
  * Read thumbnail for file and returns new imbuf for thumbnail.
+ * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
+ *                          the thumbnail to be read.
  */
-struct ImBuf *IMB_thumb_read(const char *filepath, ThumbSize size);
+struct ImBuf *IMB_thumb_read(const char *file_or_lib_path, ThumbSize size);
 
 /**
  * Delete all thumbs for the file.
+ * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
+ *                          the thumbnail to be deleted.
  */
-void IMB_thumb_delete(const char *filepath, ThumbSize size);
+void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size);
 
 /**
  * Create the thumb if necessary and manage failed and old thumbs.
+ * Will not attempt to (re)create thumbnails of offline files. In this case only a preexisting
+ * thumbnail is returned, or null if none was found.
+ *
+ * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
+ *                          the thumbnail to be created/managed.
  */
-struct ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source);
+struct ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source);
 
 /**
  * Create the necessary directories to store the thumbnails.

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
 void main()
@@ -10,5 +14,5 @@ void main()
 #endif
   vec4 color = condition ? texture_load(first_image_tx, texel) :
                            texture_load(second_image_tx, texel);
-  imageStore(output_img, texel + compositing_region_lower_bound, color);
+  imageStore(output_img, texel + lower_bound, color);
 }

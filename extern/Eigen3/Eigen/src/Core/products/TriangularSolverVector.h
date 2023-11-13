@@ -58,7 +58,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
       {
         // let's directly call the low level product function because:
         // 1 - it is faster to compile
-        // 2 - it is slighlty faster at runtime
+        // 2 - it is slightly faster at runtime
         Index startRow = IsLower ? pi : pi-actualPanelWidth;
         Index startCol = IsLower ? 0 : pi;
 
@@ -77,7 +77,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
         if (k>0)
           rhs[i] -= (cjLhs.row(i).segment(s,k).transpose().cwiseProduct(Map<const Matrix<RhsScalar,Dynamic,1> >(rhs+s,k))).sum();
 
-        if(!(Mode & UnitDiag))
+        if((!(Mode & UnitDiag)) && numext::not_equal_strict(rhs[i],RhsScalar(0)))
           rhs[i] /= cjLhs(i,i);
       }
     }
@@ -114,20 +114,23 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
       for(Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = IsLower ? pi+k : pi-k-1;
-        if(!(Mode & UnitDiag))
-          rhs[i] /= cjLhs.coeff(i,i);
+        if(numext::not_equal_strict(rhs[i],RhsScalar(0)))
+        {
+          if(!(Mode & UnitDiag))
+            rhs[i] /= cjLhs.coeff(i,i);
 
-        Index r = actualPanelWidth - k - 1; // remaining size
-        Index s = IsLower ? i+1 : i-r;
-        if (r>0)
-          Map<Matrix<RhsScalar,Dynamic,1> >(rhs+s,r) -= rhs[i] * cjLhs.col(i).segment(s,r);
+          Index r = actualPanelWidth - k - 1; // remaining size
+          Index s = IsLower ? i+1 : i-r;
+          if (r>0)
+            Map<Matrix<RhsScalar,Dynamic,1> >(rhs+s,r) -= rhs[i] * cjLhs.col(i).segment(s,r);
+        }
       }
       Index r = IsLower ? size - endBlock : startBlock; // remaining size
       if (r > 0)
       {
         // let's directly call the low level product function because:
         // 1 - it is faster to compile
-        // 2 - it is slighlty faster at runtime
+        // 2 - it is slightly faster at runtime
         general_matrix_vector_product<Index,LhsScalar,LhsMapper,ColMajor,Conjugate,RhsScalar,RhsMapper,false>::run(
             r, actualPanelWidth,
             LhsMapper(&lhs.coeffRef(endBlock,startBlock), lhsStride),

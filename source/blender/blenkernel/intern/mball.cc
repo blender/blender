@@ -29,8 +29,10 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_string_utils.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -50,12 +52,12 @@
 #include "BKE_mball.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void metaball_init_data(ID *id)
 {
@@ -90,9 +92,15 @@ static void metaball_free_data(ID *id)
 
 static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  MetaBall *metaball = (MetaBall *)id;
+  MetaBall *metaball = reinterpret_cast<MetaBall *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
   for (int i = 0; i < metaball->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, metaball->mat[i], IDWALK_CB_USER);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, metaball->ipo, IDWALK_CB_USER);
   }
 }
 
@@ -112,9 +120,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* direct data */
   BLO_write_pointer_array(writer, mb->totcol, mb->mat);
-  if (mb->adt) {
-    BKE_animdata_blend_write(writer, mb->adt);
-  }
 
   LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
     BLO_write_struct(writer, MetaElem, ml);
@@ -124,8 +129,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 {
   MetaBall *mb = (MetaBall *)id;
-  BLO_read_data_address(reader, &mb->adt);
-  BKE_animdata_blend_read_data(reader, mb->adt);
 
   BLO_read_pointer_array(reader, (void **)&mb->mat);
 
@@ -138,31 +141,13 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
   mb->lastelem = nullptr;
 }
 
-static void metaball_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  MetaBall *mb = (MetaBall *)id;
-  for (int a = 0; a < mb->totcol; a++) {
-    BLO_read_id_address(reader, id, &mb->mat[a]);
-  }
-
-  BLO_read_id_address(reader, id, &mb->ipo);  // XXX deprecated - old animation system
-}
-
-static void metaball_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  MetaBall *mb = (MetaBall *)id;
-  for (int a = 0; a < mb->totcol; a++) {
-    BLO_expand(expander, mb->mat[a]);
-  }
-}
-
 IDTypeInfo IDType_ID_MB = {
     /*id_code*/ ID_MB,
     /*id_filter*/ FILTER_ID_MB,
     /*main_listbase_index*/ INDEX_ID_MB,
     /*struct_size*/ sizeof(MetaBall),
     /*name*/ "Metaball",
-    /*name_plural*/ "metaballs",
+    /*name_plural*/ N_("metaballs"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_METABALL,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -178,8 +163,7 @@ IDTypeInfo IDType_ID_MB = {
 
     /*blend_write*/ metaball_blend_write,
     /*blend_read_data*/ metaball_blend_read_data,
-    /*blend_read_lib*/ metaball_blend_read_lib,
-    /*blend_read_expand*/ metaball_blend_read_expand,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -244,32 +228,7 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 BoundBox *BKE_mball_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MBALL);
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
-    return ob->runtime.bb;
-  }
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
-
-  /* Expect that this function is only called for evaluated objects. */
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  float min[3];
-  float max[3];
-  if (mesh_eval) {
-    INIT_MINMAX(min, max);
-    if (!BKE_mesh_minmax(mesh_eval, min, max)) {
-      copy_v3_fl(min, -1.0f);
-      copy_v3_fl(max, 1.0f);
-    }
-  }
-  else {
-    copy_v3_fl(min, 0.0f);
-    copy_v3_fl(max, 0.0f);
-  }
-
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-  ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
-
+  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
   return ob->runtime.bb;
 }
 
@@ -702,16 +661,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
     BKE_mesh_tag_positions_changed(mesh);
   }
 
-  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::create_with_mesh(mesh));
+  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::from_mesh(mesh));
 
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
-  float3 min(std::numeric_limits<float>::max());
-  float3 max(-std::numeric_limits<float>::max());
-  if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
-    min = float3(0);
-    max = float3(0);
-  }
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 };

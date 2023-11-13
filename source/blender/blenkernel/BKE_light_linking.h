@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2001-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2001-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -69,6 +69,18 @@ void BKE_light_linking_add_receiver_to_collection(struct Main *bmain,
                                                   struct Collection *collection,
                                                   struct ID *receiver,
                                                   const eCollectionLightLinkingState link_state);
+void BKE_light_linking_add_receiver_to_collection_before(
+    struct Main *bmain,
+    struct Collection *collection,
+    struct ID *receiver,
+    const struct ID *before,
+    const eCollectionLightLinkingState link_state);
+void BKE_light_linking_add_receiver_to_collection_after(
+    struct Main *bmain,
+    struct Collection *collection,
+    struct ID *receiver,
+    const struct ID *after,
+    const eCollectionLightLinkingState link_state);
 
 /* Remove the given ID from the light or shadow linking collection of the given object.
  *

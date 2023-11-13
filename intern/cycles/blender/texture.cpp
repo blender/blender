@@ -12,12 +12,15 @@ namespace {
 
 void density_texture_space_invert(float3 &loc, float3 &size)
 {
-  if (size.x != 0.0f)
+  if (size.x != 0.0f) {
     size.x = 0.5f / size.x;
-  if (size.y != 0.0f)
+  }
+  if (size.y != 0.0f) {
     size.y = 0.5f / size.y;
-  if (size.z != 0.0f)
+  }
+  if (size.z != 0.0f) {
     size.z = 0.5f / size.z;
+  }
 
   loc = loc * size - make_float3(0.5f, 0.5f, 0.5f);
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,11 +11,11 @@
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_key.h"
 #include "intern/builder/deg_builder_map.h"
-#include "intern/depsgraph_type.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/depsgraph_type.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 struct CacheFile;
 struct Camera;
@@ -38,7 +38,6 @@ struct MovieClip;
 struct Object;
 struct ParticleSettings;
 struct Scene;
-struct Simulation;
 struct Speaker;
 struct Tex;
 struct VFont;
@@ -157,7 +156,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   OperationNode *find_operation_node(const OperationKey &key);
 
-  virtual void build_id(ID *id);
+  virtual void build_id(ID *id, bool force_be_visible = false);
 
   /* Build function for ID types that do not need their own build_xxx() function. */
   virtual void build_generic_id(ID *id);
@@ -165,6 +164,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_idproperties(IDProperty *id_property);
 
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
+  virtual void build_scene_camera(Scene *scene);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
 
@@ -224,6 +224,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_driver(ID *id, FCurve *fcurve, int driver_index);
 
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
+  virtual void build_driver_scene_camera_variable(Scene *scene, const char *camera_path);
 
   /* Build operations of a property value from which is read by a driver target.
    *
@@ -245,6 +246,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_rig(Object *object);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
+  virtual void build_armature_bone_collections(ListBase *collections);
   virtual void build_shapekeys(Key *key);
   virtual void build_camera(Camera *camera);
   virtual void build_light(Light *lamp);
@@ -263,7 +265,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_lightprobe(LightProbe *probe);
   virtual void build_speaker(Speaker *speaker);
   virtual void build_sound(bSound *sound);
-  virtual void build_simulation(Simulation *simulation);
   virtual void build_scene_sequencer(Scene *scene);
   virtual void build_scene_audio(Scene *scene);
   virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);

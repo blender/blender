@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -96,7 +96,8 @@ static PyGetSetDef BPy_NonTVertex_getseters[] = {
 /*-----------------------BPy_NonTVertex type definition ------------------------------*/
 
 PyTypeObject NonTVertex_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "NonTVertex",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "NonTVertex",
     /*tp_basicsize*/ sizeof(BPy_NonTVertex),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -132,7 +133,7 @@ PyTypeObject NonTVertex_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)NonTVertex_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

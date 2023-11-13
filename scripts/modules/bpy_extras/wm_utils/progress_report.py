@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2015-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2015-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,13 +11,13 @@ class ProgressReport:
 
     This object can be used as a context manager.
 
-    It supports multiple levels of 'substeps' - you shall always enter at least one substep (because level 0
+    It supports multiple levels of 'sub-steps' - you shall always enter at least one sub-step (because level 0
     has only one single step, representing the whole 'area' of the progress stuff).
 
-    You should give the expected number of substeps each time you enter a new one (you may then step more or less then
+    You should give the expected number of sub-steps each time you enter a new one (you may then step more or less then
     given number, but this will give incoherent progression).
 
-    Leaving a substep automatically steps by one the parent level.
+    Leaving a sub-step automatically steps by one the parent level.
 
         with ProgressReport() as progress:  # Not giving a WindowManager here will default to console printing.
             progress.enter_substeps(10)
@@ -110,7 +110,7 @@ class ProgressReportSubstep:
 
     Its exit method always ensure ProgressReport is back on 'level' it was before entering this context.
     This means it is especially useful to ensure a coherent behavior around code that could return/continue/break
-    from many places, without having to bother to explicitly leave substep in each and every possible place!
+    from many places, without having to bother to explicitly leave sub-step in each and every possible place!
 
         with ProgressReport() as progress:  # Not giving a WindowManager here will default to console printing.
             with ProgressReportSubstep(progress, 10, final_msg="Finished!") as subprogress1:
@@ -122,7 +122,7 @@ class ProgressReportSubstep:
     __slots__ = ("progress", "nbr", "msg", "final_msg", "level")
 
     def __init__(self, progress, nbr, msg="", final_msg=""):
-        # Allows to generate a subprogress context handler from another one.
+        # Allows to generate a sub-progress context handler from another one.
         progress = getattr(progress, "progress", progress)
 
         self.progress = progress

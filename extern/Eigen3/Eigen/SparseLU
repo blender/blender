@@ -23,6 +23,8 @@
 // Ordering interface
 #include "OrderingMethods"
 
+#include "src/Core/util/DisableStupidWarnings.h"
+
 #include "src/SparseLU/SparseLU_gemm_kernel.h"
 
 #include "src/SparseLU/SparseLU_Structs.h"
@@ -42,5 +44,7 @@
 #include "src/SparseLU/SparseLU_pruneL.h"
 #include "src/SparseLU/SparseLU_Utils.h"
 #include "src/SparseLU/SparseLU.h"
+
+#include "src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_SPARSELU_MODULE_H

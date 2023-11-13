@@ -151,7 +151,7 @@ Index SparseLUImpl<Scalar,StorageIndex>::column_dfs(const Index m, const Index j
         StorageIndex ito = glu.xlsub(fsupc+1);
         glu.xlsub(jcolm1) = ito; 
         StorageIndex istop = ito + jptr - jm1ptr; 
-        xprune(jcolm1) = istop; // intialize xprune(jcol-1)
+        xprune(jcolm1) = istop; // initialize xprune(jcol-1)
         glu.xlsub(jcol) = istop; 
         
         for (StorageIndex ifrom = jm1ptr; ifrom < nextl; ++ifrom, ++ito)
@@ -166,7 +166,7 @@ Index SparseLUImpl<Scalar,StorageIndex>::column_dfs(const Index m, const Index j
   // Tidy up the pointers before exit
   glu.xsup(nsuper+1) = jcolp1; 
   glu.supno(jcolp1) = nsuper; 
-  xprune(jcol) = StorageIndex(nextl);  // Intialize upper bound for pruning
+  xprune(jcol) = StorageIndex(nextl);  // Initialize upper bound for pruning
   glu.xlsub(jcolp1) = StorageIndex(nextl); 
   
   return 0; 

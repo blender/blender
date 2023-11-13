@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,10 +14,8 @@ namespace blender::gpu {
 
 VKPixelBuffer::VKPixelBuffer(int64_t size) : PixelBuffer(size)
 {
-  buffer_.create(size,
-                 GPU_USAGE_STATIC,
-                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+  buffer_.create(
+      size, GPU_USAGE_STATIC, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   debug::object_label(buffer_.vk_handle(), "PixelBuffer");
 }
 

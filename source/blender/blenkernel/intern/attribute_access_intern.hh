@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -128,8 +128,8 @@ class DynamicAttributesProvider {
 class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  private:
   static constexpr uint64_t supported_types_mask = CD_MASK_PROP_ALL;
-  const eAttrDomain domain_;
-  const CustomDataAccessInfo custom_data_access_;
+  eAttrDomain domain_;
+  CustomDataAccessInfo custom_data_access_;
 
  public:
   CustomDataAttributeProvider(const eAttrDomain domain,
@@ -345,7 +345,7 @@ inline bool contains(const void *owner, const blender::bke::AttributeIDRef &attr
   bool found = false;
   for_all<providers>(
       owner,
-      [&](const AttributeIDRef &other_attribute_id, const AttributeMetaData & /* meta_data */) {
+      [&](const AttributeIDRef &other_attribute_id, const AttributeMetaData & /*meta_data*/) {
         if (attribute_id == other_attribute_id) {
           found = true;
           return false;

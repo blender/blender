@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -180,11 +180,12 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
   const ImageSpec &spec = in->spec();
   const int width = spec.width;
   const int height = spec.height;
-  const int channels = spec.nchannels;
   const bool has_alpha = spec.alpha_channel != -1;
   const bool is_float = spec.format.basesize() > 1;
 
-  if (channels < 1 || channels > 4) {
+  /* Only a maximum of 4 channels are supported by ImBuf. */
+  const int channels = spec.nchannels <= 4 ? spec.nchannels : 4;
+  if (channels < 1) {
     return nullptr;
   }
 
@@ -300,13 +301,28 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
 
   /* Grayscale images need to be based on luminance weights rather than only
    * using a single channel from the source. */
-  if (file_spec.nchannels == 1) {
+  if (ctx.ibuf->channels > 1 && file_spec.nchannels == 1) {
     float weights[4]{};
     IMB_colormanagement_get_luminance_coefficients(weights);
     ImageBufAlgo::channel_sum(final_buf, orig_buf, {weights, orig_buf.nchannels()});
   }
   else {
-    final_buf = std::move(orig_buf);
+    /* If we are moving from an 1-channel format to n-channel we need to
+     * ensure the original data is copied into the higher channels. */
+    if (ctx.ibuf->channels == 1 && file_spec.nchannels > 1) {
+      final_buf = ImageBuf(file_spec, InitializePixels::No);
+      ImageBufAlgo::paste(final_buf, 0, 0, 0, 0, orig_buf);
+      ImageBufAlgo::paste(final_buf, 0, 0, 0, 1, orig_buf);
+      ImageBufAlgo::paste(final_buf, 0, 0, 0, 2, orig_buf);
+      if (file_spec.alpha_channel == 3) {
+        ROI alpha_roi = file_spec.roi();
+        alpha_roi.chbegin = file_spec.alpha_channel;
+        ImageBufAlgo::fill(final_buf, {0, 0, 0, 1.0f}, alpha_roi);
+      }
+    }
+    else {
+      final_buf = std::move(orig_buf);
+    }
   }
 
   bool write_ok = false;
@@ -382,9 +398,7 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
    */
 
   if (ctx.ibuf->metadata) {
-    for (IDProperty *prop = static_cast<IDProperty *>(ctx.ibuf->metadata->data.group.first); prop;
-         prop = prop->next)
-    {
+    LISTBASE_FOREACH (IDProperty *, prop, &ctx.ibuf->metadata->data.group) {
       if (prop->type == IDP_STRING) {
         /* If this property has a prefixed name (oiio:, tiff:, etc.) and it belongs to
          * oiio or a different format, then skip. */

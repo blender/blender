@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -44,7 +44,8 @@ static int TrueUP0D___init__(BPy_TrueUP0D *self, PyObject *args, PyObject *kwds)
 /*-----------------------BPy_TrueUP0D type definition ------------------------------*/
 
 PyTypeObject TrueUP0D_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "TrueUP0D",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "TrueUP0D",
     /*tp_basicsize*/ sizeof(BPy_TrueUP0D),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,

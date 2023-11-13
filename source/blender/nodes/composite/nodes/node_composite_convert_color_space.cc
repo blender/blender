@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,10 +6,12 @@
  * \ingroup cmpnodes
  */
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "BLI_string.h"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -82,7 +84,8 @@ class ConvertColorSpaceOperation : public NodeOperation {
     const char *target = node_storage(bnode()).to_color_space;
 
     OCIOColorSpaceConversionShader &ocio_shader =
-        context().cache_manager().ocio_color_space_conversion_shaders.get(source, target);
+        context().cache_manager().ocio_color_space_conversion_shaders.get(
+            context(), source, target);
 
     GPUShader *shader = ocio_shader.bind_shader_and_resources();
 
@@ -149,7 +152,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_convert_color_space_cc
 
-void register_node_type_cmp_convert_color_space(void)
+void register_node_type_cmp_convert_color_space()
 {
   namespace file_ns = blender::nodes::node_composite_convert_color_space_cc;
   static bNodeType ntype;

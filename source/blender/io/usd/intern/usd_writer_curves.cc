@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation All rights reserved.
+/* SPDX-FileCopyrightText: 2023 Blender Authors All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,15 +18,15 @@
 #include "BKE_curves.hh"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
+#include "BKE_report.h"
 
 #include "BLI_math_geom.h"
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
 
 namespace blender::io::usd {
 
@@ -85,7 +85,8 @@ static void populate_curve_widths(const bke::CurvesGeometry &geometry, pxr::VtAr
 static pxr::TfToken get_curve_width_interpolation(const pxr::VtArray<float> &widths,
                                                   const pxr::VtArray<int> &segments,
                                                   const pxr::VtIntArray &control_point_counts,
-                                                  const bool is_cyclic)
+                                                  const bool is_cyclic,
+                                                  ReportList *reports)
 {
   if (widths.empty()) {
     return pxr::TfToken();
@@ -110,7 +111,7 @@ static pxr::TfToken get_curve_width_interpolation(const pxr::VtArray<float> &wid
     return pxr::UsdGeomTokens->varying;
   }
 
-  WM_report(RPT_WARNING, "Curve width size not supported for USD interpolation");
+  BKE_report(reports, RPT_WARNING, "Curve width size not supported for USD interpolation");
   return pxr::TfToken();
 }
 
@@ -158,7 +159,8 @@ static void populate_curve_props(const bke::CurvesGeometry &geometry,
                                  pxr::VtArray<float> &widths,
                                  pxr::TfToken &interpolation,
                                  const bool is_cyclic,
-                                 const bool is_cubic)
+                                 const bool is_cubic,
+                                 ReportList *reports)
 {
   const int num_curves = geometry.curve_num;
   const Span<float3> positions = geometry.positions();
@@ -169,7 +171,8 @@ static void populate_curve_props(const bke::CurvesGeometry &geometry,
       geometry, positions, verts, control_point_counts, segments, is_cyclic, is_cubic);
 
   populate_curve_widths(geometry, widths);
-  interpolation = get_curve_width_interpolation(widths, segments, control_point_counts, is_cyclic);
+  interpolation = get_curve_width_interpolation(
+      widths, segments, control_point_counts, is_cyclic, reports);
 }
 
 static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
@@ -246,7 +249,8 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
                                             pxr::VtIntArray &control_point_counts,
                                             pxr::VtArray<float> &widths,
                                             pxr::TfToken &interpolation,
-                                            const bool is_cyclic)
+                                            const bool is_cyclic,
+                                            ReportList *reports)
 {
 
   const int num_curves = geometry.curve_num;
@@ -262,7 +266,8 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
       geometry, positions, handles_l, handles_r, verts, control_point_counts, segments, is_cyclic);
 
   populate_curve_widths(geometry, widths);
-  interpolation = get_curve_width_interpolation(widths, segments, control_point_counts, is_cyclic);
+  interpolation = get_curve_width_interpolation(
+      widths, segments, control_point_counts, is_cyclic, reports);
 }
 
 static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
@@ -397,7 +402,8 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       });
 
   if (number_of_curve_types > 1) {
-    WM_report(RPT_WARNING, "Cannot export mixed curve types in the same Curves object");
+    BKE_report(
+        reports(), RPT_WARNING, "Cannot export mixed curve types in the same Curves object");
     return;
   }
 
@@ -413,8 +419,9 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
   }
 
   if (!all_same_cyclic_type) {
-    WM_report(RPT_WARNING,
-              "Cannot export mixed cyclic and non-cyclic curves in the same Curves object");
+    BKE_report(reports(),
+               RPT_WARNING,
+               "Cannot export mixed cyclic and non-cyclic curves in the same Curves object");
     return;
   }
 
@@ -435,17 +442,19 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
   else if (first_frame_curve_type != curve_type) {
     const char *first_frame_curve_type_name = nullptr;
     RNA_enum_name_from_value(
-        rna_enum_curves_types, int(first_frame_curve_type), &first_frame_curve_type_name);
+        rna_enum_curves_type_items, int(first_frame_curve_type), &first_frame_curve_type_name);
 
     const char *current_curve_type_name = nullptr;
-    RNA_enum_name_from_value(rna_enum_curves_types, int(curve_type), &current_curve_type_name);
+    RNA_enum_name_from_value(
+        rna_enum_curves_type_items, int(curve_type), &current_curve_type_name);
 
-    WM_reportf(RPT_WARNING,
-               "USD does not support animating curve types. The curve type changes from %s to "
-               "%s on frame %f",
-               IFACE_(first_frame_curve_type_name),
-               IFACE_(current_curve_type_name),
-               timecode.GetValue());
+    BKE_reportf(reports(),
+                RPT_WARNING,
+                "USD does not support animating curve types. The curve type changes from %s to "
+                "%s on frame %f",
+                IFACE_(first_frame_curve_type_name),
+                IFACE_(current_curve_type_name),
+                timecode.GetValue());
     return;
   }
 
@@ -453,22 +462,34 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
     case CURVE_TYPE_POLY:
       usd_curves = DefineUsdGeomBasisCurves(pxr::VtValue(), is_cyclic, false);
 
-      populate_curve_props(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, false);
+      populate_curve_props(geometry,
+                           verts,
+                           control_point_counts,
+                           widths,
+                           interpolation,
+                           is_cyclic,
+                           false,
+                           reports());
       break;
     case CURVE_TYPE_CATMULL_ROM:
       usd_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->catmullRom), is_cyclic, true);
 
-      populate_curve_props(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, true);
+      populate_curve_props(geometry,
+                           verts,
+                           control_point_counts,
+                           widths,
+                           interpolation,
+                           is_cyclic,
+                           true,
+                           reports());
       break;
     case CURVE_TYPE_BEZIER:
       usd_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->bezier), is_cyclic, true);
 
       populate_curve_props_for_bezier(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic);
+          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, reports());
       break;
     case CURVE_TYPE_NURBS: {
       pxr::VtArray<double> knots;

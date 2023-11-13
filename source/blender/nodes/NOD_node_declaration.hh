@@ -1,20 +1,25 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <type_traits>
 
 #include "BLI_string_ref.hh"
+#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
 #include "DNA_node_types.h"
 
+struct bContext;
 struct bNode;
+struct PointerRNA;
+struct uiLayout;
 
 namespace blender::nodes {
 
@@ -42,6 +47,16 @@ enum class OutputSocketFieldType {
 };
 
 /**
+ * A bit-field that maps to the realtime_compositor::InputRealizationOptions.
+ */
+enum class CompositorInputRealizationOptions : uint8_t {
+  None = 0,
+  RealizeOnOperationDomain = (1 << 0),
+};
+ENUM_OPERATORS(CompositorInputRealizationOptions,
+               CompositorInputRealizationOptions::RealizeOnOperationDomain)
+
+/**
  * Contains information about how a node output's field state depends on inputs of the same node.
  */
 class OutputFieldDependency {
@@ -59,6 +74,7 @@ class OutputFieldDependency {
   Span<int> linked_input_indices() const;
 
   friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b);
+  friend bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b);
 };
 
 /**
@@ -67,6 +83,9 @@ class OutputFieldDependency {
 struct FieldInferencingInterface {
   Vector<InputSocketFieldType> inputs;
   Vector<OutputFieldDependency> outputs;
+
+  friend bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b);
+  friend bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b);
 };
 
 namespace anonymous_attribute_lifetime {
@@ -141,12 +160,21 @@ namespace aal = anonymous_attribute_lifetime;
 
 using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value)>;
 
+/* Socket or panel declaration. */
+class ItemDeclaration {
+ public:
+  virtual ~ItemDeclaration() = default;
+};
+
+using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
+
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
  */
-class SocketDeclaration {
+class SocketDeclaration : public ItemDeclaration {
  public:
   std::string name;
+  std::string short_label;
   std::string identifier;
   std::string description;
   std::string translation_context;
@@ -166,13 +194,12 @@ class SocketDeclaration {
   OutputFieldDependency output_field_dependency;
 
  private:
+  CompositorInputRealizationOptions compositor_realization_options_ =
+      CompositorInputRealizationOptions::RealizeOnOperationDomain;
+
   /** The priority of the input for determining the domain of the node. See
    * realtime_compositor::InputDescriptor for more information. */
   int compositor_domain_priority_ = 0;
-
-  /** This input shouldn't be realized on the operation domain of the node. See
-   * realtime_compositor::InputDescriptor for more information. */
-  bool compositor_skip_realization_ = false;
 
   /** This input expects a single value and can't operate on non-single values. See
    * realtime_compositor::InputDescriptor for more information. */
@@ -181,11 +208,13 @@ class SocketDeclaration {
   /** Utility method to make the socket available if there is a straightforward way to do so. */
   std::function<void(bNode &)> make_available_fn_;
 
+ public:
   /** Some input sockets can have non-trivial values in the case when they are unlinked. This
    * callback computes the default input of a values in geometry nodes when nothing is linked. */
-  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn_;
+  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn;
 
   friend NodeDeclarationBuilder;
+  friend class BaseSocketDeclarationBuilder;
   template<typename SocketDecl> friend class SocketDeclarationBuilder;
 
  public:
@@ -208,14 +237,9 @@ class SocketDeclaration {
    */
   void make_available(bNode &node) const;
 
+  const CompositorInputRealizationOptions &compositor_realization_options() const;
   int compositor_domain_priority() const;
-  bool compositor_skip_realization() const;
   bool compositor_expects_single_value() const;
-
-  const ImplicitInputValueFn *implicit_input_fn() const
-  {
-    return implicit_input_fn_.get();
-  }
 
  protected:
   void set_common_flags(bNodeSocket &socket) const;
@@ -226,19 +250,133 @@ class NodeDeclarationBuilder;
 
 class BaseSocketDeclarationBuilder {
  protected:
-  int index_ = -1;
+  /* Socket builder can hold both an input and an output declaration.
+   * Each socket declaration has its own index for dependencies. */
+  int index_in_ = -1;
+  int index_out_ = -1;
   bool reference_pass_all_ = false;
   bool field_on_all_ = false;
   bool propagate_from_all_ = false;
   NodeDeclarationBuilder *node_decl_builder_ = nullptr;
+  SocketDeclaration *decl_in_base_ = nullptr;
+  SocketDeclaration *decl_out_base_ = nullptr;
 
   friend class NodeDeclarationBuilder;
 
  public:
   virtual ~BaseSocketDeclarationBuilder() = default;
 
- protected:
-  virtual SocketDeclaration *declaration() = 0;
+  BaseSocketDeclarationBuilder &hide_label(bool value = true);
+
+  BaseSocketDeclarationBuilder &hide_value(bool value = true);
+
+  BaseSocketDeclarationBuilder &multi_input(bool value = true);
+
+  BaseSocketDeclarationBuilder &short_label(std::string value = "");
+
+  BaseSocketDeclarationBuilder &description(std::string value = "");
+
+  BaseSocketDeclarationBuilder &translation_context(std::string value = BLT_I18NCONTEXT_DEFAULT);
+
+  BaseSocketDeclarationBuilder &no_muted_links(bool value = true);
+
+  /**
+   * Used for sockets that are always unavailable and should not be seen by the user.
+   * Ideally, no new calls to this method should be added over time.
+   */
+  BaseSocketDeclarationBuilder &unavailable(bool value = true);
+
+  BaseSocketDeclarationBuilder &is_attribute_name(bool value = true);
+
+  BaseSocketDeclarationBuilder &is_default_link_socket(bool value = true);
+
+  /** The input socket allows passing in a field. */
+  BaseSocketDeclarationBuilder &supports_field();
+
+  /**
+   * For inputs this means that the input field is evaluated on all geometry inputs. For outputs
+   * it means that this contains an anonymous attribute reference that is available on all geometry
+   * outputs. This sockets value does not have to be output manually in the node. It's done
+   * automatically by #LazyFunctionForGeometryNode. This allows outputting this field even if the
+   * geometry output does not have to be computed.
+   */
+  BaseSocketDeclarationBuilder &field_on_all();
+
+  /** The output is always a field, regardless of any inputs. */
+  BaseSocketDeclarationBuilder &field_source();
+
+  /** The input supports a field and is a field by default when nothing is connected. */
+  BaseSocketDeclarationBuilder &implicit_field(ImplicitInputValueFn fn);
+
+  /** The input is an implicit field that is evaluated on all geometry inputs. */
+  BaseSocketDeclarationBuilder &implicit_field_on_all(ImplicitInputValueFn fn);
+
+  /** The input is evaluated on a subset of the geometry inputs. */
+  BaseSocketDeclarationBuilder &implicit_field_on(ImplicitInputValueFn fn,
+                                                  const Span<int> input_indices);
+
+  /** For inputs that are evaluated or available on a subset of the geometry sockets. */
+  BaseSocketDeclarationBuilder &field_on(Span<int> indices);
+
+  /** The output is a field if any of the inputs are a field. */
+  BaseSocketDeclarationBuilder &dependent_field();
+
+  /** The output is a field if any of the inputs with indices in the given list is a field. */
+  BaseSocketDeclarationBuilder &dependent_field(Vector<int> input_dependencies);
+
+  /**
+   * For outputs that combine all input fields into a new field. The output is a field even if none
+   * of the inputs is a field.
+   */
+  BaseSocketDeclarationBuilder &field_source_reference_all();
+
+  /**
+   * For outputs that combine a subset of input fields into a new field.
+   */
+  BaseSocketDeclarationBuilder &reference_pass(Span<int> input_indices);
+
+  /**
+   * For outputs that combine all input fields into a new field.
+   */
+  BaseSocketDeclarationBuilder &reference_pass_all();
+
+  /** Attributes from the all geometry inputs can be propagated. */
+  BaseSocketDeclarationBuilder &propagate_all();
+
+  BaseSocketDeclarationBuilder &compositor_realization_options(
+      CompositorInputRealizationOptions value);
+
+  /**
+   * The priority of the input for determining the domain of the node. See
+   * realtime_compositor::InputDescriptor for more information.
+   */
+  BaseSocketDeclarationBuilder &compositor_domain_priority(int priority);
+
+  /**
+   * This input expects a single value and can't operate on non-single values. See
+   * realtime_compositor::InputDescriptor for more information.
+   */
+  BaseSocketDeclarationBuilder &compositor_expects_single_value(bool value = true);
+
+  /**
+   * Pass a function that sets properties on the node required to make the corresponding socket
+   * available, if it is not available on the default state of the node. The function is allowed to
+   * make other sockets unavailable, since it is meant to be called when the node is first added.
+   * The node type's update function is called afterwards.
+   */
+  BaseSocketDeclarationBuilder &make_available(std::function<void(bNode &)> fn);
+
+  int input_index() const
+  {
+    BLI_assert(decl_in_base_ != nullptr);
+    return index_in_;
+  }
+
+  int output_index() const
+  {
+    BLI_assert(decl_out_base_ != nullptr);
+    return index_out_;
+  }
 };
 
 /**
@@ -251,228 +389,75 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
  protected:
   using Self = typename SocketDecl::Builder;
   static_assert(std::is_base_of_v<SocketDeclaration, SocketDecl>);
-  SocketDecl *decl_;
+  SocketDecl *decl_in_;
+  SocketDecl *decl_out_;
 
   friend class NodeDeclarationBuilder;
-
- public:
-  Self &hide_label(bool value = true)
-  {
-    decl_->hide_label = value;
-    return *(Self *)this;
-  }
-
-  Self &hide_value(bool value = true)
-  {
-    decl_->hide_value = value;
-    return *(Self *)this;
-  }
-
-  Self &multi_input(bool value = true)
-  {
-    decl_->is_multi_input = value;
-    return *(Self *)this;
-  }
-
-  Self &description(std::string value = "")
-  {
-    decl_->description = std::move(value);
-    return *(Self *)this;
-  }
-
-  Self &translation_context(std::string value = BLT_I18NCONTEXT_DEFAULT)
-  {
-    decl_->translation_context = std::move(value);
-    return *(Self *)this;
-  }
-
-  Self &no_muted_links(bool value = true)
-  {
-    decl_->no_mute_links = value;
-    return *(Self *)this;
-  }
-
-  /**
-   * Used for sockets that are always unavailable and should not be seen by the user.
-   * Ideally, no new calls to this method should be added over time.
-   */
-  Self &unavailable(bool value = true)
-  {
-    decl_->is_unavailable = value;
-    return *(Self *)this;
-  }
-
-  Self &is_attribute_name(bool value = true)
-  {
-    decl_->is_attribute_name = value;
-    return *(Self *)this;
-  }
-
-  Self &is_default_link_socket(bool value = true)
-  {
-    decl_->is_default_link_socket = value;
-    return *(Self *)this;
-  }
-
-  /** The input socket allows passing in a field. */
-  Self &supports_field()
-  {
-    decl_->input_field_type = InputSocketFieldType::IsSupported;
-    return *(Self *)this;
-  }
-
-  /**
-   * For inputs this means that the input field is evaluated on all geometry inputs. For outputs
-   * it means that this contains an anonymous attribute reference that is available on all geometry
-   * outputs. This sockets value does not have to be output manually in the node. It's done
-   * automatically by #LazyFunctionForGeometryNode. This allows outputting this field even if the
-   * geometry output does not have to be computed.
-   */
-  Self &field_on_all()
-  {
-    if (decl_->in_out == SOCK_IN) {
-      this->supports_field();
-    }
-    else {
-      this->field_source();
-    }
-    field_on_all_ = true;
-    return *(Self *)this;
-  }
-
-  /** For inputs that are evaluated or available on a subset of the geometry sockets. */
-  Self &field_on(Span<int> indices);
-
-  /** The input supports a field and is a field by default when nothing is connected. */
-  Self &implicit_field(ImplicitInputValueFn fn)
-  {
-    this->hide_value();
-    decl_->input_field_type = InputSocketFieldType::Implicit;
-    decl_->implicit_input_fn_ = std::make_unique<ImplicitInputValueFn>(std::move(fn));
-    return *(Self *)this;
-  }
-
-  /** The input is an implicit field that is evaluated on all geometry inputs. */
-  Self &implicit_field_on_all(ImplicitInputValueFn fn)
-  {
-    this->implicit_field(fn);
-    field_on_all_ = true;
-    return *(Self *)this;
-  }
-
-  /** The input is evaluated on a subset of the geometry inputs. */
-  Self &implicit_field_on(ImplicitInputValueFn fn, const Span<int> input_indices)
-  {
-    this->field_on(input_indices);
-    this->implicit_field(fn);
-    return *(Self *)this;
-  }
-
-  /** The output is always a field, regardless of any inputs. */
-  Self &field_source()
-  {
-    decl_->output_field_dependency = OutputFieldDependency::ForFieldSource();
-    return *(Self *)this;
-  }
-
-  /** The output is a field if any of the inputs are a field. */
-  Self &dependent_field()
-  {
-    decl_->output_field_dependency = OutputFieldDependency::ForDependentField();
-    this->reference_pass_all();
-    return *(Self *)this;
-  }
-
-  /** The output is a field if any of the inputs with indices in the given list is a field. */
-  Self &dependent_field(Vector<int> input_dependencies)
-  {
-    this->reference_pass(input_dependencies);
-    decl_->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-        std::move(input_dependencies));
-    return *(Self *)this;
-  }
-
-  /**
-   * For outputs that combine all input fields into a new field. The output is a field even if none
-   * of the inputs is a field.
-   */
-  Self &field_source_reference_all()
-  {
-    this->field_source();
-    this->reference_pass_all();
-    return *(Self *)this;
-  }
-
-  /**
-   * For outputs that combine a subset of input fields into a new field.
-   */
-  Self &reference_pass(Span<int> input_indices);
-
-  /**
-   * For outputs that combine all input fields into a new field.
-   */
-  Self &reference_pass_all()
-  {
-    reference_pass_all_ = true;
-    return *(Self *)this;
-  }
-
-  /** Attributes from the all geometry inputs can be propagated. */
-  Self &propagate_all()
-  {
-    propagate_from_all_ = true;
-    return *(Self *)this;
-  }
-
-  /** The priority of the input for determining the domain of the node. See
-   * realtime_compositor::InputDescriptor for more information. */
-  Self &compositor_domain_priority(int priority)
-  {
-    decl_->compositor_domain_priority_ = priority;
-    return *(Self *)this;
-  }
-
-  /** This input shouldn't be realized on the operation domain of the node. See
-   * realtime_compositor::InputDescriptor for more information. */
-  Self &compositor_skip_realization(bool value = true)
-  {
-    decl_->compositor_skip_realization_ = value;
-    return *(Self *)this;
-  }
-
-  /** This input expects a single value and can't operate on non-single values. See
-   * realtime_compositor::InputDescriptor for more information. */
-  Self &compositor_expects_single_value(bool value = true)
-  {
-    decl_->compositor_expects_single_value_ = value;
-    return *(Self *)this;
-  }
-
-  /**
-   * Pass a function that sets properties on the node required to make the corresponding socket
-   * available, if it is not available on the default state of the node. The function is allowed to
-   * make other sockets unavailable, since it is meant to be called when the node is first added.
-   * The node type's update function is called afterwards.
-   */
-  Self &make_available(std::function<void(bNode &)> fn)
-  {
-    decl_->make_available_fn_ = std::move(fn);
-    return *(Self *)this;
-  }
-
- protected:
-  SocketDeclaration *declaration() override
-  {
-    return decl_;
-  }
 };
 
 using SocketDeclarationPtr = std::unique_ptr<SocketDeclaration>;
 
+typedef void (*PanelDrawButtonsFunction)(uiLayout *, bContext *, PointerRNA *);
+
+/**
+ * Describes a panel containing sockets or other panels.
+ */
+class PanelDeclaration : public ItemDeclaration {
+ public:
+  int identifier;
+  std::string name;
+  std::string description;
+  std::string translation_context;
+  bool default_collapsed = false;
+  int num_child_decls = 0;
+  PanelDrawButtonsFunction draw_buttons = nullptr;
+
+ private:
+  friend NodeDeclarationBuilder;
+  friend class PanelDeclarationBuilder;
+
+ public:
+  virtual ~PanelDeclaration() = default;
+
+  void build(bNodePanelState &panel) const;
+  bool matches(const bNodePanelState &panel) const;
+  void update_or_build(const bNodePanelState &old_panel, bNodePanelState &new_panel) const;
+};
+
+class PanelDeclarationBuilder {
+ protected:
+  using Self = PanelDeclarationBuilder;
+  NodeDeclarationBuilder *node_decl_builder_ = nullptr;
+  PanelDeclaration *decl_;
+  /**
+   * Panel is complete once items are added after it.
+   * Completed panels are locked and no more items can be added.
+   */
+  bool is_complete_ = false;
+
+  friend class NodeDeclarationBuilder;
+
+ public:
+  Self &description(std::string value = "");
+  Self &default_closed(bool closed);
+  Self &draw_buttons(PanelDrawButtonsFunction func);
+
+  template<typename DeclType>
+  typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
+  template<typename DeclType>
+  typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
+};
+
+using PanelDeclarationPtr = std::unique_ptr<PanelDeclaration>;
+
 class NodeDeclaration {
  public:
-  Vector<SocketDeclarationPtr> inputs;
-  Vector<SocketDeclarationPtr> outputs;
+  /* Combined list of socket and panel declarations.
+   * This determines order of sockets in the UI and panel content. */
+  Vector<ItemDeclarationPtr> items;
+  /* Note: inputs and outputs pointers are owned by the items list. */
+  Vector<SocketDeclaration *> inputs;
+  Vector<SocketDeclaration *> outputs;
   std::unique_ptr<aal::RelationsInNode> anonymous_attribute_relations_;
 
   /** Leave the sockets in place, even if they don't match the declaration. Used for dynamic
@@ -480,10 +465,22 @@ class NodeDeclaration {
    * available again in the future. */
   bool skip_updating_sockets = false;
 
+  /** Use order of socket declarations for socket order instead of conventional
+   * outputs | buttons | inputs order. Panels are only supported when using custom socket order. */
+  bool use_custom_socket_order = false;
+
+  /**
+   * True if any context was used to build this declaration.
+   */
+  bool is_context_dependent = false;
+
   friend NodeDeclarationBuilder;
 
+  /** Returns true if the declaration is considered valid. */
+  bool is_valid() const;
+
   bool matches(const bNode &node) const;
-  Span<SocketDeclarationPtr> sockets(eNodeSocketInOut in_out) const;
+  Span<SocketDeclaration *> sockets(eNodeSocketInOut in_out) const;
 
   const aal::RelationsInNode *anonymous_attribute_relations() const
   {
@@ -496,12 +493,31 @@ class NodeDeclaration {
 class NodeDeclarationBuilder {
  private:
   NodeDeclaration &declaration_;
-  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> input_builders_;
-  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> output_builders_;
+  const bNodeTree *ntree_ = nullptr;
+  const bNode *node_ = nullptr;
+  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> socket_builders_;
+  Vector<std::unique_ptr<PanelDeclarationBuilder>> panel_builders_;
   bool is_function_node_ = false;
 
+ private:
+  friend PanelDeclarationBuilder;
+
  public:
-  NodeDeclarationBuilder(NodeDeclaration &declaration);
+  NodeDeclarationBuilder(NodeDeclaration &declaration,
+                         const bNodeTree *ntree = nullptr,
+                         const bNode *node = nullptr);
+
+  const bNode *node_or_null() const
+  {
+    declaration_.is_context_dependent = true;
+    return node_;
+  }
+
+  const bNodeTree *tree_or_null() const
+  {
+    declaration_.is_context_dependent = true;
+    return ntree_;
+  }
 
   /**
    * All inputs support fields, and all outputs are fields if any of the inputs is a field.
@@ -514,10 +530,20 @@ class NodeDeclarationBuilder {
 
   void finalize();
 
+  void use_custom_socket_order(bool enable = true);
+
   template<typename DeclType>
   typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
   template<typename DeclType>
   typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
+  PanelDeclarationBuilder &add_panel(StringRef name, int identifier = -1);
+
+  BaseSocketDeclarationBuilder &add_input(eNodeSocketDatatype socket_type,
+                                          StringRef name,
+                                          StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_output(eNodeSocketDatatype socket_type,
+                                           StringRef name,
+                                           StringRef identifier = "");
 
   aal::RelationsInNode &get_anonymous_attribute_relations()
   {
@@ -527,11 +553,23 @@ class NodeDeclarationBuilder {
     return *declaration_.anonymous_attribute_relations_;
   }
 
+  NodeDeclaration &declaration()
+  {
+    return declaration_;
+  }
+
  private:
+  /* Note: in_out can be a combination of SOCK_IN and SOCK_OUT.
+   * The generated socket declarations only have a single flag set. */
   template<typename DeclType>
   typename DeclType::Builder &add_socket(StringRef name,
-                                         StringRef identifier,
+                                         StringRef identifier_in,
+                                         StringRef identifier_out,
                                          eNodeSocketInOut in_out);
+
+  /* Mark the most recent builder as 'complete' when changing builders
+   * so no more items can be added. */
+  void set_active_panel_builder(const PanelDeclarationBuilder *panel_builder);
 };
 
 namespace implicit_field_inputs {
@@ -541,151 +579,42 @@ void index(const bNode &node, void *r_value);
 void id_or_index(const bNode &node, void *r_value);
 }  // namespace implicit_field_inputs
 
-void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration);
-void build_node_declaration_dynamic(const bNodeTree &node_tree,
-                                    const bNode &node,
-                                    NodeDeclaration &r_declaration);
+void build_node_declaration(const bNodeType &typeinfo,
+                            NodeDeclaration &r_declaration,
+                            const bNodeTree *ntree,
+                            const bNode *node);
 
-template<typename SocketDecl>
-typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
-    SocketDecl>::reference_pass(const Span<int> input_indices)
-{
-  aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
-  for (const int from_input : input_indices) {
-    aal::ReferenceRelation relation;
-    relation.from_field_input = from_input;
-    relation.to_field_output = index_;
-    relations.reference_relations.append(relation);
-  }
-  return *(Self *)this;
-}
-
-template<typename SocketDecl>
-typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
-    SocketDecl>::field_on(const Span<int> indices)
-{
-  aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
-  if (decl_->in_out == SOCK_IN) {
-    this->supports_field();
-    for (const int input_index : indices) {
-      aal::EvalRelation relation;
-      relation.field_input = index_;
-      relation.geometry_input = input_index;
-      relations.eval_relations.append(relation);
-    }
-  }
-  else {
-    this->field_source();
-    for (const int output_index : indices) {
-      aal::AvailableRelation relation;
-      relation.field_output = index_;
-      relation.geometry_output = output_index;
-      relations.available_relations.append(relation);
-    }
-  }
-  return *(Self *)this;
-}
+std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
+    eNodeSocketDatatype socket_type);
 
 /* -------------------------------------------------------------------- */
-/** \name #OutputFieldDependency Inline Methods
+/** \name #PanelDeclarationBuilder Inline Methods
  * \{ */
 
-inline OutputFieldDependency OutputFieldDependency::ForFieldSource()
+template<typename DeclType>
+typename DeclType::Builder &PanelDeclarationBuilder::add_input(StringRef name,
+                                                               StringRef identifier)
 {
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::FieldSource;
-  return field_dependency;
-}
-
-inline OutputFieldDependency OutputFieldDependency::ForDataSource()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::None;
-  return field_dependency;
-}
-
-inline OutputFieldDependency OutputFieldDependency::ForDependentField()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::DependentField;
-  return field_dependency;
-}
-
-inline OutputFieldDependency OutputFieldDependency::ForPartiallyDependentField(Vector<int> indices)
-{
-  OutputFieldDependency field_dependency;
-  if (indices.is_empty()) {
-    field_dependency.type_ = OutputSocketFieldType::None;
+  if (is_complete_) {
+    static typename DeclType::Builder dummy_builder = {};
+    BLI_assert_unreachable();
+    return dummy_builder;
   }
-  else {
-    field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
-    field_dependency.linked_input_indices_ = std::move(indices);
+  ++this->decl_->num_child_decls;
+  return node_decl_builder_->add_socket<DeclType>(name, identifier, "", SOCK_IN);
+}
+
+template<typename DeclType>
+typename DeclType::Builder &PanelDeclarationBuilder::add_output(StringRef name,
+                                                                StringRef identifier)
+{
+  if (is_complete_) {
+    static typename DeclType::Builder dummy_builder = {};
+    BLI_assert_unreachable();
+    return dummy_builder;
   }
-  return field_dependency;
-}
-
-inline OutputSocketFieldType OutputFieldDependency::field_type() const
-{
-  return type_;
-}
-
-inline Span<int> OutputFieldDependency::linked_input_indices() const
-{
-  return linked_input_indices_;
-}
-
-inline bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
-{
-  return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
-}
-
-inline bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
-{
-  return !(a == b);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #FieldInferencingInterface Inline Methods
- * \{ */
-
-inline bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-{
-  return a.inputs == b.inputs && a.outputs == b.outputs;
-}
-
-inline bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-{
-  return !(a == b);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #SocketDeclaration Inline Methods
- * \{ */
-
-inline int SocketDeclaration::compositor_domain_priority() const
-{
-  return compositor_domain_priority_;
-}
-
-inline bool SocketDeclaration::compositor_skip_realization() const
-{
-  return compositor_skip_realization_;
-}
-
-inline bool SocketDeclaration::compositor_expects_single_value() const
-{
-  return compositor_expects_single_value_;
-}
-
-inline void SocketDeclaration::make_available(bNode &node) const
-{
-  if (make_available_fn_) {
-    make_available_fn_(node);
-  }
+  ++this->decl_->num_child_decls;
+  return node_decl_builder_->add_socket<DeclType>(name, "", identifier, SOCK_OUT);
 }
 
 /** \} */
@@ -694,63 +623,59 @@ inline void SocketDeclaration::make_available(bNode &node) const
 /** \name #NodeDeclarationBuilder Inline Methods
  * \{ */
 
-inline NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration)
-    : declaration_(declaration)
-{
-}
-
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_input(StringRef name,
                                                                      StringRef identifier)
 {
-  return this->add_socket<DeclType>(name, identifier, SOCK_IN);
+  set_active_panel_builder(nullptr);
+  return this->add_socket<DeclType>(name, identifier, "", SOCK_IN);
 }
 
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_output(StringRef name,
                                                                       StringRef identifier)
 {
-  return this->add_socket<DeclType>(name, identifier, SOCK_OUT);
+  set_active_panel_builder(nullptr);
+  return this->add_socket<DeclType>(name, "", identifier, SOCK_OUT);
 }
 
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef name,
-                                                                      StringRef identifier,
+                                                                      StringRef identifier_in,
+                                                                      StringRef identifier_out,
                                                                       eNodeSocketInOut in_out)
 {
   static_assert(std::is_base_of_v<SocketDeclaration, DeclType>);
   using Builder = typename DeclType::Builder;
 
-  Vector<SocketDeclarationPtr> &declarations = in_out == SOCK_IN ? declaration_.inputs :
-                                                                   declaration_.outputs;
-
-  std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
   std::unique_ptr<Builder> socket_decl_builder = std::make_unique<Builder>();
-  socket_decl_builder->decl_ = &*socket_decl;
-
   socket_decl_builder->node_decl_builder_ = this;
-  socket_decl->name = name;
-  socket_decl->identifier = identifier.is_empty() ? name : identifier;
-  socket_decl->in_out = in_out;
-  socket_decl_builder->index_ = declarations.append_and_get_index(std::move(socket_decl));
-  Builder &socket_decl_builder_ref = *socket_decl_builder;
-  ((in_out == SOCK_IN) ? input_builders_ : output_builders_)
-      .append(std::move(socket_decl_builder));
-  return socket_decl_builder_ref;
-}
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #NodeDeclaration Inline Methods
- * \{ */
-
-inline Span<SocketDeclarationPtr> NodeDeclaration::sockets(eNodeSocketInOut in_out) const
-{
-  if (in_out == SOCK_IN) {
-    return inputs;
+  if (in_out & SOCK_IN) {
+    std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
+    socket_decl_builder->decl_in_ = &*socket_decl;
+    socket_decl_builder->decl_in_base_ = &*socket_decl;
+    socket_decl->name = name;
+    socket_decl->identifier = identifier_in.is_empty() ? name : identifier_in;
+    socket_decl->in_out = SOCK_IN;
+    socket_decl_builder->index_in_ = declaration_.inputs.append_and_get_index(socket_decl.get());
+    declaration_.items.append(std::move(socket_decl));
   }
-  return outputs;
+  if (in_out & SOCK_OUT) {
+    std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
+    socket_decl_builder->decl_out_ = &*socket_decl;
+    socket_decl_builder->decl_out_base_ = &*socket_decl;
+    socket_decl->name = name;
+    socket_decl->identifier = identifier_out.is_empty() ? name : identifier_out;
+    socket_decl->in_out = SOCK_OUT;
+    socket_decl_builder->index_out_ = declaration_.outputs.append_and_get_index(socket_decl.get());
+    declaration_.items.append(std::move(socket_decl));
+  }
+
+  Builder &socket_decl_builder_ref = *socket_decl_builder;
+  socket_builders_.append(std::move(socket_decl_builder));
+
+  return socket_decl_builder_ref;
 }
 
 /** \} */

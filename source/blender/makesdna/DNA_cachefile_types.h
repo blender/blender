@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,10 +9,6 @@
 #pragma once
 
 #include "DNA_ID.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct GSet;
 
@@ -123,7 +119,3 @@ typedef struct CacheFile {
   char handle_filepath[1024];
   struct GSet *handle_readers;
 } CacheFile;
-
-#ifdef __cplusplus
-}
-#endif

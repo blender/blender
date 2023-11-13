@@ -182,31 +182,13 @@ public:
 
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solve_with_guess_impl(const Rhs& b, Dest& x) const
+  void _solve_vector_with_guess_impl(const Rhs& b, Dest& x) const
   {
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
-    for(Index j=0; j<b.cols(); ++j)
-    {
-      m_iterations = Base::maxIterations();
-      m_error = Base::m_tolerance;
-
-      typename Dest::ColXpr xj(x,j);
-      internal::least_square_conjugate_gradient(matrix(), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
-    }
-
-    m_isInitialized = true;
+    internal::least_square_conjugate_gradient(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error);
     m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
-  }
-  
-  /** \internal */
-  using Base::_solve_impl;
-  template<typename Rhs,typename Dest>
-  void _solve_impl(const MatrixBase<Rhs>& b, Dest& x) const
-  {
-    x.setZero();
-    _solve_with_guess_impl(b.derived(),x);
   }
 
 };

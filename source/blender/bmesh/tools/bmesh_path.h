@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
 /** \file
  * \ingroup bmesh
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BMCalcPathParams {
   uint use_topology_distance : 1;
@@ -36,3 +40,7 @@ struct LinkNode *BM_mesh_calc_path_face(BMesh *bm,
                                         bool (*filter_fn)(BMFace *, void *),
                                         void *user_data) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3, 5);
+
+#ifdef __cplusplus
+}
+#endif

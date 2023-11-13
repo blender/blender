@@ -1595,8 +1595,9 @@ bool SamplePlanarPatch(const FloatImage& image,
         float mask_value =
             SampleLinear(*mask, image_position(1), image_position(0), 0);
 
-        for (int d = 0; d < image.Depth(); d++)
+        for (int d = 0; d < image.Depth(); d++) {
           (*patch)(r, c, d) *= mask_value;
+        }
       }
     }
   }

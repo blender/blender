@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,10 +6,10 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "BLI_sys_types.h"
 
@@ -20,7 +20,7 @@
 #include "rna_internal.h" /* own include */
 
 #ifdef RNA_RUNTIME
-static void rna_Curve_transform(Curve *cu, float mat[16], bool shape_keys)
+static void rna_Curve_transform(Curve *cu, const float mat[16], bool shape_keys)
 {
   BKE_curve_transform(cu, (const float(*)[4])mat, shape_keys, true);
 
@@ -37,7 +37,7 @@ static float rna_Nurb_calc_length(Nurb *nu, int resolution_u)
   return BKE_nurb_calc_length(nu, resolution_u);
 }
 
-static void rna_Nurb_valid_message(Nurb *nu, int direction, int *result_len, const char **r_result)
+static void rna_Nurb_valid_message(Nurb *nu, int direction, const char **r_result, int *result_len)
 {
   const bool is_surf = nu->pntsv > 1;
   const short type = nu->type;
@@ -78,14 +78,14 @@ void RNA_api_curve(StructRNA *srna)
   RNA_def_function_ui_description(func, "Transform curve by a matrix");
   parm = RNA_def_float_matrix(func, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
+  RNA_def_boolean(func, "shape_keys", false, "", "Transform Shape Keys");
 
   func = RNA_def_function(srna, "validate_material_indices", "BKE_curve_material_index_validate");
   RNA_def_function_ui_description(
       func,
       "Validate material indices of splines or letters, return True when the curve "
       "has had invalid indices corrected (to default 0)");
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   RNA_def_function(srna, "update_gpu_tag", "rna_Curve_update_gpu_tag");

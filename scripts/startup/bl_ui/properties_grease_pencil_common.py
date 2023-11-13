@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -517,7 +517,7 @@ class GreasePencilMaterialsPanel:
 
             row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
-            # if topbar popover and brush pinned, disable
+            # if top-bar popover and brush pinned, disable.
             if is_view3d and brush is not None:
                 gp_settings = brush.gpencil_settings
                 if gp_settings.use_material_pin:
@@ -554,9 +554,12 @@ class GreasePencilMaterialsPanel:
                     icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
                     row.prop(slot, "link", icon=icon_link, icon_only=True)
 
-                if not is_grease_pencil_version3 and ob.data.use_stroke_edit_mode:
+                if is_grease_pencil_version3 and ob.mode == 'EDIT':
                     row = layout.row(align=True)
-                    row.operator("gpencil.stroke_change_color", text="Assign")
+                    row.operator("grease_pencil.stroke_material_set", text="Assign")
+                elif not is_grease_pencil_version3 and ob.data.use_stroke_edit_mode:
+                    row = layout.row(align=True)
+                    row.operator("gpencil.stroke_material_set", text="Assign")
                     row.operator("gpencil.material_select", text="Select").deselect = False
                     row.operator("gpencil.material_select", text="Deselect").deselect = True
         # stroke color

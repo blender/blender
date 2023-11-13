@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* ***** Jenkins Lookup3 Hash Functions ***** */
 
 /* Source: http://burtleburtle.net/bob/c/lookup3.c */

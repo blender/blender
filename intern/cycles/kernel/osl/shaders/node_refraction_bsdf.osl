@@ -1,10 +1,11 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "stdcycles.h"
 
 shader node_refraction_bsdf(color Color = 0.8,
-                            string distribution = "sharp",
+                            string distribution = "ggx",
                             float Roughness = 0.2,
                             float IOR = 1.45,
                             normal Normal = N,

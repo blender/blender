@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -72,6 +72,21 @@ size_t malloc_usable_size(void *ptr);
 #  define MEM_INLINE static inline
 #endif
 
+/* BEGIN copied from BLI_asan.h */
+
+/* Clang defines this. */
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+
+#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)) && \
+    (!defined(_MSC_VER) || _MSC_VER > 1929) /* MSVC 2019 and below doesn't ship ASAN headers. */
+#  include "sanitizer/asan_interface.h"
+#  define WITH_ASAN
+#endif
+
+/* END copied from BLI_asan.h */
+
 #define IS_POW2(a) (((a) & ((a)-1)) == 0)
 
 /* Extra padding which needs to be applied on MemHead to make it aligned. */
@@ -102,6 +117,16 @@ size_t memory_usage_block_num(void);
 size_t memory_usage_current(void);
 size_t memory_usage_peak(void);
 void memory_usage_peak_reset(void);
+
+/**
+ * Clear the listbase of allocated memory blocks.
+ *
+ * WARNING: This will make the whole guardedalloc system fully inconsistent. It is only indented to
+ * be called in one place: the destructor of the #MemLeakPrinter class, which is only
+ * instantiated once as a static variable by #MEM_init_memleak_detection, and therefore destructed
+ * once at program exit.
+ */
+extern void (*mem_clearmemlist)(void);
 
 /* Prototypes for counted allocator functions */
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
@@ -142,6 +167,9 @@ size_t MEM_lockfree_get_memory_in_use(void);
 unsigned int MEM_lockfree_get_memory_blocks_in_use(void);
 void MEM_lockfree_reset_peak_memory(void);
 size_t MEM_lockfree_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
+
+void mem_lockfree_clearmemlist(void);
+
 #ifndef NDEBUG
 const char *MEM_lockfree_name_ptr(void *vmemh);
 void MEM_lockfree_name_ptr_set(void *vmemh, const char *str);
@@ -186,6 +214,9 @@ size_t MEM_guarded_get_memory_in_use(void);
 unsigned int MEM_guarded_get_memory_blocks_in_use(void);
 void MEM_guarded_reset_peak_memory(void);
 size_t MEM_guarded_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
+
+void mem_guarded_clearmemlist(void);
+
 #ifndef NDEBUG
 const char *MEM_guarded_name_ptr(void *vmemh);
 void MEM_guarded_name_ptr_set(void *vmemh, const char *str);

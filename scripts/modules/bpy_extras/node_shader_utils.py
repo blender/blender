@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -281,43 +281,57 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def specular_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return self.material.specular_intensity
-        return self.node_principled_bsdf.inputs["Specular"].default_value
+        return self.node_principled_bsdf.inputs["Specular IOR Level"].default_value
 
     @_set_check
     def specular_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
         self.material.specular_intensity = value
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Specular"].default_value = value
+            self.node_principled_bsdf.inputs["Specular IOR Level"].default_value = value
 
     specular = property(specular_get, specular_set)
-
-    def specular_tint_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
-            return 0.0
-        return self.node_principled_bsdf.inputs["Specular Tint"].default_value
-
-    @_set_check
-    def specular_tint_set(self, value):
-        value = values_clamp(value, 0.0, 1.0)
-        if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Specular Tint"].default_value = value
-
-    specular_tint = property(specular_tint_get, specular_tint_set)
 
     # Will only be used as gray-scale one...
     def specular_texture_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
-            print("NO NODES!")
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
-            self.node_principled_bsdf.inputs["Specular"],
+            self.node_principled_bsdf.inputs["Specular IOR Level"],
             grid_row_diff=0,
             colorspace_name='Non-Color',
         )
 
     specular_texture = property(specular_texture_get)
+
+    # --------------------------------------------------------------------
+    # Specular Tint.
+
+    def specular_tint_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return Color((0.0, 0.0, 0.0))
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Specular Tint"].default_value)
+
+    @_set_check
+    def specular_tint_set(self, color):
+        color = values_clamp(color, 0.0, 1.0)
+        color = rgb_to_rgba(color)
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Specular Tint"].default_value = color
+
+    specular_tint = property(specular_tint_get, specular_tint_set)
+
+    def specular_tint_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return None
+        return ShaderImageTextureWrapper(
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Specular Tint"],
+            grid_row_diff=0,
+        )
+
+    specular_tint_texture = property(specular_tint_texture_get)
 
     # --------------------------------------------------------------------
     # Roughness (also sort of inverse of specular hardness...).
@@ -411,13 +425,13 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def transmission_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return 0.0
-        return self.node_principled_bsdf.inputs["Transmission"].default_value
+        return self.node_principled_bsdf.inputs["Transmission Weight"].default_value
 
     @_set_check
     def transmission_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Transmission"].default_value = value
+            self.node_principled_bsdf.inputs["Transmission Weight"].default_value = value
 
     transmission = property(transmission_get, transmission_set)
 
@@ -427,7 +441,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
-            self.node_principled_bsdf.inputs["Transmission"],
+            self.node_principled_bsdf.inputs["Transmission Weight"],
             grid_row_diff=-1,
             colorspace_name='Non-Color',
         )
@@ -467,14 +481,14 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def emission_color_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return Color((0.0, 0.0, 0.0))
-        return rgba_to_rgb(self.node_principled_bsdf.inputs["Emission"].default_value)
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Emission Color"].default_value)
 
     @_set_check
     def emission_color_set(self, color):
         if self.use_nodes and self.node_principled_bsdf is not None:
             color = values_clamp(color, 0.0, 1000000.0)
             color = rgb_to_rgba(color)
-            self.node_principled_bsdf.inputs["Emission"].default_value = color
+            self.node_principled_bsdf.inputs["Emission Color"].default_value = color
 
     emission_color = property(emission_color_get, emission_color_set)
 
@@ -483,7 +497,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
-            self.node_principled_bsdf.inputs["Emission"],
+            self.node_principled_bsdf.inputs["Emission Color"],
             grid_row_diff=1,
         )
 

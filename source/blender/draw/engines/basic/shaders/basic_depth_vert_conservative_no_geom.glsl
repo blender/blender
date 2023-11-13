@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 3)
 
@@ -17,9 +20,10 @@ void main()
   else if (vertex_fetch_get_input_prim_type() == GPU_PRIM_TRI_STRIP) {
     base_vertex_id = output_triangle_id;
   }
-  /* NOTE: Triangle fan unsupported in Metal. Will be conveted upfront. */
+  /* NOTE: Triangle fan unsupported in Metal. Will be converted upfront. */
 
-  /** Perform vertex shader calculations per input vertex. **/
+  /* Perform vertex shader calculations per input vertex. */
+
   /* input pos vertex attribute. */
   vec3 in_pos[3];
   /* Calculated per-vertex world pos. */
@@ -36,10 +40,10 @@ void main()
     pos[i] = ndc_pos[i].xyz / ndc_pos[i].w;
   }
 
-  /** Geometry Shader equivalent calculation
+  /* Geometry Shader equivalent calculation
    * In this no_geom mode using SSBO vertex fetch, rather than emitting 3 vertices, the vertex
    * shader is invocated 3 times, and output is determined based on vertex ID within a triangle
-   * 0..2. **/
+   * 0..2. */
   vec3 plane = normalize(cross(pos[1] - pos[0], pos[2] - pos[0]));
   /* Compute NDC bound box. */
   vec4 bbox = vec4(min(min(pos[0].xy, pos[1].xy), pos[2].xy),

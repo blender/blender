@@ -1,0 +1,12 @@
+--- src/joystick/iphoneos/SDL_mfijoystick.m	2023-08-16 18:57:36
++++ src/joystick/iphoneos/SDL_mfijoystick.m2	2023-08-16 18:57:25
+@@ -95,7 +95,8 @@
+ 
+ #if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 140000) || (__APPLETV_OS_VERSION_MAX_ALLOWED >= 140000) || (__MAC_OS_VERSION_MAX_ALLOWED > 1500000) || (__MAC_OS_X_VERSION_MAX_ALLOWED > 101600)
+ #define ENABLE_MFI_BATTERY
+-#define ENABLE_MFI_RUMBLE
++// BLENDER: disable until macOS 11.0 becomes the minimum version and Core Haptics is available.
++//#define ENABLE_MFI_RUMBLE
+ #define ENABLE_MFI_LIGHT
+ #define ENABLE_MFI_SENSORS
+ #define ENABLE_MFI_SYSTEM_GESTURE_STATE

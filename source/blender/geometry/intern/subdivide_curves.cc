@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -275,6 +275,10 @@ bke::CurvesGeometry subdivide_curves(
     const VArray<int> &cuts,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
+  if (src_curves.points_num() == 0) {
+    return src_curves;
+  }
+
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   /* Cyclic is accessed a lot, it's probably worth it to make sure it's a span. */
   const VArraySpan<bool> cyclic{src_curves.cyclic()};
@@ -406,15 +410,14 @@ bke::CurvesGeometry subdivide_curves(
                                      subdivide_bezier,
                                      subdivide_nurbs);
 
-  if (!unselected.is_empty()) {
-    for (auto &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
-    {
-      bke::curves::copy_point_data(
-          src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
-      attribute.dst.finish();
-    }
-  }
+  bke::copy_attributes_group_to_group(src_attributes,
+                                      ATTR_DOMAIN_POINT,
+                                      propagation_info,
+                                      {},
+                                      src_points_by_curve,
+                                      dst_points_by_curve,
+                                      unselected,
+                                      dst_attributes);
 
   return dst_curves;
 }

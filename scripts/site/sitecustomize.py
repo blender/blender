@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,7 +29,7 @@ if sys.platform == "win32":
 
     # OIIO will by default add all paths from the path variable to add_dll_directory
     # problem there is that those folders will be searched before ours and versions of
-    # some dlls may be found that are not blenders and may not even be the right version
+    # some DLL files may be found that are not blenders and may not even be the right version
     # causing compatibility issues.
     os.environ["OIIO_LOAD_DLLS_FROM_PATH"] = "0"
 
@@ -38,7 +38,11 @@ materialx_libs_dir = os.path.abspath(os.path.join(shared_lib_dir, "materialx", "
 materialx_libs_env = os.getenv("MATERIALX_SEARCH_PATH")
 if materialx_libs_env is None:
     os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_dir
-elif sys.platform == "win32":
-    os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_dir + ";" + materialx_libs_env
 else:
-    os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_dir + ":" + materialx_libs_env
+    os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_env + os.pathsep + materialx_libs_dir
+
+materialx_libs_env = os.getenv("PXR_MTLX_STDLIB_SEARCH_PATHS")
+if materialx_libs_env is None:
+    os.environ["PXR_MTLX_STDLIB_SEARCH_PATHS"] = materialx_libs_dir
+else:
+    os.environ["PXR_MTLX_STDLIB_SEARCH_PATHS"] = materialx_libs_env + os.pathsep + materialx_libs_dir

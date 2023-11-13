@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,10 @@
  * \ingroup bli
  * \brief A (mainly) macro array library.
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* -------------------------------------------------------------------- */
 /** \name Internal defines
@@ -76,7 +80,8 @@ void _bli_array_grow_func(void **arr_p,
           (_bli_array_totalsize_static(arr) >= \
            (size_t)(_##arr##_len + \
                     (num)))) ? /* we have an empty array and a static var big enough */ \
-             (void)(arr = (void *)_##arr##_static) : /* use existing static array or allocate */ \
+             (void)(*(void **)&arr = (void *) \
+                        _##arr##_static) : /* use existing static array or allocate */ \
              (LIKELY(_bli_array_totalsize(arr) >= (size_t)(_##arr##_len + (num))) ? \
                   (void)0 /* do nothing */ : \
                   _bli_array_grow_func((void **)&(arr), \
@@ -153,7 +158,7 @@ void _bli_array_grow_func(void **arr_p,
 #define BLI_array_trim(arr) \
   { \
     if (_bli_array_totalsize_dynamic(arr) != _##arr##_len) { \
-      arr = MEM_reallocN(arr, sizeof(*arr) * _##arr##_len); \
+      *(void **)&arr = MEM_reallocN(arr, sizeof(*arr) * _##arr##_len); \
     } \
   } \
   ((void)0)
@@ -182,5 +187,9 @@ void _bli_array_grow_func(void **arr_p,
     MEM_freeN(arr); \
   } \
   ((void)0)
+
+#ifdef __cplusplus
+}
+#endif
 
 /** \} */

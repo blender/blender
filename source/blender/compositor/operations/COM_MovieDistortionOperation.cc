@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -91,7 +91,7 @@ void MovieDistortionOperation::execute_pixel_sampled(float output[4],
     return;
   }
 
-  /* float overscan = 0.0f; */
+  // float overscan = 0.0f;
   const float w = float(width) /* / (1 + overscan) */;
   const float h = float(height) /* / (1 + overscan) */;
   const float pixel_aspect = pixel_aspect_;

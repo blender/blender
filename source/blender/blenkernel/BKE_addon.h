@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -16,8 +16,8 @@ struct bAddon;
 
 #ifdef __RNA_TYPES_H__
 typedef struct bAddonPrefType {
-  /* type info */
-  char idname[64]; /* best keep the same size as #BKE_ST_MAXNAME */
+  /** Type info, match #bAddon::module. */
+  char idname[128];
 
   /* RNA integration */
   ExtensionRNA rna_ext;

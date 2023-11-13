@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Usage tagging
+ * Virtual shadow-mapping: Usage tagging
  *
  * Shadow pages are only allocated if they are visible.
  * This pass scan the depth buffer and tag all tiles that are needed for light shadowing as
@@ -23,9 +26,9 @@ void main()
     return;
   }
 
-  vec2 uv = vec2(texel) / vec2(tex_size);
-  vec3 vP = get_view_space_from_depth(uv, depth);
-  vec3 P = transform_point(ViewMatrixInverse, vP);
+  vec2 uv = (vec2(texel) + 0.5) / vec2(tex_size);
+  vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
+  vec3 P = drw_point_view_to_world(vP);
   vec2 pixel = vec2(gl_GlobalInvocationID.xy);
 
   shadow_tag_usage(vP, P, pixel);

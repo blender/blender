@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2017-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2017-2022 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -265,6 +265,29 @@ if np is not None:
 
 
 class TestRNAData(TestHelper, unittest.TestCase):
+
+    def test_custom_properties_access(self):
+        # Ensure the RNA path resolving behaves as expected & is compatible with ID-property keys.
+        keys_to_test = (
+            "test",
+            "\\"
+            '"',
+            '""',
+            '"""',
+            '[',
+            ']',
+            '[]',
+            '["]',
+            '[""]',
+            '["""]',
+            '[""""]',
+            # Empty properties are also valid.
+            "",
+        )
+        for key_id in keys_to_test:
+            self.id[key_id] = 1
+            self.assertEqual(self.id[key_id], self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(key_id)))
+            del self.id[key_id]
 
     def test_custom_properties_none(self):
         bpy.data.objects.new("test", None)

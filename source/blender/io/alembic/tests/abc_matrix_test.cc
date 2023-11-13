@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,8 @@
 /* Keep first since utildefines defines AT which conflicts with STL. */
 #include "intern/abc_axis_conversion.h"
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
+#include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
 
 namespace blender::io::alembic {

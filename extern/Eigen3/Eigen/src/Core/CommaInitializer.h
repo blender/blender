@@ -33,6 +33,8 @@ struct CommaInitializer
   inline CommaInitializer(XprType& xpr, const Scalar& s)
     : m_xpr(xpr), m_row(0), m_col(1), m_currentBlockRows(1)
   {
+    eigen_assert(m_xpr.rows() > 0 && m_xpr.cols() > 0
+      && "Cannot comma-initialize a 0x0 matrix (operator<<)");
     m_xpr.coeffRef(0,0) = s;
   }
 
@@ -41,6 +43,8 @@ struct CommaInitializer
   inline CommaInitializer(XprType& xpr, const DenseBase<OtherDerived>& other)
     : m_xpr(xpr), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
   {
+    eigen_assert(m_xpr.rows() >= other.rows() && m_xpr.cols() >= other.cols()
+      && "Cannot comma-initialize a 0x0 matrix (operator<<)");
     m_xpr.block(0, 0, other.rows(), other.cols()) = other;
   }
 
@@ -103,7 +107,7 @@ struct CommaInitializer
   EIGEN_EXCEPTION_SPEC(Eigen::eigen_assert_exception)
 #endif
   {
-      finished();
+    finished();
   }
 
   /** \returns the built matrix once all its coefficients have been set.
@@ -141,7 +145,7 @@ struct CommaInitializer
   * \sa CommaInitializer::finished(), class CommaInitializer
   */
 template<typename Derived>
-inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s)
+EIGEN_DEVICE_FUNC inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s)
 {
   return CommaInitializer<Derived>(*static_cast<Derived*>(this), s);
 }
@@ -149,7 +153,7 @@ inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s
 /** \sa operator<<(const Scalar&) */
 template<typename Derived>
 template<typename OtherDerived>
-inline CommaInitializer<Derived>
+EIGEN_DEVICE_FUNC inline CommaInitializer<Derived>
 DenseBase<Derived>::operator<<(const DenseBase<OtherDerived>& other)
 {
   return CommaInitializer<Derived>(*static_cast<Derived *>(this), other);

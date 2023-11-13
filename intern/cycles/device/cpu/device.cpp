@@ -48,8 +48,9 @@ string device_cpu_capabilities()
   capabilities += system_cpu_support_sse2() ? "SSE2 " : "";
   capabilities += system_cpu_support_sse41() ? "SSE41 " : "";
   capabilities += system_cpu_support_avx2() ? "AVX2" : "";
-  if (capabilities[capabilities.size() - 1] == ' ')
+  if (capabilities[capabilities.size() - 1] == ' ') {
     capabilities.resize(capabilities.size() - 1);
+  }
   return capabilities;
 }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -209,6 +209,19 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKConte
 {
   VKDevice &device = VKBackend::get().device_;
   return device.descriptor_pools_get().allocate(layout_);
+}
+
+void VKDescriptorSetTracker::debug_print() const
+{
+  for (const Binding &binding : bindings_) {
+    binding.debug_print();
+  }
+}
+
+void VKDescriptorSetTracker::Binding::debug_print() const
+{
+  std::cout << "VkDescriptorSetTrackker::Binding(type: " << type
+            << ", location:" << location.binding << ")\n";
 }
 
 }  // namespace blender::gpu

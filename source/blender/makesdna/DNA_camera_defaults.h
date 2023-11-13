@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -41,6 +41,20 @@
     .ortho_scale = 6.0, \
     .flag = CAM_SHOWPASSEPARTOUT, \
     .passepartalpha = 0.5f, \
+ \
+    .panorama_type = CAM_PANORAMA_FISHEYE_EQUISOLID,\
+    .fisheye_fov = M_PI,\
+    .fisheye_lens = 10.5f,\
+    .latitude_min = -0.5f * (float)M_PI,\
+    .latitude_max = 0.5f * (float)M_PI,\
+    .longitude_min = -M_PI,\
+    .longitude_max = M_PI,\
+    /* Fit to match default projective camera with focal_length 50 and sensor_width 36. */ \
+    .fisheye_polynomial_k0 = -1.1735143712967577e-05f,\
+    .fisheye_polynomial_k1 = -0.019988736953434998f,\
+    .fisheye_polynomial_k2 = -3.3525322965709175e-06f,\
+    .fisheye_polynomial_k3 = 3.099275275886036e-06f,\
+    .fisheye_polynomial_k4 = -2.6064646454854524e-08f,\
  \
     .dof = _DNA_DEFAULT_CameraDOFSettings, \
  \

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -42,6 +42,7 @@
  */
 
 #include <mutex>
+#include <sstream>
 
 #include "BLI_compute_context.hh"
 #include "BLI_enumerable_thread_specific.hh"
@@ -54,7 +55,7 @@
 
 namespace blender::fn::lazy_function {
 
-enum class NodeScheduleState {
+enum class NodeScheduleState : uint8_t {
   /**
    * Default state of every node.
    */
@@ -114,14 +115,14 @@ struct OutputState {
    */
   ValueUsage usage_for_execution = ValueUsage::Maybe;
   /**
-   * Number of linked sockets that might still use the value of this output.
-   */
-  int potential_target_sockets = 0;
-  /**
    * Is set to true once the output has been computed and then stays true. Access does not require
    * holding the node lock.
    */
   bool has_been_computed = false;
+  /**
+   * Number of linked sockets that might still use the value of this output.
+   */
+  int potential_target_sockets = 0;
   /**
    * Holds the output value for a short period of time while the node is initializing it and before
    * it's forwarded to input sockets. Access does not require holding the node lock.
@@ -138,9 +139,11 @@ struct NodeState {
   /**
    * States of the individual input and output sockets. One can index into these arrays without
    * locking. However, to access data inside, a lock is needed unless noted otherwise.
+   * Those are not stored as #Span to reduce memory usage. The number of inputs and outputs is
+   * stored on the node already.
    */
-  MutableSpan<InputState> inputs;
-  MutableSpan<OutputState> outputs;
+  InputState *inputs;
+  OutputState *outputs;
   /**
    * Counts the number of inputs that still have to be provided to this node, until it should run
    * again. This is used as an optimization so that nodes are not scheduled unnecessarily in many
@@ -247,6 +250,25 @@ struct ScheduledNodes {
   {
     return this->priority_.is_empty() && this->normal_.is_empty();
   }
+
+  int64_t nodes_num() const
+  {
+    return priority_.size() + normal_.size();
+  }
+
+  /**
+   * Split up the scheduled nodes into two groups that can be worked on in parallel.
+   */
+  void split_into(ScheduledNodes &other)
+  {
+    BLI_assert(this != &other);
+    const int64_t priority_split = priority_.size() / 2;
+    const int64_t normal_split = normal_.size() / 2;
+    other.priority_.extend(priority_.as_span().drop_front(priority_split));
+    other.normal_.extend(normal_.as_span().drop_front(normal_split));
+    priority_.resize(priority_split);
+    normal_.resize(normal_split);
+  }
 };
 
 struct CurrentTask {
@@ -272,11 +294,11 @@ class Executor {
    * Remembers which inputs have been loaded from the caller already, to avoid loading them twice.
    * Atomics are used to make sure that every input is only retrieved once.
    */
-  Array<std::atomic<uint8_t>> loaded_inputs_;
+  MutableSpan<std::atomic<uint8_t>> loaded_inputs_;
   /**
    * State of every node, indexed by #Node::index_in_graph.
    */
-  Array<NodeState *> node_states_;
+  MutableSpan<NodeState *> node_states_;
   /**
    * Parameters provided by the caller. This is always non-null, while a node is running.
    */
@@ -320,7 +342,7 @@ class Executor {
   };
 
  public:
-  Executor(const GraphExecutor &self) : self_(self), loaded_inputs_(self.graph_inputs_.size())
+  Executor(const GraphExecutor &self) : self_(self)
   {
     /* The indices are necessary, because they are used as keys in #node_states_. */
     BLI_assert(self_.graph_.node_indices_are_valid());
@@ -365,8 +387,15 @@ class Executor {
 
     CurrentTask current_task;
     if (is_first_execution_) {
-      this->initialize_node_states();
+      /* Allocate a single large buffer instead of making many smaller allocations below. */
+      char *buffer = static_cast<char *>(
+          local_data.allocator->allocate(self_.init_buffer_info_.total_size, alignof(void *)));
+      this->initialize_node_states(buffer);
 
+      loaded_inputs_ = MutableSpan{
+          reinterpret_cast<std::atomic<uint8_t> *>(
+              buffer + self_.init_buffer_info_.loaded_inputs_array_offset),
+          self_.graph_inputs_.size()};
       /* Initialize atomics to zero. */
       memset(static_cast<void *>(loaded_inputs_.data()), 0, loaded_inputs_.size() * sizeof(bool));
 
@@ -378,6 +407,7 @@ class Executor {
       if (self_.side_effect_provider_ != nullptr) {
         side_effect_nodes = self_.side_effect_provider_->get_nodes_with_side_effects(context);
         for (const FunctionNode *node : side_effect_nodes) {
+          BLI_assert(self_.graph_.nodes().contains(node));
           const int node_index = node->index_in_graph();
           NodeState &node_state = *node_states_[node_index];
           node_state.has_side_effects = true;
@@ -399,41 +429,36 @@ class Executor {
   }
 
  private:
-  void initialize_node_states()
+  void initialize_node_states(char *buffer)
   {
     Span<const Node *> nodes = self_.graph_.nodes();
-    node_states_.reinitialize(nodes.size());
+    node_states_ = MutableSpan{
+        reinterpret_cast<NodeState **>(buffer + self_.init_buffer_info_.node_states_array_offset),
+        nodes.size()};
 
-    auto construct_node_range = [&](const IndexRange range, LinearAllocator<> &allocator) {
+    threading::parallel_for(nodes.index_range(), 256, [&](const IndexRange range) {
       for (const int i : range) {
         const Node &node = *nodes[i];
-        NodeState &node_state = *allocator.construct<NodeState>().release();
-        node_states_[i] = &node_state;
-        this->construct_initial_node_state(allocator, node, node_state);
+        char *memory = buffer + self_.init_buffer_info_.node_states_offsets[i];
+
+        /* Initialize node state. */
+        NodeState *node_state = reinterpret_cast<NodeState *>(memory);
+        memory += sizeof(NodeState);
+        new (node_state) NodeState();
+
+        /* Initialize socket states. */
+        const int num_inputs = node.inputs().size();
+        const int num_outputs = node.outputs().size();
+        node_state->inputs = reinterpret_cast<InputState *>(memory);
+        memory += sizeof(InputState) * num_inputs;
+        node_state->outputs = reinterpret_cast<OutputState *>(memory);
+
+        default_construct_n(node_state->inputs, num_inputs);
+        default_construct_n(node_state->outputs, num_outputs);
+
+        node_states_[i] = node_state;
       }
-    };
-    if (nodes.size() <= 256) {
-      construct_node_range(nodes.index_range(), main_allocator_);
-    }
-    else {
-      this->ensure_thread_locals();
-      /* Construct all node states in parallel. */
-      threading::parallel_for(nodes.index_range(), 256, [&](const IndexRange range) {
-        LinearAllocator<> &allocator = thread_locals_->local().allocator;
-        construct_node_range(range, allocator);
-      });
-    }
-  }
-
-  void construct_initial_node_state(LinearAllocator<> &allocator,
-                                    const Node &node,
-                                    NodeState &node_state)
-  {
-    const Span<const InputSocket *> node_inputs = node.inputs();
-    const Span<const OutputSocket *> node_outputs = node.outputs();
-
-    node_state.inputs = allocator.construct_array<InputState>(node_inputs.size());
-    node_state.outputs = allocator.construct_array<OutputState>(node_outputs.size());
+    });
   }
 
   void destruct_node_state(const Node &node, NodeState &node_state)
@@ -588,8 +613,8 @@ class Executor {
       }
       else {
         /* Inputs of unreachable nodes are unused. */
-        for (InputState &input_state : node_state.inputs) {
-          input_state.usage = ValueUsage::Unused;
+        for (const int input_index : node.inputs().index_range()) {
+          node_state.inputs[input_index].usage = ValueUsage::Unused;
         }
       }
     }
@@ -650,8 +675,8 @@ class Executor {
 
     /* The notified output socket might be an input of the entire graph. In this case, notify the
      * caller that the input is required. */
-    if (node.is_dummy()) {
-      const int graph_input_index = self_.graph_inputs_.index_of(&socket);
+    if (node.is_interface()) {
+      const int graph_input_index = self_.graph_input_index_by_socket_index_[socket.index()];
       std::atomic<uint8_t> &was_loaded = loaded_inputs_[graph_input_index];
       if (was_loaded.load()) {
         return;
@@ -695,8 +720,9 @@ class Executor {
             BLI_assert(output_state.usage != ValueUsage::Unused);
             if (output_state.usage == ValueUsage::Maybe) {
               output_state.usage = ValueUsage::Unused;
-              if (node.is_dummy()) {
-                const int graph_input_index = self_.graph_inputs_.index_of(&socket);
+              if (node.is_interface()) {
+                const int graph_input_index =
+                    self_.graph_input_index_by_socket_index_[socket.index()];
                 params_->set_input_unused(graph_input_index);
               }
               else {
@@ -787,6 +813,16 @@ class Executor {
         current_task.has_scheduled_nodes.store(false, std::memory_order_relaxed);
       }
       this->run_node_task(*node, current_task, local_data);
+
+      /* If there are many nodes scheduled at the same time, it's beneficial to let multiple
+       * threads work on those. */
+      if (current_task.scheduled_nodes.nodes_num() > 128) {
+        if (this->try_enable_multi_threading()) {
+          std::unique_ptr<ScheduledNodes> split_nodes = std::make_unique<ScheduledNodes>();
+          current_task.scheduled_nodes.split_into(*split_nodes);
+          this->push_to_task_pool(std::move(split_nodes));
+        }
+      }
     }
   }
 
@@ -810,7 +846,8 @@ class Executor {
           }
 
           bool required_uncomputed_output_exists = false;
-          for (OutputState &output_state : node_state.outputs) {
+          for (const int output_index : node.outputs().index_range()) {
+            OutputState &output_state = node_state.outputs[output_index];
             output_state.usage_for_execution = output_state.usage;
             if (output_state.usage == ValueUsage::Used && !output_state.has_been_computed) {
               required_uncomputed_output_exists = true;
@@ -836,7 +873,7 @@ class Executor {
             node_state.always_used_inputs_requested = true;
           }
 
-          for (const int input_index : node_state.inputs.index_range()) {
+          for (const int input_index : node.inputs().index_range()) {
             InputState &input_state = node_state.inputs[input_index];
             if (input_state.was_ready_for_execution) {
               continue;
@@ -918,7 +955,7 @@ class Executor {
       return;
     }
     Vector<const OutputSocket *> missing_outputs;
-    for (const int i : node_state.outputs.index_range()) {
+    for (const int i : node.outputs().index_range()) {
       const OutputState &output_state = node_state.outputs[i];
       if (output_state.usage_for_execution == ValueUsage::Used) {
         if (!output_state.has_been_computed) {
@@ -945,13 +982,15 @@ class Executor {
       return;
     }
     /* If there are outputs that may still be used, the node is not done yet. */
-    for (const OutputState &output_state : node_state.outputs) {
+    for (const int output_index : node.outputs().index_range()) {
+      const OutputState &output_state = node_state.outputs[output_index];
       if (output_state.usage != ValueUsage::Unused && !output_state.has_been_computed) {
         return;
       }
     }
     /* If the node is still waiting for inputs, it is not done yet. */
-    for (const InputState &input_state : node_state.inputs) {
+    for (const int input_index : node.inputs().index_range()) {
+      const InputState &input_state = node_state.inputs[input_index];
       if (input_state.usage == ValueUsage::Used && !input_state.was_ready_for_execution) {
         return;
       }
@@ -959,7 +998,7 @@ class Executor {
 
     node_state.node_has_finished = true;
 
-    for (const int input_index : node_state.inputs.index_range()) {
+    for (const int input_index : node.inputs().index_range()) {
       const InputSocket &input_socket = node.input(input_index);
       InputState &input_state = node_state.inputs[input_index];
       if (input_state.usage == ValueUsage::Maybe) {
@@ -1104,9 +1143,10 @@ class Executor {
       if (self_.logger_ != nullptr) {
         self_.logger_->log_socket_value(*target_socket, value_to_forward, local_context);
       }
-      if (target_node.is_dummy()) {
+      if (target_node.is_interface()) {
         /* Forward the value to the outside of the graph. */
-        const int graph_output_index = self_.graph_outputs_.index_of_try(target_socket);
+        const int graph_output_index =
+            self_.graph_output_index_by_socket_index_[target_socket->index()];
         if (graph_output_index != -1 &&
             params_->get_output_usage(graph_output_index) != ValueUsage::Unused)
         {
@@ -1218,10 +1258,10 @@ class Executor {
   /**
    * Allow other threads to steal all the nodes that are currently scheduled on this thread.
    */
-  void move_scheduled_nodes_to_task_pool(CurrentTask &current_task)
+  void push_all_scheduled_nodes_to_task_pool(CurrentTask &current_task)
   {
     BLI_assert(this->use_multi_threading());
-    ScheduledNodes *scheduled_nodes = MEM_new<ScheduledNodes>(__func__);
+    std::unique_ptr<ScheduledNodes> scheduled_nodes = std::make_unique<ScheduledNodes>();
     {
       std::lock_guard lock{current_task.mutex};
       if (current_task.scheduled_nodes.is_empty()) {
@@ -1230,6 +1270,11 @@ class Executor {
       *scheduled_nodes = std::move(current_task.scheduled_nodes);
       current_task.has_scheduled_nodes.store(false, std::memory_order_relaxed);
     }
+    this->push_to_task_pool(std::move(scheduled_nodes));
+  }
+
+  void push_to_task_pool(std::unique_ptr<ScheduledNodes> scheduled_nodes)
+  {
     /* All nodes are pushed as a single task in the pool. This avoids unnecessary threading
      * overhead when the nodes are fast to compute. */
     BLI_task_pool_push(
@@ -1243,9 +1288,9 @@ class Executor {
           const LocalData local_data = executor.get_local_data();
           executor.run_task(new_current_task, local_data);
         },
-        scheduled_nodes,
+        scheduled_nodes.release(),
         true,
-        [](TaskPool * /*pool*/, void *data) { MEM_delete(static_cast<ScheduledNodes *>(data)); });
+        [](TaskPool * /*pool*/, void *data) { delete static_cast<ScheduledNodes *>(data); });
   }
 
   LocalData get_local_data()
@@ -1399,11 +1444,16 @@ inline void Executor::execute_node(const FunctionNode &node,
     if (!this->try_enable_multi_threading()) {
       return;
     }
-    this->move_scheduled_nodes_to_task_pool(current_task);
+    this->push_all_scheduled_nodes_to_task_pool(current_task);
   };
 
   lazy_threading::HintReceiver blocking_hint_receiver{blocking_hint_fn};
-  fn.execute(node_params, fn_context);
+  if (self_.node_execute_wrapper_) {
+    self_.node_execute_wrapper_->execute_node(node, node_params, fn_context);
+  }
+  else {
+    fn.execute(node_params, fn_context);
+  }
 
   if (self_.logger_ != nullptr) {
     self_.logger_->log_after_node_execute(node, node_params, fn_context);
@@ -1411,27 +1461,60 @@ inline void Executor::execute_node(const FunctionNode &node,
 }
 
 GraphExecutor::GraphExecutor(const Graph &graph,
-                             const Span<const OutputSocket *> graph_inputs,
-                             const Span<const InputSocket *> graph_outputs,
+                             Vector<const GraphInputSocket *> graph_inputs,
+                             Vector<const GraphOutputSocket *> graph_outputs,
                              const Logger *logger,
-                             const SideEffectProvider *side_effect_provider)
+                             const SideEffectProvider *side_effect_provider,
+                             const NodeExecuteWrapper *node_execute_wrapper)
     : graph_(graph),
-      graph_inputs_(graph_inputs),
-      graph_outputs_(graph_outputs),
+      graph_inputs_(std::move(graph_inputs)),
+      graph_outputs_(std::move(graph_outputs)),
+      graph_input_index_by_socket_index_(graph.graph_inputs().size(), -1),
+      graph_output_index_by_socket_index_(graph.graph_outputs().size(), -1),
       logger_(logger),
-      side_effect_provider_(side_effect_provider)
+      side_effect_provider_(side_effect_provider),
+      node_execute_wrapper_(node_execute_wrapper)
 {
   /* The graph executor can handle partial execution when there are still missing inputs. */
   allow_missing_requested_inputs_ = true;
 
-  for (const OutputSocket *socket : graph_inputs_) {
-    BLI_assert(socket->node().is_dummy());
-    inputs_.append({"In", socket->type(), ValueUsage::Maybe});
+  for (const int i : graph_inputs_.index_range()) {
+    const OutputSocket &socket = *graph_inputs_[i];
+    BLI_assert(socket.node().is_interface());
+    inputs_.append({"In", socket.type(), ValueUsage::Maybe});
+    graph_input_index_by_socket_index_[socket.index()] = i;
   }
-  for (const InputSocket *socket : graph_outputs_) {
-    BLI_assert(socket->node().is_dummy());
-    outputs_.append({"Out", socket->type()});
+  for (const int i : graph_outputs_.index_range()) {
+    const InputSocket &socket = *graph_outputs_[i];
+    BLI_assert(socket.node().is_interface());
+    outputs_.append({"Out", socket.type()});
+    graph_output_index_by_socket_index_[socket.index()] = i;
   }
+
+  /* Preprocess buffer offsets. */
+  int offset = 0;
+  const Span<const Node *> nodes = graph_.nodes();
+  init_buffer_info_.node_states_array_offset = offset;
+  offset += sizeof(NodeState *) * nodes.size();
+  init_buffer_info_.loaded_inputs_array_offset = offset;
+  offset += sizeof(std::atomic<uint8_t>) * graph_inputs_.size();
+  /* Align offset. */
+  offset = (offset + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
+
+  init_buffer_info_.node_states_offsets.reinitialize(graph_.nodes().size());
+  for (const int i : nodes.index_range()) {
+    const Node &node = *nodes[i];
+    init_buffer_info_.node_states_offsets[i] = offset;
+    offset += sizeof(NodeState);
+    offset += sizeof(InputState) * node.inputs().size();
+    offset += sizeof(OutputState) * node.outputs().size();
+    /* Make sure we don't have to worry about alignment. */
+    static_assert(sizeof(NodeState) % sizeof(void *) == 0);
+    static_assert(sizeof(InputState) % sizeof(void *) == 0);
+    static_assert(sizeof(OutputState) % sizeof(void *) == 0);
+  }
+
+  init_buffer_info_.total_size = offset;
 }
 
 void GraphExecutor::execute_impl(Params &params, const Context &context) const
@@ -1454,17 +1537,13 @@ void GraphExecutor::destruct_storage(void *storage) const
 std::string GraphExecutor::input_name(const int index) const
 {
   const lf::OutputSocket &socket = *graph_inputs_[index];
-  std::stringstream ss;
-  ss << socket.node().name() << " - " << socket.name();
-  return ss.str();
+  return socket.name();
 }
 
 std::string GraphExecutor::output_name(const int index) const
 {
   const lf::InputSocket &socket = *graph_outputs_[index];
-  std::stringstream ss;
-  ss << socket.node().name() << " - " << socket.name();
-  return ss.str();
+  return socket.name();
 }
 
 void GraphExecutorLogger::log_socket_value(const Socket &socket,

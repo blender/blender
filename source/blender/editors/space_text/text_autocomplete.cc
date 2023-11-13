@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
  * \ingroup sptext
  */
 
-#include <ctype.h>
-#include <string.h>
+#include <cctype>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -17,18 +17,18 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_text.h"
-#include "ED_undo.h"
+#include "ED_screen.hh"
+#include "ED_text.hh"
+#include "ED_undo.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "text_format.hh"
 #include "text_intern.hh" /* own include */
@@ -46,19 +46,19 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   int tgti, *top;
 
   if (!st->text) {
-    return 0;
+    return false;
   }
   if (!texttool_text_is_active(st->text)) {
-    return 0;
+    return false;
   }
 
   first = texttool_suggest_first();
   last = texttool_suggest_last();
-  /* sel = texttool_suggest_selected(); */ /* UNUSED */
+  // sel = texttool_suggest_selected(); /* UNUSED. */
   top = texttool_suggest_top();
 
   if (!last || !first) {
-    return 0;
+    return false;
   }
 
   /* Count the visible lines to the cursor */
@@ -66,7 +66,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
     /* pass */
   }
   if (l < 0) {
-    return 0;
+    return false;
   }
 
   text_update_character_width(st);
@@ -78,7 +78,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   h = SUGG_LIST_SIZE * lheight + 0.4f * U.widget_unit;
 
   if (mval[0] < x || x + w < mval[0] || mval[1] < y - h || y < mval[1]) {
-    return 0;
+    return false;
   }
 
   /* Work out which of the items is at the top of the visible list */
@@ -89,7 +89,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   /* Work out the target item index in the visible list */
   tgti = (y - mval[1] - 4) / lheight;
   if (tgti < 0 || tgti > SUGG_LIST_SIZE) {
-    return 1;
+    return true;
   }
 
   for (i = tgti; i > 0 && item->next; i--, item = item->next) {
@@ -98,10 +98,10 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   if (item) {
     texttool_suggest_select(item);
   }
-  return 1;
+  return true;
 }
 
-void text_pop_suggest_list(void)
+void text_pop_suggest_list()
 {
   SuggItem *item, *sel;
   int *top, i;
@@ -151,11 +151,9 @@ static GHash *text_autocomplete_build(Text *text)
 
   /* now walk over entire doc and suggest words */
   {
-    TextLine *linep;
-
     gh = BLI_ghash_str_new(__func__);
 
-    for (linep = static_cast<TextLine *>(text->lines.first); linep; linep = linep->next) {
+    LISTBASE_FOREACH (TextLine *, linep, &text->lines) {
       size_t i_start = 0;
       size_t i_end = 0;
       size_t i_pos = 0;
@@ -165,13 +163,14 @@ static GHash *text_autocomplete_build(Text *text)
         i_pos = i_start;
         while ((i_start < linep->len) &&
                !text_check_identifier_nodigit_unicode(
-                   BLI_str_utf8_as_unicode_step(linep->line, linep->len, &i_pos)))
+                   BLI_str_utf8_as_unicode_step_safe(linep->line, linep->len, &i_pos)))
         {
           i_start = i_pos;
         }
         i_pos = i_end = i_start;
-        while ((i_end < linep->len) && text_check_identifier_unicode(BLI_str_utf8_as_unicode_step(
-                                           linep->line, linep->len, &i_pos)))
+        while ((i_end < linep->len) &&
+               text_check_identifier_unicode(
+                   BLI_str_utf8_as_unicode_step_safe(linep->line, linep->len, &i_pos)))
         {
           i_end = i_pos;
         }
@@ -179,8 +178,8 @@ static GHash *text_autocomplete_build(Text *text)
         if ((i_start != i_end) &&
             /* Check we're at the beginning of a line or that the previous char is not an
              * identifier this prevents digits from being added. */
-            ((i_start < 1) ||
-             !text_check_identifier_unicode(BLI_str_utf8_as_unicode(&linep->line[i_start - 1]))))
+            ((i_start < 1) || !text_check_identifier_unicode(
+                                  BLI_str_utf8_as_unicode_or_error(&linep->line[i_start - 1]))))
         {
           char *str_sub = &linep->line[i_start];
           const int choice_len = i_end - i_start;

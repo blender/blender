@@ -65,14 +65,6 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
                                   .Get<GfMatrix4d>());
 #endif
     _light->set_tfm(tfm);
-
-    _light->set_co(transform_get_column(&tfm, 3));
-    _light->set_dir(-transform_get_column(&tfm, 2));
-
-    if (_lightType == HdPrimTypeTokens->diskLight || _lightType == HdPrimTypeTokens->rectLight) {
-      _light->set_axisu(transform_get_column(&tfm, 0));
-      _light->set_axisv(transform_get_column(&tfm, 1));
-    }
   }
 
   if (*dirtyBits & DirtyBits::DirtyParams) {
@@ -92,6 +84,15 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->intensity);
     if (!value.IsEmpty()) {
       strength *= value.Get<float>();
+    }
+
+    if (_lightType == HdPrimTypeTokens->distantLight) {
+      /* Unclear why, but approximately matches Karma. */
+      strength *= 4.0f;
+    }
+    else {
+      /* Convert from intensity to radiant flux. */
+      strength *= M_PI;
     }
 
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->normalize);
@@ -133,9 +134,15 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
       }
     }
     else if (_lightType == HdPrimTypeTokens->sphereLight) {
-      value = sceneDelegate->GetLightParamValue(id, HdLightTokens->radius);
-      if (!value.IsEmpty()) {
-        _light->set_size(value.Get<float>());
+      value = sceneDelegate->GetLightParamValue(id, TfToken("treatAsPoint"));
+      if (!value.IsEmpty() && value.Get<bool>()) {
+        _light->set_size(0.0f);
+      }
+      else {
+        value = sceneDelegate->GetLightParamValue(id, HdLightTokens->radius);
+        if (!value.IsEmpty()) {
+          _light->set_size(value.Get<float>());
+        }
       }
 
       bool shaping = false;
@@ -196,7 +203,23 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
 
     outputNode = bgNode;
   }
-  else {
+  else if (sceneDelegate != nullptr) {
+    VtValue value;
+    const SdfPath &id = GetId();
+    value = sceneDelegate->GetLightParamValue(id, TfToken("falloff"));
+    if (!value.IsEmpty()) {
+      std::string strVal = value.Get<string>();
+      if (strVal == "Constant" || strVal == "Linear" || strVal == "Quadratic") {
+        LightFalloffNode *lfoNode = graph->create_node<LightFalloffNode>();
+        lfoNode->set_strength(1.f);
+        graph->add(lfoNode);
+        graph->connect(lfoNode->output(strVal.c_str()), graph->output()->input("Surface"));
+        outputNode = lfoNode;
+      }
+    }
+  }
+
+  if (outputNode == nullptr) {
     EmissionNode *emissionNode = graph->create_node<EmissionNode>();
     emissionNode->set_color(one_float3());
     emissionNode->set_strength(1.0f);

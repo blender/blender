@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,17 +16,21 @@ struct bContext;
 struct bNodeTree;
 struct wmOperatorType;
 
-/* space_image.c */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* `space_image.cc` */
 
 extern const char *image_context_dir[]; /* doc access */
 
-/* image_draw.c */
+/* `image_draw.cc` */
 
 void draw_image_main_helpers(const struct bContext *C, struct ARegion *region);
 void draw_image_cache(const struct bContext *C, struct ARegion *region);
 void draw_image_sample_line(struct SpaceImage *sima);
 
-/* image_ops.c */
+/* `image_ops.cc` */
 
 bool space_image_main_region_poll(struct bContext *C);
 bool space_image_view_center_cursor_poll(struct bContext *C);
@@ -96,3 +100,7 @@ void IMAGE_OT_tile_fill(struct wmOperatorType *ot);
  */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
+
+#ifdef __cplusplus
+}
+#endif

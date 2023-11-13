@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,32 +11,36 @@
 #include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
-#include "ED_curves.h"
-#include "ED_spreadsheet.h"
+#include "ED_curves.hh"
+#include "ED_spreadsheet.hh"
 
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_log.hh"
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
 #include "FN_field_cpp_type.hh"
 
@@ -76,18 +80,18 @@ static void add_mesh_debug_column_names(
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
-      if (CustomData_has_layer(&mesh.vdata, CD_ORIGINDEX)) {
+      if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
       break;
     case ATTR_DOMAIN_EDGE:
-      if (CustomData_has_layer(&mesh.edata, CD_ORIGINDEX)) {
+      if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
       fn({(char *)"Vertices"}, false);
       break;
     case ATTR_DOMAIN_FACE:
-      if (CustomData_has_layer(&mesh.pdata, CD_ORIGINDEX)) {
+      if (CustomData_has_layer(&mesh.face_data, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
       fn({(char *)"Corner Start"}, false);
@@ -111,7 +115,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
     case ATTR_DOMAIN_POINT: {
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
-            CustomData_get_layer(&mesh.vdata, CD_ORIGINDEX));
+            CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX));
         if (data) {
           return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totvert}));
         }
@@ -121,7 +125,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
     case ATTR_DOMAIN_EDGE: {
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
-            CustomData_get_layer(&mesh.edata, CD_ORIGINDEX));
+            CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX));
         if (data) {
           return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totedge}));
         }
@@ -134,20 +138,21 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
     case ATTR_DOMAIN_FACE: {
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
-            CustomData_get_layer(&mesh.pdata, CD_ORIGINDEX));
+            CustomData_get_layer(&mesh.face_data, CD_ORIGINDEX));
         if (data) {
-          return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totpoly}));
+          return std::make_unique<ColumnValues>(name,
+                                                VArray<int>::ForSpan({data, mesh.faces_num}));
         }
       }
       if (name == "Corner Start") {
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForSpan(mesh.poly_offsets().drop_back(1)));
+            name, VArray<int>::ForSpan(mesh.face_offsets().drop_back(1)));
       }
       if (name == "Corner Size") {
-        const OffsetIndices polys = mesh.polys();
+        const OffsetIndices faces = mesh.faces();
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
-              return polys[index].size();
+            name, VArray<int>::ForFunc(faces.size(), [faces](int64_t index) {
+              return faces[index].size();
             }));
       }
       return {};
@@ -170,12 +175,11 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
 void GeometryDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  if (!component_->attributes().has_value()) {
+  std::optional<const bke::AttributeAccessor> attributes = this->get_component_attributes();
+  if (!attributes.has_value()) {
     return;
   }
-  const bke::AttributeAccessor attributes = *component_->attributes();
-
-  if (attributes.domain_size(domain_) == 0) {
+  if (attributes->domain_size(domain_) == 0) {
     return;
   }
 
@@ -183,9 +187,13 @@ void GeometryDataSource::foreach_default_column_ids(
     fn({(char *)"Name"}, false);
   }
 
+  if (component_->type() == bke::GeometryComponent::Type::GreasePencil) {
+    fn({(char *)"Name"}, false);
+  }
+
   extra_columns_.foreach_default_column_ids(fn);
 
-  attributes.for_all(
+  attributes->for_all(
       [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
         if (meta_data.domain != domain_) {
           return true;
@@ -209,7 +217,7 @@ void GeometryDataSource::foreach_default_column_ids(
   }
   else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
     const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
-    if (const Mesh *mesh = component.get_for_read()) {
+    if (const Mesh *mesh = component.get()) {
       add_mesh_debug_column_names(*mesh, domain_, fn);
     }
   }
@@ -218,11 +226,11 @@ void GeometryDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  if (!component_->attributes().has_value()) {
+  std::optional<const bke::AttributeAccessor> attributes = this->get_component_attributes();
+  if (!attributes.has_value()) {
     return {};
   }
-  const bke::AttributeAccessor attributes = *component_->attributes();
-  const int domain_num = attributes.domain_size(domain_);
+  const int domain_num = attributes->domain_size(domain_);
   if (domain_num == 0) {
     return {};
   }
@@ -236,7 +244,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
     if (const bke::Instances *instances =
-            static_cast<const bke::InstancesComponent &>(*component_).get_for_read())
+            static_cast<const bke::InstancesComponent &>(*component_).get())
     {
       if (STREQ(column_id.name, "Name")) {
         Span<int> reference_handles = instances->reference_handles();
@@ -263,9 +271,22 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       }
     }
   }
+  else if (component_->type() == bke::GeometryComponent::Type::GreasePencil) {
+    if (const GreasePencil *grease_pencil =
+            static_cast<const bke::GreasePencilComponent &>(*component_).get())
+    {
+      if (domain_ == ATTR_DOMAIN_LAYER && STREQ(column_id.name, "Name")) {
+        const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
+        return std::make_unique<ColumnValues>(
+            column_id.name, VArray<std::string>::ForFunc(domain_num, [layers](int64_t index) {
+              return std::string(layers[index]->name());
+            }));
+      }
+    }
+  }
   else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
     const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
-    if (const Mesh *mesh = component.get_for_read()) {
+    if (const Mesh *mesh = component.get()) {
       if (std::unique_ptr<ColumnValues> values = build_mesh_debug_columns(
               *mesh, domain_, column_id.name))
       {
@@ -274,7 +295,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     }
   }
 
-  bke::GAttributeReader attribute = attributes.lookup(column_id.name);
+  bke::GAttributeReader attribute = attributes->lookup(column_id.name);
   if (!attribute) {
     return {};
   }
@@ -293,11 +314,11 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
 int GeometryDataSource::tot_rows() const
 {
-  if (!component_->attributes().has_value()) {
+  std::optional<const bke::AttributeAccessor> attributes = this->get_component_attributes();
+  if (!attributes.has_value()) {
     return {};
   }
-  const bke::AttributeAccessor attributes = *component_->attributes();
-  return attributes.domain_size(domain_);
+  return attributes->domain_size(domain_);
 }
 
 bool GeometryDataSource::has_selection_filter() const
@@ -322,6 +343,15 @@ bool GeometryDataSource::has_selection_filter() const
       }
       return true;
     }
+    case bke::GeometryComponent::Type::PointCloud: {
+      if (object_orig->type != OB_POINTCLOUD) {
+        return false;
+      }
+      if (object_orig->mode != OB_MODE_EDIT) {
+        return false;
+      }
+      return true;
+    }
     default:
       return false;
   }
@@ -340,13 +370,14 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       BLI_assert(object_eval_->type == OB_MESH);
       BLI_assert(object_eval_->mode == OB_MODE_EDIT);
       Object *object_orig = DEG_get_original_object(object_eval_);
-      const Mesh *mesh_eval = geometry_set_.get_mesh_for_read();
+      const Mesh *mesh_eval = geometry_set_.get_mesh();
       const bke::AttributeAccessor attributes_eval = mesh_eval->attributes();
       Mesh *mesh_orig = (Mesh *)object_orig->data;
       BMesh *bm = mesh_orig->edit_mesh->bm;
       BM_mesh_elem_table_ensure(bm, BM_VERT);
 
-      const int *orig_indices = (const int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
+      const int *orig_indices = (const int *)CustomData_get_layer(&mesh_eval->vert_data,
+                                                                  CD_ORIGINDEX);
       if (orig_indices != nullptr) {
         /* Use CD_ORIGINDEX layer if it exists. */
         VArray<bool> selection = attributes_eval.adapt_domain<bool>(
@@ -385,7 +416,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
     case bke::GeometryComponent::Type::Curve: {
       BLI_assert(object_eval_->type == OB_CURVES);
       const bke::CurveComponent &component = static_cast<const bke::CurveComponent &>(*component_);
-      const Curves &curves_id = *component.get_for_read();
+      const Curves &curves_id = *component.get();
       switch (domain_) {
         case ATTR_DOMAIN_POINT:
           return curves::retrieve_selected_points(curves_id, memory);
@@ -396,9 +427,38 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       }
       return full_range;
     }
+    case bke::GeometryComponent::Type::PointCloud: {
+      BLI_assert(object_eval_->type == OB_POINTCLOUD);
+      const bke::AttributeAccessor attributes = *component_->attributes();
+      const VArray<bool> &selection = *attributes.lookup_or_default(
+          ".selection", ATTR_DOMAIN_POINT, false);
+      return IndexMask::from_bools(selection, memory);
+    }
     default:
       return full_range;
   }
+}
+
+std::optional<const bke::AttributeAccessor> GeometryDataSource::get_component_attributes() const
+{
+  if (component_->type() != bke::GeometryComponent::Type::GreasePencil) {
+    return component_->attributes();
+  }
+  const GreasePencil *grease_pencil = geometry_set_.get_grease_pencil();
+  if (!grease_pencil) {
+    return {};
+  }
+  if (domain_ == ATTR_DOMAIN_LAYER) {
+    return grease_pencil->attributes();
+  }
+  if (layer_index_ >= 0 && layer_index_ < grease_pencil->layers().size()) {
+    if (const bke::greasepencil::Drawing *drawing =
+            bke::greasepencil::get_eval_grease_pencil_layer_drawing(*grease_pencil, layer_index_))
+    {
+      return drawing->strokes().attributes();
+    }
+  }
+  return {};
 }
 
 void VolumeDataSource::foreach_default_column_ids(
@@ -417,7 +477,7 @@ void VolumeDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  const Volume *volume = component_->get_for_read();
+  const Volume *volume = component_->get();
   if (volume == nullptr) {
     return {};
   }
@@ -465,7 +525,7 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
 
 int VolumeDataSource::tot_rows() const
 {
-  const Volume *volume = component_->get_for_read();
+  const Volume *volume = component_->get();
   if (volume == nullptr) {
     return 0;
   }
@@ -477,39 +537,37 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
 {
   bke::GeometrySet geometry_set;
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
-    Object *object_orig = DEG_get_original_object(object_eval);
+    const Object *object_orig = DEG_get_original_object(object_eval);
     if (object_orig->type == OB_MESH) {
-      bke::MeshComponent &mesh_component =
-          geometry_set.get_component_for_write<bke::MeshComponent>();
+      const Mesh *mesh = static_cast<const Mesh *>(object_orig->data);
       if (object_orig->mode == OB_MODE_EDIT) {
-        Mesh *mesh = (Mesh *)object_orig->data;
-        BMEditMesh *em = mesh->edit_mesh;
-        if (em != nullptr) {
+        if (const BMEditMesh *em = mesh->edit_mesh) {
           Mesh *new_mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
           /* This is a potentially heavy operation to do on every redraw. The best solution here is
            * to display the data directly from the bmesh without a conversion, which can be
            * implemented a bit later. */
           BM_mesh_bm_to_me_for_eval(em->bm, new_mesh, nullptr);
-          mesh_component.replace(new_mesh, bke::GeometryOwnershipType::Owned);
+          geometry_set.replace_mesh(new_mesh, bke::GeometryOwnershipType::Owned);
         }
       }
       else {
-        Mesh *mesh = (Mesh *)object_orig->data;
-        mesh_component.replace(mesh, bke::GeometryOwnershipType::ReadOnly);
+        geometry_set.replace_mesh(const_cast<Mesh *>(mesh), bke::GeometryOwnershipType::ReadOnly);
       }
     }
     else if (object_orig->type == OB_POINTCLOUD) {
-      PointCloud *pointcloud = (PointCloud *)object_orig->data;
-      bke::PointCloudComponent &pointcloud_component =
-          geometry_set.get_component_for_write<bke::PointCloudComponent>();
-      pointcloud_component.replace(pointcloud, bke::GeometryOwnershipType::ReadOnly);
+      const PointCloud *pointcloud = static_cast<const PointCloud *>(object_orig->data);
+      geometry_set.replace_pointcloud(const_cast<PointCloud *>(pointcloud),
+                                      bke::GeometryOwnershipType::ReadOnly);
     }
     else if (object_orig->type == OB_CURVES) {
-      const Curves &curves_id = *(const Curves *)object_orig->data;
-      bke::CurveComponent &curve_component =
-          geometry_set.get_component_for_write<bke::CurveComponent>();
-      curve_component.replace(&const_cast<Curves &>(curves_id),
-                              bke::GeometryOwnershipType::ReadOnly);
+      const Curves &curves_id = *static_cast<const Curves *>(object_orig->data);
+      geometry_set.replace_curves(&const_cast<Curves &>(curves_id),
+                                  bke::GeometryOwnershipType::ReadOnly);
+    }
+    else if (object_orig->type == OB_GREASE_PENCIL) {
+      const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object_orig->data);
+      geometry_set.replace_grease_pencil(&const_cast<GreasePencil &>(grease_pencil),
+                                         bke::GeometryOwnershipType::ReadOnly);
     }
   }
   else {
@@ -542,6 +600,7 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
   const auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
+  const int active_layer_index = sspreadsheet->active_layer_index;
   bke::GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
   if (!geometry_set.has(component_type)) {
     return {};
@@ -551,7 +610,7 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
     return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
   return std::make_unique<GeometryDataSource>(
-      object_eval, std::move(geometry_set), component_type, domain);
+      object_eval, std::move(geometry_set), component_type, domain, active_layer_index);
 }
 
 }  // namespace blender::ed::spreadsheet

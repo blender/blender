@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -7,7 +7,8 @@
 #include <cstring>
 
 #include "BLI_expr_pylike_eval.h"
-#include "BLI_math.h"
+#include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 #define TRUE_VAL 1.0
 #define FALSE_VAL 0.0

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,7 +14,7 @@ namespace blender::compositor {
 
 class PreviewOperation : public MultiThreadedOperation {
  protected:
-  unsigned char *output_buffer_;
+  ImBuf *output_image_;
 
   /**
    * \brief holds reference to the SDNA bNode, where this nodes will render the preview image for

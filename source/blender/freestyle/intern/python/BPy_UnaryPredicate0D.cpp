@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -53,10 +53,10 @@ int UnaryPredicate0D_Init(PyObject *module)
 
 static char UnaryPredicate0D___doc__[] =
     "Base class for unary predicates that work on\n"
-    ":class:`Interface0DIterator`.  A UnaryPredicate0D is a functor that\n"
+    ":class:`Interface0DIterator`. A UnaryPredicate0D is a functor that\n"
     "evaluates a condition on an Interface0DIterator and returns true or\n"
-    "false depending on whether this condition is satisfied or not.  The\n"
-    "UnaryPredicate0D is used by invoking its __call__() method.  Any\n"
+    "false depending on whether this condition is satisfied or not. The\n"
+    "UnaryPredicate0D is used by invoking its __call__() method. Any\n"
     "inherited class must overload the __call__() method.\n"
     "\n"
     ".. method:: __init__()\n"
@@ -154,7 +154,7 @@ static PyGetSetDef BPy_UnaryPredicate0D_getseters[] = {
 /*-----------------------BPy_UnaryPredicate0D type definition ------------------------------*/
 
 PyTypeObject UnaryPredicate0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryPredicate0D",
     /*tp_basicsize*/ sizeof(BPy_UnaryPredicate0D),
     /*tp_itemsize*/ 0,

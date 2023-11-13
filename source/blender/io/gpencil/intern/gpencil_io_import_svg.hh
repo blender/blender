@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -22,16 +22,16 @@ namespace blender::io::gpencil {
 class GpencilImporterSVG : public GpencilImporter {
 
  public:
-  GpencilImporterSVG(const char *filepath, const struct GpencilIOParams *iparams);
+  GpencilImporterSVG(const char *filepath, const GpencilIOParams *iparams);
 
   bool read();
 
  protected:
  private:
-  void create_stroke(struct bGPdata *gpd_,
-                     struct bGPDframe *gpf,
-                     struct NSVGshape *shape,
-                     struct NSVGpath *path,
+  void create_stroke(bGPdata *gpd_,
+                     bGPDframe *gpf,
+                     NSVGshape *shape,
+                     NSVGpath *path,
                      int32_t mat_index,
                      const float matrix[4][4]);
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 
 #include "BKE_blender_version.h"
 
-#include "IO_ply.h"
+#include "IO_ply.hh"
 #include "ply_data.hh"
 #include "ply_export_header.hh"
 #include "ply_file_buffer.hh"
@@ -48,6 +48,10 @@ void write_header(FileBuffer &buffer,
   if (!ply_data.uv_coordinates.is_empty()) {
     buffer.write_header_scalar_property("float", "s");
     buffer.write_header_scalar_property("float", "t");
+  }
+
+  for (const PlyCustomAttribute &attr : ply_data.vertex_custom_attr) {
+    buffer.write_header_scalar_property("float", attr.name);
   }
 
   if (!ply_data.face_sizes.is_empty()) {

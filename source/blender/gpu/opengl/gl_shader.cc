@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,6 +19,8 @@
 
 #include "gl_shader.hh"
 #include "gl_shader_interface.hh"
+
+#include <sstream>
 
 using namespace blender;
 using namespace blender::gpu;
@@ -108,9 +110,139 @@ static const char *to_string(const Type &type)
       return "ivec4";
     case Type::BOOL:
       return "bool";
-    default:
-      return "unknown";
+    /* Alias special types. */
+    case Type::UCHAR:
+    case Type::USHORT:
+      return "uint";
+    case Type::UCHAR2:
+    case Type::USHORT2:
+      return "uvec2";
+    case Type::UCHAR3:
+    case Type::USHORT3:
+      return "uvec3";
+    case Type::UCHAR4:
+    case Type::USHORT4:
+      return "uvec4";
+    case Type::CHAR:
+    case Type::SHORT:
+      return "int";
+    case Type::CHAR2:
+    case Type::SHORT2:
+      return "ivec2";
+    case Type::CHAR3:
+    case Type::SHORT3:
+      return "ivec3";
+    case Type::CHAR4:
+    case Type::SHORT4:
+      return "ivec4";
+    case Type::VEC3_101010I2:
+      return "vec3";
   }
+  BLI_assert_unreachable();
+  return "unknown";
+}
+
+static const int to_component_count(const Type &type)
+{
+  switch (type) {
+    case Type::FLOAT:
+    case Type::UINT:
+    case Type::INT:
+    case Type::BOOL:
+      return 1;
+    case Type::VEC2:
+    case Type::UVEC2:
+    case Type::IVEC2:
+      return 2;
+    case Type::VEC3:
+    case Type::UVEC3:
+    case Type::IVEC3:
+      return 3;
+    case Type::VEC4:
+    case Type::UVEC4:
+    case Type::IVEC4:
+      return 4;
+    case Type::MAT3:
+      return 9;
+    case Type::MAT4:
+      return 16;
+    /* Alias special types. */
+    case Type::UCHAR:
+    case Type::USHORT:
+      return 1;
+    case Type::UCHAR2:
+    case Type::USHORT2:
+      return 2;
+    case Type::UCHAR3:
+    case Type::USHORT3:
+      return 3;
+    case Type::UCHAR4:
+    case Type::USHORT4:
+      return 4;
+    case Type::CHAR:
+    case Type::SHORT:
+      return 1;
+    case Type::CHAR2:
+    case Type::SHORT2:
+      return 2;
+    case Type::CHAR3:
+    case Type::SHORT3:
+      return 3;
+    case Type::CHAR4:
+    case Type::SHORT4:
+      return 4;
+    case Type::VEC3_101010I2:
+      return 3;
+  }
+  BLI_assert_unreachable();
+  return -1;
+}
+
+static const Type to_component_type(const Type &type)
+{
+  switch (type) {
+    case Type::FLOAT:
+    case Type::VEC2:
+    case Type::VEC3:
+    case Type::VEC4:
+    case Type::MAT3:
+    case Type::MAT4:
+      return Type::FLOAT;
+    case Type::UINT:
+    case Type::UVEC2:
+    case Type::UVEC3:
+    case Type::UVEC4:
+      return Type::UINT;
+    case Type::INT:
+    case Type::IVEC2:
+    case Type::IVEC3:
+    case Type::IVEC4:
+    case Type::BOOL:
+      return Type::INT;
+    /* Alias special types. */
+    case Type::UCHAR:
+    case Type::UCHAR2:
+    case Type::UCHAR3:
+    case Type::UCHAR4:
+    case Type::USHORT:
+    case Type::USHORT2:
+    case Type::USHORT3:
+    case Type::USHORT4:
+      return Type::UINT;
+    case Type::CHAR:
+    case Type::CHAR2:
+    case Type::CHAR3:
+    case Type::CHAR4:
+    case Type::SHORT:
+    case Type::SHORT2:
+    case Type::SHORT3:
+    case Type::SHORT4:
+      return Type::INT;
+    case Type::VEC3_101010I2:
+      return Type::FLOAT;
+  }
+  BLI_assert_unreachable();
+  return Type::FLOAT;
 }
 
 static const char *to_string(const eGPUTextureFormat &type)
@@ -538,18 +670,16 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
     }
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
   }
-  /* NOTE(D4490): Fix a bug where shader without any vertex attributes do not behave correctly. */
-  if (GPU_type_matches_ex(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) &&
-      info.vertex_inputs_.is_empty())
-  {
-    ss << "in float gpu_dummy_workaround;\n";
-  }
   ss << "\n/* Interfaces. */\n";
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     print_interface(ss, "out", *iface);
   }
   if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::LAYER)) {
     ss << "out int gpu_Layer;\n";
+  }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
+    ss << "out int gpu_ViewportIndex;\n";
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     if (!GLContext::native_barycentric_support) {
@@ -575,7 +705,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
 std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
-  std::string pre_main;
+  std::string pre_main, post_main;
 
   ss << "\n/* Interfaces. */\n";
   const Vector<StageInterfaceInfo *> &in_interfaces = info.geometry_source_.is_empty() ?
@@ -583,6 +713,13 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
                                                           info.geometry_out_interfaces_;
   for (const StageInterfaceInfo *iface : in_interfaces) {
     print_interface(ss, "in", *iface);
+  }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::LAYER)) {
+    ss << "#define gpu_Layer gl_Layer\n";
+  }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
+    ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     if (!GLContext::native_barycentric_support) {
@@ -592,7 +729,6 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
     }
     else if (epoxy_has_gl_extension("GL_AMD_shader_explicit_vertex_parameter")) {
-      std::cout << "native" << std::endl;
       /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
        * shader workaround if this extension/feature is detected. */
       ss << "\n/* Stable Barycentric Coordinates. */\n";
@@ -625,6 +761,64 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
+
+  ss << "\n/* Sub-pass Inputs. */\n";
+  for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+    if (GLContext::framebuffer_fetch_support) {
+      /* Declare as inout but do not write to it. */
+      ss << "layout(location = " << std::to_string(input.index) << ") inout "
+         << to_string(input.type) << " " << input.name << ";\n";
+    }
+    else {
+      std::string image_name = "gpu_subpass_img_";
+      image_name += std::to_string(input.index);
+
+      /* Declare global for input. */
+      ss << to_string(input.type) << " " << input.name << ";\n";
+
+      /* IMPORTANT: We assume that the frame-buffer will be layered or not based on the layer
+       * built-in flag. */
+      bool is_layered_fb = bool(info.builtins_ & BuiltinBits::LAYER);
+
+      /* Start with invalid value to detect failure cases. */
+      ImageType image_type = ImageType::FLOAT_BUFFER;
+      switch (to_component_type(input.type)) {
+        case Type::FLOAT:
+          image_type = is_layered_fb ? ImageType::FLOAT_2D_ARRAY : ImageType::FLOAT_2D;
+          break;
+        case Type::INT:
+          image_type = is_layered_fb ? ImageType::INT_2D_ARRAY : ImageType::INT_2D;
+          break;
+        case Type::UINT:
+          image_type = is_layered_fb ? ImageType::UINT_2D_ARRAY : ImageType::UINT_2D;
+          break;
+        default:
+          break;
+      }
+      /* Declare image. */
+      using Resource = ShaderCreateInfo::Resource;
+      /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might
+       * collide with other resources. */
+      Resource res(Resource::BindType::SAMPLER, input.index);
+      res.sampler.type = image_type;
+      res.sampler.sampler = GPUSamplerState::default_sampler();
+      res.sampler.name = image_name;
+      print_resource(ss, res, false);
+
+      char swizzle[] = "xyzw";
+      swizzle[to_component_count(input.type)] = '\0';
+
+      std::string texel_co = (is_layered_fb) ? "ivec3(gl_FragCoord.xy, gpu_Layer)" :
+                                               "ivec2(gl_FragCoord.xy)";
+
+      std::stringstream ss_pre;
+      /* Populate the global before main using imageLoad. */
+      ss_pre << "  " << input.name << " = texelFetch(" << image_name << ", " << texel_co << ", 0)."
+             << swizzle << ";\n";
+
+      pre_main += ss_pre.str();
+    }
+  }
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
     ss << "layout(location = " << output.index;
@@ -643,8 +837,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   }
   ss << "\n";
 
-  if (pre_main.empty() == false) {
-    std::string post_main;
+  if (!pre_main.empty() || !post_main.empty()) {
     ss << main_function_wrapper(pre_main, post_main);
   }
   return ss.str();
@@ -736,6 +929,8 @@ std::string GLShader::workaround_geometry_shader_source_create(
 
   const bool do_layer_workaround = !GLContext::layered_rendering_support &&
                                    bool(info.builtins_ & BuiltinBits::LAYER);
+  const bool do_viewport_workaround = !GLContext::layered_rendering_support &&
+                                      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX);
   const bool do_barycentric_workaround = !GLContext::native_barycentric_support &&
                                          bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD);
 
@@ -752,6 +947,9 @@ std::string GLShader::workaround_geometry_shader_source_create(
   if (do_layer_workaround) {
     ss << "in int gpu_Layer[];\n";
   }
+  if (do_viewport_workaround) {
+    ss << "in int gpu_ViewportIndex[];\n";
+  }
   if (do_barycentric_workaround) {
     ss << "flat out vec4 gpu_pos[3];\n";
     ss << "smooth out vec3 gpu_BaryCoord;\n";
@@ -763,6 +961,9 @@ std::string GLShader::workaround_geometry_shader_source_create(
   ss << "{\n";
   if (do_layer_workaround) {
     ss << "  gl_Layer = gpu_Layer[0];\n";
+  }
+  if (do_viewport_workaround) {
+    ss << "  gl_ViewportIndex = gpu_ViewportIndex[0];\n";
   }
   if (do_barycentric_workaround) {
     ss << "  gpu_pos[0] = gl_in[0].gl_Position;\n";
@@ -794,6 +995,9 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
     return true;
   }
   if (!GLContext::layered_rendering_support && bool(builtins & BuiltinBits::LAYER)) {
+    return true;
+  }
+  if (!GLContext::layered_rendering_support && bool(builtins & BuiltinBits::VIEWPORT_INDEX)) {
     return true;
   }
   return false;
@@ -853,11 +1057,15 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_shading_language_420pack: enable\n");
   }
   if (GLContext::layered_rendering_support) {
-    STR_CONCAT(patch, slen, "#extension GL_AMD_vertex_shader_layer: enable\n");
+    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
     STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
+    STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
   }
   if (GLContext::native_barycentric_support) {
     STR_CONCAT(patch, slen, "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n");
+  }
+  if (GLContext::framebuffer_fetch_support) {
+    STR_CONCAT(patch, slen, "#extension GL_EXT_shader_framebuffer_fetch: enable\n");
   }
 
   /* Fallbacks. */
@@ -865,10 +1073,11 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "uniform int gpu_BaseInstance;\n");
   }
 
-  /* Vulkan GLSL compat. */
+  /* Vulkan GLSL compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n");
+  STR_CONCAT(patch, slen, "#define gpu_EmitVertex EmitVertex\n");
 
-  /* Array compat. */
+  /* Array compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
 
   /* Derivative sign can change depending on implementation. */
@@ -895,7 +1104,12 @@ static char *glsl_patch_compute_get()
   STR_CONCAT(patch, slen, "#version 430\n");
   STR_CONCAT(patch, slen, "#extension GL_ARB_compute_shader :enable\n");
 
-  /* Array compat. */
+  if (GLContext::texture_cube_map_array_support) {
+    STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
+    STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
+  }
+
+  /* Array compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
 
   STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);

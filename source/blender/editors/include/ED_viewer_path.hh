@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,6 +6,7 @@
 
 #include <optional>
 
+#include "BLI_compute_context.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -37,7 +38,8 @@ Object *parse_object_only(const ViewerPath &viewer_path);
 struct ViewerPathForGeometryNodesViewer {
   Object *object;
   blender::StringRefNull modifier_name;
-  blender::Vector<int32_t> group_node_ids;
+  /* Contains only group node and simulation zone elements. */
+  blender::Vector<const ViewerPathElem *> node_path;
   int32_t viewer_node_id;
 };
 
@@ -61,11 +63,27 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
  */
 bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed_viewer_path);
 
+enum class UpdateActiveGeometryNodesViewerResult {
+  StillActive,
+  Updated,
+  NotActive,
+};
+
 /**
  * Checks if the node referenced by the viewer and its entire context is still active, i.e. some
- * editor is showing it.
+ * editor is showing it. If not, the viewer path might be updated in minor ways (like changing the
+ * repeat zone iteration).
  */
-bool is_active_geometry_nodes_viewer(const bContext &C,
-                                     const ViewerPathForGeometryNodesViewer &parsed_viewer_path);
+UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const bContext &C,
+                                                                          ViewerPath &viewer_path);
+
+/**
+ * Some viewer path elements correspond to compute-contexts. This function converts from the viewer
+ * path element to the corresponding compute context if possible.
+ *
+ * \return False, there is no matching compute context.
+ */
+[[nodiscard]] bool add_compute_context_for_viewer_path_elem(
+    const ViewerPathElem &elem, ComputeContextBuilder &compute_context_builder);
 
 }  // namespace blender::ed::viewer_path

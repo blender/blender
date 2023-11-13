@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
@@ -68,7 +72,7 @@ void main()
 
   normal_interp = normalize(normal_world_to_view(nor));
 
-  workbench_material_data_get(resource_handle,
+  workbench_material_data_get(int(drw_CustomID),
                               hair_get_customdata_vec3(ac),
                               color_interp,
                               alpha_interp,
@@ -82,4 +86,8 @@ void main()
   workbench_hair_random_material(hair_rand, color_interp, _roughness, metallic);
 
   object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
+
+  if (emitter_object_id != 0) {
+    object_id = int(uint(emitter_object_id) & 0xFFFFu) + 1;
+  }
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -17,22 +16,22 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "MEM_guardedalloc.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct ThumbnailDrawJob {
   SeqRenderData context;
@@ -134,7 +133,7 @@ static void seq_get_thumb_image_dimensions(Sequence *seq,
   }
 }
 
-static void thumbnail_start_job(void *data, bool *stop, bool * /*do_update*/, float * /*progress*/)
+static void thumbnail_start_job(void *data, wmJobWorkerStatus *worker_status)
 {
   ThumbnailDrawJob *tj = static_cast<ThumbnailDrawJob *>(data);
   const Scene *scene = tj->scene;
@@ -144,7 +143,7 @@ static void thumbnail_start_job(void *data, bool *stop, bool * /*do_update*/, fl
 
   /* First pass: render visible images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
-  while (!BLI_ghashIterator_done(&gh_iter) & !*stop) {
+  while (!BLI_ghashIterator_done(&gh_iter) & !worker_status->stop) {
     Sequence *seq_orig = static_cast<Sequence *>(BLI_ghashIterator_getKey(&gh_iter));
     ThumbDataItem *val = static_cast<ThumbDataItem *>(
         BLI_ghash_lookup(tj->sequences_ghash, seq_orig));
@@ -153,7 +152,7 @@ static void thumbnail_start_job(void *data, bool *stop, bool * /*do_update*/, fl
       seq_get_thumb_image_dimensions(
           val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, tj->thumb_height, nullptr, nullptr);
       SEQ_render_thumbnails(
-          &tj->context, val->seq_dupli, seq_orig, frame_step, tj->view_area, stop);
+          &tj->context, val->seq_dupli, seq_orig, frame_step, tj->view_area, &worker_status->stop);
       SEQ_relations_sequence_free_anim(val->seq_dupli);
     }
     BLI_ghashIterator_step(&gh_iter);
@@ -161,7 +160,7 @@ static void thumbnail_start_job(void *data, bool *stop, bool * /*do_update*/, fl
 
   /* Second pass: render "guaranteed" set of images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
-  while (!BLI_ghashIterator_done(&gh_iter) & !*stop) {
+  while (!BLI_ghashIterator_done(&gh_iter) & !worker_status->stop) {
     Sequence *seq_orig = static_cast<Sequence *>(BLI_ghashIterator_getKey(&gh_iter));
     ThumbDataItem *val = static_cast<ThumbDataItem *>(
         BLI_ghash_lookup(tj->sequences_ghash, seq_orig));
@@ -169,7 +168,8 @@ static void thumbnail_start_job(void *data, bool *stop, bool * /*do_update*/, fl
     if (check_seq_need_thumbnails(scene, seq_orig, tj->view_area)) {
       seq_get_thumb_image_dimensions(
           val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, tj->thumb_height, nullptr, nullptr);
-      SEQ_render_thumbnails_base_set(&tj->context, val->seq_dupli, seq_orig, tj->view_area, stop);
+      SEQ_render_thumbnails_base_set(
+          &tj->context, val->seq_dupli, seq_orig, tj->view_area, &worker_status->stop);
       SEQ_relations_sequence_free_anim(val->seq_dupli);
     }
     BLI_ghashIterator_step(&gh_iter);
@@ -182,7 +182,7 @@ static SeqRenderData sequencer_thumbnail_context_init(const bContext *C)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  SeqRenderData context = {0};
+  SeqRenderData context = {nullptr};
 
   /* Taking rectx and recty as 0 as dimensions not known here, and context is used to calculate
    * hash key but not necessary as other variables of SeqRenderData are unique enough. */
@@ -305,7 +305,7 @@ static void sequencer_thumbnail_start_job_if_necessary(
   if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
       v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax)
   {
-    WM_jobs_stop(CTX_wm_manager(C), nullptr, reinterpret_cast<void *>(thumbnail_start_job));
+    WM_jobs_stop(CTX_wm_manager(C), nullptr, thumbnail_start_job);
   }
 
   sequencer_thumbnail_init_job(C, v2d, ed, thumb_height);
@@ -436,6 +436,14 @@ void draw_seq_strip_thumbnail(View2D *v2d,
                               float pixelx,
                               float pixely)
 {
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) == 0 ||
+      !ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))
+  {
+    return;
+  }
+
   bool clipped = false;
   float image_height, image_width, thumb_width;
   rcti crop;

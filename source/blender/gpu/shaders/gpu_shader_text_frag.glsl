@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2016-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_colorspace_lib.glsl)
 
 //#define GPU_NEAREST
@@ -78,7 +82,7 @@ void main()
           vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(-0.5, -0.5));
 
       /* 3x3 blur */
-      /* Manual unroll for perf. (stupid glsl compiler) */
+      /* Manual unroll for performance (stupid GLSL compiler). */
       fragColor.a += sample_glyph_offset(texel, offsets4[0]);
       fragColor.a += sample_glyph_offset(texel, offsets4[1]);
       fragColor.a += sample_glyph_offset(texel, offsets4[2]);
@@ -106,7 +110,7 @@ void main()
                                           vec2(1.5, -1.5));
 
       /* 5x5 blur */
-      /* Manual unroll for perf. (stupid glsl compiler) */
+      /* Manual unroll for performance (stupid GLSL compiler). */
       fragColor.a += sample_glyph_offset(texel, offsets16[0]);
       fragColor.a += sample_glyph_offset(texel, offsets16[1]);
       fragColor.a += sample_glyph_offset(texel, offsets16[2]);

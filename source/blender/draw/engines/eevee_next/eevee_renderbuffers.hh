@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,9 +22,12 @@ class Instance;
 
 class RenderBuffers {
  public:
-  UniformBuffer<RenderBuffersInfoData> data;
+  RenderBuffersInfoData &data;
 
-  TextureFromPool depth_tx;
+  static constexpr eGPUTextureFormat color_format = GPU_RGBA16F;
+  static constexpr eGPUTextureFormat float_format = GPU_R16F;
+
+  Texture depth_tx;
   TextureFromPool combined_tx;
 
   // TextureFromPool mist_tx; /* Derived from depth_tx during accumulation. */
@@ -37,14 +40,42 @@ class RenderBuffers {
  private:
   Instance &inst_;
 
+  int2 extent_;
+
  public:
-  RenderBuffers(Instance &inst) : inst_(inst){};
+  RenderBuffers(Instance &inst, RenderBuffersInfoData &data) : data(data), inst_(inst){};
+
+  /** WARNING: RenderBuffers and Film use different storage types for AO and Shadow. */
+  static ePassStorageType pass_storage_type(eViewLayerEEVEEPassType pass_type)
+  {
+    switch (pass_type) {
+      case EEVEE_RENDER_PASS_Z:
+      case EEVEE_RENDER_PASS_MIST:
+      case EEVEE_RENDER_PASS_SHADOW:
+      case EEVEE_RENDER_PASS_AO:
+        return PASS_STORAGE_VALUE;
+      case EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT:
+      case EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET:
+      case EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL:
+        return PASS_STORAGE_CRYPTOMATTE;
+      default:
+        return PASS_STORAGE_COLOR;
+    }
+  }
 
   void sync();
 
   /* Acquires (also ensures) the render buffer before rendering to them. */
   void acquire(int2 extent);
   void release();
+
+  /* Return the size of the allocated render buffers. Undefined if called before `acquire()`. */
+  int2 extent_get() const
+  {
+    return extent_;
+  }
+
+  eGPUTextureFormat vector_tx_format();
 };
 
 }  // namespace blender::eevee

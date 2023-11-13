@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,14 +7,16 @@
  */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 #include "NOD_math_functions.hh"
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_vector_math_cc {
 
@@ -65,12 +67,12 @@ static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &p
                                                 NODE_VECTOR_MATH_DISTANCE,
                                                 NODE_VECTOR_MATH_DOT_PRODUCT))
       {
-        params.add_item(IFACE_(item->name),
+        params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
                         SocketSearchOp{"Value", (NodeVectorMathOperation)item->value},
                         weight);
       }
       else {
-        params.add_item(IFACE_(item->name),
+        params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
                         SocketSearchOp{"Vector", (NodeVectorMathOperation)item->value},
                         weight);
       }
@@ -314,6 +316,123 @@ static void sh_node_vector_math_build_multi_function(NodeMultiFunctionBuilder &b
   builder.set_matching_fn(fn);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  CLG_LogRef *LOG_MATERIALX_SHADER = materialx::LOG_MATERIALX_SHADER;
+
+  /* TODO: finish some math operations */
+  auto op = node_->custom1;
+  NodeItem res = empty();
+
+  /* Single operand operations */
+  NodeItem x = get_input_value(0, NodeItem::Type::Vector3);
+  switch (op) {
+    case NODE_VECTOR_MATH_SINE:
+      res = x.sin();
+      break;
+    case NODE_VECTOR_MATH_COSINE:
+      res = x.cos();
+      break;
+    case NODE_VECTOR_MATH_TANGENT:
+      res = x.tan();
+      break;
+    case NODE_VECTOR_MATH_ABSOLUTE:
+      res = x.abs();
+      break;
+    case NODE_VECTOR_MATH_FLOOR:
+      res = x.floor();
+      break;
+    case NODE_VECTOR_MATH_CEIL:
+      res = x.ceil();
+      break;
+    case NODE_VECTOR_MATH_FRACTION:
+      res = x % val(1.0f);
+      break;
+    case NODE_VECTOR_MATH_LENGTH:
+      CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+      break;
+    case NODE_VECTOR_MATH_NORMALIZE:
+      CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+      break;
+
+    default: {
+      /* 2-operand operations */
+      NodeItem y = get_input_value(1, NodeItem::Type::Vector3);
+      switch (op) {
+        case NODE_VECTOR_MATH_ADD:
+          res = x + y;
+          break;
+        case NODE_VECTOR_MATH_SUBTRACT:
+          res = x - y;
+          break;
+        case NODE_VECTOR_MATH_MULTIPLY:
+          res = x * y;
+          break;
+        case NODE_VECTOR_MATH_DIVIDE:
+          res = x / y;
+          break;
+        case NODE_VECTOR_MATH_MINIMUM:
+          res = x.min(y);
+          break;
+        case NODE_VECTOR_MATH_MAXIMUM:
+          res = x.max(y);
+          break;
+        case NODE_VECTOR_MATH_MODULO:
+          res = x % y;
+          break;
+        case NODE_VECTOR_MATH_SNAP:
+          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          break;
+        case NODE_VECTOR_MATH_CROSS_PRODUCT:
+          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          break;
+        case NODE_VECTOR_MATH_DOT_PRODUCT:
+          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          break;
+        case NODE_VECTOR_MATH_PROJECT:
+          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          break;
+        case NODE_VECTOR_MATH_REFLECT:
+          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          break;
+        case NODE_VECTOR_MATH_DISTANCE:
+          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          break;
+        case NODE_VECTOR_MATH_SCALE:
+          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          break;
+
+        default: {
+          /* 3-operand operations */
+          NodeItem z = get_input_value(2, NodeItem::Type::Vector3);
+          switch (op) {
+            case NODE_VECTOR_MATH_MULTIPLY_ADD:
+              res = x * y + z;
+              break;
+            case NODE_VECTOR_MATH_REFRACT:
+              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+              break;
+            case NODE_VECTOR_MATH_FACEFORWARD:
+              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+              break;
+            case NODE_VECTOR_MATH_WRAP:
+              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+              break;
+
+            default:
+              BLI_assert_unreachable();
+          }
+        }
+      }
+    }
+  }
+
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_vector_math_cc
 
 void register_node_type_sh_vect_math()
@@ -330,6 +449,7 @@ void register_node_type_sh_vect_math()
   ntype.updatefunc = file_ns::node_shader_update_vector_math;
   ntype.build_multi_function = file_ns::sh_node_vector_math_build_multi_function;
   ntype.gather_link_search_ops = file_ns::sh_node_vector_math_gather_link_searches;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

@@ -1,9 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
+#include "BLI_array_utils.hh"
 
 #include "BKE_mesh.hh"
 
@@ -30,14 +29,10 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    const Span<int> corner_edges = mesh.corner_edges();
-    Array<int> face_count(mesh.totedge, 0);
-    for (const int edge : corner_edges) {
-      face_count[edge]++;
-    }
-
+    Array<int> counts(mesh.totedge, 0);
+    array_utils::count_indices(mesh.corner_edges(), counts);
     return mesh.attributes().adapt_domain<int>(
-        VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_EDGE, domain);
+        VArray<int>::ForContainer(std::move(counts)), ATTR_DOMAIN_EDGE, domain);
   }
 
   uint64_t hash() const override
@@ -63,16 +58,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Face Count", std::move(neighbor_count_field));
 }
 
-}  // namespace blender::nodes::node_geo_input_mesh_edge_neighbors_cc
-
-void register_node_type_geo_input_mesh_edge_neighbors()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_mesh_edge_neighbors_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS, "Edge Neighbors", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_mesh_edge_neighbors_cc

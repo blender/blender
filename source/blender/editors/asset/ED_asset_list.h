@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,6 +24,7 @@ struct AssetLibraryReference;
 struct ID;
 struct bContext;
 struct wmNotifier;
+struct wmRegionListenerParams;
 
 /**
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
@@ -65,6 +66,8 @@ blender::asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
     const AssetLibraryReference &library_reference, int asset_index);
 #endif
 
+bool ED_assetlist_asset_image_is_loading(const AssetLibraryReference *library_reference,
+                                         const AssetHandle *asset_handle);
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 
 /**
@@ -79,4 +82,14 @@ int ED_assetlist_size(const struct AssetLibraryReference *library_reference);
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+namespace blender::ed::asset {
+
+void asset_reading_region_listen_fn(const wmRegionListenerParams *params);
+
+}  // namespace blender::ed::asset
+
 #endif

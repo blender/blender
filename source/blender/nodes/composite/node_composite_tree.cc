@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,8 @@
  */
 
 #include <cstdio>
+
+#include "BLI_string.h"
 
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
@@ -21,19 +23,19 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "node_common.h"
 #include "node_util.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "node_composite_util.hh"
 
 #ifdef WITH_COMPOSITOR_CPU
-#  include "COM_compositor.h"
+#  include "COM_compositor.hh"
 #endif
 
 static void composite_get_from_context(
@@ -97,7 +99,7 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
   /* move over the compbufs and previews */
   blender::bke::node_preview_merge_tree(ntree, localtree, true);
 
-  for (bNode *lnode = (bNode *)localtree->nodes.first; lnode; lnode = lnode->next) {
+  LISTBASE_FOREACH (bNode *, lnode, &localtree->nodes) {
     if (bNode *orig_node = nodeFindNodebyName(ntree, lnode->name)) {
       if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
@@ -152,11 +154,11 @@ void register_node_tree_type_cmp()
   bNodeTreeType *tt = ntreeType_Composite = MEM_cnew<bNodeTreeType>(__func__);
 
   tt->type = NTREE_COMPOSIT;
-  strcpy(tt->idname, "CompositorNodeTree");
-  strcpy(tt->group_idname, "CompositorNodeGroup");
-  strcpy(tt->ui_name, N_("Compositor"));
+  STRNCPY(tt->idname, "CompositorNodeTree");
+  STRNCPY(tt->group_idname, "CompositorNodeGroup");
+  STRNCPY(tt->ui_name, N_("Compositor"));
   tt->ui_icon = ICON_NODE_COMPOSITING;
-  strcpy(tt->ui_description, N_("Compositing nodes"));
+  STRNCPY(tt->ui_description, N_("Compositing nodes"));
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;

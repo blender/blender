@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,7 +21,6 @@ using namespace OCIO_NAMESPACE;
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 
@@ -57,8 +56,9 @@ OCIO_ConstConfigRcPtr *OCIOImpl::getCurrentConfig(void)
   try {
     *config = GetCurrentConfig();
 
-    if (*config)
+    if (*config) {
       return (OCIO_ConstConfigRcPtr *)config;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -86,8 +86,9 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
   try {
     *config = Config::CreateFromEnv();
 
-    if (*config)
+    if (*config) {
       return (OCIO_ConstConfigRcPtr *)config;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -105,8 +106,9 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
   try {
     *config = Config::CreateFromFile(filename);
 
-    if (*config)
+    if (*config) {
       return (OCIO_ConstConfigRcPtr *)config;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -154,8 +156,9 @@ OCIO_ConstColorSpaceRcPtr *OCIOImpl::configGetColorSpace(OCIO_ConstConfigRcPtr *
   try {
     *cs = (*(ConstConfigRcPtr *)config)->getColorSpace(name);
 
-    if (*cs)
+    if (*cs) {
       return (OCIO_ConstColorSpaceRcPtr *)cs;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -373,8 +376,9 @@ OCIO_ConstLookRcPtr *OCIOImpl::configGetLook(OCIO_ConstConfigRcPtr *config, cons
   try {
     *look = (*(ConstConfigRcPtr *)config)->getLook(name);
 
-    if (*look)
+    if (*look) {
       return (OCIO_ConstLookRcPtr *)look;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -503,7 +507,7 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
     if (!compare_floats(v, out_v, 1e-6f, 64)) {
       is_scene_linear = false;
     }
-    if (!compare_floats(srgb_to_linearrgb(v), out_v, 1e-6f, 64)) {
+    if (!compare_floats(srgb_to_linearrgb(v), out_v, 1e-4f, 64)) {
       is_srgb = false;
     }
   }
@@ -523,8 +527,9 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfig
   try {
     *processor = (*(ConstConfigRcPtr *)config)->getProcessor(srcName, dstName);
 
-    if (*processor)
+    if (*processor) {
       return (OCIO_ConstProcessorRcPtr *)processor;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -588,6 +593,11 @@ void OCIOImpl::cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_proc
   catch (Exception &exception) {
     OCIO_reportException(exception);
   }
+}
+
+bool OCIOImpl::cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
+{
+  return (*(ConstCPUProcessorRcPtr *)cpu_processor)->isNoOp();
 }
 
 void OCIOImpl::cpuProcessorApplyRGB(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel)
@@ -734,8 +744,9 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr
   try {
     *p = config->getProcessor(group);
 
-    if (*p)
+    if (*p) {
       return (OCIO_ConstProcessorRcPtr *)p;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);

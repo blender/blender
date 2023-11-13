@@ -75,3 +75,39 @@ index 46e4529..8e86486 100644
      return false;
  }
  
+diff --git a/src/liboslexec/CMakeLists.txt b/src/liboslexec/CMakeLists.txt
+index 6bb0d175..19f13513 100644
+--- a/src/liboslexec/CMakeLists.txt
++++ b/src/liboslexec/CMakeLists.txt
+@@ -148,7 +148,9 @@ file (GLOB exec_headers "*.h")
+ file (GLOB compiler_headers "../liboslcomp/*.h")
+ 
+ FLEX_BISON ( osolex.l osogram.y oso lib_src exec_headers )
+-FLEX_BISON ( ../liboslcomp/osllex.l ../liboslcomp/oslgram.y osl lib_src compiler_headers )
++if (BUILD_SHARED_LIBS)
++    FLEX_BISON ( ../liboslcomp/osllex.l ../liboslcomp/oslgram.y osl lib_src compiler_headers )
++endif()
+ 
+ set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS" )
+ 
+diff --git a/src/include/OSL/mask.h b/src/include/OSL/mask.h
+index 24197af..b9275f6 100644
+--- a/src/include/OSL/mask.h
++++ b/src/include/OSL/mask.h
+@@ -4,7 +4,6 @@
+ 
+ #pragma once
+ 
+-#include <immintrin.h>
+ #include <type_traits>
+ 
+ #include <OSL/oslconfig.h>
+@@ -23,6 +22,8 @@ using std::countr_zero;
+ 
+ #elif OSL_INTEL_CLASSIC_COMPILER_VERSION
+ 
++#include <immintrin.h>
++
+ OSL_FORCEINLINE int popcount(uint32_t x) noexcept { return _mm_popcnt_u32(x);}
+ OSL_FORCEINLINE int popcount(uint64_t x) noexcept { return _mm_popcnt_u64(x); }
+ OSL_FORCEINLINE int countr_zero(uint32_t x) noexcept { return _bit_scan_forward(x); }

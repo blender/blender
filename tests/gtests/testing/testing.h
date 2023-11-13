@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2014 Blender Foundation
+/* SPDX-FileCopyrightText: 2014 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #ifndef __BLENDER_TESTING_H__
@@ -58,9 +58,9 @@ const std::string &flags_test_release_dir(); /* bin/{blender version} in the bui
 
 #define EXPECT_M4_NEAR(a, b, eps) \
   do { \
-    EXPECT_V3_NEAR(a[0], b[0], eps); \
-    EXPECT_V3_NEAR(a[1], b[1], eps); \
-    EXPECT_V3_NEAR(a[2], b[2], eps); \
+    EXPECT_V4_NEAR(a[0], b[0], eps); \
+    EXPECT_V4_NEAR(a[1], b[1], eps); \
+    EXPECT_V4_NEAR(a[2], b[2], eps); \
     EXPECT_V4_NEAR(a[3], b[3], eps); \
   } while (false);
 
@@ -148,6 +148,18 @@ inline void EXPECT_EQ_ARRAY_ND(const T *expected, const T *actual, const size_t 
   for (size_t i = 0; i < N; ++i) {
     for (size_t j = 0; j < D; ++j) {
       EXPECT_EQ(expected[i][j], actual[i][j])
+          << "Element mismatch at index " << i << ", component index " << j;
+    }
+  }
+}
+
+template<typename T, typename U>
+inline void EXPECT_NEAR_ARRAY_ND(
+    const T *expected, const T *actual, const size_t N, const size_t D, const U tolerance)
+{
+  for (size_t i = 0; i < N; ++i) {
+    for (size_t j = 0; j < D; ++j) {
+      EXPECT_NEAR(expected[i][j], actual[i][j], tolerance)
           << "Element mismatch at index " << i << ", component index " << j;
     }
   }

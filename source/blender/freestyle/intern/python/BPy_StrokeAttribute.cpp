@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -291,8 +291,8 @@ static PyObject *StrokeAttribute_has_attribute_vec3(BPy_StrokeAttribute *self,
 PyDoc_STRVAR(StrokeAttribute_set_attribute_real_doc,
              ".. method:: set_attribute_real(name, value)\n"
              "\n"
-             "   Adds a user-defined attribute of float type.  If there is no\n"
-             "   attribute of the given name, it is added.  Otherwise, the new value\n"
+             "   Adds a user-defined attribute of float type. If there is no\n"
+             "   attribute of the given name, it is added. Otherwise, the new value\n"
              "   replaces the old one.\n"
              "\n"
              "   :arg name: The name of the attribute.\n"
@@ -318,8 +318,8 @@ static PyObject *StrokeAttribute_set_attribute_real(BPy_StrokeAttribute *self,
 PyDoc_STRVAR(StrokeAttribute_set_attribute_vec2_doc,
              ".. method:: set_attribute_vec2(name, value)\n"
              "\n"
-             "   Adds a user-defined attribute of two-dimensional vector type.  If\n"
-             "   there is no attribute of the given name, it is added.  Otherwise,\n"
+             "   Adds a user-defined attribute of two-dimensional vector type. If\n"
+             "   there is no attribute of the given name, it is added. Otherwise,\n"
              "   the new value replaces the old one.\n"
              "\n"
              "   :arg name: The name of the attribute.\n"
@@ -516,12 +516,14 @@ static int StrokeAttribute_mathutils_set_index(BaseMathObject *bmo, int subtype,
       float g = (index == 1) ? bmo->data[1] : self->sa->getColorG();
       float b = (index == 2) ? bmo->data[2] : self->sa->getColorB();
       self->sa->setColor(r, g, b);
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_THICKNESS: {
       float tr = (index == 0) ? bmo->data[0] : self->sa->getThicknessR();
       float tl = (index == 1) ? bmo->data[1] : self->sa->getThicknessL();
       self->sa->setThickness(tr, tl);
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -618,7 +620,7 @@ static int StrokeAttribute_thickness_set(BPy_StrokeAttribute *self,
 }
 
 PyDoc_STRVAR(StrokeAttribute_visible_doc,
-             "The visibility flag.  True if the StrokeVertex is visible.\n"
+             "The visibility flag. True if the StrokeVertex is visible.\n"
              "\n"
              ":type: bool");
 
@@ -666,7 +668,7 @@ static PyGetSetDef BPy_StrokeAttribute_getseters[] = {
 /*-----------------------BPy_StrokeAttribute type definition ------------------------------*/
 
 PyTypeObject StrokeAttribute_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "StrokeAttribute",
     /*tp_basicsize*/ sizeof(BPy_StrokeAttribute),
     /*tp_itemsize*/ 0,

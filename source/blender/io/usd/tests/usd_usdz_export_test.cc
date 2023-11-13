@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,9 +15,9 @@
 #include "BLI_path_util.h"
 #include "BLO_readfile.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd.h"
 
@@ -30,7 +30,7 @@ char output_filepath[FILE_MAX];
 
 class UsdUsdzExportTest : public BlendfileLoadingBaseTest {
  protected:
-  struct bContext *context = nullptr;
+  bContext *context = nullptr;
 
  public:
   bool load_file_and_depsgraph(const StringRefNull &filepath,
@@ -94,9 +94,11 @@ TEST_F(UsdUsdzExportTest, usdz_export)
       << "BLI_current_working_dir is not expected to return a different value than the given char "
          "buffer.";
 
-  USDExportParams params{};
+  USDExportParams params;
+  params.export_materials = false;
+  params.visible_objects_only = false;
 
-  bool result = USD_export(context, output_filepath, &params, false);
+  bool result = USD_export(context, output_filepath, &params, false, nullptr);
   ASSERT_TRUE(result) << "usd export to " << output_filepath << " failed.";
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filepath);

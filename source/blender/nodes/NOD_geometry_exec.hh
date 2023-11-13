@@ -1,15 +1,18 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
+#include "BLI_color.hh"
 #include "BLI_math_quaternion_types.hh"
 
 #include "FN_field.hh"
+#include "FN_field_cpp_type.hh"
 #include "FN_lazy_function.hh"
 #include "FN_multi_function_builder.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 
@@ -37,6 +40,7 @@ using bke::GAttributeWriter;
 using bke::GeometryComponent;
 using bke::GeometryComponentEditData;
 using bke::GeometrySet;
+using bke::GreasePencilComponent;
 using bke::GSpanAttributeWriter;
 using bke::InstancesComponent;
 using bke::MeshComponent;
@@ -101,6 +105,14 @@ class GeoNodeExecParams {
           identifier);
       return value_or_field.as_field();
     }
+    else if constexpr (std::is_same_v<std::decay_t<T>, GField>) {
+      const int index = this->get_input_index(identifier);
+      const bNodeSocket &input_socket = node_.input_by_identifier(identifier);
+      const CPPType &value_type = *input_socket.typeinfo->geometry_nodes_cpp_type;
+      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
+          value_type);
+      return value_or_field_type.as_field(params_.try_get_input_data_ptr(index));
+    }
     else {
 #ifdef DEBUG
       this->check_input_access(identifier, &CPPType::get<T>());
@@ -157,6 +169,13 @@ class GeoNodeExecParams {
       using BaseType = typename StoredT::base_type;
       this->set_output(identifier, ValueOrField<BaseType>(std::forward<T>(value)));
     }
+    else if constexpr (std::is_same_v<std::decay_t<StoredT>, GField>) {
+      bke::attribute_math::convert_to_static_type(value.cpp_type(), [&](auto dummy) {
+        using ValueT = decltype(dummy);
+        Field<ValueT> value_typed(std::forward<T>(value));
+        this->set_output(identifier, ValueOrField<ValueT>(std::move(value_typed)));
+      });
+    }
     else {
 #ifdef DEBUG
       const CPPType &type = CPPType::get<StoredT>();
@@ -172,7 +191,7 @@ class GeoNodeExecParams {
 
   geo_eval_log::GeoTreeLogger *get_local_tree_logger() const
   {
-    return this->local_user_data()->tree_logger;
+    return this->local_user_data()->try_get_tree_logger(*this->user_data());
   }
 
   /**
@@ -207,6 +226,9 @@ class GeoNodeExecParams {
       if (data->modifier_data) {
         return data->modifier_data->self_object;
       }
+      if (data->operator_data) {
+        return data->operator_data->self_object;
+      }
     }
     return nullptr;
   }
@@ -216,6 +238,9 @@ class GeoNodeExecParams {
     if (const auto *data = this->user_data()) {
       if (data->modifier_data) {
         return data->modifier_data->depsgraph;
+      }
+      if (data->operator_data) {
+        return data->operator_data->depsgraph;
       }
     }
     return nullptr;

@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Usage un-tagging
+ * Virtual shadow-mapping: Usage un-tagging
  *
  * Remove used tag from masked tiles (LOD overlap).
  */
@@ -19,7 +22,7 @@ void main()
      * the level underneath. If this adds up to 4 the underneath tile is flag unused as its data
      * is not needed for rendering.
      *
-     * This is because 2 receivers can tag used the same area of the shadowmap but with different
+     * This is because 2 receivers can tag used the same area of the shadow-map but with different
      * LODs. */
     bool is_used = false;
     ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
@@ -33,12 +36,21 @@ void main()
       if (thread_active) {
         int tile_offset = shadow_tile_offset(tile_co, tilemap.tiles_index, lod);
         tile = shadow_tile_unpack(tiles_buf[tile_offset]);
+#ifdef SHADOW_FORCE_LOD0
+        if (lod == 0) {
+          tiles_buf[tile_offset] |= SHADOW_IS_USED;
+        }
+        else {
+          tiles_buf[tile_offset] &= ~SHADOW_IS_USED;
+        }
+#else
         if (lod > 0 && usage_grid[tile_co.y][tile_co.x] == 4u) {
           /* Remove the usage flag as this tile is completely covered by higher LOD tiles. */
           tiles_buf[tile_offset] &= ~SHADOW_IS_USED;
           /* Consider this tile occluding lower levels. */
           tile.is_used = true;
         }
+#endif
         /* Reset count for next level. */
         usage_grid[tile_co.y / 2][tile_co.x / 2] = 0u;
       }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -68,7 +68,7 @@ void *BLI_smallhash_iternew(const SmallHash *sh, SmallHashIter *iter, uintptr_t 
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-/* void BLI_smallhash_print(SmallHash *sh); */ /* UNUSED */
+// void BLI_smallhash_print(SmallHash *sh); /* UNUSED. */
 
 #ifdef DEBUG
 /**

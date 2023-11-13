@@ -16,11 +16,11 @@ struct Main;
 
 namespace blender::io::alembic {
 
-/* Wrappers around input and output archives. The goal is to be able to use
+/**
+ * Wrappers around input and output archives. The goal is to be able to use
  * streams so that unicode paths work on Windows (#49112), and to make sure that
  * the stream objects remain valid as long as the archives are open.
  */
-
 class ArchiveReader {
   Alembic::Abc::IArchive m_archive;
   std::ifstream m_infile;
@@ -30,10 +30,10 @@ class ArchiveReader {
 
   ArchiveReader(const std::vector<ArchiveReader *> &readers);
 
-  ArchiveReader(struct Main *bmain, const char *filename);
+  ArchiveReader(const struct Main *bmain, const char *filename);
 
  public:
-  static ArchiveReader *get(struct Main *bmain, const std::vector<const char *> &filenames);
+  static ArchiveReader *get(const struct Main *bmain, const std::vector<const char *> &filenames);
 
   ~ArchiveReader();
 

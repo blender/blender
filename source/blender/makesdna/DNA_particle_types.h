@@ -12,10 +12,6 @@
 #include "DNA_boid_types.h"
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 
 typedef struct HairKey {
@@ -137,7 +133,7 @@ typedef struct ParticleData {
   /** Size and multiplier so that we can update size when ever. */
   float size;
 
-  /** Density of sph particle. */
+  /** Density of SPH particle. */
   float sphdensity;
   char _pad[4];
 
@@ -160,18 +156,22 @@ typedef struct SPHFluidSettings {
   char _pad[6];
 } SPHFluidSettings;
 
-/** #SPHFluidSettings.flag */
-#define SPH_VISCOELASTIC_SPRINGS 1
-#define SPH_CURRENT_REST_LENGTH 2
-#define SPH_FAC_REPULSION 4
-#define SPH_FAC_DENSITY 8
-#define SPH_FAC_RADIUS 16
-#define SPH_FAC_VISCOSITY 32
-#define SPH_FAC_REST_LENGTH 64
+/** #SPHFluidSettings::flag */
+enum {
+  SPH_VISCOELASTIC_SPRINGS = 1 << 0,
+  SPH_CURRENT_REST_LENGTH = 1 << 1,
+  SPH_FAC_REPULSION = 1 << 2,
+  SPH_FAC_DENSITY = 1 << 3,
+  SPH_FAC_RADIUS = 1 << 4,
+  SPH_FAC_VISCOSITY = 1 << 5,
+  SPH_FAC_REST_LENGTH = 1 << 6,
+};
 
-/** #SPHFluidSettings.solver (numerical ID field, not bit-field). */
-#define SPH_SOLVER_DDR 0
-#define SPH_SOLVER_CLASSICAL 1
+/** #SPHFluidSettings::solver (numerical ID field, not bit-field). */
+enum {
+  SPH_SOLVER_DDR = 0,
+  SPH_SOLVER_CLASSICAL = 1,
+};
 
 typedef struct ParticleSettings {
   ID id;
@@ -391,12 +391,13 @@ typedef struct ParticleSystem {
 
   void *batch_cache;
 
-  /* Set by dependency graph's copy-on-write, allows to quickly go
+  /**
+   * Set by dependency graph's copy-on-write, allows to quickly go
    * from evaluated particle system to original one.
    *
    * Original system will have this set to NULL.
    *
-   * Use psys_orig_get() function to access,
+   * Use #psys_orig_get() function to access.
    */
   struct ParticleSystem *orig_psys;
 } ParticleSystem;
@@ -463,69 +464,85 @@ enum {
 };
 
 /** #ParticleSettings.flag */
-#define PART_REACT_STA_END 1
-#define PART_REACT_MULTIPLE 2
+enum {
+  PART_REACT_STA_END = 1 << 0,
+  PART_REACT_MULTIPLE = 1 << 1,
 
-//#define PART_LOOP         4   /* not used anymore */
-/* For dope-sheet. */
-#define PART_DS_EXPAND 8
+  // PART_LOOP = 1 << 2, /* not used anymore */
 
-#define PART_HAIR_REGROW 16 /* regrow hair for each frame */
+  /* For dope-sheet. */
+  PART_DS_EXPAND = 1 << 3,
 
-#define PART_UNBORN 32 /* Show unborn particles. */
-#define PART_DIED 64   /* Show died particles. */
+  /** Regrow hair for each frame. */
+  PART_HAIR_REGROW = 1 << 4,
 
-#define PART_TRAND 128
-#define PART_EDISTR 256 /* particle/face from face areas */
+  /** Show unborn particles. */
+  PART_UNBORN = 1 << 5,
+  /** Show died particles. */
+  PART_DIED = 1 << 6,
 
-#define PART_ROTATIONS 512 /* calculate particle rotations (and store them in pointcache) */
-#define PART_DIE_ON_COL (1 << 12)
-#define PART_SIZE_DEFL (1 << 13) /* swept sphere deflections */
-#define PART_ROT_DYN (1 << 14)   /* dynamic rotation */
-#define PART_SIZEMASS (1 << 16)
+  PART_TRAND = 1 << 7,
+  /** Particle/face from face areas. */
+  PART_EDISTR = 1 << 8,
 
-#define PART_HIDE_ADVANCED_HAIR (1 << 15)
+  /** Calculate particle rotations (and store them in point-cache). */
+  PART_ROTATIONS = 1 << 9,
+  PART_HAIR_BSPLINE = 1 << 10,
+  PART_DIE_ON_COL = 1 << 12,
+  /** Swept sphere deflections. */
+  PART_SIZE_DEFL = 1 << 13,
+  /** Dynamic rotation. */
+  PART_ROT_DYN = 1 << 14,
 
-//#define PART_ABS_TIME     (1 << 17)
-//#define PART_GLOB_TIME        (1 << 18)
+  PART_HIDE_ADVANCED_HAIR = 1 << 15,
 
-#define PART_BOIDS_2D (1 << 19)
+  PART_SIZEMASS = 1 << 16,
 
-//#define PART_BRANCHING        (1 << 20)
-//#define PART_ANIM_BRANCHING   (1 << 21)
+  // PART_ABS_TIME = 1 << 17,
+  // PART_GLOB_TIME = 1 << 18,
 
-#define PART_HAIR_BSPLINE 1024
+  PART_BOIDS_2D = 1 << 19,
 
-#define PART_GRID_HEXAGONAL (1 << 24)
-#define PART_GRID_INVERT (1 << 26)
+  // PART_BRANCHING = 1 << 20,
+  // PART_ANIM_BRANCHING = 1 << 21,
+  PART_SELF_EFFECT = 1 << 22,
 
-#define PART_CHILD_EFFECT (1 << 27)
-#define PART_CHILD_LONG_HAIR (1 << 28)
-// #define PART_CHILD_RENDER (1 << 29) /* UNUSED */
-#define PART_CHILD_GUIDE (1 << 30)
+  PART_GRID_HEXAGONAL = 1 << 24,
+  PART_GRID_INVERT = 1 << 26,
 
-#define PART_SELF_EFFECT (1 << 22)
+  PART_CHILD_EFFECT = 1 << 27,
+  PART_CHILD_LONG_HAIR = 1 << 28,
+  // PART_CHILD_RENDER = 1 << 29, /* UNUSED */
+  PART_CHILD_GUIDE = 1 << 30,
 
-/** #ParticleSettings.from */
-#define PART_FROM_VERT 0
-#define PART_FROM_FACE 1
-#define PART_FROM_VOLUME 2
-/* #define PART_FROM_PARTICLE   3  deprecated! */
-#define PART_FROM_CHILD 4
+};
 
-/** #ParticleSettings.distr */
-#define PART_DISTR_JIT 0
-#define PART_DISTR_RAND 1
-#define PART_DISTR_GRID 2
+/** #ParticleSettings::from */
+enum {
+  PART_FROM_VERT = 0,
+  PART_FROM_FACE = 1,
+  PART_FROM_VOLUME = 2,
+  // PART_FROM_PARTICLE = 3, /* Deprecated. */
+  PART_FROM_CHILD = 4,
+};
 
-/** #ParticleSettings.phystype */
-#define PART_PHYS_NO 0
-#define PART_PHYS_NEWTON 1
-#define PART_PHYS_KEYED 2
-#define PART_PHYS_BOIDS 3
-#define PART_PHYS_FLUID 4
+/** #ParticleSettings::distr */
+enum {
+  PART_DISTR_JIT = 0,
+  PART_DISTR_RAND = 1,
+  PART_DISTR_GRID = 2,
+};
 
-/** #ParticleSettings.kink */
+/** #ParticleSettings::phystype */
+enum {
+  PART_PHYS_NO = 0,
+  PART_PHYS_NEWTON = 1,
+  PART_PHYS_KEYED = 2,
+  PART_PHYS_BOIDS = 3,
+  PART_PHYS_FLUID = 4,
+};
+
+/** #ParticleSettings::kink */
 typedef enum eParticleKink {
   PART_KINK_NO = 0,
   PART_KINK_CURL = 1,
@@ -535,7 +552,7 @@ typedef enum eParticleKink {
   PART_KINK_SPIRAL = 5,
 } eParticleKink;
 
-/** #ParticleSettings.child_flag */
+/** #ParticleSettings::child_flag */
 typedef enum eParticleChildFlag {
   PART_CHILD_USE_CLUMP_NOISE = (1 << 0),
   PART_CHILD_USE_CLUMP_CURVE = (1 << 1),
@@ -543,131 +560,167 @@ typedef enum eParticleChildFlag {
   PART_CHILD_USE_TWIST_CURVE = (1 << 3),
 } eParticleChildFlag;
 
-/** #ParticleSettings.shape_flag */
+/** #ParticleSettings::shape_flag */
 typedef enum eParticleShapeFlag {
   PART_SHAPE_CLOSE_TIP = (1 << 0),
 } eParticleShapeFlag;
 
-/* #ParticleSettings.draw_col */
-#define PART_DRAW_COL_NONE 0
-#define PART_DRAW_COL_MAT 1
-#define PART_DRAW_COL_VEL 2
-#define PART_DRAW_COL_ACC 3
+/** #ParticleSettings::draw_col */
+enum {
+  PART_DRAW_COL_NONE = 0,
+  PART_DRAW_COL_MAT = 1,
+  PART_DRAW_COL_VEL = 2,
+  PART_DRAW_COL_ACC = 3,
+};
 
-/* #ParticleSettings.time_flag */
-#define PART_TIME_AUTOSF 1 /* Automatic subframes */
+/** #ParticleSettings::time_flag */
+enum {
+  /** Automatic sub-frames. */
+  PART_TIME_AUTOSF = 1 << 0,
+};
 
-/* #ParticleSettings.draw_as */
-/* #ParticleSettings.ren_as */
-#define PART_DRAW_NOT 0
-#define PART_DRAW_DOT 1
-#define PART_DRAW_HALO 1
-#define PART_DRAW_CIRC 2
-#define PART_DRAW_CROSS 3
-#define PART_DRAW_AXIS 4
-#define PART_DRAW_LINE 5
-#define PART_DRAW_PATH 6
-#define PART_DRAW_OB 7
-#define PART_DRAW_GR 8
-#define PART_DRAW_BB 9 /* deprecated */
-#define PART_DRAW_REND 10
+/** #ParticleSettings::draw_as, #ParticleSettings::ren_as */
+enum {
+  PART_DRAW_NOT = 0,
+  PART_DRAW_DOT = 1,
+  PART_DRAW_HALO = 1,
+  PART_DRAW_CIRC = 2,
+  PART_DRAW_CROSS = 3,
+  PART_DRAW_AXIS = 4,
+  PART_DRAW_LINE = 5,
+  PART_DRAW_PATH = 6,
+  PART_DRAW_OB = 7,
+  PART_DRAW_GR = 8,
+  PART_DRAW_BB = 9, /* Deprecated. */
+  PART_DRAW_REND = 10,
+};
 
-/* #ParticleSettings.integrator */
-#define PART_INT_EULER 0
-#define PART_INT_MIDPOINT 1
-#define PART_INT_RK4 2
-#define PART_INT_VERLET 3
+/** #ParticleSettings::integrator */
+enum {
+  PART_INT_EULER = 0,
+  PART_INT_MIDPOINT = 1,
+  PART_INT_RK4 = 2,
+  PART_INT_VERLET = 3,
+};
 
-/* #ParticleSettings.rotmode */
-#define PART_ROT_NOR 1
-#define PART_ROT_VEL 2
-#define PART_ROT_GLOB_X 3
-#define PART_ROT_GLOB_Y 4
-#define PART_ROT_GLOB_Z 5
-#define PART_ROT_OB_X 6
-#define PART_ROT_OB_Y 7
-#define PART_ROT_OB_Z 8
-#define PART_ROT_NOR_TAN 9
+/** #ParticleSettings::rotmode */
+enum {
+  PART_ROT_NOR = 1,
+  PART_ROT_VEL = 2,
+  PART_ROT_GLOB_X = 3,
+  PART_ROT_GLOB_Y = 4,
+  PART_ROT_GLOB_Z = 5,
+  PART_ROT_OB_X = 6,
+  PART_ROT_OB_Y = 7,
+  PART_ROT_OB_Z = 8,
+  PART_ROT_NOR_TAN = 9,
+};
 
-/* #ParticleSettings.avemode */
-#define PART_AVE_VELOCITY 1
-#define PART_AVE_RAND 2
-#define PART_AVE_HORIZONTAL 3
-#define PART_AVE_VERTICAL 4
-#define PART_AVE_GLOBAL_X 5
-#define PART_AVE_GLOBAL_Y 6
-#define PART_AVE_GLOBAL_Z 7
+/** #ParticleSettings::avemode */
+enum {
+  PART_AVE_VELOCITY = 1,
+  PART_AVE_RAND = 2,
+  PART_AVE_HORIZONTAL = 3,
+  PART_AVE_VERTICAL = 4,
+  PART_AVE_GLOBAL_X = 5,
+  PART_AVE_GLOBAL_Y = 6,
+  PART_AVE_GLOBAL_Z = 7,
+};
 
-/* #ParticleSettings.reactevent */
-#define PART_EVENT_DEATH 0
-#define PART_EVENT_COLLIDE 1
-#define PART_EVENT_NEAR 2
+/** #ParticleSettings::reactevent */
+enum {
+  PART_EVENT_DEATH = 0,
+  PART_EVENT_COLLIDE = 1,
+  PART_EVENT_NEAR = 2,
+};
 
-/* #ParticleSettings.childtype */
-#define PART_CHILD_PARTICLES 1
-#define PART_CHILD_FACES 2
+/** #ParticleSettings::childtype */
+enum {
+  PART_CHILD_PARTICLES = 1,
+  PART_CHILD_FACES = 2,
+};
 
-/* psys->flag */
-#define PSYS_CURRENT 1
-#define PSYS_GLOBAL_HAIR 2
-#define PSYS_HAIR_DYNAMICS 4
-#define PSYS_KEYED_TIMING 8
-//#define PSYS_ENABLED      16  /* deprecated */
-#define PSYS_HAIR_UPDATED 32           /* signal for updating hair particle mode */
-/* #define PSYS_DRAWING     64 */      /* deprecated */
-/* #define PSYS_USE_IMAT        128 */ /* deprecated */
-#define PSYS_DELETE 256                /* remove particlesystem as soon as possible */
-#define PSYS_HAIR_DONE 512
-#define PSYS_KEYED 1024
-#define PSYS_EDITED 2048
-//#define PSYS_PROTECT_CACHE    4096 /* deprecated */
-#define PSYS_DISABLED 8192
-#define PSYS_OB_ANIM_RESTORE 16384 /* runtime flag */
-#define PSYS_SHARED_CACHES 32768
+/** #PartialSystem::flag */
+enum {
+  PSYS_CURRENT = 1 << 0,
+  PSYS_GLOBAL_HAIR = 1 << 1,
+  PSYS_HAIR_DYNAMICS = 1 << 2,
+  PSYS_KEYED_TIMING = 1 << 3,
+  // PSYS_ENABLED = 1 << 4, /* Deprecated. */
+  /** Signal for updating hair particle mode. */
+  PSYS_HAIR_UPDATED = 1 << 5,
+  // PSYS_DRAWING = 1 << 6, /* Deprecated. */
+  // PSYS_USE_IMAT = 1 << 7, /* Deprecated. */
+  /** Remove particle-system as soon as possible. */
+  PSYS_DELETE = 1 << 8,
+  PSYS_HAIR_DONE = 1 << 9,
+  PSYS_KEYED = 1 << 10,
+  PSYS_EDITED = 1 << 11,
+  // PSYS_PROTECT_CACHE = 1 << 12, /* Deprecated. */
+  PSYS_DISABLED = 1 << 13,
+  /** Runtime flag. */
+  PSYS_OB_ANIM_RESTORE = 1 << 14,
+  PSYS_SHARED_CACHES = 1 << 15,
+};
 
-/* pars->flag */
-#define PARS_UNEXIST 1
-#define PARS_NO_DISP 2
-//#define PARS_STICKY           4 /* deprecated */
-#define PARS_REKEY 8
+/** #ParticleData::flag */
+enum {
+  PARS_UNEXIST = 1 << 0,
+  PARS_NO_DISP = 1 << 1,
+  // PARS_STICKY = 1 << 2, /* deprecated */
+  PARS_REKEY = 1 << 3,
+};
 
-/* pars->alive */
-//#define PARS_KILLED           0 /* deprecated */
-#define PARS_DEAD 1
-#define PARS_UNBORN 2
-#define PARS_ALIVE 3
-#define PARS_DYING 4
+/** #ParticleData::alive */
+enum {
+  PARS_KILLED = 0, /* Deprecated. */
+  PARS_DEAD = 1,
+  PARS_UNBORN = 2,
+  PARS_ALIVE = 3,
+  PARS_DYING = 4,
+};
 
-/* ParticleDupliWeight->flag */
-#define PART_DUPLIW_CURRENT 1
+/** #ParticleDupliWeight::flag */
+enum {
+  PART_DUPLIW_CURRENT = 1,
+};
 
-/* psys->vg */
-#define PSYS_TOT_VG 13
+/** #PartialSystem::vg */
+enum {
+  PSYS_TOT_VG = 13,
+};
 
-#define PSYS_VG_DENSITY 0
-#define PSYS_VG_VEL 1
-#define PSYS_VG_LENGTH 2
-#define PSYS_VG_CLUMP 3
-#define PSYS_VG_KINK 4
-#define PSYS_VG_ROUGH1 5
-#define PSYS_VG_ROUGH2 6
-#define PSYS_VG_ROUGHE 7
-#define PSYS_VG_SIZE 8
-#define PSYS_VG_TAN 9
-#define PSYS_VG_ROT 10
-#define PSYS_VG_EFFECTOR 11
-#define PSYS_VG_TWIST 12
+/** #PartialSystem::vgroup (indices into this array). */
+enum {
+  PSYS_VG_DENSITY = 0,
+  PSYS_VG_VEL = 1,
+  PSYS_VG_LENGTH = 2,
+  PSYS_VG_CLUMP = 3,
+  PSYS_VG_KINK = 4,
+  PSYS_VG_ROUGH1 = 5,
+  PSYS_VG_ROUGH2 = 6,
+  PSYS_VG_ROUGHE = 7,
+  PSYS_VG_SIZE = 8,
+  PSYS_VG_TAN = 9,
+  PSYS_VG_ROT = 10,
+  PSYS_VG_EFFECTOR = 11,
+  PSYS_VG_TWIST = 12,
+};
 
-/* ParticleTarget->flag */
-#define PTARGET_CURRENT 1
-#define PTARGET_VALID 2
+/** #ParticleTarget::flag */
+enum {
+  PTARGET_CURRENT = 1,
+  PTARGET_VALID = 2,
+};
 
-/* ParticleTarget->mode */
-#define PTARGET_MODE_NEUTRAL 0
-#define PTARGET_MODE_FRIEND 1
-#define PTARGET_MODE_ENEMY 2
+/** #ParticleTarget::mode */
+enum {
+  PTARGET_MODE_NEUTRAL = 0,
+  PTARGET_MODE_FRIEND = 1,
+  PTARGET_MODE_ENEMY = 2,
+};
 
-/** #MTex.mapto */
+/** #MTex::mapto */
 typedef enum eParticleTextureInfluence {
   /* init */
   PAMAP_TIME = (1 << 0), /* emission time */
@@ -692,7 +745,3 @@ typedef enum eParticleTextureInfluence {
   PAMAP_CHILD = (PAMAP_CLUMP | PAMAP_KINK_FREQ | PAMAP_KINK_AMP | PAMAP_ROUGH | PAMAP_LENGTH |
                  PAMAP_TWIST),
 } eParticleTextureInfluence;
-
-#ifdef __cplusplus
-}
-#endif

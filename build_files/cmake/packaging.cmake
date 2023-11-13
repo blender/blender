@@ -1,11 +1,11 @@
-# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2011-2022 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 string(TIMESTAMP CURRENT_YEAR "%Y")
 
 set(PROJECT_DESCRIPTION  "Blender is the free and open source 3D creation suite software.")
-set(PROJECT_COPYRIGHT    "Copyright (C) 2001-${CURRENT_YEAR} Blender Foundation")
+set(PROJECT_COPYRIGHT    "Copyright (C) 2001-${CURRENT_YEAR} Blender Authors")
 set(PROJECT_CONTACT      "foundation@blender.org")
 set(PROJECT_VENDOR       "Blender Foundation")
 
@@ -30,11 +30,13 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/.git/)
   find_package(Git)
   if(GIT_FOUND)
     # message(STATUS "Found Git: ${GIT_EXECUTABLE}")
-    execute_process(COMMAND git rev-parse --short=12 HEAD
-                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                    OUTPUT_VARIABLE MY_WC_HASH
-                    OUTPUT_STRIP_TRAILING_WHITESPACE
-                    ERROR_QUIET)
+    execute_process(
+      COMMAND git rev-parse --short=12 HEAD
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE MY_WC_HASH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
+    )
   endif()
 endif()
 set(BUILD_REV ${MY_WC_HASH})
@@ -124,7 +126,8 @@ macro(add_package_archive packagename extension)
   add_custom_command(
     OUTPUT ${package_output}
     COMMAND ${build_archive} ${packagename} ${extension} bin release
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
   unset(build_archive)
   unset(package_output)
 endmacro()
@@ -132,14 +135,16 @@ endmacro()
 if(APPLE)
   add_package_archive(
     "${PROJECT_NAME}-${BLENDER_VERSION}-${BUILD_REV}-OSX-${CMAKE_OSX_ARCHITECTURES}"
-    "zip")
+    "zip"
+  )
 elseif(UNIX)
   # platform name could be tweaked, to include glibc, and ensure processor is correct (i386 vs i686)
   string(TOLOWER ${CMAKE_SYSTEM_NAME} PACKAGE_SYSTEM_NAME)
 
   add_package_archive(
     "${PROJECT_NAME}-${BLENDER_VERSION}-${BUILD_REV}-${PACKAGE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
-    "tar.xz")
+    "tar.xz"
+  )
 endif()
 
 unset(MAJOR_VERSION)

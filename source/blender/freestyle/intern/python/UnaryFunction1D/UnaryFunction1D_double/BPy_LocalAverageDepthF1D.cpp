@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -39,7 +39,7 @@ static char LocalAverageDepthF1D___doc__[] =
     "\n"
     ".. method:: __call__(inter)\n"
     "\n"
-    "   Returns the average depth evaluated for an Interface1D.  The average\n"
+    "   Returns the average depth evaluated for an Interface1D. The average\n"
     "   depth is evaluated for a set of points along the Interface1D (using\n"
     "   the :class:`freestyle.functions.LocalAverageDepthF0D` functor) with a\n"
     "   user-defined sampling and then integrated into a single value using a\n"
@@ -71,7 +71,7 @@ static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D *self,
 /*-----------------------BPy_LocalAverageDepthF1D type definition ------------------------------*/
 
 PyTypeObject LocalAverageDepthF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "LocalAverageDepthF1D",
     /*tp_basicsize*/ sizeof(BPy_LocalAverageDepthF1D),
     /*tp_itemsize*/ 0,

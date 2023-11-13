@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,7 +13,7 @@
  * under-sampling.
  * - The second one is a post-processing based one. It follows the
  * implementation described in the presentation
- * "Life of a Bokeh - Siggraph 2018" from Guillaume Abadie.
+ * "Life of a Bokeh - SIGGRAPH 2018" from Guillaume Abadie.
  * There are some difference with our actual implementation that prioritize quality.
  */
 

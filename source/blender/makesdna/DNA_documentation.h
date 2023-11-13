@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup DNA
- * \page makesdna makesdna
+ * \page makesdna Make Struct DNA (`makesdna`)
  *
  * \section aboutdna About the DNA module
  *
@@ -41,7 +41,7 @@
  *
  *   Ignored structs can only be referred to from non-ignored structs
  *   when referred to as a pointer (where they're usually allocated
- *   and cleared in `readfile.c`).
+ *   and cleared in `readfile.cc`).
  *
  * - %Path to the header files
  *
@@ -60,7 +60,7 @@
  *
  * PLEASE READ INSTRUCTIONS ABOUT ADDING VARIABLES IN 'DNA' STRUCTS IN
  *
- * intern/dna_genfile.c
+ * intern/dna_genfile.cc
  * (ton)
  */
 

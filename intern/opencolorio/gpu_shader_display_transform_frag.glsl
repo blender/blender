@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2013-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Blender OpenColorIO implementation */
 
 /* -------------------------------------------------------------------- */
@@ -97,7 +101,7 @@ vec4 curvemapping_evaluate_premulRGBF(vec4 col)
 
 /* Using a triangle distribution which gives a more final uniform noise.
  * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
-/* GPUs are rounding before writing to framebuffer so we center the distribution around 0.0. */
+/* GPUs are rounding before writing to frame-buffer so we center the distribution around 0.0. */
 /* Return triangle noise in [-1..1[ range */
 float dither_random_value(vec2 co)
 {
@@ -107,7 +111,7 @@ float dither_random_value(vec2 co)
   /* Convert uniform distribution into triangle-shaped distribution. */
   float orig = nrnd0 * 2.0 - 1.0;
   nrnd0 = orig * inversesqrt(abs(orig));
-  nrnd0 = max(-1.0, nrnd0); /* Removes nan's */
+  nrnd0 = max(-1.0, nrnd0); /* Removes NAN's. */
   return nrnd0 - sign(orig);
 }
 
@@ -129,7 +133,7 @@ vec4 apply_dither(vec4 col, vec2 uv)
 /** \name Main Processing
  * \{ */
 
-/* Prototypes: Implementation is generaterd and defined after. */
+/* Prototypes: Implementation is generated and defined after. */
 #ifndef GPU_METAL /* Forward declaration invalid in MSL. */
 vec4 OCIO_to_scene_linear(vec4 pixel);
 vec4 OCIO_to_display(vec4 pixel);
@@ -147,7 +151,7 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
     }
   }
 
-  /* NOTE: This is true we only do de-premul here and NO premul
+  /* NOTE: This is true we only do de-pre-multiply here and NO pre-multiply
    *       and the reason is simple -- opengl is always configured
    *       for straight alpha at this moment
    */
@@ -161,15 +165,24 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
   /* Convert to display space. */
   col = OCIO_to_display(col);
 
-  /* Blend with overlay in UI colorspace.
+  /* Blend with overlay in UI color-space.
    *
-   * UI colorspace here refers to the display linear color space,
+   * UI color-space here refers to the display linear color space,
    * i.e: The linear color space w.r.t. display chromaticity and radiometry.
-   * We separate the colormanagement process into two steps to be able to
+   * We separate the color-management process into two steps to be able to
    * merge UI using alpha blending in the correct color space. */
   if (parameters.use_overlay) {
     col.rgb = pow(col.rgb, vec3(parameters.exponent * 2.2));
-    col = clamp(col, 0.0, 1.0);
+
+    if (!parameters.use_hdr) {
+      /* If we're not using an extended color space, clamp the color 0..1. */
+      col = clamp(col, 0.0, 1.0);
+    }
+    else {
+      /* When using extended color-space, interpolate towards clamped color to improve display of
+       * alpha-blended overlays. */
+      col = mix(max(col, 0.0), clamp(col, 0.0, 1.0), col_overlay.a);
+    }
     col *= 1.0 - col_overlay.a;
     col += col_overlay; /* Assumed unassociated alpha. */
     col.rgb = pow(col.rgb, vec3(1.0 / 2.2));

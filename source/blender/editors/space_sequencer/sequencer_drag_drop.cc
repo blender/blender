@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,32 +12,32 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_transform.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_transform.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
-#include "ED_screen.h"
-#include "ED_transform.h"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* For querying audio files. */
 #ifdef WITH_AUDASPACE
@@ -47,7 +47,7 @@
 #endif
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct SeqDropCoords {
   float start_frame, channel;
@@ -221,7 +221,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 
 static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
   /* ID dropped. */
   if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
@@ -299,26 +299,24 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     ListBase *channels = SEQ_channels_displayed_get(ed);
     SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-    SeqCollection *strips = SEQ_query_rendered_strips(
+    blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
     /* Get the top most strip channel that is in view. */
-    Sequence *seq;
     int max_channel = -1;
-    SEQ_ITERATOR_FOREACH (seq, strips) {
+    for (Sequence *seq : strips) {
       max_channel = max_ii(seq->machine, max_channel);
     }
 
     if (max_channel != -1) {
       RNA_int_set(drop->ptr, "channel", max_channel);
     }
-    SEQ_collection_free(strips);
   }
 }
 
-static void get_drag_path(wmDrag *drag, char r_path[FILE_MAX])
+static void get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX])
 {
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
   /* ID dropped. */
   if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
@@ -366,7 +364,7 @@ static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, cons
   UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   if (coords->use_snapping) {
-    ED_draw_sequencer_snap_point(C, coords->snap_point_x);
+    ED_draw_sequencer_snap_point(region, coords->snap_point_x);
   }
 
   /* Init GPU drawing. */
@@ -456,7 +454,7 @@ static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, cons
     char strip_duration_text[16];
     int len_text_arr = 0;
 
-    get_drag_path(drag, path);
+    get_drag_path(C, drag, path);
 
     if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) {
       BLI_path_split_file_part(path, filename, FILE_MAX);
@@ -518,10 +516,7 @@ struct DropJobData {
   float scene_fps;
 };
 
-static void prefetch_data_fn(void *custom_data,
-                             bool * /*stop*/,
-                             bool * /*do_update*/,
-                             float * /*progress*/)
+static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_status*/)
 {
   DropJobData *job_data = (DropJobData *)custom_data;
 
@@ -590,7 +585,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
 
   DropJobData *job_data = (DropJobData *)MEM_mallocN(sizeof(DropJobData),
                                                      "SeqDragDropPreviewData");
-  get_drag_path(drag, job_data->path);
+  get_drag_path(C, drag, job_data->path);
 
   job_data->only_audio = only_audio;
   job_data->scene_fps = FPS;
@@ -616,21 +611,21 @@ static void audio_prefetch(bContext *C, wmDrag *drag)
   }
 }
 
-static void movie_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
+static void movie_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
   }
 }
 
-static void sound_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
+static void sound_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
   }
 }
 
-static void image_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
+static void image_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
@@ -641,7 +636,7 @@ static void image_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
   coords->channel_len = 1;
 }
 
-static void sequencer_drop_draw_deactivate(wmDropBox *drop, wmDrag * /*drag*/)
+static void sequencer_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)
 {
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   if (coords) {
@@ -669,8 +664,8 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
       lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
-  drop->draw_activate = image_drop_draw_activate;
-  drop->draw_deactivate = sequencer_drop_draw_deactivate;
+  drop->on_enter = image_drop_on_enter;
+  drop->on_exit = sequencer_drop_on_exit;
 
   drop->on_drag_start = audio_prefetch;
 
@@ -678,8 +673,8 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
       lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
-  drop->draw_activate = movie_drop_draw_activate;
-  drop->draw_deactivate = sequencer_drop_draw_deactivate;
+  drop->on_enter = movie_drop_on_enter;
+  drop->on_exit = sequencer_drop_on_exit;
 
   drop->on_drag_start = video_prefetch;
 
@@ -687,8 +682,8 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
       lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
-  drop->draw_activate = sound_drop_draw_activate;
-  drop->draw_deactivate = sequencer_drop_draw_deactivate;
+  drop->on_enter = sound_drop_on_enter;
+  drop->on_exit = sequencer_drop_on_exit;
 }
 
 static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
@@ -751,7 +746,7 @@ static void sequencer_preview_dropboxes_add_to_lb(ListBase *lb)
                  nullptr);
 }
 
-void sequencer_dropboxes(void)
+void sequencer_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
   sequencer_dropboxes_add_to_lb(lb);

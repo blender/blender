@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2006-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -47,8 +47,9 @@ template<typename _Tp> struct MEM_Allocator {
   _Tp *allocate(size_type __n, const void * = 0)
   {
     _Tp *__ret = NULL;
-    if (__n)
+    if (__n) {
       __ret = static_cast<_Tp *>(MEM_mallocN(__n * sizeof(_Tp), "STL MEM_Allocator"));
+    }
     return __ret;
   }
 

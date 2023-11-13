@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,6 @@
 #include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
-#include "COM_static_shader_manager.hh"
 #include "COM_texture_pool.hh"
 
 namespace blender::realtime_compositor {
@@ -130,6 +129,10 @@ class Operation {
    * output results. */
   virtual void execute() = 0;
 
+  /* Compute and set a preview of the operation if needed. This method defaults to an empty
+   * implementation and should be implemented by operations which can have previews. */
+  virtual void compute_preview();
+
   /* Get a reference to the result connected to the input identified by the given identifier. */
   Result &get_input(StringRef identifier) const;
 
@@ -151,13 +154,10 @@ class Operation {
   InputDescriptor &get_input_descriptor(StringRef identifier);
 
   /* Returns a reference to the compositor context. */
-  Context &context();
+  Context &context() const;
 
   /* Returns a reference to the texture pool of the compositor context. */
   TexturePool &texture_pool() const;
-
-  /* Returns a reference to the shader manager of the compositor context. */
-  StaticShaderManager &shader_manager() const;
 
  private:
   /* Evaluate the input processors. If the input processors were already added they will be

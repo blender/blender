@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -202,6 +202,17 @@ template<typename T, int Size>
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = math::pow(x[i], y[i]);
+  }
+  return result;
+}
+
+/** Per-element square. */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> square(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::square(a[i]);
   }
   return result;
 }
@@ -619,6 +630,54 @@ template<typename T> [[nodiscard]] inline int dominant_axis(const VecBase<T, 3> 
 {
   VecBase<T, 3> b = abs(a);
   return ((b.x > b.y) ? ((b.x > b.z) ? 0 : 2) : ((b.y > b.z) ? 1 : 2));
+}
+
+/**
+ * \return the maximum component of a vector.
+ */
+template<typename T, int Size> [[nodiscard]] inline T reduce_max(const VecBase<T, Size> &a)
+{
+  T result = a[0];
+  for (int i = 1; i < Size; i++) {
+    if (a[i] > result) {
+      result = a[i];
+    }
+  }
+  return result;
+}
+
+/**
+ * \return the minimum component of a vector.
+ */
+template<typename T, int Size> [[nodiscard]] inline T reduce_min(const VecBase<T, Size> &a)
+{
+  T result = a[0];
+  for (int i = 1; i < Size; i++) {
+    if (a[i] < result) {
+      result = a[i];
+    }
+  }
+  return result;
+}
+
+/**
+ * \return the sum of the components of a vector.
+ */
+template<typename T, int Size> [[nodiscard]] inline T reduce_add(const VecBase<T, Size> &a)
+{
+  T result = a[0];
+  for (int i = 1; i < Size; i++) {
+    result += a[i];
+  }
+  return result;
+}
+
+/**
+ * \return the average of the components of a vector.
+ */
+template<typename T, int Size> [[nodiscard]] inline T average(const VecBase<T, Size> &a)
+{
+  return reduce_add(a) * (T(1) / T(Size));
 }
 
 /**

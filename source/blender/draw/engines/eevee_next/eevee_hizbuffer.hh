@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -35,22 +35,37 @@ class HiZBuffer {
    * The last one will process the last few mip level.
    */
   draw::StorageBuffer<uint4, true> atomic_tile_counter_ = {"atomic_tile_counter"};
-  /** Single pass recursive downsample. */
+  /** Single pass recursive down-sample. */
   PassSimple hiz_update_ps_ = {"HizUpdate"};
+  /** Single pass recursive down-sample for layered depth buffer. Only downsample 1 layer. */
+  PassSimple hiz_update_layer_ps_ = {"HizUpdate.Layer"};
+  int layer_id_ = -1;
   /** Debug pass. */
   PassSimple debug_draw_ps_ = {"HizUpdate.Debug"};
   /** Dirty flag to check if the update is necessary. */
   bool is_dirty_ = true;
+  /** Reference to the depth texture to downsample. */
+  GPUTexture *src_tx_;
+  GPUTexture **src_tx_ptr_;
 
-  HiZDataBuf data_;
+  HiZData &data_;
 
  public:
-  HiZBuffer(Instance &inst) : inst_(inst)
+  HiZBuffer(Instance &inst, HiZData &data) : inst_(inst), data_(data)
   {
     atomic_tile_counter_.clear_to_zero();
   };
 
   void sync();
+
+  /**
+   * Set source texture for the hiz downsampling.
+   */
+  void set_source(GPUTexture **texture, int layer = -1)
+  {
+    src_tx_ptr_ = texture;
+    layer_id_ = layer;
+  }
 
   /**
    * Tag the buffer for update if needed.
@@ -72,14 +87,11 @@ class HiZBuffer {
   void bind_resources(DRWShadingGroup *grp)
   {
     DRW_shgroup_uniform_texture_ref(grp, "hiz_tx", &hiz_tx_);
-    DRW_shgroup_uniform_block_ref(grp, "hiz_buf", &data_);
   }
 
-  /* TODO(fclem): Hardcoded bind slots. */
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_texture("hiz_tx", &hiz_tx_);
-    pass->bind_ubo("hiz_buf", &data_);
+    pass.bind_texture(HIZ_TEX_SLOT, &hiz_tx_);
   }
 };
 

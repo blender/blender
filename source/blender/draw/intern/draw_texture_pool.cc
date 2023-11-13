@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,7 @@
 
 #include "BKE_global.h"
 
+#include "BLI_string.h"
 #include "BLI_vector.hh"
 
 #include "draw_texture_pool.h"
@@ -17,6 +18,17 @@ using namespace blender;
 struct DRWTexturePoolHandle {
   uint64_t users_bits;
   GPUTexture *texture;
+  int orphan_cycles;
+};
+
+struct ReleasedTexture {
+  GPUTexture *texture;
+  int orphan_cycles;
+
+  bool operator==(const ReleasedTexture &other)
+  {
+    return texture == other.texture;
+  }
 };
 
 struct DRWTexturePool {
@@ -25,9 +37,8 @@ struct DRWTexturePool {
   /* Cache last result to avoid linear search each time. */
   int last_user_id = -1;
 
-  Vector<GPUTexture *> tmp_tex_pruned;
-  Vector<GPUTexture *> tmp_tex_released;
   Vector<GPUTexture *> tmp_tex_acquired;
+  Vector<ReleasedTexture> tmp_tex_released;
 };
 
 DRWTexturePool *DRW_texture_pool_create()
@@ -37,9 +48,15 @@ DRWTexturePool *DRW_texture_pool_create()
 
 void DRW_texture_pool_free(DRWTexturePool *pool)
 {
-  /* Resetting the pool twice will effectively free all textures. */
-  DRW_texture_pool_reset(pool);
-  DRW_texture_pool_reset(pool);
+  for (DRWTexturePoolHandle &tex : pool->handles) {
+    GPU_TEXTURE_FREE_SAFE(tex.texture);
+  }
+  for (GPUTexture *tex : pool->tmp_tex_acquired) {
+    GPU_texture_free(tex);
+  }
+  for (ReleasedTexture &tex : pool->tmp_tex_released) {
+    GPU_texture_free(tex.texture);
+  }
   delete pool;
 }
 
@@ -100,6 +117,7 @@ GPUTexture *DRW_texture_pool_query(DRWTexturePool *pool,
 
   DRWTexturePoolHandle handle;
   handle.users_bits = user_bit;
+  handle.orphan_cycles = 0;
   handle.texture = GPU_texture_create_2d(name, width, height, 1, format, usage, nullptr);
   pool->handles.append(handle);
   /* Doing filtering for depth does not make sense when not doing shadow mapping,
@@ -125,8 +143,8 @@ GPUTexture *DRW_texture_pool_texture_acquire(
 
   /* Search released texture first. */
   for (auto i : pool->tmp_tex_released.index_range()) {
-    if (texture_match(pool->tmp_tex_released[i])) {
-      tmp_tex = pool->tmp_tex_released[i];
+    if (texture_match(pool->tmp_tex_released[i].texture)) {
+      tmp_tex = pool->tmp_tex_released[i].texture;
       found_index = i;
       break;
     }
@@ -136,21 +154,6 @@ GPUTexture *DRW_texture_pool_texture_acquire(
     pool->tmp_tex_released.remove_and_reorder(found_index);
   }
   else {
-    /* Then search pruned texture. */
-    for (auto i : pool->tmp_tex_pruned.index_range()) {
-      if (texture_match(pool->tmp_tex_pruned[i])) {
-        tmp_tex = pool->tmp_tex_pruned[i];
-        found_index = i;
-        break;
-      }
-    }
-
-    if (tmp_tex) {
-      pool->tmp_tex_pruned.remove_and_reorder(found_index);
-    }
-  }
-
-  if (!tmp_tex) {
     /* Create a new texture in last resort. */
     char name[16] = "DRW_tex_pool";
     if (G.debug & G_DEBUG_GPU) {
@@ -168,7 +171,7 @@ GPUTexture *DRW_texture_pool_texture_acquire(
 void DRW_texture_pool_texture_release(DRWTexturePool *pool, GPUTexture *tmp_tex)
 {
   pool->tmp_tex_acquired.remove_first_occurrence_and_reorder(tmp_tex);
-  pool->tmp_tex_released.append(tmp_tex);
+  pool->tmp_tex_released.append({tmp_tex, 0});
 }
 
 void DRW_texture_pool_take_texture_ownership(DRWTexturePool *pool, GPUTexture *tex)
@@ -178,26 +181,29 @@ void DRW_texture_pool_take_texture_ownership(DRWTexturePool *pool, GPUTexture *t
 
 void DRW_texture_pool_give_texture_ownership(DRWTexturePool *pool, GPUTexture *tex)
 {
-  BLI_assert(pool->tmp_tex_acquired.first_index_of_try(tex) == -1 &&
-             pool->tmp_tex_released.first_index_of_try(tex) == -1 &&
-             pool->tmp_tex_pruned.first_index_of_try(tex) == -1);
   pool->tmp_tex_acquired.append(tex);
 }
 
 void DRW_texture_pool_reset(DRWTexturePool *pool)
 {
+  /** Defer deallocation enough cycles to avoid interleaved calls to different DRW_draw/DRW_render
+   * functions causing constant allocation/deallocation (See #113024). */
+  const int max_orphan_cycles = 8;
+
   pool->last_user_id = -1;
 
   for (auto it = pool->handles.rbegin(); it != pool->handles.rend(); ++it) {
     DRWTexturePoolHandle &handle = *it;
     if (handle.users_bits == 0) {
-      if (handle.texture) {
+      handle.orphan_cycles++;
+      if (handle.texture && handle.orphan_cycles >= max_orphan_cycles) {
         GPU_texture_free(handle.texture);
         handle.texture = nullptr;
       }
     }
     else {
       handle.users_bits = 0;
+      handle.orphan_cycles = 0;
     }
   }
 
@@ -210,9 +216,15 @@ void DRW_texture_pool_reset(DRWTexturePool *pool)
 
   BLI_assert_msg(pool->tmp_tex_acquired.is_empty(),
                  "Missing a TextureFromPool.release() before end of draw.");
-  for (GPUTexture *tmp_tex : pool->tmp_tex_pruned) {
-    GPU_texture_free(tmp_tex);
+
+  for (int i = pool->tmp_tex_released.size() - 1; i >= 0; i--) {
+    ReleasedTexture &tex = pool->tmp_tex_released[i];
+    if (tex.orphan_cycles >= max_orphan_cycles) {
+      GPU_texture_free(tex.texture);
+      pool->tmp_tex_released.remove_and_reorder(i);
+    }
+    else {
+      tex.orphan_cycles++;
+    }
   }
-  pool->tmp_tex_pruned = pool->tmp_tex_released;
-  pool->tmp_tex_released.clear();
 }

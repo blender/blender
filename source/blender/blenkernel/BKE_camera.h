@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_rect.h"
+
 /** \file
  * \ingroup bke
  * \brief Camera data-block and utility functions.
@@ -20,7 +22,6 @@ struct RegionView3D;
 struct RenderData;
 struct Scene;
 struct View3D;
-struct rctf;
 
 /* Camera Data-block */
 

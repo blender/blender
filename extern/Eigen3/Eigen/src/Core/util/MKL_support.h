@@ -55,7 +55,11 @@
 
 
 #if defined EIGEN_USE_MKL
-#   include <mkl.h> 
+#   if (!defined MKL_DIRECT_CALL) && (!defined EIGEN_MKL_NO_DIRECT_CALL)
+#       define MKL_DIRECT_CALL
+#       define MKL_DIRECT_CALL_JUST_SET
+#   endif
+#   include <mkl.h>
 /*Check IMKL version for compatibility: < 10.3 is not usable with Eigen*/
 #   ifndef INTEL_MKL_VERSION
 #       undef EIGEN_USE_MKL /* INTEL_MKL_VERSION is not even defined on older versions */
@@ -69,6 +73,9 @@
 #       undef   EIGEN_USE_MKL_VML
 #       undef   EIGEN_USE_LAPACKE_STRICT
 #       undef   EIGEN_USE_LAPACKE
+#       ifdef   MKL_DIRECT_CALL_JUST_SET
+#           undef MKL_DIRECT_CALL
+#       endif
 #   endif
 #endif
 

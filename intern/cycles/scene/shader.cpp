@@ -54,6 +54,7 @@ NODE_DEFINE(Shader)
               EMISSION_SAMPLING_AUTO);
 
   SOCKET_BOOLEAN(use_transparent_shadow, "Use Transparent Shadow", true);
+  SOCKET_BOOLEAN(use_bump_map_correction, "Bump Map Correction", true);
   SOCKET_BOOLEAN(heterogeneous_volume, "Heterogeneous Volume", true);
 
   static NodeEnum volume_sampling_method_enum;
@@ -103,7 +104,6 @@ Shader::Shader() : Node(get_node_type())
   has_surface_spatial_varying = false;
   has_volume_spatial_varying = false;
   has_volume_attribute_dependency = false;
-  has_integrator_dependency = false;
   has_volume_connected = false;
   prev_volume_step_rate = 0.0f;
 
@@ -134,11 +134,18 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
     return zero_float3();
   }
   else if (node->type == EmissionNode::get_node_type() ||
-           node->type == BackgroundNode::get_node_type())
+           node->type == BackgroundNode::get_node_type() ||
+           node->type == PrincipledBsdfNode::get_node_type())
   {
+    const bool is_principled = (node->type == PrincipledBsdfNode::get_node_type());
     /* Emission and Background node. */
-    ShaderInput *color_in = node->input("Color");
-    ShaderInput *strength_in = node->input("Strength");
+    ShaderInput *color_in = node->input(is_principled ? "Emission Color" : "Color");
+    ShaderInput *strength_in = node->input(is_principled ? "Emission Strength" : "Strength");
+
+    if (is_principled) {
+      /* Too many parameters (coat, sheen, alpha) influence Emission for the Principled BSDF. */
+      is_constant = false;
+    }
 
     float3 estimate = one_float3();
 
@@ -317,8 +324,9 @@ void Shader::tag_update(Scene *scene)
   /* if the shader previously was emissive, update light distribution,
    * if the new shader is emissive, a light manager update tag will be
    * done in the shader manager device update. */
-  if (emission_sampling != EMISSION_SAMPLING_NONE)
+  if (emission_sampling != EMISSION_SAMPLING_NONE) {
     scene->light_manager->tag_update(scene, LightManager::SHADER_MODIFIED);
+  }
 
   /* Special handle of background MIS light for now: for some reason it
    * has use_mis set to false. We are quite close to release now, so
@@ -340,6 +348,27 @@ void Shader::tag_update(Scene *scene)
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
 
+  if (!has_surface && !has_volume) {
+    /* If we need to output surface AOVs, add a Transparent BSDF so that the
+     * surface shader runs. */
+    foreach (ShaderNode *node, graph->nodes) {
+      if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+        foreach (const ShaderInput *in, node->inputs) {
+          if (in->link) {
+            TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
+            graph->add(transparent);
+            graph->connect(transparent->output("BSDF"), output->input("Surface"));
+            has_surface = true;
+            break;
+          }
+        }
+        if (has_surface) {
+          break;
+        }
+      }
+    }
+  }
+
   /* get requested attributes. this could be optimized by pruning unused
    * nodes here already, but that's the job of the shader manager currently,
    * and may not be so great for interactive rendering where you temporarily
@@ -348,8 +377,9 @@ void Shader::tag_update(Scene *scene)
   AttributeRequestSet prev_attributes = attributes;
 
   attributes.clear();
-  foreach (ShaderNode *node, graph->nodes)
+  foreach (ShaderNode *node, graph->nodes) {
     node->attributes(this, &attributes);
+  }
 
   if (has_displacement) {
     if (displacement_method == DISPLACE_BOTH) {
@@ -431,8 +461,9 @@ uint64_t ShaderManager::get_attribute_id(ustring name)
   /* get a unique id for each name, for SVM attribute lookup */
   AttributeIDMap::iterator it = unique_attribute_id.find(name);
 
-  if (it != unique_attribute_id.end())
+  if (it != unique_attribute_id.end()) {
     return it->second;
+  }
 
   uint64_t id = ATTR_STD_NUM + unique_attribute_id.size();
   unique_attribute_id[name] = id;
@@ -450,8 +481,9 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   int id = shader->id;
 
   /* smooth flag */
-  if (smooth)
+  if (smooth) {
     id |= SHADER_SMOOTH_NORMAL;
+  }
 
   /* default flags */
   id |= SHADER_CAST_SHADOW | SHADER_AREA_LIGHT;
@@ -490,8 +522,9 @@ void ShaderManager::device_update_common(Device * /*device*/,
 {
   dscene->shaders.free();
 
-  if (scene->shaders.size() == 0)
+  if (scene->shaders.size() == 0) {
     return;
+  }
 
   KernelShader *kshader = dscene->shaders.alloc(scene->shaders.size());
   bool has_volumes = false;
@@ -510,12 +543,15 @@ void ShaderManager::device_update_common(Device * /*device*/,
       flag |= SD_MIS_FRONT | SD_MIS_BACK;
     }
 
-    if (!is_zero(shader->emission_estimate))
+    if (!is_zero(shader->emission_estimate)) {
       flag |= SD_HAS_EMISSION;
-    if (shader->has_surface_transparent && shader->get_use_transparent_shadow())
+    }
+    if (shader->has_surface_transparent && shader->get_use_transparent_shadow()) {
       flag |= SD_HAS_TRANSPARENT_SHADOW;
-    if (shader->has_surface_raytrace)
+    }
+    if (shader->has_surface_raytrace) {
       flag |= SD_HAS_RAYTRACE;
+    }
     if (shader->has_volume) {
       flag |= SD_HAS_VOLUME;
       has_volumes = true;
@@ -526,30 +562,43 @@ void ShaderManager::device_update_common(Device * /*device*/,
       flag |= SD_HAS_TRANSPARENT_SHADOW;
     }
     /* in this case we can assume transparent surface */
-    if (shader->has_volume_connected && !shader->has_surface)
+    if (shader->has_volume_connected && !shader->has_surface) {
       flag |= SD_HAS_ONLY_VOLUME;
-    if (shader->has_volume) {
-      if (shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying)
-        flag |= SD_HETEROGENEOUS_VOLUME;
     }
-    if (shader->has_volume_attribute_dependency)
+    if (shader->has_volume) {
+      if (shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying) {
+        flag |= SD_HETEROGENEOUS_VOLUME;
+      }
+    }
+    if (shader->has_volume_attribute_dependency) {
       flag |= SD_NEED_VOLUME_ATTRIBUTES;
-    if (shader->has_bssrdf_bump)
+    }
+    if (shader->has_bssrdf_bump) {
       flag |= SD_HAS_BSSRDF_BUMP;
-    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_EQUIANGULAR)
+    }
+    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_EQUIANGULAR) {
       flag |= SD_VOLUME_EQUIANGULAR;
-    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_MULTIPLE_IMPORTANCE)
+    }
+    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_MULTIPLE_IMPORTANCE) {
       flag |= SD_VOLUME_MIS;
-    if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC)
+    }
+    if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC) {
       flag |= SD_VOLUME_CUBIC;
-    if (shader->has_bump)
+    }
+    if (shader->has_bump) {
       flag |= SD_HAS_BUMP;
-    if (shader->get_displacement_method() != DISPLACE_BUMP)
+    }
+    if (shader->get_displacement_method() != DISPLACE_BUMP) {
       flag |= SD_HAS_DISPLACEMENT;
+    }
+    if (shader->get_use_bump_map_correction()) {
+      flag |= SD_USE_BUMP_MAP_CORRECTION;
+    }
 
     /* constant emission check */
-    if (shader->emission_is_constant)
+    if (shader->emission_is_constant) {
       flag |= SD_HAS_CONSTANT_EMISSION;
+    }
 
     uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
 
@@ -575,6 +624,9 @@ void ShaderManager::device_update_common(Device * /*device*/,
   ktables->ggx_glass_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_Eavg);
   ktables->ggx_glass_inv_E = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_E);
   ktables->ggx_glass_inv_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_Eavg);
+  ktables->sheen_ltc = ensure_bsdf_table(dscene, scene, table_sheen_ltc);
+  ktables->ggx_gen_schlick_ior_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_ior_s);
+  ktables->ggx_gen_schlick_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_s);
 
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -217,6 +217,14 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
  */
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, struct GPUVertBuf *vertbuf);
 void GPU_shader_transform_feedback_disable(GPUShader *shader);
+
+/**
+ * SSBO Vertex-fetch is used as an alternative path to geometry shaders wherein the vertex count is
+ * expanded up-front. This function fetches the number of specified output vertices per input
+ * primitive.
+ */
+int GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(GPUShader *shader);
+bool GPU_shader_uses_ssbo_vertex_fetch(GPUShader *shader);
 
 /**
  * Shader cache warming.

@@ -8,9 +8,12 @@ allowing ``import bpy`` to be added to any Python script, providing access to Bl
 
 .. note::
 
-   At time of writing official builds are not available,
-   using this requires compiling Blender yourself see
-   `build instructions <https://wiki.blender.org/w/index.php?title=Building_Blender/Other/BlenderAsPyModule>`__.
+   Blender as a Python Module isn't provided on Blender's official download page.
+
+   - A pre-compiled ``bpy`` module is
+     `available via PIP <https://pypi.org/project/bpy/>`__.
+   - Or you may compile this yourself using the
+     `build instructions <https://wiki.blender.org/w/index.php?title=Building_Blender/Other/BlenderAsPyModule>`__.
 
 
 Use Cases

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -126,7 +126,7 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator &ait)
 {
   AdjacencyIterator it(ait);
   ViewVertex *nextVertex = getVertex();
-  // we can't get a NULL nextVertex here, it was intercepted before
+  // we can't get a nullptr nextVertex here, it was intercepted before
   if (nextVertex->getNature() & Nature::T_VERTEX) {
     TVertex *tvertex = (TVertex *)nextVertex;
     ViewEdge *mate = (tvertex)->mate(getCurrentEdge());

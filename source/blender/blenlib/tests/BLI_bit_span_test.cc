@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -70,13 +70,13 @@ TEST(bit_span, SubscriptOperator)
 
   EXPECT_FALSE(mutable_span[5].test());
   EXPECT_FALSE(span[5].test());
-  mutable_span[5].set(5);
+  mutable_span[5].set(true);
   EXPECT_TRUE(mutable_span[5].test());
   EXPECT_TRUE(span[5].test());
 
   EXPECT_FALSE(mutable_span[120].test());
   EXPECT_FALSE(span[120].test());
-  mutable_span[120].set(120);
+  mutable_span[120].set(true);
   EXPECT_TRUE(mutable_span[120].test());
   EXPECT_TRUE(span[120].test());
 

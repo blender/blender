@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,10 @@
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
@@ -33,7 +37,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE void *BM_iter_step(BMIter *it
 ATTR_NONNULL(1)
 BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
-  /* int argtype; */
+  // int argtype;
   iter->itype = itype;
 
   /* inlining optimizes out this switch when called with the defined type */
@@ -197,3 +201,7 @@ BLI_INLINE void BM_iter_parallel(BMesh *bm,
 }
 
 #endif /* __BLI_TASK_H__ */
+
+#ifdef __cplusplus
+}
+#endif

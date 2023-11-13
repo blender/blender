@@ -15,6 +15,7 @@ CCL_NAMESPACE_BEGIN
 struct GuidingRISSample {
   float3 rand;
   float2 sampled_roughness;
+  /* The relative IOR of the outgoing media and the incoming media. */
   float eta{1.0f};
   int label;
   float3 wo;

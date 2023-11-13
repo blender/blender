@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,6 +49,8 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
         export_settings(export_settings)
   {
   }
+
+  void add_bone_collections(Object *ob_arm, COLLADASW::Node &node);
 
   /* write bone nodes */
   void add_armature_bones(Object *ob_arm,

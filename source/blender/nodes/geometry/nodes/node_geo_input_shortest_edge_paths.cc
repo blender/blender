@@ -1,15 +1,17 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <queue>
 
+#include "BLI_array_utils.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
 
 #include "node_geometry_util.hh"
 
@@ -23,25 +25,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Total Cost").reference_pass_all();
 }
 
-typedef std::pair<float, int> VertPriority;
-
-struct EdgeVertMap {
-  Array<Vector<int>> edges_by_vertex_map;
-
-  EdgeVertMap(const Mesh &mesh)
-  {
-    const Span<int2> edges = mesh.edges();
-    edges_by_vertex_map.reinitialize(mesh.totvert);
-    for (const int edge_i : edges.index_range()) {
-      const int2 &edge = edges[edge_i];
-      edges_by_vertex_map[edge[0]].append(edge_i);
-      edges_by_vertex_map[edge[1]].append(edge_i);
-    }
-  }
-};
+using VertPriority = std::pair<float, int>;
 
 static void shortest_paths(const Mesh &mesh,
-                           EdgeVertMap &maps,
+                           const GroupedSpan<int> vert_to_edge,
                            const IndexMask end_selection,
                            const VArray<float> &input_cost,
                            MutableSpan<int> r_next_index,
@@ -65,8 +52,7 @@ static void shortest_paths(const Mesh &mesh,
       continue;
     }
     visited[vert_i] = true;
-    const Span<int> incident_edge_indices = maps.edges_by_vertex_map[vert_i];
-    for (const int edge_i : incident_edge_indices) {
+    for (const int edge_i : vert_to_edge[vert_i]) {
       const int2 &edge = edges[edge_i];
       const int neighbor_vert_i = edge[0] + edge[1] - vert_i;
       if (visited[neighbor_vert_i]) {
@@ -116,10 +102,19 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
     Array<int> next_index(mesh.totvert, -1);
     Array<float> cost(mesh.totvert, FLT_MAX);
 
-    if (!end_selection.is_empty()) {
-      EdgeVertMap maps(mesh);
-      shortest_paths(mesh, maps, end_selection, input_cost, next_index, cost);
+    if (end_selection.is_empty()) {
+      array_utils::fill_index_range<int>(next_index);
+      return mesh.attributes().adapt_domain<int>(
+          VArray<int>::ForContainer(std::move(next_index)), ATTR_DOMAIN_POINT, domain);
     }
+
+    const Span<int2> edges = mesh.edges();
+    Array<int> vert_to_edge_offset_data;
+    Array<int> vert_to_edge_indices;
+    const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
+        edges, mesh.totvert, vert_to_edge_offset_data, vert_to_edge_indices);
+    shortest_paths(mesh, vert_to_edge, end_selection, input_cost, next_index, cost);
+
     threading::parallel_for(next_index.index_range(), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         if (next_index[i] == -1) {
@@ -189,13 +184,21 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
     point_evaluator.evaluate();
     const IndexMask end_selection = point_evaluator.get_evaluated_as_mask(0);
 
+    if (end_selection.is_empty()) {
+      return mesh.attributes().adapt_domain<float>(
+          VArray<float>::ForSingle(0.0f, mesh.totvert), ATTR_DOMAIN_POINT, domain);
+    }
+
     Array<int> next_index(mesh.totvert, -1);
     Array<float> cost(mesh.totvert, FLT_MAX);
 
-    if (!end_selection.is_empty()) {
-      EdgeVertMap maps(mesh);
-      shortest_paths(mesh, maps, end_selection, input_cost, next_index, cost);
-    }
+    const Span<int2> edges = mesh.edges();
+    Array<int> vert_to_edge_offset_data;
+    Array<int> vert_to_edge_indices;
+    const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
+        edges, mesh.totvert, vert_to_edge_offset_data, vert_to_edge_indices);
+    shortest_paths(mesh, vert_to_edge, end_selection, input_cost, next_index, cost);
+
     threading::parallel_for(cost.index_range(), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         if (cost[i] == FLT_MAX) {
@@ -246,17 +249,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Total Cost", std::move(cost_field));
 }
 
-}  // namespace blender::nodes::node_geo_input_shortest_edge_paths_cc
-
-void register_node_type_geo_input_shortest_edge_paths()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_shortest_edge_paths_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_SHORTEST_EDGE_PATHS, "Shortest Edge Paths", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_shortest_edge_paths_cc

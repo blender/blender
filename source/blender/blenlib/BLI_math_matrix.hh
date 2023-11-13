@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -231,11 +231,23 @@ template<typename MatT, typename VectorT>
                                          const VectorT up);
 
 /**
+ * Create a rotation matrix from only one \a up axis.
+ * The other axes are chosen to always be orthogonal. The resulting matrix is a basis matrix.
+ * \note `up` must be normalized.
+ * \note This can be used to create a tangent basis from a normal vector.
+ * \note The output of this function is not given to be same across blender version. Prefer using
+ * `from_orthonormal_axes` for more stable output.
+ */
+template<typename MatT, typename VectorT> [[nodiscard]] MatT from_up_axis(const VectorT up);
+
+/**
  * This returns a version of \a mat with orthonormal basis axes.
  * This leaves the given \a axis untouched.
  *
  * In other words this removes the shear of the matrix. However this doesn't properly account for
  * volume preservation, and so, the axes keep their respective length.
+ *
+ * \note Prefer using `from_up_axis` to create a orthogonal basis around a vector.
  */
 template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis);
 
@@ -257,6 +269,7 @@ template<typename MatT, typename VectorT>
  * Extract euler rotation from transform matrix.
  * \return the rotation with the smallest values from the potential candidates.
  */
+template<typename T> [[nodiscard]] inline AngleRadianBase<T> to_angle(const MatBase<T, 2, 2> &mat);
 template<typename T> [[nodiscard]] inline EulerXYZBase<T> to_euler(const MatBase<T, 3, 3> &mat);
 template<typename T> [[nodiscard]] inline EulerXYZBase<T> to_euler(const MatBase<T, 4, 4> &mat);
 template<typename T>
@@ -316,6 +329,15 @@ template<bool AllowNegativeScale = false, typename T>
  * Rotation and scale values will be flipped if it is negative.
  * This is a costly operation so it is disabled by default.
  */
+template<bool AllowNegativeScale = false, typename T>
+inline void to_rot_scale(const MatBase<T, 2, 2> &mat,
+                         AngleRadianBase<T> &r_rotation,
+                         VecBase<T, 2> &r_scale);
+template<bool AllowNegativeScale = false, typename T>
+inline void to_loc_rot_scale(const MatBase<T, 3, 3> &mat,
+                             VecBase<T, 2> &r_location,
+                             AngleRadianBase<T> &r_rotation,
+                             VecBase<T, 2> &r_scale);
 template<bool AllowNegativeScale = false, typename T, typename RotationT>
 inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
                          RotationT &r_rotation,
@@ -384,6 +406,15 @@ template<typename T>
     T left, T right, T bottom, T top, T near_clip, T far_clip);
 
 /**
+ * \brief Create an orthographic projection matrix using OpenGL coordinate convention:
+ * Maps each axis range to [-1..1] range for all axes except Z.
+ * The Z axis is collapsed to 0 which eliminates the depth component. So it cannot be used with
+ * depth testing.
+ * The resulting matrix can be used with either #project_point or #transform_point.
+ */
+template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top);
+
+/**
  * \brief Create a perspective projection matrix using OpenGL coordinate convention:
  * Maps each axis range to [-1..1] range for all axes.
  * `left`, `right`, `bottom`, `top` are frustum side distances at `z=near_clip`.
@@ -402,6 +433,16 @@ template<typename T>
 template<typename T>
 [[nodiscard]] MatBase<T, 4, 4> perspective_fov(
     T angle_left, T angle_right, T angle_bottom, T angle_top, T near_clip, T far_clip);
+
+/**
+ * \brief Create a perspective projection matrix using OpenGL coordinate convention:
+ * Maps each axis range to [-1..1] range for all axes except for the Z where [near_clip..inf] is
+ * mapped to [-1..1].
+ * `left`, `right`, `bottom`, `top` are frustum side distances at `z=near_clip`.
+ * The resulting matrix can be used with #project_point.
+ */
+template<typename T>
+[[nodiscard]] MatBase<T, 4, 4> perspective_infinite(T left, T right, T bottom, T top, T near_clip);
 
 }  // namespace projection
 
@@ -705,13 +746,19 @@ template<typename T, int NumCol, int NumRow, typename VectorT>
 
 namespace detail {
 
+template<typename T> AngleRadianBase<T> normalized_to_angle(const MatBase<T, 2, 2> &mat)
+{
+  BLI_assert(math::is_unit_scale(mat));
+  return AngleRadianBase(mat[0][0], mat[0][1]);
+}
+
 template<typename T>
 void normalized_to_eul2(const MatBase<T, 3, 3> &mat, EulerXYZBase<T> &eul1, EulerXYZBase<T> &eul2)
 {
   BLI_assert(math::is_unit_scale(mat));
 
   const T cy = math::hypot(mat[0][0], mat[0][1]);
-  if (cy > T(16) * FLT_EPSILON) {
+  if (cy > T(16) * std::numeric_limits<T>::epsilon()) {
     eul1.x() = math::atan2(mat[1][2], mat[2][2]);
     eul1.y() = math::atan2(-mat[0][2], cy);
     eul1.z() = math::atan2(mat[0][1], mat[0][0]);
@@ -737,7 +784,7 @@ void normalized_to_eul2(const MatBase<T, 3, 3> &mat, Euler3Base<T> &eul1, Euler3
   const int k_index = eul1.k_index();
 
   const T cy = math::hypot(mat[i_index][i_index], mat[i_index][j_index]);
-  if (cy > T(16) * FLT_EPSILON) {
+  if (cy > T(16) * std::numeric_limits<T>::epsilon()) {
     eul1.i() = math::atan2(mat[j_index][k_index], mat[k_index][k_index]);
     eul1.j() = math::atan2(-mat[i_index][k_index], cy);
     eul1.k() = math::atan2(mat[i_index][j_index], mat[i_index][i_index]);
@@ -863,7 +910,7 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
 template<typename T> QuaternionBase<T> normalized_to_quat_with_checks(const MatBase<T, 3, 3> &mat)
 {
   const T det = math::determinant(mat);
-  if (UNLIKELY(!isfinite(det))) {
+  if (UNLIKELY(!std::isfinite(det))) {
     return QuaternionBase<T>::identity();
   }
   else if (UNLIKELY(det < T(0))) {
@@ -1070,6 +1117,11 @@ extern template MatBase<float, 4, 4> from_rotation(const AxisAngleCartesian &rot
 
 }  // namespace detail
 
+template<typename T> [[nodiscard]] inline AngleRadianBase<T> to_angle(const MatBase<T, 2, 2> &mat)
+{
+  return detail::normalized_to_angle(mat);
+}
+
 template<typename T>
 [[nodiscard]] inline Euler3Base<T> to_euler(const MatBase<T, 3, 3> &mat, EulerOrder order)
 {
@@ -1189,6 +1241,12 @@ template<bool AllowNegativeScale, typename T>
 namespace detail {
 
 template<typename T>
+inline void to_rotation(const MatBase<T, 2, 2> &mat, AngleRadianBase<T> &r_rotation)
+{
+  r_rotation = to_angle<T>(mat);
+}
+
+template<typename T>
 inline void to_rotation(const MatBase<T, 3, 3> &mat, QuaternionBase<T> &r_rotation)
 {
   r_rotation = to_quaternion<T>(mat);
@@ -1207,6 +1265,31 @@ inline void to_rotation(const MatBase<T, 3, 3> &mat, Euler3Base<T> &r_rotation)
 }
 
 }  // namespace detail
+
+template<bool AllowNegativeScale, typename T>
+inline void to_rot_scale(const MatBase<T, 2, 2> &mat,
+                         AngleRadianBase<T> &r_rotation,
+                         VecBase<T, 2> &r_scale)
+{
+  MatBase<T, 2, 2> normalized_mat = normalize_and_get_size(mat, r_scale);
+  if constexpr (AllowNegativeScale) {
+    if (UNLIKELY(is_negative(normalized_mat))) {
+      normalized_mat = -normalized_mat;
+      r_scale = -r_scale;
+    }
+  }
+  detail::to_rotation<T>(normalized_mat, r_rotation);
+}
+
+template<bool AllowNegativeScale, typename T>
+inline void to_loc_rot_scale(const MatBase<T, 3, 3> &mat,
+                             VecBase<T, 2> &r_location,
+                             AngleRadianBase<T> &r_rotation,
+                             VecBase<T, 2> &r_scale)
+{
+  r_location = mat.location();
+  to_rot_scale<AllowNegativeScale>(MatBase<T, 2, 2>(mat), r_rotation, r_scale);
+}
 
 template<bool AllowNegativeScale, typename T, typename RotationT>
 inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
@@ -1310,6 +1393,23 @@ template<typename MatT, typename VectorT>
   MatT matrix = MatT(from_orthonormal_axes<Mat3x3>(forward, up));
   matrix.location() = location;
   return matrix;
+}
+
+template<typename MatT, typename VectorT> [[nodiscard]] MatT from_up_axis(const VectorT up)
+{
+  BLI_assert(is_unit_scale(up));
+  using T = typename MatT::base_type;
+  using Vec3T = VecBase<T, 3>;
+  /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
+  T sign = math::sign(up.z);
+  T a = T(-1) / (sign + up.z);
+  T b = up.x * up.y * a;
+
+  MatBase<T, 3, 3> basis;
+  basis.x_axis() = Vec3T(1.0f + sign * square(up.x) * a, sign * b, -sign * up.x);
+  basis.y_axis() = Vec3T(b, sign + square(up.y) * a, -up.y);
+  basis.z_axis() = up;
+  return MatT(basis);
 }
 
 template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis)
@@ -1473,6 +1573,23 @@ MatBase<T, 4, 4> orthographic(T left, T right, T bottom, T top, T near_clip, T f
   return mat;
 }
 
+template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top)
+{
+  const T x_delta = right - left;
+  const T y_delta = top - bottom;
+
+  MatBase<T, 4, 4> mat = MatBase<T, 4, 4>::identity();
+  if (x_delta != 0 && y_delta != 0) {
+    mat[0][0] = T(2.0) / x_delta;
+    mat[3][0] = -(right + left) / x_delta;
+    mat[1][1] = T(2.0) / y_delta;
+    mat[3][1] = -(top + bottom) / y_delta;
+    mat[2][2] = 0.0f;
+    mat[3][2] = 0.0f;
+  }
+  return mat;
+}
+
 template<typename T>
 MatBase<T, 4, 4> perspective(T left, T right, T bottom, T top, T near_clip, T far_clip)
 {
@@ -1489,6 +1606,29 @@ MatBase<T, 4, 4> perspective(T left, T right, T bottom, T top, T near_clip, T fa
     mat[2][2] = -(far_clip + near_clip) / z_delta;
     mat[2][3] = -1.0f;
     mat[3][2] = (-2.0f * near_clip * far_clip) / z_delta;
+    mat[3][3] = 0.0f;
+  }
+  return mat;
+}
+
+template<typename T>
+MatBase<T, 4, 4> perspective_infinite(T left, T right, T bottom, T top, T near_clip)
+{
+  const T x_delta = right - left;
+  const T y_delta = top - bottom;
+
+  /* From "Projection Matrix Tricks" by Eric Lengyel GDC 2007. */
+  MatBase<T, 4, 4> mat = MatBase<T, 4, 4>::identity();
+  if (x_delta != 0 && y_delta != 0) {
+    mat[0][0] = near_clip * T(2.0) / x_delta;
+    mat[1][1] = near_clip * T(2.0) / y_delta;
+    mat[2][0] = (right + left) / x_delta; /* NOTE: negate Z. */
+    mat[2][1] = (top + bottom) / y_delta;
+    /* Page 17. Choosing an epsilon for 32 bit floating-point precision. */
+    constexpr float eps = 2.4e-7f;
+    mat[2][2] = -1.0f;
+    mat[2][3] = (eps - 1.0f);
+    mat[3][2] = (eps - 2.0f) * near_clip;
     mat[3][3] = 0.0f;
   }
   return mat;

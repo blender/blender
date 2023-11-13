@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2011-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,6 +12,7 @@ __all__ = (
 
 import bpy
 from bpy.types import Action
+from dataclasses import dataclass
 
 from typing import (
     List,
@@ -31,11 +32,47 @@ FCurveKey = Tuple[
 ListKeyframes = List[float]
 
 
+@dataclass
+class BakeOptions:
+    only_selected: bool
+    """Only bake selected bones."""
+
+    do_pose: bool
+    """Bake pose channels"""
+
+    do_object: bool
+    """Bake objects."""
+
+    do_visual_keying: bool
+    """Use the final transformations for baking ('visual keying')."""
+
+    do_constraint_clear: bool
+    """Remove constraints after baking."""
+
+    do_parents_clear: bool
+    """Unparent after baking objects."""
+
+    do_clean: bool
+    """Remove redundant keyframes after baking."""
+
+    do_location: bool
+    """Bake location channels"""
+
+    do_rotation: bool
+    """Bake rotation channels"""
+
+    do_scale: bool
+    """Bake scale channels"""
+
+    do_bbone: bool
+    """Bake b-bone channels"""
+
+
 def bake_action(
         obj,
         *,
         action, frames,
-        **kwargs
+        bake_options: BakeOptions
 ):
     """
     :arg obj: Object to bake.
@@ -49,13 +86,13 @@ def bake_action(
     :return: an action or None
     :rtype: :class:`bpy.types.Action`
     """
-    if not (kwargs.get("do_pose") or kwargs.get("do_object")):
+    if not (bake_options.do_pose or bake_options.do_object):
         return None
 
     action, = bake_action_objects(
         [(obj, action)],
         frames=frames,
-        **kwargs,
+        bake_options=bake_options
     )
     return action
 
@@ -64,7 +101,7 @@ def bake_action_objects(
         object_action_pairs,
         *,
         frames,
-        **kwargs
+        bake_options: BakeOptions
 ):
     """
     A version of :func:`bake_action_objects_iter` that takes frames and returns the output.
@@ -75,7 +112,7 @@ def bake_action_objects(
     :return: A sequence of Action or None types (aligned with `object_action_pairs`)
     :rtype: sequence of :class:`bpy.types.Action`
     """
-    iter = bake_action_objects_iter(object_action_pairs, **kwargs)
+    iter = bake_action_objects_iter(object_action_pairs, bake_options=bake_options)
     iter.send(None)
     for frame in frames:
         iter.send(frame)
@@ -84,7 +121,7 @@ def bake_action_objects(
 
 def bake_action_objects_iter(
         object_action_pairs,
-        **kwargs
+        bake_options: BakeOptions
 ):
     """
     An coroutine that bakes actions for multiple objects.
@@ -96,7 +133,7 @@ def bake_action_objects_iter(
     scene = bpy.context.scene
     frame_back = scene.frame_current
     iter_all = tuple(
-        bake_action_iter(obj, action=action, **kwargs)
+        bake_action_iter(obj, action=action, bake_options=bake_options)
         for (obj, action) in object_action_pairs
     )
     for iter in iter_all:
@@ -118,13 +155,7 @@ def bake_action_iter(
         obj,
         *,
         action,
-        only_selected=False,
-        do_pose=True,
-        do_object=True,
-        do_visual_keying=True,
-        do_constraint_clear=False,
-        do_parents_clear=False,
-        do_clean=False
+        bake_options: BakeOptions
 ):
     """
     An coroutine that bakes action for a single object.
@@ -134,20 +165,8 @@ def bake_action_iter(
     :arg action: An action to bake the data into, or None for a new action
        to be created.
     :type action: :class:`bpy.types.Action` or None
-    :arg only_selected: Only bake selected bones.
-    :type only_selected: bool
-    :arg do_pose: Bake pose channels.
-    :type do_pose: bool
-    :arg do_object: Bake objects.
-    :type do_object: bool
-    :arg do_visual_keying: Use the final transformations for baking ('visual keying')
-    :type do_visual_keying: bool
-    :arg do_constraint_clear: Remove constraints after baking.
-    :type do_constraint_clear: bool
-    :arg do_parents_clear: Unparent after baking objects.
-    :type do_parents_clear: bool
-    :arg do_clean: Remove redundant keyframes after baking.
-    :type do_clean: bool
+    :arg bake_options: Boolean options of what to include into the action bake.
+    :type bake_options: :class: `anim_utils.BakeOptions`
 
     :return: an action or None
     :rtype: :class:`bpy.types.Action`
@@ -180,7 +199,7 @@ def bake_action_iter(
         matrix = {}
         bbones = {}
         for name, pbone in obj.pose.bones.items():
-            if do_visual_keying:
+            if bake_options.do_visual_keying:
                 # Get the final transform of the bone in its own local space...
                 matrix[name] = obj.convert_space(pose_bone=pbone, matrix=pbone.matrix,
                                                  from_space='POSE', to_space='LOCAL')
@@ -192,8 +211,8 @@ def bake_action_iter(
                 bbones[name] = {bb_prop: getattr(pbone, bb_prop) for bb_prop in BBONE_PROPS}
         return matrix, bbones
 
-    if do_parents_clear:
-        if do_visual_keying:
+    if bake_options.do_parents_clear:
+        if bake_options.do_visual_keying:
             def obj_frame_info(obj):
                 return obj.matrix_world.copy()
         else:
@@ -205,7 +224,7 @@ def bake_action_iter(
                 else:
                     return matrix.copy()
     else:
-        if do_visual_keying:
+        if bake_options.do_visual_keying:
             def obj_frame_info(obj):
                 parent = obj.parent
                 matrix = obj.matrix_world
@@ -221,9 +240,9 @@ def bake_action_iter(
     # Setup the Context
 
     if obj.pose is None:
-        do_pose = False
+        bake_options.do_pose = False
 
-    if not (do_pose or do_object):
+    if not (bake_options.do_pose or bake_options.do_object):
         raise Exception("Pose and object baking is disabled, no action needed")
 
     pose_info = []
@@ -240,14 +259,14 @@ def bake_action_iter(
         if frame is None:
             break
 
-        if do_pose:
+        if bake_options.do_pose:
             pose_info.append((frame, *pose_frame_info(obj)))
-        if do_object:
+        if bake_options.do_object:
             obj_info.append((frame, obj_frame_info(obj)))
 
     # -------------------------------------------------------------------------
     # Clean (store initial data)
-    if do_clean and action is not None:
+    if bake_options.do_clean and action is not None:
         clean_orig_data = {fcu: {p.co[1] for p in fcu.keyframe_points} for fcu in action.fcurves}
     else:
         clean_orig_data = {}
@@ -278,16 +297,16 @@ def bake_action_iter(
 
     # pose
     lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in action.fcurves}
-    if do_pose:
+    if bake_options.do_pose:
         for name, pbone in obj.pose.bones.items():
-            if only_selected and not pbone.bone.select:
+            if bake_options.only_selected and not pbone.bone.select:
                 continue
 
-            if do_constraint_clear:
+            if bake_options.do_constraint_clear:
                 while pbone.constraints:
                     pbone.constraints.remove(pbone.constraints[0])
 
-            # Create compatible eulers, quats.
+            # Create compatible euler & quaternion rotation values.
             euler_prev = None
             quat_prev = None
 
@@ -300,13 +319,17 @@ def bake_action_iter(
             paths_bbprops = [(base_fcurve_path + bbprop) for bbprop in BBONE_PROPS]
 
             keyframes = KeyframesCo()
-            keyframes.add_paths(path_location, 3)
-            keyframes.add_paths(path_quaternion, 4)
-            keyframes.add_paths(path_axis_angle, 4)
-            keyframes.add_paths(path_euler, 3)
-            keyframes.add_paths(path_scale, 3)
 
-            if pbone.bone.bbone_segments > 1:
+            if bake_options.do_location:
+                keyframes.add_paths(path_location, 3)
+            if bake_options.do_rotation:
+                keyframes.add_paths(path_quaternion, 4)
+                keyframes.add_paths(path_axis_angle, 4)
+                keyframes.add_paths(path_euler, 3)
+            if bake_options.do_scale:
+                keyframes.add_paths(path_scale, 3)
+
+            if bake_options.do_bbone and pbone.bone.bbone_segments > 1:
                 for prop_name, path in zip(BBONE_PROPS, paths_bbprops):
                     keyframes.add_paths(path, BBONE_PROPS_LENGTHS[prop_name])
 
@@ -315,32 +338,35 @@ def bake_action_iter(
             for (f, matrix, bbones) in pose_info:
                 pbone.matrix_basis = matrix[name].copy()
 
-                keyframes.extend_co_values(path_location, 3, f, pbone.location)
+                if bake_options.do_location:
+                    keyframes.extend_co_values(path_location, 3, f, pbone.location)
 
-                if rotation_mode == 'QUATERNION':
-                    if quat_prev is not None:
-                        quat = pbone.rotation_quaternion.copy()
-                        quat.make_compatible(quat_prev)
-                        pbone.rotation_quaternion = quat
-                        quat_prev = quat
-                        del quat
-                    else:
-                        quat_prev = pbone.rotation_quaternion.copy()
-                    keyframes.extend_co_values(path_quaternion, 4, f, pbone.rotation_quaternion)
-                elif rotation_mode == 'AXIS_ANGLE':
-                    keyframes.extend_co_values(path_axis_angle, 4, f, pbone.rotation_axis_angle)
-                else:  # euler, XYZ, ZXY etc
-                    if euler_prev is not None:
-                        euler = pbone.matrix_basis.to_euler(pbone.rotation_mode, euler_prev)
-                        pbone.rotation_euler = euler
-                        del euler
-                    euler_prev = pbone.rotation_euler.copy()
-                    keyframes.extend_co_values(path_euler, 3, f, pbone.rotation_euler)
+                if bake_options.do_rotation:
+                    if rotation_mode == 'QUATERNION':
+                        if quat_prev is not None:
+                            quat = pbone.rotation_quaternion.copy()
+                            quat.make_compatible(quat_prev)
+                            pbone.rotation_quaternion = quat
+                            quat_prev = quat
+                            del quat
+                        else:
+                            quat_prev = pbone.rotation_quaternion.copy()
+                        keyframes.extend_co_values(path_quaternion, 4, f, pbone.rotation_quaternion)
+                    elif rotation_mode == 'AXIS_ANGLE':
+                        keyframes.extend_co_values(path_axis_angle, 4, f, pbone.rotation_axis_angle)
+                    else:  # euler, XYZ, ZXY etc
+                        if euler_prev is not None:
+                            euler = pbone.matrix_basis.to_euler(pbone.rotation_mode, euler_prev)
+                            pbone.rotation_euler = euler
+                            del euler
+                        euler_prev = pbone.rotation_euler.copy()
+                        keyframes.extend_co_values(path_euler, 3, f, pbone.rotation_euler)
 
-                keyframes.extend_co_values(path_scale, 3, f, pbone.scale)
+                if bake_options.do_scale:
+                    keyframes.extend_co_values(path_scale, 3, f, pbone.scale)
 
                 # Bendy Bones
-                if pbone.bone.bbone_segments > 1:
+                if bake_options.do_bbone and pbone.bone.bbone_segments > 1:
                     bbone_shape = bbones[name]
                     for prop_index, prop_name in enumerate(BBONE_PROPS):
                         prop_len = BBONE_PROPS_LENGTHS[prop_name]
@@ -359,12 +385,12 @@ def bake_action_iter(
                 keyframes.insert_keyframes_into_existing_action(lookup_fcurves, total_new_keys, action, name)
 
     # object. TODO. multiple objects
-    if do_object:
-        if do_constraint_clear:
+    if bake_options.do_object:
+        if bake_options.do_constraint_clear:
             while obj.constraints:
                 obj.constraints.remove(obj.constraints[0])
 
-        # Create compatible eulers, quats.
+        # Create compatible euler & quaternion rotations.
         euler_prev = None
         quat_prev = None
 
@@ -375,11 +401,14 @@ def bake_action_iter(
         path_scale = "scale"
 
         keyframes = KeyframesCo()
-        keyframes.add_paths(path_location, 3)
-        keyframes.add_paths(path_quaternion, 4)
-        keyframes.add_paths(path_axis_angle, 4)
-        keyframes.add_paths(path_euler, 3)
-        keyframes.add_paths(path_scale, 3)
+        if bake_options.do_location:
+            keyframes.add_paths(path_location, 3)
+        if bake_options.do_rotation:
+            keyframes.add_paths(path_quaternion, 4)
+            keyframes.add_paths(path_axis_angle, 4)
+            keyframes.add_paths(path_euler, 3)
+        if bake_options.do_scale:
+            keyframes.add_paths(path_scale, 3)
 
         rotation_mode = obj.rotation_mode
         total_new_keys = len(obj_info)
@@ -387,41 +416,44 @@ def bake_action_iter(
             name = "Action Bake"  # XXX: placeholder
             obj.matrix_basis = matrix
 
-            keyframes.extend_co_values(path_location, 3, f, obj.location)
+            if bake_options.do_location:
+                keyframes.extend_co_values(path_location, 3, f, obj.location)
 
-            if rotation_mode == 'QUATERNION':
-                if quat_prev is not None:
-                    quat = obj.rotation_quaternion.copy()
-                    quat.make_compatible(quat_prev)
-                    obj.rotation_quaternion = quat
-                    quat_prev = quat
-                    del quat
-                else:
-                    quat_prev = obj.rotation_quaternion.copy()
-                keyframes.extend_co_values(path_quaternion, 4, f, obj.rotation_quaternion)
+            if bake_options.do_rotation:
+                if rotation_mode == 'QUATERNION':
+                    if quat_prev is not None:
+                        quat = obj.rotation_quaternion.copy()
+                        quat.make_compatible(quat_prev)
+                        obj.rotation_quaternion = quat
+                        quat_prev = quat
+                        del quat
+                    else:
+                        quat_prev = obj.rotation_quaternion.copy()
+                    keyframes.extend_co_values(path_quaternion, 4, f, obj.rotation_quaternion)
 
-            elif rotation_mode == 'AXIS_ANGLE':
-                keyframes.extend_co_values(path_axis_angle, 4, f, obj.rotation_axis_angle)
-            else:  # euler, XYZ, ZXY etc
-                if euler_prev is not None:
-                    obj.rotation_euler = matrix.to_euler(obj.rotation_mode, euler_prev)
-                euler_prev = obj.rotation_euler.copy()
-                keyframes.extend_co_values(path_euler, 3, f, obj.rotation_euler)
+                elif rotation_mode == 'AXIS_ANGLE':
+                    keyframes.extend_co_values(path_axis_angle, 4, f, obj.rotation_axis_angle)
+                else:  # euler, XYZ, ZXY etc
+                    if euler_prev is not None:
+                        obj.rotation_euler = matrix.to_euler(obj.rotation_mode, euler_prev)
+                    euler_prev = obj.rotation_euler.copy()
+                    keyframes.extend_co_values(path_euler, 3, f, obj.rotation_euler)
 
-            keyframes.extend_co_values(path_scale, 3, f, obj.scale)
+            if bake_options.do_scale:
+                keyframes.extend_co_values(path_scale, 3, f, obj.scale)
 
         if is_new_action:
             keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)
         else:
             keyframes.insert_keyframes_into_existing_action(lookup_fcurves, total_new_keys, action, name)
 
-        if do_parents_clear:
+        if bake_options.do_parents_clear:
             obj.parent = None
 
     # -------------------------------------------------------------------------
     # Clean
 
-    if do_clean:
+    if bake_options.do_clean:
         for fcu in action.fcurves:
             fcu_orig_data = clean_orig_data.get(fcu, set())
 

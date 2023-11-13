@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011 Blender Foundation
+# SPDX-FileCopyrightText: 2011 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -17,17 +17,21 @@
 # also defined, but not for general use are
 #  OPENIMAGEIO_LIBRARY, where to find the OpenImageIO library.
 
-# If OPENIMAGEIO_ROOT_DIR was defined in the environment, use it.
-IF(NOT OPENIMAGEIO_ROOT_DIR AND NOT $ENV{OPENIMAGEIO_ROOT_DIR} STREQUAL "")
-  SET(OPENIMAGEIO_ROOT_DIR $ENV{OPENIMAGEIO_ROOT_DIR})
-ENDIF()
+# If `OPENIMAGEIO_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED OPENIMAGEIO_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{OPENIMAGEIO_ROOT_DIR})
+  set(OPENIMAGEIO_ROOT_DIR $ENV{OPENIMAGEIO_ROOT_DIR})
+else()
+  set(OPENIMAGEIO_ROOT_DIR "")
+endif()
 
-SET(_openimageio_SEARCH_DIRS
+set(_openimageio_SEARCH_DIRS
   ${OPENIMAGEIO_ROOT_DIR}
   /opt/lib/oiio
 )
 
-FIND_PATH(OPENIMAGEIO_INCLUDE_DIR
+find_path(OPENIMAGEIO_INCLUDE_DIR
   NAMES
     OpenImageIO/imageio.h
   HINTS
@@ -36,7 +40,7 @@ FIND_PATH(OPENIMAGEIO_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(OPENIMAGEIO_LIBRARY
+find_library(OPENIMAGEIO_LIBRARY
   NAMES
     OpenImageIO
   HINTS
@@ -47,7 +51,7 @@ FIND_LIBRARY(OPENIMAGEIO_LIBRARY
 
 set(_openimageio_LIBRARIES ${OPENIMAGEIO_LIBRARY})
 
-FIND_FILE(OPENIMAGEIO_IDIFF
+find_file(OPENIMAGEIO_IDIFF
   NAMES
     idiff
   HINTS
@@ -59,7 +63,7 @@ FIND_FILE(OPENIMAGEIO_IDIFF
 # Additionally find util library if needed. In old versions this library was
 # included in libOpenImageIO and linking to both would duplicate symbols. In
 # new versions we need to link to both.
-FIND_FILE(_openimageio_export
+find_file(_openimageio_export
   NAMES
     export.h
   PATHS
@@ -68,11 +72,11 @@ FIND_FILE(_openimageio_export
 )
 
 # Use existence of OIIO_UTIL_API to check if it's a separate lib.
-FILE(STRINGS "${_openimageio_export}" _openimageio_util_define
+file(STRINGS "${_openimageio_export}" _openimageio_util_define
      REGEX "^[ \t]*#[ \t]*define[ \t]+OIIO_UTIL_API.*$")
 
-IF(_openimageio_util_define)
-  FIND_LIBRARY(OPENIMAGEIO_UTIL_LIBRARY
+if(_openimageio_util_define)
+  find_library(OPENIMAGEIO_UTIL_LIBRARY
     NAMES
       OpenImageIO_Util
     HINTS
@@ -81,38 +85,38 @@ IF(_openimageio_util_define)
       lib64 lib
     )
 
-  LIST(APPEND _openimageio_LIBRARIES ${OPENIMAGEIO_UTIL_LIBRARY})
-ENDIF()
+  list(APPEND _openimageio_LIBRARIES ${OPENIMAGEIO_UTIL_LIBRARY})
+endif()
 
 # In cmake version 3.21 and up, we can instead use the NO_CACHE option for
 # FIND_FILE so we don't need to clear it from the cache here.
-UNSET(_openimageio_export CACHE)
-UNSET(_openimageio_util_define)
+unset(_openimageio_export CACHE)
+unset(_openimageio_util_define)
 
 # handle the QUIETLY and REQUIRED arguments and set OPENIMAGEIO_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenImageIO DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OpenImageIO DEFAULT_MSG
     _openimageio_LIBRARIES OPENIMAGEIO_INCLUDE_DIR)
 
-IF(OPENIMAGEIO_FOUND)
-  SET(OPENIMAGEIO_LIBRARIES ${_openimageio_LIBRARIES})
-  SET(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
-  IF(EXISTS ${OPENIMAGEIO_INCLUDE_DIR}/OpenImageIO/pugixml.hpp)
-    SET(OPENIMAGEIO_PUGIXML_FOUND TRUE)
-  ELSE()
-    SET(OPENIMAGEIO_PUGIXML_FOUND FALSE)
-  ENDIF()
-ELSE()
-  SET(OPENIMAGEIO_PUGIXML_FOUND FALSE)
-ENDIF()
+if(OPENIMAGEIO_FOUND)
+  set(OPENIMAGEIO_LIBRARIES ${_openimageio_LIBRARIES})
+  set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
+  if(EXISTS ${OPENIMAGEIO_INCLUDE_DIR}/OpenImageIO/pugixml.hpp)
+    set(OPENIMAGEIO_PUGIXML_FOUND TRUE)
+  else()
+    set(OPENIMAGEIO_PUGIXML_FOUND FALSE)
+  endif()
+else()
+  set(OPENIMAGEIO_PUGIXML_FOUND FALSE)
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   OPENIMAGEIO_INCLUDE_DIR
   OPENIMAGEIO_LIBRARY
   OPENIMAGEIO_UTIL_LIBRARY
   OPENIMAGEIO_IDIFF
 )
 
-UNSET(_openimageio_SEARCH_DIRS)
-UNSET(_openimageio_LIBRARIES)
+unset(_openimageio_SEARCH_DIRS)
+unset(_openimageio_LIBRARIES)

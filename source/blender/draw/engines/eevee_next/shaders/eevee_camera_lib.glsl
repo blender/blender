@@ -1,9 +1,12 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Camera projection / uv functions and utils.
- **/
+ */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Panoramic Projections
@@ -65,10 +68,10 @@ vec3 camera_mirror_ball_to_direction(CameraData cam, vec2 uv)
   uv = uv * cam.uv_scale + cam.uv_bias;
   vec3 dir;
   dir.xy = uv * 2.0 - 1.0;
-  if (len_squared(dir.xy) > 1.0) {
+  if (length_squared(dir.xy) > 1.0) {
     return vec3(0.0);
   }
-  dir.z = -safe_sqrt(1.0 - sqr(dir.x) - sqr(dir.y));
+  dir.z = -safe_sqrt(1.0 - square(dir.x) - square(dir.y));
   const vec3 I = vec3(0.0, 0.0, 1.0);
   return reflect(I, dir);
 }
@@ -113,7 +116,7 @@ vec3 camera_view_from_uv(CameraData cam, vec2 uv)
       vV = camera_equirectangular_to_direction(cam, uv);
       break;
     case CAMERA_PANO_EQUIDISTANT:
-      /* ATTR_FALLTHROUGH; */
+      // ATTR_FALLTHROUGH;
     case CAMERA_PANO_EQUISOLID:
       vV = camera_fisheye_to_direction(cam, uv);
       break;
@@ -135,7 +138,7 @@ vec2 camera_uv_from_view(CameraData cam, vec3 vV)
     case CAMERA_PANO_EQUIRECT:
       return camera_equirectangular_from_direction(cam, vV);
     case CAMERA_PANO_EQUISOLID:
-      /* ATTR_FALLTHROUGH; */
+      // ATTR_FALLTHROUGH;
     case CAMERA_PANO_EQUIDISTANT:
       return camera_fisheye_from_direction(cam, vV);
     case CAMERA_PANO_MIRROR:

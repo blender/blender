@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -137,9 +137,7 @@ class MTLFrameBuffer : public FrameBuffer {
                         eGPUDataFormat data_format,
                         const void *clear_value) override;
 
-  void attachment_set_loadstore_op(GPUAttachmentType type,
-                                   eGPULoadOp load_action,
-                                   eGPUStoreOp store_action) override;
+  void attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore ls) override;
 
   void read(eGPUFrameBufferBits planes,
             eGPUDataFormat format,
@@ -154,6 +152,9 @@ class MTLFrameBuffer : public FrameBuffer {
                int dst_slot,
                int dst_offset_x,
                int dst_offset_y) override;
+
+  void subpass_transition(const GPUAttachmentState /*depth_attachment_state*/,
+                          Span<GPUAttachmentState> /*color_attachment_states*/) override{};
 
   void apply_state();
 

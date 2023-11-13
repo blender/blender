@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_bsdf_glossy_cc {
 
@@ -36,7 +36,7 @@ static void node_shader_buts_glossy(uiLayout *layout, bContext * /*C*/, PointerR
 
 static void node_shader_init_glossy(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = SHD_GLOSSY_GGX;
+  node->custom1 = SHD_GLOSSY_MULTI_GGX;
 }
 
 static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat,
@@ -56,6 +56,36 @@ static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_bsdf_glossy", in, out, GPU_constant(&use_multi_scatter));
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  if (to_type_ != NodeItem::Type::BSDF) {
+    return empty();
+  }
+
+  NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
+  NodeItem roughness = get_input_value("Roughness", NodeItem::Type::Vector2);
+  NodeItem anisotropy = get_input_value("Anisotropy", NodeItem::Type::Color3);
+  NodeItem normal = get_input_link("Normal", NodeItem::Type::Vector3);
+  NodeItem tangent = get_input_link("Tangent", NodeItem::Type::Vector3);
+
+  NodeItem artistic_ior = create_node("artistic_ior",
+                                      NodeItem::Type::Multioutput,
+                                      {{"reflectivity", color}, {"edge_color", color}});
+  NodeItem ior_out = artistic_ior.add_output("ior", NodeItem::Type::Color3);
+  NodeItem extinction_out = artistic_ior.add_output("extinction", NodeItem::Type::Color3);
+
+  return create_node("conductor_bsdf",
+                     NodeItem::Type::BSDF,
+                     {{"normal", normal},
+                      {"tangent", tangent},
+                      {"ior", ior_out},
+                      {"extinction", extinction_out},
+                      {"roughness", roughness}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_bsdf_glossy_cc
 
 /* node type definition */
@@ -72,6 +102,7 @@ void register_node_type_sh_bsdf_glossy()
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_glossy;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_glossy;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 

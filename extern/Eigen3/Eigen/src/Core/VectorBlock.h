@@ -35,7 +35,7 @@ struct traits<VectorBlock<VectorType, Size> >
   * It is the return type of DenseBase::segment(Index,Index) and DenseBase::segment<int>(Index) and
   * most of the time this is the only way it is used.
   *
-  * However, if you want to directly maniputate sub-vector expressions,
+  * However, if you want to directly manipulate sub-vector expressions,
   * for instance if you want to write a function returning such an expression, you
   * will need to use this class.
   *
@@ -71,8 +71,8 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Dynamic-size constructor
       */
-    EIGEN_DEVICE_FUNC
-    inline VectorBlock(VectorType& vector, Index start, Index size)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    VectorBlock(VectorType& vector, Index start, Index size)
       : Base(vector,
              IsColVector ? start : 0, IsColVector ? 0 : start,
              IsColVector ? size  : 1, IsColVector ? 1 : size)
@@ -82,8 +82,8 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Fixed-size constructor
       */
-    EIGEN_DEVICE_FUNC
-    inline VectorBlock(VectorType& vector, Index start)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    VectorBlock(VectorType& vector, Index start)
       : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorBlock);

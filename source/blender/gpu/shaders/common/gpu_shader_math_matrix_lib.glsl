@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_rotation_lib.glsl)
@@ -89,7 +92,7 @@ mat4x4 invert(mat4x4 mat, out bool r_success);
 /**
  * Flip the matrix across its diagonal. Also flips dimensions for non square matrices.
  */
-// mat3x3 transpose(mat3x3 mat); /* Built-In in GLSL language. */
+// mat3x3 transpose(mat3x3 mat); /* Built-In using GLSL language. */
 
 /**
  * Normalize each column of the matrix individually.
@@ -122,7 +125,7 @@ mat4x4 normalize_and_get_size(mat4x4 mat, out vec4 r_size);
  * Returns the determinant of the matrix.
  * It can be interpreted as the signed volume (or area) of the unit cube after transformation.
  */
-// float determinant(mat3x3 mat); /* Built-In in GLSL language. */
+// float determinant(mat3x3 mat); /* Built-In using GLSL language. */
 
 /**
  * Returns the adjoint of the matrix (also known as adjugate matrix).
@@ -242,6 +245,16 @@ mat4x4 from_loc_rot_scale(vec3 location, EulerXYZ rotation, vec3 scale);
  * \note `forward` and `up` must be normalized.
  */
 // mat4x4 from_normalized_axis_data(vec3 location, vec3 forward, vec3 up); /* TODO. */
+
+/**
+ * Create a rotation matrix from only one \a up axis.
+ * The other axes are chosen to always be orthogonal. The resulting matrix is a basis matrix.
+ * \note `up` must be normalized.
+ * \note This can be used to create a tangent basis from a normal vector.
+ * \note The output of this function is not given to be same across blender version. Prefer using
+ * `from_orthonormal_axes` for more stable output.
+ */
+mat3x3 from_up_axis(vec3 up);
 
 /** \} */
 
@@ -1011,6 +1024,20 @@ mat4x4 from_loc_rot_scale(vec3 location, AxisAngle rotation, vec3 scale)
   mat4x4 ret = mat4x4(from_rot_scale(rotation, scale));
   ret[3].xyz = location;
   return ret;
+}
+
+mat3x3 from_up_axis(vec3 up)
+{
+  /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
+  float z_sign = sign(up.z);
+  float a = -1.0 / (z_sign + up.z);
+  float b = up.x * up.y * a;
+
+  mat3x3 basis;
+  basis[0] = vec3(1.0 + z_sign * square(up.x) * a, z_sign * b, -z_sign * up.x);
+  basis[1] = vec3(b, z_sign + square(up.y) * a, -up.y);
+  basis[2] = up;
+  return basis;
 }
 
 void detail_normalized_to_eul2(mat3 mat, out EulerXYZ eul1, out EulerXYZ eul2)

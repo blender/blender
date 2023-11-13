@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void node_composite_color_spill(vec4 color,
                                 float factor,
                                 const float spill_channel,

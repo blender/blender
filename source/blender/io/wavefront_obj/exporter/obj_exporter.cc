@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,14 +13,15 @@
 #include "BKE_scene.h"
 
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_scene_types.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 
 #include "obj_export_mesh.hh"
 #include "obj_export_nurbs.hh"
@@ -159,9 +160,6 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
     if (mtl_writer) {
       mtlindices.append(mtl_writer->add_materials(obj));
     }
-    if (export_params.export_normals) {
-      obj.ensure_mesh_normals();
-    }
   }
 
   /* Parallel over meshes: store normal coords & indices, uv coords and indices. */
@@ -199,7 +197,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
       obj_writer.write_object_name(fh, obj);
       obj_writer.write_vertex_coords(fh, obj, export_params.export_colors);
 
-      if (obj.tot_polygons() > 0) {
+      if (obj.tot_faces() > 0) {
         if (export_params.export_smooth_groups) {
           obj.calc_smooth_groups(export_params.smooth_groups_bitflags);
         }

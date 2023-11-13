@@ -10,7 +10,7 @@
 #  include <io.h>
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
@@ -92,7 +92,7 @@ const char *imb_ext_audio[] = {
 /* OIIO will validate the entire header of some files and DPX requires 2048 */
 #define HEADER_SIZE 2048
 
-static ssize_t imb_ispic_read_header_from_filepath(const char *filepath, uchar buf[HEADER_SIZE])
+static int64_t imb_ispic_read_header_from_filepath(const char *filepath, uchar buf[HEADER_SIZE])
 {
   BLI_stat_t st;
   int fp;
@@ -114,7 +114,7 @@ static ssize_t imb_ispic_read_header_from_filepath(const char *filepath, uchar b
     return -1;
   }
 
-  const ssize_t size = read(fp, buf, HEADER_SIZE);
+  const int64_t size = BLI_read(fp, buf, HEADER_SIZE);
 
   close(fp);
   return size;
@@ -136,7 +136,7 @@ int IMB_ispic_type_from_memory(const uchar *buf, const size_t buf_size)
 int IMB_ispic_type(const char *filepath)
 {
   uchar buf[HEADER_SIZE];
-  const ssize_t buf_size = imb_ispic_read_header_from_filepath(filepath, buf);
+  const int64_t buf_size = imb_ispic_read_header_from_filepath(filepath, buf);
   if (buf_size <= 0) {
     return IMB_FTYPE_NONE;
   }
@@ -146,7 +146,7 @@ int IMB_ispic_type(const char *filepath)
 bool IMB_ispic_type_matches(const char *filepath, int filetype)
 {
   uchar buf[HEADER_SIZE];
-  const ssize_t buf_size = imb_ispic_read_header_from_filepath(filepath, buf);
+  const int64_t buf_size = imb_ispic_read_header_from_filepath(filepath, buf);
   if (buf_size <= 0) {
     return false;
   }
@@ -214,7 +214,7 @@ static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_lis
 #    pragma GCC diagnostic pop
 #  endif
 
-void IMB_ffmpeg_init(void)
+void IMB_ffmpeg_init()
 {
   avdevice_register_all();
 
@@ -228,7 +228,7 @@ void IMB_ffmpeg_init(void)
   av_log_set_callback(ffmpeg_log_callback);
 }
 
-const char *IMB_ffmpeg_last_error(void)
+const char *IMB_ffmpeg_last_error()
 {
   return ffmpeg_last_error;
 }

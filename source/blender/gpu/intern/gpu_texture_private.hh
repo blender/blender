@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -40,7 +40,7 @@ typedef enum eGPUTextureFormatFlag {
 
 ENUM_OPERATORS(eGPUTextureFormatFlag, GPU_FORMAT_SIGNED)
 
-typedef enum eGPUTextureType {
+enum eGPUTextureType {
   GPU_TEXTURE_1D = (1 << 0),
   GPU_TEXTURE_2D = (1 << 1),
   GPU_TEXTURE_3D = (1 << 2),
@@ -51,20 +51,20 @@ typedef enum eGPUTextureType {
   GPU_TEXTURE_1D_ARRAY = (GPU_TEXTURE_1D | GPU_TEXTURE_ARRAY),
   GPU_TEXTURE_2D_ARRAY = (GPU_TEXTURE_2D | GPU_TEXTURE_ARRAY),
   GPU_TEXTURE_CUBE_ARRAY = (GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY),
-} eGPUTextureType;
+};
 
 ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_BUFFER)
 
 /* Format types for samplers within the shader.
  * This covers the sampler format type permutations within GLSL/MSL. */
-typedef enum eGPUSamplerFormat {
+enum eGPUSamplerFormat {
   GPU_SAMPLER_TYPE_FLOAT = 0,
   GPU_SAMPLER_TYPE_INT = 1,
   GPU_SAMPLER_TYPE_UINT = 2,
   /* Special case for depth, as these require differing dummy formats. */
   GPU_SAMPLER_TYPE_DEPTH = 3,
   GPU_SAMPLER_TYPE_MAX = 4
-} eGPUSamplerFormat;
+};
 
 ENUM_OPERATORS(eGPUSamplerFormat, GPU_SAMPLER_TYPE_UINT)
 
@@ -470,7 +470,9 @@ inline size_t to_bytesize(eGPUTextureFormat format)
     case GPU_DEPTH_COMPONENT32F:
       return 32 / 8;
     case GPU_DEPTH_COMPONENT24:
-      return 24 / 8;
+      /* Depth component 24 uses 3 bytes to store the depth value, and reserved 1 byte for
+       * alignment. */
+      return (24 + 8) / 8;
     case GPU_DEPTH_COMPONENT16:
       return 16 / 8;
   }

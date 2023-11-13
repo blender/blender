@@ -1,17 +1,14 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   .
   ../blenkernel
-  ../blenlib
   ../blenloader
   ../gpu
-  ../makesdna
   ../makesrna
   ../sequencer
-  ../../../intern/guardedalloc
   ../../../intern/memutil
 )
 
@@ -34,6 +31,7 @@ set(SRC
   intern/format_hdr.cc
   intern/format_png.cc
   intern/format_psd.cc
+  intern/format_svg.cc
   intern/format_targa.cc
   intern/format_tiff.cc
   intern/imageprocess.cc
@@ -77,12 +75,14 @@ set(SRC
 
 set(LIB
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
   bf_blenloader
+  PRIVATE bf::dna
   bf_imbuf_openimageio
-  bf_intern_guardedalloc
+  PRIVATE bf::intern::guardedalloc
   bf_intern_memutil
   bf_intern_opencolorio
+  PRIVATE bf::extern::nanosvg
 
   ${JPEG_LIBRARIES}
 )

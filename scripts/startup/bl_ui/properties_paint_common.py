@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -82,6 +82,8 @@ class UnifiedPaintPanel:
             return tool_settings.gpencil_vertex_paint
         elif mode == 'SCULPT_CURVES':
             return tool_settings.curves_sculpt
+        elif mode == 'PAINT_GREASE_PENCIL':
+            return tool_settings.gpencil_paint
         return None
 
     @staticmethod
@@ -635,6 +637,9 @@ def brush_settings(layout, context, brush, popover=False):
             row = layout.row()
             row.prop(brush, "tip_roundness")
 
+            row = layout.row()
+            row.prop(brush, "tip_scale_x")
+
         elif sculpt_tool == 'ELASTIC_DEFORM':
             layout.separator()
             layout.prop(brush, "elastic_deform_type")
@@ -862,6 +867,11 @@ def brush_shared_settings(layout, context, brush, popover=False):
         size = True
         strength = True
         direction = brush.curves_sculpt_tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
+
+    # Grease Pencil #
+    if mode == 'PAINT_GREASE_PENCIL':
+        size = True
+        strength = True
 
     ### Draw settings. ###
     ups = context.scene.tool_settings.unified_paint_settings

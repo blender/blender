@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #define GP_XRAY_FRONT 0
 #define GP_XRAY_3DSPACE 1
@@ -11,7 +14,7 @@ vec2 toScreenSpace(vec4 vertex)
   return vec2(vertex.xy / vertex.w) * gpencil_stroke_data.viewport;
 }
 
-/* get zdepth value */
+/* Get Z-depth value. */
 float getZdepth(vec4 point)
 {
   if (gpencil_stroke_data.xraymode == GP_XRAY_FRONT) {
@@ -118,19 +121,19 @@ void main(void)
       gl_Position = vec4((sp1 + geometry_in[1].finalThickness * n0) / gpencil_stroke_data.viewport,
                          getZdepth(P1),
                          1.0);
-      EmitVertex();
+      gpu_EmitVertex();
 
       geometry_out.mTexCoord = vec2(0, 0);
       geometry_out.mColor = geometry_in[1].finalColor;
       gl_Position = vec4((sp1 + geometry_in[1].finalThickness * n1) / gpencil_stroke_data.viewport,
                          getZdepth(P1),
                          1.0);
-      EmitVertex();
+      gpu_EmitVertex();
 
       geometry_out.mTexCoord = vec2(0, 0.5);
       geometry_out.mColor = geometry_in[1].finalColor;
       gl_Position = vec4(sp1 / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
-      EmitVertex();
+      gpu_EmitVertex();
 
       EndPrimitive();
     }
@@ -140,19 +143,19 @@ void main(void)
       gl_Position = vec4((sp1 - geometry_in[1].finalThickness * n1) / gpencil_stroke_data.viewport,
                          getZdepth(P1),
                          1.0);
-      EmitVertex();
+      gpu_EmitVertex();
 
       geometry_out.mTexCoord = vec2(0, 1);
       geometry_out.mColor = geometry_in[1].finalColor;
       gl_Position = vec4((sp1 - geometry_in[1].finalThickness * n0) / gpencil_stroke_data.viewport,
                          getZdepth(P1),
                          1.0);
-      EmitVertex();
+      gpu_EmitVertex();
 
       geometry_out.mTexCoord = vec2(0, 0.5);
       geometry_out.mColor = geometry_in[1].finalColor;
       gl_Position = vec4(sp1 / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
-      EmitVertex();
+      gpu_EmitVertex();
 
       EndPrimitive();
     }
@@ -170,19 +173,19 @@ void main(void)
     geometry_out.mColor = vec4(geometry_in[1].finalColor.rgb, geometry_in[1].finalColor.a * -1.0);
     vec2 svn1 = normalize(sp1 - sp2) * length_a * 4.0 * extend;
     gl_Position = vec4((sp1 + svn1) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
-    EmitVertex();
+    gpu_EmitVertex();
 
     geometry_out.mTexCoord = vec2(0, 0);
     geometry_out.mColor = vec4(geometry_in[1].finalColor.rgb, geometry_in[1].finalColor.a * -1.0);
     gl_Position = vec4(
         (sp1 - (length_a * 2.0) * miter_a) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
-    EmitVertex();
+    gpu_EmitVertex();
 
     geometry_out.mTexCoord = vec2(0, 1);
     geometry_out.mColor = vec4(geometry_in[1].finalColor.rgb, geometry_in[1].finalColor.a * -1.0);
     gl_Position = vec4(
         (sp1 + (length_a * 2.0) * miter_a) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
-    EmitVertex();
+    gpu_EmitVertex();
   }
 
   /* generate the triangle strip */
@@ -190,25 +193,25 @@ void main(void)
   geometry_out.mColor = geometry_in[1].finalColor;
   gl_Position = vec4(
       (sp1 + length_a * miter_a) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
-  EmitVertex();
+  gpu_EmitVertex();
 
   geometry_out.mTexCoord = vec2(0, 1);
   geometry_out.mColor = geometry_in[1].finalColor;
   gl_Position = vec4(
       (sp1 - length_a * miter_a) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
-  EmitVertex();
+  gpu_EmitVertex();
 
   geometry_out.mTexCoord = vec2(0, 0);
   geometry_out.mColor = geometry_in[2].finalColor;
   gl_Position = vec4(
       (sp2 + length_b * miter_b) / gpencil_stroke_data.viewport, getZdepth(P2), 1.0);
-  EmitVertex();
+  gpu_EmitVertex();
 
   geometry_out.mTexCoord = vec2(0, 1);
   geometry_out.mColor = geometry_in[2].finalColor;
   gl_Position = vec4(
       (sp2 - length_b * miter_b) / gpencil_stroke_data.viewport, getZdepth(P2), 1.0);
-  EmitVertex();
+  gpu_EmitVertex();
 
   /* Generate the end end-cap (alpha < 0 used as end-cap flag). */
   if ((gpencil_stroke_data.caps_end != GPENCIL_FLATCAP) && is_equal(P1, P3)) {
@@ -216,19 +219,19 @@ void main(void)
     geometry_out.mColor = vec4(geometry_in[2].finalColor.rgb, geometry_in[2].finalColor.a * -1.0);
     gl_Position = vec4(
         (sp2 + (length_b * 2.0) * miter_b) / gpencil_stroke_data.viewport, getZdepth(P2), 1.0);
-    EmitVertex();
+    gpu_EmitVertex();
 
     geometry_out.mTexCoord = vec2(0, 0);
     geometry_out.mColor = vec4(geometry_in[2].finalColor.rgb, geometry_in[2].finalColor.a * -1.0);
     gl_Position = vec4(
         (sp2 - (length_b * 2.0) * miter_b) / gpencil_stroke_data.viewport, getZdepth(P2), 1.0);
-    EmitVertex();
+    gpu_EmitVertex();
 
     geometry_out.mTexCoord = vec2(1, 0.5);
     geometry_out.mColor = vec4(geometry_in[2].finalColor.rgb, geometry_in[2].finalColor.a * -1.0);
     vec2 svn2 = normalize(sp2 - sp1) * length_b * 4.0 * extend;
     gl_Position = vec4((sp2 + svn2) / gpencil_stroke_data.viewport, getZdepth(P2), 1.0);
-    EmitVertex();
+    gpu_EmitVertex();
   }
 
   EndPrimitive();

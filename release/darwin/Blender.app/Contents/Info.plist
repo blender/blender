@@ -36,7 +36,7 @@
 	<key>CFBundleGetInfoString</key>
 	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
 	<key>CFBundleIconFile</key>
-	<string>blender icon.icns</string>
+	<string>blender_icon.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.blenderfoundation.blender</string>
 	<key>CFBundleInfoDictionaryVersion</key>

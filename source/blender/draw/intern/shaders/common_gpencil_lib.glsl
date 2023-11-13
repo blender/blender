@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -67,7 +70,7 @@ float gpencil_stroke_thickness_modulate(float thickness, vec4 ndc_pos, vec4 view
   thickness = max(1.0, thickness * gpThicknessScale + gpThicknessOffset);
 
   if (gpThicknessIsScreenSpace) {
-    /* Multiply offset by view Z so that offset is constant in screenspace.
+    /* Multiply offset by view Z so that offset is constant in screen-space.
      * (e.i: does not change with the distance to camera) */
     thickness *= ndc_pos.w;
   }
@@ -178,13 +181,6 @@ vec4 gpencil_vertex(vec4 viewport_size,
   vec4 out_ndc;
 
   if (gpencil_is_stroke_vertex()) {
-    bool show_stroke = flag_test(material_flags, GP_SHOW_STROKE);
-    if (!show_stroke) {
-      /* We set the vertex at the camera origin to generate 0 fragments. */
-      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
-      return out_ndc;
-    }
-
     bool is_dot = flag_test(material_flags, GP_STROKE_ALIGNMENT);
     bool is_squares = !flag_test(material_flags, GP_STROKE_DOTS);
 
@@ -238,7 +234,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     vec2 ss_adj = gpencil_project_to_screenspace(ndc_adj, viewport_size);
     vec2 ss1 = gpencil_project_to_screenspace(ndc1, viewport_size);
     vec2 ss2 = gpencil_project_to_screenspace(ndc2, viewport_size);
-    /* Screenspace Lines tangents. */
+    /* Screen-space Lines tangents. */
     float line_len;
     vec2 line = safe_normalize_len(ss2 - ss1, line_len);
     vec2 line_adj = safe_normalize((use_curr) ? (ss1 - ss_adj) : (ss_adj - ss2));
@@ -276,11 +272,11 @@ vec4 gpencil_vertex(vec4 viewport_size,
       float uv_rot = gpencil_decode_uvrot(uvrot1);
       float rot_sin = sqrt(max(0.0, 1.0 - uv_rot * uv_rot)) * sign(uv_rot);
       float rot_cos = abs(uv_rot);
-      /* TODO(@fclem): Optimize these 2 matrix mul into one by only having one rotation angle and
-       * using a cosine approximation. */
+      /* TODO(@fclem): Optimize these 2 matrix multiply into one by only having one rotation angle
+       * and using a cosine approximation. */
       x_axis = mat2(rot_cos, -rot_sin, rot_sin, rot_cos) * x_axis;
       x_axis = mat2(alignment_rot.x, -alignment_rot.y, alignment_rot.y, alignment_rot.x) * x_axis;
-      /* Rotate 90° Counter-Clockwise. */
+      /* Rotate 90 degrees counter-clockwise. */
       vec2 y_axis = vec2(-x_axis.y, x_axis.x);
 
       out_aspect = gpencil_decode_aspect(aspect1);
@@ -306,11 +302,11 @@ vec4 gpencil_vertex(vec4 viewport_size,
       vec2 miter_tan = safe_normalize(line_adj + line);
       float miter_dot = dot(miter_tan, line_adj);
       /* Break corners after a certain angle to avoid really thick corners. */
-      const float miter_limit = 0.5; /* cos(60°) */
+      const float miter_limit = 0.5; /* cos(60 degrees) */
       bool miter_break = (miter_dot < miter_limit);
       miter_tan = (miter_break || is_stroke_start || is_stroke_end) ? line :
                                                                       (miter_tan / miter_dot);
-      /* Rotate 90° Counter-Clockwise. */
+      /* Rotate 90 degrees counter-clockwise. */
       vec2 miter = vec2(-miter_tan.y, miter_tan.x);
 
       out_sspos.xy = ss1;
@@ -336,15 +332,6 @@ vec4 gpencil_vertex(vec4 viewport_size,
     out_color = (use_curr) ? col1 : col2;
   }
   else {
-    /* Fill vertex. */
-
-    bool show_fill = flag_test(material_flags, GP_SHOW_FILL);
-    if (!show_fill) {
-      /* We set the vertex at the camera origin to generate 0 fragments. */
-      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
-      return out_ndc;
-    }
-
     out_P = transform_point(ModelMatrix, pos1.xyz);
     out_ndc = point_world_to_ndc(out_P);
     out_uv = uv1.xy;

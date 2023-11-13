@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -647,6 +647,20 @@ template<typename T> class VArrayCommon {
     }
     return impl_->size();
   }
+  /**
+   * Get the first element.
+   */
+  T first() const
+  {
+    return (*this)[0];
+  }
+  /**
+   * Get the nth last element.
+   */
+  T last(const int64_t n = 0) const
+  {
+    return (*this)[this->size() - 1 - n];
+  }
 
   /** True when the size is zero or when there is no virtual array. */
   bool is_empty() const
@@ -797,12 +811,12 @@ template<typename T> class VArray : public VArrayCommon<T> {
 
   VArray(std::shared_ptr<const VArrayImpl<T>> impl) : VArrayCommon<T>(std::move(impl)) {}
 
-  VArray(varray_tag::span /* tag */, Span<T> span)
+  VArray(varray_tag::span /*tag*/, Span<T> span)
   {
     this->template emplace<VArrayImpl_For_Span_final<T>>(span);
   }
 
-  VArray(varray_tag::single /* tag */, T value, const int64_t size)
+  VArray(varray_tag::single /*tag*/, T value, const int64_t size)
   {
     this->template emplace<VArrayImpl_For_Single<T>>(std::move(value), size);
   }
@@ -1071,6 +1085,10 @@ template<typename T> class VArraySpan final : public Span<T> {
   }
 };
 
+namespace internal {
+void print_mutable_varray_span_warning();
+}
+
 /**
  * Same as #VArraySpan, but for a mutable span.
  * The important thing to note is that when changing this span, the results might not be
@@ -1141,7 +1159,7 @@ template<typename T> class MutableVArraySpan final : public MutableSpan<T> {
     if (varray_) {
       if (show_not_saved_warning_) {
         if (!save_has_been_called_) {
-          std::cout << "Warning: Call `save()` to make sure that changes persist in all cases.\n";
+          internal::print_mutable_varray_span_warning();
         }
       }
     }

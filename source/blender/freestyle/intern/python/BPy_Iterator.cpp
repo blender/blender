@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -214,7 +214,7 @@ static PyGetSetDef BPy_Iterator_getseters[] = {
 /*-----------------------BPy_Iterator type definition ------------------------------*/
 
 PyTypeObject Iterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Iterator",
     /*tp_basicsize*/ sizeof(BPy_Iterator),
     /*tp_itemsize*/ 0,

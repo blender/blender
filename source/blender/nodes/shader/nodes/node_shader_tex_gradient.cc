@@ -3,9 +3,18 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "BKE_texture.h"
+
+#include "BLI_math_vector.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_tex_gradient_cc {
 
@@ -138,6 +147,50 @@ static void sh_node_gradient_tex_build_multi_function(NodeMultiFunctionBuilder &
   builder.construct_and_set_matching_fn<GradientFunction>(tex->gradient_type);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  NodeTexGradient *tex = (NodeTexGradient *)node_->storage;
+  const int gradient_type = tex->gradient_type;
+  NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector2);
+  if (!vector) {
+    vector = texcoord_node();
+  }
+  NodeItem res = empty();
+
+  switch (gradient_type) {
+    case SHD_BLEND_LINEAR:
+      res = vector[0];
+      break;
+    case SHD_BLEND_QUADRATIC:
+      res = vector[0];
+      res = res * res;
+      break;
+    case SHD_BLEND_EASING:
+      res = vector[0].clamp();
+      res = res * res * (val(3.0f) - val(2.0f) * res);
+      break;
+    case SHD_BLEND_DIAGONAL:
+      res = (vector[0] + vector[1]) * val(0.5f);
+      break;
+    case SHD_BLEND_RADIAL:
+      res = vector[1].atan2(vector[0]) / val(float(M_PI * 2.0f)) + val(0.5f);
+      break;
+    case SHD_BLEND_QUADRATIC_SPHERE:
+      res = (val(1.0f) - vector.dotproduct(vector).sqrt()).max(val(0.0f));
+      res = res * res;
+      break;
+    case SHD_BLEND_SPHERICAL:
+      res = (val(1.0f) - vector.dotproduct(vector).sqrt()).max(val(0.0f));
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_tex_gradient_cc
 
 void register_node_type_sh_tex_gradient()
@@ -154,6 +207,7 @@ void register_node_type_sh_tex_gradient()
       &ntype, "NodeTexGradient", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_gradient;
   ntype.build_multi_function = file_ns::sh_node_gradient_tex_build_multi_function;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

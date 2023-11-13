@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -113,7 +113,7 @@ void DRW_volume_init(struct DRWData *drw_data);
 void DRW_volume_ubos_pool_free(void *pool);
 void DRW_volume_free(void);
 
-/* draw_fluid.c */
+/* `draw_fluid.cc` */
 
 /* Fluid simulation. */
 void DRW_smoke_ensure(struct FluidModifierData *fmd, int highres);
@@ -127,7 +127,7 @@ void DRW_smoke_free(struct FluidModifierData *fmd);
 void DRW_smoke_init(struct DRWData *drw_data);
 void DRW_smoke_exit(struct DRWData *drw_data);
 
-/* draw_common.c */
+/* `draw_common.cc` */
 
 struct DRW_Global {
   /** If needed, contains all global/Theme colors

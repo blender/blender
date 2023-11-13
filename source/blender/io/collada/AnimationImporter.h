@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -40,7 +40,7 @@ class ArmatureImporter;
 
 class AnimationImporterBase {
  public:
-  /* virtual void change_eul_to_quat(Object *ob, bAction *act) = 0; */
+  // virtual void change_eul_to_quat(Object *ob, bAction *act) = 0;
 };
 
 class AnimationImporter : private TransformReader, public AnimationImporterBase {

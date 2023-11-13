@@ -10,7 +10,7 @@
 
 #include "IMB_openexr.h"
 
-void *IMB_exr_get_handle(void)
+void *IMB_exr_get_handle()
 {
   return nullptr;
 }
@@ -42,7 +42,7 @@ bool IMB_exr_begin_write(void * /*handle*/,
                          int /*width*/,
                          int /*height*/,
                          int /*compress*/,
-                         const struct StampData * /*stamp*/)
+                         const StampData * /*stamp*/)
 {
   return false;
 }
@@ -56,13 +56,14 @@ void IMB_exrtile_begin_write(void * /*handle*/,
 {
 }
 
-void IMB_exr_set_channel(void * /*handle*/,
+bool IMB_exr_set_channel(void * /*handle*/,
                          const char * /*layname*/,
                          const char * /*passname*/,
                          int /*xstride*/,
                          int /*ystride*/,
                          float * /*rect*/)
 {
+  return false;
 }
 float *IMB_exr_channel_rect(void * /*handle*/,
                             const char * /*layname*/,

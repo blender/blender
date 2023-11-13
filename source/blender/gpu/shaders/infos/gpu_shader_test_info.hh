@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -95,6 +95,12 @@ GPU_SHADER_CREATE_INFO(gpu_buffer_texture_test)
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_test)
     .fragment_source("eevee_shadow_test.glsl")
+    .additional_info("gpu_shader_test")
+    .additional_info("eevee_shared")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(eevee_occupancy_test)
+    .fragment_source("eevee_occupancy_test.glsl")
     .additional_info("gpu_shader_test")
     .additional_info("eevee_shared")
     .do_static_compilation(true);

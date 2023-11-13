@@ -27,38 +27,42 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_lasso_2d.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_utildefines.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
-#include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_uvedit.h"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_uvedit.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "uvedit_intern.h"
 
@@ -797,7 +801,7 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
 
 UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, const float dist_px)
 {
-  UvNearestHit hit = {0};
+  UvNearestHit hit = {nullptr};
   hit.dist_sq = square_f(U.pixelsize * dist_px);
   hit.scale[0] = UI_view2d_scale_get_x(v2d);
   hit.scale[1] = UI_view2d_scale_get_y(v2d);
@@ -806,7 +810,7 @@ UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, const float dist_px)
 
 UvNearestHit uv_nearest_hit_init_max(const View2D *v2d)
 {
-  UvNearestHit hit = {0};
+  UvNearestHit hit = {nullptr};
   hit.dist_sq = FLT_MAX;
   hit.scale[0] = UI_view2d_scale_get_x(v2d);
   hit.scale[1] = UI_view2d_scale_get_y(v2d);
@@ -1088,7 +1092,7 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
                                 const Scene *scene,
                                 Object **objects,
                                 const uint objects_len,
-                                const int mval[2],
+                                const float mval_fl[2],
                                 const bool ignore_selected,
                                 float *dist_sq,
                                 float r_uv[2])
@@ -1100,8 +1104,6 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
   UI_view2d_view_to_region_fl(v2d, 0.0f, 0.0f, &offset[0], &offset[1]);
 
   float co[2];
-
-  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   sub_v2_v2v2(co, mval_fl, offset);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -1910,7 +1912,7 @@ static void uv_select_linked_multi(Scene *scene,
           if (iterv->separate) {
             startv = iterv;
           }
-          if (iterv->poly_index == a) {
+          if (iterv->face_index == a) {
             break;
           }
         }
@@ -1919,9 +1921,9 @@ static void uv_select_linked_multi(Scene *scene,
           if ((startv != iterv) && (iterv->separate)) {
             break;
           }
-          if (!flag[iterv->poly_index]) {
-            flag[iterv->poly_index] = 1;
-            stack[stacksize] = iterv->poly_index;
+          if (!flag[iterv->face_index]) {
+            flag[iterv->face_index] = 1;
+            stack[stacksize] = iterv->face_index;
             stacksize++;
           }
         }
@@ -3257,7 +3259,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
       start_vlist = vlist_iter;
     }
 
-    if (efa_index == vlist_iter->poly_index) {
+    if (efa_index == vlist_iter->face_index) {
       break;
     }
 
@@ -3270,13 +3272,13 @@ static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
       break;
     }
 
-    if (efa_index != vlist_iter->poly_index) {
+    if (efa_index != vlist_iter->face_index) {
       BMLoop *l_other;
-      efa_vlist = BM_face_at_index(em->bm, vlist_iter->poly_index);
-      /* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
+      efa_vlist = BM_face_at_index(em->bm, vlist_iter->face_index);
+      // tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); /* UNUSED */
 
       l_other = static_cast<BMLoop *>(
-          BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_poly_index));
+          BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_face_index));
 
       uvedit_uv_select_set(scene, em->bm, l_other, select, false, offsets);
     }
@@ -4542,7 +4544,7 @@ void UV_OT_select_overlap(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna,
                   "extend",
-                  0,
+                  false,
                   "Extend",
                   "Extend selection rather than clearing the existing selection");
 }
@@ -4568,21 +4570,24 @@ static float get_uv_vert_needle(const eUVSelectSimilar type,
       BM_ITER_ELEM (f, &iter, vert, BM_FACES_OF_VERT) {
         result += BM_face_calc_area_uv(f, offsets.uv);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_AREA_3D: {
       BMFace *f;
       BMIter iter;
       BM_ITER_ELEM (f, &iter, vert, BM_FACES_OF_VERT) {
         result += BM_face_calc_area_with_mat3(f, ob_m3);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_SIDES: {
       BMEdge *e;
       BMIter iter;
       BM_ITER_ELEM (e, &iter, vert, BM_EDGES_OF_VERT) {
         result += 1.0f;
       }
-    } break;
+      break;
+    }
     case UV_SSIM_PIN:
       return BM_ELEM_CD_GET_BOOL(loop, offsets.pin) ? 1.0f : 0.0f;
     default:
@@ -4610,19 +4615,21 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
       BM_ITER_ELEM (f, &iter, edge, BM_FACES_OF_EDGE) {
         result += BM_face_calc_area_uv(f, offsets.uv);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_AREA_3D: {
       BMFace *f;
       BMIter iter;
       BM_ITER_ELEM (f, &iter, edge, BM_FACES_OF_EDGE) {
         result += BM_face_calc_area_with_mat3(f, ob_m3);
       }
-    } break;
+      break;
+    }
     case UV_SSIM_LENGTH_UV: {
       float *luv_a = BM_ELEM_CD_GET_FLOAT_P(loop_a, offsets.uv);
       float *luv_b = BM_ELEM_CD_GET_FLOAT_P(loop_b, offsets.uv);
       return len_v2v2(luv_a, luv_b);
-    } break;
+    }
     case UV_SSIM_LENGTH_3D:
       return len_v3v3(edge->v1->co, edge->v2->co);
     case UV_SSIM_SIDES: {
@@ -4631,8 +4638,9 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
       BM_ITER_ELEM (e, &iter, edge, BM_FACES_OF_EDGE) {
         result += 1.0f;
       }
-    } break;
-    case UV_SSIM_PIN:
+      break;
+    }
+    case UV_SSIM_PIN: {
       if (BM_ELEM_CD_GET_BOOL(loop_a, offsets.pin)) {
         result += 1.0f;
       }
@@ -4640,6 +4648,7 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
         result += 1.0f;
       }
       break;
+    }
     default:
       BLI_assert_unreachable();
       return false;
@@ -4674,7 +4683,8 @@ static float get_uv_face_needle(const eUVSelectSimilar type,
           result += 1.0f;
         }
       }
-    } break;
+      break;
+    }
     case UV_SSIM_MATERIAL:
       return face->mat_nr;
     case UV_SSIM_WINDING:
@@ -5192,26 +5202,16 @@ static int uv_select_similar_exec(bContext *C, wmOperator *op)
   return uv_select_similar_vert_exec(C, op);
 }
 
-static EnumPropertyItem prop_vert_similar_types[] = {{UV_SSIM_PIN, "PIN", 0, "Pinned", ""}, {0}};
-
-static EnumPropertyItem prop_edge_similar_types[] = {
+static EnumPropertyItem uv_select_similar_type_items[] = {
+    {UV_SSIM_PIN, "PIN", 0, "Pinned", ""},
     {UV_SSIM_LENGTH_UV, "LENGTH", 0, "Length", ""},
     {UV_SSIM_LENGTH_3D, "LENGTH_3D", 0, "Length 3D", ""},
-    {UV_SSIM_PIN, "PIN", 0, "Pinned", ""},
-    {0}};
-
-static EnumPropertyItem prop_face_similar_types[] = {
     {UV_SSIM_AREA_UV, "AREA", 0, "Area", ""},
     {UV_SSIM_AREA_3D, "AREA_3D", 0, "Area 3D", ""},
     {UV_SSIM_MATERIAL, "MATERIAL", 0, "Material", ""},
     {UV_SSIM_OBJECT, "OBJECT", 0, "Object", ""},
     {UV_SSIM_SIDES, "SIDES", 0, "Polygon Sides", ""},
     {UV_SSIM_WINDING, "WINDING", 0, "Winding", ""},
-    {0}};
-
-static EnumPropertyItem prop_island_similar_types[] = {
-    {UV_SSIM_AREA_UV, "AREA", 0, "Area", ""},
-    {UV_SSIM_AREA_3D, "AREA_3D", 0, "Area 3D", ""},
     {UV_SSIM_FACE, "FACE", 0, "Amount of Faces in Island", ""},
     {0}};
 
@@ -5223,24 +5223,45 @@ static EnumPropertyItem prop_similar_compare_types[] = {{SIM_CMP_EQ, "EQUAL", 0,
 static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
                                                             PointerRNA * /*ptr*/,
                                                             PropertyRNA * /*prop*/,
-                                                            bool * /*r_free*/)
+                                                            bool *r_free)
 {
+  EnumPropertyItem *item = nullptr;
+  int totitem = 0;
+
   const ToolSettings *ts = CTX_data_tool_settings(C);
   if (ts) {
     int selectmode = (ts->uv_flag & UV_SYNC_SELECTION) ? ts->selectmode : ts->uv_selectmode;
-    if (selectmode & UV_SELECT_EDGE) {
-      return prop_edge_similar_types;
+    if (selectmode & UV_SELECT_VERTEX) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
     }
-    if (selectmode & UV_SELECT_FACE) {
-      return prop_face_similar_types;
+    else if (selectmode & UV_SELECT_EDGE) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
     }
-    if (selectmode & UV_SELECT_ISLAND) {
-      return prop_island_similar_types;
+    else if (selectmode & UV_SELECT_FACE) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_MATERIAL);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_OBJECT);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_SIDES);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_WINDING);
+    }
+    else if (selectmode & UV_SELECT_ISLAND) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_FACE);
     }
   }
+  else {
+    RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
+  }
 
-  return prop_vert_similar_types;
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+  return item;
 }
+
 void UV_OT_select_similar(wmOperatorType *ot)
 {
   /* identifiers */
@@ -5258,7 +5279,8 @@ void UV_OT_select_similar(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop = ot->prop = RNA_def_enum(
-      ot->srna, "type", prop_vert_similar_types, SIMVERT_NORMAL, "Type", "");
+      ot->srna, "type", uv_select_similar_type_items, SIMVERT_NORMAL, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_enum_funcs(prop, uv_select_similar_type_itemf);
   RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
   RNA_def_float(ot->srna, "threshold", 0.0f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);

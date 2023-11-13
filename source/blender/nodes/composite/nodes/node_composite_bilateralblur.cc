@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,8 +8,8 @@
 
 #include "BLI_math_base.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 
@@ -69,7 +69,7 @@ class BilateralBlurOperation : public NodeOperation {
       return;
     }
 
-    GPUShader *shader = shader_manager().get("compositor_bilateral_blur");
+    GPUShader *shader = context().get_shader("compositor_bilateral_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "radius", get_blur_radius());

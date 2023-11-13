@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2016-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void main()
 {
@@ -5,7 +8,7 @@ void main()
   float dist_squared = dot(centered, centered);
   const float rad_squared = 0.25;
 
-  /* Round point with jaggy edges. */
+  /* Round point with jagged edges. */
   if (dist_squared > rad_squared) {
     discard;
   }

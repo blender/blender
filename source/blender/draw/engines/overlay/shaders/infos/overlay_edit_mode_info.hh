@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,8 +17,9 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common)
     .define("blender_srgb_to_framebuffer_space(a)", "a")
     .sampler(0, ImageType::DEPTH_2D, "depthTex")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .push_constant(Type::BOOL, "selectFaces")
-    .push_constant(Type::BOOL, "selectEdges")
+    .push_constant(Type::BOOL, "wireShading")
+    .push_constant(Type::BOOL, "selectFace")
+    .push_constant(Type::BOOL, "selectEdge")
     .push_constant(Type::FLOAT, "alpha")
     .push_constant(Type::FLOAT, "retopologyOffset")
     .push_constant(Type::IVEC4, "dataMask")
@@ -31,8 +32,9 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common_no_geom)
     .define("blender_srgb_to_framebuffer_space(a)", "a")
     .sampler(0, ImageType::DEPTH_2D, "depthTex")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .push_constant(Type::BOOL, "selectFaces")
-    .push_constant(Type::BOOL, "selectEdges")
+    .push_constant(Type::BOOL, "wireShading")
+    .push_constant(Type::BOOL, "selectFace")
+    .push_constant(Type::BOOL, "selectEdge")
     .push_constant(Type::FLOAT, "alpha")
     .push_constant(Type::FLOAT, "retopologyOffset")
     .push_constant(Type::IVEC4, "dataMask")
@@ -73,8 +75,11 @@ GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_edge_iface, "geometry_in")
     .smooth(Type::UINT, "selectOverride_");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_edge_geom_iface, "geometry_out")
-    .smooth(Type::VEC4, "finalColor")
-    .flat(Type::VEC4, "finalColorOuter")
+    .smooth(Type::VEC4, "finalColor");
+GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_edge_geom_flat_iface, "geometry_flat_out")
+    .flat(Type::VEC4, "finalColorOuter");
+GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_edge_geom_noperspective_iface,
+                          "geometry_noperspective_out")
     .no_perspective(Type::FLOAT, "edgeCoord");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
@@ -86,6 +91,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
     .push_constant(Type::BOOL, "do_smooth_wire")
     .vertex_out(overlay_edit_mesh_edge_iface)
     .geometry_out(overlay_edit_mesh_edge_geom_iface)
+    .geometry_out(overlay_edit_mesh_edge_geom_flat_iface)
+    .geometry_out(overlay_edit_mesh_edge_geom_noperspective_iface)
     .geometry_layout(PrimitiveIn::LINES, PrimitiveOut::TRIANGLE_STRIP, 4)
     .geometry_source("overlay_edit_mesh_geom.glsl")
     .fragment_source("overlay_edit_mesh_frag.glsl")
@@ -102,6 +109,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_no_geom)
     .vertex_in(2, Type::VEC3_101010I2, "vnor")
     .push_constant(Type::BOOL, "do_smooth_wire")
     .vertex_out(overlay_edit_mesh_edge_geom_iface)
+    .vertex_out(overlay_edit_mesh_edge_geom_flat_iface)
+    .vertex_out(overlay_edit_mesh_edge_geom_noperspective_iface)
     .fragment_source("overlay_edit_mesh_frag.glsl")
     .additional_info("overlay_edit_mesh_common_no_geom");
 #endif
@@ -124,7 +133,6 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face)
     .define("FACE")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::UVEC4, "data")
-    .vertex_in(2, Type::VEC3, "vnor")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_source("overlay_varying_color.glsl")
     .additional_info("overlay_edit_mesh_common");
@@ -233,16 +241,19 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root_clipped)
 /** \name Edit UV
  * \{ */
 
-GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_iface, "geom_in")
-    .smooth(Type::FLOAT, "selectionFac")
-    .no_perspective(Type::VEC2, "stipplePos")
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_iface, "geom_in").smooth(Type::FLOAT, "selectionFac");
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_flat_iface, "geom_flat_in")
     .flat(Type::VEC2, "stippleStart");
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_noperspective_iface, "geom_noperspective_in")
+    .no_perspective(Type::VEC2, "stipplePos");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_geom_iface, "geom_out")
-    .smooth(Type::FLOAT, "selectionFac")
-    .no_perspective(Type::FLOAT, "edgeCoord")
-    .no_perspective(Type::VEC2, "stipplePos")
+    .smooth(Type::FLOAT, "selectionFac");
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_geom_flat_iface, "geom_flat_out")
     .flat(Type::VEC2, "stippleStart");
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_geom_noperspective_iface, "geom_noperspective_out")
+    .no_perspective(Type::FLOAT, "edgeCoord")
+    .no_perspective(Type::VEC2, "stipplePos");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_common)
     .vertex_in(0, Type::VEC2, "au")
@@ -259,8 +270,12 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges)
     .additional_info("overlay_edit_uv_edges_common")
     .do_static_compilation(true)
     .vertex_out(overlay_edit_uv_iface)
+    .vertex_out(overlay_edit_uv_flat_iface)
+    .vertex_out(overlay_edit_uv_noperspective_iface)
     .geometry_layout(PrimitiveIn::LINES, PrimitiveOut::TRIANGLE_STRIP, 4)
     .geometry_out(overlay_edit_uv_geom_iface)
+    .geometry_out(overlay_edit_uv_geom_flat_iface)
+    .geometry_out(overlay_edit_uv_geom_noperspective_iface)
     .vertex_source("overlay_edit_uv_edges_vert.glsl")
     .geometry_source("overlay_edit_uv_edges_geom.glsl");
 
@@ -270,6 +285,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_no_geom)
     .additional_info("overlay_edit_uv_edges_common")
     .do_static_compilation(true)
     .vertex_out(overlay_edit_uv_geom_iface)
+    .vertex_out(overlay_edit_uv_geom_flat_iface)
+    .vertex_out(overlay_edit_uv_geom_noperspective_iface)
     .vertex_source("overlay_edit_uv_edges_vert_no_geom.glsl");
 #endif
 

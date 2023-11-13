@@ -1,7 +1,9 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "BLI_compiler_compat.h"
+#include "BLI_string.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -10,9 +12,11 @@
 #include "BKE_customdata.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "IMB_imbuf_types.h"
+
+#include <sstream>
 
 namespace blender::bke::paint::canvas {
 static TexPaintSlot *get_active_slot(Object *ob)
@@ -33,8 +37,6 @@ static TexPaintSlot *get_active_slot(Object *ob)
 }
 
 }  // namespace blender::bke::paint::canvas
-
-extern "C" {
 
 using namespace blender::bke::paint::canvas;
 
@@ -81,7 +83,7 @@ int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Ob
       }
 
       const Mesh *mesh = static_cast<Mesh *>(ob->data);
-      return CustomData_get_active_layer_index(&mesh->ldata, CD_PROP_FLOAT2);
+      return CustomData_get_active_layer_index(&mesh->loop_data, CD_PROP_FLOAT2);
     }
     case PAINT_CANVAS_SOURCE_MATERIAL: {
       /* Use uv map of the canvas. */
@@ -99,7 +101,7 @@ int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Ob
       }
 
       const Mesh *mesh = static_cast<Mesh *>(ob->data);
-      return CustomData_get_named_layer_index(&mesh->ldata, CD_PROP_FLOAT2, slot->uvname);
+      return CustomData_get_named_layer_index(&mesh->loop_data, CD_PROP_FLOAT2, slot->uvname);
     }
   }
   return -1;
@@ -129,5 +131,4 @@ char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
   }
 
   return BLI_strdup(ss.str().c_str());
-}
 }

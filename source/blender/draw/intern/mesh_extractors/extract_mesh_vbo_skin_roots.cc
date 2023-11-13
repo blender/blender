@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,14 +19,14 @@ struct SkinRootData {
   float local_pos[3];
 };
 
-static void extract_skin_roots_init(const MeshRenderData *mr,
-                                    MeshBatchCache * /*cache*/,
+static void extract_skin_roots_init(const MeshRenderData &mr,
+                                    MeshBatchCache & /*cache*/,
                                     void *buf,
                                     void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   /* Exclusively for edit mode. */
-  BLI_assert(mr->bm);
+  BLI_assert(mr.bm);
 
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -35,16 +35,16 @@ static void extract_skin_roots_init(const MeshRenderData *mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr->bm->totvert);
+  GPU_vertbuf_data_alloc(vbo, mr.bm->totvert);
 
   SkinRootData *vbo_data = (SkinRootData *)GPU_vertbuf_get_data(vbo);
 
   int root_len = 0;
-  int cd_ofs = CustomData_get_offset(&mr->bm->vdata, CD_MVERT_SKIN);
+  int cd_ofs = CustomData_get_offset(&mr.bm->vdata, CD_MVERT_SKIN);
 
   BMIter iter;
   BMVert *eve;
-  BM_ITER_MESH (eve, &iter, mr->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (eve, &iter, mr.bm, BM_VERTS_OF_MESH) {
     const MVertSkin *vs = (const MVertSkin *)BM_ELEM_CD_GET_VOID_P(eve, cd_ofs);
     if (vs->flag & MVERT_SKIN_ROOT) {
       vbo_data->size = (vs->radius[0] + vs->radius[1]) * 0.5f;

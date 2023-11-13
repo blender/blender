@@ -1,9 +1,12 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
-#define cocMul cocParams[0]  /* distance * aperturesize * invsensorsize */
-#define cocBias cocParams[1] /* aperturesize * invsensorsize */
+#define cocMul cocParams[0]  /* `distance * aperturesize * invsensorsize`. */
+#define cocBias cocParams[1] /* `aperturesize * invsensorsize`. */
 #define cocNear cocParams[2] /* Near view depths value. */
 #define cocFar cocParams[3]  /* Far view depths value. */
 
@@ -42,7 +45,7 @@
 
 /* -------------- Utils ------------- */
 /* For performance on macOS, constants declared within function scope utilize constant uniform
-   register space rather than per-thread, reducing spill and incrasing
+   register space rather than per-thread, reducing spill and increasing
    thread execution width - and thus performance */
 #define DEFINE_DOF_QUAD_OFFSETS \
   const vec2 quad_offsets[4] = vec2[4]( \
@@ -126,11 +129,11 @@ vec4 dof_load_scatter_color(sampler2D scatter_input_color_buffer, vec2 uv, float
 float dof_load_gather_coc(sampler2D gather_input_coc_buffer, vec2 uv, float lod)
 {
   float coc = textureLod(gather_input_coc_buffer, uv, lod).r;
-  /* We gather at halfres. CoC must be divided by 2 to be compared against radii. */
+  /* We gather at half-resolution. CoC must be divided by 2 to be compared against radii. */
   return coc * 0.5;
 }
 
-/* Distribute weights between near/slightfocus/far fields (slide 117). */
+/* Distribute weights between near/slight-focus/far fields (slide 117). */
 #define layer_threshold 4.0
 /* Make sure it overlaps. */
 #define layer_offset_fg (0.5 + 1.0)
@@ -141,7 +144,7 @@ float dof_load_gather_coc(sampler2D gather_input_coc_buffer, vec2 uv, float lod)
 
 float dof_layer_weight(float coc, const bool is_foreground)
 {
-/* NOTE: These are fullres pixel CoC value. */
+/* NOTE: These are full-resolution pixel CoC value. */
 #ifdef DOF_RESOLVE_PASS
   return saturate(-abs(coc) + layer_threshold + layer_offset) *
          float(is_foreground ? (coc <= 0.5) : (coc > -0.5));
@@ -158,7 +161,7 @@ vec4 dof_layer_weight(vec4 coc)
   return saturate(coc - layer_threshold + layer_offset);
 }
 
-/* NOTE: This is halfres CoC radius. */
+/* NOTE: This is half-resolution CoC radius. */
 float dof_sample_weight(float coc)
 {
   /* Full intensity if CoC radius is below the pixel footprint. */
@@ -386,11 +389,13 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
   /* TODO(@fclem): Promote to parameter? dither with Noise? */
   const float mirroring_min_distance = 15.0;
   if (pair_data[0].coc < mirroring_threshold &&
-      (pair_data[1].coc - mirroring_min_distance) > pair_data[0].coc) {
+      (pair_data[1].coc - mirroring_min_distance) > pair_data[0].coc)
+  {
     pair_data[1].coc = pair_data[0].coc;
   }
   else if (pair_data[1].coc < mirroring_threshold &&
-           (pair_data[0].coc - mirroring_min_distance) > pair_data[1].coc) {
+           (pair_data[0].coc - mirroring_min_distance) > pair_data[1].coc)
+  {
     pair_data[0].coc = pair_data[1].coc;
   }
 #endif
@@ -497,7 +502,8 @@ void dof_gather_accumulate_sample_ring(DofGatherData ring_data,
   }
 }
 
-/* FIXME(@fclem): Seems to be wrong since it needs `ringcount + 1` as input for slightfocus gather.
+/* FIXME(@fclem): Seems to be wrong since it needs `ringcount + 1` as input for slight-focus
+ * gather.
  */
 int dof_gather_total_sample_count(const int ring_count, const int ring_density)
 {

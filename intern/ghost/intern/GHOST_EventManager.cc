@@ -45,7 +45,7 @@ uint32_t GHOST_EventManager::getNumEvents(GHOST_TEventType type)
   return numEvents;
 }
 
-GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent *event)
+GHOST_TSuccess GHOST_EventManager::pushEvent(const GHOST_IEvent *event)
 {
   GHOST_TSuccess success;
   GHOST_ASSERT(event, "invalid event");
@@ -59,7 +59,7 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent *event)
   return success;
 }
 
-void GHOST_EventManager::dispatchEvent(GHOST_IEvent *event)
+void GHOST_EventManager::dispatchEvent(const GHOST_IEvent *event)
 {
   TConsumerVector::iterator iter;
 
@@ -70,7 +70,7 @@ void GHOST_EventManager::dispatchEvent(GHOST_IEvent *event)
 
 void GHOST_EventManager::dispatchEvent()
 {
-  GHOST_IEvent *event = m_events.back();
+  const GHOST_IEvent *event = m_events.back();
   m_events.pop_back();
   m_handled_events.push_back(event);
 
@@ -125,12 +125,12 @@ GHOST_TSuccess GHOST_EventManager::removeConsumer(GHOST_IEventConsumer *consumer
   return success;
 }
 
-void GHOST_EventManager::removeWindowEvents(GHOST_IWindow *window)
+void GHOST_EventManager::removeWindowEvents(const GHOST_IWindow *window)
 {
   TEventStack::iterator iter;
   iter = m_events.begin();
   while (iter != m_events.end()) {
-    GHOST_IEvent *event = *iter;
+    const GHOST_IEvent *event = *iter;
     if (event->getWindow() == window) {
       GHOST_PRINT("GHOST_EventManager::removeWindowEvents(): removing event\n");
       /*
@@ -147,12 +147,12 @@ void GHOST_EventManager::removeWindowEvents(GHOST_IWindow *window)
   }
 }
 
-void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window)
+void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, const GHOST_IWindow *window)
 {
   TEventStack::iterator iter;
   iter = m_events.begin();
   while (iter != m_events.end()) {
-    GHOST_IEvent *event = *iter;
+    const GHOST_IEvent *event = *iter;
     if ((event->getType() == type) && (!window || (event->getWindow() == window))) {
       GHOST_PRINT("GHOST_EventManager::removeTypeEvents(): removing event\n");
       /*

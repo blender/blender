@@ -132,7 +132,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
             }
 
 #ifdef __SHADOW_LINKING__
-            if (intersection_skip_shadow_link(kg, ray, prim_object)) {
+            if (intersection_skip_shadow_link(kg, ray->self, prim_object)) {
               continue;
             }
 #endif
@@ -151,8 +151,9 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                        prim_addr))
                 {
                   /* shadow ray early termination */
-                  if (visibility & PATH_RAY_SHADOW_OPAQUE)
+                  if (visibility & PATH_RAY_SHADOW_OPAQUE) {
                     return true;
+                  }
                 }
                 break;
               }

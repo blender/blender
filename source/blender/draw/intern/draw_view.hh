@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -120,6 +120,18 @@ class View {
     return -(data_[view_id].winmat[3][2] + 1.0f) / data_[view_id].winmat[2][2];
   }
 
+  const float3 &location(int view_id = 0) const
+  {
+    BLI_assert(view_id < view_len_);
+    return data_[view_id].viewinv.location();
+  }
+
+  const float3 &forward(int view_id = 0) const
+  {
+    BLI_assert(view_id < view_len_);
+    return data_[view_id].viewinv.z_axis();
+  }
+
   const float4x4 &viewmat(int view_id = 0) const
   {
     BLI_assert(view_id < view_len_);
@@ -142,6 +154,13 @@ class View {
   {
     BLI_assert(view_id < view_len_);
     return data_[view_id].wininv;
+  }
+
+  /* Compute and return the perspective matrix. */
+  const float4x4 persmat(int view_id = 0) const
+  {
+    BLI_assert(view_id < view_len_);
+    return data_[view_id].winmat * data_[view_id].viewmat;
   }
 
   int visibility_word_per_draw() const

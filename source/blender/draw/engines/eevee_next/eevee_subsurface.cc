@@ -1,10 +1,9 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
- *
  */
 
 #include "BLI_vector.hh"
@@ -18,7 +17,6 @@ namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
 /** \name Subsurface
- *
  * \{ */
 
 void SubsurfaceModule::end_sync()
@@ -28,47 +26,89 @@ void SubsurfaceModule::end_sync()
     /* Convert sample count from old implementation which was using a separable filter. */
     /* TODO(fclem) better remapping. */
     // data_.sample_len = square_f(1 + 2 * inst_.scene->eevee.sss_samples);
-    data_.sample_len = 55;
+    data_.sample_len = 16;
   }
 
-  if (!transmittance_tx_.is_valid()) {
-    precompute_transmittance_profile();
+  {
+    PassSimple &pass = setup_ps_;
+    pass.init();
+    pass.state_set(DRW_STATE_NO_DRAW);
+    pass.shader_set(inst_.shaders.static_shader_get(SUBSURFACE_SETUP));
+    inst_.gbuffer.bind_resources(pass);
+    pass.bind_texture("depth_tx", &inst_.render_buffers.depth_tx);
+    pass.bind_image("direct_light_img", &direct_light_tx_);
+    pass.bind_image("indirect_light_img", &indirect_light_tx_);
+    pass.bind_image("object_id_img", &object_id_tx_);
+    pass.bind_image("radiance_img", &radiance_tx_);
+    pass.bind_ssbo("convolve_tile_buf", &convolve_tile_buf_);
+    pass.bind_ssbo("convolve_dispatch_buf", &convolve_dispatch_buf_);
+    pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    pass.dispatch(&setup_dispatch_size_);
+  }
+  {
+    /* Clamping to border color allows to always load ID 0 for out of view samples and discard
+     * their influence. Also disable filtering to avoid light bleeding between different objects
+     * and loading invalid interpolated IDs. */
+    GPUSamplerState sampler = {GPU_SAMPLER_FILTERING_DEFAULT,
+                               GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER,
+                               GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER,
+                               GPU_SAMPLER_CUSTOM_COMPARE,
+                               GPU_SAMPLER_STATE_TYPE_PARAMETERS};
+
+    PassSimple &pass = convolve_ps_;
+    pass.init();
+    pass.state_set(DRW_STATE_NO_DRAW);
+    pass.shader_set(inst_.shaders.static_shader_get(SUBSURFACE_CONVOLVE));
+    inst_.bind_uniform_data(&pass);
+    inst_.gbuffer.bind_resources(pass);
+    pass.bind_texture("radiance_tx", &radiance_tx_, sampler);
+    pass.bind_texture("depth_tx", &inst_.render_buffers.depth_tx, sampler);
+    pass.bind_texture("object_id_tx", &object_id_tx_, sampler);
+    pass.bind_image("out_direct_light_img", &direct_light_tx_);
+    pass.bind_image("out_indirect_light_img", &indirect_light_tx_);
+    pass.bind_ssbo("tiles_coord_buf", &convolve_tile_buf_);
+    pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_STORAGE);
+    pass.dispatch(convolve_dispatch_buf_);
+  }
+}
+
+void SubsurfaceModule::render(GPUTexture *direct_diffuse_light_tx,
+                              GPUTexture *indirect_diffuse_light_tx,
+                              eClosureBits active_closures,
+                              View &view)
+{
+  if (!(active_closures & CLOSURE_SSS)) {
+    return;
   }
 
   precompute_samples_location();
 
-  data_.push_update();
+  int2 render_extent = inst_.film.render_extent_get();
+  setup_dispatch_size_ = int3(math::divide_ceil(render_extent, int2(SUBSURFACE_GROUP_SIZE)), 1);
 
-  subsurface_ps_.init();
-  subsurface_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL |
-                           DRW_STATE_BLEND_ADD_FULL);
-  subsurface_ps_.state_stencil(0x00u, 0xFFu, CLOSURE_SSS);
-  subsurface_ps_.shader_set(inst_.shaders.static_shader_get(SUBSURFACE_EVAL));
-  inst_.subsurface.bind_resources(&subsurface_ps_);
-  inst_.hiz_buffer.bind_resources(&subsurface_ps_);
-  subsurface_ps_.bind_texture("radiance_tx", &diffuse_light_tx_);
-  subsurface_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-  subsurface_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
-  subsurface_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
-  subsurface_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-  /** NOTE: Not used in the shader, but we bind it to avoid debug warnings. */
-  subsurface_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+  const int convolve_tile_count = setup_dispatch_size_.x * setup_dispatch_size_.y;
+  convolve_tile_buf_.resize(ceil_to_multiple_u(convolve_tile_count, 512));
 
-  subsurface_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
-  subsurface_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-}
+  direct_light_tx_ = direct_diffuse_light_tx;
+  indirect_light_tx_ = indirect_diffuse_light_tx;
 
-void SubsurfaceModule::render(View &view, Framebuffer &fb, Texture &diffuse_light_tx)
-{
-  fb.bind();
-  diffuse_light_tx_ = *&diffuse_light_tx;
-  inst_.manager->submit(subsurface_ps_, view);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  object_id_tx_.acquire(render_extent, SUBSURFACE_OBJECT_ID_FORMAT, usage);
+  radiance_tx_.acquire(render_extent, SUBSURFACE_RADIANCE_FORMAT, usage);
+
+  convolve_dispatch_buf_.clear_to_zero();
+
+  inst_.manager->submit(setup_ps_, view);
+  inst_.manager->submit(convolve_ps_, view);
+
+  object_id_tx_.release();
+  radiance_tx_.release();
 }
 
 void SubsurfaceModule::precompute_samples_location()
 {
   /* Precompute sample position with white albedo. */
-  float d = burley_setup(1.0f, 1.0f);
+  float d = burley_setup(float3(1.0f), float3(1.0f)).x;
 
   float rand_u = inst_.sampling.rng_get(SAMPLING_SSS_U);
   float rand_v = inst_.sampling.rng_get(SAMPLING_SSS_V);
@@ -77,68 +117,14 @@ void SubsurfaceModule::precompute_samples_location()
   for (auto i : IndexRange(data_.sample_len)) {
     float theta = golden_angle * i + M_PI * 2.0f * rand_u;
     /* Scale using rand_v in order to keep first sample always at center. */
-    float x = (1.0f + (rand_v / data_.sample_len)) * (i / (float)data_.sample_len);
-    float r = burley_sample(d, x);
+    float x = (1.0f + (rand_v / data_.sample_len)) * (i / float(data_.sample_len));
+    float r = SubsurfaceModule::burley_sample(d, x);
     data_.samples[i].x = cosf(theta) * r;
     data_.samples[i].y = sinf(theta) * r;
     data_.samples[i].z = 1.0f / burley_pdf(d, r);
   }
-}
 
-void SubsurfaceModule::precompute_transmittance_profile()
-{
-  Vector<float> profile(SSS_TRANSMIT_LUT_SIZE);
-
-  /* Precompute sample position with white albedo. */
-  float radius = 1.0f;
-  float d = burley_setup(radius, 1.0f);
-
-  /* For each distance d we compute the radiance incoming from an hypothetical parallel plane. */
-  for (auto i : IndexRange(SSS_TRANSMIT_LUT_SIZE)) {
-    /* Distance from the lit surface plane.
-     * Compute to a larger maximum distance to have a smoother falloff for all channels. */
-    float lut_radius = SSS_TRANSMIT_LUT_RADIUS * radius;
-    float distance = lut_radius * (i + 1e-5f) / profile.size();
-    /* Compute radius of the footprint on the hypothetical plane. */
-    float r_fp = sqrtf(square_f(lut_radius) - square_f(distance));
-
-    profile[i] = 0.0f;
-    float area_accum = 0.0f;
-    for (auto j : IndexRange(SSS_TRANSMIT_LUT_STEP_RES)) {
-      /* Compute distance to the "shading" point through the medium. */
-      float r = (r_fp * (j + 0.5f)) / SSS_TRANSMIT_LUT_STEP_RES;
-      float r_prev = (r_fp * (j + 0.0f)) / SSS_TRANSMIT_LUT_STEP_RES;
-      float r_next = (r_fp * (j + 1.0f)) / SSS_TRANSMIT_LUT_STEP_RES;
-      r = hypotf(r, distance);
-      float R = burley_eval(d, r);
-      /* Since the profile and configuration are radially symmetrical we
-       * can just evaluate it once and weight it accordingly */
-      float disk_area = square_f(r_next) - square_f(r_prev);
-
-      profile[i] += R * disk_area;
-      area_accum += disk_area;
-    }
-    /* Normalize over the disk. */
-    profile[i] /= area_accum;
-  }
-
-  /** NOTE: There's something very wrong here.
-   * This should be a small remap,
-   * but current profile range goes from 0.0399098 to 0.0026898. */
-
-  /* Make a smooth gradient from 1 to 0. */
-  float range = profile.first() - profile.last();
-  float offset = profile.last();
-  for (float &value : profile) {
-    value = (value - offset) / range;
-    /** HACK: Remap the curve to better fit Cycles values. */
-    value = std::pow(value, 1.6f);
-  }
-  profile.first() = 1;
-  profile.last() = 0;
-
-  transmittance_tx_.ensure_1d(
-      GPU_R16F, profile.size(), GPU_TEXTURE_USAGE_SHADER_READ, profile.data());
+  inst_.push_uniform_data();
 }
 
 /** \} */
@@ -150,17 +136,6 @@ void SubsurfaceModule::precompute_transmittance_profile()
  * by Per Christensen
  * https://graphics.pixar.com/library/ApproxBSSRDF/approxbssrdfslides.pdf
  * \{ */
-
-float SubsurfaceModule::burley_setup(float radius, float albedo)
-{
-  float A = albedo;
-  /* Diffuse surface transmission, equation (6). */
-  float s = 1.9f - A + 3.5f * square_f(A - 0.8f);
-  /* Mean free path length adapted to fit ancient Cubic and Gaussian models. */
-  float l = 0.25 * M_1_PI * radius;
-
-  return l / s;
-}
 
 float SubsurfaceModule::burley_sample(float d, float x_rand)
 {

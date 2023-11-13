@@ -1,10 +1,14 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WITH_BLENDER)
   if(WITH_INPUT_NDOF)
     add_definitions(-DWITH_INPUT_NDOF)
+  endif()
+
+  if(WITH_EXPERIMENTAL_FEATURES)
+    add_definitions(-DWITH_GREASE_PENCIL_V3)
   endif()
 
   add_subdirectory(animation)

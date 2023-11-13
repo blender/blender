@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "gpu_shader_dependency_private.h"
@@ -221,7 +221,7 @@ void Shader::print_log(Span<const char *> sources,
     if (log_item.severity == Severity::Error) {
       BLI_dynstr_appendf(dynstr, "%s%s%s: ", err_col, "Error", info_col);
     }
-    else if (log_item.severity == Severity::Error) {
+    else if (log_item.severity == Severity::Warning) {
       BLI_dynstr_appendf(dynstr, "%s%s%s: ", warn_col, "Warning", info_col);
     }
     else if (log_item.severity == Severity::Note) {

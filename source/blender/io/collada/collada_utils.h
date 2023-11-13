@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,7 +31,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BLI_linklist.h"
 #include "BLI_string.h"
@@ -41,10 +41,10 @@
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BCSampleData.h"
 #include "BlenderContext.h"
@@ -58,6 +58,11 @@ typedef std::map<COLLADAFW::UniqueId, Image *> UidImageMap;
 typedef std::map<std::string, Image *> KeyImageMap;
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex *>> TexIndexTextureArrayMap;
 typedef std::set<Object *> BCObjectSet;
+
+namespace COLLADAFW {
+class Node;
+}
+class ExtraTags;
 
 extern void bc_update_scene(BlenderContext &blender_context, float ctime);
 
@@ -118,6 +123,13 @@ extern bool bc_validateConstraints(bConstraint *con);
 bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space = true);
 extern Object *bc_add_object(
     Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name);
+extern Object *bc_add_armature(COLLADAFW::Node *node,
+                               ExtraTags *node_extra_tags,
+                               Main *bmain,
+                               Scene *scene,
+                               ViewLayer *view_layer,
+                               int type,
+                               const char *name);
 extern Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
                               Object *ob,
                               BC_export_mesh_type export_mesh_type,
@@ -193,7 +205,7 @@ extern std::string bc_replace_string(std::string data,
                                      const std::string &replacement);
 extern std::string bc_url_encode(std::string data);
 /**
- * Calculate a rescale factor such that the imported scene's scale
+ * Calculate a re-scale factor such that the imported scene's scale
  * is preserved. I.e. 1 meter in the import will also be
  * 1 meter in the current scene.
  */
@@ -362,7 +374,8 @@ class BoneExtended {
   float tail[3];
   float roll;
 
-  int bone_layers;
+  std::vector<std::string> bone_collections;
+
   int use_connect;
   bool has_custom_tail;
   bool has_custom_roll;
@@ -379,9 +392,8 @@ class BoneExtended {
   void set_leaf_bone(bool state);
   bool is_leaf_bone();
 
-  void set_bone_layers(std::string layers, std::vector<std::string> &layer_labels);
-  int get_bone_layers();
-  static std::string get_bone_layers(int bitfield);
+  void set_bone_collections(std::vector<std::string> bone_collections);
+  const std::vector<std::string> &get_bone_collections();
 
   void set_roll(float roll);
   bool has_roll();

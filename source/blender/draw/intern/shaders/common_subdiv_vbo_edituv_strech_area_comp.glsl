@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* To be compiled with common_subdiv_lib.glsl */
 
@@ -22,8 +25,7 @@ void main()
   /* The start index of the loop is quad_index * 4. */
   uint start_loop_index = quad_index * 4;
 
-  uint coarse_quad_index = coarse_polygon_index_from_subdiv_quad_index(quad_index,
-                                                                       coarse_poly_count);
+  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index, coarse_face_count);
 
   for (int i = 0; i < 4; i++) {
     subdiv_stretch_area[start_loop_index + i] = coarse_stretch_area[coarse_quad_index];

@@ -8,15 +8,15 @@
  * This file was moved here from the `src/` directory.
  * It is meant to deal with endianness. It resided in a general blending lib.
  * The other functions were only used during rendering. This single function remained.
- * It should probably move to `imbuf/intern/util.c`, but we'll keep it here for the time being.
+ * It should probably move to `imbuf/intern/util.cc`, but we'll keep it here for the time being.
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_interp.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -398,10 +398,10 @@ void IMB_processor_apply_threaded(
   BLI_task_pool_free(task_pool);
 }
 
-typedef struct ScanlineGlobalData {
+struct ScanlineGlobalData {
   void *custom_data;
   ScanlineThreadFunc do_thread;
-} ScanlineGlobalData;
+};
 
 static void processor_apply_parallel(void *__restrict userdata,
                                      const int scanline,
@@ -489,7 +489,8 @@ void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_r
     nearest_interpolation_color(ibuf, byte_color, nullptr, x, y);
     rgba_uchar_to_float(color, byte_color);
     if (make_linear_rgb) {
-      IMB_colormanagement_colorspace_to_scene_linear_v4(color, false, ibuf->rect_colorspace);
+      IMB_colormanagement_colorspace_to_scene_linear_v4(
+          color, false, ibuf->byte_buffer.colorspace);
     }
   }
 }

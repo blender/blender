@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -53,7 +53,7 @@ static int GetProjectedXF0D___init__(BPy_GetProjectedXF0D *self, PyObject *args,
 /*-----------------------BPy_GetProjectedXF0D type definition ------------------------------*/
 
 PyTypeObject GetProjectedXF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetProjectedXF0D",
     /*tp_basicsize*/ sizeof(BPy_GetProjectedXF0D),
     /*tp_itemsize*/ 0,

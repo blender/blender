@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -42,7 +42,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw_header_preset(self, _context):
         CLOTH_PT_presets.draw_panel_header(self.layout)
@@ -66,13 +66,13 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_physical_properties(PhysicButtonsPanel, Panel):
     bl_label = "Physical Properties"
-    bl_parent_id = 'PHYSICS_PT_cloth'
+    bl_parent_id = "PHYSICS_PT_cloth"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -95,13 +95,13 @@ class PHYSICS_PT_cloth_physical_properties(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
     bl_label = "Stiffness"
-    bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
+    bl_parent_id = "PHYSICS_PT_cloth_physical_properties"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -131,13 +131,13 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_damping(PhysicButtonsPanel, Panel):
     bl_label = "Damping"
-    bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
+    bl_parent_id = "PHYSICS_PT_cloth_physical_properties"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -167,13 +167,13 @@ class PHYSICS_PT_cloth_damping(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_internal_springs(PhysicButtonsPanel, Panel):
     bl_label = "Internal Springs"
-    bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
+    bl_parent_id = "PHYSICS_PT_cloth_physical_properties"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw_header(self, context):
         cloth = context.cloth.settings
@@ -214,13 +214,13 @@ class PHYSICS_PT_cloth_internal_springs(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
     bl_label = "Pressure"
-    bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
+    bl_parent_id = "PHYSICS_PT_cloth_physical_properties"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw_header(self, context):
         cloth = context.cloth.settings
@@ -262,14 +262,14 @@ class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
     bl_label = "Cache"
-    bl_parent_id = 'PHYSICS_PT_cloth'
+    bl_parent_id = "PHYSICS_PT_cloth"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         md = context.cloth
@@ -278,14 +278,14 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_shape(PhysicButtonsPanel, Panel):
     bl_label = "Shape"
-    bl_parent_id = 'PHYSICS_PT_cloth'
+    bl_parent_id = "PHYSICS_PT_cloth"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -333,14 +333,14 @@ class PHYSICS_PT_cloth_shape(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
     bl_label = "Collisions"
-    bl_parent_id = 'PHYSICS_PT_cloth'
+    bl_parent_id = "PHYSICS_PT_cloth"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -359,13 +359,13 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
     bl_label = "Object Collisions"
-    bl_parent_id = 'PHYSICS_PT_cloth_collision'
+    bl_parent_id = "PHYSICS_PT_cloth_collision"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
@@ -400,13 +400,13 @@ class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
     bl_label = "Self Collisions"
-    bl_parent_id = 'PHYSICS_PT_cloth_collision'
+    bl_parent_id = "PHYSICS_PT_cloth_collision"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
@@ -441,14 +441,14 @@ class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_property_weights(PhysicButtonsPanel, Panel):
     bl_label = "Property Weights"
-    bl_parent_id = 'PHYSICS_PT_cloth'
+    bl_parent_id = "PHYSICS_PT_cloth"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -500,14 +500,14 @@ class PHYSICS_PT_cloth_property_weights(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
     bl_label = "Field Weights"
-    bl_parent_id = 'PHYSICS_PT_cloth'
+    bl_parent_id = "PHYSICS_PT_cloth"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+    }
 
     def draw(self, context):
         cloth = context.cloth.settings

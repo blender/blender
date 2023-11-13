@@ -77,18 +77,18 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
 
   debug_enqueue_begin(kernel, signed_kernel_work_size);
   assert(signed_kernel_work_size >= 0);
-  size_t kernel_work_size = (size_t)signed_kernel_work_size;
+  size_t kernel_global_size = (size_t)signed_kernel_work_size;
+  size_t kernel_local_size;
 
   assert(kernel_context_);
   kernel_context_->scene_max_shaders = oneapi_device_->scene_max_shaders();
 
-  size_t kernel_local_size = oneapi_kernel_preferred_local_size(
-      kernel_context_->queue, (::DeviceKernel)kernel, kernel_work_size);
-  size_t uniformed_kernel_work_size = round_up(kernel_work_size, kernel_local_size);
+  oneapi_device_->get_adjusted_global_and_local_sizes(
+      kernel_context_->queue, kernel, kernel_global_size, kernel_local_size);
 
   /* Call the oneAPI kernel DLL to launch the requested kernel. */
   bool is_finished_ok = oneapi_device_->enqueue_kernel(
-      kernel_context_, kernel, uniformed_kernel_work_size, args);
+      kernel_context_, kernel, kernel_global_size, kernel_local_size, args);
 
   if (is_finished_ok == false) {
     oneapi_device_->set_error("oneAPI kernel \"" + std::string(device_kernel_as_string(kernel)) +

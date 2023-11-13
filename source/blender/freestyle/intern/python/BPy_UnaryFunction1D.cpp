@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -54,12 +54,12 @@ int UnaryFunction1D_Init(PyObject *module)
 
 static char UnaryFunction1D___doc__[] =
     "Base class for Unary Functions (functors) working on\n"
-    ":class:`Interface1D`.  A unary function will be used by invoking\n"
-    "__call__() on an Interface1D.  In Python, several different subclasses\n"
+    ":class:`Interface1D`. A unary function will be used by invoking\n"
+    "__call__() on an Interface1D. In Python, several different subclasses\n"
     "of UnaryFunction1D are used depending on the types of functors' return\n"
-    "values.  For example, you would inherit from a\n"
+    "values. For example, you would inherit from a\n"
     ":class:`UnaryFunction1DDouble` if you wish to define a function that\n"
-    "returns a double value.  Available UnaryFunction1D subclasses are:\n"
+    "returns a double value. Available UnaryFunction1D subclasses are:\n"
     "\n"
     "* :class:`UnaryFunction1DDouble`\n"
     "* :class:`UnaryFunction1DEdgeNature`\n"
@@ -104,7 +104,7 @@ static PyGetSetDef BPy_UnaryFunction1D_getseters[] = {
 /*-----------------------BPy_UnaryFunction1D type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction1D",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction1D),
     /*tp_itemsize*/ 0,

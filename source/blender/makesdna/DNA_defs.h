@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #pragma once
 
-/* makesdna ignores */
+/* `makesdna` ignores. */
 #ifdef DNA_DEPRECATED_ALLOW
 /* allow use of deprecated items */
 #  define DNA_DEPRECATED
@@ -70,6 +70,7 @@
  * Avoids pulling `string.h` from this header to get access to #memcpy. */
 extern "C" void _DNA_internal_memcpy(void *dst, const void *src, size_t size);
 extern "C" void _DNA_internal_memzero(void *dst, size_t size);
+extern "C" void _DNA_internal_swap(void *a, void *b, size_t size);
 
 namespace blender::dna::internal {
 
@@ -133,10 +134,15 @@ namespace blender::dna {
  *
  * From the implementation detail go via copy constructor/assign operator defined in the structure.
  */
-template<class T>
+template<typename T>
 [[nodiscard]] inline internal::ShallowDataConstRef<T> shallow_copy(const T &other)
 {
   return internal::ShallowDataConstRef(other);
+}
+
+template<typename T> inline void shallow_copy_array(T *dst, const T *src, const int64_t size)
+{
+  _DNA_internal_memcpy(dst, src, sizeof(T) * size_t(size));
 }
 
 /* DNA object initializer which leads to an object which underlying memory is filled with zeroes.
@@ -144,6 +150,11 @@ template<class T>
 [[nodiscard]] inline internal::ShallowZeroInitializeTag shallow_zero_initialize()
 {
   return internal::ShallowZeroInitializeTag();
+}
+
+template<typename T> inline void shallow_swap(T &a, T &b)
+{
+  _DNA_internal_swap(&a, &b, sizeof(T));
 }
 
 }  // namespace blender::dna

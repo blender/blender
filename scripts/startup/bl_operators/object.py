@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -286,7 +286,7 @@ class SubdivisionSet(Operator):
                 else:
                     mod = obj.modifiers.new("Subdivision", 'SUBSURF')
                     mod.levels = level
-            except:
+            except BaseException:
                 self.report({'WARNING'},
                             "Modifiers cannot be added to object: " + obj.name)
 
@@ -383,8 +383,7 @@ class ShapeTransfer(Operator):
             ob_add_shape(ob_other, orig_key_name)
 
             # editing the final coords, only list that stores wrapped coords
-            target_shape_coords = [v.co for v in
-                                   ob_other.active_shape_key.data]
+            target_shape_coords = [v.co for v in ob_other.active_shape_key.data]
 
             median_coords = [[] for i in range(len(me.vertices))]
 
@@ -464,8 +463,10 @@ class ShapeTransfer(Operator):
 
     def execute(self, context):
         ob_act = context.active_object
-        objects = [ob for ob in context.selected_editable_objects
-                   if ob != ob_act]
+        objects = [
+            ob for ob in context.selected_editable_objects
+            if ob != ob_act
+        ]
 
         if 1:  # swap from/to, means we can't copy to many at once.
             if len(objects) != 1:
@@ -603,9 +604,11 @@ class MakeDupliFace(Operator):
                 linked[obj.instance_collection].append(obj)
 
         for data, objects in linked.items():
-            face_verts = [axis for obj in objects
-                          for v in matrix_to_quad(obj.matrix_world)
-                          for axis in v]
+            face_verts = [
+                axis for obj in objects
+                for v in matrix_to_quad(obj.matrix_world)
+                for axis in v
+            ]
             nbr_verts = len(face_verts) // 3
             nbr_faces = nbr_verts // 4
 
@@ -908,6 +911,7 @@ class LoadImageAsEmpty:
     )
 
     filter_image: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_movie: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
     filter_folder: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
 
     view_align: BoolProperty(

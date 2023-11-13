@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -7,7 +7,7 @@
  * \ingroup balembic
  */
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,7 +105,7 @@ bool ABC_import(struct bContext *C,
                 const struct AlembicImportParams *params,
                 bool as_background_job);
 
-struct CacheArchiveHandle *ABC_create_handle(struct Main *bmain,
+struct CacheArchiveHandle *ABC_create_handle(const struct Main *bmain,
                                              const char *filepath,
                                              const struct CacheFileLayer *layers,
                                              struct ListBase *object_paths);
