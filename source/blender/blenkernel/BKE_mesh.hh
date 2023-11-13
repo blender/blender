@@ -269,17 +269,14 @@ inline int face_triangles_num(const int face_size)
 
 /**
  * Return the index of the edge's vertex that is not the \a vert.
- * If neither edge vertex is equal to \a v, returns -1.
  */
-inline int edge_other_vert(const int2 &edge, const int vert)
+inline int edge_other_vert(const int2 edge, const int vert)
 {
-  if (edge[0] == vert) {
-    return edge[1];
-  }
-  if (edge[1] == vert) {
-    return edge[0];
-  }
-  return -1;
+  BLI_assert(ELEM(vert, edge[0], edge[1]));
+  BLI_assert(edge[0] >= 0);
+  BLI_assert(edge[1] >= 0);
+  /* Order is important to avoid overflow. */
+  return (edge[0] - vert) + edge[1];
 }
 
 /** \} */

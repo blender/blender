@@ -54,7 +54,7 @@ static void shortest_paths(const Mesh &mesh,
     visited[vert_i] = true;
     for (const int edge_i : vert_to_edge[vert_i]) {
       const int2 &edge = edges[edge_i];
-      const int neighbor_vert_i = edge[0] + edge[1] - vert_i;
+      const int neighbor_vert_i = bke::mesh::edge_other_vert(edge, vert_i);
       if (visited[neighbor_vert_i]) {
         continue;
       }
