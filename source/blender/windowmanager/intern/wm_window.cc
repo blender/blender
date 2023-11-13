@@ -46,7 +46,7 @@
 #include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
-#include "WM_message.h"
+#include "WM_message.hh"
 #include "WM_types.hh"
 #include "wm.hh"
 #include "wm_draw.hh"
@@ -506,16 +506,16 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
   std::string str;
   str += wm->file_saved ? " " : "* ";
   if (has_filepath) {
-    const size_t filename_no_ext_len = BLI_path_extension_or_end(filename) - filename;
-    str.append(filename, filename_no_ext_len);
-
-    BlenderProject *project = CTX_wm_project();
+    const BlenderProject *project = CTX_wm_project();
     if (project) {
       const char *name = BKE_project_name_get(project);
-      str +=  " - ";
-      str += (name && name[0]) ? name : IFACE_("Unnamed project"));
+      str += "";
+      str += (name && name[0]) ? name : IFACE_("Unnamed project");
       str += " - ";
     }
+
+    const size_t filename_no_ext_len = BLI_path_extension_or_end(filename) - filename;
+    str.append(filename, filename_no_ext_len);
   }
   else {
     str += IFACE_("(Unsaved)");
@@ -1780,8 +1780,8 @@ void wm_window_events_process(const bContext *C)
  * \{ */
 
 static void wm_msg_windows_title_update_fn(bContext *C,
-                                           wmMsgSubscribeKey *UNUSED(msg_key),
-                                           wmMsgSubscribeValue *UNUSED(msg_val))
+                                           wmMsgSubscribeKey * /*msg_key*/,
+                                           wmMsgSubscribeValue * /*msg_val*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {

@@ -132,6 +132,7 @@
 #include "DNA_space_defaults.h"
 #include "DNA_speaker_defaults.h"
 #include "DNA_texture_defaults.h"
+#include "DNA_userdef_defaults.h"
 #include "DNA_volume_defaults.h"
 #include "DNA_world_defaults.h"
 

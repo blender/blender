@@ -24,8 +24,8 @@
 #  include <unistd.h>
 #endif
 
-#include "AS_asset_representation.hh"
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -441,6 +441,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
     case ASSET_LIBRARY_LOCAL:
       base_params->type = FILE_MAIN_ASSET;
       break;
+    case ASSET_LIBRARY_CUSTOM_PATH:
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT:
       base_params->type = FILE_ASSET_LIBRARY;

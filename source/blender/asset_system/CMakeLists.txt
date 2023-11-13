@@ -6,6 +6,7 @@ set(INC
   .
   intern
   ../blenkernel
+  ../makesrna
   ../../../intern/clog
 )
 
@@ -42,7 +43,6 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::rna
   PRIVATE bf::intern::guardedalloc
 )
 

@@ -43,9 +43,9 @@ void BKE_asset_library_custom_name_set(struct ListBase *custom_libraries,
 void BKE_asset_library_custom_path_set(struct CustomAssetLibraryDefinition *library,
                                        const char *path) ATTR_NONNULL();
 
-struct CustomAssetLibraryDefinition *BKE_asset_library_custom_find_from_index(
+struct CustomAssetLibraryDefinition *BKE_asset_library_custom_find_index(
     const struct ListBase *custom_libraries, int index) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-struct CustomAssetLibraryDefinition *BKE_asset_library_custom_find_from_name(
+struct CustomAssetLibraryDefinition *BKE_asset_library_custom_find_by_name(
     const struct ListBase *custom_libraries, const char *name)
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 

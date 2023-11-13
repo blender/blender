@@ -23,7 +23,12 @@ const EnumPropertyItem rna_enum_aset_library_type_items[] = {
     {ASSET_LIBRARY_LOCAL, "LOCAL", 0, "Local", ""},
     {ASSET_LIBRARY_ALL, "ALL", 0, "All", ""},
     {ASSET_LIBRARY_ESSENTIALS, "ESSENTIALS", 0, "Essentials", ""},
-    {ASSET_LIBRARY_CUSTOM, "CUSTOM", 0, "Custom", ""},
+    {ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES,
+     "CUSTOM_FROM_PREFERENCES",
+     0,
+     "Custom from Preferences",
+     ""},
+    {ASSET_LIBRARY_CUSTOM_FROM_PROJECT, "CUSTOM", 0, "Custom from Project", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -43,8 +48,8 @@ const EnumPropertyItem rna_enum_aset_library_type_items[] = {
 #  include "ED_asset.hh"
 #  include "ED_fileselect.hh"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  include "RNA_access.hh"
 
@@ -377,9 +382,7 @@ static void rna_CustomAssetLibraryDefinition_path_set(PointerRNA *ptr, const cha
   BKE_asset_library_custom_path_set(library, dirpath);
 }
 
-void rna_AssetLibrary_settings_update(Main *UNUSED(bmain),
-                                      Scene *UNUSED(scene),
-                                      PointerRNA *UNUSED(ptr))
+void rna_AssetLibrary_settings_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, NULL);
 }

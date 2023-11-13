@@ -26,6 +26,7 @@ struct Depsgraph;
 struct IDProperty;
 struct Main;
 struct MenuType;
+struct ReportList;
 struct Scene;
 struct SpaceLink;
 struct WorkSpace;
@@ -461,6 +462,9 @@ int ED_screen_animation_play(bContext *C, int sync, int mode);
  */
 bScreen *ED_screen_animation_playing(const wmWindowManager *wm);
 bScreen *ED_screen_animation_no_scrub(const wmWindowManager *wm);
+
+/** \return True on success. */
+bool ED_project_settings_window_show(bContext *C, ReportList *reports);
 
 /* screen keymaps */
 /* called in spacetypes.cc */

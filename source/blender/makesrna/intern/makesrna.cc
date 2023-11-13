@@ -4732,7 +4732,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_armature.cc", "rna_armature_api.cc", RNA_def_armature},
     {"rna_attribute.cc", nullptr, RNA_def_attribute},
     {"rna_asset.cc", nullptr, RNA_def_asset},
-    {"rna_blender_project.c", NULL, RNA_def_blender_project},
+    {"rna_blender_project.cc", NULL, RNA_def_blender_project},
     {"rna_boid.cc", nullptr, RNA_def_boid},
     {"rna_brush.cc", nullptr, RNA_def_brush},
     {"rna_cachefile.cc", nullptr, RNA_def_cachefile},

@@ -65,11 +65,8 @@
 #include "BKE_appdir.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
-<<<<<<< HEAD
 #include "BKE_blender_project.h"
-=======
 #include "BKE_blender_version.h"
->>>>>>> main
 #include "BKE_blendfile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"

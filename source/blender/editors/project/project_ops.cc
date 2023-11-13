@@ -18,14 +18,14 @@
 
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_project.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 using namespace blender;
 
@@ -33,7 +33,7 @@ static bool has_active_project_poll(bContext *C)
 {
   const BlenderProject *active_project = CTX_wm_project();
   CTX_wm_operator_poll_msg_set(C, TIP_("No active project loaded"));
-  return active_project != NULL;
+  return active_project != nullptr;
 }
 
 /* -------------------------------------------------------------------- */
@@ -71,9 +71,9 @@ static int new_project_exec(bContext *C, wmOperator *op)
     ED_project_settings_window_show(C, op->reports);
   }
 
-  WM_main_add_notifier(NC_PROJECT, NULL);
+  WM_main_add_notifier(NC_PROJECT, nullptr);
   /* Update the window title. */
-  WM_main_add_notifier(NC_WM | ND_DATACHANGED, NULL);
+  WM_main_add_notifier(NC_WM | ND_DATACHANGED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -163,9 +163,9 @@ static int delete_project_setup_exec(bContext *C, wmOperator *op)
   }
   BKE_project_active_unset();
 
-  WM_main_add_notifier(NC_PROJECT, NULL);
+  WM_main_add_notifier(NC_PROJECT, nullptr);
   /* Update the window title. */
-  WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
+  WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -205,12 +205,12 @@ static int custom_asset_library_add_exec(bContext * /*C*/, wmOperator *op)
   BLI_path_split_file_part(path, dirname, sizeof(dirname));
 
   ListBase *asset_libraries = BKE_project_custom_asset_libraries_get(project);
-  /* NULL is a valid directory path here. A library without path will be created then. */
+  /* nullptr is a valid directory path here. A library without path will be created then. */
   BKE_asset_library_custom_add(asset_libraries, dirname, path);
   BKE_project_tag_has_unsaved_changes(project);
 
-  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, NULL);
-  WM_main_add_notifier(NC_PROJECT, NULL);
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, nullptr);
+  WM_main_add_notifier(NC_PROJECT, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -259,13 +259,13 @@ static int custom_asset_library_remove_exec(bContext * /*C*/, wmOperator *op)
 
   BlenderProject *project = CTX_wm_project();
   ListBase *asset_libraries = BKE_project_custom_asset_libraries_get(project);
-  CustomAssetLibraryDefinition *library = BKE_asset_library_custom_find_from_index(asset_libraries,
-                                                                                   index);
+  CustomAssetLibraryDefinition *library = BKE_asset_library_custom_find_index(asset_libraries,
+                                                                              index);
   BKE_asset_library_custom_remove(asset_libraries, library);
   BKE_project_tag_has_unsaved_changes(project);
 
-  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, NULL);
-  WM_main_add_notifier(NC_PROJECT, NULL);
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, nullptr);
+  WM_main_add_notifier(NC_PROJECT, nullptr);
 
   return OPERATOR_FINISHED;
 }

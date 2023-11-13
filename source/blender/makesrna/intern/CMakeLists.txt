@@ -30,7 +30,7 @@ set(DEFSRC
   rna_armature.cc
   rna_asset.cc
   rna_attribute.cc
-  rna_blender_project.c
+  rna_blender_project.cc
   rna_boid.cc
   rna_brush.cc
   rna_cachefile.cc

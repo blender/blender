@@ -30,6 +30,7 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_callbacks.h"
+#include "BKE_preferences.h"
 #include "BKE_sound.h"
 #include "BKE_studiolight.h"
 
@@ -352,8 +353,8 @@ static void rna_userdef_extension_repo_directory_set(PointerRNA *ptr, const char
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 }
 
-static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain),
-                                               Scene *UNUSED(scene),
+static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
+                                               Scene * /*scene*/,
                                                PointerRNA *ptr)
 {
   UserDef *userdef = (UserDef *)ptr->data;
@@ -6519,6 +6520,54 @@ static void rna_def_userdef_keymap(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "keyconfigstr");
   RNA_def_property_ui_text(prop, "Key Config", "The name of the active key configuration");
 }
+
+static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "UserExtensionRepo", nullptr);
+  RNA_def_struct_sdna(srna, "bUserExtensionRepo");
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(
+      srna, "Extension Repository", "Settings to define an extension repository");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Name", "Unique repository name");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_extension_repo_name_set");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Module", "Unique module identifier");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_extension_repo_module_set");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, nullptr, "dirpath");
+  RNA_def_property_ui_text(prop, "Local Directory", "The local directory containing extensions");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
+  RNA_def_property_string_funcs(
+      prop, nullptr, nullptr, "rna_userdef_extension_repo_directory_set");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "remote_path", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "remote_path");
+  RNA_def_property_ui_text(prop, "Remote Path", "Remote URL or path for extension repository");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  /* NOTE(@ideasman42): this is intended to be used by a package manger component
+   * which is not yet integrated. */
+  prop = RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_EXTENSION_FLAG_NO_CACHE);
+  RNA_def_property_ui_text(
+      prop,
+      "Local Cache",
+      "Store packages in local cache, "
+      "otherwise downloaded package files are immediately deleted after installation");
+}
+
 static void rna_def_userdef_script_directory(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "ScriptDirectory", nullptr);

@@ -21,6 +21,7 @@
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
+#include "BKE_preferences.h"
 
 #include "BKE_report.h"
 
@@ -201,7 +202,8 @@ static bool preferences_asset_library_remove_poll(bContext *C)
 static int preferences_asset_library_remove_exec(bContext * /*C*/, wmOperator *op)
 {
   const int index = RNA_int_get(op->ptr, "index");
-  CustomAssetLibraryDefinition *library = BLI_findlink(&U.asset_libraries, index);
+  CustomAssetLibraryDefinition *library = static_cast<CustomAssetLibraryDefinition *>(
+      BLI_findlink(&U.asset_libraries, index));
   if (!library) {
     return OPERATOR_CANCELLED;
   }

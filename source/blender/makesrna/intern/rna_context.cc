@@ -192,13 +192,10 @@ static PointerRNA rna_Context_preferences_get(PointerRNA * /*ptr*/)
   return newptr;
 }
 
-static PointerRNA rna_Context_project_get(PointerRNA *UNUSED(ptr))
+static PointerRNA rna_Context_project_get(PointerRNA * /*ptr*/)
 {
-  struct BlenderProject *project = CTX_wm_project();
-
-  PointerRNA newptr;
-  RNA_pointer_create(NULL, &RNA_BlenderProject, project, &newptr);
-  return newptr;
+  BlenderProject *project = CTX_wm_project();
+  return RNA_pointer_create(nullptr, &RNA_BlenderProject, project);
 }
 
 static int rna_Context_mode_get(PointerRNA *ptr)

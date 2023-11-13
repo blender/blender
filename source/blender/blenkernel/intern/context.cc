@@ -773,7 +773,7 @@ ReportList *CTX_wm_reports(const bContext *C)
   return nullptr;
 }
 
-BlenderProject *CTX_wm_project(void)
+BlenderProject *CTX_wm_project()
 {
   return BKE_project_active_get();
 }

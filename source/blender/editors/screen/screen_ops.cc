@@ -5251,8 +5251,7 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   if (prop && RNA_property_is_set(op->ptr, prop)) {
     /* Set active section via RNA, so it can fail properly. */
 
-    PointerRNA pref_ptr;
-    RNA_pointer_create(NULL, &RNA_Preferences, &U, &pref_ptr);
+    PointerRNA pref_ptr = RNA_pointer_create(nullptr, &RNA_Preferences, &U);
     PropertyRNA *active_section_prop = RNA_struct_find_property(&pref_ptr, "active_section");
 
     RNA_property_enum_set(&pref_ptr, active_section_prop, RNA_property_enum_get(op->ptr, prop));
@@ -5312,8 +5311,8 @@ static int project_settings_show_exec(bContext *C, wmOperator *op)
     /* Set active section via RNA, so it can fail properly. */
 
     bScreen *screen = CTX_wm_screen(C);
-    PointerRNA space_ptr;
-    RNA_pointer_create(&screen->id, &RNA_SpaceProjectSettings, space_project, &space_ptr);
+    PointerRNA space_ptr = RNA_pointer_create(
+        &screen->id, &RNA_SpaceProjectSettings, space_project);
     PropertyRNA *active_section_prop = RNA_struct_find_property(&space_ptr, "active_section");
 
     RNA_property_enum_set(&space_ptr, active_section_prop, RNA_property_enum_get(op->ptr, prop));

@@ -14,7 +14,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_defaults.h"
@@ -71,13 +71,13 @@ void BKE_asset_library_custom_path_set(CustomAssetLibraryDefinition *library, co
   STRNCPY(library->dirpath, dirpath);
 }
 
-CustomAssetLibraryDefinition *BKE_asset_library_custom_find_from_index(
-    const ListBase *custom_libraries, int index)
+CustomAssetLibraryDefinition *BKE_asset_library_custom_find_index(const ListBase *custom_libraries,
+                                                                  int index)
 {
   return static_cast<CustomAssetLibraryDefinition *>(BLI_findlink(custom_libraries, index));
 }
 
-CustomAssetLibraryDefinition *BKE_asset_library_custom_find_from_name(
+CustomAssetLibraryDefinition *BKE_asset_library_custom_find_by_name(
     const ListBase *custom_libraries, const char *name)
 {
   return static_cast<CustomAssetLibraryDefinition *>(
@@ -92,7 +92,7 @@ CustomAssetLibraryDefinition *BKE_asset_library_custom_containing_path(
       return asset_lib_pref;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 int BKE_asset_library_custom_get_index(const ListBase *custom_libraries,
