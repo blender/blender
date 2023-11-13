@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -51119,6 +51119,15 @@ msgid "Toggle object's force field"
 msgstr "Включить/выключить силовое поле объекта"
 
 
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Добавить Grease Pencil"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Добавить объект Grease Pencil в сцену"
+
+
 msgid "Create an empty grease pencil object"
 msgstr "Создать пустой объект Grease Pencil"
 
@@ -51219,15 +51228,6 @@ msgstr "Удалить модификатор Grease Pencil"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "Удалить модификатор у активного объекта Grease Pencil"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Добавить Grease Pencil"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Добавить объект Grease Pencil в сцену"
 
 
 msgctxt "Operator"
@@ -85682,6 +85682,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Выбор связываемых настроек частиц"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Выбор связываемых данных Grease Pencil"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Выбор связываемого видеофрагмента"
 
@@ -85708,10 +85712,6 @@ msgstr "Выбрать рабочее пространство для созда
 
 msgid "Browse LightProbe to be linked"
 msgstr "Выбор связываемого зонда освещения"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Выбор связываемых данных Grease Pencil"
 
 
 msgid "Browse ID data to be linked"

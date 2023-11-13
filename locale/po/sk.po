@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2023-10-20 06:21+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -1235,11 +1235,6 @@ msgstr "Krivky"
 msgctxt "ID"
 msgid "Font"
 msgstr "Písmo"
-
-
-msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Pastelka (staršia verzia)"
 
 
 msgctxt "ID"
@@ -6489,10 +6484,6 @@ msgstr "Použije RGB krivky pre transformáciu predbežného zobrazenia"
 
 msgid "High Dynamic Range"
 msgstr "Vysoký dynamický rozsah"
-
-
-msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' does not generate HDR colors"
-msgstr "Povolí zobrazenie vysokého dynamického rozsahu vo vykreslenom zobrazení, čím sa zruší obmedzenie jasu displeja. To si vyžaduje monitor s podporou HDR a transformáciu zobrazenia určenú pre HDR. \"Filmový\" nevytvára farby HDR"
 
 
 msgid "View Transform"
@@ -67819,12 +67810,12 @@ msgstr "Presunie vstupy a výstupy z modifikátora do novej skupiny uzlov"
 
 
 msgctxt "Operator"
-msgid "Add Grease Pencil (legacy)"
-msgstr "Pridať Pastelku (zastaralé)"
+msgid "Add Grease Pencil"
+msgstr "Pridať pastelku"
 
 
-msgid "Add a Grease Pencil (legacy) object to the scene"
-msgstr "Pridá objekt Pastelky (zastaralé) na scénu"
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Pridá objekt pastelky na scénu"
 
 
 msgid "Stroke offset for the line art modifier"
@@ -67972,15 +67963,6 @@ msgstr "Odstrániť modifikátor pastelky"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "Odstráni modifikátor z aktívneho objektu pastelky"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Pridať pastelku"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Pridá objekt pastelky na scénu"
 
 
 msgctxt "Operator"
@@ -82888,10 +82870,6 @@ msgstr "Dĺžka poľa"
 
 msgid "Python value for unsupported custom property types"
 msgstr "Hodnota jazyka Python pre nepodporované vlastné typy vlastností"
-
-
-msgid "Grease Pencil (legacy)"
-msgstr "Pastelka (staršia verzia)"
 
 
 msgid "Speaker"
@@ -121549,8 +121527,8 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Prehľadávať nastavenia častíc na prepojenie"
 
 
-msgid "Browse Grease Pencil (legacy) Data to be linked"
-msgstr "Prehľadávať Pastelku (staršie) Údaje, ktoré sa majú prepojiť"
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Prehľadávať údaje pastelky na prepojenie"
 
 
 msgid "Browse Movie Clip to be linked"
@@ -121591,10 +121569,6 @@ msgstr "Prehľadávať údaje mračna bodov na prepojenie"
 
 msgid "Browse Volume Data to be linked"
 msgstr "Prehľadávať údaje objemov na prepojenie"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Prehľadávať údaje pastelky na prepojenie"
 
 
 msgid "Browse ID data to be linked"

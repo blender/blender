@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2023-10-10 05:56+0000\n"
 "Last-Translator: maylog <maylog@126.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
@@ -63770,6 +63770,15 @@ msgid "Switch between an attribute and a single value to define the data for eve
 msgstr "在属性和单个值之间切换以定义每个元素的数据"
 
 
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "添加蜡笔"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "向场景中添加一个蜡笔物体"
+
+
 msgid "Stroke offset for the line art modifier"
 msgstr "线条画修改器的笔画偏移"
 
@@ -63915,15 +63924,6 @@ msgstr "删除蜡笔修改器"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "从活动物体上移除修改器"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "添加蜡笔"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "向场景中添加一个蜡笔物体"
 
 
 msgctxt "Operator"
@@ -77897,10 +77897,6 @@ msgstr "数组长度"
 
 msgid "Python value for unsupported custom property types"
 msgstr "用于不受支持的自定义属性类型的Python值"
-
-
-msgid "Grease Pencil (legacy)"
-msgstr "蜡笔(旧版)"
 
 
 msgid "Speaker"
@@ -112943,6 +112939,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "浏览要关联的粒子设置"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "浏览要关联的蜡笔"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "浏览要关联的影片剪辑"
 
@@ -112981,10 +112981,6 @@ msgstr "浏览要关联的点云数据"
 
 msgid "Browse Volume Data to be linked"
 msgstr "浏览要关联的体积数据"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "浏览要关联的蜡笔"
 
 
 msgid "Browse ID data to be linked"

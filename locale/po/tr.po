@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2023-11-06 03:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1235,11 +1235,6 @@ msgstr "Eğriler"
 msgctxt "ID"
 msgid "Font"
 msgstr "Yazıtipi"
-
-
-msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Gres Kalemi (eski)"
 
 
 msgctxt "ID"
@@ -8938,11 +8933,6 @@ msgid "Move to Nodes"
 msgstr "Düğümlere Taşı"
 
 
-msgctxt "Operator"
-msgid "Add Grease Pencil (legacy)"
-msgstr "Gres Kalemi Ekle (eski)"
-
-
 msgid "Scene Line Art"
 msgstr "Sahne Çizgi Sanatı"
 
@@ -9762,10 +9752,6 @@ msgstr "Tüm Gölgelendirme Türleri"
 msgctxt "Operator"
 msgid "Refresh Data-Block Previews"
 msgstr "Veri Bloku Önizlemelerini Yenile"
-
-
-msgid "Grease Pencil (legacy)"
-msgstr "Gres Kalemi (eski)"
 
 
 msgid "Data-Block"
@@ -12402,8 +12388,8 @@ msgid "Browse Brush to be linked"
 msgstr "Bağlantılanacak fırçaya göz at"
 
 
-msgid "Browse Grease Pencil (legacy) Data to be linked"
-msgstr "Bağlantılanacak gres kalemi (eski) verisine göz at"
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Bağlantılanacak gres kalemi verisine göz at"
 
 
 msgid "Browse Cache Files to be linked"
@@ -12412,10 +12398,6 @@ msgstr "Bağlantılanacak önbellek dosyalarına göz at"
 
 msgid "Browse Workspace to be linked"
 msgstr "Bağlantılanacak çalışma alanına göz at"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Bağlantılanacak gres kalemi verisine göz at"
 
 
 msgid "Browse ID data to be linked"

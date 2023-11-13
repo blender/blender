@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
-"PO-Revision-Date: 2023-11-06 12:00+0000\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"PO-Revision-Date: 2023-11-07 21:51+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -1250,11 +1250,6 @@ msgstr "Carattere"
 
 
 msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Greace Pencil (obsoleto)"
-
-
-msgctxt "ID"
 msgid "Grease Pencil"
 msgstr "Matita"
 
@@ -2441,6 +2436,14 @@ msgid "Collection of point clouds"
 msgstr "Raccolta di nuvole di punti"
 
 
+msgid "Main Light Probes"
+msgstr "Principali Sonde Luminose"
+
+
+msgid "Collection of light probes"
+msgstr "Raccolta di sonde luminose"
+
+
 msgid "Main Scenes"
 msgstr "Principale Scene"
 
@@ -3089,8 +3092,16 @@ msgid "Roll offset for the end of the B-Bone, adjusts twist"
 msgstr "Scostamento Rollio per la fine dell'Osso-B, regola la torsione"
 
 
+msgid "Scale In"
+msgstr "Scala In"
+
+
 msgid "Scale factors for the start of the B-Bone, adjusts thickness (for tapering effects)"
 msgstr "Fattori di scala per l'inizio del B-Bone, regolano lo spessore (per effetti affusolati)"
+
+
+msgid "Scale Out"
+msgstr "Scala Out"
 
 
 msgid "Scale factors for the end of the B-Bone, adjusts thickness (for tapering effects)"
@@ -4359,6 +4370,10 @@ msgid "Self Friction"
 msgstr "Auto Attrito"
 
 
+msgid "Friction with self contact"
+msgstr "Frizione con l'autocontatto"
+
+
 msgid "Enable Collision"
 msgstr "Abilita Collisione"
 
@@ -4373,6 +4388,10 @@ msgstr "Abilita Auto Collisione"
 
 msgid "Enable self collisions"
 msgstr "Abilita le auto collisioni"
+
+
+msgid "Collision Vertex Group"
+msgstr "Gruppo di Vertici di Collisione"
 
 
 msgid "Selfcollision Vertex Group"
@@ -4399,6 +4418,10 @@ msgid "Bending Spring Damping"
 msgstr "Smorzamento Elasticità Flessione"
 
 
+msgid "Bending Model"
+msgstr "Modello di Flessione"
+
+
 msgid "Angular"
 msgstr "Angolare"
 
@@ -4423,6 +4446,10 @@ msgid "Collider Friction"
 msgstr "Attrito Collisore"
 
 
+msgid "Maximum compression stiffness value"
+msgstr "Massimo valore di rigidità a compressione"
+
+
 msgid "Target Density Strength"
 msgstr "Forza Densità Obiettivo"
 
@@ -4441,6 +4468,10 @@ msgstr "Massima densità dei capelli"
 
 msgid "Effector Weights"
 msgstr "Pesi Effettore"
+
+
+msgid "Fluid Density"
+msgstr "Densità del Fluido"
 
 
 msgid "Goal Default"
@@ -4495,6 +4526,18 @@ msgid "Internal Friction"
 msgstr "Attrito Interno"
 
 
+msgid "Tension Stiffness"
+msgstr "Rigidità della Tensione"
+
+
+msgid "Tension Stiffness Maximum"
+msgstr "Rigidità della Tensione Massima"
+
+
+msgid "Maximum tension stiffness value"
+msgstr "Valore massimo di rigidità a trazione"
+
+
 msgid "Pin Stiffness"
 msgstr "Appunta Rigidità"
 
@@ -4527,12 +4570,28 @@ msgid "Maximum sewing force"
 msgstr "Massima forza della cucitura"
 
 
+msgid "Shear Spring Damping"
+msgstr "Smorzamento della Molla a Taglio"
+
+
+msgid "Shear Stiffness Maximum"
+msgstr "Rigidità a Taglio Massima"
+
+
 msgid "Shrink Factor Max"
 msgstr "Max Fattore Restringimento"
 
 
 msgid "Max amount to shrink cloth by"
 msgstr "Ammontare massimo di cui restringere la stoffa"
+
+
+msgid "Shrink Factor"
+msgstr "Fattore di Contrazione"
+
+
+msgid "Tension Spring Damping"
+msgstr "Smorzamento della Molla di Tensione"
 
 
 msgid "Pressure"
@@ -4547,6 +4606,10 @@ msgid "Make simulation respect deformations in the base mesh"
 msgstr "Fa si che la simulazione rispetti le deformazioni della mesh di base"
 
 
+msgid "Use Custom Volume"
+msgstr "Usa Volume Personalizzato"
+
+
 msgid "Sew Cloth"
 msgstr "Cuci Tessuto"
 
@@ -4559,8 +4622,24 @@ msgid "Vertex group for fine control over bending stiffness"
 msgstr "Gruppo vertici per il controllo preciso della rigidità alla flessione"
 
 
+msgid "Vertex group for fine control over the internal spring stiffness"
+msgstr "Gruppo di vertici per un controllo accurato della rigidità della molla interna"
+
+
 msgid "Vertex Group for pinning of vertices"
 msgstr "Gruppo di Vertici per appuntare i vertici"
+
+
+msgid "Pressure Vertex Group"
+msgstr "Gruppo di Vertici della Pressione"
+
+
+msgid "Shear Stiffness Vertex Group"
+msgstr "Gruppo di Vertici di Rigidità a Taglio"
+
+
+msgid "Vertex group for fine control over shear stiffness"
+msgstr "Gruppo di Vertici per il controllo accurato della rigidezza a taglio"
 
 
 msgid "Shrink Vertex Group"
@@ -4633,6 +4712,38 @@ msgstr "Nessuna Convergenza"
 
 msgid "Invalid Input"
 msgstr "Input Non Valido"
+
+
+msgid "Collection Child"
+msgstr "Raccolta Figlia"
+
+
+msgid "Light Linking"
+msgstr "Collegamento Illuminazione"
+
+
+msgid "Collection of child collections"
+msgstr "Raccolta di raccolte figlie"
+
+
+msgid "Include"
+msgstr "Includi"
+
+
+msgid "Exclude"
+msgstr "Escludi"
+
+
+msgid "Collection Object"
+msgstr "Oggetto della Raccolta"
+
+
+msgid "Collection Objects"
+msgstr "Oggetti della Raccolta"
+
+
+msgid "Collection of collection objects"
+msgstr "Raccolta di oggetti della raccolta"
 
 
 msgid "Collision Settings"
@@ -4727,6 +4838,18 @@ msgid "Enabled"
 msgstr "Abilitato"
 
 
+msgid "Enable this object as a collider for physics systems"
+msgstr "Abilita questo oggetto come collisore per sistemi fisici"
+
+
+msgid "Single Sided"
+msgstr "Monofacciale"
+
+
+msgid "Override Normals"
+msgstr "Sovrascrivi Normali"
+
+
 msgid "Kill Particles"
 msgstr "Uccidi Particelle"
 
@@ -4747,8 +4870,16 @@ msgid "Input color space settings"
 msgstr "Impostazioni spazio colore input"
 
 
+msgid "Is Data"
+msgstr "Sono Dati"
+
+
 msgid "Input Color Space"
 msgstr "Spazio Colore Input"
+
+
+msgid "Display P3"
+msgstr "Visualizza P3"
 
 
 msgid "Color Space"
@@ -4785,6 +4916,10 @@ msgstr "Aspetto"
 
 msgid "Use Curves"
 msgstr "Usa Curve"
+
+
+msgid "Use RGB curved for pre-display transformation"
+msgstr "Utilizza la curva RGB per la trasformazione pre-visualizzazione"
 
 
 msgid "View Transform"
@@ -5024,6 +5159,10 @@ msgid "Constraint modifying the transformation of objects and bones"
 msgstr "I vincoli hanno effetto sulla trasformazione dell'oggetto"
 
 
+msgid "Constraint is the one being edited"
+msgstr "Il vincolo è quello che viene modificato"
+
+
 msgid "Lin error"
 msgstr "Errore lineare"
 
@@ -5078,6 +5217,10 @@ msgstr "Spazio Mondo"
 
 msgid "The constraint is applied relative to the world coordinate system"
 msgstr "Il vincolo è applicato relativamente al sistema di coordinate del mondo"
+
+
+msgid "Custom Space"
+msgstr "Spazio Personalizzato"
 
 
 msgid "Pose Space"
@@ -5368,6 +5511,14 @@ msgid "Mix Mode"
 msgstr "Modalità Miscela"
 
 
+msgid "Before Original (Full)"
+msgstr "Prima dell'Originale (Completo)"
+
+
+msgid "Before Original (Aligned)"
+msgstr "Prima dell'Originale (Allineato)"
+
+
 msgid "Target object"
 msgstr "Oggetto obiettivo"
 
@@ -5420,8 +5571,20 @@ msgid "Object Action"
 msgstr "Azione Oggetto"
 
 
+msgid "Use Evaluation Time"
+msgstr "Utilizza Tempo di Valutazione"
+
+
+msgid "Armature Constraint"
+msgstr "Vincolo dell'Armatura"
+
+
 msgid "Targets"
 msgstr "Obiettivi"
+
+
+msgid "Target Bones"
+msgstr "Osso Bersaglio"
 
 
 msgid "Preserve Volume"
@@ -5592,6 +5755,10 @@ msgid "Head/Tail"
 msgstr "Testa/Coda"
 
 
+msgid "Target along length of bone: Head is 0, Tail is 1"
+msgstr "Bersaglio lungo la lunghezza dell'osso: la Testa è 0, la Coda è 1"
+
+
 msgid "Invert X"
 msgstr "Inverti X"
 
@@ -5660,6 +5827,10 @@ msgid "Copy the rotation of the target"
 msgstr "Copia la rotazione dell'obiettivo"
 
 
+msgid "Euler Order"
+msgstr "Ordine di Eulero"
+
+
 msgid "Default"
 msgstr "Predefinito"
 
@@ -5700,6 +5871,14 @@ msgid "Invert the Z rotation"
 msgstr "Inverti la rotazione Z"
 
 
+msgid "Before Original"
+msgstr "Prima dell'Originale"
+
+
+msgid "DEPRECATED: Add original rotation into copied rotation"
+msgstr "DEPRECATO: aggiunge la rotazione originale alla rotazione copiata"
+
+
 msgid "Copy the target's X rotation"
 msgstr "Copia la rotazione X dell'obiettivo"
 
@@ -5728,6 +5907,10 @@ msgid "Additive"
 msgstr "Aggiuntivo"
 
 
+msgid "Combine original scale with copied scale"
+msgstr "Combina la scala originale con la scala copiata"
+
+
 msgid "Copy the target's X scale"
 msgstr "Copia la scala X dell'obiettivo"
 
@@ -5746,6 +5929,10 @@ msgstr "Vincolo Copia Trasformazioni"
 
 msgid "Copy all the transforms of the target"
 msgstr "Copia tutte le trasformazioni dell'obiettivo"
+
+
+msgid "Remove Target Shear"
+msgstr "Rimuovi Taglio Bersaglio"
 
 
 msgid "Damped Track Constraint"
@@ -6072,6 +6259,10 @@ msgid "Limit the distance from target object"
 msgstr "Limita la distanza dall'oggetto obiettivo"
 
 
+msgid "Affect Transform"
+msgstr "Influenza la Trasformazione"
+
+
 msgid "Transforms are affected by this constraint as well"
 msgstr "Anche le trasformazioni sono interessate da questo vincolo"
 
@@ -6156,6 +6347,10 @@ msgid "Use the minimum Z value"
 msgstr "Usa il valore minimo della Z"
 
 
+msgid "Transform tools are affected by this constraint as well"
+msgstr "Anche gli strumenti di trasformazione sono influenzati da questo vincolo"
+
+
 msgid "Limit Rotation Constraint"
 msgstr "Vincolo Limita Rotazione"
 
@@ -6210,6 +6405,10 @@ msgstr "Asse Libero"
 
 msgid "The free scaling axis of the object"
 msgstr "L'asse di scalatura libera dell'oggetto"
+
+
+msgid "Strict"
+msgstr "Rigoroso"
 
 
 msgid "Uniform"
@@ -6460,6 +6659,14 @@ msgid "Align Axis To Normal"
 msgstr "Allinea Asse Alla Normale"
 
 
+msgid "Snap Mode"
+msgstr "Modalità Aggancia"
+
+
+msgid "Outside Surface"
+msgstr "Superficie Esterna"
+
+
 msgid "Spline IK Constraint"
 msgstr "Vincolo Spline IK"
 
@@ -6544,12 +6751,20 @@ msgid "Ignore the relative lengths of the bones when fitting to the curve"
 msgstr "Ignora le lunghezze relative delle ossa quando le adatta alla curva"
 
 
+msgid "Use Original Scale"
+msgstr "Usa Scala Originale"
+
+
 msgid "XZ Scale Mode"
 msgstr "Modalità Scala XZ"
 
 
 msgid "Method used for determining the scaling of the X and Z axes of the bones"
 msgstr "Metodo utilizzato per determinare la scalatura degli assi X e Z delle ossa"
+
+
+msgid "Don't scale the X and Z axes"
+msgstr "Non scala gli assi X e Z"
 
 
 msgid "Bone Original"
@@ -6582,6 +6797,10 @@ msgstr "Modalità Scala Y"
 
 msgid "Fit Curve"
 msgstr "Adatta a Curva"
+
+
+msgid "Use the original Y scale of the bone"
+msgstr "Usa la scala Y originale dell'osso"
 
 
 msgid "Stretch To Constraint"
@@ -6696,6 +6915,14 @@ msgid "Bottom range of Z axis source motion"
 msgstr "Valore più basso dell'intervallo origine del movimento sull'asse X"
 
 
+msgid "From Mode"
+msgstr "Dalla Modalità"
+
+
+msgid "Quaternion rotation"
+msgstr "Rotazione dei Quaternioni"
+
+
 msgid "Map From"
 msgstr "Mappa Da"
 
@@ -6710,6 +6937,10 @@ msgstr "Posizione"
 
 msgid "Map To"
 msgstr "Mappa Su"
+
+
+msgid "The transformation type to affect on the constrained object"
+msgstr "Il tipo di trasformazione da applicare all'oggetto vincolato"
 
 
 msgid "Map To X From"
@@ -6734,6 +6965,18 @@ msgstr "Mappa Su Z Da"
 
 msgid "The source axis constrained object's Z axis uses"
 msgstr "L'asse origine vincolato usato dall'asse Z dell'oggetto"
+
+
+msgid "Rotation Mix Mode"
+msgstr "Modalità Mix Rotazione"
+
+
+msgid "Scale Mix Mode"
+msgstr "Modalità Mix Scala"
+
+
+msgid "To Order"
+msgstr "Per Ordinare"
 
 
 msgid "To Maximum X"
@@ -6800,6 +7043,10 @@ msgid "Target object for multi-target constraints"
 msgstr "Oggetto obiettivo per vincoli multi obiettivo"
 
 
+msgid "Blend Weight"
+msgstr "Peso della Fusione"
+
+
 msgid "Points"
 msgstr "Punti"
 
@@ -6818,6 +7065,10 @@ msgstr "Interpolazione curva in questo punto: Bezier o vettore"
 
 msgid "Auto Handle"
 msgstr "Maniglia Automatica"
+
+
+msgid "Auto-Clamped Handle"
+msgstr "Maniglia Auto-Bloccante"
 
 
 msgid "Vector Handle"
@@ -6866,6 +7117,10 @@ msgstr "Orizzontale"
 
 msgid "Extrapolated"
 msgstr "Estrapolati"
+
+
+msgid "Tone"
+msgstr "Tono"
 
 
 msgid "Standard"
@@ -6968,8 +7223,24 @@ msgid "Plane for projected stroke"
 msgstr "Piano per il tratto proiettatto"
 
 
+msgid "Normal to Surface"
+msgstr "Normale alla Superficie"
+
+
+msgid "Draw in a plane perpendicular to the surface"
+msgstr "Disegna in un piano perpendicolare alla superficie"
+
+
+msgid "Tangent to Surface"
+msgstr "Tangente alla Superficie"
+
+
 msgid "View"
 msgstr "Vista"
+
+
+msgid "Draw in a plane aligned to the viewport"
+msgstr "Disegna in un piano allineato alla vista"
 
 
 msgid "Detect Corners"
@@ -6992,12 +7263,59 @@ msgid "Use the start of the stroke for the depth"
 msgstr "Usa la parte iniziale del tratto per la profondità"
 
 
+msgid "Curve Point"
+msgstr "Punto della Curva"
+
+
+msgid "Curve control point"
+msgstr "Punto di controllo della curva"
+
+
 msgid "Index"
 msgstr "Indice"
 
 
+msgid "Index of this point"
+msgstr "Indice di questo punto"
+
+
+msgid "Profile control points"
+msgstr "Punti di controllo del profilo"
+
+
+msgctxt "Mesh"
+msgid "Preset"
+msgstr "Preimpostazione"
+
+
+msgctxt "Mesh"
+msgid "Line"
+msgstr "Linea"
+
+
+msgctxt "Mesh"
+msgid "Steps"
+msgstr "Passi"
+
+
 msgid "Segments"
 msgstr "Segmenti"
+
+
+msgid "First Handle Type"
+msgstr "Primo Tipo di Maniglia"
+
+
+msgid "Free Handle"
+msgstr "Maniglia Libera"
+
+
+msgid "Aligned Free Handles"
+msgstr "Maniglie Libere Allineate"
+
+
+msgid "Second Handle Type"
+msgstr "Secondo Tipo di Maniglia"
 
 
 msgid "Curve Splines"
@@ -56724,6 +57042,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Naviga Impostazioni Particella del Mondo da collegare"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Naviga Dati della Matita da collegare"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Naviga Filmato da collegare"
 
@@ -56742,10 +57064,6 @@ msgstr "Naviga Dati Pittura Curva da collegare"
 
 msgid "Browse Cache Files to be linked"
 msgstr "Naviga File Cache da collegare"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Naviga Dati della Matita da collegare"
 
 
 msgid "Browse ID data to be linked"
