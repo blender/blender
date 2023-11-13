@@ -4060,15 +4060,6 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
        */
       oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
 
-      /* If "id" is a real data-block and not a placeholder, we need to
-       * update fd->libmap to replace ID_LINK_PLACEHOLDER with the real
-       * ID_* code.
-       *
-       * When the real ID is read this replacement happens for all
-       * libraries read so far, but not for libraries that have not been
-       * read yet at that point. */
-      change_link_placeholder_to_real_ID_pointer_fd(fd, bhead->old, id);
-
       /* Commented because this can print way too much. */
 #if 0
       if (G.debug & G_DEBUG) {
