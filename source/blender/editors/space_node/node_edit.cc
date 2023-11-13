@@ -39,6 +39,7 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "RE_engine.h"
@@ -234,6 +235,7 @@ static void compo_initjob(void *cjv)
   ViewLayer *view_layer = cj->view_layer;
 
   cj->compositor_depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
+  DEG_debug_name_set(cj->compositor_depsgraph, "COMPOSITOR");
   DEG_graph_build_for_compositor_preview(cj->compositor_depsgraph, cj->ntree);
 
   /* NOTE: Don't update animation to preserve unkeyed changes, this means can not use
