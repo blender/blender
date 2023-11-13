@@ -187,7 +187,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
                 IFACE_(asset->get_name().c_str()),
                 ICON_NONE,
                 nullptr,
-                WM_OP_INVOKE_DEFAULT,
+                WM_OP_INVOKE_REGION_WIN,
                 UI_ITEM_NONE,
                 &op_ptr);
     asset::operator_asset_reference_props_set(*asset, op_ptr);
@@ -234,7 +234,7 @@ static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
                 IFACE_(asset->get_name().c_str()),
                 ICON_NONE,
                 nullptr,
-                WM_OP_INVOKE_DEFAULT,
+                WM_OP_INVOKE_REGION_WIN,
                 UI_ITEM_NONE,
                 &op_ptr);
     asset::operator_asset_reference_props_set(*asset, op_ptr);
