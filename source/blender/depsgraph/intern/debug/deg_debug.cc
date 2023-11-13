@@ -17,6 +17,8 @@
 
 #include "BKE_global.h"
 
+#include "intern/depsgraph.hh"
+
 namespace blender::deg {
 
 DepsgraphDebug::DepsgraphDebug()
@@ -51,8 +53,19 @@ void DepsgraphDebug::end_graph_evaluation()
   }
 
   const double graph_eval_end_time = PIL_check_seconds_timer();
-  printf("Depsgraph updated in %f seconds.\n", graph_eval_end_time - graph_evaluation_start_time_);
-  printf("Depsgraph evaluation FPS: %f\n", 1.0f / fps_samples_.get_averaged());
+  const double graph_eval_time = graph_eval_end_time - graph_evaluation_start_time_;
+
+  const double fps_samples = fps_samples_.get_averaged();
+  const double fps = fps_samples ? 1.0 / fps_samples_.get_averaged() : 0.0;
+
+  if (name.empty()) {
+    printf("Depsgraph updated in %f seconds.\n", graph_eval_time);
+    printf("Depsgraph evaluation FPS: %f\n", fps);
+  }
+  else {
+    printf("Depsgraph [%s] updated in %f seconds.\n", name.c_str(), graph_eval_time);
+    printf("Depsgraph [%s] evaluation FPS: %f\n", name.c_str(), fps);
+  }
 
   is_ever_evaluated = true;
 }

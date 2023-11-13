@@ -33,6 +33,9 @@ template<int MaxSamples> class AveragedTimeSampler {
 
   double get_averaged() const
   {
+    if (!num_samples_) {
+      return 0.0;
+    }
     double sum = 0.0;
     for (int i = 0; i < num_samples_; ++i) {
       sum += samples_[i];
