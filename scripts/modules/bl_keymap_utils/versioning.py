@@ -83,8 +83,8 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                 elif item_modal == 'ROTATE':
                     km_items.append(('TRACKBALL', item_event, None))
 
-        # The modal key for "Rotate Normals" also didn't exist until then.
-        km_items.append(('ROTATE_NORMALS', {"type": 'N', "value": 'PRESS'}, None))
+            # The modal key for "Rotate Normals" also didn't exist until then.
+            km_items.append(('ROTATE_NORMALS', {"type": 'N', "value": 'PRESS'}, None))
 
     if keyconfig_version <= (4, 0, 3):
         if not has_copy:
