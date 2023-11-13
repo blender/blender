@@ -841,6 +841,9 @@ void applyTransObjects(TransInfo *t)
 
 static void transdata_restore_basic(TransDataBasic *td_basic)
 {
+  BLI_assert_msg(td_basic->val != td_basic->loc,
+                 "it shouldn't happen. `val` is for 1D, `loc` is for 3D");
+
   if (td_basic->val) {
     *td_basic->val = td_basic->ival;
   }
