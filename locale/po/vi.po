@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -61686,6 +61686,15 @@ msgid "Switch between an attribute and a single value to define the data for eve
 msgstr "Trao đổi giữa đặc điểm và một cái giá trị cho chỉ định dữ liệu từng phần tử"
 
 
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Thêm Bút Sáp"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Thêm một vật thể bút sáp vào cảnh"
+
+
 msgid "Stroke offset for the line art modifier"
 msgstr "Cách nới nét cho bộ điều chỉnh đường nghệ thuật"
 
@@ -61831,15 +61840,6 @@ msgstr "Xóa Bộ Điều Chỉnh Bút Sáp"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "Xóa một bộ điều chỉnh từ vật thể bút sáp hoạt động"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Thêm Bút Sáp"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Thêm một vật thể bút sáp vào cảnh"
 
 
 msgctxt "Operator"
@@ -108888,6 +108888,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Trình duyệt Cài Đặt Hạt cho liên kết"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Trình duyệt Bút Sáp cho liên kết"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Trình duyệt Đoạn Phim cho liên kết"
 
@@ -108926,10 +108930,6 @@ msgstr "Trình duyệt Dữ Liệu Điểm Mây cho được liên kết"
 
 msgid "Browse Volume Data to be linked"
 msgstr "Trình duyệt Dữ Liệu Thể Tích cho được liên kết"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Trình duyệt Bút Sáp cho liên kết"
 
 
 msgid "Browse ID data to be linked"

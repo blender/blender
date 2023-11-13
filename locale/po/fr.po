@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
-"PO-Revision-Date: 2023-10-31 12:54+0000\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"PO-Revision-Date: 2023-11-07 21:51+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -1255,11 +1255,6 @@ msgstr "Courbes"
 msgctxt "ID"
 msgid "Font"
 msgstr "Police"
-
-
-msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Grease Pencil (obsolète)"
 
 
 msgctxt "ID"
@@ -6509,10 +6504,6 @@ msgstr "Utiliser des courbes RVB pour la transformation avant affichage"
 
 msgid "High Dynamic Range"
 msgstr "Grande gamme dynamique"
-
-
-msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' does not generate HDR colors"
-msgstr "Activer l’affichage à grande gamme dynamique (HDR) dans les vues rendues, en enlevant la limite de luminosité de l’affichage. Nécessite un écran avec prise en charge HDR et une transformation de vue conçue pour l’HDR. « Filmic » ne génère pas de couleurs HDR"
 
 
 msgid "View Transform"
@@ -67920,12 +67911,12 @@ msgstr "Déplacer les entrées et sorties à l’intérieur du modificateur vers
 
 
 msgctxt "Operator"
-msgid "Add Grease Pencil (legacy)"
-msgstr "Ajouter un Grease Pencil (obsolète)"
+msgid "Add Grease Pencil"
+msgstr "Ajouter un Grease Pencil"
 
 
-msgid "Add a Grease Pencil (legacy) object to the scene"
-msgstr "Ajouter un objet Grease Pencil (obsolète) à la scène"
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Ajouter un objet Grease Pencil à la scène"
 
 
 msgid "Stroke offset for the line art modifier"
@@ -68073,15 +68064,6 @@ msgstr "Supprimer le modificateur de Grease Pencil"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "Retirer un modificateur de l’objet Grease Pencil actif"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Ajouter un Grease Pencil"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Ajouter un objet Grease Pencil à la scène"
 
 
 msgctxt "Operator"
@@ -79649,7 +79631,7 @@ msgstr "Effacer au lieu de créer des coutures"
 
 msgctxt "Operator"
 msgid "Minimize Stretch"
-msgstr "Minimiser étirement"
+msgstr "Minimiser l’étirement"
 
 
 msgid "Reduce UV stretching by relaxing angles"
@@ -83024,10 +83006,6 @@ msgstr "Longueur du tableau"
 
 msgid "Python value for unsupported custom property types"
 msgstr "Valeur Python pour les types de propriétés personnalisées non pris en charge"
-
-
-msgid "Grease Pencil (legacy)"
-msgstr "Grease Pencil (obsolète)"
 
 
 msgid "Speaker"
@@ -121858,8 +121836,8 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Parcourir les réglages de particules à lier"
 
 
-msgid "Browse Grease Pencil (legacy) Data to be linked"
-msgstr "Parcourir les données Grease Pencil (obsolète) à lier"
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Parcourir les données Grease Pencil à lier"
 
 
 msgid "Browse Movie Clip to be linked"
@@ -121900,10 +121878,6 @@ msgstr "Parcourir les données nuage de points à lier"
 
 msgid "Browse Volume Data to be linked"
 msgstr "Parcourir les données volume à lier"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Parcourir les données Grease Pencil à lier"
 
 
 msgid "Browse ID data to be linked"

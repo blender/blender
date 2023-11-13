@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -54430,6 +54430,15 @@ msgid "Toggle object's force field"
 msgstr "Перемкнути силове поле об'єкта"
 
 
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Додати Нарисний Олівець"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Додати об'єкт Нарисного Олівця у сцену"
+
+
 msgid "Create an empty grease pencil object"
 msgstr "Створити порожній об'єкт нарисного олівця"
 
@@ -54539,15 +54548,6 @@ msgstr "Вилучити Модифікатор Нарисного Олівця"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "Вилучити модифікатор з активного об'єкта нарисного олівця"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Додати Нарисний Олівець"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Додати об'єкт Нарисного Олівця у сцену"
 
 
 msgctxt "Operator"
@@ -94590,6 +94590,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Переглянути параметри частинок для пов'язання"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Переглянути дані нарисного пензля для пов'язання"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Переглянути відеокліп для пов'язання"
 
@@ -94624,10 +94628,6 @@ msgstr "Переглянути Дані Хмари Точок для пов'яз
 
 msgid "Browse Volume Data to be linked"
 msgstr "Переглянути Дані Об'єму для пов'язання"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Переглянути дані нарисного пензля для пов'язання"
 
 
 msgid "Browse ID data to be linked"

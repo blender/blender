@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -7812,6 +7812,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Przeglądaj dane cząstek do powiązania"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Przeglądaj dane szkicownika do powiązania"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Przeglądaj klipy filmowe do powiązania"
 
@@ -7826,10 +7830,6 @@ msgstr "Przeglądaj dane palety do powiązania"
 
 msgid "Browse Paint Curve Data to be linked"
 msgstr "Przeglądaj dane krzywej malowania do powiązania"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Przeglądaj dane szkicownika do powiązania"
 
 
 msgid "Browse ID data to be linked"

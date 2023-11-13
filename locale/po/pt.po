@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
-"PO-Revision-Date: 2023-11-02 12:54+0000\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"PO-Revision-Date: 2023-11-09 04:54+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -346,8 +346,32 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Optimizar todos os núcleos. Renderização mais rápida, pode resultar em utilização de fundo de CPU extra"
 
 
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "O MetalRT para rastreamento de raios usa menos memória em cenas que usem curvas extensivamente, e pode dar melhor performance em casos específicos"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Desactivar o MetalRT (usa estrutura BVH2 para procura de intersecções)"
+
+
+msgid "On"
+msgstr "Ligado"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "Activar o MetalRT para procura de intersecções"
+
+
 msgid "Auto"
 msgstr "Automático"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Escolher automaticamente o método de intersecção mais rápido"
 
 
 msgid "Distribute memory across devices"
@@ -1234,11 +1258,6 @@ msgstr "Curvas"
 msgctxt "ID"
 msgid "Font"
 msgstr "Fonte"
-
-
-msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Grease Pencil (legado)"
 
 
 msgctxt "ID"
@@ -6492,10 +6511,6 @@ msgid "High Dynamic Range"
 msgstr "Alto Alcance Dinâmico"
 
 
-msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' does not generate HDR colors"
-msgstr "Activar exibição em alto alcance dinâmico, removendo limites de brilho. Isto requer um monitor com suporte para HDR, e uma transformação de exibição concebida para HDR. 'Filmic' não gera cores HDR"
-
-
 msgid "View Transform"
 msgstr "Transformação visual"
 
@@ -7489,6 +7504,10 @@ msgid "Head/Tail"
 msgstr "Meão entre a cabeça e a base"
 
 
+msgid "Target along length of bone: Head is 0, Tail is 1"
+msgstr "Alvo ao longo do comprimento do osso: 0 na Cabeça, 1 na Base"
+
+
 msgid "Invert X"
 msgstr "Inverter X"
 
@@ -7557,32 +7576,68 @@ msgid "Copy the rotation of the target"
 msgstr "Copia as rotações do alvo."
 
 
+msgid "Euler Order"
+msgstr "Ordem Euler"
+
+
+msgid "Explicitly specify the euler rotation order"
+msgstr "Especificar explicitamente a ordem de rotação Euler"
+
+
 msgid "Default"
 msgstr "Padrão"
+
+
+msgid "Euler using the default rotation order"
+msgstr "Euler usando a rotação pré definida"
 
 
 msgid "XYZ Euler"
 msgstr "Euler XYZ"
 
 
+msgid "Euler using the XYZ rotation order"
+msgstr "Euler usando a ordem de rotação XYZ"
+
+
 msgid "XZY Euler"
 msgstr "Euler XZY"
+
+
+msgid "Euler using the XZY rotation order"
+msgstr "Euler usando a ordem de rotação XZY"
 
 
 msgid "YXZ Euler"
 msgstr "Euler YXZ"
 
 
+msgid "Euler using the YXZ rotation order"
+msgstr "Euler usando a ordem de rotação YXZ"
+
+
 msgid "YZX Euler"
 msgstr "Euler XYZ"
+
+
+msgid "Euler using the YZX rotation order"
+msgstr "Euler usando a ordem de rotação YZX"
 
 
 msgid "ZXY Euler"
 msgstr "Euler ZXY"
 
 
+msgid "Euler using the ZXY rotation order"
+msgstr "Euler usando a ordem de rotação ZXY"
+
+
 msgid "ZYX Euler"
 msgstr "Euler ZYX"
+
+
+msgid "Euler using the ZYX rotation order"
+msgstr "Euler usando a ordem de rotação ZYX"
 
 
 msgid "Invert the X rotation"
@@ -7595,6 +7650,46 @@ msgstr "Inverte a rotação no eixo Y."
 
 msgid "Invert the Z rotation"
 msgstr "Inverte a rotação no eixo Z."
+
+
+msgid "Specify how the copied and existing rotations are combined"
+msgstr "Especificar como as rotações copiadas e existentes são combinadas"
+
+
+msgid "Replace the original rotation with copied"
+msgstr "Substituir a rotação original pela copiada"
+
+
+msgid "Add euler component values together"
+msgstr "Adicionar valores dos componentes Euler"
+
+
+msgid "Before Original"
+msgstr "Antes do Original"
+
+
+msgid "Apply copied rotation before original, as if the constraint target is a parent"
+msgstr "Aplicar rotação copiada antes da original, como se o alvo da restrição é um pai"
+
+
+msgid "After Original"
+msgstr "Após Original"
+
+
+msgid "Apply copied rotation after original, as if the constraint target is a child"
+msgstr "Aplicar rotação copiada pós original, como se o alvo da restrição fosse um filho"
+
+
+msgid "Offset (Legacy)"
+msgstr "Afastamento (Legado)"
+
+
+msgid "Combine rotations like the original Offset checkbox. Does not work well for multiple axis rotations"
+msgstr "Combina roações como a caixa de verificação de Afastamento original. Não funciona bem com rotações de eixos múltiplos"
+
+
+msgid "DEPRECATED: Add original rotation into copied rotation"
+msgstr "Descontinuado: Adicionar a rotação original para a rotação copiada"
 
 
 msgid "Copy the target's X rotation"
@@ -64514,6 +64609,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Permite navegar entre os dados de definições de partículas a ser vinculados."
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Permite navegar entre os dados de lápis de cera a ser vinculados."
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Permite navegar entre os dados de clipes de filme a ser vinculados."
 
@@ -64532,10 +64631,6 @@ msgstr "Permite navegar entre os dados de curva de pintura a ser vinculados."
 
 msgid "Browse Cache Files to be linked"
 msgstr "Permite navegar entre os dados de ficheiros de cache a ser vinculados."
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Permite navegar entre os dados de lápis de cera a ser vinculados."
 
 
 msgid "Browse ID data to be linked"

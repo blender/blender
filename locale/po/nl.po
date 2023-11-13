@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'551927bbe355')\n"
+"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-06 12:01:38\n"
+"POT-Creation-Date: 2023-11-13 11:45:13\n"
 "PO-Revision-Date: 2023-10-08 06:34+0000\n"
 "Last-Translator: Wannes Malfait <wannes.malfait@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -4952,6 +4952,15 @@ msgid "Toggle Force Field"
 msgstr "Krachtveld Aan/Uit"
 
 
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Voeg Vetkrijt Toe"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Voeg een vetkrijt object toe in de scene"
+
+
 msgid "Monkey"
 msgstr "Aap"
 
@@ -4968,15 +4977,6 @@ msgstr "Object Gegevens"
 msgctxt "Operator"
 msgid "Copy Modifier"
 msgstr "Kopieer Aanpasser"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Voeg Vetkrijt Toe"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Voeg een vetkrijt object toe in de scene"
 
 
 msgctxt "Operator"
