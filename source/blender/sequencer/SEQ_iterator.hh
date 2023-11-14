@@ -8,64 +8,9 @@
  * \ingroup sequencer
  */
 
-#include "BLI_ghash.h"
 #include "BLI_vector_set.hh"
 
-struct GSet;
-struct GSetIterator;
 struct Sequence;
-
-/* Utility macro to construct an unique (within a file) variable name for iterator macro.
- * Use indirect macro evaluation to ensure the `__LINE__` is expanded (rather than being
- * treated as a name token),
- *
- * The `__LINE__` is defined at the invocation of the `SEQ_ITERATOR_FOREACH` and is not changed
- * afterwards. This makes it safe to expand it several times in the `SEQ_ITERATOR_FOREACH`.
- *
- * This allows to have nested `foreach` loops.
- *
- * NOTE: Putting nested loop to a wrapper macro is not supported. */
-#define _SEQ_ITERATOR_NAME_JOIN(x, y) x##_##y
-#define _SEQ_ITERATOR_NAME_EVALUATE(x, y) _SEQ_ITERATOR_NAME_JOIN(x, y)
-#define _SEQ_ITERATOR_NAME(prefix) _SEQ_ITERATOR_NAME_EVALUATE(prefix, __LINE__)
-
-#define SEQ_ITERATOR_FOREACH(var, collection) \
-  for (SeqIterator _SEQ_ITERATOR_NAME(iter) = {{{NULL}}}; \
-       SEQ_iterator_ensure(collection, &_SEQ_ITERATOR_NAME(iter), &var) && var != NULL; \
-       var = SEQ_iterator_yield(&_SEQ_ITERATOR_NAME(iter)))
-
-typedef struct SeqCollection {
-  GSet *set;
-} SeqCollection;
-
-struct SeqIterator {
-  GSetIterator gsi;
-  SeqCollection *collection;
-  bool iterator_initialized;
-};
-
-/**
- * Utility function for SEQ_ITERATOR_FOREACH macro.
- * Ensure, that iterator is initialized. During initialization return pointer to collection element
- * and step #GSet iterator. When this function is called after iterator has been initialized, it
- * will do nothing and return true.
- *
- * \param collection: collection to iterate
- * \param iterator: iterator to be initialized
- * \param r_seq: pointer to Sequence pointer
- *
- * \return false when iterator can not be initialized, true otherwise
- */
-bool SEQ_iterator_ensure(SeqCollection *collection, SeqIterator *iterator, Sequence **r_seq);
-/**
- * Utility function for SEQ_ITERATOR_FOREACH macro.
- * Yield collection element
- *
- * \param iterator: iterator to be initialized
- *
- * \return collection element or NULL when iteration has ended
- */
-Sequence *SEQ_iterator_yield(SeqIterator *iterator);
 
 /**
  * Callback format for the for_each function below.
