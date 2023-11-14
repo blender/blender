@@ -195,10 +195,6 @@ enum eGWL_PendingWindowActions {
    * The state of the window frame has changed, apply the state from #GWL_Window::frame_pending.
    */
   PENDING_WINDOW_FRAME_CONFIGURE = 0,
-#  ifdef GHOST_OPENGL_ALPHA
-  /** Draw an opaque region behind the window. */
-  PENDING_OPAQUE_SET,
-#  endif
   /**
    * The DPI for a monitor has changed or the monitors (outputs)
    * this window is visible on may have changed. Recalculate the windows scale.
@@ -767,11 +763,6 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
   if (actions[PENDING_WINDOW_FRAME_CONFIGURE]) {
     gwl_window_frame_update_from_pending(win);
   }
-#  ifdef GHOST_OPENGL_ALPHA
-  if (actions[PENDING_OPAQUE_SET]) {
-    win->ghost_window->setOpaque();
-  }
-#  endif
   if (actions[PENDING_OUTPUT_SCALE_UPDATE_DEFERRED]) {
     gwl_window_pending_actions_tag(win, PENDING_OUTPUT_SCALE_UPDATE);
     /* Force postponing scale update to ensure all scale information has been taken into account
@@ -1595,10 +1586,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   /* Call top-level callbacks. */
   wl_surface_commit(window_->wl.surface);
 
-#ifdef GHOST_OPENGL_ALPHA
-  setOpaque();
-#endif
-
   /* NOTE: the method used for XDG & LIBDECOR initialization (using `initial_configure_seen`)
    * follows the method used in SDL 3.16. */
 
@@ -1983,19 +1970,6 @@ bool GHOST_WindowWayland::isDialog() const
   return window_->is_dialog;
 }
 
-#ifdef GHOST_OPENGL_ALPHA
-void GHOST_WindowWayland::setOpaque() const
-{
-  struct wl_region *region;
-
-  /* Make the window opaque. */
-  region = wl_compositor_create_region(system_->wl_compositor());
-  wl_region_add(region, 0, 0, UNPACK2(window_->size));
-  wl_surface_set_opaque_region(window_->wl.surface, region);
-  wl_region_destroy(region);
-}
-#endif
-
 GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType type)
 {
   switch (type) {
@@ -2182,19 +2156,6 @@ GHOST_TSuccess GHOST_WindowWayland::deactivate()
 
 GHOST_TSuccess GHOST_WindowWayland::notify_size()
 {
-#ifdef GHOST_OPENGL_ALPHA
-#  ifdef USE_EVENT_BACKGROUND_THREAD
-  /* Actual activation is handled when processing pending events. */
-  const bool is_main_thread = system_->main_thread_id == std::this_thread::get_id();
-  if (!is_main_thread) {
-    gwl_window_pending_actions_tag(window_, PENDING_OPAQUE_SET);
-  }
-#  endif
-  {
-    setOpaque();
-  }
-#endif
-
   return system_->pushEvent_maybe_pending(
       new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowSize, this));
 }
