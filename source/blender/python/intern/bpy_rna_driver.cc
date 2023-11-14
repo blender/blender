@@ -12,6 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
+
 #include "BLI_utildefines.h"
 
 #include "BKE_fcurve_driver.h"
@@ -54,6 +56,9 @@ PyObject *pyrna_driver_get_variable_value(const AnimationEvalContext *anim_eval_
 
       /* object & property */
       return pyrna_prop_to_py(&ptr, prop);
+
+    case DRIVER_VAR_PROPERTY_FALLBACK:
+      return PyFloat_FromDouble(dtar->fallback_value);
 
     case DRIVER_VAR_PROPERTY_INVALID:
     case DRIVER_VAR_PROPERTY_INVALID_INDEX:

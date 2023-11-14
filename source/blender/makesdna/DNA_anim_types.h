@@ -312,13 +312,15 @@ typedef struct DriverTarget {
 
   /** Rotation channel calculation type. */
   char rotation_mode;
-  char _pad[7];
+  char _pad[5];
 
   /**
    * Flags for the validity of the target
    * (NOTE: these get reset every time the types change).
    */
   short flag;
+  /** Single-bit user-visible toggles (not reset on type change) from eDriverTarget_Options. */
+  short options;
   /** Type of ID-block that this target can use. */
   int idtype;
 
@@ -327,8 +329,15 @@ typedef struct DriverTarget {
    * This is a value of enumerator #eDriverTarget_ContextProperty. */
   int context_property;
 
-  int _pad1;
+  /* Fallback value to use with DTAR_OPTION_USE_FALLBACK. */
+  float fallback_value;
 } DriverTarget;
+
+/** Driver Target options. */
+typedef enum eDriverTarget_Options {
+  /** Use the fallback value when the target is invalid (rna_path cannot be resolved). */
+  DTAR_OPTION_USE_FALLBACK = (1 << 0),
+} eDriverTarget_Options;
 
 /** Driver Target flags. */
 typedef enum eDriverTarget_Flag {
@@ -346,6 +355,9 @@ typedef enum eDriverTarget_Flag {
 
   /** error flags */
   DTAR_FLAG_INVALID = (1 << 4),
+
+  /** the fallback value was actually used */
+  DTAR_FLAG_FALLBACK_USED = (1 << 5),
 } eDriverTarget_Flag;
 
 /* Transform Channels for Driver Targets */

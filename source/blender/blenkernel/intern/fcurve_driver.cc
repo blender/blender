@@ -147,6 +147,21 @@ bool driver_get_target_property(const DriverTargetContext *driver_target_context
 }
 
 /**
+ * Checks if the fallback value can be used, and if so, sets dtar flags to signal its usage.
+ * The caller is expected to immediately return the fallback value if this returns true.
+ */
+static bool dtar_try_use_fallback(DriverTarget *dtar)
+{
+  if ((dtar->options & DTAR_OPTION_USE_FALLBACK) == 0) {
+    return false;
+  }
+
+  dtar->flag &= ~DTAR_FLAG_INVALID;
+  dtar->flag |= DTAR_FLAG_FALLBACK_USED;
+  return true;
+}
+
+/**
  * Helper function to obtain a value using RNA from the specified source
  * (for evaluating drivers).
  */
@@ -159,6 +174,8 @@ static float dtar_get_prop_val(const AnimationEvalContext *anim_eval_context,
   if (driver == nullptr) {
     return 0.0f;
   }
+
+  dtar->flag &= ~DTAR_FLAG_FALLBACK_USED;
 
   /* Get property to resolve the target from.
    * Naming is a bit confusing, but this is what is exposed as "Prop" or "Context Property" in
@@ -184,6 +201,10 @@ static float dtar_get_prop_val(const AnimationEvalContext *anim_eval_context,
   if (!RNA_path_resolve_property_full(
           &property_ptr, dtar->rna_path, &value_ptr, &value_prop, &index))
   {
+    if (dtar_try_use_fallback(dtar)) {
+      return dtar->fallback_value;
+    }
+
     /* Path couldn't be resolved. */
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG,
@@ -200,6 +221,10 @@ static float dtar_get_prop_val(const AnimationEvalContext *anim_eval_context,
   if (RNA_property_array_check(value_prop)) {
     /* Array. */
     if (index < 0 || index >= RNA_property_array_length(&value_ptr, value_prop)) {
+      if (dtar_try_use_fallback(dtar)) {
+        return dtar->fallback_value;
+      }
+
       /* Out of bounds. */
       if (G.debug & G_DEBUG) {
         CLOG_ERROR(&LOG,
@@ -272,6 +297,8 @@ eDriverVariablePropertyResult driver_get_variable_property(
     return DRIVER_VAR_PROPERTY_INVALID;
   }
 
+  dtar->flag &= ~DTAR_FLAG_FALLBACK_USED;
+
   /* Get RNA-pointer for the data-block given in target. */
   const DriverTargetContext driver_target_context = driver_target_context_from_animation_context(
       anim_eval_context);
@@ -295,6 +322,13 @@ eDriverVariablePropertyResult driver_get_variable_property(
     /* OK. */
   }
   else {
+    if (dtar_try_use_fallback(dtar)) {
+      ptr = PointerRNA_NULL;
+      *r_prop = nullptr;
+      *r_index = -1;
+      return DRIVER_VAR_PROPERTY_FALLBACK;
+    }
+
     /* Path couldn't be resolved. */
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG,
@@ -319,6 +353,10 @@ eDriverVariablePropertyResult driver_get_variable_property(
   /* Verify the array index and apply fallback if appropriate. */
   if (prop && RNA_property_array_check(prop)) {
     if ((index < 0 && !allow_no_index) || index >= RNA_property_array_length(&ptr, prop)) {
+      if (dtar_try_use_fallback(dtar)) {
+        return DRIVER_VAR_PROPERTY_FALLBACK;
+      }
+
       /* Out of bounds. */
       if (G.debug & G_DEBUG) {
         CLOG_ERROR(&LOG,

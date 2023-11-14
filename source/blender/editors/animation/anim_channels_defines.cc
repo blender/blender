@@ -4559,7 +4559,7 @@ static bool achannel_is_being_renamed(const bAnimContext *ac,
   return false;
 }
 
-/** Check if the animation channel name should be underlined in red due to fatal errors. */
+/** Check if the animation channel name should be underlined in red due to errors. */
 static bool achannel_is_broken(const bAnimListElem *ale)
 {
   switch (ale->type) {
