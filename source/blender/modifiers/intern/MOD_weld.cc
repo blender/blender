@@ -184,7 +184,7 @@ ModifierTypeInfo modifierType_Weld = {
     /*struct_name*/ "WeldModifierData",
     /*struct_size*/ sizeof(WeldModifierData),
     /*srna*/ &RNA_WeldModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/
     (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
                        eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |

@@ -1885,7 +1885,7 @@ ModifierTypeInfo modifierType_Nodes = {
     /*struct_name*/ "NodesModifierData",
     /*struct_size*/ sizeof(NodesModifierData),
     /*srna*/ &RNA_NodesModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/
     static_cast<ModifierTypeFlag>(
         eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |

@@ -277,7 +277,7 @@ ModifierTypeInfo modifierType_Collision = {
     /*struct_name*/ "CollisionModifierData",
     /*struct_size*/ sizeof(CollisionModifierData),
     /*srna*/ &RNA_CollisionModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_PHYSICS,
 

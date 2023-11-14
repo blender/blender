@@ -197,7 +197,7 @@ ModifierTypeInfo modifierType_Curve = {
     /*struct_name*/ "CurveModifierData",
     /*struct_size*/ sizeof(CurveModifierData),
     /*srna*/ &RNA_CurveModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_CURVE,

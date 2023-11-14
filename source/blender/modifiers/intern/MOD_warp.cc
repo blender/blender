@@ -477,7 +477,7 @@ ModifierTypeInfo modifierType_Warp = {
     /*struct_name*/ "WarpModifierData",
     /*struct_size*/ sizeof(WarpModifierData),
     /*srna*/ &RNA_WarpModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WARP,

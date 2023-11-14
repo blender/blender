@@ -4885,7 +4885,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
        md = md->next)
   {
     const ModifierTypeInfo *mti = BKE_modifier_get_info((const ModifierType)md->type);
-    bool can_deform = mti->type == eModifierTypeType_OnlyDeform || is_modifier_animated;
+    bool can_deform = mti->type == ModifierTypeType::OnlyDeform || is_modifier_animated;
 
     if (!can_deform) {
       can_deform = constructive_modifier_is_deform_modified(ob, md);

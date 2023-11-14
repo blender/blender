@@ -237,7 +237,7 @@ ModifierTypeInfo modifierType_Fluid = {
     /*struct_name*/ "FluidModifierData",
     /*struct_size*/ sizeof(FluidModifierData),
     /*srna*/ &RNA_FluidModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_FLUIDSIM,
 

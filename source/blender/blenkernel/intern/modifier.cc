@@ -246,7 +246,7 @@ bool BKE_modifier_supports_mapping(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  return (mti->type == eModifierTypeType_OnlyDeform ||
+  return (mti->type == ModifierTypeType::OnlyDeform ||
           (mti->flags & eModifierTypeFlag_SupportsMapping));
 }
 
@@ -256,7 +256,7 @@ bool BKE_modifier_is_preview(ModifierData *md)
 
   /* Constructive modifiers are highly likely to also modify data like vgroups or vertex-colors! */
   if (!((mti->flags & eModifierTypeFlag_UsesPreview) ||
-        (mti->type == eModifierTypeType_Constructive)))
+        (mti->type == ModifierTypeType::Constructive)))
   {
     return false;
   }
@@ -424,13 +424,13 @@ bool BKE_modifier_couldbe_cage(Scene *scene, ModifierData *md)
 bool BKE_modifier_is_same_topology(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  return ELEM(mti->type, eModifierTypeType_OnlyDeform, eModifierTypeType_NonGeometrical);
+  return ELEM(mti->type, ModifierTypeType::OnlyDeform, ModifierTypeType::NonGeometrical);
 }
 
 bool BKE_modifier_is_non_geometrical(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  return (mti->type == eModifierTypeType_NonGeometrical);
+  return (mti->type == ModifierTypeType::NonGeometrical);
 }
 
 void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_format, ...)
@@ -621,7 +621,7 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
     curr = MEM_cnew<CDMaskLink>(__func__);
 
     if (BKE_modifier_is_enabled(scene, md, required_mode)) {
-      if (mti->type == eModifierTypeType_OnlyDeform) {
+      if (mti->type == ModifierTypeType::OnlyDeform) {
         have_deform_modifier = true;
       }
 

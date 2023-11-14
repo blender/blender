@@ -638,7 +638,7 @@ ModifierTypeInfo modifierType_WeightedNormal = {
     /*struct_name*/ "WeightedNormalModifierData",
     /*struct_size*/ sizeof(WeightedNormalModifierData),
     /*srna*/ &RNA_WeightedNormalModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_NORMALEDIT,

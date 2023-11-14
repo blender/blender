@@ -363,7 +363,7 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
         continue;
       }
 
-      if (mti->type == eModifierTypeType_Constructive) {
+      if (mti->type == ModifierTypeType::Constructive) {
         flag |= DYNTOPO_WARN_MODIFIER;
         break;
       }

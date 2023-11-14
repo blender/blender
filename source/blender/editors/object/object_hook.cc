@@ -542,7 +542,7 @@ static int add_hook_object(const bContext *C,
   }
 
   md = static_cast<ModifierData *>(obedit->modifiers.first);
-  while (md && BKE_modifier_get_info(ModifierType(md->type))->type == eModifierTypeType_OnlyDeform)
+  while (md && BKE_modifier_get_info(ModifierType(md->type))->type == ModifierTypeType::OnlyDeform)
   {
     md = md->next;
   }

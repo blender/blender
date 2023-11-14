@@ -421,7 +421,7 @@ ModifierTypeInfo modifierType_Wave = {
     /*struct_name*/ "WaveModifierData",
     /*struct_size*/ sizeof(WaveModifierData),
     /*srna*/ &RNA_WaveModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WAVE,

@@ -495,7 +495,7 @@ ModifierTypeInfo modifierType_WeightVGMix = {
     /*struct_name*/ "WeightVGMixModifierData",
     /*struct_size*/ sizeof(WeightVGMixModifierData),
     /*srna*/ &RNA_VertexWeightMixModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
     /*icon*/ ICON_MOD_VERTEX_WEIGHT,

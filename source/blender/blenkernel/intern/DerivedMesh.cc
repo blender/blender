@@ -643,7 +643,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
         continue;
       }
 
-      if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
+      if (mti->type == ModifierTypeType::OnlyDeform && !sculpt_dyntopo) {
         blender::bke::ScopedModifierTimer modifier_timer{*md};
         if (!mesh_final) {
           mesh_final = BKE_mesh_copy_for_eval(mesh_input);
@@ -687,7 +687,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
       continue;
     }
 
-    if (mti->type == eModifierTypeType_OnlyDeform && !use_deform) {
+    if (mti->type == ModifierTypeType::OnlyDeform && !use_deform) {
       continue;
     }
 
@@ -712,7 +712,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
       }
 
       if (scene->toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM) {
-        unsupported |= (mti->type != eModifierTypeType_OnlyDeform);
+        unsupported |= (mti->type != ModifierTypeType::OnlyDeform);
       }
 
       unsupported |= multires_applied;
@@ -743,7 +743,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
       }
     }
 
-    if (mti->type == eModifierTypeType_OnlyDeform) {
+    if (mti->type == ModifierTypeType::OnlyDeform) {
       if (!mesh_final) {
         mesh_final = BKE_mesh_copy_for_eval(mesh_input);
         ASSERT_IS_VALID_MESH(mesh_final);
@@ -1177,7 +1177,7 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
       }
     }
 
-    if (mti->type == eModifierTypeType_OnlyDeform) {
+    if (mti->type == ModifierTypeType::OnlyDeform) {
       if (mti->deform_verts_EM) {
         BKE_modifier_deform_vertsEM(
             md,

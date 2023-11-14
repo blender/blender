@@ -739,7 +739,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /*struct_name*/ "WeightVGProximityModifierData",
     /*struct_size*/ sizeof(WeightVGProximityModifierData),
     /*srna*/ &RNA_VertexWeightProximityModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
     /*icon*/ ICON_MOD_VERTEX_WEIGHT,

@@ -29,7 +29,7 @@ ModifierTypeInfo modifierType_None = {
     /*struct_name*/ "ModifierData",
     /*struct_size*/ sizeof(ModifierData),
     /*srna*/ &RNA_Modifier,
-    /*type*/ eModifierTypeType_None,
+    /*type*/ ModifierTypeType::None,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_NONE,
 

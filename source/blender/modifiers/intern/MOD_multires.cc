@@ -487,7 +487,7 @@ ModifierTypeInfo modifierType_Multires = {
     /*struct_name*/ "MultiresModifierData",
     /*struct_size*/ sizeof(MultiresModifierData),
     /*srna*/ &RNA_MultiresModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_RequiresOriginalData,
     /*icon*/ ICON_MOD_MULTIRES,

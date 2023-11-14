@@ -269,7 +269,7 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /*struct_name*/ "ParticleSystemModifierData",
     /*struct_size*/ sizeof(ParticleSystemModifierData),
     /*srna*/ &RNA_ParticleSystemModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_UsesPointCache,
     /*icon*/ ICON_MOD_PARTICLES,

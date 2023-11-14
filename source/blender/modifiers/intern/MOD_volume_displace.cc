@@ -318,7 +318,7 @@ ModifierTypeInfo modifierType_VolumeDisplace = {
     /*struct_name*/ "VolumeDisplaceModifierData",
     /*struct_size*/ sizeof(VolumeDisplaceModifierData),
     /*srna*/ &RNA_VolumeDisplaceModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ static_cast<ModifierTypeFlag>(0),
     /*icon*/ ICON_VOLUME_DATA, /* TODO: Use correct icon. */
 

@@ -1628,7 +1628,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
       continue;
     }
 
-    if (mti->type == eModifierTypeType_OnlyDeform) {
+    if (mti->type == ModifierTypeType::OnlyDeform) {
       return true;
     }
     if ((sd->flags & SCULPT_ONLY_DEFORM) == 0) {

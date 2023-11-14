@@ -283,7 +283,7 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(
       continue;
     }
 
-    if (mti->type != eModifierTypeType_OnlyDeform) {
+    if (mti->type != ModifierTypeType::OnlyDeform) {
       break;
     }
 

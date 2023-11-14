@@ -309,7 +309,7 @@ ModifierTypeInfo modifierType_UVWarp = {
     /*struct_name*/ "UVWarpModifierData",
     /*struct_size*/ sizeof(UVWarpModifierData),
     /*srna*/ &RNA_UVWarpModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */

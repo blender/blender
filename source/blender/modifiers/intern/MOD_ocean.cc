@@ -695,7 +695,7 @@ ModifierTypeInfo modifierType_Ocean = {
     /*struct_name*/ "OceanModifierData",
     /*struct_size*/ sizeof(OceanModifierData),
     /*srna*/ &RNA_OceanModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_OCEAN,

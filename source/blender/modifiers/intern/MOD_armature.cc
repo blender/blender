@@ -259,7 +259,7 @@ ModifierTypeInfo modifierType_Armature = {
     /*struct_name*/ "ArmatureModifierData",
     /*struct_size*/ sizeof(ArmatureModifierData),
     /*srna*/ &RNA_ArmatureModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_ARMATURE,

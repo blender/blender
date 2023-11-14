@@ -2076,7 +2076,7 @@ ModifierTypeInfo modifierType_Skin = {
     /*struct_name*/ "SkinModifierData",
     /*struct_size*/ sizeof(SkinModifierData),
     /*srna*/ &RNA_SkinModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_SKIN,
 

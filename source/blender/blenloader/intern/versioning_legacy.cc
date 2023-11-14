@@ -1402,7 +1402,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
 
           while (md && BKE_modifier_get_info(ModifierType(md->type))->type ==
-                           eModifierTypeType_OnlyDeform) {
+                           ModifierTypeType::OnlyDeform) {
             md = md->next;
           }
 

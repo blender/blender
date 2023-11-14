@@ -31,9 +31,9 @@ struct Object;
 struct Scene;
 struct StructRNA;
 
-enum ModifierTypeType {
+enum class ModifierTypeType {
   /* Should not be used, only for None modifier type */
-  eModifierTypeType_None,
+  None,
 
   /**
    * Modifier only does deformation, implies that modifier
@@ -41,25 +41,25 @@ enum ModifierTypeType {
    * style modifiers implicitly accept either mesh or CV
    * input but should still declare flags appropriately.
    */
-  eModifierTypeType_OnlyDeform,
+  OnlyDeform,
 
   /** Modifier adds geometry. */
-  eModifierTypeType_Constructive,
+  Constructive,
   /* Modifier can add and remove geometry. */
-  eModifierTypeType_Nonconstructive,
+  Nonconstructive,
 
   /**
    * Both deform_verts & applyModifier are valid calls
    * used for particles modifier that doesn't actually modify the object
    * unless it's a mesh and can be exploded -> curve can also emit particles
    */
-  eModifierTypeType_DeformOrConstruct,
+  DeformOrConstruct,
 
   /**
-   * Like eModifierTypeType_Nonconstructive, but does not affect the geometry
+   * Like Nonconstructive, but does not affect the geometry
    * of the object, rather some of its CustomData layers.
    * E.g. UVProject and WeightVG modifiers. */
-  eModifierTypeType_NonGeometrical,
+  NonGeometrical,
 };
 
 enum ModifierTypeFlag {

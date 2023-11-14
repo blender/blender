@@ -271,7 +271,7 @@ ModifierTypeInfo modifierType_Cloth = {
     /*struct_name*/ "ClothModifierData",
     /*struct_size*/ sizeof(ClothModifierData),
     /*srna*/ &RNA_ClothModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_UsesPointCache |
         eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_CLOTH,

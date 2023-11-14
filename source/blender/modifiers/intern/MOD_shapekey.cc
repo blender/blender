@@ -117,7 +117,7 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /*struct_name*/ "ShapeKeyModifierData",
     /*struct_size*/ sizeof(ShapeKeyModifierData),
     /*srna*/ &RNA_Modifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_DOT,

@@ -141,7 +141,7 @@ struct MeshRuntime {
    * Copied from edit-mesh (hint, draw with edit-mesh data when true).
    *
    * Modifiers that edit the mesh data in-place must set this to false
-   * (most #eModifierTypeType_NonGeometrical modifiers). Otherwise the edit-mesh
+   * (most #ModifierTypeType::NonGeometrical modifiers). Otherwise the edit-mesh
    * data will be used for drawing, missing changes from modifiers. See #79517.
    */
   bool is_original_bmesh = false;

@@ -185,7 +185,7 @@ ModifierData *ED_object_modifier_add(
       md = static_cast<ModifierData *>(ob->modifiers.first);
 
       while (md &&
-             BKE_modifier_get_info((ModifierType)md->type)->type == eModifierTypeType_OnlyDeform) {
+             BKE_modifier_get_info((ModifierType)md->type)->type == ModifierTypeType::OnlyDeform) {
         md = md->next;
       }
 
@@ -428,7 +428,7 @@ static bool object_modifier_check_move_before(ReportList *reports,
   if (md_prev) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
-    if (mti->type != eModifierTypeType_OnlyDeform) {
+    if (mti->type != ModifierTypeType::OnlyDeform) {
       const ModifierTypeInfo *nmti = BKE_modifier_get_info((ModifierType)md_prev->type);
 
       if (nmti->flags & eModifierTypeFlag_RequiresOriginalData) {
@@ -469,7 +469,7 @@ static bool object_modifier_check_move_after(ReportList *reports,
     if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
       const ModifierTypeInfo *nmti = BKE_modifier_get_info((ModifierType)md_next->type);
 
-      if (nmti->type != eModifierTypeType_OnlyDeform) {
+      if (nmti->type != ModifierTypeType::OnlyDeform) {
         BKE_report(reports, error_type, "Cannot move beyond a non-deforming modifier");
         return false;
       }
@@ -796,8 +796,8 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
       }
       /* All virtual modifiers are deform modifiers. */
       const ModifierTypeInfo *mti_virt = BKE_modifier_get_info(ModifierType(md_eval_virt->type));
-      BLI_assert(mti_virt->type == eModifierTypeType_OnlyDeform);
-      if (mti_virt->type != eModifierTypeType_OnlyDeform) {
+      BLI_assert(mti_virt->type == ModifierTypeType::OnlyDeform);
+      if (mti_virt->type != ModifierTypeType::OnlyDeform) {
         continue;
       }
 
@@ -806,7 +806,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
   }
 
   Mesh *result = nullptr;
-  if (mti->type == eModifierTypeType_OnlyDeform) {
+  if (mti->type == ModifierTypeType::OnlyDeform) {
     result = mesh_temp;
     mti->deform_verts(md_eval, &mectx, result, deformedVerts, numVerts);
     BKE_mesh_tag_positions_changed(result);
@@ -869,7 +869,7 @@ static bool modifier_apply_shape(Main *bmain,
     Mesh *me = static_cast<Mesh *>(ob->data);
     Key *key = me->key;
 
-    if (!BKE_modifier_is_same_topology(md_eval) || mti->type == eModifierTypeType_NonGeometrical) {
+    if (!BKE_modifier_is_same_topology(md_eval) || mti->type == ModifierTypeType::NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to shapes");
       return false;
     }
@@ -956,7 +956,7 @@ static bool modifier_apply_obdata(
     Mesh *me = static_cast<Mesh *>(ob->data);
     MultiresModifierData *mmd = find_multires_modifier_before(scene, md_eval);
 
-    if (me->key && mti->type != eModifierTypeType_NonGeometrical) {
+    if (me->key && mti->type != ModifierTypeType::NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to a mesh with shape keys");
       return false;
     }
@@ -966,7 +966,7 @@ static bool modifier_apply_obdata(
       multires_force_sculpt_rebuild(ob);
     }
 
-    if (mmd && mmd->totlvl && mti->type == eModifierTypeType_OnlyDeform) {
+    if (mmd && mmd->totlvl && mti->type == ModifierTypeType::OnlyDeform) {
       if (!multiresModifier_reshapeFromDeformModifier(depsgraph, ob, mmd, md_eval)) {
         BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
         return false;
@@ -1008,7 +1008,7 @@ static bool modifier_apply_obdata(
     Curve *curve_eval = static_cast<Curve *>(object_eval->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, ModifierApplyFlag(0)};
 
-    if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
+    if (ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive)) {
       BKE_report(
           reports,
           RPT_ERROR,
@@ -1034,7 +1034,7 @@ static bool modifier_apply_obdata(
     Lattice *lattice = static_cast<Lattice *>(ob->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, ModifierApplyFlag(0)};
 
-    if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
+    if (ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive)) {
       BKE_report(reports, RPT_ERROR, "Constructive modifiers cannot be applied");
       return false;
     }
@@ -1762,7 +1762,7 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   }
 
   if (ob->type == OB_MESH && do_merge_customdata &&
-      (mti->type & (eModifierTypeType_Constructive | eModifierTypeType_Nonconstructive)))
+      ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive))
   {
     BKE_mesh_merge_customdata_for_apply_modifier((Mesh *)ob->data);
   }
