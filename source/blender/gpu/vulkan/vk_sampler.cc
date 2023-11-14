@@ -24,6 +24,8 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
   BLI_assert(sampler_state.type != GPU_SAMPLER_STATE_TYPE_INTERNAL);
   BLI_assert(vk_sampler_ == VK_NULL_HANDLE);
 
+  const VKDevice &device = VKBackend::get().device_get();
+
   VkSamplerCreateInfo sampler_info = {};
   sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 
@@ -36,7 +38,9 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
     if (sampler_state.filtering & GPU_SAMPLER_FILTERING_MIPMAP) {
       sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     }
-    if (sampler_state.filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC) {
+    if (device.physical_device_features_get().samplerAnisotropy == VK_TRUE &&
+        sampler_state.filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC)
+    {
       sampler_info.anisotropyEnable = VK_TRUE;
       sampler_info.maxAnisotropy = min_ff(1.0f, U.anisotropic_filter);
     }
@@ -65,7 +69,6 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
   }
 
   VK_ALLOCATION_CALLBACKS
-  const VKDevice &device = VKBackend::get().device_get();
   vkCreateSampler(device.device_get(), &sampler_info, vk_allocation_callbacks, &vk_sampler_);
   debug::object_label(vk_sampler_, sampler_state.to_string().c_str());
 }
