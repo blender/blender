@@ -6,10 +6,12 @@
 /** \file
  * \ingroup bke
  */
+#include "BLI_compiler_attrs.h"
+#include "BLI_math_matrix_types.hh"
+
+#include "DNA_modifier_types.h" /* needed for all enum typdefs */
 
 #include "BKE_customdata.h"
-#include "BLI_compiler_attrs.h"
-#include "DNA_modifier_types.h" /* needed for all enum typdefs */
 
 namespace blender::bke {
 struct GeometrySet;
@@ -188,8 +190,7 @@ struct ModifierTypeInfo {
   void (*deform_verts)(ModifierData *md,
                        const ModifierEvalContext *ctx,
                        Mesh *mesh,
-                       float (*vertexCos)[3],
-                       int numVerts);
+                       blender::MutableSpan<blender::float3> positions);
 
   /**
    * Like deform_matrices_EM but called from object mode (for supporting modifiers in sculpt mode).
@@ -197,9 +198,8 @@ struct ModifierTypeInfo {
   void (*deform_matrices)(ModifierData *md,
                           const ModifierEvalContext *ctx,
                           Mesh *mesh,
-                          float (*vertexCos)[3],
-                          float (*defMats)[3][3],
-                          int numVerts);
+                          blender::MutableSpan<blender::float3> positions,
+                          blender::MutableSpan<blender::float3x3> matrices);
   /**
    * Like deform_verts but called during edit-mode if supported. The \a mesh argument might be a
    * wrapper around edit BMesh data.
@@ -208,17 +208,15 @@ struct ModifierTypeInfo {
                           const ModifierEvalContext *ctx,
                           BMEditMesh *em,
                           Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int numVerts);
+                          blender::MutableSpan<blender::float3> positions);
 
   /* Set deform matrix per vertex for crazy-space correction */
   void (*deform_matrices_EM)(ModifierData *md,
                              const ModifierEvalContext *ctx,
                              BMEditMesh *em,
                              Mesh *mesh,
-                             float (*vertexCos)[3],
-                             float (*defMats)[3][3],
-                             int numVerts);
+                             blender::MutableSpan<blender::float3> positions,
+                             blender::MutableSpan<blender::float3x3> matrices);
 
   /********************* Non-deform modifier functions *********************/
 
@@ -557,15 +555,13 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
 void BKE_modifier_deform_verts(ModifierData *md,
                                const ModifierEvalContext *ctx,
                                Mesh *me,
-                               float (*vertexCos)[3],
-                               int numVerts);
+                               blender::MutableSpan<blender::float3> positions);
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
                                  BMEditMesh *em,
                                  Mesh *me,
-                                 float (*vertexCos)[3],
-                                 int numVerts);
+                                 blender::MutableSpan<blender::float3> positions);
 
 /**
  * Get evaluated mesh for other evaluated object, which is used as an operand for the modifier,

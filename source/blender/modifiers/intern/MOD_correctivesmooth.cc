@@ -749,15 +749,9 @@ error:
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  correctivesmooth_modifier_do(md,
-                               ctx->depsgraph,
-                               ctx->object,
-                               mesh,
-                               {reinterpret_cast<blender::float3 *>(vertexCos), verts_num},
-                               nullptr);
+  correctivesmooth_modifier_do(md, ctx->depsgraph, ctx->object, mesh, positions, nullptr);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

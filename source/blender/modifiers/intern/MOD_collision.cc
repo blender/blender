@@ -90,8 +90,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int /*verts_num*/)
+                         blender::MutableSpan<blender::float3> positions)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
   Object *ob = ctx->object;
@@ -110,7 +109,7 @@ static void deform_verts(ModifierData *md,
     float current_time = 0;
     int mvert_num = 0;
 
-    BKE_mesh_vert_coords_apply(mesh, vertexCos);
+    BKE_mesh_vert_coords_apply(mesh, reinterpret_cast<const float(*)[3]>(positions.data()));
 
     current_time = DEG_get_ctime(ctx->depsgraph);
 

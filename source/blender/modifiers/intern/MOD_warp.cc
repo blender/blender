@@ -338,11 +338,11 @@ static void warpModifier_do(WarpModifierData *wmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
-  warpModifier_do(wmd, ctx, mesh, vertexCos, verts_num);
+  warpModifier_do(
+      wmd, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

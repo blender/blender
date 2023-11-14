@@ -780,9 +780,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
 
   Mesh *mesh_temp = reinterpret_cast<Mesh *>(
       BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE));
-  const int numVerts = mesh_temp->totvert;
-  float(*deformedVerts)[3] = reinterpret_cast<float(*)[3]>(
-      mesh_temp->vert_positions_for_write().data());
+  MutableSpan<float3> deformedVerts = mesh_temp->vert_positions_for_write();
 
   if (use_virtual_modifiers) {
     VirtualModifierData virtual_modifier_data;
@@ -801,14 +799,14 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
         continue;
       }
 
-      mti_virt->deform_verts(md_eval_virt, &mectx, mesh_temp, deformedVerts, numVerts);
+      mti_virt->deform_verts(md_eval_virt, &mectx, mesh_temp, deformedVerts);
     }
   }
 
   Mesh *result = nullptr;
   if (mti->type == ModifierTypeType::OnlyDeform) {
     result = mesh_temp;
-    mti->deform_verts(md_eval, &mectx, result, deformedVerts, numVerts);
+    mti->deform_verts(md_eval, &mectx, result, deformedVerts);
     BKE_mesh_tag_positions_changed(result);
 
     if (build_shapekey_layers) {
@@ -1022,7 +1020,8 @@ static bool modifier_apply_obdata(
 
     int verts_num;
     float(*vertexCos)[3] = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb, &verts_num);
-    mti->deform_verts(md_eval, &mectx, nullptr, vertexCos, verts_num);
+    mti->deform_verts(
+        md_eval, &mectx, nullptr, {reinterpret_cast<float3 *>(vertexCos), verts_num});
     BKE_curve_nurbs_vert_coords_apply(&curve->nurb, vertexCos, false);
 
     MEM_freeN(vertexCos);
@@ -1041,7 +1040,8 @@ static bool modifier_apply_obdata(
 
     int verts_num;
     float(*vertexCos)[3] = BKE_lattice_vert_coords_alloc(lattice, &verts_num);
-    mti->deform_verts(md_eval, &mectx, nullptr, vertexCos, verts_num);
+    mti->deform_verts(
+        md_eval, &mectx, nullptr, {reinterpret_cast<float3 *>(vertexCos), verts_num});
     BKE_lattice_vert_coords_apply(lattice, vertexCos);
 
     MEM_freeN(vertexCos);

@@ -289,7 +289,12 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
           unit_m3(defmats[a]);
         }
       }
-      mti->deform_matrices_EM(md, &mectx, em, me, deformedVerts, defmats, verts_num);
+      mti->deform_matrices_EM(md,
+                              &mectx,
+                              em,
+                              me,
+                              {reinterpret_cast<blender::float3 *>(deformedVerts), verts_num},
+                              {reinterpret_cast<blender::float3x3 *>(defmats), verts_num});
     }
     else {
       break;
@@ -402,7 +407,12 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
       }
 
       if (mti->deform_matrices) {
-        mti->deform_matrices(md, &mectx, me_eval, deformedVerts, defmats, me_eval->totvert);
+        mti->deform_matrices(
+            md,
+            &mectx,
+            me_eval,
+            {reinterpret_cast<blender::float3 *>(deformedVerts), me_eval->totvert},
+            {reinterpret_cast<blender::float3x3 *>(defmats), me_eval->totvert});
       }
       else {
         /* More complex handling will continue in BKE_crazyspace_build_sculpt.
@@ -482,7 +492,11 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
           mesh_eval = BKE_mesh_copy_for_eval(mesh);
         }
 
-        mti->deform_verts(md, &mectx, mesh_eval, deformedVerts, mesh_eval->totvert);
+        mti->deform_verts(
+            md,
+            &mectx,
+            mesh_eval,
+            {reinterpret_cast<blender::float3 *>(deformedVerts), mesh_eval->totvert});
         deformed = 1;
       }
     }

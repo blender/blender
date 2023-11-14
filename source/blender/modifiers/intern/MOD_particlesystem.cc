@@ -99,8 +99,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int /*verts_num*/)
+                         blender::MutableSpan<blender::float3> positions)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
   ParticleSystem *psys = nullptr;
@@ -148,7 +147,7 @@ static void deform_verts(ModifierData *md,
 
   /* make new mesh */
   psmd->mesh_final = BKE_mesh_copy_for_eval(mesh);
-  BKE_mesh_vert_coords_apply(psmd->mesh_final, vertexCos);
+  BKE_mesh_vert_coords_apply(psmd->mesh_final, reinterpret_cast<float(*)[3]>(positions.data()));
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
 

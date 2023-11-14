@@ -286,9 +286,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 static void deform_matrices(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            float (*vertex_cos)[3],
-                            float (*deform_matrices)[3][3],
-                            int verts_num)
+                            blender::MutableSpan<blender::float3> positions,
+                            blender::MutableSpan<blender::float3x3> /*matrices*/)
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -296,7 +295,6 @@ static void deform_matrices(ModifierData *md,
 #endif
 
   /* Subsurf does not require extra space mapping, keep matrices as is. */
-  (void)deform_matrices;
 
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   if (!BKE_subsurf_modifier_runtime_init(smd, (ctx->flag & MOD_APPLY_RENDER) != 0)) {
@@ -308,7 +306,8 @@ static void deform_matrices(ModifierData *md,
     /* Happens on bad topology, but also on empty input mesh. */
     return;
   }
-  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
+  BKE_subdiv_deform_coarse_vertices(
+      subdiv, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
     BKE_subdiv_free(subdiv);
   }

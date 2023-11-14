@@ -291,11 +291,15 @@ static void waveModifier_do(WaveModifierData *md,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;
-  waveModifier_do(wmd, ctx, ctx->object, mesh, vertexCos, verts_num);
+  waveModifier_do(wmd,
+                  ctx,
+                  ctx->object,
+                  mesh,
+                  reinterpret_cast<float(*)[3]>(positions.data()),
+                  positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

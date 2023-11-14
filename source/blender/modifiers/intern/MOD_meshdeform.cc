@@ -439,11 +439,12 @@ finally:
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
-  meshdeformModifier_do(md, ctx, mesh, vertexCos, verts_num);
+  /* if next modifier needs original vertices */
+  MOD_previous_vcos_store(md, reinterpret_cast<float(*)[3]>(positions.data()));
+  meshdeformModifier_do(
+      md, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
 }
 
 #define MESHDEFORM_MIN_INFLUENCE 0.00001f

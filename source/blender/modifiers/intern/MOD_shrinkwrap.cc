@@ -88,8 +88,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -98,8 +97,15 @@ static void deform_verts(ModifierData *md,
   int defgrp_index = -1;
   MOD_get_vgroup(ctx->object, mesh, swmd->vgroup_name, &dvert, &defgrp_index);
 
-  shrinkwrapModifier_deform(
-      swmd, ctx, scene, ctx->object, mesh, dvert, defgrp_index, vertexCos, verts_num);
+  shrinkwrapModifier_deform(swmd,
+                            ctx,
+                            scene,
+                            ctx->object,
+                            mesh,
+                            dvert,
+                            defgrp_index,
+                            reinterpret_cast<float(*)[3]>(positions.data()),
+                            positions.size());
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)

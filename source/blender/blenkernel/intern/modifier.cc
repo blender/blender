@@ -1006,14 +1006,13 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
 void BKE_modifier_deform_verts(ModifierData *md,
                                const ModifierEvalContext *ctx,
                                Mesh *me,
-                               float (*vertexCos)[3],
-                               int numVerts)
+                               blender::MutableSpan<blender::float3> positions)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   if (me && mti->depends_on_normals && mti->depends_on_normals(md)) {
     modwrap_dependsOnNormals(me);
   }
-  mti->deform_verts(md, ctx, me, vertexCos, numVerts);
+  mti->deform_verts(md, ctx, me, positions);
   if (me) {
     BKE_mesh_tag_positions_changed(me);
   }
@@ -1023,14 +1022,13 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
                                  BMEditMesh *em,
                                  Mesh *me,
-                                 float (*vertexCos)[3],
-                                 int numVerts)
+                                 blender::MutableSpan<blender::float3> positions)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   if (me && mti->depends_on_normals && mti->depends_on_normals(md)) {
     modwrap_dependsOnNormals(me);
   }
-  mti->deform_verts_EM(md, ctx, em, me, vertexCos, numVerts);
+  mti->deform_verts_EM(md, ctx, em, me, positions);
 }
 
 /* end modifier callback wrappers */

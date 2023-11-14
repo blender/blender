@@ -40,12 +40,15 @@
 static void deform_verts(ModifierData * /*md*/,
                          const ModifierEvalContext *ctx,
                          Mesh * /*mesh*/,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  sbObjectStep(
-      ctx->depsgraph, scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, verts_num);
+  sbObjectStep(ctx->depsgraph,
+               scene,
+               ctx->object,
+               DEG_get_ctime(ctx->depsgraph),
+               reinterpret_cast<float(*)[3]>(positions.data()),
+               positions.size());
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)

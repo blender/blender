@@ -445,11 +445,15 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
-  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh, vertexCos, verts_num);
+  SimpleDeformModifier_do(sdmd,
+                          ctx,
+                          ctx->object,
+                          mesh,
+                          reinterpret_cast<float(*)[3]>(positions.data()),
+                          positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

@@ -102,8 +102,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   CurveModifierData *cmd = (CurveModifierData *)md;
 
@@ -116,8 +115,8 @@ static void deform_verts(ModifierData *md,
 
   BKE_curve_deform_coords(cmd->object,
                           ctx->object,
-                          vertexCos,
-                          verts_num,
+                          reinterpret_cast<float(*)[3]>(positions.data()),
+                          positions.size(),
                           dvert,
                           defgrp_index,
                           cmd->flag,
@@ -128,11 +127,10 @@ static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             BMEditMesh *em,
                             Mesh *mesh,
-                            float (*vertexCos)[3],
-                            int verts_num)
+                            blender::MutableSpan<blender::float3> positions)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    deform_verts(md, ctx, mesh, vertexCos, verts_num);
+    deform_verts(md, ctx, mesh, positions);
     return;
   }
 
@@ -150,8 +148,8 @@ static void deform_verts_EM(ModifierData *md,
   if (use_dverts) {
     BKE_curve_deform_coords_with_editmesh(cmd->object,
                                           ctx->object,
-                                          vertexCos,
-                                          verts_num,
+                                          reinterpret_cast<float(*)[3]>(positions.data()),
+                                          positions.size(),
                                           defgrp_index,
                                           cmd->flag,
                                           cmd->defaxis - 1,
@@ -160,8 +158,8 @@ static void deform_verts_EM(ModifierData *md,
   else {
     BKE_curve_deform_coords(cmd->object,
                             ctx->object,
-                            vertexCos,
-                            verts_num,
+                            reinterpret_cast<float(*)[3]>(positions.data()),
+                            positions.size(),
                             nullptr,
                             defgrp_index,
                             cmd->flag,

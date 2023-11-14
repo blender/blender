@@ -78,8 +78,7 @@ static void init_data(ModifierData *md)
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -111,13 +110,18 @@ static void deform_verts(ModifierData *md,
             CustomData_add_layer(&mesh->vert_data, CD_CLOTH_ORCO, CD_SET_DEFAULT, mesh->totvert));
       }
 
-      memcpy(layerorco, kb->data, sizeof(float[3]) * verts_num);
+      memcpy(layerorco, kb->data, sizeof(float[3]) * positions.size());
     }
   }
 
-  BKE_mesh_vert_coords_apply(mesh, vertexCos);
+  BKE_mesh_vert_coords_apply(mesh, reinterpret_cast<float(*)[3]>(positions.data()));
 
-  clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh, vertexCos);
+  clothModifier_do(clmd,
+                   ctx->depsgraph,
+                   scene,
+                   ctx->object,
+                   mesh,
+                   reinterpret_cast<float(*)[3]>(positions.data()));
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)

@@ -545,7 +545,8 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
       vert_coords = BKE_lattice_vert_coords_alloc(effective_lattice, &numVerts);
     }
 
-    mti->deform_verts(md, &mectx, nullptr, vert_coords, numVerts);
+    mti->deform_verts(
+        md, &mectx, nullptr, {reinterpret_cast<blender::float3 *>(vert_coords), numVerts});
   }
 
   if (vert_coords == nullptr) {

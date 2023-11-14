@@ -504,15 +504,17 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  if (verts_num == 0) {
+  if (positions.is_empty()) {
     return;
   }
 
-  laplaciansmoothModifier_do(
-      (LaplacianSmoothModifierData *)md, ctx->object, mesh, vertexCos, verts_num);
+  laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md,
+                             ctx->object,
+                             mesh,
+                             reinterpret_cast<float(*)[3]>(positions.data()),
+                             positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

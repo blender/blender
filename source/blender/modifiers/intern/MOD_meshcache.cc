@@ -278,13 +278,17 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-  meshcache_do(mcmd, scene, ctx->object, mesh, vertexCos, verts_num);
+  meshcache_do(mcmd,
+               scene,
+               ctx->object,
+               mesh,
+               reinterpret_cast<float(*)[3]>(positions.data()),
+               positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

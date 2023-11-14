@@ -619,7 +619,8 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
         deformedVerts = BKE_curve_nurbs_vert_coords_alloc(source_nurb, &numVerts);
       }
 
-      mti->deform_verts(md, &mectx, nullptr, deformedVerts, numVerts);
+      mti->deform_verts(
+          md, &mectx, nullptr, {reinterpret_cast<blender::float3 *>(deformedVerts), numVerts});
 
       if (md == pretessellatePoint) {
         break;
@@ -741,11 +742,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
     if (mti->type == ModifierTypeType::OnlyDeform) {
-      mti->deform_verts(md,
-                        &mectx_deform,
-                        mesh,
-                        reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
-                        mesh->totvert);
+      mti->deform_verts(md, &mectx_deform, mesh, mesh->vert_positions_for_write());
       BKE_mesh_tag_positions_changed(mesh);
     }
     else {

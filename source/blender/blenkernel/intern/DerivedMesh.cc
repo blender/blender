@@ -658,12 +658,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
           }
         }
 
-        BKE_modifier_deform_verts(
-            md,
-            &mectx,
-            mesh_final,
-            reinterpret_cast<float(*)[3]>(mesh_final->vert_positions_for_write().data()),
-            mesh_final->totvert);
+        BKE_modifier_deform_verts(md, &mectx, mesh_final, mesh_final->vert_positions_for_write());
       }
       else {
         break;
@@ -748,12 +743,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
         mesh_final = BKE_mesh_copy_for_eval(mesh_input);
         ASSERT_IS_VALID_MESH(mesh_final);
       }
-      BKE_modifier_deform_verts(
-          md,
-          &mectx,
-          mesh_final,
-          reinterpret_cast<float(*)[3]>(mesh_final->vert_positions_for_write().data()),
-          mesh_final->totvert);
+      BKE_modifier_deform_verts(md, &mectx, mesh_final, mesh_final->vert_positions_for_write());
     }
     else {
       bool check_for_needs_mapping = false;
@@ -1179,24 +1169,17 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
 
     if (mti->type == ModifierTypeType::OnlyDeform) {
       if (mti->deform_verts_EM) {
-        BKE_modifier_deform_vertsEM(
-            md,
-            &mectx,
-            em_input,
-            mesh_final,
-            reinterpret_cast<float(*)[3]>(
-                mesh_wrapper_vert_coords_ensure_for_write(mesh_final).data()),
-            BKE_mesh_wrapper_vert_len(mesh_final));
+        BKE_modifier_deform_vertsEM(md,
+                                    &mectx,
+                                    em_input,
+                                    mesh_final,
+
+                                    mesh_wrapper_vert_coords_ensure_for_write(mesh_final));
         BKE_mesh_wrapper_tag_positions_changed(mesh_final);
       }
       else {
         BKE_mesh_wrapper_ensure_mdata(mesh_final);
-        BKE_modifier_deform_verts(
-            md,
-            &mectx,
-            mesh_final,
-            reinterpret_cast<float(*)[3]>(mesh_final->vert_positions_for_write().data()),
-            mesh_final->totvert);
+        BKE_modifier_deform_verts(md, &mectx, mesh_final, mesh_final->vert_positions_for_write());
         BKE_mesh_tag_positions_changed(mesh_final);
       }
     }

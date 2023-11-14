@@ -288,7 +288,10 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(
     }
 
     BKE_modifier_deform_verts(
-        md, &mesh_eval_context, base_mesh, deformed_verts, num_deformed_verts);
+        md,
+        &mesh_eval_context,
+        base_mesh,
+        {reinterpret_cast<blender::float3 *>(deformed_verts), num_deformed_verts});
   }
 
   if (r_num_deformed_verts != nullptr) {
