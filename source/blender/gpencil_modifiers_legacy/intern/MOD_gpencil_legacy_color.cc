@@ -33,7 +33,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "DEG_depsgraph.hh"
 

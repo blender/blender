@@ -54,7 +54,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"

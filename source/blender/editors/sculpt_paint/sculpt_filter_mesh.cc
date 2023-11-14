@@ -24,7 +24,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_context.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 

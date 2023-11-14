@@ -29,7 +29,7 @@
 #include "BKE_lattice.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 

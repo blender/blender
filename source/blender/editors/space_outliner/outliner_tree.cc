@@ -21,7 +21,7 @@
 
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_outliner_treehash.hh"
 
 #include "ED_screen.hh"

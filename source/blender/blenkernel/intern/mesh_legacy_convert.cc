@@ -38,7 +38,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"

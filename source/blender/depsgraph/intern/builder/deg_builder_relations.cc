@@ -71,7 +71,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"

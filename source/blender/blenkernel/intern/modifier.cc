@@ -5,7 +5,7 @@
 /** \file
  * \ingroup bke
  * Modifier stack implementation.
- * BKE_modifier.h contains the function prototypes for this file.
+ * BKE_modifier.hh contains the function prototypes for this file.
  */
 
 /* Allow using deprecated functionality for .blend file I/O. */

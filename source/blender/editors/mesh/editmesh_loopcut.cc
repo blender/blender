@@ -20,7 +20,7 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_report.h"
 #include "BKE_unit.h"
 

@@ -36,7 +36,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_boolean_convert.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

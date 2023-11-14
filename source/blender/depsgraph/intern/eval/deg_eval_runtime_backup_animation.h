@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "intern/depsgraph_type.hh"
 

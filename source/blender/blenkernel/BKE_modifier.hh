@@ -11,19 +11,9 @@
 #include "BLI_compiler_attrs.h"
 #include "DNA_modifier_types.h" /* needed for all enum typdefs */
 
-#ifdef __cplusplus
 namespace blender::bke {
 struct GeometrySet;
 }
-using GeometrySetHandle = blender::bke::GeometrySet;
-#else
-typedef struct GeometrySetHandle GeometrySetHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ARegionType;
 struct BMEditMesh;
 struct BlendDataReader;
@@ -257,7 +247,7 @@ typedef struct ModifierTypeInfo {
    */
   void (*modify_geometry_set)(struct ModifierData *md,
                               const struct ModifierEvalContext *ctx,
-                              GeometrySetHandle *geometry_set);
+                              blender::bke::GeometrySet *geometry_set);
 
   /********************* Optional functions *********************/
 
@@ -625,12 +615,6 @@ void BKE_modifier_blend_read_data(struct BlendDataReader *reader,
                                   struct ListBase *lb,
                                   struct Object *ob);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
 namespace blender::bke {
 
 /**
@@ -648,5 +632,3 @@ class ScopedModifierTimer {
 };
 
 }  // namespace blender::bke
-
-#endif

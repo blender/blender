@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 struct ModifierData;
 

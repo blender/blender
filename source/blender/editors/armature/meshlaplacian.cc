@@ -29,7 +29,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "ED_armature.hh"
 #include "ED_mesh.hh"

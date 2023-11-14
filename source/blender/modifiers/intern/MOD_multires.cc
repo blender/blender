@@ -23,7 +23,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"

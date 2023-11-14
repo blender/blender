@@ -18,7 +18,7 @@
 #include "rna_internal.h"
 
 #include "BKE_cloth.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "SIM_mass_spring.h"
 

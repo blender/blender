@@ -12,7 +12,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 

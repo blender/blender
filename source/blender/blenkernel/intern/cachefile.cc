@@ -30,7 +30,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"

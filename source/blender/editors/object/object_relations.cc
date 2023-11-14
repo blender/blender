@@ -68,7 +68,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"

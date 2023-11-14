@@ -27,7 +27,7 @@
 #include "BKE_fluid.h"
 #include "BKE_layer.h"
 #include "BKE_lib_query.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"

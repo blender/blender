@@ -14,7 +14,7 @@
 #include "BLI_memblock.h"
 
 #include "BKE_duplilist.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"

@@ -10,7 +10,7 @@
 #include <cstdlib>
 
 #include "BKE_dynamicpaint.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "BLI_string_utf8_symbols.h"
 

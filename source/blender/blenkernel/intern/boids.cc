@@ -30,7 +30,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "RNA_enum_types.hh"
 

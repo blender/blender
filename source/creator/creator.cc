@@ -49,7 +49,7 @@
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_shader_fx.h"

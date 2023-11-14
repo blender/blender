@@ -35,7 +35,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 #include "BKE_texture.h" /* Texture masking. */
 

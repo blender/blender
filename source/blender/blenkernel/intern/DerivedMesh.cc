@@ -50,7 +50,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"

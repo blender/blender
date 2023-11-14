@@ -20,7 +20,7 @@
 #include "rna_internal.h"
 
 #include "BKE_fluid.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 
 #include "BLT_translation.h"

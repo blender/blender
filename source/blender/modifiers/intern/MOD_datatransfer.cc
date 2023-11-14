@@ -24,7 +24,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 

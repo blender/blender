@@ -19,7 +19,7 @@
 #include "BKE_gpencil_modifier_legacy.h" /* Types for registering panels. */
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
