@@ -419,7 +419,7 @@ int16_t OBJMesh::get_poly_deform_group_index(const int face_index,
                                              MutableSpan<float> group_weights) const
 {
   BLI_assert(face_index < export_mesh_->faces_num);
-  BLI_assert(group_weights.size() == BKE_object_defgroup_count(&export_object_eval_));
+  BLI_assert(group_weights.size() == BLI_listbase_count(&export_mesh_->vertex_group_names));
   const Span<MDeformVert> dverts = export_mesh_->deform_verts();
   if (dverts.is_empty()) {
     return NOT_FOUND;
