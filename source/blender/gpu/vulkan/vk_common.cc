@@ -853,6 +853,23 @@ VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test)
   return VK_CULL_MODE_NONE;
 }
 
+VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode extend_mode)
+{
+  switch (extend_mode) {
+    case GPU_SAMPLER_EXTEND_MODE_EXTEND:
+      return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    case GPU_SAMPLER_EXTEND_MODE_REPEAT:
+      return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
+      return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+    case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
+      return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  }
+
+  BLI_assert_unreachable();
+  return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+}
+
 const char *to_string(VkObjectType type)
 {
 

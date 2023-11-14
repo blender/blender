@@ -23,6 +23,9 @@ namespace blender::gpu {
 
 void VKDevice::deinit()
 {
+  if (!is_initialized()) {
+    return;
+  }
   VK_ALLOCATION_CALLBACKS;
   vkDestroyCommandPool(vk_device_, vk_command_pool_, vk_allocation_callbacks);
 
@@ -31,7 +34,7 @@ void VKDevice::deinit()
     delete &(*dummy_color_attachment_).get();
     dummy_color_attachment_.reset();
   }
-  sampler_.free();
+  samplers_.free();
   destroy_discarded_resources();
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
@@ -69,7 +72,7 @@ void VKDevice::init(void *ghost_context)
   init_command_pools();
   init_descriptor_pools();
 
-  sampler_.create();
+  samplers_.init();
 
   debug::object_label(device_get(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
