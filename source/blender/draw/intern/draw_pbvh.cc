@@ -569,10 +569,9 @@ struct PBVHBatches {
         });
       }
       else {
-        foreach_grids(
-            [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-              *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
-            });
+        MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+                    GPU_vertbuf_get_vertex_len(vbo.vert_buf))
+            .fill(0.0f);
       }
     }
     else if (vbo.type == CD_PBVH_FSET_TYPE) {
