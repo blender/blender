@@ -150,7 +150,6 @@ bool RNA_path_resolve_property_and_item_pointer_full(const PointerRNA *ptr,
                                                      int *r_index,
                                                      PointerRNA *r_item_ptr);
 
-typedef struct PropertyElemRNA PropertyElemRNA;
 struct PropertyElemRNA {
   PropertyElemRNA *next, *prev;
   PointerRNA ptr;
@@ -166,7 +165,7 @@ struct PropertyElemRNA {
  * \return True if there was no error while resolving the path
  * \note Assumes all pointers provided are valid
  */
-bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, struct ListBase *r_elements);
+bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_elements);
 
 /**
  * Find the path from the structure referenced by the pointer to the runtime RNA-defined
@@ -178,7 +177,7 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, struct ListBas
  * \param needle: Custom property object to find.
  * \return Relative path or NULL.
  */
-char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const struct IDProperty *needle);
+char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const IDProperty *needle);
 
 /**
  * Find the actual ID pointer and path from it to the given ID.
@@ -187,13 +186,11 @@ char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const struct IDPropert
  * \param[out] r_path: Path from the real ID to the initial ID.
  * \return The ID pointer, or NULL in case of failure.
  */
-struct ID *RNA_find_real_ID_and_path(struct ID *id, const char **r_path);
+ID *RNA_find_real_ID_and_path(ID *id, const char **r_path);
 
 char *RNA_path_from_ID_to_struct(const PointerRNA *ptr);
 
-char *RNA_path_from_real_ID_to_struct(struct Main *bmain,
-                                      const PointerRNA *ptr,
-                                      struct ID **r_real);
+char *RNA_path_from_real_ID_to_struct(Main *bmain, const PointerRNA *ptr, ID **r_real);
 
 char *RNA_path_from_ID_to_property(const PointerRNA *ptr, PropertyRNA *prop);
 
@@ -211,12 +208,12 @@ char *RNA_path_from_ID_to_property_index(const PointerRNA *ptr,
                                          int index_dim,
                                          int index);
 
-char *RNA_path_from_real_ID_to_property_index(struct Main *bmain,
+char *RNA_path_from_real_ID_to_property_index(Main *bmain,
                                               const PointerRNA *ptr,
                                               PropertyRNA *prop,
                                               int index_dim,
                                               int index,
-                                              struct ID **r_real_id);
+                                              ID **r_real_id);
 
 /**
  * \return the path to given ptr/prop from the closest ancestor of given type,
@@ -224,13 +221,13 @@ char *RNA_path_from_real_ID_to_property_index(struct Main *bmain,
  */
 char *RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,
                                              PropertyRNA *prop,
-                                             const struct StructRNA *type);
+                                             const StructRNA *type);
 
 /**
  * Get the ID as a python representation, eg:
  *   bpy.data.foo["bar"]
  */
-char *RNA_path_full_ID_py(struct ID *id);
+char *RNA_path_full_ID_py(ID *id);
 /**
  * Get the ID.struct as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct

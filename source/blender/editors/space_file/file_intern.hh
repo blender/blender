@@ -221,7 +221,7 @@ void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
 /* asset_catalog_tree_view.cc */
 
 /* C-handle for #ed::asset_browser::AssetCatalogFilterSettings. */
-typedef struct FileAssetCatalogFilterSettingsHandle FileAssetCatalogFilterSettingsHandle;
+struct FileAssetCatalogFilterSettingsHandle;
 
 void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
                                                    uiLayout *layout,

@@ -35,14 +35,14 @@ struct Sequence;
        var = SEQ_iterator_yield(&_SEQ_ITERATOR_NAME(iter)))
 
 typedef struct SeqCollection {
-  struct GSet *set;
+  GSet *set;
 } SeqCollection;
 
-typedef struct SeqIterator {
+struct SeqIterator {
   GSetIterator gsi;
   SeqCollection *collection;
   bool iterator_initialized;
-} SeqIterator;
+};
 
 /**
  * Utility function for SEQ_ITERATOR_FOREACH macro.
@@ -56,9 +56,7 @@ typedef struct SeqIterator {
  *
  * \return false when iterator can not be initialized, true otherwise
  */
-bool SEQ_iterator_ensure(SeqCollection *collection,
-                         SeqIterator *iterator,
-                         struct Sequence **r_seq);
+bool SEQ_iterator_ensure(SeqCollection *collection, SeqIterator *iterator, Sequence **r_seq);
 /**
  * Utility function for SEQ_ITERATOR_FOREACH macro.
  * Yield collection element
@@ -67,12 +65,12 @@ bool SEQ_iterator_ensure(SeqCollection *collection,
  *
  * \return collection element or NULL when iteration has ended
  */
-struct Sequence *SEQ_iterator_yield(SeqIterator *iterator);
+Sequence *SEQ_iterator_yield(SeqIterator *iterator);
 
 /**
  * Callback format for the for_each function below.
  */
-typedef bool (*SeqForEachFunc)(struct Sequence *seq, void *user_data);
+typedef bool (*SeqForEachFunc)(Sequence *seq, void *user_data);
 
 /**
  * Utility function to recursively iterate through all sequence strips in a `seqbase` list.
@@ -83,7 +81,7 @@ typedef bool (*SeqForEachFunc)(struct Sequence *seq, void *user_data);
  * \param callback: query function callback, returns false if iteration should stop.
  * \param user_data: pointer to user data that can be used in the callback function.
  */
-void SEQ_for_each_callback(struct ListBase *seqbase, SeqForEachFunc callback, void *user_data);
+void SEQ_for_each_callback(ListBase *seqbase, SeqForEachFunc callback, void *user_data);
 
 /**
  * Expand set by running `seq_query_func()` for each strip, which will be used as reference.
@@ -93,12 +91,12 @@ void SEQ_for_each_callback(struct ListBase *seqbase, SeqForEachFunc callback, vo
  * \param strips: set of strips to be expanded
  * \param seq_query_func: query function callback
  */
-void SEQ_iterator_set_expand(const struct Scene *scene,
-                             struct ListBase *seqbase,
+void SEQ_iterator_set_expand(const Scene *scene,
+                             ListBase *seqbase,
                              blender::VectorSet<Sequence *> &strips,
-                             void seq_query_func(const struct Scene *scene,
-                                                 struct Sequence *seq_reference,
-                                                 struct ListBase *seqbase,
+                             void seq_query_func(const Scene *scene,
+                                                 Sequence *seq_reference,
+                                                 ListBase *seqbase,
                                                  blender::VectorSet<Sequence *> &strips));
 /**
  * Query strips from seqbase. seq_reference is used by query function as filter condition.
@@ -109,12 +107,12 @@ void SEQ_iterator_set_expand(const struct Scene *scene,
  * \return set of strips
  */
 blender::VectorSet<Sequence *> SEQ_query_by_reference(
-    struct Sequence *seq_reference,
-    const struct Scene *scene,
-    struct ListBase *seqbase,
-    void seq_query_func(const struct Scene *scene,
-                        struct Sequence *seq_reference,
-                        struct ListBase *seqbase,
+    Sequence *seq_reference,
+    const Scene *scene,
+    ListBase *seqbase,
+    void seq_query_func(const Scene *scene,
+                        Sequence *seq_reference,
+                        ListBase *seqbase,
                         blender::VectorSet<Sequence *> &strips));
 /**
  * Query all selected strips in seqbase.
@@ -122,7 +120,7 @@ blender::VectorSet<Sequence *> SEQ_query_by_reference(
  * \param seqbase: ListBase in which strips are queried
  * \return set of strips
  */
-blender::VectorSet<Sequence *> SEQ_query_selected_strips(struct ListBase *seqbase);
+blender::VectorSet<Sequence *> SEQ_query_selected_strips(ListBase *seqbase);
 /**
  * Query all unselected strips in seqbase.
  *
@@ -154,9 +152,9 @@ blender::VectorSet<Sequence *> SEQ_query_all_strips_recursive(ListBase *seqbase)
  * \param seqbase: ListBase in which strips are queried
  * \param strips: set of strips to be filled
  */
-void SEQ_query_strip_effect_chain(const struct Scene *scene,
-                                  struct Sequence *seq_reference,
-                                  struct ListBase *seqbase,
+void SEQ_query_strip_effect_chain(const Scene *scene,
+                                  Sequence *seq_reference,
+                                  ListBase *seqbase,
                                   blender::VectorSet<Sequence *> &strips);
 
 /**
@@ -167,7 +165,7 @@ void SEQ_query_strip_effect_chain(const struct Scene *scene,
  * \param displayed_channel: viewed channel. when set to 0, no channel filter is applied
  * \return set of strips
  */
-blender::VectorSet<Sequence *> SEQ_query_rendered_strips(const struct Scene *scene,
+blender::VectorSet<Sequence *> SEQ_query_rendered_strips(const Scene *scene,
                                                          ListBase *channels,
                                                          ListBase *seqbase,
                                                          int timeline_frame,

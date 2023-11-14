@@ -16,7 +16,7 @@ struct Scene;
 struct SeqRenderData;
 struct Sequence;
 
-typedef struct SeqCacheKey {
+struct SeqCacheKey {
   struct SeqCache *cache_owner;
   void *userkey;
   struct SeqCacheKey *link_prev; /* Used for linking intermediate items to final frame. */
@@ -30,40 +30,31 @@ typedef struct SeqCacheKey {
   /* ID of task for assigning temp cache entries to particular task(thread, etc.) */
   eSeqTaskId task_id;
   int type;
-} SeqCacheKey;
+};
 
-struct ImBuf *seq_cache_get(const struct SeqRenderData *context,
-                            struct Sequence *seq,
-                            float timeline_frame,
-                            int type);
-void seq_cache_put(const struct SeqRenderData *context,
-                   struct Sequence *seq,
-                   float timeline_frame,
-                   int type,
-                   struct ImBuf *i);
-void seq_cache_thumbnail_put(const struct SeqRenderData *context,
-                             struct Sequence *seq,
+ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline_frame, int type);
+void seq_cache_put(
+    const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *i);
+void seq_cache_thumbnail_put(const SeqRenderData *context,
+                             Sequence *seq,
                              float timeline_frame,
-                             struct ImBuf *i,
-                             const struct rctf *view_area);
-bool seq_cache_put_if_possible(const struct SeqRenderData *context,
-                               struct Sequence *seq,
-                               float timeline_frame,
-                               int type,
-                               struct ImBuf *nval);
+                             ImBuf *i,
+                             const rctf *view_area);
+bool seq_cache_put_if_possible(
+    const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *nval);
 /**
  * Find only "base" keys.
  * Sources(other types) for a frame must be freed all at once.
  */
-bool seq_cache_recycle_item(struct Scene *scene);
-void seq_cache_free_temp_cache(struct Scene *scene, short id, int timeline_frame);
-void seq_cache_destruct(struct Scene *scene);
-void seq_cache_cleanup_all(struct Main *bmain);
-void seq_cache_cleanup_sequence(struct Scene *scene,
-                                struct Sequence *seq,
-                                struct Sequence *seq_changed,
+bool seq_cache_recycle_item(Scene *scene);
+void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame);
+void seq_cache_destruct(Scene *scene);
+void seq_cache_cleanup_all(Main *bmain);
+void seq_cache_cleanup_sequence(Scene *scene,
+                                Sequence *seq,
+                                Sequence *seq_changed,
                                 int invalidate_types,
                                 bool force_seq_changed_range);
 void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area);
-bool seq_cache_is_full(void);
-float seq_cache_frame_index_to_timeline_frame(struct Sequence *seq, float frame_index);
+bool seq_cache_is_full();
+float seq_cache_frame_index_to_timeline_frame(Sequence *seq, float frame_index);
