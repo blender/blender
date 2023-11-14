@@ -348,6 +348,7 @@ bool VKTexture::init_internal()
 
 bool VKTexture::init_internal(GPUVertBuf *vbo)
 {
+  device_format_ = format_;
   if (!allocate()) {
     return false;
   }
