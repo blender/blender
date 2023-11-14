@@ -369,7 +369,6 @@ set(SRC
   BKE_constraint.h
   BKE_context.h
   BKE_cpp_types.h
-  BKE_crazyspace.h
   BKE_crazyspace.hh
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
@@ -455,7 +454,7 @@ set(SRC
   BKE_mesh_tangent.hh
   BKE_mesh_types.hh
   BKE_mesh_wrapper.hh
-  BKE_modifier.h
+  BKE_modifier.hh
   BKE_movieclip.h
   BKE_multires.hh
   BKE_nla.h

@@ -76,7 +76,7 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
-#include "BKE_crazyspace.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_curve.h"
 #include "BKE_curves.hh"
 #include "BKE_deform.h"
@@ -111,7 +111,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
@@ -4885,7 +4885,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
        md = md->next)
   {
     const ModifierTypeInfo *mti = BKE_modifier_get_info((const ModifierType)md->type);
-    bool can_deform = mti->type == eModifierTypeType_OnlyDeform || is_modifier_animated;
+    bool can_deform = mti->type == ModifierTypeType::OnlyDeform || is_modifier_animated;
 
     if (!can_deform) {
       can_deform = constructive_modifier_is_deform_modified(ob, md);

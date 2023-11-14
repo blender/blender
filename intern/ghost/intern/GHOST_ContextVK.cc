@@ -233,6 +233,7 @@ class GHOST_DeviceVK {
 #endif
     device_features.drawIndirectFirstInstance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
+    device_features.samplerAnisotropy = features.features.samplerAnisotropy;
 
     VkDeviceCreateInfo device_create_info = {};
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

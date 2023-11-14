@@ -57,10 +57,10 @@ void VKStateManager::issue_barrier(eGPUBarrier /*barrier_bits*/)
   context.flush();
 }
 
-void VKStateManager::texture_bind(Texture *tex, GPUSamplerState /*sampler*/, int unit)
+void VKStateManager::texture_bind(Texture *tex, GPUSamplerState sampler, int unit)
 {
   VKTexture *texture = unwrap(tex);
-  textures_.bind(unit, *texture);
+  textures_.bind(unit, *texture, sampler);
 }
 
 void VKStateManager::texture_unbind(Texture *tex)

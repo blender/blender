@@ -12,7 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_screen.hh"
 
@@ -395,7 +395,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
           but, TIP_("This modifier can only deform control points, not the filled curve/surface"));
       buttons_number++;
     }
-    else if (mti->type != eModifierTypeType_Constructive) {
+    else if (mti->type != ModifierTypeType::Constructive) {
       /* Constructive modifiers tessellates curve before applying. */
       uiItemR(row, ptr, "use_apply_on_spline", UI_ITEM_NONE, "", ICON_NONE);
       buttons_number++;

@@ -17,7 +17,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_subdiv.hh"
@@ -107,7 +107,10 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
   modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
 
   BKE_modifier_deform_verts(
-      deform_md, &modifier_ctx, multires_mesh, deformed_verts, multires_mesh->totvert);
+      deform_md,
+      &modifier_ctx,
+      multires_mesh,
+      {reinterpret_cast<blender::float3 *>(deformed_verts), num_deformed_verts});
   BKE_id_free(nullptr, multires_mesh);
 
   /* Reshaping */

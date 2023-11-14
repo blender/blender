@@ -30,7 +30,7 @@
 #include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"

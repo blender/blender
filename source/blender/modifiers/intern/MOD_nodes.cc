@@ -50,7 +50,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_object.hh"
@@ -1885,7 +1885,7 @@ ModifierTypeInfo modifierType_Nodes = {
     /*struct_name*/ "NodesModifierData",
     /*struct_size*/ sizeof(NodesModifierData),
     /*srna*/ &RNA_NodesModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/
     static_cast<ModifierTypeFlag>(
         eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |

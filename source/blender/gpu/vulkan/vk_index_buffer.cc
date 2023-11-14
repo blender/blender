@@ -45,7 +45,9 @@ void VKIndexBuffer::bind_as_ssbo(uint binding)
   VKContext::get()->state_manager_get().storage_buffer_bind(*this, binding);
 }
 
-void VKIndexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type)
+void VKIndexBuffer::bind(int binding,
+                         shader::ShaderCreateInfo::Resource::BindType bind_type,
+                         const GPUSamplerState /*sampler_state*/)
 {
   BLI_assert(bind_type == shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER);
   ensure_updated();

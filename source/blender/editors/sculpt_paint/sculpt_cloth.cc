@@ -27,7 +27,7 @@
 #include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 

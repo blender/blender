@@ -267,7 +267,7 @@ ModifierTypeInfo modifierType_Solidify = {
     /*struct_name*/ "SolidifyModifierData",
     /*struct_size*/ sizeof(SolidifyModifierData),
     /*srna*/ &RNA_SolidifyModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
 
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode |

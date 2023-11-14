@@ -238,11 +238,6 @@ void CustomData_free(struct CustomData *data, int totelem);
 void CustomData_free_typemask(struct CustomData *data, int totelem, eCustomDataMask mask);
 
 /**
- * Frees all layers with #CD_FLAG_TEMPORARY.
- */
-void CustomData_free_temporary(struct CustomData *data, int totelem);
-
-/**
  * Adds a layer of the given type to the #CustomData object. The new layer is initialized based on
  * the given alloctype.
  * \return The layer data.

@@ -14,7 +14,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_subdiv.hh"
 
 #include "GPU_capabilities.h"

@@ -340,7 +340,7 @@ enum {
   PANEL_TYPE_NO_SEARCH = (1 << 7),
 };
 
-typedef struct Panel_Runtime {
+struct Panel_Runtime {
   /* Applied to Panel.ofsx, but saved separately so we can track changes between redraws. */
   int region_ofsx = 0;
 
@@ -359,7 +359,7 @@ typedef struct Panel_Runtime {
 
   /* Non-owning pointer. The context is stored in the block. */
   bContextStore *context = nullptr;
-} Panel_Runtime;
+};
 
 /* #uiList types. */
 

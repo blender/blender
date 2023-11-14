@@ -38,7 +38,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -2132,6 +2132,10 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
 static bNodeTree *add_auto_smooth_node_tree(Main &bmain)
 {
   bNodeTree *group = ntreeAddTree(&bmain, DATA_("Auto Smooth"), "GeometryNodeTree");
+  if (!group->geometry_node_asset_traits) {
+    group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
+  }
+  group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
 
   group->tree_interface.add_socket(DATA_("Geometry"),
                                    "",

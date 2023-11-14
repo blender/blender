@@ -36,7 +36,7 @@
 #include "BKE_mesh_mirror.hh"
 #include "BKE_mesh_remesh_voxel.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"

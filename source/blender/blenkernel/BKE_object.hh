@@ -544,7 +544,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob);
  * Check of objects moves in time.
  *
  * \note This function is currently optimized for usage in combination
- * with modifier deformation checks (#eModifierTypeType_OnlyDeform),
+ * with modifier deformation checks (#ModifierTypeType::OnlyDeform),
  * so modifiers can quickly check if their target objects moves
  * (causing deformation motion blur) or not.
  *

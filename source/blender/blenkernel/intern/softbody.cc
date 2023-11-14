@@ -57,7 +57,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_softbody.h"

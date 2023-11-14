@@ -86,14 +86,22 @@ static void applyBakeTime(TransInfo *t)
         continue;
       }
 
+      float *dst, ival;
       if (td->val) {
-        *td->val = td->ival + time * td->factor;
-        if (td->ext->size && *td->val < *td->ext->size) {
-          *td->val = *td->ext->size;
-        }
-        if (td->ext->quat && *td->val > *td->ext->quat) {
-          *td->val = *td->ext->quat;
-        }
+        dst = td->val;
+        ival = td->ival;
+      }
+      else {
+        dst = &td->loc[0];
+        ival = td->iloc[0];
+      }
+
+      *dst = ival + time * td->factor;
+      if (td->ext->size && *dst < *td->ext->size) {
+        *dst = *td->ext->size;
+      }
+      if (td->ext->quat && *dst > *td->ext->quat) {
+        *dst = *td->ext->quat;
       }
     }
   }

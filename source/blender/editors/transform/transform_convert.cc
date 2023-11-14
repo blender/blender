@@ -28,7 +28,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_nla.h"
 #include "BKE_scene.h"
 
@@ -1092,6 +1092,9 @@ void create_trans_data(bContext *C, TransInfo *t)
       t->obedit_type = -1;
     }
     t->data_type->create_trans_data(C, t);
+    BLI_assert_msg(!t->data_container || !t->data_container->data ||
+                       (t->data_container->data[0].val != t->data_container->data[0].loc),
+                   "td->val is only for 1D values");
   }
 
   countAndCleanTransDataContainer(t);

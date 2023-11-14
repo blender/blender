@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_timecode.h"

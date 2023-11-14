@@ -30,7 +30,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_context.h"
-#include "BKE_crazyspace.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"

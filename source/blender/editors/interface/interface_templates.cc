@@ -59,7 +59,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_packedFile.h"
 #include "BKE_particle.h"

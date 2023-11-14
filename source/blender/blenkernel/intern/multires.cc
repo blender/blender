@@ -28,7 +28,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -283,12 +283,15 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(
       continue;
     }
 
-    if (mti->type != eModifierTypeType_OnlyDeform) {
+    if (mti->type != ModifierTypeType::OnlyDeform) {
       break;
     }
 
     BKE_modifier_deform_verts(
-        md, &mesh_eval_context, base_mesh, deformed_verts, num_deformed_verts);
+        md,
+        &mesh_eval_context,
+        base_mesh,
+        {reinterpret_cast<blender::float3 *>(deformed_verts), num_deformed_verts});
   }
 
   if (r_num_deformed_verts != nullptr) {

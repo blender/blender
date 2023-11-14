@@ -40,7 +40,9 @@ void VKUniformBuffer::clear_to_zero()
   buffer_.clear(context, 0);
 }
 
-void VKUniformBuffer::bind(int slot, shader::ShaderCreateInfo::Resource::BindType bind_type)
+void VKUniformBuffer::bind(int slot,
+                           shader::ShaderCreateInfo::Resource::BindType bind_type,
+                           const GPUSamplerState /*sampler_state*/)
 {
   if (!buffer_.is_allocated()) {
     allocate();

@@ -36,7 +36,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_boolean_convert.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -675,7 +675,7 @@ ModifierTypeInfo modifierType_Boolean = {
     /*struct_name*/ "BooleanModifierData",
     /*struct_size*/ sizeof(BooleanModifierData),
     /*srna*/ &RNA_BooleanModifier,
-    /*type*/ eModifierTypeType_Nonconstructive,
+    /*type*/ ModifierTypeType::Nonconstructive,
     /*flags*/
     (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode),
     /*icon*/ ICON_MOD_BOOLEAN,

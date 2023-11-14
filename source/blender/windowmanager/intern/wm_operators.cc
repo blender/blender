@@ -1860,8 +1860,6 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   static SearchPopupInit_Data data{};
-  char temp_buffer[256] = "";
-  STRNCPY(temp_buffer, g_search_text);
 
   if (search_type == SEARCH_TYPE_SINGLE_MENU) {
     {
@@ -1875,16 +1873,15 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
       MEM_SAFE_FREE(buffer);
     }
   }
+  else {
+    g_search_text[0] = '\0';
+  }
 
   data.search_type = search_type;
   data.size[0] = UI_searchbox_size_x() * 2;
   data.size[1] = UI_searchbox_size_y();
 
   UI_popup_block_invoke_ex(C, wm_block_search_menu, &data, nullptr, false);
-
-  /* g_search_text contains pressed letter here, copy previous searched
-   * value back to it, this will retain last searched result. see: #112896 */
-  STRNCPY(g_search_text, temp_buffer);
 
   return OPERATOR_INTERFACE;
 }

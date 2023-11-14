@@ -33,7 +33,7 @@
 #include "BKE_layer.h"
 #include "BKE_linestyle.h"
 #include "BKE_material.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"

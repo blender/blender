@@ -56,14 +56,13 @@ struct SceneFPS_State {
  * \param ltime: Time since the last update,
  * compatible with the result of #PIL_check_seconds_timer.
  */
-void ED_scene_fps_average_accumulate(struct Scene *scene, short fps_samples, double ltime)
+void ED_scene_fps_average_accumulate(Scene *scene, short fps_samples, double ltime)
     ATTR_NONNULL(1);
 /**
  * Calculate an average (if it's not already calculated).
  * \return false on failure otherwise all values in `state` are initialized.
  */
-bool ED_scene_fps_average_calc(const struct Scene *scene, SceneFPS_State *state)
-    ATTR_NONNULL(1, 2);
+bool ED_scene_fps_average_calc(const Scene *scene, SceneFPS_State *state) ATTR_NONNULL(1, 2);
 /**
  * Clear run-time data for accumulating animation playback average times.
  */

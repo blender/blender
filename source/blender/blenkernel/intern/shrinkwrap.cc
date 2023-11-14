@@ -32,7 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_shrinkwrap.h"
 
 #include "BKE_deform.h"

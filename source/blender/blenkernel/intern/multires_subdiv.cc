@@ -14,7 +14,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"

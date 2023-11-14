@@ -1704,6 +1704,7 @@ static const FaceDetails static_face_details[] = {
     {"NotoSansHebrew-Regular.woff2", TT_UCR_HEBREW, 0, 0, 0},
     {"NotoSansJavanese-Regular.woff2", 0x80000003L, 0x2000L, 0, 0},
     {"NotoSansKannada-VariableFont_wdth,wght.woff2", TT_UCR_KANNADA, 0, 0, 0},
+    {"NotoSansKhmer-VariableFont_wdth,wght.woff2", 0, 0, TT_UCR_KHMER, 0},
     {"NotoSansMalayalam-VariableFont_wdth,wght.woff2", TT_UCR_MALAYALAM, 0, 0, 0},
     {"NotoSansMath-Regular.woff2", 0, TT_UCR_MATHEMATICAL_OPERATORS, 0, 0},
     {"NotoSansMyanmar-Regular.woff2", 0, 0, TT_UCR_MYANMAR, 0},

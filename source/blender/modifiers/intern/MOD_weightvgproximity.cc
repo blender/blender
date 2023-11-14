@@ -35,7 +35,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 #include "BKE_texture.h" /* Texture masking. */
 
@@ -739,7 +739,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /*struct_name*/ "WeightVGProximityModifierData",
     /*struct_size*/ sizeof(WeightVGProximityModifierData),
     /*srna*/ &RNA_VertexWeightProximityModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
     /*icon*/ ICON_MOD_VERTEX_WEIGHT,

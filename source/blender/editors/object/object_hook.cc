@@ -31,7 +31,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -542,7 +542,7 @@ static int add_hook_object(const bContext *C,
   }
 
   md = static_cast<ModifierData *>(obedit->modifiers.first);
-  while (md && BKE_modifier_get_info(ModifierType(md->type))->type == eModifierTypeType_OnlyDeform)
+  while (md && BKE_modifier_get_info(ModifierType(md->type))->type == ModifierTypeType::OnlyDeform)
   {
     md = md->next;
   }

@@ -720,7 +720,7 @@ ModifierTypeInfo modifierType_NormalEdit = {
     /*struct_name*/ "NormalEditModifierData",
     /*struct_size*/ sizeof(NormalEditModifierData),
     /*srna*/ &RNA_NormalEditModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_NORMALEDIT,

@@ -27,6 +27,8 @@
 
 /* Blender RNA */
 
+struct Scene;
+
 BlenderRNA *RNA_create();
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
@@ -449,10 +451,10 @@ void RNA_def_property_override_funcs(PropertyRNA *prop,
                                      const char *store,
                                      const char *apply);
 
-typedef void (*RNAPropertyUpdateFunc)(struct Main *, struct Scene *, struct PointerRNA *);
-typedef void (*RNAPropertyUpdateFuncWithContextAndProperty)(struct bContext *C,
-                                                            struct PointerRNA *ptr,
-                                                            struct PropertyRNA *prop);
+typedef void (*RNAPropertyUpdateFunc)(Main *, Scene *, PointerRNA *);
+typedef void (*RNAPropertyUpdateFuncWithContextAndProperty)(bContext *C,
+                                                            PointerRNA *ptr,
+                                                            PropertyRNA *prop);
 
 void RNA_def_property_update_runtime(PropertyRNA *prop, RNAPropertyUpdateFunc func);
 void RNA_def_property_update_runtime_with_context_and_property(

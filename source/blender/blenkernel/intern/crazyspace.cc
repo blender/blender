@@ -21,7 +21,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_crazyspace.h"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_editmesh.h"
@@ -30,7 +29,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_report.h"
 
@@ -270,7 +269,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
       continue;
     }
 
-    if (mti->type == eModifierTypeType_OnlyDeform && mti->deform_matrices_EM) {
+    if (mti->type == ModifierTypeType::OnlyDeform && mti->deform_matrices_EM) {
       if (!defmats) {
         const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
         CustomData_MeshMasks cd_mask_extra = CD_MASK_BAREMESH;
@@ -290,7 +289,12 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
           unit_m3(defmats[a]);
         }
       }
-      mti->deform_matrices_EM(md, &mectx, em, me, deformedVerts, defmats, verts_num);
+      mti->deform_matrices_EM(md,
+                              &mectx,
+                              em,
+                              me,
+                              {reinterpret_cast<blender::float3 *>(deformedVerts), verts_num},
+                              {reinterpret_cast<blender::float3x3 *>(defmats), verts_num});
     }
     else {
       break;
@@ -353,13 +357,13 @@ static bool crazyspace_modifier_supports_deform_matrices(ModifierData *md)
     return true;
   }
   const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
-  return (mti->type == eModifierTypeType_OnlyDeform);
+  return (mti->type == ModifierTypeType::OnlyDeform);
 }
 
 static bool crazyspace_modifier_supports_deform(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
-  return (mti->type == eModifierTypeType_OnlyDeform);
+  return (mti->type == ModifierTypeType::OnlyDeform);
 }
 
 int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
@@ -403,7 +407,12 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
       }
 
       if (mti->deform_matrices) {
-        mti->deform_matrices(md, &mectx, me_eval, deformedVerts, defmats, me_eval->totvert);
+        mti->deform_matrices(
+            md,
+            &mectx,
+            me_eval,
+            {reinterpret_cast<blender::float3 *>(deformedVerts), me_eval->totvert},
+            {reinterpret_cast<blender::float3x3 *>(defmats), me_eval->totvert});
       }
       else {
         /* More complex handling will continue in BKE_crazyspace_build_sculpt.
@@ -483,7 +492,11 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
           mesh_eval = BKE_mesh_copy_for_eval(mesh);
         }
 
-        mti->deform_verts(md, &mectx, mesh_eval, deformedVerts, mesh_eval->totvert);
+        mti->deform_verts(
+            md,
+            &mectx,
+            mesh_eval,
+            {reinterpret_cast<blender::float3 *>(deformedVerts), mesh_eval->totvert});
         deformed = 1;
       }
     }

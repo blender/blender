@@ -31,7 +31,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 #include "BKE_texture.h"
 
@@ -338,11 +338,11 @@ static void warpModifier_do(WarpModifierData *wmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
-  warpModifier_do(wmd, ctx, mesh, vertexCos, verts_num);
+  warpModifier_do(
+      wmd, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -477,7 +477,7 @@ ModifierTypeInfo modifierType_Warp = {
     /*struct_name*/ "WarpModifierData",
     /*struct_size*/ sizeof(WarpModifierData),
     /*srna*/ &RNA_WarpModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WARP,

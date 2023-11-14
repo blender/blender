@@ -434,7 +434,7 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /*struct_name*/ "MeshSeqCacheModifierData",
     /*struct_size*/ sizeof(MeshSeqCacheModifierData),
     /*srna*/ &RNA_MeshSequenceCacheModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/
     static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs),
     /*icon*/ ICON_MOD_MESHDEFORM, /* TODO: Use correct icon. */
