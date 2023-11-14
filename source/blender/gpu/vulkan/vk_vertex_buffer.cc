@@ -36,7 +36,9 @@ void VKVertexBuffer::bind_as_texture(uint binding)
   state_manager.texel_buffer_bind(*this, binding);
 }
 
-void VKVertexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type)
+void VKVertexBuffer::bind(int binding,
+                          shader::ShaderCreateInfo::Resource::BindType bind_type,
+                          const GPUSamplerState /*sampler_state*/)
 {
   VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
