@@ -38,7 +38,7 @@ void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
 void transform_mesh(Mesh &mesh,
                     const float3 translation,
-                    const float3 rotation,
+                    const math::Quaternion rotation,
                     const float3 scale);
 
 void transform_geometry_set(GeoNodeExecParams &params,

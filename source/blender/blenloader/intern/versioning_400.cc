@@ -833,6 +833,89 @@ static void version_replace_principled_hair_model(bNodeTree *ntree)
   }
 }
 
+static void change_input_socket_to_rotation_type(bNodeTree &ntree,
+                                                 bNode &node,
+                                                 bNodeSocket &socket)
+{
+  if (socket.type == SOCK_ROTATION) {
+    return;
+  }
+  socket.type = SOCK_ROTATION;
+  STRNCPY(socket.idname, "NodeSocketRotation");
+  auto *old_value = static_cast<bNodeSocketValueVector *>(socket.default_value);
+  auto *new_value = MEM_new<bNodeSocketValueRotation>(__func__);
+  copy_v3_v3(new_value->value_euler, old_value->value);
+  socket.default_value = new_value;
+  MEM_freeN(old_value);
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
+    if (link->tosock != &socket) {
+      continue;
+    }
+    if (ELEM(link->fromsock->type, SOCK_VECTOR, SOCK_FLOAT) &&
+        link->fromnode->type != NODE_REROUTE) {
+      /* No need to add the conversion node when implicit conversions will work. */
+      continue;
+    }
+    if (STREQ(link->fromnode->idname, "FunctionNodeEulerToRotation")) {
+      /* Make versioning idempotent. */
+      continue;
+    }
+    bNode *convert = nodeAddNode(nullptr, &ntree, "FunctionNodeEulerToRotation");
+    convert->parent = node.parent;
+    convert->locx = node.locx - 40;
+    convert->locy = node.locy;
+    link->tonode = convert;
+    link->tosock = nodeFindSocket(convert, SOCK_IN, "Euler");
+
+    nodeAddLink(&ntree, convert, nodeFindSocket(convert, SOCK_OUT, "Rotation"), &node, &socket);
+  }
+}
+
+static void change_output_socket_to_rotation_type(bNodeTree &ntree,
+                                                  bNode &node,
+                                                  bNodeSocket &socket)
+{
+  /* Rely on generic node declaration update to change the socket type. */
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
+    if (link->fromsock != &socket) {
+      continue;
+    }
+    if (link->tosock->type == SOCK_VECTOR && link->tonode->type != NODE_REROUTE) {
+      /* No need to add the conversion node when implicit conversions will work. */
+      continue;
+    }
+    if (STREQ(link->tonode->idname, "FunctionNodeRotationToEuler"))
+    { /* Make versioning idempotent. */
+      continue;
+    }
+    bNode *convert = nodeAddNode(nullptr, &ntree, "FunctionNodeRotationToEuler");
+    convert->parent = node.parent;
+    convert->locx = node.locx + 40;
+    convert->locy = node.locy;
+    link->fromnode = convert;
+    link->fromsock = nodeFindSocket(convert, SOCK_OUT, "Euler");
+
+    nodeAddLink(&ntree, &node, &socket, convert, nodeFindSocket(convert, SOCK_IN, "Rotation"));
+  }
+}
+
+static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (STR_ELEM(node->idname,
+                 "GeometryNodeInstanceOnPoints",
+                 "GeometryNodeRotateInstances",
+                 "GeometryNodeTransform"))
+    {
+      bNodeSocket *socket = nodeFindSocket(node, SOCK_IN, "Rotation");
+      change_input_socket_to_rotation_type(ntree, *node, *socket);
+    }
+    if (STREQ(node->idname, "GeometryNodeDistributePointsOnFaces")) {
+      bNodeSocket *socket = nodeFindSocket(node, SOCK_OUT, "Rotation");
+      change_output_socket_to_rotation_type(ntree, *node, *socket);
+    }
+  }
+}
 static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &legacy_socket,
                                                                const eNodeSocketInOut in_out)
 {
@@ -1892,5 +1975,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_use_rotation_socket(*ntree);
+      }
+    }
   }
 }
