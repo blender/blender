@@ -70,12 +70,12 @@ void device_metal_info(vector<DeviceInfo> &devices)
     if (vendor != METAL_GPU_INTEL) {
       if (@available(macos 14.0, *)) {
         info.use_hardware_raytracing = device.supportsRaytracing;
+
+        /* Use hardware raytracing for faster rendering on architectures that support it. */
+        info.use_metalrt_by_default = (MetalInfo::get_apple_gpu_architecture(device) >= APPLE_M3);
       }
     }
 #  endif
-
-    /* Use hardware raytracing for faster rendering on architectures that support it. */
-    info.use_metalrt_by_default = (MetalInfo::get_apple_gpu_architecture(device) >= APPLE_M3);
 
     devices.push_back(info);
     device_index++;
