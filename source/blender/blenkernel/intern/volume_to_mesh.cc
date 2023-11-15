@@ -183,6 +183,8 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
   BKE_mesh_calc_edges(mesh, false, false);
   BKE_mesh_smooth_flag_set(mesh, false);
 
+  mesh->tag_overlapping_none();
+
   return mesh;
 }
 

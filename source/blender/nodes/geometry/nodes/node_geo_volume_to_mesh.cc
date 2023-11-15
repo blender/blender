@@ -153,6 +153,8 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
   BKE_mesh_calc_edges(mesh, false, false);
   BKE_mesh_smooth_flag_set(mesh, false);
 
+  mesh->tag_overlapping_none();
+
   geometry::debug_randomize_mesh_order(mesh);
 
   return mesh;

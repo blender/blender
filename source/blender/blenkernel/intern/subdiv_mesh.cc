@@ -1221,6 +1221,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   if (coarse_mesh->loose_edges().count == 0) {
     result->tag_loose_edges_none();
   }
+  result->tag_overlapping_none();
 
   if (subdiv->settings.is_simple) {
     /* In simple subdivision, min and max positions are not changed, avoid recomputing bounds. */

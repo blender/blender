@@ -339,6 +339,15 @@ typedef struct Mesh {
    * Cached information about vertices that aren't used by faces (but may be used by loose edges).
    */
   const blender::bke::LooseVertCache &verts_no_face() const;
+  /**
+   * True if the mesh has no faces or edges "inside" of other faces. Those edges or faces would
+   * reuse a subset of the vertices of a face. Knowing the mesh is "clean" or "good" can mean
+   * algorithms can skip checking for duplicate edges and faces when they create new edges and
+   * faces inside of faces.
+   *
+   * \note This is just a hint, so there still might be no overlapping geometry if it is false.
+   */
+  bool no_overlapping_topology() const;
 
   /**
    * Explicitly set the cached number of loose edges to zero. This can improve performance
@@ -356,6 +365,8 @@ typedef struct Mesh {
    * all vertices are used by faces, so #verts_no_faces() will be tagged empty as well.
    */
   void tag_loose_verts_none() const;
+  /** Set the #no_overlapping_topology() hint when the mesh is "clean." */
+  void tag_overlapping_none();
 
   /**
    * Returns the least complex attribute domain needed to store normals encoding all relevant mesh
@@ -445,7 +456,12 @@ enum {
   ME_REMESH_REPROJECT_VERTEX_COLORS = 1 << 8,
   ME_DS_EXPAND = 1 << 9,
   ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,
-  ME_FLAG_UNUSED_8 = 1 << 11, /* cleared */
+  /**
+   * Used to tag that the mesh has no overlapping topology (see #Mesh::no_overlapping_topology()).
+   * Theoretically this is runtime data that could always be recalculated, but since the intent is
+   * to improve performance and it only takes one bit, it is stored in the mesh instead.
+   */
+  ME_NO_OVERLAPPING_TOPOLOGY = 1 << 11,
   ME_REMESH_REPROJECT_PAINT_MASK = 1 << 12,
   ME_REMESH_FIX_POLES = 1 << 13,
   ME_REMESH_REPROJECT_VOLUME = 1 << 14,

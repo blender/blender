@@ -698,6 +698,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
 
   mesh->tag_loose_verts_none();
   mesh->tag_loose_edges_none();
+  mesh->tag_overlapping_none();
   mesh->bounds_set_eager(calculate_bounds_cylinder(config));
 
   return mesh;
