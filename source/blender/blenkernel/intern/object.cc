@@ -3591,6 +3591,14 @@ std::optional<BoundBox> BKE_object_boundbox_get(Object *ob)
   return std::nullopt;
 }
 
+std::optional<BoundBox> BKE_object_boundbox_eval_cached_get(Object *ob)
+{
+  if (ob->runtime.bb) {
+    return *ob->runtime.bb;
+  }
+  return BKE_object_boundbox_get(ob);
+}
+
 void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval)
 {
   float3 min(FLT_MAX);
@@ -3652,9 +3660,11 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
  * \warning Setting dimensions is prone to feedback loops in evaluation.
  * \{ */
 
-void BKE_object_dimensions_get(Object *ob, float r_vec[3])
+static void boundbox_to_dimensions(const Object *ob,
+                                   const std::optional<BoundBox> bb,
+                                   float r_vec[3])
 {
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
+  if (bb) {
     float3 scale;
     mat4_to_size(scale, ob->object_to_world);
 
@@ -3665,6 +3675,16 @@ void BKE_object_dimensions_get(Object *ob, float r_vec[3])
   else {
     zero_v3(r_vec);
   }
+}
+
+void BKE_object_dimensions_get(Object *ob, float r_vec[3])
+{
+  boundbox_to_dimensions(ob, BKE_object_boundbox_get(ob), r_vec);
+}
+
+void BKE_object_dimensions_eval_cached_get(Object *ob, float r_vec[3])
+{
+  boundbox_to_dimensions(ob, BKE_object_boundbox_eval_cached_get(ob), r_vec);
 }
 
 void BKE_object_dimensions_set_ex(Object *ob,

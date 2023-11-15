@@ -347,8 +347,24 @@ void BKE_boundbox_minmax(const BoundBox *bb,
                          float r_min[3],
                          float r_max[3]);
 
+/**
+ * Retrieve the bounds of the object's geometry, in the local space of the object
+ * (not accounting for the object's transform). For evaluated objects, this includes
+ * the evaluated geometry (not just #Object.data).
+ */
 std::optional<BoundBox> BKE_object_boundbox_get(Object *ob);
 void BKE_object_dimensions_get(Object *ob, float r_vec[3]);
+
+/**
+ * Retrieve the bounds of the evalauted object's geometry, stored on the original object as part of
+ * the latest dependency graph evaluation, or fall back to the current bounds of the object if no
+ * such cache exists. For evaluated objects this indirection is unnecessary, so
+ * #BKE_object_boundbox_get should be used instead.
+ */
+std::optional<BoundBox> BKE_object_boundbox_eval_cached_get(Object *ob);
+/** Similar to #BKE_object_boundbox_eval_cached_get but gives the size of the bounds instead. */
+void BKE_object_dimensions_eval_cached_get(Object *ob, float r_vec[3]);
+
 /**
  * The original scale and object matrix can be passed in so any difference
  * of the objects matrix and the final matrix can be accounted for,

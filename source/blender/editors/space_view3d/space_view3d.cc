@@ -511,7 +511,7 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
   float dimensions[3] = {0.0f};
   if (drag->type == WM_DRAG_ID) {
     Object *ob = (Object *)WM_drag_get_local_ID(drag, ID_OB);
-    BKE_object_dimensions_get(ob, dimensions);
+    BKE_object_dimensions_eval_cached_get(ob, dimensions);
   }
   else {
     AssetMetaData *meta_data = WM_drag_get_asset_meta_data(drag, ID_OB);

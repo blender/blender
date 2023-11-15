@@ -1233,7 +1233,7 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 {
   Object *ob = static_cast<Object *>(ptr->data);
-  BKE_object_dimensions_get(ob, value);
+  BKE_object_dimensions_eval_cached_get(ob, value);
 }
 
 static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
@@ -1990,7 +1990,7 @@ static void rna_Object_shaderfx_clear(Object *object, bContext *C)
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
+  if (const std::optional<BoundBox> bb = BKE_object_boundbox_eval_cached_get(ob)) {
     memcpy(values, bb->vec, sizeof(bb->vec));
   }
   else {
