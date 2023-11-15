@@ -1802,6 +1802,15 @@ static void rna_GeometryNodeTree_is_modifier_set(PointerRNA *ptr, bool value)
   geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_MODIFIER, value);
 }
 
+static bool rna_GeometryNodeTree_is_mode_object_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_OBJECT);
+}
+static void rna_GeometryNodeTree_is_mode_object_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_OBJECT, value);
+}
+
 static bool rna_GeometryNodeTree_is_mode_edit_get(PointerRNA *ptr)
 {
   return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_EDIT);
@@ -10270,6 +10279,14 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Modifier", "The node group is used as a geometry modifier");
   RNA_def_property_boolean_funcs(
       prop, "rna_GeometryNodeTree_is_modifier_get", "rna_GeometryNodeTree_is_modifier_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
+
+  prop = RNA_def_property(srna, "is_mode_object", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_EDIT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Edit", "The node group is used in object mode");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_mode_object_get", "rna_GeometryNodeTree_is_mode_object_set");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 
   prop = RNA_def_property(srna, "is_mode_edit", PROP_BOOLEAN, PROP_NONE);
