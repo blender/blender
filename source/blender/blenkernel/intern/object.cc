@@ -3598,8 +3598,8 @@ std::optional<BoundBox> BKE_object_boundbox_get(Object *ob)
 
 std::optional<BoundBox> BKE_object_boundbox_eval_cached_get(Object *ob)
 {
-  if (ob->runtime.bb) {
-    return *ob->runtime.bb;
+  if (ob->runtime->bb) {
+    return *ob->runtime->bb;
   }
   return BKE_object_boundbox_get(ob);
 }
