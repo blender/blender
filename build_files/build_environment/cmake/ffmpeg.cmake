@@ -200,6 +200,7 @@ ExternalProject_Add(external_ffmpeg
     --disable-outdev=alsa
     --disable-crystalhd
     --disable-sndio
+    --disable-doc
   BUILD_COMMAND ${FFMPEG_CONFIGURE_COMMAND} && cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ && make -j${MAKE_THREADS}
   INSTALL_COMMAND ${FFMPEG_CONFIGURE_COMMAND} && cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ && make install
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ffmpeg ${DEFAULT_CMAKE_FLAGS}
