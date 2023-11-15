@@ -19,6 +19,7 @@
 #include "BKE_layer.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -79,17 +80,17 @@ void ensure_id_properties_freed(const Object *dupli_object, Object *temp_dupli_o
 
 void ensure_boundbox_freed(const Object *dupli_object, Object *temp_dupli_object)
 {
-  if (temp_dupli_object->runtime.bb == nullptr) {
+  if (temp_dupli_object->runtime->bb == nullptr) {
     /* No Bounding Box in temp data-block -- no leak is possible. */
     return;
   }
-  if (temp_dupli_object->runtime.bb == dupli_object->runtime.bb) {
+  if (temp_dupli_object->runtime->bb == dupli_object->runtime->bb) {
     /* Temp copy of object did not modify Bounding Box. */
     return;
   }
   /* Free memory which is owned by temporary storage which is about to get overwritten. */
-  MEM_freeN(temp_dupli_object->runtime.bb);
-  temp_dupli_object->runtime.bb = nullptr;
+  MEM_freeN(temp_dupli_object->runtime->bb);
+  temp_dupli_object->runtime->bb = nullptr;
 }
 
 void free_owned_memory(DEGObjectIterData *data)
@@ -166,17 +167,21 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     /* Temporary object to evaluate. */
     Object *dupli_parent = data->dupli_parent;
     Object *temp_dupli_object = &data->temp_dupli_object;
+
     *temp_dupli_object = blender::dna::shallow_copy(*dob->ob);
+    temp_dupli_object->runtime = &data->temp_dupli_object_runtime;
+    *temp_dupli_object->runtime = *dob->ob->runtime;
+
     temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROM_DUPLI;
     temp_dupli_object->base_local_view_bits = dupli_parent->base_local_view_bits;
-    temp_dupli_object->runtime.local_collections_bits =
-        dupli_parent->runtime.local_collections_bits;
+    temp_dupli_object->runtime->local_collections_bits =
+        dupli_parent->runtime->local_collections_bits;
     temp_dupli_object->dt = std::min(temp_dupli_object->dt, dupli_parent->dt);
     copy_v4_v4(temp_dupli_object->color, dupli_parent->color);
-    temp_dupli_object->runtime.select_id = dupli_parent->runtime.select_id;
+    temp_dupli_object->runtime->select_id = dupli_parent->runtime->select_id;
     if (dob->ob->data != dob->ob_data) {
       /* Do not modify the original boundbox. */
-      temp_dupli_object->runtime.bb = nullptr;
+      temp_dupli_object->runtime->bb = nullptr;
       BKE_object_replace_data_on_shallow_copy(temp_dupli_object, dob->ob_data);
     }
 
@@ -251,7 +256,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
     Object *object = (Object *)id_node->id_cow;
     Object *object_orig = DEG_get_original_object(object);
     BLI_assert(deg::deg_validate_copy_on_write_datablock(&object->id));
-    object->runtime.select_id = object_orig->runtime.select_id;
+    object->runtime->select_id = object_orig->runtime->select_id;
 
     const bool use_preview = object_orig == data->object_orig_with_preview;
     if (use_preview) {
@@ -273,7 +278,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
 
     if (ob_visibility & OB_VISIBLE_INSTANCES) {
       if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
-          ((object->transflag & OB_DUPLI) || object->runtime.geometry_set_eval != nullptr))
+          ((object->transflag & OB_DUPLI) || object->runtime->geometry_set_eval != nullptr))
       {
         ListBase *duplis = object_duplilist(data->graph, data->scene, object);
         deg_iterator_duplis_init(data, object, duplis);

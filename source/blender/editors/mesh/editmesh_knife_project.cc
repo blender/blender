@@ -22,6 +22,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
@@ -47,7 +48,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
   const Mesh *me_eval;
   bool me_eval_needs_free;
 
-  if (ob->type == OB_MESH || ob->runtime.data_eval) {
+  if (ob->type == OB_MESH || ob->runtime->data_eval) {
     const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     me_eval_needs_free = false;

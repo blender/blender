@@ -50,6 +50,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -133,11 +134,11 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
  */
 static void boundbox_gpencil(Object *ob)
 {
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
+  if (ob->runtime->bb == nullptr) {
+    ob->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
   }
 
-  BoundBox *bb = ob->runtime.bb;
+  BoundBox *bb = ob->runtime->bb;
   bGPdata *gpd = (bGPdata *)ob->data;
 
   float3 min;
@@ -159,8 +160,8 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
   }
 
   bGPdata *gpd = (bGPdata *)ob->data;
-  if ((ob->runtime.bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
-    return ob->runtime.bb;
+  if ((ob->runtime->bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
+    return ob->runtime->bb;
   }
 
   boundbox_gpencil(ob);
@@ -170,15 +171,15 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
    * called with the evaluated object and need update the original object bound box data
    * to keep both values synchronized. */
   if (!ELEM(ob_orig, nullptr, ob)) {
-    if (ob_orig->runtime.bb == nullptr) {
-      ob_orig->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
+    if (ob_orig->runtime->bb == nullptr) {
+      ob_orig->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
     }
     for (int i = 0; i < 8; i++) {
-      copy_v3_v3(ob_orig->runtime.bb->vec[i], ob->runtime.bb->vec[i]);
+      copy_v3_v3(ob_orig->runtime->bb->vec[i], ob->runtime->bb->vec[i]);
     }
   }
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 /** \} */

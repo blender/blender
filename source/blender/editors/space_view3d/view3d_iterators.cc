@@ -31,6 +31,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -735,8 +736,8 @@ void lattice_foreachScreenVert(ViewContext *vc,
   Object *obedit = vc->obedit;
   Lattice *lt = static_cast<Lattice *>(obedit->data);
   BPoint *bp = lt->editlatt->latt->def;
-  DispList *dl = obedit->runtime.curve_cache ?
-                     BKE_displist_find(&obedit->runtime.curve_cache->disp, DL_VERTS) :
+  DispList *dl = obedit->runtime->curve_cache ?
+                     BKE_displist_find(&obedit->runtime->curve_cache->disp, DL_VERTS) :
                      nullptr;
   const float *co = dl ? dl->verts : nullptr;
   int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;

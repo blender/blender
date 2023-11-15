@@ -33,6 +33,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -741,11 +742,14 @@ static void duplidata_key_free(void *key)
   }
   else {
     Object temp_object = blender::dna::shallow_copy(*dupli_key->ob);
+    blender::bke::ObjectRuntime runtime = *dupli_key->ob->runtime;
+    temp_object.runtime = &runtime;
+
     /* Do not modify the original bound-box. */
-    temp_object.runtime.bb = nullptr;
+    temp_object.runtime->bb = nullptr;
     BKE_object_replace_data_on_shallow_copy(&temp_object, dupli_key->ob_data);
     drw_batch_cache_generate_requested(&temp_object);
-    MEM_SAFE_FREE(temp_object.runtime.bb);
+    MEM_SAFE_FREE(temp_object.runtime->bb);
   }
   MEM_freeN(key);
 }
@@ -2562,7 +2566,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
             }
           }
 
-          DRW_select_load_id(ob->runtime.select_id);
+          DRW_select_load_id(ob->runtime->select_id);
           DST.dupli_parent = data_.dupli_parent;
           DST.dupli_source = data_.dupli_object_current;
           drw_duplidata_load(ob);

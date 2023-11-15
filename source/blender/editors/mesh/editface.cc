@@ -31,6 +31,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
@@ -76,9 +77,9 @@ void paintface_flush_flags(bContext *C,
   }
 
   bke::AttributeAccessor attributes_me = me->attributes();
-  Mesh *me_orig = (Mesh *)ob_eval->runtime.data_orig;
+  Mesh *me_orig = (Mesh *)ob_eval->runtime->data_orig;
   bke::MutableAttributeAccessor attributes_orig = me_orig->attributes_for_write();
-  Mesh *me_eval = (Mesh *)ob_eval->runtime.data_eval;
+  Mesh *me_eval = (Mesh *)ob_eval->runtime->data_eval;
   bke::MutableAttributeAccessor attributes_eval = me_eval->attributes_for_write();
   bool updated = false;
 

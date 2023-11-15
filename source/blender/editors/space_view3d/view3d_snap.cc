@@ -517,7 +517,7 @@ static bool snap_selected_to_location(bContext *C,
       if (ob->parent) {
         float originmat[3][3], parentmat[4][4];
         /* Use the evaluated object here because sometimes
-         * `ob->parent->runtime.curve_cache` is required. */
+         * `ob->parent->runtime->curve_cache` is required. */
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
         Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 

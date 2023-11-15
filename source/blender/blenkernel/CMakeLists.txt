@@ -461,6 +461,7 @@ set(SRC
   BKE_node_tree_update.h
   BKE_node_tree_zones.hh
   BKE_object.hh
+  BKE_object_types.hh
   BKE_object_deform.h
   BKE_ocean.h
   BKE_outliner_treehash.hh

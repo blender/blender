@@ -30,6 +30,7 @@
 #include "BKE_deform.h"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -2553,7 +2554,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
   const ArmatureBoneDrawStrategy &draw_strat = strategy_for_armature_drawtype(
       eArmature_Drawtype(arm->drawtype));
 
-  for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime.select_id;
+  for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime->select_id;
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
@@ -2643,7 +2644,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
     if (is_pose_select) {
       const Object *ob_orig = DEG_get_original_object(ob);
-      index = ob_orig->runtime.select_id;
+      index = ob_orig->runtime->select_id;
     }
   }
 

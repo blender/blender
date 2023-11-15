@@ -19,6 +19,8 @@
 /* Needed for the instance iterator. */
 #include "DNA_object_types.h"
 
+#include "BKE_object_types.hh"
+
 struct BLI_Iterator;
 struct CustomData_MeshMasks;
 struct Depsgraph;
@@ -193,6 +195,7 @@ struct DEGObjectIterData {
   /* Temporary storage to report fully populated DNA to the render engine or
    * other users of the iterator. */
   Object temp_dupli_object;
+  blender::bke::ObjectRuntime temp_dupli_object_runtime;
 
   /* **** Iteration over ID nodes **** */
   size_t id_node_index;

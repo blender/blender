@@ -40,6 +40,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_screen.hh"
 #include "BKE_shrinkwrap.h"
 
@@ -638,7 +639,7 @@ static void gpencil_assign_object_eval(Object *object)
 {
   BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
-  bGPdata *gpd_eval = object->runtime.gpd_eval;
+  bGPdata *gpd_eval = object->runtime->gpd_eval;
 
   gpd_eval->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
 
@@ -754,15 +755,15 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   DEG_debug_print_eval(depsgraph, __func__, gpd_eval->id.name, gpd_eval);
 
   /* Delete any previously created runtime copy. */
-  if (ob->runtime.gpd_eval != nullptr) {
+  if (ob->runtime->gpd_eval != nullptr) {
     /* Make sure to clear the pointer in case the runtime eval data points to the same data block.
      * This can happen when the gpencil data block was not tagged for a depsgraph update after last
      * call to this function (e.g. a frame change). */
-    if (gpd_eval == ob->runtime.gpd_eval) {
+    if (gpd_eval == ob->runtime->gpd_eval) {
       gpd_eval = nullptr;
     }
-    BKE_gpencil_eval_delete(ob->runtime.gpd_eval);
-    ob->runtime.gpd_eval = nullptr;
+    BKE_gpencil_eval_delete(ob->runtime->gpd_eval);
+    ob->runtime->gpd_eval = nullptr;
     ob->data = gpd_eval;
   }
 
@@ -781,7 +782,7 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
    * may differ. */
   if (gpd_orig->id.us > 1) {
     /* Copy of the original datablock's structure (layers and empty frames). */
-    ob->runtime.gpd_eval = gpencil_copy_structure_for_eval(gpd_orig);
+    ob->runtime->gpd_eval = gpencil_copy_structure_for_eval(gpd_orig);
     /* Overwrite ob->data with gpd_eval here. */
     gpencil_assign_object_eval(ob);
   }

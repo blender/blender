@@ -19,6 +19,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
+#include "BKE_object_types.hh"
 #include "BKE_volume.h"
 #include "BKE_volume_openvdb.hh"
 
@@ -572,7 +573,7 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
   }
   else {
     if (BLI_listbase_is_single(&sspreadsheet->viewer_path.path)) {
-      if (const bke::GeometrySet *geometry_eval = object_eval->runtime.geometry_set_eval) {
+      if (const bke::GeometrySet *geometry_eval = object_eval->runtime->geometry_set_eval) {
         geometry_set = *geometry_eval;
       }
 

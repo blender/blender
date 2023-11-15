@@ -50,6 +50,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
@@ -151,13 +152,13 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
   if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type == OB_CURVES_LEGACY) {
     Curve *cu = static_cast<Curve *>(eff->ob->data);
     if (cu->flag & CU_PATH) {
-      if (eff->ob->runtime.curve_cache == nullptr ||
-          eff->ob->runtime.curve_cache->anim_path_accum_length == nullptr)
+      if (eff->ob->runtime->curve_cache == nullptr ||
+          eff->ob->runtime->curve_cache->anim_path_accum_length == nullptr)
       {
         BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false);
       }
 
-      if (eff->ob->runtime.curve_cache->anim_path_accum_length) {
+      if (eff->ob->runtime->curve_cache->anim_path_accum_length) {
         BKE_where_on_path(
             eff->ob, 0.0, eff->guide_loc, eff->guide_dir, nullptr, &eff->guide_radius, nullptr);
         mul_m4_v3(eff->ob->object_to_world, eff->guide_loc);

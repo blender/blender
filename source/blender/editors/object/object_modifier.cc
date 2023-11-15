@@ -63,6 +63,7 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
+#include "BKE_object_types.hh"
 #include "BKE_ocean.h"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
@@ -757,8 +758,8 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
                                               ReportList *reports)
 {
   using namespace blender;
-  Mesh *me = ob_eval->runtime.data_orig ? reinterpret_cast<Mesh *>(ob_eval->runtime.data_orig) :
-                                          reinterpret_cast<Mesh *>(ob_eval->data);
+  Mesh *me = ob_eval->runtime->data_orig ? reinterpret_cast<Mesh *>(ob_eval->runtime->data_orig) :
+                                           reinterpret_cast<Mesh *>(ob_eval->data);
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
   const ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_BASE_MESH};
 

@@ -31,6 +31,7 @@
 #include "BKE_layer.h"
 #include "BKE_mball.h"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -748,7 +749,7 @@ Base *ED_mball_base_and_elem_from_select_buffer(Base **bases,
   MetaElem *ml = nullptr;
   /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
-    if (bases[base_index]->object->runtime.select_id == hit_object) {
+    if (bases[base_index]->object->runtime->select_id == hit_object) {
       base = bases[base_index];
       break;
     }
@@ -797,7 +798,7 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
   int hit_cycle_offset = 0;
   if (use_cycle) {
     /* When cycling, use the hit directly after the current active meta-element (when set). */
-    const int base_index = vc.obact->runtime.select_id;
+    const int base_index = vc.obact->runtime->select_id;
     MetaBall *mb = (MetaBall *)vc.obact->data;
     MetaElem *ml = mb->lastelem;
     if (ml && (ml->flag & SELECT)) {

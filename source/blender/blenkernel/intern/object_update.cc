@@ -44,6 +44,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
@@ -96,10 +97,10 @@ void BKE_object_eval_parent(Depsgraph *depsgraph, Object *ob)
 
   /* origin, for help line */
   if ((ob->partype & PARTYPE) == PARSKEL) {
-    copy_v3_v3(ob->runtime.parent_display_origin, par->object_to_world[3]);
+    copy_v3_v3(ob->runtime->parent_display_origin, par->object_to_world[3]);
   }
   else {
-    copy_v3_v3(ob->runtime.parent_display_origin, totmat[3]);
+    copy_v3_v3(ob->runtime->parent_display_origin, totmat[3]);
   }
 }
 
@@ -243,15 +244,15 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 /** Bounding box from evaluated geometry. */
 static void object_sync_boundbox_to_original(Object *object_orig, Object *object_eval)
 {
-  if (!object_eval->runtime.bb || (object_eval->runtime.bb->flag & BOUNDBOX_DIRTY)) {
+  if (!object_eval->runtime->bb || (object_eval->runtime->bb->flag & BOUNDBOX_DIRTY)) {
     BKE_object_boundbox_calc_from_evaluated_geometry(object_eval);
   }
 
   if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(object_eval)) {
-    if (object_orig->runtime.bb == nullptr) {
-      object_orig->runtime.bb = MEM_new<BoundBox>(__func__);
+    if (object_orig->runtime->bb == nullptr) {
+      object_orig->runtime->bb = MEM_new<BoundBox>(__func__);
     }
-    *object_orig->runtime.bb = *bb;
+    *object_orig->runtime->bb = *bb;
   }
 }
 
@@ -381,8 +382,8 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
 void BKE_object_select_update(Depsgraph *depsgraph, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-  if (object->type == OB_MESH && !object->runtime.is_data_eval_owned) {
-    Mesh *mesh_input = (Mesh *)object->runtime.data_orig;
+  if (object->type == OB_MESH && !object->runtime->is_data_eval_owned) {
+    Mesh *mesh_input = (Mesh *)object->runtime->data_orig;
     std::lock_guard lock{mesh_input->runtime->eval_mutex};
     BKE_object_data_select_update(depsgraph, static_cast<ID *>(object->data));
   }
@@ -432,7 +433,7 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
     object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLE);
   }
   object->base_local_view_bits = base->local_view_bits;
-  object->runtime.local_collections_bits = base->local_collections_bits;
+  object->runtime->local_collections_bits = base->local_collections_bits;
 
   if (object->mode == OB_MODE_PARTICLE_EDIT) {
     for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);

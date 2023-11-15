@@ -25,6 +25,7 @@
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -259,16 +260,16 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em)
 
 BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh * /*em*/)
 {
-  if (object->runtime.editmesh_bb_cage == nullptr) {
+  if (object->runtime->editmesh_bb_cage == nullptr) {
     float min[3], max[3];
     INIT_MINMAX(min, max);
-    if (object->runtime.editmesh_eval_cage) {
-      BKE_mesh_wrapper_minmax(object->runtime.editmesh_eval_cage, min, max);
+    if (object->runtime->editmesh_eval_cage) {
+      BKE_mesh_wrapper_minmax(object->runtime->editmesh_eval_cage, min, max);
     }
 
-    object->runtime.editmesh_bb_cage = MEM_cnew<BoundBox>("BMEditMesh.bb_cage");
-    BKE_boundbox_init_from_minmax(object->runtime.editmesh_bb_cage, min, max);
+    object->runtime->editmesh_bb_cage = MEM_cnew<BoundBox>("BMEditMesh.bb_cage");
+    BKE_boundbox_init_from_minmax(object->runtime->editmesh_bb_cage, min, max);
   }
 
-  return object->runtime.editmesh_bb_cage;
+  return object->runtime->editmesh_bb_cage;
 }

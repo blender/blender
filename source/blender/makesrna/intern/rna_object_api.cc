@@ -64,6 +64,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_modifier.hh"
 #  include "BKE_object.hh"
+#  include "BKE_object_types.hh"
 #  include "BKE_report.h"
 #  include "BKE_vfont.h"
 
@@ -567,7 +568,7 @@ static Object *eval_object_ensure(Object *ob,
                                   ReportList *reports,
                                   PointerRNA *rnaptr_depsgraph)
 {
-  if (ob->runtime.data_eval == nullptr) {
+  if (ob->runtime->data_eval == nullptr) {
     Object *ob_orig = ob;
     Depsgraph *depsgraph = rnaptr_depsgraph != nullptr ?
                                static_cast<Depsgraph *>(rnaptr_depsgraph->data) :
@@ -757,7 +758,7 @@ void rna_Object_me_eval_info(
       }
       break;
     case 1:
-      me_eval = ob->runtime.mesh_deform_eval;
+      me_eval = ob->runtime->mesh_deform_eval;
       break;
     case 2:
       me_eval = BKE_object_get_evaluated_mesh(ob);

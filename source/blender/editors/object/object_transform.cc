@@ -49,6 +49,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -1501,7 +1502,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
       Curve *cu = static_cast<Curve *>(ob->data);
 
-      if (ob->runtime.bb == nullptr && (centermode != ORIGIN_TO_CURSOR)) {
+      if (ob->runtime->bb == nullptr && (centermode != ORIGIN_TO_CURSOR)) {
         /* Do nothing. */
       }
       else {
@@ -1510,8 +1511,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
         else {
           /* extra 0.5 is the height o above line */
-          cent[0] = 0.5f * (ob->runtime.bb->vec[4][0] + ob->runtime.bb->vec[0][0]);
-          cent[1] = 0.5f * (ob->runtime.bb->vec[0][1] + ob->runtime.bb->vec[2][1]);
+          cent[0] = 0.5f * (ob->runtime->bb->vec[4][0] + ob->runtime->bb->vec[0][0]);
+          cent[1] = 0.5f * (ob->runtime->bb->vec[0][1] + ob->runtime->bb->vec[2][1]);
         }
 
         cent[2] = 0.0f;

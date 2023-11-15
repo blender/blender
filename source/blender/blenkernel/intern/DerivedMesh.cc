@@ -54,6 +54,7 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_subdiv_modifier.hh"
 
@@ -1329,11 +1330,11 @@ static void mesh_build_data(Depsgraph *depsgraph,
   /* Add the final mesh as a non-owning component to the geometry set. */
   MeshComponent &mesh_component = geometry_set_eval->get_component_for_write<MeshComponent>();
   mesh_component.replace(mesh_eval, GeometryOwnershipType::Editable);
-  ob->runtime.geometry_set_eval = geometry_set_eval;
+  ob->runtime->geometry_set_eval = geometry_set_eval;
 
-  ob->runtime.mesh_deform_eval = mesh_deform_eval;
-  ob->runtime.last_data_mask = *dataMask;
-  ob->runtime.last_need_mapping = need_mapping;
+  ob->runtime->mesh_deform_eval = mesh_deform_eval;
+  ob->runtime->last_data_mask = *dataMask;
+  ob->runtime->last_need_mapping = need_mapping;
 
   BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
 
@@ -1392,13 +1393,13 @@ static void editbmesh_build_data(Depsgraph *depsgraph,
   BLI_assert(mesh->key == nullptr || DEG_is_evaluated_id(&mesh->key->id));
   me_final->key = mesh->key;
 
-  obedit->runtime.editmesh_eval_cage = me_cage;
+  obedit->runtime->editmesh_eval_cage = me_cage;
 
-  obedit->runtime.geometry_set_eval = non_mesh_components;
+  obedit->runtime->geometry_set_eval = non_mesh_components;
 
   BKE_object_boundbox_calc_from_mesh(obedit, me_final);
 
-  obedit->runtime.last_data_mask = *dataMask;
+  obedit->runtime->last_data_mask = *dataMask;
 }
 
 static void object_get_datamask(const Depsgraph *depsgraph,
@@ -1520,16 +1521,16 @@ Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
   CustomData_MeshMasks cddata_masks = *dataMask;
   object_get_datamask(depsgraph, ob, &cddata_masks, &need_mapping);
 
-  if (!ob->runtime.mesh_deform_eval ||
-      !CustomData_MeshMasks_are_matching(&(ob->runtime.last_data_mask), &cddata_masks) ||
-      (need_mapping && !ob->runtime.last_need_mapping))
+  if (!ob->runtime->mesh_deform_eval ||
+      !CustomData_MeshMasks_are_matching(&(ob->runtime->last_data_mask), &cddata_masks) ||
+      (need_mapping && !ob->runtime->last_need_mapping))
   {
-    CustomData_MeshMasks_update(&cddata_masks, &ob->runtime.last_data_mask);
+    CustomData_MeshMasks_update(&cddata_masks, &ob->runtime->last_data_mask);
     mesh_build_data(
-        depsgraph, scene, ob, &cddata_masks, need_mapping || ob->runtime.last_need_mapping);
+        depsgraph, scene, ob, &cddata_masks, need_mapping || ob->runtime->last_need_mapping);
   }
 
-  return ob->runtime.mesh_deform_eval;
+  return ob->runtime->mesh_deform_eval;
 }
 
 Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
@@ -1580,13 +1581,13 @@ Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
    */
   object_get_datamask(depsgraph, obedit, &cddata_masks, nullptr);
 
-  if (!obedit->runtime.editmesh_eval_cage ||
-      !CustomData_MeshMasks_are_matching(&(obedit->runtime.last_data_mask), &cddata_masks))
+  if (!obedit->runtime->editmesh_eval_cage ||
+      !CustomData_MeshMasks_are_matching(&(obedit->runtime->last_data_mask), &cddata_masks))
   {
     editbmesh_build_data(depsgraph, scene, obedit, em, &cddata_masks);
   }
 
-  return obedit->runtime.editmesh_eval_cage;
+  return obedit->runtime->editmesh_eval_cage;
 }
 
 Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,

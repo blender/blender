@@ -57,6 +57,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"
@@ -1771,7 +1772,7 @@ static void sculpt_update_object(
     bool used_me_eval = false;
 
     if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-      Mesh *me_eval_deform = ob_eval->runtime.mesh_deform_eval;
+      Mesh *me_eval_deform = ob_eval->runtime->mesh_deform_eval;
 
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
@@ -2293,7 +2294,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg);
     }
     else if (ob->type == OB_MESH) {
-      Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
+      Mesh *me_eval_deform = object_eval->runtime->mesh_deform_eval;
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
     }
   }

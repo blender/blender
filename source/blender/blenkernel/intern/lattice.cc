@@ -43,6 +43,7 @@
 #include "BKE_main.h"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -337,9 +338,9 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
     /* works best if we force to linear type (endpoints match) */
     lt->typeu = lt->typev = lt->typew = KEY_LINEAR;
 
-    if (ltOb->runtime.curve_cache) {
+    if (ltOb->runtime->curve_cache) {
       /* prevent using deformed locations */
-      BKE_displist_free(&ltOb->runtime.curve_cache->disp);
+      BKE_displist_free(&ltOb->runtime->curve_cache->disp);
     }
 
     copy_m4_m4(mat, ltOb->object_to_world);
@@ -507,8 +508,8 @@ void BKE_lattice_vert_coords_apply(Lattice *lt, const float (*vert_coords)[3])
 void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   BKE_object_free_derived_caches(ob);
-  if (ob->runtime.curve_cache == nullptr) {
-    ob->runtime.curve_cache = static_cast<CurveCache *>(
+  if (ob->runtime->curve_cache == nullptr) {
+    ob->runtime->curve_cache = static_cast<CurveCache *>(
         MEM_callocN(sizeof(CurveCache), "CurveCache for lattice"));
   }
 
@@ -611,11 +612,11 @@ static void boundbox_lattice(Object *ob)
   Lattice *lt;
   float min[3], max[3];
 
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Lattice boundbox"));
+  if (ob->runtime->bb == nullptr) {
+    ob->runtime->bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Lattice boundbox"));
   }
 
-  bb = ob->runtime.bb;
+  bb = ob->runtime->bb;
   lt = static_cast<Lattice *>(ob->data);
 
   INIT_MINMAX(min, max);
@@ -629,13 +630,13 @@ BoundBox *BKE_lattice_boundbox_get(Object *ob)
 {
   boundbox_lattice(ob);
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 void BKE_lattice_minmax_dl(Object *ob, Lattice *lt, float min[3], float max[3])
 {
-  DispList *dl = ob->runtime.curve_cache ?
-                     BKE_displist_find(&ob->runtime.curve_cache->disp, DL_VERTS) :
+  DispList *dl = ob->runtime->curve_cache ?
+                     BKE_displist_find(&ob->runtime->curve_cache->disp, DL_VERTS) :
                      nullptr;
 
   if (!dl) {

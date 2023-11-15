@@ -24,6 +24,7 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -833,10 +834,10 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
         /* use the boundbox if we can */
         Object *ob_eval = base_eval->object;
 
-        if (ob_eval->runtime.bb && !(ob_eval->runtime.bb->flag & BOUNDBOX_DIRTY)) {
+        if (ob_eval->runtime->bb && !(ob_eval->runtime->bb->flag & BOUNDBOX_DIRTY)) {
           float cent[3];
 
-          BKE_boundbox_calc_center_aabb(ob_eval->runtime.bb, cent);
+          BKE_boundbox_calc_center_aabb(ob_eval->runtime->bb, cent);
 
           mul_m4_v3(ob_eval->object_to_world, cent);
           add_v3_v3(select_center, cent);

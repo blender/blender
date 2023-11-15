@@ -46,6 +46,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_scene.h"
 
 #include "ANIM_bone_collections.h"
@@ -2924,10 +2925,10 @@ static void boundbox_armature(Object *ob)
   BoundBox *bb;
   float min[3], max[3];
 
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Armature boundbox"));
+  if (ob->runtime->bb == nullptr) {
+    ob->runtime->bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Armature boundbox"));
   }
-  bb = ob->runtime.bb;
+  bb = ob->runtime->bb;
 
   INIT_MINMAX(min, max);
   if (!minmax_armature(ob, min, max)) {
@@ -2944,7 +2945,7 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
 {
   boundbox_armature(ob);
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 void BKE_pchan_minmax(const Object *ob,

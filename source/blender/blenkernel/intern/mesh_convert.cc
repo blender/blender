@@ -45,6 +45,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
+#include "BKE_object_types.hh"
 /* these 2 are only used by conversion functions */
 #include "BKE_curve.h"
 /* -- */
@@ -342,8 +343,8 @@ Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob)
 {
   ListBase disp = {nullptr, nullptr};
 
-  if (ob->runtime.curve_cache) {
-    disp = ob->runtime.curve_cache->disp;
+  if (ob->runtime->curve_cache) {
+    disp = ob->runtime->curve_cache->disp;
   }
 
   return BKE_mesh_new_nomain_from_curve_displist(ob, &disp);
@@ -633,7 +634,8 @@ static void object_for_curve_to_mesh_free(Object *temp_object)
   /* Only free the final object data if it is *not* stored in the #data_eval field. This is still
    * necessary because #temp_object's data could be replaced by a #Curve data-block that isn't also
    * assigned to #data_eval. */
-  const bool object_data_stored_in_data_eval = final_object_data == temp_object->runtime.data_eval;
+  const bool object_data_stored_in_data_eval = final_object_data ==
+                                               temp_object->runtime->data_eval;
 
   BKE_id_free(nullptr, temp_object);
   if (!object_data_stored_in_data_eval) {
@@ -642,7 +644,7 @@ static void object_for_curve_to_mesh_free(Object *temp_object)
 }
 
 /**
- * Populate `object->runtime.curve_cache` which is then used to create the mesh.
+ * Populate `object->runtime->curve_cache` which is then used to create the mesh.
  */
 static void curve_to_mesh_eval_ensure(Object &object)
 {
@@ -656,8 +658,12 @@ static void curve_to_mesh_eval_ensure(Object &object)
    * So we create temporary copy of the object which will use same data as the original bevel, but
    * will have no modifiers. */
   Object bevel_object = blender::dna::shallow_zero_initialize();
+  blender::bke::ObjectRuntime bevel_runtime;
   if (curve.bevobj != nullptr) {
     bevel_object = blender::dna::shallow_copy(*curve.bevobj);
+    bevel_runtime = *curve.bevobj->runtime;
+    bevel_object.runtime = &bevel_runtime;
+
     BLI_listbase_clear(&bevel_object.modifiers);
     BKE_object_runtime_reset(&bevel_object);
     curve.bevobj = &bevel_object;
@@ -665,8 +671,12 @@ static void curve_to_mesh_eval_ensure(Object &object)
 
   /* Same thing for taper. */
   Object taper_object = blender::dna::shallow_zero_initialize();
+  blender::bke::ObjectRuntime taper_runtime;
   if (curve.taperobj != nullptr) {
     taper_object = blender::dna::shallow_copy(*curve.taperobj);
+    taper_runtime = *curve.taperobj->runtime;
+    taper_object.runtime = &taper_runtime;
+
     BLI_listbase_clear(&taper_object.modifiers);
     BKE_object_runtime_reset(&taper_object);
     curve.taperobj = &taper_object;
@@ -686,7 +696,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
 
 static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
-  if (blender::bke::GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval) {
+  if (blender::bke::GeometrySet *geometry_set_eval = object->runtime->geometry_set_eval) {
     return geometry_set_eval->get_curves();
   }
   return nullptr;
@@ -789,8 +799,11 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
   }
 
   Object object_for_eval = blender::dna::shallow_copy(*object);
-  if (object_for_eval.runtime.data_orig != nullptr) {
-    object_for_eval.data = object_for_eval.runtime.data_orig;
+  blender::bke::ObjectRuntime runtime = *object->runtime;
+  object_for_eval.runtime = &runtime;
+
+  if (object_for_eval.runtime->data_orig != nullptr) {
+    object_for_eval.data = object_for_eval.runtime->data_orig;
   }
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);

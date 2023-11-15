@@ -58,6 +58,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
@@ -1694,7 +1695,7 @@ static bool object_mouse_select_menu(bContext *C,
     if (buffer) {
       for (int a = 0; a < hits; a++) {
         /* index was converted */
-        if (base->object->runtime.select_id == (buffer[a].id & ~0xFFFF0000)) {
+        if (base->object->runtime->select_id == (buffer[a].id & ~0xFFFF0000)) {
           ok = true;
           depth_id = buffer[a].depth;
           break;
@@ -1920,7 +1921,7 @@ static bool bone_mouse_select_menu(bContext *C,
 
     /* Find the hit bone base (armature object). */
     CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
-      if (base->object->runtime.select_id == hit_object) {
+      if (base->object->runtime->select_id == hit_object) {
         bone_base = base;
         break;
       }
@@ -2314,7 +2315,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
       BKE_view_layer_synced_ensure(scene, view_layer);
       Base *base = BKE_view_layer_active_base_get(view_layer);
       if (base && (base->flag & BASE_SELECTED)) {
-        const int select_id_active = base->object->runtime.select_id;
+        const int select_id_active = base->object->runtime->select_id;
         for (int i_next = 0, i_prev = hits - 1; i_next < hits; i_prev = i_next++) {
           if ((select_id_active == (buffer[i_prev].id & 0xFFFF)) &&
               (select_id_active != (buffer[i_next].id & 0xFFFF)))
@@ -2345,7 +2346,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
     BKE_view_layer_synced_ensure(scene, view_layer);
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if (has_bones ? BASE_VISIBLE(v3d, base) : BASE_SELECTABLE(v3d, base)) {
-        if (base->object->runtime.select_id == select_id) {
+        if (base->object->runtime->select_id == select_id) {
           basact = base;
           break;
         }
@@ -2499,7 +2500,7 @@ static bool ed_object_select_pick_camera_track(bContext *C,
 
     /* If there's bundles in buffer select bundles first,
      * so non-camera elements should be ignored in buffer. */
-    if (basact->object->runtime.select_id != (hitresult & 0xFFFF)) {
+    if (basact->object->runtime->select_id != (hitresult & 0xFFFF)) {
       continue;
     }
     /* Index of bundle is 1<<16-based. if there's no "bone" index
@@ -3901,7 +3902,7 @@ static bool do_meta_box_select(ViewContext *vc, const rcti *rect, const eSelectO
       }
 
       const uint hit_object = hitresult & 0xFFFF;
-      if (vc->obedit->runtime.select_id != hit_object) {
+      if (vc->obedit->runtime->select_id != hit_object) {
         continue;
       }
 
@@ -4054,7 +4055,7 @@ static bool do_object_box_select(bContext *C,
 
   LISTBASE_FOREACH (Base *, base, object_bases) {
     if (BASE_SELECTABLE(v3d, base)) {
-      if ((base->object->runtime.select_id & 0x0000FFFF) != 0) {
+      if ((base->object->runtime->select_id & 0x0000FFFF) != 0) {
         bases.append(base);
       }
     }
@@ -4149,7 +4150,7 @@ static bool do_pose_box_select(bContext *C,
         /* Select the next bone if we're not switching bases. */
         if (buf_iter + 1 != buf_end) {
           const GPUSelectResult *col_next = buf_iter + 1;
-          if ((base->object->runtime.select_id & 0x0000FFFF) != (col_next->id & 0x0000FFFF)) {
+          if ((base->object->runtime->select_id & 0x0000FFFF) != (col_next->id & 0x0000FFFF)) {
             break;
           }
           if (base->object->pose != nullptr) {

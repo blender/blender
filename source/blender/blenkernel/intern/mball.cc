@@ -53,6 +53,7 @@
 #include "BKE_mball_tessellate.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
@@ -229,7 +230,7 @@ BoundBox *BKE_mball_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MBALL);
   BKE_object_boundbox_calc_from_evaluated_geometry(ob);
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 bool BKE_mball_is_basis(const Object *ob)
@@ -661,7 +662,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
     BKE_mesh_tag_positions_changed(mesh);
   }
 
-  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::from_mesh(mesh));
+  ob->runtime->geometry_set_eval = new GeometrySet(GeometrySet::from_mesh(mesh));
 
   BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 };

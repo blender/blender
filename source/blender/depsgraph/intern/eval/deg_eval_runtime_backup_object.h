@@ -11,6 +11,8 @@
 #include "DNA_object_types.h"
 #include "DNA_session_uuid_types.h"
 
+#include "BKE_object_types.hh"
+
 #include "BLI_session_uuid.h"
 
 #include "intern/depsgraph_type.hh"
@@ -40,7 +42,7 @@ class ObjectRuntimeBackup {
   void restore_modifier_runtime_data(Object *object);
   void restore_pose_channel_runtime_data(Object *object);
 
-  Object_Runtime runtime;
+  bke::ObjectRuntime runtime;
   optional<LightLinkingRuntime> light_linking_runtime;
   short base_flag;
   unsigned short base_local_view_bits;
