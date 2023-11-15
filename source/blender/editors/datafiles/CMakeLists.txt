@@ -319,9 +319,6 @@ set(ICON_NAMES
   curve_ncurve
   curve_ncircle
   curve_path
-  lightprobe_cubemap
-  lightprobe_planar
-  lightprobe_grid
   mod_dash
   color_red
   color_green
