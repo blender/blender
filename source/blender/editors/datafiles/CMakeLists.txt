@@ -342,6 +342,8 @@ set(ICON_NAMES
   force_fluidflow
   rigid_body
   rigid_body_constraint
+  split_horizontal
+  split_vertical
   image_plane
   image_background
   image_reference

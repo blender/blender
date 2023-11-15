@@ -7,7 +7,7 @@
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    sodipodi:docname="blender_icons.svg"
    version="1.0"
-   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
    sodipodi:version="0.32"
    id="svg2"
    height="640"
@@ -41,19 +41,20 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="3840"
-     inkscape:window-height="2036"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
      id="namedview34335"
      showgrid="false"
-     inkscape:zoom="2"
-     inkscape:cx="180.75"
-     inkscape:cy="338.5"
-     inkscape:window-x="-12"
-     inkscape:window-y="-12"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="296.80807"
+     inkscape:cy="340.64869"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer8"
      inkscape:showpageshadow="2"
-     inkscape:deskcolor="#808080" />
+     inkscape:deskcolor="#808080"
+     showguides="true" />
   <defs
      id="defs4" />
   <g
@@ -19130,6 +19131,66 @@
          d="M 8.5,-4 A 0.50005,0.50005 0 0 0 8,-3.5 v 3 A 0.50005,0.50005 0 0 0 8.5,0 h 11 A 0.50005,0.50005 0 0 0 20,-0.5 v -3 A 0.50005,0.50005 0 0 0 19.5,-4 Z M 9,-3 h 10 v 2 H 9 Z"
          id="path4817-4"
          inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g5"
+       style="display:inline;fill:#ffffff;fill-opacity:1;enable-background:new"
+       transform="translate(294,-210.02105)">
+      <g
+         id="g4"
+         inkscape:label="O-8"
+         transform="translate(0,252.02105)"
+         style="fill:#ffffff;fill-opacity:1">
+        <g
+           id="g2"
+           style="display:inline;fill:#ffffff;fill-opacity:1;enable-background:new" />
+        <g
+           id="g3"
+           style="display:inline;fill:#ffffff;fill-opacity:1;enable-background:new">
+          <path
+             style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;paint-order:fill markers stroke;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:new"
+             d="m 153.5,305 a 0.50004997,0.50004997 0 0 0 -0.5,0.5 v 13 a 0.50004997,0.50004997 0 0 0 0.5,0.5 h 13 a 0.50004997,0.50004997 0 0 0 0.5,-0.5 v -13 a 0.50004997,0.50004997 0 0 0 -0.5,-0.5 z m 0.5,1 h 12 v 12 h -12 z"
+             id="path2"
+             inkscape:connector-curvature="0" />
+        </g>
+      </g>
+      <rect
+         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3.8269;stroke-opacity:0.6"
+         id="rect3"
+         width="11.996062"
+         height="1.295352"
+         x="154.01895"
+         y="563.3548" />
+    </g>
+    <g
+       id="g9"
+       transform="rotate(90,422.51052,616.51052)"
+       style="display:inline;fill:#ffffff;fill-opacity:1;enable-background:new">
+      <g
+         id="g8"
+         inkscape:label="O-8"
+         transform="translate(0,252.02105)"
+         style="fill:#ffffff;fill-opacity:1">
+        <g
+           id="g6"
+           style="display:inline;fill:#ffffff;fill-opacity:1;enable-background:new" />
+        <g
+           id="g7"
+           style="display:inline;fill:#ffffff;fill-opacity:1;enable-background:new">
+          <path
+             style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;paint-order:fill markers stroke;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:new"
+             d="m 153.5,305 a 0.50004997,0.50004997 0 0 0 -0.5,0.5 v 13 a 0.50004997,0.50004997 0 0 0 0.5,0.5 h 13 a 0.50004997,0.50004997 0 0 0 0.5,-0.5 v -13 a 0.50004997,0.50004997 0 0 0 -0.5,-0.5 z m 0.5,1 h 12 v 12 h -12 z"
+             id="path5"
+             inkscape:connector-curvature="0" />
+        </g>
+      </g>
+      <rect
+         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3.8269;stroke-opacity:0.6"
+         id="rect7"
+         width="11.996062"
+         height="1.295352"
+         x="154.01895"
+         y="563.3548" />
     </g>
   </g>
   <g
