@@ -640,6 +640,10 @@ GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short /*scanCode*/) 
     case u'²':
       key = GHOST_kKeyAccentGrave;
       break;
+    case u'i':
+      /* `i` key on Turkish kbd. */
+      key = GHOST_kKeyI;
+      break;
     default:
       if (vKey == VK_OEM_7) {
         key = GHOST_kKeyQuote;
