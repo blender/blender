@@ -41,18 +41,18 @@ void BKE_viewer_path_copy(ViewerPath *dst, const ViewerPath *src);
 bool BKE_viewer_path_equal(const ViewerPath *a,
                            const ViewerPath *b,
                            ViewerPathEqualFlag flag = ViewerPathEqualFlag(0));
-void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *viewer_path);
-void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath *viewer_path);
-void BKE_viewer_path_foreach_id(struct LibraryForeachIDData *data, ViewerPath *viewer_path);
-void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const struct IDRemapper *mappings);
+void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_path);
+void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer_path);
+void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_path);
+void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const IDRemapper *mappings);
 
 ViewerPathElem *BKE_viewer_path_elem_new(ViewerPathElemType type);
-IDViewerPathElem *BKE_viewer_path_elem_new_id(void);
-ModifierViewerPathElem *BKE_viewer_path_elem_new_modifier(void);
-GroupNodeViewerPathElem *BKE_viewer_path_elem_new_group_node(void);
-SimulationZoneViewerPathElem *BKE_viewer_path_elem_new_simulation_zone(void);
-ViewerNodeViewerPathElem *BKE_viewer_path_elem_new_viewer_node(void);
-RepeatZoneViewerPathElem *BKE_viewer_path_elem_new_repeat_zone(void);
+IDViewerPathElem *BKE_viewer_path_elem_new_id();
+ModifierViewerPathElem *BKE_viewer_path_elem_new_modifier();
+GroupNodeViewerPathElem *BKE_viewer_path_elem_new_group_node();
+SimulationZoneViewerPathElem *BKE_viewer_path_elem_new_simulation_zone();
+ViewerNodeViewerPathElem *BKE_viewer_path_elem_new_viewer_node();
+RepeatZoneViewerPathElem *BKE_viewer_path_elem_new_repeat_zone();
 ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src);
 bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
                                 const ViewerPathElem *b,

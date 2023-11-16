@@ -34,8 +34,8 @@ struct Scene;
  *
  * The entire modifier system works with this structure, and not #BMesh.
  * #Mesh.edit_bmesh stores a pointer to this structure. */
-typedef struct BMEditMesh {
-  struct BMesh *bm;
+struct BMEditMesh {
+  BMesh *bm;
 
   /**
    * Face triangulation (tessellation) is stored as triplets of three loops,
@@ -43,7 +43,7 @@ typedef struct BMEditMesh {
    *
    * \see #MLoopTri as the documentation gives useful hints that apply to this data too.
    */
-  struct BMLoop *(*looptris)[3];
+  BMLoop *(*looptris)[3];
   int tottri;
 
   /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
@@ -64,20 +64,17 @@ typedef struct BMEditMesh {
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
   char needs_flush_to_id;
-
-} BMEditMesh;
+};
 
 /* editmesh.cc */
 
-void BKE_editmesh_looptri_calc_ex(BMEditMesh *em,
-                                  const struct BMeshCalcTessellation_Params *params);
+void BKE_editmesh_looptri_calc_ex(BMEditMesh *em, const BMeshCalcTessellation_Params *params);
 void BKE_editmesh_looptri_calc(BMEditMesh *em);
 void BKE_editmesh_looptri_calc_with_partial_ex(BMEditMesh *em,
-                                               struct BMPartialUpdate *bmpinfo,
-                                               const struct BMeshCalcTessellation_Params *params);
-void BKE_editmesh_looptri_calc_with_partial(BMEditMesh *em, struct BMPartialUpdate *bmpinfo);
-void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em,
-                                                        struct BMPartialUpdate *bmpinfo);
+                                               BMPartialUpdate *bmpinfo,
+                                               const BMeshCalcTessellation_Params *params);
+void BKE_editmesh_looptri_calc_with_partial(BMEditMesh *em, BMPartialUpdate *bmpinfo);
+void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em, BMPartialUpdate *bmpinfo);
 
 /**
  * Performing the face normal calculation at the same time as tessellation
@@ -97,24 +94,21 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
  * \note this function assumes this is a mesh object,
  * don't add NULL data check here. caller must do that
  */
-BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
+BMEditMesh *BKE_editmesh_from_object(Object *ob);
 /**
- * \note Does not free the #BMEditMesh struct itself.
+ * \note Does not free the #BMEditMesh  itself.
  */
 void BKE_editmesh_free_data(BMEditMesh *em);
 
-float (*BKE_editmesh_vert_coords_alloc(struct Depsgraph *depsgraph,
-                                       struct BMEditMesh *em,
-                                       struct Scene *scene,
-                                       struct Object *ob,
-                                       int *r_vert_len))[3];
+float (*BKE_editmesh_vert_coords_alloc(
+    Depsgraph *depsgraph, BMEditMesh *em, Scene *scene, Object *ob, int *r_vert_len))[3];
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3];
-const float (*BKE_editmesh_vert_coords_when_deformed(struct Depsgraph *depsgraph,
-                                                     struct BMEditMesh *em,
-                                                     struct Scene *scene,
-                                                     struct Object *obedit,
+const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
+                                                     BMEditMesh *em,
+                                                     Scene *scene,
+                                                     Object *obedit,
                                                      int *r_vert_len,
                                                      bool *r_is_alloc))[3];
 
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);
-struct BoundBox *BKE_editmesh_cage_boundbox_get(struct Object *object, BMEditMesh *em);
+BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh *em);

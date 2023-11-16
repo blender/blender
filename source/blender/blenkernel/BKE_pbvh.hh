@@ -6,8 +6,8 @@
 
 /** \file
  * \ingroup bke
- * \brief External data structures for PBVH. Does not
- *        include data structures internal to the draw code.
+ * \brief External data structures for PBVH. Does not include data structures internal to the draw
+ * code.
  */
 
 #include "BLI_compiler_compat.h"
@@ -17,14 +17,14 @@ struct PBVHNode;
 struct PBVHBatches;
 struct BMesh;
 
-typedef enum {
+enum PBVHType {
   PBVH_FACES,
   PBVH_GRIDS,
   PBVH_BMESH,
-} PBVHType;
+};
 
 /* #PBVHNodeFlags is needed by `DRW_render.h` and `draw_cache.cc`. */
-typedef enum PBVHNodeFlags {
+enum PBVHNodeFlags {
   PBVH_Leaf = 1 << 0,
 
   PBVH_UpdateNormals = 1 << 1,
@@ -46,7 +46,7 @@ typedef enum PBVHNodeFlags {
   PBVH_TexLeaf = 1 << 16,
   /** Used internally by `pbvh_bmesh.cc`. */
   PBVH_TopologyUpdated = 1 << 17,
-} PBVHNodeFlags;
+};
 ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
 /* A few C++ methods to play nice with sets and maps. */
@@ -60,40 +60,40 @@ ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
     return i; \
   }
 
-typedef struct PBVHVertRef {
+struct PBVHVertRef {
   intptr_t i;
 
   PBVH_REF_CXX_METHODS(PBVHVertRef)
-} PBVHVertRef;
+};
 
 /* NOTE: edges in PBVH_GRIDS are always pulled from the base mesh. */
-typedef struct PBVHEdgeRef {
+struct PBVHEdgeRef {
   intptr_t i;
 
   PBVH_REF_CXX_METHODS(PBVHVertRef)
-} PBVHEdgeRef;
+};
 
 /* NOTE: faces in PBVH_GRIDS are always puled from the base mesh. */
-typedef struct PBVHFaceRef {
+struct PBVHFaceRef {
   intptr_t i;
 
   PBVH_REF_CXX_METHODS(PBVHVertRef)
-} PBVHFaceRef;
+};
 
 #define PBVH_REF_NONE -1LL
 
 /* Public members of PBVH, used for inlined functions. */
 struct PBVHPublic {
   PBVHType type;
-  struct BMesh *bm;
+  BMesh *bm;
 };
 
-typedef struct PBVH PBVH;
-typedef struct PBVHNode PBVHNode;
+struct PBVH;
+struct PBVHNode;
 
 BLI_INLINE PBVHType BKE_pbvh_type(const PBVH *pbvh)
 {
-  return ((const struct PBVHPublic *)pbvh)->type;
+  return ((const PBVHPublic *)pbvh)->type;
 }
 
 /* Needed for the render engines integration. */

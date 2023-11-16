@@ -69,17 +69,16 @@ struct Scene;
  */
 
 /* keep in sync with MFace type */
-typedef struct DMFlagMat {
+struct DMFlagMat {
   short mat_nr;
   bool sharp;
-} DMFlagMat;
+};
 
-typedef enum DerivedMeshType {
+enum DerivedMeshType {
   DM_TYPE_CDDM,
   DM_TYPE_CCGDM,
-} DerivedMeshType;
+};
 
-typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
   /** Private DerivedMesh data, only for internal DerivedMesh use */
   CustomData vertData, edgeData, faceData, loopData, polyData;
@@ -107,7 +106,7 @@ struct DerivedMesh {
    * \warning The real return type is `float(*)[3]`.
    */
   float *(*getVertArray)(DerivedMesh *dm);
-  struct vec2i *(*getEdgeArray)(DerivedMesh *dm);
+  vec2i *(*getEdgeArray)(DerivedMesh *dm);
   int *(*getCornerVertArray)(DerivedMesh *dm);
   int *(*getCornerEdgeArray)(DerivedMesh *dm);
   int *(*getPolyArray)(DerivedMesh *dm);
@@ -187,7 +186,7 @@ void DM_release(DerivedMesh *dm);
  * zero for the layer type, so only layer types specified by the mask
  * will be copied
  */
-void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
+void DM_set_only_copy(DerivedMesh *dm, const CustomData_MeshMasks *mask);
 
 /* -------------------------------------------------------------------- */
 /** \name Custom Data Layer Access Functions
@@ -197,10 +196,10 @@ void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
  * \note these return pointers - any change modifies the internals of the mesh.
  * \{ */
 
-void *DM_get_vert_data_layer(struct DerivedMesh *dm, eCustomDataType type);
-void *DM_get_edge_data_layer(struct DerivedMesh *dm, eCustomDataType type);
-void *DM_get_poly_data_layer(struct DerivedMesh *dm, eCustomDataType type);
-void *DM_get_loop_data_layer(struct DerivedMesh *dm, eCustomDataType type);
+void *DM_get_vert_data_layer(DerivedMesh *dm, eCustomDataType type);
+void *DM_get_edge_data_layer(DerivedMesh *dm, eCustomDataType type);
+void *DM_get_poly_data_layer(DerivedMesh *dm, eCustomDataType type);
+void *DM_get_loop_data_layer(DerivedMesh *dm, eCustomDataType type);
 
 /** \} */
 
@@ -209,44 +208,41 @@ void *DM_get_loop_data_layer(struct DerivedMesh *dm, eCustomDataType type);
  * copy count elements from source_index in source to dest_index in dest
  * these copy all layers for which the CD_FLAG_NOCOPY flag is not set.
  */
-void DM_copy_vert_data(const struct DerivedMesh *source,
-                       struct DerivedMesh *dest,
-                       int source_index,
-                       int dest_index,
-                       int count);
+void DM_copy_vert_data(
+    const DerivedMesh *source, DerivedMesh *dest, int source_index, int dest_index, int count);
 
 /**
  * Interpolates vertex data from the vertices indexed by `src_indices` in the
  * source mesh using the given weights and stores the result in the vertex
  * indexed by `dest_index` in the `dest` mesh.
  */
-void DM_interp_vert_data(const struct DerivedMesh *source,
-                         struct DerivedMesh *dest,
+void DM_interp_vert_data(const DerivedMesh *source,
+                         DerivedMesh *dest,
                          int *src_indices,
                          float *weights,
                          int count,
                          int dest_index);
 
-void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], int totcos);
+void mesh_get_mapped_verts_coords(Mesh *me_eval, float (*r_cos)[3], int totcos);
 
 /**
  * Same as above but won't use render settings.
  */
-struct Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
-                                     const struct Scene *scene,
-                                     struct Object *obedit,
-                                     struct BMEditMesh *em,
-                                     const struct CustomData_MeshMasks *dataMask);
-struct Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,
-                                               const struct Scene *scene,
-                                               struct Object *obedit,
-                                               const struct CustomData_MeshMasks *dataMask);
+Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
+                              const Scene *scene,
+                              Object *obedit,
+                              BMEditMesh *em,
+                              const CustomData_MeshMasks *dataMask);
+Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
+                                        const Scene *scene,
+                                        Object *obedit,
+                                        const CustomData_MeshMasks *dataMask);
 
-bool editbmesh_modifier_is_enabled(const struct Scene *scene,
-                                   const struct Object *ob,
-                                   struct ModifierData *md,
+bool editbmesh_modifier_is_enabled(const Scene *scene,
+                                   const Object *ob,
+                                   ModifierData *md,
                                    bool has_prev_mesh);
-void makeDerivedMesh(struct Depsgraph *depsgraph,
-                     const struct Scene *scene,
-                     struct Object *ob,
-                     const struct CustomData_MeshMasks *dataMask);
+void makeDerivedMesh(Depsgraph *depsgraph,
+                     const Scene *scene,
+                     Object *ob,
+                     const CustomData_MeshMasks *dataMask);

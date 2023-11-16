@@ -12,102 +12,100 @@
 #include "BLI_sys_types.h"
 
 struct BMEditMesh;
+struct BoundBox;
 struct BPoint;
 struct Depsgraph;
 struct Lattice;
-struct MDeformVert;
+struct LatticeDeformData;
 struct Main;
+struct MDeformVert;
 struct Mesh;
 struct Object;
 struct Scene;
 
-void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
-struct Lattice *BKE_lattice_add(struct Main *bmain, const char *name);
+void BKE_lattice_resize(Lattice *lt, int u, int v, int w, Object *ltOb);
+Lattice *BKE_lattice_add(Main *bmain, const char *name);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
-void outside_lattice(struct Lattice *lt);
+void outside_lattice(Lattice *lt);
 
-float (*BKE_lattice_vert_coords_alloc(const struct Lattice *lt, int *r_vert_len))[3];
-void BKE_lattice_vert_coords_get(const struct Lattice *lt, float (*vert_coords)[3]);
-void BKE_lattice_vert_coords_apply_with_mat4(struct Lattice *lt,
+float (*BKE_lattice_vert_coords_alloc(const Lattice *lt, int *r_vert_len))[3];
+void BKE_lattice_vert_coords_get(const Lattice *lt, float (*vert_coords)[3]);
+void BKE_lattice_vert_coords_apply_with_mat4(Lattice *lt,
                                              const float (*vert_coords)[3],
                                              const float mat[4][4]);
-void BKE_lattice_vert_coords_apply(struct Lattice *lt, const float (*vert_coords)[3]);
-void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph,
-                                struct Scene *scene,
-                                struct Object *ob);
+void BKE_lattice_vert_coords_apply(Lattice *lt, const float (*vert_coords)[3]);
+void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
-struct MDeformVert *BKE_lattice_deform_verts_get(const struct Object *oblatt);
-struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);
+MDeformVert *BKE_lattice_deform_verts_get(const Object *oblatt);
+BPoint *BKE_lattice_active_point_get(Lattice *lt);
 
-struct BoundBox *BKE_lattice_boundbox_get(struct Object *ob);
-void BKE_lattice_minmax_dl(struct Object *ob, struct Lattice *lt, float min[3], float max[3]);
-void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3]);
-void BKE_lattice_center_median(struct Lattice *lt, float cent[3]);
-void BKE_lattice_center_bounds(struct Lattice *lt, float cent[3]);
-void BKE_lattice_translate(struct Lattice *lt, const float offset[3], bool do_keys);
-void BKE_lattice_transform(struct Lattice *lt, const float mat[4][4], bool do_keys);
+BoundBox *BKE_lattice_boundbox_get(Object *ob);
+void BKE_lattice_minmax_dl(Object *ob, Lattice *lt, float min[3], float max[3]);
+void BKE_lattice_minmax(Lattice *lt, float min[3], float max[3]);
+void BKE_lattice_center_median(Lattice *lt, float cent[3]);
+void BKE_lattice_center_bounds(Lattice *lt, float cent[3]);
+void BKE_lattice_translate(Lattice *lt, const float offset[3], bool do_keys);
+void BKE_lattice_transform(Lattice *lt, const float mat[4][4], bool do_keys);
 
-bool BKE_lattice_is_any_selected(const struct Lattice *lt);
+bool BKE_lattice_is_any_selected(const Lattice *lt);
 
-int BKE_lattice_index_from_uvw(struct Lattice *lt, int u, int v, int w);
-void BKE_lattice_index_to_uvw(struct Lattice *lt, int index, int *r_u, int *r_v, int *r_w);
-int BKE_lattice_index_flip(struct Lattice *lt, int index, bool flip_u, bool flip_v, bool flip_w);
+int BKE_lattice_index_from_uvw(Lattice *lt, int u, int v, int w);
+void BKE_lattice_index_to_uvw(Lattice *lt, int index, int *r_u, int *r_v, int *r_w);
+int BKE_lattice_index_flip(Lattice *lt, int index, bool flip_u, bool flip_v, bool flip_w);
 void BKE_lattice_bitmap_from_flag(
-    struct Lattice *lt, unsigned int *bitmap, uint8_t flag, bool clear, bool respecthide);
+    Lattice *lt, unsigned int *bitmap, uint8_t flag, bool clear, bool respecthide);
 
 /* **** Depsgraph evaluation **** */
 
-struct Depsgraph;
-
-void BKE_lattice_eval_geometry(struct Depsgraph *depsgraph, struct Lattice *latt);
+void BKE_lattice_eval_geometry(Depsgraph *depsgraph, Lattice *latt);
 
 /* Draw Cache */
 enum {
   BKE_LATTICE_BATCH_DIRTY_ALL = 0,
   BKE_LATTICE_BATCH_DIRTY_SELECT,
 };
-void BKE_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
-void BKE_lattice_batch_cache_free(struct Lattice *lt);
+void BKE_lattice_batch_cache_dirty_tag(Lattice *lt, int mode);
+void BKE_lattice_batch_cache_free(Lattice *lt);
 
-extern void (*BKE_lattice_batch_cache_dirty_tag_cb)(struct Lattice *lt, int mode);
-extern void (*BKE_lattice_batch_cache_free_cb)(struct Lattice *lt);
+extern void (*BKE_lattice_batch_cache_dirty_tag_cb)(Lattice *lt, int mode);
+extern void (*BKE_lattice_batch_cache_free_cb)(Lattice *lt);
 
 /* -------------------------------------------------------------------- */
 /** \name Deform 3D Coordinates by Lattice (`lattice_deform.cc`)
  * \{ */
 
-struct LatticeDeformData *BKE_lattice_deform_data_create(
-    const struct Object *oblatt, const struct Object *ob) ATTR_WARN_UNUSED_RESULT;
-void BKE_lattice_deform_data_eval_co(struct LatticeDeformData *lattice_deform_data,
+LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt,
+                                                  const Object *ob) ATTR_WARN_UNUSED_RESULT;
+void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
                                      float co[3],
                                      float weight);
-void BKE_lattice_deform_data_destroy(struct LatticeDeformData *lattice_deform_data);
+void BKE_lattice_deform_data_destroy(LatticeDeformData *lattice_deform_data);
 
-void BKE_lattice_deform_coords(const struct Object *ob_lattice,
-                               const struct Object *ob_target,
+void BKE_lattice_deform_coords(const Object *ob_lattice,
+                               const Object *ob_target,
                                float (*vert_coords)[3],
                                int vert_coords_len,
                                short flag,
                                const char *defgrp_name,
                                float fac);
 
-void BKE_lattice_deform_coords_with_mesh(const struct Object *ob_lattice,
-                                         const struct Object *ob_target,
+void BKE_lattice_deform_coords_with_mesh(const Object *ob_lattice,
+                                         const Object *ob_target,
                                          float (*vert_coords)[3],
                                          int vert_coords_len,
                                          short flag,
                                          const char *defgrp_name,
                                          float fac,
-                                         const struct Mesh *me_target);
+                                         const Mesh *me_target);
 
-void BKE_lattice_deform_coords_with_editmesh(const struct Object *ob_lattice,
-                                             const struct Object *ob_target,
+void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
+                                             const Object *ob_target,
                                              float (*vert_coords)[3],
                                              int vert_coords_len,
                                              short flag,
                                              const char *defgrp_name,
                                              float fac,
-                                             struct BMEditMesh *em_target);
+                                             BMEditMesh *em_target);
 
 /** \} */

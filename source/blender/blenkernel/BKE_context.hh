@@ -21,6 +21,11 @@
 
 struct ARegion;
 struct Base;
+struct bGPdata;
+struct bGPDframe;
+struct bGPDlayer;
+struct bPoseChannel;
+struct bScreen;
 struct CacheFile;
 struct Collection;
 struct Depsgraph;
@@ -30,6 +35,8 @@ struct Image;
 struct LayerCollection;
 struct ListBase;
 struct Main;
+struct Mask;
+struct MovieClip;
 struct Object;
 struct PointerRNA;
 struct RegionView3D;
@@ -37,36 +44,46 @@ struct RenderEngineType;
 struct ReportList;
 struct Scene;
 struct ScrArea;
+struct SpaceAction;
 struct SpaceClip;
+struct SpaceClip;
+struct SpaceConsole;
+struct SpaceFile;
+struct SpaceGraph;
 struct SpaceImage;
+struct SpaceInfo;
 struct SpaceLink;
+struct SpaceNla;
+struct SpaceNode;
+struct SpaceOutliner;
+struct SpaceProperties;
+struct SpaceSeq;
+struct SpaceSpreadsheet;
 struct SpaceText;
+struct SpaceTopBar;
+struct SpaceUserPref;
 struct StructRNA;
 struct Text;
 struct ToolSettings;
 struct View3D;
 struct ViewLayer;
-struct bGPDframe;
-struct bGPDlayer;
-struct bGPdata;
-struct bPoseChannel;
-struct bScreen;
+struct wmGizmoGroup;
+struct wmMsgBus;
 struct wmWindow;
 struct wmWindowManager;
+struct WorkSpace;
 
 /* Structs */
 
 struct bContext;
-typedef struct bContext bContext;
 
 struct bContextDataResult;
-typedef struct bContextDataResult bContextDataResult;
 
 /* Result of context lookups.
  * The specific values are important, and used implicitly in ctx_data_get(). Some functions also
  * still accept/return `int` instead, to ensure that the compiler uses the correct storage size
  * when mixing C/C++ code. */
-typedef enum eContextResult {
+enum eContextResult {
   /* The context member was found, and its data is available. */
   CTX_RESULT_OK = 1,
 
@@ -76,14 +93,12 @@ typedef enum eContextResult {
   /* The context member was found, but its data is not available.
    * For example, "active_bone" is a valid context member, but has not data in Object mode. */
   CTX_RESULT_NO_DATA = -1,
-} eContextResult;
+};
 
 /* Function mapping a context member name to its value. */
-typedef int /*eContextResult*/ (*bContextDataCallback)(const bContext *C,
-                                                       const char *member,
-                                                       bContextDataResult *result);
-
-#ifdef __cplusplus
+using bContextDataCallback = int /*eContextResult*/ (*)(const bContext *C,
+                                                        const char *member,
+                                                        bContextDataResult *result);
 
 struct bContextStoreEntry {
   std::string name;
@@ -99,11 +114,9 @@ namespace blender::asset_system {
 class AssetRepresentation;
 }
 
-#endif
-
 /* for the context's rna mode enum
  * keep aligned with data_mode_strings in context.cc */
-typedef enum eContextObjectMode {
+enum eContextObjectMode {
   CTX_MODE_EDIT_MESH = 0,
   CTX_MODE_EDIT_CURVE,
   CTX_MODE_EDIT_SURFACE,
@@ -128,17 +141,15 @@ typedef enum eContextObjectMode {
   CTX_MODE_VERTEX_GPENCIL_LEGACY,
   CTX_MODE_SCULPT_CURVES,
   CTX_MODE_PAINT_GREASE_PENCIL,
-} eContextObjectMode;
+};
 #define CTX_MODE_NUM (CTX_MODE_PAINT_GREASE_PENCIL + 1)
 
 /* Context */
 
-bContext *CTX_create(void);
+bContext *CTX_create();
 void CTX_free(bContext *C);
 
 bContext *CTX_copy(const bContext *C);
-
-#ifdef __cplusplus
 
 /* Stored Context */
 
@@ -153,8 +164,6 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
                                        blender::StringRefNull name,
                                        const StructRNA *type = nullptr);
 
-#endif
-
 /* need to store if python is initialized or not */
 bool CTX_py_init_get(bContext *C);
 void CTX_py_init_set(bContext *C, bool value);
@@ -166,50 +175,50 @@ struct bContext_PyState {
   void *py_context;
   void *py_context_orig;
 };
-void CTX_py_state_push(bContext *C, struct bContext_PyState *pystate, void *value);
-void CTX_py_state_pop(bContext *C, struct bContext_PyState *pystate);
+void CTX_py_state_push(bContext *C, bContext_PyState *pystate, void *value);
+void CTX_py_state_pop(bContext *C, bContext_PyState *pystate);
 
 /* Window Manager Context */
 
-struct wmWindowManager *CTX_wm_manager(const bContext *C);
-struct wmWindow *CTX_wm_window(const bContext *C);
-struct WorkSpace *CTX_wm_workspace(const bContext *C);
-struct bScreen *CTX_wm_screen(const bContext *C);
-struct ScrArea *CTX_wm_area(const bContext *C);
-struct SpaceLink *CTX_wm_space_data(const bContext *C);
-struct ARegion *CTX_wm_region(const bContext *C);
+wmWindowManager *CTX_wm_manager(const bContext *C);
+wmWindow *CTX_wm_window(const bContext *C);
+WorkSpace *CTX_wm_workspace(const bContext *C);
+bScreen *CTX_wm_screen(const bContext *C);
+ScrArea *CTX_wm_area(const bContext *C);
+SpaceLink *CTX_wm_space_data(const bContext *C);
+ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
-struct ARegion *CTX_wm_menu(const bContext *C);
-struct wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C);
-struct wmMsgBus *CTX_wm_message_bus(const bContext *C);
-struct ReportList *CTX_wm_reports(const bContext *C);
+ARegion *CTX_wm_menu(const bContext *C);
+wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C);
+wmMsgBus *CTX_wm_message_bus(const bContext *C);
+ReportList *CTX_wm_reports(const bContext *C);
 
-struct View3D *CTX_wm_view3d(const bContext *C);
-struct RegionView3D *CTX_wm_region_view3d(const bContext *C);
-struct SpaceText *CTX_wm_space_text(const bContext *C);
-struct SpaceImage *CTX_wm_space_image(const bContext *C);
-struct SpaceConsole *CTX_wm_space_console(const bContext *C);
-struct SpaceProperties *CTX_wm_space_properties(const bContext *C);
-struct SpaceFile *CTX_wm_space_file(const bContext *C);
-struct SpaceSeq *CTX_wm_space_seq(const bContext *C);
-struct SpaceOutliner *CTX_wm_space_outliner(const bContext *C);
-struct SpaceNla *CTX_wm_space_nla(const bContext *C);
-struct SpaceNode *CTX_wm_space_node(const bContext *C);
-struct SpaceGraph *CTX_wm_space_graph(const bContext *C);
-struct SpaceAction *CTX_wm_space_action(const bContext *C);
-struct SpaceInfo *CTX_wm_space_info(const bContext *C);
-struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C);
-struct SpaceClip *CTX_wm_space_clip(const bContext *C);
-struct SpaceTopBar *CTX_wm_space_topbar(const bContext *C);
-struct SpaceSpreadsheet *CTX_wm_space_spreadsheet(const bContext *C);
+View3D *CTX_wm_view3d(const bContext *C);
+RegionView3D *CTX_wm_region_view3d(const bContext *C);
+SpaceText *CTX_wm_space_text(const bContext *C);
+SpaceImage *CTX_wm_space_image(const bContext *C);
+SpaceConsole *CTX_wm_space_console(const bContext *C);
+SpaceProperties *CTX_wm_space_properties(const bContext *C);
+SpaceFile *CTX_wm_space_file(const bContext *C);
+SpaceSeq *CTX_wm_space_seq(const bContext *C);
+SpaceOutliner *CTX_wm_space_outliner(const bContext *C);
+SpaceNla *CTX_wm_space_nla(const bContext *C);
+SpaceNode *CTX_wm_space_node(const bContext *C);
+SpaceGraph *CTX_wm_space_graph(const bContext *C);
+SpaceAction *CTX_wm_space_action(const bContext *C);
+SpaceInfo *CTX_wm_space_info(const bContext *C);
+SpaceUserPref *CTX_wm_space_userpref(const bContext *C);
+SpaceClip *CTX_wm_space_clip(const bContext *C);
+SpaceTopBar *CTX_wm_space_topbar(const bContext *C);
+SpaceSpreadsheet *CTX_wm_space_spreadsheet(const bContext *C);
 
-void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
-void CTX_wm_window_set(bContext *C, struct wmWindow *win);
-void CTX_wm_screen_set(bContext *C, struct bScreen *screen); /* to be removed */
-void CTX_wm_area_set(bContext *C, struct ScrArea *area);
-void CTX_wm_region_set(bContext *C, struct ARegion *region);
-void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
-void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup);
+void CTX_wm_manager_set(bContext *C, wmWindowManager *wm);
+void CTX_wm_window_set(bContext *C, wmWindow *win);
+void CTX_wm_screen_set(bContext *C, bScreen *screen); /* to be removed */
+void CTX_wm_area_set(bContext *C, ScrArea *area);
+void CTX_wm_region_set(bContext *C, ARegion *region);
+void CTX_wm_menu_set(bContext *C, ARegion *menu);
+void CTX_wm_gizmo_group_set(bContext *C, wmGizmoGroup *gzgroup);
 
 /**
  * Values to create the message that describes the reason poll failed.
@@ -224,11 +233,10 @@ struct bContextPollMsgDyn_Params {
   void *user_data;
 };
 
-const char *CTX_wm_operator_poll_msg_get(struct bContext *C, bool *r_free);
-void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
-void CTX_wm_operator_poll_msg_set_dynamic(bContext *C,
-                                          const struct bContextPollMsgDyn_Params *params);
-void CTX_wm_operator_poll_msg_clear(struct bContext *C);
+const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free);
+void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg);
+void CTX_wm_operator_poll_msg_set_dynamic(bContext *C, const bContextPollMsgDyn_Params *params);
+void CTX_wm_operator_poll_msg_clear(bContext *C);
 
 /* Data Context
  *
@@ -281,13 +289,13 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     int *r_index,
                                     short *r_type);
 
-void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
+void CTX_data_id_pointer_set(bContextDataResult *result, ID *id);
 void CTX_data_pointer_set_ptr(bContextDataResult *result, const PointerRNA *ptr);
-void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
+void CTX_data_pointer_set(bContextDataResult *result, ID *id, StructRNA *type, void *data);
 
-void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
+void CTX_data_id_list_add(bContextDataResult *result, ID *id);
 void CTX_data_list_add_ptr(bContextDataResult *result, const PointerRNA *ptr);
-void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
+void CTX_data_list_add(bContextDataResult *result, ID *id, StructRNA *type, void *data);
 
 /**
  * Stores a property in a result. Make sure to also call
@@ -300,8 +308,8 @@ void CTX_data_prop_set(bContextDataResult *result, PropertyRNA *prop, int index)
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir);
 
-void CTX_data_type_set(struct bContextDataResult *result, short type);
-short CTX_data_type_get(struct bContextDataResult *result);
+void CTX_data_type_set(bContextDataResult *result, short type);
+short CTX_data_type_get(bContextDataResult *result);
 
 bool CTX_data_equals(const char *member, const char *str);
 bool CTX_data_dir(const char *member);
@@ -331,8 +339,8 @@ int ctx_data_list_count(const bContext *C, bool (*func)(const bContext *, ListBa
 
 /* Data Context Members */
 
-struct Main *CTX_data_main(const bContext *C);
-struct Scene *CTX_data_scene(const bContext *C);
+Main *CTX_data_main(const bContext *C);
+Scene *CTX_data_scene(const bContext *C);
 /**
  * This is tricky. Sometimes the user overrides the render_layer
  * but not the scene_collection. In this case what to do?
@@ -340,20 +348,20 @@ struct Scene *CTX_data_scene(const bContext *C);
  * If the scene_collection is linked to the #ViewLayer we use it.
  * Otherwise we fallback to the active one of the #ViewLayer.
  */
-struct LayerCollection *CTX_data_layer_collection(const bContext *C);
-struct Collection *CTX_data_collection(const bContext *C);
-struct ViewLayer *CTX_data_view_layer(const bContext *C);
-struct RenderEngineType *CTX_data_engine_type(const bContext *C);
-struct ToolSettings *CTX_data_tool_settings(const bContext *C);
+LayerCollection *CTX_data_layer_collection(const bContext *C);
+Collection *CTX_data_collection(const bContext *C);
+ViewLayer *CTX_data_view_layer(const bContext *C);
+RenderEngineType *CTX_data_engine_type(const bContext *C);
+ToolSettings *CTX_data_tool_settings(const bContext *C);
 
 const char *CTX_data_mode_string(const bContext *C);
-enum eContextObjectMode CTX_data_mode_enum_ex(const struct Object *obedit,
-                                              const struct Object *ob,
+enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
+                                              const Object *ob,
                                               eObjectMode object_mode);
 enum eContextObjectMode CTX_data_mode_enum(const bContext *C);
 
-void CTX_data_main_set(bContext *C, struct Main *bmain);
-void CTX_data_scene_set(bContext *C, struct Scene *scene);
+void CTX_data_main_set(bContext *C, Main *bmain);
+void CTX_data_scene_set(bContext *C, Scene *scene);
 
 /* Only Outliner currently! */
 bool CTX_data_selected_ids(const bContext *C, ListBase *list);
@@ -373,39 +381,39 @@ bool CTX_data_visible_bases(const bContext *C, ListBase *list);
 bool CTX_data_selectable_objects(const bContext *C, ListBase *list);
 bool CTX_data_selectable_bases(const bContext *C, ListBase *list);
 
-struct Object *CTX_data_active_object(const bContext *C);
-struct Base *CTX_data_active_base(const bContext *C);
-struct Object *CTX_data_edit_object(const bContext *C);
+Object *CTX_data_active_object(const bContext *C);
+Base *CTX_data_active_base(const bContext *C);
+Object *CTX_data_edit_object(const bContext *C);
 
-struct Image *CTX_data_edit_image(const bContext *C);
+Image *CTX_data_edit_image(const bContext *C);
 
-struct Text *CTX_data_edit_text(const bContext *C);
-struct MovieClip *CTX_data_edit_movieclip(const bContext *C);
-struct Mask *CTX_data_edit_mask(const bContext *C);
+Text *CTX_data_edit_text(const bContext *C);
+MovieClip *CTX_data_edit_movieclip(const bContext *C);
+Mask *CTX_data_edit_mask(const bContext *C);
 
-struct CacheFile *CTX_data_edit_cachefile(const bContext *C);
+CacheFile *CTX_data_edit_cachefile(const bContext *C);
 
 bool CTX_data_selected_nodes(const bContext *C, ListBase *list);
 
-struct EditBone *CTX_data_active_bone(const bContext *C);
+EditBone *CTX_data_active_bone(const bContext *C);
 bool CTX_data_selected_bones(const bContext *C, ListBase *list);
 bool CTX_data_selected_editable_bones(const bContext *C, ListBase *list);
 bool CTX_data_visible_bones(const bContext *C, ListBase *list);
 bool CTX_data_editable_bones(const bContext *C, ListBase *list);
 
-struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C);
+bPoseChannel *CTX_data_active_pose_bone(const bContext *C);
 bool CTX_data_selected_pose_bones(const bContext *C, ListBase *list);
 bool CTX_data_selected_pose_bones_from_active_object(const bContext *C, ListBase *list);
 bool CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 
-struct bGPdata *CTX_data_gpencil_data(const bContext *C);
-struct bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C);
-struct bGPDframe *CTX_data_active_gpencil_frame(const bContext *C);
+bGPdata *CTX_data_gpencil_data(const bContext *C);
+bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C);
+bGPDframe *CTX_data_active_gpencil_frame(const bContext *C);
 bool CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
 bool CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
-const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
+const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
 class blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
 
 bool CTX_wm_interface_locked(const bContext *C);
@@ -419,7 +427,7 @@ bool CTX_wm_interface_locked(const bContext *C);
  *
  * \note Can not be used if access to a fully evaluated data-block is needed.
  */
-struct Depsgraph *CTX_data_depsgraph_pointer(const bContext *C);
+Depsgraph *CTX_data_depsgraph_pointer(const bContext *C);
 
 /**
  * Get dependency graph which is expected to be fully evaluated.
@@ -428,7 +436,7 @@ struct Depsgraph *CTX_data_depsgraph_pointer(const bContext *C);
  * sanity checks are done. Additionally, this provides more semantic meaning to what is exactly
  * expected to happen.
  */
-struct Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C);
+Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C);
 
 /**
  * Gets fully updated and evaluated dependency graph.
@@ -438,9 +446,9 @@ struct Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C);
  * \note Will be expensive if there are relations or objects tagged for update.
  * \note If there are pending updates depsgraph hooks will be invoked.
  */
-struct Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
+Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
 
 /* Will Return NULL if depsgraph is not allocated yet.
  * Only used by handful of operators which are run on file load.
  */
-struct Depsgraph *CTX_data_depsgraph_on_load(const bContext *C);
+Depsgraph *CTX_data_depsgraph_on_load(const bContext *C);

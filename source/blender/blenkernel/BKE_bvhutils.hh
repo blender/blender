@@ -16,17 +16,19 @@
 #include "BLI_threads.h"
 
 struct BMEditMesh;
+struct BVHCache;
+struct BVHTree;
 struct MFace;
 struct Mesh;
+struct MLoopTri;
 struct PointCloud;
-
-struct BVHCache;
+struct vec2i;
 
 /**
  * Struct that stores basic information about a BVHTree built from a edit-mesh.
  */
-typedef struct BVHTreeFromEditMesh {
-  struct BVHTree *tree;
+struct BVHTreeFromEditMesh {
+  BVHTree *tree;
 
   /** Default callbacks to BVH nearest and ray-cast. */
   BVHTree_NearestPointCallback nearest_callback;
@@ -34,14 +36,13 @@ typedef struct BVHTreeFromEditMesh {
 
   /* Private data */
   bool cached;
-
-} BVHTreeFromEditMesh;
+};
 
 /**
  * Struct that stores basic information about a #BVHTree built from a mesh.
  */
-typedef struct BVHTreeFromMesh {
-  struct BVHTree *tree;
+struct BVHTreeFromMesh {
+  BVHTree *tree;
 
   /** Default callbacks to BVH nearest and ray-cast. */
   BVHTree_NearestPointCallback nearest_callback;
@@ -49,17 +50,16 @@ typedef struct BVHTreeFromMesh {
 
   /* Vertex array, so that callbacks have instant access to data. */
   const float (*vert_positions)[3];
-  const struct vec2i *edge;
-  const struct MFace *face;
+  const vec2i *edge;
+  const MFace *face;
   const int *corner_verts;
-  const struct MLoopTri *looptri;
+  const MLoopTri *looptri;
 
   /* Private data */
   bool cached;
+};
 
-} BVHTreeFromMesh;
-
-typedef enum BVHCacheType {
+enum BVHCacheType {
   BVHTREE_FROM_VERTS,
   BVHTREE_FROM_EDGES,
   BVHTREE_FROM_FACES,
@@ -75,7 +75,7 @@ typedef enum BVHCacheType {
 
   /* Keep `BVHTREE_MAX_ITEM` as last item. */
   BVHTREE_MAX_ITEM,
-} BVHCacheType;
+};
 
 /**
  * Builds a BVH tree where nodes are the relevant elements of the given mesh.
@@ -89,13 +89,13 @@ typedef enum BVHCacheType {
  * #free_bvhtree_from_mesh should be called when the tree is no longer needed.
  */
 BVHTree *bvhtree_from_editmesh_verts(
-    BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
+    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis);
 
 /**
  * Builds a BVH-tree where nodes are the vertices of the given `em`.
  */
 BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
-                                        struct BMEditMesh *em,
+                                        BMEditMesh *em,
                                         blender::BitSpan mask,
                                         int verts_num_active,
                                         float epsilon,
@@ -109,7 +109,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
  * \param verts_num_active: if >= 0, number of active verts to add to BVH-tree
  * (else will be computed from mask).
  */
-BVHTree *bvhtree_from_mesh_verts_ex(struct BVHTreeFromMesh *data,
+BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     const float (*vert_positions)[3],
                                     int verts_num,
                                     blender::BitSpan verts_mask,
@@ -119,13 +119,13 @@ BVHTree *bvhtree_from_mesh_verts_ex(struct BVHTreeFromMesh *data,
                                     int axis);
 
 BVHTree *bvhtree_from_editmesh_edges(
-    BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
+    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis);
 
 /**
  * Builds a BVH-tree where nodes are the edges of the given `em`.
  */
 BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
-                                        struct BMEditMesh *em,
+                                        BMEditMesh *em,
                                         blender::BitSpan edges_mask,
                                         int edges_num_active,
                                         float epsilon,
@@ -151,13 +151,13 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     int axis);
 
 BVHTree *bvhtree_from_editmesh_looptri(
-    BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
+    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis);
 
 /**
  * Builds a BVH-tree where nodes are the `looptri` faces of the given `bm`.
  */
 BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
-                                          struct BMEditMesh *em,
+                                          BMEditMesh *em,
                                           blender::BitSpan mask,
                                           int looptri_num_active,
                                           float epsilon,
@@ -167,10 +167,10 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
 /**
  * Builds a BVH-tree where nodes are the looptri faces of the given mesh.
  */
-BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
+BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       const float (*vert_positions)[3],
                                       const int *corner_verts,
-                                      const struct MLoopTri *looptri,
+                                      const MLoopTri *looptri,
                                       int looptri_num,
                                       blender::BitSpan mask,
                                       int looptri_num_active,
@@ -184,8 +184,8 @@ BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
  * \note This function only fills a cache, and therefore the mesh argument can
  * be considered logically const. Concurrent access is protected by a mutex.
  */
-BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
-                                   const struct Mesh *mesh,
+BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
+                                   const Mesh *mesh,
                                    BVHCacheType bvh_cache_type,
                                    int tree_type);
 
@@ -193,20 +193,20 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
  * Builds or queries a BVH-cache for the cache BVH-tree of the request type.
  */
 BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
-                                       struct BMEditMesh *em,
+                                       BMEditMesh *em,
                                        int tree_type,
                                        BVHCacheType bvh_cache_type,
-                                       struct BVHCache **bvh_cache_p,
+                                       BVHCache **bvh_cache_p,
                                        std::mutex *mesh_eval_mutex);
 
 /**
  * Frees data allocated by a call to `bvhtree_from_editmesh_*`.
  */
-void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data);
+void free_bvhtree_from_editmesh(BVHTreeFromEditMesh *data);
 /**
  * Frees data allocated by a call to `bvhtree_from_mesh_*`.
  */
-void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
+void free_bvhtree_from_mesh(BVHTreeFromMesh *data);
 
 /**
  * Math functions used by callbacks
@@ -220,19 +220,19 @@ float bvhtree_sphereray_tri_intersection(const BVHTreeRay *ray,
                                          const float v1[3],
                                          const float v2[3]);
 
-typedef struct BVHTreeFromPointCloud {
-  struct BVHTree *tree;
+struct BVHTreeFromPointCloud {
+  BVHTree *tree;
 
   BVHTree_NearestPointCallback nearest_callback;
 
   const float (*coords)[3];
-} BVHTreeFromPointCloud;
+};
 
 [[nodiscard]] BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
                                                        const PointCloud *pointcloud,
                                                        int tree_type);
 
-void free_bvhtree_from_pointcloud(struct BVHTreeFromPointCloud *data);
+void free_bvhtree_from_pointcloud(BVHTreeFromPointCloud *data);
 
 /**
  * BVHCache
@@ -240,9 +240,9 @@ void free_bvhtree_from_pointcloud(struct BVHTreeFromPointCloud *data);
 
 /* Using local coordinates */
 
-bool bvhcache_has_tree(const struct BVHCache *bvh_cache, const BVHTree *tree);
-struct BVHCache *bvhcache_init(void);
+bool bvhcache_has_tree(const BVHCache *bvh_cache, const BVHTree *tree);
+BVHCache *bvhcache_init();
 /**
  * Frees a BVH-cache.
  */
-void bvhcache_free(struct BVHCache *bvh_cache);
+void bvhcache_free(BVHCache *bvh_cache);
