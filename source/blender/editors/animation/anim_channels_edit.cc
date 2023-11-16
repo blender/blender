@@ -14,6 +14,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_listbase.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -125,6 +126,39 @@ static bool get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bou
   return found_start;
 }
 
+static bool get_grease_pencil_layer_bounds(const GreasePencilLayer *gplayer,
+                                           const float range[2],
+                                           rctf *r_bounds)
+{
+  using namespace blender::bke::greasepencil;
+  const Layer &layer = gplayer->wrap();
+
+  bool found_start = false;
+  int start_frame = 0;
+  int end_frame = 1;
+
+  for (const FramesMapKey key : layer.sorted_keys()) {
+    if (key < range[0]) {
+      continue;
+    }
+    if (key > range[1]) {
+      break;
+    }
+
+    if (!found_start) {
+      start_frame = key;
+      found_start = true;
+    }
+    end_frame = key;
+  }
+  r_bounds->xmin = start_frame;
+  r_bounds->xmax = end_frame;
+  r_bounds->ymin = 0;
+  r_bounds->ymax = 1;
+
+  return found_start;
+}
+
 static bool get_channel_bounds(bAnimContext *ac,
                                bAnimListElem *ale,
                                const float range[2],
@@ -138,6 +172,11 @@ static bool get_channel_bounds(bAnimContext *ac,
       found_bounds = get_gpencil_bounds(gpl, range, r_bounds);
       break;
     }
+    case ALE_GREASE_PENCIL_CEL:
+      found_bounds = get_grease_pencil_layer_bounds(
+          static_cast<const GreasePencilLayer *>(ale->data), range, r_bounds);
+      break;
+
     case ALE_FCURVE: {
       FCurve *fcu = (FCurve *)ale->key_data;
       AnimData *anim_data = ANIM_nla_mapping_get(ac, ale);
