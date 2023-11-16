@@ -34,7 +34,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_moviecache.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_paint.hh"
 

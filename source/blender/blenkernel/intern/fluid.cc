@@ -54,10 +54,10 @@
 #  include "BLI_threads.h"
 #  include "BLI_voxel.h"
 
-#  include "BKE_bvhutils.h"
+#  include "BKE_bvhutils.hh"
 #  include "BKE_collision.h"
 #  include "BKE_colortools.h"
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #  include "BKE_deform.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"

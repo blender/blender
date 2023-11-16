@@ -21,7 +21,7 @@
 #include "DNA_curveprofile_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_displist.h"
 #include "BKE_object_types.hh"

@@ -15,7 +15,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "bmesh.h"
 #include "bmesh_decimate.h" /* own include */

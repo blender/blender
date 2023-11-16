@@ -21,7 +21,7 @@
 #include "BLI_string_utils.hh"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"

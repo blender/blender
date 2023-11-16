@@ -23,7 +23,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"

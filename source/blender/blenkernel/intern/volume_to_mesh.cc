@@ -13,7 +13,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_mesh.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #ifdef WITH_OPENVDB

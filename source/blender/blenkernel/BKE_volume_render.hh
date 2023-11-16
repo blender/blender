@@ -13,12 +13,9 @@
 
 #include "DNA_volume_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Volume;
 struct VolumeGrid;
+enum VolumeGridType : int8_t;
 
 /* Dense Voxels */
 
@@ -58,7 +55,3 @@ void BKE_volume_grid_selection_surface(const struct Volume *volume,
 /* Render */
 
 float BKE_volume_density_scale(const struct Volume *volume, const float matrix[4][4]);
-
-#ifdef __cplusplus
-}
-#endif

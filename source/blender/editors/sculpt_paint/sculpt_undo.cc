@@ -48,8 +48,8 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"

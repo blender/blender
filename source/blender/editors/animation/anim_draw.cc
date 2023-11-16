@@ -23,8 +23,8 @@
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_mask.h"

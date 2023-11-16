@@ -21,7 +21,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

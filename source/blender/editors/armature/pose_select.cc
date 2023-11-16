@@ -20,9 +20,9 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.hh"

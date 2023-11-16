@@ -8,7 +8,7 @@
 
 #ifdef WITH_IO_PLY
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 

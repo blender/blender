@@ -53,7 +53,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_anim_visualization.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_colortools.h"
 #include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
@@ -62,7 +62,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_node.h"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_screen.hh"

@@ -18,7 +18,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_anim_path.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_key.h"
 #include "BKE_object_types.hh"
 

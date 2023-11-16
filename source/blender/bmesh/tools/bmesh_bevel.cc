@@ -25,7 +25,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_curveprofile.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 

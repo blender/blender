@@ -32,14 +32,14 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_asset.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_asset.hh"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -50,7 +50,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
-#include "BKE_viewer_path.h"
+#include "BKE_viewer_path.hh"
 #include "BKE_workspace.h"
 
 #include "ED_asset_shelf.h"

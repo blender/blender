@@ -7,7 +7,7 @@
 
 #include "GEO_curve_constraints.hh"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:

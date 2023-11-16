@@ -23,7 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 
 #include "IMB_colormanagement.h"

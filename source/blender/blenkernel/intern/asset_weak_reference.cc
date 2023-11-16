@@ -13,7 +13,7 @@
 #include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 
 #include "BLO_read_write.hh"
 

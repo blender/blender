@@ -14,7 +14,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_attribute.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
@@ -158,7 +158,7 @@ extern "C" void BKE_material_defaults_free_gpu()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_customdata.h
+/** \name Stubs of BKE_customdata.hh
  * \{ */
 
 extern "C" int CustomData_get_offset(const struct CustomData * /*data*/, eCustomDataType /*type*/)

@@ -37,7 +37,7 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_particle.h"
 
 #  include "DEG_depsgraph.hh"

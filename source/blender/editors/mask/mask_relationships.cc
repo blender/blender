@@ -10,7 +10,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_mask.h"
 #include "BKE_tracking.h"
 

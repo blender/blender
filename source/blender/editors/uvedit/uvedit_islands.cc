@@ -16,7 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 
 #include "DNA_image_types.h"
 

@@ -49,20 +49,16 @@ typedef enum PBVHNodeFlags {
 } PBVHNodeFlags;
 ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
-#ifdef __cplusplus
 /* A few C++ methods to play nice with sets and maps. */
-#  define PBVH_REF_CXX_METHODS(Class) \
-    bool operator==(const Class b) const \
-    { \
-      return i == b.i; \
-    } \
-    uint64_t hash() const \
-    { \
-      return i; \
-    }
-#else
-#  define PBVH_REF_CXX_METHODS(Class)
-#endif
+#define PBVH_REF_CXX_METHODS(Class) \
+  bool operator==(const Class b) const \
+  { \
+    return i == b.i; \
+  } \
+  uint64_t hash() const \
+  { \
+    return i; \
+  }
 
 typedef struct PBVHVertRef {
   intptr_t i;

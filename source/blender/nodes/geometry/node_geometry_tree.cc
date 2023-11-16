@@ -10,7 +10,7 @@
 
 #include "NOD_geometry.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"

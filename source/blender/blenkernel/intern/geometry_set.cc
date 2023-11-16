@@ -20,7 +20,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
 #include "BKE_pointcloud.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"

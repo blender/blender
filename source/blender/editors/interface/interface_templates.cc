@@ -48,7 +48,7 @@
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"

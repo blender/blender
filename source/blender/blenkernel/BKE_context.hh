@@ -11,20 +11,13 @@
 /* XXX temporary, until AssetHandle is designed properly and queries can return a pointer to it. */
 #include "DNA_asset_types.h"
 
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
 #include "RNA_types.hh"
-
-#ifdef __cplusplus
-#  include "BLI_string_ref.hh"
-#  include "BLI_vector.hh"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct ARegion;
 struct Base;
@@ -413,9 +406,7 @@ bool CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
-#ifdef __cplusplus
 class blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
-#endif
 
 bool CTX_wm_interface_locked(const bContext *C);
 
@@ -453,7 +444,3 @@ struct Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
  * Only used by handful of operators which are run on file load.
  */
 struct Depsgraph *CTX_data_depsgraph_on_load(const bContext *C);
-
-#ifdef __cplusplus
-}
-#endif

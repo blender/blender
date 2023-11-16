@@ -5,7 +5,7 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "DEG_depsgraph_query.hh"
 

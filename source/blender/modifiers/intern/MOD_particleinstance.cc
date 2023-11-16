@@ -25,9 +25,9 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_effect.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

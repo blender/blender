@@ -13,10 +13,6 @@
 
 #include "DNA_asset_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AssetLibraryReference;
 struct AssetMetaData;
 struct BlendDataReader;
@@ -86,7 +82,3 @@ AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_write(struct BlendWriter *writer,
                                     const AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_read(struct BlendDataReader *reader, AssetWeakReference *weak_ref);
-
-#ifdef __cplusplus
-}
-#endif

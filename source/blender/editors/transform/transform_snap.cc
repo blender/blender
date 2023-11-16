@@ -21,8 +21,8 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"

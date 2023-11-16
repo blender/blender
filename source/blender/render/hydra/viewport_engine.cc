@@ -20,7 +20,7 @@
 #include "PIL_time.h"
 
 #include "BKE_camera.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "DEG_depsgraph_query.hh"
 

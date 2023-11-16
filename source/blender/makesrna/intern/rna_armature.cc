@@ -62,12 +62,12 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 #  include "BLI_math_vector.h"
 
 #  include "BKE_action.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_main.h"
 
-#  include "BKE_armature.h"
+#  include "BKE_armature.hh"
 #  include "ED_armature.hh"
 
 #  include "ANIM_bone_collections.h"

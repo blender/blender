@@ -28,8 +28,8 @@
 
 #include "BKE_anim_path.h"
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"

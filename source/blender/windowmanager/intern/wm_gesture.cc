@@ -20,7 +20,7 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

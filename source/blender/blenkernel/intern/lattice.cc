@@ -33,11 +33,11 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_idtype.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"

@@ -32,11 +32,11 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_armature.h"
-#include "BKE_editmesh.h"
+#include "BKE_armature.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_idtype.h"
 #include "BKE_paint.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
@@ -726,7 +726,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "BKE_brush.hh"
 #  include "BKE_collection.h"
 #  include "BKE_colortools.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_freestyle.h"
 #  include "BKE_global.h"
 #  include "BKE_gpencil_legacy.h"

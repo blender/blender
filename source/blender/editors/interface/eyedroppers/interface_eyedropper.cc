@@ -12,7 +12,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"

@@ -15,7 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_unit.h"
 
 #include "ED_screen.hh"

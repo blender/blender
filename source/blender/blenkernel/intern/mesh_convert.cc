@@ -28,11 +28,11 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_curves.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_key.h"
@@ -47,7 +47,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
 /* these 2 are only used by conversion functions */
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 /* -- */
 #include "BKE_object.hh"
 /* -- */

@@ -25,7 +25,7 @@
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh.hh"
 
 #include "bmesh.h"
 

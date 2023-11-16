@@ -41,7 +41,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_displist.h"
 #include "BKE_idtype.h"

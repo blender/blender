@@ -8,8 +8,8 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "BKE_armature.h"
-#include "BKE_bvhutils.h"
+#include "BKE_armature.hh"
+#include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
 #include "DNA_armature_types.h"
 

@@ -14,7 +14,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_object_types.hh"
 
 #include "CLG_log.h"

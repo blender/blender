@@ -51,10 +51,6 @@
 
 #include "DNA_customdata_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BMEditMesh;
 struct CCGElem;
 struct CCGKey;
@@ -254,7 +250,3 @@ void makeDerivedMesh(struct Depsgraph *depsgraph,
                      const struct Scene *scene,
                      struct Object *ob,
                      const struct CustomData_MeshMasks *dataMask);
-
-#ifdef __cplusplus
-}
-#endif

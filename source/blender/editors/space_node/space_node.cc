@@ -21,9 +21,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_compute_contexts.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"

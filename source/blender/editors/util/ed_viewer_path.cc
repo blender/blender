@@ -6,7 +6,7 @@
 #include "ED_screen.hh"
 
 #include "BKE_compute_contexts.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"

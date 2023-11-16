@@ -12,7 +12,7 @@
 
 #include <cstring>
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"

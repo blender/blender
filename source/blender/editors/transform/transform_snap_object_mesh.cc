@@ -9,8 +9,8 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_editmesh.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 

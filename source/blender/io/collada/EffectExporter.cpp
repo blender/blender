@@ -23,7 +23,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_collection.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 

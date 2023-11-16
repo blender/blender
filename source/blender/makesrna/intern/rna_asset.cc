@@ -32,8 +32,8 @@ const EnumPropertyItem rna_enum_aset_library_type_items[] = {
 #  include "AS_asset_library.h"
 #  include "AS_asset_representation.hh"
 
-#  include "BKE_asset.h"
-#  include "BKE_context.h"
+#  include "BKE_asset.hh"
+#  include "BKE_context.hh"
 #  include "BKE_idprop.h"
 
 #  include "BLI_listbase.h"

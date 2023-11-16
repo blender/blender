@@ -10,7 +10,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute_math.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_report.h"
 #include "BKE_type_conversions.hh"
 

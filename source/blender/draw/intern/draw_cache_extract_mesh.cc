@@ -21,7 +21,7 @@
 #include "BLI_task.h"
 #include "BLI_vector.hh"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 
 #include "GPU_capabilities.h"
 

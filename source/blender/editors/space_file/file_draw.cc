@@ -26,7 +26,7 @@
 #include "BIF_glutil.hh"
 
 #include "BKE_blendfile.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_report.h"
 
 #include "BLT_translation.h"

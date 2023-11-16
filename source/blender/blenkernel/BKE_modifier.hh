@@ -11,7 +11,7 @@
 
 #include "DNA_modifier_types.h" /* needed for all enum typdefs */
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 namespace blender::bke {
 struct GeometrySet;

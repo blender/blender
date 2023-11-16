@@ -20,7 +20,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_nla.h"
 #  include "BKE_report.h"
 

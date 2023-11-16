@@ -16,8 +16,8 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"

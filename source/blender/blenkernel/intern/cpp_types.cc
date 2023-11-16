@@ -5,7 +5,7 @@
 #include "BLI_cpp_type_make.hh"
 #include "BLI_cpp_types_make.hh"
 
-#include "BKE_cpp_types.h"
+#include "BKE_cpp_types.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 

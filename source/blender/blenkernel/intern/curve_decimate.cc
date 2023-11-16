@@ -12,7 +12,7 @@
 #include "BLI_math_vector.h"
 #include "MEM_guardedalloc.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 
 extern "C" {
 #include "curve_fit_nd.h"

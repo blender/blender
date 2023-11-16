@@ -8,7 +8,7 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_viewer_path.h"
+#include "BKE_viewer_path.hh"
 
 #include "FN_field_cpp_type.hh"
 

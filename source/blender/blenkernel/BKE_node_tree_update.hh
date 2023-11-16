@@ -16,10 +16,6 @@ struct bNodeLink;
 struct bNodeSocket;
 struct bNodeTree;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Tag tree as changed without providing any more information about what has changed exactly.
  * The update process has to assume that everything may have changed.
@@ -97,7 +93,3 @@ void BKE_ntree_update_main(struct Main *bmain, struct NodeTreeUpdateExtraParams 
 void BKE_ntree_update_main_tree(struct Main *bmain,
                                 struct bNodeTree *ntree,
                                 struct NodeTreeUpdateExtraParams *params);
-
-#ifdef __cplusplus
-}
-#endif

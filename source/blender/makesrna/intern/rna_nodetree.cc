@@ -38,7 +38,7 @@
 #include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_texture.h"
 
 #include "RNA_access.hh"
@@ -593,7 +593,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "BLI_linklist.h"
 #  include "BLI_string.h"
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_idprop.h"
 
 #  include "BKE_global.h"

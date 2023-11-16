@@ -22,7 +22,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh_types.hh"
 
 #include "RNA_access.hh"
@@ -55,7 +55,7 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include "BLI_math_vector.h"
 
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #  include "BKE_main.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"

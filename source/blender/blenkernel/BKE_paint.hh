@@ -21,7 +21,7 @@
 #include "DNA_object_enums.h"
 
 #include "BKE_attribute.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh.hh"
 
 #include "bmesh.h"
 

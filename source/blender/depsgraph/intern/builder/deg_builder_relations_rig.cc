@@ -27,7 +27,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_lib_query.h"
 

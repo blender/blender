@@ -4,7 +4,7 @@
 
 #include "BLI_set.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_node.hh"
 
 #include "UI_interface.hh"

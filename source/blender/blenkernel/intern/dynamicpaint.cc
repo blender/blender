@@ -38,13 +38,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BKE_armature.h"
-#include "BKE_bvhutils.h" /* bvh tree */
+#include "BKE_armature.hh"
+#include "BKE_bvhutils.hh" /* bvh tree */
 #include "BKE_collection.h"
 #include "BKE_collision.h"
 #include "BKE_colorband.h"
 #include "BKE_constraint.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"

@@ -63,7 +63,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_blender_version.h"
 #include "BKE_collection.h"
 #include "BKE_global.h" /* for G */

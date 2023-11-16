@@ -14,7 +14,7 @@
 #include "BLI_span.hh"
 #include "BLI_stack.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
 

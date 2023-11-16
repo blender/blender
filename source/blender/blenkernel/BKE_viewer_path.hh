@@ -31,10 +31,6 @@ struct LibraryForeachIDData;
 struct Library;
 struct IDRemapper;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum ViewerPathEqualFlag {
   VIEWER_PATH_EQUAL_FLAG_IGNORE_REPEAT_ITERATION = (1 << 0),
 };
@@ -62,7 +58,3 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
                                 const ViewerPathElem *b,
                                 ViewerPathEqualFlag flag = ViewerPathEqualFlag(0));
 void BKE_viewer_path_elem_free(ViewerPathElem *elem);
-
-#ifdef __cplusplus
-}
-#endif

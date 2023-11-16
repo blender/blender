@@ -16,7 +16,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
 #include "BKE_mesh_mapping.hh"

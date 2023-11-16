@@ -16,7 +16,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh" /* own include */
 
 /* -------------------------------------------------------------------- */

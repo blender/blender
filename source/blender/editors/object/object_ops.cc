@@ -12,7 +12,7 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "RNA_access.hh"
 

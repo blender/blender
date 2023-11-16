@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma once
 
 /** \file
@@ -10,10 +11,6 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_listBase.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct BMEditMesh;
 struct BezTriple;
@@ -470,7 +467,3 @@ void BKE_curve_deform_co(const struct Object *ob_curve,
 struct Curve *BKE_curve_new_from_object(struct Object *object,
                                         struct Depsgraph *depsgraph,
                                         bool apply_modifiers);
-
-#ifdef __cplusplus
-}
-#endif

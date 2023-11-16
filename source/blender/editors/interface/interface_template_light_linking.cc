@@ -18,7 +18,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_light_linking.h"
 
 #include "RNA_access.hh"

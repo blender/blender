@@ -55,7 +55,7 @@
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
 #include "IMB_imbuf.h"

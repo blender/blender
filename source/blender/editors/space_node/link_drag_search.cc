@@ -8,12 +8,12 @@
 
 #include "DNA_space_types.h"
 
-#include "BKE_asset.h"
-#include "BKE_context.h"
+#include "BKE_asset.hh"
+#include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_screen.hh"
 
 #include "UI_string_search.hh"

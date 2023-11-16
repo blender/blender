@@ -9,21 +9,16 @@
 
 #pragma once
 
+#include "BLI_cpp_type.hh"
 #include "BLI_implicit_sharing.h"
+#include "BLI_set.hh"
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
-#ifdef __cplusplus
-#  include "BLI_set.hh"
-#  include "BLI_span.hh"
-#  include "BLI_string_ref.hh"
-#  include "BLI_vector.hh"
-#endif
+#include "BLI_vector.hh"
 
 #include "DNA_customdata_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct BMesh;
 struct BlendDataReader;
@@ -45,7 +40,7 @@ typedef uint64_t eCustomDataMask;
 
 /**
  * UV map related customdata offsets into BMesh attribute blocks. See #BM_uv_map_get_offsets.
- * Defined in #BKE_customdata.h to avoid including bmesh.h in many unrelated areas.
+ * Defined in #BKE_customdata.hh to avoid including bmesh.h in many unrelated areas.
  * An offset of -1 means that the corresponding layer does not exist.
  */
 typedef struct BMUVOffsets {
@@ -611,12 +606,8 @@ bool CustomData_layertype_is_dynamic(eCustomDataType type);
  */
 int CustomData_layertype_layers_max(eCustomDataType type);
 
-#ifdef __cplusplus
-
 /** \return The maximum size in bytes needed for a layer name with the given prefix. */
 int CustomData_name_maxncpy_calc(blender::StringRef name);
-
-#endif
 
 /**
  * Make sure the name of layer at index is unique.
@@ -773,8 +764,6 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
 
 /* .blend file I/O */
 
-#ifdef __cplusplus
-
 /**
  * Prepare given custom data for file writing.
  *
@@ -799,8 +788,6 @@ void CustomData_blend_write(BlendWriter *writer,
                             eCustomDataMask cddata_mask,
                             ID *id);
 
-#endif
-
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
 size_t CustomData_get_elem_size(const struct CustomDataLayer *layer);
@@ -813,15 +800,7 @@ void CustomData_debug_info_from_layers(const struct CustomData *data,
                                        struct DynStr *dynstr);
 #endif /* NDEBUG */
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-#  include "BLI_cpp_type.hh"
-
 namespace blender::bke {
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
 eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 }  // namespace blender::bke
-#endif

@@ -9,10 +9,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_sys_types.h"
 
 struct BMEditMesh;
 struct BPoint;
@@ -114,7 +111,3 @@ void BKE_lattice_deform_coords_with_editmesh(const struct Object *ob_lattice,
                                              struct BMEditMesh *em_target);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

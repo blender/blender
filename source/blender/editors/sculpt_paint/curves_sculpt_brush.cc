@@ -9,8 +9,8 @@
 #include "BLI_math_geom.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"

@@ -21,7 +21,7 @@
 
 #  include "DNA_armature_types.h"
 
-#  include "BKE_armature.h"
+#  include "BKE_armature.hh"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_vector.h"
 

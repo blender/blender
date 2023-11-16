@@ -17,7 +17,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 #include "BKE_screen.hh"
 

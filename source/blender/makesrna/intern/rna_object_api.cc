@@ -51,11 +51,11 @@ static const EnumPropertyItem space_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_bvhutils.h"
+#  include "BKE_bvhutils.hh"
 #  include "BKE_constraint.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_crazyspace.hh"
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #  include "BKE_global.h"
 #  include "BKE_layer.h"
 #  include "BKE_main.h"

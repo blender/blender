@@ -25,7 +25,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"

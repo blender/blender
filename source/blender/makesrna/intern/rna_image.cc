@@ -16,7 +16,7 @@
 
 #include "BKE_image.h"
 #include "BKE_image_format.h"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

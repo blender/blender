@@ -8,7 +8,7 @@
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/usd/usdGeom/bboxCache.h>
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_report.h"
 
 #include "BLI_assert.h"

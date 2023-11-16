@@ -14,7 +14,7 @@
 
 #include "DNA_volume_types.h"
 
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include <cstdio>
 

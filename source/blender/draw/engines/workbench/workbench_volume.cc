@@ -4,8 +4,8 @@
 
 #include "workbench_private.hh"
 
-#include "BKE_volume.h"
-#include "BKE_volume_render.h"
+#include "BKE_volume.hh"
+#include "BKE_volume_render.hh"
 #include "BLI_rand.h"
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"

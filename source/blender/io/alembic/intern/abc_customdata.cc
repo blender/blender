@@ -20,7 +20,7 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
 /* NOTE: for now only UVs and Vertex Colors are supported for streaming.

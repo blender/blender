@@ -11,7 +11,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_scene.h"
 
 #include "WM_api.hh"

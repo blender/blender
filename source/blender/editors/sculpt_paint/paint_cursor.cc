@@ -27,8 +27,8 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_image.h"
 #include "BKE_node_runtime.hh"

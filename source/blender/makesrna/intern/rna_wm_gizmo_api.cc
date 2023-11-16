@@ -26,7 +26,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "UI_interface.hh"
 
 #  include "ED_gizmo_library.hh"

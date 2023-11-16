@@ -16,7 +16,7 @@
 #include "BKE_anim_path.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"

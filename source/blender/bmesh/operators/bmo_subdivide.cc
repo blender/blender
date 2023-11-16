@@ -19,7 +19,7 @@
 #include "BLI_stack.h"
 #include "BLI_vector.hh"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "bmesh.h"
 #include "intern/bmesh_operators_private.h"

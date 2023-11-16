@@ -33,7 +33,7 @@
 #  include <stdio.h>
 #endif
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_override.hh"

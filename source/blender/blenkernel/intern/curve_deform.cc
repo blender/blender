@@ -23,9 +23,9 @@
 #include "DNA_object_types.h"
 
 #include "BKE_anim_path.h"
-#include "BKE_curve.h"
-#include "BKE_editmesh.h"
-#include "BKE_lattice.h"
+#include "BKE_curve.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_lattice.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
 

@@ -42,8 +42,8 @@
 #include "BKE_brush.hh"
 #include "BKE_cachefile.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
-#include "BKE_cpp_types.h"
+#include "BKE_context.hh"
+#include "BKE_cpp_types.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.h"
@@ -55,7 +55,7 @@
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_vfont.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #ifndef WITH_PYTHON_MODULE
 #  include "BLI_args.h"

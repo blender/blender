@@ -29,7 +29,7 @@
 #include "DNA_mask_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_idtype.h"
 
 #include "BKE_anim_data.h"

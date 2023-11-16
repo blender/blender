@@ -23,7 +23,7 @@
 #include "BLI_math_color.h"
 
 #include "BKE_attribute.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "BLT_translation.h"
 

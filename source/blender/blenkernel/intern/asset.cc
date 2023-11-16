@@ -18,7 +18,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_uuid.h"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_idprop.h"
 #include "BKE_preview_image.hh"
 

@@ -13,7 +13,7 @@
 
 /* Used for PolyFill */
 #ifndef MATH_STANDALONE /* define when building outside blender */
-#  include "BKE_curve.h"
+#  include "BKE_curve.hh"
 #  include "BKE_displist.h"
 #  include "BLI_blenlib.h"
 #  include "BLI_boxpack_2d.h"

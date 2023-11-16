@@ -17,7 +17,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -66,7 +66,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "DNA_space_types.h"
 
 #  include "BKE_colorband.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_main.h"
 #  include "BKE_material.h"

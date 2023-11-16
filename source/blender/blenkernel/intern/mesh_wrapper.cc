@@ -35,8 +35,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_editmesh.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"

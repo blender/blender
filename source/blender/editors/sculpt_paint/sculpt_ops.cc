@@ -29,7 +29,7 @@
 #include "BKE_attribute.h"
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"

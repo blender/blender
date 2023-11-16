@@ -25,8 +25,8 @@
 
 #include "BKE_attribute.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"

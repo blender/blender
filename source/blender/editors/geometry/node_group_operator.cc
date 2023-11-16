@@ -17,12 +17,12 @@
 
 #include "WM_api.hh"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_compute_contexts.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"

@@ -16,8 +16,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_mempool.h"
 
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
 

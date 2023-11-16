@@ -64,14 +64,14 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #  include "BIK_api.h"
 #  include "BKE_action.h"
-#  include "BKE_armature.h"
+#  include "BKE_armature.hh"
 
 #  include "DNA_userdef_types.h"
 
 #  include "MEM_guardedalloc.h"
 
 #  include "BKE_constraint.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 

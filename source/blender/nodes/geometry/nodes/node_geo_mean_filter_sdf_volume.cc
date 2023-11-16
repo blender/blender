@@ -9,7 +9,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "DNA_node_types.h"

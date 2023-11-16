@@ -8,10 +8,9 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "DNA_customdata_types.h"
+
+struct BMEditMesh;
 
 /**
  * \see #BKE_mesh_calc_loop_tangent, same logic but used arrays instead of #BMesh data.
@@ -30,7 +29,3 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     CustomData *dm_loopdata_out,
                                     uint dm_loopdata_out_len,
                                     short *tangent_mask_curr_p);
-
-#ifdef __cplusplus
-}
-#endif

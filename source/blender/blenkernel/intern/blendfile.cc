@@ -37,7 +37,7 @@
 #include "BKE_blendfile.h"
 #include "BKE_bpath.h"
 #include "BKE_colorband.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_ipo.h"

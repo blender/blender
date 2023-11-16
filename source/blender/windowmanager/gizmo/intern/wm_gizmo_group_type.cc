@@ -11,7 +11,7 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "MEM_guardedalloc.h"
 

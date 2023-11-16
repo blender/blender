@@ -31,7 +31,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_camera.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"

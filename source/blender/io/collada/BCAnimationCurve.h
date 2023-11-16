@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_fcurve.h"
 #include "BKE_material.h"
 

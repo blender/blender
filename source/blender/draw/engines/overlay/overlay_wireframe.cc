@@ -12,10 +12,10 @@
 #include "DNA_view3d_types.h"
 #include "DNA_volume_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"

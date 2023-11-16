@@ -11,7 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "GPU_batch.h"
 

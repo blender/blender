@@ -26,7 +26,7 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_main.h"
 #  include "BKE_texture.h"
 

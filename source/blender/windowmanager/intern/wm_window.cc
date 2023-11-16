@@ -31,7 +31,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_blender_version.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_layer.h"

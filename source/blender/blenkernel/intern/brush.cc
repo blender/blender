@@ -24,7 +24,7 @@
 #include "BKE_bpath.h"
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"

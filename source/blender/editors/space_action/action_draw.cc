@@ -30,7 +30,7 @@
 
 #include "BKE_action.h"
 #include "BKE_bake_geometry_nodes_modifier.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_pointcache.h"
 

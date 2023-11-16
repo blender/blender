@@ -8,9 +8,8 @@
  * \ingroup bke
  * \brief Volume data-block.
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+#include "BLI_math_vector_types.hh"
 
 struct BoundBox;
 struct Depsgraph;
@@ -90,7 +89,7 @@ bool BKE_volume_set_velocity_grid_by_name(struct Volume *volume, const char *bas
  * By default only grid metadata is loaded, for access to the tree and voxels
  * BKE_volume_grid_load must be called first. */
 
-typedef enum VolumeGridType {
+enum VolumeGridType : int8_t {
   VOLUME_GRID_UNKNOWN = 0,
   VOLUME_GRID_BOOLEAN,
   VOLUME_GRID_FLOAT,
@@ -102,7 +101,7 @@ typedef enum VolumeGridType {
   VOLUME_GRID_VECTOR_DOUBLE,
   VOLUME_GRID_VECTOR_INT,
   VOLUME_GRID_POINTS,
-} VolumeGridType;
+};
 
 bool BKE_volume_grid_load(const struct Volume *volume, const struct VolumeGrid *grid);
 void BKE_volume_grid_unload(const struct Volume *volume, const struct VolumeGrid *grid);
@@ -154,19 +153,9 @@ bool BKE_volume_save(const struct Volume *volume,
                      struct ReportList *reports,
                      const char *filepath);
 
-#ifdef __cplusplus
-}
-#endif
-
 /* OpenVDB Grid Access
  *
  * Access to OpenVDB grid for C++. These will automatically load grids from
  * file or copy shared grids to make them writeable. */
 
-#ifdef __cplusplus
-
-#  include "BLI_math_vector_types.hh"
-
 bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);
-
-#endif

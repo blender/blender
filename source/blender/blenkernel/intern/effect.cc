@@ -38,10 +38,10 @@
 #include "PIL_time.h"
 
 #include "BKE_anim_path.h" /* needed for where_on_path */
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_collection.h"
 #include "BKE_collision.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"

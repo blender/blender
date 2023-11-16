@@ -51,7 +51,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_collision.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_deform.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"

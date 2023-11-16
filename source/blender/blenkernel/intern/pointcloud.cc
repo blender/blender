@@ -25,7 +25,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"

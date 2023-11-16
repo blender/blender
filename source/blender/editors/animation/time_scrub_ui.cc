@@ -6,7 +6,7 @@
  * \ingroup edanimation
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_scene.h"
 
 #include "GPU_immediate.h"

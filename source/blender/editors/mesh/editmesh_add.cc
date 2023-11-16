@@ -15,8 +15,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

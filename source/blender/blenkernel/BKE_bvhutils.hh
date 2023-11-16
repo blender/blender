@@ -9,18 +9,11 @@
  * This header encapsulates necessary code to build a BVH.
  */
 
+#include <mutex>
+
+#include "BLI_bit_vector.hh"
 #include "BLI_kdopbvh.h"
 #include "BLI_threads.h"
-
-#ifdef __cplusplus
-#  include <mutex>
-
-#  include "BLI_bit_vector.hh"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct BMEditMesh;
 struct MFace;
@@ -98,8 +91,6 @@ typedef enum BVHCacheType {
 BVHTree *bvhtree_from_editmesh_verts(
     BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
 
-#ifdef __cplusplus
-
 /**
  * Builds a BVH-tree where nodes are the vertices of the given `em`.
  */
@@ -141,8 +132,6 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
                                         int tree_type,
                                         int axis);
 
-#  ifdef __cplusplus
-
 /**
  * Builds a BVH-tree where nodes are the given edges.
  * \param vert, vert_allocated: if true, elem freeing will be done when freeing data.
@@ -160,8 +149,6 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis);
-
-#  endif
 
 BVHTree *bvhtree_from_editmesh_looptri(
     BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
@@ -191,8 +178,6 @@ BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
                                       int tree_type,
                                       int axis);
 
-#endif
-
 /**
  * Builds or queries a BVH-cache for the cache BVH-tree of the request type.
  *
@@ -204,8 +189,6 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                    BVHCacheType bvh_cache_type,
                                    int tree_type);
 
-#ifdef __cplusplus
-
 /**
  * Builds or queries a BVH-cache for the cache BVH-tree of the request type.
  */
@@ -215,8 +198,6 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                        BVHCacheType bvh_cache_type,
                                        struct BVHCache **bvh_cache_p,
                                        std::mutex *mesh_eval_mutex);
-
-#endif
 
 /**
  * Frees data allocated by a call to `bvhtree_from_editmesh_*`.
@@ -247,11 +228,9 @@ typedef struct BVHTreeFromPointCloud {
   const float (*coords)[3];
 } BVHTreeFromPointCloud;
 
-#ifdef __cplusplus
 [[nodiscard]] BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
                                                        const PointCloud *pointcloud,
                                                        int tree_type);
-#endif
 
 void free_bvhtree_from_pointcloud(struct BVHTreeFromPointCloud *data);
 
@@ -267,7 +246,3 @@ struct BVHCache *bvhcache_init(void);
  * Frees a BVH-cache.
  */
 void bvhcache_free(struct BVHCache *bvh_cache);
-
-#ifdef __cplusplus
-}
-#endif

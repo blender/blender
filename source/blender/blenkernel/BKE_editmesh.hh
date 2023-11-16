@@ -15,10 +15,6 @@
 #include "DNA_customdata_types.h"
 #include "bmesh.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BMLoop;
 struct BMPartialUpdate;
 struct BMesh;
@@ -122,7 +118,3 @@ const float (*BKE_editmesh_vert_coords_when_deformed(struct Depsgraph *depsgraph
 
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);
 struct BoundBox *BKE_editmesh_cage_boundbox_get(struct Object *object, BMEditMesh *em);
-
-#ifdef __cplusplus
-}
-#endif
