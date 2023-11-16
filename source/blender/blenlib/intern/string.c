@@ -1199,6 +1199,39 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
   BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_maxncpy - len);
 }
 
+void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE],
+                                      long long int bytes,
+                                      const bool base_10)
+{
+  const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE;
+  BLI_string_debug_size(dst, dst_maxncpy);
+
+  float number_to_format_converted = (float)bytes;
+  int order = 0;
+  const int base = base_10 ? 1000 : 1024;
+  const char *units[] = {"B", "K", "M", "G", "T", "P"};
+  const int units_num = ARRAY_SIZE(units);
+
+  while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < units_num)) {
+    number_to_format_converted /= (float)base;
+    order++;
+  }
+
+  const bool add_dot = (llabs(bytes) > 99999) && fabsf(number_to_format_converted) > 99;
+
+  if (add_dot) {
+    number_to_format_converted /= 100.0f;
+    order++;
+  }
+
+  BLI_snprintf(dst,
+               dst_maxncpy,
+               "%s%d%s",
+               add_dot ? "." : "",
+               (int)floorf(fabsf(number_to_format_converted)),
+               units[order]);
+}
+
 void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE],
                                  int number_to_format)
 {
