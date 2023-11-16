@@ -22,11 +22,21 @@ namespace blender::gpu {
 
 VKCommandBuffers::~VKCommandBuffers()
 {
+  command_buffer_get(Type::DataTransfer).free();
+  command_buffer_get(Type::Compute).free();
+  command_buffer_get(Type::Graphics).free();
+
+  VK_ALLOCATION_CALLBACKS;
+  const VKDevice &device = VKBackend::get().device_get();
+
   if (vk_fence_ != VK_NULL_HANDLE) {
-    VK_ALLOCATION_CALLBACKS;
-    const VKDevice &device = VKBackend::get().device_get();
     vkDestroyFence(device.device_get(), vk_fence_, vk_allocation_callbacks);
     vk_fence_ = VK_NULL_HANDLE;
+  }
+
+  if (vk_command_pool_ != VK_NULL_HANDLE) {
+    vkDestroyCommandPool(device.device_get(), vk_command_pool_, vk_allocation_callbacks);
+    vk_command_pool_ = VK_NULL_HANDLE;
   }
 }
 
@@ -43,38 +53,57 @@ void VKCommandBuffers::init(const VKDevice &device)
   if (!device.is_initialized()) {
     return;
   }
-
+  init_command_pool(device);
   init_command_buffers(device);
   init_fence(device);
   submission_id_.reset();
 }
 
 static void init_command_buffer(VKCommandBuffer &command_buffer,
+                                VkCommandPool vk_command_pool,
                                 VkCommandBuffer vk_command_buffer,
                                 const char *name)
 {
-  command_buffer.init(vk_command_buffer);
+  command_buffer.init(vk_command_pool, vk_command_buffer);
   command_buffer.begin_recording();
   debug::object_label(vk_command_buffer, name);
 }
 
+void VKCommandBuffers::init_command_pool(const VKDevice &device)
+{
+  BLI_assert(vk_command_pool_ == VK_NULL_HANDLE);
+
+  VK_ALLOCATION_CALLBACKS;
+  VkCommandPoolCreateInfo command_pool_info = {};
+  command_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  command_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  command_pool_info.queueFamilyIndex = device.queue_family_get();
+
+  vkCreateCommandPool(
+      device.device_get(), &command_pool_info, vk_allocation_callbacks, &vk_command_pool_);
+}
+
 void VKCommandBuffers::init_command_buffers(const VKDevice &device)
 {
-  VkCommandBuffer vk_command_buffers[4] = {VK_NULL_HANDLE};
+  BLI_assert(vk_command_pool_ != VK_NULL_HANDLE);
+  VkCommandBuffer vk_command_buffers[(uint32_t)Type::Max] = {VK_NULL_HANDLE};
   VkCommandBufferAllocateInfo alloc_info = {};
   alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  alloc_info.commandPool = device.vk_command_pool_get();
+  alloc_info.commandPool = vk_command_pool_;
   alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   alloc_info.commandBufferCount = (uint32_t)Type::Max;
   vkAllocateCommandBuffers(device.device_get(), &alloc_info, vk_command_buffers);
 
   init_command_buffer(command_buffer_get(Type::DataTransfer),
+                      vk_command_pool_,
                       vk_command_buffers[(int)Type::DataTransfer],
                       "Data Transfer Command Buffer");
   init_command_buffer(command_buffer_get(Type::Compute),
+                      vk_command_pool_,
                       vk_command_buffers[(int)Type::Compute],
                       "Compute Command Buffer");
   init_command_buffer(command_buffer_get(Type::Graphics),
+                      vk_command_pool_,
                       vk_command_buffers[(int)Type::Graphics],
                       "Graphics Command Buffer");
 }

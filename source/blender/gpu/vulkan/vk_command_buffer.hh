@@ -18,6 +18,11 @@ class VKDevice;
 
 /** Command buffer to keep track of the life-time of a command buffer. */
 class VKCommandBuffer : NonCopyable, NonMovable {
+  /**
+   * Not owning handle to the command pool that created this command buffer. The command pool is
+   * owned by #VKCommandBuffers.
+   */
+  VkCommandPool vk_command_pool_ = VK_NULL_HANDLE;
   VkCommandBuffer vk_command_buffer_ = VK_NULL_HANDLE;
 
  private:
@@ -103,9 +108,10 @@ class VKCommandBuffer : NonCopyable, NonMovable {
  public:
   virtual ~VKCommandBuffer();
   bool is_initialized() const;
-  void init(VkCommandBuffer vk_command_buffer);
+  void init(VkCommandPool vk_command_pool, VkCommandBuffer vk_command_buffer);
   void begin_recording();
   void end_recording();
+  void free();
 
   /**
    * Receive the vulkan handle of the command buffer.

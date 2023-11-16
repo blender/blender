@@ -26,6 +26,8 @@ class VKStateManager;
 class VKContext : public Context, NonCopyable {
  private:
   VKCommandBuffers command_buffers_;
+  VKDescriptorPools descriptor_pools_;
+  VKDescriptorSetTracker descriptor_set_;
 
   VkExtent2D vk_extent_ = {};
   VkFormat swap_chain_format_ = {};
@@ -72,6 +74,16 @@ class VKContext : public Context, NonCopyable {
   VKCommandBuffers &command_buffers_get()
   {
     return command_buffers_;
+  }
+
+  VKDescriptorPools &descriptor_pools_get()
+  {
+    return descriptor_pools_;
+  }
+
+  VKDescriptorSetTracker &descriptor_set_get()
+  {
+    return descriptor_set_;
   }
 
   VKStateManager &state_manager_get() const;

@@ -525,7 +525,7 @@ void VKTexture::bind(int binding,
   const std::optional<VKDescriptorSet::Location> location =
       shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
-    VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+    VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
     if (bind_type == shader::ShaderCreateInfo::Resource::BindType::IMAGE) {
       descriptor_set.image_bind(*this, *location);
     }

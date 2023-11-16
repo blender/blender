@@ -53,10 +53,11 @@ void VKContext::sync_backbuffer()
     VKDevice &device = VKBackend::get().device_;
     if (!command_buffers_.is_initialized()) {
       command_buffers_.init(device);
+      descriptor_pools_.init(device);
       device.init_dummy_buffer(*this);
       device.init_dummy_color_attachment();
     }
-    device.descriptor_pools_get().reset();
+    descriptor_pools_.reset();
   }
 
   if (ghost_window_) {
@@ -188,8 +189,11 @@ void VKContext::bind_compute_pipeline()
   VKShader *shader = unwrap(this->shader);
   BLI_assert(shader);
   VKPipeline &pipeline = shader->pipeline_get();
-  pipeline.update_and_bind(
-      *this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_COMPUTE);
+  pipeline.bind(*this, VK_PIPELINE_BIND_POINT_COMPUTE);
+  pipeline.update_push_constants(*this);
+  if (shader->has_descriptor_set()) {
+    descriptor_set_.bind(*this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_COMPUTE);
+  }
 }
 
 /** \} */
@@ -212,8 +216,11 @@ void VKContext::bind_graphics_pipeline(const GPUPrimType prim_type,
   shader->update_graphics_pipeline(*this, prim_type, vertex_attribute_object);
 
   VKPipeline &pipeline = shader->pipeline_get();
-  pipeline.update_and_bind(
-      *this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_GRAPHICS);
+  pipeline.bind(*this, VK_PIPELINE_BIND_POINT_GRAPHICS);
+  pipeline.update_push_constants(*this);
+  if (shader->has_descriptor_set()) {
+    descriptor_set_.bind(*this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_GRAPHICS);
+  }
 }
 
 /** \} */

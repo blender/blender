@@ -152,7 +152,7 @@ void VKPushConstants::update(VKContext &context)
   BLI_assert_msg(&pipeline.push_constants_get() == this,
                  "Invalid state detected. Push constants doesn't belong to the active shader of "
                  "the given context.");
-  VKDescriptorSetTracker &descriptor_set = pipeline.descriptor_set_get();
+  VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
 
   switch (layout_get().storage_type_get()) {
     case VKPushConstants::StorageType::NONE:

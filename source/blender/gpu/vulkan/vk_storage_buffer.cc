@@ -58,7 +58,8 @@ void VKStorageBuffer::bind(int slot,
   const std::optional<VKDescriptorSet::Location> location =
       shader_interface.descriptor_set_location(bind_type, slot);
   if (location) {
-    shader->pipeline_get().descriptor_set_get().bind(*this, *location);
+    VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
+    descriptor_set.bind(*this, *location);
   }
 }
 
