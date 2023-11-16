@@ -393,6 +393,7 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                 {loop_nors_dst, me_dst->totloop},
                                                 {custom_nors_dst, me_dst->totloop});
     sharp_edges.finish();
+    CustomData_free_layers(ldata_dst, CD_NORMAL, me_dst->totloop);
   }
 }
 
@@ -1034,11 +1035,21 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cddata_type = CD_PROP_FLOAT2;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
-      /* Pre-process should have generated it,
-       * Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
-      cddata_type = CD_NORMAL;
-      interp_data = space_transform;
-      interp = customdata_data_transfer_interp_normal_normals;
+      if (!CustomData_get_layer(&me_dst->loop_data, CD_PROP_FLOAT)) {
+        CustomData_add_layer(&me_dst->loop_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->totloop);
+      }
+      /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_NORMAL,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          me_src->corner_normals().data(),
+          CustomData_get_layer_for_write(&me_dst->loop_data, CD_NORMAL, me_dst->totloop),
+          customdata_data_transfer_interp_normal_normals,
+          space_transform);
+      return true;
     }
 
     if (!(cddata_type & CD_FAKE)) {
