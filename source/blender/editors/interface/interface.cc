@@ -79,7 +79,7 @@
 using blender::Vector;
 
 /* prototypes. */
-static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p);
+static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p);
 static void ui_def_but_rna__panel_type(bContext * /*C*/, uiLayout *layout, void *but_p);
 static void ui_def_but_rna__menu_type(bContext * /*C*/, uiLayout *layout, void *but_p);
 
@@ -4300,7 +4300,7 @@ void ui_def_but_icon_clear(uiBut *but)
   but->drawflag &= ~UI_BUT_ICON_LEFT;
 }
 
-static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p)
+static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
   uiPopupBlockHandle *handle = block->handle;
@@ -4325,39 +4325,45 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
 
   int totitems = 0;
   int categories = 0;
-  int entries_nosepr_count = 0;
   bool has_item_with_icon = false;
+  int columns = 1;
+  int rows = 0;
+
+  const wmWindow *win = CTX_wm_window(C);
+  const int row_height = int(float(UI_UNIT_Y) / but->block->aspect);
+  /* Calculate max_rows from how many rows can fit in this window. */
+  const int max_rows = (win->sizey - (4 * row_height)) / row_height;
+  float text_width = 0.0f;
+
+  BLF_size(BLF_default(), UI_style_get()->widgetlabel.points * UI_SCALE_FAC);
+  int col_rows = 0;
+  float col_width = 0.0f;
+
   for (const EnumPropertyItem *item = item_array; item->identifier; item++, totitems++) {
-    if (!item->identifier[0]) {
-      /* inconsistent, but menus with categories do not look good flipped */
-      if (item->name) {
-        categories++;
-        entries_nosepr_count++;
-      }
-      /* We do not want simple separators in `entries_nosepr_count`. */
-      continue;
+    col_rows++;
+    if (col_rows > 1 && (col_rows > max_rows || (!item->identifier[0] && item->name))) {
+      columns++;
+      text_width += col_width;
+      col_width = 0;
+      col_rows = 0;
+    }
+    if (!item->identifier[0] && item->name) {
+      categories++;
     }
     if (item->icon) {
       has_item_with_icon = true;
     }
-    entries_nosepr_count++;
+    float item_width = BLF_width(BLF_default(), item->name, BLF_DRAW_STR_DUMMY_MAX);
+    col_width = MAX2(col_width, item_width + (120.0f * UI_SCALE_FAC));
+    rows = MAX2(rows, col_rows);
   }
+  text_width += col_width;
+  text_width /= but->block->aspect;
 
-  /* Columns and row estimation. Ignore simple separators here. */
-  int columns = (entries_nosepr_count + 20) / 20;
-  if (columns < 1) {
+  /* If the estimated width is greater than available size, collapse to one column. */
+  if (columns > 1 && text_width > win->sizex) {
     columns = 1;
-  }
-  if (columns > 8) {
-    columns = (entries_nosepr_count + 25) / 25;
-  }
-
-  int rows = totitems / columns;
-  if (rows < 1) {
-    rows = 1;
-  }
-  while (rows * columns < totitems) {
-    rows++;
+    rows = totitems;
   }
 
   const char *title = RNA_property_ui_name(but->rnaprop);
@@ -4405,7 +4411,7 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
         const EnumPropertyItem *item = &item_array[b];
 
         /* new column on N rows or on separation label */
-        if (((b - a) % rows == 0) || (!item->identifier[0] && item->name)) {
+        if (((b - a) % rows == 0) || (columns > 1 && !item->identifier[0] && item->name)) {
           column_end = b;
           break;
         }
@@ -4416,13 +4422,13 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
 
     const EnumPropertyItem *item = &item_array[a];
 
-    if (new_column && (categories > 0) && item->identifier[0]) {
+    if (new_column && (categories > 0) && (columns > 1) && item->identifier[0]) {
       uiItemL(column, "", ICON_NONE);
       uiItemS(column);
     }
 
     if (!item->identifier[0]) {
-      if (item->name) {
+      if (item->name || columns > 1) {
         if (item->icon) {
           uiItemL(column, item->name, item->icon);
         }
