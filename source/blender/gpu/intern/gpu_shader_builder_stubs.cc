@@ -161,32 +161,30 @@ extern "C" void BKE_material_defaults_free_gpu()
 /** \name Stubs of BKE_customdata.hh
  * \{ */
 
-extern "C" int CustomData_get_offset(const struct CustomData * /*data*/, eCustomDataType /*type*/)
+int CustomData_get_offset(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   BLI_assert_unreachable();
   return 0;
 }
 
-extern "C" int CustomData_get_named_layer_index(const struct CustomData * /*data*/,
-                                                eCustomDataType /*type*/,
-                                                const char * /*name*/)
+int CustomData_get_named_layer_index(const struct CustomData * /*data*/,
+                                     eCustomDataType /*type*/,
+                                     const char * /*name*/)
 {
   return -1;
 }
 
-extern "C" int CustomData_get_active_layer_index(const struct CustomData * /*data*/,
-                                                 eCustomDataType /*type*/)
+int CustomData_get_active_layer_index(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   return -1;
 }
 
-extern "C" int CustomData_get_render_layer_index(const struct CustomData * /*data*/,
-                                                 eCustomDataType /*type*/)
+int CustomData_get_render_layer_index(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   return -1;
 }
 
-extern "C" bool CustomData_has_layer(const struct CustomData * /*data*/, eCustomDataType /*type*/)
+bool CustomData_has_layer(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   return false;
 }
