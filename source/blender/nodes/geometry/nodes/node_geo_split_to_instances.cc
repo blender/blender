@@ -363,7 +363,7 @@ static void node_rna(StructRNA *srna)
                     rna_enum_attribute_domain_without_corner_items,
                     NOD_inline_enum_accessors(custom1),
                     ATTR_DOMAIN_POINT,
-                    enums::domain_experimental_grease_pencil_version3_fn);
+                    enums::domain_without_corner_experimental_grease_pencil_version3_fn);
 }
 
 static void node_register()

@@ -133,6 +133,9 @@ const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext *
                                                                       PropertyRNA * /*prop*/,
                                                                       bool *r_free);
 
+const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version3_fn(
+    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free);
+
 }  // namespace enums
 
 }  // namespace blender::nodes
