@@ -43,13 +43,28 @@ class FieldTypeInferenceTest(unittest.TestCase):
             return 'Unknown'
 
     def assert_value_socket(self, socket):
-        self.assertEqual(socket.display_shape, 'CIRCLE', "Socket {} must be Single Value, but is {}".format(socket.name, self.field_type_name(socket)))
+        self.assertEqual(
+            socket.display_shape,
+            'CIRCLE',
+            "Socket {} must be Single Value, but is {}".format(
+                socket.name,
+                self.field_type_name(socket)))
 
     def assert_field_socket(self, socket):
-        self.assertEqual(socket.display_shape, 'DIAMOND', "Socket {} must be Field, but is {}".format(socket.name, self.field_type_name(socket)))
+        self.assertEqual(
+            socket.display_shape,
+            'DIAMOND',
+            "Socket {} must be Field, but is {}".format(
+                socket.name,
+                self.field_type_name(socket)))
 
     def assert_value_or_field_socket(self, socket):
-        self.assertEqual(socket.display_shape, 'DIAMOND_DOT', "Socket {} must be Field or Single Value, but is {}".format(socket.name, self.field_type_name(socket)))
+        self.assertEqual(
+            socket.display_shape,
+            'DIAMOND_DOT',
+            "Socket {} must be Field or Single Value, but is {}".format(
+                socket.name,
+                self.field_type_name(socket)))
 
     def find_input_link(self, socket):
         for link in socket.id_data.links:
@@ -415,7 +430,6 @@ class FieldTypeInferenceTest(unittest.TestCase):
         self.assert_value_socket(node.outputs['Attribute.002'])
         self.assert_value_socket(node.outputs['Attribute.003'])
         self.assert_value_or_field_socket(node.outputs['Attribute.004'])
-
 
 
 def main():
