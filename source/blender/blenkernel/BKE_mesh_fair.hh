@@ -10,6 +10,8 @@
  * https://github.com/fedackb/mesh-fairing.
  */
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 struct BMesh;
@@ -35,6 +37,6 @@ void BKE_bmesh_prefair_and_fair_verts(BMesh *bm, bool *affect_verts, eMeshFairin
  * fairing result. When NULL, the function will use mesh positions directly.
  */
 void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
-                                     float (*deform_vert_positions)[3],
+                                     blender::MutableSpan<blender::float3> deform_vert_positions,
                                      bool *affect_verts,
                                      eMeshFairingDepth depth);

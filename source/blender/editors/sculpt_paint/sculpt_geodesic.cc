@@ -37,7 +37,7 @@
 #define SCULPT_GEODESIC_VERTEX_NONE -1
 
 /* Propagate distance from v1 and v2 to v0. */
-static bool sculpt_geodesic_mesh_test_dist_add(const float (*vert_positions)[3],
+static bool sculpt_geodesic_mesh_test_dist_add(blender::Span<blender::float3> vert_positions,
                                                const int v0,
                                                const int v1,
                                                const int v2,
@@ -86,7 +86,7 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+  const blender::Span<blender::float3> vert_positions = SCULPT_mesh_deformed_positions_get(ss);
   const blender::Span<blender::int2> edges = mesh->edges();
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
@@ -136,7 +136,7 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
      * number of vertices (usually just 1 or 2). */
     GSET_ITER (gs_iter, initial_verts) {
       const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-      float *v_co = vert_positions[v];
+      const float *v_co = vert_positions[v];
       for (int i = 0; i < totvert; i++) {
         if (len_squared_v3v3(v_co, vert_positions[i]) <= limit_radius_sq) {
           BLI_BITMAP_ENABLE(affected_vertex, i);

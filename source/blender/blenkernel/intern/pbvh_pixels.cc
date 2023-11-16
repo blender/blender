@@ -173,7 +173,7 @@ static void split_pixel_node(
       continue;
     }
 
-    const float(*vert_cos)[3] = BKE_pbvh_get_vert_positions(pbvh);
+    const Span<float3> vert_cos = BKE_pbvh_get_vert_positions(pbvh);
     PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(*pbvh);
 
     for (const PackedPixelRow &row : tile.pixel_rows) {

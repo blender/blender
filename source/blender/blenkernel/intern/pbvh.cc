@@ -3011,12 +3011,9 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
   }
 }
 
-void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int totvert)
+void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const Span<float3> vert_positions)
 {
-  if (totvert != pbvh->totvert) {
-    BLI_assert_msg(0, "PBVH: Given deforming vcos number does not match PBVH vertex number!");
-    return;
-  }
+  BLI_assert(vert_positions.size() == pbvh->totvert);
 
   if (!pbvh->deformed) {
     if (!pbvh->vert_positions.is_empty()) {
@@ -3045,8 +3042,8 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
     /* copy new verts coords */
     for (int a = 0; a < pbvh->totvert; a++) {
       /* no need for float comparison here (memory is exactly equal or not) */
-      if (memcmp(positions[a], vertCos[a], sizeof(float[3])) != 0) {
-        copy_v3_v3(positions[a], vertCos[a]);
+      if (memcmp(positions[a], vert_positions[a], sizeof(float[3])) != 0) {
+        positions[a] = vert_positions[a];
         BKE_pbvh_vert_tag_update_normal(pbvh, BKE_pbvh_make_vref(a));
       }
     }
@@ -3219,10 +3216,10 @@ Mesh *BKE_pbvh_get_mesh(PBVH *pbvh)
   return pbvh->mesh;
 }
 
-float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3]
+MutableSpan<float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
-  return reinterpret_cast<float(*)[3]>(pbvh->vert_positions.data());
+  return pbvh->vert_positions;
 }
 
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]

@@ -219,37 +219,28 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
   }
 }
 
-void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
-                                       float (*vert_coords)[3],
-                                       int vert_coords_len)
+void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me, blender::MutableSpan<float3> positions)
 {
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = me->edit_mesh->bm;
-      BLI_assert(vert_coords_len <= bm->totvert);
       blender::bke::EditMeshData *edit_data = me->runtime->edit_data;
       if (!edit_data->vertexCos.is_empty()) {
-        for (int i = 0; i < vert_coords_len; i++) {
-          copy_v3_v3(vert_coords[i], edit_data->vertexCos[i]);
-        }
+        positions.copy_from(edit_data->vertexCos);
       }
       else {
         BMIter iter;
         BMVert *v;
         int i;
         BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-          copy_v3_v3(vert_coords[i], v->co);
+          copy_v3_v3(positions[i], v->co);
         }
       }
       return;
     }
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
-      BLI_assert(vert_coords_len <= me->totvert);
-      const Span<float3> positions = me->vert_positions();
-      for (int i = 0; i < vert_coords_len; i++) {
-        copy_v3_v3(vert_coords[i], positions[i]);
-      }
+      positions.copy_from(me->vert_positions());
       return;
     }
   }

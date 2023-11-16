@@ -199,7 +199,7 @@ struct TransMirrorData {
 
 struct TransMeshDataCrazySpace {
   float (*quats)[4];
-  float (*defmats)[3][3];
+  blender::Array<blender::float3x3, 0> defmats;
 };
 
 void transform_convert_mesh_islands_calc(BMEditMesh *em,

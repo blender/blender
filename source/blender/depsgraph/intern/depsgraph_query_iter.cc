@@ -296,6 +296,29 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
 
 }  // namespace
 
+DEGObjectIterData &DEGObjectIterData::operator=(const DEGObjectIterData &other)
+{
+  if (this != &other) {
+    this->settings = other.settings;
+    this->graph = other.graph;
+    this->flag = other.flag;
+    this->scene = other.scene;
+    this->eval_mode = other.eval_mode;
+    this->object_orig_with_preview = other.object_orig_with_preview;
+    this->next_object = other.next_object;
+    this->dupli_parent = other.dupli_parent;
+    this->dupli_list = other.dupli_list;
+    this->dupli_object_next = other.dupli_object_next;
+    this->dupli_object_current = other.dupli_object_current;
+    this->temp_dupli_object = blender::dna::shallow_copy(other.temp_dupli_object);
+    this->temp_dupli_object_runtime = other.temp_dupli_object_runtime;
+    this->temp_dupli_object.runtime = &temp_dupli_object_runtime;
+    this->id_node_index = other.id_node_index;
+    this->num_id_nodes = other.num_id_nodes;
+  }
+  return *this;
+}
+
 void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 {
   Depsgraph *depsgraph = data->graph;

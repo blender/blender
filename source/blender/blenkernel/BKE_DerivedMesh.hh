@@ -48,6 +48,8 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 #include "DNA_customdata_types.h"
 
@@ -223,7 +225,7 @@ void DM_interp_vert_data(const DerivedMesh *source,
                          int count,
                          int dest_index);
 
-void mesh_get_mapped_verts_coords(Mesh *me_eval, float (*r_cos)[3], int totcos);
+void mesh_get_mapped_verts_coords(Mesh *me_eval, blender::MutableSpan<blender::float3> r_cos);
 
 /**
  * Same as above but won't use render settings.

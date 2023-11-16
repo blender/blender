@@ -200,6 +200,7 @@ struct DEGObjectIterData {
   /* **** Iteration over ID nodes **** */
   size_t id_node_index;
   size_t num_id_nodes;
+  DEGObjectIterData &operator=(const DEGObjectIterData &other);
 };
 
 void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data);

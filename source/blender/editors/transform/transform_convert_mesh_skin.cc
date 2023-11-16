@@ -236,7 +236,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
         transform_convert_mesh_crazyspace_transdata_set(
             mtx,
             smtx,
-            crazyspace_data.defmats ? crazyspace_data.defmats[a] : nullptr,
+            !crazyspace_data.defmats.is_empty() ? crazyspace_data.defmats[a].ptr() : nullptr,
             crazyspace_data.quats && BM_elem_flag_test(eve, BM_ELEM_TAG) ?
                 crazyspace_data.quats[a] :
                 nullptr,

@@ -130,9 +130,7 @@ static void do_draw_face_sets_brush_faces(Object *ob, const Brush *brush, PBVHNo
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, brush->falloff_shape);
 
-  const Span<float3> positions(
-      reinterpret_cast<const float3 *>(SCULPT_mesh_deformed_positions_get(ss)),
-      SCULPT_vertex_count_get(ss));
+  const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
@@ -1329,7 +1327,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
                     SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
-  float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+  blender::MutableSpan<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
   BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts.data(), fair_order);
 
   for (int i = 0; i < totvert; i++) {

@@ -159,7 +159,7 @@ const float *SCULPT_vertex_co_get(const SculptSession *ss, PBVHVertRef vertex)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       if (ss->shapekey_active || ss->deform_modifiers_active) {
-        const float(*positions)[3] = BKE_pbvh_get_vert_positions(ss->pbvh);
+        const Span<float3> positions = BKE_pbvh_get_vert_positions(ss->pbvh);
         return positions[vertex.i];
       }
       return ss->vert_positions[vertex.i];
@@ -248,7 +248,7 @@ const float *SCULPT_vertex_co_for_grab_active_get(SculptSession *ss, PBVHVertRef
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     /* Always grab active shape key if the sculpt happens on shapekey. */
     if (ss->shapekey_active) {
-      const float(*positions)[3] = BKE_pbvh_get_vert_positions(ss->pbvh);
+      const Span<float3> positions = BKE_pbvh_get_vert_positions(ss->pbvh);
       return positions[vertex.i];
     }
 
@@ -339,19 +339,19 @@ void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3])
   SCULPT_vertex_normal_get(ss, SCULPT_active_vertex_get(ss), normal);
 }
 
-float (*SCULPT_mesh_deformed_positions_get(SculptSession *ss))[3]
+MutableSpan<float3> SCULPT_mesh_deformed_positions_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       if (ss->shapekey_active || ss->deform_modifiers_active) {
         return BKE_pbvh_get_vert_positions(ss->pbvh);
       }
-      return reinterpret_cast<float(*)[3]>(ss->vert_positions.data());
+      return ss->vert_positions;
     case PBVH_BMESH:
     case PBVH_GRIDS:
-      return nullptr;
+      return {};
   }
-  return nullptr;
+  return {};
 }
 
 float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
@@ -3350,7 +3350,7 @@ static void do_gravity(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bst
 /** \name Sculpt Brush Utilities
  * \{ */
 
-void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
+void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const Span<float3> vertCos)
 {
   Mesh *me = (Mesh *)ob->data;
   float(*ofs)[3] = nullptr;
@@ -3379,11 +3379,12 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 
   /* Modifying of basis key should update mesh. */
   if (kb == me->key->refkey) {
-    BKE_mesh_vert_coords_apply(me, vertCos);
+    me->vert_positions_for_write().copy_from(vertCos);
+    BKE_mesh_tag_positions_changed(me);
   }
 
   /* Apply new coords on active key block, no need to re-allocate kb->data here! */
-  BKE_keyblock_update_from_vertcos(ob, kb, vertCos);
+  BKE_keyblock_update_from_vertcos(ob, kb, reinterpret_cast<const float(*)[3]>(vertCos.data()));
 }
 
 /* NOTE: we do the topology update before any brush actions to avoid
@@ -3786,7 +3787,7 @@ static void do_brush_action(Sculpt *sd,
 }
 
 /* Flush displacement from deformed PBVH vertex to original mesh. */
-static void sculpt_flush_pbvhvert_deform(const SculptSession &ss,
+static void sculpt_flush_pbvhvert_deform(SculptSession &ss,
                                          const PBVHVertexIter &vd,
                                          MutableSpan<float3> positions)
 {
@@ -3794,11 +3795,11 @@ static void sculpt_flush_pbvhvert_deform(const SculptSession &ss,
   int index = vd.vert_indices[vd.i];
 
   sub_v3_v3v3(disp, vd.co, ss.deform_cos[index]);
-  mul_m3_v3(ss.deform_imats[index], disp);
+  mul_m3_v3(ss.deform_imats[index].ptr(), disp);
   add_v3_v3v3(newco, disp, ss.orig_cos[index]);
 
-  copy_v3_v3(ss.deform_cos[index], vd.co);
-  copy_v3_v3(ss.orig_cos[index], newco);
+  ss.deform_cos[index] = vd.co;
+  ss.orig_cos[index] = newco;
 
   if (!ss.shapekey_active) {
     copy_v3_v3(positions[index], newco);
@@ -3906,14 +3907,11 @@ static void sculpt_update_keyblock(Object *ob)
 
   /* Key-block update happens after handling deformation caused by modifiers,
    * so ss->orig_cos would be updated with new stroke. */
-  if (ss->orig_cos) {
+  if (!ss->orig_cos.is_empty()) {
     SCULPT_vertcos_to_key(ob, ss->shapekey_active, ss->orig_cos);
   }
   else {
-    const float(*positions)[3] = BKE_pbvh_get_vert_positions(ss->pbvh);
-    if (positions != nullptr) {
-      SCULPT_vertcos_to_key(ob, ss->shapekey_active, positions);
-    }
+    SCULPT_vertcos_to_key(ob, ss->shapekey_active, BKE_pbvh_get_vert_positions(ss->pbvh));
   }
 }
 
@@ -3928,15 +3926,12 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
 
     Mesh *me = (Mesh *)ob->data;
     Vector<PBVHNode *> nodes;
-    float(*vertCos)[3] = nullptr;
+    Array<float3> vertCos;
 
     if (ss->shapekey_active) {
-      vertCos = static_cast<float(*)[3]>(
-          MEM_mallocN(sizeof(*vertCos) * me->totvert, "flushStrokeDeofrm keyVerts"));
-
       /* Mesh could have isolated verts which wouldn't be in BVH, to deal with this we copy old
        * coordinates over new ones and then update coordinates for all vertices from BVH. */
-      memcpy(vertCos, ss->orig_cos, sizeof(*vertCos) * me->totvert);
+      vertCos = ss->orig_cos;
     }
 
     nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
@@ -3949,7 +3944,7 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
         BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
           sculpt_flush_pbvhvert_deform(*ss, vd, positions);
 
-          if (!vertCos) {
+          if (vertCos.is_empty()) {
             continue;
           }
 
@@ -3960,9 +3955,8 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
       }
     });
 
-    if (vertCos) {
+    if (!vertCos.is_empty()) {
       SCULPT_vertcos_to_key(ob, ss->shapekey_active, vertCos);
-      MEM_freeN(vertCos);
     }
   }
   else if (ss->shapekey_active) {

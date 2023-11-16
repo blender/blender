@@ -474,7 +474,7 @@ void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh);
 
 /* Vertex Deformer. */
 
-void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], int totvert);
+void BKE_pbvh_vert_coords_apply(PBVH *pbvh, blender::Span<blender::float3> vert_positions);
 bool BKE_pbvh_is_deformed(PBVH *pbvh);
 
 /* Vertex Iterator. */
@@ -638,7 +638,7 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode);
 
-float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3];
+blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh);
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh);
 bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
