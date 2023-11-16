@@ -436,10 +436,10 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name NLA Channel Defines
+/** \name NLA Track Defines
  * \{ */
 
-/** NLA channel heights */
+/** NLA track heights */
 #define NLACHANNEL_FIRST_TOP(ac) \
   (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLACHANNEL_SKIP)
 #define NLACHANNEL_HEIGHT(snla) \

@@ -182,7 +182,7 @@ void nla_keymap(wmKeyConfig *keyconf)
    * However, those operations which involve clicking on channels and/or
    * the placement of them in the view are implemented here instead
    */
-  WM_keymap_ensure(keyconf, "NLA Channels", SPACE_NLA, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "NLA Tracks", SPACE_NLA, RGN_TYPE_WINDOW);
 
   /* data ------------------------------------------------------------- */
   WM_keymap_ensure(keyconf, "NLA Editor", SPACE_NLA, RGN_TYPE_WINDOW);

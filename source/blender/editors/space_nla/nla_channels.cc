@@ -48,7 +48,7 @@
 #include "nla_intern.hh" /* own include */
 
 /* *********************************************** */
-/* Operators for NLA channels-list which need to be different
+/* Operators for NLA track-list which need to be different
  * from the standard Animation Editor ones */
 
 /* ******************** Mouse-Click Operator *********************** */
@@ -338,9 +338,9 @@ void NLA_OT_channels_click(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Mouse Click on NLA Channels";
+  ot->name = "Mouse Click on NLA Tracks";
   ot->idname = "NLA_OT_channels_click";
-  ot->description = "Handle clicks to select NLA channels";
+  ot->description = "Handle clicks to select NLA tracks";
 
   /* api callbacks */
   ot->invoke = nlachannels_mouseclick_invoke;
