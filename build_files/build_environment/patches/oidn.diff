@@ -34,3 +34,15 @@ diff -Naur oidn-2.0.1/devices/CMakeLists.txt external_openimagedenoise/devices/C
      BUILD_ALWAYS TRUE
      DEPENDS
        OpenImageDenoise_core
+--- a/core/module.cpp	2023-11-16 19:07:32
++++ b/core/module.cpp	2023-11-16 19:08:01
+@@ -37,7 +37,8 @@
+                                    "." + toString(OIDN_VERSION_MINOR) +
+                                    "." + toString(OIDN_VERSION_PATCH);
+   #if defined(__APPLE__)
+-    filename = "lib" + filename + versionStr + ".dylib";
++    // BLENDER: version string is stripped on macOS.
++    filename = "lib" + filename + ".dylib";
+   #else
+     filename = "lib" + filename + ".so" + versionStr;
+   #endif
