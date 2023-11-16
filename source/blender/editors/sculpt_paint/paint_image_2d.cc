@@ -1889,8 +1889,8 @@ void paint_2d_bucket_fill(const bContext *C,
       copy_v4_v4(pixel_color, ibuf->float_buffer.data + 4 * coordinate);
     }
     else {
-      int pixel_color_b = *ibuf->byte_buffer.data + 4 * coordinate;
-      rgba_uchar_to_float(pixel_color, (uchar *)&pixel_color_b);
+      uchar *pixel_color_b = ibuf->byte_buffer.data + 4 * coordinate;
+      rgba_uchar_to_float(pixel_color, pixel_color_b);
       straight_to_premul_v4(pixel_color);
     }
 
