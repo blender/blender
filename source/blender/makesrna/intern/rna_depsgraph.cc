@@ -340,8 +340,8 @@ static void rna_Depsgraph_objects_end(CollectionPropertyIterator *iter)
   DEGObjectIterData *data = (DEGObjectIterData *)((BLI_Iterator *)iter->internal.custom)->data;
   DEG_iterator_objects_end(static_cast<BLI_Iterator *>(iter->internal.custom));
   MEM_freeN(data->settings);
-  MEM_freeN(((BLI_Iterator *)iter->internal.custom)->data);
   MEM_delete(data);
+  MEM_freeN(iter->internal.custom);
 }
 
 static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
