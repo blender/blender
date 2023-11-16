@@ -1429,8 +1429,10 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
 
   const bool use_cursor_position = RNA_boolean_get(op->ptr, "use_cursor_position");
 
-  const int split_frame = use_cursor_position ? scene->r.cfra : RNA_int_get(op->ptr, "frame");
-  const int split_channel = use_cursor_position ? 0 : RNA_int_get(op->ptr, "channel");
+  const int split_frame = RNA_struct_property_is_set(op->ptr, "frame") ?
+                              RNA_int_get(op->ptr, "frame") :
+                              scene->r.cfra;
+  const int split_channel = RNA_int_get(op->ptr, "channel");
 
   const eSeqSplitMethod method = eSeqSplitMethod(RNA_enum_get(op->ptr, "type"));
   const int split_side = sequence_split_side_for_exec_get(op);
