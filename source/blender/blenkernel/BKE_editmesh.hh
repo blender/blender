@@ -111,4 +111,3 @@ const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
                                                      bool *r_is_alloc))[3];
 
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);
-BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh *em);

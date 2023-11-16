@@ -1668,8 +1668,6 @@ void BKE_object_free_derived_caches(Object *ob)
     delete ob->runtime->geometry_set_eval;
     ob->runtime->geometry_set_eval = nullptr;
   }
-
-  MEM_SAFE_FREE(ob->runtime->editmesh_bb_cage);
 }
 
 void BKE_object_free_caches(Object *object)
