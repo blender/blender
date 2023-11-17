@@ -541,7 +541,13 @@ class NodeDeclarationBuilder {
   BaseSocketDeclarationBuilder &add_input(eNodeSocketDatatype socket_type,
                                           StringRef name,
                                           StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_input(eCustomDataType data_type,
+                                          StringRef name,
+                                          StringRef identifier = "");
   BaseSocketDeclarationBuilder &add_output(eNodeSocketDatatype socket_type,
+                                           StringRef name,
+                                           StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_output(eCustomDataType data_type,
                                            StringRef name,
                                            StringRef identifier = "");
 

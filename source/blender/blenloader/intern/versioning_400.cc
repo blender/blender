@@ -1237,6 +1237,61 @@ static void enable_geometry_nodes_is_modifier(Main &bmain)
   }
 }
 
+static void version_socket_identifier_suffixes_for_dynamic_types(
+    ListBase sockets, const char *separator, const std::optional<int> total = std::nullopt)
+{
+  int index = 0;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &sockets) {
+    if (socket->is_available()) {
+      if (char *pos = strstr(socket->identifier, separator)) {
+        /* End the identifier at the separator so that the old suffix is ignored. */
+        *pos = '\0';
+
+        if (total.has_value()) {
+          index++;
+          if (index == *total) {
+            return;
+          }
+        }
+      }
+    }
+    else {
+      /* Rename existing identifiers so that they don't conflict with the renamed one. Those will
+       * be removed after versioning code. */
+      BLI_strncat(socket->identifier, "_deprecated", sizeof(socket->identifier));
+    }
+  }
+}
+
+static void versioning_nodes_dynamic_sockets(bNodeTree &ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    switch (node->type) {
+      case GEO_NODE_ACCUMULATE_FIELD:
+        /* This node requires the extra `total` parameter, because the `Group Index` identifier
+         * also has a space in the name, that should not be treated as separator. */
+        version_socket_identifier_suffixes_for_dynamic_types(node->inputs, " ", 1);
+        version_socket_identifier_suffixes_for_dynamic_types(node->outputs, " ", 3);
+        break;
+      case GEO_NODE_CAPTURE_ATTRIBUTE:
+      case GEO_NODE_ATTRIBUTE_STATISTIC:
+      case GEO_NODE_BLUR_ATTRIBUTE:
+      case GEO_NODE_EVALUATE_AT_INDEX:
+      case GEO_NODE_EVALUATE_ON_DOMAIN:
+      case GEO_NODE_INPUT_NAMED_ATTRIBUTE:
+      case GEO_NODE_RAYCAST:
+      case GEO_NODE_SAMPLE_INDEX:
+      case GEO_NODE_SAMPLE_NEAREST_SURFACE:
+      case GEO_NODE_SAMPLE_UV_SURFACE:
+      case GEO_NODE_STORE_NAMED_ATTRIBUTE:
+      case GEO_NODE_VIEWER:
+        version_socket_identifier_suffixes_for_dynamic_types(node->inputs, "_");
+        version_socket_identifier_suffixes_for_dynamic_types(node->outputs, "_");
+        break;
+    }
+  }
+}
+
 static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_pencil)
 {
   using namespace blender;
@@ -1965,6 +2020,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 8)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      versioning_nodes_dynamic_sockets(*ntree);
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
