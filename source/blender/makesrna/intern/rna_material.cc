@@ -68,6 +68,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "BKE_colorband.h"
 #  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
+#  include "BKE_grease_pencil.hh"
 #  include "BKE_main.h"
 #  include "BKE_material.h"
 #  include "BKE_node.h"
@@ -111,6 +112,10 @@ static void rna_MaterialGpencil_update(Main *bmain, Scene *scene, PointerRNA *pt
     if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+    }
+    if (ob->type == OB_GREASE_PENCIL) {
+      GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+      DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     }
   }
 
