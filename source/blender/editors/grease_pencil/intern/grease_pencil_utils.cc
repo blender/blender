@@ -101,9 +101,9 @@ Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
                                         GP_USE_MULTI_FRAME_EDITING) != 0;
 
   Vector<MutableDrawingInfo> editable_drawings;
-  Span<Layer *> layers = grease_pencil.layers_for_write();
+  Span<const Layer *> layers = grease_pencil.layers();
   for (const int layer_i : layers.index_range()) {
-    Layer *layer = layers[layer_i];
+    const Layer *layer = layers[layer_i];
     if (!layer->is_editable()) {
       continue;
     }
