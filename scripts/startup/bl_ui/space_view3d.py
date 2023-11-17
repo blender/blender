@@ -5008,7 +5008,7 @@ class VIEW3D_MT_edit_greasepencil_delete(Menu):
         layout = self.layout
 
         layout.operator("grease_pencil.delete")
-        
+
         layout.separator()
 
         layout.operator_enum("grease_pencil.dissolve", "type")
