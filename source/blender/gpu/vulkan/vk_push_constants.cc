@@ -148,10 +148,6 @@ void VKPushConstants::update(VKContext &context)
 {
   VKShader *shader = static_cast<VKShader *>(context.shader);
   VKCommandBuffers &command_buffers = context.command_buffers_get();
-  VKPipeline &pipeline = shader->pipeline_get();
-  BLI_assert_msg(&pipeline.push_constants_get() == this,
-                 "Invalid state detected. Push constants doesn't belong to the active shader of "
-                 "the given context.");
   VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
 
   switch (layout_get().storage_type_get()) {
