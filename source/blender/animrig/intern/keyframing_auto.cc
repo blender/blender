@@ -14,6 +14,7 @@
 #include "BKE_scene.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "DNA_scene_types.h"
 
@@ -228,6 +229,138 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
   ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
 
   return true;
+}
+
+void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik)
+{
+  Main *bmain = CTX_data_main(C);
+  ID *id = &ob->id;
+  AnimData *adt = ob->adt;
+  bAction *act = (adt) ? adt->action : nullptr;
+  bPose *pose = ob->pose;
+
+  if (!blender::animrig::autokeyframe_cfra_can_key(scene, id)) {
+    return;
+  }
+
+  ReportList *reports = CTX_wm_reports(C);
+  ToolSettings *ts = scene->toolsettings;
+  KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+      depsgraph, BKE_scene_frame_get(scene));
+  eInsertKeyFlags flag = eInsertKeyFlags(0);
+
+  /* flag is initialized from UserPref keyframing settings
+   * - special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
+   *   visual keyframes even if flag not set, as it's not that useful otherwise
+   *   (for quick animation recording)
+   */
+  flag = ANIM_get_keyframing_flags(scene, true);
+
+  if (targetless_ik) {
+    flag |= INSERTKEY_MATRIX;
+  }
+
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+    if ((pchan->bone->flag & BONE_TRANSFORM) == 0 &&
+        !((pose->flag & POSE_MIRROR_EDIT) && (pchan->bone->flag & BONE_TRANSFORM_MIRROR)))
+    {
+      continue;
+    }
+
+    blender::Vector<PointerRNA> sources;
+    /* Add data-source override for the camera object. */
+    ANIM_relative_keyingset_add_source(sources, id, &RNA_PoseBone, pchan);
+
+    /* only insert into active keyingset? */
+    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
+      /* Run the active Keying Set on the current data-source. */
+      ANIM_apply_keyingset(
+          C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+    }
+    /* only insert into available channels? */
+    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
+      if (act) {
+        LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+          /* only insert keyframes for this F-Curve if it affects the current bone */
+          char pchan_name[sizeof(pchan->name)];
+          if (!BLI_str_quoted_substr(fcu->rna_path, "bones[", pchan_name, sizeof(pchan_name))) {
+            continue;
+          }
+
+          /* only if bone name matches too...
+           * NOTE: this will do constraints too, but those are ok to do here too?
+           */
+          if (STREQ(pchan_name, pchan->name)) {
+            blender::animrig::insert_keyframe(bmain,
+                                              reports,
+                                              id,
+                                              act,
+                                              ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                                              fcu->rna_path,
+                                              fcu->array_index,
+                                              &anim_eval_context,
+                                              eBezTriple_KeyframeType(ts->keyframe_type),
+                                              flag);
+          }
+        }
+      }
+    }
+    /* only insert keyframe if needed? */
+    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+      bool do_loc = false, do_rot = false, do_scale = false;
+
+      /* Filter the conditions when this happens
+       * (assume that 'curarea->spacetype == SPACE_VIEW3D'). */
+      if (tmode == TFM_TRANSLATION) {
+        if (targetless_ik) {
+          do_rot = true;
+        }
+        else {
+          do_loc = true;
+        }
+      }
+      else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
+        if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
+        {
+          do_loc = true;
+        }
+
+        if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
+          do_rot = true;
+        }
+      }
+      else if (tmode == TFM_RESIZE) {
+        if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
+        {
+          do_loc = true;
+        }
+
+        if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
+          do_scale = true;
+        }
+      }
+
+      if (do_loc) {
+        KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOCATION_ID);
+        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      }
+      if (do_rot) {
+        KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_ROTATION_ID);
+        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      }
+      if (do_scale) {
+        KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_SCALING_ID);
+        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+      }
+    }
+    /* insert keyframe in all (transform) channels */
+    else {
+      KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOC_ROT_SCALE_ID);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+    }
+  }
 }
 
 bool autokeyframe_property(bContext *C,
