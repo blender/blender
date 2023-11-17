@@ -4353,8 +4353,10 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     if (item->icon) {
       has_item_with_icon = true;
     }
-    float item_width = BLF_width(BLF_default(), item->name, BLF_DRAW_STR_DUMMY_MAX);
-    col_width = MAX2(col_width, item_width + (120.0f * UI_SCALE_FAC));
+    if (item->name && item->name[0]) {
+      float item_width = BLF_width(BLF_default(), item->name, BLF_DRAW_STR_DUMMY_MAX);
+      col_width = MAX2(col_width, item_width + (120.0f * UI_SCALE_FAC));
+    }
     rows = MAX2(rows, col_rows);
   }
   text_width += col_width;
