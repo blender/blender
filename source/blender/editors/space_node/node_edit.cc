@@ -417,7 +417,7 @@ bool composite_node_editable(bContext *C)
 
 static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
 {
-  WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
+  WM_main_add_notifier(NC_NODE | NA_EDITED, id);
 
   if (ntree->type == NTREE_SHADER && id != nullptr) {
     if (GS(id->name) == ID_MA) {

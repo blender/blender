@@ -616,7 +616,9 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_NODE:
       if (wmn->action == NA_EDITED) {
-        node_area_tag_tree_recalc(snode, area);
+        if (wmn->reference == snode->id || snode->id == nullptr) {
+          node_area_tag_tree_recalc(snode, area);
+        }
       }
       else if (wmn->action == NA_SELECTED) {
         ED_area_tag_redraw(area);
