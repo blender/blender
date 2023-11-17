@@ -116,6 +116,67 @@ TEST_F(FileOpsTest, rename)
   ASSERT_TRUE(BLI_exists(test_filepath_dst.c_str()));
 
   close(fd_dst);
+
+  /*
+   * Check directory renaming.
+   */
+
+  const std::string dir_name_src = "test_dir_src";
+  const std::string dir_name_dst = "test_dir_dst";
+
+  const std::string test_dirpath_src = temp_dir + SEP_STR + dir_name_src;
+  const std::string test_dirpath_dst = temp_dir + SEP_STR + dir_name_dst;
+
+  BLI_dir_create_recursive(test_dirpath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+
+  /* `test_dirpath_dst` does not exist, so regular rename should succeed. */
+  ASSERT_EQ(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dirpath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
+
+  BLI_dir_create_recursive(test_dirpath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+
+  /* `test_dirpath_dst` now exists, so regular rename should succeed on Unix, but fail on Windows.
+   */
+#ifdef WIN32
+  ASSERT_NE(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+#else
+  ASSERT_EQ(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dirpath_src.c_str()));
+#endif
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
+
+#ifndef WIN32
+  BLI_dir_create_recursive(test_dirpath_src.c_str());
+#endif
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+
+  const std::string test_dir_filepath_src = test_dirpath_src + SEP_STR + file_name_src;
+  const std::string test_dir_filepath_dst = test_dirpath_dst + SEP_STR + file_name_dst;
+
+  ASSERT_FALSE(BLI_exists(test_dir_filepath_src.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dir_filepath_dst.c_str()));
+  BLI_file_touch(test_dir_filepath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_dir_filepath_src.c_str()));
+
+  /* `test_dir_filepath_src` does not exist, so regular rename should succeed. */
+  ASSERT_EQ(0, BLI_rename(test_dir_filepath_src.c_str(), test_dir_filepath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dir_filepath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dir_filepath_dst.c_str()));
+
+  /* `test_dirpath_dst` exists and is not empty, so regular rename should fail on all platforms. */
+  ASSERT_NE(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
+
+  /* `test_dirpath_dst` exists and is not empty, so even overwrite rename should fail on all
+   * platforms. */
+  ASSERT_NE(0, BLI_rename_overwrite(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
 }
 
 /*
