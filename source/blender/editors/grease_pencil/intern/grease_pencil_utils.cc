@@ -83,7 +83,7 @@ static Array<int> get_frame_numbers_for_layer(const bke::greasepencil::Layer &la
   Vector<int> frame_numbers({current_frame});
   if (use_multi_frame_editing) {
     for (const auto [frame_number, frame] : layer.frames().items()) {
-      if (frame.is_selected()) {
+      if (frame_number != current_frame && frame.is_selected()) {
         frame_numbers.append_unchecked(frame_number);
       }
     }
