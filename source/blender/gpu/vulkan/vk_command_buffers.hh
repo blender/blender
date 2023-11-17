@@ -25,10 +25,9 @@ class VKDescriptorSet;
 class VKCommandBuffers : public NonCopyable, NonMovable {
   VkCommandPool vk_command_pool_ = VK_NULL_HANDLE;
   enum class Type {
-    DataTransfer = 0,
-    Compute = 1,
-    Graphics = 2,
-    Max = 3,
+    DataTransferCompute = 0,
+    Graphics = 1,
+    Max = 2,
   };
 
   bool initialized_ = false;
@@ -158,14 +157,6 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
   {
     return buffers_[(int)type];
   }
-
-  /**
-   * Ensure that no compute commands are scheduled.
-   *
-   * To ensure correct operation all compute commands should be flushed when adding a new draw
-   * command.
-   */
-  void ensure_no_compute_commands();
 
   /**
    * Ensure that no draw_commands are scheduled.
