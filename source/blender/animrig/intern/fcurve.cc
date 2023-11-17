@@ -12,6 +12,7 @@
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "BKE_fcurve.h"
+#include "BLI_math_vector_types.hh"
 #include "DNA_anim_types.h"
 #include "ED_anim_api.hh"
 #include "MEM_guardedalloc.h"
@@ -198,51 +199,50 @@ static void subdivide_nonauto_handles(const FCurve *fcu,
   bezt->h1 = bezt->h2 = HD_ALIGN;
 }
 
-int insert_vert_fcurve(
-    FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag)
+void initialize_bezt(BezTriple *beztr,
+                     const float2 position,
+                     const eBezTriple_KeyframeType keyframe_type,
+                     const eInsertKeyFlags flag,
+                     const eFCurve_Flags fcu_flags)
 {
-  BezTriple beztr = {{{0}}};
-  uint oldTot = fcu->totvert;
-  int a;
-
   /* Set all three points, for nicer start position.
    * NOTE: +/- 1 on vec.x for left and right handles is so that 'free' handles work ok...
    */
-  beztr.vec[0][0] = x - 1.0f;
-  beztr.vec[0][1] = y;
-  beztr.vec[1][0] = x;
-  beztr.vec[1][1] = y;
-  beztr.vec[2][0] = x + 1.0f;
-  beztr.vec[2][1] = y;
-  beztr.f1 = beztr.f2 = beztr.f3 = SELECT;
+  beztr->vec[0][0] = position.x - 1.0f;
+  beztr->vec[0][1] = position.y;
+  beztr->vec[1][0] = position.x;
+  beztr->vec[1][1] = position.y;
+  beztr->vec[2][0] = position.x + 1.0f;
+  beztr->vec[2][1] = position.y;
+  beztr->f1 = beztr->f2 = beztr->f3 = SELECT;
 
   /* Set default handle types and interpolation mode. */
   if (flag & INSERTKEY_NO_USERPREF) {
     /* For Py-API, we want scripts to have predictable behavior,
      * hence the option to not depend on the userpref defaults.
      */
-    beztr.h1 = beztr.h2 = HD_AUTO_ANIM;
-    beztr.ipo = BEZT_IPO_BEZ;
+    beztr->h1 = beztr->h2 = HD_AUTO_ANIM;
+    beztr->ipo = BEZT_IPO_BEZ;
   }
   else {
     /* For UI usage - defaults should come from the user-preferences and/or tool-settings. */
-    beztr.h1 = beztr.h2 = U.keyhandles_new; /* Use default handle type here. */
+    beztr->h1 = beztr->h2 = U.keyhandles_new; /* Use default handle type here. */
 
     /* Use default interpolation mode, with exceptions for int/discrete values. */
-    beztr.ipo = U.ipo_new;
+    beztr->ipo = U.ipo_new;
   }
 
   /* Interpolation type used is constrained by the type of values the curve can take. */
-  if (fcu->flag & FCURVE_DISCRETE_VALUES) {
-    beztr.ipo = BEZT_IPO_CONST;
+  if (fcu_flags & FCURVE_DISCRETE_VALUES) {
+    beztr->ipo = BEZT_IPO_CONST;
   }
-  else if ((beztr.ipo == BEZT_IPO_BEZ) && (fcu->flag & FCURVE_INT_VALUES)) {
-    beztr.ipo = BEZT_IPO_LIN;
+  else if ((beztr->ipo == BEZT_IPO_BEZ) && (fcu_flags & FCURVE_INT_VALUES)) {
+    beztr->ipo = BEZT_IPO_LIN;
   }
 
   /* Set keyframe type value (supplied), which should come from the scene
    * settings in most cases. */
-  BEZKEYTYPE(&beztr) = keyframe_type;
+  BEZKEYTYPE(beztr) = keyframe_type;
 
   /* Set default values for "easing" interpolation mode settings.
    * NOTE: Even if these modes aren't currently used, if users switch
@@ -252,12 +252,22 @@ int insert_vert_fcurve(
 
   /* "back" easing - This value used to be used when overshoot=0, but that
    *                 introduced discontinuities in how the param worked. */
-  beztr.back = 1.70158f;
+  beztr->back = 1.70158f;
 
   /* "elastic" easing - Values here were hand-optimized for a default duration of
    *                    ~10 frames (typical motion-graph motion length). */
-  beztr.amplitude = 0.8f;
-  beztr.period = 4.1f;
+  beztr->amplitude = 0.8f;
+  beztr->period = 4.1f;
+}
+
+int insert_vert_fcurve(
+    FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag)
+{
+  BezTriple beztr = {{{0}}};
+  initialize_bezt(&beztr, {x, y}, keyframe_type, flag, eFCurve_Flags(fcu->flag));
+
+  uint oldTot = fcu->totvert;
+  int a;
 
   /* Add temp beztriple to keyframes. */
   a = insert_bezt_fcurve(fcu, &beztr, flag);
