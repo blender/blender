@@ -464,6 +464,9 @@ static void material_data_index_remove_id(ID *id, short index)
     case ID_CU_LEGACY:
       BKE_curve_material_index_remove((Curve *)id, index);
       break;
+    case ID_GP:
+      BKE_grease_pencil_material_index_remove(reinterpret_cast<GreasePencil *>(id), index);
+      break;
     case ID_MB:
     case ID_CV:
     case ID_PT:
@@ -502,6 +505,9 @@ bool BKE_object_material_slot_used(Object *object, short actcol)
       return false;
     case ID_GD_LEGACY:
       return BKE_gpencil_material_index_used((bGPdata *)ob_data, actcol - 1);
+    case ID_GP:
+      return BKE_grease_pencil_material_index_used(reinterpret_cast<GreasePencil *>(ob_data),
+                                                   actcol - 1);
     default:
       return false;
   }
@@ -1359,14 +1365,14 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
     }
   }
 
-  /* check indices from mesh */
-  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
+  /* check indices from mesh and grease pencil. */
+  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_GREASE_PENCIL)) {
     material_data_index_remove_id((ID *)ob->data, actcol - 1);
     if (ob->runtime->curve_cache) {
       BKE_displist_free(&ob->runtime->curve_cache->disp);
     }
   }
-  /* check indices from gpencil */
+  /* check indices from gpencil legacy. */
   else if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_material_index_reassign((bGPdata *)ob->data, ob->totcol, actcol - 1);
   }
