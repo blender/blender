@@ -404,7 +404,7 @@ static void meshdeformModifier_do(ModifierData *md,
   zero_v3(dco[cage_verts_num]);
 
   /* setup deformation data */
-  BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco);
+  BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco.as_mutable_span().take_front(cage_verts_num));
   bindcagecos = (float(*)[3])mmd->bindcagecos;
 
   for (a = 0; a < cage_verts_num; a++) {
