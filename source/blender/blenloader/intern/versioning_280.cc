@@ -1853,7 +1853,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
 static void update_musgrave_node_dimensions(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_MUSGRAVE && node->storage) {
+    if (node->type == SH_NODE_TEX_MUSGRAVE_DEPRECATED && node->storage) {
       NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
       tex->dimensions = 3;
     }
@@ -1867,7 +1867,7 @@ static void update_musgrave_node_dimensions(bNodeTree *ntree)
 static void update_musgrave_node_color_output(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->fromnode && link->fromnode->type == SH_NODE_TEX_MUSGRAVE) {
+    if (link->fromnode && link->fromnode->type == SH_NODE_TEX_MUSGRAVE_DEPRECATED) {
       if (link->fromsock->type == SOCK_RGBA) {
         link->fromsock = link->fromsock->next;
       }

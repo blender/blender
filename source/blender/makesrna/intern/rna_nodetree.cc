@@ -4864,6 +4864,32 @@ static void def_sh_tex_gradient(StructRNA *srna)
 
 static void def_sh_tex_noise(StructRNA *srna)
 {
+  static const EnumPropertyItem prop_noise_type[] = {
+      {SHD_NOISE_MULTIFRACTAL,
+       "MULTIFRACTAL",
+       0,
+       "Multifractal",
+       "More uneven result (varies with location), more similar to a real terrain"},
+      {SHD_NOISE_RIDGED_MULTIFRACTAL,
+       "RIDGED_MULTIFRACTAL",
+       0,
+       "Ridged Multifractal",
+       "Create sharp peaks"},
+      {SHD_NOISE_HYBRID_MULTIFRACTAL,
+       "HYBRID_MULTIFRACTAL",
+       0,
+       "Hybrid Multifractal",
+       "Create peaks and valleys with different roughness values"},
+      {SHD_NOISE_FBM, "FBM", 0, "fBM", "The standard fractal Perlin noise"},
+      {SHD_NOISE_HETERO_TERRAIN,
+       "HETERO_TERRAIN",
+       0,
+       "Hetero Terrain",
+       "Similar to Hybrid Multifractal creates a heterogeneous terrain, but with the likeness of "
+       "river channels"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeTexNoise", "storage");
@@ -4873,6 +4899,12 @@ static void def_sh_tex_noise(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, nullptr, "dimensions");
   RNA_def_property_enum_items(prop, rna_enum_node_tex_dimensions_items);
   RNA_def_property_ui_text(prop, "Dimensions", "Number of dimensions to output noise for");
+  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "type");
+  RNA_def_property_enum_items(prop, prop_noise_type);
+  RNA_def_property_ui_text(prop, "Type", "Type of the Noise texture");
   RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
 
   prop = RNA_def_property(srna, "normalize", PROP_BOOLEAN, PROP_NONE);
@@ -4935,52 +4967,6 @@ static void def_sh_tex_magic(StructRNA *srna)
   RNA_def_property_range(prop, 0, 10);
   RNA_def_property_ui_text(prop, "Depth", "Level of detail in the added turbulent noise");
   RNA_def_property_update(prop, 0, "rna_Node_update");
-}
-
-static void def_sh_tex_musgrave(StructRNA *srna)
-{
-  static const EnumPropertyItem prop_musgrave_type[] = {
-      {SHD_MUSGRAVE_MULTIFRACTAL,
-       "MULTIFRACTAL",
-       0,
-       "Multifractal",
-       "More uneven result (varies with location), more similar to a real terrain"},
-      {SHD_MUSGRAVE_RIDGED_MULTIFRACTAL,
-       "RIDGED_MULTIFRACTAL",
-       0,
-       "Ridged Multifractal",
-       "Create sharp peaks"},
-      {SHD_MUSGRAVE_HYBRID_MULTIFRACTAL,
-       "HYBRID_MULTIFRACTAL",
-       0,
-       "Hybrid Multifractal",
-       "Create peaks and valleys with different roughness values"},
-      {SHD_MUSGRAVE_FBM, "FBM", 0, "fBM", "Produce an unnatural homogeneous and isotropic result"},
-      {SHD_MUSGRAVE_HETERO_TERRAIN,
-       "HETERO_TERRAIN",
-       0,
-       "Hetero Terrain",
-       "Similar to Hybrid Multifractal creates a heterogeneous terrain, but with the likeness of "
-       "river channels"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  PropertyRNA *prop;
-
-  RNA_def_struct_sdna_from(srna, "NodeTexMusgrave", "storage");
-  def_sh_tex(srna);
-
-  prop = RNA_def_property(srna, "musgrave_dimensions", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "dimensions");
-  RNA_def_property_enum_items(prop, rna_enum_node_tex_dimensions_items);
-  RNA_def_property_ui_text(prop, "Dimensions", "Number of dimensions to output noise for");
-  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
-
-  prop = RNA_def_property(srna, "musgrave_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "musgrave_type");
-  RNA_def_property_enum_items(prop, prop_musgrave_type);
-  RNA_def_property_ui_text(prop, "Type", "Type of the Musgrave texture");
-  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
 }
 
 static void def_sh_tex_voronoi(StructRNA *srna)

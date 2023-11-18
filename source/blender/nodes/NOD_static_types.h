@@ -99,7 +99,6 @@ DefNode(ShaderNode,     SH_NODE_TEX_GRADIENT,       def_sh_tex_gradient,    "TEX
 DefNode(ShaderNode,     SH_NODE_TEX_NOISE,          def_sh_tex_noise,       "TEX_NOISE",          TexNoise,         "Noise Texture",     "Generate fractal Perlin noise")
 DefNode(ShaderNode,     SH_NODE_TEX_MAGIC,          def_sh_tex_magic,       "TEX_MAGIC",          TexMagic,         "Magic Texture",     "Generate a psychedelic color texture")
 DefNode(ShaderNode,     SH_NODE_TEX_WAVE,           def_sh_tex_wave,        "TEX_WAVE",           TexWave,          "Wave Texture",      "Generate procedural bands or rings with noise")
-DefNode(ShaderNode,     SH_NODE_TEX_MUSGRAVE,       def_sh_tex_musgrave,    "TEX_MUSGRAVE",       TexMusgrave,      "Musgrave Texture",  "Generate fractal Perlin noise. Allows for greater control over how octaves are combined than the Noise Texture node")
 DefNode(ShaderNode,     SH_NODE_TEX_VORONOI,        def_sh_tex_voronoi,     "TEX_VORONOI",        TexVoronoi,       "Voronoi Texture",   "Generate Worley noise based on the distance to random points. Typically used to generate textures such as stones, water, or biological cells")
 DefNode(ShaderNode,     SH_NODE_TEX_CHECKER,        def_sh_tex_checker,     "TEX_CHECKER",        TexChecker,       "Checker Texture",   "Generate a checkerboard texture")
 DefNode(ShaderNode,     SH_NODE_TEX_BRICK,          def_sh_tex_brick,       "TEX_BRICK",          TexBrick,         "Brick Texture",     "Generate a procedural texture producing bricks")
