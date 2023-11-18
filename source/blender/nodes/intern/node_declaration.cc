@@ -12,6 +12,7 @@
 #include "BKE_geometry_fields.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_socket_value.hh"
 
 namespace blender::nodes {
 
@@ -920,24 +921,24 @@ namespace implicit_field_inputs {
 
 void position(const bNode & /*node*/, void *r_value)
 {
-  new (r_value) fn::ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>("position"));
+  new (r_value) bke::ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>("position"));
 }
 
 void normal(const bNode & /*node*/, void *r_value)
 {
   new (r_value)
-      fn::ValueOrField<float3>(fn::Field<float3>(std::make_shared<bke::NormalFieldInput>()));
+      bke::ValueOrField<float3>(fn::Field<float3>(std::make_shared<bke::NormalFieldInput>()));
 }
 
 void index(const bNode & /*node*/, void *r_value)
 {
-  new (r_value) fn::ValueOrField<int>(fn::Field<int>(std::make_shared<fn::IndexFieldInput>()));
+  new (r_value) bke::ValueOrField<int>(fn::Field<int>(std::make_shared<fn::IndexFieldInput>()));
 }
 
 void id_or_index(const bNode & /*node*/, void *r_value)
 {
   new (r_value)
-      fn::ValueOrField<int>(fn::Field<int>(std::make_shared<bke::IDAttributeFieldInput>()));
+      bke::ValueOrField<int>(fn::Field<int>(std::make_shared<bke::IDAttributeFieldInput>()));
 }
 
 }  // namespace implicit_field_inputs

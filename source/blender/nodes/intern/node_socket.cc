@@ -23,6 +23,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_socket_value.hh"
 #include "BKE_node_tree_update.hh"
 
 #include "DNA_collection_types.h"
@@ -37,10 +38,8 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 
-#include "FN_field.hh"
-
 using namespace blender;
-using blender::fn::ValueOrField;
+using blender::bke::ValueOrField;
 using blender::nodes::SocketDeclarationPtr;
 
 bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,

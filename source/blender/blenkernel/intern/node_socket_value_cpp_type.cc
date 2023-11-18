@@ -2,9 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "FN_field_cpp_type.hh"
+/** \file
+ * \ingroup bke
+ */
 
-namespace blender::fn {
+#include "BKE_node_socket_value_cpp_type.hh"
+
+namespace blender::bke {
 
 static auto &get_from_self_map()
 {
@@ -38,4 +42,4 @@ const ValueOrFieldCPPType *ValueOrFieldCPPType::get_from_value(const CPPType &va
   return type;
 }
 
-}  // namespace blender::fn
+}  // namespace blender::bke

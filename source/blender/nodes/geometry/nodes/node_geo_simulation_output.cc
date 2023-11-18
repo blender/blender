@@ -15,6 +15,7 @@
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
 #include "BKE_modifier.hh"
+#include "BKE_node_socket_value_cpp_type.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 
@@ -26,8 +27,6 @@
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
 #include "NOD_zone_socket_items.hh"
-
-#include "FN_field_cpp_type.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
@@ -407,8 +406,8 @@ static void mix_simulation_state(const NodeSimulationItem &item,
     case SOCK_ROTATION:
     case SOCK_RGBA: {
       const CPPType &type = get_simulation_item_cpp_type(item);
-      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
-          type);
+      const bke::ValueOrFieldCPPType &value_or_field_type =
+          *bke::ValueOrFieldCPPType::get_from_self(type);
       if (value_or_field_type.is_field(prev) || value_or_field_type.is_field(next)) {
         /* Fields are evaluated on geometries and are mixed there. */
         break;

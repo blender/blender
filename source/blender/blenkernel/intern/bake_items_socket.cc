@@ -5,10 +5,9 @@
 #include "BKE_bake_items_socket.hh"
 
 #include "BKE_geometry_fields.hh"
+#include "BKE_node.h"
 
-#include "BKE_node.hh"
-
-#include "FN_field_cpp_type.hh"
+#include "BKE_node_socket_value_cpp_type.hh"
 
 namespace blender::bke::bake {
 
@@ -49,8 +48,8 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
         break;
       }
       case SOCK_STRING: {
-        const fn::ValueOrField<std::string> &value =
-            *static_cast<const fn::ValueOrField<std::string> *>(socket_value);
+        const ValueOrField<std::string> &value = *static_cast<const ValueOrField<std::string> *>(
+            socket_value);
         bake_items[i] = std::make_unique<StringBakeItem>(value.as_value());
         break;
       }
@@ -61,8 +60,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
       case SOCK_ROTATION:
       case SOCK_RGBA: {
         const CPPType &type = get_socket_cpp_type(socket_type);
-        const fn::ValueOrFieldCPPType &value_or_field_type =
-            *fn::ValueOrFieldCPPType::get_from_self(type);
+        const ValueOrFieldCPPType &value_or_field_type = *ValueOrFieldCPPType::get_from_self(type);
         const CPPType &base_type = value_or_field_type.value;
         if (!value_or_field_type.is_field(socket_value)) {
           const void *value = value_or_field_type.get_value_ptr(socket_value);
@@ -146,8 +144,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_RGBA: {
-      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
-          type);
+      const ValueOrFieldCPPType &value_or_field_type = *ValueOrFieldCPPType::get_from_self(type);
       const CPPType &base_type = value_or_field_type.value;
       if (const auto *item = dynamic_cast<const PrimitiveBakeItem *>(&bake_item)) {
         if (item->type() == base_type) {
@@ -169,7 +166,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     }
     case SOCK_STRING: {
       if (const auto *item = dynamic_cast<const StringBakeItem *>(&bake_item)) {
-        new (r_value) fn::ValueOrField<std::string>(item->value());
+        new (r_value) ValueOrField<std::string>(item->value());
         return true;
       }
       return false;

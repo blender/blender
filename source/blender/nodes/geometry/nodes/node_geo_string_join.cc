@@ -15,8 +15,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<fn::ValueOrField<std::string>> strings =
-      params.extract_input<Vector<fn::ValueOrField<std::string>>>("Strings");
+  Vector<bke::ValueOrField<std::string>> strings =
+      params.extract_input<Vector<bke::ValueOrField<std::string>>>("Strings");
   const std::string delim = params.extract_input<std::string>("Delimiter");
 
   std::string output;

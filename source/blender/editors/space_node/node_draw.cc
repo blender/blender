@@ -88,7 +88,6 @@
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "FN_field.hh"
-#include "FN_field_cpp_type.hh"
 
 #include "GEO_fillet_curves.hh"
 

@@ -8,9 +8,8 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_socket_value_cpp_type.hh"
 #include "BKE_viewer_path.hh"
-
-#include "FN_field_cpp_type.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
@@ -181,7 +180,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     const bke::GeometrySet &geometry = *value.get<bke::GeometrySet>();
     store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
   }
-  else if (const auto *value_or_field_type = fn::ValueOrFieldCPPType::get_from_self(type)) {
+  else if (const auto *value_or_field_type = bke::ValueOrFieldCPPType::get_from_self(type)) {
     const void *value_or_field = value.get();
     const CPPType &base_type = value_or_field_type->value;
     if (value_or_field_type->is_field(value_or_field)) {

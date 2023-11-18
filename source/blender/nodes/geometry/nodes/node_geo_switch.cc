@@ -12,8 +12,6 @@
 
 #include "RNA_enum_types.hh"
 
-#include "FN_field_cpp_type.hh"
-
 namespace blender::nodes::node_geo_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeSwitch)
@@ -230,7 +228,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
     }
 
     const CPPType &type = *outputs_[0].type;
-    const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
+    const bke::ValueOrFieldCPPType &value_or_field_type = *bke::ValueOrFieldCPPType::get_from_self(
         type);
     const CPPType &value_type = value_or_field_type.value;
     const MultiFunction &switch_multi_function = this->get_switch_multi_function(value_type);

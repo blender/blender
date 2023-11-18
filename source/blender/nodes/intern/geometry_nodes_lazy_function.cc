@@ -39,11 +39,11 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_node_socket_value_cpp_type.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_type_conversions.hh"
 
-#include "FN_field_cpp_type.hh"
 #include "FN_lazy_function_execute.hh"
 #include "FN_lazy_function_graph_executor.hh"
 
@@ -57,8 +57,8 @@ namespace blender::nodes {
 namespace aai = bke::anonymous_attribute_inferencing;
 using bke::bNodeTreeZone;
 using bke::bNodeTreeZones;
-using fn::ValueOrField;
-using fn::ValueOrFieldCPPType;
+using bke::ValueOrField;
+using bke::ValueOrFieldCPPType;
 
 static const CPPType *get_socket_cpp_type(const bNodeSocketType &typeinfo)
 {

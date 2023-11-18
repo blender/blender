@@ -7,6 +7,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_socket_value.hh"
 
 #include "NOD_geometry_exec.hh"
 #include "NOD_register.hh"
