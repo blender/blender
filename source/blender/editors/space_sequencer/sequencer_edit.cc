@@ -386,6 +386,8 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
           SEQ_time_right_handle_frame_set(scene, seq, snap_frame);
         }
       }
+
+      SEQ_relations_invalidate_cache_composite(scene, seq);
     }
   }
 
