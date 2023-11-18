@@ -6,9 +6,11 @@
  * \ingroup GHOST
  */
 
-#include "GHOST_SystemWin32.hh"
+#include <limits>
+
 #include "GHOST_EventDragnDrop.hh"
 #include "GHOST_EventTrackpad.hh"
+#include "GHOST_SystemWin32.hh"
 
 #ifndef _WIN32_IE
 #  define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
@@ -2371,6 +2373,14 @@ static uint *getClipboardImageDibV5(int *r_width, int *r_height)
   int bitcount = bitmapV5Header->bV5BitCount;
   int width = bitmapV5Header->bV5Width;
   int height = bitmapV5Header->bV5Height;
+
+  /* Clipboard data is untrusted. Protect against arithmetic overflow as DibV5
+   * only supports up to DWORD size bytes. */
+  if (uint64_t(width) * uint64_t(height) > (std::numeric_limits<DWORD>::max() / 4)) {
+    GlobalUnlock(hGlobal);
+    return nullptr;
+  }
+
   *r_width = width;
   *r_height = height;
 
@@ -2387,7 +2397,7 @@ static uint *getClipboardImageDibV5(int *r_width, int *r_height)
   }
 
   uchar *source = (uchar *)buffer;
-  uint *rgba = (uint *)malloc(width * height * 4);
+  uint *rgba = (uint *)malloc(uint64_t(width) * height * 4);
   uint8_t *target = (uint8_t *)rgba;
 
   if (bitmapV5Header->bV5Compression == BI_BITFIELDS && bitcount == 32) {
@@ -2451,8 +2461,9 @@ static uint *getClipboardImageImBuf(int *r_width, int *r_height, UINT format)
   if (ibuf) {
     *r_width = ibuf->x;
     *r_height = ibuf->y;
-    rgba = (uint *)malloc(4 * ibuf->x * ibuf->y);
-    memcpy(rgba, ibuf->byte_buffer.data, 4 * ibuf->x * ibuf->y);
+    const uint64_t byte_count = uint64_t(ibuf->x) * ibuf->y * 4;
+    rgba = (uint *)malloc(byte_count);
+    memcpy(rgba, ibuf->byte_buffer.data, byte_count);
     IMB_freeImBuf(ibuf);
   }
 
@@ -2497,6 +2508,13 @@ uint *GHOST_SystemWin32::getClipboardImage(int *r_width, int *r_height) const
 
 static bool putClipboardImageDibV5(uint *rgba, int width, int height)
 {
+  /* DibV5 only supports up to DWORD size bytes. Skip processing entirely
+   * in case of overflow but return true to the caller to allow PNG to be
+   * used on its own. */
+  if (uint64_t(width) * uint64_t(height) > (std::numeric_limits<DWORD>::max() / 4)) {
+    return true;
+  }
+
   DWORD size_pixels = width * height * 4;
 
   /* Pixel data is 12 bytes after the header. */
