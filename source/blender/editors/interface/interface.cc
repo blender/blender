@@ -4374,7 +4374,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   const bool prior_label = but->prev && but->prev->type == UI_BTYPE_LABEL && but->prev->str[0] &&
                            but->prev->alignnr == but->alignnr;
 
-  if (title[0] && (categories == 0) && (!but->str[0] || !prior_label)) {
+  if (title && title[0] && (categories == 0) && (!but->str[0] || !prior_label)) {
     /* Show title when no categories and calling button has no text or prior label. */
     uiDefBut(block,
              UI_BTYPE_LABEL,
@@ -4434,7 +4434,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
         if (item->icon) {
           uiItemL(column, item->name, item->icon);
         }
-        else {
+        else if (item->name) {
           /* Do not use uiItemL here, as our root layout is a menu one,
            * it will add a fake blank icon! */
           uiDefBut(block,
