@@ -986,8 +986,7 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
 
 static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, const int index)
 {
-  BLI_assert(ss->vertex_info.boundary);
-  return BLI_BITMAP_TEST(ss->vertex_info.boundary, index);
+  return ss->vertex_info.boundary[index];
 }
 
 bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex)
@@ -3411,7 +3410,7 @@ static void sculpt_topology_update(Sculpt *sd,
 
   /* Free index based vertex info as it will become invalid after modifying the topology during the
    * stroke. */
-  MEM_SAFE_FREE(ss->vertex_info.boundary);
+  ss->vertex_info.boundary.clear();
 
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
   float location[3];
@@ -6099,13 +6098,13 @@ void SCULPT_boundary_info_ensure(Object *object)
 {
   using namespace blender;
   SculptSession *ss = object->sculpt;
-  if (ss->vertex_info.boundary) {
+  if (!ss->vertex_info.boundary.is_empty()) {
     return;
   }
 
   Mesh *base_mesh = BKE_mesh_from_object(object);
 
-  ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
+  ss->vertex_info.boundary.resize(base_mesh->totvert);
   Array<int> adjacent_faces_edge_count(base_mesh->totedge, 0);
   array_utils::count_indices(base_mesh->corner_edges(), adjacent_faces_edge_count);
 
@@ -6113,8 +6112,8 @@ void SCULPT_boundary_info_ensure(Object *object)
   for (const int e : edges.index_range()) {
     if (adjacent_faces_edge_count[e] < 2) {
       const int2 &edge = edges[e];
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[0], true);
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[1], true);
+      ss->vertex_info.boundary[edge[0]].set();
+      ss->vertex_info.boundary[edge[1]].set();
     }
   }
 }

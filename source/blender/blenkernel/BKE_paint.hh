@@ -9,6 +9,7 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_math_matrix_types.hh"
@@ -388,7 +389,7 @@ struct SculptPersistentBase {
 
 struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
-  BLI_bitmap *boundary;
+  blender::BitVector<> boundary;
 };
 
 struct SculptBoundaryEditInfo {
