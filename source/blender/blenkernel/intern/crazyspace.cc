@@ -202,7 +202,8 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
     const IndexRange face = faces[i];
 
     for (const int corner : face) {
-      if (!vert_tag[vert_tag, corner]) {
+      const int vert = corner_verts[corner];
+      if (!vert_tag[vert]) {
         const int corner_prev = mesh::face_corner_prev(face, corner);
         const int corner_next = mesh::face_corner_next(face, corner);
 
@@ -227,7 +228,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
 
         set_crazy_vertex_quat(quats[corner], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
 
-        vert_tag[corner].set();
+        vert_tag[vert].set();
       }
     }
   }
