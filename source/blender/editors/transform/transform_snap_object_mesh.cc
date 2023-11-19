@@ -104,7 +104,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
     local_depth *= local_scale;
   }
 
-  /* Test BoundBox */
+  /* Test bounding box */
   if (ob_eval->data == me_eval) {
     const Bounds<float3> bounds = *me_eval->bounds_min_max();
     /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */

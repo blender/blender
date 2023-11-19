@@ -314,7 +314,7 @@ static bool raycastEditMesh(SnapCache_EditMesh *em_cache,
     local_depth *= local_scale;
   }
 
-  /* Test BoundBox */
+  /* Test bounding box */
 
   /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
   if (!isect_ray_aabb_v3_simple(

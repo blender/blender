@@ -156,7 +156,7 @@ void SnapData::clip_planes_enable(SnapObjectContext *sctx,
 
 bool SnapData::snap_boundbox(const float3 &min, const float3 &max)
 {
-  /* In vertex and edges you need to get the pixel distance from ray to BoundBox,
+  /* In vertex and edges you need to get the pixel distance from ray to bounding box,
    * see: #46099, #46816 */
 
 #ifdef TEST_CLIPPLANES_IN_BOUNDBOX

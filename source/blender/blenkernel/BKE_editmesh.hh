@@ -19,7 +19,6 @@ struct BMLoop;
 struct BMPartialUpdate;
 struct BMesh;
 struct BMeshCalcTessellation_Params;
-struct BoundBox;
 struct Depsgraph;
 struct Mesh;
 struct Object;
