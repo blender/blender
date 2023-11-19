@@ -470,7 +470,7 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
     const OffsetIndices faces = mesh->faces();
     const Span<int> corner_verts = mesh->corner_verts();
     for (const int i : faces.index_range()) {
-      const IndexRange &face = faces[i];
+      const IndexRange face = faces[i];
       for (int j = 0; j < face.size(); ++j) {
         int loop_index = face[j];
 
