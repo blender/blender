@@ -16,6 +16,8 @@
 
 #include "GPU_vertex_format.h"
 
+struct GPUVertBuf;
+
 /**
  * Component length of 3 is used for scalars because implicit conversion is done by OpenGL from a
  * scalar `s` will produce `vec4(s, 0, 0, 1)`. However, following the Blender convention, it should
