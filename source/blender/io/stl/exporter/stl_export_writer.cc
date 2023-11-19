@@ -34,7 +34,7 @@ FileWriter::FileWriter(const char *filepath, bool ascii) : tris_num_(0), ascii_(
 {
   file_ = BLI_fopen(filepath, "wb");
   if (file_ == nullptr) {
-    throw std::runtime_error("PLY export: failed to open file");
+    throw std::runtime_error("STL export: failed to open file");
   }
 
   /* Write header */
