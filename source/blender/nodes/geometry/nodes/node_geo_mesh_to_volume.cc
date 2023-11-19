@@ -104,12 +104,11 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
 
   const float4x4 mesh_to_volume_space_transform = float4x4::identity();
 
-  auto bounds_fn = [&](float3 &r_min, float3 &r_max) {
+  auto bounds_fn = [&]() {
     float3 min{std::numeric_limits<float>::max()};
     float3 max{-std::numeric_limits<float>::max()};
     BKE_mesh_wrapper_minmax(&mesh, min, max);
-    r_min = min;
-    r_max = max;
+    return Bounds<float3>{min, max};
   };
 
   const float voxel_size = geometry::volume_compute_voxel_size(

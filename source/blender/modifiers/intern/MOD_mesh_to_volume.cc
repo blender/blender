@@ -149,14 +149,12 @@ static Volume *mesh_to_volume(ModifierData *md,
     }
   }
 
-  auto bounds_fn = [&](float3 &r_min, float3 &r_max) {
-    const Bounds<float3> bounds = *mesh->bounds_min_max();
-    r_min = bounds.min;
-    r_max = bounds.max;
-  };
-
   const float voxel_size = geometry::volume_compute_voxel_size(
-      ctx->depsgraph, bounds_fn, resolution, 0.0f, mesh_to_own_object_space_transform);
+      ctx->depsgraph,
+      [&]() { return *mesh->bounds_min_max(); },
+      resolution,
+      0.0f,
+      mesh_to_own_object_space_transform);
 
   /* Create a new volume. */
   Volume *volume;
