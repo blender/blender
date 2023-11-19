@@ -303,7 +303,6 @@ typedef struct Mesh {
 
   /**
    * Calculate the largest and smallest position values of vertices.
-   * \note Does not take non-mesh data (edit mesh) into account, see #BKE_mesh_wrapper_minmax,
    */
   std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
 
