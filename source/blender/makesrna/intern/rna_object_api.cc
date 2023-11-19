@@ -608,23 +608,27 @@ static void rna_Object_ray_cast(Object *ob,
     return;
   }
 
-  /* Test BoundBox first (efficiency) */
-  const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+
+  /* Test bounding box first (efficiency) */
+  const std::optional<blender::Bounds<blender::float3>> bounds = mesh_eval->bounds_min_max();
+  if (!bounds) {
+    return;
+  }
   float distmin;
 
   /* Needed for valid distance check from #isect_ray_aabb_v3_simple() call. */
   float direction_unit[3];
   normalize_v3_v3(direction_unit, direction);
 
-  if (!bb || (isect_ray_aabb_v3_simple(
-                  origin, direction_unit, bb->vec[0], bb->vec[6], &distmin, nullptr) &&
-              distmin <= distance))
+  if ((isect_ray_aabb_v3_simple(
+           origin, direction_unit, bounds->min, bounds->max, &distmin, nullptr) &&
+       distmin <= distance))
   {
     BVHTreeFromMesh treeData = {nullptr};
 
     /* No need to managing allocation or freeing of the BVH data.
      * This is generated and freed as needed. */
-    Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
     BKE_bvhtree_from_mesh_get(&treeData, mesh_eval, BVHTREE_FROM_LOOPTRI, 4);
 
     /* may fail if the mesh has no faces, in that case the ray-cast misses */
