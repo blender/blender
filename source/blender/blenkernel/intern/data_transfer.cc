@@ -1029,11 +1029,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
     if (r_map && cddata_type == CD_FAKE_CREASE) {
       if (!CustomData_get_layer_named(&me_dst->edge_data, CD_PROP_FLOAT, "crease_edge")) {
-        CustomData_add_layer_named(&me_dst->edge_data,
-                                   CD_PROP_FLOAT,
-                                   CD_SET_DEFAULT,
-                                   me_dst->totedge,
-                                   "crease_edge");
+        CustomData_add_layer_named(
+            &me_dst->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totedge, "crease_edge");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
