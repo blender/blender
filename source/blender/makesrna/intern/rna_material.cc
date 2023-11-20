@@ -930,7 +930,7 @@ void RNA_def_material(BlenderRNA *brna)
       prop,
       "Light Probe Volume Single Sided",
       "Consider material single sided for light probe volume capture. "
-      "Additionnaly helps rejecting probes inside the object to avoid light leaks");
+      "Additionally helps rejecting probes inside the object to avoid light leaks");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   /* TODO(fclem): Should be renamed to use_raytraced_refraction. */

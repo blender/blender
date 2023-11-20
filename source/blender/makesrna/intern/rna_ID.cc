@@ -916,10 +916,11 @@ static bool rna_ID_override_library_resync(ID *id,
   if (!override_library->hierarchy_root ||
       (override_library->flag & LIBOVERRIDE_FLAG_NO_HIERARCHY) != 0)
   {
-    BKE_reportf(reports,
-                RPT_ERROR_INVALID_INPUT,
-                "Data-block '%s' is not a liboverride, or not part of a liboverride hierarchy",
-                id->name);
+    BKE_reportf(
+        reports,
+        RPT_ERROR_INVALID_INPUT,
+        "Data-block '%s' is not a library override, or not part of a library override hierarchy",
+        id->name);
     return false;
   }
 
