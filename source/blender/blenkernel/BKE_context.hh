@@ -57,6 +57,7 @@ struct SpaceLink;
 struct SpaceNla;
 struct SpaceNode;
 struct SpaceOutliner;
+struct SpaceProjectSettings;
 struct SpaceProperties;
 struct SpaceSeq;
 struct SpaceSpreadsheet;
