@@ -76,7 +76,7 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
   void bind(const uint32_t binding, const VKBufferWithOffset &vertex_buffer);
   void bind(const uint32_t binding, const VkBuffer &vk_vertex_buffer, const VkDeviceSize offset);
   /* Bind the given buffer as an index buffer. */
-  void bind(const VKBufferWithOffset &index_buffer, VkIndexType index_type);
+  void bind(const VKBuffer &index_buffer, VkIndexType index_type);
 
   void begin_render_pass(VKFrameBuffer &framebuffer);
   void end_render_pass(const VKFrameBuffer &framebuffer);

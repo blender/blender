@@ -293,16 +293,14 @@ void VKCommandBuffers::bind(const uint32_t binding,
   command_buffer.command_recorded();
 }
 
-void VKCommandBuffers::bind(const VKBufferWithOffset &index_buffer, VkIndexType index_type)
+void VKCommandBuffers::bind(const VKBuffer &index_buffer, VkIndexType index_type)
 {
   VKCommandBuffer &command_buffer = command_buffer_get(Type::Graphics);
 
   validate_framebuffer_exists();
   ensure_active_framebuffer();
-  vkCmdBindIndexBuffer(command_buffer.vk_command_buffer(),
-                       index_buffer.buffer.vk_handle(),
-                       index_buffer.offset,
-                       index_type);
+  vkCmdBindIndexBuffer(
+      command_buffer.vk_command_buffer(), index_buffer.vk_handle(), 0, index_type);
   command_buffer.command_recorded();
 }
 
