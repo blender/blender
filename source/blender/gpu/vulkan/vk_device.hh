@@ -77,6 +77,7 @@ class VKDevice : public NonCopyable {
 
   /** Limits of the device linked to this context. */
   VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
+  VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
@@ -211,10 +212,13 @@ class VKDevice : public NonCopyable {
   void discard_frame_buffer(VkFramebuffer vk_framebuffer);
   void destroy_discarded_resources();
 
+  void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
+
   /** \} */
 
  private:
   void init_physical_device_properties();
+  void init_physical_device_memory_properties();
   void init_physical_device_features();
   void init_debug_callbacks();
   void init_memory_allocator();

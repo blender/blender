@@ -62,6 +62,7 @@ void VKDevice::init(void *ghost_context)
                          &vk_queue_);
 
   init_physical_device_properties();
+  init_physical_device_memory_properties();
   init_physical_device_features();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
@@ -83,6 +84,12 @@ void VKDevice::init_physical_device_properties()
 {
   BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
   vkGetPhysicalDeviceProperties(vk_physical_device_, &vk_physical_device_properties_);
+}
+
+void VKDevice::init_physical_device_memory_properties()
+{
+  BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
+  vkGetPhysicalDeviceMemoryProperties(vk_physical_device_, &vk_physical_device_memory_properties_);
 }
 
 void VKDevice::init_physical_device_features()
@@ -306,6 +313,31 @@ void VKDevice::destroy_discarded_resources()
     VkFramebuffer vk_frame_buffer = discarded_frame_buffers_.pop_last();
     vkDestroyFramebuffer(vk_device_, vk_frame_buffer, vk_allocation_callbacks);
   }
+}
+
+void VKDevice::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const
+{
+  VmaBudget budgets[VK_MAX_MEMORY_HEAPS];
+  vmaGetHeapBudgets(mem_allocator_get(), budgets);
+  VkDeviceSize total_mem = 0;
+  VkDeviceSize used_mem = 0;
+
+  for (int memory_heap_index : IndexRange(vk_physical_device_memory_properties_.memoryHeapCount)) {
+    const VkMemoryHeap &memory_heap =
+        vk_physical_device_memory_properties_.memoryHeaps[memory_heap_index];
+    const VmaBudget &budget = budgets[memory_heap_index];
+
+    /* Skip host memory-heaps. */
+    if (!bool(memory_heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)) {
+      continue;
+    }
+
+    total_mem += memory_heap.size;
+    used_mem += budget.usage;
+  }
+
+  *r_total_mem_kb = int(total_mem / 1024);
+  *r_free_mem_kb = int((total_mem - used_mem) / 1024);
 }
 
 /** \} */

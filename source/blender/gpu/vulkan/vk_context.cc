@@ -130,7 +130,11 @@ void VKContext::finish()
   command_buffers_.submit();
 }
 
-void VKContext::memory_statistics_get(int * /*total_mem*/, int * /*free_mem*/) {}
+void VKContext::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb)
+{
+  const VKDevice &device = VKBackend::get().device_get();
+  device.memory_statistics_get(r_total_mem_kb, r_free_mem_kb);
+}
 
 /* -------------------------------------------------------------------- */
 /** \name State manager

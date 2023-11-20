@@ -46,7 +46,7 @@ class VKContext : public Context, NonCopyable {
   void flush() override;
   void finish() override;
 
-  void memory_statistics_get(int *total_mem, int *free_mem) override;
+  void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) override;
 
   void debug_group_begin(const char *, int) override;
   void debug_group_end() override;
