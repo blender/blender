@@ -2629,9 +2629,9 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
 
   BKE_reportf(op->reports,
               RPT_ERROR,
-              "Too many potential root collections (%ld) for the override hierarchy, "
+              "Too many potential root collections (%d) for the override hierarchy, "
               "please use the Outliner instead",
-              potential_root_collections.size());
+              int(potential_root_collections.size()));
   return OPERATOR_CANCELLED;
 }
 
