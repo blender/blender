@@ -137,6 +137,9 @@ bool oneapi_run_test_kernel(SyclQueue *queue_)
 bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
                                             const uint kernel_features)
 {
+  /* Skip all non-Cycles kernels */
+  if (kernel_name.find("oneapi_kernel_") == std::string::npos)
+    return false;
   if ((kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) == 0 &&
       kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE)) !=
           std::string::npos)

@@ -222,7 +222,8 @@ enum_guiding_directional_sampling_types = (
 def enum_openimagedenoise_denoiser(self, context):
     import _cycles
     if _cycles.with_openimagedenoise:
-        return [('OPENIMAGEDENOISE', "OpenImageDenoise", "Use Intel OpenImageDenoise AI denoiser running on the CPU", 4)]
+        return [('OPENIMAGEDENOISE', "OpenImageDenoise",
+                 "Use Intel OpenImageDenoise AI denoiser", 4)]
     return []
 
 
