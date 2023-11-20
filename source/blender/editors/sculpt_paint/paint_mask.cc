@@ -28,7 +28,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
@@ -1530,7 +1530,7 @@ static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBV
     const float *co = SCULPT_vertex_co_get(sgcontext->ss, vd.vertex);
     SCULPT_vertex_normal_get(sgcontext->ss, vd.vertex, vertex_normal);
 
-    if (sculpt_gesture_is_effected(sgcontext, co, vertex_normal)) {
+    if (!sculpt_gesture_is_effected(sgcontext, co, vertex_normal)) {
       continue;
     }
 

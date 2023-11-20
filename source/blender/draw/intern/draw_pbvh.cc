@@ -35,11 +35,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_ccg.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -569,10 +569,9 @@ struct PBVHBatches {
         });
       }
       else {
-        foreach_grids(
-            [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-              *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
-            });
+        MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+                    GPU_vertbuf_get_vertex_len(vbo.vert_buf))
+            .fill(0.0f);
       }
     }
     else if (vbo.type == CD_PBVH_FSET_TYPE) {

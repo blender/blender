@@ -14,7 +14,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "bmesh.h"
 

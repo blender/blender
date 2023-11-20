@@ -40,7 +40,7 @@
 #  include "BLI_threads.h"
 
 #  include "BKE_colorband.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_particle.h"
 
 #  include "DEG_depsgraph.hh"

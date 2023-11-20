@@ -9,8 +9,8 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_editmesh.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -314,7 +314,7 @@ static bool raycastEditMesh(SnapCache_EditMesh *em_cache,
     local_depth *= local_scale;
   }
 
-  /* Test BoundBox */
+  /* Test bounding box */
 
   /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
   if (!isect_ray_aabb_v3_simple(

@@ -102,7 +102,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       BLI_assert_unreachable();
     }
     if (!params.output_was_set(0)) {
-      params.set_output(0, fn::ValueOrField<float>(delta_time));
+      params.set_output(0, bke::ValueOrField<float>(delta_time));
     }
   }
 

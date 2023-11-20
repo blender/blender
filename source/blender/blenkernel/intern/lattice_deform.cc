@@ -27,14 +27,15 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "BKE_deform.h"
 
@@ -58,8 +59,8 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
 {
   /* we make an array with all differences */
   Lattice *lt = BKE_object_get_lattice(oblatt);
-  DispList *dl = oblatt->runtime.curve_cache ?
-                     BKE_displist_find(&oblatt->runtime.curve_cache->disp, DL_VERTS) :
+  DispList *dl = oblatt->runtime->curve_cache ?
+                     BKE_displist_find(&oblatt->runtime->curve_cache->disp, DL_VERTS) :
                      nullptr;
   const float *co = dl ? dl->verts : nullptr;
   float *fp, imat[4][4];

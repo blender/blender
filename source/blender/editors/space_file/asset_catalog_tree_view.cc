@@ -12,7 +12,7 @@
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 
 #include "BLI_string_ref.hh"
 

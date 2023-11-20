@@ -10,7 +10,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

@@ -48,10 +48,10 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_blender_project.h"
 #include "BKE_blendfile.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"

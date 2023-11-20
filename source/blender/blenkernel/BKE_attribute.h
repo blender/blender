@@ -11,7 +11,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #ifdef __cplusplus
 extern "C" {

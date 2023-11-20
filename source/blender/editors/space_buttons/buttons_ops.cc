@@ -20,7 +20,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_appdir.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
@@ -329,6 +330,31 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       /* Annoying exception!, if we're dealing with the user preferences,
        * default relative to be off. */
       RNA_property_boolean_set(op->ptr, prop_relpath, is_relative);
+    }
+  }
+
+  if (!path[0]) {
+    /* Defaults if the path is empty. */
+    if (STR_ELEM(
+            RNA_property_identifier(prop), "font_path_ui", "font_path_ui_mono", "font_directory"))
+    {
+      if (!U.fontdir[0]) {
+        char fonts_dir[FILE_MAXDIR];
+        BKE_appdir_font_folder_default(fonts_dir, ARRAY_SIZE(fonts_dir));
+        BLI_path_slash_ensure(fonts_dir, ARRAY_SIZE(fonts_dir));
+        path = BLI_strdup(fonts_dir);
+      }
+      else {
+        MEM_freeN(path);
+        path = BLI_strdup(U.fontdir);
+      }
+      RNA_boolean_set(op->ptr, "filter_font", true);
+      RNA_enum_set(op->ptr, "display_type", FILE_IMGDISPLAY);
+      RNA_enum_set(op->ptr, "sort_method", FILE_SORT_ALPHA);
+    }
+    else {
+      MEM_freeN(path);
+      path = BLI_strdup(BKE_appdir_folder_default_or_root());
     }
   }
 

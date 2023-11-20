@@ -16,7 +16,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Instances").only_instances();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER).field_on_all();
+  b.add_input<decl::Rotation>("Rotation").field_on_all();
   b.add_input<decl::Vector>("Pivot Point").subtype(PROP_TRANSLATION).field_on_all();
   b.add_input<decl::Bool>("Local Space").default_value(true).field_on_all();
   b.add_output<decl::Geometry>("Instances").propagate_all();
@@ -29,13 +29,13 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
   const bke::InstancesFieldContext context{instances};
   fn::FieldEvaluator evaluator{context, instances.instances_num()};
   evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
-  evaluator.add(params.extract_input<Field<float3>>("Rotation"));
+  evaluator.add(params.extract_input<Field<math::Quaternion>>("Rotation"));
   evaluator.add(params.extract_input<Field<float3>>("Pivot Point"));
   evaluator.add(params.extract_input<Field<bool>>("Local Space"));
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> rotations = evaluator.get_evaluated<float3>(0);
+  const VArray<math::Quaternion> rotations = evaluator.get_evaluated<math::Quaternion>(0);
   const VArray<float3> pivots = evaluator.get_evaluated<float3>(1);
   const VArray<bool> local_spaces = evaluator.get_evaluated<bool>(2);
 
@@ -43,7 +43,7 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
 
   selection.foreach_index(GrainSize(512), [&](const int64_t i) {
     const float3 pivot = pivots[i];
-    const float3 euler = rotations[i];
+    const math::Quaternion rotation = rotations[i];
     float4x4 &instance_transform = transforms[i];
 
     float4x4 rotation_matrix;
@@ -53,12 +53,13 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
       /* Find rotation axis from the matrix. This should work even if the instance is skewed. */
       /* Create rotations around the individual axis. This could be optimized to skip some axis
        * when the angle is zero. */
+      const EulerXYZ euler = math::to_euler(rotation);
       const float3x3 rotation_x = from_rotation<float3x3>(
-          AxisAngle(normalize(instance_transform.x_axis()), euler.x));
+          AxisAngle(normalize(instance_transform.x_axis()), euler.x()));
       const float3x3 rotation_y = from_rotation<float3x3>(
-          AxisAngle(normalize(instance_transform.y_axis()), euler.y));
+          AxisAngle(normalize(instance_transform.y_axis()), euler.y()));
       const float3x3 rotation_z = from_rotation<float3x3>(
-          AxisAngle(normalize(instance_transform.z_axis()), euler.z));
+          AxisAngle(normalize(instance_transform.z_axis()), euler.z()));
 
       /* Combine the previously computed rotations into the final rotation matrix. */
       rotation_matrix = float4x4(rotation_z * rotation_y * rotation_x);
@@ -68,7 +69,7 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
     }
     else {
       used_pivot = pivot;
-      rotation_matrix = from_rotation<float4x4>(EulerXYZ(euler));
+      rotation_matrix = from_rotation<float4x4>(rotation);
     }
     /* Move the pivot to the origin so that we can rotate around it. */
     instance_transform.location() -= used_pivot;

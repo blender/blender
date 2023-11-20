@@ -140,7 +140,8 @@ class OUTLINER_MT_context_menu_view(Menu):
 
         layout.separator()
 
-        layout.operator("outliner.show_hierarchy")
+        layout.operator("outliner.expanded_toggle")
+        layout.operator("outliner.show_hierarchy", text="Show Object Hierarchy")
         layout.operator("outliner.show_one_level", text="Show One Level")
         layout.operator("outliner.show_one_level", text="Hide One Level").open = False
 

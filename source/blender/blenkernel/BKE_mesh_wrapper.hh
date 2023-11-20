@@ -7,6 +7,9 @@
  * \ingroup bke
  */
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
+
 struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Mesh;
@@ -15,7 +18,6 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings);
 void BKE_mesh_wrapper_ensure_mdata(Mesh *me);
-bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3]);
 
 int BKE_mesh_wrapper_vert_len(const Mesh *me);
 int BKE_mesh_wrapper_edge_len(const Mesh *me);
@@ -37,8 +39,7 @@ const float (*BKE_mesh_wrapper_face_normals(Mesh *mesh))[3];
 void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh);
 
 void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
-                                       float (*vert_coords)[3],
-                                       int vert_coords_len);
+                                       blender::MutableSpan<blender::float3> positions);
 void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
                                                  float (*vert_coords)[3],
                                                  int vert_coords_len,

@@ -15,7 +15,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "BKE_brush.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_paint.hh"
 

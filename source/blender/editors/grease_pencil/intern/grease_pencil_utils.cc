@@ -7,7 +7,7 @@
  */
 
 #include "BKE_brush.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "BLI_math_vector.hh"
@@ -83,7 +83,7 @@ static Array<int> get_frame_numbers_for_layer(const bke::greasepencil::Layer &la
   Vector<int> frame_numbers({current_frame});
   if (use_multi_frame_editing) {
     for (const auto [frame_number, frame] : layer.frames().items()) {
-      if (frame.is_selected()) {
+      if (frame_number != current_frame && frame.is_selected()) {
         frame_numbers.append_unchecked(frame_number);
       }
     }
@@ -101,9 +101,9 @@ Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
                                         GP_USE_MULTI_FRAME_EDITING) != 0;
 
   Vector<MutableDrawingInfo> editable_drawings;
-  Span<Layer *> layers = grease_pencil.layers_for_write();
+  Span<const Layer *> layers = grease_pencil.layers();
   for (const int layer_i : layers.index_range()) {
-    Layer *layer = layers[layer_i];
+    const Layer *layer = layers[layer_i];
     if (!layer->is_editable()) {
       continue;
     }

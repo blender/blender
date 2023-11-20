@@ -26,8 +26,6 @@ void VKDevice::deinit()
   if (!is_initialized()) {
     return;
   }
-  VK_ALLOCATION_CALLBACKS;
-  vkDestroyCommandPool(vk_device_, vk_command_pool_, vk_allocation_callbacks);
 
   dummy_buffer_.free();
   if (dummy_color_attachment_.has_value()) {
@@ -69,8 +67,6 @@ void VKDevice::init(void *ghost_context)
   VKBackend::capabilities_init(*this);
   init_debug_callbacks();
   init_memory_allocator();
-  init_command_pools();
-  init_descriptor_pools();
 
   samplers_.init();
 
@@ -117,22 +113,6 @@ void VKDevice::init_memory_allocator()
   info.instance = vk_instance_;
   info.pAllocationCallbacks = vk_allocation_callbacks;
   vmaCreateAllocator(&info, &mem_allocator_);
-}
-
-void VKDevice::init_command_pools()
-{
-  VK_ALLOCATION_CALLBACKS;
-  VkCommandPoolCreateInfo command_pool_info = {};
-  command_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  command_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  command_pool_info.queueFamilyIndex = vk_queue_family_;
-
-  vkCreateCommandPool(vk_device_, &command_pool_info, vk_allocation_callbacks, &vk_command_pool_);
-}
-
-void VKDevice::init_descriptor_pools()
-{
-  descriptor_pools_.init(vk_device_);
 }
 
 void VKDevice::init_dummy_buffer(VKContext &context)

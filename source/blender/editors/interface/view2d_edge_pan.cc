@@ -6,7 +6,7 @@
  * \ingroup spnode
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLI_rect.h"
 

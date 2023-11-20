@@ -8,7 +8,7 @@
 
 #include "BLI_math_matrix.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"

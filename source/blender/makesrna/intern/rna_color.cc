@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

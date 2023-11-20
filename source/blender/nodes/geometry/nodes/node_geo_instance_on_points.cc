@@ -37,10 +37,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Index of the instance used for each point. This is only used when Pick Instances "
           "is on. By default the point index is used");
-  b.add_input<decl::Vector>("Rotation")
-      .subtype(PROP_EULER)
-      .field_on({0})
-      .description("Rotation of the instances");
+  b.add_input<decl::Rotation>("Rotation").field_on({0}).description("Rotation of the instances");
   b.add_input<decl::Vector>("Scale")
       .default_value({1.0f, 1.0f, 1.0f})
       .subtype(PROP_XYZ)
@@ -63,7 +60,7 @@ static void add_instances_from_component(
 
   VArray<bool> pick_instance;
   VArray<int> indices;
-  VArray<float3> rotations;
+  VArray<math::Quaternion> rotations;
   VArray<float3> scales;
 
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
@@ -73,7 +70,7 @@ static void add_instances_from_component(
    * selected indices should be copied. */
   evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
   evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
-  evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
+  evaluator.add(params.get_input<Field<math::Quaternion>>("Rotation"), &rotations);
   evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
   evaluator.evaluate();
 
@@ -117,8 +114,7 @@ static void add_instances_from_component(
   selection.foreach_index(GrainSize(1024), [&](const int64_t i, const int64_t range_i) {
     /* Compute base transform for every instances. */
     float4x4 &dst_transform = dst_transforms[range_i];
-    dst_transform = math::from_loc_rot_scale<float4x4>(
-        positions[i], math::EulerXYZ(rotations[i]), scales[i]);
+    dst_transform = math::from_loc_rot_scale<float4x4>(positions[i], rotations[i], scales[i]);
 
     /* Reference that will be used by this new instance. */
     int dst_handle = empty_reference_handle;

@@ -15,9 +15,9 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_object.hh"
 

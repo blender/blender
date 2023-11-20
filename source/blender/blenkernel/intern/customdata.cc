@@ -6,7 +6,7 @@
  * \ingroup bke
  * Implementation of CustomData.
  *
- * BKE_customdata.h contains the function prototypes for this file.
+ * BKE_customdata.hh contains the function prototypes for this file.
  */
 
 #include "MEM_guardedalloc.h"
@@ -43,7 +43,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anonymous_attribute_id.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_customdata_file.h"
 #include "BKE_deform.h"
 #include "BKE_main.h"

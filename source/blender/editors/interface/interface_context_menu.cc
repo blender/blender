@@ -23,7 +23,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_addon.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_screen.hh"
 

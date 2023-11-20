@@ -29,7 +29,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"

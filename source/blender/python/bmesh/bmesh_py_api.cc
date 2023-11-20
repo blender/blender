@@ -23,7 +23,7 @@
 #include "bmesh_py_ops.h"
 #include "bmesh_py_utils.h"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 
 #include "DNA_mesh_types.h"
 

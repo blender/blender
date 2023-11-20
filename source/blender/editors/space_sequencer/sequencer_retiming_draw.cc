@@ -14,7 +14,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 

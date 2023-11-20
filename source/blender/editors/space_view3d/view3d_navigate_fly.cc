@@ -26,7 +26,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_report.h"
 

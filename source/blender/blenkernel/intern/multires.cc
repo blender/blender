@@ -24,7 +24,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
@@ -253,6 +253,9 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
 
   Object object_for_eval = blender::dna::shallow_copy(*object_eval);
+  blender::bke::ObjectRuntime runtime = *object_eval->runtime;
+  object_for_eval.runtime = &runtime;
+
   object_for_eval.data = object->data;
   object_for_eval.sculpt = nullptr;
 

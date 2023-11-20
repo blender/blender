@@ -23,7 +23,7 @@
 #include "BLI_quadric.h"
 #include "BLI_utildefines_stack.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "bmesh.h"
 #include "bmesh_decimate.h" /* own include */

@@ -19,8 +19,8 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 

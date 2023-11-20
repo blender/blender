@@ -32,7 +32,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 #  include "BKE_node.h"
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_interface.hh"
-#  include "BKE_node_tree_update.h"
+#  include "BKE_node_tree_update.hh"
 
 #  include "BLI_set.hh"
 

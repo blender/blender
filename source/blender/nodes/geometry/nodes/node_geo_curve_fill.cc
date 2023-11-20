@@ -246,6 +246,9 @@ static Mesh *cdts_to_mesh(const Span<meshintersect::CDT_result<double>> results)
    * triangulation mode. */
   BKE_mesh_calc_edges(mesh, true, false);
   BKE_mesh_smooth_flag_set(mesh, false);
+
+  mesh->tag_overlapping_none();
+
   return mesh;
 }
 

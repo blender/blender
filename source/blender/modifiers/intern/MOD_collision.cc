@@ -24,7 +24,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_collision.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"

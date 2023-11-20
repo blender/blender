@@ -102,7 +102,7 @@ static const EnumPropertyItem boidruleset_type_items[] = {
 
 #  include "BLI_math_base.h"
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_particle.h"
 
 #  include "DEG_depsgraph.hh"

@@ -15,6 +15,7 @@
 #include "BLI_math_basis_types.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_struct_equality_utils.hh"
 
 namespace blender::math {
 
@@ -157,10 +158,7 @@ template<typename T> struct QuaternionBase {
     return {-a.w, -a.x, -a.y, -a.z};
   }
 
-  friend bool operator==(const QuaternionBase &a, const QuaternionBase &b)
-  {
-    return (a.w == b.w) && (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_4(QuaternionBase, w, x, y, z)
 
   uint64_t hash() const
   {
@@ -264,11 +262,8 @@ template<typename T> struct DualQuaternionBase {
     return dq;
   }
 
-  friend bool operator==(const DualQuaternionBase &a, const DualQuaternionBase &b)
-  {
-    return (a.quat == b.quat) && (a.trans == b.trans) && (a.quat_weight == b.quat_weight) &&
-           (a.scale_weight == b.scale_weight) && (a.scale == b.scale);
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_5(
+      DualQuaternionBase, quat, trans, quat_weight, scale_weight, scale)
 
   friend std::ostream &operator<<(std::ostream &stream, const DualQuaternionBase &rot)
   {

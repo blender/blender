@@ -8,7 +8,7 @@
 
 #include "AS_asset_representation.hh"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_idtype.h"
 
 #include "BLI_listbase.h"

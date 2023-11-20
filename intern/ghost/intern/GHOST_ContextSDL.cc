@@ -90,11 +90,7 @@ GHOST_TSuccess GHOST_ContextSDL::releaseDrawingContext()
 
 GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 {
-#ifdef GHOST_OPENGL_ALPHA
-  const bool needAlpha = true;
-#else
   const bool needAlpha = false;
-#endif
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_contextProfileMask);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_contextMajorVersion);

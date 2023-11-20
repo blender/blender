@@ -14,7 +14,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"

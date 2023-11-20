@@ -17,7 +17,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.hh"
@@ -162,7 +162,7 @@ static void nla_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   /* own channels map first to override some channel keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Channels", SPACE_NLA, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Tracks", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   /* now generic channels map for everything else that can apply */
   keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", SPACE_EMPTY, RGN_TYPE_WINDOW);

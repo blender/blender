@@ -178,7 +178,6 @@ CCL_NAMESPACE_END
 #include "kernel/svm/mapping.h"
 #include "kernel/svm/math.h"
 #include "kernel/svm/mix.h"
-#include "kernel/svm/musgrave.h"
 #include "kernel/svm/noisetex.h"
 #include "kernel/svm/normal.h"
 #include "kernel/svm/ramp.h"
@@ -480,9 +479,6 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_TEX_VORONOI)
       offset = svm_node_tex_voronoi<node_feature_mask>(
           kg, sd, stack, node.y, node.z, node.w, offset);
-      break;
-      SVM_CASE(NODE_TEX_MUSGRAVE)
-      offset = svm_node_tex_musgrave(kg, sd, stack, node.y, node.z, node.w, offset);
       break;
       SVM_CASE(NODE_TEX_WAVE)
       offset = svm_node_tex_wave(kg, sd, stack, node, offset);

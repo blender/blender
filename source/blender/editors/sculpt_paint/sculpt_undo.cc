@@ -48,8 +48,8 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
@@ -413,8 +413,8 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
     blender::MutableSpan<blender::float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
-      float(*vertCos)[3];
-      vertCos = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
+      blender::MutableSpan<blender::float3> vertCos(
+          static_cast<blender::float3 *>(ss->shapekey_active->data), ss->shapekey_active->totelem);
 
       if (!unode->orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
@@ -439,9 +439,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
 
       /* PBVH uses its own vertex array, so coords should be */
       /* propagated to PBVH here. */
-      BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos, ss->shapekey_active->totelem);
-
-      MEM_freeN(vertCos);
+      BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos);
     }
     else {
       if (!unode->orig_co.is_empty()) {

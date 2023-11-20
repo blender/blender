@@ -20,7 +20,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_sort_utils.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"

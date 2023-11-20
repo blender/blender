@@ -11,7 +11,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 
 #include "ED_markers.hh"

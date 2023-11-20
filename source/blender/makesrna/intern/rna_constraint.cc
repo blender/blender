@@ -325,7 +325,7 @@ static const EnumPropertyItem target_space_object_items[] = {
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"
 #  include "BKE_constraint.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 
 #  ifdef WITH_ALEMBIC
 #    include "ABC_alembic.h"

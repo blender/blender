@@ -46,12 +46,12 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_curve_to_mesh.hh"
 #include "BKE_curves.h"
 #include "BKE_displist.h"
@@ -65,7 +65,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
@@ -81,13 +81,14 @@
 #include "BKE_nla.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_vfont.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -2704,7 +2705,7 @@ static void make_object_duplilist_real(bContext *C,
 
     ob_dst->parent = nullptr;
     BKE_constraints_free(&ob_dst->constraints);
-    ob_dst->runtime.curve_cache = nullptr;
+    ob_dst->runtime->curve_cache = nullptr;
     const bool is_dupli_instancer = (ob_dst->transflag & OB_DUPLI) != 0;
     ob_dst->transflag &= ~OB_DUPLI;
     /* Remove instantiated collection, it's annoying to keep it here
@@ -3248,8 +3249,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       bke::GeometrySet geometry;
-      if (ob_eval->runtime.geometry_set_eval != nullptr) {
-        geometry = *ob_eval->runtime.geometry_set_eval;
+      if (ob_eval->runtime->geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime->geometry_set_eval;
       }
 
       if (geometry.has_curves()) {
@@ -3546,8 +3547,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       bke::GeometrySet geometry;
-      if (ob_eval->runtime.geometry_set_eval != nullptr) {
-        geometry = *ob_eval->runtime.geometry_set_eval;
+      if (ob_eval->runtime->geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime->geometry_set_eval;
       }
 
       if (keep_original) {

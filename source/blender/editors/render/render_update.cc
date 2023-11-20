@@ -27,7 +27,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_icons.h"
 #include "BKE_main.h"
 #include "BKE_material.h"

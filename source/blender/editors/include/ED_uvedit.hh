@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 struct ARegion;
 struct ARegionType;

@@ -7,6 +7,8 @@
  */
 
 #include "vk_descriptor_pools.hh"
+#include "vk_backend.hh"
+#include "vk_device.hh"
 #include "vk_memory.hh"
 
 namespace blender::gpu {
@@ -15,18 +17,16 @@ VKDescriptorPools::VKDescriptorPools() {}
 VKDescriptorPools::~VKDescriptorPools()
 {
   VK_ALLOCATION_CALLBACKS
+  const VKDevice &device = VKBackend::get().device_get();
   for (const VkDescriptorPool vk_descriptor_pool : pools_) {
-    BLI_assert(vk_device_ != VK_NULL_HANDLE);
-    vkDestroyDescriptorPool(vk_device_, vk_descriptor_pool, vk_allocation_callbacks);
+    vkDestroyDescriptorPool(device.device_get(), vk_descriptor_pool, vk_allocation_callbacks);
   }
-  vk_device_ = VK_NULL_HANDLE;
 }
 
-void VKDescriptorPools::init(const VkDevice vk_device)
+void VKDescriptorPools::init(const VKDevice &device)
 {
-  BLI_assert(vk_device_ == VK_NULL_HANDLE);
-  vk_device_ = vk_device;
-  add_new_pool();
+  BLI_assert(pools_.is_empty());
+  add_new_pool(device);
 }
 
 void VKDescriptorPools::reset()
@@ -34,7 +34,7 @@ void VKDescriptorPools::reset()
   active_pool_index_ = 0;
 }
 
-void VKDescriptorPools::add_new_pool()
+void VKDescriptorPools::add_new_pool(const VKDevice &device)
 {
   VK_ALLOCATION_CALLBACKS
   Vector<VkDescriptorPoolSize> pool_sizes = {
@@ -52,7 +52,7 @@ void VKDescriptorPools::add_new_pool()
   pool_info.pPoolSizes = pool_sizes.data();
   VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
   VkResult result = vkCreateDescriptorPool(
-      vk_device_, &pool_info, vk_allocation_callbacks, &descriptor_pool);
+      device.device_get(), &pool_info, vk_allocation_callbacks, &descriptor_pool);
   UNUSED_VARS(result);
   pools_.append(descriptor_pool);
 }
@@ -83,6 +83,8 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
     const VkDescriptorSetLayout &descriptor_set_layout)
 {
   BLI_assert(descriptor_set_layout != VK_NULL_HANDLE);
+  const VKDevice &device = VKBackend::get().device_get();
+
   VkDescriptorSetAllocateInfo allocate_info = {};
   VkDescriptorPool pool = active_pool_get();
   allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -90,11 +92,12 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
   allocate_info.descriptorSetCount = 1;
   allocate_info.pSetLayouts = &descriptor_set_layout;
   VkDescriptorSet vk_descriptor_set = VK_NULL_HANDLE;
-  VkResult result = vkAllocateDescriptorSets(vk_device_, &allocate_info, &vk_descriptor_set);
+  VkResult result = vkAllocateDescriptorSets(
+      device.device_get(), &allocate_info, &vk_descriptor_set);
 
   if (ELEM(result, VK_ERROR_OUT_OF_POOL_MEMORY, VK_ERROR_FRAGMENTED_POOL)) {
     if (is_last_pool_active()) {
-      add_new_pool();
+      add_new_pool(device);
       activate_last_pool();
     }
     else {
@@ -104,15 +107,6 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
   }
 
   return std::make_unique<VKDescriptorSet>(pool, vk_descriptor_set);
-}
-
-void VKDescriptorPools::free(VKDescriptorSet &descriptor_set)
-{
-  VkDescriptorSet vk_descriptor_set = descriptor_set.vk_handle();
-  VkDescriptorPool vk_descriptor_pool = descriptor_set.vk_pool_handle();
-  BLI_assert(pools_.contains(vk_descriptor_pool));
-  vkFreeDescriptorSets(vk_device_, vk_descriptor_pool, 1, &vk_descriptor_set);
-  descriptor_set.mark_freed();
 }
 
 }  // namespace blender::gpu

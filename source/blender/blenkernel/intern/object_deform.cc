@@ -33,7 +33,7 @@
 
 #include "BKE_action.h"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

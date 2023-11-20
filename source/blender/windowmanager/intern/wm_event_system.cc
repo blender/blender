@@ -33,8 +33,8 @@
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_remap.h"

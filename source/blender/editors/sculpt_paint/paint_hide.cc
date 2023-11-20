@@ -22,7 +22,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_ccg.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
@@ -74,7 +74,7 @@ static void partialvis_update_mesh(Object *ob,
                                    float planes[4][4])
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  const float(*positions)[3] = BKE_pbvh_get_vert_positions(pbvh);
+  const blender::Span<blender::float3> positions = BKE_pbvh_get_vert_positions(pbvh);
   const float *paint_mask;
   bool any_changed = false, any_visible = false;
 

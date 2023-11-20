@@ -30,7 +30,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_vfontdata.h"
 
 #include "DNA_curve_types.h"

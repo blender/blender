@@ -74,6 +74,7 @@ set(LIB
 )
 
 set(SRC
+  camera.cc
   engine.cc
   final_engine.cc
   light_tasks_delegate.cc
@@ -82,6 +83,7 @@ set(SRC
   render_task_delegate.cc
   viewport_engine.cc
 
+  camera.h
   engine.h
   final_engine.h
   light_tasks_delegate.h

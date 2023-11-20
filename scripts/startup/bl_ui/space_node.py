@@ -472,6 +472,7 @@ class NODE_PT_geometry_node_tool_mode(Panel):
         group = snode.node_tree
 
         modes = (
+            ("is_mode_object", "Object Mode", 'OBJECT_DATAMODE'),
             ("is_mode_edit", "Edit Mode", 'EDITMODE_HLT'),
             ("is_mode_sculpt", "Sculpt Mode", 'SCULPTMODE_HLT'),
         )

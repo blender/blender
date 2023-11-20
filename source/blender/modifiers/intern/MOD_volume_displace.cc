@@ -12,7 +12,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_texture.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "BLT_translation.h"

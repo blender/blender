@@ -15,10 +15,10 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_material.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh.hh"
 #include "BKE_scene.h"
 
 #include "BLT_translation.h"

@@ -35,8 +35,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_editmesh.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
@@ -147,26 +147,6 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
   });
 }
 
-bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
-{
-  using namespace blender;
-  switch (me->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_BMESH:
-      return BKE_editmesh_cache_calc_minmax(me->edit_mesh, me->runtime->edit_data, min, max);
-    case ME_WRAPPER_TYPE_MDATA:
-    case ME_WRAPPER_TYPE_SUBD: {
-      if (const std::optional<Bounds<float3>> bounds = me->bounds_min_max()) {
-        copy_v3_v3(min, math::min(bounds->min, float3(min)));
-        copy_v3_v3(max, math::max(bounds->max, float3(max)));
-        return true;
-      }
-      return false;
-    }
-  }
-  BLI_assert_unreachable();
-  return false;
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Mesh Coordinate Access
  * \{ */
@@ -219,37 +199,28 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
   }
 }
 
-void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
-                                       float (*vert_coords)[3],
-                                       int vert_coords_len)
+void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me, blender::MutableSpan<float3> positions)
 {
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = me->edit_mesh->bm;
-      BLI_assert(vert_coords_len <= bm->totvert);
       blender::bke::EditMeshData *edit_data = me->runtime->edit_data;
       if (!edit_data->vertexCos.is_empty()) {
-        for (int i = 0; i < vert_coords_len; i++) {
-          copy_v3_v3(vert_coords[i], edit_data->vertexCos[i]);
-        }
+        positions.copy_from(edit_data->vertexCos);
       }
       else {
         BMIter iter;
         BMVert *v;
         int i;
         BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-          copy_v3_v3(vert_coords[i], v->co);
+          copy_v3_v3(positions[i], v->co);
         }
       }
       return;
     }
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
-      BLI_assert(vert_coords_len <= me->totvert);
-      const Span<float3> positions = me->vert_positions();
-      for (int i = 0; i < vert_coords_len; i++) {
-        copy_v3_v3(vert_coords[i], positions[i]);
-      }
+      positions.copy_from(me->vert_positions());
       return;
     }
   }

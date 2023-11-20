@@ -13,7 +13,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

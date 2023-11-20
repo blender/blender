@@ -8,24 +8,24 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_1d(
-    float p, float octaves, float roughness, float lacunarity, bool normalize)
+/* Fractal Brownian motion*/
+
+ccl_device_noinline float noise_fbm(
+    float p, float detail, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 15.0f);
-  int n = float_to_int(octaves);
-  for (int i = 0; i <= n; i++) {
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
     float t = snoise_1d(fscale * p);
     sum += t * amp;
     maxamp += amp;
-    amp *= clamp(roughness, 0.0f, 1.0f);
+    amp *= roughness;
     fscale *= lacunarity;
   }
-  float rmd = octaves - floorf(octaves);
+  float rmd = detail - floorf(detail);
   if (rmd != 0.0f) {
     float t = snoise_1d(fscale * p);
     float sum2 = sum + t * amp;
@@ -37,24 +37,22 @@ ccl_device_noinline float fractal_noise_1d(
   }
 }
 
-/* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_2d(
-    float2 p, float octaves, float roughness, float lacunarity, bool normalize)
+ccl_device_noinline float noise_fbm(
+    float2 p, float detail, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 15.0f);
-  int n = float_to_int(octaves);
-  for (int i = 0; i <= n; i++) {
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
     float t = snoise_2d(fscale * p);
     sum += t * amp;
     maxamp += amp;
-    amp *= clamp(roughness, 0.0f, 1.0f);
+    amp *= roughness;
     fscale *= lacunarity;
   }
-  float rmd = octaves - floorf(octaves);
+  float rmd = detail - floorf(detail);
   if (rmd != 0.0f) {
     float t = snoise_2d(fscale * p);
     float sum2 = sum + t * amp;
@@ -66,24 +64,22 @@ ccl_device_noinline float fractal_noise_2d(
   }
 }
 
-/* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_3d(
-    float3 p, float octaves, float roughness, float lacunarity, bool normalize)
+ccl_device_noinline float noise_fbm(
+    float3 p, float detail, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 15.0f);
-  int n = float_to_int(octaves);
-  for (int i = 0; i <= n; i++) {
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
     float t = snoise_3d(fscale * p);
     sum += t * amp;
     maxamp += amp;
-    amp *= clamp(roughness, 0.0f, 1.0f);
+    amp *= roughness;
     fscale *= lacunarity;
   }
-  float rmd = octaves - floorf(octaves);
+  float rmd = detail - floorf(detail);
   if (rmd != 0.0f) {
     float t = snoise_3d(fscale * p);
     float sum2 = sum + t * amp;
@@ -95,24 +91,22 @@ ccl_device_noinline float fractal_noise_3d(
   }
 }
 
-/* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_4d(
-    float4 p, float octaves, float roughness, float lacunarity, bool normalize)
+ccl_device_noinline float noise_fbm(
+    float4 p, float detail, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 15.0f);
-  int n = float_to_int(octaves);
-  for (int i = 0; i <= n; i++) {
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
     float t = snoise_4d(fscale * p);
     sum += t * amp;
     maxamp += amp;
-    amp *= clamp(roughness, 0.0f, 1.0f);
+    amp *= roughness;
     fscale *= lacunarity;
   }
-  float rmd = octaves - floorf(octaves);
+  float rmd = detail - floorf(detail);
   if (rmd != 0.0f) {
     float t = snoise_4d(fscale * p);
     float sum2 = sum + t * amp;
@@ -122,6 +116,418 @@ ccl_device_noinline float fractal_noise_4d(
   else {
     return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
   }
+}
+
+/* Multifractal */
+
+ccl_device_noinline float noise_multi_fractal(float p,
+                                              float detail,
+                                              float roughness,
+                                              float lacunarity)
+{
+  float value = 1.0f;
+  float pwr = 1.0f;
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
+    value *= (pwr * snoise_1d(p) + 1.0f);
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * snoise_1d(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_multi_fractal(float2 p,
+                                              float detail,
+                                              float roughness,
+                                              float lacunarity)
+{
+  float value = 1.0f;
+  float pwr = 1.0f;
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
+    value *= (pwr * snoise_2d(p) + 1.0f);
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * snoise_2d(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_multi_fractal(float3 p,
+                                              float detail,
+                                              float roughness,
+                                              float lacunarity)
+{
+  float value = 1.0f;
+  float pwr = 1.0f;
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
+    value *= (pwr * snoise_3d(p) + 1.0f);
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * snoise_3d(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_multi_fractal(float4 p,
+                                              float detail,
+                                              float roughness,
+                                              float lacunarity)
+{
+  float value = 1.0f;
+  float pwr = 1.0f;
+
+  for (int i = 0; i <= float_to_int(detail); i++) {
+    value *= (pwr * snoise_4d(p) + 1.0f);
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * snoise_4d(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+/* Heterogeneous Terrain */
+
+ccl_device_noinline float noise_hetero_terrain(
+    float p, float detail, float roughness, float lacunarity, float offset)
+{
+  float pwr = roughness;
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + snoise_1d(p);
+  p *= lacunarity;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    float increment = (snoise_1d(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    float increment = (snoise_1d(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_hetero_terrain(
+    float2 p, float detail, float roughness, float lacunarity, float offset)
+{
+  float pwr = roughness;
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + snoise_2d(p);
+  p *= lacunarity;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    float increment = (snoise_2d(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    float increment = (snoise_2d(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_hetero_terrain(
+    float3 p, float detail, float roughness, float lacunarity, float offset)
+{
+  float pwr = roughness;
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + snoise_3d(p);
+  p *= lacunarity;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    float increment = (snoise_3d(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    float increment = (snoise_3d(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_hetero_terrain(
+    float4 p, float detail, float roughness, float lacunarity, float offset)
+{
+  float pwr = roughness;
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + snoise_4d(p);
+  p *= lacunarity;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    float increment = (snoise_4d(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= roughness;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if (rmd != 0.0f) {
+    float increment = (snoise_4d(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+/* Hybrid Additive/Multiplicative Multifractal Terrain */
+
+ccl_device_noinline float noise_hybrid_multi_fractal(
+    float p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = 1.0f;
+  float value = 0.0f;
+  float weight = 1.0f;
+
+  for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (snoise_1d(p) + offset) * pwr;
+    pwr *= roughness;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if ((rmd != 0.0f) && (weight > 0.001f)) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+    float signal = (snoise_1d(p) + offset) * pwr;
+    value += rmd * weight * signal;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_hybrid_multi_fractal(
+    float2 p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = 1.0f;
+  float value = 0.0f;
+  float weight = 1.0f;
+
+  for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (snoise_2d(p) + offset) * pwr;
+    pwr *= roughness;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if ((rmd != 0.0f) && (weight > 0.001f)) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+    float signal = (snoise_2d(p) + offset) * pwr;
+    value += rmd * weight * signal;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_hybrid_multi_fractal(
+    float3 p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = 1.0f;
+  float value = 0.0f;
+  float weight = 1.0f;
+
+  for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (snoise_3d(p) + offset) * pwr;
+    pwr *= roughness;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if ((rmd != 0.0f) && (weight > 0.001f)) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+    float signal = (snoise_3d(p) + offset) * pwr;
+    value += rmd * weight * signal;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_hybrid_multi_fractal(
+    float4 p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = 1.0f;
+  float value = 0.0f;
+  float weight = 1.0f;
+
+  for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (snoise_4d(p) + offset) * pwr;
+    pwr *= roughness;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  float rmd = detail - floorf(detail);
+  if ((rmd != 0.0f) && (weight > 0.001f)) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+    float signal = (snoise_4d(p) + offset) * pwr;
+    value += rmd * weight * signal;
+  }
+
+  return value;
+}
+
+/* Ridged Multifractal Terrain */
+
+ccl_device_noinline float noise_ridged_multi_fractal(
+    float p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = roughness;
+
+  float signal = offset - fabsf(snoise_1d(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    p *= lacunarity;
+    weight = saturatef(signal * gain);
+    signal = offset - fabsf(snoise_1d(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= roughness;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_ridged_multi_fractal(
+    float2 p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = roughness;
+
+  float signal = offset - fabsf(snoise_2d(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    p *= lacunarity;
+    weight = saturatef(signal * gain);
+    signal = offset - fabsf(snoise_2d(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= roughness;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_ridged_multi_fractal(
+    float3 p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = roughness;
+
+  float signal = offset - fabsf(snoise_3d(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    p *= lacunarity;
+    weight = saturatef(signal * gain);
+    signal = offset - fabsf(snoise_3d(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= roughness;
+  }
+
+  return value;
+}
+
+ccl_device_noinline float noise_ridged_multi_fractal(
+    float4 p, float detail, float roughness, float lacunarity, float offset, float gain)
+{
+  float pwr = roughness;
+
+  float signal = offset - fabsf(snoise_4d(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  for (int i = 1; i <= float_to_int(detail); i++) {
+    p *= lacunarity;
+    weight = saturatef(signal * gain);
+    signal = offset - fabsf(snoise_4d(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= roughness;
+  }
+
+  return value;
 }
 
 CCL_NAMESPACE_END

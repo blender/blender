@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_span.hh"
 
@@ -69,36 +70,38 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Depsgr
 /**
  * Disable subdivision-surface temporal, get mapped coordinates, and enable it.
  */
-float (*BKE_crazyspace_get_mapped_editverts(Depsgraph *depsgraph, Object *obedit))[3];
+blender::Array<blender::float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *depsgraph,
+                                                                    Object *obedit);
 void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
-                                       float (*origcos)[3],
-                                       float (*mappedcos)[3],
+                                       blender::Span<blender::float3> origcos,
+                                       blender::Span<blender::float3> mappedcos,
                                        float (*quats)[4],
                                        bool use_select);
 void BKE_crazyspace_set_quats_mesh(Mesh *me,
-                                   float (*origcos)[3],
-                                   float (*mappedcos)[3],
+                                   blender::Span<blender::float3> origcos,
+                                   blender::Span<blender::float3> mappedcos,
                                    float (*quats)[4]);
 /**
  * Returns an array of deform matrices for crazy-space correction,
  * and the number of modifiers left.
  */
-int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
-                                                       Scene *,
-                                                       Object *,
-                                                       BMEditMesh *em,
-                                                       float (**deformmats)[3][3],
-                                                       float (**deformcos)[3]);
+int BKE_crazyspace_get_first_deform_matrices_editbmesh(
+    Depsgraph *depsgraph,
+    Scene *,
+    Object *,
+    BMEditMesh *em,
+    blender::Array<blender::float3x3, 0> &deformmats,
+    blender::Array<blender::float3, 0> &deformcos);
 int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
                                          Scene *scene,
                                          Object *ob,
-                                         float (**deformmats)[3][3],
-                                         float (**deformcos)[3]);
+                                         blender::Array<blender::float3x3, 0> &deformmats,
+                                         blender::Array<blender::float3, 0> &deformcos);
 void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
                                  Scene *scene,
                                  Object *ob,
-                                 float (**deformmats)[3][3],
-                                 float (**deformcos)[3]);
+                                 blender::Array<blender::float3x3, 0> &deformmats,
+                                 blender::Array<blender::float3, 0> &deformcos);
 
 /* -------------------------------------------------------------------- */
 /** \name Crazy-Space API

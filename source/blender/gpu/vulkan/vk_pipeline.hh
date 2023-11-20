@@ -38,7 +38,6 @@ class VKPipeline : NonCopyable {
   VkPipeline active_vk_pipeline_ = VK_NULL_HANDLE;
   /** Keep track of all pipelines as they can still be in flight. */
   Vector<VkPipeline> vk_pipelines_;
-  VKDescriptorSetTracker descriptor_set_;
   VKPushConstants push_constants_;
   VKPipelineStateManager state_manager_;
 
@@ -46,15 +45,12 @@ class VKPipeline : NonCopyable {
   VKPipeline() = default;
 
   virtual ~VKPipeline();
-  VKPipeline(VkDescriptorSetLayout vk_descriptor_set_layout, VKPushConstants &&push_constants);
-  VKPipeline(VkPipeline vk_pipeline,
-             VkDescriptorSetLayout vk_descriptor_set_layout,
-             VKPushConstants &&push_constants);
+  VKPipeline(VKPushConstants &&push_constants);
+  VKPipeline(VkPipeline vk_pipeline, VKPushConstants &&push_constants);
   VKPipeline &operator=(VKPipeline &&other)
   {
     active_vk_pipeline_ = other.active_vk_pipeline_;
     other.active_vk_pipeline_ = VK_NULL_HANDLE;
-    descriptor_set_ = std::move(other.descriptor_set_);
     push_constants_ = std::move(other.push_constants_);
     vk_pipelines_ = std::move(other.vk_pipelines_);
     other.vk_pipelines_.clear();
@@ -62,16 +58,9 @@ class VKPipeline : NonCopyable {
   }
 
   static VKPipeline create_compute_pipeline(VkShaderModule compute_module,
-                                            VkDescriptorSetLayout &descriptor_set_layout,
                                             VkPipelineLayout &pipeline_layouts,
                                             const VKPushConstants::Layout &push_constants_layout);
-  static VKPipeline create_graphics_pipeline(VkDescriptorSetLayout &descriptor_set_layout,
-                                             const VKPushConstants::Layout &push_constants_layout);
-
-  VKDescriptorSetTracker &descriptor_set_get()
-  {
-    return descriptor_set_;
-  }
+  static VKPipeline create_graphics_pipeline(const VKPushConstants::Layout &push_constants_layout);
 
   VKPushConstants &push_constants_get()
   {
@@ -94,12 +83,8 @@ class VKPipeline : NonCopyable {
                 const GPUPrimType prim_type,
                 const VKVertexAttributeObject &vertex_attribute_object);
 
-  /**
-   * Update PushConstants, DescriptorSets and bind pipeline to command buffer.
-   */
-  void update_and_bind(VKContext &context,
-                       VkPipelineLayout vk_pipeline_layout,
-                       VkPipelineBindPoint vk_pipeline_bind_point);
+  void bind(VKContext &context, VkPipelineBindPoint vk_pipeline_bind_point);
+  void update_push_constants(VKContext &context);
 };
 
 }  // namespace blender::gpu

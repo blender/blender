@@ -13,7 +13,7 @@
 
 #include "DNA_screen_types.h"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_report.h"
 
 #include "BLT_translation.h"

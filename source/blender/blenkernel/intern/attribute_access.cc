@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "BKE_attribute_math.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"

@@ -977,9 +977,9 @@ void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
     seq_retiming_key_offset(scene, seq, key, offset);
   }
 
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
   seq_time_update_effects_strip_range(scene, effects);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
 
 void SEQ_retiming_key_speed_set(const Scene *scene,

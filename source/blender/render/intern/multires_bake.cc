@@ -21,7 +21,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_threads.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
 #include "BKE_global.h"
 #include "BKE_image.h"

@@ -18,7 +18,7 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
 
 #include "BLO_read_write.hh"

@@ -15,7 +15,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h" /* #BoundBox. */
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 struct BMesh;
 struct BMeshCreateParams;

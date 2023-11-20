@@ -620,13 +620,14 @@ VKShader::~VKShader()
     vkDestroyShaderModule(device.device_get(), compute_module_, vk_allocation_callbacks);
     compute_module_ = VK_NULL_HANDLE;
   }
-  if (pipeline_layout_ != VK_NULL_HANDLE) {
-    vkDestroyPipelineLayout(device.device_get(), pipeline_layout_, vk_allocation_callbacks);
-    pipeline_layout_ = VK_NULL_HANDLE;
+  if (vk_pipeline_layout_ != VK_NULL_HANDLE) {
+    vkDestroyPipelineLayout(device.device_get(), vk_pipeline_layout_, vk_allocation_callbacks);
+    vk_pipeline_layout_ = VK_NULL_HANDLE;
   }
-  if (layout_ != VK_NULL_HANDLE) {
-    vkDestroyDescriptorSetLayout(device.device_get(), layout_, vk_allocation_callbacks);
-    layout_ = VK_NULL_HANDLE;
+  if (vk_descriptor_set_layout_ != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(
+        device.device_get(), vk_descriptor_set_layout_, vk_allocation_callbacks);
+    vk_descriptor_set_layout_ = VK_NULL_HANDLE;
   }
 }
 
@@ -702,8 +703,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
     BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||
                (fragment_module_ == VK_NULL_HANDLE && info->tf_type_ != GPU_SHADER_TFB_NONE));
     BLI_assert(compute_module_ == VK_NULL_HANDLE);
-    pipeline_ = VKPipeline::create_graphics_pipeline(layout_,
-                                                     vk_interface->push_constants_layout_get());
+    pipeline_ = VKPipeline::create_graphics_pipeline(vk_interface->push_constants_layout_get());
     result = true;
   }
   else {
@@ -712,7 +712,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
     BLI_assert(fragment_module_ == VK_NULL_HANDLE);
     BLI_assert(compute_module_ != VK_NULL_HANDLE);
     pipeline_ = VKPipeline::create_compute_pipeline(
-        compute_module_, layout_, pipeline_layout_, vk_interface->push_constants_layout_get());
+        compute_module_, vk_pipeline_layout_, vk_interface->push_constants_layout_get());
     result = pipeline_.is_valid();
   }
 
@@ -730,13 +730,13 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
 {
   VK_ALLOCATION_CALLBACKS
 
-  const uint32_t layout_count = layout_ == VK_NULL_HANDLE ? 0 : 1;
+  const uint32_t layout_count = vk_descriptor_set_layout_ == VK_NULL_HANDLE ? 0 : 1;
   VkPipelineLayoutCreateInfo pipeline_info = {};
   VkPushConstantRange push_constant_range = {};
   pipeline_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipeline_info.flags = 0;
   pipeline_info.setLayoutCount = layout_count;
-  pipeline_info.pSetLayouts = &layout_;
+  pipeline_info.pSetLayouts = &vk_descriptor_set_layout_;
 
   /* Setup push constants. */
   const VKPushConstants::Layout &push_constants_layout =
@@ -751,7 +751,7 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
   }
 
   if (vkCreatePipelineLayout(
-          vk_device, &pipeline_info, vk_allocation_callbacks, &pipeline_layout_) != VK_SUCCESS)
+          vk_device, &pipeline_info, vk_allocation_callbacks, &vk_pipeline_layout_) != VK_SUCCESS)
   {
     return false;
   };
@@ -952,12 +952,13 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
                                                                      VK_SHADER_STAGE_COMPUTE_BIT;
   VkDescriptorSetLayoutCreateInfo layout_info = create_descriptor_set_layout(
       shader_interface, all_resources, bindings, vk_shader_stages);
-  if (vkCreateDescriptorSetLayout(vk_device, &layout_info, vk_allocation_callbacks, &layout_) !=
+  if (vkCreateDescriptorSetLayout(
+          vk_device, &layout_info, vk_allocation_callbacks, &vk_descriptor_set_layout_) !=
       VK_SUCCESS)
   {
     return false;
   };
-  debug::object_label(layout_, name_get());
+  debug::object_label(vk_descriptor_set_layout_, name_get());
 
   return true;
 }
@@ -988,7 +989,7 @@ void VKShader::update_graphics_pipeline(VKContext &context,
                           vertex_module_,
                           geometry_module_,
                           fragment_module_,
-                          pipeline_layout_,
+                          vk_pipeline_layout_,
                           prim_type,
                           vertex_attribute_object);
 }

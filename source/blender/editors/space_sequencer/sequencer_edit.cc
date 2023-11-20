@@ -25,7 +25,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
@@ -386,6 +386,8 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
           SEQ_time_right_handle_frame_set(scene, seq, snap_frame);
         }
       }
+
+      SEQ_relations_invalidate_cache_composite(scene, seq);
     }
   }
 
@@ -1429,8 +1431,10 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
 
   const bool use_cursor_position = RNA_boolean_get(op->ptr, "use_cursor_position");
 
-  const int split_frame = use_cursor_position ? RNA_int_get(op->ptr, "frame") : scene->r.cfra;
-  const int split_channel = use_cursor_position ? RNA_int_get(op->ptr, "channel") : 0;
+  const int split_frame = RNA_struct_property_is_set(op->ptr, "frame") ?
+                              RNA_int_get(op->ptr, "frame") :
+                              scene->r.cfra;
+  const int split_channel = RNA_int_get(op->ptr, "channel");
 
   const eSeqSplitMethod method = eSeqSplitMethod(RNA_enum_get(op->ptr, "type"));
   const int split_side = sequence_split_side_for_exec_get(op);

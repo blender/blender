@@ -37,6 +37,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!check_tool_context_and_error(params)) {
     return;
   }
+  if (params.user_data()->operator_data->mode == OB_MODE_OBJECT) {
+    params.error_message_add(NodeWarningType::Error,
+                             "Selection control is not supported in object mode");
+    return;
+  }
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
   const eAttrDomain domain = eAttrDomain(params.node().custom1);
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");

@@ -139,9 +139,9 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
   }
 
   SEQ_offset_animdata(evil_scene, seq, delta);
-  SEQ_time_update_meta_strip_range(evil_scene, seq_sequence_lookup_meta_by_seq(evil_scene, seq));
   blender::Span effects = seq_sequence_lookup_effects_by_seq(evil_scene, seq);
   seq_time_update_effects_strip_range(evil_scene, effects);
+  SEQ_time_update_meta_strip_range(evil_scene, seq_sequence_lookup_meta_by_seq(evil_scene, seq));
 }
 
 bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,

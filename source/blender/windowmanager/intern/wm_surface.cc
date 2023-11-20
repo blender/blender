@@ -6,7 +6,7 @@
  * \ingroup wm
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLF_api.h"
 

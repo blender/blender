@@ -11,7 +11,7 @@
 
 #include "RNA_types.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 namespace blender::asset_system {
 class AssetRepresentation;

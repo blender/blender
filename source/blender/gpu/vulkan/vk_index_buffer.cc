@@ -58,7 +58,7 @@ void VKIndexBuffer::bind(int binding,
   const std::optional<VKDescriptorSet::Location> location =
       shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
-    shader->pipeline_get().descriptor_set_get().bind_as_ssbo(*this, *location);
+    context.descriptor_set_get().bind_as_ssbo(*this, *location);
   }
 }
 

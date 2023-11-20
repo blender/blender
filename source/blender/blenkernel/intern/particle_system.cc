@@ -54,10 +54,10 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_particle.h"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_cloth.hh"
 #include "BKE_collection.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

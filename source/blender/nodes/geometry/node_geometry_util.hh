@@ -7,6 +7,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_socket_value.hh"
 
 #include "NOD_geometry_exec.hh"
 #include "NOD_register.hh"
@@ -38,7 +39,7 @@ void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
 void transform_mesh(Mesh &mesh,
                     const float3 translation,
-                    const float3 rotation,
+                    const math::Quaternion rotation,
                     const float3 scale);
 
 void transform_geometry_set(GeoNodeExecParams &params,
@@ -132,6 +133,9 @@ const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext *
                                                                       PointerRNA * /*ptr*/,
                                                                       PropertyRNA * /*prop*/,
                                                                       bool *r_free);
+
+const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version3_fn(
+    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free);
 
 }  // namespace enums
 

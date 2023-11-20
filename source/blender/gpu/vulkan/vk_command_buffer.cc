@@ -13,12 +13,17 @@ namespace blender::gpu {
 
 VKCommandBuffer::~VKCommandBuffer()
 {
+  free();
+}
+
+void VKCommandBuffer::free()
+{
   if (vk_command_buffer_ != VK_NULL_HANDLE) {
     VKDevice &device = VKBackend::get().device_get();
-    vkFreeCommandBuffers(
-        device.device_get(), device.vk_command_pool_get(), 1, &vk_command_buffer_);
+    vkFreeCommandBuffers(device.device_get(), vk_command_pool_, 1, &vk_command_buffer_);
     vk_command_buffer_ = VK_NULL_HANDLE;
   }
+  vk_command_pool_ = VK_NULL_HANDLE;
 }
 
 bool VKCommandBuffer::is_initialized() const
@@ -26,12 +31,14 @@ bool VKCommandBuffer::is_initialized() const
   return vk_command_buffer_ != VK_NULL_HANDLE;
 }
 
-void VKCommandBuffer::init(VkCommandBuffer vk_command_buffer)
+void VKCommandBuffer::init(const VkCommandPool vk_command_pool,
+                           const VkCommandBuffer vk_command_buffer)
 {
   if (is_initialized()) {
     return;
   }
 
+  vk_command_pool_ = vk_command_pool;
   vk_command_buffer_ = vk_command_buffer;
   state.stage = Stage::Initial;
 }

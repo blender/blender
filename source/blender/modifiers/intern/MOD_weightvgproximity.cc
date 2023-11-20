@@ -25,11 +25,11 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_colortools.h" /* CurveMapping. */
-#include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"

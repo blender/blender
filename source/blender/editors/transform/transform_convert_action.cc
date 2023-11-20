@@ -16,7 +16,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -423,8 +423,11 @@ static int GPLayerToTransData(TransData *td,
         tfd->val = float(gpf->framenum);
         tfd->sdata = &gpf->framenum;
 
-        td->val = td->loc = &tfd->val;
-        td->ival = td->iloc[0] = tfd->val;
+        td->loc = tfd->loc;
+        td->iloc[0] = tfd->loc[0];
+
+        td->val = &tfd->val;
+        td->ival = tfd->val;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
@@ -535,8 +538,11 @@ static int MaskLayerToTransData(TransData *td,
         tfd->val = float(masklay_shape->frame);
         tfd->sdata = &masklay_shape->frame;
 
-        td->val = td->loc = &tfd->val;
-        td->ival = td->iloc[0] = tfd->val;
+        td->loc = tfd->loc;
+        td->iloc[0] = tfd->loc[0];
+
+        td->val = &tfd->val;
+        td->ival = tfd->val;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;

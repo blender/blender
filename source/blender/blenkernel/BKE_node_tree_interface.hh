@@ -27,7 +27,7 @@ class bNodeTreeInterfaceRuntime {
  private:
   /**
    * Keeps track of what changed in the node tree until the next update.
-   * Should not be changed directly, instead use the functions in `BKE_node_tree_update.h`.
+   * Should not be changed directly, instead use the functions in `BKE_node_tree_update.hh`.
    * #NodeTreeInterfaceChangedFlag.
    */
   uint32_t changed_flag_ = 0;

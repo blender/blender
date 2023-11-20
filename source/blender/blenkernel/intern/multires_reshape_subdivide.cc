@@ -13,7 +13,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"

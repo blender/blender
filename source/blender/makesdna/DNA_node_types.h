@@ -931,8 +931,9 @@ typedef enum GeometryNodeAssetTraitFlag {
   GEO_NODE_ASSET_CURVE = (1 << 4),
   GEO_NODE_ASSET_POINT_CLOUD = (1 << 5),
   GEO_NODE_ASSET_MODIFIER = (1 << 6),
+  GEO_NODE_ASSET_OBJECT = (1 << 7),
 } GeometryNodeAssetTraitFlag;
-ENUM_OPERATORS(GeometryNodeAssetTraitFlag, GEO_NODE_ASSET_MODIFIER);
+ENUM_OPERATORS(GeometryNodeAssetTraitFlag, GEO_NODE_ASSET_OBJECT);
 
 /* Data structs, for `node->storage`. */
 
@@ -1281,8 +1282,9 @@ typedef struct NodeTexGradient {
 typedef struct NodeTexNoise {
   NodeTexBase base;
   int dimensions;
+  uint8_t type;
   uint8_t normalize;
-  char _pad[3];
+  char _pad[2];
 } NodeTexNoise;
 
 typedef struct NodeTexVoronoi {
@@ -1296,9 +1298,9 @@ typedef struct NodeTexVoronoi {
 } NodeTexVoronoi;
 
 typedef struct NodeTexMusgrave {
-  NodeTexBase base;
-  int musgrave_type;
-  int dimensions;
+  NodeTexBase base DNA_DEPRECATED;
+  int musgrave_type DNA_DEPRECATED;
+  int dimensions DNA_DEPRECATED;
 } NodeTexMusgrave;
 
 typedef struct NodeTexWave {
@@ -2038,13 +2040,22 @@ enum {
   SHD_VORONOI_N_SPHERE_RADIUS = 4,
 };
 
-/* musgrave texture */
+/* Deprecated Musgrave Texture. Keep for Versioning */
 enum {
   SHD_MUSGRAVE_MULTIFRACTAL = 0,
   SHD_MUSGRAVE_FBM = 1,
   SHD_MUSGRAVE_HYBRID_MULTIFRACTAL = 2,
   SHD_MUSGRAVE_RIDGED_MULTIFRACTAL = 3,
   SHD_MUSGRAVE_HETERO_TERRAIN = 4,
+};
+
+/* Noise Texture */
+enum {
+  SHD_NOISE_MULTIFRACTAL = 0,
+  SHD_NOISE_FBM = 1,
+  SHD_NOISE_HYBRID_MULTIFRACTAL = 2,
+  SHD_NOISE_RIDGED_MULTIFRACTAL = 3,
+  SHD_NOISE_HETERO_TERRAIN = 4,
 };
 
 /* wave texture */

@@ -24,7 +24,7 @@
 #include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "DNA_meshdata_types.h"
 

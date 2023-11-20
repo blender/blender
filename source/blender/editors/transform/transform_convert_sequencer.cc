@@ -14,7 +14,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -220,6 +220,10 @@ static TransData *SeqToTransData(Scene *scene,
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
+
+  /* Time Transform (extend) */
+  td->val = td2d->loc;
+  td->ival = td2d->loc[0];
 
   return td;
 }

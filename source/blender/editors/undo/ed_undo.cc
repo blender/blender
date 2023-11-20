@@ -22,7 +22,7 @@
 
 #include "BKE_blender_undo.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"

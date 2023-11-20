@@ -136,10 +136,6 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   bool isDialog() const override;
 
-#ifdef GHOST_OPENGL_ALPHA
-  void setOpaque() const;
-#endif
-
 #ifdef WITH_INPUT_IME
   void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override;
   void endIME() override;

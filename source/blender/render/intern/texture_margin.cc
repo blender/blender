@@ -12,8 +12,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 

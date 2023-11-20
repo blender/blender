@@ -12,7 +12,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_pointcloud.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "NOD_rna_define.hh"

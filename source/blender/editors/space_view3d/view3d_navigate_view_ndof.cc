@@ -6,7 +6,7 @@
  * \ingroup spview3d
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"

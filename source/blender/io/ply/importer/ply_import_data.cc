@@ -131,6 +131,9 @@ static int get_index(const PlyElement &element, StringRef property)
 static const char *parse_row_ascii(PlyReadBuffer &file, Vector<float> &r_values)
 {
   Span<char> line = file.read_line();
+  if (line.is_empty()) {
+    return "Could not read row of ascii property";
+  }
 
   /* Parse whole line as floats. */
   const char *p = line.data();

@@ -19,28 +19,29 @@
 #include "BLF_api.h"
 
 #include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_curves.h"
 #include "BKE_duplilist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.hh"
 #include "BKE_subdiv_modifier.hh"
-#include "BKE_viewer_path.h"
-#include "BKE_volume.h"
+#include "BKE_viewer_path.hh"
+#include "BKE_volume.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
@@ -741,11 +742,14 @@ static void duplidata_key_free(void *key)
   }
   else {
     Object temp_object = blender::dna::shallow_copy(*dupli_key->ob);
+    blender::bke::ObjectRuntime runtime = *dupli_key->ob->runtime;
+    temp_object.runtime = &runtime;
+
     /* Do not modify the original bound-box. */
-    temp_object.runtime.bb = nullptr;
+    temp_object.runtime->bb = nullptr;
     BKE_object_replace_data_on_shallow_copy(&temp_object, dupli_key->ob_data);
     drw_batch_cache_generate_requested(&temp_object);
-    MEM_SAFE_FREE(temp_object.runtime.bb);
+    MEM_SAFE_FREE(temp_object.runtime->bb);
   }
   MEM_freeN(key);
 }
@@ -2562,7 +2566,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
             }
           }
 
-          DRW_select_load_id(ob->runtime.select_id);
+          DRW_select_load_id(ob->runtime->select_id);
           DST.dupli_parent = data_.dupli_parent;
           DST.dupli_source = data_.dupli_object_current;
           drw_duplidata_load(ob);

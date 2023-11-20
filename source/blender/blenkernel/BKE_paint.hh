@@ -9,8 +9,10 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
@@ -21,7 +23,7 @@
 #include "DNA_object_enums.h"
 
 #include "BKE_attribute.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh.hh"
 
 #include "bmesh.h"
 
@@ -387,7 +389,7 @@ struct SculptPersistentBase {
 
 struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
-  BLI_bitmap *boundary;
+  blender::BitVector<> boundary;
 };
 
 struct SculptBoundaryEditInfo {
@@ -625,11 +627,14 @@ struct SculptSession {
   /* PBVH acceleration structure */
   PBVH *pbvh;
 
-  /* Painting on deformed mesh */
-  bool deform_modifiers_active; /* Object is deformed with some modifiers. */
-  float (*orig_cos)[3];         /* Coords of un-deformed mesh. */
-  float (*deform_cos)[3];       /* Coords of deformed mesh but without stroke displacement. */
-  float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
+  /* Object is deformed with some modifiers. */
+  bool deform_modifiers_active;
+  /* Coords of un-deformed mesh. */
+  blender::Array<blender::float3> orig_cos;
+  /* Coords of deformed mesh but without stroke displacement. */
+  blender::Array<blender::float3, 0> deform_cos;
+  /* Crazy-space deformation matrices. */
+  blender::Array<blender::float3x3, 0> deform_imats;
 
   /* Pool for texture evaluations. */
   ImagePool *tex_pool;

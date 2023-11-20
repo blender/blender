@@ -347,7 +347,7 @@ class NLA_MT_context_menu(Menu):
 
 
 class NLA_MT_channel_context_menu(Menu):
-    bl_label = "NLA Channel"
+    bl_label = "NLA Tracks"
 
     def draw(self, _context):
         layout = self.layout

@@ -24,7 +24,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"

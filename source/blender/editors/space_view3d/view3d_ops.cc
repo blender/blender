@@ -19,7 +19,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_blender_copybuffer.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
 

@@ -27,8 +27,8 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"

@@ -9,7 +9,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"

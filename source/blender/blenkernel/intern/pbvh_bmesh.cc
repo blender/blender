@@ -16,7 +16,7 @@
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
 #include "BKE_pbvh_api.hh"
 

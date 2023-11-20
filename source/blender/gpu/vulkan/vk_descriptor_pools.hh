@@ -13,6 +13,7 @@
 #include "vk_descriptor_set.hh"
 
 namespace blender::gpu {
+class VKDevice;
 
 /**
  * List of VkDescriptorPools.
@@ -38,7 +39,6 @@ class VKDescriptorPools {
   static constexpr uint32_t POOL_SIZE_UNIFORM_BUFFER = 1000;
   static constexpr uint32_t POOL_SIZE_UNIFORM_TEXEL_BUFFER = 1000;
 
-  VkDevice vk_device_ = VK_NULL_HANDLE;
   Vector<VkDescriptorPool> pools_;
   int64_t active_pool_index_ = 0;
 
@@ -46,10 +46,9 @@ class VKDescriptorPools {
   VKDescriptorPools();
   ~VKDescriptorPools();
 
-  void init(const VkDevice vk_device);
+  void init(const VKDevice &vk_device);
 
   std::unique_ptr<VKDescriptorSet> allocate(const VkDescriptorSetLayout &descriptor_set_layout);
-  void free(VKDescriptorSet &descriptor_set);
 
   /**
    * Reset the pools to start looking for free space from the first descriptor pool.
@@ -61,6 +60,6 @@ class VKDescriptorPools {
   void activate_next_pool();
   void activate_last_pool();
   bool is_last_pool_active();
-  void add_new_pool();
+  void add_new_pool(const VKDevice &device);
 };
 }  // namespace blender::gpu

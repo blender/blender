@@ -19,7 +19,7 @@
 
 #include "BKE_asset_library_custom.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 

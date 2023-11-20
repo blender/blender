@@ -18,7 +18,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 
 #include "ED_anim_api.hh"

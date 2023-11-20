@@ -6,7 +6,9 @@
  * \ingroup draw_engine
  */
 
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
+
 #include "BLI_math_color.h"
 #include "DRW_render.h"
 
@@ -80,7 +82,7 @@ void OVERLAY_mode_transfer_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   const float animation_time = pd->mode_transfer.time -
-                               ob->runtime.overlay_mode_transfer_start_time;
+                               ob->runtime->overlay_mode_transfer_start_time;
 
   if (!mode_transfer_is_animation_running(animation_time)) {
     return;

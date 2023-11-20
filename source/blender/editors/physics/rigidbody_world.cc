@@ -18,7 +18,7 @@
 #  include "RBI_api.h"
 #endif
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"

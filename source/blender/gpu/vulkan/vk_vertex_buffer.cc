@@ -69,7 +69,7 @@ void VKVertexBuffer::bind(int binding,
   }
 
   /* TODO: Check if we can move this check inside the descriptor set. */
-  VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+  VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
   if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
     descriptor_set.bind(*this, *location);
   }

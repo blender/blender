@@ -9,7 +9,7 @@
 #include <pxr/usd/usd/stage.h>
 
 #include "BKE_appdir.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"

@@ -14,9 +14,9 @@
 #include "DNA_defs.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
-#include "BKE_editmesh_tangent.h"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_editmesh_tangent.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_tangent.hh" /* for utility functions */
 

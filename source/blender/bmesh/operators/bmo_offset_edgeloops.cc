@@ -17,7 +17,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines_stack.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "bmesh.h"
 

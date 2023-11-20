@@ -11,8 +11,8 @@
 #include "BLI_math_quaternion.hh"
 
 #include "BKE_attribute.h"
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
 #include "BKE_report.h"

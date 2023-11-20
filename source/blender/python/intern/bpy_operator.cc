@@ -42,7 +42,7 @@
 
 #include "BLI_ghash.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_report.h"
 
 /* so operators called can spawn threads which acquire the GIL */

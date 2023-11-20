@@ -23,7 +23,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
 #include "BKE_main.h"

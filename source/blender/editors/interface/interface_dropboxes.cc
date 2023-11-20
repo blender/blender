@@ -6,7 +6,7 @@
  * \ingroup edinterface
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLI_string.h"
 #include "BLT_translation.h"
