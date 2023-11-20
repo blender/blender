@@ -73,8 +73,7 @@ class OutputFieldDependency {
   OutputSocketFieldType field_type() const;
   Span<int> linked_input_indices() const;
 
-  friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b);
-  friend bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b);
+  BLI_STRUCT_EQUALITY_OPERATORS_2(OutputFieldDependency, type_, linked_input_indices_)
 };
 
 /**
@@ -84,8 +83,7 @@ struct FieldInferencingInterface {
   Vector<InputSocketFieldType> inputs;
   Vector<OutputFieldDependency> outputs;
 
-  friend bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b);
-  friend bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b);
+  BLI_STRUCT_EQUALITY_OPERATORS_2(FieldInferencingInterface, inputs, outputs)
 };
 
 namespace anonymous_attribute_lifetime {
@@ -97,11 +95,7 @@ struct PropagateRelation {
   int from_geometry_input;
   int to_geometry_output;
 
-  friend bool operator==(const PropagateRelation &a, const PropagateRelation &b)
-  {
-    return a.from_geometry_input == b.from_geometry_input &&
-           a.to_geometry_output == b.to_geometry_output;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(PropagateRelation, from_geometry_input, to_geometry_output)
 };
 
 /**
@@ -111,10 +105,7 @@ struct ReferenceRelation {
   int from_field_input;
   int to_field_output;
 
-  friend bool operator==(const ReferenceRelation &a, const ReferenceRelation &b)
-  {
-    return a.from_field_input == b.from_field_input && a.to_field_output == b.to_field_output;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(ReferenceRelation, from_field_input, to_field_output)
 };
 
 /**
@@ -124,10 +115,7 @@ struct EvalRelation {
   int field_input;
   int geometry_input;
 
-  friend bool operator==(const EvalRelation &a, const EvalRelation &b)
-  {
-    return a.field_input == b.field_input && a.geometry_input == b.geometry_input;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(EvalRelation, field_input, geometry_input)
 };
 
 /**
@@ -137,10 +125,7 @@ struct AvailableRelation {
   int field_output;
   int geometry_output;
 
-  friend bool operator==(const AvailableRelation &a, const AvailableRelation &b)
-  {
-    return a.field_output == b.field_output && a.geometry_output == b.geometry_output;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(AvailableRelation, field_output, geometry_output)
 };
 
 struct RelationsInNode {
@@ -149,10 +134,15 @@ struct RelationsInNode {
   Vector<EvalRelation> eval_relations;
   Vector<AvailableRelation> available_relations;
   Vector<int> available_on_none;
+
+  BLI_STRUCT_EQUALITY_OPERATORS_5(RelationsInNode,
+                                  propagate_relations,
+                                  reference_relations,
+                                  eval_relations,
+                                  available_relations,
+                                  available_on_none)
 };
 
-bool operator==(const RelationsInNode &a, const RelationsInNode &b);
-bool operator!=(const RelationsInNode &a, const RelationsInNode &b);
 std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations);
 
 }  // namespace anonymous_attribute_lifetime

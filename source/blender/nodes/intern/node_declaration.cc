@@ -147,19 +147,6 @@ void NodeDeclarationBuilder::set_active_panel_builder(const PanelDeclarationBuil
 
 namespace anonymous_attribute_lifetime {
 
-bool operator==(const RelationsInNode &a, const RelationsInNode &b)
-{
-  return a.propagate_relations == b.propagate_relations &&
-         a.reference_relations == b.reference_relations && a.eval_relations == b.eval_relations &&
-         a.available_relations == b.available_relations &&
-         a.available_on_none == b.available_on_none;
-}
-
-bool operator!=(const RelationsInNode &a, const RelationsInNode &b)
-{
-  return !(a == b);
-}
-
 std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations)
 {
   stream << "Propagate Relations: " << relations.propagate_relations.size() << "\n";
@@ -855,26 +842,6 @@ OutputSocketFieldType OutputFieldDependency::field_type() const
 Span<int> OutputFieldDependency::linked_input_indices() const
 {
   return linked_input_indices_;
-}
-
-bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
-{
-  return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
-}
-
-bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
-{
-  return !(a == b);
-}
-
-bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-{
-  return a.inputs == b.inputs && a.outputs == b.outputs;
-}
-
-bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-{
-  return !(a == b);
 }
 
 const CompositorInputRealizationOptions &SocketDeclaration::compositor_realization_options() const

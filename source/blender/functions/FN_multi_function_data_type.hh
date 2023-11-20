@@ -13,6 +13,7 @@
  */
 
 #include "BLI_cpp_type.hh"
+#include "BLI_struct_equality_utils.hh"
 
 namespace blender::fn::multi_function {
 
@@ -79,8 +80,7 @@ class DataType {
     return *type_;
   }
 
-  friend bool operator==(const DataType &a, const DataType &b);
-  friend bool operator!=(const DataType &a, const DataType &b);
+  BLI_STRUCT_EQUALITY_OPERATORS_2(DataType, category_, type_)
 
   std::string to_string() const
   {
@@ -99,15 +99,5 @@ class DataType {
     return get_default_hash_2(*type_, category_);
   }
 };
-
-inline bool operator==(const DataType &a, const DataType &b)
-{
-  return a.category_ == b.category_ && a.type_ == b.type_;
-}
-
-inline bool operator!=(const DataType &a, const DataType &b)
-{
-  return !(a == b);
-}
 
 }  // namespace blender::fn::multi_function

@@ -83,8 +83,8 @@ class DNode {
   const bNode *operator->() const;
   const bNode &operator*() const;
 
-  friend bool operator==(const DNode &a, const DNode &b);
-  friend bool operator!=(const DNode &a, const DNode &b);
+  BLI_STRUCT_EQUALITY_OPERATORS_2(DNode, context_, bnode_)
+
   operator bool() const;
 
   uint64_t hash() const;
@@ -119,8 +119,8 @@ class DSocket {
   const bNodeSocket *operator->() const;
   const bNodeSocket &operator*() const;
 
-  friend bool operator==(const DSocket &a, const DSocket &b);
-  friend bool operator!=(const DSocket &a, const DSocket &b);
+  BLI_STRUCT_EQUALITY_OPERATORS_2(DSocket, context_, bsocket_)
+
   operator bool() const;
 
   uint64_t hash() const;
@@ -295,16 +295,6 @@ inline const bNode *DNode::bnode() const
   return bnode_;
 }
 
-inline bool operator==(const DNode &a, const DNode &b)
-{
-  return a.context_ == b.context_ && a.bnode_ == b.bnode_;
-}
-
-inline bool operator!=(const DNode &a, const DNode &b)
-{
-  return !(a == b);
-}
-
 inline DNode::operator bool() const
 {
   return bnode_ != nullptr;
@@ -377,16 +367,6 @@ inline const DTreeContext *DSocket::context() const
 inline const bNodeSocket *DSocket::bsocket() const
 {
   return bsocket_;
-}
-
-inline bool operator==(const DSocket &a, const DSocket &b)
-{
-  return a.context_ == b.context_ && a.bsocket_ == b.bsocket_;
-}
-
-inline bool operator!=(const DSocket &a, const DSocket &b)
-{
-  return !(a == b);
 }
 
 inline DSocket::operator bool() const

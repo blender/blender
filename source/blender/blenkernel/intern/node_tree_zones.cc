@@ -9,6 +9,7 @@
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_set.hh"
+#include "BLI_struct_equality_utils.hh"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
@@ -69,10 +70,7 @@ struct ZoneRelation {
     return get_default_hash_2(this->parent, this->child);
   }
 
-  friend bool operator==(const ZoneRelation &a, const ZoneRelation &b)
-  {
-    return a.parent == b.parent && a.child == b.child;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(ZoneRelation, parent, child)
 };
 
 static std::optional<Vector<ZoneRelation>> get_direct_zone_relations(
