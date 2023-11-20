@@ -700,6 +700,10 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
         /* More modes can be added over time if this feature proves useful for them. */
         return false;
       }
+      if (t->options & CTX_CAMERA) {
+        /* Not supported. */
+        return false;
+      }
       break;
     }
   }
