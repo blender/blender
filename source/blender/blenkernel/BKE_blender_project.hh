@@ -45,12 +45,12 @@ class BlenderProject {
   inline static const StringRefNull SETTINGS_FILENAME = "settings.json";
 
  public:
-  static auto get_active [[nodiscard]] () -> BlenderProject *;
+  [[nodiscard]] static BlenderProject *get_active();
   /**
    * \note: When changing the active project, the previously active one will be destroyed, so
    *        pointers may dangle.
    */
-  static auto set_active(std::unique_ptr<BlenderProject> settings) -> BlenderProject *;
+  static BlenderProject *set_active(std::unique_ptr<BlenderProject> settings);
 
   /**
    * Read project settings from the given \a path, which may point to some directory or file inside
@@ -65,7 +65,7 @@ class BlenderProject {
    *
    * \return The loaded project or null on failure.
    */
-  static auto load_from_path(StringRef project_path) -> std::unique_ptr<BlenderProject>;
+  static std::unique_ptr<BlenderProject> load_from_path(StringRef project_path);
   /**
    * Attempt to load and activate a project based on the given path. If the path doesn't lead
    * to or into a project, the active project is unset. Note that the project will be unset on any
@@ -74,7 +74,7 @@ class BlenderProject {
    * \note: When setting an active project, the previously active one will be destroyed, so
    * pointers may dangle.
    */
-  static auto load_active_from_path(StringRef project_path) -> BlenderProject *;
+  static BlenderProject *load_active_from_path(StringRef project_path);
 
   /**
    * Initializes a blender project by creating a .blender_project directory at the given \a
@@ -83,7 +83,7 @@ class BlenderProject {
    *
    * \return True if the settings directory was created, or already existed. False on failure.
    */
-  static auto create_settings_directory(StringRef project_root_path) -> bool;
+  static bool create_settings_directory(StringRef project_root_path);
   /**
    * Remove the .blender_project directory with all of its contents at the given \a
    * project_root_path. If this is the path of the active project, it is marked as having changed
@@ -91,7 +91,7 @@ class BlenderProject {
    *
    * \return True on success.
    */
-  static auto delete_settings_directory(StringRef project_root_path) -> bool;
+  static bool delete_settings_directory(StringRef project_root_path);
 
   /**
    * Check if the directory given by \a path contains a .blender_project directory and should thus
@@ -99,13 +99,13 @@ class BlenderProject {
    * Will return false for paths pointing into a project root directory not to a root directory
    * itself.
    */
-  static auto path_is_project_root [[nodiscard]] (StringRef path) -> bool;
+  [[nodiscard]] static bool path_is_project_root(StringRef path);
 
   /**
    * Check if \a path points to or into a project root path (i.e. if one of the ancestors of the
    * referenced file/directory is a project root directory).
    */
-  static auto path_is_within_project [[nodiscard]] (StringRef path) -> bool;
+  [[nodiscard]] static bool path_is_within_project(StringRef path);
 
   /**
    * Check if \a path points into a project and return the root directory path of that project (the
@@ -117,32 +117,38 @@ class BlenderProject {
    * \return The project root path or an empty path if not found. The referenced string points into
    *         the input \a path, so slashes are not converted in the returned value.
    */
-  static auto project_root_path_find_from_path [[nodiscard]] (StringRef path) -> StringRef;
+  [[nodiscard]] static StringRef project_root_path_find_from_path(StringRef path);
 
   /**
    * Version of #has_unsaved_changes() that allows passing null as \a project for convenience. If
    * \a project is null, false will be returned.
    */
-  static auto has_unsaved_changes(const BlenderProject *project) -> bool;
+  [[nodiscard]] static bool has_unsaved_changes(const BlenderProject *project);
 
   /* --- Non-static member functions. --- */
 
   BlenderProject(StringRef project_root_path, std::unique_ptr<ProjectSettings> settings);
 
-  auto save_settings() -> bool;
+  /**
+   * \return True on success. If the .blender_project directory doesn't exist, that's treated
+   *         as failure.
+   */
+  bool save_settings();
   /**
    * Version of the static #delete_settings_directory() that deletes the settings directory of this
    * project. Always tags as having unsaved changes after successful deletion.
+   * \return True on success (settings directory was deleted).
    */
-  auto delete_settings_directory() -> bool;
+  bool delete_settings_directory();
 
-  auto root_path [[nodiscard]] () const -> StringRefNull;
-  auto get_settings [[nodiscard]] () const -> ProjectSettings &;
+  [[nodiscard]] StringRefNull root_path() const;
+  [[nodiscard]] ProjectSettings &get_settings() const;
 
   void set_project_name(StringRef new_name);
-  auto project_name [[nodiscard]] () const -> StringRefNull;
-  auto asset_library_definitions() const -> const ListBase &;
-  auto asset_library_definitions() -> ListBase &;
+  [[nodiscard]] StringRefNull project_name() const;
+
+  [[nodiscard]] const ListBase &asset_library_definitions() const;
+  [[nodiscard]] ListBase &asset_library_definitions();
   /**
    * Forcefully tag the project settings for having unsaved changes. This needs to be done if
    * project settings data is modified directly by external code, not via a project API function.
@@ -157,25 +163,27 @@ class BlenderProject {
    * There's a static version of this that takes a project pointer that may be null, for
    * convenience (so the caller doesn't have to null-check).
    */
-  auto has_unsaved_changes [[nodiscard]] () const -> bool;
+  [[nodiscard]] bool has_unsaved_changes() const;
 
  private:
-  static auto active_project_ptr() -> std::unique_ptr<BlenderProject> &;
+  [[nodiscard]] static std::unique_ptr<BlenderProject> &active_project_ptr();
   /**
    * Get the project root path from a path that is either already the project root, or the
    * .blender_project directory. Returns the path with native slashes plus a trailing slash.
    */
-  static auto project_path_to_native_project_root_path(StringRef project_path) -> std::string;
+  [[nodiscard]] static std::string project_path_to_native_project_root_path(
+      StringRef project_path);
   /**
    * Get the .blender_project directory path from a project root path. Returns the path with native
    * slashes plus a trailing slash. Assumes the path already ends with a native trailing slash.
    */
-  static auto project_root_path_to_settings_path(StringRef project_root_path) -> std::string;
+  [[nodiscard]] static std::string project_root_path_to_settings_path(StringRef project_root_path);
   /**
    * Returns the path with native slashes.
    * Assumes the path already ends with a native trailing slash.
    */
-  static auto project_root_path_to_settings_filepath(StringRef project_root_path) -> std::string;
+  [[nodiscard]] static std::string project_root_path_to_settings_filepath(
+      StringRef project_root_path);
 };
 
 /**
@@ -196,8 +204,7 @@ class ProjectSettings {
    *
    * \return The read project settings or null in case of failure.
    */
-  static auto load_from_disk [[nodiscard]] (StringRef project_path)
-  -> std::unique_ptr<ProjectSettings>;
+  [[nodiscard]] static std::unique_ptr<ProjectSettings> load_from_disk(StringRef project_path);
   /**
    * Read project settings from the given \a path, which may point to some directory or file inside
    * of the project directory. Both Unix and Windows style slashes are allowed. Path is expected to
@@ -205,7 +212,7 @@ class ProjectSettings {
    *
    * \return The read project settings or null in case of failure.
    */
-  static auto load_from_path [[nodiscard]] (StringRef path) -> std::unique_ptr<ProjectSettings>;
+  [[nodiscard]] static std::unique_ptr<ProjectSettings> load_from_path(StringRef path);
 
   /** Explicit constructor and destructor needed to manage the CustomAssetLibraries unique_ptr. */
   ProjectSettings();
@@ -220,19 +227,19 @@ class ProjectSettings {
    * \return True on success. If the .blender_project directory doesn't exist, that's treated
    *         as failure.
    */
-  auto save_to_disk(StringRef project_path) -> bool;
+  bool save_to_disk(StringRef project_path);
 
   void project_name(StringRef new_name);
-  auto project_name [[nodiscard]] () const -> StringRefNull;
-  auto asset_library_definitions [[nodiscard]] () const -> const ListBase &;
-  auto asset_library_definitions [[nodiscard]] () -> ListBase &;
+  [[nodiscard]] StringRefNull project_name() const;
+  [[nodiscard]] const ListBase &asset_library_definitions() const;
+  [[nodiscard]] ListBase &asset_library_definitions();
   /** See #BlenderProject::tag_has_unsaved_changes(). */
   void tag_has_unsaved_changes();
   /** See #BlenderProject::has_unsaved_changes. */
-  auto has_unsaved_changes [[nodiscard]] () const -> bool;
+  [[nodiscard]] bool has_unsaved_changes() const;
 
  private:
-  auto to_dictionary() const -> std::unique_ptr<io::serialize::DictionaryValue>;
+  std::unique_ptr<io::serialize::DictionaryValue> to_dictionary() const;
 };
 
 }  // namespace blender::bke

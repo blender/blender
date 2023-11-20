@@ -31,7 +31,7 @@ struct CustomAssetLibraries : NonCopyable {
   CustomAssetLibraries(ListBase asset_libraries);
   CustomAssetLibraries(CustomAssetLibraries &&);
   ~CustomAssetLibraries();
-  auto operator=(CustomAssetLibraries &&) -> CustomAssetLibraries &;
+  CustomAssetLibraries &operator=(CustomAssetLibraries &&);
 };
 
 CustomAssetLibraries::CustomAssetLibraries(ListBase asset_libraries)
