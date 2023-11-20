@@ -67,7 +67,8 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
 
     /* Note that there is no check if the path exists here. If an invalid library path is used, the
      * Asset Browser can give a nice hint on what's wrong. */
-    const bool is_valid = custom_library && (custom_library->name[0] && custom_library->dirpath[0]);
+    const bool is_valid = custom_library &&
+                          (custom_library->name[0] && custom_library->dirpath[0]);
     if (!is_valid) {
       library.custom_library_index = -1;
     }
@@ -97,8 +98,11 @@ static void add_custom_asset_library_enum_items(
 
     const int enum_value = ED_asset_library_reference_to_enum_value(&library_reference);
     /* Use library path as description, it's a nice hint for users. */
-    EnumPropertyItem tmp = {
-        enum_value, custom_library->name, ICON_NONE, custom_library->name, custom_library->dirpath};
+    EnumPropertyItem tmp = {enum_value,
+                            custom_library->name,
+                            ICON_NONE,
+                            custom_library->name,
+                            custom_library->dirpath};
     RNA_enum_item_add(items, totitem, &tmp);
   }
 }

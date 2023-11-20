@@ -53,8 +53,7 @@ CustomAssetLibraryDefinition *ED_asset_library_find_custom_library_from_referenc
       return BKE_asset_library_custom_find_index(&U.asset_libraries,
                                                  library_ref->custom_library_index);
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
-      BlenderProject *project = CTX_wm_project();
-      if (project) {
+      if (BlenderProject *project = CTX_wm_project()) {
         return BKE_asset_library_custom_find_index(BKE_project_custom_asset_libraries_get(project),
                                                    library_ref->custom_library_index);
       }
