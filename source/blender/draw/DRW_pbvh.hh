@@ -52,7 +52,6 @@ struct PBVH_GPU_Args {
   const char *render_color;
 
   int face_sets_color_seed, face_sets_color_default;
-  const int *face_sets; /* for PBVH_FACES and PBVH_GRIDS */
 
   SubdivCCG *subdiv_ccg;
   const DMFlagMat *grid_flag_mats;

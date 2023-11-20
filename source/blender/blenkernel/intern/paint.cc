@@ -2003,23 +2003,22 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                   Object *ob,
                                   MultiresModifierData *mmd)
 {
+  using namespace blender;
+  using namespace blender::bke;
   Mesh *me = static_cast<Mesh *>(ob->data);
-  const blender::OffsetIndices faces = me->faces();
+  const OffsetIndices faces = me->faces();
   const Span<int> corner_verts = me->corner_verts();
+  MutableAttributeAccessor attributes = me->attributes_for_write();
   int ret = 0;
-
-  const float *paint_mask = static_cast<const float *>(
-      CustomData_get_layer_named(&me->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
 
   /* if multires is active, create a grid paint mask layer if there
    * isn't one already */
   if (mmd && !CustomData_has_layer(&me->loop_data, CD_GRID_PAINT_MASK)) {
-    GridPaintMask *gmask;
     int level = max_ii(1, mmd->sculptlvl);
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
 
-    gmask = static_cast<GridPaintMask *>(
+    GridPaintMask *gmask = static_cast<GridPaintMask *>(
         CustomData_add_layer(&me->loop_data, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, me->totloop));
 
     for (int i = 0; i < me->totloop; i++) {
@@ -2031,14 +2030,15 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     }
 
     /* If vertices already have mask, copy into multires data. */
-    if (paint_mask) {
+    if (const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT)) {
+      const VArraySpan<float> mask_span(mask);
       for (const int i : faces.index_range()) {
-        const blender::IndexRange face = faces[i];
+        const IndexRange face = faces[i];
 
         /* Mask center. */
         float avg = 0.0f;
         for (const int vert : corner_verts.slice(face)) {
-          avg += paint_mask[vert];
+          avg += mask_span[vert];
         }
         avg /= float(face.size());
 
@@ -2046,13 +2046,13 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
         for (const int corner : face) {
           GridPaintMask *gpm = &gmask[corner];
           const int vert = corner_verts[corner];
-          const int prev = corner_verts[blender::bke::mesh::face_corner_prev(face, vert)];
-          const int next = corner_verts[blender::bke::mesh::face_corner_next(face, vert)];
+          const int prev = corner_verts[mesh::face_corner_prev(face, vert)];
+          const int next = corner_verts[mesh::face_corner_next(face, vert)];
 
           gpm->data[0] = avg;
-          gpm->data[1] = (paint_mask[vert] + paint_mask[next]) * 0.5f;
-          gpm->data[2] = (paint_mask[vert] + paint_mask[prev]) * 0.5f;
-          gpm->data[3] = paint_mask[vert];
+          gpm->data[1] = (mask_span[vert] + mask_span[next]) * 0.5f;
+          gpm->data[2] = (mask_span[vert] + mask_span[prev]) * 0.5f;
+          gpm->data[3] = mask_span[vert];
         }
       }
     }
@@ -2066,9 +2066,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
   }
 
   /* Create vertex paint mask layer if there isn't one already. */
-  if (!paint_mask) {
-    CustomData_add_layer_named(
-        &me->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me->totvert, ".sculpt_mask");
+  if (attributes.add<float>(".sculpt_mask", ATTR_DOMAIN_POINT, AttributeInitDefaultValue())) {
     /* The evaluated mesh must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     ret |= SCULPT_MASK_LAYER_CALC_VERT;

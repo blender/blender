@@ -66,14 +66,16 @@ using blender::Vector;
 
 int ED_sculpt_face_sets_find_next_available_id(Mesh *mesh)
 {
-  const int *face_sets = static_cast<const int *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_INT32, ".sculpt_face_set"));
-  if (!face_sets) {
+  using namespace blender;
+  const VArray<int> attribute = *mesh->attributes().lookup<int>(".sculpt_face_set",
+                                                                ATTR_DOMAIN_FACE);
+  if (!attribute) {
     return SCULPT_FACE_SET_NONE;
   }
+  const VArraySpan<int> face_sets(attribute);
 
   int next_face_set_id = 0;
-  for (int i = 0; i < mesh->faces_num; i++) {
+  for (const int i : face_sets.index_range()) {
     next_face_set_id = max_ii(next_face_set_id, face_sets[i]);
   }
   next_face_set_id++;
@@ -83,15 +85,17 @@ int ED_sculpt_face_sets_find_next_available_id(Mesh *mesh)
 
 void ED_sculpt_face_sets_initialize_none_to_id(Mesh *mesh, const int new_id)
 {
-  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
+  using namespace blender;
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<int> face_sets = attributes.lookup_for_write_span<int>(
+      ".sculpt_face_set");
   if (!face_sets) {
     return;
   }
 
-  for (int i = 0; i < mesh->faces_num; i++) {
-    if (face_sets[i] == SCULPT_FACE_SET_NONE) {
-      face_sets[i] = new_id;
+  for (const int i : face_sets.span.index_range()) {
+    if (face_sets.span[i] == SCULPT_FACE_SET_NONE) {
+      face_sets.span[i] = new_id;
     }
   }
 }

@@ -575,34 +575,32 @@ struct PBVHBatches {
       }
     }
     else if (vbo.type == CD_PBVH_FSET_TYPE) {
-      const int *face_sets = args.face_sets;
-
-      if (!face_sets) {
-        uchar white[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-
-        foreach_grids(
-            [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-              *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
-            });
-      }
-      else {
+      const bke::AttributeAccessor attributes = args.me->attributes();
+      if (const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                                ATTR_DOMAIN_FACE)) {
+        const VArraySpan<int> face_sets_span(face_sets);
         foreach_grids(
             [&](int /*x*/, int /*y*/, int grid_index, CCGElem * /*elems*/[4], int /*i*/) {
               uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
-              if (face_sets) {
-                const int face_index = BKE_subdiv_ccg_grid_to_face_index(args.subdiv_ccg,
-                                                                         grid_index);
-                const int fset = face_sets[face_index];
+              const int face_index = BKE_subdiv_ccg_grid_to_face_index(args.subdiv_ccg,
+                                                                       grid_index);
+              const int fset = face_sets_span[face_index];
 
-                /* Skip for the default color Face Set to render it white. */
-                if (fset != args.face_sets_color_default) {
-                  BKE_paint_face_set_overlay_color_get(
-                      fset, args.face_sets_color_seed, face_set_color);
-                }
+              /* Skip for the default color Face Set to render it white. */
+              if (fset != args.face_sets_color_default) {
+                BKE_paint_face_set_overlay_color_get(
+                    fset, args.face_sets_color_seed, face_set_color);
               }
 
-              *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
+              *static_cast<uchar4 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
+            });
+      }
+      else {
+        const uchar white[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+        foreach_grids(
+            [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
+              *static_cast<uchar4 *>(GPU_vertbuf_raw_step(&access)) = white;
             });
       }
     }
@@ -697,6 +695,8 @@ struct PBVHBatches {
 
     GPUVertBuf &vert_buf = *vbo.vert_buf;
 
+    const bke::AttributeAccessor attributes = args.me->attributes();
+
     if (vbo.type == CD_PBVH_CO_TYPE) {
       extract_data_vert_faces<float3>(args, args.vert_positions, vert_buf);
     }
@@ -704,35 +704,35 @@ struct PBVHBatches {
       fill_vbo_normal_faces(args, vert_buf);
     }
     else if (vbo.type == CD_PBVH_MASK_TYPE) {
-      if (const float *mask = static_cast<const float *>(
-              CustomData_get_layer_named(args.vert_data, CD_PROP_FLOAT, ".sculpt_mask")))
+      float *data = static_cast<float *>(GPU_vertbuf_get_data(&vert_buf));
+      if (const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT))
       {
+        const VArraySpan<float> mask_span(mask);
         const Span<int> corner_verts = args.corner_verts;
         const Span<MLoopTri> looptris = args.mlooptri;
         const Span<int> looptri_faces = args.looptri_faces;
         const bool *hide_poly = args.hide_poly;
 
-        float *data = static_cast<float *>(GPU_vertbuf_get_data(&vert_buf));
         for (const int looptri_i : args.prim_indices) {
           if (hide_poly && hide_poly[looptri_faces[looptri_i]]) {
             continue;
           }
           for (int i : IndexRange(3)) {
             const int vert = corner_verts[looptris[looptri_i].tri[i]];
-            *data = mask[vert];
+            *data = mask_span[vert];
             data++;
           }
         }
       }
       else {
-        MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)), totvert).fill(0);
+        MutableSpan(data, totvert).fill(0);
       }
     }
     else if (vbo.type == CD_PBVH_FSET_TYPE) {
-      const int *face_sets = static_cast<const int *>(
-          CustomData_get_layer_named(args.face_data, CD_PROP_INT32, ".sculpt_face_set"));
       uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
-      if (face_sets) {
+      if (const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                                ATTR_DOMAIN_FACE)) {
+        const VArraySpan<int> face_sets_span(face_sets);
         int last_face = -1;
         uchar4 fset_color(UCHAR_MAX);
 
@@ -744,7 +744,7 @@ struct PBVHBatches {
           if (last_face != face_i) {
             last_face = face_i;
 
-            const int fset = face_sets[face_i];
+            const int fset = face_sets_span[face_i];
 
             if (fset != args.face_sets_color_default) {
               BKE_paint_face_set_overlay_color_get(fset, args.face_sets_color_seed, fset_color);

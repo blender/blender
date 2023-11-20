@@ -679,8 +679,6 @@ static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *arg
     args->hide_poly = pbvh->face_data ? static_cast<const bool *>(CustomData_get_layer_named(
                                             pbvh->face_data, CD_PROP_BOOL, ".hide_poly")) :
                                         nullptr;
-    args->face_sets = static_cast<const int *>(
-        CustomData_get_layer_named(&pbvh->mesh->face_data, CD_PROP_INT32, ".sculpt_face_set"));
   }
 
   args->active_color = mesh.active_color_attribute;
@@ -3167,12 +3165,10 @@ bool pbvh_has_mask(const PBVH *pbvh)
     case PBVH_GRIDS:
       return (pbvh->gridkey.has_mask != 0);
     case PBVH_FACES:
-      return (pbvh->vert_data &&
-              CustomData_has_layer_named(pbvh->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
+      return pbvh->mesh->attributes().contains(".sculpt_mask");
     case PBVH_BMESH:
-      return (pbvh->header.bm &&
-              (CustomData_get_offset_named(
-                   &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask") != -1));
+      return pbvh->header.bm &&
+             (CustomData_has_layer_named(&pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask"));
   }
 
   return false;
@@ -3183,8 +3179,7 @@ bool pbvh_has_face_sets(PBVH *pbvh)
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
     case PBVH_FACES:
-      return pbvh->face_data && CustomData_get_layer_named(
-                                    pbvh->face_data, CD_PROP_INT32, ".sculpt_face_set") != nullptr;
+      return pbvh->mesh->attributes().contains(".sculpt_face_set");
     case PBVH_BMESH:
       return false;
   }

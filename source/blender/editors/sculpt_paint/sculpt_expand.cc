@@ -21,6 +21,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -1196,17 +1197,19 @@ static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *exp
 
 static void write_mask_data(SculptSession *ss, const Span<float> mask)
 {
+  using namespace blender;
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
-      float *layer = static_cast<float *>(CustomData_get_layer_named_for_write(
-          &mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask", mesh->totvert));
+      bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+      bke::SpanAttributeWriter<float> attribute = attributes.lookup_or_add_for_write_span<float>(
+          ".sculpt_mask", ATTR_DOMAIN_POINT);
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          layer[vd.index] = mask[vd.index];
+          attribute.span[vd.index] = mask[vd.index];
         }
         BKE_pbvh_vertex_iter_end;
         BKE_pbvh_node_mark_redraw(node);

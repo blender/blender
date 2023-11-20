@@ -567,22 +567,20 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
   if (unode->maxvert) {
-    /* Regular mesh restore. */
-    float *vmask = static_cast<float *>(CustomData_get_layer_named_for_write(
-        &mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask", mesh->totvert));
-    if (!vmask) {
-      vmask = static_cast<float *>(CustomData_add_layer_named(
-          &mesh->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, mesh->totvert, ".sculpt_mask"));
-    }
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+        ".sculpt_mask", ATTR_DOMAIN_POINT);
 
     const Span<int> index = unode->index;
 
     for (int i = 0; i < unode->totvert; i++) {
-      if (vmask[index[i]] != unode->mask[i]) {
-        SWAP(float, vmask[index[i]], unode->mask[i]);
+      if (mask.span[index[i]] != unode->mask[i]) {
+        std::swap(mask.span[index[i]], unode->mask[i]);
         modified_vertices[index[i]] = true;
       }
     }
+
+    mask.finish();
   }
   else if (unode->maxgrid && subdiv_ccg != nullptr) {
     /* Multires restore. */
@@ -600,7 +598,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
       grid = grids[unode->grids[j]];
 
       for (int i = 0; i < gridsize * gridsize; i++) {
-        SWAP(float, *CCG_elem_offset_mask(&key, grid, i), mask[index]);
+        std::swap(*CCG_elem_offset_mask(&key, grid, i), mask[index]);
         index++;
       }
     }
