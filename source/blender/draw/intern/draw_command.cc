@@ -701,7 +701,7 @@ void DrawMultiBuf::bind(RecordingState &state,
   prototype_buf_.push_update();
   /* Allocate enough for the expansion pass. */
   resource_id_buf_.get_or_resize(resource_id_count_ * (use_custom_ids ? 2 : 1));
-  /* Two command per group. */
+  /* Two commands per group (inverted and non-inverted scale). */
   command_buf_.get_or_resize(group_count_ * 2);
 
   if (prototype_count_ > 0) {
