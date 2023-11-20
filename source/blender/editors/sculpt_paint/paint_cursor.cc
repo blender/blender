@@ -1065,8 +1065,12 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
                                        Object *ob,
                                        const float radius)
 {
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  const blender::Bounds<blender::float3> bounds = *mesh_eval->bounds_min_max();
+  BLI_assert(ob->type == OB_MESH);
+  const Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  if (!mesh) {
+    mesh = static_cast<const Mesh *>(ob->data);
+  }
+  const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
   float orgLoc[3], location[3];
   int tile_pass = 0;
   int start[3];
