@@ -295,8 +295,12 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, 
 float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return ss->vmask ? ss->vmask[vertex.i] : 0.0f;
+    case PBVH_FACES: {
+      const Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
+      const float *mask = static_cast<const float *>(
+          CustomData_get_layer_named(&mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
+      return mask ? mask[vertex.i] : 0.0f;
+    }
     case PBVH_BMESH: {
       BMVert *v;
       int cd_mask = CustomData_get_offset_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");

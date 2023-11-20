@@ -585,8 +585,6 @@ struct SculptSession {
   eAttrDomain vcol_domain;
   eCustomDataType vcol_type;
 
-  const float *vmask;
-
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
   blender::GroupedSpan<int> pmap;

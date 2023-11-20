@@ -557,6 +557,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode, bool *
 
 static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *modified_vertices)
 {
+  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -573,7 +574,6 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
       vmask = static_cast<float *>(CustomData_add_layer_named(
           &mesh->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, mesh->totvert, ".sculpt_mask"));
     }
-    ss->vmask = vmask;
 
     const Span<int> index = unode->index;
 

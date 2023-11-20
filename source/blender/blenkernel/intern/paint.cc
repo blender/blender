@@ -1708,8 +1708,6 @@ static void sculpt_update_object(
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
     ss->multires.level = 0;
-    ss->vmask = static_cast<const float *>(
-        CustomData_get_layer_named(&me->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
 
     CustomDataLayer *layer;
     eAttrDomain domain;
