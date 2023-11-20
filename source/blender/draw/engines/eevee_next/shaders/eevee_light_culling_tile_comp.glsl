@@ -84,7 +84,7 @@ CullingTile tile_culling_get(uvec2 tile_co)
   tile.bounds = (is_persp) ? tile_bound_cone(corners[0], corners[4], corners[7], corners[3]) :
                              tile_bound_cylinder(corners[0], corners[4], corners[7], corners[3]);
 
-  tile.frustum = isect_data_setup(shape_frustum(corners));
+  tile.frustum = isect_frustum_setup(shape_frustum(corners));
   return tile;
 }
 
