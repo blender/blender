@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
-"PO-Revision-Date: 2023-10-19 17:54+0000\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-16 03:55+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
 "Language: sw\n"
@@ -503,6 +503,10 @@ msgid "All Add-ons"
 msgstr "Viongezi vyote"
 
 
+msgid "Rotates each hair curve around an axis"
+msgstr "Huzungusha kila curve ya nywele kuzunguka mhimili"
+
+
 msgid "Smooth Hair Curves"
 msgstr "Lainisha nywele"
 
@@ -525,4 +529,8 @@ msgstr "Punguza mikunjo ya Nywele"
 
 msgid "Trims or scales hair curves to a certain length"
 msgstr "Hupunguza nywele kwa urefu fulani"
+
+
+msgid "Smooth by Angle"
+msgstr "Lainisha kwa Pembe"
 

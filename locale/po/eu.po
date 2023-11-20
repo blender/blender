@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -241,6 +241,10 @@ msgid "Point"
 msgstr "Puntu"
 
 
+msgid "Layer"
+msgstr "Geruza"
+
+
 msgid "+X"
 msgstr "+X"
 
@@ -415,10 +419,6 @@ msgstr "UV"
 
 msgid "Onion Skinning"
 msgstr "Tipula-azapa"
-
-
-msgid "Layer"
-msgstr "Geruza"
 
 
 msgid "Grid"

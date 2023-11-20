@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2023-11-09 04:54+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
@@ -1654,6 +1654,10 @@ msgstr "Instância"
 
 msgid "Attribute on instance"
 msgstr "Atributo na instância"
+
+
+msgid "Layer"
+msgstr "Camadas"
 
 
 msgid "Is Internal"
@@ -3860,10 +3864,6 @@ msgstr "Colecção de ossos dentro de um bloco-de-dados de armação"
 
 msgid "Bones"
 msgstr "Ossos"
-
-
-msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronised when exiting edit mode"
-msgstr "Ossos adicionados a esta colecção de ossos. No modo de edição de armadura retorna sempre uma lista vazia, uma vez que a associação a colecções só é sincronizada quando se sai do modo de edição"
 
 
 msgid "Is Editable"
@@ -12970,10 +12970,6 @@ msgid "Use Mask"
 msgstr "Usar máscara"
 
 
-msgid "Layer"
-msgstr "Camadas"
-
-
 msgid "Spacing"
 msgstr "Espaçamento"
 
@@ -15921,6 +15917,10 @@ msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Permite a edição dos traços de lápis de cera ao invés dos dados na porta de visão."
 
 
+msgid "Grease Pencil data-block"
+msgstr "Bloco de dados de lápis de cera."
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "Blocos de dados de imagem referenciando uma imagem externa ou empacotada."
 
@@ -16657,16 +16657,24 @@ msgid "Use shader nodes to render the material"
 msgstr "Usa os nós de sombreamento para renderizar o material."
 
 
+msgid "Transparent Shadows"
+msgstr "Sombras transparentes"
+
+
+msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
+msgstr "Usa sombras transparentes para este material caso ele contenha BSDF Transparente, desativando isso irá renderizar mais rápido, mas não fornecerá sombras precisas."
+
+
+msgid "Fast"
+msgstr "Rápida"
+
+
+msgid "Accurate"
+msgstr "Precisão"
+
+
 msgid "Mesh data-block defining geometric surfaces"
 msgstr "Blocos de dados de malha definindo superfícies geométricas."
-
-
-msgid "Auto Smooth Angle"
-msgstr "Suavizar ângulo automaticamente "
-
-
-msgid "Maximum angle between face normals that will be considered as smooth (unused if custom split normals data are available)"
-msgstr "Ângulo máximo entre as normais das faces que serão consideradas como suavizadas (não utilizado caso os dados de divisão personalizada de arestas estejam disponíveis)."
 
 
 msgid "Edges"
@@ -16747,14 +16755,6 @@ msgstr "Contagem de faces selecionadas no modo de edição."
 
 msgid "Selected vertex count in editmode"
 msgstr "Contagem de vértices selecionados no modo de edição."
-
-
-msgid "Auto Smooth"
-msgstr "Suavizar automaticamente"
-
-
-msgid "Auto smooth (based on smooth/sharp faces/edges and angle between faces), or use custom split normals data if available"
-msgstr "Suavização automática (com base na função que suaviza ou achata as faces e / ou arestas e nos ângulos entre as faces), ou utilizando os dados de divisão personalizada das normais caso disponível."
 
 
 msgid "Topology Mirror"
@@ -16853,10 +16853,6 @@ msgid "While editing, update metaball in half resolution"
 msgstr "Durante a edição, atualizar objeto esfera-meta na metade da resolução."
 
 
-msgid "Fast"
-msgstr "Rápida"
-
-
 msgid "While editing, update metaball without polygonization"
 msgstr "Durante a edição, atualizar o objeto esfera-meta sem torná-lo poligonal."
 
@@ -16931,10 +16927,6 @@ msgstr "O rótulo da árvore de nós."
 
 msgid "Grease Pencil Data"
 msgstr "Dados de lápis de cera"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Bloco de dados de lápis de cera."
 
 
 msgid "Interface"
@@ -29011,10 +29003,6 @@ msgid "Scale the Z input when not using a z-buffer, controls maximum blur design
 msgstr "Escalona a entrada Z quando não estiver usando um buffer Z, controla o desfoque máximo projetado pela cor branca ou o valor de entrada equivalente a 1."
 
 
-msgid "Accurate"
-msgstr "Precisão"
-
-
 msgid "Despeckle"
 msgstr "Remover granulação e manchas"
 
@@ -30351,10 +30339,6 @@ msgstr "Para projeção em caixa, a quantidade de mescla para usar entre os lado
 
 msgid "Level of detail in the added turbulent noise"
 msgstr "Nível dos detalhes dentro do ruído turbulento adicionado."
-
-
-msgid "Musgrave Texture"
-msgstr "Textura tipo Musgrave"
 
 
 msgid "Object to take point data from"
@@ -36815,6 +36799,10 @@ msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "Alterna o pincel para o modo suave através da duração do traço."
 
 
+msgid "Flat"
+msgstr "Achatar"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Modo de seleção"
@@ -39914,15 +39902,6 @@ msgstr "Chaves de interpolação visuais"
 
 msgid "Keyframe from the final transformations (with constraints applied)"
 msgstr "Fotogramas chave a partir das transformações finais (com restrições aplicadas)."
-
-
-msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "Clique do rato em canais de animação não linear"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "Manipula os cliques para selecionar canais de animação não linear."
 
 
 msgctxt "Operator"
@@ -52755,14 +52734,6 @@ msgid "When using volume rendering, assume volume has the same density everywher
 msgstr "Durante o uso de renderização de volumes, assume que o volume possui a mesma densidade em qualquer lugar (sem usar quaisquer texturas), para uma renderização mais rápida."
 
 
-msgid "Transparent Shadows"
-msgstr "Sombras transparentes"
-
-
-msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
-msgstr "Usa sombras transparentes para este material caso ele contenha BSDF Transparente, desativando isso irá renderizar mais rápido, mas não fornecerá sombras precisas."
-
-
 msgid "Volume Interpolation"
 msgstr "Interpolação de volume"
 
@@ -57708,10 +57679,6 @@ msgid "Get the node tree path as a string"
 msgstr "Obtém o caminho da árvore de nós como uma variável de texto."
 
 
-msgid "Flat"
-msgstr "Achatar"
-
-
 msgid "Space UV Editor"
 msgstr "Espaço do editor UV"
 
@@ -58744,10 +58711,6 @@ msgid "Face Dot Selected"
 msgstr "Ponto de face selecionado"
 
 
-msgid "Face Selected"
-msgstr "Face selecionada"
-
-
 msgid "Face Dot Size"
 msgstr "Tamanho do ponto de face"
 
@@ -59478,10 +59441,6 @@ msgstr "Visualização local de UV"
 
 msgid "Type of element to snap to"
 msgstr "Tipo de elemento ao qual atrair"
-
-
-msgid "Nearest Marker"
-msgstr "Marcadores mais próximos"
 
 
 msgid "Snap to nearest marker"
@@ -60463,11 +60422,6 @@ msgstr "Tabela de animação genérica"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "Editor de animação não linear"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "Canais de animação não linear"
 
 
 msgctxt "WindowManager"
@@ -63143,6 +63097,58 @@ msgid "in memory to enable editing!"
 msgstr "dentro da memória para ativar edição !"
 
 
+msgid "<No ID pointer>"
+msgstr "<Sem ponteiro para o identificador >"
+
+
+msgid "<Missing ID block>"
+msgstr "<Bloco de dados faltando>"
+
+
+msgid "No F-Curve to add keyframes to"
+msgstr "Sem curvas-f para as quais adicionar fotogramas chave."
+
+
+msgid "No RNA pointer available to retrieve values for keyframing from"
+msgstr "Sem ponteiro RNA disponível para obter valores nos quais colocar o conjunto de inserção de chaves."
+
+
+msgid "No ID block and/or AnimData to delete keyframe from"
+msgstr "Sem identificador de bloco e / ou dados de animação a partir dos quais apagar o fotograma chave."
+
+
+msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Não é possível inserir fotograma chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Caminho = %s)."
+
+
+msgid "No ID block to insert keyframe in (path = %s)"
+msgstr "Sem identificador de bloco de dados no qual inserir o fotograma chave (caminho = %s)."
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
+msgstr "Não é possível inserir fotograma chave, pois este tipo não suporta dados de animação (ID = %s, Caminho = %s)."
+
+
+msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Não é possível apagar o fotograma chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Caminho = %s)."
+
+
+msgid "No action to delete keyframes from for ID = %s"
+msgstr "Sem ação a partir da qual apagar os fotogramas chave no identificador = %s"
+
+
+msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
+msgstr "Sem exclusão do fotograma chave para a curva-f bloqueada '%s' para %s '%s'"
+
+
+msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Não é possível limpar o fotograma chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Path = %s)."
+
+
+msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
+msgstr "Não é possível a limpeza de todos os fotogramas chave a partir da curva-f bloqueada '%s' para %s '%s'"
+
+
 msgid "No AnimData to set action on"
 msgstr "Sem dados de animação para os quais definir a ação."
 
@@ -63361,12 +63367,12 @@ msgid "MaskLayer"
 msgstr "Camada de máscara"
 
 
+msgid "Auto Smooth"
+msgstr "Suavizar automaticamente"
+
+
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "O espaço da tangente somente pode ser computado para triângulos ou quadriláteros, abortando."
-
-
-msgid "Tangent space computation needs loop normals, none found, aborting"
-msgstr "A computação do espaço da tangente necessita de anéis de normais, nenhum foi encontrado, abortando."
 
 
 msgid "NlaTrack"
@@ -63814,26 +63820,6 @@ msgid "Delete envelope control point"
 msgstr "Apaga os pontos de controlo do envelope."
 
 
-msgid "<No ID pointer>"
-msgstr "<Sem ponteiro para o identificador >"
-
-
-msgid "<Missing ID block>"
-msgstr "<Bloco de dados faltando>"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "Sem curvas-f para as quais adicionar fotogramas chave."
-
-
-msgid "No RNA pointer available to retrieve values for keyframing from"
-msgstr "Sem ponteiro RNA disponível para obter valores nos quais colocar o conjunto de inserção de chaves."
-
-
-msgid "No ID block and/or AnimData to delete keyframe from"
-msgstr "Sem identificador de bloco e / ou dados de animação a partir dos quais apagar o fotograma chave."
-
-
 msgid "No suitable context info for active keying set"
 msgstr "Sem informação de contexto adequado para o conjunto de inserção de chaves ativo."
 
@@ -63852,42 +63838,6 @@ msgstr "Falha ao resolver o caminho para a propriedade, tente ao invés disso, e
 
 msgid "No active Keying Set"
 msgstr "Sem conjunto de inserção de chaves ativo"
-
-
-msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
-msgstr "Curva-f com caminho '%s[%d]' não pode ter fotogramas chave. Certifique-se de que não está travada ou amostrada, e tente remover os Modificadores-f."
-
-
-msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Não é possível inserir fotograma chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Caminho = %s)."
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "Sem identificador de bloco de dados no qual inserir o fotograma chave (caminho = %s)."
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "Não é possível inserir fotograma chave, pois este tipo não suporta dados de animação (ID = %s, Caminho = %s)."
-
-
-msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Não é possível apagar o fotograma chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Caminho = %s)."
-
-
-msgid "No action to delete keyframes from for ID = %s"
-msgstr "Sem ação a partir da qual apagar os fotogramas chave no identificador = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Sem exclusão do fotograma chave para a curva-f bloqueada '%s' para %s '%s'"
-
-
-msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Não é possível limpar o fotograma chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Path = %s)."
-
-
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "Não é possível a limpeza de todos os fotogramas chave a partir da curva-f bloqueada '%s' para %s '%s'"
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"

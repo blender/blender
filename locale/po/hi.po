@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -365,6 +365,10 @@ msgstr "किनारा"
 
 msgid "Face"
 msgstr "फलक"
+
+
+msgid "Layer"
+msgstr "परत"
 
 
 msgid "Image Format"
@@ -1561,10 +1565,6 @@ msgid "Frames"
 msgstr "गठन"
 
 
-msgid "Layer"
-msgstr "परत"
-
-
 msgid "Grid"
 msgstr "जालक"
 
@@ -2150,16 +2150,16 @@ msgid "Cloth"
 msgstr "कपड़ा"
 
 
+msgid "Fast"
+msgstr "तेजी से"
+
+
 msgid "Edges"
 msgstr "किनारों"
 
 
 msgid "Loops"
 msgstr "कुण्डली"
-
-
-msgid "Auto Smooth"
-msgstr "स्वत: चिकना"
 
 
 msgid "Vertex Selection"
@@ -2184,10 +2184,6 @@ msgstr "आवरण यूवी कुण्डली परत सूचक�
 
 msgid "Vertices"
 msgstr "शिरोबिन्दु"
-
-
-msgid "Fast"
-msgstr "तेजी से"
 
 
 msgid "Never"
@@ -3776,6 +3772,10 @@ msgid "Next Keyframe"
 msgstr "अगले अनुबोधक चिन्ह"
 
 
+msgid "Flat"
+msgstr "समतल"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "दृश्य रूप का चयन करें"
@@ -5099,10 +5099,6 @@ msgid "3D"
 msgstr "त्रि-आयाम"
 
 
-msgid "Flat"
-msgstr "समतल"
-
-
 msgid "Density Factor"
 msgstr "घनत्व कारक"
 
@@ -6040,6 +6036,10 @@ msgid "Apply"
 msgstr "लागू करें"
 
 
+msgid "<Missing ID block>"
+msgstr "< अनुपलब्ध ID ब्लॉक >"
+
+
 msgid "No AnimData to set action on"
 msgstr "कार्य पर स्थापित करने के लिए कोई अनुप्राणन सामग्री नहीं"
 
@@ -6087,6 +6087,10 @@ msgstr "अंतर्निहित फ़ंक्शन"
 
 msgid "Key %d"
 msgstr "कुंजी %d"
+
+
+msgid "Auto Smooth"
+msgstr "स्वत: चिकना"
 
 
 msgid "GPencil"
@@ -6239,10 +6243,6 @@ msgstr "बाहर"
 
 msgid "<Unknown Modifier>"
 msgstr "< अज्ञात संशोधक >"
-
-
-msgid "<Missing ID block>"
-msgstr "< अनुपलब्ध ID ब्लॉक >"
 
 
 msgid "\"%s\" property cannot be animated"

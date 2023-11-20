@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
-"PO-Revision-Date: 2023-11-07 21:51+0000\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-18 16:42+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -1255,6 +1255,11 @@ msgstr "Matita"
 
 
 msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
+
+
+msgctxt "ID"
 msgid "Image"
 msgstr "Immagine"
 
@@ -1490,6 +1495,10 @@ msgstr "Spline"
 
 msgid "Instance"
 msgstr "Istanza"
+
+
+msgid "Layer"
+msgstr "Livello"
 
 
 msgid "Is Internal"
@@ -3032,8 +3041,18 @@ msgid "B-Bone Start Handle"
 msgstr "Maniglia Iniziale Osso-B"
 
 
+msgctxt "Armature"
+msgid "Ease In"
+msgstr "Sollievo In"
+
+
 msgid "Length of first Bezier Handle (for B-Bones only)"
 msgstr "Lunghezza della prima Maniglia Bezier (solo per Ossa-Bezier)"
+
+
+msgctxt "Armature"
+msgid "Ease Out"
+msgstr "Sollievo Out"
 
 
 msgid "Length of second Bezier Handle (for B-Bones only)"
@@ -3058,6 +3077,14 @@ msgstr "Relativo"
 
 msgid "B-Bone Start Handle Type"
 msgstr "Tipo Maniglia Iniziale Osso-B"
+
+
+msgid "End Handle Ease"
+msgstr "Andamento Maniglia Finale"
+
+
+msgid "Start Handle Ease"
+msgstr "Andamento Maniglia Iniziale"
 
 
 msgid "End Handle Scale"
@@ -3326,6 +3353,10 @@ msgstr "La posizione dell'osso è impostata nello spazio locale"
 
 msgid "Relative Parenting"
 msgstr "Parentela Relativa"
+
+
+msgid "Scale Easing"
+msgstr "Andamento della Scala"
 
 
 msgid "Bone collection in an Armature data-block"
@@ -5235,6 +5266,10 @@ msgid "Local With Parent"
 msgstr "Locale Con Genitore"
 
 
+msgid "The constraint is applied relative to the rest pose local coordinate system of the bone, thus including the parent-induced transformation"
+msgstr "Il vincolo viene applicato rispetto al sistema di coordinate locali della posa di riposo dell'osso, inclusa quindi la trasformazione indotta dal genitore"
+
+
 msgid "Local Space"
 msgstr "Spazio Locale"
 
@@ -5263,8 +5298,16 @@ msgid "The transformation of the target is evaluated relative to the world coord
 msgstr "La trasformazione dell'obiettivo è valutata rispetto al sistema di coordinate del mondo"
 
 
+msgid "The transformation of the target is evaluated relative to a custom object/bone/vertex group"
+msgstr "La trasformazione del target viene valutata rispetto a un gruppo di oggetti/ossa/vertici personalizzato"
+
+
 msgid "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"
 msgstr "La trasformazione dell'obiettivo è valutata solo rispetto allo Spazio Posa, le trasformazioni dell'oggetto armatura obiettivo è ignorata"
+
+
+msgid "The transformation of the target bone is evaluated relative to its rest pose local coordinate system, thus including the parent-induced transformation"
+msgstr "La trasformazione dell'osso bersaglio viene valutata rispetto al suo sistema di coordinate locali di posa a riposo, inclusa quindi la trasformazione indotta dal genitore"
 
 
 msgid "The transformation of the target is evaluated relative to its local coordinate system"
@@ -6819,6 +6862,10 @@ msgid "XZ"
 msgstr "XZ"
 
 
+msgid "Swing"
+msgstr "Oscillazione"
+
+
 msgid "Original Length"
 msgstr "Lunghezza Originale"
 
@@ -7043,6 +7090,10 @@ msgid "Target object for multi-target constraints"
 msgstr "Oggetto obiettivo per vincoli multi obiettivo"
 
 
+msgid "Constraint Target Bone"
+msgstr "Vincola l'Osso Obiettivo"
+
+
 msgid "Blend Weight"
 msgstr "Peso della Fusione"
 
@@ -7195,6 +7246,10 @@ msgid "Refit"
 msgstr "Riadatta"
 
 
+msgid "Incrementally refit the curve (high quality)"
+msgstr "Riadatta in modo incrementale la curva (alta qualità)"
+
+
 msgid "Split"
 msgstr "Dividi"
 
@@ -7306,6 +7361,10 @@ msgid "First Handle Type"
 msgstr "Primo Tipo di Maniglia"
 
 
+msgid "Path interpolation at this point"
+msgstr "Interpolazione del percorso a questo punto"
+
+
 msgid "Free Handle"
 msgstr "Maniglia Libera"
 
@@ -7316,6 +7375,38 @@ msgstr "Maniglie Libere Allineate"
 
 msgid "Second Handle Type"
 msgstr "Secondo Tipo di Maniglia"
+
+
+msgid "X/Y coordinates of the path point"
+msgstr "Coordinate X/Y del punto del percorso"
+
+
+msgid "Selection state of the path point"
+msgstr "Stato della selezione del punto del percorso"
+
+
+msgid "Profile Point"
+msgstr "Punto di Profilo"
+
+
+msgid "Collection of Profile Points"
+msgstr "Raccolta di Punti di Profilo"
+
+
+msgid "Curve Slice"
+msgstr "Fetta di Curva"
+
+
+msgid "First Point Index"
+msgstr "Indice del Primo Punto"
+
+
+msgid "Index of this curve"
+msgstr "Indice di questa curva"
+
+
+msgid "Number of Points"
+msgstr "Numero di Punti"
 
 
 msgid "Curve Splines"
@@ -7334,12 +7425,28 @@ msgid "Dash"
 msgstr "Tratteggiato"
 
 
+msgid "Gap"
+msgstr "Divario"
+
+
 msgid "Material Index"
 msgstr "Indice Materiale"
 
 
+msgid "Name of the dash segment"
+msgstr "Nome del segmento del trattino"
+
+
 msgid "Dependency Graph"
 msgstr "Grafico Dipendenze"
+
+
+msgid "IDs"
+msgstr "ID"
+
+
+msgid "Evaluation mode"
+msgstr "Modalità di valutazione"
 
 
 msgid "Viewport"
@@ -7350,8 +7457,20 @@ msgid "Render"
 msgstr "Render"
 
 
+msgid "Object Instances"
+msgstr "Istanze di Oggetti"
+
+
 msgid "Scene"
 msgstr "Scena"
+
+
+msgid "Updates"
+msgstr "Aggiornamenti"
+
+
+msgid "View Layer"
+msgstr "Visualizza Livello"
 
 
 msgid "Is Instance"
@@ -7370,6 +7489,10 @@ msgid "Particle System"
 msgstr "Sistema Particelle"
 
 
+msgid "Evaluated particle system that this object was instanced from"
+msgstr "Sistema di particelle valutato da cui è stato istanziato questo oggetto"
+
+
 msgid "Persistent ID"
 msgstr "ID Persistente"
 
@@ -7386,8 +7509,16 @@ msgid "UV coordinates in parent object space"
 msgstr "Usa le coordinate UV per mappare l'immagine"
 
 
+msgid "Dependency Graph Update"
+msgstr "Aggiornamento del Grafico delle Dipendenze"
+
+
 msgid "ID"
 msgstr "ID"
+
+
+msgid "Updated data-block"
+msgstr "Blocco-dati aggiornato"
 
 
 msgid "Geometry"
@@ -7442,6 +7573,14 @@ msgid "Settings for filtering the channels shown in animation editors"
 msgstr "Impostazioni per il filtraggio dei canali mostrati negli Editor di Animazione"
 
 
+msgid "Filtering Collection"
+msgstr "Raccolta di Filtri"
+
+
+msgid "Collection that included object should be a member of"
+msgstr "Raccolta di cui l'oggetto incluso deve essere membro"
+
+
 msgid "F-Curve Name Filter"
 msgstr "Filtro Nome Curve-F"
 
@@ -7466,6 +7605,14 @@ msgid "Include visualization of armature related animation data"
 msgstr "Include la visualizzazione dei dati animazione relativi alle Armature"
 
 
+msgid "Display Cache Files"
+msgstr "Visualizza i File Cache"
+
+
+msgid "Include visualization of cache file related animation data"
+msgstr "Include la visualizzazione dei dati di animazione relativi al file cache"
+
+
 msgid "Display Camera"
 msgstr "Mostra Camera"
 
@@ -7480,6 +7627,10 @@ msgstr "Mostra Curve"
 
 msgid "Include visualization of curve related animation data"
 msgstr "Include la visualizzazione dei dati animazione relativi alle Curve"
+
+
+msgid "Show Data-Block Filters"
+msgstr "Mostra Filtri Blocco-Dati"
 
 
 msgid "Show options for whether channels related to certain types of data are included"
@@ -7502,6 +7653,14 @@ msgid "Include visualization of Grease Pencil related animation data and frames"
 msgstr "Include la visualizzazione dei dati animazione e frames relativi alla Matita"
 
 
+msgid "Display Hair"
+msgstr "Visualizza Capelli"
+
+
+msgid "Include visualization of hair related animation data"
+msgstr "Include la visualizzazione dei dati di animazione relativi ai capelli"
+
+
 msgid "Show Hidden"
 msgstr "Mostra Nascosti"
 
@@ -7516,6 +7675,14 @@ msgstr "Mostra Lattici"
 
 msgid "Include visualization of lattice related animation data"
 msgstr "Include la visualizzazione dei dati animazione relativo ai Lattice"
+
+
+msgid "Display Light"
+msgstr "Mostra Luce"
+
+
+msgid "Include visualization of light related animation data"
+msgstr "Include la visualizzazione dei dati di animazione relativi alla luce"
 
 
 msgid "Display Line Style"
@@ -7566,6 +7733,10 @@ msgid "Include visualization of animation data related to data-blocks linked to 
 msgstr "Include la visualizzazione dei dati animazione relativi ai blocchi-dati collegati ai modificatori"
 
 
+msgid "Include visualization of movie clip related animation data"
+msgstr "Include la visualizzazione dei dati di animazione relativi ai videoclip"
+
+
 msgid "Display Node"
 msgstr "Mostra Nodi"
 
@@ -7574,8 +7745,16 @@ msgid "Include visualization of node related animation data"
 msgstr "Include la visualizzazione dei dati animazione relativi ai Nodi"
 
 
+msgid "Only Show Errors"
+msgstr "Mostra Solo Errori"
+
+
 msgid "Only include F-Curves and drivers that are disabled or have errors"
 msgstr "Include solo le Curve-F e le Guide che sono disabilitate o hanno errori"
+
+
+msgid "Only Show Selected"
+msgstr "Mostra Solo Selezionati"
 
 
 msgid "Only include channels relating to selected objects and data"
@@ -7588,6 +7767,10 @@ msgstr "Mostra Particelle"
 
 msgid "Include visualization of particle related animation data"
 msgstr "Include la visualizzazione dei dati animazione relativi alle Particelle"
+
+
+msgid "Include visualization of point cloud related animation data"
+msgstr "Include la visualizzazione dei dati di animazione relativi alla nuvola di punti"
 
 
 msgid "Display Scene"
@@ -7634,6 +7817,14 @@ msgid "Include visualization of object-level animation data (mostly transforms)"
 msgstr "Comprende la visione degli Object-level dei dati dell'animazione (di solito trasformazioni)"
 
 
+msgid "Display Volume"
+msgstr "Mostra Volume"
+
+
+msgid "Include visualization of volume related animation data"
+msgstr "Include la visualizzazione dei dati di animazione relativi al volume"
+
+
 msgid "Display World"
 msgstr "Mostra Mondo"
 
@@ -7668,6 +7859,10 @@ msgstr "Espressione"
 
 msgid "Expression to use for Scripted Expression"
 msgstr "Espressione da usare per Espressione Script"
+
+
+msgid "Simple Expression"
+msgstr "Espressione Semplice"
 
 
 msgid "Invalid"
@@ -7720,6 +7915,18 @@ msgstr "Obiettivo Guida"
 
 msgid "Bone Name"
 msgstr "Nome Osso"
+
+
+msgid "Context Property"
+msgstr "Proprietà del Contesto"
+
+
+msgid "Active Scene"
+msgstr "Scena Attiva"
+
+
+msgid "Active View Layer"
+msgstr "Livello della Vista Attiva"
 
 
 msgid "Data Path"
@@ -7871,8 +8078,28 @@ msgid "The particle system to paint with"
 msgstr "Sistema particellare con cui verniciare"
 
 
+msgctxt "Brush"
+msgid "Falloff"
+msgstr "Decadimento"
+
+
 msgid "Proximity falloff type"
 msgstr "Tipo di decadimento di prossimità"
+
+
+msgctxt "Brush"
+msgid "Smooth"
+msgstr "Liscio"
+
+
+msgctxt "Brush"
+msgid "Constant"
+msgstr "Costante"
+
+
+msgctxt "Brush"
+msgid "Color Ramp"
+msgstr "Rampa Colore"
 
 
 msgid "Ray Direction"
@@ -8015,6 +8242,31 @@ msgid "Multiplier for wave influence of this brush"
 msgstr "Moltiplicatore per l'influenza delle onde di questo pennello"
 
 
+msgctxt "Simulation"
+msgid "Wave Type"
+msgstr "Tipo d'Onda"
+
+
+msgctxt "Simulation"
+msgid "Depth Change"
+msgstr "Cambiamento della Profondità"
+
+
+msgctxt "Simulation"
+msgid "Obstacle"
+msgstr "Ostacolo"
+
+
+msgctxt "Simulation"
+msgid "Force"
+msgstr "Forza"
+
+
+msgctxt "Simulation"
+msgid "Reflect Only"
+msgstr "Rifletti Soltanto"
+
+
 msgid "Canvas Settings"
 msgstr "Impostazioni Tela"
 
@@ -8037,6 +8289,10 @@ msgstr "Superficie Pittura"
 
 msgid "A canvas surface layer"
 msgstr "Un livello superficie della tela"
+
+
+msgid "Only use brush objects from this collection"
+msgstr "Utilizza solo oggetti pennello di questa raccolta"
 
 
 msgid "Influence Scale"
@@ -8079,6 +8335,10 @@ msgid "Displacement"
 msgstr "Spostamento"
 
 
+msgid "Dissolve Time"
+msgstr "Tempo di Dissolvenza"
+
+
 msgid "Approximately in how many frames should dissolve happen"
 msgstr "Approssimativamente in quanti fotogrammi dovrebbe dissolversi"
 
@@ -8089,6 +8349,10 @@ msgstr "Accelerazione"
 
 msgid "Velocity"
 msgstr "Velocità"
+
+
+msgid "Dry Time"
+msgstr "Tempo di Asciugatura"
 
 
 msgid "Approximately in how many frames should drying happen"
@@ -8235,6 +8499,10 @@ msgid "Anti-Aliasing"
 msgstr "Anti-Aliasing"
 
 
+msgid "Use 5× multisampling to smooth paint edges"
+msgstr "Utilizza il multisampling 5× per smussare i bordi della pittura"
+
+
 msgid "Enable to make surface changes disappear over time"
 msgstr "Premette che i cambi della superfice scompaiano nel tempo"
 
@@ -8335,12 +8603,20 @@ msgid "Active Surface"
 msgstr "Superficie Attiva"
 
 
+msgid "EQCurveMappingData"
+msgstr "EQCurveMappingData"
+
+
 msgid "Curve Mapping"
 msgstr "Mappatura Curva"
 
 
 msgid "Edit Bone"
 msgstr "Osso-Strutturale"
+
+
+msgid "Edit mode bone in an armature data-block"
+msgstr "Osso in modalità modifica in un blocco-dati di armatura"
 
 
 msgid "Location of head end of the bone"
@@ -8353,6 +8629,10 @@ msgstr "L'osso non è visibile quando si è in Modalità Modifica"
 
 msgid "Bone is not able to be transformed when in Edit Mode"
 msgstr "L'osso non può essere trasformato quando si è in Modalità Modifica"
+
+
+msgid "Edit Bone Matrix"
+msgstr "Modifica Matrice dell'Osso"
 
 
 msgid "Roll"
@@ -10737,10 +11017,6 @@ msgstr "Usa Maschera"
 
 msgid "Invert mask"
 msgstr "Inverti maschera"
-
-
-msgid "Layer"
-msgstr "Livello"
 
 
 msgid "Spacing"
@@ -13182,6 +13458,10 @@ msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Modifica i tratti Matita anziché i dati della vista"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Blocco-dati Matita"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "Blocco-dati Immagine che referenzia un'immagine esterna o incorporata"
 
@@ -13792,10 +14072,6 @@ msgid "Invert visibility collection"
 msgstr "Inverti visibilità raccolta"
 
 
-msgid "Show Preview Plane"
-msgstr "Mostra Piano Anteprima"
-
-
 msgid "Visibility Collection"
 msgstr "Visibilità Raccolta"
 
@@ -13944,24 +14220,24 @@ msgid "Use shader nodes to render the material"
 msgstr "Usa gli ombreggiatori a nodi per renderizzare il materiale"
 
 
-msgid "Screen Space Refraction"
-msgstr "Rifrazioni Spazio Schermo"
-
-
 msgid "Subsurface Translucency"
 msgstr "Traslucenza Subsuperficiale"
 
 
+msgid "Transparent Shadows"
+msgstr "Ombre Trasparenti"
+
+
+msgid "Fast"
+msgstr "Veloce"
+
+
+msgid "Accurate"
+msgstr "Accuratezza"
+
+
 msgid "Mesh data-block defining geometric surfaces"
 msgstr "Blocco-dati Mesh per definire le superfici geometriche"
-
-
-msgid "Auto Smooth Angle"
-msgstr "Angolo Lisciatura Automatica"
-
-
-msgid "Maximum angle between face normals that will be considered as smooth (unused if custom split normals data are available)"
-msgstr "Angolo massimo fra le normali alle facce le quali saranno considerate come levigate (non viene usato se ci sono dati personalizzati di divisione normali)"
 
 
 msgid "Edges"
@@ -14044,14 +14320,6 @@ msgid "Selected vertex count in editmode"
 msgstr "Conteggio vertici selezionati in Modalità Modifica"
 
 
-msgid "Auto Smooth"
-msgstr "Leviga Automaticamente"
-
-
-msgid "Auto smooth (based on smooth/sharp faces/edges and angle between faces), or use custom split normals data if available"
-msgstr "Leviga automaticamente (sulla base dell'impostazione levigato/piatto di facce/spigoli e dell'angolo fra le facce), o usa i dati di divisione normali se disponibili"
-
-
 msgid "Topology Mirror"
 msgstr "Specchio Topologico"
 
@@ -14124,10 +14392,6 @@ msgid "Metaball edit update behavior"
 msgstr "Comportamento di aggiornamento modifiche metaball"
 
 
-msgid "Fast"
-msgstr "Veloce"
-
-
 msgid "Never"
 msgstr "Mai"
 
@@ -14166,10 +14430,6 @@ msgstr "Etichetta"
 
 msgid "Grease Pencil Data"
 msgstr "Dati Matita"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Blocco-dati Matita"
 
 
 msgid "Interface"
@@ -24309,10 +24569,6 @@ msgid "Denoise"
 msgstr "Riduzione Rumore"
 
 
-msgid "Accurate"
-msgstr "Accuratezza"
-
-
 msgid "Despeckle"
 msgstr "Smacchiatura"
 
@@ -25299,10 +25555,6 @@ msgstr "Per la proiezione scatola, ammontare della fusione da usare fra i lati"
 
 msgid "Level of detail in the added turbulent noise"
 msgstr "Livello di dettaglio del rumore turbolento aggiunto"
-
-
-msgid "Musgrave Texture"
-msgstr "Texture Musgrave"
 
 
 msgid "Object to take point data from"
@@ -30953,6 +31205,10 @@ msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
 
 
+msgid "Flat"
+msgstr "Piano"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Modo Selezione"
@@ -33771,15 +34027,6 @@ msgstr "Solo Ossa Selezionate"
 
 msgid "Visual Keying"
 msgstr "Inserimento Chiavi Visuale"
-
-
-msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "Mouse Click sul Canale NLA"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "Gestisce i click per selezionare i canali NLA"
 
 
 msgctxt "Operator"
@@ -43356,6 +43603,10 @@ msgid "Shadows"
 msgstr "Ombre"
 
 
+msgid "Screen Space Reflections"
+msgstr "Riflessioni Spazio Schermo"
+
+
 msgid "Volumetrics"
 msgstr "Volumetrie"
 
@@ -43366,10 +43617,6 @@ msgstr "Illuminazione Volumetrica"
 
 msgid "Volumetric Shadows"
 msgstr "Ombre Volumetriche"
-
-
-msgid "Screen Space Reflections"
-msgstr "Riflessioni Spazio Schermo"
 
 
 msgid "Encoding"
@@ -45921,10 +46168,6 @@ msgstr "Volume Omogeneo"
 
 msgid "When using volume rendering, assume volume has the same density everywhere (not using any textures), for faster rendering"
 msgstr "Quando si usa il rendering volumetrico, assume che questo abbia tutto la stessa densità (non usando alcuna texture), per un rendering più veloce"
-
-
-msgid "Transparent Shadows"
-msgstr "Ombre Trasparenti"
 
 
 msgid "Volume Interpolation"
@@ -49766,10 +50009,6 @@ msgid "Use Local Camera"
 msgstr "Usa Camera Locale"
 
 
-msgid "Flat"
-msgstr "Piano"
-
-
 msgid "Space UV Editor"
 msgstr "Spazio Editor UV"
 
@@ -50586,10 +50825,6 @@ msgid "Face Orientation Front"
 msgstr "Orientamento Faccia Anteriore"
 
 
-msgid "Face Selected"
-msgstr "Faccia Selezionata"
-
-
 msgid "Face Dot Size"
 msgstr "Dimensione Punto della Faccia"
 
@@ -51232,14 +51467,6 @@ msgstr "Vista Locale UV"
 
 msgid "Type of element to snap to"
 msgstr "Tipo di elemento a cui agganciare"
-
-
-msgid "Second"
-msgstr "Secondi"
-
-
-msgid "Nearest Marker"
-msgstr "Marcatore più Vicino"
 
 
 msgid "Snap to nearest marker"
@@ -52082,11 +52309,6 @@ msgstr "Dopesheet Generico"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "Editor NLA"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "Canali NLA"
 
 
 msgctxt "WindowManager"
@@ -53293,6 +53515,10 @@ msgstr "Minuscolo"
 
 msgid "Fuel"
 msgstr "Combustibile"
+
+
+msgid "Second"
+msgstr "Secondi"
 
 
 msgid "Upper"
@@ -55201,6 +55427,16 @@ msgstr "Estrudi Spigoli"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Estrudi Facce"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Estrudi Facce Lungo Le Normali"
+
+
+msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "Solidifica Facce"
 
@@ -55494,16 +55730,6 @@ msgstr "Ruota Spigolo in Senso Antiorario"
 msgctxt "Operator"
 msgid "Clear Sharp"
 msgstr "Smarca come Netto"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Estrudi Facce"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Estrudi Facce Lungo Le Normali"
 
 
 msgctxt "Operator"
@@ -55869,6 +56095,10 @@ msgid "Add UVs"
 msgstr "Aggiungi UV"
 
 
+msgid "<Missing ID block>"
+msgstr "<ID Blocco Mancante>"
+
+
 msgid "No AnimData to set action on"
 msgstr "Livello dell'animazione su cui eseguire l'azione"
 
@@ -56024,6 +56254,10 @@ msgstr "Chiave %d"
 
 msgid "MaskLayer"
 msgstr "LivelloMaschera"
+
+
+msgid "Auto Smooth"
+msgstr "Leviga Automaticamente"
 
 
 msgid "NlaTrack"
@@ -56348,10 +56582,6 @@ msgstr "Cancella punto di controllo involucro"
 
 msgid "Coefficient"
 msgstr "Coefficiente"
-
-
-msgid "<Missing ID block>"
-msgstr "<ID Blocco Mancante>"
 
 
 msgid "No active Keying Set"

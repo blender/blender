@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
-"PO-Revision-Date: 2023-11-06 03:54+0000\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
 "Language: tr\n"
@@ -1631,6 +1631,10 @@ msgstr "Örnek"
 
 msgid "Attribute on instance"
 msgstr "Örnekteki öznitelik"
+
+
+msgid "Layer"
+msgstr "Katman"
 
 
 msgid "Is Internal"
@@ -3839,10 +3843,6 @@ msgid "Bones"
 msgstr "Kemikler"
 
 
-msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronised when exiting edit mode"
-msgstr "Bu kemik koleksiyonuna atanan kemikler. Kemik koleksiyonu üyelikleri yalnızca düzenleme kipinden çıkarken eşzamanlandığından, armatür düzenleme kipinde bu her zaman bir boş kemikler listesi döndürür"
-
-
 msgid "Is Editable"
 msgstr "Düzenlenebilir"
 
@@ -5850,6 +5850,10 @@ msgid "Dynamic Base Mesh"
 msgstr "Devingen Taban Örgüsü"
 
 
+msgid "Sew Cloth"
+msgstr "Kumaş Dik"
+
+
 msgid "Collection Child"
 msgstr "Koleksiyon Alt Ögesi"
 
@@ -6364,10 +6368,6 @@ msgstr "Katman, Döküm Kağıdı'nda düzenleme için seçili"
 
 msgid "ViewLayer"
 msgstr "Görünüm Katmanı"
-
-
-msgid "Layer"
-msgstr "Katman"
 
 
 msgid "GPencil Sculpt Guide"
@@ -7567,10 +7567,6 @@ msgid "Add"
 msgstr "Ekle"
 
 
-msgid "NLA Channel"
-msgstr "DOC Kanalı"
-
-
 msgid "Text"
 msgstr "Metin"
 
@@ -8418,6 +8414,11 @@ msgid "Report"
 msgstr "Raporla"
 
 
+msgctxt "Operator"
+msgid "Set Attribute"
+msgstr "Öznitelik Ayarla"
+
+
 msgid "To Sphere"
 msgstr "Küreselleştir"
 
@@ -8491,6 +8492,11 @@ msgstr "Kaydır"
 
 msgid "General"
 msgstr "Genel"
+
+
+msgctxt "Operator"
+msgid "Cleanup Bookmarks"
+msgstr "Yer İmlerini Temizle"
 
 
 msgctxt "Operator"
@@ -8625,6 +8631,11 @@ msgid "New Object"
 msgstr "Yeni Nesne"
 
 
+msgctxt "Operator"
+msgid "Clean Duplicate Frames"
+msgstr "Yinelenen Kareleri Temizle"
+
+
 msgid "Limit"
 msgstr "Sınır"
 
@@ -8681,6 +8692,10 @@ msgstr "Anahtar Kareleri Kırk"
 
 msgid "Shear Factor"
 msgstr "Kırkma Çarpanı"
+
+
+msgid "Flat"
+msgstr "Düz"
 
 
 msgid "All Active Frames"
@@ -8842,11 +8857,6 @@ msgstr "Yeni Maske"
 msgctxt "Operator"
 msgid "New Material"
 msgstr "Yeni Malzeme"
-
-
-msgctxt "Operator"
-msgid "Set Attribute"
-msgstr "Öznitelik Ayarla"
 
 
 msgid "Open Loop"
@@ -9502,6 +9512,10 @@ msgid "Some error occurred with this message"
 msgstr "Bu ileti ile ilgili bir hata oluştu"
 
 
+msgid "Clean up i18n working repository (po files)"
+msgstr "i18n çalışma deposunu temizle (po dosyaları)"
+
+
 msgctxt "Operator"
 msgid "Update I18n Statistics"
 msgstr "I18n İstatistiklerini Güncelle"
@@ -9716,10 +9730,6 @@ msgstr "Bir dosya tarayıcısında bir yol aç"
 
 msgid "Export Vertex Colors"
 msgstr "Tepecik Renklerini Dışa Aktar"
-
-
-msgid "Import Vertex Colors"
-msgstr "Tepecik Renkleri İçe Aktar"
 
 
 msgctxt "Operator"
@@ -10892,10 +10902,6 @@ msgid "Show Reconstruction"
 msgstr "Yeniden Yapımı Göster"
 
 
-msgid "Flat"
-msgstr "Düz"
-
-
 msgid "Live Unwrap"
 msgstr "Anlık Açılım"
 
@@ -11311,6 +11317,11 @@ msgid "Renamed %d of %d %s"
 msgstr "%d / %d %s yeniden adlandırıldı"
 
 
+msgctxt "Operator"
+msgid "Open..."
+msgstr "Aç…"
+
+
 msgid "Create New Settings"
 msgstr "Yeni Ayarlar Oluştur"
 
@@ -11325,9 +11336,38 @@ msgid "Continue"
 msgstr "Sürdür"
 
 
+msgid "Getting Started"
+msgstr "Başlarken"
+
+
 msgctxt "Operator"
 msgid "Donate"
 msgstr "Bağış Yap"
+
+
+msgctxt "Operator"
+msgid "What's New"
+msgstr "Neler Yeni"
+
+
+msgctxt "Operator"
+msgid "Credits"
+msgstr "Emeği Geçenler"
+
+
+msgctxt "Operator"
+msgid "License"
+msgstr "Lisans"
+
+
+msgctxt "Operator"
+msgid "Blender Store"
+msgstr "Blender Mağazası"
+
+
+msgctxt "Operator"
+msgid "Blender Website"
+msgstr "Blender Web Sitesi"
 
 
 msgctxt "Operator"
@@ -11340,12 +11380,64 @@ msgid "Append..."
 msgstr "İliştir..."
 
 
+msgid "Assign"
+msgstr "Ata"
+
+
+msgid "Operator not found: bpy.ops.%s"
+msgstr "İşleç bulunamadı: bpy.ops.%s"
+
+
+msgid "Bug"
+msgstr "Hata"
+
+
+msgid "Report a bug with pre-filled version information"
+msgstr "Sürüm bilgisi önden doldurulmuş olarak bir hata bildir"
+
+
+msgid "Add-on Bug"
+msgstr "Eklenti Hatası"
+
+
+msgid "Report a bug in an add-on"
+msgstr "Bir eklentideki bir hatayı bildir"
+
+
+msgid "Release Notes"
+msgstr "Sürüm Notları"
+
+
+msgid "Read about what's new in this version of Blender"
+msgstr "Blender'ın bu sürümünde nelerin yeni olduğunu oku"
+
+
 msgid "User Manual"
 msgstr "Kullanıcı Kılavuzu"
 
 
+msgid "The reference manual for this version of Blender"
+msgstr "Blender'ın bu sürümü için başvuru kılavuzu"
+
+
 msgid "Python API Reference"
 msgstr "Python API Başvurusu"
+
+
+msgid "The API reference manual for this version of Blender"
+msgstr "Blender'ın bu sürümü için API başvurusu kılavuzu"
+
+
+msgid "Development Fund"
+msgstr "Geliştirme Fonu"
+
+
+msgid "The donation program to support maintenance and improvements"
+msgstr "Programın bakımı sağlamak ve iyileştirmeleri desteklemek için bağış programı"
+
+
+msgid "blender.org"
+msgstr "blender.org"
 
 
 msgid "Credits"
@@ -11485,6 +11577,11 @@ msgstr "Kanalları Sessize Al"
 
 
 msgctxt "Operator"
+msgid "Cleanup"
+msgstr "Temizlik Yap"
+
+
+msgctxt "Operator"
 msgid "New Folder"
 msgstr "Yeni Klasör"
 
@@ -11583,6 +11680,11 @@ msgstr "Tümünü Yenile"
 msgctxt "Operator"
 msgid "Sequence Render Animation"
 msgstr "Sekans Sunumu Canlandırması"
+
+
+msgctxt "Operator"
+msgid "Sequence Render Image"
+msgstr "Sekans Görseli Sun"
 
 
 msgctxt "Operator"
@@ -11694,6 +11796,11 @@ msgstr "Son İşlemi Düzelt..."
 
 
 msgctxt "Operator"
+msgid "Repeat History..."
+msgstr "Geçmişi Yinele…"
+
+
+msgctxt "Operator"
 msgid "Menu Search..."
 msgstr "Menülerde Ara..."
 
@@ -11724,6 +11831,11 @@ msgstr "Sonraki Çalışma Alanı"
 
 
 msgctxt "Operator"
+msgid "Save Incremental"
+msgstr "Artımlı Kaydet"
+
+
+msgctxt "Operator"
 msgid "Save Copy..."
 msgstr "Kopya Kaydet..."
 
@@ -11736,6 +11848,16 @@ msgstr "Genel"
 msgctxt "Operator"
 msgid "Load Factory Blender Settings"
 msgstr "Blender Fabrika Ayarlarını Yükle"
+
+
+msgctxt "Operator"
+msgid "Render Image"
+msgstr "Görsel Sun"
+
+
+msgctxt "Operator"
+msgid "Release Notes"
+msgstr "Sürüm Notları"
 
 
 msgctxt "Operator"
@@ -11925,6 +12047,11 @@ msgstr "Etkileşimli Ayna"
 
 
 msgctxt "Operator"
+msgid "Viewport Render Image"
+msgstr "Görüş Alanı Görseli Sun"
+
+
+msgctxt "Operator"
 msgid "Similar"
 msgstr "Benzer"
 
@@ -12078,28 +12205,12 @@ msgid "LineStyle"
 msgstr "Çizgi Biçemi"
 
 
-msgid "GP_Group"
-msgstr "GP_Grubu"
-
-
 msgid "Key %d"
 msgstr "Anahtar %d"
 
 
 msgid "GreasePencil"
 msgstr "Gres Kalemi"
-
-
-msgid "Stones"
-msgstr "Taş"
-
-
-msgid "Pounds"
-msgstr "Libre"
-
-
-msgid "Ounces"
-msgstr "Ons"
 
 
 msgid "2D_Animation"
@@ -12132,6 +12243,10 @@ msgstr "Çıkış"
 
 msgid "No active bone collection"
 msgstr "Etkin kemik koleksiyonu yok"
+
+
+msgid "No active attribute"
+msgstr "Etkin öznitelik yok"
 
 
 msgid "Unable to add a new Lattice modifier to object"
@@ -12545,10 +12660,6 @@ msgstr "Doku Seçenekleri"
 msgctxt "Mesh"
 msgid "Cube"
 msgstr "Küp"
-
-
-msgid "No active attribute"
-msgstr "Etkin öznitelik yok"
 
 
 msgctxt "Object"

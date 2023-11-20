@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -545,6 +545,10 @@ msgstr "Страница"
 
 msgid "Spline"
 msgstr "Крива"
+
+
+msgid "Layer"
+msgstr "Слој"
 
 
 msgid "Cage Object"
@@ -4825,10 +4829,6 @@ msgid "Use Mask"
 msgstr "Користи маску"
 
 
-msgid "Layer"
-msgstr "Слој"
-
-
 msgid "Spacing"
 msgstr "Размак"
 
@@ -6530,8 +6530,12 @@ msgid "Texture Slots"
 msgstr "Слотови текстура"
 
 
-msgid "Auto Smooth Angle"
-msgstr "Угао аутоумекшавања"
+msgid "Transparent Shadows"
+msgstr "Сенчење приказа"
+
+
+msgid "Fast"
+msgstr "Брзо"
 
 
 msgid "Edges"
@@ -6594,10 +6598,6 @@ msgid "Selected vertex count in editmode"
 msgstr "Број изабраних темена у режиму измене"
 
 
-msgid "Auto Smooth"
-msgstr "Ауто-умекшање"
-
-
 msgid "Topology Mirror"
 msgstr "Тополошко огледало"
 
@@ -6640,10 +6640,6 @@ msgstr "Величина рендеринга"
 
 msgid "Update"
 msgstr "Освежи"
-
-
-msgid "Fast"
-msgstr "Брзо"
 
 
 msgid "Never"
@@ -14880,6 +14876,10 @@ msgid "Flatten handles for a smoother transition"
 msgstr "Генериши мек шум (мекан прелаз)"
 
 
+msgid "Flat"
+msgstr "Равно"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Мод изабора"
@@ -21853,10 +21853,6 @@ msgid "When using volume rendering, assume volume has the same density everywher
 msgstr "При рендеровању запремине, рачунај да је густина свуда иста (не користи текстуре), ради бржег рендеринга"
 
 
-msgid "Transparent Shadows"
-msgstr "Сенчење приказа"
-
-
 msgid "Use Motion Blur"
 msgstr "Замућење покрета"
 
@@ -23203,10 +23199,6 @@ msgid "Tracks Size"
 msgstr "Величина стаза"
 
 
-msgid "Flat"
-msgstr "Равно"
-
-
 msgid "Constrain to Image Bounds"
 msgstr "Ограничи на величину слике"
 
@@ -23587,10 +23579,6 @@ msgid "Face Dot Selected"
 msgstr "Изабрана тачка странице"
 
 
-msgid "Face Selected"
-msgstr "Изабрана страница"
-
-
 msgid "Face Dot Size"
 msgstr "Величина тачке странице"
 
@@ -23897,10 +23885,6 @@ msgstr "Локални поглед"
 
 msgid "Type of element to snap to"
 msgstr "Врста елемента за који се лепи"
-
-
-msgid "Nearest Marker"
-msgstr "Најближи маркер"
 
 
 msgid "Snap to nearest marker"
@@ -24348,11 +24332,6 @@ msgstr "Почетни уређивач графикона"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "NLA Уређивач"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "NLA канали"
 
 
 msgctxt "WindowManager"
@@ -25895,6 +25874,18 @@ msgid "in memory to enable editing!"
 msgstr "у меморији како би омогућили уређивање!"
 
 
+msgid "<No ID pointer>"
+msgstr "<Без ID показивача>"
+
+
+msgid "<Missing ID block>"
+msgstr "<Недостаје ID блок>"
+
+
+msgid "No F-Curve to add keyframes to"
+msgstr "Кадар за ибацивање кључног кадра"
+
+
 msgid "Const"
 msgstr "Ограничење"
 
@@ -25930,6 +25921,10 @@ msgstr "Кључ %d"
 
 msgid "MaskLayer"
 msgstr "Слој маске"
+
+
+msgid "Auto Smooth"
+msgstr "Ауто-умекшање"
 
 
 msgid "Mball"
@@ -26015,18 +26010,6 @@ msgstr "<Непознати измењивач>"
 
 msgid "Delete envelope control point"
 msgstr "Избриши контролну тачку коверте"
-
-
-msgid "<No ID pointer>"
-msgstr "<Без ID показивача>"
-
-
-msgid "<Missing ID block>"
-msgstr "<Недостаје ID блок>"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "Кадар за ибацивање кључног кадра"
 
 
 msgid "No active Keying Set"

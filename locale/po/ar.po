@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -741,6 +741,10 @@ msgstr "ﻪﺟﻭ"
 
 msgid "Spline"
 msgstr "ﻲﺑ-ﻰﻨﺤﻨﻣ"
+
+
+msgid "Layer"
+msgstr "ﺔﻘﺒﻃ"
 
 
 msgid "Bake Data"
@@ -8441,10 +8445,6 @@ msgid "Use Mask"
 msgstr "ﻉﺎﻨﻘﻟﺍ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "Layer"
-msgstr "ﺔﻘﺒﻃ"
-
-
 msgid "Spacing"
 msgstr "ﺪﻋﺎﺒﺘﻟﺍ"
 
@@ -11615,12 +11615,12 @@ msgid "Use shader nodes to render the material"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺮﻴﻴﺼﺘﻠﻟ ﻞﻠﻈﻤﻟﺍ ﺪﻘﻋ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "Auto Smooth Angle"
-msgstr "ﺔﻴﺗﺍﺬﻟﺍ ﺔﻣﻮﻌﻨﻟﺍ ﺔﻳﻭﺍﺯ"
+msgid "Transparent Shadows"
+msgstr "ﺔﻓﺎﻔﺷ ﻝﻼ﻿ﻇ"
 
 
-msgid "Maximum angle between face normals that will be considered as smooth (unused if custom split normals data are available)"
-msgstr "(ﺓﺪﺟﺍﻮﺘﻣ ﺮﻴﻏ ﺔﺼﺼﺨﻤﻟﺍ ﻞﺼﻔﻟﺍ ﻢﻇﺍﻮﻧ ﺕﺎﻧﺎﻴﺑ ﻥﺍ ﺔﻟﺎﺣ ﻲﻓ ﺔﻣﺪﺨﺘﺴﻣ ﺮﻴﻏ) ﺔﻤﻋﺎﻨﻛ ﺐﺴﺤﺘﺳ ﻲﺘﻟﺍ ﻭ ﻪﺟﻮﻟﺍ ﻢﻇﺍﻮﻧ ﻦﻴﺑ ﺔﻳﻭﺍﺯ ﺮﺒﻛﺍ"
+msgid "Fast"
+msgstr "ﻊﻳﺮﺳ"
 
 
 msgid "Edges"
@@ -11701,14 +11701,6 @@ msgstr "ﺮﻳﺮﺤﺘﻟﺍ ﻊﺿﻭ ﻲﻓ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻪﺟ�
 
 msgid "Selected vertex count in editmode"
 msgstr "ﺮﻳﺮﺤﺘﻟﺍ ﻊﺿﻭ ﻲﻓ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻂﻘﻨﻟﺍ ﺩﺪﻋ"
-
-
-msgid "Auto Smooth"
-msgstr "ﺔﻴﺗﺍﺬﻟﺍ ﺔﻣﻮﻌﻨﻟﺍ"
-
-
-msgid "Auto smooth (based on smooth/sharp faces/edges and angle between faces), or use custom split normals data if available"
-msgstr "ﺕﺪﺟﻭ ﻥﺇ ﺔﺼﺼﺨﻣ ﻞﺼﻓ ﻢﻇﺍﻮﻧ ﺕﺎﻧﺎﻴﺑ ﻡﺪﺨﺘﺳﺍ ﻭﺍ ,(ﻪﺟﻭﻷ﻿ﺍ ﻦﻴﺑ ﺔﻳﻭﺍﺰﻟﺍ ﻭ ﻑﺍﻮﺤﻟﺍ/ﺓﺩﺎﺤﻟﺍ ﻪﺟﻭﻷ﻿ﺍ/ﻢﻴﻌﻨﺘﻟﺍ ﺐﺴﺣ) ﻲﺗﺍﺫ ﻢﻴﻌﻨﺗ"
 
 
 msgid "Topology Mirror"
@@ -11805,10 +11797,6 @@ msgstr "ﻞﻋﺎﻔﺘﻟﺍ ﺓﺮﻛ ﺎﻤﺋﺍﺩ ﺙﺪّﺣ ,ﺮﻳﺮ�
 
 msgid "While editing, update metaball in half resolution"
 msgstr "ﺔﻗﺪﻟﺍ ﻒﺼﻨﺑ ﺔﻠﻋﺎﻔﺘﻤﻟﺍ ﺓﺮﻜﻟﺍ ﺙﺪﺣ ،ﺮﻳﺮﺤﺘﻟﺍ ﻝﻼ﻿ﺧ"
-
-
-msgid "Fast"
-msgstr "ﻊﻳﺮﺳ"
 
 
 msgid "While editing, update metaball without polygonization"
@@ -20645,10 +20633,6 @@ msgid "Level of detail in the added turbulent noise"
 msgstr "ﻑﺎﻀﻤﻟﺍ ﺏﺮﻄﻀﻤﻟﺍ ﺞﻴﺠﻀﻟﺍ ﻲﻓ ﻞﻴﺻﺎﻔﺘﻟﺍ ﻯﻮﺘﺴﻣ"
 
 
-msgid "Musgrave Texture"
-msgstr "ﻑﺍﺮﻐﺳﻮﻣ ﺞﻴﺴﻧ"
-
-
 msgid "Object to take point data from"
 msgstr "ﻪﻨﻣ ﺕﺎﻧﺎﻴﺒﻟﺍ ﺔﻄﻘﻧ ﺬﺧﺃ ﺐﺠﻳ ﻱﺬﻟﺍ ﻦﺋﺎﻜﻟﺍ"
 
@@ -23716,6 +23700,10 @@ msgid "Invert action of brush for duration of stroke"
 msgstr "ﺔﺒﻄﺸﻟﺍ ﺓﺪﻤﻟ ﺓﺎﺷﺮﻔﻟﺍ ﻞﻤﻋ ﺲﻜﻋﺍ"
 
 
+msgid "Flat"
+msgstr "ﺢﻄّﺴﻣ"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "ﺭﺎﻴﺘﺧﺍ ﻂﻤﻧ"
@@ -25236,11 +25224,6 @@ msgstr "ﻝﻮﺻﻻ﻿ﺍ ﺭﺮﺣ"
 
 msgid "Visual Keying"
 msgstr "ﺢﻴﺗﺎﻔﻤﻠﻟ ﻲﺋﺮﻣ ﻞﻴﺠﺴﺗ"
-
-
-msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "NLA ﺕﺍﻮﻨﻗ ﺔﻠﻋ ﺓﺭﺄﻔﻟﺍ ﺔﻄﻐﺿ"
 
 
 msgctxt "Operator"
@@ -32167,10 +32150,6 @@ msgid "Homogeneous Volume"
 msgstr "ﻞﺋﺎﻤﺘﻣ ﻢﺠﺣ"
 
 
-msgid "Transparent Shadows"
-msgstr "ﺔﻓﺎﻔﺷ ﻝﻼ﻿ﻇ"
-
-
 msgid "Volume Interpolation"
 msgstr "ﻢﺠﺤﻟﺍ ﺪﻴﻟﻮﺗ"
 
@@ -34234,10 +34213,6 @@ msgid "Viewport display style for tracks"
 msgstr "ﺕﺍﺭﺎﺴﻤﻠﻟ ﺬﻔﻨﻤﻟﺍ ﺽﺮﻋ ﻂﻤﻧ"
 
 
-msgid "Flat"
-msgstr "ﺢﻄّﺴﻣ"
-
-
 msgid "UV editor data for the image editor space"
 msgstr "ﺭﻮﺼﻟﺍ ﺭﺮﺤﻣ ءﺎﻀﻔﻟ  UV ـﻟﺍ ﺭﺮﺤﻣ ﺕﺎﻧﺎﻴﺑ"
 
@@ -35818,11 +35793,6 @@ msgstr "ﻂﻴﻄﺨﺘﻟﺍ ﺔﻗﺭﻭ"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "NLA ﺭﺮﺤﻣ"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "NLA ﺓﺍﻮﻨﻗ"
 
 
 msgctxt "WindowManager"
@@ -37854,6 +37824,10 @@ msgid "in memory to enable editing!"
 msgstr "!ﻞﻳﺪﻌﺘﻟﺍ ﻞﻴﻌﻔﺘﻟ ﺓﺮﻛﺍﺬﻟﺍ ﻲﻓ"
 
 
+msgid "<Missing ID block>"
+msgstr "ﺓﺩﻮﻘﻔﻣ ﺕﺎﻧﺎﻴﺒﻟﺍ ﺔﻠﺘﻛ"
+
+
 msgid "No AnimData to set action on"
 msgstr "ﺙﺪﺤﻟﺍ ﺎﻬﻴﻠﻋ ﺽﻭﺮﻌﻤﻟﺍ ﺔﻛﺮﺤﻟﺍ ﺔﻘﺒﻃ"
 
@@ -37929,6 +37903,10 @@ msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﺓﺩﺪﻌﺘﻤﻟﺍ ﺓﺭﻮﺼﻟﺍ ﻲﻓ
 
 msgid "MaskLayer"
 msgstr "ﻉﺎﻨﻗ ﺔﻘﺒﻃ"
+
+
+msgid "Auto Smooth"
+msgstr "ﺔﻴﺗﺍﺬﻟﺍ ﺔﻣﻮﻌﻨﻟﺍ"
 
 
 msgid "NlaTrack"
@@ -38030,10 +38008,6 @@ msgstr "ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻻ﻿ﺍ ﻰﻠﻋ ﻒﻠﻐﻤﻠﻟ ﺓ�
 
 msgid "Delete envelope control point"
 msgstr "ﻒﻠﻐﻤﻟﺍ ﻢﻜﺤﺗ ﺔﻄﻘﻧ ﻑﺬﺣﺍ"
-
-
-msgid "<Missing ID block>"
-msgstr "ﺓﺩﻮﻘﻔﻣ ﺕﺎﻧﺎﻴﺒﻟﺍ ﺔﻠﺘﻛ"
 
 
 msgid "No suitable context info for active keying set"

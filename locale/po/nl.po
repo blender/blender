@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2023-10-08 06:34+0000\n"
 "Last-Translator: Wannes Malfait <wannes.malfait@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -512,6 +512,10 @@ msgstr "Rand"
 
 msgid "Face"
 msgstr "Vlak"
+
+
+msgid "Layer"
+msgstr "Laag"
 
 
 msgid "File Path"
@@ -1745,10 +1749,6 @@ msgstr "Frames"
 
 msgid "Locked"
 msgstr "Vergrendeld"
-
-
-msgid "Layer"
-msgstr "Laag"
 
 
 msgid "Grid"
@@ -4404,6 +4404,10 @@ msgstr "Volgende Sleutelframe"
 msgctxt "Operator"
 msgid "Reveal Curves"
 msgstr "Toon Krommes"
+
+
+msgid "Flat"
+msgstr "Vlak"
 
 
 msgctxt "Operator"
@@ -7127,10 +7131,6 @@ msgid "3D"
 msgstr "3D"
 
 
-msgid "Flat"
-msgstr "Vlak"
-
-
 msgid "Force Field"
 msgstr "Krachtveld"
 
@@ -7189,10 +7189,6 @@ msgstr "Alle Punten"
 
 msgid "Lock Markers"
 msgstr "Vergrendel Markeringen"
-
-
-msgid "Second"
-msgstr "Seconde"
 
 
 msgid "Only Endpoints"
@@ -7740,6 +7736,10 @@ msgstr "Lege Ruimte"
 msgctxt "Operator"
 msgid "Resume"
 msgstr "Hervat"
+
+
+msgid "Second"
+msgstr "Seconde"
 
 
 msgid "Auto-Step"
