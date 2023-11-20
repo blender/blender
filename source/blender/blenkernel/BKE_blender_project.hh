@@ -10,11 +10,9 @@
 
 #include <memory>
 
-#include "BLI_listbase.h"
 #include "BLI_string_ref.hh"
-#include "BLI_utility_mixins.hh"
 
-struct BlenderProject;
+struct ListBase;
 
 namespace blender::io::serialize {
 class DictionaryValue;

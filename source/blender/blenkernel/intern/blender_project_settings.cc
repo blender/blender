@@ -12,6 +12,8 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
+#include "BLI_utility_mixins.hh"
+
 #include "BLI_serialize.hh"
 
 #include "BKE_asset_library_custom.h"
@@ -31,9 +33,9 @@ struct CustomAssetLibraries : NonCopyable {
 
   CustomAssetLibraries() = default;
   CustomAssetLibraries(ListBase asset_libraries);
-  CustomAssetLibraries(CustomAssetLibraries &&);
+  CustomAssetLibraries(CustomAssetLibraries &&other);
   ~CustomAssetLibraries();
-  CustomAssetLibraries &operator=(CustomAssetLibraries &&);
+  CustomAssetLibraries &operator=(CustomAssetLibraries &&other);
 };
 
 CustomAssetLibraries::CustomAssetLibraries(ListBase asset_libraries)
