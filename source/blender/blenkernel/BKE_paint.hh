@@ -865,10 +865,10 @@ bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh);
  *
  * \note always call *before* #BKE_sculpt_update_object_for_edit.
  */
-int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
-                                  Main *bmain,
-                                  Object *ob,
-                                  MultiresModifierData *mmd);
+void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
+                                   Main *bmain,
+                                   Object *ob,
+                                   MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(Scene *scene);
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
@@ -883,11 +883,6 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
  * drawing the mesh and all updates that come with it.
  */
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d);
-
-enum {
-  SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
-  SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),
-};
 
 /* paint_vertex.cc */
 

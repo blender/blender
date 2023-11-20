@@ -1998,10 +1998,10 @@ bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
       &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, ".hide_poly"));
 }
 
-int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
-                                  Main *bmain,
-                                  Object *ob,
-                                  MultiresModifierData *mmd)
+void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
+                                   Main *bmain,
+                                   Object *ob,
+                                   MultiresModifierData *mmd)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -2009,7 +2009,6 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
   const OffsetIndices faces = me->faces();
   const Span<int> corner_verts = me->corner_verts();
   MutableAttributeAccessor attributes = me->attributes_for_write();
-  int ret = 0;
 
   /* if multires is active, create a grid paint mask layer if there
    * isn't one already */
@@ -2061,18 +2060,13 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     if (depsgraph) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
     }
-
-    ret |= SCULPT_MASK_LAYER_CALC_LOOP;
   }
 
   /* Create vertex paint mask layer if there isn't one already. */
   if (attributes.add<float>(".sculpt_mask", ATTR_DOMAIN_POINT, AttributeInitDefaultValue())) {
     /* The evaluated mesh must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    ret |= SCULPT_MASK_LAYER_CALC_VERT;
   }
-
-  return ret;
 }
 
 void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
