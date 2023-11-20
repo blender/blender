@@ -1245,12 +1245,12 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
                     UI_BTYPE_BUT,
                     "SCREEN_OT_project_settings_show",
                     WM_OP_INVOKE_DEFAULT,
-                    NULL,
+                    nullptr,
                     sx + UI_UNIT_X + but_width + UI_UNIT_X,
                     sy - but_offset_y,
                     but_width,
                     UI_UNIT_Y,
-                    NULL);
+                    nullptr);
     but_opptr = UI_but_operator_ptr_get(but);
     RNA_enum_set(but_opptr, "section", PROJECT_SETTINGS_SECTION_ASSET_LIBRARIES);
 
