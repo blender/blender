@@ -32,15 +32,15 @@ static int grease_pencil_material_reveal_exec(bContext *C, wmOperator * /*op*/)
   bool changed = false;
   for (const int i : IndexRange(object->totcol)) {
     if (Material *ma = BKE_gpencil_material(object, i + 1)) {
-      MaterialGPencilStyle *gp_style = ma->gp_style;
-      gp_style->flag &= ~GP_MATERIAL_HIDE;
+      MaterialGPencilStyle &gp_style = *ma->gp_style;
+      gp_style.flag &= ~GP_MATERIAL_HIDE;
       DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
       changed = true;
     }
   }
 
   if (changed) {
-    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_SHADING);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
   }
 
