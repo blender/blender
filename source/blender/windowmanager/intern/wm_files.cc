@@ -65,7 +65,7 @@
 #include "BKE_appdir.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.h"
 #include "BKE_callbacks.h"
@@ -148,6 +148,8 @@ static void wm_test_autorun_revert_action_exec(bContext *C);
 
 static CLG_LogRef LOG = {"wm.files"};
 
+using namespace blender;
+
 /* -------------------------------------------------------------------- */
 /** \name Misc Utility Functions
  * \{ */
@@ -166,7 +168,7 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
 {
   return !wm->file_saved || ED_image_should_save_modified(bmain) ||
          AS_asset_library_has_any_unsaved_catalogs() ||
-         BKE_project_has_unsaved_changes(CTX_wm_project());
+         bke::BlenderProject::has_unsaved_changes(CTX_wm_project());
 }
 
 /** \} */
@@ -2437,7 +2439,7 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
 
-  UserDef U_backup = blender::dna::shallow_copy(U);
+  UserDef U_backup = dna::shallow_copy(U);
 
   wmHomeFileRead_Params read_homefile_params{};
   read_homefile_params.use_data = use_data;
@@ -2545,7 +2547,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   bool use_userdef = false;
   char filepath_buf[FILE_MAX];
   const char *filepath = nullptr;
-  UserDef U_backup = blender::dna::shallow_copy(U);
+  UserDef U_backup = dna::shallow_copy(U);
 
   if (!use_factory_settings) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
@@ -3340,13 +3342,13 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     }
   }
 
-  const BlenderProject *active_project = CTX_wm_project();
-  if (active_project && !BKE_project_contains_path(filepath)) {
+  const bke::BlenderProject *active_project = CTX_wm_project();
+  if (active_project && !bke::BlenderProject::path_is_within_project(filepath)) {
     BKE_reportf(
         op->reports,
         RPT_WARNING,
         "File saved outside of the active project's path (\"%s\"). Active project changed.",
-        BKE_project_root_path_get(active_project));
+        active_project->root_path().c_str());
     /* Don't cancel. Otherwise there's no way to save files outside of the active project. */
   }
 
@@ -4062,11 +4064,9 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
     }
   }
 
-  BlenderProject *project = CTX_wm_project();
-  if (project && BKE_project_has_unsaved_changes(project) &&
-      save_project_settings_when_file_is_closed)
-  {
-    BKE_project_settings_save(project);
+  bke::BlenderProject *project = CTX_wm_project();
+  if (project && project->has_unsaved_changes() && save_project_settings_when_file_is_closed) {
+    project->save_settings();
   }
 
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
@@ -4267,7 +4267,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
     has_extra_checkboxes = true;
   }
 
-  if (BKE_project_has_unsaved_changes(CTX_wm_project())) {
+  if (bke::BlenderProject::has_unsaved_changes(CTX_wm_project())) {
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {
       uiItemS(layout);

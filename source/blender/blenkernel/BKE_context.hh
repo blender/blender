@@ -24,7 +24,6 @@ struct Base;
 struct bGPdata;
 struct bGPDframe;
 struct bGPDlayer;
-struct BlenderProject;
 struct bPoseChannel;
 struct bScreen;
 struct CacheFile;
@@ -112,9 +111,14 @@ struct bContextStore {
   bool used = false;
 };
 
-namespace blender::asset_system {
+namespace blender {
+namespace asset_system {
 class AssetRepresentation;
 }
+namespace bke {
+class BlenderProject;
+}
+}  // namespace blender
 
 /* for the context's rna mode enum
  * keep aligned with data_mode_strings in context.cc */
@@ -194,7 +198,7 @@ ARegion *CTX_wm_menu(const bContext *C);
 wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C);
 wmMsgBus *CTX_wm_message_bus(const bContext *C);
 ReportList *CTX_wm_reports(const bContext *C);
-BlenderProject *CTX_wm_project();
+blender::bke::BlenderProject *CTX_wm_project();
 
 View3D *CTX_wm_view3d(const bContext *C);
 RegionView3D *CTX_wm_region_view3d(const bContext *C);

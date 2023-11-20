@@ -99,7 +99,6 @@
 
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
-#include "BKE_blender_project.h"
 #include "BKE_blender_project.hh"
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
@@ -932,7 +931,9 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
     BLO_write_struct(writer, bUserScriptDirectory, script_dir);
   }
 
-  LISTBASE_FOREACH (const CustomAssetLibraryDefinition *, asset_library_ref, &userdef->asset_libraries) {
+  LISTBASE_FOREACH (
+      const CustomAssetLibraryDefinition *, asset_library_ref, &userdef->asset_libraries)
+  {
     BLO_write_struct(writer, CustomAssetLibraryDefinition, asset_library_ref);
   }
 
@@ -1589,7 +1590,7 @@ static bool BLO_write_file_impl(Main *mainvar,
 
   /* Update active project information based on the new file location. */
   if (U.experimental.use_blender_projects) {
-    BKE_project_active_load_from_path(filepath);
+    blender::bke::BlenderProject::load_active_from_path(filepath);
   }
 
   /* Actual file writing. */

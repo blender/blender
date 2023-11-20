@@ -7,7 +7,7 @@
  */
 
 #include "BKE_asset_library_custom.h"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 
 #include "DNA_userdef_types.h"
@@ -45,6 +45,8 @@ uint64_t AssetLibraryReferenceWrapper::hash() const
 
 }  // namespace blender::ed::asset
 
+using namespace blender;
+
 CustomAssetLibraryDefinition *ED_asset_library_find_custom_library_from_reference(
     const AssetLibraryReference *library_ref)
 {
@@ -53,8 +55,8 @@ CustomAssetLibraryDefinition *ED_asset_library_find_custom_library_from_referenc
       return BKE_asset_library_custom_find_index(&U.asset_libraries,
                                                  library_ref->custom_library_index);
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
-      if (BlenderProject *project = CTX_wm_project()) {
-        return BKE_asset_library_custom_find_index(BKE_project_custom_asset_libraries_get(project),
+      if (bke::BlenderProject *project = CTX_wm_project()) {
+        return BKE_asset_library_custom_find_index(&project->asset_library_definitions(),
                                                    library_ref->custom_library_index);
       }
       break;

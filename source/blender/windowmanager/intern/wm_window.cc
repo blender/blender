@@ -30,7 +30,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
@@ -506,11 +506,11 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
   std::string str;
   str += wm->file_saved ? " " : "* ";
   if (has_filepath) {
-    const BlenderProject *project = CTX_wm_project();
+    const blender::bke::BlenderProject *project = CTX_wm_project();
     if (project) {
-      const char *name = BKE_project_name_get(project);
+      blender::StringRefNull name = project->project_name();
       str += "";
-      str += (name && name[0]) ? name : IFACE_("Unnamed project");
+      str += name.is_empty() ? IFACE_("Unnamed project") : name;
       str += " - ";
     }
 

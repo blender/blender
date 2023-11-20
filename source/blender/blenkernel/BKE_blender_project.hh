@@ -46,6 +46,10 @@ class BlenderProject {
 
  public:
   static auto get_active [[nodiscard]] () -> BlenderProject *;
+  /**
+   * \note: When changing the active project, the previously active one will be destroyed, so
+   *        pointers may dangle.
+   */
   static auto set_active(std::unique_ptr<BlenderProject> settings) -> BlenderProject *;
 
   /**
@@ -62,6 +66,15 @@ class BlenderProject {
    * \return The loaded project or null on failure.
    */
   static auto load_from_path(StringRef project_path) -> std::unique_ptr<BlenderProject>;
+  /**
+   * Attempt to load and activate a project based on the given path. If the path doesn't lead
+   * to or into a project, the active project is unset. Note that the project will be unset on any
+   * failure when loading the project.
+   *
+   * \note: When setting an active project, the previously active one will be destroyed, so
+   * pointers may dangle.
+   */
+  static auto load_active_from_path(StringRef project_path) -> BlenderProject *;
 
   /**
    * Initializes a blender project by creating a .blender_project directory at the given \a
@@ -83,8 +96,16 @@ class BlenderProject {
   /**
    * Check if the directory given by \a path contains a .blender_project directory and should thus
    * be considered a project root directory.
+   * Will return false for paths pointing into a project root directory not to a root directory
+   * itself.
    */
-  static auto path_is_project_root(StringRef path) -> bool;
+  static auto path_is_project_root [[nodiscard]] (StringRef path) -> bool;
+
+  /**
+   * Check if \a path points to or into a project root path (i.e. if one of the ancestors of the
+   * referenced file/directory is a project root directory).
+   */
+  static auto path_is_within_project [[nodiscard]] (StringRef path) -> bool;
 
   /**
    * Check if \a path points into a project and return the root directory path of that project (the
@@ -98,10 +119,17 @@ class BlenderProject {
    */
   static auto project_root_path_find_from_path [[nodiscard]] (StringRef path) -> StringRef;
 
+  /**
+   * Version of #has_unsaved_changes() that allows passing null as \a project for convenience. If
+   * \a project is null, false will be returned.
+   */
+  static auto has_unsaved_changes(const BlenderProject *project) -> bool;
+
   /* --- Non-static member functions. --- */
 
   BlenderProject(StringRef project_root_path, std::unique_ptr<ProjectSettings> settings);
 
+  auto save_settings() -> bool;
   /**
    * Version of the static #delete_settings_directory() that deletes the settings directory of this
    * project. Always tags as having unsaved changes after successful deletion.
@@ -110,6 +138,26 @@ class BlenderProject {
 
   auto root_path [[nodiscard]] () const -> StringRefNull;
   auto get_settings [[nodiscard]] () const -> ProjectSettings &;
+
+  void set_project_name(StringRef new_name);
+  auto project_name [[nodiscard]] () const -> StringRefNull;
+  auto asset_library_definitions() const -> const ListBase &;
+  auto asset_library_definitions() -> ListBase &;
+  /**
+   * Forcefully tag the project settings for having unsaved changes. This needs to be done if
+   * project settings data is modified directly by external code, not via a project API function.
+   * The API functions set the tag for all changes they manage.
+   */
+  void tag_has_unsaved_changes();
+  /**
+   * Returns true if there were any changes done to the settings that have not been written to
+   * disk yet. Project API functions that change data set this, however when external code modifies
+   * project settings data it may have to manually set the tag, see #tag_has_unsaved_changes().
+   *
+   * There's a static version of this that takes a project pointer that may be null, for
+   * convenience (so the caller doesn't have to null-check).
+   */
+  auto has_unsaved_changes [[nodiscard]] () const -> bool;
 
  private:
   static auto active_project_ptr() -> std::unique_ptr<BlenderProject> &;
@@ -176,20 +224,11 @@ class ProjectSettings {
 
   void project_name(StringRef new_name);
   auto project_name [[nodiscard]] () const -> StringRefNull;
-  auto asset_library_definitions() const -> const ListBase &;
-  auto asset_library_definitions() -> ListBase &;
-  /**
-   * Forcefully tag the project settings for having unsaved changes. This needs to be done if
-   * project settings data is modified directly by external code, not via a project settings API
-   * function. The API functions set the tag for all changes they manage.
-   */
+  auto asset_library_definitions [[nodiscard]] () const -> const ListBase &;
+  auto asset_library_definitions [[nodiscard]] () -> ListBase &;
+  /** See #BlenderProject::tag_has_unsaved_changes(). */
   void tag_has_unsaved_changes();
-  /**
-   * Returns true if there were any changes done to the settings that have not been written to
-   * disk yet. Project settings API functions that change data set this, however when external
-   * code modifies project settings data it may have to manually set the tag, see
-   * #tag_has_unsaved_changes().
-   */
+  /** See #BlenderProject::has_unsaved_changes. */
   auto has_unsaved_changes [[nodiscard]] () const -> bool;
 
  private:
@@ -197,8 +236,3 @@ class ProjectSettings {
 };
 
 }  // namespace blender::bke
-
-inline ::BlenderProject *BKE_project_c_handle(blender::bke::BlenderProject *project)
-{
-  return reinterpret_cast<::BlenderProject *>(project);
-}

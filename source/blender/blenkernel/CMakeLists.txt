@@ -344,7 +344,6 @@ set(SRC
   BKE_bake_items_socket.hh
   BKE_blender.h
   BKE_blender_copybuffer.h
-  BKE_blender_project.h
   BKE_blender_project.hh
   BKE_blender_undo.h
   BKE_blender_user_menu.h

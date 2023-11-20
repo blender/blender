@@ -11,7 +11,7 @@
 
 #include "BKE_asset_library_custom.h"
 #include "BKE_blender.h"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 
 #include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
@@ -251,9 +251,9 @@ CustomAssetLibraryDefinition *AssetLibraryService::
       return BKE_asset_library_custom_find_by_name(&U.asset_libraries,
                                                    asset_reference.asset_library_identifier);
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
-      const BlenderProject *project = BKE_project_active_get();
-      ListBase *libraries = BKE_project_custom_asset_libraries_get(project);
-      return BKE_asset_library_custom_find_by_name(libraries,
+      const bke::BlenderProject *project = bke::BlenderProject::get_active();
+      ListBase &libraries = project->get_settings().asset_library_definitions();
+      return BKE_asset_library_custom_find_by_name(&libraries,
                                                    asset_reference.asset_library_identifier);
     }
     default:
@@ -471,13 +471,13 @@ CustomAssetLibraryDefinition *AssetLibraryService::find_custom_asset_library_fro
                                                  library_reference.custom_library_index);
     }
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
-      BlenderProject *project = BKE_project_active_get();
+      const bke::BlenderProject *project = bke::BlenderProject::get_active();
       if (!project) {
-        return NULL;
+        return nullptr;
       }
 
-      ListBase *project_libraries = BKE_project_custom_asset_libraries_get(project);
-      return BKE_asset_library_custom_find_index(project_libraries,
+      ListBase &project_libraries = project->get_settings().asset_library_definitions();
+      return BKE_asset_library_custom_find_index(&project_libraries,
                                                  library_reference.custom_library_index);
     }
     case ASSET_LIBRARY_ALL:
@@ -519,10 +519,9 @@ std::string AssetLibraryService::root_path_from_library_ref(
       /* Project asset libraries typically use relative paths (relative to project root directory).
        */
       if (BLI_path_is_rel(project_library->dirpath)) {
-        const BlenderProject *project = BKE_project_active_get();
-        const char *project_root_path = BKE_project_root_path_get(project);
+        const bke::BlenderProject *project = bke::BlenderProject::get_active();
         char path[1024]; /* FILE_MAX */
-        BLI_path_join(path, sizeof(path), project_root_path, project_library->dirpath);
+        BLI_path_join(path, sizeof(path), project->root_path().c_str(), project_library->dirpath);
         return path;
       }
 

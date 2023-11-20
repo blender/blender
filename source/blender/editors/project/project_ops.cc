@@ -7,7 +7,7 @@
 #include <climits>
 
 #include "BKE_asset_library_custom.h"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -24,14 +24,14 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_project.h"
+#include "ED_project.hh"
 #include "ED_screen.hh"
 
 using namespace blender;
 
 static bool has_active_project_poll(bContext *C)
 {
-  const BlenderProject *active_project = CTX_wm_project();
+  const bke::BlenderProject *active_project = CTX_wm_project();
   CTX_wm_operator_poll_msg_set(C, TIP_("No active project loaded"));
   return active_project != nullptr;
 }
@@ -127,9 +127,9 @@ static void PROJECT_OT_new(wmOperatorType *ot)
 
 static int save_settings_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
-  BlenderProject *active_project = CTX_wm_project();
+  bke::BlenderProject *active_project = CTX_wm_project();
 
-  if (!BKE_project_settings_save(active_project)) {
+  if (!active_project->save_settings()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -155,13 +155,14 @@ static void PROJECT_OT_save_settings(wmOperatorType *ot)
 
 static int delete_project_setup_exec(bContext *C, wmOperator *op)
 {
-  if (!BKE_project_delete_settings_directory(CTX_wm_project())) {
+  bke::BlenderProject *project = CTX_wm_project();
+  if (!project->delete_settings_directory()) {
     BKE_report(op->reports,
                RPT_ERROR,
                "Failed to delete project settings. Is the project directory read-only?");
     return OPERATOR_CANCELLED;
   }
-  BKE_project_active_unset();
+  bke::BlenderProject::set_active(nullptr);
 
   WM_main_add_notifier(NC_PROJECT, nullptr);
   /* Update the window title. */
@@ -191,7 +192,7 @@ static void PROJECT_OT_delete_setup(wmOperatorType *ot)
 
 static int custom_asset_library_add_exec(bContext * /*C*/, wmOperator *op)
 {
-  BlenderProject *project = CTX_wm_project();
+  bke::BlenderProject *project = CTX_wm_project();
 
   char path[FILE_MAXDIR];
   char dirname[FILE_MAXFILE];
@@ -201,13 +202,12 @@ static int custom_asset_library_add_exec(bContext * /*C*/, wmOperator *op)
   BLI_path_slash_rstrip(path);
   /* Always keep project paths relative for now. Adds the "//" prefix which usually denotes a path
    * that's relative to the current .blend, for now use it for project relative paths as well. */
-  BLI_path_rel(path, BKE_project_root_path_get(project));
+  BLI_path_rel(path, project->root_path().c_str());
   BLI_path_split_file_part(path, dirname, sizeof(dirname));
 
-  ListBase *asset_libraries = BKE_project_custom_asset_libraries_get(project);
   /* nullptr is a valid directory path here. A library without path will be created then. */
-  BKE_asset_library_custom_add(asset_libraries, dirname, path);
-  BKE_project_tag_has_unsaved_changes(project);
+  BKE_asset_library_custom_add(&project->asset_library_definitions(), dirname, path);
+  project->tag_has_unsaved_changes();
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, nullptr);
   WM_main_add_notifier(NC_PROJECT, nullptr);
@@ -257,12 +257,12 @@ static int custom_asset_library_remove_exec(bContext * /*C*/, wmOperator *op)
 {
   const int index = RNA_int_get(op->ptr, "index");
 
-  BlenderProject *project = CTX_wm_project();
-  ListBase *asset_libraries = BKE_project_custom_asset_libraries_get(project);
-  CustomAssetLibraryDefinition *library = BKE_asset_library_custom_find_index(asset_libraries,
+  bke::BlenderProject *project = CTX_wm_project();
+  ListBase &asset_libraries = project->asset_library_definitions();
+  CustomAssetLibraryDefinition *library = BKE_asset_library_custom_find_index(&asset_libraries,
                                                                               index);
-  BKE_asset_library_custom_remove(asset_libraries, library);
-  BKE_project_tag_has_unsaved_changes(project);
+  BKE_asset_library_custom_remove(&asset_libraries, library);
+  project->tag_has_unsaved_changes();
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, nullptr);
   WM_main_add_notifier(NC_PROJECT, nullptr);

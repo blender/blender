@@ -15,7 +15,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BKE_asset_library_custom.h"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_main.h"
 
@@ -364,10 +364,10 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
     result.append(library_ref);
   }
 
-  if (BlenderProject *project = CTX_wm_project()) {
-    ListBase *project_libraries = BKE_project_custom_asset_libraries_get(project);
+  if (bke::BlenderProject *project = CTX_wm_project()) {
+    ListBase &project_libraries = project->asset_library_definitions();
     LISTBASE_FOREACH_INDEX (
-        const CustomAssetLibraryDefinition *, asset_library, project_libraries, i) {
+        const CustomAssetLibraryDefinition *, asset_library, &project_libraries, i) {
       if (!BLI_is_dir(asset_library->dirpath)) {
         continue;
       }

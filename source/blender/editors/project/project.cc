@@ -11,7 +11,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_asset_library_custom.h"
-#include "BKE_blender_project.h"
 #include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_main.h"
@@ -20,7 +19,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_project.h"
+#include "ED_project.hh"
 
 using namespace blender;
 
@@ -28,25 +27,25 @@ using namespace blender;
 inline static const char *DEFAULT_ASSET_LIBRARY_NAME = N_("Project Library");
 inline static const char *DEFAULT_ASSET_LIBRARY_PATH = "//assets/";
 
-void ED_project_set_defaults(BlenderProject *project)
+void ED_project_set_defaults(bke::BlenderProject &project)
 {
   char project_root_dir[FILE_MAXDIR];
-  BLI_strncpy(project_root_dir, BKE_project_root_path_get(project), sizeof(project_root_dir));
+  BLI_strncpy(project_root_dir, project.root_path().c_str(), sizeof(project_root_dir));
 
   /* Set directory name as default project name. */
   char dirname[FILE_MAXFILE];
   BLI_path_slash_rstrip(project_root_dir);
   BLI_path_split_file_part(project_root_dir, dirname, sizeof(dirname));
-  BKE_project_name_set(project, dirname);
+  project.set_project_name(dirname);
 
-  ListBase *libraries = BKE_project_custom_asset_libraries_get(project);
+  ListBase &libraries = project.asset_library_definitions();
   BKE_asset_library_custom_add(
-      libraries, DATA_(DEFAULT_ASSET_LIBRARY_NAME), DEFAULT_ASSET_LIBRARY_PATH);
+      &libraries, DATA_(DEFAULT_ASSET_LIBRARY_NAME), DEFAULT_ASSET_LIBRARY_PATH);
 }
 
 bool ED_project_new(const Main *bmain, const char *project_root_dir, ReportList *reports)
 {
-  if (!BKE_project_create_settings_directory(project_root_dir)) {
+  if (!bke::BlenderProject::create_settings_directory(project_root_dir)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Failed to create project with unknown error. Is the directory read-only?");
@@ -58,11 +57,9 @@ bool ED_project_new(const Main *bmain, const char *project_root_dir, ReportList 
 
   /* Some default settings for the project. */
   if (loaded_project) {
-    BlenderProject *loaded_project_c = BKE_project_c_handle(loaded_project.get());
-
-    ED_project_set_defaults(loaded_project_c);
+    ED_project_set_defaults(*loaded_project);
     /* Write defaults to the hard drive. */
-    BKE_project_settings_save(loaded_project_c);
+    loaded_project->save_settings();
   }
 
   BKE_reportf(reports, RPT_INFO, "Project created and loaded successfully");

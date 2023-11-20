@@ -49,7 +49,7 @@
 #endif
 
 #include "BKE_asset.hh"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_blendfile.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
@@ -3147,7 +3147,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
       }
 
       if ((entry->typeflag & FILE_TYPE_DIR) && !(entry->typeflag & FILE_TYPE_BLENDER)) {
-        if (BKE_project_is_path_project_root(target)) {
+        if (blender::bke::BlenderProject::path_is_project_root(target)) {
           entry->typeflag |= FILE_TYPE_BLENDER_PROJECT;
         }
       }

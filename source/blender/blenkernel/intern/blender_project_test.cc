@@ -2,7 +2,6 @@
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
 #include "BKE_appdir.h"
-#include "BKE_blender_project.h"
 #include "BKE_blender_project.hh"
 #include "BKE_main.h"
 
@@ -12,6 +11,8 @@
 #include "BLI_vector.hh"
 
 #include "BLO_readfile.h"
+
+#include "DNA_asset_types.h"
 
 #include "blendfile_loading_base_test.h"
 
@@ -111,7 +112,7 @@ class ProjectTest : public testing::Test {
 
   void TearDown() override
   {
-    BKE_project_active_unset();
+    bke::BlenderProject::set_active(nullptr);
   }
 };
 
@@ -262,19 +263,20 @@ class BlendfileProjectLoadingTest : public BlendfileLoadingBaseTest {
 /* Test if loading the blend file loads the project data as expected. */
 TEST_F(BlendfileProjectLoadingTest, load_blend_file)
 {
-  EXPECT_EQ(BKE_project_active_get(), nullptr);
+  EXPECT_EQ(bke::BlenderProject::get_active(), nullptr);
 
   if (!blendfile_load("blender_project/the_project/some_project_file.blend")) {
     FAIL();
   }
 
-  ::BlenderProject *svn_project = BKE_project_active_load_from_path(bfile->main->filepath);
+  bke::BlenderProject *svn_project = bke::BlenderProject::load_active_from_path(
+      bfile->main->filepath);
   EXPECT_NE(svn_project, nullptr);
-  EXPECT_EQ(BKE_project_active_get(), svn_project);
-  EXPECT_STREQ("Ružena", BKE_project_name_get(svn_project));
+  EXPECT_EQ(bke::BlenderProject::get_active(), svn_project);
+  EXPECT_STREQ("Ružena", svn_project->project_name().c_str());
   /* Note: The project above will be freed once a different active project is set. So get the path
    * for future comparisons. */
-  std::string svn_project_path = BKE_project_root_path_get(svn_project);
+  StringRefNull svn_project_path = svn_project->root_path();
 
   blendfile_free();
 
@@ -284,20 +286,20 @@ TEST_F(BlendfileProjectLoadingTest, load_blend_file)
   {
     FAIL();
   }
-  ::BlenderProject *svn_project_from_nested = BKE_project_active_load_from_path(
+  bke::BlenderProject *svn_project_from_nested = bke::BlenderProject::load_active_from_path(
       bfile->main->filepath);
   EXPECT_NE(svn_project_from_nested, nullptr);
-  EXPECT_EQ(BKE_project_active_get(), svn_project_from_nested);
-  EXPECT_STREQ(svn_project_path.c_str(), BKE_project_root_path_get(svn_project_from_nested));
-  EXPECT_STREQ("Ružena", BKE_project_name_get(svn_project_from_nested));
+  EXPECT_EQ(bke::BlenderProject::get_active(), svn_project_from_nested);
+  EXPECT_STREQ(svn_project_path.c_str(), svn_project_from_nested->root_path().c_str());
+  EXPECT_STREQ("Ružena", svn_project_from_nested->project_name().c_str());
   blendfile_free();
 
   /* Check if loading a .blend that's not in the project unsets the project properly. */
   if (!blendfile_load("blender_project/not_a_project_file.blend")) {
     FAIL();
   }
-  BKE_project_active_load_from_path(bfile->main->filepath);
-  EXPECT_EQ(BKE_project_active_get(), nullptr);
+  bke::BlenderProject::load_active_from_path(bfile->main->filepath);
+  EXPECT_EQ(bke::BlenderProject::get_active(), nullptr);
 }
 
 TEST_F(ProjectTest, project_load_and_delete)
@@ -305,20 +307,20 @@ TEST_F(ProjectTest, project_load_and_delete)
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
     BlenderProject::create_settings_directory(project_path);
 
-    ::BlenderProject *project = BKE_project_active_load_from_path(project_path.c_str());
+    bke::BlenderProject *project = bke::BlenderProject::load_active_from_path(project_path);
     EXPECT_NE(project, nullptr);
-    EXPECT_FALSE(BKE_project_has_unsaved_changes(project));
+    EXPECT_FALSE(project->has_unsaved_changes());
 
     std::string project_settings_dir = project_path_native + SEP_STR +
                                        BlenderProject::SETTINGS_DIRNAME;
 
     EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()));
-    if (!BKE_project_delete_settings_directory(project)) {
+    if (!project->delete_settings_directory()) {
       FAIL();
     }
     /* Runtime project should still exist, but with unsaved changes. */
     EXPECT_NE(project, nullptr);
-    EXPECT_TRUE(BKE_project_has_unsaved_changes(project));
+    EXPECT_TRUE(project->has_unsaved_changes());
     EXPECT_FALSE(BLI_exists(project_settings_dir.c_str()));
   });
 }

@@ -33,7 +33,7 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.h"
 #include "BKE_bpath.h"
@@ -975,7 +975,7 @@ static void setup_app_project_data(BlendFileData *bfd, const struct BlendFileRea
     return;
   }
   if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-    BKE_project_active_load_from_path(bfd->main->filepath);
+    blender::bke::BlenderProject::load_active_from_path(bfd->main->filepath);
   }
 }
 

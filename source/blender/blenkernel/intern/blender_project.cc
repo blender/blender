@@ -11,7 +11,6 @@
 
 #include "BLI_fileops.h"
 
-#include "BKE_blender_project.h"
 #include "BKE_blender_project.hh"
 
 namespace blender::bke {
@@ -73,12 +72,28 @@ std::unique_ptr<BlenderProject> BlenderProject::load_from_path(StringRef project
   return std::make_unique<BlenderProject>(project_root_path, std::move(project_settings));
 }
 
+BlenderProject *BlenderProject::load_active_from_path(StringRef path)
+{
+  /* Project should be unset if the path doesn't contain a project root. Unset in the beginning so
+   * early exiting behaves correctly. */
+  bke::BlenderProject::set_active(nullptr);
+
+  std::unique_ptr<bke::BlenderProject> project = bke::BlenderProject::load_from_path(path);
+
+  return bke::BlenderProject::set_active(std::move(project));
+}
+
 bool BlenderProject::create_settings_directory(StringRef project_path)
 {
   std::string project_root_path = project_path_to_native_project_root_path(project_path);
   std::string settings_path = project_root_path_to_settings_path(project_root_path);
 
   return BLI_dir_create_recursive(settings_path.c_str());
+}
+
+bool BlenderProject::save_settings()
+{
+  return settings_->save_to_disk(root_path_);
 }
 
 bool BlenderProject::delete_settings_directory(StringRef project_path)
@@ -93,10 +108,19 @@ bool BlenderProject::delete_settings_directory(StringRef project_path)
 
   BlenderProject *active_project = get_active();
   if (active_project &&
-      BLI_path_cmp_normalized(project_root_path.c_str(), active_project->root_path().c_str())) {
+      BLI_path_cmp_normalized(project_root_path.c_str(), active_project->root_path().c_str()))
+  {
     active_project->settings_->tag_has_unsaved_changes();
   }
   return true;
+}
+
+bool BlenderProject::has_unsaved_changes(const BlenderProject *project)
+{
+  if (!project) {
+    return false;
+  }
+  return project->has_unsaved_changes();
 }
 
 bool BlenderProject::delete_settings_directory()
@@ -124,6 +148,35 @@ ProjectSettings &BlenderProject::get_settings() const
 {
   BLI_assert(settings_ != nullptr);
   return *settings_;
+}
+
+void BlenderProject::set_project_name(StringRef new_name)
+{
+  settings_->project_name(new_name);
+}
+
+StringRefNull BlenderProject::project_name() const
+{
+  return settings_->project_name();
+}
+
+const ListBase &BlenderProject::asset_library_definitions() const
+{
+  return settings_->asset_library_definitions();
+}
+ListBase &BlenderProject::asset_library_definitions()
+{
+  return settings_->asset_library_definitions();
+}
+
+void BlenderProject::tag_has_unsaved_changes()
+{
+  settings_->tag_has_unsaved_changes();
+}
+
+bool BlenderProject::has_unsaved_changes() const
+{
+  return settings_->has_unsaved_changes();
 }
 
 /** \} */
@@ -173,6 +226,12 @@ bool BlenderProject::path_is_project_root(StringRef path)
   return BLI_exists(std::string(path + SEP_STR + SETTINGS_DIRNAME).c_str());
 }
 
+bool BlenderProject::path_is_within_project(StringRef path)
+{
+  const StringRef found_root_path = project_root_path_find_from_path(path);
+  return !found_root_path.is_empty();
+}
+
 std::string BlenderProject::project_path_to_native_project_root_path(StringRef project_path)
 {
   std::string project_path_native = project_path;
@@ -201,111 +260,3 @@ std::string BlenderProject::project_root_path_to_settings_filepath(StringRef pro
 /** \} */
 
 }  // namespace blender::bke
-
-/* ---------------------------------------------------------------------- */
-/** \name C-API
- * \{ */
-
-using namespace blender;
-
-bool BKE_project_create_settings_directory(const char *project_root_path)
-{
-  return bke::BlenderProject::create_settings_directory(project_root_path);
-}
-
-bool BKE_project_delete_settings_directory(BlenderProject *project_handle)
-{
-  bke::BlenderProject *project = reinterpret_cast<bke::BlenderProject *>(project_handle);
-  return project->delete_settings_directory();
-}
-
-BlenderProject *BKE_project_active_get(void)
-{
-  return reinterpret_cast<BlenderProject *>(bke::BlenderProject::get_active());
-}
-
-void BKE_project_active_unset(void)
-{
-  bke::BlenderProject::set_active(nullptr);
-}
-
-bool BKE_project_is_path_project_root(const char *path)
-{
-  return bke::BlenderProject::path_is_project_root(path);
-}
-
-bool BKE_project_contains_path(const char *path)
-{
-  const StringRef found_root_path = bke::BlenderProject::project_root_path_find_from_path(path);
-  return !found_root_path.is_empty();
-}
-
-BlenderProject *BKE_project_active_load_from_path(const char *path)
-{
-  /* Project should be unset if the path doesn't contain a project root. Unset in the beginning so
-   * early exiting behaves correctly. */
-  BKE_project_active_unset();
-
-  std::unique_ptr<bke::BlenderProject> project = bke::BlenderProject::load_from_path(path);
-
-  return reinterpret_cast<::BlenderProject *>(bke::BlenderProject::set_active(std::move(project)));
-}
-
-bool BKE_project_settings_save(const BlenderProject *project_handle)
-{
-  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
-      project_handle);
-  bke::ProjectSettings &settings = project->get_settings();
-  return settings.save_to_disk(project->root_path());
-}
-
-const char *BKE_project_root_path_get(const BlenderProject *project_handle)
-{
-  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
-      project_handle);
-  return project->root_path().c_str();
-}
-
-void BKE_project_name_set(const BlenderProject *project_handle, const char *name)
-{
-  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
-      project_handle);
-  project->get_settings().project_name(name);
-}
-
-const char *BKE_project_name_get(const BlenderProject *project_handle)
-{
-  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
-      project_handle);
-  return project->get_settings().project_name().c_str();
-}
-
-ListBase *BKE_project_custom_asset_libraries_get(const BlenderProject *project_handle)
-{
-  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
-      project_handle);
-  bke::ProjectSettings &settings = project->get_settings();
-  return &settings.asset_library_definitions();
-}
-
-void BKE_project_tag_has_unsaved_changes(const BlenderProject *project_handle)
-{
-  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
-      project_handle);
-  bke::ProjectSettings &settings = project->get_settings();
-  settings.tag_has_unsaved_changes();
-}
-
-bool BKE_project_has_unsaved_changes(const BlenderProject *project_handle)
-{
-  if (!project_handle) {
-    return false;
-  }
-
-  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
-      project_handle);
-  const bke::ProjectSettings &settings = project->get_settings();
-  return settings.has_unsaved_changes();
-}
-
-/** \} */

@@ -44,7 +44,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_asset_library_custom.h"
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_idtype.h"
 #include "BKE_main.h"

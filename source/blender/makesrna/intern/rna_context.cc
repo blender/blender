@@ -194,7 +194,7 @@ static PointerRNA rna_Context_preferences_get(PointerRNA * /*ptr*/)
 
 static PointerRNA rna_Context_project_get(PointerRNA * /*ptr*/)
 {
-  BlenderProject *project = CTX_wm_project();
+  blender::bke::BlenderProject *project = CTX_wm_project();
   return RNA_pointer_create(nullptr, &RNA_BlenderProject, project);
 }
 

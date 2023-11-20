@@ -32,7 +32,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -773,9 +773,9 @@ ReportList *CTX_wm_reports(const bContext *C)
   return nullptr;
 }
 
-BlenderProject *CTX_wm_project()
+blender::bke::BlenderProject *CTX_wm_project()
 {
-  return BKE_project_active_get();
+  return blender::bke::BlenderProject::get_active();
 }
 
 View3D *CTX_wm_view3d(const bContext *C)

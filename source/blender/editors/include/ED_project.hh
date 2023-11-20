@@ -8,19 +8,17 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct BlenderProject;
 struct Main;
 struct ReportList;
+namespace blender::bke {
+class BlenderProject;
+}
 
 void ED_operatortypes_project(void);
 
 /** Sets the project name to the directory name it is located in and registers a "Project Library"
  * asset library pointing to `//assets/`. */
-void ED_project_set_defaults(struct BlenderProject *project);
+void ED_project_set_defaults(blender::bke::BlenderProject &project);
 /**
  * High level project creation (create project + load if needed + write default settings if
  * needed).
@@ -34,7 +32,3 @@ void ED_project_set_defaults(struct BlenderProject *project);
 bool ED_project_new(const struct Main *bmain,
                     const char *project_root_dir,
                     struct ReportList *reports);
-
-#ifdef __cplusplus
-}
-#endif

@@ -74,7 +74,7 @@ set(SRC
   ../include/ED_paint.hh
   ../include/ED_particle.hh
   ../include/ED_physics.hh
-  ../include/ED_project.h
+  ../include/ED_project.hh
   ../include/ED_render.hh
   ../include/ED_scene.hh
   ../include/ED_screen.hh

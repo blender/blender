@@ -17,7 +17,7 @@
 
 #include "AS_asset_library.hh"
 
-#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
