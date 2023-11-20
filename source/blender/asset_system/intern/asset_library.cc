@@ -364,17 +364,18 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
     result.append(library_ref);
   }
 
-  BlenderProject *project = CTX_wm_project();
-  ListBase *project_libraries = BKE_project_custom_asset_libraries_get(project);
-  LISTBASE_FOREACH_INDEX (
-      const CustomAssetLibraryDefinition *, asset_library, project_libraries, i) {
-    if (!BLI_is_dir(asset_library->dirpath)) {
-      continue;
+  if (BlenderProject *project = CTX_wm_project()) {
+    ListBase *project_libraries = BKE_project_custom_asset_libraries_get(project);
+    LISTBASE_FOREACH_INDEX (
+        const CustomAssetLibraryDefinition *, asset_library, project_libraries, i) {
+      if (!BLI_is_dir(asset_library->dirpath)) {
+        continue;
+      }
+      AssetLibraryReference library_ref{};
+      library_ref.custom_library_index = i;
+      library_ref.type = ASSET_LIBRARY_CUSTOM_FROM_PROJECT;
+      result.append(library_ref);
     }
-    AssetLibraryReference library_ref{};
-    library_ref.custom_library_index = i;
-    library_ref.type = ASSET_LIBRARY_CUSTOM_FROM_PROJECT;
-    result.append(library_ref);
   }
 
   AssetLibraryReference library_ref{};
