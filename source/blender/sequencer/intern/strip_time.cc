@@ -200,9 +200,9 @@ void SEQ_time_update_meta_strip_range(const Scene *scene, Sequence *seq_meta)
   seq_meta->enddisp = strip_end; /* Only to make files usable in older versions. */
 
   seq_update_sound_bounds_recursive(scene, seq_meta);
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq_meta));
   blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq_meta);
   seq_time_update_effects_strip_range(scene, effects);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq_meta));
 }
 
 void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
@@ -494,9 +494,9 @@ float SEQ_time_start_frame_get(const Sequence *seq)
 void SEQ_time_start_frame_set(const Scene *scene, Sequence *seq, int timeline_frame)
 {
   seq->start = timeline_frame;
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
   seq_time_update_effects_strip_range(scene, effects);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
 
 float SEQ_time_content_end_frame_get(const Scene *scene, const Sequence *seq)
@@ -544,9 +544,9 @@ void SEQ_time_left_handle_frame_set(const Scene *scene, Sequence *seq, int timel
 
   seq->startdisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
   seq_time_update_effects_strip_range(scene, effects);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
 
 void SEQ_time_right_handle_frame_set(const Scene *scene, Sequence *seq, int timeline_frame)
@@ -560,9 +560,9 @@ void SEQ_time_right_handle_frame_set(const Scene *scene, Sequence *seq, int time
   seq->endofs = SEQ_time_content_end_frame_get(scene, seq) - timeline_frame;
   seq->enddisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
   seq_time_update_effects_strip_range(scene, effects);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
 
 void seq_time_translate_handles(const Scene *scene, Sequence *seq, const int offset)
@@ -572,7 +572,7 @@ void seq_time_translate_handles(const Scene *scene, Sequence *seq, const int off
   seq->startdisp += offset; /* Only to make files usable in older versions. */
   seq->enddisp -= offset;   /* Only to make files usable in older versions. */
 
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
   seq_time_update_effects_strip_range(scene, effects);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
