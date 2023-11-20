@@ -1027,6 +1027,27 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           interp_data);
       return true;
     }
+    if (r_map && cddata_type == CD_FAKE_CREASE) {
+      if (!CustomData_get_layer_named(&me_dst->edge_data, CD_PROP_FLOAT, "crease_edge")) {
+        CustomData_add_layer_named(&me_dst->edge_data,
+                                   CD_PROP_FLOAT,
+                                   CD_SET_DEFAULT,
+                                   me_dst->totedge,
+                                   "crease_edge");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_FLOAT,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_FLOAT, "crease_edge"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->edge_data, CD_PROP_FLOAT, "crease_edge", me_dst->totedge),
+          interp,
+          interp_data);
+      return true;
+    }
 
     return false;
   }
