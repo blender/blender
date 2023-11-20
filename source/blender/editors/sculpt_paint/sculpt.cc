@@ -119,12 +119,13 @@ SculptMaskWriteInfo SCULPT_mask_get_for_write(SculptSession *ss)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
-      info.layer = static_cast<float *>(
-          CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
+      info.layer = static_cast<float *>(CustomData_get_layer_named_for_write(
+          &mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask", mesh->totvert));
       break;
     }
     case PBVH_BMESH:
-      info.bm_offset = CustomData_get_offset(&BKE_pbvh_get_bmesh(ss->pbvh)->vdata, CD_PAINT_MASK);
+      info.bm_offset = CustomData_get_offset_named(
+          &BKE_pbvh_get_bmesh(ss->pbvh)->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       break;
     case PBVH_GRIDS:
       break;
@@ -298,7 +299,7 @@ float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
       return ss->vmask ? ss->vmask[vertex.i] : 0.0f;
     case PBVH_BMESH: {
       BMVert *v;
-      int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+      int cd_mask = CustomData_get_offset_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
       v = (BMVert *)vertex.i;
       return cd_mask != -1 ? BM_ELEM_CD_GET_FLOAT(v, cd_mask) : 0.0f;

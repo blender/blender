@@ -43,7 +43,8 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
   CustomData *cd_vdata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->vdata : &mr.me->vert_data;
   CustomData *cd_pdata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->pdata : &mr.me->face_data;
 
-  const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
+  const float *cd_mask = (const float *)CustomData_get_layer_named(
+      cd_vdata, CD_PROP_FLOAT, ".sculpt_mask");
   const int *cd_face_set = (const int *)CustomData_get_layer_named(
       cd_pdata, CD_PROP_INT32, ".sculpt_face_set");
 
@@ -58,7 +59,7 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
   gpuSculptData *vbo_data = (gpuSculptData *)GPU_vertbuf_get_data(vbo);
 
   if (mr.extract_type == MR_EXTRACT_BMESH) {
-    int cd_mask_ofs = CustomData_get_offset(cd_vdata, CD_PAINT_MASK);
+    int cd_mask_ofs = CustomData_get_offset_named(cd_vdata, CD_PROP_FLOAT, ".sculpt_mask");
     int cd_face_set_ofs = CustomData_get_offset_named(cd_pdata, CD_PROP_INT32, ".sculpt_face_set");
     BMIter f_iter;
     BMFace *efa;
@@ -124,7 +125,8 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
   /* First, interpolate mask if available. */
   GPUVertBuf *mask_vbo = nullptr;
   GPUVertBuf *subdiv_mask_vbo = nullptr;
-  const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
+  const float *cd_mask = (const float *)CustomData_get_layer_named(
+      cd_vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   const OffsetIndices coarse_faces = coarse_mesh->faces();
   const Span<int> coarse_corner_verts = coarse_mesh->corner_verts();

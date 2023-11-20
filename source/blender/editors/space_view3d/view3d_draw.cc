@@ -2498,10 +2498,6 @@ void ED_view3d_datamask(const Scene *scene,
             }
             break;
           }
-          case OB_MODE_SCULPT: {
-            r_cddata_masks->vmask |= CD_MASK_PAINT_MASK;
-            break;
-          }
         }
         break;
       }

@@ -244,6 +244,7 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
+  using namespace blender::bke;
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
@@ -277,6 +278,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
     CustomData_blend_write_prepare(mesh->loop_data, loop_layers, {});
     CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
+    mesh_sculpt_mask_to_legacy(vert_layers);
   }
 
   mesh->runtime = nullptr;

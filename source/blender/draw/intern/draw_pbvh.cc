@@ -705,7 +705,7 @@ struct PBVHBatches {
     }
     else if (vbo.type == CD_PBVH_MASK_TYPE) {
       if (const float *mask = static_cast<const float *>(
-              CustomData_get_layer(args.vert_data, CD_PAINT_MASK)))
+              CustomData_get_layer_named(args.vert_data, CD_PROP_FLOAT, ".sculpt_mask")))
       {
         const Span<int> corner_verts = args.corner_verts;
         const Span<MLoopTri> looptris = args.mlooptri;

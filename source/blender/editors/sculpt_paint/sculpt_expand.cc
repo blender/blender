@@ -1201,8 +1201,8 @@ static void write_mask_data(SculptSession *ss, const Span<float> mask)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
-      float *layer = static_cast<float *>(
-          CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
+      float *layer = static_cast<float *>(CustomData_get_layer_named_for_write(
+          &mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask", mesh->totvert));
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -1214,8 +1214,8 @@ static void write_mask_data(SculptSession *ss, const Span<float> mask)
       break;
     }
     case PBVH_BMESH: {
-      const int offset = CustomData_get_offset(&BKE_pbvh_get_bmesh(ss->pbvh)->vdata,
-                                               CD_PAINT_MASK);
+      const int offset = CustomData_get_offset_named(
+          &BKE_pbvh_get_bmesh(ss->pbvh)->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {

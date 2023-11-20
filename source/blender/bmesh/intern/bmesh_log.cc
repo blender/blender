@@ -228,7 +228,8 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 
 static void bm_log_verts_unmake(BMesh *bm, BMLog *log, GHash *verts)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, verts) {
@@ -273,7 +274,8 @@ static void bm_log_faces_unmake(BMesh *bm, BMLog *log, GHash *faces)
 
 static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, verts) {
@@ -316,7 +318,8 @@ static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
 
 static void bm_log_vert_values_swap(BMesh *bm, BMLog *log, GHash *verts)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, verts) {
@@ -870,7 +873,8 @@ void BM_log_face_removed(BMLog *log, BMFace *f)
 
 void BM_log_all_added(BMesh *bm, BMLog *log)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   BMIter bm_iter;
   BMVert *v;
   BMFace *f;
@@ -897,7 +901,8 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
 
 void BM_log_before_all_removed(BMesh *bm, BMLog *log)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   BMIter bm_iter;
   BMVert *v;
   BMFace *f;

@@ -211,7 +211,7 @@ static int geometry_extract_apply(bContext *C,
   CustomData_free_layer_named(&new_ob_mesh->face_data, ".sculpt_face_set", new_ob_mesh->faces_num);
 
   /* Remove the mask from the new object so it can be sculpted directly after extracting. */
-  CustomData_free_layers(&new_ob_mesh->vert_data, CD_PAINT_MASK, new_ob_mesh->totvert);
+  CustomData_free_layer_named(&new_ob_mesh->vert_data, ".sculpt_mask", new_ob_mesh->totvert);
 
   BKE_mesh_copy_parameters_for_eval(new_ob_mesh, mesh);
 
@@ -243,7 +243,8 @@ static void geometry_extract_tag_masked_faces(BMesh *bm, GeometryExtractParams *
   const float threshold = params->mask_threshold;
 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   BMFace *f;
   BMIter iter;
@@ -410,7 +411,8 @@ static void slice_paint_mask(BMesh *bm, bool invert, bool fill_holes, float mask
   BMIter face_iter;
 
   /* Delete all masked faces */
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   BLI_assert(cd_vert_mask_offset != -1);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
@@ -507,7 +509,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     BM_mesh_free(bm);
 
     /* Remove the mask from the new object so it can be sculpted directly after slicing. */
-    CustomData_free_layers(&new_ob_mesh->vert_data, CD_PAINT_MASK, new_ob_mesh->totvert);
+    CustomData_free_layer_named(&new_ob_mesh->vert_data, ".sculpt_mask", new_ob_mesh->totvert);
 
     Mesh *new_mesh = static_cast<Mesh *>(new_ob->data);
     BKE_mesh_nomain_to_mesh(new_ob_mesh, new_mesh, new_ob);

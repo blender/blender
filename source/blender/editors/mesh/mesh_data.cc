@@ -597,7 +597,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
 
     if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
       CustomData *data = mesh_customdata_get_type(me, BM_VERT, nullptr);
-      if (CustomData_has_layer(data, CD_PAINT_MASK)) {
+      if (CustomData_has_layer_named(data, CD_PROP_FLOAT, ".sculpt_mask")) {
         return true;
       }
       data = mesh_customdata_get_type(me, BM_LOOP, nullptr);
@@ -608,12 +608,14 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
   }
   return false;
 }
-static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator * /*op*/)
+static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
 {
-  int ret_a = mesh_customdata_clear_exec__internal(C, BM_VERT, CD_PAINT_MASK);
+  Object *object = ED_object_context(C);
+  Mesh *mesh = static_cast<Mesh *>(object->data);
+  const bool ret_a = BKE_id_attribute_remove(&mesh->id, ".sculpt_mask", op->reports);
   int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
 
-  if (ret_a == OPERATOR_FINISHED || ret_b == OPERATOR_FINISHED) {
+  if (ret_a || ret_b == OPERATOR_FINISHED) {
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;

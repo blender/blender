@@ -1708,7 +1708,8 @@ static void sculpt_update_object(
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
     ss->multires.level = 0;
-    ss->vmask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
+    ss->vmask = static_cast<const float *>(
+        CustomData_get_layer_named(&me->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
 
     CustomDataLayer *layer;
     eAttrDomain domain;
@@ -2010,7 +2011,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
   int ret = 0;
 
   const float *paint_mask = static_cast<const float *>(
-      CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
+      CustomData_get_layer_named(&me->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
 
   /* if multires is active, create a grid paint mask layer if there
    * isn't one already */
@@ -2068,7 +2069,8 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
   /* Create vertex paint mask layer if there isn't one already. */
   if (!paint_mask) {
-    CustomData_add_layer(&me->vert_data, CD_PAINT_MASK, CD_SET_DEFAULT, me->totvert);
+    CustomData_add_layer_named(
+        &me->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me->totvert, ".sculpt_mask");
     /* The evaluated mesh must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     ret |= SCULPT_MASK_LAYER_CALC_VERT;

@@ -722,7 +722,8 @@ static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *arg
       args->loop_data = &args->bm->ldata;
       args->face_data = &args->bm->pdata;
       args->bm_faces = &node->bm_faces;
-      args->cd_mask_layer = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
+      args->cd_mask_layer = CustomData_get_offset_named(
+          &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
       break;
   }
@@ -3141,7 +3142,8 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->bm_other_verts = node->bm_other_verts.begin();
     vi->bm_other_verts_end = node->bm_other_verts.end();
     vi->bm_vdata = &pbvh->header.bm->vdata;
-    vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
+    vi->cd_vert_mask_offset = CustomData_get_offset_named(
+        vi->bm_vdata, CD_PROP_FLOAT, ".sculpt_mask");
   }
 
   vi->gh = nullptr;
@@ -3154,7 +3156,8 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->vert_normals = pbvh->vert_normals;
     vi->hide_vert = pbvh->hide_vert;
 
-    vi->vmask = static_cast<const float *>(CustomData_get_layer(pbvh->vert_data, CD_PAINT_MASK));
+    vi->vmask = static_cast<const float *>(
+        CustomData_get_layer_named(pbvh->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
   }
 }
 
@@ -3164,10 +3167,12 @@ bool pbvh_has_mask(const PBVH *pbvh)
     case PBVH_GRIDS:
       return (pbvh->gridkey.has_mask != 0);
     case PBVH_FACES:
-      return (pbvh->vert_data && CustomData_get_layer(pbvh->vert_data, CD_PAINT_MASK));
+      return (pbvh->vert_data &&
+              CustomData_has_layer_named(pbvh->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
     case PBVH_BMESH:
       return (pbvh->header.bm &&
-              (CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK) != -1));
+              (CustomData_get_offset_named(
+                   &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask") != -1));
   }
 
   return false;

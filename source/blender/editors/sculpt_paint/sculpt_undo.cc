@@ -567,11 +567,11 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
-    float *vmask = static_cast<float *>(
-        CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
+    float *vmask = static_cast<float *>(CustomData_get_layer_named_for_write(
+        &mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask", mesh->totvert));
     if (!vmask) {
-      vmask = static_cast<float *>(
-          CustomData_add_layer(&mesh->vert_data, CD_PAINT_MASK, CD_SET_DEFAULT, mesh->totvert));
+      vmask = static_cast<float *>(CustomData_add_layer_named(
+          &mesh->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, mesh->totvert, ".sculpt_mask"));
     }
     ss->vmask = vmask;
 
@@ -671,7 +671,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
   bmesh_create_params.use_toolflags = false;
 
   ss->bm = BM_mesh_create(&bm_mesh_allocsize_default, &bmesh_create_params);
-  BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 

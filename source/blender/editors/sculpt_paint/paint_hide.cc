@@ -79,7 +79,8 @@ static void partialvis_update_mesh(Object *ob,
   bool any_changed = false, any_visible = false;
 
   const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-  paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
+  paint_mask = static_cast<const float *>(
+      CustomData_get_layer_named(&me->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
 
   bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
       &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert));
@@ -205,12 +206,12 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
                                           bool *any_changed,
                                           bool *any_visible)
 {
+  const int mask_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   for (BMVert *v : verts) {
-    float *vmask = static_cast<float *>(
-        CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK));
+    const float vmask = BM_ELEM_CD_GET_FLOAT(v, mask_offset);
 
     /* Hide vertex if in the hide volume. */
-    if (is_effected(area, planes, v->co, *vmask)) {
+    if (is_effected(area, planes, v->co, vmask)) {
       if (action == PARTIALVIS_HIDE) {
         BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
       }

@@ -2223,7 +2223,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     const bool use_frontface,
                                     const bool use_projected)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
+  const int cd_vert_mask_offset = CustomData_get_offset_named(
+      &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
   const int cd_face_node_offset = pbvh->cd_face_node_offset;
 
