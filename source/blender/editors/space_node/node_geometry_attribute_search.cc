@@ -34,6 +34,7 @@
 #include "UI_resources.hh"
 
 #include "NOD_geometry_nodes_log.hh"
+#include "NOD_socket.hh"
 
 #include "node_intern.hh"
 
@@ -198,38 +199,30 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
     BLI_assert_unreachable();
     return;
   }
+
+  /* For the attribute input node, also adjust the type and links connected to the output. */
+  if (node->type == GEO_NODE_INPUT_NAMED_ATTRIBUTE && item->data_type.has_value()) {
+    NodeGeometryInputNamedAttribute &storage = *static_cast<NodeGeometryInputNamedAttribute *>(
+        node->storage);
+    const eCustomDataType new_type = data_type_in_attribute_input_node(*item->data_type);
+    if (new_type != storage.data_type) {
+      storage.data_type = new_type;
+      /* Make the output socket with the new type on the attribute input node active. */
+      nodes::update_node_declaration_and_sockets(*node_tree, *node);
+
+      /* Relink all node links to the newly active output socket. */
+      bNodeSocket *output_socket = bke::node_find_enabled_output_socket(*node, "Attribute");
+    }
+    BKE_ntree_update_tag_node_property(node_tree, node);
+    ED_node_tree_propagate_change(C, CTX_data_main(C), node_tree);
+  }
+
   bNodeSocket *socket = bke::node_find_enabled_input_socket(*node, data->socket_identifier);
   if (socket == nullptr) {
     BLI_assert_unreachable();
     return;
   }
   BLI_assert(socket->type == SOCK_STRING);
-
-  /* For the attribute input node, also adjust the type and links connected to the output. */
-  if (node->type == GEO_NODE_INPUT_NAMED_ATTRIBUTE && item->data_type.has_value()) {
-    NodeGeometryInputNamedAttribute &storage = *(NodeGeometryInputNamedAttribute *)node->storage;
-    const eCustomDataType new_type = data_type_in_attribute_input_node(*item->data_type);
-    if (new_type != storage.data_type) {
-      storage.data_type = new_type;
-      /* Make the output socket with the new type on the attribute input node active. */
-      node->typeinfo->updatefunc(node_tree, node);
-
-      /* Relink all node links to the newly active output socket. */
-      bNodeSocket *output_socket = bke::node_find_enabled_output_socket(*node, "Attribute");
-      LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-        if (link->fromnode != node) {
-          continue;
-        }
-        if (!STREQ(link->fromsock->name, "Attribute")) {
-          continue;
-        }
-        link->fromsock = output_socket;
-        BKE_ntree_update_tag_link_changed(node_tree);
-      }
-    }
-    BKE_ntree_update_tag_node_property(node_tree, node);
-    ED_node_tree_propagate_change(C, CTX_data_main(C), node_tree);
-  }
 
   bNodeSocketValueString *value = static_cast<bNodeSocketValueString *>(socket->default_value);
   BLI_strncpy(value->value, item->name.c_str(), MAX_NAME);
