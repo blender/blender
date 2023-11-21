@@ -924,6 +924,20 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
   }
 };
 
+static bool should_log_socket_values_for_context(const GeoNodesLFUserData &user_data,
+                                                 const ComputeContextHash hash)
+{
+  if (const GeoNodesModifierData *md_data = user_data.modifier_data) {
+    if (const Set<ComputeContextHash> *contexts = md_data->socket_log_contexts) {
+      return contexts->contains(hash);
+    }
+  }
+  else if (user_data.operator_data) {
+    return false;
+  }
+  return true;
+}
+
 /**
  * This lazy-function wraps a group node. Internally it just executes the lazy-function graph of
  * the referenced group.
@@ -996,15 +1010,11 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     GeoNodesLFUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
-    if (user_data->modifier_data && user_data->modifier_data->socket_log_contexts) {
-      group_user_data.log_socket_values = user_data->modifier_data->socket_log_contexts->contains(
-          compute_context.hash());
-    }
+    group_user_data.log_socket_values = should_log_socket_values_for_context(
+        *user_data, compute_context.hash());
 
     GeoNodesLFLocalUserData group_local_user_data{group_user_data};
-
     lf::Context group_context{storage->group_storage, &group_user_data, &group_local_user_data};
-
     group_lazy_function_.execute(params, group_context);
   }
 
@@ -1281,12 +1291,10 @@ class LazyFunctionForSimulationZone : public LazyFunction {
 
     GeoNodesLFUserData zone_user_data = user_data;
     zone_user_data.compute_context = &compute_context;
-    if (user_data.modifier_data && user_data.modifier_data->socket_log_contexts) {
-      zone_user_data.log_socket_values = user_data.modifier_data->socket_log_contexts->contains(
-          compute_context.hash());
-    }
-    GeoNodesLFLocalUserData zone_local_user_data{zone_user_data};
+    zone_user_data.log_socket_values = should_log_socket_values_for_context(
+        user_data, compute_context.hash());
 
+    GeoNodesLFLocalUserData zone_local_user_data{zone_user_data};
     lf::Context zone_context{context.storage, &zone_user_data, &zone_local_user_data};
     fn_.execute(params, zone_context);
   }
@@ -1424,14 +1432,11 @@ class RepeatBodyNodeExecuteWrapper : public lf::GraphExecutorNodeExecuteWrapper 
         user_data.compute_context, *repeat_output_bnode_, iteration};
     GeoNodesLFUserData body_user_data = user_data;
     body_user_data.compute_context = &body_compute_context;
-    if (user_data.modifier_data && user_data.modifier_data->socket_log_contexts) {
-      body_user_data.log_socket_values = user_data.modifier_data->socket_log_contexts->contains(
-          body_compute_context.hash());
-    }
+    body_user_data.log_socket_values = should_log_socket_values_for_context(
+        user_data, body_compute_context.hash());
+
     GeoNodesLFLocalUserData body_local_user_data{body_user_data};
     lf::Context body_context{context.storage, &body_user_data, &body_local_user_data};
-
-    /* Actually execute the loop body. */
     fn.execute(params, body_context);
   }
 };
@@ -4090,16 +4095,20 @@ destruct_ptr<lf::LocalUserData> GeoNodesLFUserData::get_local(LinearAllocator<> 
 
 void GeoNodesLFLocalUserData::ensure_tree_logger(const GeoNodesLFUserData &user_data) const
 {
-  if (user_data.modifier_data == nullptr) {
-    tree_logger_.emplace(nullptr);
-    return;
+  if (GeoNodesModifierData *md_data = user_data.modifier_data) {
+    if (geo_eval_log::GeoModifierLog *log = md_data->eval_log) {
+      tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
+    }
   }
-  if (user_data.modifier_data->eval_log != nullptr) {
-    tree_logger_.emplace(
-        &user_data.modifier_data->eval_log->get_local_tree_logger(*user_data.compute_context));
-    return;
+  else if (GeoNodesOperatorData *op_data = user_data.operator_data) {
+    if (geo_eval_log::GeoModifierLog *log = op_data->eval_log) {
+      tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
+    }
   }
-  this->tree_logger_.emplace(nullptr);
+  else {
+    BLI_assert_unreachable();
+    this->tree_logger_.emplace(nullptr);
+  }
 }
 
 std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &user_data,
