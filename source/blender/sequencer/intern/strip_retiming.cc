@@ -526,6 +526,9 @@ SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
                                             SeqRetimingKey *key,
                                             const int offset)
 {
+  BLI_assert(!SEQ_retiming_is_last_key(seq, key));
+  BLI_assert(key->strip_frame_index != 0);
+
   SeqRetimingKey *prev_key = key - 1;
   if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0 ||
       (prev_key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
