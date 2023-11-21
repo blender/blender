@@ -2504,5 +2504,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
       blender::bke::mesh_sculpt_mask_to_generic(*mesh);
     }
+
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "RaytraceEEVEE", "float", "screen_trace_max_roughness"))
+    {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->eevee.reflection_options.screen_trace_max_roughness = 0.5f;
+        scene->eevee.refraction_options.screen_trace_max_roughness = 0.5f;
+        scene->eevee.diffuse_options.screen_trace_max_roughness = 0.5f;
+      }
+    }
   }
 }

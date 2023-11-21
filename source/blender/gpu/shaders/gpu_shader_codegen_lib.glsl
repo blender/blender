@@ -128,6 +128,10 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 #  define FrontFacing true
 #endif
 
+struct ClosureOcclusion {
+  vec3 N;
+};
+
 struct ClosureDiffuse {
   float weight;
   vec3 color;

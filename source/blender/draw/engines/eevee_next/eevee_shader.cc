@@ -106,6 +106,16 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_hiz_update";
     case HIZ_UPDATE_LAYER:
       return "eevee_hiz_update_layer";
+    case HORIZON_DENOISE:
+      return "eevee_horizon_denoise";
+    case HORIZON_SCAN_DIFFUSE:
+      return "eevee_horizon_scan_diffuse";
+    case HORIZON_SCAN_REFLECT:
+      return "eevee_horizon_scan_reflect";
+    case HORIZON_SCAN_REFRACT:
+      return "eevee_horizon_scan_refract";
+    case HORIZON_SETUP:
+      return "eevee_horizon_setup";
     case MOTION_BLUR_GATHER:
       return "eevee_motion_blur_gather";
     case MOTION_BLUR_TILE_DILATE:

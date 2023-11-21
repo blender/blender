@@ -1200,14 +1200,14 @@ struct RayTraceData {
   /** Maximum brightness during lighting evaluation. */
   float brightness_clamp;
   /** Maximum roughness for which we will trace a ray. */
-  float max_trace_roughness;
+  float roughness_mask_scale;
+  float roughness_mask_bias;
   /** If set to true will bypass spatial denoising. */
   bool1 skip_denoise;
   /** Closure being ray-traced. */
   eClosureBits closure_active;
   int _pad0;
   int _pad1;
-  int _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 
