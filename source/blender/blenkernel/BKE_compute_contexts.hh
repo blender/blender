@@ -40,7 +40,7 @@ class ModifierComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
-class NodeGroupComputeContext : public ComputeContext {
+class GroupNodeComputeContext : public ComputeContext {
  private:
   static constexpr const char *s_static_type = "NODE_GROUP";
 
@@ -53,10 +53,10 @@ class NodeGroupComputeContext : public ComputeContext {
   const bNode *caller_group_node_ = nullptr;
 
  public:
-  NodeGroupComputeContext(const ComputeContext *parent,
+  GroupNodeComputeContext(const ComputeContext *parent,
                           int32_t node_id,
                           const std::optional<ComputeContextHash> &cached_hash = {});
-  NodeGroupComputeContext(const ComputeContext *parent,
+  GroupNodeComputeContext(const ComputeContext *parent,
                           const bNode &node,
                           const bNodeTree &caller_tree);
 

@@ -470,7 +470,7 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
     }
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
       const auto &elem = reinterpret_cast<const GroupNodeViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::NodeGroupComputeContext>(elem.node_id);
+      compute_context_builder.push<bke::GroupNodeComputeContext>(elem.node_id);
       return true;
     }
     case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {

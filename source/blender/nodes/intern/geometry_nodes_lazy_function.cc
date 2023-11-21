@@ -990,7 +990,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
     Storage *storage = static_cast<Storage *>(context.storage);
 
     /* The compute context changes when entering a node group. */
-    bke::NodeGroupComputeContext compute_context{
+    bke::GroupNodeComputeContext compute_context{
         user_data->compute_context, group_node_.identifier, storage->context_hash_cache};
     storage->context_hash_cache = compute_context.hash();
 
@@ -4110,7 +4110,7 @@ std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &u
   for (const ComputeContext *context = user_data.compute_context; context != nullptr;
        context = context->parent())
   {
-    if (const auto *node_context = dynamic_cast<const bke::NodeGroupComputeContext *>(context)) {
+    if (const auto *node_context = dynamic_cast<const bke::GroupNodeComputeContext *>(context)) {
       node_ids.append(node_context->node_id());
     }
     else if (dynamic_cast<const bke::RepeatZoneComputeContext *>(context) != nullptr) {

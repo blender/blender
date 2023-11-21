@@ -127,7 +127,7 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
        * deleted. */
       return std::nullopt;
     }
-    compute_context_builder.push<bke::NodeGroupComputeContext>(*node, *tree);
+    compute_context_builder.push<bke::GroupNodeComputeContext>(*node, *tree);
   }
   return compute_context_builder.hash();
 }

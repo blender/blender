@@ -371,7 +371,7 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
         }
       }
     }
-    compute_context_builder.push<bke::NodeGroupComputeContext>(*group_node, *tree);
+    compute_context_builder.push<bke::GroupNodeComputeContext>(*group_node, *tree);
   }
   return true;
 }

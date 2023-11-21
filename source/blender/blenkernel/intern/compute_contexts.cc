@@ -23,7 +23,7 @@ void ModifierComputeContext::print_current_in_line(std::ostream &stream) const
   stream << "Modifier: " << modifier_name_;
 }
 
-NodeGroupComputeContext::NodeGroupComputeContext(
+GroupNodeComputeContext::GroupNodeComputeContext(
     const ComputeContext *parent,
     const int32_t node_id,
     const std::optional<ComputeContextHash> &cached_hash)
@@ -45,16 +45,16 @@ NodeGroupComputeContext::NodeGroupComputeContext(
   }
 }
 
-NodeGroupComputeContext::NodeGroupComputeContext(const ComputeContext *parent,
+GroupNodeComputeContext::GroupNodeComputeContext(const ComputeContext *parent,
                                                  const bNode &node,
                                                  const bNodeTree &caller_tree)
-    : NodeGroupComputeContext(parent, node.identifier)
+    : GroupNodeComputeContext(parent, node.identifier)
 {
   caller_group_node_ = &node;
   caller_tree_ = &caller_tree;
 }
 
-void NodeGroupComputeContext::print_current_in_line(std::ostream &stream) const
+void GroupNodeComputeContext::print_current_in_line(std::ostream &stream) const
 {
   if (caller_group_node_ != nullptr) {
     stream << "Node: " << caller_group_node_->name;

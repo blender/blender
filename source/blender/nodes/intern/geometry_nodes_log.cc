@@ -456,8 +456,8 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
     GeoTreeLogger &parent_logger = this->get_local_tree_logger(*parent_compute_context);
     parent_logger.children_hashes.append(compute_context.hash());
   }
-  if (const bke::NodeGroupComputeContext *node_group_compute_context =
-          dynamic_cast<const bke::NodeGroupComputeContext *>(&compute_context))
+  if (const bke::GroupNodeComputeContext *node_group_compute_context =
+          dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context))
   {
     tree_logger.group_node_id.emplace(node_group_compute_context->node_id());
   }
