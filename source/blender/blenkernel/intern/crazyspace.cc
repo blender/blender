@@ -211,9 +211,9 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
         const float *vd_prev, *vd_curr, *vd_next; /* deform */
 
         /* retrieve mapped coordinates */
-        vd_prev = mappedcos[corner_prev];
-        vd_curr = mappedcos[corner];
-        vd_next = mappedcos[corner_next];
+        vd_prev = mappedcos[vert_prev];
+        vd_curr = mappedcos[vert];
+        vd_next = mappedcos[vert_next];
 
         if (!origcos.is_empty()) {
           co_prev = origcos[vert_prev];
