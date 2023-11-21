@@ -327,6 +327,12 @@ int rna_ID_name_full_length(PointerRNA *ptr)
   return strlen(name);
 }
 
+static int rna_ID_type_get(PointerRNA *ptr)
+{
+  ID *id = static_cast<ID *>(ptr->data);
+  return GS(id->name);
+}
+
 static bool rna_ID_is_evaluated_get(PointerRNA *ptr)
 {
   ID *id = (ID *)ptr->data;
@@ -2176,7 +2182,8 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Name", "Unique data-block ID name");
+  RNA_def_property_ui_text(
+      prop, "Name", "Unique data-block ID name (within a same type and library)");
   RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
   RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
   RNA_def_property_editable_func(prop, "rna_ID_name_editable");
@@ -2190,6 +2197,13 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, "rna_ID_name_full_get", "rna_ID_name_full_length", nullptr);
   RNA_def_property_string_maxlength(prop, MAX_ID_FULL_NAME);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Type", "Type identifier of this data-block");
+  RNA_def_property_enum_items(prop, rna_enum_id_type_items);
+  RNA_def_property_enum_funcs(prop, "rna_ID_type_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
   prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
