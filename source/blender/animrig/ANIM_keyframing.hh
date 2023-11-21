@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include <string>
+
+#include "BLI_vector.hh"
 #include "DNA_anim_types.h"
 #include "ED_transform.hh"
 #include "RNA_types.hh"
@@ -174,5 +177,21 @@ bool autokeyframe_property(bContext *C,
                            bool only_if_property_keyed);
 
 /** \} */
+
+/**
+ * Insert keys for the given rna_path in the given action. The length of the values Span is
+ * expected to be the size of the property array.
+ * \param frame is expected to be in the local time of the action, meaning it has to be NLA mapped
+ * already.
+ * \returns The number of keys inserted.
+ */
+int insert_key_action(Main *bmain,
+                      bAction *action,
+                      PointerRNA *ptr,
+                      const std::string &rna_path,
+                      float frame,
+                      const Span<float> values,
+                      eInsertKeyFlags insert_key_flag,
+                      eBezTriple_KeyframeType key_type);
 
 }  // namespace blender::animrig

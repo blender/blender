@@ -51,6 +51,16 @@ def _insert_by_name_test(insert_key: str, expected_paths: list):
     return match
 
 
+def _insert_from_user_preference_test(enabled_user_pref_fields: set, expected_paths: list):
+    keyed_object = _create_animation_object()
+    bpy.context.preferences.edit.key_insert_channels = enabled_user_pref_fields
+    with bpy.context.temp_override(**_get_view3d_context()):
+        bpy.ops.anim.keyframe_insert()
+    match = _fcurve_paths_match(keyed_object.animation_data.action.fcurves, expected_paths)
+    bpy.data.objects.remove(keyed_object, do_unlink=True)
+    return match
+
+
 def _get_keying_set(scene, name: str):
     return scene.keying_sets_all[scene.keying_sets_all.find(name)]
 
@@ -89,6 +99,13 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertTrue(
             _insert_with_keying_set_test("Location, Rotation & Scale", ["location", "rotation_euler", "scale"])
         )
+
+    def test_insert_from_user_preferences(self):
+        self.assertTrue(_insert_from_user_preference_test({"LOCATION"}, ["location"]))
+        self.assertTrue(_insert_from_user_preference_test({"ROTATION"}, ["rotation_euler"]))
+        self.assertTrue(_insert_from_user_preference_test({"SCALE"}, ["scale"]))
+        self.assertTrue(_insert_from_user_preference_test(
+            {"LOCATION", "ROTATION", "SCALE"}, ["location", "rotation_euler", "scale"]))
 
 
 class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
@@ -130,7 +147,7 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         bpy.data.objects.remove(target, do_unlink=True)
         bpy.data.objects.remove(constrained, do_unlink=True)
 
-    def test_visual_location_user_pref(self):
+    def test_visual_location_user_pref_override(self):
         # When enabling the user preference setting,
         # the normal keying sets behave like their visual keying set counterpart.
         bpy.context.preferences.edit.use_visual_keying = True
@@ -143,6 +160,27 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
 
         with bpy.context.temp_override(**_get_view3d_context()):
             bpy.ops.anim.keyframe_insert_by_name(type="Location")
+
+        for fcurve in constrained.animation_data.action.fcurves:
+            self.assertEqual(fcurve.keyframe_points[0].co.y, t_value)
+
+        bpy.data.objects.remove(target, do_unlink=True)
+        bpy.data.objects.remove(constrained, do_unlink=True)
+        bpy.context.preferences.edit.use_visual_keying = False
+
+    def test_visual_location_user_pref(self):
+        target = _create_animation_object()
+        t_value = 1
+        target.location = (t_value, t_value, t_value)
+        constrained = _create_animation_object()
+        constraint = constrained.constraints.new("COPY_LOCATION")
+        constraint.target = target
+
+        bpy.context.preferences.edit.use_visual_keying = True
+        bpy.context.preferences.edit.key_insert_channels = {"LOCATION"}
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_insert()
 
         for fcurve in constrained.animation_data.action.fcurves:
             self.assertEqual(fcurve.keyframe_points[0].co.y, t_value)
@@ -175,8 +213,10 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
             bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
             # Will be mapped to frame 3.
+            # This will insert the key based on the user preference settings.
+            bpy.context.preferences.edit.key_insert_channels = {"LOCATION"}
             bpy.context.scene.frame_set(22)
-            bpy.ops.anim.keyframe_insert_by_name(type="Location")
+            bpy.ops.anim.keyframe_insert()
 
             # Will be mapped to frame 9.
             bpy.context.scene.frame_set(-10)

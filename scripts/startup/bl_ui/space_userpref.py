@@ -576,6 +576,8 @@ class USERPREF_PT_animation_keyframes(AnimationPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         edit = prefs.edit
 
+        layout.prop(edit, "key_insert_channels", expand=True)
+
         col = layout.column()
         col.prop(edit, "use_visual_keying")
         col.prop(edit, "use_keyframe_insert_needed", text="Only Insert Needed")
