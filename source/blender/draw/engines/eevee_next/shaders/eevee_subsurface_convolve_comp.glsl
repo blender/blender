@@ -90,6 +90,12 @@ void main(void)
   vec2 sample_scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) *
                       (0.5 * max_radius / homcoord);
 
+  float pixel_footprint = sample_scale.x * textureSize(depth_tx, 0).x;
+  if (pixel_footprint <= 1.0) {
+    /* Early out, avoid divisions by zero. */
+    return;
+  }
+
   /* Avoid too small radii that have float imprecision. */
   vec3 clamped_sss_radius = max(vec3(1e-4), gbuf.diffuse.sss_radius / max_radius) * max_radius;
   /* Scale albedo because we can have HDR value caused by BSDF sampling. */
