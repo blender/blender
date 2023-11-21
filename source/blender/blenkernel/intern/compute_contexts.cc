@@ -45,23 +45,21 @@ NodeGroupComputeContext::NodeGroupComputeContext(
   }
 }
 
-NodeGroupComputeContext::NodeGroupComputeContext(const ComputeContext *parent, const bNode &node)
+NodeGroupComputeContext::NodeGroupComputeContext(const ComputeContext *parent,
+                                                 const bNode &node,
+                                                 const bNodeTree &caller_tree)
     : NodeGroupComputeContext(parent, node.identifier)
 {
-#ifdef DEBUG
-  debug_node_name_ = node.name;
-#endif
+  caller_group_node_ = &node;
+  caller_tree_ = &caller_tree;
 }
 
 void NodeGroupComputeContext::print_current_in_line(std::ostream &stream) const
 {
-#ifdef DEBUG
-  if (!debug_node_name_.empty()) {
-    stream << "Node: " << debug_node_name_;
+  if (caller_group_node_ != nullptr) {
+    stream << "Node: " << caller_group_node_->name;
     return;
   }
-#endif
-  stream << "Node ID: " << node_id_;
 }
 
 SimulationZoneComputeContext::SimulationZoneComputeContext(const ComputeContext *parent,
