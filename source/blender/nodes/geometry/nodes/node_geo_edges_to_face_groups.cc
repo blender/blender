@@ -26,10 +26,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 /** Join all unique unordered combinations of indices. */
 static void join_indices(AtomicDisjointSet &set, const Span<int> indices)
 {
-  for (const int i : indices.index_range()) {
-    for (int j = i + 1; j < indices.size(); j++) {
-      set.join(indices[i], indices[j]);
-    }
+  for (const int i : indices.index_range().drop_back(1)) {
+    set.join(indices[i], indices[i + 1]);
   }
 }
 
