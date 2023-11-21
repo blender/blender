@@ -974,7 +974,7 @@ static void setup_app_project_data(BlendFileData *bfd, const struct BlendFileRea
   if (!U.experimental.use_blender_projects) {
     return;
   }
-  if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+  if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0 && (params->undo_direction == STEP_INVALID)) {
     blender::bke::BlenderProject::load_active_from_path(bfd->main->filepath);
   }
 }
