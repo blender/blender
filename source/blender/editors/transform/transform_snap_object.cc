@@ -665,7 +665,6 @@ static void nearest_world_tree_co(BVHTree *tree,
                                   BVHTree_NearestPointCallback nearest_cb,
                                   void *treedata,
                                   const float3 &co,
-                                  const blender::float4x4 &obmat,
                                   BVHTreeNearest *r_nearest)
 {
   r_nearest->index = -1;
@@ -673,9 +672,6 @@ static void nearest_world_tree_co(BVHTree *tree,
   r_nearest->dist_sq = FLT_MAX;
 
   BLI_bvhtree_find_nearest(tree, co, r_nearest, nearest_cb, treedata);
-
-  float3 vec = float3(r_nearest->co) - co;
-  r_nearest->dist_sq = math::length(math::transform_direction(obmat, vec));
 }
 
 bool nearest_world_tree(SnapObjectContext *sctx,
@@ -690,19 +686,21 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   float3 curr_co = math::transform_point(imat, sctx->runtime.curr_co);
 
   BVHTreeNearest nearest{};
-  float original_distance;
+  float3 vec;
   if (sctx->runtime.params.keep_on_same_target) {
-    nearest_world_tree_co(tree, nearest_cb, treedata, init_co, obmat, &nearest);
-    original_distance = nearest.dist_sq;
+    nearest_world_tree_co(tree, nearest_cb, treedata, init_co, &nearest);
+    vec = float3(nearest.co) - init_co;
   }
   else {
     /* NOTE: when `params->face_nearest_steps == 1`, the return variables of function below contain
      * the answer.  We could return immediately after updating r_loc, r_no, r_index, but that would
      * also complicate the code. Foregoing slight optimization for code clarity. */
-    nearest_world_tree_co(tree, nearest_cb, treedata, curr_co, obmat, &nearest);
+    nearest_world_tree_co(tree, nearest_cb, treedata, curr_co, &nearest);
+    vec = float3(nearest.co) - curr_co;
   }
 
-  if (r_nearest->dist_sq <= nearest.dist_sq) {
+  float original_distance = math::length(math::transform_direction(obmat, vec));
+  if (r_nearest->dist_sq <= original_distance) {
     return false;
   }
 
@@ -715,7 +713,7 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   float3 co = init_co;
   for (int i = 0; i < sctx->runtime.params.face_nearest_steps; i++) {
     co += delta;
-    nearest_world_tree_co(tree, nearest_cb, treedata, co, obmat, &nearest);
+    nearest_world_tree_co(tree, nearest_cb, treedata, co, &nearest);
     co = nearest.co;
   }
 
@@ -727,7 +725,8 @@ bool nearest_world_tree(SnapObjectContext *sctx,
     /* Recalculate the distance.
      * When multiple steps are tested, we cannot depend on the distance calculated for
      * `nearest.dist_sq`, as it reduces with each step. */
-    r_nearest->dist_sq = math::distance_squared(sctx->runtime.curr_co, co);
+    vec = co - curr_co;
+    r_nearest->dist_sq = math::length(math::transform_direction(obmat, vec));
   }
   return true;
 }
