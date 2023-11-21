@@ -38,7 +38,14 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
   const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    blender::ed::curves::select_all(info.drawing.strokes_for_write(), selection_domain, action);
+    IndexMaskMemory memory;
+    const IndexMask selectable_elements = retrieve_editable_elements(
+        *object, info.drawing, selection_domain, memory);
+    if (selectable_elements.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_all(
+        info.drawing.strokes_for_write(), selectable_elements, selection_domain, action);
   });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -71,7 +78,14 @@ static int select_more_exec(bContext *C, wmOperator * /*op*/)
 
   const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    blender::ed::curves::select_adjacent(info.drawing.strokes_for_write(), false);
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_adjacent(
+        info.drawing.strokes_for_write(), selectable_strokes, false);
   });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -102,7 +116,14 @@ static int select_less_exec(bContext *C, wmOperator * /*op*/)
 
   const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    blender::ed::curves::select_adjacent(info.drawing.strokes_for_write(), true);
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_adjacent(
+        info.drawing.strokes_for_write(), selectable_strokes, true);
   });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -133,7 +154,13 @@ static int select_linked_exec(bContext *C, wmOperator * /*op*/)
 
   const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    blender::ed::curves::select_linked(info.drawing.strokes_for_write());
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_linked(info.drawing.strokes_for_write(), selectable_strokes);
   });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -171,18 +198,26 @@ static int select_random_exec(bContext *C, wmOperator *op)
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
     IndexMaskMemory memory;
+    const IndexMask selectable_elements = retrieve_editable_elements(
+        *object, info.drawing, selection_domain, memory);
+    if (selectable_elements.is_empty()) {
+      return;
+    }
+
     const IndexMask random_elements = ed::curves::random_mask(
         curves,
+        selectable_elements,
         selection_domain,
         blender::get_default_hash_2<int>(seed, info.layer_index),
         ratio,
         memory);
 
-    const bool was_anything_selected = ed::curves::has_anything_selected(curves);
+    const bool was_anything_selected = ed::curves::has_anything_selected(curves,
+                                                                         selectable_elements);
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
         curves, selection_domain, CD_PROP_BOOL);
     if (!was_anything_selected) {
-      curves::fill_selection_true(selection.span);
+      curves::fill_selection_true(selection.span, selectable_elements);
     }
 
     curves::fill_selection_false(selection.span, random_elements);
@@ -262,14 +297,22 @@ static int select_ends_exec(bContext *C, wmOperator *op)
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
     IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
     const IndexMask inverted_end_points_mask = ed::curves::end_points(
-        curves, amount_start, amount_end, true, memory);
+        curves, selectable_strokes, amount_start, amount_end, true, memory);
 
-    const bool was_anything_selected = ed::curves::has_anything_selected(curves);
+    const IndexMask selectable_points = ed::greasepencil::retrieve_editable_points(
+        *object, info.drawing, memory);
+    const bool was_anything_selected = ed::curves::has_anything_selected(curves,
+                                                                         selectable_points);
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
         curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
     if (!was_anything_selected) {
-      ed::curves::fill_selection_true(selection.span);
+      ed::curves::fill_selection_true(selection.span, selectable_points);
     }
 
     if (selection.span.type().is<bool>()) {

@@ -25,6 +25,7 @@ namespace blender::ed::transform::greasepencil {
 static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 {
   Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   const bool use_proportional_edit = (t->flag & T_PROP_EDIT_ALL) != 0;
   const bool use_connected_only = (t->flag & T_PROP_CONNECTED) != 0;
@@ -44,7 +45,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 
   int layer_offset = 0;
   IndexMaskMemory memory;
-  Array<IndexMask> selection_per_layer_per_object(total_number_of_drawings);
+  Array<IndexMask> points_per_layer_per_object(total_number_of_drawings);
 
   /* Count selected elements per layer per object and create TransData structs. */
   for (const int i : trans_data_contrainers.index_range()) {
@@ -52,14 +53,15 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 
     const Array<ed::greasepencil::MutableDrawingInfo> drawings = all_drawings[i];
     for (ed::greasepencil::MutableDrawingInfo info : drawings) {
-      const bke::CurvesGeometry &curves = info.drawing.strokes();
       if (use_proportional_edit) {
-        tc.data_len += curves.point_num;
+        points_per_layer_per_object[layer_offset] = ed::greasepencil::retrieve_editable_points(
+            *object, info.drawing, memory);
+        tc.data_len += points_per_layer_per_object[layer_offset].size();
       }
       else {
-        selection_per_layer_per_object[layer_offset] = ed::curves::retrieve_selected_points(
-            curves, memory);
-        tc.data_len += selection_per_layer_per_object[layer_offset].size();
+        points_per_layer_per_object[layer_offset] =
+            ed::greasepencil::retrieve_editable_and_selected_points(*object, info.drawing, memory);
+        tc.data_len += points_per_layer_per_object[layer_offset].size();
       }
 
       layer_offset++;
@@ -89,7 +91,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     const Array<ed::greasepencil::MutableDrawingInfo> drawings = all_drawings[i];
     for (ed::greasepencil::MutableDrawingInfo info : drawings) {
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-      const IndexMask selected_indices = selection_per_layer_per_object[layer_offset];
+      const IndexMask points = points_per_layer_per_object[layer_offset];
 
       std::optional<MutableSpan<float>> value_attribute;
       if (t->mode == TFM_CURVE_SHRINKFATTEN) {
@@ -101,20 +103,30 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
         value_attribute = opacities;
       }
 
-      curve_populate_trans_data_structs(tc,
-                                        curves,
-                                        value_attribute,
-                                        selected_indices,
-                                        use_proportional_edit,
-                                        use_connected_only,
-                                        layer_points_offset);
-
       if (use_proportional_edit) {
-        layer_points_offset += curves.points_num();
+        const IndexMask affected_strokes = ed::greasepencil::retrieve_editable_strokes(
+            *object, info.drawing, memory);
+        curve_populate_trans_data_structs(tc,
+                                          curves,
+                                          value_attribute,
+                                          points,
+                                          true,
+                                          affected_strokes,
+                                          use_connected_only,
+                                          layer_points_offset);
       }
       else {
-        layer_points_offset += selected_indices.size();
+        curve_populate_trans_data_structs(tc,
+                                          curves,
+                                          value_attribute,
+                                          points,
+                                          false,
+                                          {},
+                                          use_connected_only,
+                                          layer_points_offset);
       }
+
+      layer_points_offset += points.size();
       layer_offset++;
     }
   }
