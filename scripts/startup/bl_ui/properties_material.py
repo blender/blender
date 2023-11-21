@@ -299,6 +299,9 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         col.prop(mat, "use_backface_culling", text="Camera")
         col.prop(mat, "use_backface_culling_shadow", text="Shadow")
 
+        layout.prop(mat, "displacement_method", text="Displacement")
+        if mat.displacement_method == 'DISPLACEMENT':
+            layout.label(text="Unsupported displacement method", icon='ERROR')
         layout.prop(mat, "max_vertex_displacement", text="Max Displacement")
 
         layout.prop(mat, "use_transparent_shadow")

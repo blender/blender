@@ -857,6 +857,25 @@ void RNA_def_material(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static EnumPropertyItem prop_displacement_method_items[] = {
+      {MA_DISPLACEMENT_BUMP,
+       "BUMP",
+       0,
+       "Bump Only",
+       "Bump mapping to simulate the appearance of displacement"},
+      {MA_DISPLACEMENT_DISPLACE,
+       "DISPLACEMENT",
+       0,
+       "Displacement Only",
+       "Use true displacement of surface only, requires fine subdivision"},
+      {MA_DISPLACEMENT_BOTH,
+       "BOTH",
+       0,
+       "Displacement and Bump",
+       "Combination of true displacement and bump mapping for finer detail"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "Material", "ID");
   RNA_def_struct_ui_text(
       srna,
@@ -869,6 +888,11 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Surface Render Method",
                            "Controls the blending and the compatibility with certain features");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+  prop = RNA_def_property(srna, "displacement_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_displacement_method_items);
+  RNA_def_property_ui_text(prop, "Displacement Method", "Method to use for the displacement");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 #  if 1 /* Delete this section once we remove old eevee. */

@@ -56,12 +56,6 @@ static VolumeInterpolation get_volume_interpolation(PointerRNA &ptr)
       ptr, "volume_interpolation", VOLUME_NUM_INTERPOLATION, VOLUME_INTERPOLATION_LINEAR);
 }
 
-static DisplacementMethod get_displacement_method(PointerRNA &ptr)
-{
-  return (DisplacementMethod)get_enum(
-      ptr, "displacement_method", DISPLACE_NUM_METHODS, DISPLACE_BUMP);
-}
-
 static EmissionSampling get_emission_sampling(PointerRNA &ptr)
 {
   return (EmissionSampling)get_enum(
@@ -74,6 +68,12 @@ static int validate_enum_value(int value, int num_values, int default_value)
     return default_value;
   }
   return value;
+}
+
+static DisplacementMethod get_displacement_method(BL::Material &b_mat)
+{
+  int value = b_mat.displacement_method();
+  return (DisplacementMethod)validate_enum_value(value, DISPLACE_NUM_METHODS, DISPLACE_BUMP);
 }
 
 template<typename NodeType> static InterpolationType get_image_interpolation(NodeType &b_node)
@@ -1548,7 +1548,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       shader->set_volume_sampling_method(get_volume_sampling(cmat));
       shader->set_volume_interpolation_method(get_volume_interpolation(cmat));
       shader->set_volume_step_rate(get_float(cmat, "volume_step_rate"));
-      shader->set_displacement_method(get_displacement_method(cmat));
+      shader->set_displacement_method(get_displacement_method(b_mat));
 
       shader->set_graph(graph);
 

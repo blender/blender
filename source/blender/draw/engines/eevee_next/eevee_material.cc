@@ -190,8 +190,11 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
       break;
     case GPU_MAT_FAILED:
     default:
-      matpass.gpumat = inst_.shaders.material_shader_get(
-          error_mat_, error_mat_->nodetree, pipeline_type, geometry_type, false);
+      matpass.gpumat = inst_.shaders.material_shader_get(error_mat_,
+                                                         error_mat_->nodetree,
+                                                         pipeline_type,
+                                                         geometry_type,
+                                                         false);
       break;
   }
   /* Returned material should be ready to be drawn. */
