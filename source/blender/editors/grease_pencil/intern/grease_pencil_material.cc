@@ -40,7 +40,7 @@ static int grease_pencil_material_reveal_exec(bContext *C, wmOperator * /*op*/)
   }
 
   if (changed) {
-    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_SHADING);
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
   }
 
