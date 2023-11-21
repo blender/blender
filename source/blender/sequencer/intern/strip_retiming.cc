@@ -961,18 +961,21 @@ void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
       scene, seq, key, timeline_frame);
   const int offset = clamped_timeline_frame - orig_timeline_frame;
 
-  MutableSpan keys = SEQ_retiming_keys_get(seq);
+  const int key_count = SEQ_retiming_keys_get(seq).size();
+  const int key_index = SEQ_retiming_key_index_get(seq, key);
+
   if (orig_timeline_frame == SEQ_time_right_handle_frame_get(scene, seq)) {
-    for (; key < keys.end(); key++) {
-      seq_retiming_key_offset(scene, seq, key, offset);
+    for (int i = key_index; i < key_count; i++) {
+      SeqRetimingKey *key_iter = &SEQ_retiming_keys_get(seq)[i];
+      seq_retiming_key_offset(scene, seq, key_iter, offset);
     }
   }
   else if (orig_timeline_frame == SEQ_time_left_handle_frame_get(scene, seq) ||
            key->strip_frame_index == 0)
   {
     seq->start += offset;
-    key++;
-    for (; key < keys.end(); key++) {
+    for (int i = key_index + 1; i < key_count; i++) {
+      SeqRetimingKey *key_iter = &SEQ_retiming_keys_get(seq)[i];
       seq_retiming_key_offset(scene, seq, key, -offset);
     }
   }
