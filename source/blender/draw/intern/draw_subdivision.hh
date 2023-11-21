@@ -4,10 +4,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
 struct BMesh;
@@ -297,18 +294,9 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache &cache,
 /** Return the format used for the positions and normals VBO. */
 struct GPUVertFormat *draw_subdiv_get_pos_nor_format(void);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-#  include "BLI_span.hh"
-
 /* Helper to access the loose edges. */
 blender::Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache &cache);
 
 /* Helper to access only the loose vertices, i.e. not the ones attached to loose edges. To access
  * loose vertices of loose edges #draw_subdiv_cache_get_loose_edges should be used. */
 blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache &cache);
-
-#endif

@@ -261,7 +261,7 @@ set(SRC
   intern/draw_shader.h
   intern/draw_shader_shared.h
   intern/draw_state.h
-  intern/draw_subdivision.h
+  intern/draw_subdivision.hh
   intern/draw_texture_pool.h
   intern/draw_view.h
   intern/draw_view.hh

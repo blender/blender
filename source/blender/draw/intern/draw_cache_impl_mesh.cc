@@ -59,7 +59,7 @@
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_inline.h"
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 #include "draw_cache_impl.hh" /* own include */
 #include "draw_manager.h"

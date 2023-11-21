@@ -18,7 +18,7 @@
 
 #include "attribute_convert.hh"
 #include "draw_attributes.hh"
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {

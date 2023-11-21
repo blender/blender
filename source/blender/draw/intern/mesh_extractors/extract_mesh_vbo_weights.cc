@@ -11,7 +11,7 @@
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {

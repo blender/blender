@@ -14,7 +14,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {
