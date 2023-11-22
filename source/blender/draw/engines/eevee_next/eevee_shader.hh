@@ -173,8 +173,7 @@ class ShaderModule {
                                    ListBase &materials,
                                    bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
-                                   eMaterialGeometry geometry_type,
-                                   bool is_lookdev);
+                                   eMaterialGeometry geometry_type);
 
   void material_create_info_ammend(GPUMaterial *mat, GPUCodegenOutput *codegen);
 
