@@ -543,6 +543,8 @@ struct EraseOperationExecutor {
           src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
     }
 
+    dst.update_curve_types();
+
     /* Display intersections with flat caps. */
     if (!keep_caps) {
       bke::SpanAttributeWriter<int8_t> dst_start_caps =
