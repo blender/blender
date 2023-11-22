@@ -430,9 +430,17 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
   }
 }
 
-static void nla_main_region_view2d_changed(const bContext * /*C*/, ARegion *region)
+static void nla_main_region_view2d_changed(const bContext *C, ARegion *region)
 {
+  SpaceNla *snla = CTX_wm_space_nla(C);
   View2D *v2d = &region->v2d;
+
+  /* If markers are present add region padding
+   * so bottom strip isn't hidden.
+   */
+  if (!BLI_listbase_is_empty(ED_context_get_markers(C))) {
+    v2d->tot.ymin -= (UI_MARKER_MARGIN_Y - NLACHANNEL_STEP(snla));
+  }
   UI_view2d_curRect_clamp_y(v2d);
 }
 
