@@ -106,6 +106,16 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_hiz_update";
     case HIZ_UPDATE_LAYER:
       return "eevee_hiz_update_layer";
+    case HORIZON_DENOISE:
+      return "eevee_horizon_denoise";
+    case HORIZON_SCAN_DIFFUSE:
+      return "eevee_horizon_scan_diffuse";
+    case HORIZON_SCAN_REFLECT:
+      return "eevee_horizon_scan_reflect";
+    case HORIZON_SCAN_REFRACT:
+      return "eevee_horizon_scan_refract";
+    case HORIZON_SETUP:
+      return "eevee_horizon_setup";
     case MOTION_BLUR_GATHER:
       return "eevee_motion_blur_gather";
     case MOTION_BLUR_TILE_DILATE:
@@ -311,8 +321,10 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
   eMaterialPipeline pipeline_type;
   eMaterialGeometry geometry_type;
+  eMaterialDisplacement displacement_type;
   bool transparent_shadows;
-  material_type_from_shader_uuid(shader_uuid, pipeline_type, geometry_type, transparent_shadows);
+  material_type_from_shader_uuid(
+      shader_uuid, pipeline_type, geometry_type, displacement_type, transparent_shadows);
 
   GPUCodegenOutput &codegen = *codegen_;
   ShaderCreateInfo &info = *reinterpret_cast<ShaderCreateInfo *>(codegen.create_info);
@@ -491,17 +503,18 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (!is_compute) {
-    if (!ELEM(geometry_type,
-              MAT_GEOM_WORLD,
-              MAT_GEOM_VOLUME_WORLD,
-              MAT_GEOM_VOLUME_OBJECT,
-              MAT_GEOM_VOLUME))
-    {
-      vert_gen << "vec3 nodetree_displacement()\n";
-      vert_gen << "{\n";
-      vert_gen << ((codegen.displacement) ? codegen.displacement : "return vec3(0);\n");
-      vert_gen << "}\n\n";
-    }
+    const bool use_vertex_displacement = (codegen.displacement != nullptr) &&
+                                         (displacement_type != MAT_DISPLACEMENT_BUMP) &&
+                                         (!ELEM(geometry_type,
+                                                MAT_GEOM_WORLD,
+                                                MAT_GEOM_VOLUME_WORLD,
+                                                MAT_GEOM_VOLUME_OBJECT,
+                                                MAT_GEOM_VOLUME));
+
+    vert_gen << "vec3 nodetree_displacement()\n";
+    vert_gen << "{\n";
+    vert_gen << ((use_vertex_displacement) ? codegen.displacement : "return vec3(0);\n");
+    vert_gen << "}\n\n";
 
     info.vertex_source_generated = vert_gen.str();
   }
@@ -644,8 +657,10 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
 {
   bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
 
+  eMaterialDisplacement displacement_type = to_displacement_type(blender_mat->displacement_method);
+
   uint64_t shader_uuid = shader_uuid_from_material_type(
-      pipeline_type, geometry_type, blender_mat->blend_flag);
+      pipeline_type, geometry_type, displacement_type, blender_mat->blend_flag);
 
   return DRW_shader_from_material(
       blender_mat, nodetree, shader_uuid, is_volume, deferred_compilation, codegen_callback, this);
@@ -660,7 +675,7 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
 
   eMaterialGeometry geometry_type = is_volume ? MAT_GEOM_VOLUME_WORLD : MAT_GEOM_WORLD;
 
-  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type, 0);
+  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
   return DRW_shader_from_world(
       blender_world, nodetree, shader_uuid, is_volume, defer_compilation, codegen_callback, this);
@@ -675,7 +690,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                eMaterialGeometry geometry_type,
                                                bool is_lookdev)
 {
-  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type, 0);
+  uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
   bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
 

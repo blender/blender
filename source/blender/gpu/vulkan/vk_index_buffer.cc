@@ -37,7 +37,7 @@ void VKIndexBuffer::upload_data()
 
 void VKIndexBuffer::bind(VKContext &context)
 {
-  context.command_buffers_get().bind(buffer_with_offset(), to_vk_index_type(index_type_));
+  context.command_buffers_get().bind(buffer_get(), to_vk_index_type(index_type_));
 }
 
 void VKIndexBuffer::bind_as_ssbo(uint binding)
@@ -88,16 +88,9 @@ void VKIndexBuffer::allocate()
   debug::object_label(buffer_.vk_handle(), "IndexBuffer");
 }
 
-VKBufferWithOffset VKIndexBuffer::buffer_with_offset()
+VKBuffer &VKIndexBuffer::buffer_get()
 {
-  VKIndexBuffer *src = unwrap(src_);
-  VKBufferWithOffset result{is_subrange_ ? src->buffer_ : buffer_, index_start_};
-
-  BLI_assert_msg(is_subrange_ || result.offset == 0,
-                 "According to design index_start should always be zero when index buffer isn't "
-                 "a subrange");
-
-  return result;
+  return is_subrange_ ? unwrap(src_)->buffer_ : buffer_;
 }
 
 }  // namespace blender::gpu

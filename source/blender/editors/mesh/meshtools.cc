@@ -294,24 +294,22 @@ static void join_mesh_single(Depsgraph *depsgraph,
  * of them will have different IDs for their Face Sets. */
 static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
 {
-  if (!mesh->faces_num) {
-    return;
-  }
-
-  int *face_sets = (int *)CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num);
+  using namespace blender;
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<int> face_sets = attributes.lookup_for_write_span<int>(
+      ".sculpt_face_set");
   if (!face_sets) {
     return;
   }
 
   int max_face_set = 0;
-  for (int f = 0; f < mesh->faces_num; f++) {
+  for (const int i : face_sets.span.index_range()) {
     /* As face sets encode the visibility in the integer sign, the offset needs to be added or
      * subtracted depending on the initial sign of the integer to get the new ID. */
-    if (face_sets[f] <= *face_set_offset) {
-      face_sets[f] += *face_set_offset;
+    if (face_sets.span[i] <= *face_set_offset) {
+      face_sets.span[i] += *face_set_offset;
     }
-    max_face_set = max_ii(max_face_set, face_sets[f]);
+    max_face_set = max_ii(max_face_set, face_sets.span[i]);
   }
   *face_set_offset = max_face_set;
 }

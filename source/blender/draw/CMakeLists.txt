@@ -261,7 +261,7 @@ set(SRC
   intern/draw_shader.h
   intern/draw_shader_shared.h
   intern/draw_state.h
-  intern/draw_subdivision.h
+  intern/draw_subdivision.hh
   intern/draw_texture_pool.h
   intern/draw_view.h
   intern/draw_view.hh
@@ -510,9 +510,12 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_geom_world_vert.glsl
   engines/eevee_next/shaders/eevee_hiz_debug_frag.glsl
   engines/eevee_next/shaders/eevee_hiz_update_comp.glsl
+  engines/eevee_next/shaders/eevee_horizon_denoise_comp.glsl
   engines/eevee_next/shaders/eevee_horizon_scan_eval_lib.glsl
+  engines/eevee_next/shaders/eevee_horizon_scan_comp.glsl
   engines/eevee_next/shaders/eevee_horizon_scan_lib.glsl
   engines/eevee_next/shaders/eevee_horizon_scan_test.glsl
+  engines/eevee_next/shaders/eevee_horizon_setup_comp.glsl
   engines/eevee_next/shaders/eevee_light_culling_debug_frag.glsl
   engines/eevee_next/shaders/eevee_light_culling_select_comp.glsl
   engines/eevee_next/shaders/eevee_light_culling_sort_comp.glsl

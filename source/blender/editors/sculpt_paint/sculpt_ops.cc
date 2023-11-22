@@ -1312,7 +1312,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     BMIter iter;
     BMFace *f;
     BMVert *v;
-    const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+    const int cd_mask = CustomData_get_offset_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
       BM_log_vert_before_modified(ss->bm_log, v, cd_mask);

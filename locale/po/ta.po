@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2023-11-05 13:30+0000\n"
 "Last-Translator: saran <saranmurugappan2020@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"

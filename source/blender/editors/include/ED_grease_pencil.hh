@@ -126,9 +126,31 @@ Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
 Array<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
                                              const GreasePencil &grease_pencil);
 
+IndexMask retrieve_editable_strokes(Object &grease_pencil_object,
+                                    const bke::greasepencil::Drawing &drawing,
+                                    IndexMaskMemory &memory);
+IndexMask retrieve_editable_points(Object &object,
+                                   const bke::greasepencil::Drawing &drawing,
+                                   IndexMaskMemory &memory);
+IndexMask retrieve_editable_elements(Object &object,
+                                     const bke::greasepencil::Drawing &drawing,
+                                     eAttrDomain selection_domain,
+                                     IndexMaskMemory &memory);
+
+IndexMask retrieve_editable_and_selected_strokes(Object &grease_pencil_object,
+                                                 const bke::greasepencil::Drawing &drawing,
+                                                 IndexMaskMemory &memory);
+IndexMask retrieve_editable_and_selected_points(Object &object,
+                                                const bke::greasepencil::Drawing &drawing,
+                                                IndexMaskMemory &memory);
+IndexMask retrieve_editable_and_selected_elements(Object &object,
+                                                  const bke::greasepencil::Drawing &drawing,
+                                                  eAttrDomain selection_domain,
+                                                  IndexMaskMemory &memory);
+
 void create_blank(Main &bmain, Object &object, int frame_number);
 void create_stroke(Main &bmain, Object &object, float4x4 matrix, int frame_number);
-void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int frame_number);
+void create_suzanne(Main &bmain, Object &object, float4x4 matrix, int frame_number);
 
 void gaussian_blur_1D(const GSpan src,
                       int64_t iterations,

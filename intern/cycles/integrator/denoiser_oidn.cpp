@@ -630,7 +630,7 @@ Device *OIDNDenoiser::ensure_denoiser_device(Progress *progress)
 {
 #ifndef WITH_OPENIMAGEDENOISE
   (void)progress;
-  path_trace_device_->set_error("Build without OpenImageDenoiser");
+  path_trace_device_->set_error("Failed to denoise, build has no OpenImageDenoise support");
   return nullptr;
 #else
   if (!openimagedenoise_supported()) {

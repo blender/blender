@@ -16,6 +16,7 @@ class SpellChecker:
     # These must be all lower case for comparisons
     uimsgs = {
         # OK words
+        "accessor", "accessors",
         "adaptively", "adaptivity",
         "al",  # et al.
         "aren",  # aren't
@@ -241,6 +242,7 @@ class SpellChecker:
         "tradeoff",
         "un",
         "unadjust", "unadjusted",
+        "unassign",
         "unassociate", "unassociated",
         "unbake",
         "uncheck",
@@ -249,6 +251,7 @@ class SpellChecker:
         "unculled",
         "undeformed",
         "undistort", "undistorted", "undistortion",
+        "uneditable",
         "ungroup", "ungrouped",
         "unhandled",
         "unhide",
@@ -557,6 +560,7 @@ class SpellChecker:
         "spillmap",
         "sobel",
         "stereoscopy",
+        "subpixel",
         "surfel", "surfels",  # Surface Element
         "texel",
         "timecode",
@@ -564,6 +568,7 @@ class SpellChecker:
         "toon",
         "transmissive",
         "uvproject",
+        "uvtile",  # Form UDIM
         "vividlight",
         "volumetrics",
         "voronoi",
@@ -611,6 +616,7 @@ class SpellChecker:
         "gon", "gons",  # N-GON(s)
         "gpencil",
         "idcol",
+        "ipos",
         "keyframe", "keyframes", "keyframing", "keyframed",
         "lookdev",
         "luminocity",
@@ -618,7 +624,7 @@ class SpellChecker:
         "metaball", "metaballs", "mball",
         "metaelement", "metaelements",
         "metastrip", "metastrips",
-        "movieclip",
+        "movieclip", "movieclips",
         "mpoly",
         "mtex",
         "nabla",
@@ -626,6 +632,7 @@ class SpellChecker:
         "outliner",
         "overscan",
         "paintmap", "paintmaps",
+        "pointclouds",
         "polygroup", "polygroups",
         "poselib",
         "pushpull",
@@ -636,6 +643,7 @@ class SpellChecker:
         "shrinkfatten",
         "shrinkwrap",
         "softbody",
+        "srna",
         "stucci",
         "subdiv",
         "subtype",

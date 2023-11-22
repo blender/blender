@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1349,6 +1349,10 @@ msgstr "Spline"
 
 msgid "Instance"
 msgstr "Instanz"
+
+
+msgid "Layer"
+msgstr "Ebene"
 
 
 msgid "Is Internal"
@@ -11299,10 +11303,6 @@ msgid "Invert mask"
 msgstr "Maskierung invertieren"
 
 
-msgid "Layer"
-msgstr "Ebene"
-
-
 msgid "GPencil Sculpt Guide"
 msgstr "Wachsstift-Skulptur Anleitung"
 
@@ -12397,6 +12397,10 @@ msgstr "Aktiver Ebenenmaskierungsindex"
 
 msgid "Active index in layer mask array"
 msgstr "Aktiver Index im Ebenen-Maskenarray"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Aktive Wachsstift-Ebene"
 
 
 msgid "Luma"
@@ -14396,6 +14400,10 @@ msgid "Surface Offset"
 msgstr "Oberflächenversatz"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Wachsstift-Datenblock"
+
+
 msgid "Alpha Mode"
 msgstr "Alphamodus"
 
@@ -15023,14 +15031,6 @@ msgid "Invert Collection"
 msgstr "Sammlung invertieren"
 
 
-msgid "Show Preview Plane"
-msgstr "Vorschaufläche anzeigen"
-
-
-msgid "Reflection Plane"
-msgstr "Reflexionsfläche"
-
-
 msgid "Visibility Blur"
 msgstr "Sichtbarkeit Unschärfe"
 
@@ -15179,8 +15179,16 @@ msgid "Preview World"
 msgstr "Weltvorschau"
 
 
-msgid "Auto Smooth Angle"
-msgstr "Winkel automatisch glätten"
+msgid "Transparent Shadows"
+msgstr "Transparente Schatten"
+
+
+msgid "Fast"
+msgstr "Einfügen"
+
+
+msgid "Accurate"
+msgstr "Genau"
 
 
 msgid "Edges"
@@ -15197,6 +15205,10 @@ msgstr "Dreieckschleife"
 
 msgid "Loops"
 msgstr "Schleifen"
+
+
+msgid "Corner"
+msgstr "Ecke"
 
 
 msgid "Polygons"
@@ -15241,10 +15253,6 @@ msgstr "Maschentextur"
 
 msgid "Selected Face Total"
 msgstr "Komplette Oberfläche auswählen"
-
-
-msgid "Auto Smooth"
-msgstr "Auto Weichzeichnen"
 
 
 msgid "Topology Mirror"
@@ -15339,10 +15347,6 @@ msgid "Influence of metaball elements"
 msgstr "Einfluss von Metaballelementen"
 
 
-msgid "Fast"
-msgstr "Einfügen"
-
-
 msgid "Display Aspect for this clip, does not affect rendering"
 msgstr "Seitenverhältnis für diesen Clip anzeigen (betrifft das Rendern nicht)"
 
@@ -15385,10 +15389,6 @@ msgstr "Beschriftung"
 
 msgid "Grease Pencil Data"
 msgstr "Wachsstift-Daten"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Wachsstift-Datenblock"
 
 
 msgid "Interface"
@@ -24624,10 +24624,6 @@ msgid "Denoise"
 msgstr "Entrauschen"
 
 
-msgid "Accurate"
-msgstr "Genau"
-
-
 msgid "HDR"
 msgstr "HDR"
 
@@ -26190,10 +26186,6 @@ msgid "Projection Blend"
 msgstr "Projektionsmischung"
 
 
-msgid "Musgrave Texture"
-msgstr "Musgrave-Textur"
-
-
 msgid "Color Source"
 msgstr "Farbquelle"
 
@@ -26665,6 +26657,10 @@ msgstr "Attributdomäne"
 
 msgid "Default Attribute"
 msgstr "Standardattribut"
+
+
+msgid "Layer Selection"
+msgstr "Layer Auswahl"
 
 
 msgid "Socket Type"
@@ -31127,10 +31123,6 @@ msgid "Active Layer"
 msgstr "Aktive Ebene"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktive Wachsstift-Ebene"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Neue Ebene hinzufügen"
@@ -31925,6 +31917,10 @@ msgstr "Höchste Frequenz"
 
 msgid "Stroke Mode"
 msgstr "Strichmodus"
+
+
+msgid "Flat"
+msgstr "Flach"
 
 
 msgctxt "Operator"
@@ -35318,16 +35314,12 @@ msgid "Subset"
 msgstr "Teilmenge"
 
 
-msgid "All Light Probes"
-msgstr "Alle Lichtsonden"
-
-
-msgid "Dirty Only"
-msgstr "Nur Schmutz"
-
-
 msgid "Selected Only"
 msgstr "Nur ausgewähltes"
+
+
+msgid "All Light Probes"
+msgstr "Alle Lichtsonden"
 
 
 msgctxt "Operator"
@@ -37959,6 +37951,10 @@ msgid "Add Grease Pencil Brush Preset"
 msgstr "Wachsstiftpinsel Voreinstellung hinzufügen"
 
 
+msgid "Dirty Only"
+msgstr "Nur Schmutz"
+
+
 msgctxt "Operator"
 msgid "New Scene"
 msgstr "Neue Szene"
@@ -38307,16 +38303,16 @@ msgid "Editing"
 msgstr "Bearbeitung"
 
 
-msgid "Extensions"
-msgstr "Erweiterungen"
-
-
 msgid "Add-ons"
 msgstr "Add-Ons"
 
 
 msgid "File Paths"
 msgstr "Dateipfade"
+
+
+msgid "Extensions"
+msgstr "Erweiterungen"
 
 
 msgid "Experimental"
@@ -45622,10 +45618,6 @@ msgid "Displacement Only"
 msgstr "Nur Verdrängung"
 
 
-msgid "Transparent Shadows"
-msgstr "Transparente Schatten"
-
-
 msgid "Volume Interpolation"
 msgstr "Volumeninterpolation"
 
@@ -49675,10 +49667,6 @@ msgid "Display Background"
 msgstr "Hintergrund anzeigen"
 
 
-msgid "Flat"
-msgstr "Flach"
-
-
 msgid "Show Named Attributes"
 msgstr "Benannte Attribute anzeigen"
 
@@ -49689,10 +49677,6 @@ msgstr "Zeige Drahtfarbe"
 
 msgid "Constrain to Image Bounds"
 msgstr "Auf Bildränder beschränken"
-
-
-msgid "Corner"
-msgstr "Ecke"
 
 
 msgid "Display Faces"
@@ -50333,10 +50317,6 @@ msgstr "Flächenausrichtung hinten"
 
 msgid "Face Orientation Front"
 msgstr "Flächenausrichtung vorne"
-
-
-msgid "Face Selected"
-msgstr "Ausgewählte Fläche"
 
 
 msgid "Face Dot Size"
@@ -51124,14 +51104,6 @@ msgid "Type of element to snap to"
 msgstr "Typ an dem eingerastet werden soll"
 
 
-msgid "Second"
-msgstr "Sekunde"
-
-
-msgid "Nearest Marker"
-msgstr "Nächster Marker"
-
-
 msgid "Snap to nearest marker"
 msgstr "An nächsten Marker einrasten"
 
@@ -51566,14 +51538,6 @@ msgstr "Nähte anzeigen"
 
 msgid "Display Sharp"
 msgstr "Schärfe anzeigen"
-
-
-msgid "Display Edges"
-msgstr "Kanten anzeigen"
-
-
-msgid "Highlight selected edges"
-msgstr "Ausgewählte Kanten hervorheben"
 
 
 msgid "Face Angles"
@@ -52467,11 +52431,6 @@ msgstr "DopeSheet"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "NLA-Editor"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "NLA-Kanäle"
 
 
 msgctxt "WindowManager"
@@ -54971,6 +54930,10 @@ msgstr "Pausenregel - ESC für Pause"
 
 msgid "Velocity Linear"
 msgstr "Lineare Geschwindigkeit"
+
+
+msgid "Second"
+msgstr "Sekunde"
 
 
 msgid "X Stiffness"
@@ -57851,6 +57814,16 @@ msgstr "Kanten extrudieren"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Oberfläche extrudieren"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Oberfläche entlang der Normalen extrudieren"
+
+
+msgctxt "Operator"
 msgid "Weak"
 msgstr "Schwach"
 
@@ -58218,16 +58191,6 @@ msgstr "Schärfe löschen"
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "Markiere schärfe von Knoten"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Oberfläche extrudieren"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Oberfläche entlang der Normalen extrudieren"
 
 
 msgctxt "Operator"
@@ -58654,6 +58617,10 @@ msgid "Ignore Transparent"
 msgstr "Ignoriere Transparent"
 
 
+msgid "<Missing ID block>"
+msgstr "<Fehlender ID Block>"
+
+
 msgid "User Library"
 msgstr "Benutzer-Bibliothek"
 
@@ -58840,6 +58807,10 @@ msgid "MaskLayer"
 msgstr "Maskenebene"
 
 
+msgid "Auto Smooth"
+msgstr "Auto Weichzeichnen"
+
+
 msgid "NlaTrack"
 msgstr "NLA-Spur"
 
@@ -58951,22 +58922,6 @@ msgstr "Blender ist ohne Bewegungsverfolgungs-Bibliothek kompiliert"
 
 msgid "Original Mode"
 msgstr "Original Modus"
-
-
-msgid "Tonnes"
-msgstr "Tonnen"
-
-
-msgid "Hours"
-msgstr "Stunden"
-
-
-msgid "Minutes"
-msgstr "Minuten"
-
-
-msgid "Microseconds"
-msgstr "Mikrosekunden"
 
 
 msgid "Could not load volume for writing"
@@ -59175,10 +59130,6 @@ msgstr "Einhüllenden-Kontrollpunkt löschen"
 
 msgid "Coefficient"
 msgstr "Koeffizient"
-
-
-msgid "<Missing ID block>"
-msgstr "<Fehlender ID Block>"
 
 
 msgid "Keying set failed to insert any keyframes"
@@ -60457,11 +60408,6 @@ msgstr "Unbestimmt"
 
 msgid "SoundTrack"
 msgstr "Soundtrack"
-
-
-msgctxt "Light"
-msgid "ReflectionPlane"
-msgstr "Reflexionsfläche"
 
 
 msgctxt "Light"
@@ -62662,10 +62608,6 @@ msgstr "Kurven Objekt"
 
 msgid "Generate Data Layers"
 msgstr "Erstelle Daten Layer"
-
-
-msgid "Layer Selection"
-msgstr "Layer Auswahl"
 
 
 msgid "Layer Mapping"

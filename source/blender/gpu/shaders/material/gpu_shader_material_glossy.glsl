@@ -12,7 +12,10 @@ void node_bsdf_glossy(vec4 color,
                       const float do_multiscatter,
                       out Closure result)
 {
+  color = max(color, vec4(0));
+  roughness = saturate(roughness);
   N = safe_normalize(N);
+
   vec3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
 

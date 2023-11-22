@@ -63,7 +63,8 @@ void main()
         continue;
       }
 
-      bool tile_is_unused = imageLoad(tile_mask_img, tile_coord_neighbor).r == 0;
+      uint tile_mask = imageLoad(tile_mask_img, tile_coord_neighbor).r;
+      bool tile_is_unused = !flag_test(tile_mask, 1u << 0u);
       if (tile_is_unused) {
         ivec2 texel_fullres_neighbor = texel_fullres + ivec2(x, y) * int(tile_size);
 

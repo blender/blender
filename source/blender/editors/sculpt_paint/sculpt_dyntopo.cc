@@ -101,7 +101,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object
   BM_mesh_bm_from_me(ss->bm, me, &convert_params);
   SCULPT_dynamic_topology_triangulate(ss->bm);
 
-  BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   /* Make sure the data for existing faces are initialized. */
   if (me->faces_num != ss->bm->totface) {
@@ -293,31 +293,20 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
   return OPERATOR_INTERFACE;
 }
 
-static bool dyntopo_supports_layer(const CustomDataLayer &layer, const int elem_num)
+static bool dyntopo_supports_layer(const CustomDataLayer &layer)
 {
   if (CD_TYPE_AS_MASK(layer.type) & CD_MASK_PROP_ALL) {
-    if (STREQ(layer.name, ".sculpt_face_set")) {
-      /* Check if only one face set exists. */
-      const blender::Span<int> face_sets(static_cast<const int *>(layer.data), elem_num);
-      for (const int i : face_sets.index_range()) {
-        if (face_sets[i] != face_sets.first()) {
-          return false;
-        }
-      }
-      return true;
-    }
     /* Some data is stored as generic attributes on #Mesh but in flags or fields on #BMesh. */
     return BM_attribute_stored_in_bmesh_builtin(layer.name);
   }
   /* Some layers just encode #Mesh topology or are handled as special cases for dyntopo. */
-  return ELEM(layer.type, CD_PAINT_MASK, CD_ORIGINDEX);
+  return ELEM(layer.type, CD_ORIGINDEX);
 }
 
-static bool dyntopo_supports_customdata_layers(const blender::Span<CustomDataLayer> layers,
-                                               const int elem_num)
+static bool dyntopo_supports_customdata_layers(const blender::Span<CustomDataLayer> layers)
 {
   return std::all_of(layers.begin(), layers.end(), [&](const CustomDataLayer &layer) {
-    return dyntopo_supports_layer(layer, elem_num);
+    return dyntopo_supports_layer(layer);
   });
 }
 
@@ -331,24 +320,16 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   BLI_assert(ss->bm == nullptr);
   UNUSED_VARS_NDEBUG(ss);
 
-  if (!dyntopo_supports_customdata_layers({me->vert_data.layers, me->vert_data.totlayer},
-                                          me->totvert))
-  {
+  if (!dyntopo_supports_customdata_layers({me->vert_data.layers, me->vert_data.totlayer})) {
     flag |= DYNTOPO_WARN_VDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->edge_data.layers, me->edge_data.totlayer},
-                                          me->totedge))
-  {
+  if (!dyntopo_supports_customdata_layers({me->edge_data.layers, me->edge_data.totlayer})) {
     flag |= DYNTOPO_WARN_EDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->face_data.layers, me->face_data.totlayer},
-                                          me->faces_num))
-  {
+  if (!dyntopo_supports_customdata_layers({me->face_data.layers, me->face_data.totlayer})) {
     flag |= DYNTOPO_WARN_LDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->loop_data.layers, me->loop_data.totlayer},
-                                          me->totloop))
-  {
+  if (!dyntopo_supports_customdata_layers({me->loop_data.layers, me->loop_data.totlayer})) {
     flag |= DYNTOPO_WARN_LDATA;
   }
 

@@ -679,8 +679,6 @@ static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *arg
     args->hide_poly = pbvh->face_data ? static_cast<const bool *>(CustomData_get_layer_named(
                                             pbvh->face_data, CD_PROP_BOOL, ".hide_poly")) :
                                         nullptr;
-    args->face_sets = static_cast<const int *>(
-        CustomData_get_layer_named(&pbvh->mesh->face_data, CD_PROP_INT32, ".sculpt_face_set"));
   }
 
   args->active_color = mesh.active_color_attribute;
@@ -722,7 +720,8 @@ static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *arg
       args->loop_data = &args->bm->ldata;
       args->face_data = &args->bm->pdata;
       args->bm_faces = &node->bm_faces;
-      args->cd_mask_layer = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
+      args->cd_mask_layer = CustomData_get_offset_named(
+          &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
       break;
   }
@@ -3141,7 +3140,8 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->bm_other_verts = node->bm_other_verts.begin();
     vi->bm_other_verts_end = node->bm_other_verts.end();
     vi->bm_vdata = &pbvh->header.bm->vdata;
-    vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
+    vi->cd_vert_mask_offset = CustomData_get_offset_named(
+        vi->bm_vdata, CD_PROP_FLOAT, ".sculpt_mask");
   }
 
   vi->gh = nullptr;
@@ -3154,7 +3154,8 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->vert_normals = pbvh->vert_normals;
     vi->hide_vert = pbvh->hide_vert;
 
-    vi->vmask = static_cast<const float *>(CustomData_get_layer(pbvh->vert_data, CD_PAINT_MASK));
+    vi->vmask = static_cast<const float *>(
+        CustomData_get_layer_named(pbvh->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
   }
 }
 
@@ -3164,10 +3165,10 @@ bool pbvh_has_mask(const PBVH *pbvh)
     case PBVH_GRIDS:
       return (pbvh->gridkey.has_mask != 0);
     case PBVH_FACES:
-      return (pbvh->vert_data && CustomData_get_layer(pbvh->vert_data, CD_PAINT_MASK));
+      return pbvh->mesh->attributes().contains(".sculpt_mask");
     case PBVH_BMESH:
-      return (pbvh->header.bm &&
-              (CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK) != -1));
+      return pbvh->header.bm &&
+             (CustomData_has_layer_named(&pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask"));
   }
 
   return false;
@@ -3178,8 +3179,7 @@ bool pbvh_has_face_sets(PBVH *pbvh)
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
     case PBVH_FACES:
-      return pbvh->face_data && CustomData_get_layer_named(
-                                    pbvh->face_data, CD_PROP_INT32, ".sculpt_face_set") != nullptr;
+      return pbvh->mesh->attributes().contains(".sculpt_face_set");
     case PBVH_BMESH:
       return false;
   }

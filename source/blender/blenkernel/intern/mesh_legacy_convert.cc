@@ -2298,4 +2298,57 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
   }
 }
 
+namespace blender::bke {
+
+void mesh_sculpt_mask_to_legacy(MutableSpan<CustomDataLayer> vert_layers)
+{
+  bool changed = false;
+  for (CustomDataLayer &layer : vert_layers) {
+    if (StringRef(layer.name) == ".sculpt_mask") {
+      layer.type = CD_PAINT_MASK;
+      layer.name[0] = '\0';
+      changed = true;
+      break;
+    }
+  }
+  if (!changed) {
+    return;
+  }
+  /* #CustomData expects the layers to be sorted in increasing order based on type. */
+  std::stable_sort(
+      vert_layers.begin(),
+      vert_layers.end(),
+      [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
+}
+
+void mesh_sculpt_mask_to_generic(Mesh &mesh)
+{
+  if (mesh.attributes().contains(".sculpt_mask")) {
+    return;
+  }
+  void *data = nullptr;
+  const ImplicitSharingInfo *sharing_info = nullptr;
+  for (const int i : IndexRange(mesh.vert_data.totlayer)) {
+    CustomDataLayer &layer = mesh.vert_data.layers[i];
+    if (layer.type == CD_PAINT_MASK) {
+      data = layer.data;
+      sharing_info = layer.sharing_info;
+      layer.data = nullptr;
+      layer.sharing_info = nullptr;
+      CustomData_free_layer(&mesh.vert_data, CD_PAINT_MASK, mesh.totvert, i);
+      break;
+    }
+  }
+  if (data != nullptr) {
+    CustomData_add_layer_named_with_data(
+        &mesh.vert_data, CD_PROP_FLOAT, data, mesh.totvert, ".sculpt_mask", sharing_info);
+  }
+  if (sharing_info != nullptr) {
+    sharing_info->remove_user_and_delete_if_last();
+  }
+}
+
+//
+}  // namespace blender::bke
+
 /** \} */

@@ -354,6 +354,11 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
     return nullptr;
   }
 
+  /* nullptr when the font file can't be found on disk. */
+  if (vfont->temp_pf == nullptr) {
+    return nullptr;
+  }
+
   /* Initialize Freetype. */
   FT_Library library = nullptr;
   FT_Error err = FT_Init_FreeType(&library);

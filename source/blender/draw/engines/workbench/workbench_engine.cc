@@ -69,7 +69,7 @@ class Instance {
 
   void begin_sync()
   {
-    resources.material_buf.clear();
+    resources.material_buf.clear_and_trim();
 
     opaque_ps.sync(scene_state, resources);
     transparent_ps.sync(scene_state, resources);

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -1312,6 +1312,10 @@ msgstr "Грань"
 
 msgid "Spline"
 msgstr "Сплайн"
+
+
+msgid "Layer"
+msgstr "Шар"
 
 
 msgid "Name of the Attribute"
@@ -14170,10 +14174,6 @@ msgid "Invert mask"
 msgstr "Інвертувати маску"
 
 
-msgid "Layer"
-msgstr "Шар"
-
-
 msgid "Mask layer name"
 msgstr "Назва шару маски"
 
@@ -16164,6 +16164,10 @@ msgstr "Активний Індекс Шару Маски"
 
 msgid "Active index in layer mask array"
 msgstr "Активний індекс у масиві шарів маски"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Активний шар Нарисного Олівця"
 
 
 msgid "Statistical view of the levels of color in an image"
@@ -19927,6 +19931,10 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "Величина зсуву при рисуванні у режимі поверхні"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Блоки даних нарисного олівця"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "Блок даних зображення, що посилається на зовнішнє або упаковане зображення"
 
@@ -20829,14 +20837,6 @@ msgid "Show the clipping distances in the 3D view"
 msgstr "Показ відстаней відсікання в 3D-огляді"
 
 
-msgid "Show Preview Plane"
-msgstr "Показ площини передогляду"
-
-
-msgid "Show captured lighting data into the 3D view for debugging purpose"
-msgstr "Показ даних захопленого освітлення в 3D-огляді для цілей зневаджування"
-
-
 msgid "Show the influence volume in the 3D view"
 msgstr "Показ об'єму впливу в 3D-огляді"
 
@@ -20851,26 +20851,6 @@ msgstr "Показ об'єму корекції паралакса в 3D-огл�
 
 msgid "Type of light probe"
 msgstr "Тип проби освітлення"
-
-
-msgid "Reflection Cubemap"
-msgstr "Кубкарта Відбиття"
-
-
-msgid "Capture reflections"
-msgstr "Захоплення відбиттів"
-
-
-msgid "Reflection Plane"
-msgstr "Площина Відбиття"
-
-
-msgid "Irradiance Volume"
-msgstr "Об'єм Опроміненості"
-
-
-msgid "Volume used for precomputing indirect lighting"
-msgstr "Об'єм, використовуваний для попереднього обчислення побічного освітлення"
 
 
 msgid "Use Custom Parallax"
@@ -21165,14 +21145,6 @@ msgid "Use the current world background to light the preview render"
 msgstr "Вживати поточний фон світу для освітлення передогляду рендера"
 
 
-msgid "Screen Space Refraction"
-msgstr "Рефракція простору екрана"
-
-
-msgid "Use raytraced screen space refractions"
-msgstr "Використання промінь-простежених рефракцій простору екрана"
-
-
 msgid "Subsurface Translucency"
 msgstr "Півпрозорість Підповерхні"
 
@@ -21181,16 +21153,24 @@ msgid "Add translucency effect to subsurface"
 msgstr "Додання ефекту півпрозорості для підповерхні"
 
 
+msgid "Transparent Shadows"
+msgstr "Прозорі тіні"
+
+
+msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
+msgstr "Використати для цього матеріалу прозорі тіні, якщо він містить Прозорість BSDF; вимкнення прискорить рендер, але знизить якість тіней"
+
+
+msgid "Fast"
+msgstr "Швидко"
+
+
+msgid "Accurate"
+msgstr "Точно"
+
+
 msgid "Mesh data-block defining geometric surfaces"
 msgstr "Блок даних сіті, що визначає геометричну поверхню"
-
-
-msgid "Auto Smooth Angle"
-msgstr "Кут автозгладжування"
-
-
-msgid "Maximum angle between face normals that will be considered as smooth (unused if custom split normals data are available)"
-msgstr "Максимальний кут між нормалями граней, при якому буде вважатися, що вони згладжені (не використовується, якщо наявні нетипові дані розділу нормалей)"
 
 
 msgid "Edges"
@@ -21219,6 +21199,10 @@ msgstr "Теселяція полігонів сіті у трикутники"
 
 msgid "Loops"
 msgstr "Петлі"
+
+
+msgid "Corner"
+msgstr "Куток"
 
 
 msgid "Polygons"
@@ -21319,14 +21303,6 @@ msgstr "Вибрані Вершини Загалом"
 
 msgid "Selected vertex count in editmode"
 msgstr "Кількість вершин, вибраних у режимі редагування"
-
-
-msgid "Auto Smooth"
-msgstr "Автозгладжування"
-
-
-msgid "Auto smooth (based on smooth/sharp faces/edges and angle between faces), or use custom split normals data if available"
-msgstr "Автозгладжування (базоване на згладженості/гостроті граней/ребер та куті між гранями) або використати нетипові дані розділу нормалей, якщо вони є"
 
 
 msgid "Topology Mirror"
@@ -21489,10 +21465,6 @@ msgid "While editing, update metaball in half resolution"
 msgstr "При редагуванні оновлювати метакулі з половинною роздільністю"
 
 
-msgid "Fast"
-msgstr "Швидко"
-
-
 msgid "While editing, update metaball without polygonization"
 msgstr "При редагуванні оновлювати метакулі без полігонізації"
 
@@ -21579,10 +21551,6 @@ msgstr "Позначка дерева вузла"
 
 msgid "Grease Pencil Data"
 msgstr "Дані Нарисного Олівця"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Блоки даних нарисного олівця"
 
 
 msgid "Interface"
@@ -29953,10 +29921,6 @@ msgid "Split Normals"
 msgstr "Розділені Нормалі"
 
 
-msgid "Local space unit length split normals vectors of the vertices of this triangle (must be computed beforehand using calc_normals_split or calc_tangents)"
-msgstr "Вектори розділених нормалей вершин одиничної довжини для цих вершин у локальному просторі (мають бути обчислені до використання calc_normals_split або calc_tangents)"
-
-
 msgid "Indices of triangle vertices"
 msgstr "Індекси вершин трикутника"
 
@@ -36847,10 +36811,6 @@ msgid "Denoise"
 msgstr "Знешумити"
 
 
-msgid "Accurate"
-msgstr "Точно"
-
-
 msgid "HDR"
 msgstr "HDR"
 
@@ -38857,10 +38817,6 @@ msgid "Level of detail in the added turbulent noise"
 msgstr "Рівень деталізації в доданому турбулентному шумі"
 
 
-msgid "Musgrave Texture"
-msgstr "Текстура Масгрейва"
-
-
 msgid "Use the scalar value W as input"
 msgstr "Вжити скалярне значення W як увід"
 
@@ -39771,6 +39727,10 @@ msgstr "Віртуальний вузловий роз'єм"
 
 msgid "Hide the socket input value even when the socket is not connected"
 msgstr "Ховати значення уводу роз'єму навіть тоді, коли цей роз'єм не з'єднано"
+
+
+msgid "Layer Selection"
+msgstr "Вибрання Шару"
 
 
 msgid "Socket Type"
@@ -44995,10 +44955,6 @@ msgid "Export cameras"
 msgstr "Експортувати камери"
 
 
-msgid "Export vertex colors with meshes"
-msgstr "Експортувати кольори вершин із сітями"
-
-
 msgid "Legal rights and conditions for the model"
 msgstr "Захищені законом права та умови для моделі"
 
@@ -46939,10 +46895,6 @@ msgid "Active Layer"
 msgstr "Активний Шар"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Активний шар Нарисного Олівця"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Додати новий шар"
@@ -48457,6 +48409,10 @@ msgstr "Інвертувати дію пензля при виконанні ш�
 
 msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "Перемкнути пензель у режим згладжування для продовження штриха"
+
+
+msgid "Flat"
+msgstr "Плоско"
 
 
 msgctxt "Operator"
@@ -53026,15 +52982,6 @@ msgstr "Ключовий кадр з фінальних трансформаці
 
 
 msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "Клацок мишею на каналах НЛА"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "Клацанням вибираються канали НЛА"
-
-
-msgctxt "Operator"
 msgid "Clear Scale"
 msgstr "Зчистити масштаб"
 
@@ -54745,18 +54692,6 @@ msgid "Add a light probe object"
 msgstr "Додати об'єкт проби освітлення"
 
 
-msgid "Reflection probe with spherical or cubic attenuation"
-msgstr "Проба відбиття зі сферичним або кубічним затуханням"
-
-
-msgid "Planar reflection probe"
-msgstr "Площинна проба відбиття"
-
-
-msgid "Irradiance probe to capture diffuse indirect lighting"
-msgstr "Проба опроміненості для захоплення побічного розсіяного освітлювання"
-
-
 msgctxt "Operator"
 msgid "Bake Light Cache"
 msgstr "Запекти Кеш Освітлення"
@@ -54774,18 +54709,6 @@ msgid "Subset of probes to update"
 msgstr "Піднабір проб для оновлення"
 
 
-msgid "All Light Probes"
-msgstr "Усі Проби Освітлення"
-
-
-msgid "Dirty Only"
-msgstr "Лише Брудно"
-
-
-msgid "Only bake light probes that are marked as dirty"
-msgstr "Запікати лише проби освітлення, що відмічені як брудні"
-
-
 msgid "Selected Only"
 msgstr "Лише вибране"
 
@@ -54797,6 +54720,10 @@ msgstr "Видалити Кеш Освітлення"
 
 msgid "Delete cached indirect lighting"
 msgstr "Видалити кешоване побічне освітлювання"
+
+
+msgid "All Light Probes"
+msgstr "Усі Проби Освітлення"
 
 
 msgid "Link objects to a collection"
@@ -59830,6 +59757,14 @@ msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Запекти і сітки опроміненості, і куброзкладки відбиття"
 
 
+msgid "Dirty Only"
+msgstr "Лише Брудно"
+
+
+msgid "Only bake light probes that are marked as dirty"
+msgstr "Запікати лише проби освітлення, що відмічені як брудні"
+
+
 msgid "Cubemaps Only"
 msgstr "Лише Куброзкладки"
 
@@ -60311,10 +60246,6 @@ msgid "Editing"
 msgstr "Редагування"
 
 
-msgid "Extensions"
-msgstr "Розширення"
-
-
 msgid "Add-ons"
 msgstr "Додатки"
 
@@ -60325,6 +60256,10 @@ msgstr "Розкладка клавіш"
 
 msgid "File Paths"
 msgstr "Шляхи файлів"
+
+
+msgid "Extensions"
+msgstr "Розширення"
 
 
 msgid "Experimental"
@@ -68674,6 +68609,10 @@ msgid "Shadows"
 msgstr "Тіні"
 
 
+msgid "Screen Space Reflections"
+msgstr "Відбиття простору екрана"
+
+
 msgid "Volumetrics"
 msgstr "Об'ємне"
 
@@ -68684,10 +68623,6 @@ msgstr "Освітлювання Об'ємних"
 
 msgid "Volumetric Shadows"
 msgstr "Тіні Об'ємних"
-
-
-msgid "Screen Space Reflections"
-msgstr "Відбиття простору екрана"
 
 
 msgid "Encoding"
@@ -72817,14 +72752,6 @@ msgstr "Однорідний об'єм"
 
 msgid "When using volume rendering, assume volume has the same density everywhere (not using any textures), for faster rendering"
 msgstr "При рендерингу об'єму вважати, що об'єм скрізь має однакову щільність (не застосовує жодні текстури), для швидшого рендерингу"
-
-
-msgid "Transparent Shadows"
-msgstr "Прозорі тіні"
-
-
-msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
-msgstr "Використати для цього матеріалу прозорі тіні, якщо він містить Прозорість BSDF; вимкнення прискорить рендер, але знизить якість тіней"
 
 
 msgid "Volume Interpolation"
@@ -80259,10 +80186,6 @@ msgid "Get the node tree path as a string"
 msgstr "Отримати шлях дерева вузлів як рядове значення"
 
 
-msgid "Flat"
-msgstr "Плоско"
-
-
 msgid "Space UV Editor"
 msgstr "Простір UV-редактора"
 
@@ -80289,10 +80212,6 @@ msgstr "Прив'язувати до меж зображення"
 
 msgid "Constraint to stay within the image bounds while editing"
 msgstr "Примус на перебування в межах зображення при редагуванні"
-
-
-msgid "Corner"
-msgstr "Куток"
 
 
 msgid "Display Faces"
@@ -81569,10 +81488,6 @@ msgstr "Крапка вибраної грані"
 
 msgid "Face Orientation Front"
 msgstr "Перед Орієнтації Грані"
-
-
-msgid "Face Selected"
-msgstr "Вибрані грані"
 
 
 msgid "Face Dot Size"
@@ -82852,14 +82767,6 @@ msgid "Type of element to snap to"
 msgstr "Тип елемента для підхоплення"
 
 
-msgid "Second"
-msgstr "Секунда"
-
-
-msgid "Nearest Marker"
-msgstr "Найближча мітка"
-
-
 msgid "Snap to nearest marker"
 msgstr "Підхоп до найближчої мітки"
 
@@ -83798,10 +83705,6 @@ msgstr "Показати шви UV-розгортки"
 
 msgid "Display sharp edges, used with the Edge Split modifier"
 msgstr "Показати гострі ребра, використані модифікатором Поділ ребром"
-
-
-msgid "Highlight selected edges"
-msgstr "Підсвічувати вибрані ребра"
 
 
 msgid "Display selected edge angle, using global values when set in the transform panel"
@@ -85222,11 +85125,6 @@ msgstr "Узагальнене Аркуша експозицій"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "Редактор НЛА"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "Канали НЛА"
 
 
 msgctxt "WindowManager"
@@ -88137,6 +88035,10 @@ msgstr "Скорість Лінеарно"
 
 msgid "This object is part of a compound shape"
 msgstr "Цей об'єкт є частиною складеної форми"
+
+
+msgid "Second"
+msgstr "Секунда"
 
 
 msgid "X Stiffness"
@@ -91353,6 +91255,16 @@ msgstr "Зчистити Гостроту з Вершин"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Видавити Грані"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Видавити Грані Уздовж Нормалей"
+
+
+msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "Потовщення Граней"
 
@@ -91795,16 +91707,6 @@ msgstr "Зчистити Гостроту"
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "Відмітити Гострим з Вершин"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Видавити Грані"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Видавити Грані Уздовж Нормалей"
 
 
 msgctxt "Operator"
@@ -92370,6 +92272,58 @@ msgid "Ignore Transparent"
 msgstr "Ігнорувати Прозоре"
 
 
+msgid "<No ID pointer>"
+msgstr "<Немає вказівника на ID>"
+
+
+msgid "<Missing ID block>"
+msgstr "<Відсутній ID-блок>"
+
+
+msgid "No F-Curve to add keyframes to"
+msgstr "Немає Ф-кривої для додавання ключових кадрів"
+
+
+msgid "No RNA pointer available to retrieve values for keyframing from"
+msgstr "Немає RNA вказівника для отримання значень ключових кадрів"
+
+
+msgid "No ID block and/or AnimData to delete keyframe from"
+msgstr "Немає ID блока та/або даних анімації, з яких слід видалити ключовий кадр"
+
+
+msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Неможливо вставити ключовий кадр, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
+
+
+msgid "No ID block to insert keyframe in (path = %s)"
+msgstr "Немає ID-блока для вставляння ключового кадру (шлях = %s)"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
+msgstr "Неможливо вставити ключовий кадр, цей тип не підтримує даних анімації (ID = %s, шлях = %s)"
+
+
+msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Неможливо видалит ключовий кадр, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
+
+
+msgid "No action to delete keyframes from for ID = %s"
+msgstr "Немає дії, з якої слід видалити ключові кадри для ID = %s"
+
+
+msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
+msgstr "Ключовий кадр, який не вилучається, для заблокованої Ф-кривої '%s' для %s '%s'"
+
+
+msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Неможливо зчистити ключовий кадр з властивості, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
+
+
+msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
+msgstr "Не зчищати всі ключкадри із заблокованої Ф-Кривої '%s' для %s '%s'"
+
+
 msgid "No AnimData to set action on"
 msgstr "Немає анімаційних даних для задання дії"
 
@@ -92620,12 +92574,12 @@ msgid "MaskLayer"
 msgstr "ШарМаски"
 
 
+msgid "Auto Smooth"
+msgstr "Автозгладжування"
+
+
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "Простір дотичних можна розрахувати лише для трикутників/чотирикутників; припинення"
-
-
-msgid "Tangent space computation needs loop normals, none found, aborting"
-msgstr "Для розрахунку простору дотичних необхідні нормалі петель, але вони не знайдені; припинення"
 
 
 msgid "Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"
@@ -93241,26 +93195,6 @@ msgid "Delete envelope control point"
 msgstr "Видалити керувальну точку оболонки"
 
 
-msgid "<No ID pointer>"
-msgstr "<Немає вказівника на ID>"
-
-
-msgid "<Missing ID block>"
-msgstr "<Відсутній ID-блок>"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "Немає Ф-кривої для додавання ключових кадрів"
-
-
-msgid "No RNA pointer available to retrieve values for keyframing from"
-msgstr "Немає RNA вказівника для отримання значень ключових кадрів"
-
-
-msgid "No ID block and/or AnimData to delete keyframe from"
-msgstr "Немає ID блока та/або даних анімації, з яких слід видалити ключовий кадр"
-
-
 msgid "No suitable context info for active keying set"
 msgstr "Немає інформації про контекст, придатної для активного набору ключів"
 
@@ -93283,42 +93217,6 @@ msgstr "Помилка переобчислення шляху у властив
 
 msgid "No active Keying Set"
 msgstr "Немає активного набору ключів"
-
-
-msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
-msgstr "Ф-крива зі шляхом '%s[%d]' не може бути розкадрована; переконайтесь, що вона не заблокована та не основана на вибірці, а також спробуйте вилучити Ф-модифікатори"
-
-
-msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Неможливо вставити ключовий кадр, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "Немає ID-блока для вставляння ключового кадру (шлях = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "Неможливо вставити ключовий кадр, цей тип не підтримує даних анімації (ID = %s, шлях = %s)"
-
-
-msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Неможливо видалит ключовий кадр, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
-
-
-msgid "No action to delete keyframes from for ID = %s"
-msgstr "Немає дії, з якої слід видалити ключові кадри для ID = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Ключовий кадр, який не вилучається, для заблокованої Ф-кривої '%s' для %s '%s'"
-
-
-msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Неможливо зчистити ключовий кадр з властивості, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
-
-
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "Не зчищати всі ключкадри із заблокованої Ф-Кривої '%s' для %s '%s'"
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"
@@ -93373,12 +93271,12 @@ msgid "No active Keying Set to add empty path to"
 msgstr "Немає активного набору ключування для додання порожнього шляху до нього"
 
 
-msgid "No active Keying Set path to remove"
-msgstr "Немає активного шляху набору ключування для вилучення"
-
-
 msgid "No active Keying Set to remove a path from"
 msgstr "Немає активного набору ключування для вилучення шляху з нього"
+
+
+msgid "No active Keying Set path to remove"
+msgstr "Немає активного шляху набору ключування для вилучення"
 
 
 msgid "Cannot add property to built in keying set"
@@ -95197,21 +95095,6 @@ msgstr "Результат сполучення - %d вершин, межа - %l
 
 msgid "SoundTrack"
 msgstr "ЗвуковаДоріжка"
-
-
-msgctxt "Light"
-msgid "IrradianceVolume"
-msgstr "Об'єм Опроміненості"
-
-
-msgctxt "Light"
-msgid "ReflectionPlane"
-msgstr "Площина Відбиття"
-
-
-msgctxt "Light"
-msgid "ReflectionCubemap"
-msgstr "Кубкарта Відбиття"
 
 
 msgctxt "Light"
@@ -99597,10 +99480,6 @@ msgstr "Об'єкт Кривої"
 
 msgid "Generate Data Layers"
 msgstr "Генерувати Шари Даних"
-
-
-msgid "Layer Selection"
-msgstr "Вибрання Шару"
 
 
 msgid "Layer Mapping"

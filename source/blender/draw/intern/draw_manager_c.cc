@@ -82,7 +82,7 @@
 #include "draw_manager_testing.h"
 #include "draw_manager_text.h"
 #include "draw_shader.h"
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 #include "draw_texture_pool.h"
 
 /* only for callbacks */

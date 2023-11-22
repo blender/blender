@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
-"PO-Revision-Date: 2023-11-11 13:06+0000\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-18 16:52+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
 "Language: fa\n"
@@ -398,6 +398,10 @@ msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, prov
 msgstr "Embree ﺭﺩ GPU ﺪﻫﺩ‌ﯽﻣ ﻪﺋﺍﺭﺍ ﺍﺭ ﯼﺮﺘﻬﺑ ﯽﻠﮐ ﺩﺮﮑﻠﻤﻋ ﻭ ﺪﻨﮐ‌ﯽﻣ ﻝﺎﻌﻓ ﻞﺘﻨﯾﺍ ﯽﮑﯿﻓﺍﺮﮔ ﯼﺎﻫ‌ﻩﺪﻧﺯﺍﺩﺮﭘ ﺭﺩ ﺍﺭ ﯼﺭﺍﺰﻓﺍ‌ﺖﺨﺳ ﻮﺗﺮﭘ ﯼﺮﯿﮕﻫﺭ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
 
 
+msgid "KHR_materials_variants_ui"
+msgstr "ui_materials_KHR_ﻉﺍﻮﻧﺍ"
+
+
 msgid "Displays glTF UI to manage material variants"
 msgstr "ﺪﻫﺩ ﯽﻣ ﺶﯾﺎﻤﻧ ﺎﻫ‌ﺲﻨﺟ ﻉﺍﻮﻧﺍ ﺖﯾﺮﯾﺪﻣ ﯼﺍﺮﺑ ﺍﺭ GlTF ﯼﺮﺑﺭﺎﮐ ﻂﺑﺍﺭ"
 
@@ -722,8 +726,40 @@ msgid "Paths Range"
 msgstr "ﺎﻫﺮﯿﺴﻣ ﻩﺩﻭﺪﺤﻣ"
 
 
+msgid "Type of range to calculate for Motion Paths"
+msgstr "ﺖﮐﺮﺣ ﺮﯿﺴﻣ ﻪﺒﺳﺎﺤﻣ ﯼﺍﺮﺑ ﻩﺯﺎﺑ ﻉﻮﻧ"
+
+
 msgid "All Keys"
 msgstr "ﺎﻫ‌ﺪﯿﻠﮐ ﻪﻤﻫ"
+
+
+msgid "From the first keyframe to the last"
+msgstr "ﺮﺧﺁ ﺎﺗ ﻝﻭﺍ ﯼﺪﯿﻠﮐ ﻢﯾﺮﻓ ﺯﺍ"
+
+
+msgid "Selected Keys"
+msgstr "ﻩﺪﺷ ﺏﺎﺨﺘﻧﺍ ﯼﺎﻫ ﺪﯿﻠﮐ"
+
+
+msgid "From the first selected keyframe to the last"
+msgstr "ﺮﺧﺁ ﺎﺗ ﻩﺪﺷ ﺏﺎﺨﺘﻧﺍ ﯼﺪﯿﻠﮐ ﻢﯾﺮﻓ ﻦﯿﻟﻭﺍ ﺯﺍ"
+
+
+msgid "Scene Frame Range"
+msgstr "ﻪﻨﺤﺻ ﻢﯾﺮﻓ ﻩﺯﺎﺑ"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "ﻩﺯﺎﺑ ﺶﯾﺎﻤﻧ ﺶﯿﭘ / ﻪﻨﺤﺻ ﻡﺎﻤﺗ"
+
+
+msgid "Manual Range"
+msgstr "ﯽﺘﺳﺩ ﻩﺯﺎﺑ"
+
+
+msgid "Manually determined frame range"
+msgstr "ﻩﺪﺷ ﻦﯿﯿﻌﺗ ﯽﺘﺳﺩ ﻢﯾﺮﻓ ﻩﺯﺎﺑ"
 
 
 msgid "Show Frame Numbers"
@@ -738,6 +774,18 @@ msgid "All Action Keyframes"
 msgstr "ﺭﺍﺩﺮﮐ ﯼﺪﯿﻠﮐ ﯼﺎﻫ‌ﻢﯾﺮﻓ ﻪﻤﻫ"
 
 
+msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
+msgstr "(ﺖﺳﺍ ﺮﺗﺪﻨﮐ) ﻖﺑﺎﻄﻣ ﻡﺎﻧ ﺎﺑ ﻩﻭﺮﮔ ﯼﺎﺟ ﻪﺑ ﺪﯿﻨﮐ ﻮﺠﺘﺴﺟ ﻢﯾﺮﻓ ﯼﺎﻫﺪﯿﻠﮐ ﯼﺍﺮﺑ ﺕﺎﯿﻠﻤﻋ ﻞﮐ ﺭﺩ ،ﻥﺍﻮﺨﺘﺳﺍ ﺖﮐﺮﺣ ﺮﯿﺴﻣ ﯼﺍﺮﺑ"
+
+
+msgid "Highlight Keyframes"
+msgstr "ﯼﺪﯿﻠﮐ ﯼﺎﻫ ﻢﯾﺮﻓ ﻥﺩﺮﮐ ﻪﺘﺴﺟﺮﺑ"
+
+
+msgid "Emphasize position of keyframes on Motion Paths"
+msgstr "ﺖﮐﺮﺣ ﺮﯿﺴﻣ ﺭﺩ ﻢﯾﺮﻓ ﯼﺎﻫﺪﯿﻠﮐ ﺖﯿﻌﻗﻮﻣ ﺮﺑ ﺪﯿﮐﺎﺗ"
+
+
 msgid "Show Keyframe Numbers"
 msgstr "ﯼﺪﯿﻠﮐ ﯼﺎﻫ‌ﻢﯾﺮﻓ ﻩﺭﺎﻤﺷ ﺶﯾﺎﻤﻧ"
 
@@ -750,12 +798,36 @@ msgid "Paths Type"
 msgstr "ﺮﯿﺴﻣ ﻉﻮﻧ"
 
 
+msgid "Type of range to show for Motion Paths"
+msgstr "ﺖﮐﺮﺣ ﺮﯿﺴﻣ ﺶﯾﺎﻤﻧ ﯼﺍﺮﺑ ﻩﺯﺎﺑ ﻉﻮﻧ"
+
+
+msgid "Around Frame"
+msgstr "ﻢﯾﺮﻓ ﻑﺍﺮﻃﺍ"
+
+
+msgid "Display Paths of poses within a fixed number of frames around the current frame"
+msgstr "ﯼﺭﺎﺟ ﻢﯾﺮﻓ ﻑﺍﺮﻃﺍ ﯼﺎﻫ‌ﻢﯾﺮﻓ ﺯﺍ ﯽﺘﺑﺎﺛ ﺩﺍﺪﻌﺗ ﺏﻮﭼﺭﺎﭼ ﺭﺩ ﺎﻫ‌ﺖﺳﮊ ﯼﺎﻫﺮﯿﺴﻣ ﺶﯾﺎﻤﻧ"
+
+
 msgid "In Range"
-msgstr "ﻩﺩﻭﺪﺤﻣ ﺭﺩ"
+msgstr "ﻩﺯﺎﺑ ﺭﺩ"
+
+
+msgid "Display Paths of poses within specified range"
+msgstr "ﻩﺪﺷ ﺺﺨﺸﻣ ﻩﺯﺎﺑ ﺭﺩ ﺎﻫ‌ﺖﺳﮊ ﯼﺎﻫﺮﯿﺴﻣ ﺶﯾﺎﻤﻧ"
 
 
 msgid "Any Type"
 msgstr "ﻉﻮﻧ ﺮﻫ"
+
+
+msgid "RNA type used for pointers to any possible data"
+msgstr "ﯼﺍ‌ﻩﺩﺍﺩ ﺮﻫ ﺮﮔ‌ﻩﺭﺎﺷﺍ ﯼﺍﺮﺑ ﻩﺪﺷ ﻩﺩﺎﻔﺘﺳﺍ RNA ﻉﻮﻧ"
+
+
+msgid "Area in a subdivided screen, containing an editor"
+msgstr "ﺮﮕﺸﯾﺍﺮﯾﻭ ﮏﯾ ﻞﻣﺎﺷ ،ﻩﺪﺷ ﻢﯿﺴﻘﺗ ﻪﺤﻔﺻ ﮏﯾ ﺭﺩ ﯼﺍ‌ﻪﻘﻄﻨﻣ"
 
 
 msgid "Height"
@@ -770,36 +842,116 @@ msgid "Regions"
 msgstr "ﻖﻃﺎﻨﻣ"
 
 
+msgid "Regions this area is subdivided in"
+msgstr "ﺖﺳﺍ ﻩﺪﺷ ﻢﯿﺴﻘﺗ ﺎﻬﻧﺁ ﺭﺩ ﻪﻘﻄﻨﻣ ﻦﯾﺍ ﻪﮐ ﯽﯾﺎﻫ‌ﻪﯿﺣﺎﻧ"
+
+
 msgid "Show Menus"
 msgstr "ﺎﻫﻮﻨﻣ ﺶﯾﺎﻤﻧ"
+
+
+msgid "Show menus in the header"
+msgstr "ﺭﺪﻫ ﺭﺩ ﺎﻫ ﻮﻨﻣ ﺶﯾﺎﻤﻧ"
 
 
 msgid "Spaces"
 msgstr "ﺎﻫ‌ﻪﻠﺻﺎﻓ"
 
 
+msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
+msgstr "(ﺖﺳﺍ ﺪﯿﻔﻣ ﯽﻤﯾﺪﻗ ﯼﺎﻤﻧ ﺖﻬﺟ ﺖﻓﺎﯾﺭﺩ ﯼﺍﺮﺑ ﺹﺎﺧ ﻪﻘﻄﻨﻣ ﮏﯾ ﺭﺩ ﯽﻠﺒﻗ ﻩﺪﺷ ﻩﺩﺎﻔﺘﺳﺍ ﯼﺪﻌﺑ ﻪﺳ ﯼﺎﻤﻧ ﯼﺎﻀﻓ ﯽﺑﺎﯾﺯﺎﺑ ﯼﺍﺮﺑ ﻝﺎﺜﻣ ﯼﺍﺮﺑ :ﺪﯿﺷﺎﺑ ﻪﺘﺷﺍﺩ ﻪﺟﻮﺗ) ﺖﺳﺍ ﻝﺎﻌﻓ ﯼﺎﻀﻓ ،ﺎﻀﻓ ﻦﯿﻟﻭﺍ ،ﻪﻘﻄﻨﻣ ﻦﯾﺍ ﺭﺩ ﺩﻮﺟﻮﻣ ﯼﺎﻫﺎﻀﻓ"
+
+
+msgid "Editor Type"
+msgstr "ﺮﮕﺸﯾﺍﺮﯾﻭ ﻉﻮﻧ"
+
+
+msgid "Current editor type for this area"
+msgstr "ﻪﻘﻄﻨﻣ ﻦﯾﺍ ﯼﺍﺮﺑ ﯽﻠﻌﻓ ﺮﮕﺸﯾﺍﺮﯾﻭ ﻉﻮﻧ"
+
+
 msgid "Empty"
 msgstr "ﯽﻟﺎﺧ"
+
+
+msgid "3D Viewport"
+msgstr "ﯼﺪﻌﺑ ﻪﺳ ﯼﺎﻤﻧ"
+
+
+msgid "Manipulate objects in a 3D environment"
+msgstr "ﯼﺪﻌﺑ ﻪﺳ ﻂﯿﺤﻣ ﮏﯾ ﺭﺩ ءﺎﯿﺷﺍ ﯼﺭﺎﮑﺘﺳﺩ"
+
+
+msgid "UV/Image Editor"
+msgstr "UV/ﺮﯾﻮﺼﺗ ﺮﮕﺸﯾﺍﺮﯾﻭ"
+
+
+msgid "View and edit images and UV Maps"
+msgstr "UV ﯼﺎﻫ ﻪﺸﻘﻧ ﻭ ﺎﻫ ﺮﯾﻮﺼﺗ ﺶﯾﺍﺮﯾﻭ ﻭ ﺶﯾﺎﻤﻧ"
 
 
 msgid "Node Editor"
 msgstr "ﻩﺮﮔ ﺮﮕﺸﯾﺍﺮﯾﻭ"
 
 
+msgid "Editor for node-based shading and compositing tools"
+msgstr "ﻩﺮﮔ ﺮﺑ ﯽﻨﺘﺒﻣ ﯼﺪﻨﺑ‌ﺐﯿﮐﺮﺗ ﻭ ﯽﻧﺯ‌ﻪﯾﺎﺳ ﯼﺎﻫﺭﺍﺰﺑﺍ ﺮﮕﺸﯾﺍﺮﯾﻭ"
+
+
+msgid "Video Sequencer"
+msgstr "ﻮﺋﺪﯾﻭ ﺞﻨﺳ ﺐﯿﺗﺮﺗ"
+
+
+msgid "Video editing tools"
+msgstr "ﻮﺋﺪﯾﻭ ﺶﯾﺍﺮﯾﻭ ﯼﺎﻫﺭﺍﺰﺑﺍ"
+
+
 msgid "Movie Clip Editor"
 msgstr "ﻢﻠﯿﻓ ﭗﯿﻠﮐ ﺮﮕﺸﯾﺍﺮﯾﻭ"
+
+
+msgid "Motion tracking tools"
+msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ ﯼﺎﻫﺭﺍﺰﺑﺍ"
+
+
+msgid "Dope Sheet"
+msgstr "ﭖﻭﺩ ﻪﮔﺮﺑ"
+
+
+msgid "Adjust timing of keyframes"
+msgstr "ﯼﺪﯿﻠﮐ ﯼﺎﻫ‌ﻢﯾﺮﻓ ﯼﺪﻨﺑ ﻥﺎﻣﺯ ﻢﯿﻈﻨﺗ"
 
 
 msgid "Graph Editor"
 msgstr "ﻑﺍﺮﮔ ﺮﮕﺸﯾﺍﺮﯾﻭ"
 
 
+msgid "Edit drivers and keyframe interpolation"
+msgstr "ﯼﺪﯿﻠﮐ ﯼﺎﻫ‌ﻢﯾﺮﻓ ﯽﺑﺎﯾ ﻥﻭﺭﺩ ﻉﻮﻧ ﻭ ﺎﻫﺭﻮﯾﺍﺭﺩ ﺶﯾﺍﺮﯾﻭ"
+
+
+msgid "Nonlinear Animation"
+msgstr "ﯽﻄﺧﺮﯿﻏ ﻦﺸﯿﻤﯿﻧﺍ"
+
+
+msgid "Combine and layer Actions"
+msgstr "ﺕﺎﻣﺍﺪﻗﺍ ﯼﺪﻨﺑ ﻪﯾﻻ﻿ ﻭ ﺐﯿﮐﺮﺗ"
+
+
 msgid "Text Editor"
 msgstr "ﻦﺘﻣ ﺮﮕﺸﯾﺍﺮﯾﻭ"
 
 
+msgid "Edit scripts and in-file documentation"
+msgstr "ﻞﯾﺎﻓ ﻥﻭﺭﺩ ﺩﺎﻨﺳﺍ ﻭ ﺎﻫ‌ﺖﭙﯾﺮﮑﺳﺍ ﺶﯾﺍﺮﯾﻭ"
+
+
 msgid "Python Console"
 msgstr "ﻥﻮﺘﯾﺎﭘ ﻝﻮﺴﻨﮐ"
+
+
+msgid "Interactive programmatic console for advanced editing and script development"
+msgstr "ﺖﭙﯾﺮﮑﺳﺍ ﻪﻌﺳﻮﺗ ﻭ ﻪﺘﻓﺮﺸﯿﭘ ﺶﯾﺍﺮﯾﻭ ﯼﺍﺮﺑ ﯽﻠﻣﺎﻌﺗ ﯼﺍ ﻪﻣﺎﻧﺮﺑ ﻝﻮﺴﻨﮐ"
 
 
 msgid "Info"
@@ -834,6 +986,11 @@ msgid "Full Path"
 msgstr "ﻞﻣﺎﮐ ﺮﯿﺴﻣ"
 
 
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "v3 ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
 msgid "Show Names"
 msgstr "ﺎﻫ‌ﻡﺎﻧ ﺶﯾﺎﻤﻧ"
 
@@ -844,6 +1001,10 @@ msgstr "ﺭﻭﺎﻨﺷ‪"
 
 msgid "Vector"
 msgstr "ﺭﺍﺩﺮﺑ"
+
+
+msgid "Layer"
+msgstr "ﻪﯾﻻ﻿"
 
 
 msgid "Extend"
@@ -1887,6 +2048,11 @@ msgid "Constant"
 msgstr "ﺖﺑﺎﺛ"
 
 
+msgctxt "Brush"
+msgid "Color Ramp"
+msgstr "ﮓﻧﺭ ﭗﻣﺭ"
+
+
 msgctxt "Simulation"
 msgid "Force"
 msgstr "ﺭﻭﺯ‌ﻪﺑ"
@@ -2041,6 +2207,11 @@ msgstr "ﺪﻣﺎﺴﺑ"
 
 
 msgctxt "ParticleSettings"
+msgid "Kink"
+msgstr "ﯽﮔﺩﺭﻮﺧ ﭻﯿﭘ"
+
+
+msgctxt "ParticleSettings"
 msgid "None"
 msgstr "ﻡﺍﺪﮐ ﭻﯿﻫ"
 
@@ -2144,10 +2315,6 @@ msgstr "ﺪﻟﺍﻭ ﻉﻮﻧ"
 
 msgid "Onion Skinning"
 msgstr "ﺯﺎﯿﭘ ﺖﺳﻮﭘ"
-
-
-msgid "Layer"
-msgstr "ﻪﯾﻻ﻿"
 
 
 msgid "Spacing"
@@ -2328,13 +2495,58 @@ msgid "Add"
 msgstr "ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
 
 
+msgctxt "Curves"
+msgid "Delete"
+msgstr "ﻑﺬﺣ"
+
+
+msgctxt "Curves"
+msgid "Slide"
+msgstr "ﺪﯾﻼ﻿ﺳﺍ"
+
+
+msgctxt "Brush"
+msgid "Scale"
+msgstr "ﺱﺎﯿﻘﻣ"
+
+
+msgctxt "Brush"
+msgid "Draw"
+msgstr "ﯽﺷﺎﻘﻧ"
+
+
+msgctxt "Brush"
+msgid "Fill"
+msgstr "ﻥﺩﺮﮐ ﺮﭘ"
+
+
+msgctxt "Brush"
+msgid "Erase"
+msgstr "ﻥﺩﺮﮐ‌ﮎﺎﭘ"
+
+
 msgctxt "Brush"
 msgid "Clone"
 msgstr "ﻥﺎﺴﻤﻫ ﻦﺘﺧﺎﺳ"
 
 
+msgctxt "Brush"
+msgid "Mask"
+msgstr "ﮏﺳﺎﻣ"
+
+
 msgid "Brush"
 msgstr "ﻮﻣ ﻢﻠﻗ"
+
+
+msgctxt "Mask"
+msgid "Draw"
+msgstr "ﯽﺷﺎﻘﻧ"
+
+
+msgctxt "Mask"
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
 
 
 msgid "Paint Curve"
@@ -2342,8 +2554,43 @@ msgstr "ﮓﻧﺭ ﯽﻨﺤﻨﻣ"
 
 
 msgctxt "Brush"
+msgid "Sculpt Tool"
+msgstr "ﯼﺭﺎﺠﺣ ﺭﺍﺰﺑﺍ"
+
+
+msgctxt "Brush"
+msgid "Clay"
+msgstr "ﻞﮔ"
+
+
+msgctxt "Brush"
+msgid "Layer"
+msgstr "ﻪﯾﻻ﻿"
+
+
+msgctxt "Brush"
+msgid "Crease"
+msgstr "ﻦﯿﭼ"
+
+
+msgctxt "Brush"
+msgid "Elastic Deform"
+msgstr "ﮏﯿﺘﺳﻻ﻿ﺍ ﻞﮑﺷ ﺮﯿﯿﻐﺗ"
+
+
+msgctxt "Brush"
+msgid "Pose"
+msgstr "ﺖﺳﮊ"
+
+
+msgctxt "Brush"
 msgid "Rotate"
 msgstr "ﺶﺧﺮﭼ"
+
+
+msgctxt "Brush"
+msgid "Paint"
+msgstr "ﮓﻧﺭ"
 
 
 msgid "Sculpt Tool"
@@ -2352,6 +2599,16 @@ msgstr "ﯼﺭﺎﺠﺣ ﺭﺍﺰﺑﺍ"
 
 msgid "Relax"
 msgstr "ﻥﺩﺮﮐ‌ﻞﺷ"
+
+
+msgctxt "Unit"
+msgid "Velocity Unit"
+msgstr "ﺖﻋﺮﺳ ﯼﺎﮑﯾ"
+
+
+msgctxt "Unit"
+msgid "Frame"
+msgstr "ﻢﯾﺮﻓ"
 
 
 msgid "Vertical"
@@ -2364,6 +2621,10 @@ msgstr "ﻦﯿﺑﺭﻭﺩ ﻉﺍﻮﻧﺍ"
 
 msgid "Dimensions"
 msgstr "ﺩﺎﻌﺑﺍ"
+
+
+msgid "Path Duration"
+msgstr "ﺮﯿﺴﻣ ﻝﻮﻃ"
 
 
 msgid "Path"
@@ -2412,6 +2673,16 @@ msgstr "ﻪﻄﻘﻧ ﺐﯿﮐﺮﺗ"
 
 msgid "Spot Size"
 msgstr "ﻪﻄﻘﻧ ﻩﺯﺍﺪﻧﺍ"
+
+
+msgctxt "Material"
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
+
+
+msgctxt "Material"
+msgid "Cube"
+msgstr "ﺐﻌﮑﻣ"
 
 
 msgid "Cube"
@@ -2468,6 +2739,21 @@ msgstr "ﻪﺤﻔﺻ ﯼﺎﻫ ﺭﻮﺤﻣ"
 
 msgid "Circle"
 msgstr "ﻩﺮﯾﺍﺩ"
+
+
+msgctxt "Image"
+msgid "Both"
+msgstr "ﻭﺩ ﺮﻫ"
+
+
+msgctxt "Image"
+msgid "Front"
+msgstr "ﻮﻠﺟ"
+
+
+msgctxt "Image"
+msgid "Back"
+msgstr "ﺐﻘﻋ"
 
 
 msgid "Lock Location"
@@ -2562,6 +2848,11 @@ msgid "Integration"
 msgstr "ﯼﺯﺎﺳ ﻪﭼﺭﺎﭙﮑﯾ"
 
 
+msgctxt "ParticleSettings"
+msgid "Nothing"
+msgstr "ﺰﯿﭼ ﭻﯿﻫ"
+
+
 msgid "Mass"
 msgstr "ﻢﺠﺣ"
 
@@ -2586,6 +2877,10 @@ msgid "Sequence Editor"
 msgstr "ﺲﻧﺎﮑﺳ ﺮﮕﺸﯾﺍﺮﯾﻭ"
 
 
+msgid "Simulation Frame Start"
+msgstr "ﯼﺯﺎﺳ ﻪﯿﺒﺷ ﻉﻭﺮﺷ ﻢﯾﺮﻓ"
+
+
 msgid "View Settings"
 msgstr "ﺕﺎﻤﯿﻈﻨﺗ ﺶﯾﺎﻤﻧ"
 
@@ -2601,6 +2896,11 @@ msgstr "ﺍﺪﺻ"
 
 msgid "Memory"
 msgstr "ﻪﻈﻓﺎﺣ"
+
+
+msgctxt "Text"
+msgid "Modified"
+msgstr "ﻩﺪﺷ ﺡﻼ﻿ﺻﺍ"
 
 
 msgctxt "Text"
@@ -2640,6 +2940,10 @@ msgid "Solver"
 msgstr "ﻩﺪﻨﻨﮐ ﻞﺣ"
 
 
+msgid "Translate Roots"
+msgstr "ﺎﻫ ﻪﺸﯾﺭ ﯽﯾﺎﺠﺑﺎﺟ"
+
+
 msgid "Color Management"
 msgstr "ﮓﻧﺭ ﺖﯾﺮﯾﺪﻣ"
 
@@ -2658,6 +2962,11 @@ msgstr "Cmd"
 
 msgid "OS Key"
 msgstr "ﻞﻣﺎﻋ ﻢﺘﺴﯿﺳ ﺪﯿﻠﮐ"
+
+
+msgctxt "WindowManager"
+msgid "Property Value"
+msgstr "ﺖﻠﺼﺧ ﺭﺍﺪﻘﻣ"
 
 
 msgctxt "Action"
@@ -2686,6 +2995,11 @@ msgid "Min Angle"
 msgstr "ﻪﯾﻭﺍﺯ ﻞﻗﺍﺪﺣ"
 
 
+msgctxt "FreestyleLineStyle"
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
+
+
 msgid "Orientation"
 msgstr "ﺖﻬﺟ"
 
@@ -2706,8 +3020,23 @@ msgid "ID Type"
 msgstr "ID ﻉﻮﻧ"
 
 
+msgctxt "Mask"
+msgid "Fill"
+msgstr "ﻥﺩﺮﮐ ﺮﭘ"
+
+
+msgctxt "GPencil"
+msgid "Texture"
+msgstr "ﺖﻓﺎﺑ"
+
+
 msgid "Flip"
 msgstr "ﯼﺯﺎﺳ ﻪﻨﯾﺮﻗ"
+
+
+msgctxt "GPencil"
+msgid "Mix"
+msgstr "ﻁﻮﻠﺨﻣ"
 
 
 msgid "Pivot Point"
@@ -2736,6 +3065,11 @@ msgstr "ﺡﺮﻃ"
 
 msgid "Distort"
 msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
+
+
+msgctxt "NodeTree"
+msgid "Constant"
+msgstr "ﺖﺑﺎﺛ"
 
 
 msgid "Add Modifier"
@@ -2790,6 +3124,14 @@ msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
+msgid "Sharpness Max"
+msgstr "ﯼﺰﯿﺗ ﺮﺜﮐﺍﺪﺣ"
+
+
+msgid "Sharpness Min"
+msgstr "ﯼﺰﯿﺗ ﻞﻗﺍﺪﺣ"
+
+
 msgid "Distortion"
 msgstr "ﺝﺎﺟﻮﻋﺍ"
 
@@ -2808,6 +3150,20 @@ msgstr "ﺪﯾﺪﺟ"
 
 msgid "Mark Seams"
 msgstr "ﺯﺭﺩ ﻥﺍﻮﻨﻋ ﻪﺑ ﯼﺭﺍﺬﮔ ﺖﻣﻼ﻿ﻋ"
+
+
+msgid "Transfer"
+msgstr "ﻝﺎﻘﺘﻧﺍ"
+
+
+msgctxt "Simulation"
+msgid "Type"
+msgstr "ﻉﻮﻧ"
+
+
+msgctxt "Simulation"
+msgid "Brush"
+msgstr "ﻢﻠﻗ"
 
 
 msgid "Play Mode"
@@ -2831,12 +3187,27 @@ msgstr "ﯼﺰﯿﺗ"
 
 
 msgctxt "Operator"
+msgid "Mode"
+msgstr "ﺖﻟﺎﺣ"
+
+
+msgctxt "Operator"
 msgid "Stretch"
 msgstr "ﺶﺸﮐ"
 
 
 msgid "Origin"
 msgstr "ءﺎﺸﻨﻣ"
+
+
+msgctxt "Mesh"
+msgid "Round"
+msgstr "ﺭﻭﺩ"
+
+
+msgctxt "Mesh"
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
 
 
 msgid "Use Channel"
@@ -2983,6 +3354,25 @@ msgid "Space Sigma"
 msgstr "ﺎﻤﮕﯿﺳ ﯼﺎﻀﻓ"
 
 
+msgctxt "NodeTree"
+msgid "Filter Type"
+msgstr "ﺮﺘﻠﯿﻓ ﻉﻮﻧ"
+
+
+msgctxt "NodeTree"
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
+
+
+msgctxt "NodeTree"
+msgid "Tent"
+msgstr "ﺭﺩﺎﭼ"
+
+
+msgid "Brightness/Contrast"
+msgstr "ﺖﺳﺍﺮﺘﻨﮐ /ﯽﯾﺎﻨﺷﻭﺭ"
+
+
 msgid "Single"
 msgstr "ﯽﮑﺗ"
 
@@ -3037,6 +3427,10 @@ msgstr "ﻊﺸﻌﺸﺗ ﻉﻮﻧ"
 
 msgid "Simple Star"
 msgstr "ﻩﺩﺎﺳ ﻩﺭﺎﺘﺳ"
+
+
+msgid "Uniformity"
+msgstr "ﻥﺎﺴﮑﯾ"
 
 
 msgid "Projector"
@@ -3127,8 +3521,25 @@ msgid "Less Than"
 msgstr "ﺯﺍ ﺮﺘﻤﮐ"
 
 
+msgid "Euler to Rotation"
+msgstr "ﺮﻟﻭﺍ ﺶﺧﺮﭼ"
+
+
+msgid "Invert Rotation"
+msgstr "ﻪﻧﻭﺭﺍﻭ ﺶﺧﺮﭼ"
+
+
+msgid "Rotation to Euler"
+msgstr "ﺮﻟﻭﺍ ﻪﺑ ﺶﺧﺮﭼ"
+
+
 msgid "Original"
 msgstr "ﯽﻠﺻﺍ"
+
+
+msgctxt "Image"
+msgid "Mirror"
+msgstr "ﺏﺎﺗﺯﺎﺑ"
 
 
 msgid "Fill Type"
@@ -3137,6 +3548,10 @@ msgstr "ﻥﺩﺮﮐ ﺮﭘ ﻉﻮﻧ"
 
 msgid "Object Info"
 msgstr "ﯽﺷ ﺕﺎﻋﻼ﻿ﻃﺍ"
+
+
+msgid "Points to Curves"
+msgstr "ﺎﻫ‌ﯽﻨﺤﻨﻣ ﻪﺑ ﻁﺎﻘﻧ"
 
 
 msgid "Add Shader"
@@ -3538,6 +3953,10 @@ msgid "Join"
 msgstr "ﻦﺘﺳﻮﯿﭘ"
 
 
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
+
+
 msgid "X End"
 msgstr "X ﻥﺎﯾﺎﭘ"
 
@@ -3694,6 +4113,10 @@ msgstr "ﻪﮑﺒﺷ ﻩﺪﻨﻫﺩ ﺮﯿﯿﻐﺗ"
 
 msgid "Child"
 msgstr "ﺪﻧﺯﺮﻓ"
+
+
+msgid "Set the sharpness of mesh edges based on the angle between the neighboring faces"
+msgstr "ﺩﻮﺷ ﻦﯿﯿﻌﺗ ﻪﯾﺎﺴﻤﻫ ﯼﺎﻫ‌ﻪﺤﻔﺻ ﻦﯿﺑ ﻪﯾﻭﺍﺯ ﺱﺎﺳﺍ ﺮﺑ ﺍﺭ ﺶﻣ ﯼﺎﻫ‌ﻪﺒﻟ ﯼﺰﯿﺗ"
 
 
 msgctxt "Operator"
@@ -4285,10 +4708,6 @@ msgstr "3D ﺮﮕﻧﺎﺸﻧ ﻡﺎﻧ ﺶﯾﺎﻤﻧ"
 
 msgid "3D"
 msgstr "3D"
-
-
-msgid "Flat"
-msgstr "ﺖﺨﺗ"
 
 
 msgid "X Mapping"
@@ -5100,8 +5519,4 @@ msgstr "(Bahasa indonesia) ﯼﺰﻧﻭﺪﻧﺍ"
 
 msgid "Smooth by Angle"
 msgstr "ﻪﯾﻭﺍﺯ ﺱﺎﺳﺍﺮﺑ ﻥﺩﺮﮐ ﻑﺎﺻ"
-
-
-msgid "Set the sharpness of mesh edges based on the angle between the neighboring faces"
-msgstr "ﺩﻮﺷ ﻦﯿﯿﻌﺗ ﻪﯾﺎﺴﻤﻫ ﯼﺎﻫ‌ﻪﺤﻔﺻ ﻦﯿﺑ ﻪﯾﻭﺍﺯ ﺱﺎﺳﺍ ﺮﺑ ﺍﺭ ﺶﻣ ﯼﺎﻫ‌ﻪﺒﻟ ﯼﺰﯿﺗ"
 

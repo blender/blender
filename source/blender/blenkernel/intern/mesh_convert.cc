@@ -971,6 +971,29 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   return mesh_in_bmain;
 }
 
+static void copy_loose_vert_hint(const Mesh &src, Mesh &dst)
+{
+  const auto &src_cache = src.runtime->loose_verts_cache;
+  if (src_cache.is_cached() && src_cache.data().count == 0) {
+    dst.tag_loose_verts_none();
+  }
+}
+
+static void copy_loose_edge_hint(const Mesh &src, Mesh &dst)
+{
+  const auto &src_cache = src.runtime->loose_edges_cache;
+  if (src_cache.is_cached() && src_cache.data().count == 0) {
+    dst.tag_loose_edges_none();
+  }
+}
+
+static void copy_overlapping_hint(const Mesh &src, Mesh &dst)
+{
+  if (src.no_overlapping_topology()) {
+    dst.tag_overlapping_none();
+  }
+}
+
 static KeyBlock *keyblock_ensure_from_uid(Key &key, const int uid, const StringRefNull name)
 {
   if (KeyBlock *kb = BKE_keyblock_find_uid(&key, uid)) {
@@ -1073,6 +1096,13 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
       mesh_dst->key = nullptr;
     }
   }
+
+  /* Caches can have a large memory impact and aren't necessarily used, so don't indiscriminantly
+   * store all of them in the #Main data-base mesh. However, some caches are quite small and
+   * copying them is "free" relative to how much work would be required if the data was needed. */
+  copy_loose_vert_hint(*mesh_src, *mesh_dst);
+  copy_loose_edge_hint(*mesh_src, *mesh_dst);
+  copy_overlapping_hint(*mesh_src, *mesh_dst);
 
   BKE_id_free(nullptr, mesh_src);
 }

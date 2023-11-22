@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -1453,6 +1453,10 @@ msgstr "Thực Thể"
 
 msgid "Attribute on instance"
 msgstr "Đặc điểm trên thực thể"
+
+
+msgid "Layer"
+msgstr "Lớp"
 
 
 msgid "Is Internal"
@@ -15095,10 +15099,6 @@ msgid "Invert mask"
 msgstr "Đảo nghịch mặt nạ"
 
 
-msgid "Layer"
-msgstr "Lớp"
-
-
 msgid "Mask layer name"
 msgstr "Tên lớp mặt nạ"
 
@@ -18005,6 +18005,10 @@ msgstr "Chi Số Mặt Nạ Lớp Hoạt Động"
 
 msgid "Active index in layer mask array"
 msgstr "Chỉ số hoạt động trong mảng mặt nạ lớp"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Lớp Bút Sáp hoạt động"
 
 
 msgid "Editor header containing UI elements"
@@ -22088,6 +22092,10 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "Mức dịch khi vẽ trong chế độ bề mặt"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Cục dữ liệu Bút Sáp"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "Cục dữ liệu ảnh đang tham chiếu một ảnh ngoài hay ảnh được gói lại"
 
@@ -23063,14 +23071,6 @@ msgid "Show the clipping distances in the 3D view"
 msgstr "Hiện khoảng cách cắt trong màn chiếu 3D"
 
 
-msgid "Show Preview Plane"
-msgstr "Hiện Mặt Phẳng Dự Khán"
-
-
-msgid "Show captured lighting data into the 3D view for debugging purpose"
-msgstr "Hiện dữ liệu ánh sáng được bắt trong màn chiếu 3D cho sửa lỗi lầm"
-
-
 msgid "Show the influence volume in the 3D view"
 msgstr "Hiện thể tích sự ảnh hưởng trong màn chiều 3D"
 
@@ -23085,26 +23085,6 @@ msgstr "Hiện thể tích chỉnh sửa thị sai trong màn chiếu 3D"
 
 msgid "Type of light probe"
 msgstr "Loại quang kế"
-
-
-msgid "Reflection Cubemap"
-msgstr "Bản Đồ Lập Phương Phản Xạ"
-
-
-msgid "Capture reflections"
-msgstr "Bắt các phản xạ"
-
-
-msgid "Reflection Plane"
-msgstr "Mặt Phẳng Phán Xạ"
-
-
-msgid "Irradiance Volume"
-msgstr "Thể Tích Sự Rọi"
-
-
-msgid "Volume used for precomputing indirect lighting"
-msgstr "Thể tích được sử dụng cho tính trước ánh sáng gián tiếp"
 
 
 msgid "Use Custom Parallax"
@@ -23415,14 +23395,6 @@ msgid "Use the current world background to light the preview render"
 msgstr "Dùng nền thế giới hiện tại để phát ánh sáng cho kết xuất dự khán"
 
 
-msgid "Screen Space Refraction"
-msgstr "Khúc Xạ Không Gian Màn"
-
-
-msgid "Use raytraced screen space refractions"
-msgstr "Sử dụng khúc xạ dò tia trong không gian màn"
-
-
 msgid "Subsurface Translucency"
 msgstr "Trong Suốt Hạ Bề Mặt"
 
@@ -23431,16 +23403,24 @@ msgid "Add translucency effect to subsurface"
 msgstr "Thêm hiệu ứng trong suốt cho hạ bề mặt"
 
 
+msgid "Transparent Shadows"
+msgstr "Bóng Tối Trong Suốt"
+
+
+msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
+msgstr "Dùng bóng tối trong suốt cho vật liệu này nếu nó có BSDF Trong Suốt. Nếu bạn tắt này sẽ kết xuất lẹ hơn nhưng có lẽ bóng tối sẽ không chính xác"
+
+
+msgid "Fast"
+msgstr "Nhanh"
+
+
+msgid "Accurate"
+msgstr "Chính Xác"
+
+
 msgid "Mesh data-block defining geometric surfaces"
 msgstr "Cục dữ liệu cho chỉ định bề mặt hình dạng"
-
-
-msgid "Auto Smooth Angle"
-msgstr "Góc Tự Động Mịn Hóa"
-
-
-msgid "Maximum angle between face normals that will be considered as smooth (unused if custom split normals data are available)"
-msgstr "Góc cực đại giữa pháp tuyến mặt thì được chấp nhận là mịn (không áp dùng nếu có dữ liệu pháp tuyến tùy chọn bị chẻ)"
 
 
 msgid "Edges"
@@ -23469,6 +23449,10 @@ msgstr "Phân hóa đa giác của mạng lưới thành tam giác"
 
 msgid "Loops"
 msgstr "Vòng Lặp"
+
+
+msgid "Corner"
+msgstr "Góc Giác"
 
 
 msgid "Polygon Normals"
@@ -23573,14 +23557,6 @@ msgstr "Tổng Số Đỉnh Được Chọn"
 
 msgid "Selected vertex count in editmode"
 msgstr "Tổng số lượng đỉnh được chọn trong chế độ biên tập"
-
-
-msgid "Auto Smooth"
-msgstr "Tự Động Mịn Hóa"
-
-
-msgid "Auto smooth (based on smooth/sharp faces/edges and angle between faces), or use custom split normals data if available"
-msgstr "Tự động mịn hóa (tùy mặt/cạnh mịn/bén và góc giữa các mặt), hay dùng dữ liệu pháp tuyến chẻ tuy chọn nếu có"
 
 
 msgid "Topology Mirror"
@@ -23759,10 +23735,6 @@ msgid "While editing, update metaball in half resolution"
 msgstr "Khi biên tập, nâng cấp siêu cầu bằng nửa độ phân giải"
 
 
-msgid "Fast"
-msgstr "Nhanh"
-
-
 msgid "While editing, update metaball without polygonization"
 msgstr "Khi biên tập, nâng cấp siêu cầu không dùng đa giác hóa"
 
@@ -23853,10 +23825,6 @@ msgstr "Nhãn của cây giao điểm"
 
 msgid "Grease Pencil Data"
 msgstr "Dữ Liệu Bút Sáp"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Cục dữ liệu Bút Sáp"
 
 
 msgid "Interface"
@@ -33166,10 +33134,6 @@ msgid "Split Normals"
 msgstr "Chẻ Pháp Tuyến"
 
 
-msgid "Local space unit length split normals vectors of the vertices of this triangle (must be computed beforehand using calc_normals_split or calc_tangents)"
-msgstr "Vectơ pháp tuyến chẻ trong không gian địa phương đơn vị hóa của các đỉnh của tam giác này (yêu cầu tính trước bằng calc_normals_split hay calc_tangents)"
-
-
 msgid "Indices of triangle vertices"
 msgstr "Chỉ số của các đỉnh tam giác"
 
@@ -40364,10 +40328,6 @@ msgid "Denoise image and guiding passes together. Improves quality when guiding 
 msgstr "Bớt huyên náo ảnh và vòng dẫn chung. Nó tăng chất lượng khi vòng dẫn có huyên náo mà giảm thời gian xử lý"
 
 
-msgid "Accurate"
-msgstr "Chính Xác"
-
-
 msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time"
 msgstr "Bớt huyên náo vòng dẫn trước bớt huyên náo ảnh. Nó tăng chất lượng khi vòng dẫn có huyên náo mà cần dùng thêm thời gian cho xử lý"
 
@@ -44438,12 +44398,8 @@ msgid "Level of detail in the added turbulent noise"
 msgstr "Mức thêm chi tiết trong huyên náo nhiễu loạn"
 
 
-msgid "Musgrave Texture"
-msgstr "Chất Liệu Musgrave"
-
-
-msgid "Generate fractal Perlin noise. Allows for greater control over how octaves are combined than the Noise Texture node"
-msgstr "Chế tạo huyên náo Perlin phân dạng. Cho kiểm soát dễ hơn bao nhiêu quãng tám được gồm so với giao điểm Chất Liệu Huyên Náo "
+msgid "Generate fractal Perlin noise"
+msgstr "Chế tạo huyên náo Perlin phân dạng"
 
 
 msgid "Number of dimensions to output noise for"
@@ -44466,10 +44422,6 @@ msgid "Use the 4D vector (X, Y, Z, W) as input"
 msgstr "Dùng vectơ 4D (x; y; z; w) cho làm ngõ vào"
 
 
-msgid "Type of the Musgrave texture"
-msgstr "Loại hoạ tiết Musgrave"
-
-
 msgid "More uneven result (varies with location), more similar to a real terrain"
 msgstr "Kết qủa bớt đồng đều (biến thể tù vị trí), giống địa hình thật tế hơn"
 
@@ -44482,16 +44434,8 @@ msgid "Create peaks and valleys with different roughness values"
 msgstr "Chế tạo thượng đỉnh và thung lũng có độ nhám khác nhau"
 
 
-msgid "Produce an unnatural homogeneous and isotropic result"
-msgstr "Chế tạo một kết qủa đồng đều mà bất thiên nhiên"
-
-
 msgid "Similar to Hybrid Multifractal creates a heterogeneous terrain, but with the likeness of river channels"
 msgstr "Giống Đa Phân Dạng Kép, nó chế tạo một địa hình đa dạng, nhưng giống như có kênh sông"
-
-
-msgid "Generate fractal Perlin noise"
-msgstr "Chế tạo huyên náo Perlin phân dạng"
 
 
 msgid "Generate a volumetric point for each particle or vertex of another object"
@@ -45577,6 +45521,10 @@ msgstr "Tên mặc định cho đặc điểm khi nhóm giao điểm được s�
 
 msgid "Hide the socket input value even when the socket is not connected"
 msgstr "Giấu giá trị ngõ vào của ổ cắm khi không kết nối"
+
+
+msgid "Layer Selection"
+msgstr "Sự lựa chọn lớp"
 
 
 msgid "Socket Type"
@@ -51336,10 +51284,6 @@ msgid "Export cameras"
 msgstr "Xuất máy quay phim"
 
 
-msgid "Export vertex colors with meshes"
-msgstr "Xuất màu đỉnh với mạng lưới"
-
-
 msgid "Legal rights and conditions for the model"
 msgstr "Quyền luật pháp và điều kiện của mô hình"
 
@@ -53604,10 +53548,6 @@ msgid "Active Layer"
 msgstr "Lớp Hoạt Động"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Lớp Bút Sáp hoạt động"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Thêm Lớp Mới"
@@ -55434,6 +55374,10 @@ msgstr "Đảo nghịch hành động cho giai đoạn của nét"
 
 msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "Trao đổi sang chế độ mịn cho giai đoạn nét"
+
+
+msgid "Flat"
+msgstr "Bằng Phẳng"
 
 
 msgctxt "Operator"
@@ -60107,15 +60051,6 @@ msgstr "Bức ảnh mẫu từ biến hóa cuối (có áp dụng ràng buộc)"
 
 
 msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "Bấm Chuột Trên Kênh NLA"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "Dùng chuột để chọn kênh NLA"
-
-
-msgctxt "Operator"
 msgid "Clear Scale"
 msgstr "Xóa Phóng to"
 
@@ -62059,18 +61994,6 @@ msgid "Add a light probe object"
 msgstr "Thêm một quang kế"
 
 
-msgid "Reflection probe with spherical or cubic attenuation"
-msgstr "Phản xạ kế có sự giảm dạng hình cầu hay lập phương"
-
-
-msgid "Planar reflection probe"
-msgstr "Phản xạ kế mặt phẳng"
-
-
-msgid "Irradiance probe to capture diffuse indirect lighting"
-msgstr "Sự rọi kế để bắt ánh sáng tán xạ gián tiếp"
-
-
 msgctxt "Operator"
 msgid "Bake Light Cache"
 msgstr "Đệm Chứa Ánh Sáng Nướng"
@@ -62088,18 +62011,6 @@ msgid "Subset of probes to update"
 msgstr "Hạ tập của ánh sáng kế để nâng cấp"
 
 
-msgid "All Light Probes"
-msgstr "Hết Ánh Sáng Kế"
-
-
-msgid "Dirty Only"
-msgstr "Chỉ Dơ"
-
-
-msgid "Only bake light probes that are marked as dirty"
-msgstr "Chỉ nướng ánh sáng kế được ký dấu là dơ"
-
-
 msgid "Selected Only"
 msgstr "Chỉ Được Chọn"
 
@@ -62111,6 +62022,10 @@ msgstr "Xóa Đệm Chứa Ánh Sáng"
 
 msgid "Delete cached indirect lighting"
 msgstr "Xóa ánh sáng gián tiếp được chứa"
+
+
+msgid "All Light Probes"
+msgstr "Hết Ánh Sáng Kế"
 
 
 msgctxt "Operator"
@@ -63329,10 +63244,6 @@ msgstr "Kết xuất và hiển thị các mặt đều, bằng sử dụng Phá
 
 msgid "Render and display faces smooth, using interpolated Vertex Normals"
 msgstr "Kết xuất và hiển thị các mặt mịn, suy nội Pháp Tuyến Đỉnh"
-
-
-msgid "Enable automatic smooth based on smooth/sharp faces/edges and angle between faces"
-msgstr "Bật mịn hóa tự động tùy theo độ mịn/bén của các mặt/cạnh và góc giữa các mặt"
 
 
 msgctxt "Operator"
@@ -67643,6 +67554,14 @@ msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Nướng cả đồ thị sự rọi và bản đồ lập phương phản xạ"
 
 
+msgid "Dirty Only"
+msgstr "Chỉ Dơ"
+
+
+msgid "Only bake light probes that are marked as dirty"
+msgstr "Chỉ nướng ánh sáng kế được ký dấu là dơ"
+
+
 msgid "Cubemaps Only"
 msgstr "Chỉ Bản Đồ Lập Phương"
 
@@ -68199,10 +68118,6 @@ msgid "Editing"
 msgstr "Biên Tập"
 
 
-msgid "Extensions"
-msgstr "Đuôi Tập Tin"
-
-
 msgid "Add-ons"
 msgstr "Đồ Kèm"
 
@@ -68213,6 +68128,10 @@ msgstr "Ánh Xạ Phím"
 
 msgid "File Paths"
 msgstr "Đường Dẫn Tập Tin"
+
+
+msgid "Extensions"
+msgstr "Đuôi Tập Tin"
 
 
 msgid "Experimental"
@@ -78024,6 +77943,10 @@ msgid "Shadows"
 msgstr "Bống Tối"
 
 
+msgid "Screen Space Reflections"
+msgstr "Phản Xạ Không Gian Màn"
+
+
 msgid "Volumetrics"
 msgstr "Về Thể Tích"
 
@@ -78034,10 +77957,6 @@ msgstr "Ánh Sáng Thể Tích"
 
 msgid "Volumetric Shadows"
 msgstr "Bóng Tối Thể Tích"
-
-
-msgid "Screen Space Reflections"
-msgstr "Phản Xạ Không Gian Màn"
 
 
 msgid "Encoding"
@@ -80635,14 +80554,6 @@ msgid "Experimental features"
 msgstr "Tính năng thử nhiệm"
 
 
-msgid "EEVEE Next"
-msgstr "EEVEE Tiếp Theo"
-
-
-msgid "Enable the new EEVEE codebase, requires restart"
-msgstr "Bật cơ sở mã nguồn EEVEE mới, yêu cầu khởi động lại"
-
-
 msgid "Override Auto Resync"
 msgstr "Vượt Quyền Cho Đồng Bộ Lại Tự Động"
 
@@ -82689,14 +82600,6 @@ msgstr "Thể Tích Đồng Loại"
 
 msgid "When using volume rendering, assume volume has the same density everywhere (not using any textures), for faster rendering"
 msgstr "Khi dùng kết xuất thể tích, giả sư toàn thể tích có tỉ trọng đều (không dùng chất liệu) cho kết xuất lẹ hơn"
-
-
-msgid "Transparent Shadows"
-msgstr "Bóng Tối Trong Suốt"
-
-
-msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
-msgstr "Dùng bóng tối trong suốt cho vật liệu này nếu nó có BSDF Trong Suốt. Nếu bạn tắt này sẽ kết xuất lẹ hơn nhưng có lẽ bóng tối sẽ không chính xác"
 
 
 msgid "Volume Interpolation"
@@ -90943,10 +90846,6 @@ msgid "Get the node tree path as a string"
 msgstr "Lấy xâu ký tự của đường dẫn cây giao điểm"
 
 
-msgid "Flat"
-msgstr "Bằng Phẳng"
-
-
 msgid "Show Tree Path"
 msgstr "Hiện Đường Vết Cây"
 
@@ -91021,10 +90920,6 @@ msgstr "Hạn Chế đến Trong Ranh Giới Ảnh"
 
 msgid "Constraint to stay within the image bounds while editing"
 msgstr "Hạn chế ở trong ranh giới ảnh khi đang biên tập"
-
-
-msgid "Corner"
-msgstr "Góc Giác"
 
 
 msgid "Display Faces"
@@ -92403,10 +92298,6 @@ msgid "Face Orientation Front"
 msgstr "Định Hướng Mặt Phía Trước"
 
 
-msgid "Face Selected"
-msgstr "Mặt Được Chọn"
-
-
 msgid "Face Dot Size"
 msgstr "Kích Cỡ Dấu Chấm Mặt"
 
@@ -93744,14 +93635,6 @@ msgid "Type of element to snap to"
 msgstr "Hút dính đến loại phần tử nào"
 
 
-msgid "Second"
-msgstr "Giây"
-
-
-msgid "Nearest Marker"
-msgstr "Ký Hiệu Gần Nhất"
-
-
 msgid "Snap to nearest marker"
 msgstr "Hút dính đến ký hiệu gần nhất"
 
@@ -94865,14 +94748,6 @@ msgstr "Hiển Thị Bén"
 
 msgid "Display sharp edges, used with the Edge Split modifier"
 msgstr "Hiển thị cạnh bén, dùng với bộ điều chỉnh Chẻ Cạnh"
-
-
-msgid "Display Edges"
-msgstr "Hiển Thị Cạnh"
-
-
-msgid "Highlight selected edges"
-msgstr "Tô sáng các cạnh được chọn"
 
 
 msgid "Display selected edge angle, using global values when set in the transform panel"
@@ -97491,16 +97366,6 @@ msgstr "Dừng Di Chuyển Phải"
 
 
 msgctxt "WindowManager"
-msgid "Stop Move Up"
-msgstr "Dừng Di Chuyển Lên"
-
-
-msgctxt "WindowManager"
-msgid "Stop Mode Down"
-msgstr "Dừng Di Chuyển Xuyến"
-
-
-msgctxt "WindowManager"
 msgid "Teleport"
 msgstr "Biến Hiện"
 
@@ -97708,11 +97573,6 @@ msgstr "Bảng Hoạt Hình Tổng Quát"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "Trình Biên Soạn NLA"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "Kênh NLA"
 
 
 msgctxt "WindowManager"
@@ -100641,6 +100501,10 @@ msgid "Invert"
 msgstr "Đảo Nghịch"
 
 
+msgid "Intersection"
+msgstr "Vùng Giao Cắt"
+
+
 msgid "Material Mask"
 msgstr "Mặt Nạ Vật Liệu"
 
@@ -101483,6 +101347,10 @@ msgstr "Vận Tốc Bậc Một"
 
 msgid "This object is part of a compound shape"
 msgstr "Vật thể này là một bộ phận của hình dạng ghép"
+
+
+msgid "Second"
+msgstr "Giây"
 
 
 msgid "X Stiffness"
@@ -105050,6 +104918,16 @@ msgstr "Xóa Bén Từ Đỉnh"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Kéo Ra Mặt"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Kéo Ra Mặt Theo Pháp Tuyến"
+
+
+msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "Rắn Hóa Mặt"
 
@@ -105365,11 +105243,6 @@ msgstr "Thực Thể Sưu Tập"
 
 
 msgctxt "Operator"
-msgid "Shade Auto Smooth"
-msgstr "Tô Sắc Tự Động Mịn"
-
-
-msgctxt "Operator"
 msgid "Delete Global"
 msgstr "Xóa Toàn Cầu"
 
@@ -105534,16 +105407,6 @@ msgstr "Xóa Bén"
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "Ký Bén Từ Các Đỉnh"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Kéo Ra Mặt"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Kéo Ra Mặt Theo Pháp Tuyến"
 
 
 msgctxt "Operator"
@@ -106160,6 +106023,62 @@ msgid "Ignore Transparent"
 msgstr "Không Chú Ý Trong Suốt"
 
 
+msgid "<No ID pointer>"
+msgstr "<Không con trỏ ID>"
+
+
+msgid "<Missing ID block>"
+msgstr "<Thiếu cục ID>"
+
+
+msgid "No F-Curve to add keyframes to"
+msgstr "Không có Cong-F để thêm bức ảnh mẫu"
+
+
+msgid "No RNA pointer available to retrieve values for keyframing from"
+msgstr "Không có con trỏ RNA để lấy lại giá trị cho bức ảnh mẫu"
+
+
+msgid "No ID block and/or AnimData to delete keyframe from"
+msgstr "Không có cục ID và/hay dữ liệu hoạt hình để xóa bức ảnh mẫu"
+
+
+msgid "Could not insert %i keyframe(s) due to zero NLA influence, base value, or value remapping failed: %s.%s for indices [%s]"
+msgstr "Không thể chèn %i bức ảnh mẫu vì sự ảnh hưởng của NLA bằng không, giá trị cơ sở, hoặc ánh xạ lại giá trị bị thất bại: %s.%s cho chỉ số [%s]"
+
+
+msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Không chèn được bức ảnh mẫu, vì đường dẫn RNA không hợp lệ cho ID (ID = %s, đường dẫn = %s)"
+
+
+msgid "No ID block to insert keyframe in (path = %s)"
+msgstr "Không có cục ID để chèn bức ảnh mẫu trong (đường dẫn = %s)"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
+msgstr "Không chèn được bực ảnh mẫu, loại này không hỗ trợ dữ lệu hoạt hình (ID = %s, đường dẫn %s)"
+
+
+msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Không xóa được bức ảnh mẫu, vì đường dẫn RNA không hợp lệ cho ID (ID = %s, đường dẫn = %s)"
+
+
+msgid "No action to delete keyframes from for ID = %s"
+msgstr "Không có hành động để xóa bức ảnh mẫu cho ID = %s"
+
+
+msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
+msgstr "Không xóa bức ảnh mẫu cho Cong-F bị khóa '%s' cho %s '%s'"
+
+
+msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Không xóa được bức ảnh mẫu, vì đường dẫn RNA không hợp lệ cho ID (ID = %s), đường dẫn = %s)"
+
+
+msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
+msgstr "Không xóa hết bức ảnh mẫu từ Cong-F bị khóa '%s' cho %s '%s'"
+
+
 msgid "User Library"
 msgstr "Thư Viện Người Dùng"
 
@@ -106538,12 +106457,12 @@ msgid "MaskLayer"
 msgstr "LớpMặtNạ"
 
 
+msgid "Auto Smooth"
+msgstr "Tự Động Mịn Hóa"
+
+
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "Chỉ có thể tính không gian tiếp tuyến cho tam giác và tứ giác, đang hủy qúa trình"
-
-
-msgid "Tangent space computation needs loop normals, none found, aborting"
-msgstr "Để tính không gian tiếp tuyến cần có pháp tuyến vòng, và không thể kiếm được cái nào, đang hủy qúa trình"
 
 
 msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
@@ -106741,34 +106660,6 @@ msgstr "Blender được biên dịch thiếu thư viện theo dõi gõi chuyể
 
 msgid "Original Mode"
 msgstr "Chế Độ Ban Đầu"
-
-
-msgid "Micrometers"
-msgstr "Micrô Mét"
-
-
-msgid "Thou"
-msgstr "Thou"
-
-
-msgid "Tonnes"
-msgstr "Tấn"
-
-
-msgid "100 Kilograms"
-msgstr "Tạ"
-
-
-msgid "Hours"
-msgstr "Tiếng Đồng Hồ"
-
-
-msgid "Minutes"
-msgstr "Phút"
-
-
-msgid "Microseconds"
-msgstr "Micrô Giây"
 
 
 msgid "Could not load volume for writing"
@@ -107271,26 +107162,6 @@ msgid "Coefficient"
 msgstr "Hệ Số"
 
 
-msgid "<No ID pointer>"
-msgstr "<Không con trỏ ID>"
-
-
-msgid "<Missing ID block>"
-msgstr "<Thiếu cục ID>"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "Không có Cong-F để thêm bức ảnh mẫu"
-
-
-msgid "No RNA pointer available to retrieve values for keyframing from"
-msgstr "Không có con trỏ RNA để lấy lại giá trị cho bức ảnh mẫu"
-
-
-msgid "No ID block and/or AnimData to delete keyframe from"
-msgstr "Không có cục ID và/hay dữ liệu hoạt hình để xóa bức ảnh mẫu"
-
-
 msgid "No suitable context info for active keying set"
 msgstr "Không có định nghĩa phù hợp cho tập bức ảnh mẫu đang hoạt động"
 
@@ -107313,46 +107184,6 @@ msgstr "Tìm đường dẫn đến đặc tính bị thất bại, bằng tay t
 
 msgid "No active Keying Set"
 msgstr "Không có Tập Bức Ảnh Mẫu hoạt động"
-
-
-msgid "Could not insert %i keyframe(s) due to zero NLA influence, base value, or value remapping failed: %s.%s for indices [%s]"
-msgstr "Không thể chèn %i bức ảnh mẫu vì sự ảnh hưởng của NLA bằng không, giá trị cơ sở, hoặc ánh xạ lại giá trị bị thất bại: %s.%s cho chỉ số [%s]"
-
-
-msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
-msgstr "Không làm được bức ảnh mẫu cho Cong-F có đường dẫn '%s[%d]', xem nó được mở khóa hay không lấy mẫu vật, và thử xóa Bộ Điều Chỉnh-F"
-
-
-msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Không chèn được bức ảnh mẫu, vì đường dẫn RNA không hợp lệ cho ID (ID = %s, đường dẫn = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "Không có cục ID để chèn bức ảnh mẫu trong (đường dẫn = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "Không chèn được bực ảnh mẫu, loại này không hỗ trợ dữ lệu hoạt hình (ID = %s, đường dẫn %s)"
-
-
-msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Không xóa được bức ảnh mẫu, vì đường dẫn RNA không hợp lệ cho ID (ID = %s, đường dẫn = %s)"
-
-
-msgid "No action to delete keyframes from for ID = %s"
-msgstr "Không có hành động để xóa bức ảnh mẫu cho ID = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Không xóa bức ảnh mẫu cho Cong-F bị khóa '%s' cho %s '%s'"
-
-
-msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Không xóa được bức ảnh mẫu, vì đường dẫn RNA không hợp lệ cho ID (ID = %s), đường dẫn = %s)"
-
-
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "Không xóa hết bức ảnh mẫu từ Cong-F bị khóa '%s' cho %s '%s'"
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"
@@ -107407,12 +107238,12 @@ msgid "No active Keying Set to add empty path to"
 msgstr "Không có Tập Bức Ảnh Mẫu hoạt động nào để thêm đường rỗng"
 
 
-msgid "No active Keying Set path to remove"
-msgstr "Không có đường Tập Bức Ảnh Mẫu đang hoạt động để xóa"
-
-
 msgid "No active Keying Set to remove a path from"
 msgstr "Không có Tập Bức Ảnh Mẫu hoạt động nào để xóa một đường dẫn"
+
+
+msgid "No active Keying Set path to remove"
+msgstr "Không có đường Tập Bức Ảnh Mẫu đang hoạt động để xóa"
 
 
 msgid "Cannot add property to built in keying set"
@@ -109583,21 +109414,6 @@ msgstr "RãnhÂmThanh"
 
 
 msgctxt "Light"
-msgid "IrradianceVolume"
-msgstr "ThểTíchSựRọi"
-
-
-msgctxt "Light"
-msgid "ReflectionPlane"
-msgstr "MặtPhẳngPhảnXạ"
-
-
-msgctxt "Light"
-msgid "ReflectionCubemap"
-msgstr "BảnĐồLậpPhươngPhảnXạ"
-
-
-msgctxt "Light"
 msgid "LightProbe"
 msgstr "ÁnhSángKế"
 
@@ -110354,10 +110170,6 @@ msgstr "Không thể vượt quyền cho sưu Tập '%s' (được thực thể 
 
 msgid "Could not find an overridable root hierarchy for object '%s'"
 msgstr "Không thể tìm được tầng bậc rễ vượt quyền cho vật thể '%s'"
-
-
-msgid "Too many potential root collections (%d) for the override hierarchy, please use the Outliner instead"
-msgstr "Qúa nhiều sưu tập rễ (%d) có thể dùng cho tầng bậc vượt quyền, làm ơn dùng Bộ Mục Lục thay thế"
 
 
 msgid "Move the mouse to change the voxel size. CTRL: Relative Scale, SHIFT: Precision Mode, ENTER/LMB: Confirm Size, ESC/RMB: Cancel"
@@ -112402,10 +112214,6 @@ msgid "Text not used by any node, no update done"
 msgstr "Không có giao điểm nào dùng văn bản này, không nâng cấp"
 
 
-msgid "Cannot ungroup"
-msgstr "Không thể gỡ nhóm"
-
-
 msgid "Not inside node group"
 msgstr "Không ở trong nhóm giao điểm"
 
@@ -114121,10 +113929,6 @@ msgid "Geometry Processing"
 msgstr "Qúa Trình Hình Dạng"
 
 
-msgid "Intersection"
-msgstr "Vùng Giao Cắt"
-
-
 msgid "Vertex Weight Transfer"
 msgstr "Truyền Quyền Lượng Đỉnh"
 
@@ -115141,10 +114945,6 @@ msgid "The amount of copies is too high, we cannot generate the amount of geomet
 msgstr "Số lượng sao chép qúa cao, không thể chế tạo số lượng hình dạng nó sẽ cần"
 
 
-msgid "Enable 'Auto Smooth' in Object Data Properties"
-msgstr "Bật 'Tự Động Mịn Hoá' trong Đặc Tính Dữ Liệu Vật Thể"
-
-
 msgid "Cannot execute, intersect only available using exact solver"
 msgstr "Không thể thực hành, giao cắt chỉ được dùng trình giải nghiệm chính xác"
 
@@ -115207,10 +115007,6 @@ msgstr "Vật Thể Đường Cong"
 
 msgid "Generate Data Layers"
 msgstr "Chế Tạo Lớp Dữ Liệu"
-
-
-msgid "Layer Selection"
-msgstr "Sự lựa chọn lớp"
 
 
 msgid "Layer Mapping"
@@ -115918,18 +115714,6 @@ msgstr "Một chỉ số sử dụng cho nhóm hóa giá trị cho nhiều tích
 
 msgid "The attribute output can not be used without the geometry output"
 msgstr "Ngõ ra đặc điểm không thể dùng thiếu ngõ ra hình dạng"
-
-
-msgid "Sum"
-msgstr "Tổng"
-
-
-msgid "Standard Deviation"
-msgstr "Độ Lệch"
-
-
-msgid "Variance"
-msgstr "Phương Sai"
 
 
 msgid "Disabled, Blender was compiled without GMP"

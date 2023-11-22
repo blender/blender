@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
-"PO-Revision-Date: 2020-01-04 05:04+0900\n"
-"Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
-"Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-14 19:14+0000\n"
+"Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
+"Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
+"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 2.2.1"
+"X-Generator: Weblate 5.0.1"
 
 
 msgid "Shader AOV"
@@ -23,12 +23,24 @@ msgid "Valid"
 msgstr "유효"
 
 
+msgid "Is the name of the AOV conflicting"
+msgstr "AOV의 이름이 충돌합니까"
+
+
 msgid "Name"
 msgstr "이름"
 
 
+msgid "Name of the AOV"
+msgstr "AOV의 이름"
+
+
 msgid "Type"
 msgstr "유형"
+
+
+msgid "Data type of the AOV"
+msgstr "AOV의 데이터 유형"
 
 
 msgid "Color"
@@ -37,6 +49,14 @@ msgstr "컬러"
 
 msgid "Value"
 msgstr "값"
+
+
+msgid "List of AOVs"
+msgstr "AOV 목록"
+
+
+msgid "Collection of AOVs"
+msgstr "AOV 컬렉션"
 
 
 msgid "Action F-Curves"
@@ -205,6 +225,10 @@ msgstr "그래프 편집기에서 확장"
 
 msgid "Action group is expanded in graph editor"
 msgstr "액션 그룹은 그래프 에디터에서 확장됩니니다"
+
+
+msgid "Pin in Graph Editor"
+msgstr "그래프 편집기에서 고정"
 
 
 msgid "Action Groups"
@@ -1159,6 +1183,10 @@ msgstr "페이스"
 
 msgid "Spline"
 msgstr "스플라인"
+
+
+msgid "Layer"
+msgstr "레이어"
 
 
 msgid "Bake Data"
@@ -12517,10 +12545,6 @@ msgid "Only include Layer in this View Layer render output (leave blank to inclu
 msgstr "이 뷰 레이어 렌더 출력에만 레이어를 포함 (항상 비워 두십시오)"
 
 
-msgid "Layer"
-msgstr "레이어"
-
-
 msgid "GPencil Sculpt Guide"
 msgstr "그리스 펜슬 스컬프트 가이드"
 
@@ -17126,6 +17150,10 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "표면 모드에서 그리기 할 때의 오프셋 양"
 
 
+msgid "Grease Pencil data-block"
+msgstr "그리스 펜슬 데이터 블록"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "외부 또는 포장된 이미지를 참조하는 이미지 데이터 블록"
 
@@ -17988,14 +18016,6 @@ msgid "Show the clipping distances in the 3D view"
 msgstr "3D 뷰에서 클리핑 거리를 표시합니다"
 
 
-msgid "Show Preview Plane"
-msgstr "미리보기 화면을 표시"
-
-
-msgid "Show captured lighting data into the 3D view for debugging purpose"
-msgstr "디버깅 목적으로 캡처된 라이트닝 데이터를 3D 뷰에 표시합니다"
-
-
 msgid "Show the influence volume in the 3D view"
 msgstr "3D뷰에서 영향력 볼륨을 표시합니다"
 
@@ -18010,26 +18030,6 @@ msgstr "3D뷰에서 시차 보정 볼륨을 표시합니다"
 
 msgid "Type of light probe"
 msgstr "라이트 프로브의 유형"
-
-
-msgid "Reflection Cubemap"
-msgstr "반사 큐브맵"
-
-
-msgid "Capture reflections"
-msgstr "반사 캡처"
-
-
-msgid "Reflection Plane"
-msgstr "반사 평면"
-
-
-msgid "Irradiance Volume"
-msgstr "방사 조도 볼륨"
-
-
-msgid "Volume used for precomputing indirect lighting"
-msgstr "사전 간접 라이트닝에 사용되는 볼륨"
 
 
 msgid "Use Custom Parallax"
@@ -18320,14 +18320,6 @@ msgid "Use the current world background to light the preview render"
 msgstr "현재 월드 배경을 사용하여 미리보기 렌더를 사용합니다"
 
 
-msgid "Screen Space Refraction"
-msgstr "화면 공간 굴절"
-
-
-msgid "Use raytraced screen space refractions"
-msgstr "레이트레이스된 스크린 공간 굴절을 사용합니다"
-
-
 msgid "Subsurface Translucency"
 msgstr "서브 표면 반투명"
 
@@ -18336,16 +18328,24 @@ msgid "Add translucency effect to subsurface"
 msgstr "서브 표면에 반투명 이펙트를 추가"
 
 
+msgid "Transparent Shadows"
+msgstr "투명 섀도우"
+
+
+msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
+msgstr "투명 BSDF가 포함되어 있으면 이 매테리얼에 투명한 섀도우를 사용하고, 비활성화 하면 더 빠르게 렌더링을 하지만 정확한 섀도우는 제공되지 않습니다"
+
+
+msgid "Fast"
+msgstr "빠른"
+
+
+msgid "Accurate"
+msgstr "정확한"
+
+
 msgid "Mesh data-block defining geometric surfaces"
 msgstr "지오메트리 표면을 정의하는 메쉬 데이터 블록"
-
-
-msgid "Auto Smooth Angle"
-msgstr "자동 스무스 각도"
-
-
-msgid "Maximum angle between face normals that will be considered as smooth (unused if custom split normals data are available)"
-msgstr "스무스로 간주되는 페이스 노멀 사이의 최대 각도 (커스텀 분할 노멀 데이터를 사용할 수 없는 경우 사용하지 않음)"
 
 
 msgid "Edges"
@@ -18374,6 +18374,10 @@ msgstr "메쉬 폴리곤 을 삼각형으로 테셀레이션"
 
 msgid "Loops"
 msgstr "루프"
+
+
+msgid "Corner"
+msgstr "코너"
 
 
 msgid "Polygons"
@@ -18470,14 +18474,6 @@ msgstr "에디트 모드에서 선택된 페이스 개수"
 
 msgid "Selected vertex count in editmode"
 msgstr "에디트 모드에서 선택된 버텍스 개수"
-
-
-msgid "Auto Smooth"
-msgstr "자동 스무스"
-
-
-msgid "Auto smooth (based on smooth/sharp faces/edges and angle between faces), or use custom split normals data if available"
-msgstr "자동 스무스 (스무스/샤프 페이스/에지와 페이스 사이의 각도을 기준으로), 또는 사용 가능한 경우 커스텀 분할 노멀 데이터를 사용"
 
 
 msgid "Topology Mirror"
@@ -18616,10 +18612,6 @@ msgid "While editing, update metaball in half resolution"
 msgstr "편집하는 동안, 절반 해상도의 메타볼을 업데이트"
 
 
-msgid "Fast"
-msgstr "빠른"
-
-
 msgid "While editing, update metaball without polygonization"
 msgstr "편집하는 동안, 풀리고니제이션없이 메타볼을 업데이트"
 
@@ -18702,10 +18694,6 @@ msgstr "노드 트리 레이블"
 
 msgid "Grease Pencil Data"
 msgstr "그리스 펜슬 데이터"
-
-
-msgid "Grease Pencil data-block"
-msgstr "그리스 펜슬 데이터 블록"
 
 
 msgid "Interface"
@@ -26500,10 +26488,6 @@ msgid "Split Normals"
 msgstr "분할 노멀"
 
 
-msgid "Local space unit length split normals vectors of the vertices of this triangle (must be computed beforehand using calc_normals_split or calc_tangents)"
-msgstr "지역 공간 단위 길이는이 삼각형의 버텍스점의 노멀 벡터를 나눕니다 (사전에 calc_normals_split 또는 calc_tangents를 사용하여 계산해야 함)"
-
-
 msgid "Indices of triangle vertices"
 msgstr "삼각형 버택스들의 지수"
 
@@ -32558,10 +32542,6 @@ msgid "Denoise"
 msgstr "디노이즈"
 
 
-msgid "Accurate"
-msgstr "정확한"
-
-
 msgid "HDR"
 msgstr "HDR"
 
@@ -34234,10 +34214,6 @@ msgstr "박스 투영의 경우 측면 사이에 사용할 혼합량입니다"
 
 msgid "Level of detail in the added turbulent noise"
 msgstr "추가된 난류 노이즈에서 디테일의 레벨"
-
-
-msgid "Musgrave Texture"
-msgstr "머스그레이브 택스처"
 
 
 msgid "Use the scalar value W as input"
@@ -39648,10 +39624,6 @@ msgid "Export cameras"
 msgstr "카메를 내보내기"
 
 
-msgid "Export vertex colors with meshes"
-msgstr "메쉬로 버텍스 컬러를 내보내기"
-
-
 msgid "Legal rights and conditions for the model"
 msgstr "모델에 대한 법적 권리와 조건"
 
@@ -42319,6 +42291,10 @@ msgstr "스트로크의 지속에 대한 브러시의 작업을 반전"
 
 msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "스트로크의 지속에 대해 스무스 모드로 브러시를 전환"
+
+
+msgid "Flat"
+msgstr "플랫"
 
 
 msgctxt "Operator"
@@ -46487,15 +46463,6 @@ msgstr "최종 변환에서 키 프레임 (제약 조건 적용)"
 
 
 msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "NLA 채널에 마우스 클릭"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "NLA 채널을 선택할 때 헨들 클릭"
-
-
-msgctxt "Operator"
 msgid "Clear Scale"
 msgstr "축적을 지우기"
 
@@ -48036,18 +48003,6 @@ msgid "Add a light probe object"
 msgstr "라이트 프로브 오브젝트를 추가합니다"
 
 
-msgid "Reflection probe with spherical or cubic attenuation"
-msgstr "구형 또는 3차 감쇠가 있는 반사 프로브"
-
-
-msgid "Planar reflection probe"
-msgstr "평면 반사 프로브"
-
-
-msgid "Irradiance probe to capture diffuse indirect lighting"
-msgstr "확산 간접 라이트닝을 포착하기 위한 방사선 조사 프로브"
-
-
 msgctxt "Operator"
 msgid "Bake Light Cache"
 msgstr "라이트 캐시를 베이크"
@@ -48063,10 +48018,6 @@ msgstr "집합"
 
 msgid "Subset of probes to update"
 msgstr "업데이트 할 프로브의 하위 설정"
-
-
-msgid "Dirty Only"
-msgstr "더티 만"
 
 
 msgid "Selected Only"
@@ -52409,6 +52360,10 @@ msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "방사 조도 격자 및 반사 큐브 맵을 모두 구워 내기"
 
 
+msgid "Dirty Only"
+msgstr "더티 만"
+
+
 msgid "Cubemaps Only"
 msgstr "큐브맵 만"
 
@@ -52857,10 +52812,6 @@ msgid "Editing"
 msgstr "편집"
 
 
-msgid "Extensions"
-msgstr "확장자"
-
-
 msgid "Add-ons"
 msgstr "애드온"
 
@@ -52871,6 +52822,10 @@ msgstr "키맵"
 
 msgid "File Paths"
 msgstr "파일 경로"
+
+
+msgid "Extensions"
+msgstr "확장자"
 
 
 msgid "Experimental"
@@ -59726,6 +59681,10 @@ msgid "Shadows"
 msgstr "섀도우"
 
 
+msgid "Screen Space Reflections"
+msgstr "화면 공간 반사"
+
+
 msgid "Volumetrics"
 msgstr "볼륨메트릭"
 
@@ -59736,10 +59695,6 @@ msgstr "볼륨메트릭 라이트닝"
 
 msgid "Volumetric Shadows"
 msgstr "볼륨메트릭 섀도우"
-
-
-msgid "Screen Space Reflections"
-msgstr "화면 공간 반사"
 
 
 msgid "Encoding"
@@ -63390,14 +63345,6 @@ msgstr "동종의 볼륨"
 
 msgid "When using volume rendering, assume volume has the same density everywhere (not using any textures), for faster rendering"
 msgstr "볼륨 렌더링을 사용하는 경우, 어디에서나 동일한 밀도를 가지는 가정 볼륨 (임의의 텍스처를 사용하지 않음), 빠른 렌더링을 위해"
-
-
-msgid "Transparent Shadows"
-msgstr "투명 섀도우"
-
-
-msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
-msgstr "투명 BSDF가 포함되어 있으면 이 매테리얼에 투명한 섀도우를 사용하고, 비활성화 하면 더 빠르게 렌더링을 하지만 정확한 섀도우는 제공되지 않습니다"
 
 
 msgid "Volume Interpolation"
@@ -70182,10 +70129,6 @@ msgid "Get the node tree path as a string"
 msgstr "문자열로 노드 트리 경로를 가져오기"
 
 
-msgid "Flat"
-msgstr "플랫"
-
-
 msgid "Space UV Editor"
 msgstr "공간 UV 에디터"
 
@@ -70212,10 +70155,6 @@ msgstr "이미지 경계에 제약"
 
 msgid "Constraint to stay within the image bounds while editing"
 msgstr "편집하는 동안 이미지 경계 내에 유지되기 위한 제약"
-
-
-msgid "Corner"
-msgstr "코너"
 
 
 msgid "Display Faces"
@@ -71382,10 +71321,6 @@ msgid "Face Orientation Front"
 msgstr "페이스 오리엔테이션 전면"
 
 
-msgid "Face Selected"
-msgstr "페이스 선택됨"
-
-
 msgid "Face Dot Size"
 msgstr "페이스 도트 크기"
 
@@ -72331,14 +72266,6 @@ msgid "Type of element to snap to"
 msgstr "다음에 스냅하는 요소의 유형"
 
 
-msgid "Second"
-msgstr "초"
-
-
-msgid "Nearest Marker"
-msgstr "가까운 마커"
-
-
 msgid "Snap to nearest marker"
 msgstr "가까운 마커에 스냅"
 
@@ -73149,10 +73076,6 @@ msgstr "UV 펼치는 씨임을 표시합니다"
 
 msgid "Display sharp edges, used with the Edge Split modifier"
 msgstr "에지 분할 모디파이어와 함께 사용되는 샤프 에지를 표시"
-
-
-msgid "Highlight selected edges"
-msgstr "선택한 모서리를 강조"
 
 
 msgid "Display selected edge angle, using global values when set in the transform panel"
@@ -74167,11 +74090,6 @@ msgstr "도프시트 일반"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "NLA 에디터"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "NLA 채널"
 
 
 msgctxt "WindowManager"
@@ -76181,6 +76099,10 @@ msgstr "감폭 옮기기"
 
 msgid "Velocity Linear"
 msgstr "속도 선형"
+
+
+msgid "Second"
+msgstr "초"
 
 
 msgid "X Stiffness"
@@ -78708,6 +78630,16 @@ msgstr "버텍스에서 샤프를 지우기"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "페이스를 돌출"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "노멀을 따라 페이스를 돌출"
+
+
+msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "페이스를 솔리디파이"
 
@@ -79082,16 +79014,6 @@ msgstr "샤프를 지우기"
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "버텍스에서 샤프를 마크"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "페이스를 돌출"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "노멀을 따라 페이스를 돌출"
 
 
 msgctxt "Operator"
@@ -79520,6 +79442,58 @@ msgid "Add UVs"
 msgstr "UV를 추가"
 
 
+msgid "<No ID pointer>"
+msgstr "<No ID pointer>"
+
+
+msgid "<Missing ID block>"
+msgstr "<Missing ID block>"
+
+
+msgid "No F-Curve to add keyframes to"
+msgstr "다음으로 키 프레임을 추가하는 F-커브이 없음"
+
+
+msgid "No RNA pointer available to retrieve values for keyframing from"
+msgstr "키 프레임에 대한 값을 검색 할 수 있는 RNA 포인터가 없습니다"
+
+
+msgid "No ID block and/or AnimData to delete keyframe from"
+msgstr "다음에서 키 프레임을 삭제하는 ID 블록 및/또는 AnimData가 없음"
+
+
+msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을 삽입 할 수 없습니다 (ID = %s, 경로 = %s)"
+
+
+msgid "No ID block to insert keyframe in (path = %s)"
+msgstr "키 프레임을 삽입할 ID 블록이 없습니다 (경로 = %s)"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
+msgstr "이 유형은 애니메이션 데이터를 지원하지 않으므로 키 프레임을 삽입할 수 없습니다 (ID = %s, 경로 = %s)"
+
+
+msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을 삭제할 수 없습니다 (ID = %s, 경로 = %s)"
+
+
+msgid "No action to delete keyframes from for ID = %s"
+msgstr "ID = %s에서 키 프레임을 삭제하는 작업이 없습니다"
+
+
+msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
+msgstr "잠긴 F-커브 '%s'에 대한 키 프레임을 삭제하지 않음, %s '%s'에 대해"
+
+
+msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을 지울 수 없습니다 (ID = %s, 경로 = %s)"
+
+
+msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
+msgstr "잠긴 F-커브 '%s'에서 모든 키 프레임을 지우지 않음, %s '%s'에 대해"
+
+
 msgid "No AnimData to set action on"
 msgstr "다음에 액션을 설정하는 AnimData가 없음"
 
@@ -79746,12 +79720,12 @@ msgid "MaskLayer"
 msgstr "마스크레이어"
 
 
+msgid "Auto Smooth"
+msgstr "자동 스무스"
+
+
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "탄젠트 공간은 삼각형/사각형에 대해서 만 계산할 수 있으며 중단 할 수 있습니다"
-
-
-msgid "Tangent space computation needs loop normals, none found, aborting"
-msgstr "탄젠트 공간 계산에는 루프 노멀이 필요함, 발견된 건 없음, 중단 합니다"
 
 
 msgid "NlaTrack"
@@ -80291,26 +80265,6 @@ msgid "Delete envelope control point"
 msgstr "엔벨로프 컨트롤 포인트를 삭제"
 
 
-msgid "<No ID pointer>"
-msgstr "<No ID pointer>"
-
-
-msgid "<Missing ID block>"
-msgstr "<Missing ID block>"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "다음으로 키 프레임을 추가하는 F-커브이 없음"
-
-
-msgid "No RNA pointer available to retrieve values for keyframing from"
-msgstr "키 프레임에 대한 값을 검색 할 수 있는 RNA 포인터가 없습니다"
-
-
-msgid "No ID block and/or AnimData to delete keyframe from"
-msgstr "다음에서 키 프레임을 삭제하는 ID 블록 및/또는 AnimData가 없음"
-
-
 msgid "No suitable context info for active keying set"
 msgstr "활성 키잉 설정에 대한 적절한 컨텍스트 정보 없음"
 
@@ -80333,42 +80287,6 @@ msgstr "속성 경로를 확인하지 못함, 대신 키잉 설정을 사용하�
 
 msgid "No active Keying Set"
 msgstr "활성 키잉 설정되지 않음"
-
-
-msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
-msgstr "경로 '%s[%d]'이 있는 F-커브는 키 프레임할 수 없으며 잠겨 있지 않은지 샘플되지 않았는지 확인하고 F-모디파이어를 제거하십시오"
-
-
-msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을 삽입 할 수 없습니다 (ID = %s, 경로 = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "키 프레임을 삽입할 ID 블록이 없습니다 (경로 = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "이 유형은 애니메이션 데이터를 지원하지 않으므로 키 프레임을 삽입할 수 없습니다 (ID = %s, 경로 = %s)"
-
-
-msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을 삭제할 수 없습니다 (ID = %s, 경로 = %s)"
-
-
-msgid "No action to delete keyframes from for ID = %s"
-msgstr "ID = %s에서 키 프레임을 삭제하는 작업이 없습니다"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "잠긴 F-커브 '%s'에 대한 키 프레임을 삭제하지 않음, %s '%s'에 대해"
-
-
-msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을 지울 수 없습니다 (ID = %s, 경로 = %s)"
-
-
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "잠긴 F-커브 '%s'에서 모든 키 프레임을 지우지 않음, %s '%s'에 대해"
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"
@@ -80415,12 +80333,12 @@ msgid "No active Keying Set to add empty path to"
 msgstr "다음에 빈 경로를 추가하는 활성 키잉 설정이 없습니다"
 
 
-msgid "No active Keying Set path to remove"
-msgstr "제거할 활성 키잉 설정 경로가 없습니다"
-
-
 msgid "No active Keying Set to remove a path from"
 msgstr "다음에서 경로를 제거하기위한 활성 키잉 설정이 없습니다"
+
+
+msgid "No active Keying Set path to remove"
+msgstr "제거할 활성 키잉 설정 경로가 없습니다"
 
 
 msgid "Cannot add property to built in keying set"
@@ -81957,21 +81875,6 @@ msgstr "결과를 %d개의 버텍스에 합치기, 한계는 %ld"
 
 msgid "SoundTrack"
 msgstr "사운드 트랙"
-
-
-msgctxt "Light"
-msgid "IrradianceVolume"
-msgstr "방사조사 볼륨"
-
-
-msgctxt "Light"
-msgid "ReflectionPlane"
-msgstr "반사 평면"
-
-
-msgctxt "Light"
-msgid "ReflectionCubemap"
-msgstr "반사 큐브맵"
 
 
 msgctxt "Light"

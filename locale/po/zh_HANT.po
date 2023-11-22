@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
-"PO-Revision-Date: 2023-11-09 04:55+0000\n"
-"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-14 19:14+0000\n"
+"Last-Translator: 楊 景貴 <issacsopp@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -1442,6 +1442,10 @@ msgstr "實體"
 
 msgid "Attribute on instance"
 msgstr "實體的特性"
+
+
+msgid "Layer"
+msgstr "層"
 
 
 msgid "Is Internal"
@@ -10797,10 +10801,6 @@ msgid "Grease Pencil Masking Layers"
 msgstr "蠟筆遮罩圖層"
 
 
-msgid "Layer"
-msgstr "層"
-
-
 msgid "Spacing"
 msgstr "間隔"
 
@@ -14266,8 +14266,12 @@ msgid "Use shader nodes to render the material"
 msgstr "使用著色器節點來算繪材質"
 
 
-msgid "Auto Smooth Angle"
-msgstr "自動平滑角"
+msgid "Transparent Shadows"
+msgstr "透明陰影"
+
+
+msgid "Fast"
+msgstr "快速"
 
 
 msgid "Edges"
@@ -14356,10 +14360,6 @@ msgstr "編輯模式中所選面的計數"
 
 msgid "Selected vertex count in editmode"
 msgstr "編輯模式中所選頂點的計數"
-
-
-msgid "Auto Smooth"
-msgstr "自動平滑"
 
 
 msgid "Topology Mirror"
@@ -14464,10 +14464,6 @@ msgstr "當編輯時，總是更新變幻球"
 
 msgid "While editing, update metaball in half resolution"
 msgstr "當編輯時，以一半的解析度更新變幻球"
-
-
-msgid "Fast"
-msgstr "快速"
 
 
 msgid "While editing, update metaball without polygonization"
@@ -25596,10 +25592,6 @@ msgid "Level of detail in the added turbulent noise"
 msgstr "添加的擾動噪訊詳細等級"
 
 
-msgid "Musgrave Texture"
-msgstr "馬斯格雷夫紋理"
-
-
 msgid "Object to take point data from"
 msgstr "獲取點資料的物體來源"
 
@@ -31225,6 +31217,10 @@ msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "劃下筆觸時將筆刷切換至光滑模式"
 
 
+msgid "Flat"
+msgstr "扁平"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "選取模式"
@@ -33929,15 +33925,6 @@ msgstr "視覺鍵處理"
 
 msgid "Keyframe from the final transformations (with constraints applied)"
 msgstr "最終變換的鍵幀 (含套用約束)"
-
-
-msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "對 NLA 通道的滑鼠點擊"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "將滑鼠點擊處理為選取 NLA 通道"
 
 
 msgctxt "Operator"
@@ -45879,10 +45866,6 @@ msgid "Homogeneous Volume"
 msgstr "同質體積"
 
 
-msgid "Transparent Shadows"
-msgstr "透明陰影"
-
-
 msgid "Volume Sampling"
 msgstr "體積取樣"
 
@@ -49920,10 +49903,6 @@ msgid "Use Local Camera"
 msgstr "使用區域攝影機"
 
 
-msgid "Flat"
-msgstr "扁平"
-
-
 msgid "Space UV Editor"
 msgstr "空間 UV 編輯器"
 
@@ -50888,10 +50867,6 @@ msgid "Face Dot Selected"
 msgstr "選取的面點"
 
 
-msgid "Face Selected"
-msgstr "選取的面"
-
-
 msgid "Face Dot Size"
 msgstr "面點大小"
 
@@ -51575,10 +51550,6 @@ msgstr "UV 區域視圖"
 
 msgid "Type of element to snap to"
 msgstr "吸附哪個元素類型"
-
-
-msgid "Nearest Marker"
-msgstr "最近標記"
 
 
 msgid "Snap to nearest marker"
@@ -52606,11 +52577,6 @@ msgstr "律表"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "NLA 編輯器"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "NLA 通道"
 
 
 msgctxt "WindowManager"
@@ -55459,6 +55425,50 @@ msgid "in memory to enable editing!"
 msgstr "在記憶體中以啟用編輯！"
 
 
+msgid "<No ID pointer>"
+msgstr "<無 ID 指標>"
+
+
+msgid "<Missing ID block>"
+msgstr "<遺失 ID 塊>"
+
+
+msgid "No F-Curve to add keyframes to"
+msgstr "無 F 曲線可添加鍵幀"
+
+
+msgid "No RNA pointer available to retrieve values for keyframing from"
+msgstr "無 RNA 指標可供鍵幀擷取值"
+
+
+msgid "No ID block and/or AnimData to delete keyframe from"
+msgstr "無 ID 塊與/或動畫資料可供刪除鍵幀"
+
+
+msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "無法插入鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
+
+
+msgid "No ID block to insert keyframe in (path = %s)"
+msgstr "無可插入鍵幀的 ID 塊 (路徑 = %s)"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
+msgstr "無法插入鍵幀，因次此類型不支援動畫資料 (ID = %s，路徑 = %s)"
+
+
+msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "無法刪除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 =%s)"
+
+
+msgid "No action to delete keyframes from for ID = %s"
+msgstr "無動作可供刪除鍵幀，其 ID = %s"
+
+
+msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "無法清除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
+
+
 msgid "Modifier requires original data, bad stack position"
 msgstr "修改器需要原始資料，不良的堆疊位置"
 
@@ -55630,6 +55640,10 @@ msgstr "算繪錯誤 (%s) 無法儲存：「%s」"
 
 msgid "Key %d"
 msgstr "鍵 %d"
+
+
+msgid "Auto Smooth"
+msgstr "自動平滑"
 
 
 msgid "GPencil"
@@ -55961,26 +55975,6 @@ msgid "Delete envelope control point"
 msgstr "刪除封套控制點"
 
 
-msgid "<No ID pointer>"
-msgstr "<無 ID 指標>"
-
-
-msgid "<Missing ID block>"
-msgstr "<遺失 ID 塊>"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "無 F 曲線可添加鍵幀"
-
-
-msgid "No RNA pointer available to retrieve values for keyframing from"
-msgstr "無 RNA 指標可供鍵幀擷取值"
-
-
-msgid "No ID block and/or AnimData to delete keyframe from"
-msgstr "無 ID 塊與/或動畫資料可供刪除鍵幀"
-
-
 msgid "No suitable context info for active keying set"
 msgstr "無適當情境資料可供作用中的鍵處理集使用"
 
@@ -55999,34 +55993,6 @@ msgstr "無法解析路徑為屬性，試著改用鍵處理集來手動指定此
 
 msgid "No active Keying Set"
 msgstr "無作用中鍵處理集"
-
-
-msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
-msgstr "含路徑「%s[%d]」的 F 曲線無法作為鍵幀，請確保它沒上鎖或被取樣，並嘗試移除 F 修改器"
-
-
-msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "無法插入鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "無可插入鍵幀的 ID 塊 (路徑 = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "無法插入鍵幀，因次此類型不支援動畫資料 (ID = %s，路徑 = %s)"
-
-
-msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "無法刪除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 =%s)"
-
-
-msgid "No action to delete keyframes from for ID = %s"
-msgstr "無動作可供刪除鍵幀，其 ID = %s"
-
-
-msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "無法清除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"
@@ -57027,16 +56993,6 @@ msgstr "結合結果為 %d 個頂點，限制為 %ld"
 
 msgid "SoundTrack"
 msgstr "音軌"
-
-
-msgctxt "Light"
-msgid "ReflectionPlane"
-msgstr "反射平面"
-
-
-msgctxt "Light"
-msgid "ReflectionCubemap"
-msgstr "反射立方體映射"
 
 
 msgctxt "Light"
@@ -58117,10 +58073,6 @@ msgstr "幾何:"
 
 msgid "Text not used by any node, no update done"
 msgstr "文字無法被任何節點使用，無更新"
-
-
-msgid "Cannot ungroup"
-msgstr "無法取消群組"
 
 
 msgid "Not inside node group"

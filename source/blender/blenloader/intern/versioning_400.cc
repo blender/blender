@@ -2500,5 +2500,31 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         version_geometry_nodes_use_rotation_socket(*ntree);
       }
     }
+
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      blender::bke::mesh_sculpt_mask_to_generic(*mesh);
+    }
+
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "RaytraceEEVEE", "float", "screen_trace_max_roughness"))
+    {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->eevee.reflection_options.screen_trace_max_roughness = 0.5f;
+        scene->eevee.refraction_options.screen_trace_max_roughness = 0.5f;
+        scene->eevee.diffuse_options.screen_trace_max_roughness = 0.5f;
+      }
+    }
+
+    if (!DNA_struct_member_exists(fd->filesdna, "Material", "char", "displacement_method")) {
+      /* Replace Cycles.displacement_method by Material::displacement_method. */
+      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+        int displacement_method = MA_DISPLACEMENT_BUMP;
+        if (IDProperty *cmat = version_cycles_properties_from_ID(&material->id)) {
+          displacement_method = version_cycles_property_int(
+              cmat, "displacement_method", MA_DISPLACEMENT_BUMP);
+        }
+        material->displacement_method = displacement_method;
+      }
+    }
   }
 }

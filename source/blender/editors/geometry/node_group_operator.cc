@@ -70,6 +70,8 @@
 
 #include "geometry_intern.hh"
 
+namespace geo_log = blender::nodes::geo_eval_log;
+
 namespace blender::ed::geometry {
 
 /* -------------------------------------------------------------------- */
@@ -374,6 +376,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   BLI_SCOPED_DEFER([&]() { IDP_FreeProperty_ex(properties, false); });
 
   OperatorComputeContext compute_context(op->type->idname);
+  auto eval_log = std::make_unique<geo_log::GeoModifierLog>();
 
   for (Object *object : objects) {
     nodes::GeoNodesOperatorData operator_eval_data{};
@@ -381,6 +384,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     operator_eval_data.depsgraph = depsgraph;
     operator_eval_data.self_object = DEG_get_evaluated_object(depsgraph, object);
     operator_eval_data.scene = DEG_get_evaluated_scene(depsgraph);
+    operator_eval_data.eval_log = eval_log.get();
 
     bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(*object);
 
@@ -398,6 +402,17 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(static_cast<ID *>(object->data), ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, object->data);
+  }
+
+  geo_log::GeoTreeLog &tree_log = eval_log->get_tree_log(compute_context.hash());
+  tree_log.ensure_node_warnings();
+  for (const geo_log::NodeWarning &warning : tree_log.all_warnings) {
+    if (warning.type == geo_log::NodeWarningType::Info) {
+      BKE_report(op->reports, RPT_INFO, warning.message.c_str());
+    }
+    else {
+      BKE_report(op->reports, RPT_WARNING, warning.message.c_str());
+    }
   }
 
   return OPERATOR_FINISHED;

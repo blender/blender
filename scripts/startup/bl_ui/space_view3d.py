@@ -1165,7 +1165,7 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_mask")
                 layout.menu("VIEW3D_MT_face_sets")
                 layout.template_node_operator_asset_root_items()
-            if mode_string == 'SCULPT_CURVES':
+            elif mode_string == 'SCULPT_CURVES':
                 layout.menu("VIEW3D_MT_select_sculpt_curves")
                 layout.menu("VIEW3D_MT_sculpt_curves")
                 layout.template_node_operator_asset_root_items()
@@ -2755,7 +2755,8 @@ class VIEW3D_MT_object_animation(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
+        layout.operator("anim.keyframe_insert", text="Insert Keyframe")
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set")
         layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframes...")
         layout.operator("anim.keyframe_clear_v3d", text="Clear Keyframes...")
         layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
@@ -3019,7 +3020,8 @@ class VIEW3D_MT_object_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
+        layout.operator("anim.keyframe_insert", text="Insert Keyframe")
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set")
 
         layout.separator()
 
@@ -4177,7 +4179,8 @@ class VIEW3D_MT_pose_context_menu(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
+        layout.operator("anim.keyframe_insert", text="Insert Keyframe")
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set")
 
         layout.separator()
 

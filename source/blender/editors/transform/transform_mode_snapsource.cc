@@ -165,6 +165,12 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
     return;
   }
 
+  if (t->tsnap.snap_target_fn) {
+    /* A `snap_target_fn` is required for the operation to work.
+     * `snap_target_fn` can be `nullptr` when transforming camera in camera view. */
+    return;
+  }
+
   if (ELEM(t->mode, TFM_INIT, TFM_DUMMY)) {
     /* Fallback */
     transform_mode_init(t, nullptr, TFM_TRANSLATION);

@@ -37,14 +37,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!check_tool_context_and_error(params)) {
     return;
   }
+  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   if (params.user_data()->operator_data->mode == OB_MODE_OBJECT) {
     params.error_message_add(NodeWarningType::Error,
                              "Selection control is not supported in object mode");
+    params.set_output("Geometry", std::move(geometry));
     return;
   }
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
   const eAttrDomain domain = eAttrDomain(params.node().custom1);
-  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   geometry.modify_geometry_sets([&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       switch (domain) {

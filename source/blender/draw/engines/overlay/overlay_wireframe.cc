@@ -66,7 +66,8 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
 
   const bool use_select = (DRW_state_is_select() || DRW_state_is_depth());
   GPUShader *wires_sh = use_select ? OVERLAY_shader_wireframe_select() :
-                                     OVERLAY_shader_wireframe(pd->antialiasing.enabled);
+                                     OVERLAY_shader_wireframe(pd->antialiasing.enabled &&
+                                                              !pd->xray_enabled);
 
   for (int xray = 0; xray < (is_material_shmode ? 1 : 2); xray++) {
     DRWState state = DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_WRITE_COLOR |

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2023-10-12 15:54+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1349,6 +1349,10 @@ msgstr "Plocha"
 
 msgid "Spline"
 msgstr "Křivky"
+
+
+msgid "Layer"
+msgstr "Vrstva"
 
 
 msgid "Name of the Attribute"
@@ -7947,10 +7951,6 @@ msgid "Use Mask"
 msgstr "Maximalní X limitace"
 
 
-msgid "Layer"
-msgstr "Vrstva"
-
-
 msgid "Spacing"
 msgstr "Mezery"
 
@@ -10473,8 +10473,12 @@ msgid "Subsurface Translucency"
 msgstr "Průsvitnost podpovrchu"
 
 
-msgid "Auto Smooth Angle"
-msgstr "Automaticky vyhladit úhel"
+msgid "Transparent Shadows"
+msgstr "Průhledné stíny"
+
+
+msgid "Fast"
+msgstr "Vložit"
 
 
 msgid "Edges"
@@ -10487,6 +10491,10 @@ msgstr "Velikost štětce"
 
 msgid "Has Custom Normals"
 msgstr "Má Vlastní Normály"
+
+
+msgid "Corner"
+msgstr "Roh"
 
 
 msgid "Polygons"
@@ -10547,10 +10555,6 @@ msgstr "Skrýt neoznačené"
 
 msgid "Selected vertex count in editmode"
 msgstr "Odstraní vybrané vrcholy, hrany nebo plošky"
-
-
-msgid "Auto Smooth"
-msgstr "Automatické vyhlazení"
 
 
 msgid "Topology Mirror"
@@ -10615,10 +10619,6 @@ msgstr "Nastavit okraje renderování"
 
 msgid "Update"
 msgstr "Aktualizace"
-
-
-msgid "Fast"
-msgstr "Vložit"
 
 
 msgid "Never"
@@ -18470,10 +18470,6 @@ msgid "Projection Blend"
 msgstr "Prolnutí projekce"
 
 
-msgid "Musgrave Texture"
-msgstr "Musgrave textura"
-
-
 msgid "Color Source"
 msgstr "Barva"
 
@@ -23087,6 +23083,10 @@ msgid "Stroke Mode"
 msgstr "Režim tahu"
 
 
+msgid "Flat"
+msgstr "Ploché"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Seskupený objekt"
@@ -25257,15 +25257,6 @@ msgstr "Přidat vazbu aktivní kosti"
 
 msgid "Bake animation onto the object then clear parents (objects only)"
 msgstr "Bake animace na objekt, poté odstranit nadřazené (pouze objekty)"
-
-
-msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "Změnit pruh"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "Vybrat Všechny/Žádné Kanály"
 
 
 msgctxt "Operator"
@@ -29034,10 +29025,6 @@ msgid "Editing"
 msgstr "Úpravy"
 
 
-msgid "Extensions"
-msgstr "Rozšíření"
-
-
 msgid "Add-ons"
 msgstr "Rozšíření"
 
@@ -29048,6 +29035,10 @@ msgstr "Mapa kláves"
 
 msgid "File Paths"
 msgstr "Cesty k souborům"
+
+
+msgid "Extensions"
+msgstr "Rozšíření"
 
 
 msgid "Experimental"
@@ -35168,10 +35159,6 @@ msgid "Method to use for the displacement"
 msgstr "Skript linky pro tuto událost"
 
 
-msgid "Transparent Shadows"
-msgstr "Průhledné stíny"
-
-
 msgid "Use Adaptive Subdivision"
 msgstr "Použít Adaptivní Dělení"
 
@@ -38156,20 +38143,12 @@ msgid "Use Local Camera"
 msgstr "Použít Místní Kameru"
 
 
-msgid "Flat"
-msgstr "Ploché"
-
-
 msgid "Space UV Editor"
 msgstr "UV/obrázkový editor "
 
 
 msgid "Constrain to Image Bounds"
 msgstr "Odstranit vazbu"
-
-
-msgid "Corner"
-msgstr "Roh"
 
 
 msgid "Pixel Coordinates"
@@ -38784,10 +38763,6 @@ msgid "Face Orientation Front"
 msgstr "Orientace Plochy Do Předu"
 
 
-msgid "Face Selected"
-msgstr "Vybrané Plochy"
-
-
 msgid "Face Dot Size"
 msgstr "Velikost Tečky Plochy"
 
@@ -39322,10 +39297,6 @@ msgstr "Lokální pohled"
 
 msgid "Type of element to snap to"
 msgstr "Typ prvku pro přichytávání"
-
-
-msgid "Nearest Marker"
-msgstr "Nejbližší značka"
 
 
 msgid "Snap to nearest marker"
@@ -43245,6 +43216,16 @@ msgstr "Vymazat Ostré z Vrcholů"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Vysunout plochy"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Vytáhnout Plochy Podél Normál"
+
+
+msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "Ztloustnou Plochy"
 
@@ -43528,16 +43509,6 @@ msgstr "Vymazat ostré"
 
 
 msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Vysunout plochy"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Vytáhnout Plochy Podél Normál"
-
-
-msgctxt "Operator"
 msgid "Custom Normal"
 msgstr "Vlastní Normála"
 
@@ -43798,6 +43769,10 @@ msgid "Add UVs"
 msgstr "Přidat UV"
 
 
+msgid "No F-Curve to add keyframes to"
+msgstr "Krok Snímku"
+
+
 msgid "No AnimData to set action on"
 msgstr "Zapéct Vše do Akce"
 
@@ -43866,6 +43841,10 @@ msgstr "Generátor"
 
 msgid "Stepped"
 msgstr "Krok"
+
+
+msgid "Auto Smooth"
+msgstr "Automatické vyhlazení"
 
 
 msgid "ParticleSettings"
@@ -44006,10 +43985,6 @@ msgstr "Vybrat nový font pro uživatelské rozhraní"
 
 msgid "Delete envelope control point"
 msgstr "Zobrazit neoznačení řídící body"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "Krok Snímku"
 
 
 msgid "No suitable context info for active keying set"
@@ -45102,11 +45077,6 @@ msgstr "Prochází připojená data sítě"
 
 msgid "Selected meshes must have equal numbers of vertices"
 msgstr "Odstranit aktuální skript link"
-
-
-msgctxt "Light"
-msgid "ReflectionPlane"
-msgstr "Odrazová Rovina"
 
 
 msgctxt "Light"

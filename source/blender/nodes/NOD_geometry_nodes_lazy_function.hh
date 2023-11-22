@@ -172,6 +172,9 @@ struct GeoNodesOperatorData {
   /** Current evaluated depsgraph. */
   Depsgraph *depsgraph = nullptr;
   Scene *scene = nullptr;
+
+  /** Optional logger. */
+  geo_eval_log::GeoModifierLog *eval_log = nullptr;
 };
 
 /**

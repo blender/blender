@@ -487,11 +487,11 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
                 return {'CANCELLED'}
 
         if not bone_source:
-            self.report({'ERROR'}, "No active bone to copy from.")
+            self.report({'ERROR'}, "No active bone to copy from")
             return {'CANCELLED'}
 
         if not bones_dest:
-            self.report({'ERROR'}, "No selected bones to copy to.")
+            self.report({'ERROR'}, "No selected bones to copy to")
             return {'CANCELLED'}
 
         num_pose_color_overrides = 0

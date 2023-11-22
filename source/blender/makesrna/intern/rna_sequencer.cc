@@ -2827,6 +2827,18 @@ static void rna_def_meta(BlenderRNA *brna)
   rna_def_input(srna);
 }
 
+static void rna_def_audio_options(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "volume");
+  RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
+}
+
 static void rna_def_scene(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -2869,6 +2881,7 @@ static void rna_def_scene(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Annotations", "Show Annotations in OpenGL previews");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
+  rna_def_audio_options(srna);
   rna_def_filter_video(srna);
   rna_def_proxy(srna);
   rna_def_input(srna);
@@ -3038,12 +3051,7 @@ static void rna_def_sound(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Sound", "Sound data-block used by this sequence");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_sound_update");
 
-  prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "volume");
-  RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
+  rna_def_audio_options(srna);
 
   prop = RNA_def_property(srna, "pan", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "pan");

@@ -130,7 +130,6 @@ static void remove_unsupported_corner_data(Mesh &mesh)
 {
   CustomData_free_layers(&mesh.loop_data, CD_MDISPS, mesh.totloop);
   CustomData_free_layers(&mesh.loop_data, CD_TANGENT, mesh.totloop);
-  CustomData_free_layers(&mesh.loop_data, CD_PAINT_MASK, mesh.totloop);
   CustomData_free_layers(&mesh.loop_data, CD_MLOOPTANGENT, mesh.totloop);
   CustomData_free_layers(&mesh.loop_data, CD_GRID_PAINT_MASK, mesh.totloop);
   CustomData_free_layers(&mesh.loop_data, CD_CUSTOMLOOPNORMAL, mesh.totloop);

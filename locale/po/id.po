@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Release Candidate (b'f2d15d4fd19a')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 11:45:13\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2023-10-25 09:54+0000\n"
 "Last-Translator: Yassir Amry Priyono <yassir_a_p@protonmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1269,6 +1269,10 @@ msgstr "Wajah"
 
 msgid "Face Corner"
 msgstr "Ujung Wajah"
+
+
+msgid "Layer"
+msgstr "Layer"
 
 
 msgid "Name of the Attribute"
@@ -8485,10 +8489,6 @@ msgid "Invert mask"
 msgstr "Membalikkan masker"
 
 
-msgid "Layer"
-msgstr "Layer"
-
-
 msgid "Mask layer name"
 msgstr "Nama layer masker"
 
@@ -14278,10 +14278,6 @@ msgid "Projection Blend"
 msgstr "Objek"
 
 
-msgid "Musgrave Texture"
-msgstr "Tekstur"
-
-
 msgid "Sky Type"
 msgstr "Tipe Langit"
 
@@ -15795,6 +15791,10 @@ msgstr "Balikkan aksi kuas untuk durasi garis luar"
 
 msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
+
+
+msgid "Flat"
+msgstr "Datar"
 
 
 msgctxt "Operator"
@@ -21144,10 +21144,6 @@ msgid "3D"
 msgstr "3D"
 
 
-msgid "Flat"
-msgstr "Datar"
-
-
 msgid "Brush Texture Slot"
 msgstr "Tekstur"
 
@@ -21286,10 +21282,6 @@ msgstr "Buat"
 
 msgid "Changed"
 msgstr "Saluran"
-
-
-msgid "Second"
-msgstr "Kedua"
 
 
 msgid "Snap Node Element"
@@ -21643,11 +21635,6 @@ msgstr "Dopesheet Generik"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "Editor NLA"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "Saluran NLA"
 
 
 msgctxt "WindowManager"
@@ -23092,6 +23079,10 @@ msgstr "Bahan Bakar"
 
 msgid "Guide Mode"
 msgstr "Mode Panduan"
+
+
+msgid "Second"
+msgstr "Kedua"
 
 
 msgid "X Stiffness"

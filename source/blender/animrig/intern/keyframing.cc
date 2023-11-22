@@ -8,6 +8,7 @@
 
 #include <cfloat>
 #include <cmath>
+#include <string>
 
 #include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
@@ -38,6 +39,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_path.hh"
+#include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
 #include "WM_api.hh"
@@ -963,6 +965,42 @@ int clear_keyframe(Main *bmain,
   }
 
   return key_count;
+}
+
+int insert_key_action(Main *bmain,
+                      bAction *action,
+                      PointerRNA *ptr,
+                      const std::string &rna_path,
+                      const float frame,
+                      const Span<float> values,
+                      eInsertKeyFlags insert_key_flag,
+                      eBezTriple_KeyframeType key_type)
+{
+  BLI_assert(bmain != nullptr);
+  BLI_assert(action != nullptr);
+
+  std::string group;
+  if (ptr->type == &RNA_PoseBone) {
+    bPoseChannel *pose_channel = static_cast<bPoseChannel *>(ptr->data);
+    group = pose_channel->name;
+  }
+  else {
+    group = "Object Transforms";
+  }
+
+  int property_array_index = 0;
+  int inserted_keys = 0;
+  for (float value : values) {
+    FCurve *fcurve = action_fcurve_ensure(
+        bmain, action, group.c_str(), ptr, rna_path.c_str(), property_array_index);
+    const bool inserted_key = insert_keyframe_value(
+        fcurve, frame, value, key_type, insert_key_flag);
+    if (inserted_key) {
+      inserted_keys++;
+    }
+    property_array_index++;
+  }
+  return inserted_keys;
 }
 
 }  // namespace blender::animrig

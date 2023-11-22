@@ -218,7 +218,7 @@ MatBase<T, Size, Size> pseudo_invert(const MatBase<T, Size, Size> &mat, T epsilo
 {
   /* Start by trying normal inversion first. */
   bool success;
-  MatBase<T, Size, Size> inv = invert(mat, success);
+  MatBase<T, Size, Size> inv = invert<T, Size>(mat, success);
   if (success) {
     return inv;
   }

@@ -128,6 +128,10 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 #  define FrontFacing true
 #endif
 
+struct ClosureOcclusion {
+  vec3 N;
+};
+
 struct ClosureDiffuse {
   float weight;
   vec3 color;
@@ -236,7 +240,7 @@ void dF_branch_incomplete(float fn, out vec2 result)
   result = vec2(0.0);
 }
 
-#elif 0 /* TODO(@fclem): User Option? */
+#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
 /* Fast derivatives */
 vec3 dF_impl(vec3 v)
 {

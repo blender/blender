@@ -1208,38 +1208,6 @@ static int rna_MeshSkinVertexLayer_data_length(PointerRNA *ptr)
 
 /* End skin vertices */
 
-/* Paint mask */
-DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_paint_mask, vdata, CD_PAINT_MASK)
-
-static char *rna_MeshPaintMaskLayer_path(const PointerRNA *ptr)
-{
-  const CustomDataLayer *cdl = static_cast<const CustomDataLayer *>(ptr->data);
-  char name_esc[sizeof(cdl->name) * 2];
-  BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
-  return BLI_sprintfN("vertex_paint_masks[\"%s\"]", name_esc);
-}
-
-static char *rna_MeshPaintMask_path(const PointerRNA *ptr)
-{
-  return rna_VertCustomData_data_path(ptr, "vertex_paint_masks", CD_PAINT_MASK);
-}
-
-static void rna_MeshPaintMaskLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(
-      iter, layer->data, sizeof(MFloatProperty), (me->edit_mesh) ? 0 : me->totvert, 0, nullptr);
-}
-
-static int rna_MeshPaintMaskLayer_data_length(PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  return (me->edit_mesh) ? 0 : me->totvert;
-}
-
-/* End paint mask */
-
 /* poly.vertices - this is faked loop access for convenience */
 static int rna_MeshPoly_vertices_get_length(const PointerRNA *ptr,
                                             int length[RNA_MAX_ARRAY_DIMENSION])
@@ -2871,41 +2839,6 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA * /*cprop*/)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 }
 
-static void rna_def_paint_mask(BlenderRNA *brna, PropertyRNA * /*cprop*/)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "MeshPaintMaskLayer", nullptr);
-  RNA_def_struct_ui_text(srna, "Mesh Paint Mask Layer", "Per-vertex paint mask data");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
-  RNA_def_struct_path_func(srna, "rna_MeshPaintMaskLayer_path");
-
-  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_type(prop, "MeshPaintMaskProperty");
-  RNA_def_property_ui_text(prop, "Data", "");
-
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_MeshPaintMaskLayer_data_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_get",
-                                    "rna_MeshPaintMaskLayer_data_length",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr);
-
-  srna = RNA_def_struct(brna, "MeshPaintMaskProperty", nullptr);
-  RNA_def_struct_sdna(srna, "MFloatProperty");
-  RNA_def_struct_ui_text(srna, "Mesh Paint Mask Property", "Floating-point paint mask value");
-  RNA_def_struct_path_func(srna, "rna_MeshPaintMask_path");
-
-  prop = RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "f");
-  RNA_def_property_ui_text(prop, "Value", "");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-}
-
 static void rna_def_looptri_poly_value(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "ReadOnlyInteger", nullptr);
@@ -3185,24 +3118,6 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Skin Vertices", "All skin vertices");
   rna_def_skin_vertices(brna, prop);
   /* End skin vertices */
-
-  /* Paint mask */
-  prop = RNA_def_property(srna, "vertex_paint_masks", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "vert_data.layers", "vert_data.totlayer");
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_Mesh_vertex_paint_masks_begin",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    "rna_Mesh_vertex_paint_masks_length",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr);
-  RNA_def_property_struct_type(prop, "MeshPaintMaskLayer");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
-  RNA_def_property_ui_text(prop, "Vertex Paint Mask", "Vertex paint mask");
-  rna_def_paint_mask(brna, prop);
-  /* End paint mask */
 
   /* Attributes */
   rna_def_attributes_common(srna);

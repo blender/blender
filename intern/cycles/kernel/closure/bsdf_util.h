@@ -117,7 +117,7 @@ ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N
   const float3 R = 2 * dot(N, I) * N - I;
 
   const float Iz = dot(I, Ng);
-  kernel_assert(Iz > 0);
+  kernel_assert(Iz >= 0);
 
   /* Reflection rays may always be at least as shallow as the incoming ray. */
   const float threshold = min(0.9f * Iz, 0.01f);

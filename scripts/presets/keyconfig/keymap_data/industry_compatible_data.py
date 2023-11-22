@@ -3225,7 +3225,7 @@ def km_pose(params):
         ("pose.select_hierarchy", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("direction", 'CHILD'), ("extend", True)]}),
         ("pose.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
-        ("anim.keyframe_insert_menu", {"type": 'S', "value": 'PRESS', "shift": True}, None),
+        ("anim.keyframe_insert", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("anim.keyframe_insert_by_name", {"type": 'S', "value": 'PRESS'},
          {"properties": [("type", 'LocRotScale')]}),
         ("anim.keyframe_insert_by_name", {"type": 'W', "value": 'PRESS', "shift": True},
@@ -3297,7 +3297,7 @@ def km_object_mode(params):
          {"properties": [("use_global", True), ("confirm", False)]}),
         ("object.duplicate_move", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         # Keyframing
-        ("anim.keyframe_insert_menu", {"type": 'S', "value": 'PRESS', "shift": True}, None),
+        ("anim.keyframe_insert", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("anim.keyframe_insert_by_name", {"type": 'S', "value": 'PRESS'},
          {"properties": [("type", 'LocRotScale')]}),
         ("anim.keyframe_insert_by_name", {"type": 'W', "value": 'PRESS', "shift": True},

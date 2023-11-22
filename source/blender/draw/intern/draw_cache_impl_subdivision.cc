@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"

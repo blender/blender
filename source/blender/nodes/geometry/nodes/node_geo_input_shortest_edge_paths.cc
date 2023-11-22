@@ -21,8 +21,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Bool>("End Vertex").default_value(false).hide_value().supports_field();
   b.add_input<decl::Float>("Edge Cost").default_value(1.0f).hide_value().supports_field();
-  b.add_output<decl::Int>("Next Vertex Index").reference_pass_all();
-  b.add_output<decl::Float>("Total Cost").reference_pass_all();
+  b.add_output<decl::Int>("Next Vertex Index").field_source().reference_pass_all();
+  b.add_output<decl::Float>("Total Cost").field_source().reference_pass_all();
 }
 
 using VertPriority = std::pair<float, int>;
