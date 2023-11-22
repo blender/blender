@@ -1292,8 +1292,9 @@ static void change_input_socket_to_rotation_type(bNodeTree &ntree,
     if (link->tosock != &socket) {
       continue;
     }
-    if (ELEM(link->fromsock->type, SOCK_VECTOR, SOCK_FLOAT) &&
-        link->fromnode->type != NODE_REROUTE) {
+    if (ELEM(link->fromsock->type, SOCK_ROTATION, SOCK_VECTOR, SOCK_FLOAT) &&
+        link->fromnode->type != NODE_REROUTE)
+    {
       /* No need to add the conversion node when implicit conversions will work. */
       continue;
     }
@@ -1321,7 +1322,8 @@ static void change_output_socket_to_rotation_type(bNodeTree &ntree,
     if (link->fromsock != &socket) {
       continue;
     }
-    if (link->tosock->type == SOCK_VECTOR && link->tonode->type != NODE_REROUTE) {
+    if (ELEM(link->tosock->type, SOCK_ROTATION, SOCK_VECTOR) && link->tonode->type != NODE_REROUTE)
+    {
       /* No need to add the conversion node when implicit conversions will work. */
       continue;
     }
