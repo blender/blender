@@ -177,6 +177,17 @@ inline void gather_group_to_group(const OffsetIndices<int> src_offsets,
   });
 }
 
+template<typename T>
+inline void gather_to_groups(const OffsetIndices<int> dst_offsets,
+                             const IndexMask &src_selection,
+                             const Span<T> src,
+                             MutableSpan<T> dst)
+{
+  src_selection.foreach_index(GrainSize(1024), [&](const int src_i, const int dst_i) {
+    dst.slice(dst_offsets[dst_i]).fill(src[src_i]);
+  });
+}
+
 /**
  * Copy the \a src data from the groups defined by \a src_offsets to the groups in \a dst defined
  * by \a dst_offsets. Groups to use are masked by \a selection, and it is assumed that the

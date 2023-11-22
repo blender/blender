@@ -891,6 +891,14 @@ void gather_attributes_group_to_group(AttributeAccessor src_attributes,
                                       const IndexMask &selection,
                                       MutableAttributeAccessor dst_attributes);
 
+void gather_attributes_to_groups(AttributeAccessor src_attributes,
+                                 eAttrDomain domain,
+                                 const AnonymousAttributePropagationInfo &propagation_info,
+                                 const Set<std::string> &skip,
+                                 OffsetIndices<int> dst_offsets,
+                                 const IndexMask &src_selection,
+                                 MutableAttributeAccessor dst_attributes);
+
 void copy_attributes(const AttributeAccessor src_attributes,
                      const eAttrDomain domain,
                      const AnonymousAttributePropagationInfo &propagation_info,

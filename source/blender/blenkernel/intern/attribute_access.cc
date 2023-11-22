@@ -905,7 +905,7 @@ static bool indices_are_range(const Span<int> indices, const IndexRange range)
         }
         return true;
       },
-      [](const bool a, const bool b) { return a && b; });
+      std::logical_and());
 }
 
 void gather_attributes(const AttributeAccessor src_attributes,
@@ -942,19 +942,6 @@ void gather_attributes(const AttributeAccessor src_attributes,
   }
 }
 
-static void gather_group_to_group(const OffsetIndices<int> src_offsets,
-                                  const OffsetIndices<int> dst_offsets,
-                                  const IndexMask &selection,
-                                  const GSpan src,
-                                  GMutableSpan dst)
-{
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    array_utils::gather_group_to_group(
-        src_offsets, dst_offsets, selection, src.typed<T>(), dst.typed<T>());
-  });
-}
-
 void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
                                       const eAttrDomain domain,
                                       const AnonymousAttributePropagationInfo &propagation_info,
@@ -980,7 +967,37 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (!dst) {
       return true;
     }
-    gather_group_to_group(src_offsets, dst_offsets, selection, src, dst.span);
+    attribute_math::gather_group_to_group(src_offsets, dst_offsets, selection, src, dst.span);
+    dst.finish();
+    return true;
+  });
+}
+
+void gather_attributes_to_groups(const AttributeAccessor src_attributes,
+                                 const eAttrDomain domain,
+                                 const AnonymousAttributePropagationInfo &propagation_info,
+                                 const Set<std::string> &skip,
+                                 const OffsetIndices<int> dst_offsets,
+                                 const IndexMask &src_selection,
+                                 MutableAttributeAccessor dst_attributes)
+{
+  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.domain != domain) {
+      return true;
+    }
+    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+      return true;
+    }
+    if (skip.contains(id.name())) {
+      return true;
+    }
+    const GVArraySpan src = *src_attributes.lookup(id, domain);
+    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, domain, meta_data.data_type);
+    if (!dst) {
+      return true;
+    }
+    attribute_math::gather_to_groups(dst_offsets, src_selection, src, dst.span);
     dst.finish();
     return true;
   });
