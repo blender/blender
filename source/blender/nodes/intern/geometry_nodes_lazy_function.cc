@@ -4098,17 +4098,16 @@ void GeoNodesLFLocalUserData::ensure_tree_logger(const GeoNodesLFUserData &user_
   if (GeoNodesModifierData *md_data = user_data.modifier_data) {
     if (geo_eval_log::GeoModifierLog *log = md_data->eval_log) {
       tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
+      return;
     }
   }
-  else if (GeoNodesOperatorData *op_data = user_data.operator_data) {
+  if (GeoNodesOperatorData *op_data = user_data.operator_data) {
     if (geo_eval_log::GeoModifierLog *log = op_data->eval_log) {
       tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
+      return;
     }
   }
-  else {
-    BLI_assert_unreachable();
-    this->tree_logger_.emplace(nullptr);
-  }
+  this->tree_logger_.emplace(nullptr);
 }
 
 std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &user_data,
