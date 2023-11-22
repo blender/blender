@@ -165,6 +165,18 @@ inline void gather(const VArray<T> &src,
   });
 }
 
+template<typename T>
+inline void gather_group_to_group(const OffsetIndices<int> src_offsets,
+                                  const OffsetIndices<int> dst_offsets,
+                                  const IndexMask &selection,
+                                  const Span<T> src,
+                                  MutableSpan<T> dst)
+{
+  selection.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
+    dst.slice(dst_offsets[dst_i]).copy_from(src.slice(src_offsets[src_i]));
+  });
+}
+
 /**
  * Copy the \a src data from the groups defined by \a src_offsets to the groups in \a dst defined
  * by \a dst_offsets. Groups to use are masked by \a selection, and it is assumed that the
