@@ -503,14 +503,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
       add_custom_command(
         OUTPUT ${cuda_file}
         COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-        DEPENDS ${kernel_sources}
-        USES_TERMINAL)
+        DEPENDS ${kernel_sources})
     else()
       add_custom_command(
         OUTPUT ${cuda_file}
         COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-        DEPENDS ${kernel_sources}
-        USES_TERMINAL)
+        DEPENDS ${kernel_sources})
     endif()
 
     unset(_cuda_nvcc_args)
@@ -647,8 +645,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     add_custom_command(
       OUTPUT ${hip_file}
       COMMAND ${hip_command} ${hip_flags}
-      DEPENDS ${kernel_sources}
-      USES_TERMINAL)
+      DEPENDS ${kernel_sources})
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hip_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND hip_fatbins ${hip_file})
   endmacro()
@@ -716,8 +713,7 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
   add_custom_command(
     OUTPUT  ${bitcode_file}
     COMMAND ${hiprt_compile_command} ${hiprt_compile_flags}
-    DEPENDS ${kernel_sources}
-    USES_TERMINAL)
+    DEPENDS ${kernel_sources})
   if(WIN32)
     set(hiprt_link_command ${CMAKE_COMMAND})
     set(hiprt_link_flags   -E env "HIP_PATH=${HIP_ROOT_DIR}"
@@ -737,8 +733,7 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
   add_custom_command(
     OUTPUT  ${hiprt_file}
     COMMAND ${hiprt_link_command} ${hiprt_link_flags}
-    DEPENDS ${bitcode_file}
-    USES_TERMINAL)
+    DEPENDS ${bitcode_file})
   delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hiprt_file}" ${CYCLES_INSTALL_PATH}/lib)
   add_custom_target(cycles_kernel_hiprt ALL DEPENDS ${hiprt_file})
   cycles_set_solution_folder(cycles_kernel_hiprt)
@@ -789,8 +784,7 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
         ${cuda_flags}
         ${input}
       WORKING_DIRECTORY
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-      USES_TERMINAL)
+        "${CMAKE_CURRENT_SOURCE_DIR}")
 
     list(APPEND optix_ptx ${output})
 
@@ -1083,8 +1077,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
               "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
               "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
       COMMAND_EXPAND_LISTS
-      DEPENDS ${cycles_oneapi_kernel_sources}
-      USES_TERMINAL)
+      DEPENDS ${cycles_oneapi_kernel_sources})
   else()
     if(NOT IGC_INSTALL_DIR)
       get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
@@ -1109,8 +1102,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
               "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug_str}>"
               "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release_str}>"
       COMMAND_EXPAND_LISTS
-      DEPENDS ${cycles_oneapi_kernel_sources}
-      USES_TERMINAL)
+      DEPENDS ${cycles_oneapi_kernel_sources})
   endif()
 
   if(NOT WITH_BLENDER)
