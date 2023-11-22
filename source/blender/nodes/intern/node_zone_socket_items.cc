@@ -56,4 +56,19 @@ void RepeatItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
   }
 }
 
+StructRNA *IndexSwitchItemsAccessor ::item_srna = &RNA_IndexSwitchItem;
+int IndexSwitchItemsAccessor::node_type = GEO_NODE_INDEX_SWITCH;
+
+void IndexSwitchItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+{
+  const auto &storage = *static_cast<const NodeIndexSwitch *>(node.storage);
+  BLO_write_struct_array(writer, IndexSwitchItem, storage.items_num, storage.items);
+}
+
+void IndexSwitchItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+{
+  auto &storage = *static_cast<NodeIndexSwitch *>(node.storage);
+  BLO_read_data_address(reader, &storage.items);
+}
+
 }  // namespace blender::nodes

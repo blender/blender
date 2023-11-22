@@ -788,6 +788,9 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     if (node->type == GEO_NODE_REPEAT_OUTPUT) {
       blender::nodes::RepeatItemsAccessor::blend_write(writer, *node);
     }
+    if (node->type == GEO_NODE_INDEX_SWITCH) {
+      blender::nodes::IndexSwitchItemsAccessor::blend_write(writer, *node);
+    }
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -1025,6 +1028,10 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case GEO_NODE_REPEAT_OUTPUT: {
           blender::nodes::RepeatItemsAccessor::blend_read_data(reader, *node);
+          break;
+        }
+        case GEO_NODE_INDEX_SWITCH: {
+          blender::nodes::IndexSwitchItemsAccessor::blend_read_data(reader, *node);
           break;
         }
 

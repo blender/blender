@@ -1856,6 +1856,27 @@ typedef struct NodeGeometryRepeatOutput {
 #endif
 } NodeGeometryRepeatOutput;
 
+typedef struct IndexSwitchItem {
+  /** Generated unique identifier which stays the same even when the item order or names change. */
+  int identifier;
+} IndexSwitchItem;
+
+typedef struct NodeIndexSwitch {
+  IndexSwitchItem *items;
+  int items_num;
+
+  /* #eNodeSocketDataType. */
+  int data_type;
+  /** Identifier to give to the next item. */
+  int next_identifier;
+
+  char _pad[4];
+#ifdef __cplusplus
+  blender::Span<IndexSwitchItem> items_span() const;
+  blender::MutableSpan<IndexSwitchItem> items_span();
+#endif
+} NodeIndexSwitch;
+
 typedef struct NodeGeometryDistributePointsInVolume {
   /** #GeometryNodePointDistributeVolumeMode. */
   uint8_t mode;
