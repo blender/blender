@@ -505,6 +505,13 @@ DEPS_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_ARCH: ...,
                                   },
             ),
+    Package(name="Deflate Library",
+            distro_package_names={DISTRO_ID_DEBIAN: "libdeflate-dev",
+                                  DISTRO_ID_FEDORA: "libdeflate-devel",
+                                  DISTRO_ID_SUSE: "libdeflate-devel",
+                                  DISTRO_ID_ARCH: "libdeflate",
+                                  },
+            ),
 )
 
 
