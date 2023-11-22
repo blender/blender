@@ -180,6 +180,8 @@ class Film {
         return data_.shadow_id;
       case EEVEE_RENDER_PASS_AO:
         return data_.ambient_occlusion_id;
+      case EEVEE_RENDER_PASS_TRANSPARENT:
+        return data_.transparent_id;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT:
         return data_.cryptomatte_object_id;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET:

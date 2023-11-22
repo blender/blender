@@ -48,6 +48,7 @@ class ShadingView {
 
   Framebuffer prepass_fb_;
   Framebuffer combined_fb_;
+  Framebuffer transparent_fb_ = {"transparent"};
   TextureFromPool postfx_tx_;
 
   /** Main views is created from the camera (or is from the viewport). It is not jittered. */
@@ -76,9 +77,11 @@ class ShadingView {
 
   void render();
 
+ private:
+  void render_transparent_pass(RenderBuffers &rbufs);
+
   GPUTexture *render_postfx(GPUTexture *input_tx);
 
- private:
   void update_view();
 };
 

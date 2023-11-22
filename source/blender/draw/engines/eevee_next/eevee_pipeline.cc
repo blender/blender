@@ -382,24 +382,14 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   return pass;
 }
 
-void ForwardPipeline::render(View &view,
-                             Framebuffer &prepass_fb,
-                             Framebuffer &combined_fb,
-                             GPUTexture * /*combined_tx*/)
+void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb)
 {
   DRW_stats_group_start("Forward.Opaque");
 
   prepass_fb.bind();
   inst_.manager->submit(prepass_ps_, view);
 
-  // if (!DRW_pass_is_empty(prepass_ps_)) {
   inst_.hiz_buffer.set_dirty();
-  // }
-
-  // if (inst_.raytracing.enabled()) {
-  //   rt_buffer.radiance_copy(combined_tx);
-  //   inst_.hiz_buffer.update();
-  // }
 
   inst_.shadows.set_view(view);
   inst_.irradiance_cache.set_view(view);
@@ -413,10 +403,6 @@ void ForwardPipeline::render(View &view,
 
   combined_fb.bind();
   inst_.manager->submit(transparent_ps_, view);
-
-  // if (inst_.raytracing.enabled()) {
-  //   gbuffer.ray_radiance_tx.release();
-  // }
 }
 
 /** \} */
