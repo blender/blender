@@ -85,7 +85,7 @@ template<typename T> class OffsetIndices {
    */
   OffsetIndices slice(const IndexRange range) const
   {
-    BLI_assert(offsets_.index_range().drop_back(1).contains(range.last()));
+    BLI_assert(range.is_empty() || offsets_.index_range().drop_back(1).contains(range.last()));
     return OffsetIndices(offsets_.slice(range.start(), range.size() + 1));
   }
 
