@@ -1353,7 +1353,7 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
       bNodeSocket *socket = nodeFindSocket(node, SOCK_IN, "Rotation");
       change_input_socket_to_rotation_type(ntree, *node, *socket);
     }
-    if (STREQ(node->idname, "GeometryNodeDistributePointsOnFaces")) {
+    if (STR_ELEM(node->idname, "GeometryNodeDistributePointsOnFaces", "GeometryNodeObjectInfo")) {
       bNodeSocket *socket = nodeFindSocket(node, SOCK_OUT, "Rotation");
       change_output_socket_to_rotation_type(ntree, *node, *socket);
     }
