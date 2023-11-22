@@ -632,7 +632,7 @@ void Film::update_sample_table()
   }
 }
 
-void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
+void Film::accumulate(View &view, GPUTexture *combined_final_tx)
 {
   if (inst_.is_viewport()) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
@@ -653,9 +653,7 @@ void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
   data_.display_only = false;
   inst_.push_uniform_data();
 
-  draw::View drw_view("MainView", view);
-
-  inst_.manager->submit(accumulate_ps_, drw_view);
+  inst_.manager->submit(accumulate_ps_, view);
 
   combined_tx_.swap();
   weight_tx_.swap();

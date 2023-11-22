@@ -28,11 +28,7 @@ namespace blender::eevee {
 /** \name ShadingView
  * \{ */
 
-void ShadingView::init()
-{
-  // dof_.init();
-  // mb_.init();
-}
+void ShadingView::init() {}
 
 void ShadingView::sync()
 {
@@ -59,31 +55,21 @@ void ShadingView::sync()
   const CameraData &cam = inst_.camera.data_get();
 
   float4x4 viewmat, winmat;
-  const float(*viewmat_p)[4] = viewmat.ptr(), (*winmat_p)[4] = winmat.ptr();
   if (false /* inst_.camera.is_panoramic() */) {
     /* TODO(@fclem) Over-scans. */
     /* For now a mandatory 5% over-scan for DoF. */
     float side = cam.clip_near * 1.05f;
     float near = cam.clip_near;
     float far = cam.clip_far;
-    perspective_m4(winmat.ptr(), -side, side, -side, side, near, far);
+    winmat = math::projection::perspective(-side, side, -side, side, near, far);
     viewmat = face_matrix_ * cam.viewmat;
   }
   else {
-    viewmat_p = cam.viewmat.ptr();
-    winmat_p = cam.winmat.ptr();
+    viewmat = cam.viewmat;
+    winmat = cam.winmat;
   }
 
-  main_view_ = DRW_view_create(viewmat_p, winmat_p, nullptr, nullptr, nullptr);
-  sub_view_ = DRW_view_create_sub(main_view_, viewmat_p, winmat_p);
-  render_view_ = DRW_view_create_sub(main_view_, viewmat_p, winmat_p);
-
-  // dof_.sync(winmat_p, extent_);
-  // rt_buffer_opaque_.sync(extent_);
-  // rt_buffer_refract_.sync(extent_);
-  // inst_.hiz_back.view_sync(extent_);
-  // inst_.hiz_front.view_sync(extent_);
-  // inst_.gbuffer.view_sync(extent_);
+  main_view_.sync(viewmat, winmat);
 }
 
 void ShadingView::render()
@@ -103,9 +89,8 @@ void ShadingView::render()
   update_view();
 
   DRW_stats_group_start(name_);
-  DRW_view_set_active(render_view_);
 
-  inst_.planar_probes.set_view(render_view_new_, extent_);
+  inst_.planar_probes.set_view(render_view_, extent_);
 
   /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
    * precision issue by setting the motion of all static geometry to 0. */
@@ -121,44 +106,42 @@ void ShadingView::render()
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.hiz_buffer.set_dirty();
 
-  inst_.pipelines.background.render(render_view_new_);
+  inst_.pipelines.background.render(render_view_);
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
-  inst_.lights.set_view(render_view_new_, extent_);
-  inst_.reflection_probes.set_view(render_view_new_);
+  inst_.lights.set_view(render_view_, extent_);
+  inst_.reflection_probes.set_view(render_view_);
 
-  inst_.volume.draw_prepass(render_view_new_);
+  inst_.volume.draw_prepass(render_view_);
 
-  /* TODO: cleanup. */
-  View main_view_new("MainView", main_view_);
   /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
-  inst_.pipelines.deferred.render(main_view_new,
-                                  render_view_new_,
+  inst_.pipelines.deferred.render(main_view_,
+                                  render_view_,
                                   prepass_fb_,
                                   combined_fb_,
                                   extent_,
                                   rt_buffer_opaque_,
                                   rt_buffer_refract_);
 
-  inst_.volume.draw_compute(render_view_new_);
+  inst_.volume.draw_compute(render_view_);
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(render_view_new_, prepass_fb_, combined_fb_);
+  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_);
 
   render_transparent_pass(rbufs);
 
-  inst_.lights.debug_draw(render_view_new_, combined_fb_);
-  inst_.hiz_buffer.debug_draw(render_view_new_, combined_fb_);
-  inst_.shadows.debug_draw(render_view_new_, combined_fb_);
-  inst_.irradiance_cache.viewport_draw(render_view_new_, combined_fb_);
-  inst_.reflection_probes.viewport_draw(render_view_new_, combined_fb_);
-  inst_.planar_probes.viewport_draw(render_view_new_, combined_fb_);
+  inst_.lights.debug_draw(render_view_, combined_fb_);
+  inst_.hiz_buffer.debug_draw(render_view_, combined_fb_);
+  inst_.shadows.debug_draw(render_view_, combined_fb_);
+  inst_.irradiance_cache.viewport_draw(render_view_, combined_fb_);
+  inst_.reflection_probes.viewport_draw(render_view_, combined_fb_);
+  inst_.planar_probes.viewport_draw(render_view_, combined_fb_);
 
-  inst_.ambient_occlusion.render_pass(render_view_new_);
+  inst_.ambient_occlusion.render_pass(render_view_);
 
   GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
-  inst_.film.accumulate(sub_view_, combined_final_tx);
+  inst_.film.accumulate(jitter_view_, combined_final_tx);
 
   rbufs.release();
   postfx_tx_.release();
@@ -176,7 +159,7 @@ void ShadingView::render_transparent_pass(RenderBuffers &rbufs)
     float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
     GPU_framebuffer_bind(transparent_fb_);
     GPU_framebuffer_clear_color(transparent_fb_, clear_color);
-    inst_.pipelines.forward.render(render_view_new_, prepass_fb_, transparent_fb_);
+    inst_.pipelines.forward.render(render_view_, prepass_fb_, transparent_fb_);
   }
 }
 
@@ -190,17 +173,16 @@ GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
   GPUTexture *output_tx = postfx_tx_;
 
   /* Swapping is done internally. Actual output is set to the next input. */
-  inst_.depth_of_field.render(render_view_new_, &input_tx, &output_tx, dof_buffer_);
-  inst_.motion_blur.render(render_view_new_, &input_tx, &output_tx);
+  inst_.depth_of_field.render(render_view_, &input_tx, &output_tx, dof_buffer_);
+  inst_.motion_blur.render(render_view_, &input_tx, &output_tx);
 
   return input_tx;
 }
 
 void ShadingView::update_view()
 {
-  float4x4 viewmat, winmat;
-  DRW_view_viewmat_get(main_view_, viewmat.ptr(), false);
-  DRW_view_winmat_get(main_view_, winmat.ptr(), false);
+  float4x4 viewmat = main_view_.viewmat();
+  float4x4 winmat = main_view_.winmat();
 
   /* TODO(fclem): Mixed-resolution rendering: We need to make sure we render with exactly the same
    * distances between pixels to line up render samples and target pixels.
@@ -213,14 +195,12 @@ void ShadingView::update_view()
   jitter *= 2.0f;
 
   window_translate_m4(winmat.ptr(), winmat.ptr(), UNPACK2(jitter));
-  DRW_view_update_sub(sub_view_, viewmat.ptr(), winmat.ptr());
+  jitter_view_.sync(winmat, winmat);
 
   /* FIXME(fclem): The offset may be noticeably large and the culling might make object pop
    * out of the blurring radius. To fix this, use custom enlarged culling matrix. */
   inst_.depth_of_field.jitter_apply(winmat, viewmat);
-  DRW_view_update_sub(render_view_, viewmat.ptr(), winmat.ptr());
-
-  render_view_new_.sync(viewmat, winmat);
+  render_view_.sync(viewmat, winmat);
 }
 
 /** \} */

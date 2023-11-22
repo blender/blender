@@ -52,13 +52,12 @@ class ShadingView {
   TextureFromPool postfx_tx_;
 
   /** Main views is created from the camera (or is from the viewport). It is not jittered. */
-  DRWView *main_view_ = nullptr;
+  View main_view_ = {"main_view"};
   /** Sub views is jittered versions or the main views. This allows jitter updates without trashing
    * the visibility culling cache. */
-  DRWView *sub_view_ = nullptr;
-  /** Same as sub_view_ but has Depth Of Field jitter applied. */
-  DRWView *render_view_ = nullptr;
-  View render_view_new_;
+  View jitter_view_ = {"jitter_view"};
+  /** Same as jitter_view_ but has Depth Of Field jitter applied. */
+  View render_view_;
 
   /** Render size of the view. Can change between scene sample eval. */
   int2 extent_ = {-1, -1};
@@ -67,7 +66,7 @@ class ShadingView {
 
  public:
   ShadingView(Instance &inst, const char *name, const float4x4 &face_matrix)
-      : inst_(inst), name_(name), face_matrix_(face_matrix), render_view_new_(name){};
+      : inst_(inst), name_(name), face_matrix_(face_matrix), render_view_(name){};
 
   ~ShadingView(){};
 
