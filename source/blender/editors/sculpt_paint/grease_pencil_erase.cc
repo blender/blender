@@ -538,8 +538,10 @@ struct EraseOperationExecutor {
                            {"cyclic"},
                            dst_to_src_curve,
                            dst_attributes);
-    array_utils::gather(
-        src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
+    if (src_cyclic.get_if_single().value_or(true)) {
+      array_utils::gather(
+          src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
+    }
 
     /* Display intersections with flat caps. */
     if (!keep_caps) {
