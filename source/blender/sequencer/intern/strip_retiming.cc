@@ -531,7 +531,8 @@ SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
 
   SeqRetimingKey *prev_key = key - 1;
   if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0 ||
-      (prev_key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+      (prev_key->flag & SEQ_SPEED_TRANSITION_IN) != 0)
+  {
     return nullptr;
   }
 
@@ -976,7 +977,7 @@ void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
     seq->start += offset;
     for (int i = key_index + 1; i < key_count; i++) {
       SeqRetimingKey *key_iter = &SEQ_retiming_keys_get(seq)[i];
-      seq_retiming_key_offset(scene, seq, key, -offset);
+      seq_retiming_key_offset(scene, seq, key_iter, -offset);
     }
   }
   else {
