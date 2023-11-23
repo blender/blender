@@ -563,9 +563,7 @@ static PyObject *pygpu_shader_image(BPyGPUShader *self, PyObject *args)
 {
   const char *name;
   BPyGPUTexture *py_texture;
-  if (!PyArg_ParseTuple(
-          args, "sO!:GPUShader.image", &name, &BPyGPUTexture_Type, &py_texture))
-  {
+  if (!PyArg_ParseTuple(args, "sO!:GPUShader.image", &name, &BPyGPUTexture_Type, &py_texture)) {
     return nullptr;
   }
 
@@ -580,7 +578,6 @@ static PyObject *pygpu_shader_image(BPyGPUShader *self, PyObject *args)
 
   Py_RETURN_NONE;
 }
-
 
 PyDoc_STRVAR(
     pygpu_shader_uniform_block_doc,
@@ -732,10 +729,7 @@ static PyMethodDef pygpu_shader__tp_methods[] = {
      (PyCFunction)pygpu_shader_uniform_sampler,
      METH_VARARGS,
      pygpu_shader_uniform_sampler_doc},
-    {"image",
-     (PyCFunction)pygpu_shader_image,
-     METH_VARARGS, 
-     pygpu_shader_image_doc},
+    {"image", (PyCFunction)pygpu_shader_image, METH_VARARGS, pygpu_shader_image_doc},
     {"uniform_block",
      (PyCFunction)pygpu_shader_uniform_block,
      METH_VARARGS,

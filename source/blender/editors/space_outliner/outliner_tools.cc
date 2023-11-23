@@ -481,7 +481,7 @@ static void unlink_object_fn(bContext *C,
 
         Scene *scene = (Scene *)tsep->id;
         FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-          if (BKE_collection_has_object(collection, ob)){
+          if (BKE_collection_has_object(collection, ob)) {
             BKE_collection_object_remove(bmain, collection, ob, true);
           }
         }
