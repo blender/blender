@@ -473,9 +473,19 @@ static void unlink_object_fn(bContext *C,
         DEG_relations_tag_update(bmain);
       }
       else if (GS(tsep->id->name) == ID_SCE) {
+        /* Following execution is expected to happen exclusively in the Outliner scene view. */
+#ifdef NDEBUG
+        SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+        BLI_assert(space_outliner->outlinevis == SO_SCENES);
+#endif
+
         Scene *scene = (Scene *)tsep->id;
-        Collection *parent = scene->master_collection;
-        BKE_collection_object_remove(bmain, parent, ob, true);
+        FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
+          if (BKE_collection_has_object(collection, ob)){
+            BKE_collection_object_remove(bmain, collection, ob, true);
+          }
+        }
+        FOREACH_SCENE_COLLECTION_END;
         DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_HIERARCHY);
         DEG_relations_tag_update(bmain);
       }
