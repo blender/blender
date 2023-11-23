@@ -58,6 +58,9 @@ static PackedFile *get_builtin_packedfile(void);
 
 /****************************** VFont Datablock ************************/
 
+const void *builtin_font_data = nullptr;
+int builtin_font_size = 0;
+
 static void vfont_init_data(ID *id)
 {
   VFont *vfont = (VFont *)id;
@@ -217,9 +220,6 @@ void BKE_vfont_free_data(VFont *vfont)
     vfont->temp_pf = nullptr;
   }
 }
-
-static const void *builtin_font_data = nullptr;
-static int builtin_font_size = 0;
 
 bool BKE_vfont_is_builtin(const VFont *vfont)
 {
@@ -1004,10 +1004,8 @@ static bool vfont_to_curve(Object *ob,
       che = find_vfont_char(vfd, ascii);
       BLI_rw_mutex_unlock(&vfont_rwlock);
 
-      /* The character wasn't in the current curve base so load it.
-       * But if the font is built-in then do not try loading since
-       * whole font is in the memory already. */
-      if (che == nullptr && BKE_vfont_is_builtin(vfont) == false) {
+      /* The character wasn't in the current curve base so load it. */
+      if (che == nullptr) {
         BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
         /* Check it once again, char might have been already load
          * between previous #BLI_rw_mutex_unlock() and this #BLI_rw_mutex_lock().
