@@ -21,7 +21,7 @@ set(INC_SYS
 
 set(SRC
   nla_buttons.cc
-  nla_channels.cc
+  nla_tracks.cc
   nla_draw.cc
   nla_edit.cc
   nla_ops.cc
@@ -37,7 +37,6 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )
-
 
 blender_add_lib(bf_editor_space_nla "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

@@ -52,40 +52,39 @@
  * from the standard Animation Editor ones */
 
 /* ******************** Mouse-Click Operator *********************** */
-/* Depending on the channel that was clicked on, the mouse click will activate whichever
- * part of the channel is relevant.
+/* Depending on the track that was clicked on, the mouse click will activate whichever
+ * part of the track is relevant.
  *
  * NOTE: eventually,
  * this should probably be phased out when many of these things are replaced with buttons
- * --> Most channels are now selection only.
+ * --> Most tracks are now selection only.
  */
 
-static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, short selectmode)
+static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, short selectmode)
 {
   ListBase anim_data = {nullptr, nullptr};
 
   int notifierFlags = 0;
 
-  /* get the channel that was clicked on */
-  /* filter channels */
+  /* get the track that was clicked on */
+  /* filter tracks */
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                               ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-  /* get channel from index */
-  bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, channel_index));
+  /* get track from index */
+  bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, track_index));
   if (ale == nullptr) {
-    /* channel not found */
+    /* track not found */
     if (G.debug & G_DEBUG) {
-      printf("Error: animation channel (index = %d) not found in mouse_anim_channels()\n",
-             channel_index);
+      printf("Error: animation track (index = %d) not found in mouse_nla_tracks()\n", track_index);
     }
 
     ANIM_animdata_freelist(&anim_data);
     return 0;
   }
 
-  /* action to take depends on what channel we've got */
+  /* action to take depends on what track we've got */
   /* WARNING: must keep this in sync with the equivalent function in `anim_channels_edit.cc`. */
   switch (ale->type) {
     case ANIMTYPE_SCENE: {
@@ -128,7 +127,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
         }
         else {
           /* deselect all */
-          /* TODO: should this deselect all other types of channels too? */
+          /* TODO: should this deselect all other types of tracks too? */
           BKE_view_layer_synced_ensure(ac->scene, view_layer);
           LISTBASE_FOREACH (Base *, b, BKE_view_layer_object_bases_get(view_layer)) {
             ED_object_base_select(b, BA_DESELECT);
@@ -151,7 +150,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
           adt->flag |= ADT_UI_ACTIVE;
         }
 
-        /* notifiers - channel was selected */
+        /* notifiers - track was selected */
         notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
       }
       break;
@@ -222,7 +221,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
               ac, ac->data, eAnimCont_Types(ac->datatype), filter, nlt, ANIMTYPE_NLATRACK);
         }
 
-        /* notifier flags - channel was selected */
+        /* notifier flags - track was selected */
         notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
       }
       break;
@@ -269,12 +268,12 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
     }
     default:
       if (G.debug & G_DEBUG) {
-        printf("Error: Invalid channel type in mouse_nla_channels()\n");
+        printf("Error: Invalid track type in mouse_nla_tracks()\n");
       }
       break;
   }
 
-  /* free channels */
+  /* free tracks */
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 
@@ -285,12 +284,12 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
 /* ------------------- */
 
 /* handle clicking */
-static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int nlatracks_mouseclick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bAnimContext ac;
   ARegion *region;
   View2D *v2d;
-  int channel_index;
+  int track_index;
   int notifierFlags = 0;
   short selectmode;
   float x, y;
@@ -313,19 +312,19 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEv
     selectmode = SELECT_REPLACE;
   }
 
-  /* Figure out which channel user clicked in. */
+  /* Figure out which track user clicked in. */
   UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
-  UI_view2d_listview_view_to_cell(NLACHANNEL_NAMEWIDTH,
-                                  NLACHANNEL_STEP(snla),
+  UI_view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
+                                  NLATRACK_STEP(snla),
                                   0,
-                                  NLACHANNEL_FIRST_TOP(&ac),
+                                  NLATRACK_FIRST_TOP(&ac),
                                   x,
                                   y,
                                   nullptr,
-                                  &channel_index);
+                                  &track_index);
 
-  /* handle mouse-click in the relevant channel then */
-  notifierFlags = mouse_nla_channels(C, &ac, channel_index, selectmode);
+  /* handle mouse-click in the relevant track then */
+  notifierFlags = mouse_nla_tracks(C, &ac, track_index, selectmode);
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | notifierFlags, nullptr);
@@ -343,7 +342,7 @@ void NLA_OT_channels_click(wmOperatorType *ot)
   ot->description = "Handle clicks to select NLA tracks";
 
   /* api callbacks */
-  ot->invoke = nlachannels_mouseclick_invoke;
+  ot->invoke = nlatracks_mouseclick_invoke;
   ot->poll = ED_operator_nla_active;
 
   /* flags */
@@ -359,12 +358,12 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 
 /* ******************** Action Push Down ******************************** */
 
-static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
+static int nlatracks_pushdown_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   ID *id = nullptr;
   AnimData *adt = nullptr;
-  int channel_index = RNA_int_get(op->ptr, "channel_index");
+  int track_index = RNA_int_get(op->ptr, "track_index");
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -372,7 +371,7 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
   }
 
   /* get anim-channel to use (or more specifically, the animdata block behind it) */
-  if (channel_index == -1) {
+  if (track_index == -1) {
     PointerRNA adt_ptr = {nullptr};
 
     /* active animdata block */
@@ -389,31 +388,31 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
     adt = static_cast<AnimData *>(adt_ptr.data);
   }
   else {
-    /* indexed channel */
+    /* indexed track */
     ListBase anim_data = {nullptr, nullptr};
 
-    /* filter channels */
+    /* filter tracks */
     eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                 ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
-    /* get channel from index */
-    bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, channel_index));
+    /* get track from index */
+    bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, track_index));
     if (ale == nullptr) {
-      BKE_reportf(op->reports, RPT_ERROR, "No animation channel found at index %d", channel_index);
+      BKE_reportf(op->reports, RPT_ERROR, "No animation track found at index %d", track_index);
       ANIM_animdata_freelist(&anim_data);
       return OPERATOR_CANCELLED;
     }
     if (ale->type != ANIMTYPE_NLAACTION) {
       BKE_reportf(op->reports,
                   RPT_ERROR,
-                  "Animation channel at index %d is not a NLA 'Active Action' channel",
-                  channel_index);
+                  "Animation track at index %d is not a NLA 'Active Action' track",
+                  track_index);
       ANIM_animdata_freelist(&anim_data);
       return OPERATOR_CANCELLED;
     }
 
-    /* grab AnimData from the channel */
+    /* grab AnimData from the track */
     adt = ale->adt;
     id = ale->id;
 
@@ -460,7 +459,7 @@ void NLA_OT_action_pushdown(wmOperatorType *ot)
   ot->description = "Push action down onto the top of the NLA stack as a new strip";
 
   /* callbacks */
-  ot->exec = nlachannels_pushdown_exec;
+  ot->exec = nlatracks_pushdown_exec;
   ot->poll = nlaop_poll_tweakmode_off;
 
   /* flags */
@@ -468,12 +467,12 @@ void NLA_OT_action_pushdown(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_int(ot->srna,
-                         "channel_index",
+                         "track_index",
                          -1,
                          -1,
                          INT_MAX,
-                         "Channel Index",
-                         "Index of NLA action channel to perform pushdown operation on",
+                         "Track Index",
+                         "Index of NLA action track to perform pushdown operation on",
                          0,
                          INT_MAX);
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
