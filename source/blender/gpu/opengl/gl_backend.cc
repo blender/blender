@@ -171,6 +171,12 @@ void GLBackend::platform_init()
       {
         support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
+      /* Latest Intel driver have bugs that won't allow Blender to start.
+       * Users must install different version of the driver.
+       * See #113124 for more information. */
+      if (strstr(version, "Build 20.19.15.51")) {
+        support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+      }
     }
     if ((device & GPU_DEVICE_ATI) && (os & GPU_OS_UNIX)) {
       /* Platform seems to work when SB backend is disabled. This can be done
