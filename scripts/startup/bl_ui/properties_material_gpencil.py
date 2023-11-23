@@ -19,6 +19,11 @@ class GPENCIL_MT_material_context_menu(Menu):
         layout = self.layout
         if context.preferences.experimental.use_grease_pencil_version3:
             layout.operator("grease_pencil.material_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
+
+            layout.separator()
+
+            layout.operator("grease_pencil.material_lock_all", icon='LOCKED', text="Lock All")
+            layout.operator("grease_pencil.material_unlock_all", icon='UNLOCKED', text="Unlock All")
             layout.operator("grease_pencil.material_lock_unused", text="Lock Unused")
         else:
             layout.operator("gpencil.material_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")

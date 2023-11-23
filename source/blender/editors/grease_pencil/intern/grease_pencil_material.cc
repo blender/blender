@@ -64,6 +64,93 @@ static void GREASE_PENCIL_OT_material_reveal(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Lock All Materials Operator
+ * \{ */
+
+static int grease_pencil_material_lock_all_exec(bContext *C, wmOperator * /*op*/)
+{
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  bool changed = false;
+  for (const int i : IndexRange(object->totcol)) {
+    if (Material *ma = BKE_object_material_get(object, i + 1)) {
+      MaterialGPencilStyle &gp_style = *ma->gp_style;
+      gp_style.flag |= GP_MATERIAL_LOCKED;
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_material_lock_all(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Lock All Materials";
+  ot->idname = "GREASE_PENCIL_OT_material_lock_all";
+  ot->description =
+      "Lock all Grease Pencil materials to prevent them from being accidentally modified";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_material_lock_all_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unlock All Materials Operator
+ * \{ */
+
+static int grease_pencil_material_unlock_all_exec(bContext *C, wmOperator * /*op*/)
+{
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  bool changed = false;
+  for (const int i : IndexRange(object->totcol)) {
+    if (Material *ma = BKE_object_material_get(object, i + 1)) {
+      MaterialGPencilStyle &gp_style = *ma->gp_style;
+      gp_style.flag &= ~GP_MATERIAL_LOCKED;
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_material_unlock_all(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Unclock All Materials";
+  ot->idname = "GREASE_PENCIL_OT_material_unlock_all";
+  ot->description = "Unlock all Grease Pencil materials so that they can be edited";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_material_unlock_all_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Lock Unused Materials Operator
  * \{ */
 
@@ -113,5 +200,7 @@ void ED_operatortypes_grease_pencil_material()
 {
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_material_reveal);
+  WM_operatortype_append(GREASE_PENCIL_OT_material_lock_all);
+  WM_operatortype_append(GREASE_PENCIL_OT_material_unlock_all);
   WM_operatortype_append(GREASE_PENCIL_OT_material_lock_unused);
 }
