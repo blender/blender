@@ -1186,6 +1186,9 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (sce->master_collection) {
     BLO_write_init_id_buffer_from_id(
         temp_embedded_id_buffer, &sce->master_collection->id, BLO_write_is_undo(writer));
+    BKE_collection_blend_write_prepare_nolib(
+        writer,
+        reinterpret_cast<Collection *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
     BLO_write_struct_at_address(writer,
                                 Collection,
                                 sce->master_collection,

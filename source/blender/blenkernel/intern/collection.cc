@@ -232,6 +232,13 @@ static ID **collection_owner_pointer_get(ID *id)
   return &master_collection->owner_id;
 }
 
+void BKE_collection_blend_write_prepare_nolib(BlendWriter * /*writer*/, Collection *collection)
+{
+  memset(&collection->runtime, 0, sizeof(collection->runtime));
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
+}
+
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
 {
   BKE_id_blend_write(writer, &collection->id);
@@ -252,9 +259,7 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
 {
   Collection *collection = (Collection *)id;
 
-  memset(&collection->runtime, 0, sizeof(collection->runtime));
-  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
+  BKE_collection_blend_write_prepare_nolib(writer, collection);
 
   /* write LibData */
   BLO_write_id_struct(writer, Collection, id_address, &collection->id);
