@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_range.h"
 
 struct AnimData;
@@ -145,26 +146,37 @@ int64_t ED_keylist_array_len(const AnimKeylist *keylist);
 
 /* Key-data Generation --------------- */
 
-/* F-Curve */
-void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, int saction_flag);
+/** Add the keyframes of the F-Curve to the keylist.
+ * \param adt can be a nullptr.
+ * \param range only adds keys in the given range to the keylist.
+ */
+void fcurve_to_keylist(
+    AnimData *adt, FCurve *fcu, AnimKeylist *keylist, int saction_flag, blender::float2 range);
 /* Action Group */
 void action_group_to_keylist(AnimData *adt,
                              bActionGroup *agrp,
                              AnimKeylist *keylist,
-                             int saction_flag);
+                             int saction_flag,
+                             blender::float2 range);
 /* Action */
-void action_to_keylist(AnimData *adt, bAction *act, AnimKeylist *keylist, int saction_flag);
+void action_to_keylist(
+    AnimData *adt, bAction *act, AnimKeylist *keylist, int saction_flag, blender::float2 range);
 /* Object */
-void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag);
+void ob_to_keylist(
+    bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag, blender::float2 range);
 /* Cache File */
 void cachefile_to_keylist(bDopeSheet *ads,
                           CacheFile *cache_file,
                           AnimKeylist *keylist,
                           int saction_flag);
 /* Scene */
-void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, int saction_flag);
+void scene_to_keylist(
+    bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, int saction_flag, blender::float2 range);
 /* DopeSheet Summary */
-void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, int saction_flag);
+void summary_to_keylist(bAnimContext *ac,
+                        AnimKeylist *keylist,
+                        int saction_flag,
+                        blender::float2 range);
 
 /* Grease Pencil datablock summary (Legacy) */
 void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, bool active);
