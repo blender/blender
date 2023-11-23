@@ -98,6 +98,7 @@ class Integrator : public Node {
   NODE_SOCKET_API(bool, use_denoise_pass_albedo);
   NODE_SOCKET_API(bool, use_denoise_pass_normal);
   NODE_SOCKET_API(DenoiserPrefilter, denoiser_prefilter);
+  NODE_SOCKET_API(DenoiserQuality, denoiser_quality);
 
   enum : uint32_t {
     AO_PASS_MODIFIED = (1 << 0),

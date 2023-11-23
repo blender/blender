@@ -280,6 +280,17 @@ enum_denoising_prefilter = (
      3),
 )
 
+enum_denoising_quality = (
+    ('HIGH',
+     "High",
+     "High quality",
+     1),
+    ('BALANCED',
+     "Balanced",
+     "Balances quality and performance",
+     2),
+)
+
 enum_direct_light_sampling_type = (
     ('MULTIPLE_IMPORTANCE_SAMPLING',
      "Multiple Importance Sampling",
@@ -352,6 +363,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         items=enum_denoising_prefilter,
         default='ACCURATE',
     )
+    denoising_quality: EnumProperty(
+        name="Denoising Quality",
+        description="Select between quality and performance tradeoffs when using OpenImageDenoise",
+        items=enum_denoising_quality,
+        default='HIGH',
+    )
     denoising_input_passes: EnumProperty(
         name="Denoising Input Passes",
         description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
@@ -375,6 +392,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Prefilter noisy guiding (albedo and normal) passes to improve denoising quality when using OpenImageDenoiser",
         items=enum_denoising_prefilter,
         default='FAST',
+    )
+    preview_denoising_quality: EnumProperty(
+        name="Viewport Denoising Quality",
+        description="Select between quality and performance tradeoffs when using OpenImageDenoise",
+        items=enum_denoising_quality,
+        default='BALANCED',
     )
     preview_denoising_input_passes: EnumProperty(
         name="Viewport Denoising Input Passes",
