@@ -443,7 +443,10 @@ class DrawCommandBuf {
   uint resource_id_count_ = 0;
 
  public:
-  void clear(){};
+  void clear()
+  {
+    resource_id_buf_.trim_to_next_power_of_2(resource_id_count_);
+  };
 
   void append_draw(Vector<Header, 0> &headers,
                    Vector<Undetermined, 0> &commands,
@@ -554,6 +557,11 @@ class DrawMultiBuf {
  public:
   void clear()
   {
+    group_buf_.trim_to_next_power_of_2(group_count_);
+    /* Two commands per group (inverted and non-inverted scale). */
+    command_buf_.trim_to_next_power_of_2(group_count_ * 2);
+    prototype_buf_.trim_to_next_power_of_2(prototype_count_);
+    resource_id_buf_.trim_to_next_power_of_2(resource_id_count_);
     header_id_counter_ = 0;
     group_count_ = 0;
     prototype_count_ = 0;

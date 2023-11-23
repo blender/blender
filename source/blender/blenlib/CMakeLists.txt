@@ -14,6 +14,7 @@ set(INC
 set(INC_SYS
   ../../../extern/wcwidth
   ../../../extern/json/include
+  ../../../extern/fmtlib/include
 
   ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
@@ -355,6 +356,7 @@ set(SRC
   BLI_string_utf8.h
   BLI_string_utf8_symbols.h
   BLI_string_utils.hh
+  BLI_struct_equality_utils.hh
   BLI_sub_frame.hh
   BLI_sys_types.h
   BLI_system.h
@@ -382,6 +384,7 @@ set(SRC
   BLI_voronoi_2d.h
   BLI_voxel.h
   BLI_winstuff.h
+  BLI_winstuff_com.hh
   PIL_time.h
   PIL_time_utildefines.h
 
@@ -395,6 +398,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   extern_wcwidth
   PRIVATE bf::intern::atomic
+  PRIVATE extern_fmtlib
   ${ZLIB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )

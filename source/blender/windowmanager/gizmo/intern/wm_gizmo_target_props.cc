@@ -8,7 +8,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "MEM_guardedalloc.h"
 

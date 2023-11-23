@@ -306,6 +306,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
                                                DRWShadingGroup *shgrp_parent,
                                                GPUMaterial *gpu_material)
 {
+  using namespace blender;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
   CurvesUniformBufPool *pool = DST.vmempool->curves_ubos;
@@ -346,7 +347,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
     hair_rad_root = radii[first_curve_points.first()];
     hair_rad_tip = radii[first_curve_points.last()];
     hair_rad_shape = std::clamp(
-        safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
+        math::safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
         -1.0f,
         1.0f);
   }
@@ -692,7 +693,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
     hair_rad_root = radii[first_curve_points.first()];
     hair_rad_tip = radii[first_curve_points.last()];
     hair_rad_shape = std::clamp(
-        safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
+        math::safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
         -1.0f,
         1.0f);
   }

@@ -20,7 +20,7 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
 #include "bmesh.h"

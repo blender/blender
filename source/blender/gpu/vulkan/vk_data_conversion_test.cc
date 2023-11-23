@@ -254,4 +254,68 @@ TEST(VulkanDataConversion, vertex_format_multiple_attributes)
   }
 }
 
+TEST(VulkanDataConversion, texture_rgb16f_as_floats_to_rgba16f)
+{
+  const size_t num_pixels = 4;
+  float input[] = {
+      1.0,
+      0.5,
+      0.2,
+
+      0.2,
+      1.0,
+      0.3,
+
+      0.4,
+      0.2,
+      1.0,
+
+      1.0,
+      1.0,
+      1.0,
+  };
+
+  uint64_t device[num_pixels];
+  convert_host_to_device(device, input, num_pixels, GPU_DATA_FLOAT, GPU_RGB16F, GPU_RGBA16F);
+
+  float read_back[num_pixels * 3];
+  convert_device_to_host(read_back, device, num_pixels, GPU_DATA_FLOAT, GPU_RGB16F, GPU_RGBA16F);
+
+  for (int i : IndexRange(num_pixels * 3)) {
+    EXPECT_NEAR(input[i], read_back[i], 0.01);
+  }
+}
+
+TEST(VulkanDataConversion, texture_rgb32f_as_floats_to_rgba32f)
+{
+  const size_t num_pixels = 4;
+  float input[] = {
+      1.0,
+      0.5,
+      0.2,
+
+      0.2,
+      1.0,
+      0.3,
+
+      0.4,
+      0.2,
+      1.0,
+
+      1.0,
+      1.0,
+      1.0,
+  };
+
+  float device[num_pixels * 4];
+  convert_host_to_device(device, input, num_pixels, GPU_DATA_FLOAT, GPU_RGB32F, GPU_RGBA32F);
+
+  float read_back[num_pixels * 3];
+  convert_device_to_host(read_back, device, num_pixels, GPU_DATA_FLOAT, GPU_RGB32F, GPU_RGBA32F);
+
+  for (int i : IndexRange(num_pixels * 3)) {
+    EXPECT_NEAR(input[i], read_back[i], 0.01);
+  }
+}
+
 }  // namespace blender::gpu::tests

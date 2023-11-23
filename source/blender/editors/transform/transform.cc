@@ -19,8 +19,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_scene.h"
@@ -707,8 +707,14 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
         /* More modes can be added over time if this feature proves useful for them. */
         return false;
       }
+      if (t->options & CTX_CAMERA) {
+        /* Not supported. */
+        return false;
+      }
       break;
     }
+    case TFM_MODAL_PASSTHROUGH_NAVIGATE:
+      return t->vod != nullptr;
   }
   return true;
 }
@@ -763,6 +769,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
       {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
+      {TFM_MODAL_PASSTHROUGH_NAVIGATE, "PASSTHROUGH_NAVIGATE", 0, "Navigate", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

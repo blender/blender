@@ -17,6 +17,11 @@ struct Main;
 struct Mesh;
 struct MFace;
 
+namespace blender::bke {
+void mesh_sculpt_mask_to_legacy(MutableSpan<CustomDataLayer> vert_layers);
+void mesh_sculpt_mask_to_generic(Mesh &mesh);
+}  // namespace blender::bke
+
 void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);
 
 /**
@@ -113,7 +118,7 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain);
 
 /* Inlines */
 
-/* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.h,
+/* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.hh,
  * but I don't want to force every user of BKE_mesh.h to also include that file. */
 BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
                                               const int *index_mp_to_orig,

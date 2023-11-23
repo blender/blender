@@ -29,7 +29,7 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"

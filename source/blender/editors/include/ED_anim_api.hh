@@ -436,10 +436,10 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name NLA Channel Defines
+/** \name NLA Track Defines
  * \{ */
 
-/** NLA channel heights */
+/** NLA track heights */
 #define NLACHANNEL_FIRST_TOP(ac) \
   (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLACHANNEL_SKIP)
 #define NLACHANNEL_HEIGHT(snla) \
@@ -923,6 +923,7 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 /** Flags for conversion mapping. */
 enum eAnimUnitConv_Flags {
+  ANIM_UNITCONV_NONE = 0,
   /** Restore to original internal values. */
   ANIM_UNITCONV_RESTORE = (1 << 0),
   /** Ignore handles (i.e. only touch main keyframes). */
@@ -944,7 +945,7 @@ enum eAnimUnitConv_Flags {
 /**
  * Get flags used for normalization in ANIM_unit_mapping_get_factor.
  */
-short ANIM_get_normalization_flags(bAnimContext *ac);
+short ANIM_get_normalization_flags(SpaceLink *space_link);
 /**
  * Get unit conversion factor for given ID + F-Curve.
  */

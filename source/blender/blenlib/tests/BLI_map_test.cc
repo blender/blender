@@ -694,6 +694,22 @@ TEST(map, VectorKey)
   EXPECT_EQ(map.size(), 1);
 }
 
+TEST(map, Equality)
+{
+  Map<int, int> a;
+  Map<int, int> b;
+
+  EXPECT_EQ(a, b);
+  a.add(3, 4);
+  EXPECT_NE(a, b);
+  b.add(3, 4);
+  EXPECT_EQ(a, b);
+
+  a.add(4, 10);
+  b.add(4, 11);
+  EXPECT_NE(a, b);
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

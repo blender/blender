@@ -13,7 +13,7 @@
 #include "ANIM_visualkey.hh"
 
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

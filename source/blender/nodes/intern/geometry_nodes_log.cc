@@ -8,9 +8,8 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_viewer_path.h"
-
-#include "FN_field_cpp_type.hh"
+#include "BKE_node_socket_value_cpp_type.hh"
+#include "BKE_viewer_path.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
@@ -181,7 +180,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     const bke::GeometrySet &geometry = *value.get<bke::GeometrySet>();
     store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
   }
-  else if (const auto *value_or_field_type = fn::ValueOrFieldCPPType::get_from_self(type)) {
+  else if (const auto *value_or_field_type = bke::ValueOrFieldCPPType::get_from_self(type)) {
     const void *value_or_field = value.get();
     const CPPType &base_type = value_or_field_type->value;
     if (value_or_field_type->is_field(value_or_field)) {
@@ -457,8 +456,8 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
     GeoTreeLogger &parent_logger = this->get_local_tree_logger(*parent_compute_context);
     parent_logger.children_hashes.append(compute_context.hash());
   }
-  if (const bke::NodeGroupComputeContext *node_group_compute_context =
-          dynamic_cast<const bke::NodeGroupComputeContext *>(&compute_context))
+  if (const bke::GroupNodeComputeContext *node_group_compute_context =
+          dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context))
   {
     tree_logger.group_node_id.emplace(node_group_compute_context->node_id());
   }

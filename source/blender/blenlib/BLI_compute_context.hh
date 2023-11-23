@@ -38,6 +38,7 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_stack.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_struct_equality_utils.hh"
 
 namespace blender {
 
@@ -55,15 +56,7 @@ struct ComputeContextHash {
     return v1;
   }
 
-  friend bool operator==(const ComputeContextHash &a, const ComputeContextHash &b)
-  {
-    return a.v1 == b.v1 && a.v2 == b.v2;
-  }
-
-  friend bool operator!=(const ComputeContextHash &a, const ComputeContextHash &b)
-  {
-    return !(a == b);
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(ComputeContextHash, v1, v2)
 
   void mix_in(const void *data, int64_t len);
 

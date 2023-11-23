@@ -25,7 +25,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
@@ -339,7 +339,7 @@ ModifierTypeInfo modifierType_UVProject = {
     /*struct_name*/ "UVProjectModifierData",
     /*struct_size*/ sizeof(UVProjectModifierData),
     /*srna*/ &RNA_UVProjectModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_UVPROJECT,

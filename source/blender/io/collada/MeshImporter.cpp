@@ -19,7 +19,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_attribute.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"

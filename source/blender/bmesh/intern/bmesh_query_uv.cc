@@ -16,7 +16,7 @@
 #include "BLI_utildefines_stack.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "DNA_meshdata_types.h"
 

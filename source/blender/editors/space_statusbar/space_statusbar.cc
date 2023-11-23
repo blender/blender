@@ -13,7 +13,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_screen.hh"
 
 #include "ED_screen.hh"

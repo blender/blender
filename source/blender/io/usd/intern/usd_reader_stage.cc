@@ -43,7 +43,7 @@
 #include "BLI_string.h"
 
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_report.h"
 
 #include "DNA_material_types.h"

@@ -10,8 +10,8 @@
 
 #include "DNA_curve_types.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_curve.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_curve.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 

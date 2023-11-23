@@ -522,7 +522,6 @@ class NODE_MT_category_GEO_TEXTURE(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeTexGradient")
         node_add_menu.add_node_type(layout, "GeometryNodeImageTexture")
         node_add_menu.add_node_type(layout, "ShaderNodeTexMagic")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexMusgrave")
         node_add_menu.add_node_type(layout, "ShaderNodeTexNoise")
         node_add_menu.add_node_type(layout, "ShaderNodeTexVoronoi")
         node_add_menu.add_node_type(layout, "ShaderNodeTexWave")
@@ -547,6 +546,7 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeRandomValue")
         node_add_menu.add_repeat_zone(layout, label="Repeat Zone")
         node_add_menu.add_node_type(layout, "GeometryNodeSwitch")
+        node_add_menu.add_node_type(layout, "GeometryNodeIndexSwitch")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -662,7 +662,6 @@ class NODE_MT_geometry_node_add_all(Menu):
     bl_label = ""
 
     def draw(self, context):
-        snode = context.space_data
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_ATTRIBUTE")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT")

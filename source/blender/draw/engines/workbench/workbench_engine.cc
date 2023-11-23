@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_editmesh.h"
-#include "BKE_modifier.h"
+#include "BKE_editmesh.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
@@ -69,7 +69,7 @@ class Instance {
 
   void begin_sync()
   {
-    resources.material_buf.clear();
+    resources.material_buf.clear_and_trim();
 
     opaque_ps.sync(scene_state, resources);
     transparent_ps.sync(scene_state, resources);
@@ -156,7 +156,9 @@ class Instance {
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
         /* Disable frustum culling for sculpt meshes. */
+        /* TODO(@pragma37): Implement a cleaner way to disable frustum culling.  */
         ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+        handle = ResourceHandle(handle.resource_index(), ob_ref.object->transflag & OB_NEG_SCALE);
         sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }

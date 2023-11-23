@@ -18,7 +18,7 @@
 #include "BLI_path_util.h"
 
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 

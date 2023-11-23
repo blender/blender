@@ -8,6 +8,7 @@
 
 #include <cfloat>
 #include <cmath>
+#include <string>
 
 #include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
@@ -38,6 +39,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_path.hh"
+#include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
 #include "WM_api.hh"
@@ -366,39 +368,29 @@ static AnimationEvalContext nla_time_remap(const AnimationEvalContext *anim_eval
   return *anim_eval_context;
 }
 
-/* Insert the specified keyframe value into a single F-Curve. */
-static bool insert_keyframe_value(ReportList *reports,
-                                  PointerRNA *ptr,
-                                  PropertyRNA *prop,
-                                  FCurve *fcu,
-                                  const AnimationEvalContext *anim_eval_context,
-                                  float curval,
-                                  eBezTriple_KeyframeType keytype,
-                                  eInsertKeyFlags flag)
+/* Adjust frame on which to add keyframe, to make it easier to add corrective drivers. */
+static float remap_driver_frame(const AnimationEvalContext *anim_eval_context,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const FCurve *fcu)
 {
-  if (BKE_fcurve_is_keyframable(fcu) == 0) {
-    BKE_reportf(
-        reports,
-        RPT_ERROR,
-        "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, "
-        "and try removing F-Modifiers",
-        fcu->rna_path,
-        fcu->array_index);
-    return false;
-  }
-
   float cfra = anim_eval_context->eval_time;
+  PathResolvedRNA anim_rna;
+  if (RNA_path_resolved_create(ptr, prop, fcu->array_index, &anim_rna)) {
+    cfra = evaluate_driver(&anim_rna, fcu->driver, fcu->driver, anim_eval_context);
+  }
+  else {
+    cfra = 0.0f;
+  }
+  return cfra;
+}
 
-  /* Adjust frame on which to add keyframe, to make it easier to add corrective drivers. */
-  if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
-    PathResolvedRNA anim_rna;
-
-    if (RNA_path_resolved_create(ptr, prop, fcu->array_index, &anim_rna)) {
-      cfra = evaluate_driver(&anim_rna, fcu->driver, fcu->driver, anim_eval_context);
-    }
-    else {
-      cfra = 0.0f;
-    }
+/* Insert the specified keyframe value into a single F-Curve. */
+static bool insert_keyframe_value(
+    FCurve *fcu, float cfra, float curval, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
+{
+  if (!BKE_fcurve_is_keyframable(fcu)) {
+    return false;
   }
 
   /* Adjust coordinates for cycle aware insertion. */
@@ -507,8 +499,22 @@ bool insert_keyframe_direct(ReportList *reports,
     return false;
   }
 
-  return insert_keyframe_value(
-      reports, &ptr, prop, fcu, anim_eval_context, current_value, keytype, flag);
+  float cfra = anim_eval_context->eval_time;
+  if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
+    cfra = remap_driver_frame(anim_eval_context, &ptr, prop, fcu);
+  }
+
+  const bool success = insert_keyframe_value(fcu, cfra, current_value, keytype, flag);
+
+  if (!success) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Failed to insert keys on F-Curve with path '%s[%d]', ensure that it is not "
+                "locked or sampled, and try removing F-Modifiers",
+                fcu->rna_path,
+                fcu->array_index);
+  }
+  return success;
 }
 
 /** Find or create the FCurve based on the given path, and insert the specified value into it. */
@@ -565,8 +571,21 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
   /* Update F-Curve flags to ensure proper behavior for property type. */
   update_autoflags_fcurve_direct(fcu, prop);
 
-  const bool success = insert_keyframe_value(
-      reports, ptr, prop, fcu, anim_eval_context, curval, keytype, flag);
+  float cfra = anim_eval_context->eval_time;
+  if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
+    cfra = remap_driver_frame(anim_eval_context, ptr, prop, fcu);
+  }
+
+  const bool success = insert_keyframe_value(fcu, cfra, curval, keytype, flag);
+
+  if (!success) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Failed to insert keys on F-Curve with path '%s[%d]', ensure that it is not "
+                "locked or sampled, and try removing F-Modifiers",
+                fcu->rna_path,
+                fcu->array_index);
+  }
 
   /* If the curve is new, make it cyclic if appropriate. */
   if (is_cyclic_action && is_new_curve) {
@@ -946,6 +965,42 @@ int clear_keyframe(Main *bmain,
   }
 
   return key_count;
+}
+
+int insert_key_action(Main *bmain,
+                      bAction *action,
+                      PointerRNA *ptr,
+                      const std::string &rna_path,
+                      const float frame,
+                      const Span<float> values,
+                      eInsertKeyFlags insert_key_flag,
+                      eBezTriple_KeyframeType key_type)
+{
+  BLI_assert(bmain != nullptr);
+  BLI_assert(action != nullptr);
+
+  std::string group;
+  if (ptr->type == &RNA_PoseBone) {
+    bPoseChannel *pose_channel = static_cast<bPoseChannel *>(ptr->data);
+    group = pose_channel->name;
+  }
+  else {
+    group = "Object Transforms";
+  }
+
+  int property_array_index = 0;
+  int inserted_keys = 0;
+  for (float value : values) {
+    FCurve *fcurve = action_fcurve_ensure(
+        bmain, action, group.c_str(), ptr, rna_path.c_str(), property_array_index);
+    const bool inserted_key = insert_keyframe_value(
+        fcurve, frame, value, key_type, insert_key_flag);
+    if (inserted_key) {
+      inserted_keys++;
+    }
+    property_array_index++;
+  }
+  return inserted_keys;
 }
 
 }  // namespace blender::animrig

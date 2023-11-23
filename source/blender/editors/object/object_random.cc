@@ -15,7 +15,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 
 #include "RNA_access.hh"

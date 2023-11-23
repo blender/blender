@@ -14,7 +14,7 @@
 
 #include "extract_mesh.hh"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 namespace blender::draw {
 
@@ -23,9 +23,19 @@ namespace blender::draw {
  * \{ */
 
 struct UVStretchAngle {
-  int16_t angle;
+  /* NOTE: To more easily satisfy cross-platform alignment requirements, placing the 4-byte aligned
+   * 2 element array first ensures each attribute block is 4-byte aligned. */
   int16_t uv_angles[2];
+  int16_t angle;
+#if defined(WITH_METAL_BACKEND)
+  /* For apple platforms, vertex data struct must align to minimum per-vertex-stride of 4 bytes.
+   * Hence, this struct needs to align to 8 bytes. */
+  int16_t __pad;
+#endif
 };
+#if defined(WITH_METAL_BACKEND)
+BLI_STATIC_ASSERT_ALIGN(UVStretchAngle, 4)
+#endif
 
 struct MeshExtract_StretchAngle_Data {
   UVStretchAngle *vbo_data;
@@ -85,8 +95,8 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData &mr,
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     /* Waning: adjust #UVStretchAngle struct accordingly. */
-    GPU_vertformat_attr_add(&format, "angle", GPU_COMP_I16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
     GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_I16, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_attr_add(&format, "angle", GPU_COMP_I16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);

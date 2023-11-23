@@ -12,6 +12,7 @@
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
 
 /**
  * Returns the bitmask for a given ordered pair of angle in [-pi/2..pi/2] range.
@@ -77,7 +78,24 @@ float horizon_scan_bitmask_to_occlusion_cosine(uint bitmask)
 #endif
 }
 
-float bsdf_eval(vec3 N, vec3 L)
+float bsdf_eval(vec3 N, vec3 L, vec3 V)
 {
   return dot(N, L);
+}
+
+/**
+ * Projects the normal `N` onto a plane defined by `V` and `T`.
+ * V, T, B forms an orthonormal basis around V.
+ * Returns the angle of the normal projected normal with `V` and its length.
+ */
+void horizon_scan_projected_normal_to_plane_angle_and_length(
+    vec3 N, vec3 V, vec3 T, vec3 B, out float N_proj_len, out float N_angle)
+{
+  /* Projected view normal onto the integration plane. */
+  vec3 N_proj = normalize_and_get_length(N - B * dot(N, B), N_proj_len);
+
+  float N_sin = dot(N_proj, T);
+  float N_cos = dot(N_proj, V);
+  /* Angle between normalized projected normal and view vector. */
+  N_angle = sign(N_sin) * acos_fast(N_cos);
 }

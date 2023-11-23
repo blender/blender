@@ -22,23 +22,20 @@ namespace blender::gpu {
 VKDescriptorSet::VKDescriptorSet(VKDescriptorSet &&other)
     : vk_descriptor_pool_(other.vk_descriptor_pool_), vk_descriptor_set_(other.vk_descriptor_set_)
 {
-  other.mark_freed();
+  other.vk_descriptor_set_ = VK_NULL_HANDLE;
+  other.vk_descriptor_pool_ = VK_NULL_HANDLE;
 }
 
 VKDescriptorSet::~VKDescriptorSet()
 {
   if (vk_descriptor_set_ != VK_NULL_HANDLE) {
     /* Handle should be given back to the pool. */
-    VKDevice &device = VKBackend::get().device_;
-    device.descriptor_pools_get().free(*this);
-    BLI_assert(vk_descriptor_set_ == VK_NULL_HANDLE);
-  }
-}
+    const VKDevice &device = VKBackend::get().device_get();
+    vkFreeDescriptorSets(device.device_get(), vk_descriptor_pool_, 1, &vk_descriptor_set_);
 
-void VKDescriptorSet::mark_freed()
-{
-  vk_descriptor_set_ = VK_NULL_HANDLE;
-  vk_descriptor_pool_ = VK_NULL_HANDLE;
+    vk_descriptor_set_ = VK_NULL_HANDLE;
+    vk_descriptor_pool_ = VK_NULL_HANDLE;
+  }
 }
 
 void VKDescriptorSetTracker::bind(VKStorageBuffer &buffer,
@@ -130,8 +127,12 @@ VKDescriptorSetTracker::Binding &VKDescriptorSetTracker::ensure_location(
 
 void VKDescriptorSetTracker::update(VKContext &context)
 {
-  BLI_assert(layout_ != VK_NULL_HANDLE);
-  tracked_resource_for(context, !bindings_.is_empty());
+  const VKShader &shader = *unwrap(context.shader);
+  VkDescriptorSetLayout vk_descriptor_set_layout = shader.vk_descriptor_set_layout_get();
+  const bool new_descriptor_set_layout = assign_if_different(active_vk_descriptor_set_layout,
+                                                             vk_descriptor_set_layout);
+  const bool renew_resource = new_descriptor_set_layout || !bindings_.is_empty();
+  tracked_resource_for(context, renew_resource);
   std::unique_ptr<VKDescriptorSet> &descriptor_set = active_descriptor_set();
   VkDescriptorSet vk_descriptor_set = descriptor_set->vk_handle();
   BLI_assert(vk_descriptor_set != VK_NULL_HANDLE);
@@ -205,10 +206,9 @@ void VKDescriptorSetTracker::update(VKContext &context)
   bindings_.clear();
 }
 
-std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKContext & /*context*/)
+std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKContext &context)
 {
-  VKDevice &device = VKBackend::get().device_;
-  return device.descriptor_pools_get().allocate(layout_);
+  return context.descriptor_pools_get().allocate(active_vk_descriptor_set_layout);
 }
 
 void VKDescriptorSetTracker::debug_print() const
@@ -222,6 +222,15 @@ void VKDescriptorSetTracker::Binding::debug_print() const
 {
   std::cout << "VkDescriptorSetTrackker::Binding(type: " << type
             << ", location:" << location.binding << ")\n";
+}
+
+void VKDescriptorSetTracker::bind(VKContext &context,
+                                  VkPipelineLayout vk_pipeline_layout,
+                                  VkPipelineBindPoint vk_pipeline_bind_point)
+{
+  update(context);
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.bind(*active_descriptor_set(), vk_pipeline_layout, vk_pipeline_bind_point);
 }
 
 }  // namespace blender::gpu

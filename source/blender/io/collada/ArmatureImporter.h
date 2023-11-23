@@ -12,7 +12,7 @@
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_key.h"
 
 #include "DNA_armature_types.h"

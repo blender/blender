@@ -4,7 +4,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
@@ -43,10 +43,9 @@ static float calc_brush_radius(ViewContext *vc,
 template<typename T>
 static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> dst)
 {
-  dst.first() = a;
-  const float step = 1.0f / dst.size();
-  for (const int i : dst.index_range().drop_front(1)) {
-    dst[i] = bke::attribute_math::mix2(i * step, a, b);
+  const float step = 1.0f / float(dst.size());
+  for (const int i : dst.index_range()) {
+    dst[i] = bke::attribute_math::mix2(float(i + 1) * step, a, b);
   }
 }
 

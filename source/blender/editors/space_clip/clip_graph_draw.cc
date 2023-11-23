@@ -11,7 +11,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

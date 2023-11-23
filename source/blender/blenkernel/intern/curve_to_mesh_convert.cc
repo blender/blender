@@ -847,6 +847,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   build_mesh_positions(curves_info, offsets, eval_buffer, *mesh);
 
+  mesh->tag_overlapping_none();
   if (!offsets.any_single_point_main) {
     /* If there are no single point curves, every combination will have at least loose edges. */
     mesh->tag_loose_verts_none();

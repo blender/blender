@@ -21,7 +21,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_threads.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -29,7 +29,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_tangent.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_subsurf.hh"
 

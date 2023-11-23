@@ -40,7 +40,7 @@
 #include "RNA_prototypes.h"
 
 #include "BKE_appdir.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_paint.hh"

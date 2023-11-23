@@ -29,7 +29,7 @@ using namespace Freestyle;
 #include "DNA_text_types.h"
 
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"

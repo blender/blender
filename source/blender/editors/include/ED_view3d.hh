@@ -50,6 +50,7 @@ struct rctf;
 struct rcti;
 struct wmEvent;
 struct wmGizmo;
+struct wmKeyMapItem;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -212,7 +213,7 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
  *
  * \note modal map events can also be used in `ED_view3d_navigation_do`.
  */
-ViewOpsData *ED_view3d_navigation_init(bContext *C, const bool use_alt_navigation);
+ViewOpsData *ED_view3d_navigation_init(bContext *C, const wmKeyMapItem *kmi_merge);
 bool ED_view3d_navigation_do(bContext *C,
                              ViewOpsData *vod,
                              const wmEvent *event,

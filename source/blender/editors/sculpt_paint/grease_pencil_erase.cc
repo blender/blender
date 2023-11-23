@@ -12,7 +12,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
@@ -532,14 +532,18 @@ struct EraseOperationExecutor {
     const bke::AnonymousAttributePropagationInfo propagation_info{};
 
     /* Copy curves attributes. */
-    for (bke::AttributeTransferData &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_CURVE, propagation_info, {"cyclic"}))
-    {
-      bke::attribute_math::gather(attribute.src, dst_to_src_curve.as_span(), attribute.dst.span);
-      attribute.dst.finish();
+    bke::gather_attributes(src_attributes,
+                           ATTR_DOMAIN_CURVE,
+                           propagation_info,
+                           {"cyclic"},
+                           dst_to_src_curve,
+                           dst_attributes);
+    if (src_cyclic.get_if_single().value_or(true)) {
+      array_utils::gather(
+          src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
     }
-    array_utils::gather(
-        src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
+
+    dst.update_curve_types();
 
     /* Display intersections with flat caps. */
     if (!keep_caps) {

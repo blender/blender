@@ -653,7 +653,7 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
  * \param draw_flip: X/Y flipping (ignored when null).
  * \param frame_indicator_factor: Display a vertical frame-indicator (ignored when -1).
  */
-static void playanim_toscreen_ex(GhostData *data,
+static void playanim_toscreen_ex(GhostData *ghost_data,
                                  const PlayDisplayContext *display_ctx,
                                  const PlayAnimPict *picture,
                                  ImBuf *ibuf,
@@ -664,11 +664,11 @@ static void playanim_toscreen_ex(GhostData *data,
                                  const bool draw_flip[2],
                                  const float frame_indicator_factor)
 {
-  GHOST_ActivateWindowDrawingContext(data->window);
+  GHOST_ActivateWindowDrawingContext(ghost_data->window);
   GPU_render_begin();
 
   GPUContext *restore_context = GPU_context_active_get();
-  GPU_context_active_set(data->gpu_context);
+  GPU_context_active_set(ghost_data->gpu_context);
 
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -723,7 +723,7 @@ static void playanim_toscreen_ex(GhostData *data,
                picture->error_message ? picture->error_message : "<unknown error>");
     }
 
-    playanim_window_get_size(data->window, &sizex, &sizey);
+    playanim_window_get_size(ghost_data->window, &sizex, &sizey);
     fsizex_inv = 1.0f / sizex;
     fsizey_inv = 1.0f / sizey;
 
@@ -776,7 +776,7 @@ static void playanim_toscreen_ex(GhostData *data,
     GPU_flush();
   }
 
-  GHOST_SwapWindowBuffers(data->window);
+  GHOST_SwapWindowBuffers(ghost_data->window);
   GPU_context_active_set(restore_context);
   GPU_render_end();
 }

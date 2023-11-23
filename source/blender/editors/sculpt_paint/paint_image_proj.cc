@@ -54,8 +54,8 @@
 #include "BKE_camera.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -6512,7 +6512,7 @@ enum {
 
 static const EnumPropertyItem layer_type_items[] = {
     {LAYER_BASE_COLOR, "BASE_COLOR", 0, "Base Color", ""},
-    {LAYER_SPECULAR, "SPECULAR", 0, "Specular", ""},
+    {LAYER_SPECULAR, "SPECULAR", 0, "Specular IOR Level", ""},
     {LAYER_ROUGHNESS, "ROUGHNESS", 0, "Roughness", ""},
     {LAYER_METALLIC, "METALLIC", 0, "Metallic", ""},
     {LAYER_NORMAL, "NORMAL", 0, "Normal", ""},

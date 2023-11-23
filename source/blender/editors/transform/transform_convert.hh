@@ -120,6 +120,7 @@ void curve_populate_trans_data_structs(TransDataContainer &tc,
                                        std::optional<blender::MutableSpan<float>> value_attribute,
                                        const blender::IndexMask &selected_indices,
                                        bool use_proportional_edit,
+                                       const blender::IndexMask &affected_curves,
                                        bool use_connected_only,
                                        int trans_data_offset);
 
@@ -199,7 +200,7 @@ struct TransMirrorData {
 
 struct TransMeshDataCrazySpace {
   float (*quats)[4];
-  float (*defmats)[3][3];
+  blender::Array<blender::float3x3, 0> defmats;
 };
 
 void transform_convert_mesh_islands_calc(BMEditMesh *em,

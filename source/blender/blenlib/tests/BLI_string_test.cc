@@ -1390,7 +1390,7 @@ class StringEscape : public testing::Test {
     size_t dst_test_len;
     char dst_test[64]; /* Must be big enough for all input. */
     for (const auto &item : items) {
-      /* Validate the static size is big enough (test the test it's self). */
+      /* Validate the static size is big enough (test the test itself). */
       EXPECT_LT((strlen(item[0]) * 2) + 1, sizeof(dst_test));
       /* Escape the string. */
       dst_test_len = BLI_str_escape(dst_test, item[0], sizeof(dst_test));

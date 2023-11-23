@@ -8,7 +8,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_geometry_set.hh"
 
 #include "NOD_rna_define.hh"

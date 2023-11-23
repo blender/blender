@@ -18,12 +18,12 @@
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_particle.h"
 #include "BKE_screen.hh"
 
@@ -99,8 +99,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int /*verts_num*/)
+                         blender::MutableSpan<blender::float3> positions)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
   ParticleSystem *psys = nullptr;
@@ -148,7 +147,7 @@ static void deform_verts(ModifierData *md,
 
   /* make new mesh */
   psmd->mesh_final = BKE_mesh_copy_for_eval(mesh);
-  BKE_mesh_vert_coords_apply(psmd->mesh_final, vertexCos);
+  BKE_mesh_vert_coords_apply(psmd->mesh_final, reinterpret_cast<float(*)[3]>(positions.data()));
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
 
@@ -269,7 +268,7 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /*struct_name*/ "ParticleSystemModifierData",
     /*struct_size*/ sizeof(ParticleSystemModifierData),
     /*srna*/ &RNA_ParticleSystemModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_UsesPointCache,
     /*icon*/ ICON_MOD_PARTICLES,

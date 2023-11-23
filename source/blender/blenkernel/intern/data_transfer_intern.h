@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_customdata.h" /* For cd_datatransfer_interp */
+#include "BKE_customdata.hh" /* For cd_datatransfer_interp */
 
 #ifdef __cplusplus
 extern "C" {

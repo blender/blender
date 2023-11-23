@@ -19,7 +19,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"

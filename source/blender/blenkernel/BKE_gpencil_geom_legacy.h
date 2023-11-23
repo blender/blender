@@ -8,10 +8,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Depsgraph;
 struct Main;
 struct Object;
@@ -510,6 +506,3 @@ float BKE_gpencil_stroke_average_pressure_get(struct bGPDstroke *gps);
  * Check if the thickness of the stroke is constant.
  */
 bool BKE_gpencil_stroke_is_pressure_constant(struct bGPDstroke *gps);
-#ifdef __cplusplus
-}
-#endif

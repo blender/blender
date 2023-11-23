@@ -249,8 +249,7 @@ uint BLI_filelist_dir_contents(const char *dirname, direntry **r_filelist)
 
 void BLI_filelist_entry_size_to_string(const struct stat *st,
                                        const uint64_t st_size_fallback,
-                                       /* Used to change MB -> M, etc. - is that really useful? */
-                                       const bool /*compact*/,
+                                       const bool compact,
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN])
 {
   /*
@@ -260,9 +259,19 @@ void BLI_filelist_entry_size_to_string(const struct stat *st,
    */
   double size = double(st ? st->st_size : st_size_fallback);
 #ifdef WIN32
-  BLI_str_format_byte_unit(r_size, size, false);
+  if (compact) {
+    BLI_str_format_byte_unit_compact(r_size, size, false);
+  }
+  else {
+    BLI_str_format_byte_unit(r_size, size, false);
+  }
 #else
-  BLI_str_format_byte_unit(r_size, size, true);
+  if (compact) {
+    BLI_str_format_byte_unit_compact(r_size, size, true);
+  }
+  else {
+    BLI_str_format_byte_unit(r_size, size, true);
+  }
 #endif
 }
 

@@ -21,7 +21,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_remesh_voxel.hh"
 #include "BKE_mesh_runtime.hh"
@@ -268,7 +268,7 @@ ModifierTypeInfo modifierType_Remesh = {
     /*struct_name*/ "RemeshModifierData",
     /*struct_size*/ sizeof(RemeshModifierData),
     /*srna*/ &RNA_RemeshModifier,
-    /*type*/ eModifierTypeType_Nonconstructive,
+    /*type*/ ModifierTypeType::Nonconstructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_REMESH,

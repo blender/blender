@@ -29,7 +29,7 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "intern/bmesh_private.h"
 

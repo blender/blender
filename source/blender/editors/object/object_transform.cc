@@ -33,15 +33,15 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_curves.hh"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -49,6 +49,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -1501,7 +1502,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
       Curve *cu = static_cast<Curve *>(ob->data);
 
-      if (ob->runtime.bb == nullptr && (centermode != ORIGIN_TO_CURSOR)) {
+      if (ob->runtime->bb == nullptr && (centermode != ORIGIN_TO_CURSOR)) {
         /* Do nothing. */
       }
       else {
@@ -1510,8 +1511,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
         else {
           /* extra 0.5 is the height o above line */
-          cent[0] = 0.5f * (ob->runtime.bb->vec[4][0] + ob->runtime.bb->vec[0][0]);
-          cent[1] = 0.5f * (ob->runtime.bb->vec[0][1] + ob->runtime.bb->vec[2][1]);
+          cent[0] = 0.5f * (ob->runtime->bb->vec[4][0] + ob->runtime->bb->vec[0][0]);
+          cent[1] = 0.5f * (ob->runtime->bb->vec[0][1] + ob->runtime->bb->vec[2][1]);
         }
 
         cent[2] = 0.0f;

@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Implementation of denoising API which uses OpenImageDenoise library. */
+/* Implementation of a CPU based denoiser which uses OpenImageDenoise library. */
 class OIDNDenoiser : public Denoiser {
  public:
   /* Forwardly declared state which might be using compile-flag specific fields, such as

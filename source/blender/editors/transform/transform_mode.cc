@@ -21,7 +21,7 @@
 #include "BLI_string.h"
 
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 
 #include "RNA_access.hh"

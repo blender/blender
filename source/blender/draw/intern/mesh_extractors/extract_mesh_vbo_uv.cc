@@ -10,7 +10,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {

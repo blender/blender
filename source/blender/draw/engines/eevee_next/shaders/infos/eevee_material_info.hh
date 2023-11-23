@@ -152,8 +152,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     /* NOTE: This removes the possibility of using gl_FragDepth. */
     .early_fragment_test(true)
     /* Direct output. (Emissive, Holdout) */
-    .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
-    .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
+    .fragment_out(0, Type::VEC4, "out_radiance")
     /* Everything is stored inside a two layered target, one for each format. This is to fit the
      * limitation of the number of images we can bind on a single shader. */
     .image_array_out(GBUF_CLOSURE_SLOT, Qualifier::WRITE, GPU_RGBA16, "out_gbuf_closure_img")

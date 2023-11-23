@@ -21,13 +21,13 @@
 #include "BLI_task.h"
 #include "BLI_vector.hh"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 
 #include "GPU_capabilities.h"
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_inline.h"
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 #include "mesh_extractors/extract_mesh.hh"
 

@@ -21,9 +21,10 @@
 #include "DNA_curveprofile_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_displist.h"
+#include "BKE_object_types.hh"
 
 enum CurveBevelFillType {
   BACK = 0,
@@ -241,11 +242,11 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
     float facy = cu->bevobj->scale[1];
 
     DispList *dl;
-    if (cu->bevobj->runtime.curve_cache) {
-      dl = static_cast<DispList *>(cu->bevobj->runtime.curve_cache->disp.first);
+    if (cu->bevobj->runtime->curve_cache) {
+      dl = static_cast<DispList *>(cu->bevobj->runtime->curve_cache->disp.first);
     }
     else {
-      BLI_assert(cu->bevobj->runtime.curve_cache != nullptr);
+      BLI_assert(cu->bevobj->runtime->curve_cache != nullptr);
       dl = nullptr;
     }
 

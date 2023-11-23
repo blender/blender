@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 
 #include "BLI_utility_mixins.hh"
 

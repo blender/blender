@@ -62,12 +62,12 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 #  include "BLI_math_vector.h"
 
 #  include "BKE_action.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_main.h"
 
-#  include "BKE_armature.h"
+#  include "BKE_armature.hh"
 #  include "ED_armature.hh"
 
 #  include "ANIM_bone_collections.h"
@@ -282,7 +282,7 @@ static void rna_BoneCollection_bones_begin(CollectionPropertyIterator *iter, Poi
   bArmature *arm = (bArmature *)ptr->owner_id;
   if (arm->edbo) {
     iter->valid = false;
-    BKE_reportf(nullptr, RPT_WARNING, "collection.bones is not available in armature edit mode");
+    BKE_reportf(nullptr, RPT_WARNING, "`Collection.bones` is not available in armature edit mode");
     return;
   }
 
@@ -2097,7 +2097,7 @@ static void rna_def_bonecollection(BlenderRNA *brna)
                            "Bones",
                            "Bones assigned to this bone collection. In armature edit mode this "
                            "will always return an empty list of bones, as the bone collection "
-                           "memberships are only synchronised when exiting edit mode");
+                           "memberships are only synchronized when exiting edit mode");
 
   RNA_api_bonecollection(srna);
 }

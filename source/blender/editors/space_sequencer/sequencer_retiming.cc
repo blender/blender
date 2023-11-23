@@ -16,7 +16,7 @@
 #include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -444,6 +444,11 @@ static bool transition_add_new_for_seq(const bContext *C,
 
   if (key == nullptr) {
     key = SEQ_retiming_key_get_by_timeline_frame(scene, seq, timeline_frame);
+  }
+
+  if (SEQ_retiming_is_last_key(seq, key) || key->strip_frame_index == 0) {
+    BKE_report(op->reports, RPT_WARNING, "Can not create transition from first or last key");
+    return false;
   }
 
   SeqRetimingKey *transition = SEQ_retiming_add_transition(scene, seq, key, duration);

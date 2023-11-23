@@ -6,6 +6,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(eevee_ambient_occlusion_pass)
+    .define("HORIZON_OCCLUSION")
     .compute_source("eevee_ambient_occlusion_pass_comp.glsl")
     .local_group_size(AMBIENT_OCCLUSION_PASS_TILE_SIZE, AMBIENT_OCCLUSION_PASS_TILE_SIZE)
     .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D_ARRAY, "in_normal_img")

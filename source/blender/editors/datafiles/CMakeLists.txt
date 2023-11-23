@@ -319,9 +319,6 @@ set(ICON_NAMES
   curve_ncurve
   curve_ncircle
   curve_path
-  lightprobe_cubemap
-  lightprobe_planar
-  lightprobe_grid
   mod_dash
   color_red
   color_green
@@ -345,6 +342,8 @@ set(ICON_NAMES
   force_fluidflow
   rigid_body
   rigid_body_constraint
+  split_horizontal
+  split_vertical
   image_plane
   image_background
   image_reference

@@ -371,7 +371,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
                                                          ::Material *blender_mat,
                                                          GPUMaterial *gpumat)
 {
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_LESS_EQUAL;
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL;
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
@@ -382,24 +382,14 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   return pass;
 }
 
-void ForwardPipeline::render(View &view,
-                             Framebuffer &prepass_fb,
-                             Framebuffer &combined_fb,
-                             GPUTexture * /*combined_tx*/)
+void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb)
 {
   DRW_stats_group_start("Forward.Opaque");
 
   prepass_fb.bind();
   inst_.manager->submit(prepass_ps_, view);
 
-  // if (!DRW_pass_is_empty(prepass_ps_)) {
   inst_.hiz_buffer.set_dirty();
-  // }
-
-  // if (inst_.raytracing.enabled()) {
-  //   rt_buffer.radiance_copy(combined_tx);
-  //   inst_.hiz_buffer.update();
-  // }
 
   inst_.shadows.set_view(view);
   inst_.irradiance_cache.set_view(view);
@@ -411,11 +401,8 @@ void ForwardPipeline::render(View &view,
 
   inst_.volume.draw_resolve(view);
 
+  combined_fb.bind();
   inst_.manager->submit(transparent_ps_, view);
-
-  // if (inst_.raytracing.enabled()) {
-  //   gbuffer.ray_radiance_tx.release();
-  // }
 }
 
 /** \} */
@@ -482,8 +469,8 @@ void DeferredLayer::begin_sync()
       inst_.cryptomatte.bind_resources(gbuffer_ps_);
     }
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL |
-                     DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL |
+                     DRW_STATE_STENCIL_ALWAYS;
 
     gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
     gbuffer_double_sided_ps_->state_set(state);
@@ -1031,8 +1018,8 @@ void DeferredProbeLayer::begin_sync()
       inst_.cryptomatte.bind_resources(gbuffer_ps_);
     }
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL |
-                     DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL |
+                     DRW_STATE_STENCIL_ALWAYS;
 
     gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
     gbuffer_double_sided_ps_->state_set(state);
@@ -1190,7 +1177,7 @@ void PlanarProbePipeline::begin_sync()
     gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
     inst_.cryptomatte.bind_resources(gbuffer_ps_);
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
 
     gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
     gbuffer_double_sided_ps_->state_set(state);

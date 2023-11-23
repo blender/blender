@@ -144,7 +144,5 @@ void main()
   /* Only output emission during the gbuffer pass. */
   out_radiance = vec4(g_emission, 0.0);
   out_radiance.rgb *= 1.0 - g_holdout;
-
-  out_transmittance.rgb = g_transmittance;
-  out_transmittance.a = saturate(average(g_transmittance));
+  out_radiance.a = g_holdout;
 }

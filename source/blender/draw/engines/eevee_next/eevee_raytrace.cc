@@ -60,7 +60,9 @@ void RayTraceModule::sync()
     pass.shader_set(inst_.shaders.static_shader_get(RAY_TILE_CLASSIFY));
     pass.bind_image("tile_mask_img", &tile_mask_tx_);
     pass.bind_ssbo("ray_dispatch_buf", &ray_dispatch_buf_);
-    pass.bind_ssbo("denoise_dispatch_buf", &denoise_dispatch_buf_);
+    pass.bind_ssbo("ray_denoise_dispatch_buf", &ray_denoise_dispatch_buf_);
+    pass.bind_ssbo("horizon_dispatch_buf", &horizon_dispatch_buf_);
+    pass.bind_ssbo("horizon_denoise_dispatch_buf", &horizon_denoise_dispatch_buf_);
     inst_.bind_uniform_data(&pass);
     inst_.gbuffer.bind_resources(pass);
     pass.dispatch(&tile_classify_dispatch_size_);
@@ -72,9 +74,13 @@ void RayTraceModule::sync()
     pass.shader_set(inst_.shaders.static_shader_get(RAY_TILE_COMPACT));
     pass.bind_image("tile_mask_img", &tile_mask_tx_);
     pass.bind_ssbo("ray_dispatch_buf", &ray_dispatch_buf_);
-    pass.bind_ssbo("denoise_dispatch_buf", &denoise_dispatch_buf_);
+    pass.bind_ssbo("ray_denoise_dispatch_buf", &ray_denoise_dispatch_buf_);
     pass.bind_ssbo("ray_tiles_buf", &ray_tiles_buf_);
-    pass.bind_ssbo("denoise_tiles_buf", &denoise_tiles_buf_);
+    pass.bind_ssbo("ray_denoise_tiles_buf", &ray_denoise_tiles_buf_);
+    pass.bind_ssbo("horizon_dispatch_buf", &horizon_dispatch_buf_);
+    pass.bind_ssbo("horizon_denoise_dispatch_buf", &horizon_denoise_dispatch_buf_);
+    pass.bind_ssbo("horizon_tiles_buf", &horizon_tiles_buf_);
+    pass.bind_ssbo("horizon_denoise_tiles_buf", &horizon_denoise_tiles_buf_);
     inst_.bind_uniform_data(&pass);
     pass.dispatch(&tile_compact_dispatch_size_);
     pass.barrier(GPU_BARRIER_SHADER_STORAGE);
@@ -148,7 +154,7 @@ void RayTraceModule::sync()
     PassSimple &pass = PASS_VARIATION(denoise_spatial_, type, _ps_);
     pass.init();
     pass.shader_set(inst_.shaders.static_shader_get(SHADER_VARIATION(RAY_DENOISE_SPATIAL_, type)));
-    pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
+    pass.bind_ssbo("tiles_coord_buf", &ray_denoise_tiles_buf_);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("ray_data_img", &ray_data_tx_);
@@ -161,7 +167,7 @@ void RayTraceModule::sync()
     inst_.bind_uniform_data(&pass);
     inst_.sampling.bind_resources(pass);
     inst_.gbuffer.bind_resources(pass);
-    pass.dispatch(denoise_dispatch_buf_);
+    pass.dispatch(ray_denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
   {
@@ -178,9 +184,9 @@ void RayTraceModule::sync()
     pass.bind_image("out_radiance_img", &denoised_temporal_tx_);
     pass.bind_image("in_variance_img", &hit_variance_tx_);
     pass.bind_image("out_variance_img", &denoise_variance_tx_);
-    pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
+    pass.bind_ssbo("tiles_coord_buf", &ray_denoise_tiles_buf_);
     inst_.sampling.bind_resources(pass);
-    pass.dispatch(denoise_dispatch_buf_);
+    pass.dispatch(ray_denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
   for (auto type : IndexRange(3)) {
@@ -193,14 +199,63 @@ void RayTraceModule::sync()
     pass.bind_image("out_radiance_img", &denoised_bilateral_tx_);
     pass.bind_image("in_variance_img", &denoise_variance_tx_);
     pass.bind_image("tile_mask_img", &tile_mask_tx_);
-    pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
+    pass.bind_ssbo("tiles_coord_buf", &ray_denoise_tiles_buf_);
     inst_.bind_uniform_data(&pass);
     inst_.sampling.bind_resources(pass);
     inst_.gbuffer.bind_resources(pass);
-    pass.dispatch(denoise_dispatch_buf_);
+    pass.dispatch(ray_denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
-
+  {
+    PassSimple &pass = horizon_setup_ps_;
+    pass.init();
+    pass.shader_set(inst_.shaders.static_shader_get(HORIZON_SETUP));
+    inst_.bind_uniform_data(&pass);
+    pass.bind_texture("depth_tx", &depth_tx);
+    pass.bind_texture("in_radiance_tx", &screen_radiance_tx_, GPUSamplerState::default_sampler());
+    pass.bind_image("out_radiance_img", &downsampled_in_radiance_tx_);
+    pass.bind_image("out_normal_img", &downsampled_in_normal_tx_);
+    inst_.bind_uniform_data(&pass);
+    inst_.gbuffer.bind_resources(pass);
+    pass.dispatch(&tracing_dispatch_size_);
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  }
+  for (auto type : IndexRange(3)) {
+    PassSimple &pass = PASS_VARIATION(horizon_scan_, type, _ps_);
+    pass.init();
+    pass.shader_set(inst_.shaders.static_shader_get(SHADER_VARIATION(HORIZON_SCAN_, type)));
+    pass.bind_image("horizon_radiance_img", &horizon_radiance_tx_);
+    pass.bind_image("horizon_occlusion_img", &horizon_occlusion_tx_);
+    pass.bind_ssbo("tiles_coord_buf", &horizon_tiles_buf_);
+    pass.bind_texture("screen_radiance_tx", &downsampled_in_radiance_tx_);
+    pass.bind_texture("screen_normal_tx", &downsampled_in_normal_tx_);
+    pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    inst_.bind_uniform_data(&pass);
+    inst_.hiz_buffer.bind_resources(pass);
+    inst_.sampling.bind_resources(pass);
+    inst_.gbuffer.bind_resources(pass);
+    pass.dispatch(horizon_dispatch_buf_);
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  }
+  {
+    PassSimple &pass = horizon_denoise_ps_;
+    pass.init();
+    pass.shader_set(inst_.shaders.static_shader_get(HORIZON_DENOISE));
+    inst_.bind_uniform_data(&pass);
+    pass.bind_texture("depth_tx", &depth_tx);
+    pass.bind_image("horizon_radiance_img", &horizon_radiance_tx_);
+    pass.bind_image("horizon_occlusion_img", &horizon_occlusion_tx_);
+    pass.bind_image("radiance_img", &horizon_scan_output_tx_);
+    pass.bind_image("tile_mask_img", &tile_mask_tx_);
+    pass.bind_ssbo("tiles_coord_buf", &horizon_denoise_tiles_buf_);
+    inst_.bind_uniform_data(&pass);
+    inst_.sampling.bind_resources(pass);
+    inst_.gbuffer.bind_resources(pass);
+    inst_.irradiance_cache.bind_resources(pass);
+    inst_.reflection_probes.bind_resources(pass);
+    pass.dispatch(horizon_denoise_dispatch_buf_);
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  }
 #undef SHADER_VARIATION
 #undef PASS_VARIATION
 }
@@ -236,6 +291,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   PassSimple *trace_ray_ps = nullptr;
   PassSimple *denoise_spatial_ps = nullptr;
   PassSimple *denoise_bilateral_ps = nullptr;
+  PassSimple *horizon_scan_ps = nullptr;
   RayTraceBuffer::DenoiseBuffer *denoise_buf = nullptr;
 
   if (raytrace_closure == CLOSURE_DIFFUSE) {
@@ -245,6 +301,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
     denoise_spatial_ps = &denoise_spatial_diffuse_ps_;
     denoise_bilateral_ps = &denoise_bilateral_diffuse_ps_;
     denoise_buf = &rt_buffer.diffuse;
+    horizon_scan_ps = &horizon_scan_diffuse_ps_;
   }
   else if (raytrace_closure == CLOSURE_REFLECTION) {
     options = reflection_options_;
@@ -253,6 +310,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
     denoise_spatial_ps = &denoise_spatial_reflect_ps_;
     denoise_bilateral_ps = &denoise_bilateral_reflect_ps_;
     denoise_buf = &rt_buffer.reflection;
+    horizon_scan_ps = &horizon_scan_reflect_ps_;
   }
   else if (raytrace_closure == CLOSURE_REFRACTION) {
     options = refraction_options_;
@@ -261,6 +319,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
     denoise_spatial_ps = &denoise_spatial_refract_ps_;
     denoise_bilateral_ps = &denoise_bilateral_refract_ps_;
     denoise_buf = &rt_buffer.refraction;
+    horizon_scan_ps = &horizon_scan_refract_ps_;
   }
 
   if ((active_closures & raytrace_closure) == 0) {
@@ -278,6 +337,8 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   const int2 tracing_res = math::divide_ceil(extent, int2(resolution_scale));
   const int2 dummy_extent(1, 1);
 
+  tracing_dispatch_size_ = int3(math::divide_ceil(tracing_res, int2(RAYTRACE_GROUP_SIZE)), 1);
+
   tile_classify_dispatch_size_ = int3(math::divide_ceil(extent, int2(RAYTRACE_GROUP_SIZE)), 1);
   const int denoise_tile_count = tile_classify_dispatch_size_.x * tile_classify_dispatch_size_.y;
   const int2 tile_mask_extent = tile_classify_dispatch_size_.xy();
@@ -289,20 +350,25 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   renderbuf_stencil_view_ = inst_.render_buffers.depth_tx.stencil_view();
   renderbuf_depth_view_ = inst_.render_buffers.depth_tx;
 
-  bool use_denoise = (options.flag & RAYTRACE_EEVEE_USE_DENOISE);
-  bool use_spatial_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_SPATIAL) &&
-                             use_denoise;
-  bool use_temporal_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_TEMPORAL) &&
-                              use_spatial_denoise;
-  bool use_bilateral_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_BILATERAL) &&
-                               use_temporal_denoise;
+  const bool use_denoise = (options.flag & RAYTRACE_EEVEE_USE_DENOISE);
+  const bool use_spatial_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_SPATIAL) &&
+                                   use_denoise;
+  const bool use_temporal_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_TEMPORAL) &&
+                                    use_spatial_denoise;
+  const bool use_bilateral_denoise = (options.denoise_stages & RAYTRACE_EEVEE_DENOISE_BILATERAL) &&
+                                     use_temporal_denoise;
+  const bool use_horizon_scan = true;
 
   DRW_stats_group_start("Raytracing");
 
   data_.thickness = options.screen_trace_thickness;
   data_.quality = 1.0f - 0.95f * options.screen_trace_quality;
   data_.brightness_clamp = (options.sample_clamp > 0.0) ? options.sample_clamp : 1e20;
-  data_.max_trace_roughness = 1.0f;
+
+  float roughness_mask_start = options.screen_trace_max_roughness;
+  float roughness_mask_fade = 0.2f;
+  data_.roughness_mask_scale = 1.0 / roughness_mask_fade;
+  data_.roughness_mask_bias = data_.roughness_mask_scale * roughness_mask_start;
 
   data_.resolution_scale = resolution_scale;
   data_.closure_active = raytrace_closure;
@@ -315,8 +381,10 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   inst_.push_uniform_data();
 
   tile_mask_tx_.acquire(tile_mask_extent, RAYTRACE_TILEMASK_FORMAT);
-  denoise_tiles_buf_.resize(ceil_to_multiple_u(denoise_tile_count, 512));
+  horizon_tiles_buf_.resize(ceil_to_multiple_u(ray_tile_count, 512));
+  horizon_denoise_tiles_buf_.resize(ceil_to_multiple_u(denoise_tile_count, 512));
   ray_tiles_buf_.resize(ceil_to_multiple_u(ray_tile_count, 512));
+  ray_denoise_tiles_buf_.resize(ceil_to_multiple_u(denoise_tile_count, 512));
 
   /* Ray setup. */
   inst_.manager->submit(tile_classify_ps_);
@@ -372,8 +440,6 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
 
     inst_.manager->submit(denoise_temporal_ps_, render_view);
 
-    /* Swap after last use. */
-    TextureFromPool::swap(tile_mask_tx_, denoise_buf->tilemask_history_tx);
     /* Save view-projection matrix for next reprojection. */
     denoise_buf->history_persmat = main_view.persmat();
     /* Radiance will be swapped with history in #RayTraceResult::release().
@@ -393,13 +459,10 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   if (use_bilateral_denoise) {
     denoise_buf->denoised_bilateral_tx.acquire(extent, RAYTRACE_RADIANCE_FORMAT);
     denoised_bilateral_tx_ = denoise_buf->denoised_bilateral_tx;
-    /* Swap back for one last use. */
-    TextureFromPool::swap(tile_mask_tx_, denoise_buf->tilemask_history_tx);
 
     inst_.manager->submit(*denoise_bilateral_ps, render_view);
 
     /* Swap after last use. */
-    TextureFromPool::swap(tile_mask_tx_, denoise_buf->tilemask_history_tx);
     TextureFromPool::swap(denoise_buf->denoised_temporal_tx, denoise_buf->radiance_history_tx);
     TextureFromPool::swap(denoise_variance_tx_, denoise_buf->variance_history_tx);
 
@@ -408,8 +471,36 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
     denoise_buf->denoised_temporal_tx.release();
   }
 
-  tile_mask_tx_.release();
   denoise_variance_tx_.release();
+
+  if (use_horizon_scan) {
+    downsampled_in_radiance_tx_.acquire(tracing_res, RAYTRACE_RADIANCE_FORMAT);
+    downsampled_in_normal_tx_.acquire(tracing_res, GPU_RGBA8);
+
+    inst_.manager->submit(horizon_setup_ps_, render_view);
+
+    horizon_occlusion_tx_.acquire(tracing_res, GPU_R8);
+    horizon_radiance_tx_.acquire(tracing_res, RAYTRACE_RADIANCE_FORMAT);
+
+    inst_.manager->submit(*horizon_scan_ps, render_view);
+
+    downsampled_in_radiance_tx_.release();
+    downsampled_in_normal_tx_.release();
+
+    horizon_scan_output_tx_ = result.get();
+
+    inst_.manager->submit(horizon_denoise_ps_, render_view);
+
+    horizon_occlusion_tx_.release();
+    horizon_radiance_tx_.release();
+  }
+
+  tile_mask_tx_.release();
+
+  if (tile_mask_tx_.is_valid()) {
+    /* Swap after last use. */
+    TextureFromPool::swap(tile_mask_tx_, denoise_buf->tilemask_history_tx);
+  }
 
   DRW_stats_group_end();
 

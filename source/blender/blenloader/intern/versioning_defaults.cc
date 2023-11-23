@@ -47,7 +47,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
@@ -58,7 +58,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
@@ -594,8 +594,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     /* Match default for new meshes. */
     mesh->smoothresh_legacy = DEG2RADF(30);
     /* Match voxel remesher options for all existing meshes in templates. */
-    mesh->flag |= ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_PAINT_MASK |
-                  ME_REMESH_REPROJECT_SCULPT_FACE_SETS | ME_REMESH_REPROJECT_VERTEX_COLORS;
+    mesh->flag |= ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_ATTRIBUTES;
 
     /* For Sculpting template. */
     if (app_template && STREQ(app_template, "Sculpting")) {

@@ -445,8 +445,6 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* TODO: Implement steps */
-
   const NodeMapRange *map_range = static_cast<NodeMapRange *>(node_->storage);
   NodeItem::Type type;
   NodeItem value = empty();
@@ -454,6 +452,7 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem from_max = empty();
   NodeItem to_min = empty();
   NodeItem to_max = empty();
+  NodeItem steps = empty();
   switch (map_range->data_type) {
     case CD_PROP_FLOAT:
       type = NodeItem::Type::Float;
@@ -462,6 +461,9 @@ NODE_SHADER_MATERIALX_BEGIN
       from_max = get_input_value(2, type);
       to_min = get_input_value(3, type);
       to_max = get_input_value(4, type);
+      if (map_range->interpolation_type == NODE_MAP_RANGE_STEPPED) {
+        steps = get_input_value(5, type);
+      }
       break;
     case CD_PROP_FLOAT3:
       type = NodeItem::Type::Vector3;
@@ -470,20 +472,46 @@ NODE_SHADER_MATERIALX_BEGIN
       from_max = get_input_value(8, type);
       to_min = get_input_value(9, type);
       to_max = get_input_value(10, type);
+      if (map_range->interpolation_type == NODE_MAP_RANGE_STEPPED) {
+        steps = get_input_value(11, type);
+      }
       break;
     default:
       BLI_assert_unreachable();
-      return empty();
   }
 
-  return create_node("range",
-                     type,
-                     {{"in", value},
-                      {"inlow", from_min},
-                      {"inhigh", from_max},
-                      {"outlow", to_min},
-                      {"outhigh", to_max},
-                      {"doclamp", val(bool(map_range->clamp))}});
+  NodeItem res = empty();
+  switch (map_range->interpolation_type) {
+    case NODE_MAP_RANGE_LINEAR:
+      res = create_node("remap",
+                        type,
+                        {{"in", value},
+                         {"inlow", from_min},
+                         {"inhigh", from_max},
+                         {"outlow", to_min},
+                         {"outhigh", to_max}});
+      break;
+    case NODE_MAP_RANGE_STEPPED: {
+      NodeItem factor = create_node(
+          "remap", type, {{"in", value}, {"inlow", from_min}, {"inhigh", from_max}});
+      value = (factor * (steps + val(1.0f))).floor() / steps;
+      res = create_node("remap", type, {{"in", value}, {"outlow", to_min}, {"outhigh", to_max}});
+      break;
+    }
+    case NODE_MAP_RANGE_SMOOTHSTEP:
+    case NODE_MAP_RANGE_SMOOTHERSTEP:
+      value = create_node(
+          "smoothstep", type, {{"in", value}, {"low", from_min}, {"high", from_max}});
+      res = create_node("remap", type, {{"in", value}, {"outlow", to_min}, {"outhigh", to_max}});
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+
+  if (map_range->clamp != 0) {
+    res = res.clamp(to_min, to_max);
+  }
+  return res;
 }
 #endif
 NODE_SHADER_MATERIALX_END

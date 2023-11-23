@@ -30,6 +30,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
@@ -1634,7 +1635,7 @@ bool BKE_object_is_visible_in_viewport(const View3D *v3d, const Object *ob)
   }
 
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) &&
-      ((v3d->local_collections_uuid & ob->runtime.local_collections_bits) == 0))
+      ((v3d->local_collections_uuid & ob->runtime->local_collections_bits) == 0))
   {
     return false;
   }

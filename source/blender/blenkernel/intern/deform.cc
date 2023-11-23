@@ -30,7 +30,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h" /* own include */
 #include "BKE_mesh.hh"

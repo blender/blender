@@ -13,7 +13,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idprop.h"
 
 #include "BLI_listbase.h"

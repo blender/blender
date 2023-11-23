@@ -23,11 +23,11 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -309,7 +309,7 @@ ModifierTypeInfo modifierType_UVWarp = {
     /*struct_name*/ "UVWarpModifierData",
     /*struct_size*/ sizeof(UVWarpModifierData),
     /*srna*/ &RNA_UVWarpModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */

@@ -23,7 +23,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_socket_value.hh"
+#include "BKE_node_tree_update.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
@@ -37,10 +38,8 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 
-#include "FN_field.hh"
-
 using namespace blender;
-using blender::fn::ValueOrField;
+using blender::bke::ValueOrField;
 using blender::nodes::SocketDeclarationPtr;
 
 bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
@@ -390,61 +389,11 @@ static const char *get_current_socket_identifier_for_future_socket(
       }
       return get_identifier_from_decl({"False", "True", "Output"}, socket, socket_decls);
     }
-    case GEO_NODE_ACCUMULATE_FIELD: {
-      return get_identifier_from_decl(
-          {"Value", "Leading", "Trailing", "Total"}, socket, socket_decls);
-    }
-    case GEO_NODE_CAPTURE_ATTRIBUTE: {
-      return get_identifier_from_decl({"Value", "Attribute"}, socket, socket_decls);
-    }
-    case GEO_NODE_ATTRIBUTE_STATISTIC: {
-      return get_identifier_from_decl({"Attribute",
-                                       "Mean",
-                                       "Median",
-                                       "Sum",
-                                       "Min",
-                                       "Max",
-                                       "Range",
-                                       "Standard Deviation",
-                                       "Variance"},
-                                      socket,
-                                      socket_decls);
-    }
-    case GEO_NODE_BLUR_ATTRIBUTE: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
     case GEO_NODE_SAMPLE_CURVE: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
-    case GEO_NODE_EVALUATE_AT_INDEX: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
-    case GEO_NODE_EVALUATE_ON_DOMAIN: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
-    case GEO_NODE_INPUT_NAMED_ATTRIBUTE: {
-      return get_identifier_from_decl("Attribute", socket, socket_decls);
-    }
-    case GEO_NODE_RAYCAST: {
-      return get_identifier_from_decl("Attribute", socket, socket_decls);
-    }
-    case GEO_NODE_SAMPLE_INDEX: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
-    case GEO_NODE_SAMPLE_NEAREST_SURFACE: {
       return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case FN_NODE_RANDOM_VALUE: {
       return get_identifier_from_decl({"Min", "Max", "Value"}, socket, socket_decls);
-    }
-    case GEO_NODE_SAMPLE_UV_SURFACE: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
-    case GEO_NODE_STORE_NAMED_ATTRIBUTE: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
-    case GEO_NODE_VIEWER: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
     }
     case SH_NODE_MIX: {
       return get_identifier_from_decl({"A", "B", "Result"}, socket, socket_decls);

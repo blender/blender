@@ -8,7 +8,7 @@
 
 #include "BLI_task.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_main.h"
 #include "BKE_object.hh"

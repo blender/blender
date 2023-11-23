@@ -24,9 +24,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
@@ -749,15 +749,9 @@ error:
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  correctivesmooth_modifier_do(md,
-                               ctx->depsgraph,
-                               ctx->object,
-                               mesh,
-                               {reinterpret_cast<blender::float3 *>(vertexCos), verts_num},
-                               nullptr);
+  correctivesmooth_modifier_do(md, ctx->depsgraph, ctx->object, mesh, positions, nullptr);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -837,7 +831,7 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /*struct_name*/ "CorrectiveSmoothModifierData",
     /*struct_size*/ sizeof(CorrectiveSmoothModifierData),
     /*srna*/ &RNA_CorrectiveSmoothModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_SMOOTH,
 

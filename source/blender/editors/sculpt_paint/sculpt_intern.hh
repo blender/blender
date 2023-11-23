@@ -959,7 +959,7 @@ void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
-float (*SCULPT_mesh_deformed_positions_get(SculptSession *ss))[3];
+blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptSession *ss);
 
 /* Fake Neighbors */
 
@@ -1269,7 +1269,6 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
  * \{ */
 
 struct AutomaskingNodeData {
-  PBVHNode *node;
   SculptOrigVertData orig_data;
   bool have_orig_data;
 };
@@ -1279,15 +1278,12 @@ struct AutomaskingNodeData {
  * \param automask_data: pointer to an uninitialized #AutomaskingNodeData struct.
  */
 void SCULPT_automasking_node_begin(Object *ob,
-                                   const SculptSession *ss,
                                    AutomaskingCache *automasking,
                                    AutomaskingNodeData *automask_data,
                                    PBVHNode *node);
 
 /* Call before SCULPT_automasking_factor_get and SCULPT_brush_strength_factor. */
-void SCULPT_automasking_node_update(SculptSession *ss,
-                                    AutomaskingNodeData *automask_data,
-                                    PBVHVertexIter *vd);
+void SCULPT_automasking_node_update(AutomaskingNodeData *automask_data, PBVHVertexIter *vd);
 
 float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     SculptSession *ss,
@@ -1521,7 +1517,7 @@ void SCULPT_undo_push_end_ex(Object *ob, const bool use_nested_undo);
 
 /** \} */
 
-void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
+void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, blender::Span<blender::float3> vertCos);
 
 /**
  * Copy the PBVH bounding box into the object's bounding box.

@@ -278,6 +278,8 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
   GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
 
+  GCaps.mem_stats_support = true;
+
   detect_workarounds(device);
 }
 

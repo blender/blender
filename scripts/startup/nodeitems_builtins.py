@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-import nodeitems_utils
 from nodeitems_utils import (
     NodeCategory,
     NodeItem,

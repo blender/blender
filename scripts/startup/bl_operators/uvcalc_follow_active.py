@@ -219,7 +219,6 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
 
 def main(context, operator):
     use_uv_selection = True
-    view = context.space_data
     if context.space_data and context.space_data.type == 'VIEW_3D':
         use_uv_selection = False  # When called from the 3D editor, UV selection is ignored.
 

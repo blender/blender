@@ -4,12 +4,14 @@
 
 #include <queue>
 
+#include "BLI_array_utils.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
 
 #include "node_geometry_util.hh"
 
@@ -19,29 +21,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Bool>("End Vertex").default_value(false).hide_value().supports_field();
   b.add_input<decl::Float>("Edge Cost").default_value(1.0f).hide_value().supports_field();
-  b.add_output<decl::Int>("Next Vertex Index").reference_pass_all();
-  b.add_output<decl::Float>("Total Cost").reference_pass_all();
+  b.add_output<decl::Int>("Next Vertex Index").field_source().reference_pass_all();
+  b.add_output<decl::Float>("Total Cost").field_source().reference_pass_all();
 }
 
 using VertPriority = std::pair<float, int>;
 
-struct EdgeVertMap {
-  Array<Vector<int>> edges_by_vertex_map;
-
-  EdgeVertMap(const Mesh &mesh)
-  {
-    const Span<int2> edges = mesh.edges();
-    edges_by_vertex_map.reinitialize(mesh.totvert);
-    for (const int edge_i : edges.index_range()) {
-      const int2 &edge = edges[edge_i];
-      edges_by_vertex_map[edge[0]].append(edge_i);
-      edges_by_vertex_map[edge[1]].append(edge_i);
-    }
-  }
-};
-
 static void shortest_paths(const Mesh &mesh,
-                           EdgeVertMap &maps,
+                           const GroupedSpan<int> vert_to_edge,
                            const IndexMask end_selection,
                            const VArray<float> &input_cost,
                            MutableSpan<int> r_next_index,
@@ -65,10 +52,9 @@ static void shortest_paths(const Mesh &mesh,
       continue;
     }
     visited[vert_i] = true;
-    const Span<int> incident_edge_indices = maps.edges_by_vertex_map[vert_i];
-    for (const int edge_i : incident_edge_indices) {
+    for (const int edge_i : vert_to_edge[vert_i]) {
       const int2 &edge = edges[edge_i];
-      const int neighbor_vert_i = edge[0] + edge[1] - vert_i;
+      const int neighbor_vert_i = bke::mesh::edge_other_vert(edge, vert_i);
       if (visited[neighbor_vert_i]) {
         continue;
       }
@@ -116,10 +102,19 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
     Array<int> next_index(mesh.totvert, -1);
     Array<float> cost(mesh.totvert, FLT_MAX);
 
-    if (!end_selection.is_empty()) {
-      EdgeVertMap maps(mesh);
-      shortest_paths(mesh, maps, end_selection, input_cost, next_index, cost);
+    if (end_selection.is_empty()) {
+      array_utils::fill_index_range<int>(next_index);
+      return mesh.attributes().adapt_domain<int>(
+          VArray<int>::ForContainer(std::move(next_index)), ATTR_DOMAIN_POINT, domain);
     }
+
+    const Span<int2> edges = mesh.edges();
+    Array<int> vert_to_edge_offset_data;
+    Array<int> vert_to_edge_indices;
+    const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
+        edges, mesh.totvert, vert_to_edge_offset_data, vert_to_edge_indices);
+    shortest_paths(mesh, vert_to_edge, end_selection, input_cost, next_index, cost);
+
     threading::parallel_for(next_index.index_range(), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         if (next_index[i] == -1) {
@@ -189,13 +184,21 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
     point_evaluator.evaluate();
     const IndexMask end_selection = point_evaluator.get_evaluated_as_mask(0);
 
+    if (end_selection.is_empty()) {
+      return mesh.attributes().adapt_domain<float>(
+          VArray<float>::ForSingle(0.0f, mesh.totvert), ATTR_DOMAIN_POINT, domain);
+    }
+
     Array<int> next_index(mesh.totvert, -1);
     Array<float> cost(mesh.totvert, FLT_MAX);
 
-    if (!end_selection.is_empty()) {
-      EdgeVertMap maps(mesh);
-      shortest_paths(mesh, maps, end_selection, input_cost, next_index, cost);
-    }
+    const Span<int2> edges = mesh.edges();
+    Array<int> vert_to_edge_offset_data;
+    Array<int> vert_to_edge_indices;
+    const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
+        edges, mesh.totvert, vert_to_edge_offset_data, vert_to_edge_indices);
+    shortest_paths(mesh, vert_to_edge, end_selection, input_cost, next_index, cost);
+
     threading::parallel_for(cost.index_range(), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         if (cost[i] == FLT_MAX) {

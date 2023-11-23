@@ -16,15 +16,16 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -255,20 +256,4 @@ float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3]
 void BKE_editmesh_lnorspace_update(BMEditMesh *em)
 {
   BM_lnorspace_update(em->bm);
-}
-
-BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh * /*em*/)
-{
-  if (object->runtime.editmesh_bb_cage == nullptr) {
-    float min[3], max[3];
-    INIT_MINMAX(min, max);
-    if (object->runtime.editmesh_eval_cage) {
-      BKE_mesh_wrapper_minmax(object->runtime.editmesh_eval_cage, min, max);
-    }
-
-    object->runtime.editmesh_bb_cage = MEM_cnew<BoundBox>("BMEditMesh.bb_cage");
-    BKE_boundbox_init_from_minmax(object->runtime.editmesh_bb_cage, min, max);
-  }
-
-  return object->runtime.editmesh_bb_cage;
 }

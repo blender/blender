@@ -66,10 +66,10 @@ template<> struct AttributeConverter<blender::ColorGeometry4b> {
   static constexpr auto type_desc = TypeRGBA;
   static CyclesT convert(const blender::ColorGeometry4b &value)
   {
-    return color_srgb_to_linear(make_float4(byte_to_float(value[0]),
-                                            byte_to_float(value[1]),
-                                            byte_to_float(value[2]),
-                                            byte_to_float(value[3])));
+    return color_srgb_to_linear_v4(make_float4(byte_to_float(value[0]),
+                                               byte_to_float(value[1]),
+                                               byte_to_float(value[2]),
+                                               byte_to_float(value[3])));
   }
 };
 template<> struct AttributeConverter<bool> {

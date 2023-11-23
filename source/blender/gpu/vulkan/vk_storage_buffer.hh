@@ -28,7 +28,9 @@ class VKStorageBuffer : public StorageBuf, public VKBindableResource {
 
   void update(const void *data) override;
   void bind(int slot) override;
-  void bind(int slot, shader::ShaderCreateInfo::Resource::BindType bind_type) override;
+  void bind(int slot,
+            shader::ShaderCreateInfo::Resource::BindType bind_type,
+            const GPUSamplerState sampler_state) override;
   void unbind() override;
   void clear(uint32_t clear_value) override;
   void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;

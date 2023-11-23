@@ -12,6 +12,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+/* needed for directory lookup */
+#ifndef WIN32
+#  include <dirent.h>
+#else
+#  include "BLI_winstuff.h"
+#endif
+
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -46,7 +53,7 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -75,13 +82,6 @@
 
 #ifdef WITH_LZMA
 #  include "LzmaLib.h"
-#endif
-
-/* needed for directory lookup */
-#ifndef WIN32
-#  include <dirent.h>
-#else
-#  include "BLI_winstuff.h"
 #endif
 
 #define PTCACHE_DATA_FROM(data, type, from) \

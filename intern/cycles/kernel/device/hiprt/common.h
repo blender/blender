@@ -177,7 +177,6 @@ ccl_device_inline bool motion_triangle_custom_intersect(const hiprtRay &ray,
                                                         void *payload,
                                                         hiprtHit &hit)
 {
-#  ifdef MOTION_BLUR
   RayPayload *local_payload = (RayPayload *)payload;
   KernelGlobals kg = local_payload->kg;
   int object_id = kernel_data_fetch(user_instance_id, hit.instanceID);
@@ -202,7 +201,7 @@ ccl_device_inline bool motion_triangle_custom_intersect(const hiprtRay &ray,
                                          local_payload->visibility,
                                          object_id,
                                          prim_id_global,
-                                         prim_id_local);
+                                         hit.instanceID);
 
   if (b_hit) {
     hit.uv.x = isect.u;
@@ -212,9 +211,6 @@ ccl_device_inline bool motion_triangle_custom_intersect(const hiprtRay &ray,
     local_payload->prim_type = isect.type;
   }
   return b_hit;
-#  else
-  return false;
-#  endif
 }
 
 ccl_device_inline bool motion_triangle_custom_local_intersect(const hiprtRay &ray,

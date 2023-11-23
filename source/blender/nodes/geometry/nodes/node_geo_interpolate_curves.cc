@@ -409,7 +409,8 @@ static void interpolate_curve_shapes(bke::CurvesGeometry &child_curves,
           const float neighbor_length = lengths.last();
 
           sample_lengths.reinitialize(points.size());
-          const float sample_length_factor = safe_divide(neighbor_length, points.size() - 1);
+          const float sample_length_factor = math::safe_divide(neighbor_length,
+                                                               float(points.size() - 1));
           for (const int i : sample_lengths.index_range()) {
             sample_lengths[i] = i * sample_length_factor;
           }
@@ -563,7 +564,8 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
                 const float neighbor_length = lengths.last();
 
                 sample_lengths.reinitialize(points.size());
-                const float sample_length_factor = safe_divide(neighbor_length, points.size() - 1);
+                const float sample_length_factor = math::safe_divide(neighbor_length,
+                                                                     float(points.size() - 1));
                 for (const int i : sample_lengths.index_range()) {
                   sample_lengths[i] = i * sample_length_factor;
                 }

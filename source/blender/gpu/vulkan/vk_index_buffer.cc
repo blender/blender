@@ -37,7 +37,7 @@ void VKIndexBuffer::upload_data()
 
 void VKIndexBuffer::bind(VKContext &context)
 {
-  context.command_buffers_get().bind(buffer_with_offset(), to_vk_index_type(index_type_));
+  context.command_buffers_get().bind(buffer_get(), to_vk_index_type(index_type_));
 }
 
 void VKIndexBuffer::bind_as_ssbo(uint binding)
@@ -45,7 +45,9 @@ void VKIndexBuffer::bind_as_ssbo(uint binding)
   VKContext::get()->state_manager_get().storage_buffer_bind(*this, binding);
 }
 
-void VKIndexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type)
+void VKIndexBuffer::bind(int binding,
+                         shader::ShaderCreateInfo::Resource::BindType bind_type,
+                         const GPUSamplerState /*sampler_state*/)
 {
   BLI_assert(bind_type == shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER);
   ensure_updated();
@@ -56,7 +58,7 @@ void VKIndexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindTy
   const std::optional<VKDescriptorSet::Location> location =
       shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
-    shader->pipeline_get().descriptor_set_get().bind_as_ssbo(*this, *location);
+    context.descriptor_set_get().bind_as_ssbo(*this, *location);
   }
 }
 
@@ -86,16 +88,9 @@ void VKIndexBuffer::allocate()
   debug::object_label(buffer_.vk_handle(), "IndexBuffer");
 }
 
-VKBufferWithOffset VKIndexBuffer::buffer_with_offset()
+VKBuffer &VKIndexBuffer::buffer_get()
 {
-  VKIndexBuffer *src = unwrap(src_);
-  VKBufferWithOffset result{is_subrange_ ? src->buffer_ : buffer_, index_start_};
-
-  BLI_assert_msg(is_subrange_ || result.offset == 0,
-                 "According to design index_start should always be zero when index buffer isn't "
-                 "a subrange");
-
-  return result;
+  return is_subrange_ ? unwrap(src_)->buffer_ : buffer_;
 }
 
 }  // namespace blender::gpu

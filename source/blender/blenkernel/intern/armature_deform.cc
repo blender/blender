@@ -33,11 +33,11 @@
 #include "DNA_object_types.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_customdata.h"
+#include "BKE_armature.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
-#include "BKE_lattice.h"
+#include "BKE_editmesh.hh"
+#include "BKE_lattice.hh"
 #include "BKE_mesh.hh"
 
 #include "DEG_depsgraph_build.hh"

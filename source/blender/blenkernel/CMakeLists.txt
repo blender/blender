@@ -234,6 +234,7 @@ set(SRC
   intern/nla.cc
   intern/node.cc
   intern/node_runtime.cc
+  intern/node_socket_value_cpp_type.cc
   intern/node_tree_anonymous_attributes.cc
   intern/node_tree_dot_export.cc
   intern/node_tree_field_inferencing.cc
@@ -316,7 +317,7 @@ set(SRC
   intern/world.cc
   intern/writeavi.cc
 
-  BKE_DerivedMesh.h
+  BKE_DerivedMesh.hh
   BKE_action.h
   BKE_action.hh
   BKE_addon.h
@@ -326,9 +327,8 @@ set(SRC
   BKE_animsys.h
   BKE_anonymous_attribute_id.hh
   BKE_appdir.h
-  BKE_armature.h
   BKE_armature.hh
-  BKE_asset.h
+  BKE_asset.hh
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
@@ -348,7 +348,7 @@ set(SRC
   BKE_boids.h
   BKE_bpath.h
   BKE_brush.hh
-  BKE_bvhutils.h
+  BKE_bvhutils.hh
   BKE_cachefile.h
   BKE_callbacks.h
   BKE_camera.h
@@ -361,20 +361,19 @@ set(SRC
   BKE_colortools.h
   BKE_compute_contexts.hh
   BKE_constraint.h
-  BKE_context.h
-  BKE_cpp_types.h
-  BKE_crazyspace.h
+  BKE_context.hh
+  BKE_cpp_types.hh
   BKE_crazyspace.hh
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
-  BKE_curve.h
+  BKE_curve.hh
   BKE_curve_legacy_convert.hh
   BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_curves.h
   BKE_curves.hh
   BKE_curves_utils.hh
-  BKE_customdata.h
+  BKE_customdata.hh
   BKE_customdata_file.h
   BKE_data_transfer.h
   BKE_deform.h
@@ -382,10 +381,10 @@ set(SRC
   BKE_duplilist.h
   BKE_dynamicpaint.h
   BKE_editlattice.h
-  BKE_editmesh.h
+  BKE_editmesh.hh
   BKE_editmesh_bvh.h
   BKE_editmesh_cache.hh
-  BKE_editmesh_tangent.h
+  BKE_editmesh_tangent.hh
   BKE_effect.h
   BKE_fcurve.h
   BKE_fcurve_driver.h
@@ -416,7 +415,7 @@ set(SRC
   BKE_kelvinlet.h
   BKE_key.h
   BKE_keyconfig.h
-  BKE_lattice.h
+  BKE_lattice.hh
   BKE_layer.h
   BKE_lib_id.h
   BKE_lib_override.hh
@@ -449,26 +448,29 @@ set(SRC
   BKE_mesh_tangent.hh
   BKE_mesh_types.hh
   BKE_mesh_wrapper.hh
-  BKE_modifier.h
+  BKE_modifier.hh
   BKE_movieclip.h
   BKE_multires.hh
   BKE_nla.h
   BKE_node.h
   BKE_node.hh
   BKE_node_runtime.hh
+  BKE_node_socket_value.hh
+  BKE_node_socket_value_cpp_type.hh
   BKE_node_tree_anonymous_attributes.hh
   BKE_node_tree_dot_export.hh
   BKE_node_tree_interface.hh
-  BKE_node_tree_update.h
+  BKE_node_tree_update.hh
   BKE_node_tree_zones.hh
   BKE_object.hh
+  BKE_object_types.hh
   BKE_object_deform.h
   BKE_ocean.h
   BKE_outliner_treehash.hh
   BKE_packedFile.h
   BKE_paint.hh
   BKE_particle.h
-  BKE_pbvh.h
+  BKE_pbvh.hh
   BKE_pbvh_api.hh
   BKE_pbvh_pixels.hh
   BKE_pointcache.h
@@ -505,10 +507,10 @@ set(SRC
   BKE_unit.h
   BKE_vfont.h
   BKE_vfontdata.h
-  BKE_viewer_path.h
-  BKE_volume.h
+  BKE_viewer_path.hh
+  BKE_volume.hh
   BKE_volume_openvdb.hh
-  BKE_volume_render.h
+  BKE_volume_render.hh
   BKE_volume_to_mesh.hh
   BKE_workspace.h
   BKE_world.h

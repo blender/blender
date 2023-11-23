@@ -54,7 +54,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"

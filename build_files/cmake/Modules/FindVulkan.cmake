@@ -26,12 +26,6 @@ set(_vulkan_SEARCH_DIRS
   ${VULKAN_ROOT_DIR}
 )
 
-# FIXME: These finder modules typically don't use LIBDIR,
-# this should be set by `./build_files/cmake/platform/` instead.
-if(DEFINED LIBDIR)
-  set(_vulkan_SEARCH_DIRS ${_vulkan_SEARCH_DIRS} ${LIBDIR}/vulkan)
-endif()
-
 find_path(VULKAN_INCLUDE_DIR
   NAMES
     vulkan/vulkan.h

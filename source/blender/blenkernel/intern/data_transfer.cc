@@ -20,7 +20,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
@@ -28,7 +28,7 @@
 #include "BKE_mesh_remap.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
@@ -393,6 +393,7 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                 {loop_nors_dst, me_dst->totloop},
                                                 {custom_nors_dst, me_dst->totloop});
     sharp_edges.finish();
+    CustomData_free_layers(ldata_dst, CD_NORMAL, me_dst->totloop);
   }
 }
 
@@ -1026,6 +1027,24 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           interp_data);
       return true;
     }
+    if (r_map && cddata_type == CD_FAKE_CREASE) {
+      if (!CustomData_get_layer_named(&me_dst->edge_data, CD_PROP_FLOAT, "crease_edge")) {
+        CustomData_add_layer_named(
+            &me_dst->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totedge, "crease_edge");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_FLOAT,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_FLOAT, "crease_edge"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->edge_data, CD_PROP_FLOAT, "crease_edge", me_dst->totedge),
+          interp,
+          interp_data);
+      return true;
+    }
 
     return false;
   }
@@ -1034,11 +1053,21 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cddata_type = CD_PROP_FLOAT2;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
-      /* Pre-process should have generated it,
-       * Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
-      cddata_type = CD_NORMAL;
-      interp_data = space_transform;
-      interp = customdata_data_transfer_interp_normal_normals;
+      if (!CustomData_get_layer(&me_dst->loop_data, CD_PROP_FLOAT)) {
+        CustomData_add_layer(&me_dst->loop_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->totloop);
+      }
+      /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_NORMAL,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          me_src->corner_normals().data(),
+          CustomData_get_layer_for_write(&me_dst->loop_data, CD_NORMAL, me_dst->totloop),
+          customdata_data_transfer_interp_normal_normals,
+          space_transform);
+      return true;
     }
 
     if (!(cddata_type & CD_FAKE)) {

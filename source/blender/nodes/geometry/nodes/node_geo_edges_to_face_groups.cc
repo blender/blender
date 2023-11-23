@@ -26,10 +26,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 /** Join all unique unordered combinations of indices. */
 static void join_indices(AtomicDisjointSet &set, const Span<int> indices)
 {
-  for (const int i : indices.index_range()) {
-    for (int j = i + 1; j < indices.size(); j++) {
-      set.join(indices[i], indices[j]);
-    }
+  for (const int i : indices.index_range().drop_back(1)) {
+    set.join(indices[i], indices[i + 1]);
   }
 }
 
@@ -63,7 +61,7 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
 
     AtomicDisjointSet islands(faces.size());
     non_boundary_edges.foreach_index(
-        [&](const int edge) { join_indices(islands, edge_to_face_map[edge]); });
+        GrainSize(2048), [&](const int edge) { join_indices(islands, edge_to_face_map[edge]); });
 
     Array<int> output(faces.size());
     islands.calc_reduced_ids(output);

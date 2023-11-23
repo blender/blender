@@ -16,9 +16,9 @@
 
 #include "DNA_volume_types.h"
 
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
-#include "BKE_volume_render.h"
+#include "BKE_volume_render.hh"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>

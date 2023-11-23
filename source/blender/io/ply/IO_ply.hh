@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLI_path_util.h"
 #include "DNA_windowmanager_types.h"

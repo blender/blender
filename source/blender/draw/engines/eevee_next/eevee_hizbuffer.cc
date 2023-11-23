@@ -95,6 +95,8 @@ void HiZBuffer::update()
   else {
     inst_.manager->submit(hiz_update_layer_ps_);
   }
+
+  is_dirty_ = false;
 }
 
 void HiZBuffer::debug_draw(View &view, GPUFrameBuffer *view_fb)

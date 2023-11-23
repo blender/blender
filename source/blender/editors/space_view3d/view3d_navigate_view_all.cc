@@ -8,8 +8,8 @@
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"

@@ -25,8 +25,8 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -34,7 +34,8 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
+#include "BKE_object_types.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
@@ -7144,10 +7145,10 @@ static int match_texture_space_exec(bContext *C, wmOperator * /*op*/)
   float min[3], max[3], texspace_size[3], texspace_location[3];
   int a;
 
-  BLI_assert(object_eval->runtime.curve_cache != nullptr);
+  BLI_assert(object_eval->runtime->curve_cache != nullptr);
 
   INIT_MINMAX(min, max);
-  BKE_displist_minmax(&object_eval->runtime.curve_cache->disp, min, max);
+  BKE_displist_minmax(&object_eval->runtime->curve_cache->disp, min, max);
 
   mid_v3_v3v3(texspace_location, min, max);
 

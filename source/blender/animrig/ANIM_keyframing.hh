@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include <string>
+
+#include "BLI_vector.hh"
 #include "DNA_anim_types.h"
 #include "ED_transform.hh"
 #include "RNA_types.hh"
@@ -148,7 +151,17 @@ void autokeyframe_object(
  */
 bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks);
 bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks);
-
+/**
+ * Auto-keyframing feature - for poses/pose-channels
+ *
+ * \param tmode: A transform mode.
+ *
+ * targetless_ik: has targetless ik been done on any channels?
+ *
+ * \note Context may not always be available,
+ * so must check before using it as it's a luxury for a few cases.
+ */
+void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik);
 /**
  * Use for auto-key-framing.
  * \param only_if_property_keyed: if true, auto-key-framing only creates keyframes on already keyed
@@ -164,5 +177,21 @@ bool autokeyframe_property(bContext *C,
                            bool only_if_property_keyed);
 
 /** \} */
+
+/**
+ * Insert keys for the given rna_path in the given action. The length of the values Span is
+ * expected to be the size of the property array.
+ * \param frame is expected to be in the local time of the action, meaning it has to be NLA mapped
+ * already.
+ * \returns The number of keys inserted.
+ */
+int insert_key_action(Main *bmain,
+                      bAction *action,
+                      PointerRNA *ptr,
+                      const std::string &rna_path,
+                      float frame,
+                      const Span<float> values,
+                      eInsertKeyFlags insert_key_flag,
+                      eBezTriple_KeyframeType key_type);
 
 }  // namespace blender::animrig

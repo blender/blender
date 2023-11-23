@@ -20,7 +20,7 @@
 
 #  include "DNA_pointcloud_types.h"
 
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #endif
 
 #ifdef __cplusplus

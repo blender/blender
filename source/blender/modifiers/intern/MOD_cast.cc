@@ -18,15 +18,15 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -93,8 +93,7 @@ static void sphere_do(CastModifierData *cmd,
                       const ModifierEvalContext * /*ctx*/,
                       Object *ob,
                       Mesh *mesh,
-                      float (*vertexCos)[3],
-                      int verts_num)
+                      blender::MutableSpan<blender::float3> positions)
 {
   const MDeformVert *dvert = nullptr;
   const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
@@ -157,20 +156,20 @@ static void sphere_do(CastModifierData *cmd,
   }
 
   if (len <= 0) {
-    for (i = 0; i < verts_num; i++) {
-      len += len_v3v3(center, vertexCos[i]);
+    for (i = 0; i < positions.size(); i++) {
+      len += len_v3v3(center, positions[i]);
     }
-    len /= verts_num;
+    len /= positions.size();
 
     if (len == 0.0f) {
       len = 10.0f;
     }
   }
 
-  for (i = 0; i < verts_num; i++) {
+  for (i = 0; i < positions.size(); i++) {
     float tmp_co[3];
 
-    copy_v3_v3(tmp_co, vertexCos[i]);
+    copy_v3_v3(tmp_co, positions[i]);
     if (ctrl_ob) {
       if (flag & MOD_CAST_USE_OB_TRANSFORM) {
         mul_m4_v3(mat, tmp_co);
@@ -226,7 +225,7 @@ static void sphere_do(CastModifierData *cmd,
       }
     }
 
-    copy_v3_v3(vertexCos[i], tmp_co);
+    copy_v3_v3(positions[i], tmp_co);
   }
 }
 
@@ -234,8 +233,7 @@ static void cuboid_do(CastModifierData *cmd,
                       const ModifierEvalContext * /*ctx*/,
                       Object *ob,
                       Mesh *mesh,
-                      float (*vertexCos)[3],
-                      int verts_num)
+                      blender::MutableSpan<blender::float3> positions)
 {
   const MDeformVert *dvert = nullptr;
   int defgrp_index;
@@ -310,14 +308,14 @@ static void cuboid_do(CastModifierData *cmd,
       /* let the center of the ctrl_ob be part of the bound box: */
       minmax_v3v3_v3(min, max, center);
 
-      for (i = 0; i < verts_num; i++) {
-        sub_v3_v3v3(vec, vertexCos[i], center);
+      for (i = 0; i < positions.size(); i++) {
+        sub_v3_v3v3(vec, positions[i], center);
         minmax_v3v3_v3(min, max, vec);
       }
     }
     else {
-      for (i = 0; i < verts_num; i++) {
-        minmax_v3v3_v3(min, max, vertexCos[i]);
+      for (i = 0; i < positions.size(); i++) {
+        minmax_v3v3_v3(min, max, positions[i]);
       }
     }
 
@@ -345,12 +343,12 @@ static void cuboid_do(CastModifierData *cmd,
   bb[4][2] = bb[5][2] = bb[6][2] = bb[7][2] = max[2];
 
   /* ready to apply the effect, one vertex at a time */
-  for (i = 0; i < verts_num; i++) {
+  for (i = 0; i < positions.size(); i++) {
     int octant, coord;
     float d[3], dmax, apex[3], fbb;
     float tmp_co[3];
 
-    copy_v3_v3(tmp_co, vertexCos[i]);
+    copy_v3_v3(tmp_co, positions[i]);
     if (ctrl_ob) {
       if (flag & MOD_CAST_USE_OB_TRANSFORM) {
         mul_m4_v3(mat, tmp_co);
@@ -451,23 +449,22 @@ static void cuboid_do(CastModifierData *cmd,
       }
     }
 
-    copy_v3_v3(vertexCos[i], tmp_co);
+    copy_v3_v3(positions[i], tmp_co);
   }
 }
 
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   CastModifierData *cmd = (CastModifierData *)md;
 
   if (cmd->type == MOD_CAST_TYPE_CUBOID) {
-    cuboid_do(cmd, ctx, ctx->object, mesh, vertexCos, verts_num);
+    cuboid_do(cmd, ctx, ctx->object, mesh, positions);
   }
   else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
-    sphere_do(cmd, ctx, ctx->object, mesh, vertexCos, verts_num);
+    sphere_do(cmd, ctx, ctx->object, mesh, positions);
   }
 }
 
@@ -517,7 +514,7 @@ ModifierTypeInfo modifierType_Cast = {
     /*struct_name*/ "CastModifierData",
     /*struct_size*/ sizeof(CastModifierData),
     /*srna*/ &RNA_CastModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_CAST,

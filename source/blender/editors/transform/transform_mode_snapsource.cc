@@ -10,7 +10,7 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "ED_screen.hh"
 #include "ED_transform_snap_object_context.hh"
@@ -162,6 +162,12 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
 {
   if (t->mode_info == &TransMode_snapsource) {
     /* Already running. */
+    return;
+  }
+
+  if (t->tsnap.snap_target_fn) {
+    /* A `snap_target_fn` is required for the operation to work.
+     * `snap_target_fn` can be `nullptr` when transforming camera in camera view. */
     return;
   }
 

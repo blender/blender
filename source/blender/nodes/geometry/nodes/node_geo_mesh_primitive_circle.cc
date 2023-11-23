@@ -183,6 +183,7 @@ static Mesh *create_circle_mesh(const float radius,
   }
 
   mesh->tag_loose_verts_none();
+  mesh->tag_overlapping_none();
   mesh->bounds_set_eager(calculate_bounds_circle(radius, verts_num));
 
   return mesh;

@@ -34,13 +34,13 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
+#include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -2265,6 +2265,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         positions,
         faces,
         corner_verts,
+        mesh->vert_to_face_map(),
         {reinterpret_cast<const blender::float3 *>(face_normals), faces.size()},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }

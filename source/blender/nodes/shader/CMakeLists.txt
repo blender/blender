@@ -98,7 +98,6 @@ set(SRC
   nodes/node_shader_tex_gradient.cc
   nodes/node_shader_tex_image.cc
   nodes/node_shader_tex_magic.cc
-  nodes/node_shader_tex_musgrave.cc
   nodes/node_shader_tex_noise.cc
   nodes/node_shader_tex_pointdensity.cc
   nodes/node_shader_tex_sky.cc

@@ -44,7 +44,7 @@
 #include "DNA_text_types.h"
 
 #include "BKE_appdir.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h" /* Only for script checking. */
 #include "BKE_main.h"
 #include "BKE_text.h"

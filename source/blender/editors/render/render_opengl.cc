@@ -30,8 +30,8 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_camera.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"

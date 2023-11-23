@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 
 #include "DNA_outliner_types.h"
 

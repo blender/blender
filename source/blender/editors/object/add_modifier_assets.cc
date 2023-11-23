@@ -14,8 +14,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_asset.h"
-#include "BKE_context.h"
+#include "BKE_asset.hh"
+#include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"

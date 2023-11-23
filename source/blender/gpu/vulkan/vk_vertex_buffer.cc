@@ -36,7 +36,9 @@ void VKVertexBuffer::bind_as_texture(uint binding)
   state_manager.texel_buffer_bind(*this, binding);
 }
 
-void VKVertexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type)
+void VKVertexBuffer::bind(int binding,
+                          shader::ShaderCreateInfo::Resource::BindType bind_type,
+                          const GPUSamplerState /*sampler_state*/)
 {
   VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
@@ -67,7 +69,7 @@ void VKVertexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindT
   }
 
   /* TODO: Check if we can move this check inside the descriptor set. */
-  VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+  VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
   if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
     descriptor_set.bind(*this, *location);
   }

@@ -17,7 +17,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -66,8 +66,9 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "DNA_space_types.h"
 
 #  include "BKE_colorband.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
+#  include "BKE_grease_pencil.hh"
 #  include "BKE_main.h"
 #  include "BKE_material.h"
 #  include "BKE_node.h"
@@ -111,6 +112,10 @@ static void rna_MaterialGpencil_update(Main *bmain, Scene *scene, PointerRNA *pt
     if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+    }
+    if (ob->type == OB_GREASE_PENCIL) {
+      GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+      DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     }
   }
 
@@ -852,6 +857,25 @@ void RNA_def_material(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static EnumPropertyItem prop_displacement_method_items[] = {
+      {MA_DISPLACEMENT_BUMP,
+       "BUMP",
+       0,
+       "Bump Only",
+       "Bump mapping to simulate the appearance of displacement"},
+      {MA_DISPLACEMENT_DISPLACE,
+       "DISPLACEMENT",
+       0,
+       "Displacement Only",
+       "Use true displacement of surface only, requires fine subdivision"},
+      {MA_DISPLACEMENT_BOTH,
+       "BOTH",
+       0,
+       "Displacement and Bump",
+       "Combination of true displacement and bump mapping for finer detail"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "Material", "ID");
   RNA_def_struct_ui_text(
       srna,
@@ -864,6 +888,11 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Surface Render Method",
                            "Controls the blending and the compatibility with certain features");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+  prop = RNA_def_property(srna, "displacement_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_displacement_method_items);
+  RNA_def_property_ui_text(prop, "Displacement Method", "Method to use for the displacement");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 #  if 1 /* Delete this section once we remove old eevee. */
@@ -925,7 +954,7 @@ void RNA_def_material(BlenderRNA *brna)
       prop,
       "Light Probe Volume Single Sided",
       "Consider material single sided for light probe volume capture. "
-      "Additionnaly helps rejecting probes inside the object to avoid light leaks");
+      "Additionally helps rejecting probes inside the object to avoid light leaks");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   /* TODO(fclem): Should be renamed to use_raytraced_refraction. */
@@ -969,7 +998,7 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(prop,
                            "Max Vertex Displacement",
-                           "The max distance a vertex can be displaced."
+                           "The max distance a vertex can be displaced. "
                            "Displacements over this threshold may cause visibility issues");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 

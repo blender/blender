@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_geometry_set_instances.hh"
+#include "BKE_instances.hh"
 #include "BKE_mesh_boolean_convert.hh"
 
 #include "DNA_mesh_types.h"
@@ -66,6 +67,18 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom1 = GEO_NODE_BOOLEAN_DIFFERENCE;
 }
 
+#ifdef WITH_GMP
+static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material *> &all_materials)
+{
+  Array<short> map(mesh.totcol);
+  for (const int i : IndexRange(mesh.totcol)) {
+    Material *material = mesh.mat[i];
+    map[i] = material ? all_materials.index_of_or_add(material) : -1;
+  }
+  return map;
+}
+#endif /* WITH_GMP */
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_GMP
@@ -74,6 +87,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool hole_tolerant = params.get_input<bool>("Hole Tolerant");
 
   Vector<const Mesh *> meshes;
+  Vector<float4x4> transforms;
   VectorSet<Material *> materials;
   Vector<Array<short>> material_remaps;
 
@@ -85,6 +99,7 @@ static void node_geo_exec(GeoNodeExecParams params)
      * to be a single mesh. */
     if (const Mesh *mesh_in_a = set_a.get_mesh()) {
       meshes.append(mesh_in_a);
+      transforms.append(float4x4::identity());
       if (mesh_in_a->totcol == 0) {
         /* Necessary for faces using the default material when there are no material slots. */
         materials.add(nullptr);
@@ -101,12 +116,39 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const GeometrySet &geometry : geometry_sets) {
     if (const Mesh *mesh = geometry.get_mesh()) {
       meshes.append(mesh);
-      Array<short> map(mesh->totcol);
-      for (const int i : IndexRange(mesh->totcol)) {
-        Material *material = mesh->mat[i];
-        map[i] = material ? materials.index_of_or_add(material) : -1;
+      transforms.append(float4x4::identity());
+      material_remaps.append(calc_mesh_material_map(*mesh, materials));
+    }
+    if (const bke::Instances *instances = geometry.get_instances()) {
+      const Span<bke::InstanceReference> references = instances->references();
+      const Span<int> handles = instances->reference_handles();
+      const Span<float4x4> instance_transforms = instances->transforms();
+      for (const int i : handles.index_range()) {
+        const bke::InstanceReference &reference = references[handles[i]];
+        switch (reference.type()) {
+          case bke::InstanceReference::Type::Object: {
+            const GeometrySet object_geometry = bke::object_get_evaluated_geometry_set(
+                reference.object());
+            if (const Mesh *mesh = object_geometry.get_mesh()) {
+              meshes.append(mesh);
+              transforms.append(instance_transforms[i]);
+              material_remaps.append(calc_mesh_material_map(*mesh, materials));
+            }
+            break;
+          }
+          case bke::InstanceReference::Type::GeometrySet: {
+            if (const Mesh *mesh = reference.geometry_set().get_mesh()) {
+              meshes.append(mesh);
+              transforms.append(instance_transforms[i]);
+              material_remaps.append(calc_mesh_material_map(*mesh, materials));
+            }
+            break;
+          }
+          case bke::InstanceReference::Type::None:
+          case bke::InstanceReference::Type::Collection:
+            break;
+        }
       }
-      material_remaps.append(std::move(map));
     }
   }
 
@@ -117,7 +159,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Vector<int> intersecting_edges;
   Mesh *result = blender::meshintersect::direct_mesh_boolean(
       meshes,
-      {},
+      transforms,
       float4x4::identity(),
       material_remaps,
       use_self,

@@ -18,8 +18,9 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_anim_path.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_key.h"
+#include "BKE_object_types.hh"
 
 #include "CLG_log.h"
 
@@ -60,20 +61,20 @@ void BKE_anim_path_calc_data(Object *ob)
   if (ob == nullptr || ob->type != OB_CURVES_LEGACY) {
     return;
   }
-  if (ob->runtime.curve_cache == nullptr) {
+  if (ob->runtime->curve_cache == nullptr) {
     CLOG_WARN(&LOG, "No curve cache!");
     return;
   }
   /* We only use the first curve. */
-  BevList *bl = static_cast<BevList *>(ob->runtime.curve_cache->bev.first);
+  BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
   if (bl == nullptr || !bl->nr) {
     CLOG_WARN(&LOG, "No bev list data!");
     return;
   }
 
   /* Free old data. */
-  if (ob->runtime.curve_cache->anim_path_accum_length) {
-    MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
+  if (ob->runtime->curve_cache->anim_path_accum_length) {
+    MEM_freeN((void *)ob->runtime->curve_cache->anim_path_accum_length);
   }
 
   /* We assume that we have at least two points.
@@ -84,7 +85,7 @@ void BKE_anim_path_calc_data(Object *ob)
 
   const int seg_size = get_bevlist_seg_array_size(bl);
   float *len_data = (float *)MEM_mallocN(sizeof(float) * seg_size, "calcpathdist");
-  ob->runtime.curve_cache->anim_path_accum_length = len_data;
+  ob->runtime->curve_cache->anim_path_accum_length = len_data;
 
   BevPoint *bp_arr = bl->bevpoints;
   float prev_len = 0.0f;
@@ -228,16 +229,16 @@ bool BKE_where_on_path(const Object *ob,
     return false;
   }
   Curve *cu = static_cast<Curve *>(ob->data);
-  if (ob->runtime.curve_cache == nullptr) {
+  if (ob->runtime->curve_cache == nullptr) {
     CLOG_WARN(&LOG, "No curve cache!");
     return false;
   }
-  if (ob->runtime.curve_cache->anim_path_accum_length == nullptr) {
+  if (ob->runtime->curve_cache->anim_path_accum_length == nullptr) {
     CLOG_WARN(&LOG, "No anim path!");
     return false;
   }
   /* We only use the first curve. */
-  BevList *bl = static_cast<BevList *>(ob->runtime.curve_cache->bev.first);
+  BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
   if (bl == nullptr || !bl->nr) {
     CLOG_WARN(&LOG, "No bev list data!");
     return false;
@@ -258,7 +259,7 @@ bool BKE_where_on_path(const Object *ob,
 
   float frac;
   const int seg_size = get_bevlist_seg_array_size(bl);
-  const float *accum_len_arr = ob->runtime.curve_cache->anim_path_accum_length;
+  const float *accum_len_arr = ob->runtime->curve_cache->anim_path_accum_length;
   const float goal_len = ctime * accum_len_arr[seg_size - 1];
 
   /* Are we simply trying to get the start/end point? */

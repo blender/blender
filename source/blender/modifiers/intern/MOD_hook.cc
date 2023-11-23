@@ -22,14 +22,14 @@
 
 #include "BKE_action.h"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -124,7 +124,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 }
 
 struct HookData_cb {
-  float (*vertexCos)[3];
+  blender::MutableSpan<blender::float3> positions;
 
   /**
    * When anything other than -1, use deform groups.
@@ -232,7 +232,7 @@ static float hook_falloff(const HookData_cb *hd, const float len_sq)
 
 static void hook_co_apply(HookData_cb *hd, int j, const MDeformVert *dv)
 {
-  float *co = hd->vertexCos[j];
+  float *co = hd->positions[j];
   float fac;
 
   if (hd->use_falloff) {
@@ -272,8 +272,7 @@ static void deformVerts_do(HookModifierData *hmd,
                            Object *ob,
                            Mesh *mesh,
                            BMEditMesh *em,
-                           float (*vertexCos)[3],
-                           int verts_num)
+                           blender::MutableSpan<blender::float3> positions)
 {
   Object *ob_target = hmd->object;
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_target->pose, hmd->subtarget);
@@ -293,7 +292,7 @@ static void deformVerts_do(HookModifierData *hmd,
   }
 
   /* Generic data needed for applying per-vertex calculations (initialize all members) */
-  hd.vertexCos = vertexCos;
+  hd.positions = positions;
 
   MOD_get_vgroup(ob, mesh, hmd->name, &dvert, &hd.defgrp_index);
   int cd_dvert_offset = -1;
@@ -365,13 +364,13 @@ static void deformVerts_do(HookModifierData *hmd,
     if (mesh && (origindex_ar = static_cast<const int *>(
                      CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX))))
     {
-      int verts_orig_num = verts_num;
+      int verts_orig_num = positions.size();
       if (ob->type == OB_MESH) {
         const Mesh *me_orig = static_cast<const Mesh *>(ob->data);
         verts_orig_num = me_orig->totvert;
       }
       BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, verts_orig_num);
-      for (i = 0; i < verts_num; i++) {
+      for (i = 0; i < positions.size(); i++) {
         int i_orig = origindex_ar[i];
         BLI_assert(i_orig < verts_orig_num);
         if (BLI_BITMAP_TEST(indexar_used, i_orig)) {
@@ -382,8 +381,8 @@ static void deformVerts_do(HookModifierData *hmd,
     }
     else { /* missing mesh or ORIGINDEX */
       if ((em != nullptr) && (hd.defgrp_index != -1)) {
-        BLI_assert(em->bm->totvert == verts_num);
-        BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, verts_num);
+        BLI_assert(em->bm->totvert == positions.size());
+        BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, positions.size());
         BMIter iter;
         BMVert *v;
         BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
@@ -398,7 +397,7 @@ static void deformVerts_do(HookModifierData *hmd,
       else {
         for (i = 0, index_pt = hmd->indexar; i < hmd->indexar_num; i++, index_pt++) {
           const int j = *index_pt;
-          if (j < verts_num) {
+          if (j < positions.size()) {
             hook_co_apply(&hd, j, dvert ? &dvert[j] : nullptr);
           }
         }
@@ -407,7 +406,7 @@ static void deformVerts_do(HookModifierData *hmd,
   }
   else if (hd.defgrp_index != -1) { /* vertex group hook */
     if (em != nullptr) {
-      BLI_assert(em->bm->totvert == verts_num);
+      BLI_assert(em->bm->totvert == positions.size());
       BMIter iter;
       BMVert *v;
       BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
@@ -418,7 +417,7 @@ static void deformVerts_do(HookModifierData *hmd,
     }
     else {
       BLI_assert(dvert != nullptr);
-      for (i = 0; i < verts_num; i++) {
+      for (i = 0; i < positions.size(); i++) {
         hook_co_apply(&hd, i, &dvert[i]);
       }
     }
@@ -428,19 +427,17 @@ static void deformVerts_do(HookModifierData *hmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   HookModifierData *hmd = (HookModifierData *)md;
-  deformVerts_do(hmd, ctx, ctx->object, mesh, nullptr, vertexCos, verts_num);
+  deformVerts_do(hmd, ctx, ctx->object, mesh, nullptr, positions);
 }
 
 static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             BMEditMesh *em,
                             Mesh *mesh,
-                            float (*vertexCos)[3],
-                            int verts_num)
+                            blender::MutableSpan<blender::float3> positions)
 {
   HookModifierData *hmd = (HookModifierData *)md;
 
@@ -449,8 +446,7 @@ static void deform_verts_EM(ModifierData *md,
                  ctx->object,
                  mesh,
                  mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ? em : nullptr,
-                 vertexCos,
-                 verts_num);
+                 positions);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -552,7 +548,7 @@ ModifierTypeInfo modifierType_Hook = {
     /*struct_name*/ "HookModifierData",
     /*struct_size*/ sizeof(HookModifierData),
     /*srna*/ &RNA_HookModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_HOOK,

@@ -27,8 +27,8 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_image.h"
 #include "BKE_node_runtime.hh"
@@ -1065,21 +1065,24 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
                                        Object *ob,
                                        const float radius)
 {
-  const BoundBox bb = *BKE_object_boundbox_get(ob);
+  BLI_assert(ob->type == OB_MESH);
+  const Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  if (!mesh) {
+    mesh = static_cast<const Mesh *>(ob->data);
+  }
+  const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
   float orgLoc[3], location[3];
   int tile_pass = 0;
   int start[3];
   int end[3];
   int cur[3];
-  const float *bbMin = bb.vec[0];
-  const float *bbMax = bb.vec[6];
   const float *step = sd->paint.tile_offset;
 
   copy_v3_v3(orgLoc, true_location);
   for (int dim = 0; dim < 3; dim++) {
     if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
-      start[dim] = (bbMin[dim] - orgLoc[dim] - radius) / step[dim];
-      end[dim] = (bbMax[dim] - orgLoc[dim] + radius) / step[dim];
+      start[dim] = (bounds.min[dim] - orgLoc[dim] - radius) / step[dim];
+      end[dim] = (bounds.max[dim] - orgLoc[dim] + radius) / step[dim];
     }
     else {
       start[dim] = end[dim] = 0;

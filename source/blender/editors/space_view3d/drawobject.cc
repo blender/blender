@@ -13,9 +13,9 @@
 
 #include "BLI_math_vector.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"

@@ -45,7 +45,7 @@ static Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
   return temp_mesh;
 }
 
-static void set_world_axes_transform(Object *object,
+static void set_world_axes_transform(const Object &object,
                                      const eIOAxis forward,
                                      const eIOAxis up,
                                      float r_world_and_axes_transform[4][4],
@@ -55,10 +55,10 @@ static void set_world_axes_transform(Object *object,
   unit_m3(axes_transform);
   /* +Y-forward and +Z-up are the default Blender axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object->object_to_world);
+  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object.object_to_world);
   /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
-  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object->object_to_world[3]);
-  r_world_and_axes_transform[3][3] = object->object_to_world[3][3];
+  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object.object_to_world[3]);
+  r_world_and_axes_transform[3][3] = object.object_to_world[3][3];
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
   float normal_matrix[3][3];
@@ -354,10 +354,8 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
-    Object export_object_eval_ = dna::shallow_copy(*obj_eval);
-    Mesh *mesh = export_params.apply_modifiers ?
-                     BKE_object_get_evaluated_mesh(&export_object_eval_) :
-                     BKE_object_get_pre_modified_mesh(&export_object_eval_);
+    Mesh *mesh = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
+                                                 BKE_object_get_pre_modified_mesh(obj_eval);
 
     bool force_triangulation = false;
     OffsetIndices faces = mesh->faces();
@@ -382,7 +380,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
     float world_and_axes_transform[4][4];
     float world_and_axes_normal_transform[3][3];
-    set_world_axes_transform(&export_object_eval_,
+    set_world_axes_transform(*obj_eval,
                              export_params.forward_axis,
                              export_params.up_axis,
                              world_and_axes_transform,

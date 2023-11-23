@@ -12,6 +12,10 @@ void node_subsurface_scattering(vec4 color,
                                 float do_sss,
                                 out Closure result)
 {
+  color = max(color, vec4(0));
+  scale = max(scale, 0);
+  radius = max(radius, vec3(0));
+  ior = max(ior, 1e-5);
   N = safe_normalize(N);
 
   ClosureDiffuse diffuse_data;

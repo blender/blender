@@ -39,6 +39,7 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
       });
 
   mesh->tag_loose_verts_none();
+  mesh->tag_overlapping_none();
   mesh->bounds_set_eager(*bounds::min_max<float3>({start, start + delta * count}));
 
   return mesh;

@@ -29,9 +29,9 @@
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -184,7 +184,7 @@ ModifierTypeInfo modifierType_Weld = {
     /*struct_name*/ "WeldModifierData",
     /*struct_size*/ sizeof(WeldModifierData),
     /*srna*/ &RNA_WeldModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/
     (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
                        eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |

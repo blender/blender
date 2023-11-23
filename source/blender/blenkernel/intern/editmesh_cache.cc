@@ -16,7 +16,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -95,32 +95,27 @@ void BKE_editmesh_cache_ensure_face_centers(BMEditMesh *em, blender::bke::EditMe
 /** \name Calculate Min/Max
  * \{ */
 
-bool BKE_editmesh_cache_calc_minmax(BMEditMesh *em,
-                                    blender::bke::EditMeshData *emd,
-                                    float min[3],
-                                    float max[3])
+std::optional<blender::Bounds<blender::float3>> BKE_editmesh_cache_calc_minmax(
+    const BMEditMesh *em, const blender::bke::EditMeshData *emd)
 {
   using namespace blender;
   BMesh *bm = em->bm;
   if (bm->totvert == 0) {
-    zero_v3(min);
-    zero_v3(max);
-    return false;
+    return std::nullopt;
   }
 
   if (emd->vertexCos.is_empty()) {
     BMVert *eve;
     BMIter iter;
+    float3 min(std::numeric_limits<float>::max());
+    float3 max(std::numeric_limits<float>::lowest());
     BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
       minmax_v3v3_v3(min, max, eve->co);
     }
+    return Bounds<float3>{min, max};
   }
-  else {
-    const Bounds<float3> bounds = *bounds::min_max(emd->vertexCos.as_span());
-    copy_v3_v3(min, math::min(bounds.min, float3(min)));
-    copy_v3_v3(max, math::max(bounds.max, float3(max)));
-  }
-  return true;
+
+  return bounds::min_max(emd->vertexCos.as_span());
 }
 
 /** \} */

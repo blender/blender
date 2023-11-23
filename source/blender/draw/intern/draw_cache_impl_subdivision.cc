@@ -2,17 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_subdiv.hh"

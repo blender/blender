@@ -31,7 +31,7 @@ void main()
     geom_iface.worldPosition = x_axis[geom_iface_flat.fFace] * vert_iface[v].vPos.x +
                                y_axis[geom_iface_flat.fFace] * vert_iface[v].vPos.y +
                                maj_axes[geom_iface_flat.fFace];
-    EmitVertex();
+    gpu_EmitVertex();
   }
 
   EndPrimitive();

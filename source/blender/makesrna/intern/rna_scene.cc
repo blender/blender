@@ -32,11 +32,11 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_armature.h"
-#include "BKE_editmesh.h"
+#include "BKE_armature.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_idtype.h"
 #include "BKE_paint.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
@@ -726,7 +726,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "BKE_brush.hh"
 #  include "BKE_collection.h"
 #  include "BKE_colortools.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_freestyle.h"
 #  include "BKE_global.h"
 #  include "BKE_gpencil_legacy.h"
@@ -7493,6 +7493,16 @@ static void rna_def_raytrace_eevee(BlenderRNA *brna)
       "Surface thickness used to detect intersection when using screen-tracing");
   RNA_def_property_range(prop, 1e-6f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 5, 3);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "screen_trace_max_roughness", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(
+      prop,
+      "Screen-Trace Max Roughness",
+      "Maximum roughness to use the tracing pipeline for. Higher "
+      "roughness surfaces will use horizon scan. A value of 1 will disable horizon scan");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 

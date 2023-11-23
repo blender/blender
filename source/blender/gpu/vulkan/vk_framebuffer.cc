@@ -158,9 +158,17 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
   Vector<VkClearAttachment> attachments;
   if (buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
     VKContext &context = *VKContext::get();
-    /* Clearing depth via vkCmdClearAttachments requires a render pass with write depth enabled.
-     * When not enabled, clearing should be done via texture directly. */
-    if (context.state_manager_get().state.write_mask & GPU_WRITE_DEPTH) {
+    eGPUWriteMask needed_mask = GPU_WRITE_NONE;
+    if (buffers & GPU_DEPTH_BIT) {
+      needed_mask |= GPU_WRITE_DEPTH;
+    }
+    if (buffers & GPU_STENCIL_BIT) {
+      needed_mask |= GPU_WRITE_STENCIL;
+    }
+
+    /* Clearing depth via vkCmdClearAttachments requires a render pass with write depth or stencil
+     * enabled. When not enabled, clearing should be done via texture directly. */
+    if ((context.state_manager_get().state.write_mask & needed_mask) == needed_mask) {
       build_clear_attachments_depth_stencil(buffers, clear_depth, clear_stencil, attachments);
     }
     else {
@@ -288,7 +296,7 @@ static void blit_aspect(VKCommandBuffers &command_buffer,
   /* Prefer texture copy, as some platforms don't support using D32_SFLOAT_S8_UINT to be used as
    * a blit destination. */
   if (dst_offset_x == 0 && dst_offset_y == 0 &&
-      dst_texture.format_get() == src_texture.format_get() &&
+      dst_texture.device_format_get() == src_texture.device_format_get() &&
       src_texture.width_get() == dst_texture.width_get() &&
       src_texture.height_get() == dst_texture.height_get())
   {

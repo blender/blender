@@ -14,7 +14,7 @@
 #include "BKE_global.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "MEM_guardedalloc.h"
 

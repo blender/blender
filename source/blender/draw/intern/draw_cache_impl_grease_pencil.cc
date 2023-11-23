@@ -383,7 +383,7 @@ static void grease_pencil_geom_batch_ensure(const GreasePencil &grease_pencil,
     const VArray<int8_t> end_caps = *attributes.lookup_or_default<int8_t>(
         "end_cap", ATTR_DOMAIN_CURVE, 0);
     const VArray<int> materials = *attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_CURVE, -1);
+        "material_index", ATTR_DOMAIN_CURVE, 0);
     const Span<uint3> triangles = info.drawing.triangles();
     const Span<int> verts_start_offsets = verts_start_offsets_per_visible_drawing[drawing_i];
     const Span<int> tris_start_offsets = tris_start_offsets_per_visible_drawing[drawing_i];

@@ -22,15 +22,15 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -330,7 +330,7 @@ static void meshdeformModifier_do(ModifierData *md,
   Mesh *cagemesh;
   const MDeformVert *dvert = nullptr;
   float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
-  float(*dco)[3] = nullptr, (*bindcagecos)[3];
+  float(*bindcagecos)[3];
   int a, cage_verts_num, defgrp_index;
   MeshdeformUserdata data;
 
@@ -369,7 +369,7 @@ static void meshdeformModifier_do(ModifierData *md,
     /* progress bar redraw can make this recursive. */
     if (!DEG_is_active(ctx->depsgraph)) {
       BKE_modifier_set_error(ob, md, "Attempt to bind from inactive dependency graph");
-      goto finally;
+      return;
     }
     if (!recursive_bind_sentinel) {
       recursive_bind_sentinel = 1;
@@ -377,7 +377,7 @@ static void meshdeformModifier_do(ModifierData *md,
       recursive_bind_sentinel = 0;
     }
 
-    goto finally;
+    return;
   }
 
   /* verify we have compatible weights */
@@ -385,26 +385,26 @@ static void meshdeformModifier_do(ModifierData *md,
 
   if (mmd->verts_num != verts_num) {
     BKE_modifier_set_error(ob, md, "Vertices changed from %d to %d", mmd->verts_num, verts_num);
-    goto finally;
+    return;
   }
   else if (mmd->cage_verts_num != cage_verts_num) {
     BKE_modifier_set_error(
         ob, md, "Cage vertices changed from %d to %d", mmd->cage_verts_num, cage_verts_num);
-    goto finally;
+    return;
   }
   else if (mmd->bindcagecos == nullptr) {
     BKE_modifier_set_error(ob, md, "Bind data missing");
-    goto finally;
+    return;
   }
 
   /* We allocate 1 element extra to make it possible to
    * load the values to SSE registers, which are float4.
    */
-  dco = static_cast<float(*)[3]>(MEM_calloc_arrayN((cage_verts_num + 1), sizeof(*dco), "MDefDco"));
+  blender::Array<blender::float3> dco(cage_verts_num + 1);
   zero_v3(dco[cage_verts_num]);
 
   /* setup deformation data */
-  BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco, cage_verts_num);
+  BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco.as_mutable_span().take_front(cage_verts_num));
   bindcagecos = (float(*)[3])mmd->bindcagecos;
 
   for (a = 0; a < cage_verts_num; a++) {
@@ -420,7 +420,7 @@ static void meshdeformModifier_do(ModifierData *md,
   /* Initialize data to be pass to the for body function. */
   data.mmd = mmd;
   data.dvert = dvert;
-  data.dco = dco;
+  data.dco = reinterpret_cast<float(*)[3]>(dco.data());
   data.defgrp_index = defgrp_index;
   data.vertexCos = vertexCos;
   data.cagemat = cagemat;
@@ -431,19 +431,17 @@ static void meshdeformModifier_do(ModifierData *md,
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 16;
   BLI_task_parallel_range(0, verts_num, &data, meshdeform_vert_task, &settings);
-
-finally:
-  MEM_SAFE_FREE(dco);
 }
 
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
-  meshdeformModifier_do(md, ctx, mesh, vertexCos, verts_num);
+  /* if next modifier needs original vertices */
+  MOD_previous_vcos_store(md, reinterpret_cast<float(*)[3]>(positions.data()));
+  meshdeformModifier_do(
+      md, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
 }
 
 #define MESHDEFORM_MIN_INFLUENCE 0.00001f
@@ -623,7 +621,7 @@ ModifierTypeInfo modifierType_MeshDeform = {
     /*struct_name*/ "MeshDeformModifierData",
     /*struct_size*/ sizeof(MeshDeformModifierData),
     /*srna*/ &RNA_MeshDeformModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_MESHDEFORM,

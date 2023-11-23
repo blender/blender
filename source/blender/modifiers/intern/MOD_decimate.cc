@@ -19,7 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_screen.hh"
@@ -279,7 +279,7 @@ ModifierTypeInfo modifierType_Decimate = {
     /*struct_name*/ "DecimateModifierData",
     /*struct_size*/ sizeof(DecimateModifierData),
     /*srna*/ &RNA_DecimateModifier,
-    /*type*/ eModifierTypeType_Nonconstructive,
+    /*type*/ ModifierTypeType::Nonconstructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_DECIM,
 

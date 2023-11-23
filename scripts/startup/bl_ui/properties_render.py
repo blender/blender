@@ -595,9 +595,6 @@ class EeveeRaytracingOptionsPanel(RenderButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        scene = context.scene
-        eevee = scene.eevee
-
         layout.prop(props, "resolution_scale")
         layout.prop(props, "sample_clamp")
 
@@ -618,6 +615,7 @@ class EeveeRaytracingScreenOption(RenderButtonsPanel, Panel):
 
         layout.prop(props, "screen_trace_quality", text="Precision")
         layout.prop(props, "screen_trace_thickness", text="Thickness")
+        layout.prop(props, "screen_trace_max_roughness", text="Max Roughness")
 
 
 class EeveeRaytracingDenoisePanel(RenderButtonsPanel, Panel):

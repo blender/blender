@@ -8,13 +8,13 @@
 #include "BLI_math_quaternion_types.hh"
 
 #include "FN_field.hh"
-#include "FN_field_cpp_type.hh"
 #include "FN_lazy_function.hh"
 #include "FN_multi_function_builder.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_node_socket_value_cpp_type.hh"
 
 #include "DNA_node_types.h"
 
@@ -47,6 +47,7 @@ using bke::MeshComponent;
 using bke::MutableAttributeAccessor;
 using bke::PointCloudComponent;
 using bke::SpanAttributeWriter;
+using bke::ValueOrField;
 using bke::VolumeComponent;
 using fn::Field;
 using fn::FieldContext;
@@ -54,7 +55,6 @@ using fn::FieldEvaluator;
 using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;
-using fn::ValueOrField;
 using geo_eval_log::NamedAttributeUsage;
 using geo_eval_log::NodeWarningType;
 
@@ -109,8 +109,8 @@ class GeoNodeExecParams {
       const int index = this->get_input_index(identifier);
       const bNodeSocket &input_socket = node_.input_by_identifier(identifier);
       const CPPType &value_type = *input_socket.typeinfo->geometry_nodes_cpp_type;
-      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
-          value_type);
+      const bke::ValueOrFieldCPPType &value_or_field_type =
+          *bke::ValueOrFieldCPPType::get_from_self(value_type);
       return value_or_field_type.as_field(params_.try_get_input_data_ptr(index));
     }
     else {

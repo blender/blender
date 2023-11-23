@@ -78,7 +78,8 @@ void VKBatch::multi_draw_indirect(GPUStorageBuf *indirect_buf,
 
   VKStorageBuffer &indirect_buffer = *unwrap(unwrap(indirect_buf));
   VKContext &context = *VKContext::get();
-  const bool draw_indexed = index_buffer_get() != nullptr;
+  VKIndexBuffer *index_buffer = index_buffer_get();
+  const bool draw_indexed = index_buffer != nullptr;
   VKCommandBuffers &command_buffers = context.command_buffers_get();
   if (draw_indexed) {
     command_buffers.draw_indexed_indirect(indirect_buffer, offset, count, stride);

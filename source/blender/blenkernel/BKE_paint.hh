@@ -9,8 +9,10 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
@@ -21,7 +23,7 @@
 #include "DNA_object_enums.h"
 
 #include "BKE_attribute.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh.hh"
 
 #include "bmesh.h"
 
@@ -396,7 +398,7 @@ struct SculptPersistentBase {
 
 struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
-  BLI_bitmap *boundary;
+  blender::BitVector<> boundary;
 };
 
 struct SculptBoundaryEditInfo {
@@ -592,8 +594,6 @@ struct SculptSession {
   eAttrDomain vcol_domain;
   eCustomDataType vcol_type;
 
-  const float *vmask;
-
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
   blender::GroupedSpan<int> pmap;
@@ -634,11 +634,14 @@ struct SculptSession {
   /* PBVH acceleration structure */
   PBVH *pbvh;
 
-  /* Painting on deformed mesh */
-  bool deform_modifiers_active; /* Object is deformed with some modifiers. */
-  float (*orig_cos)[3];         /* Coords of un-deformed mesh. */
-  float (*deform_cos)[3];       /* Coords of deformed mesh but without stroke displacement. */
-  float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
+  /* Object is deformed with some modifiers. */
+  bool deform_modifiers_active;
+  /* Coords of un-deformed mesh. */
+  blender::Array<blender::float3> orig_cos;
+  /* Coords of deformed mesh but without stroke displacement. */
+  blender::Array<blender::float3, 0> deform_cos;
+  /* Crazy-space deformation matrices. */
+  blender::Array<blender::float3x3, 0> deform_imats;
 
   /* Pool for texture evaluations. */
   ImagePool *tex_pool;
@@ -871,10 +874,10 @@ bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh);
  *
  * \note always call *before* #BKE_sculpt_update_object_for_edit.
  */
-int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
-                                  Main *bmain,
-                                  Object *ob,
-                                  MultiresModifierData *mmd);
+void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
+                                   Main *bmain,
+                                   Object *ob,
+                                   MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene);
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
@@ -889,11 +892,6 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
  * drawing the mesh and all updates that come with it.
  */
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d);
-
-enum {
-  SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
-  SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),
-};
 
 /* paint_vertex.cc */
 

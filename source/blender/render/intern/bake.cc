@@ -61,8 +61,8 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_customdata.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_customdata.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"

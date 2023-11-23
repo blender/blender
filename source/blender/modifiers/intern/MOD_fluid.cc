@@ -23,11 +23,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fluid.h"
 #include "BKE_layer.h"
 #include "BKE_lib_query.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -237,7 +237,7 @@ ModifierTypeInfo modifierType_Fluid = {
     /*struct_name*/ "FluidModifierData",
     /*struct_size*/ sizeof(FluidModifierData),
     /*srna*/ &RNA_FluidModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_FLUIDSIM,
 

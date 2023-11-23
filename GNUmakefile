@@ -599,7 +599,7 @@ doc_dna: .FORCE
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
 doc_man: .FORCE
-	@$(PYTHON) doc/manpage/blender.1.py --blender="$(BLENDER_BIN)" --output=blender.1 --verbose
+	@$(BLENDER_BIN) --background --python doc/manpage/blender.1.py -- --output=blender.1 --verbose
 
 help_features: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_print_build_options.py" $(BLENDER_DIR)"/CMakeLists.txt"

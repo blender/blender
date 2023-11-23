@@ -66,6 +66,12 @@ enum eShaderType {
   HIZ_UPDATE_LAYER,
   HIZ_DEBUG,
 
+  HORIZON_DENOISE,
+  HORIZON_SCAN_DIFFUSE,
+  HORIZON_SCAN_REFLECT,
+  HORIZON_SCAN_REFRACT,
+  HORIZON_SETUP,
+
   LIGHT_CULLING_DEBUG,
   LIGHT_CULLING_SELECT,
   LIGHT_CULLING_SORT,
@@ -167,8 +173,7 @@ class ShaderModule {
                                    ListBase &materials,
                                    bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
-                                   eMaterialGeometry geometry_type,
-                                   bool is_lookdev);
+                                   eMaterialGeometry geometry_type);
 
   void material_create_info_ammend(GPUMaterial *mat, GPUCodegenOutput *codegen);
 

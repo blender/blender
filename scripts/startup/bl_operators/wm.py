@@ -8,7 +8,6 @@ import bpy
 from bpy.types import (
     Menu,
     Operator,
-    bpy_prop_array,
 )
 from bpy.props import (
     BoolProperty,
@@ -35,7 +34,7 @@ def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
     line = context_prefix + edit_text
     cursor = len(line)
     namespace = {"context": context}
-    comp_prefix, _, comp_options = intellisense.expand(line=line, cursor=len(line), namespace=namespace, private=False)
+    comp_prefix, _, comp_options = intellisense.expand(line=line, cursor=cursor, namespace=namespace, private=False)
     prefix = comp_prefix[len(context_prefix):]  # Strip "context."
     for attr in comp_options.split("\n"):
         if attr.endswith((
@@ -66,7 +65,6 @@ def rna_path_prop_search_for_context(self, context, edit_text):
             # Users are very unlikely to be setting shortcuts in the preferences, skip this.
             if area.type == 'PREFERENCES':
                 continue
-            space = area.spaces.active
             # Ignore the same region type multiple times in an area.
             # Prevents the 3D-viewport quad-view from attempting to expand 3 extra times for e.g.
             region_type_unique = set()

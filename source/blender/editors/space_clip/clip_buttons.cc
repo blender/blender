@@ -23,7 +23,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_movieclip.h"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"

@@ -11,7 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BLI_utildefines.h"
 
 #include "RNA_access.hh"

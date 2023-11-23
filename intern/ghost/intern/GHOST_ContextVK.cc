@@ -233,6 +233,7 @@ class GHOST_DeviceVK {
 #endif
     device_features.drawIndirectFirstInstance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
+    device_features.samplerAnisotropy = features.features.samplerAnisotropy;
 
     VkDeviceCreateInfo device_create_info = {};
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -996,8 +997,10 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
     extensions_device.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-  extensions_device.push_back("VK_KHR_dedicated_allocation");
-  extensions_device.push_back("VK_KHR_get_memory_requirements2");
+  extensions_device.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+  extensions_device.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+  requireExtension(extensions_available, extensions_enabled, VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
+
   /* Enable MoltenVK required instance extensions. */
 #ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
   requireExtension(

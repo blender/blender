@@ -518,7 +518,8 @@ void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, int flags);
 /**
  * Ensures given ID has a unique name in given listbase.
  *
- * Only for local IDs (linked ones already have a unique ID in their library).
+ * Uniqueness is only ensured within the ID's library (nullptr for local ones), libraries act as
+ * some kind of namespace for IDs.
  *
  * \param name: The new name of the given ID, if NULL the current given ID name is used instead.
  * \param do_linked_data: if true, also ensure a unique name in case the given \a id is linked

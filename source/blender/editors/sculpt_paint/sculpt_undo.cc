@@ -48,8 +48,8 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
@@ -413,8 +413,8 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
     blender::MutableSpan<blender::float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
-      float(*vertCos)[3];
-      vertCos = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
+      blender::MutableSpan<blender::float3> vertCos(
+          static_cast<blender::float3 *>(ss->shapekey_active->data), ss->shapekey_active->totelem);
 
       if (!unode->orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
@@ -439,9 +439,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
 
       /* PBVH uses its own vertex array, so coords should be */
       /* propagated to PBVH here. */
-      BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos, ss->shapekey_active->totelem);
-
-      MEM_freeN(vertCos);
+      BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos);
     }
     else {
       if (!unode->orig_co.is_empty()) {
@@ -559,6 +557,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode, bool *
 
 static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *modified_vertices)
 {
+  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -568,23 +567,20 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
   if (unode->maxvert) {
-    /* Regular mesh restore. */
-    float *vmask = static_cast<float *>(
-        CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
-    if (!vmask) {
-      vmask = static_cast<float *>(
-          CustomData_add_layer(&mesh->vert_data, CD_PAINT_MASK, CD_SET_DEFAULT, mesh->totvert));
-    }
-    ss->vmask = vmask;
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+        ".sculpt_mask", ATTR_DOMAIN_POINT);
 
     const Span<int> index = unode->index;
 
     for (int i = 0; i < unode->totvert; i++) {
-      if (vmask[index[i]] != unode->mask[i]) {
-        SWAP(float, vmask[index[i]], unode->mask[i]);
+      if (mask.span[index[i]] != unode->mask[i]) {
+        std::swap(mask.span[index[i]], unode->mask[i]);
         modified_vertices[index[i]] = true;
       }
     }
+
+    mask.finish();
   }
   else if (unode->maxgrid && subdiv_ccg != nullptr) {
     /* Multires restore. */
@@ -602,7 +598,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
       grid = grids[unode->grids[j]];
 
       for (int i = 0; i < gridsize * gridsize; i++) {
-        SWAP(float, *CCG_elem_offset_mask(&key, grid, i), mask[index]);
+        std::swap(*CCG_elem_offset_mask(&key, grid, i), mask[index]);
         index++;
       }
     }
@@ -673,7 +669,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
   bmesh_create_params.use_toolflags = false;
 
   ss->bm = BM_mesh_create(&bm_mesh_allocsize_default, &bmesh_create_params);
-  BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 

@@ -24,12 +24,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_collision.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -90,8 +90,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int /*verts_num*/)
+                         blender::MutableSpan<blender::float3> positions)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
   Object *ob = ctx->object;
@@ -110,7 +109,7 @@ static void deform_verts(ModifierData *md,
     float current_time = 0;
     int mvert_num = 0;
 
-    BKE_mesh_vert_coords_apply(mesh, vertexCos);
+    BKE_mesh_vert_coords_apply(mesh, reinterpret_cast<const float(*)[3]>(positions.data()));
 
     current_time = DEG_get_ctime(ctx->depsgraph);
 
@@ -277,7 +276,7 @@ ModifierTypeInfo modifierType_Collision = {
     /*struct_name*/ "CollisionModifierData",
     /*struct_size*/ sizeof(CollisionModifierData),
     /*srna*/ &RNA_CollisionModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_PHYSICS,
 

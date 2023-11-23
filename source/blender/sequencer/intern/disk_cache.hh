@@ -19,16 +19,14 @@ struct SeqCacheKey;
 struct SeqDiskCache;
 struct Sequence;
 
-struct SeqDiskCache *seq_disk_cache_create(struct Main *bmain, struct Scene *scene);
-void seq_disk_cache_free(struct SeqDiskCache *disk_cache);
-bool seq_disk_cache_is_enabled(struct Main *bmain);
-struct ImBuf *seq_disk_cache_read_file(struct SeqDiskCache *disk_cache, struct SeqCacheKey *key);
-bool seq_disk_cache_write_file(struct SeqDiskCache *disk_cache,
-                               struct SeqCacheKey *key,
-                               struct ImBuf *ibuf);
-bool seq_disk_cache_enforce_limits(struct SeqDiskCache *disk_cache);
-void seq_disk_cache_invalidate(struct SeqDiskCache *disk_cache,
-                               struct Scene *scene,
-                               struct Sequence *seq,
-                               struct Sequence *seq_changed,
+SeqDiskCache *seq_disk_cache_create(Main *bmain, Scene *scene);
+void seq_disk_cache_free(SeqDiskCache *disk_cache);
+bool seq_disk_cache_is_enabled(Main *bmain);
+ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key);
+bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key, ImBuf *ibuf);
+bool seq_disk_cache_enforce_limits(SeqDiskCache *disk_cache);
+void seq_disk_cache_invalidate(SeqDiskCache *disk_cache,
+                               Scene *scene,
+                               Sequence *seq,
+                               Sequence *seq_changed,
                                int invalidate_types);

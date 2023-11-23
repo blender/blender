@@ -26,7 +26,7 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_blender.h"
 #include "BKE_collection.h"
 #include "BKE_fcurve.h"

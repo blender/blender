@@ -11,7 +11,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
@@ -182,7 +182,7 @@ void nla_keymap(wmKeyConfig *keyconf)
    * However, those operations which involve clicking on channels and/or
    * the placement of them in the view are implemented here instead
    */
-  WM_keymap_ensure(keyconf, "NLA Channels", SPACE_NLA, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "NLA Tracks", SPACE_NLA, RGN_TYPE_WINDOW);
 
   /* data ------------------------------------------------------------- */
   WM_keymap_ensure(keyconf, "NLA Editor", SPACE_NLA, RGN_TYPE_WINDOW);

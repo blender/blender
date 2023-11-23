@@ -49,7 +49,7 @@
 #include "BKE_node.h"
 #include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
-#include "BKE_viewer_path.h"
+#include "BKE_viewer_path.hh"
 #include "BKE_workspace.h"
 
 #include "BLO_read_write.hh"

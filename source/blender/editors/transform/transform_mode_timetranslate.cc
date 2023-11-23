@@ -13,7 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_unit.h"
 
 #include "ED_screen.hh"
@@ -82,7 +82,17 @@ static void applyTimeTranslateValue(TransInfo *t, const float deltax)
     /* It doesn't matter whether we apply to t->data. */
     TransData *td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
-      *(td->val) = td->loc[0] = td->ival + deltax * td->factor;
+      float *dst, ival;
+      if (td->val) {
+        dst = td->val;
+        ival = td->ival;
+      }
+      else {
+        dst = &td->loc[0];
+        ival = td->iloc[0];
+      }
+
+      *dst = ival + deltax * td->factor;
     }
   }
 }

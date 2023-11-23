@@ -29,8 +29,8 @@
 #include "WM_api.hh"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
@@ -905,11 +905,12 @@ static int select_random_exec(bContext *C, wmOperator *op)
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
     const eAttrDomain selection_domain = eAttrDomain(curves_id->selection_domain);
+    const int domain_size = curves.attributes().domain_size(selection_domain);
 
     IndexMaskMemory memory;
     const IndexMask inv_random_elements = random_mask(
                                               curves, selection_domain, seed, probability, memory)
-                                              .complement(curves.points_range(), memory);
+                                              .complement(IndexRange(domain_size), memory);
 
     const bool was_anything_selected = has_anything_selected(curves);
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(

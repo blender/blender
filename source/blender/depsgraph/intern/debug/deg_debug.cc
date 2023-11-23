@@ -17,12 +17,11 @@
 
 #include "BKE_global.h"
 
+#include "intern/depsgraph.hh"
+
 namespace blender::deg {
 
-DepsgraphDebug::DepsgraphDebug()
-    : flags(G.debug), is_ever_evaluated(false), graph_evaluation_start_time_(0)
-{
-}
+DepsgraphDebug::DepsgraphDebug() : flags(G.debug), graph_evaluation_start_time_(0) {}
 
 bool DepsgraphDebug::do_time_debug() const
 {
@@ -37,10 +36,6 @@ void DepsgraphDebug::begin_graph_evaluation()
 
   const double current_time = PIL_check_seconds_timer();
 
-  if (is_ever_evaluated) {
-    fps_samples_.add_sample(current_time - graph_evaluation_start_time_);
-  }
-
   graph_evaluation_start_time_ = current_time;
 }
 
@@ -51,10 +46,14 @@ void DepsgraphDebug::end_graph_evaluation()
   }
 
   const double graph_eval_end_time = PIL_check_seconds_timer();
-  printf("Depsgraph updated in %f seconds.\n", graph_eval_end_time - graph_evaluation_start_time_);
-  printf("Depsgraph evaluation FPS: %f\n", 1.0f / fps_samples_.get_averaged());
+  const double graph_eval_time = graph_eval_end_time - graph_evaluation_start_time_;
 
-  is_ever_evaluated = true;
+  if (name.empty()) {
+    printf("Depsgraph updated in %f seconds.\n", graph_eval_time);
+  }
+  else {
+    printf("Depsgraph [%s] updated in %f seconds.\n", name.c_str(), graph_eval_time);
+  }
 }
 
 bool terminal_do_color()

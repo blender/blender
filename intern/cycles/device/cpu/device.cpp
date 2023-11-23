@@ -4,6 +4,7 @@
 
 #include "device/cpu/device.h"
 #include "device/cpu/device_impl.h"
+#include "integrator/denoiser_oidn.h"
 
 /* Used for `info.denoisers`. */
 /* TODO(sergey): The denoisers are probably to be moved completely out of the device into their

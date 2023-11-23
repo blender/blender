@@ -38,12 +38,12 @@ void do_vertex(const int i, vec4 pos, vec2 ofs)
   interp_noperspective_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy += ofs * pos.w;
-  EmitVertex();
+  gpu_EmitVertex();
 
   interp_noperspective_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy -= ofs * pos.w;
-  EmitVertex();
+  gpu_EmitVertex();
 }
 
 void main(void)

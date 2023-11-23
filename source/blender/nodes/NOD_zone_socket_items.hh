@@ -22,6 +22,8 @@ struct SimulationItemsAccessor {
   static StructRNA *item_srna;
   static int node_type;
   static constexpr const char *node_idname = "GeometryNodeSimulationOutput";
+  static constexpr bool has_type = true;
+  static constexpr bool has_name = true;
 
   static socket_items::SocketItemsRef<NodeSimulationItem> get_items_from_node(bNode &node)
   {
@@ -84,6 +86,8 @@ struct RepeatItemsAccessor {
   static StructRNA *item_srna;
   static int node_type;
   static constexpr const char *node_idname = "GeometryNodeRepeatOutput";
+  static constexpr bool has_type = true;
+  static constexpr bool has_name = true;
 
   static socket_items::SocketItemsRef<NodeRepeatItem> get_items_from_node(bNode &node)
   {
@@ -136,6 +140,41 @@ struct RepeatItemsAccessor {
     socket_items::set_item_name_and_make_unique<RepeatItemsAccessor>(node, item, name);
   }
   static std::string socket_identifier_for_item(const NodeRepeatItem &item)
+  {
+    return "Item_" + std::to_string(item.identifier);
+  }
+};
+
+/**
+ * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for index
+ * switch items.
+ */
+struct IndexSwitchItemsAccessor {
+  using ItemT = IndexSwitchItem;
+  static StructRNA *item_srna;
+  static int node_type;
+  static constexpr const char *node_idname = "GeometryNodeIndexSwitch";
+  static constexpr bool has_type = false;
+  static constexpr bool has_name = false;
+
+  static socket_items::SocketItemsRef<IndexSwitchItem> get_items_from_node(bNode &node)
+  {
+    auto &storage = *static_cast<NodeIndexSwitch *>(node.storage);
+    return {&storage.items, &storage.items_num, nullptr};
+  }
+  static void copy_item(const IndexSwitchItem &src, IndexSwitchItem &dst)
+  {
+    dst = src;
+  }
+  static void destruct_item(IndexSwitchItem * /*item*/) {}
+  static void blend_write(BlendWriter *writer, const bNode &node);
+  static void blend_read_data(BlendDataReader *reader, bNode &node);
+  static void init(bNode &node, IndexSwitchItem &item)
+  {
+    auto &storage = *static_cast<NodeIndexSwitch *>(node.storage);
+    item.identifier = storage.next_identifier++;
+  }
+  static std::string socket_identifier_for_item(const IndexSwitchItem &item)
   {
     return "Item_" + std::to_string(item.identifier);
   }

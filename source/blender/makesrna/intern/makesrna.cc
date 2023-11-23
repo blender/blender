@@ -4834,7 +4834,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"BLI_blenlib.h\"\n\n");
   fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
 
-  fprintf(f, "#include \"BKE_context.h\"\n");
+  fprintf(f, "#include \"BKE_context.hh\"\n");
   fprintf(f, "#include \"BKE_lib_id.h\"\n");
   fprintf(f, "#include \"BKE_main.h\"\n");
   fprintf(f, "#include \"BKE_report.h\"\n");

@@ -12,7 +12,7 @@
 #include "draw_manager.h"
 #include "draw_pbvh.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_duplilist.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -20,7 +20,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 /* For debug cursor position. */
 #include "WM_api.hh"

@@ -12,7 +12,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_report.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_index_range.hh"

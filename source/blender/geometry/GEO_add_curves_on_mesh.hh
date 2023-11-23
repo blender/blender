@@ -9,7 +9,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_curves.hh"
 
 #include "DNA_mesh_types.h"

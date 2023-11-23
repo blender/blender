@@ -19,6 +19,14 @@ namespace blender::gpu {
 class VKSampler;
 
 class VKTexture : public Texture, public VKBindableResource {
+  /**
+   * Texture format how the texture is stored on the device.
+   *
+   * This can be a different format then #Texture.format_ in case the texture format isn't natively
+   * supported by the device.
+   */
+  eGPUTextureFormat device_format_ = (eGPUTextureFormat)-1;
+
   /** When set the instance is considered to be a texture view from `source_texture_` */
   VKTexture *source_texture_ = nullptr;
   VkImage vk_image_ = VK_NULL_HANDLE;
@@ -76,7 +84,9 @@ class VKTexture : public Texture, public VKBindableResource {
   /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get() const override;
 
-  void bind(int location, shader::ShaderCreateInfo::Resource::BindType bind_type) override;
+  void bind(int location,
+            shader::ShaderCreateInfo::Resource::BindType bind_type,
+            const GPUSamplerState sampler_state) override;
 
   VkImage vk_image_handle() const
   {
@@ -85,6 +95,14 @@ class VKTexture : public Texture, public VKBindableResource {
     }
     BLI_assert(vk_image_ != VK_NULL_HANDLE);
     return vk_image_;
+  }
+
+  /**
+   * Get the texture format how the texture is stored on the device.
+   */
+  eGPUTextureFormat device_format_get() const
+  {
+    return device_format_;
   }
 
  protected:

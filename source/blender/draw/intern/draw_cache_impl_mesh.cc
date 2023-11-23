@@ -31,15 +31,15 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
-#include "BKE_editmesh_tangent.h"
+#include "BKE_editmesh_tangent.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -59,7 +59,7 @@
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_inline.h"
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 #include "draw_cache_impl.hh" /* own include */
 #include "draw_manager.h"

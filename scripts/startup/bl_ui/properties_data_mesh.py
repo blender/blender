@@ -426,9 +426,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
 
             col = layout.column(heading="Preserve")
             col.prop(mesh, "use_remesh_preserve_volume", text="Volume")
-            col.prop(mesh, "use_remesh_preserve_paint_mask", text="Paint Mask")
-            col.prop(mesh, "use_remesh_preserve_sculpt_face_sets", text="Face Sets")
-            col.prop(mesh, "use_remesh_preserve_vertex_colors", text="Color Attributes")
+            col.prop(mesh, "use_remesh_preserve_attributes", text="Attributes")
 
             col.operator("object.voxel_remesh", text="Voxel Remesh")
         else:

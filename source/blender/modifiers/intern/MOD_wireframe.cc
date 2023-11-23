@@ -17,7 +17,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_screen.hh"
@@ -170,7 +170,7 @@ ModifierTypeInfo modifierType_Wireframe = {
     /*struct_name*/ "WireframeModifierData",
     /*struct_size*/ sizeof(WireframeModifierData),
     /*srna*/ &RNA_WireframeModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WIREFRAME,
 

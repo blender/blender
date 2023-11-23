@@ -32,7 +32,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 
 #ifdef WITH_FLUID
@@ -54,10 +54,10 @@
 #  include "BLI_threads.h"
 #  include "BLI_voxel.h"
 
-#  include "BKE_bvhutils.h"
+#  include "BKE_bvhutils.hh"
 #  include "BKE_collision.h"
 #  include "BKE_colortools.h"
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #  include "BKE_deform.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"

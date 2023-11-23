@@ -37,26 +37,27 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_curves.h"
 #include "BKE_displist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
@@ -68,17 +69,18 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -650,8 +652,8 @@ bool ED_object_parent_set(ReportList *reports,
               if (md) {
                 ((CurveModifierData *)md)->object = par;
               }
-              if (par->runtime.curve_cache &&
-                  par->runtime.curve_cache->anim_path_accum_length == nullptr) {
+              if (par->runtime->curve_cache &&
+                  par->runtime->curve_cache->anim_path_accum_length == nullptr) {
                 DEG_id_tag_update(&par->id, ID_RECALC_GEOMETRY);
               }
             }
@@ -2417,7 +2419,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  const bool do_fully_editable = !user_overrides_from_selected_objects;
+  /** Currently there is no 'all editable' option from the 3DView. */
+  const bool do_fully_editable = false;
 
   GSet *user_overrides_objects_uids = do_fully_editable ? nullptr :
                                                           BLI_gset_new(BLI_ghashutil_inthash_p,
@@ -2567,25 +2570,60 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
     return OPERATOR_CANCELLED;
   }
 
-  int potential_root_collections_num = 0;
-  uint collection_session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+  blender::VectorSet<Collection *> potential_root_collections;
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    /* Only check for directly linked collections. */
-    if (!ID_IS_LINKED(&collection->id) || (collection->id.tag & LIB_TAG_INDIRECT) != 0 ||
+    /* Only check for linked collections from the same library, in the current viewlayer. */
+    if (!ID_IS_LINKED(&collection->id) || collection->id.lib != obact->id.lib ||
         !BKE_view_layer_has_collection(view_layer, collection))
     {
       continue;
     }
-    if (BKE_collection_has_object_recursive(collection, obact)) {
-      if (potential_root_collections_num == 0) {
-        collection_session_uuid = collection->id.session_uuid;
+    if (!BKE_collection_has_object_recursive(collection, obact)) {
+      continue;
+    }
+    if (potential_root_collections.is_empty()) {
+      potential_root_collections.add_new(collection);
+    }
+    else {
+      bool has_parents_in_potential_roots = false;
+      bool is_potential_root = false;
+      for (auto collection_root_iter : potential_root_collections) {
+        if (BKE_collection_has_collection(collection_root_iter, collection)) {
+          BLI_assert_msg(!BKE_collection_has_collection(collection, collection_root_iter),
+                         "Invalid loop in collection hierarchy");
+          /* Current potential root is already 'better' (higher up in the collection hierarchy)
+           * than current collection, nothing else to do. */
+          has_parents_in_potential_roots = true;
+        }
+        else if (BKE_collection_has_collection(collection, collection_root_iter)) {
+          BLI_assert_msg(!BKE_collection_has_collection(collection_root_iter, collection),
+                         "Invalid loop in collection hierarchy");
+          /* Current potential root is in the current collection's hierarchy, so the later is a
+           * better candidate as root collection. */
+          is_potential_root = true;
+          potential_root_collections.remove(collection_root_iter);
+        }
+        else {
+          /* Current potential root is not found in current collection's hierarchy, so the later is
+           * a potential candidate as root collection. */
+          is_potential_root = true;
+        }
       }
-      potential_root_collections_num++;
+      /* Only add the current collection as potential root if it is not a descendant of any already
+       * known potential root collections. */
+      if (is_potential_root && !has_parents_in_potential_roots) {
+        potential_root_collections.add_new(collection);
+      }
     }
   }
 
-  if (potential_root_collections_num <= 1) {
-    RNA_property_int_set(op->ptr, op->type->prop, *((int *)&collection_session_uuid));
+  if (potential_root_collections.is_empty()) {
+    RNA_property_int_set(op->ptr, op->type->prop, MAIN_ID_SESSION_UUID_UNSET);
+    return make_override_library_exec(C, op);
+  }
+  if (potential_root_collections.size() == 1) {
+    Collection *collection_root = potential_root_collections.pop();
+    RNA_property_int_set(op->ptr, op->type->prop, *((int *)&collection_root->id.session_uuid));
     return make_override_library_exec(C, op);
   }
 
@@ -2593,7 +2631,7 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
               RPT_ERROR,
               "Too many potential root collections (%d) for the override hierarchy, "
               "please use the Outliner instead",
-              potential_root_collections_num);
+              int(potential_root_collections.size()));
   return OPERATOR_CANCELLED;
 }
 

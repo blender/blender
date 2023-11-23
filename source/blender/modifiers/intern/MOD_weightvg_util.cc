@@ -22,10 +22,10 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_colortools.h" /* CurveMapping. */
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h" /* Texture masking. */
 

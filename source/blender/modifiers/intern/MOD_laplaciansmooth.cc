@@ -19,13 +19,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -504,15 +504,17 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  if (verts_num == 0) {
+  if (positions.is_empty()) {
     return;
   }
 
-  laplaciansmoothModifier_do(
-      (LaplacianSmoothModifierData *)md, ctx->object, mesh, vertexCos, verts_num);
+  laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md,
+                             ctx->object,
+                             mesh,
+                             reinterpret_cast<float(*)[3]>(positions.data()),
+                             positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -555,7 +557,7 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
     /*struct_name*/ "LaplacianSmoothModifierData",
     /*struct_size*/ sizeof(LaplacianSmoothModifierData),
     /*srna*/ &RNA_LaplacianSmoothModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_SMOOTH,
 

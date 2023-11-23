@@ -52,16 +52,16 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_main.h"  /* for Main */
 #include "BKE_mesh.hh" /* for ME_ defines (patching) */
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
@@ -1402,7 +1402,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
 
           while (md && BKE_modifier_get_info(ModifierType(md->type))->type ==
-                           eModifierTypeType_OnlyDeform) {
+                           ModifierTypeType::OnlyDeform) {
             md = md->next;
           }
 

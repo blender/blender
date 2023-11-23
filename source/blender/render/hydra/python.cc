@@ -13,7 +13,7 @@
 #include "../generic/py_capi_utils.h"
 #include "bpy_rna.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "RE_engine.h"
 

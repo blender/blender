@@ -33,8 +33,8 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -3747,7 +3747,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
   uiItemFullO(layout,
               "SCREEN_OT_area_split",
               IFACE_("Vertical Split"),
-              ICON_NONE,
+              ICON_SPLIT_VERTICAL,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
@@ -3760,7 +3760,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
   uiItemFullO(layout,
               "SCREEN_OT_area_split",
               IFACE_("Horizontal Split"),
-              ICON_NONE,
+              ICON_SPLIT_HORIZONTAL,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
@@ -4348,7 +4348,7 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
   uiItemFullO(layout,
               "SCREEN_OT_area_split",
               IFACE_("Vertical Split"),
-              ICON_NONE,
+              ICON_SPLIT_VERTICAL,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
@@ -4361,7 +4361,7 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
   uiItemFullO(layout,
               "SCREEN_OT_area_split",
               IFACE_("Horizontal Split"),
-              ICON_NONE,
+              ICON_SPLIT_HORIZONTAL,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,

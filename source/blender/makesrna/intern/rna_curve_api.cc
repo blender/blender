@@ -15,7 +15,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 
 #include "rna_internal.h" /* own include */
 

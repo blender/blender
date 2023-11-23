@@ -14,6 +14,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_listbase.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -25,10 +26,11 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_path.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
@@ -39,6 +41,7 @@
 #include "BKE_nla.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -63,8 +66,10 @@
  * \{ */
 
 static bool get_normalized_fcurve_bounds(FCurve *fcu,
-                                         bAnimContext *ac,
-                                         bAnimListElem *ale,
+                                         AnimData *anim_data,
+                                         SpaceLink *space_link,
+                                         Scene *scene,
+                                         ID *id,
                                          const bool include_handles,
                                          const float range[2],
                                          rctf *r_bounds)
@@ -77,11 +82,10 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
     return false;
   }
 
-  const short mapping_flag = ANIM_get_normalization_flags(ac);
+  const short mapping_flag = ANIM_get_normalization_flags(space_link);
 
   float offset;
-  const float unit_fac = ANIM_unit_mapping_get_factor(
-      ac->scene, ale->id, fcu, mapping_flag, &offset);
+  const float unit_fac = ANIM_unit_mapping_get_factor(scene, id, fcu, mapping_flag, &offset);
 
   r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
   r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
@@ -92,9 +96,8 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
     r_bounds->ymin -= (min_height - height) / 2;
     r_bounds->ymax += (min_height - height) / 2;
   }
-  AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-  r_bounds->xmin = BKE_nla_tweakedit_remap(adt, r_bounds->xmin, NLATIME_CONVERT_MAP);
-  r_bounds->xmax = BKE_nla_tweakedit_remap(adt, r_bounds->xmax, NLATIME_CONVERT_MAP);
+  r_bounds->xmin = BKE_nla_tweakedit_remap(anim_data, r_bounds->xmin, NLATIME_CONVERT_MAP);
+  r_bounds->xmax = BKE_nla_tweakedit_remap(anim_data, r_bounds->xmax, NLATIME_CONVERT_MAP);
 
   return true;
 }
@@ -125,6 +128,39 @@ static bool get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bou
   return found_start;
 }
 
+static bool get_grease_pencil_layer_bounds(const GreasePencilLayer *gplayer,
+                                           const float range[2],
+                                           rctf *r_bounds)
+{
+  using namespace blender::bke::greasepencil;
+  const Layer &layer = gplayer->wrap();
+
+  bool found_start = false;
+  int start_frame = 0;
+  int end_frame = 1;
+
+  for (const FramesMapKey key : layer.sorted_keys()) {
+    if (key < range[0]) {
+      continue;
+    }
+    if (key > range[1]) {
+      break;
+    }
+
+    if (!found_start) {
+      start_frame = key;
+      found_start = true;
+    }
+    end_frame = key;
+  }
+  r_bounds->xmin = start_frame;
+  r_bounds->xmax = end_frame;
+  r_bounds->ymin = 0;
+  r_bounds->ymax = 1;
+
+  return found_start;
+}
+
 static bool get_channel_bounds(bAnimContext *ac,
                                bAnimListElem *ale,
                                const float range[2],
@@ -138,9 +174,16 @@ static bool get_channel_bounds(bAnimContext *ac,
       found_bounds = get_gpencil_bounds(gpl, range, r_bounds);
       break;
     }
+    case ALE_GREASE_PENCIL_CEL:
+      found_bounds = get_grease_pencil_layer_bounds(
+          static_cast<const GreasePencilLayer *>(ale->data), range, r_bounds);
+      break;
+
     case ALE_FCURVE: {
       FCurve *fcu = (FCurve *)ale->key_data;
-      found_bounds = get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
+      AnimData *anim_data = ANIM_nla_mapping_get(ac, ale);
+      found_bounds = get_normalized_fcurve_bounds(
+          fcu, anim_data, ac->sl, ac->scene, ale->id, include_handles, range, r_bounds);
       break;
     }
   }
@@ -856,6 +899,7 @@ void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
 
   ANIM_animdata_freelist(&anim_data);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4266,6 +4310,239 @@ static void ANIM_OT_channel_view_pick(wmOperatorType *ot)
                              "Ignore frames outside of the preview range");
 }
 
+/* Find a Graph Editor area and modify the given context to be the window region of it. */
+static bool move_context_to_graph_editor(bContext *C)
+{
+  bool found_graph_editor = false;
+  LISTBASE_FOREACH (wmWindow *, win, &CTX_wm_manager(C)->windows) {
+    bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->spacetype != SPACE_GRAPH) {
+        continue;
+      }
+      ARegion *window_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
+      if (!window_region) {
+        continue;
+      }
+
+      CTX_wm_window_set(C, win);
+      CTX_wm_screen_set(C, screen);
+      CTX_wm_area_set(C, area);
+      CTX_wm_region_set(C, window_region);
+      found_graph_editor = true;
+      break;
+    }
+
+    if (found_graph_editor) {
+      break;
+    }
+  }
+  return found_graph_editor;
+}
+
+static void deselect_all_fcurves(bAnimContext *ac, const bool hide)
+{
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
+                                    ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    fcu->flag &= ~FCURVE_SELECTED;
+    fcu->flag &= ~FCURVE_ACTIVE;
+    if (hide) {
+      fcu->flag &= ~FCURVE_VISIBLE;
+    }
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static rctf calculate_selection_fcurve_bounds_and_unhide(
+    bContext *C,
+    ListBase /* CollectionPointerLink */ *selection,
+    PropertyRNA *prop,
+    char *id_to_prop_path,
+    const int index,
+    const bool whole_array)
+{
+  rctf bounds;
+  bounds.xmin = INFINITY;
+  bounds.xmax = -INFINITY;
+  bounds.ymin = INFINITY;
+  bounds.ymax = -INFINITY;
+
+  SpaceLink *ge_space_link = CTX_wm_space_data(C);
+  if (ge_space_link->spacetype != SPACE_GRAPH) {
+    return bounds;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  float frame_range[2];
+  get_view_range(scene, true, frame_range);
+  const bool include_handles = false;
+
+  LISTBASE_FOREACH (CollectionPointerLink *, selected, selection) {
+    ID *selected_id = selected->ptr.owner_id;
+    if (!BKE_animdata_id_is_animated(selected_id)) {
+      continue;
+    }
+    PointerRNA resolved_ptr;
+    PropertyRNA *resolved_prop;
+    if (id_to_prop_path != nullptr) {
+      const bool resolved = RNA_path_resolve_property(
+          &selected->ptr, id_to_prop_path, &resolved_ptr, &resolved_prop);
+      if (!resolved) {
+        continue;
+      }
+    }
+    else {
+      resolved_ptr = selected->ptr;
+      resolved_prop = prop;
+    }
+    char *path = RNA_path_from_ID_to_property(&resolved_ptr, resolved_prop);
+
+    AnimData *anim_data = BKE_animdata_from_id(selected_id);
+    blender::Vector<FCurve *> fcurves;
+    if (RNA_property_array_check(prop) && whole_array) {
+      const int length = RNA_property_array_length(&selected->ptr, prop);
+      for (int i = 0; i < length; i++) {
+        FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
+            anim_data, path, i, nullptr, nullptr);
+        if (fcurve != nullptr) {
+          fcurves.append(fcurve);
+        }
+      }
+    }
+    else {
+      FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
+          anim_data, path, index, nullptr, nullptr);
+      if (fcurve != nullptr) {
+        fcurves.append(fcurve);
+      }
+    }
+
+    MEM_freeN(path);
+
+    for (FCurve *fcurve : fcurves) {
+      fcurve->flag |= (FCURVE_SELECTED | FCURVE_VISIBLE);
+      rctf fcu_bounds;
+      float mapped_frame_range[2];
+      mapped_frame_range[0] = BKE_nla_tweakedit_remap(
+          anim_data, frame_range[0], NLATIME_CONVERT_UNMAP);
+      mapped_frame_range[1] = BKE_nla_tweakedit_remap(
+          anim_data, frame_range[1], NLATIME_CONVERT_UNMAP);
+      get_normalized_fcurve_bounds(fcurve,
+                                   anim_data,
+                                   ge_space_link,
+                                   scene,
+                                   selected_id,
+                                   include_handles,
+                                   mapped_frame_range,
+                                   &fcu_bounds);
+      BLI_rctf_union(&bounds, &fcu_bounds);
+    }
+  }
+
+  return bounds;
+}
+
+static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
+{
+  PointerRNA ptr = {nullptr};
+  PropertyRNA *prop = nullptr;
+  uiBut *but;
+  int index;
+
+  if (!(but = UI_context_active_but_prop_get(C, &ptr, &prop, &index))) {
+    /* Pass event on if no active button found. */
+    return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
+  }
+
+  ListBase selection = {nullptr, nullptr};
+
+  bool path_from_id;
+  char *id_to_prop_path;
+  const bool selected_list_success = UI_context_copy_to_selected_list(
+      C, &ptr, prop, &selection, &path_from_id, &id_to_prop_path);
+
+  if (BLI_listbase_is_empty(&selection) || !selected_list_success) {
+    WM_report(RPT_ERROR, "Nothing selected");
+    BLI_freelistN(&selection);
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool found_graph_editor = move_context_to_graph_editor(C);
+
+  if (!found_graph_editor) {
+    WM_report(RPT_WARNING, "No open Graph Editor window found");
+    return OPERATOR_CANCELLED;
+  }
+
+  bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    /* This might never be called since we are manually setting the Graph Editor just before. */
+    WM_report(RPT_ERROR, "Cannot create the Animation Context");
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool isolate = RNA_boolean_get(op->ptr, "isolate");
+  deselect_all_fcurves(&ac, isolate);
+
+  const bool whole_array = RNA_boolean_get(op->ptr, "all");
+
+  rctf bounds = calculate_selection_fcurve_bounds_and_unhide(
+      C, &selection, prop, id_to_prop_path, index, whole_array);
+
+  BLI_freelistN(&selection);
+
+  if (id_to_prop_path != nullptr) {
+    MEM_freeN(id_to_prop_path);
+  }
+
+  if (!BLI_rctf_is_valid(&bounds)) {
+    WM_report(RPT_ERROR, "F-Curves have no valid size");
+    return OPERATOR_CANCELLED;
+  }
+
+  ARegion *region = CTX_wm_region(C);
+  add_region_padding(C, region, &bounds);
+
+  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+  UI_view2d_smooth_view(C, region, &bounds, smooth_viewtx);
+
+  /* This ensures the channel list updates. */
+  ED_area_tag_redraw(CTX_wm_area(C));
+
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_view_curve_in_graph_editor(wmOperatorType *ot)
+{
+  /* Identifiers */
+  ot->name = "View In Graph Editor";
+  ot->idname = "ANIM_OT_view_curve_in_graph_editor";
+  ot->description = "Frame the property under the cursor in the Graph Editor";
+
+  /* API callbacks */
+  ot->exec = view_curve_in_graph_editor_exec;
+
+  RNA_def_boolean(ot->srna,
+                  "all",
+                  false,
+                  "Show All",
+                  "Frame the whole array property instead of only the index under the cursor");
+
+  RNA_def_boolean(ot->srna,
+                  "isolate",
+                  false,
+                  "Isolate",
+                  "Hides all other F-Curves other than the ones being framed");
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4289,6 +4566,7 @@ void ED_operatortypes_animchannels()
 
   WM_operatortype_append(ANIM_OT_channel_view_pick);
   WM_operatortype_append(ANIM_OT_channels_view_selected);
+  WM_operatortype_append(ANIM_OT_view_curve_in_graph_editor);
 
   WM_operatortype_append(ANIM_OT_channels_delete);
 
