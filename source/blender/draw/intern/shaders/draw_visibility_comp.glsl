@@ -33,10 +33,10 @@ void main()
   ObjectBounds bounds = bounds_buf[gl_GlobalInvocationID.x];
 
   if (bounds.bounding_sphere.w != -1.0) {
-    IsectBox box = isect_data_setup(bounds.bounding_corners[0].xyz,
-                                    bounds.bounding_corners[1].xyz,
-                                    bounds.bounding_corners[2].xyz,
-                                    bounds.bounding_corners[3].xyz);
+    IsectBox box = isect_box_setup(bounds.bounding_corners[0].xyz,
+                                   bounds.bounding_corners[1].xyz,
+                                   bounds.bounding_corners[2].xyz,
+                                   bounds.bounding_corners[3].xyz);
     Sphere bounding_sphere = shape_sphere(bounds.bounding_sphere.xyz, bounds.bounding_sphere.w);
     Sphere inscribed_sphere = shape_sphere(bounds.bounding_sphere.xyz,
                                            bounds._inner_sphere_radius);
