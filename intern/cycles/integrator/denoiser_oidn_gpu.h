@@ -66,7 +66,6 @@ class OIDNDenoiserGPU : public DenoiserGPU {
 
   bool use_pass_albedo_ = false;
   bool use_pass_normal_ = false;
-  DenoiserQuality quality_ = DENOISER_QUALITY_HIGH;
 
   int max_mem_ = 3000;
 };

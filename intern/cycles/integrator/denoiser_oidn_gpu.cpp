@@ -108,8 +108,7 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
 {
   const bool recreate_denoiser = (oidn_device_ == nullptr) || (oidn_filter_ == nullptr) ||
                                  (use_pass_albedo_ != context.use_pass_albedo) ||
-                                 (use_pass_normal_ != context.use_pass_normal) ||
-                                 (quality_ != params_.quality);
+                                 (use_pass_normal_ != context.use_pass_normal);
   if (!recreate_denoiser) {
     return true;
   }
@@ -153,18 +152,6 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   {
     oidnSetFilterInt(oidn_filter_, "cleanAux", true);
   }
-
-#  if OIDN_VERSION_MAJOR >= 2
-  switch (params_.quality) {
-    case DENOISER_QUALITY_BALANCED:
-      oidnSetFilterInt(oidn_filter_, "quality", OIDN_QUALITY_BALANCED);
-      break;
-    case DENOISER_QUALITY_HIGH:
-    default:
-      oidnSetFilterInt(oidn_filter_, "quality", OIDN_QUALITY_HIGH);
-  }
-  quality_ = params_.quality;
-#  endif
 
   if (context.use_pass_albedo) {
     albedo_filter_ = create_filter();

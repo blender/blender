@@ -476,7 +476,6 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     integrator->set_use_denoise_pass_albedo(denoise_params.use_pass_albedo);
     integrator->set_use_denoise_pass_normal(denoise_params.use_pass_normal);
     integrator->set_denoiser_prefilter(denoise_params.prefilter);
-    integrator->set_denoiser_quality(denoise_params.quality);
   }
 
   /* UPDATE_NONE as we don't want to tag the integrator as modified (this was done by the
@@ -971,8 +970,6 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
     denoising.type = (DenoiserType)get_enum(cscene, "denoiser", DENOISER_NUM, DENOISER_NONE);
     denoising.prefilter = (DenoiserPrefilter)get_enum(
         cscene, "denoising_prefilter", DENOISER_PREFILTER_NUM, DENOISER_PREFILTER_NONE);
-    denoising.quality = (DenoiserQuality)get_enum(
-        cscene, "denoising_quality", DENOISER_QUALITY_NUM, DENOISER_QUALITY_HIGH);
 
     input_passes = (DenoiserInput)get_enum(
         cscene, "denoising_input_passes", DENOISER_INPUT_NUM, DENOISER_INPUT_RGB_ALBEDO_NORMAL);
@@ -991,9 +988,6 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
         cscene, "preview_denoiser", DENOISER_NUM, DENOISER_NONE);
     denoising.prefilter = (DenoiserPrefilter)get_enum(
         cscene, "preview_denoising_prefilter", DENOISER_PREFILTER_NUM, DENOISER_PREFILTER_FAST);
-    denoising.quality = (DenoiserQuality)get_enum(
-        cscene, "preview_denoising_quality", DENOISER_QUALITY_NUM, DENOISER_QUALITY_BALANCED);
-
     denoising.start_sample = get_int(cscene, "preview_denoising_start_sample");
 
     input_passes = (DenoiserInput)get_enum(
