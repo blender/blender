@@ -248,30 +248,6 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
     if (deg_copy_on_write_is_expanded(id_cow)) {
       if (graph->is_active && id_node->is_user_modified) {
         deg_editors_id_update(update_ctx, id_orig);
-
-        /* We only want to tag an ID for lib-override auto-refresh if it was actually tagged as
-         * changed. CoW IDs indirectly modified because of changes in other IDs should never
-         * require a lib-override diffing. */
-        if (ID_IS_OVERRIDE_LIBRARY_REAL(id_orig)) {
-          id_orig->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
-        }
-        else if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id_orig)) {
-          switch (GS(id_orig->name)) {
-            case ID_KE:
-              ((Key *)id_orig)->from->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
-              break;
-            case ID_GR:
-              BLI_assert(id_orig->flag & LIB_EMBEDDED_DATA);
-              /* TODO. */
-              break;
-            case ID_NT:
-              BLI_assert(id_orig->flag & LIB_EMBEDDED_DATA);
-              /* TODO. */
-              break;
-            default:
-              BLI_assert(0);
-          }
-        }
       }
       /* Inform draw engines that something was changed. */
       flush_engine_data_update(id_cow);

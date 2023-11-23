@@ -422,6 +422,19 @@ bool BKE_lib_override_library_is_hierarchy_leaf(Main *bmain, ID *id)
   return false;
 }
 
+void BKE_lib_override_id_tag_on_deg_tag_from_user(ID *id)
+{
+  /* Only local liboverrides need to be tagged for refresh, linked ones should not be editable. */
+  if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY(id)) {
+    return;
+  }
+  /* NOTE: Valid relationships between IDs here (especially the beloved ObData <-> ShapeKey special
+   * case) cannot be always expected when ID get tagged. So now, embedded IDs and similar also get
+   * tagged, and the 'liboverride refresh' code is responsible to properly progagate the update to
+   * the owner ID when needed (see #BKE_lib_override_library_main_operations_create). */
+  id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+}
+
 ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                             ID *reference_id,
                                             const bool do_tagged_remap)
@@ -4368,9 +4381,33 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
   TaskPool *task_pool = BLI_task_pool_create(&create_pool_data, TASK_PRIORITY_HIGH);
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
-        (force_auto || (id->tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH)))
-    {
+    if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+    /* Propagate potential embedded data tagg to the owner ID (see also
+     * #BKE_lib_override_id_tag_on_deg_tag_from_user). */
+    if (Key *key = BKE_key_from_id(id)) {
+      if (key->id.tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH) {
+        key->id.tag &= ~LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+        id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+      }
+    }
+    if (bNodeTree *ntree = ntreeFromID(id)) {
+      if (ntree->id.tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH) {
+        ntree->id.tag &= ~LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+        id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+      }
+    }
+    if (GS(id->name) == ID_SCE) {
+      if (Collection *scene_collection = reinterpret_cast<Scene *>(id)->master_collection) {
+        if (scene_collection->id.tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH) {
+          scene_collection->id.tag &= ~LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+          id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+        }
+      }
+    }
+
+    if (force_auto || (id->tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH)) {
       /* Usual issue with pose, it's quiet rare but sometimes they may not be up to date when this
        * function is called. */
       if (GS(id->name) == ID_OB) {
