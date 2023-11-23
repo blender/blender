@@ -3799,7 +3799,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
                            "Mode of automatic keyframe insertion for Objects, Bones and Masks");
 
   prop = RNA_def_property(srna, "use_record_with_nla", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", ANIMRECORD_FLAG_WITHNLA);
+  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_LAYERED_RECORD);
   RNA_def_property_ui_text(
       prop,
       "Layered",

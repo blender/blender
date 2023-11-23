@@ -48,7 +48,7 @@ bool is_autokey_mode(const Scene *scene, const eAutokey_Mode mode)
   return U.autokey_mode == mode;
 }
 
-bool is_autokey_flag(const Scene *scene, const eAutokey_Flag flag)
+bool is_autokey_flag(const Scene *scene, const eKeyInsert_Flag flag)
 {
   if (scene) {
     return (scene->toolsettings->autokey_flag & flag) || (U.autokey_flag & flag);
@@ -114,7 +114,7 @@ void autokeyframe_object(
         C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
   }
 
-  else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
+  else if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE)) {
     /* Only key on available channels. */
     AnimData *adt = ob->adt;
     ToolSettings *ts = scene->toolsettings;
@@ -280,7 +280,7 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
           C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     /* only insert into available channels? */
-    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
+    else if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE)) {
       if (act) {
         LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
           /* only insert keyframes for this F-Curve if it affects the current bone */

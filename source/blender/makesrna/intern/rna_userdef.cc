@@ -5422,7 +5422,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
                            "(default setting used for new Scenes)");
 
   prop = RNA_def_property(srna, "use_keyframe_insert_available", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_INSERTAVAIL);
+  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_INSERTAVAILABLE);
   RNA_def_property_ui_text(prop,
                            "Auto Keyframe Insert Available",
                            "Automatic keyframe insertion in available F-Curves");
@@ -5449,7 +5449,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       prop, "Keyframe Insert Needed", "Keyframe insertion only when keyframe needed");
 
   prop = RNA_def_property(srna, "use_visual_keying", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_AUTOMATKEY);
+  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_VISUALKEY);
   RNA_def_property_ui_text(
       prop, "Visual Keying", "Use Visual keying automatically for constrained objects");
 
