@@ -4,12 +4,12 @@
 
 void main()
 {
-  uint vertex = gl_GlobalInvocationID.x;
-  if (vertex >= vertex_count) {
+  uint vertex_id = gl_GlobalInvocationID.x;
+  if (vertex_id >= vertex_count) {
     return;
   }
-  out_buf[start_offset + vertex] = vec4(in_buf[vertex * vertex_stride + 0],
-                                        in_buf[vertex * vertex_stride + 1],
-                                        in_buf[vertex * vertex_stride + 2],
-                                        1.0);
+  out_buf[start_offset + vertex_id] = vec4(in_buf[vertex_id * vertex_stride + 0],
+                                           in_buf[vertex_id * vertex_stride + 1],
+                                           in_buf[vertex_id * vertex_stride + 2],
+                                           1.0);
 }
