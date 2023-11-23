@@ -1912,18 +1912,18 @@ static void after_liblink_id_embedded_id_process(BlendLibReader *reader, ID *id)
     if (scene->master_collection != nullptr) {
       after_liblink_id_process(reader, &scene->master_collection->id);
 
-      if (scene->master_collection->runtime.owner_id == nullptr) {
+      if (scene->master_collection->owner_id == nullptr) {
         CLOG_WARN(&LOG,
                   "NULL owner_id pointer for embedded Scene Collection of %s, should never happen",
                   id->name);
-        scene->master_collection->runtime.owner_id = id;
+        scene->master_collection->owner_id = id;
       }
-      else if (scene->master_collection->runtime.owner_id != id) {
+      else if (scene->master_collection->owner_id != id) {
         CLOG_WARN(&LOG,
                   "Inconsistent owner_id pointer for embedded Scene Collection of %s, should "
                   "never happen",
                   id->name);
-        scene->master_collection->runtime.owner_id = id;
+        scene->master_collection->owner_id = id;
       }
     }
   }
