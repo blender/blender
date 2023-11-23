@@ -19,6 +19,7 @@
 #include "gpu_py_uniformbuffer.h"
 #include "gpu_py_vertex_buffer.h"
 #include "gpu_py_vertex_format.h"
+#include "gpu_py_compute.h"
 
 #ifdef __cplusplus
 extern "C" {
