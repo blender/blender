@@ -57,7 +57,7 @@ static SpaceLink *project_settings_create(const ScrArea *area, const Scene * /*s
     BLI_addtail(&project_settings_space->regionbase, region);
     region->regiontype = RGN_TYPE_EXECUTE;
     region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-    region->flag |= RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_HIDDEN;
+    region->flag |= RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_NO_USER_RESIZE;
   }
 
   {
@@ -177,6 +177,12 @@ static void project_settings_execute_region_init(wmWindowManager *wm, ARegion *r
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }
 
+static bool project_settings_execute_region_poll(const RegionPollParams *params)
+{
+  const ARegion *region_header = BKE_area_find_region_type(params->area, RGN_TYPE_HEADER);
+  return !region_header->visible;
+}
+
 static void project_settings_execute_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 void ED_spacetype_project_settings()
@@ -237,6 +243,7 @@ void ED_spacetype_project_settings()
   art->keymapflag = ED_KEYMAP_UI;
 
   art->init = project_settings_execute_region_init;
+  art->poll = project_settings_execute_region_poll;
   art->layout = ED_region_panels_layout;
   art->draw = ED_region_panels_draw;
   art->listener = project_settings_execute_region_listener;
