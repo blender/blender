@@ -16,6 +16,9 @@
 
 #include "ED_grease_pencil.hh"
 
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+
 #include "WM_api.hh"
 
 namespace blender::ed::greasepencil {
@@ -59,6 +62,62 @@ static void GREASE_PENCIL_OT_material_reveal(wmOperatorType *ot)
   ot->poll = active_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Others Materials Operator
+ * \{ */
+
+static int grease_pencil_material_hide_exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const bool invert = RNA_boolean_get(op->ptr, "invert");
+
+  bool changed = false;
+  const int material_index = object->actcol - 1;
+
+  for (const int i : IndexRange(object->totcol)) {
+    if (invert && i == material_index) {
+      continue;
+    }
+    if (!invert && i != material_index) {
+      continue;
+    }
+    if (Material *ma = BKE_object_material_get(object, i + 1)) {
+      MaterialGPencilStyle &gp_style = *ma->gp_style;
+      gp_style.flag |= GP_MATERIAL_HIDE;
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_material_hide(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Hide Materials";
+  ot->idname = "GREASE_PENCIL_OT_material_hide";
+  ot->description = "Hide active/inactive Grease Pencil material(s)";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_material_hide_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* props */
+  RNA_def_boolean(
+      ot->srna, "invert", false, "Invert", "Hide inactive materials instead of the active one");
 }
 
 /** \} */
@@ -200,6 +259,7 @@ void ED_operatortypes_grease_pencil_material()
 {
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_material_reveal);
+  WM_operatortype_append(GREASE_PENCIL_OT_material_hide);
   WM_operatortype_append(GREASE_PENCIL_OT_material_lock_all);
   WM_operatortype_append(GREASE_PENCIL_OT_material_unlock_all);
   WM_operatortype_append(GREASE_PENCIL_OT_material_lock_unused);

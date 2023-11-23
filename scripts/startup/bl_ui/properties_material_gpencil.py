@@ -19,6 +19,7 @@ class GPENCIL_MT_material_context_menu(Menu):
         layout = self.layout
         if context.preferences.experimental.use_grease_pencil_version3:
             layout.operator("grease_pencil.material_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
+            layout.operator("grease_pencil.material_hide", icon='RESTRICT_VIEW_ON', text="Hide Others").invert = True
 
             layout.separator()
 
