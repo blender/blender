@@ -108,6 +108,33 @@ static void remove_non_propagated_attributes(
   }
 }
 
+static void remove_unsupported_vert_data(Mesh &mesh)
+{
+  CustomData_free_layers(&mesh.vert_data, CD_ORCO, mesh.totvert);
+  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.totvert);
+  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.totvert);
+  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.totvert);
+}
+
+static void remove_unsupported_edge_data(Mesh &mesh)
+{
+  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.totedge);
+}
+
+static void remove_unsupported_face_data(Mesh &mesh)
+{
+  CustomData_free_layers(&mesh.face_data, CD_FREESTYLE_FACE, mesh.faces_num);
+}
+
+static void remove_unsupported_corner_data(Mesh &mesh)
+{
+  CustomData_free_layers(&mesh.loop_data, CD_MDISPS, mesh.totloop);
+  CustomData_free_layers(&mesh.loop_data, CD_TANGENT, mesh.totloop);
+  CustomData_free_layers(&mesh.loop_data, CD_MLOOPTANGENT, mesh.totloop);
+  CustomData_free_layers(&mesh.loop_data, CD_GRID_PAINT_MASK, mesh.totloop);
+  CustomData_free_layers(&mesh.loop_data, CD_CUSTOMLOOPNORMAL, mesh.totloop);
+}
+
 static void expand_mesh(Mesh &mesh,
                         const int vert_expand,
                         const int edge_expand,
@@ -116,10 +143,6 @@ static void expand_mesh(Mesh &mesh,
 {
   /* Remove types that aren't supported for interpolation in this node. */
   if (vert_expand != 0) {
-    CustomData_free_layers(&mesh.vert_data, CD_ORCO, mesh.totvert);
-    CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.totvert);
-    CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.totvert);
-    CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.totvert);
     const int old_verts_num = mesh.totvert;
     mesh.totvert += vert_expand;
     CustomData_realloc(&mesh.vert_data, old_verts_num, mesh.totvert);
@@ -129,13 +152,11 @@ static void expand_mesh(Mesh &mesh,
       mesh.attributes_for_write().add(
           ".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, bke::AttributeInitConstruct());
     }
-    CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.totedge);
     const int old_edges_num = mesh.totedge;
     mesh.totedge += edge_expand;
     CustomData_realloc(&mesh.edge_data, old_edges_num, mesh.totedge);
   }
   if (face_expand != 0) {
-    CustomData_free_layers(&mesh.face_data, CD_FREESTYLE_FACE, mesh.faces_num);
     const int old_faces_num = mesh.faces_num;
     mesh.faces_num += face_expand;
     CustomData_realloc(&mesh.face_data, old_faces_num, mesh.faces_num);
@@ -148,13 +169,6 @@ static void expand_mesh(Mesh &mesh,
     mesh.face_offset_indices[mesh.faces_num] = mesh.totloop + loop_expand;
   }
   if (loop_expand != 0) {
-    CustomData_free_layers(&mesh.loop_data, CD_NORMAL, mesh.totloop);
-    CustomData_free_layers(&mesh.loop_data, CD_MDISPS, mesh.totloop);
-    CustomData_free_layers(&mesh.loop_data, CD_TANGENT, mesh.totloop);
-    CustomData_free_layers(&mesh.loop_data, CD_PAINT_MASK, mesh.totloop);
-    CustomData_free_layers(&mesh.loop_data, CD_MLOOPTANGENT, mesh.totloop);
-    CustomData_free_layers(&mesh.loop_data, CD_GRID_PAINT_MASK, mesh.totloop);
-    CustomData_free_layers(&mesh.loop_data, CD_CUSTOMLOOPNORMAL, mesh.totloop);
     const int old_loops_num = mesh.totloop;
     mesh.totloop += loop_expand;
     CustomData_realloc(&mesh.loop_data, old_loops_num, mesh.totloop);
@@ -254,8 +268,14 @@ static void extrude_mesh_vertices(Mesh &mesh,
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    return;
+  }
 
-  remove_non_propagated_attributes(mesh.attributes_for_write(), propagation_info);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  remove_non_propagated_attributes(attributes, propagation_info);
+  remove_unsupported_vert_data(mesh);
+  remove_unsupported_edge_data(mesh);
 
   Set<AttributeIDRef> point_ids;
   Set<AttributeIDRef> edge_ids;
@@ -291,8 +311,6 @@ static void extrude_mesh_vertices(Mesh &mesh,
   selection.foreach_index_optimized<int>([&](const int index, const int i_selection) {
     new_edges[i_selection] = int2(index, new_vert_range[i_selection]);
   });
-
-  MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   /* New vertices copy the attribute values from their source vertex. */
   for (const AttributeIDRef &id : point_ids) {
@@ -337,9 +355,13 @@ static void extrude_mesh_vertices(Mesh &mesh,
 
   const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
                                   mesh.runtime->loose_verts_cache.data().count == 0;
+  const bool no_overlapping_hint = mesh.no_overlapping_topology();
   BKE_mesh_runtime_clear_cache(&mesh);
   if (no_loose_vert_hint) {
     mesh.tag_loose_verts_none();
+  }
+  if (no_overlapping_hint) {
+    mesh.tag_overlapping_none();
   }
 }
 
@@ -408,12 +430,16 @@ static void tag_mesh_added_faces(Mesh &mesh)
                                   mesh.runtime->loose_verts_cache.data().count == 0;
   const bool no_loose_edge_hint = mesh.runtime->loose_edges_cache.is_cached() &&
                                   mesh.runtime->loose_edges_cache.data().count == 0;
+  const bool no_overlapping_hint = mesh.no_overlapping_topology();
   BKE_mesh_runtime_clear_cache(&mesh);
   if (no_loose_vert_hint) {
     mesh.tag_loose_verts_none();
   }
   if (no_loose_edge_hint) {
     mesh.tag_loose_edges_none();
+  }
+  if (no_overlapping_hint) {
+    mesh.tag_overlapping_none();
   }
 }
 
@@ -475,6 +501,10 @@ static void extrude_mesh_edges(Mesh &mesh,
   const IndexRange new_loop_range{orig_loop_size, new_face_range.size() * 4};
 
   remove_non_propagated_attributes(mesh.attributes_for_write(), propagation_info);
+  remove_unsupported_vert_data(mesh);
+  remove_unsupported_edge_data(mesh);
+  remove_unsupported_face_data(mesh);
+  remove_unsupported_corner_data(mesh);
   expand_mesh(mesh,
               new_vert_range.size(),
               connect_edge_range.size() + duplicate_edge_range.size(),
@@ -831,6 +861,10 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   const IndexRange side_loop_range{orig_corner_verts.size(), side_face_range.size() * 4};
 
   remove_non_propagated_attributes(mesh.attributes_for_write(), propagation_info);
+  remove_unsupported_vert_data(mesh);
+  remove_unsupported_edge_data(mesh);
+  remove_unsupported_face_data(mesh);
+  remove_unsupported_corner_data(mesh);
   expand_mesh(mesh,
               new_vert_range.size(),
               connect_edge_range.size() + boundary_edge_range.size() + new_inner_edge_range.size(),
@@ -1155,6 +1189,10 @@ static void extrude_individual_mesh_faces(
   const IndexRange side_loop_range{orig_loop_size, side_face_range.size() * 4};
 
   remove_non_propagated_attributes(mesh.attributes_for_write(), propagation_info);
+  remove_unsupported_vert_data(mesh);
+  remove_unsupported_edge_data(mesh);
+  remove_unsupported_face_data(mesh);
+  remove_unsupported_corner_data(mesh);
   expand_mesh(mesh,
               new_vert_range.size(),
               connect_edge_range.size() + duplicate_edge_range.size(),

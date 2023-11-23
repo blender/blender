@@ -91,7 +91,7 @@ class DenoiseOperation : public NodeOperation {
     }
 
 #ifdef WITH_OPENIMAGEDENOISE
-    oidn::DeviceRef device = oidn::newDevice();
+    oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
     device.commit();
 
     const int width = input_image.domain().size.x;

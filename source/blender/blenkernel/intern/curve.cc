@@ -16,6 +16,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -40,7 +41,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_displist.h"
 #include "BKE_idtype.h"
@@ -49,6 +50,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_vfont.h"
 
 #include "DEG_depsgraph.hh"
@@ -278,7 +280,7 @@ IDTypeInfo IDType_ID_CU_LEGACY = {
     /*main_listbase_index*/ INDEX_ID_CU_LEGACY,
     /*struct_size*/ sizeof(Curve),
     /*name*/ "Curve",
-    /*name_plural*/ "curves",
+    /*name_plural*/ N_("curves"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_CURVE_LEGACY,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -466,7 +468,7 @@ BoundBox *BKE_curve_boundbox_get(Object *ob)
 {
   /* This is Object-level data access,
    * DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
-  if (ob->runtime.bb == nullptr || ob->runtime.bb->flag & BOUNDBOX_DIRTY) {
+  if (ob->runtime->bb == nullptr || ob->runtime->bb->flag & BOUNDBOX_DIRTY) {
     Curve *cu = (Curve *)ob->data;
     float min[3], max[3];
 
@@ -476,14 +478,14 @@ BoundBox *BKE_curve_boundbox_get(Object *ob)
       copy_v3_fl(max, 1.0f);
     }
 
-    if (ob->runtime.bb == nullptr) {
-      ob->runtime.bb = (BoundBox *)MEM_mallocN(sizeof(*ob->runtime.bb), __func__);
+    if (ob->runtime->bb == nullptr) {
+      ob->runtime->bb = (BoundBox *)MEM_mallocN(sizeof(*ob->runtime->bb), __func__);
     }
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-    ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
+    BKE_boundbox_init_from_minmax(ob->runtime->bb, min, max);
+    ob->runtime->bb->flag &= ~BOUNDBOX_DIRTY;
   }
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 void BKE_curve_texspace_calc(Curve *cu)
@@ -1908,7 +1910,7 @@ static void calc_bevel_sin_cos(
     t02 = M_PI_2;
   }
   else {
-    t02 = saacos(t02) / 2.0f;
+    t02 = safe_acosf(t02) / 2.0f;
   }
 
   t02 = sinf(t02);
@@ -2580,7 +2582,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
                                cu->bevfac1_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE) ||
                            ELEM(cu->bevfac2_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE);
 
-  bev = &ob->runtime.curve_cache->bev;
+  bev = &ob->runtime->curve_cache->bev;
 
 #if 0
   /* do we need to calculate the radius for each point? */
@@ -2590,7 +2592,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
 
   /* STEP 1: MAKE POLYS */
 
-  BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+  BKE_curve_bevelList_free(&ob->runtime->curve_cache->bev);
   if (cu->editnurb && ob->type != OB_FONT) {
     is_editmode = true;
   }

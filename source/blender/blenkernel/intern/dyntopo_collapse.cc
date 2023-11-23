@@ -25,7 +25,7 @@
 #include "PIL_time.h"
 #include "atomic_ops.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -496,7 +496,6 @@ static void on_face_create(void *customdata, BMFace *f)
 static void on_vert_combine(void *customdata, BMVert *dest, BMVert *source)
 {
   PBVH *pbvh = static_cast<PBVH *>(customdata);
-  BMesh *bm = pbvh->header.bm;
   /* Combine boundary flags. */
   int boundflag = BM_ELEM_CD_GET_INT(source, pbvh->cd_boundary_flag);
   BM_ELEM_CD_SET_INT(dest, pbvh->cd_boundary_flag, boundflag);
@@ -507,7 +506,6 @@ static void on_vert_combine(void *customdata, BMVert *dest, BMVert *source)
 static void on_edge_combine(void *customdata, BMEdge *dest, BMEdge *source)
 {
   PBVH *pbvh = static_cast<PBVH *>(customdata);
-  BMesh *bm = pbvh->header.bm;
   dyntopo_add_flag(pbvh, dest->v1, SCULPTFLAG_NEED_VALENCE);
   dyntopo_add_flag(pbvh, dest->v2, SCULPTFLAG_NEED_VALENCE);
 

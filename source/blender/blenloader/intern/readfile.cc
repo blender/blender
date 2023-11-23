@@ -63,7 +63,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_blender_version.h"
 #include "BKE_collection.h"
 #include "BKE_global.h" /* for G */
@@ -79,7 +79,7 @@
 #include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.hh" /* for tree type defines */
 #include "BKE_object.hh"
 #include "BKE_packedFile.h"
@@ -99,11 +99,11 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.hh"
 
-#include "SEQ_clipboard.h"
-#include "SEQ_iterator.h"
-#include "SEQ_modifier.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_utils.h"
+#include "SEQ_clipboard.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_utils.hh"
 
 #include "readfile.hh"
 
@@ -702,7 +702,7 @@ static BHeadN *get_bhead(FileData *fd)
           else {
             /* MIN2 is only to quiet '-Warray-bounds' compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead4));
-            memcpy(&bhead, &bhead4, MIN2(sizeof(bhead), sizeof(bhead4)));
+            memcpy(&bhead, &bhead4, std::min(sizeof(bhead), sizeof(bhead4)));
           }
         }
         else {
@@ -725,7 +725,7 @@ static BHeadN *get_bhead(FileData *fd)
           else {
             /* MIN2 is only to quiet `-Warray-bounds` compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead8));
-            memcpy(&bhead, &bhead8, MIN2(sizeof(bhead), sizeof(bhead8)));
+            memcpy(&bhead, &bhead8, std::min(sizeof(bhead), sizeof(bhead8)));
           }
         }
         else {
@@ -1912,18 +1912,18 @@ static void after_liblink_id_embedded_id_process(BlendLibReader *reader, ID *id)
     if (scene->master_collection != nullptr) {
       after_liblink_id_process(reader, &scene->master_collection->id);
 
-      if (scene->master_collection->runtime.owner_id == nullptr) {
+      if (scene->master_collection->owner_id == nullptr) {
         CLOG_WARN(&LOG,
                   "NULL owner_id pointer for embedded Scene Collection of %s, should never happen",
                   id->name);
-        scene->master_collection->runtime.owner_id = id;
+        scene->master_collection->owner_id = id;
       }
-      else if (scene->master_collection->runtime.owner_id != id) {
+      else if (scene->master_collection->owner_id != id) {
         CLOG_WARN(&LOG,
                   "Inconsistent owner_id pointer for embedded Scene Collection of %s, should "
                   "never happen",
                   id->name);
-        scene->master_collection->runtime.owner_id = id;
+        scene->master_collection->owner_id = id;
       }
     }
   }
@@ -4059,15 +4059,6 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
        * (C) shot.blend: links in both Tree from tree.blend and Forest from forest.blend.
        */
       oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
-
-      /* If "id" is a real data-block and not a placeholder, we need to
-       * update fd->libmap to replace ID_LINK_PLACEHOLDER with the real
-       * ID_* code.
-       *
-       * When the real ID is read this replacement happens for all
-       * libraries read so far, but not for libraries that have not been
-       * read yet at that point. */
-      change_link_placeholder_to_real_ID_pointer_fd(fd, bhead->old, id);
 
       /* Commented because this can print way too much. */
 #if 0

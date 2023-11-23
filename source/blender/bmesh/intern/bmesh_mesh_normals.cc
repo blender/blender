@@ -16,13 +16,14 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 
@@ -72,7 +73,7 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
   if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
     dotprod = -dotprod;
   }
-  const float fac = saacos(-dotprod);
+  const float fac = blender::math::safe_acos_approx(-dotprod);
   /* Shouldn't happen as normalizing edge-vectors cause degenerate values to be zeroed out. */
   BLI_assert(!isnan(fac));
   madd_v3_v3fl(v_no, f_no, fac);
@@ -642,7 +643,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         /* Code similar to accumulate_vertex_normals_poly_v3. */
         /* Calculate angle between the two face edges incident on this vertex. */
         const BMFace *f = lfan_pivot->f;
-        const float fac = saacos(dot_v3v3(vec_next, vec_curr));
+        const float fac = blender::math::safe_acos_approx(dot_v3v3(vec_next, vec_curr));
         const float *no = fnos ? fnos[BM_elem_index_get(f)] : f->no;
         /* Accumulate */
         madd_v3_v3fl(lnor, no, fac);
@@ -1697,14 +1698,12 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                const float (*vnos)[3],
                                const float (*fnos)[3],
                                const bool use_split_normals,
-                               const float split_angle,
                                float (*r_lnos)[3],
                                MLoopNorSpaceArray *r_lnors_spacearr,
                                short (*clnors_data)[2],
                                const int cd_loop_clnors_offset,
                                const bool do_rebuild)
 {
-  const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
 
   if (use_split_normals) {
     bm_mesh_loops_calc_normals(bm,
@@ -1715,7 +1714,7 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                clnors_data,
                                cd_loop_clnors_offset,
                                do_rebuild,
-                               has_clnors ? -1.0f : cosf(split_angle));
+                               -1.0f);
   }
   else {
     BLI_assert(!r_lnors_spacearr);
@@ -1744,7 +1743,6 @@ void BM_lnorspacearr_store(BMesh *bm, float (*r_lnors)[3])
                             nullptr,
                             nullptr,
                             true,
-                            M_PI,
                             r_lnors,
                             bm->lnor_spacearr,
                             nullptr,
@@ -1871,7 +1869,6 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
                             nullptr,
                             nullptr,
                             true,
-                            M_PI,
                             r_lnors,
                             bm->lnor_spacearr,
                             nullptr,
@@ -1947,17 +1944,8 @@ void BM_lnorspace_err(BMesh *bm)
 
   int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
   float(*lnors)[3] = static_cast<float(*)[3]>(MEM_callocN(sizeof(*lnors) * bm->totloop, __func__));
-  BM_loops_calc_normal_vcos(bm,
-                            nullptr,
-                            nullptr,
-                            nullptr,
-                            true,
-                            M_PI,
-                            lnors,
-                            temp,
-                            nullptr,
-                            cd_loop_clnors_offset,
-                            true);
+  BM_loops_calc_normal_vcos(
+      bm, nullptr, nullptr, nullptr, true, lnors, temp, nullptr, cd_loop_clnors_offset, true);
 
   for (int i = 0; i < bm->totloop; i++) {
     int j = 0;

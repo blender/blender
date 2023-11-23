@@ -91,8 +91,13 @@ void BaseImageOperation::determine_canvas(const rcti & /*preferred_area*/, rcti 
   BKE_image_release_ibuf(image_, stackbuf, nullptr);
 }
 
-static void sample_image_at_location(
-    ImBuf *ibuf, float x, float y, PixelSampler sampler, bool make_linear_rgb, float color[4])
+static void sample_image_at_location(ImBuf *ibuf,
+                                     float x,
+                                     float y,
+                                     PixelSampler sampler,
+                                     bool make_linear_rgb,
+                                     bool ensure_premultiplied,
+                                     float color[4])
 {
   if (ibuf->float_buffer.data) {
     switch (sampler) {
@@ -125,6 +130,9 @@ static void sample_image_at_location(
       IMB_colormanagement_colorspace_to_scene_linear_v4(
           color, false, ibuf->byte_buffer.colorspace);
     }
+    if (ensure_premultiplied) {
+      straight_to_premul_v4(color);
+    }
   }
 }
 
@@ -138,7 +146,9 @@ void ImageOperation::execute_pixel_sampled(float output[4], float x, float y, Pi
     zero_v4(output);
   }
   else {
-    sample_image_at_location(buffer_, x, y, sampler, true, output);
+    const bool ensure_premultiplied = !ELEM(
+        image_->alpha_mode, IMA_ALPHA_CHANNEL_PACKED, IMA_ALPHA_IGNORE);
+    sample_image_at_location(buffer_, x, y, sampler, true, ensure_premultiplied, output);
   }
 }
 
@@ -146,7 +156,9 @@ void ImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                   const rcti &area,
                                                   Span<MemoryBuffer *> /*inputs*/)
 {
-  output->copy_from(buffer_, area, true);
+  const bool ensure_premultiplied = !ELEM(
+      image_->alpha_mode, IMA_ALPHA_CHANNEL_PACKED, IMA_ALPHA_IGNORE);
+  output->copy_from(buffer_, area, ensure_premultiplied, true);
 }
 
 void ImageAlphaOperation::execute_pixel_sampled(float output[4],
@@ -161,7 +173,7 @@ void ImageAlphaOperation::execute_pixel_sampled(float output[4],
   }
   else {
     tempcolor[3] = 1.0f;
-    sample_image_at_location(buffer_, x, y, sampler, false, tempcolor);
+    sample_image_at_location(buffer_, x, y, sampler, false, false, tempcolor);
     output[0] = tempcolor[3];
   }
 }

@@ -21,7 +21,7 @@ vec3 barycentric_distances_get()
   dists.x = rate_of_change * (1.0 - gpu_BaryCoord.x);
   dists.y = rate_of_change * (1.0 - gpu_BaryCoord.y);
   dists.z = rate_of_change * (1.0 - gpu_BaryCoord.z);
-#  elif
+#  else
   /* NOTE: No need to undo perspective divide since it has not been applied. */
   vec3 pos0 = (ProjectionMatrixInverse * gpu_position_at_vertex(0)).xyz;
   vec3 pos1 = (ProjectionMatrixInverse * gpu_position_at_vertex(1)).xyz;
@@ -59,14 +59,16 @@ void init_globals_curves()
   float cos_theta = curve_interp.time_width / curve_interp.thickness;
 #  if defined(GPU_FRAGMENT_SHADER)
   if (hairThicknessRes == 1) {
+#    ifdef EEVEE_UTILITY_TX
     /* Random cosine normal distribution on the hair surface. */
     float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).x;
-#    ifdef EEVEE_SAMPLING_DATA
+#      ifdef EEVEE_SAMPLING_DATA
     /* Needs to check for SAMPLING_DATA,
      * otherwise Surfel and World (?!?!) shader validation fails. */
     noise = fract(noise + sampling_rng_1D_get(SAMPLING_CURVES_U));
-#    endif
+#      endif
     cos_theta = noise * 2.0 - 1.0;
+#    endif
   }
 #  endif
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));

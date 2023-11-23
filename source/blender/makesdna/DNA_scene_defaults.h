@@ -167,6 +167,7 @@
                     RAYTRACE_EEVEE_DENOISE_BILATERAL, \
     .screen_trace_quality = 0.25f, \
     .screen_trace_thickness = 0.2f, \
+    .screen_trace_max_roughness = 0.5f, \
     .sample_clamp = 10.0f, \
     .resolution_scale = 2, \
   }
@@ -205,12 +206,15 @@
     .volumetric_tile_size = 8, \
     .volumetric_samples = 64, \
     .volumetric_sample_distribution = 0.8f, \
+    .volumetric_ray_depth = 16, \
     .volumetric_light_clamp = 0.0f, \
     .volumetric_shadow_samples = 16, \
  \
     .gtao_distance = 0.2f, \
     .gtao_factor = 1.0f, \
     .gtao_quality = 0.25f, \
+    .gtao_thickness = 0.5f, \
+    .gtao_focus = 0.05f, \
  \
     .bokeh_overblur = 5.0f, \
     .bokeh_max_size = 100.0f, \

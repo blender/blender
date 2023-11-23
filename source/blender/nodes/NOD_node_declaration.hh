@@ -73,7 +73,7 @@ class OutputFieldDependency {
   OutputSocketFieldType field_type() const;
   Span<int> linked_input_indices() const;
 
-  friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b);
+  BLI_STRUCT_EQUALITY_OPERATORS_2(OutputFieldDependency, type_, linked_input_indices_)
 };
 
 /**
@@ -82,6 +82,8 @@ class OutputFieldDependency {
 struct FieldInferencingInterface {
   Vector<InputSocketFieldType> inputs;
   Vector<OutputFieldDependency> outputs;
+
+  BLI_STRUCT_EQUALITY_OPERATORS_2(FieldInferencingInterface, inputs, outputs)
 };
 
 namespace anonymous_attribute_lifetime {
@@ -93,11 +95,7 @@ struct PropagateRelation {
   int from_geometry_input;
   int to_geometry_output;
 
-  friend bool operator==(const PropagateRelation &a, const PropagateRelation &b)
-  {
-    return a.from_geometry_input == b.from_geometry_input &&
-           a.to_geometry_output == b.to_geometry_output;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(PropagateRelation, from_geometry_input, to_geometry_output)
 };
 
 /**
@@ -107,10 +105,7 @@ struct ReferenceRelation {
   int from_field_input;
   int to_field_output;
 
-  friend bool operator==(const ReferenceRelation &a, const ReferenceRelation &b)
-  {
-    return a.from_field_input == b.from_field_input && a.to_field_output == b.to_field_output;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(ReferenceRelation, from_field_input, to_field_output)
 };
 
 /**
@@ -120,10 +115,7 @@ struct EvalRelation {
   int field_input;
   int geometry_input;
 
-  friend bool operator==(const EvalRelation &a, const EvalRelation &b)
-  {
-    return a.field_input == b.field_input && a.geometry_input == b.geometry_input;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(EvalRelation, field_input, geometry_input)
 };
 
 /**
@@ -133,10 +125,7 @@ struct AvailableRelation {
   int field_output;
   int geometry_output;
 
-  friend bool operator==(const AvailableRelation &a, const AvailableRelation &b)
-  {
-    return a.field_output == b.field_output && a.geometry_output == b.geometry_output;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_2(AvailableRelation, field_output, geometry_output)
 };
 
 struct RelationsInNode {
@@ -145,10 +134,15 @@ struct RelationsInNode {
   Vector<EvalRelation> eval_relations;
   Vector<AvailableRelation> available_relations;
   Vector<int> available_on_none;
+
+  BLI_STRUCT_EQUALITY_OPERATORS_5(RelationsInNode,
+                                  propagate_relations,
+                                  reference_relations,
+                                  eval_relations,
+                                  available_relations,
+                                  available_on_none)
 };
 
-bool operator==(const RelationsInNode &a, const RelationsInNode &b);
-bool operator!=(const RelationsInNode &a, const RelationsInNode &b);
 std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations);
 
 }  // namespace anonymous_attribute_lifetime
@@ -434,23 +428,9 @@ class PanelDeclarationBuilder {
   friend class NodeDeclarationBuilder;
 
  public:
-  Self &description(std::string value = "")
-  {
-    decl_->description = std::move(value);
-    return *this;
-  }
-
-  Self &default_closed(bool closed)
-  {
-    decl_->default_collapsed = closed;
-    return *this;
-  }
-
-  Self &draw_buttons(PanelDrawButtonsFunction func)
-  {
-    decl_->draw_buttons = func;
-    return *this;
-  }
+  Self &description(std::string value = "");
+  Self &default_closed(bool closed);
+  Self &draw_buttons(PanelDrawButtonsFunction func);
 
   template<typename DeclType>
   typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
@@ -479,6 +459,11 @@ class NodeDeclaration {
    * outputs | buttons | inputs order. Panels are only supported when using custom socket order. */
   bool use_custom_socket_order = false;
 
+  /**
+   * True if any context was used to build this declaration.
+   */
+  bool is_context_dependent = false;
+
   friend NodeDeclarationBuilder;
 
   /** Returns true if the declaration is considered valid. */
@@ -498,6 +483,8 @@ class NodeDeclaration {
 class NodeDeclarationBuilder {
  private:
   NodeDeclaration &declaration_;
+  const bNodeTree *ntree_ = nullptr;
+  const bNode *node_ = nullptr;
   Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> socket_builders_;
   Vector<std::unique_ptr<PanelDeclarationBuilder>> panel_builders_;
   bool is_function_node_ = false;
@@ -506,7 +493,21 @@ class NodeDeclarationBuilder {
   friend PanelDeclarationBuilder;
 
  public:
-  NodeDeclarationBuilder(NodeDeclaration &declaration);
+  NodeDeclarationBuilder(NodeDeclaration &declaration,
+                         const bNodeTree *ntree = nullptr,
+                         const bNode *node = nullptr);
+
+  const bNode *node_or_null() const
+  {
+    declaration_.is_context_dependent = true;
+    return node_;
+  }
+
+  const bNodeTree *tree_or_null() const
+  {
+    declaration_.is_context_dependent = true;
+    return ntree_;
+  }
 
   /**
    * All inputs support fields, and all outputs are fields if any of the inputs is a field.
@@ -530,7 +531,13 @@ class NodeDeclarationBuilder {
   BaseSocketDeclarationBuilder &add_input(eNodeSocketDatatype socket_type,
                                           StringRef name,
                                           StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_input(eCustomDataType data_type,
+                                          StringRef name,
+                                          StringRef identifier = "");
   BaseSocketDeclarationBuilder &add_output(eNodeSocketDatatype socket_type,
+                                           StringRef name,
+                                           StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_output(eCustomDataType data_type,
                                            StringRef name,
                                            StringRef identifier = "");
 
@@ -568,118 +575,13 @@ void index(const bNode &node, void *r_value);
 void id_or_index(const bNode &node, void *r_value);
 }  // namespace implicit_field_inputs
 
-void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration);
-void build_node_declaration_dynamic(const bNodeTree &node_tree,
-                                    const bNode &node,
-                                    NodeDeclaration &r_declaration);
+void build_node_declaration(const bNodeType &typeinfo,
+                            NodeDeclaration &r_declaration,
+                            const bNodeTree *ntree,
+                            const bNode *node);
 
 std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
     eNodeSocketDatatype socket_type);
-
-/* -------------------------------------------------------------------- */
-/** \name #OutputFieldDependency Inline Methods
- * \{ */
-
-inline OutputFieldDependency OutputFieldDependency::ForFieldSource()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::FieldSource;
-  return field_dependency;
-}
-
-inline OutputFieldDependency OutputFieldDependency::ForDataSource()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::None;
-  return field_dependency;
-}
-
-inline OutputFieldDependency OutputFieldDependency::ForDependentField()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::DependentField;
-  return field_dependency;
-}
-
-inline OutputFieldDependency OutputFieldDependency::ForPartiallyDependentField(Vector<int> indices)
-{
-  OutputFieldDependency field_dependency;
-  if (indices.is_empty()) {
-    field_dependency.type_ = OutputSocketFieldType::None;
-  }
-  else {
-    field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
-    field_dependency.linked_input_indices_ = std::move(indices);
-  }
-  return field_dependency;
-}
-
-inline OutputSocketFieldType OutputFieldDependency::field_type() const
-{
-  return type_;
-}
-
-inline Span<int> OutputFieldDependency::linked_input_indices() const
-{
-  return linked_input_indices_;
-}
-
-inline bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
-{
-  return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
-}
-
-inline bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
-{
-  return !(a == b);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #FieldInferencingInterface Inline Methods
- * \{ */
-
-inline bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-{
-  return a.inputs == b.inputs && a.outputs == b.outputs;
-}
-
-inline bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-{
-  return !(a == b);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #SocketDeclaration Inline Methods
- * \{ */
-
-inline const CompositorInputRealizationOptions &SocketDeclaration::compositor_realization_options()
-    const
-{
-  return compositor_realization_options_;
-}
-
-inline int SocketDeclaration::compositor_domain_priority() const
-{
-  return compositor_domain_priority_;
-}
-
-inline bool SocketDeclaration::compositor_expects_single_value() const
-{
-  return compositor_expects_single_value_;
-}
-
-inline void SocketDeclaration::make_available(bNode &node) const
-{
-  if (make_available_fn_) {
-    make_available_fn_(node);
-  }
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name #PanelDeclarationBuilder Inline Methods
@@ -716,16 +618,6 @@ typename DeclType::Builder &PanelDeclarationBuilder::add_output(StringRef name,
 /* -------------------------------------------------------------------- */
 /** \name #NodeDeclarationBuilder Inline Methods
  * \{ */
-
-inline NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration)
-    : declaration_(declaration)
-{
-}
-
-inline void NodeDeclarationBuilder::use_custom_socket_order(bool enable)
-{
-  declaration_.use_custom_socket_order = enable;
-}
 
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_input(StringRef name,
@@ -780,20 +672,6 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
   socket_builders_.append(std::move(socket_decl_builder));
 
   return socket_decl_builder_ref;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #NodeDeclaration Inline Methods
- * \{ */
-
-inline Span<SocketDeclaration *> NodeDeclaration::sockets(eNodeSocketInOut in_out) const
-{
-  if (in_out == SOCK_IN) {
-    return inputs;
-  }
-  return outputs;
 }
 
 /** \} */

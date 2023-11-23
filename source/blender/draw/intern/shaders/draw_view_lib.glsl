@@ -155,7 +155,7 @@ vec3 drw_point_ndc_to_world(vec3 ssP)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Transform Screen Postions
+/** \name Transform Screen Positions
  * \{ */
 
 vec3 drw_point_view_to_screen(vec3 vP)

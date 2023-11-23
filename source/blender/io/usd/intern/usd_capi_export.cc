@@ -2,12 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <iostream>
+
 #include "usd.h"
 #include "usd.hh"
 #include "usd_hierarchy_iterator.h"
 #include "usd_hook.h"
 
 #include <pxr/base/plug/registry.h>
+#include <pxr/base/tf/token.h>
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/primRange.h>
@@ -26,8 +29,9 @@
 
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "BLI_fileops.h"
@@ -108,6 +112,8 @@ static bool prim_path_valid(const char *path)
 /**
  * Perform validation of export parameter settings.
  * \return true if the parameters are valid; returns false otherwise.
+ *
+ * \warning Do not call from worker thread, only from main thread (i.e. before starting the wmJob).
  */
 static bool export_params_valid(const USDExportParams &params)
 {
@@ -132,7 +138,11 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
     return;
   }
 
-  pxr::UsdGeomXform::Define(stage, pxr::SdfPath(params.root_prim_path));
+  for (auto path : pxr::SdfPath(params.root_prim_path).GetPrefixes()) {
+    auto xform = pxr::UsdGeomXform::Define(stage, path);
+    /* Tag generated prims to allow filtering on import */
+    xform.GetPrim().SetCustomDataByKey(pxr::TfToken("Blender:generated"), pxr::VtValue(true));
+  }
 }
 
 static void report_job_duration(const ExportJobData *data)
@@ -183,35 +193,43 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   if (BLI_exists(data->usdz_filepath)) {
     result = BLI_delete(data->usdz_filepath, false, false);
     if (result != 0) {
-      WM_reportf(
-          RPT_ERROR, "USD Export: Unable to delete existing usdz file %s", data->usdz_filepath);
+      BKE_reportf(data->params.worker_status->reports,
+                  RPT_ERROR,
+                  "USD Export: Unable to delete existing usdz file %s",
+                  data->usdz_filepath);
       return false;
     }
   }
   result = BLI_path_move(usdz_temp_full_path, data->usdz_filepath);
   if (result != 0) {
-    WM_reportf(RPT_ERROR,
-               "USD Export: Couldn't move new usdz file from temporary location %s to %s",
-               usdz_temp_full_path,
-               data->usdz_filepath);
+    BKE_reportf(data->params.worker_status->reports,
+                RPT_ERROR,
+                "USD Export: Couldn't move new usdz file from temporary location %s to %s",
+                usdz_temp_full_path,
+                data->usdz_filepath);
     return false;
   }
 
   return true;
 }
 
-static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
-                                           Depsgraph *depsgraph,
-                                           const char *filepath,
-                                           wmJobWorkerStatus *worker_status)
+pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
+                                    Depsgraph *depsgraph,
+                                    const char *filepath)
 {
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filepath);
   if (!usd_stage) {
     return usd_stage;
   }
 
+  wmJobWorkerStatus *worker_status = params.worker_status;
   Scene *scene = DEG_get_input_scene(depsgraph);
   Main *bmain = DEG_get_bmain(depsgraph);
+
+  /* This whole `export_to_stage` function is assumed to cover about 80% of the whole export
+   * process, from 0.1f to 0.9f. */
+  worker_status->progress = 0.10f;
+  worker_status->do_update = true;
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, double(scene->unit.scale_length));
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
@@ -235,9 +253,12 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   USDHierarchyIterator iter(bmain, depsgraph, usd_stage, params);
 
+  worker_status->progress = 0.11f;
+  worker_status->do_update = true;
+
   if (params.export_animation) {
-    /* Writing the animated frames is not 100% of the work, but it's our best guess. */
-    float progress_per_frame = 1.0f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
+    /* Writing the animated frames is not 100% of the work, here it's assumed to be 75% of it. */
+    float progress_per_frame = 0.75f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
 
     for (float frame = scene->r.sfra; frame <= scene->r.efra; frame++) {
       if (G.is_break || worker_status->stop) {
@@ -261,6 +282,9 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     iter.iterate_and_write();
   }
 
+  worker_status->progress = 0.86f;
+  worker_status->do_update = true;
+
   iter.release_writers();
 
   /* Set the default prim if it doesn't exist */
@@ -273,7 +297,10 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     }
   }
 
-  call_export_hooks(usd_stage, depsgraph);
+  call_export_hooks(usd_stage, depsgraph, params.worker_status->reports);
+
+  worker_status->progress = 0.88f;
+  worker_status->do_update = true;
 
   /* Finish up by going back to the keyframe that was current before we started. */
   if (scene->r.cfra != orig_frame) {
@@ -281,15 +308,10 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
 
-  return usd_stage;
-}
+  worker_status->progress = 0.9f;
+  worker_status->do_update = true;
 
-pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
-                                    Depsgraph *depsgraph,
-                                    const char *filepath)
-{
-  wmJobWorkerStatus worker_status = {};
-  return export_to_stage(params, depsgraph, filepath, &worker_status);
+  return usd_stage;
 }
 
 static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
@@ -304,7 +326,10 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   }
   G.is_break = false;
 
-  /* Evaluate the despgraph for exporting.
+  worker_status->progress = 0.01f;
+  worker_status->do_update = true;
+
+  /* Evaluate the depsgraph for exporting.
    *
    * Note that, unlike with its building, this is expected to be safe to perform from worker
    * thread, since UI is locked during export, so there should not be any more changes in the Main
@@ -313,32 +338,24 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
    * #USD_export. */
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
-  worker_status->progress = 0.0f;
+  worker_status->progress = 0.1f;
   worker_status->do_update = true;
+  data->params.worker_status = worker_status;
 
   pxr::UsdStageRefPtr usd_stage = export_to_stage(
-      data->params, data->depsgraph, data->unarchived_filepath, worker_status);
+      data->params, data->depsgraph, data->unarchived_filepath);
   if (!usd_stage) {
     /* This happens when the USD JSON files cannot be found. When that happens,
      * the USD library doesn't know it has the functionality to write USDA and
      * USDC files, and creating a new UsdStage fails. */
-    WM_reportf(RPT_ERROR,
-               "USD Export: unable to find suitable USD plugin to write %s",
-               data->unarchived_filepath);
+    BKE_reportf(worker_status->reports,
+                RPT_ERROR,
+                "USD Export: unable to find suitable USD plugin to write %s",
+                data->unarchived_filepath);
     return;
   }
 
   usd_stage->GetRootLayer()->Save();
-
-  if (data->targets_usdz()) {
-    bool usd_conversion_success = perform_usdz_conversion(data);
-    if (!usd_conversion_success) {
-      data->export_ok = false;
-      worker_status->progress = 1.0f;
-      worker_status->do_update = true;
-      return;
-    }
-  }
 
   data->export_ok = true;
   worker_status->progress = 1.0f;
@@ -370,6 +387,16 @@ static void export_endjob(void *customdata)
   DEG_graph_free(data->depsgraph);
 
   if (data->targets_usdz()) {
+    /* NOTE: call to #perform_usdz_conversion has to be done here instead of the main threaded
+     * worker callback (#export_startjob) because USDZ conversion requires changing the current
+     * working directory. This is not safe to do from a non-main thread. Once the USD library fix
+     * this weird requirement, this call can be moved back at the end of #export_startjob, and not
+     * block the main user interface anymore. */
+    bool usd_conversion_success = perform_usdz_conversion(data);
+    if (!usd_conversion_success) {
+      data->export_ok = false;
+    }
+
     export_endjob_usdz_cleanup(data);
   }
 
@@ -420,7 +447,8 @@ static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *f
 bool USD_export(bContext *C,
                 const char *filepath,
                 const USDExportParams *params,
-                bool as_background_job)
+                bool as_background_job,
+                ReportList *reports)
 {
   if (!blender::io::usd::export_params_valid(*params)) {
     return false;
@@ -443,7 +471,7 @@ bool USD_export(bContext *C,
   /* Construct the depsgraph for exporting.
    *
    * Has to be done from main thread currently, as it may affect Main original data (e.g. when
-   * doing deferred update of the viewlayers, see #112534 for details). */
+   * doing deferred update of the view-layers, see #112534 for details). */
   if (job->params.visible_objects_only) {
     DEG_graph_build_from_view_layer(job->depsgraph);
   }
@@ -469,6 +497,9 @@ bool USD_export(bContext *C,
   }
   else {
     wmJobWorkerStatus worker_status = {};
+    /* Use the operator's reports in non-background case. */
+    worker_status.reports = reports;
+
     blender::io::usd::export_startjob(job, &worker_status);
     blender::io::usd::export_endjob(job);
     export_ok = job->export_ok;

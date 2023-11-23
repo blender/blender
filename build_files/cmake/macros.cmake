@@ -59,6 +59,13 @@ macro(path_ensure_trailing_slash
   unset(_path_sep)
 endmacro()
 
+macro(path_strip_trailing_slash
+  path_new path_input
+  )
+  file(TO_NATIVE_PATH "/" _path_sep)
+  string(REGEX REPLACE "[${_path_sep}]+$" "" ${path_new} ${path_input})
+endmacro()
+
 # Our own version of `cmake_path(IS_PREFIX ..)`.
 # This can be removed when 3.20 or greater is the minimum supported version.
 macro(path_is_prefix
@@ -1403,6 +1410,71 @@ Path to python site-packages or dist-packages containing '${package}' module hea
     endif()
   endif()
 endfunction()
+
+# Find a file in Python's module path and cache it.
+# Re-generating cache upon changes to the Python installation.
+# `out_var_abs`: absolute path (cached).
+# `out_var_rel`: `PYTHON_ROOT` relative path (not cached).
+macro(find_python_module_file
+  module_file
+  out_var_abs
+  out_var_rel
+  )
+
+  # Reset if the file isn't found.
+  if(DEFINED ${out_var_abs})
+    if(NOT EXISTS ${${out_var_abs}})
+      unset(${out_var_abs} CACHE)
+    endif()
+  endif()
+
+  # Reset if the version number or Python path changes.
+  set(_python_mod_file_deps_test "${PYTHON_LIBPATH};${PYTHON_VERSION}")
+  if(DEFINED _${out_var_abs}_DEPS)
+    if(NOT (_${out_var_abs}_DEPS STREQUAL _python_mod_file_deps_test))
+      unset(${out_var_abs} CACHE)
+    endif()
+  else()
+    unset(${out_var_abs} CACHE)
+  endif()
+
+  path_strip_trailing_slash(_python_root "${PYTHON_LIBPATH}")
+  set(_python_base "${_python_root}/python${PYTHON_VERSION}")
+  # This always moves up one level (even if there is a trailing slash).
+  get_filename_component(_python_root "${_python_root}" DIRECTORY)
+  path_ensure_trailing_slash(_python_root "${_python_root}")
+
+  if(NOT (DEFINED ${out_var_abs}))
+    message(STATUS "Finding Python Module File: ${module_file}")
+    find_file(${out_var_abs}
+      NAMES
+        "${module_file}"
+      PATHS
+        "${_python_base}"
+      PATH_SUFFIXES
+        "site-packages"
+        "dist-packages"
+        "vendor-packages"
+        ""
+      NO_DEFAULT_PATH
+    )
+    if(${out_var_abs})
+      # Internal because this is only to track changes (users never need to manipulate it).
+      set(_${out_var_abs}_DEPS "${_python_mod_file_deps_test}" CACHE INTERNAL STRING "")
+    endif()
+  endif()
+
+  if(${out_var_abs})
+    string(LENGTH "${_python_root}" _python_root_len)
+    string(SUBSTRING ${${out_var_abs}} ${_python_root_len} -1 ${out_var_rel})
+    unset(_python_root_len)
+  endif()
+
+  unset(_python_mod_file_deps_test)
+  unset(_python_base)
+  unset(_python_root)
+endmacro()
+
 
 # like Python's 'print(dir())'
 function(print_all_vars)

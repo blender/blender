@@ -15,7 +15,7 @@ void do_vertex(
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
   gl_Position.xy += offset * 2.0;
-  EmitVertex();
+  gpu_EmitVertex();
 }
 
 void main()

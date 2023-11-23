@@ -18,8 +18,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_layer.h"
 
 #include "DEG_depsgraph.hh"

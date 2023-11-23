@@ -31,7 +31,7 @@ void main()
   }
 
   if (gbuf.has_refraction) {
-    refract_light = imageLoad(direct_refract_img, texel).rgb +
+    refract_light = /* imageLoad(direct_refract_img, texel).rgb + */ /* TODO: Not implemented. */
                     imageLoad(indirect_refract_img, texel).rgb;
   }
 

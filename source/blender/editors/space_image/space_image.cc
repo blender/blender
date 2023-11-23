@@ -19,7 +19,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"

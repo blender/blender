@@ -423,10 +423,9 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
       bNodeTreeInterfaceSocket &dst_socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(dst);
       const bNodeTreeInterfaceSocket &src_socket =
           reinterpret_cast<const bNodeTreeInterfaceSocket &>(src);
-      BLI_assert(src_socket.name != nullptr);
       BLI_assert(src_socket.socket_type != nullptr);
 
-      dst_socket.name = BLI_strdup(src_socket.name);
+      dst_socket.name = BLI_strdup_null(src_socket.name);
       dst_socket.description = BLI_strdup_null(src_socket.description);
       dst_socket.socket_type = BLI_strdup(src_socket.socket_type);
       dst_socket.default_attribute_name = BLI_strdup_null(src_socket.default_attribute_name);
@@ -444,9 +443,8 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
       bNodeTreeInterfacePanel &dst_panel = reinterpret_cast<bNodeTreeInterfacePanel &>(dst);
       const bNodeTreeInterfacePanel &src_panel = reinterpret_cast<const bNodeTreeInterfacePanel &>(
           src);
-      BLI_assert(src_panel.name != nullptr);
 
-      dst_panel.name = BLI_strdup(src_panel.name);
+      dst_panel.name = BLI_strdup_null(src_panel.name);
       dst_panel.description = BLI_strdup_null(src_panel.description);
       dst_panel.identifier = generate_uid ? generate_uid() : src_panel.identifier;
 
@@ -1098,7 +1096,6 @@ void bNodeTreeInterface::free_data()
 
 void bNodeTreeInterface::write(BlendWriter *writer)
 {
-  BLO_write_struct(writer, bNodeTreeInterface, this);
   /* Don't write the root panel struct itself, it's nested in the interface struct. */
   item_types::item_write_data(writer, this->root_panel.item);
 }

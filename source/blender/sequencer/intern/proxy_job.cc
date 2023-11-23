@@ -17,15 +17,15 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

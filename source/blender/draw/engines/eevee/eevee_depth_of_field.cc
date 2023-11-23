@@ -11,7 +11,7 @@
  * - The first uses projection matrix offsetting and sample accumulation to give reference quality
  *   depth of field. But this needs many samples to hide the under-sampling.
  * - The second one is a post-processing based one. It follows the implementation described in
- *   the presentation "Life of a Bokeh - Siggraph 2018" from Guillaume Abadie. There are some
+ *   the presentation "Life of a Bokeh - SIGGRAPH 2018" from Guillaume Abadie. There are some
  *   difference with our actual implementation that prioritize quality.
  */
 
@@ -24,7 +24,7 @@
 
 #include "BKE_camera.h"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -57,7 +57,7 @@ static float polygon_sides_length(float sides_count)
  * Start first corners at theta == 0. */
 static float circle_to_polygon_radius(float sides_count, float theta)
 {
-  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide 36). */
+  /* From Graphics Gems from CryENGINE 3 (SIGGRAPH 2013) by Tiago Sousa (slide 36). */
   float side_angle = (2.0f * M_PI) / sides_count;
   return cosf(side_angle * 0.5f) /
          cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));

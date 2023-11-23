@@ -53,7 +53,10 @@ void ED_space_image_set_mask(bContext *C, SpaceImage *sima, Mask *mask);
 /**
  * Returns mouse position in image space.
  */
-bool ED_space_image_get_position(SpaceImage *sima, ARegion *region, int mval[2], float fpos[2]);
+bool ED_space_image_get_position(SpaceImage *sima,
+                                 ARegion *region,
+                                 const int mval[2],
+                                 float r_fpos[2]);
 /**
  * Returns color in linear space, matching #ED_space_node_color_sample().
  */

@@ -22,7 +22,7 @@
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "DNA_anim_types.h"
 

@@ -14,13 +14,13 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
 #include "UI_resources.hh"
@@ -31,11 +31,11 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "node_composite_util.hh"
 
 #ifdef WITH_COMPOSITOR_CPU
-#  include "COM_compositor.h"
+#  include "COM_compositor.hh"
 #endif
 
 static void composite_get_from_context(

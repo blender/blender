@@ -11,8 +11,8 @@
 #include "BLI_math_quaternion.hh"
 
 #include "BKE_attribute.h"
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
 #include "BKE_report.h"
@@ -25,6 +25,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "ED_geometry.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
@@ -87,33 +88,6 @@ static bool mesh_active_attribute_poll(bContext *C)
 }
 
 namespace set_attribute {
-
-static StringRefNull rna_property_name_for_type(const eCustomDataType type)
-{
-  switch (type) {
-    case CD_PROP_FLOAT:
-      return "value_float";
-    case CD_PROP_FLOAT2:
-      return "value_float_vector_2d";
-    case CD_PROP_FLOAT3:
-      return "value_float_vector_3d";
-    case CD_PROP_COLOR:
-    case CD_PROP_BYTE_COLOR:
-      return "value_color";
-    case CD_PROP_BOOL:
-      return "value_bool";
-    case CD_PROP_INT8:
-    case CD_PROP_INT32:
-      return "value_int";
-    case CD_PROP_INT32_2D:
-      return "value_int_vector_2d";
-    case CD_PROP_QUATERNION:
-      return "value_quat";
-    default:
-      BLI_assert_unreachable();
-      return "";
-  }
-}
 
 static void bmesh_vert_edge_face_layer_selected_values_set(BMesh &bm,
                                                            const BMIterType iter_type,
@@ -186,48 +160,9 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
 
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
   BLI_SCOPED_DEFER([&]() { type.destruct(buffer); });
+  const GPointer value = geometry::rna_property_for_attribute_type_retrieve_value(
+      *op->ptr, active_type, buffer);
 
-  const StringRefNull prop_name = rna_property_name_for_type(active_type);
-  switch (active_type) {
-    case CD_PROP_FLOAT:
-      *static_cast<float *>(buffer) = RNA_float_get(op->ptr, prop_name.c_str());
-      break;
-    case CD_PROP_FLOAT2:
-      RNA_float_get_array(op->ptr, prop_name.c_str(), static_cast<float *>(buffer));
-      break;
-    case CD_PROP_FLOAT3:
-      RNA_float_get_array(op->ptr, prop_name.c_str(), static_cast<float *>(buffer));
-      break;
-    case CD_PROP_COLOR:
-      RNA_float_get_array(op->ptr, prop_name.c_str(), static_cast<float *>(buffer));
-      break;
-    case CD_PROP_QUATERNION: {
-      float4 value;
-      RNA_float_get_array(op->ptr, prop_name.c_str(), value);
-      *static_cast<math::Quaternion *>(buffer) = math::normalize(math::Quaternion(value));
-      break;
-    }
-    case CD_PROP_BYTE_COLOR:
-      ColorGeometry4f value;
-      RNA_float_get_array(op->ptr, prop_name.c_str(), value);
-      *static_cast<ColorGeometry4b *>(buffer) = value.encode();
-      break;
-    case CD_PROP_BOOL:
-      *static_cast<bool *>(buffer) = RNA_boolean_get(op->ptr, prop_name.c_str());
-      break;
-    case CD_PROP_INT8:
-      *static_cast<int8_t *>(buffer) = RNA_int_get(op->ptr, prop_name.c_str());
-      break;
-    case CD_PROP_INT32:
-      *static_cast<int32_t *>(buffer) = RNA_int_get(op->ptr, prop_name.c_str());
-      break;
-    case CD_PROP_INT32_2D:
-      RNA_int_get_array(op->ptr, prop_name.c_str(), static_cast<int *>(buffer));
-      break;
-    default:
-      BLI_assert_unreachable();
-  }
-  const GPointer value(type, buffer);
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
 
   bool changed = false;
@@ -305,48 +240,12 @@ static int mesh_set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent 
     return WM_operator_props_popup(C, op, event);
   }
 
-  const StringRefNull prop_name = rna_property_name_for_type(data_type);
   const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
   const GPointer active_value(type, POINTER_OFFSET(active_elem->head.data, layer->offset));
 
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, prop_name.c_str());
+  PropertyRNA *prop = geometry::rna_property_for_type(*op->ptr, data_type);
   if (!RNA_property_is_set(op->ptr, prop)) {
-    switch (data_type) {
-      case CD_PROP_FLOAT:
-        RNA_property_float_set(op->ptr, prop, *active_value.get<float>());
-        break;
-      case CD_PROP_FLOAT2:
-        RNA_property_float_set_array(op->ptr, prop, *active_value.get<float2>());
-        break;
-      case CD_PROP_FLOAT3:
-        RNA_property_float_set_array(op->ptr, prop, *active_value.get<float3>());
-        break;
-      case CD_PROP_BYTE_COLOR:
-        RNA_property_float_set_array(op->ptr, prop, active_value.get<ColorGeometry4b>()->decode());
-        break;
-      case CD_PROP_COLOR:
-        RNA_property_float_set_array(op->ptr, prop, *active_value.get<ColorGeometry4f>());
-        break;
-      case CD_PROP_BOOL:
-        RNA_property_boolean_set(op->ptr, prop, *active_value.get<bool>());
-        break;
-      case CD_PROP_INT8:
-        RNA_property_int_set(op->ptr, prop, *active_value.get<int8_t>());
-        break;
-      case CD_PROP_INT32:
-        RNA_property_int_set(op->ptr, prop, *active_value.get<int32_t>());
-        break;
-      case CD_PROP_INT32_2D:
-        RNA_property_int_set_array(op->ptr, prop, *active_value.get<int2>());
-        break;
-      case CD_PROP_QUATERNION: {
-        const math::Quaternion value = math::normalize(*active_value.get<math::Quaternion>());
-        RNA_property_float_set_array(op->ptr, prop, float4(value));
-        break;
-      }
-      default:
-        BLI_assert_unreachable();
-    }
+    geometry::rna_property_for_attribute_type_set_value(*op->ptr, *prop, active_value);
   }
 
   return WM_operator_props_popup(C, op, event);
@@ -361,7 +260,7 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   Mesh *mesh = ED_mesh_context(C);
   CustomDataLayer *active_attribute = BKE_id_attributes_active_get(&mesh->id);
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
-  const StringRefNull prop_name = rna_property_name_for_type(active_type);
+  const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
   const char *name = active_attribute->name;
   uiItemR(layout, op->ptr, prop_name.c_str(), UI_ITEM_NONE, name, ICON_NONE);
 }
@@ -385,53 +284,7 @@ void MESH_OT_attribute_set(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  static blender::float4 color_default(1);
-
-  RNA_def_float(ot->srna, "value_float", 0.0f, -FLT_MAX, FLT_MAX, "Value", "", -FLT_MAX, FLT_MAX);
-  RNA_def_float_array(ot->srna,
-                      "value_float_vector_2d",
-                      2,
-                      nullptr,
-                      -FLT_MAX,
-                      FLT_MAX,
-                      "Value",
-                      "",
-                      -FLT_MAX,
-                      FLT_MAX);
-  RNA_def_float_array(ot->srna,
-                      "value_float_vector_3d",
-                      3,
-                      nullptr,
-                      -FLT_MAX,
-                      FLT_MAX,
-                      "Value",
-                      "",
-                      -FLT_MAX,
-                      FLT_MAX);
-  RNA_def_int(ot->srna, "value_int", 0, INT_MIN, INT_MAX, "Value", "", INT_MIN, INT_MAX);
-  RNA_def_int_array(ot->srna,
-                    "value_int_vector_2d",
-                    2,
-                    nullptr,
-                    INT_MIN,
-                    INT_MAX,
-                    "Value",
-                    "",
-                    INT_MIN,
-                    INT_MAX);
-  RNA_def_float_color(
-      ot->srna, "value_color", 4, color_default, -FLT_MAX, FLT_MAX, "Value", "", 0.0f, 1.0f);
-  RNA_def_boolean(ot->srna, "value_bool", false, "Value", "");
-  RNA_def_float_array(ot->srna,
-                      "value_quat",
-                      4,
-                      rna_default_quaternion,
-                      -FLT_MAX,
-                      FLT_MAX,
-                      "Value",
-                      "",
-                      FLT_MAX,
-                      FLT_MAX);
+  blender::ed::geometry::register_rna_properties_for_attribute_types(*ot->srna);
 }
 
 /** \} */

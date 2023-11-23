@@ -33,16 +33,17 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_idtype.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -165,7 +166,7 @@ IDTypeInfo IDType_ID_LT = {
     /*main_listbase_index*/ INDEX_ID_LT,
     /*struct_size*/ sizeof(Lattice),
     /*name*/ "Lattice",
-    /*name_plural*/ "lattices",
+    /*name_plural*/ N_("lattices"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_LATTICE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -337,9 +338,9 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
     /* works best if we force to linear type (endpoints match) */
     lt->typeu = lt->typev = lt->typew = KEY_LINEAR;
 
-    if (ltOb->runtime.curve_cache) {
+    if (ltOb->runtime->curve_cache) {
       /* prevent using deformed locations */
-      BKE_displist_free(&ltOb->runtime.curve_cache->disp);
+      BKE_displist_free(&ltOb->runtime->curve_cache->disp);
     }
 
     copy_m4_m4(mat, ltOb->object_to_world);
@@ -507,8 +508,8 @@ void BKE_lattice_vert_coords_apply(Lattice *lt, const float (*vert_coords)[3])
 void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   BKE_object_free_derived_caches(ob);
-  if (ob->runtime.curve_cache == nullptr) {
-    ob->runtime.curve_cache = static_cast<CurveCache *>(
+  if (ob->runtime->curve_cache == nullptr) {
+    ob->runtime->curve_cache = static_cast<CurveCache *>(
         MEM_callocN(sizeof(CurveCache), "CurveCache for lattice"));
   }
 
@@ -535,7 +536,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
     if (mti->is_disabled && mti->is_disabled(scene, md, false)) {
       continue;
     }
-    if (mti->type != eModifierTypeType_OnlyDeform) {
+    if (mti->type != ModifierTypeType::OnlyDeform) {
       continue;
     }
 
@@ -545,7 +546,8 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
       vert_coords = BKE_lattice_vert_coords_alloc(effective_lattice, &numVerts);
     }
 
-    mti->deform_verts(md, &mectx, nullptr, vert_coords, numVerts);
+    mti->deform_verts(
+        md, &mectx, nullptr, {reinterpret_cast<blender::float3 *>(vert_coords), numVerts});
   }
 
   if (vert_coords == nullptr) {
@@ -610,11 +612,11 @@ static void boundbox_lattice(Object *ob)
   Lattice *lt;
   float min[3], max[3];
 
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Lattice boundbox"));
+  if (ob->runtime->bb == nullptr) {
+    ob->runtime->bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Lattice boundbox"));
   }
 
-  bb = ob->runtime.bb;
+  bb = ob->runtime->bb;
   lt = static_cast<Lattice *>(ob->data);
 
   INIT_MINMAX(min, max);
@@ -628,13 +630,13 @@ BoundBox *BKE_lattice_boundbox_get(Object *ob)
 {
   boundbox_lattice(ob);
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 void BKE_lattice_minmax_dl(Object *ob, Lattice *lt, float min[3], float max[3])
 {
-  DispList *dl = ob->runtime.curve_cache ?
-                     BKE_displist_find(&ob->runtime.curve_cache->disp, DL_VERTS) :
+  DispList *dl = ob->runtime->curve_cache ?
+                     BKE_displist_find(&ob->runtime->curve_cache->disp, DL_VERTS) :
                      nullptr;
 
   if (!dl) {

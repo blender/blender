@@ -9,7 +9,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "DNA_node_types.h"
@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
   if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_link_ops_for_basic_node(params);
+    nodes::search_link_ops_for_basic_node(params);
   }
 }
 

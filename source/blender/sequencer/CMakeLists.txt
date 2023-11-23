@@ -25,49 +25,49 @@ set(INC_SYS
 )
 
 set(SRC
-  SEQ_add.h
-  SEQ_animation.h
-  SEQ_channels.h
-  SEQ_clipboard.h
-  SEQ_edit.h
-  SEQ_effects.h
-  SEQ_iterator.h
-  SEQ_modifier.h
-  SEQ_prefetch.h
-  SEQ_proxy.h
-  SEQ_relations.h
-  SEQ_render.h
+  SEQ_add.hh
+  SEQ_animation.hh
+  SEQ_channels.hh
+  SEQ_clipboard.hh
+  SEQ_edit.hh
+  SEQ_effects.hh
+  SEQ_iterator.hh
+  SEQ_modifier.hh
+  SEQ_prefetch.hh
+  SEQ_proxy.hh
+  SEQ_relations.hh
+  SEQ_render.hh
   SEQ_retiming.hh
-  SEQ_select.h
-  SEQ_sequencer.h
-  SEQ_sound.h
-  SEQ_time.h
-  SEQ_transform.h
-  SEQ_utils.h
+  SEQ_select.hh
+  SEQ_sequencer.hh
+  SEQ_sound.hh
+  SEQ_time.hh
+  SEQ_transform.hh
+  SEQ_utils.hh
 
   intern/animation.cc
   intern/channels.cc
   intern/clipboard.cc
   intern/disk_cache.cc
-  intern/disk_cache.h
+  intern/disk_cache.hh
   intern/effects.cc
-  intern/effects.h
+  intern/effects.hh
   intern/image_cache.cc
-  intern/image_cache.h
+  intern/image_cache.hh
   intern/iterator.cc
   intern/modifier.cc
   intern/multiview.cc
-  intern/multiview.h
+  intern/multiview.hh
   intern/prefetch.cc
-  intern/prefetch.h
+  intern/prefetch.hh
   intern/proxy.cc
-  intern/proxy.h
+  intern/proxy.hh
   intern/proxy_job.cc
   intern/render.cc
-  intern/render.h
+  intern/render.hh
   intern/sequence_lookup.cc
   intern/sequencer.cc
-  intern/sequencer.h
+  intern/sequencer.hh
   intern/sound.cc
   intern/strip_add.cc
   intern/strip_edit.cc
@@ -75,10 +75,10 @@ set(SRC
   intern/strip_retiming.cc
   intern/strip_select.cc
   intern/strip_time.cc
-  intern/strip_time.h
+  intern/strip_time.hh
   intern/strip_transform.cc
   intern/utils.cc
-  intern/utils.h
+  intern/utils.hh
 )
 
 set(LIB

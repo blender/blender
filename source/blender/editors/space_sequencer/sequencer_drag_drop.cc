@@ -12,17 +12,17 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_transform.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_transform.hh"
 
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
@@ -299,20 +299,18 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     ListBase *channels = SEQ_channels_displayed_get(ed);
     SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-    SeqCollection *strips = SEQ_query_rendered_strips(
+    blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
     /* Get the top most strip channel that is in view. */
-    Sequence *seq;
     int max_channel = -1;
-    SEQ_ITERATOR_FOREACH (seq, strips) {
+    for (Sequence *seq : strips) {
       max_channel = max_ii(seq->machine, max_channel);
     }
 
     if (max_channel != -1) {
       RNA_int_set(drop->ptr, "channel", max_channel);
     }
-    SEQ_collection_free(strips);
   }
 }
 

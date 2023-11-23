@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,9 +8,13 @@
 
 #include <cfloat>
 #include <cmath>
+#include <string>
 
+#include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
+#include "ANIM_rna.hh"
 #include "ANIM_visualkey.hh"
 
 #include "BKE_action.h"
@@ -30,12 +34,12 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_anim_types.h"
-#include "ED_anim_api.hh"
 #include "ED_keyframing.hh"
 #include "MEM_guardedalloc.h"
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_path.hh"
+#include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
 #include "WM_api.hh"
@@ -74,7 +78,6 @@ static void make_new_fcurve_cyclic(const bAction *act, FCurve *fcu)
   fcu->bezt[1].vec[1][0] += period;
   fcu->bezt[1].vec[2][0] += period;
 
-  /* Add the cycles modifier. */
   if (!fcu->modifiers.first) {
     add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES, fcu);
   }
@@ -137,41 +140,36 @@ static void get_keyframe_values_create_reports(ReportList *reports,
  * \param r_successful_remaps: Enables bits for indices which are both intended to be remapped and
  * were successfully remapped. Bitmap allocated so it must be freed afterward.
  */
-static float *get_keyframe_values(ReportList *reports,
-                                  PointerRNA ptr,
-                                  PropertyRNA *prop,
-                                  int index,
-                                  NlaKeyframingContext *nla_context,
-                                  eInsertKeyFlags flag,
-                                  float *buffer,
-                                  int buffer_size,
-                                  const AnimationEvalContext *anim_eval_context,
-                                  int *r_count,
-                                  bool *r_force_all,
-                                  BLI_bitmap **r_successful_remaps)
+static Vector<float> get_keyframe_values(ReportList *reports,
+                                         PointerRNA ptr,
+                                         PropertyRNA *prop,
+                                         int index,
+                                         NlaKeyframingContext *nla_context,
+                                         eInsertKeyFlags flag,
+                                         const AnimationEvalContext *anim_eval_context,
+                                         bool *r_force_all,
+                                         BLI_bitmap **r_successful_remaps)
 {
-  float *values;
+  Vector<float> values;
 
   if ((flag & INSERTKEY_MATRIX) && visualkey_can_use(&ptr, prop)) {
-    /* visual-keying is only available for object and pchan datablocks, as
+    /* Visual-keying is only available for object and pchan datablocks, as
      * it works by keyframing using a value extracted from the final matrix
      * instead of using the kt system to extract a value.
      */
-    values = visualkey_get_values(&ptr, prop, buffer, buffer_size, r_count);
+    values = visualkey_get_values(&ptr, prop);
   }
   else {
-    /* read value from system */
-    values = ANIM_setting_get_rna_values(&ptr, prop, buffer, buffer_size, r_count);
+    values = get_rna_values(&ptr, prop);
   }
 
-  *r_successful_remaps = BLI_BITMAP_NEW(*r_count, __func__);
+  *r_successful_remaps = BLI_BITMAP_NEW(values.size(), __func__);
 
   /* adjust the value for NLA factors */
   BKE_animsys_nla_remap_keyframe_values(nla_context,
                                         &ptr,
                                         prop,
-                                        values,
-                                        *r_count,
+                                        values.as_mutable_span(),
                                         index,
                                         anim_eval_context,
                                         r_force_all,
@@ -180,7 +178,7 @@ static float *get_keyframe_values(ReportList *reports,
                                      ptr,
                                      prop,
                                      index,
-                                     *r_count,
+                                     values.size(),
                                      r_force_all ? *r_force_all : false,
                                      *r_successful_remaps);
 
@@ -229,7 +227,7 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
   return type;
 }
 
-/* return codes for new_key_needed */
+/* Return codes for new_key_needed. */
 enum {
   KEYNEEDED_DONTADD = 0,
   KEYNEEDED_JUSTADD,
@@ -247,7 +245,6 @@ enum {
  */
 static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 {
-  /* safety checking */
   if (fcu == nullptr) {
     return KEYNEEDED_JUSTADD;
   }
@@ -256,49 +253,46 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
     return KEYNEEDED_JUSTADD;
   }
 
-  /* loop through checking if any are the same */
+  /* Loop through checking if any are the same. */
   BezTriple *bezt = fcu->bezt;
   BezTriple *prev = nullptr;
   for (int i = 0; i < totCount; i++) {
     float prevPosi = 0.0f, prevVal = 0.0f;
     float beztPosi = 0.0f, beztVal = 0.0f;
 
-    /* get current time+value */
     beztPosi = bezt->vec[1][0];
     beztVal = bezt->vec[1][1];
 
     if (prev) {
-      /* there is a keyframe before the one currently being examined */
-
-      /* get previous time+value */
+      /* There is a keyframe before the one currently being examined. */
       prevPosi = prev->vec[1][0];
       prevVal = prev->vec[1][1];
 
-      /* keyframe to be added at point where there are already two similar points? */
+      /* Keyframe to be added at point where there are already two similar points? */
       if (IS_EQF(prevPosi, cFrame) && IS_EQF(beztPosi, cFrame) && IS_EQF(beztPosi, prevPosi)) {
         return KEYNEEDED_DONTADD;
       }
 
-      /* keyframe between prev+current points ? */
+      /* Keyframe between prev+current points? */
       if ((prevPosi <= cFrame) && (cFrame <= beztPosi)) {
-        /* is the value of keyframe to be added the same as keyframes on either side ? */
+        /* Is the value of keyframe to be added the same as keyframes on either side? */
         if (IS_EQF(prevVal, nValue) && IS_EQF(beztVal, nValue) && IS_EQF(prevVal, beztVal)) {
           return KEYNEEDED_DONTADD;
         }
 
         float realVal;
 
-        /* get real value of curve at that point */
+        /* Get real value of curve at that point. */
         realVal = evaluate_fcurve(fcu, cFrame);
 
-        /* compare whether it's the same as proposed */
+        /* Compare whether it's the same as proposed. */
         if (IS_EQF(realVal, nValue)) {
           return KEYNEEDED_DONTADD;
         }
         return KEYNEEDED_JUSTADD;
       }
 
-      /* new keyframe before prev beztriple? */
+      /* New keyframe before prev beztriple? */
       if (cFrame < prevPosi) {
         /* A new keyframe will be added. However, whether the previous beztriple
          * stays around or not depends on whether the values of previous/current
@@ -312,7 +306,7 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
       }
     }
     else {
-      /* just add a keyframe if there's only one keyframe
+      /* Just add a keyframe if there's only one keyframe
        * and the new one occurs before the existing one does.
        */
       if ((cFrame < beztPosi) && (totCount == 1)) {
@@ -320,7 +314,7 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
       }
     }
 
-    /* continue. frame to do not yet passed (or other conditions not met) */
+    /* Continue. Frame to do not yet passed (or other conditions not met) */
     if (i < (totCount - 1)) {
       prev = bezt;
       bezt++;
@@ -362,11 +356,9 @@ static AnimationEvalContext nla_time_remap(const AnimationEvalContext *anim_eval
                                            NlaKeyframingContext **r_nla_context)
 {
   if (adt && adt->action == act) {
-    /* Get NLA context for value remapping. */
     *r_nla_context = BKE_animsys_get_nla_keyframing_context(
         nla_cache, id_ptr, adt, anim_eval_context);
 
-    /* Apply NLA-mapping to frame. */
     const float remapped_frame = BKE_nla_tweakedit_remap(
         adt, anim_eval_context->eval_time, NLATIME_CONVERT_UNMAP);
     return BKE_animsys_eval_context_construct_at(anim_eval_context, remapped_frame);
@@ -376,67 +368,52 @@ static AnimationEvalContext nla_time_remap(const AnimationEvalContext *anim_eval
   return *anim_eval_context;
 }
 
-/* Insert the specified keyframe value into a single F-Curve. */
-static bool insert_keyframe_value(ReportList *reports,
-                                  PointerRNA *ptr,
-                                  PropertyRNA *prop,
-                                  FCurve *fcu,
-                                  const AnimationEvalContext *anim_eval_context,
-                                  float curval,
-                                  eBezTriple_KeyframeType keytype,
-                                  eInsertKeyFlags flag)
+/* Adjust frame on which to add keyframe, to make it easier to add corrective drivers. */
+static float remap_driver_frame(const AnimationEvalContext *anim_eval_context,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const FCurve *fcu)
 {
-  /* F-Curve not editable? */
-  if (BKE_fcurve_is_keyframable(fcu) == 0) {
-    BKE_reportf(
-        reports,
-        RPT_ERROR,
-        "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, "
-        "and try removing F-Modifiers",
-        fcu->rna_path,
-        fcu->array_index);
+  float cfra = anim_eval_context->eval_time;
+  PathResolvedRNA anim_rna;
+  if (RNA_path_resolved_create(ptr, prop, fcu->array_index, &anim_rna)) {
+    cfra = evaluate_driver(&anim_rna, fcu->driver, fcu->driver, anim_eval_context);
+  }
+  else {
+    cfra = 0.0f;
+  }
+  return cfra;
+}
+
+/* Insert the specified keyframe value into a single F-Curve. */
+static bool insert_keyframe_value(
+    FCurve *fcu, float cfra, float curval, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
+{
+  if (!BKE_fcurve_is_keyframable(fcu)) {
     return false;
   }
 
-  float cfra = anim_eval_context->eval_time;
-
-  /* adjust frame on which to add keyframe */
-  if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
-    PathResolvedRNA anim_rna;
-
-    if (RNA_path_resolved_create(ptr, prop, fcu->array_index, &anim_rna)) {
-      /* for making it easier to add corrective drivers... */
-      cfra = evaluate_driver(&anim_rna, fcu->driver, fcu->driver, anim_eval_context);
-    }
-    else {
-      cfra = 0.0f;
-    }
-  }
-
-  /* adjust coordinates for cycle aware insertion */
+  /* Adjust coordinates for cycle aware insertion. */
   if (flag & INSERTKEY_CYCLE_AWARE) {
     if (remap_cyclic_keyframe_location(fcu, &cfra, &curval) != FCU_CYCLE_PERFECT) {
-      /* inhibit action from insert_vert_fcurve unless it's a perfect cycle */
+      /* Inhibit action from insert_vert_fcurve unless it's a perfect cycle. */
       flag &= ~INSERTKEY_CYCLE_AWARE;
     }
   }
 
-  /* only insert keyframes where they are needed */
   if (flag & INSERTKEY_NEEDED) {
-    /* check whether this curve really needs a new keyframe */
     static short insert_mode = new_key_needed(fcu, cfra, curval);
 
-    /* only return success if keyframe added */
     if (insert_mode == KEYNEEDED_DONTADD) {
       return false;
     }
 
-    /* insert new keyframe at current frame */
     if (insert_vert_fcurve(fcu, cfra, curval, keytype, flag) < 0) {
       return false;
     }
 
-    /* delete keyframe immediately before/after newly added */
+    /* Based on the heuristics applied in new_key_needed(), the previous or next key needs to be
+     * deleted. */
     switch (insert_mode) {
       case KEYNEEDED_DELPREV:
         BKE_fcurve_delete_key(fcu, fcu->totvert - 2);
@@ -451,7 +428,6 @@ static bool insert_keyframe_value(ReportList *reports,
     return true;
   }
 
-  /* just insert keyframe */
   return insert_vert_fcurve(fcu, cfra, curval, keytype, flag) >= 0;
 }
 
@@ -465,24 +441,21 @@ bool insert_keyframe_direct(ReportList *reports,
                             eInsertKeyFlags flag)
 {
 
-  /* no F-Curve to add keyframe to? */
   if (fcu == nullptr) {
     BKE_report(reports, RPT_ERROR, "No F-Curve to add keyframes to");
     return false;
   }
 
-  /* if no property given yet, try to validate from F-Curve info */
   if ((ptr.owner_id == nullptr) && (ptr.data == nullptr)) {
     BKE_report(
         reports, RPT_ERROR, "No RNA pointer available to retrieve values for keyframing from");
     return false;
   }
+
   if (prop == nullptr) {
     PointerRNA tmp_ptr;
 
-    /* try to get property we should be affecting */
     if (RNA_path_resolve_property(&ptr, fcu->rna_path, &tmp_ptr, &prop) == false) {
-      /* property not found... */
       const char *idname = (ptr.owner_id) ? ptr.owner_id->name : TIP_("<No ID pointer>");
 
       BKE_reportf(reports,
@@ -494,39 +467,28 @@ bool insert_keyframe_direct(ReportList *reports,
       return false;
     }
 
-    /* property found, so overwrite 'ptr' to make later code easier */
+    /* Property found, so overwrite 'ptr' to make later code easier. */
     ptr = tmp_ptr;
   }
 
-  /* update F-Curve flags to ensure proper behavior for property type */
+  /* Update F-Curve flags to ensure proper behavior for property type. */
   update_autoflags_fcurve_direct(fcu, prop);
 
-  /* Obtain the value to insert. */
-  float value_buffer[RNA_MAX_ARRAY_LENGTH];
-  int value_count;
   const int index = fcu->array_index;
-
   BLI_bitmap *successful_remaps = nullptr;
-  float *values = get_keyframe_values(reports,
-                                      ptr,
-                                      prop,
-                                      index,
-                                      nla_context,
-                                      flag,
-                                      value_buffer,
-                                      RNA_MAX_ARRAY_LENGTH,
-                                      anim_eval_context,
-                                      &value_count,
-                                      nullptr,
-                                      &successful_remaps);
+  Vector<float> values = get_keyframe_values(reports,
+                                             ptr,
+                                             prop,
+                                             index,
+                                             nla_context,
+                                             flag,
+                                             anim_eval_context,
+                                             nullptr,
+                                             &successful_remaps);
 
   float current_value = 0.0f;
-  if (index >= 0 && index < value_count) {
+  if (index >= 0 && index < values.size()) {
     current_value = values[index];
-  }
-
-  if (values != value_buffer) {
-    MEM_freeN(values);
   }
 
   const bool curval_valid = BLI_BITMAP_TEST_BOOL(successful_remaps, index);
@@ -537,11 +499,25 @@ bool insert_keyframe_direct(ReportList *reports,
     return false;
   }
 
-  return insert_keyframe_value(
-      reports, &ptr, prop, fcu, anim_eval_context, current_value, keytype, flag);
+  float cfra = anim_eval_context->eval_time;
+  if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
+    cfra = remap_driver_frame(anim_eval_context, &ptr, prop, fcu);
+  }
+
+  const bool success = insert_keyframe_value(fcu, cfra, current_value, keytype, flag);
+
+  if (!success) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Failed to insert keys on F-Curve with path '%s[%d]', ensure that it is not "
+                "locked or sampled, and try removing F-Modifiers",
+                fcu->rna_path,
+                fcu->array_index);
+  }
+  return success;
 }
 
-/** Find or create the #FCurve based on the given path, and insert the specified value into it. */
+/** Find or create the FCurve based on the given path, and insert the specified value into it. */
 static bool insert_keyframe_fcurve_value(Main *bmain,
                                          ReportList *reports,
                                          PointerRNA *ptr,
@@ -555,25 +531,25 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
                                          eBezTriple_KeyframeType keytype,
                                          eInsertKeyFlags flag)
 {
-  /* make sure the F-Curve exists
+  /* Make sure the F-Curve exists.
    * - if we're replacing keyframes only, DO NOT create new F-Curves if they do not exist yet
    *   but still try to get the F-Curve if it exists...
    */
   const bool can_create_curve = (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;
   FCurve *fcu = can_create_curve ?
-                    ED_action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
-                    ED_action_fcurve_find(act, rna_path, array_index);
+                    action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
+                    action_fcurve_find(act, rna_path, array_index);
 
-  /* we may not have a F-Curve when we're replacing only... */
+  /* We may not have a F-Curve when we're replacing only. */
   if (!fcu) {
     return false;
   }
 
   const bool is_new_curve = (fcu->totvert == 0);
 
-  /* set color mode if the F-Curve is new (i.e. without any keyframes) */
+  /* Set color mode if the F-Curve is new (i.e. without any keyframes). */
   if (is_new_curve && (flag & INSERTKEY_XYZ2RGB)) {
-    /* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
+    /* For Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
      * is determined by the array index for the F-Curve
      */
     PropertySubType prop_subtype = RNA_property_subtype(prop);
@@ -592,12 +568,24 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
     make_new_fcurve_cyclic(act, fcu);
   }
 
-  /* update F-Curve flags to ensure proper behavior for property type */
+  /* Update F-Curve flags to ensure proper behavior for property type. */
   update_autoflags_fcurve_direct(fcu, prop);
 
-  /* insert keyframe */
-  const bool success = insert_keyframe_value(
-      reports, ptr, prop, fcu, anim_eval_context, curval, keytype, flag);
+  float cfra = anim_eval_context->eval_time;
+  if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
+    cfra = remap_driver_frame(anim_eval_context, ptr, prop, fcu);
+  }
+
+  const bool success = insert_keyframe_value(fcu, cfra, curval, keytype, flag);
+
+  if (!success) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Failed to insert keys on F-Curve with path '%s[%d]', ensure that it is not "
+                "locked or sampled, and try removing F-Modifiers",
+                fcu->rna_path,
+                fcu->array_index);
+  }
 
   /* If the curve is new, make it cyclic if appropriate. */
   if (is_cyclic_action && is_new_curve) {
@@ -616,10 +604,8 @@ int insert_keyframe(Main *bmain,
                     int array_index,
                     const AnimationEvalContext *anim_eval_context,
                     eBezTriple_KeyframeType keytype,
-                    ListBase *nla_cache,
                     eInsertKeyFlags flag)
 {
-  /* validate pointer first - exit if failure */
   if (id == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "No ID block to insert keyframe in (path = %s)", rna_path);
     return 0;
@@ -643,11 +629,9 @@ int insert_keyframe(Main *bmain,
     return 0;
   }
 
-  /* if no action is provided, keyframe to the default one attached to this ID-block */
+  /* If no action is provided, keyframe to the default one attached to this ID-block. */
   if (act == nullptr) {
-    /* get action to add F-Curve+keyframe to */
     act = ED_id_action_ensure(bmain, id);
-
     if (act == nullptr) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -659,31 +643,24 @@ int insert_keyframe(Main *bmain,
     }
   }
 
-  /* apply NLA-mapping to frame to use (if applicable) */
+  /* Apply NLA-mapping to frame to use (if applicable). */
   NlaKeyframingContext *nla_context = nullptr;
-  ListBase tmp_nla_cache = {nullptr, nullptr};
+  ListBase nla_cache = {nullptr, nullptr};
   AnimData *adt = BKE_animdata_from_id(id);
   const AnimationEvalContext remapped_context = nla_time_remap(
-      anim_eval_context, &id_ptr, adt, act, nla_cache ? nla_cache : &tmp_nla_cache, &nla_context);
+      anim_eval_context, &id_ptr, adt, act, &nla_cache, &nla_context);
 
-  /* Obtain values to insert. */
-  float value_buffer[RNA_MAX_ARRAY_LENGTH];
-  int value_count;
   bool force_all;
-
   BLI_bitmap *successful_remaps = nullptr;
-  float *values = get_keyframe_values(reports,
-                                      ptr,
-                                      prop,
-                                      array_index,
-                                      nla_context,
-                                      flag,
-                                      value_buffer,
-                                      RNA_MAX_ARRAY_LENGTH,
-                                      anim_eval_context,
-                                      &value_count,
-                                      &force_all,
-                                      &successful_remaps);
+  Vector<float> values = get_keyframe_values(reports,
+                                             ptr,
+                                             prop,
+                                             array_index,
+                                             nla_context,
+                                             flag,
+                                             anim_eval_context,
+                                             &force_all,
+                                             &successful_remaps);
 
   /* Key the entire array. */
   int key_count = 0;
@@ -692,7 +669,7 @@ int insert_keyframe(Main *bmain,
     if (force_all && (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) != 0) {
       int exclude = -1;
 
-      for (array_index = 0; array_index < value_count; array_index++) {
+      for (array_index = 0; array_index < values.size(); array_index++) {
         if (!BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
           continue;
         }
@@ -719,7 +696,7 @@ int insert_keyframe(Main *bmain,
       if (exclude != -1) {
         flag &= ~(INSERTKEY_REPLACE | INSERTKEY_AVAILABLE);
 
-        for (array_index = 0; array_index < value_count; array_index++) {
+        for (array_index = 0; array_index < values.size(); array_index++) {
           if (!BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
             continue;
           }
@@ -743,7 +720,7 @@ int insert_keyframe(Main *bmain,
     }
     /* Simply insert all channels. */
     else {
-      for (array_index = 0; array_index < value_count; array_index++) {
+      for (array_index = 0; array_index < values.size(); array_index++) {
         if (!BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
           continue;
         }
@@ -765,7 +742,7 @@ int insert_keyframe(Main *bmain,
   }
   /* Key a single index. */
   else {
-    if (array_index >= 0 && array_index < value_count &&
+    if (array_index >= 0 && array_index < values.size() &&
         BLI_BITMAP_TEST_BOOL(successful_remaps, array_index))
     {
       key_count += insert_keyframe_fcurve_value(bmain,
@@ -783,12 +760,8 @@ int insert_keyframe(Main *bmain,
     }
   }
 
-  if (values != value_buffer) {
-    MEM_freeN(values);
-  }
-
   MEM_freeN(successful_remaps);
-  BKE_animsys_free_nla_keyframing_context_cache(&tmp_nla_cache);
+  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   if (key_count > 0) {
     if (act != nullptr) {
@@ -837,13 +810,11 @@ int delete_keyframe(Main *bmain,
 {
   AnimData *adt = BKE_animdata_from_id(id);
 
-  /* sanity checks */
   if (ELEM(nullptr, id, adt)) {
     BKE_report(reports, RPT_ERROR, "No ID block and/or AnimData to delete keyframe from");
     return 0;
   }
 
-  /* validate pointer first - exit if failure */
   PointerRNA ptr;
   PropertyRNA *prop;
   PointerRNA id_ptr = RNA_id_pointer_create(id);
@@ -857,18 +828,9 @@ int delete_keyframe(Main *bmain,
     return 0;
   }
 
-  /* get F-Curve
-   * NOTE: here is one of the places where we don't want new Action + F-Curve added!
-   *      so 'add' var must be 0
-   */
   if (act == nullptr) {
-    /* if no action is provided, use the default one attached to this ID-block
-     * - if it doesn't exist, then we're out of options...
-     */
     if (adt->action) {
       act = adt->action;
-
-      /* apply NLA-mapping to frame to use (if applicable) */
       cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
     }
     else {
@@ -878,26 +840,25 @@ int delete_keyframe(Main *bmain,
   }
 
   int array_index_max = array_index + 1;
-  /* key entire array convenience method */
+
   if (array_index == -1) {
     array_index = 0;
     array_index_max = RNA_property_array_length(&ptr, prop);
 
-    /* for single properties, increase max_index so that the property itself gets included,
+    /* For single properties, increase max_index so that the property itself gets included,
      * but don't do this for standard arrays since that can cause corruption issues
-     * (extra unused curves)
+     * (extra unused curves).
      */
     if (array_index_max == array_index) {
       array_index_max++;
     }
   }
 
-  /* will only loop once unless the array index was -1 */
+  /* Will only loop once unless the array index was -1. */
   int key_count = 0;
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
+    FCurve *fcu = action_fcurve_find(act, rna_path, array_index);
 
-    /* check if F-Curve exists and/or whether it can be edited */
     if (fcu == nullptr) {
       continue;
     }
@@ -917,23 +878,13 @@ int delete_keyframe(Main *bmain,
   if (key_count) {
     deg_tag_after_keyframe_delete(bmain, id, adt);
   }
-  /* return success/failure */
+
   return key_count;
 }
 
 /* ************************************************** */
 /* KEYFRAME CLEAR */
 
-/**
- * Main Keyframing API call:
- * Use this when validation of necessary animation data isn't necessary as it
- * already exists. It will clear the current buttons fcurve(s).
- *
- * The flag argument is used for special settings that alter the behavior of
- * the keyframe deletion. These include the quick refresh options.
- *
- * \return The number of f-curves removed.
- */
 int clear_keyframe(Main *bmain,
                    ReportList *reports,
                    ID *id,
@@ -944,13 +895,11 @@ int clear_keyframe(Main *bmain,
 {
   AnimData *adt = BKE_animdata_from_id(id);
 
-  /* sanity checks */
   if (ELEM(nullptr, id, adt)) {
     BKE_report(reports, RPT_ERROR, "No ID block and/or AnimData to delete keyframe from");
     return 0;
   }
 
-  /* validate pointer first - exit if failure */
   PointerRNA ptr;
   PropertyRNA *prop;
   PointerRNA id_ptr = RNA_id_pointer_create(id);
@@ -964,14 +913,7 @@ int clear_keyframe(Main *bmain,
     return 0;
   }
 
-  /* get F-Curve
-   * NOTE: here is one of the places where we don't want new Action + F-Curve added!
-   *      so 'add' var must be 0
-   */
   if (act == nullptr) {
-    /* if no action is provided, use the default one attached to this ID-block
-     * - if it doesn't exist, then we're out of options...
-     */
     if (adt->action) {
       act = adt->action;
     }
@@ -981,15 +923,14 @@ int clear_keyframe(Main *bmain,
     }
   }
 
-  /* key entire array convenience method */
   int array_index_max = array_index + 1;
   if (array_index == -1) {
     array_index = 0;
     array_index_max = RNA_property_array_length(&ptr, prop);
 
-    /* for single properties, increase max_index so that the property itself gets included,
+    /* For single properties, increase max_index so that the property itself gets included,
      * but don't do this for standard arrays since that can cause corruption issues
-     * (extra unused curves)
+     * (extra unused curves).
      */
     if (array_index_max == array_index) {
       array_index_max++;
@@ -997,11 +938,10 @@ int clear_keyframe(Main *bmain,
   }
 
   int key_count = 0;
-  /* will only loop once unless the array index was -1 */
+  /* Will only loop once unless the array index was -1. */
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
+    FCurve *fcu = action_fcurve_find(act, rna_path, array_index);
 
-    /* check if F-Curve exists and/or whether it can be edited */
     if (fcu == nullptr) {
       continue;
     }
@@ -1016,16 +956,51 @@ int clear_keyframe(Main *bmain,
       continue;
     }
 
-    ANIM_fcurve_delete_from_animdata(nullptr, adt, fcu);
+    animdata_fcurve_delete(nullptr, adt, fcu);
 
-    /* return success */
     key_count++;
   }
   if (key_count) {
     deg_tag_after_keyframe_delete(bmain, id, adt);
   }
-  /* return success/failure */
+
   return key_count;
+}
+
+int insert_key_action(Main *bmain,
+                      bAction *action,
+                      PointerRNA *ptr,
+                      const std::string &rna_path,
+                      const float frame,
+                      const Span<float> values,
+                      eInsertKeyFlags insert_key_flag,
+                      eBezTriple_KeyframeType key_type)
+{
+  BLI_assert(bmain != nullptr);
+  BLI_assert(action != nullptr);
+
+  std::string group;
+  if (ptr->type == &RNA_PoseBone) {
+    bPoseChannel *pose_channel = static_cast<bPoseChannel *>(ptr->data);
+    group = pose_channel->name;
+  }
+  else {
+    group = "Object Transforms";
+  }
+
+  int property_array_index = 0;
+  int inserted_keys = 0;
+  for (float value : values) {
+    FCurve *fcurve = action_fcurve_ensure(
+        bmain, action, group.c_str(), ptr, rna_path.c_str(), property_array_index);
+    const bool inserted_key = insert_keyframe_value(
+        fcurve, frame, value, key_type, insert_key_flag);
+    if (inserted_key) {
+      inserted_keys++;
+    }
+    property_array_index++;
+  }
+  return inserted_keys;
 }
 
 }  // namespace blender::animrig

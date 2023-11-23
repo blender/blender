@@ -10,7 +10,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "DEG_depsgraph.hh"
@@ -352,6 +352,7 @@ static int insert_blank_frame_exec(bContext *C, wmOperator *op)
   if (changed) {
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -376,7 +377,7 @@ static void GREASE_PENCIL_OT_insert_blank_frame(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna, "all_layers", false, "All Layers", "Insert a blank frame in all editable layers");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  RNA_def_int(ot->srna, "duration", 1, 1, MAXFRAME, "Duration", "", 1, 100);
+  RNA_def_int(ot->srna, "duration", 0, 0, MAXFRAME, "Duration", "", 0, 100);
 }
 
 }  // namespace blender::ed::greasepencil

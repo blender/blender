@@ -99,10 +99,10 @@ enum SculptUpdateType {
 };
 
 struct SculptCursorGeometryInfo {
-  float location[3];
-  float back_location[3];
-  float normal[3];
-  float active_vertex_co[3];
+  blender::float3 location;
+  blender::float3 back_location;
+  blender::float3 normal;
+  blender::float3 active_vertex_co;
 };
 
 struct _SculptNeighborRef {
@@ -270,7 +270,7 @@ struct SculptUndoNode {
   SculptUndoNodeGeometry geometry_modified;
 
   /* pivot */
-  float pivot_pos[3];
+  blender::float3 pivot_pos;
   float pivot_rot[4];
 
   /* Sculpt Face Sets */
@@ -302,8 +302,7 @@ struct SculptUndoNode {
   blender::Set<NodeUndoKey> dyntopo_undo_set;
   int typemask;
 
-  blender::Array<PBVHFaceRef> faces;
-  int faces_num;
+  blender::Vector<int> face_indices;
 
   size_t undo_size;
   // int gen, lasthash;
@@ -315,7 +314,7 @@ struct SculptUndoNode {
 
 struct SculptRakeData {
   float follow_dist;
-  float follow_co[3];
+  blender::float3 follow_co;
   float angle;
 };
 
@@ -323,7 +322,7 @@ struct SculptRakeData {
 struct SculptBrushTest {
   float radius_squared;
   float radius;
-  float location[3];
+  blender::float3 location;
   float dist;
   ePaintSymmetryFlags mirror_symmetry_pass;
 
@@ -504,7 +503,7 @@ struct FilterCache {
   float *normal_factor;
   float *edge_factor;
   float *prev_mask;
-  float mask_expand_initial_co[3];
+  blender::float3 mask_expand_initial_co;
 
   int new_face_set;
   int *prev_face_set;
@@ -519,8 +518,8 @@ struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
-  float initial_normal[3];
-  float view_normal[3];
+  blender::float3 initial_normal;
+  blender::float3 view_normal;
 
   /* Mask Filter. */
   int mask_filter_current_step;
@@ -552,9 +551,9 @@ struct FilterCache {
 struct StrokeCache {
   /* Invariants */
   float initial_radius;
-  float scale[3];
+  blender::float3 scale;
   int flag;
-  float clip_tolerance[3];
+  blender::float3 clip_tolerance;
   float clip_mirror_mtx[4][4];
   float initial_mouse[2];
 
@@ -562,10 +561,10 @@ struct StrokeCache {
   float last_anchored_radius; /* Used by paint_mesh_restore_co. */
   float radius;
   float radius_squared;
-  float true_location[3];
-  float true_last_location[3];
-  float location[3];
-  float last_location[3];
+  blender::float3 true_location;
+  blender::float3 true_last_location;
+  blender::float3 location;
+  blender::float3 last_location;
 
   /* Used for alternating between deformation in brushes that need to apply different ones to
    * achieve certain effects. */
@@ -608,8 +607,8 @@ struct StrokeCache {
   const Brush *brush;
 
   float special_rotation;
-  float grab_delta[3], grab_delta_symmetry[3];
-  float old_grab_location[3], orig_grab_location[3];
+  blender::float3 grab_delta, grab_delta_symmetry;
+  blender::float3 old_grab_location, orig_grab_location;
 
   // next_grab_delta is same as grab_delta except in smooth rake mode
   float prev_grab_delta[3], next_grab_delta[3];
@@ -633,8 +632,8 @@ struct StrokeCache {
   int symmetry;
   ePaintSymmetryFlags
       mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
-  float true_view_normal[3];
-  float view_normal[3];
+  blender::float3 true_view_normal;
+  blender::float3 view_normal;
 
   float view_origin[3];
   float true_view_origin[3];
@@ -642,8 +641,8 @@ struct StrokeCache {
   /* sculpt_normal gets calculated by calc_sculpt_normal(), then the
    * sculpt_normal_symm gets updated quickly with the usual symmetry
    * transforms */
-  float sculpt_normal[3];
-  float sculpt_normal_symm[3];
+  blender::float3 sculpt_normal;
+  blender::float3 sculpt_normal_symm;
 
   float cached_area_normal[3];
 
@@ -656,10 +655,10 @@ struct StrokeCache {
    * displacement in area plane mode. */
   float brush_local_mat_inv[4][4];
 
-  float plane_offset[3]; /* used to shift the plane around when doing tiled strokes */
+  blender::float3 plane_offset; /* used to shift the plane around when doing tiled strokes */
   int tile_pass;
 
-  float last_center[3];
+  blender::float3 last_center;
   int radial_symmetry_pass;
   float symm_rot_mat[4][4];
   float symm_rot_mat_inv[4][4];
@@ -667,7 +666,7 @@ struct StrokeCache {
   /* Accumulate mode. Note: inverted for SCULPT_TOOL_DRAW_SHARP. */
   bool accum;
 
-  float anchored_location[3];
+  blender::float3 anchored_location;
 
   /* Fairing. */
 
@@ -692,10 +691,10 @@ struct StrokeCache {
 
   /* Cloth brush */
   SculptClothSimulation *cloth_sim;
-  float initial_location[3];
-  float true_initial_location[3];
-  float initial_normal[3];
-  float true_initial_normal[3];
+  blender::float3 initial_location;
+  blender::float3 true_initial_location;
+  blender::float3 initial_normal;
+  blender::float3 true_initial_normal;
 
   /* Boundary brush */
   SculptBoundary *boundaries[PAINT_SYMM_AREAS];
@@ -715,8 +714,8 @@ struct StrokeCache {
   float plane_trim_squared;
 
   bool supports_gravity;
-  float true_gravity_direction[3];
-  float gravity_direction[3];
+  blender::float3 true_gravity_direction;
+  blender::float3 gravity_direction;
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
@@ -1221,7 +1220,7 @@ void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
-float (*SCULPT_mesh_deformed_positions_get(SculptSession *ss))[3];
+blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptSession *ss);
 
 /* Fake Neighbors */
 
@@ -1295,9 +1294,6 @@ int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 
-int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face);
-void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
-
 bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vertex);
 
@@ -1306,6 +1302,9 @@ int SCULPT_face_set_next_available_get(SculptSession *ss);
 void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
 
 int SCULPT_face_set_original_get(SculptSession *ss, PBVHFaceRef face);
+
+int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face);
+void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
 
 bool SCULPT_face_select_get(SculptSession *ss, PBVHFaceRef face);
 bool SCULPT_face_is_hidden(const SculptSession *ss, PBVHFaceRef face);
@@ -1329,9 +1328,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
  * DEPRECATED: use SCULPT_vertex_check_origdata and SCULPT_vertex_get_sculptvert
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
-void SCULPT_orig_vert_data_update(SculptSession *ss,
-                                  SculptOrigVertData *orig_data,
-                                  PBVHVertRef vertex);
+void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertRef vertex);
 
 /**
  * DEPRECATED: use SCULPT_vertex_check_origdata and SCULPT_vertex_get_sculptvert
@@ -1621,7 +1618,7 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
  * \{ */
 
 struct AutomaskingNodeData {
-  PBVHNode *node;
+  SculptSession *ss;
   SculptOrigVertData orig_data;
   bool have_orig_data;
 };
@@ -1631,15 +1628,12 @@ struct AutomaskingNodeData {
  * \param automask_data: pointer to an uninitialized #AutomaskingNodeData struct.
  */
 void SCULPT_automasking_node_begin(Object *ob,
-                                   const SculptSession *ss,
                                    AutomaskingCache *automasking,
                                    AutomaskingNodeData *automask_data,
                                    PBVHNode *node);
 
 /* Call before SCULPT_automasking_factor_get and SCULPT_brush_strength_factor. */
-void SCULPT_automasking_node_update(SculptSession *ss,
-                                    AutomaskingNodeData *automask_data,
-                                    PBVHVertexIter *vd);
+void SCULPT_automasking_node_update(AutomaskingNodeData *automask_data, PBVHVertexIter *vd);
 
 float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     SculptSession *ss,
@@ -1688,7 +1682,7 @@ float *SCULPT_geodesic_distances_create(struct Object *ob,
                                         struct GSet *initial_vertices,
                                         const float limit_radius,
                                         PBVHVertRef *r_closest_verts,
-                                        float (*vertco_override)[3]);
+                                        blender::Span<blender::float3> vertco_override);
 float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
                                             struct Object *ob,
                                             const PBVHVertRef vertex,
@@ -1914,7 +1908,7 @@ void SCULPT_undo_push_end_ex(Object *ob, const bool use_nested_undo);
 
 /** \} */
 
-void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
+void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, blender::Span<blender::float3> vertCos);
 
 /**
  * Copy the PBVH bounding box into the object's bounding box.

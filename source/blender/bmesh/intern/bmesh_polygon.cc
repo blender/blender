@@ -18,6 +18,7 @@
 #include "BLI_alloca.h"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -28,7 +29,7 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "intern/bmesh_private.h"
 
@@ -615,7 +616,7 @@ static void bm_loop_normal_accum(const BMLoop *l, float no[3])
   normalize_v3(vec1);
   normalize_v3(vec2);
 
-  fac = saacos(-dot_v3v3(vec1, vec2));
+  fac = blender::math::safe_acos_approx(-dot_v3v3(vec1, vec2));
 
   madd_v3_v3fl(no, l->f->no, fac);
 }
@@ -944,7 +945,7 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
     mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
   }
 
-  return isect_point_poly_v2(co_2d, projverts, f->len, false);
+  return isect_point_poly_v2(co_2d, projverts, f->len);
 }
 
 void BM_face_triangulate(BMesh *bm,

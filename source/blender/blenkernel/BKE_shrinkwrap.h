@@ -8,7 +8,7 @@
  */
 
 /* Shrinkwrap stuff */
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BLI_bitmap.h"
 
 #ifdef __cplusplus

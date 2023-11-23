@@ -14,7 +14,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
@@ -23,6 +23,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
@@ -513,8 +514,15 @@ class ImageOperation : public NodeOperation {
     Result &result = get_result(identifier);
     result.allocate_texture(Domain(size));
 
-    GPUShader *shader = shader_manager().get(get_shader_name(identifier));
+    GPUShader *shader = context().get_shader(get_shader_name(identifier));
     GPU_shader_bind(shader);
+
+    const int2 lower_bound = int2(0);
+    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+
+    if (result.type() == ResultType::Color) {
+      GPU_shader_uniform_1b(shader, "premultiply_alpha", should_premultiply_alpha(image_user));
+    }
 
     const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(image_texture, input_unit);
@@ -557,14 +565,37 @@ class ImageOperation : public NodeOperation {
   const char *get_shader_name(StringRef identifier)
   {
     if (identifier == "Alpha") {
-      return "compositor_extract_alpha_from_color";
+      return "compositor_read_input_alpha";
     }
     else if (get_result(identifier).type() == ResultType::Color) {
-      return "compositor_convert_color_to_half_color";
+      return "compositor_read_input_color";
     }
     else {
-      return "compositor_convert_float_to_half_float";
+      return "compositor_read_input_float";
     }
+  }
+
+  /* Compositor image inputs are expected to be always pre-multiplied, so identify if the GPU
+   * texture returned by the image module is straight and needs to be pre-multiplied. An exception
+   * is when the image has an alpha mode of channel packed or alpha ignore, in which case, we
+   * always ignore pre-multiplication. */
+  bool should_premultiply_alpha(ImageUser &image_user)
+  {
+    Image *image = get_image();
+    if (ELEM(image->alpha_mode, IMA_ALPHA_CHANNEL_PACKED, IMA_ALPHA_IGNORE)) {
+      return false;
+    }
+
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, nullptr);
+    if (!image_buffer) {
+      return false;
+    }
+
+    const bool has_premultiplied_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(
+        image, image_buffer);
+    BKE_image_release_ibuf(image, image_buffer, nullptr);
+
+    return !has_premultiplied_alpha;
   }
 
   Image *get_image()
@@ -830,10 +861,10 @@ class RenderLayerOperation : public NodeOperation {
       GPUTexture *combined_texture = context().get_input_texture(
           scene, view_layer, RE_PASSNAME_COMBINED);
       if (image_result.should_compute()) {
-        execute_pass(image_result, combined_texture, "compositor_read_pass_color");
+        execute_pass(image_result, combined_texture, "compositor_read_input_color");
       }
       if (alpha_result.should_compute()) {
-        execute_pass(alpha_result, combined_texture, "compositor_read_pass_alpha");
+        execute_pass(alpha_result, combined_texture, "compositor_read_input_alpha");
       }
     }
 
@@ -851,13 +882,13 @@ class RenderLayerOperation : public NodeOperation {
       GPUTexture *pass_texture = context().get_input_texture(
           scene, view_layer, output->identifier);
       if (output->type == SOCK_FLOAT) {
-        execute_pass(result, pass_texture, "compositor_read_pass_float");
+        execute_pass(result, pass_texture, "compositor_read_input_float");
       }
       else if (output->type == SOCK_VECTOR) {
-        execute_pass(result, pass_texture, "compositor_read_pass_vector");
+        execute_pass(result, pass_texture, "compositor_read_input_vector");
       }
       else if (output->type == SOCK_RGBA) {
-        execute_pass(result, pass_texture, "compositor_read_pass_color");
+        execute_pass(result, pass_texture, "compositor_read_input_color");
       }
       else {
         BLI_assert_unreachable();
@@ -874,14 +905,14 @@ class RenderLayerOperation : public NodeOperation {
       return;
     }
 
-    GPUShader *shader = shader_manager().get(shader_name);
+    GPUShader *shader = context().get_shader(shader_name);
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the pass texture, so only read that
      * compositing region into an appropriately sized texture. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
-    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
     const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(pass_texture, input_unit);

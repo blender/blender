@@ -71,11 +71,20 @@ bool curves_poll(bContext *C);
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Operators
+ * \{ */
+
+void CURVES_OT_attribute_set(wmOperatorType *ot);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Mask Functions
  * \{ */
 
 /**
  * Return a mask of all the end points in the curves.
+ * \param curves_mask (optional): The curves that should be used in the resulting point mask.
  * \param amount_start: The amount of points to mask from the front.
  * \param amount_end: The amount of points to mask from the back.
  * \param inverted: Invert the resulting mask.
@@ -85,15 +94,28 @@ IndexMask end_points(const bke::CurvesGeometry &curves,
                      int amount_end,
                      bool inverted,
                      IndexMaskMemory &memory);
+IndexMask end_points(const bke::CurvesGeometry &curves,
+                     const IndexMask &curves_mask,
+                     int amount_start,
+                     int amount_end,
+                     bool inverted,
+                     IndexMaskMemory &memory);
 
 /**
  * Return a mask of random points or curves.
  *
- * \param random_seed: The seed for the \a RandomNumberGenerator.
- * \param probability: Determines how likely a point/curve will be chosen. If set to 0.0, nothing
- * will be in the mask, if set to 1.0 everything will be in the mask.
+ * \param mask (optional): The elements that should be used in the resulting mask. This mask should
+ * be in the same domain as the \a selection_domain. \param random_seed: The seed for the \a
+ * RandomNumberGenerator. \param probability: Determines how likely a point/curve will be chosen.
+ * If set to 0.0, nothing will be in the mask, if set to 1.0 everything will be in the mask.
  */
 IndexMask random_mask(const bke::CurvesGeometry &curves,
+                      eAttrDomain selection_domain,
+                      uint32_t random_seed,
+                      float probability,
+                      IndexMaskMemory &memory);
+IndexMask random_mask(const bke::CurvesGeometry &curves,
+                      const IndexMask &mask,
                       eAttrDomain selection_domain,
                       uint32_t random_seed,
                       float probability,
@@ -123,17 +145,20 @@ void fill_selection_true(GMutableSpan selection, const IndexMask &mask);
  * Return true if any element is selected, on either domain with either type.
  */
 bool has_anything_selected(const bke::CurvesGeometry &curves);
+bool has_anything_selected(const bke::CurvesGeometry &curves, const IndexMask &mask);
 
 /**
  * Return true if any element in the span is selected, on either domain with either type.
  */
 bool has_anything_selected(GSpan selection);
 bool has_anything_selected(const VArray<bool> &varray, IndexRange range_to_check);
+bool has_anything_selected(const VArray<bool> &varray, const IndexMask &indices_to_check);
 
 /**
  * Find curves that have any point selected (a selection factor greater than zero),
  * or curves that have their own selection factor greater than zero.
  */
+IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
 IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &memory);
 
 /**
@@ -156,25 +181,42 @@ void apply_selection_operation_at_index(GMutableSpan selection, int index, eSele
 /**
  * (De)select all the curves.
  *
+ * \param mask (optional): The elements that should be affected. This mask should be in the domain
+ * of the \a selection_domain.
  * \param action: One of SEL_TOGGLE, SEL_SELECT, SEL_DESELECT, or SEL_INVERT. See
  * "ED_select_utils.hh".
  */
 void select_all(bke::CurvesGeometry &curves, eAttrDomain selection_domain, int action);
+void select_all(bke::CurvesGeometry &curves,
+                const IndexMask &mask,
+                eAttrDomain selection_domain,
+                int action);
 
 /**
  * Select the points of all curves that have at least one point selected.
+ *
+ * \param curves_mask (optional): The curves that should be affected.
  */
 void select_linked(bke::CurvesGeometry &curves);
+void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask);
 
 /**
  * Select alternated points in strokes with already selected points
+ *
+ * \param curves_mask (optional): The curves that should be affected.
  */
 void select_alternate(bke::CurvesGeometry &curves, const bool deselect_ends);
+void select_alternate(bke::CurvesGeometry &curves,
+                      const IndexMask &curves_mask,
+                      const bool deselect_ends);
 
 /**
  * (De)select all the adjacent points of the current selected points.
+ *
+ * \param curves_mask (optional): The curves that should be affected.
  */
 void select_adjacent(bke::CurvesGeometry &curves, bool deselect);
+void select_adjacent(bke::CurvesGeometry &curves, const IndexMask &curves_mask, bool deselect);
 
 /**
  * Helper struct for `closest_elem_find_screen_space`.
@@ -189,13 +231,15 @@ struct FindClosestData {
  *
  * \return A new point or curve closer than the \a initial input, if one exists.
  */
-std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext &vc,
-                                                              const Object &object,
-                                                              bke::CurvesGeometry &curves,
-                                                              Span<float3> deformed_positions,
-                                                              eAttrDomain domain,
-                                                              int2 coord,
-                                                              const FindClosestData &initial);
+std::optional<FindClosestData> closest_elem_find_screen_space(
+    const ViewContext &vc,
+    const Object &object,
+    const OffsetIndices<int> points_by_curve,
+    Span<float3> deformed_positions,
+    const IndexMask &mask,
+    eAttrDomain domain,
+    int2 coord,
+    const FindClosestData &initial);
 
 /**
  * Select points or curves in a (screen-space) rectangle.
@@ -203,6 +247,7 @@ std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext 
 bool select_box(const ViewContext &vc,
                 bke::CurvesGeometry &curves,
                 Span<float3> deformed_positions,
+                const IndexMask &mask,
                 eAttrDomain selection_domain,
                 const rcti &rect,
                 eSelectOp sel_op);
@@ -213,6 +258,7 @@ bool select_box(const ViewContext &vc,
 bool select_lasso(const ViewContext &vc,
                   bke::CurvesGeometry &curves,
                   Span<float3> deformed_positions,
+                  const IndexMask &mask,
                   eAttrDomain selection_domain,
                   Span<int2> coords,
                   eSelectOp sel_op);
@@ -223,6 +269,7 @@ bool select_lasso(const ViewContext &vc,
 bool select_circle(const ViewContext &vc,
                    bke::CurvesGeometry &curves,
                    Span<float3> deformed_positions,
+                   const IndexMask &mask,
                    eAttrDomain selection_domain,
                    int2 coord,
                    float radius,

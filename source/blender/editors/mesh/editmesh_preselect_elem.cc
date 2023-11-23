@@ -10,7 +10,7 @@
 
 #include "BLI_math_matrix.h"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

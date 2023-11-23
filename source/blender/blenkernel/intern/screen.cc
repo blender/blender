@@ -49,7 +49,7 @@
 #include "BKE_node.h"
 #include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
-#include "BKE_viewer_path.h"
+#include "BKE_viewer_path.hh"
 #include "BKE_workspace.h"
 
 #include "BLO_read_write.hh"
@@ -169,7 +169,7 @@ IDTypeInfo IDType_ID_SCR = {
     /*main_listbase_index*/ INDEX_ID_SCR,
     /*struct_size*/ sizeof(bScreen),
     /*name*/ "Screen",
-    /*name_plural*/ "screens",
+    /*name_plural*/ N_("screens"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_SCREEN,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA |
         IDTYPE_FLAGS_NO_MEMFILE_UNDO,

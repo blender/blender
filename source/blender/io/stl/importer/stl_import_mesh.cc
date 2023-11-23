@@ -6,7 +6,9 @@
  * \ingroup stl
  */
 
-#include "BKE_customdata.h"
+#include <iostream>
+
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
@@ -75,16 +77,8 @@ Mesh *STLMeshHelper::to_mesh()
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(verts_.size(), 0, tris_.size(), tris_.size() * 3);
-
   mesh->vert_positions_for_write().copy_from(verts_);
-
-  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
-  threading::parallel_for(face_offsets.index_range(), 4096, [&](const IndexRange range) {
-    for (const int i : range) {
-      face_offsets[i] = i * 3;
-    }
-  });
-
+  offset_indices::fill_constant_group_size(3, 0, mesh->face_offsets_for_write());
   array_utils::copy(tris_.as_span().cast<int>(), mesh->corner_verts_for_write());
 
   /* NOTE: edges must be calculated first before setting custom normals. */
@@ -92,7 +86,6 @@ Mesh *STLMeshHelper::to_mesh()
 
   if (use_custom_normals_ && loop_normals_.size() == mesh->totloop) {
     BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(loop_normals_.data()));
-    mesh->flag |= ME_AUTOSMOOTH;
   }
 
   return mesh;

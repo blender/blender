@@ -53,7 +53,7 @@ static PyObject *py_blf_position(PyObject * /*self*/, PyObject *args)
 }
 
 PyDoc_STRVAR(py_blf_size_doc,
-             ".. function:: size(fontid, size, dpi=72)\n"
+             ".. function:: size(fontid, size)\n"
              "\n"
              "   Set the size for drawing text.\n"
              "\n"

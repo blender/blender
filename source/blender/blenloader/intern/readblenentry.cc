@@ -25,7 +25,7 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_preview_image.hh"

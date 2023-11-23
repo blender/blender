@@ -38,7 +38,7 @@
 #include "BKE_attribute.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_viewer_path.h"
+#include "BKE_viewer_path.hh"
 
 #include "FN_field.hh"
 

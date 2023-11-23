@@ -94,9 +94,10 @@ eV3DProjStatus ED_view3d_project_base(const ARegion *region, Base *base, float r
   return ret;
 }
 
-/* perspmat is typically...
- * - 'rv3d->perspmat',   is_local == false
- * - 'rv3d->persmatob', is_local == true
+/**
+ * `perspmat` is typically either:
+ * - 'rv3d->perspmat',  is_local == false.
+ * - 'rv3d->persmatob', is_local == true.
  */
 static eV3DProjStatus ed_view3d_project__internal(const ARegion *region,
                                                   const float perspmat[4][4],

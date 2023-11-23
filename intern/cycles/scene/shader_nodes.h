@@ -228,12 +228,15 @@ class NoiseTextureNode : public TextureNode {
   SHADER_NODE_CLASS(NoiseTextureNode)
 
   NODE_SOCKET_API(int, dimensions)
+  NODE_SOCKET_API(NodeNoiseType, type)
   NODE_SOCKET_API(bool, use_normalize)
   NODE_SOCKET_API(float, w)
   NODE_SOCKET_API(float, scale)
   NODE_SOCKET_API(float, detail)
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(float, lacunarity)
+  NODE_SOCKET_API(float, offset)
+  NODE_SOCKET_API(float, gain)
   NODE_SOCKET_API(float, distortion)
   NODE_SOCKET_API(float3, vector)
 };
@@ -266,22 +269,6 @@ class VoronoiTextureNode : public TextureNode {
   NODE_SOCKET_API(float, exponent)
   NODE_SOCKET_API(float, smoothness)
   NODE_SOCKET_API(float, randomness)
-  NODE_SOCKET_API(float3, vector)
-};
-
-class MusgraveTextureNode : public TextureNode {
- public:
-  SHADER_NODE_CLASS(MusgraveTextureNode)
-
-  NODE_SOCKET_API(int, dimensions)
-  NODE_SOCKET_API(NodeMusgraveType, musgrave_type)
-  NODE_SOCKET_API(float, w)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float, detail)
-  NODE_SOCKET_API(float, dimension)
-  NODE_SOCKET_API(float, lacunarity)
-  NODE_SOCKET_API(float, offset)
-  NODE_SOCKET_API(float, gain)
   NODE_SOCKET_API(float3, vector)
 };
 
@@ -859,6 +846,11 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(NodePrincipledHairParametrization, parametrization)
   /* Selected scattering model (near-/far-field). */
   NODE_SOCKET_API(NodePrincipledHairModel, model)
+
+  virtual int get_feature()
+  {
+    return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR;
+  }
 };
 
 class HairBsdfNode : public BsdfNode {

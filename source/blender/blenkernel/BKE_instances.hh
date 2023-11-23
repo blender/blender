@@ -63,6 +63,7 @@ class InstanceReference {
   InstanceReference(Object &object);
   InstanceReference(Collection &collection);
   InstanceReference(GeometrySet geometry_set);
+  InstanceReference(std::unique_ptr<GeometrySet> geometry_set);
 
   InstanceReference(const InstanceReference &other);
   InstanceReference(InstanceReference &&other);
@@ -88,27 +89,31 @@ class Instances {
    * Contains the data that is used by the individual instances.
    * Actual instances store an index ("handle") into this vector.
    */
-  blender::Vector<InstanceReference> references_;
+  Vector<InstanceReference> references_;
 
   /** Indices into `references_`. Determines what data is instanced. */
-  blender::Vector<int> reference_handles_;
+  Vector<int> reference_handles_;
   /** Transformation of the instances. */
-  blender::Vector<blender::float4x4> transforms_;
+  Vector<float4x4> transforms_;
 
   /* These almost unique ids are generated based on the `id` attribute, which might not contain
    * unique ids at all. They are *almost* unique, because under certain very unlikely
    * circumstances, they are not unique. Code using these ids should not crash when they are not
    * unique but can generally expect them to be unique. */
   mutable std::mutex almost_unique_ids_mutex_;
-  mutable blender::Array<int> almost_unique_ids_;
+  mutable Array<int> almost_unique_ids_;
 
-  CustomDataAttributes attributes_;
+  CustomData attributes_;
 
  public:
-  Instances() = default;
+  Instances();
+  Instances(Instances &&other);
   Instances(const Instances &other);
+  ~Instances();
 
-  void reserve(int min_capacity);
+  Instances &operator=(const Instances &other);
+  Instances &operator=(Instances &&other);
+
   /**
    * Resize the transform, handles, and attributes to the specified capacity.
    *
@@ -129,9 +134,9 @@ class Instances {
    * argument. For adding many instances, using #resize and accessing the transform array
    * directly is preferred.
    */
-  void add_instance(int instance_handle, const blender::float4x4 &transform);
+  void add_instance(int instance_handle, const float4x4 &transform);
 
-  blender::Span<InstanceReference> references() const;
+  Span<InstanceReference> references() const;
   void remove_unused_references();
 
   /**
@@ -147,10 +152,10 @@ class Instances {
    */
   GeometrySet &geometry_set_from_reference(int reference_index);
 
-  blender::Span<int> reference_handles() const;
-  blender::MutableSpan<int> reference_handles();
-  blender::MutableSpan<blender::float4x4> transforms();
-  blender::Span<blender::float4x4> transforms() const;
+  Span<int> reference_handles() const;
+  MutableSpan<int> reference_handles();
+  MutableSpan<float4x4> transforms();
+  Span<float4x4> transforms() const;
 
   int instances_num() const;
   int references_num() const;
@@ -159,21 +164,20 @@ class Instances {
    * Remove the indices that are not contained in the mask input, and remove unused instance
    * references afterwards.
    */
-  void remove(const blender::IndexMask &mask,
-              const blender::bke::AnonymousAttributePropagationInfo &propagation_info);
+  void remove(const IndexMask &mask, const AnonymousAttributePropagationInfo &propagation_info);
   /**
    * Get an id for every instance. These can be used for e.g. motion blur.
    */
-  blender::Span<int> almost_unique_ids() const;
+  Span<int> almost_unique_ids() const;
 
-  blender::bke::AttributeAccessor attributes() const;
-  blender::bke::MutableAttributeAccessor attributes_for_write();
+  bke::AttributeAccessor attributes() const;
+  bke::MutableAttributeAccessor attributes_for_write();
 
-  CustomDataAttributes &custom_data_attributes();
-  const CustomDataAttributes &custom_data_attributes() const;
+  CustomData &custom_data_attributes();
+  const CustomData &custom_data_attributes() const;
 
   void foreach_referenced_geometry(
-      blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const;
+      FunctionRef<void(const GeometrySet &geometry_set)> callback) const;
 
   bool owns_direct_data() const;
   void ensure_owns_direct_data();
@@ -182,6 +186,11 @@ class Instances {
 /* -------------------------------------------------------------------- */
 /** \name #InstanceReference Inline Methods
  * \{ */
+
+inline InstanceReference::InstanceReference(std::unique_ptr<GeometrySet> geometry_set)
+    : type_(Type::GeometrySet), data_(nullptr), geometry_set_(std::move(geometry_set))
+{
+}
 
 inline InstanceReference::InstanceReference(Object &object) : type_(Type::Object), data_(&object)
 {
@@ -256,12 +265,12 @@ inline const GeometrySet &InstanceReference::geometry_set() const
   return *geometry_set_;
 }
 
-inline CustomDataAttributes &Instances::custom_data_attributes()
+inline CustomData &Instances::custom_data_attributes()
 {
   return attributes_;
 }
 
-inline const CustomDataAttributes &Instances::custom_data_attributes() const
+inline const CustomData &Instances::custom_data_attributes() const
 {
   return attributes_;
 }

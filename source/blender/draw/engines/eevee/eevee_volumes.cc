@@ -12,7 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_fluid_types.h"
 #include "DNA_object_force_types.h"
@@ -22,9 +22,9 @@
 #include "BKE_fluid.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
-#include "BKE_volume.h"
-#include "BKE_volume_render.h"
+#include "BKE_modifier.hh"
+#include "BKE_volume.hh"
+#include "BKE_volume_render.hh"
 
 #include "ED_screen.hh"
 

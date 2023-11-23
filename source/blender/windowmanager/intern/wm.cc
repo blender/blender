@@ -28,7 +28,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -247,7 +247,7 @@ IDTypeInfo IDType_ID_WM = {
     /*main_listbase_index*/ INDEX_ID_WM,
     /*struct_size*/ sizeof(wmWindowManager),
     /*name*/ "WindowManager",
-    /*name_plural*/ "window_managers",
+    /*name_plural*/ N_("window_managers"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_WINDOWMANAGER,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA |
         IDTYPE_FLAGS_NO_MEMFILE_UNDO,
@@ -448,7 +448,7 @@ void WM_keyconfig_init(bContext *C)
     if (!G.background) {
       WM_keyconfig_update_tag(nullptr, nullptr);
     }
-    WM_keyconfig_update(wm);
+    /* Don't call #WM_keyconfig_update here because add-ons have not yet been registered yet. */
 
     wm->init_flag |= WM_INIT_FLAG_KEYCONFIG;
   }

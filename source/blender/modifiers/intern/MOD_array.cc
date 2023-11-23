@@ -28,15 +28,16 @@
 
 #include "BKE_anim_path.h"
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
+#include "BKE_object_types.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -498,7 +499,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob != nullptr) {
     Object *curve_ob = amd->curve_ob;
-    CurveCache *curve_cache = curve_ob->runtime.curve_cache;
+    CurveCache *curve_cache = curve_ob->runtime->curve_cache;
     if (curve_cache != nullptr && curve_cache->anim_path_accum_length != nullptr) {
       float scale_fac = mat4_to_scale(curve_ob->object_to_world);
       length = scale_fac * BKE_anim_path_get_length(curve_cache);
@@ -1068,7 +1069,7 @@ ModifierTypeInfo modifierType_Array = {
     /*struct_name*/ "ArrayModifierData",
     /*struct_size*/ sizeof(ArrayModifierData),
     /*srna*/ &RNA_ArrayModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
         eModifierTypeFlag_AcceptsCVs,

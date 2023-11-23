@@ -179,6 +179,11 @@ class LightBake {
             }
           });
 
+      if (instance_->info != "") {
+        /** TODO: Print to the Status Bar UI. */
+        printf("%s\n", instance_->info.c_str());
+      }
+
       if ((G.is_break == true) || (stop != nullptr && *stop == true)) {
         break;
       }

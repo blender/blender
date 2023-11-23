@@ -92,6 +92,9 @@ def canonical_author_map() -> Dict[str, str]:
         "Aras Pranckevicius <aras@nesnausk.org>": (
             "Aras Pranckevicius <aras_p>",
         ),
+        "Arye Ramaty <aryeramaty@gmail.com>": (
+            "Arye Ramaty <BelgaratTheGrey>",
+        ),
         "Bastien Montagne <bastien@blender.org>": (
             "Bastien Montagne (@mont29) <>",
             "Bastien Montagne <b.mont29@gmail.com>",
@@ -306,6 +309,9 @@ def canonical_author_map() -> Dict[str, str]:
         "Ish Bosamiya <ish_bosamiya>": (
             "Ish Bosamiya <ishbosamiya>",
             "Ish Bosamiya <ishbosamiya@gmail.com>",
+        ),
+        "Ivan Kosarev <mail@ivankosarev.com>": (
+            "kosarev <kosarev@noreply.localhost>",
         ),
         "Iyad Ahmed <iyadahmed430@gmail.com>": (
             "Iyad Ahmed <iyadahmed2001>",

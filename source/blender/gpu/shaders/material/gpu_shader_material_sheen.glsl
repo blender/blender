@@ -4,6 +4,8 @@
 
 void node_bsdf_sheen(vec4 color, float roughness, vec3 N, float weight, out Closure result)
 {
+  color = max(color, vec4(0));
+  roughness = saturate(roughness);
   N = safe_normalize(N);
 
   /* Fallback to diffuse. */

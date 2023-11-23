@@ -163,12 +163,12 @@ void DespeckleOperation::update_memory_buffer_partial(MemoryBuffer *output,
   const int last_x = get_width() - 1;
   const int last_y = get_height() - 1;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    const int x1 = MAX2(it.x - 1, 0);
+    const int x1 = std::max(it.x - 1, 0);
     const int x2 = it.x;
-    const int x3 = MIN2(it.x + 1, last_x);
-    const int y1 = MAX2(it.y - 1, 0);
+    const int x3 = std::min(it.x + 1, last_x);
+    const int y1 = std::max(it.y - 1, 0);
     const int y2 = it.y;
-    const int y3 = MIN2(it.y + 1, last_y);
+    const int y3 = std::min(it.y + 1, last_y);
 
     float w = 0.0f;
     const float *color_org = it.in(IMAGE_INPUT_INDEX);

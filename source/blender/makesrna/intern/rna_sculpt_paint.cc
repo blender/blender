@@ -108,7 +108,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "MEM_guardedalloc.h"
 
 #  include "BKE_collection.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_object.hh"
 #  include "BKE_particle.h"

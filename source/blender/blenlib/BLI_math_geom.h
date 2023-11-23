@@ -788,14 +788,8 @@ bool isect_ray_line_v3(const float ray_origin[3],
 
 /* Point in polygon. */
 
-bool isect_point_poly_v2(const float pt[2],
-                         const float verts[][2],
-                         unsigned int nr,
-                         bool use_holes);
-bool isect_point_poly_v2_int(const int pt[2],
-                             const int verts[][2],
-                             unsigned int nr,
-                             bool use_holes);
+bool isect_point_poly_v2(const float pt[2], const float verts[][2], unsigned int nr);
+bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], unsigned int nr);
 
 /**
  * Point in quad - only convex quads.
@@ -1252,48 +1246,8 @@ void vcloud_estimate_transform_v3(int list_size,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Spherical Harmonics
- *
- * Uses 2nd order SH => 9 coefficients, stored in this order:
- * - 0 = `(0, 0)`
- * - 1 = `(1, -1), 2 = (1, 0), 3 = (1, 1)`
- * - 4 = `(2, -2), 5 = (2, -1), 6 = (2, 0), 7 = (2, 1), 8 = (2, 2)`
+/** \name Others
  * \{ */
-
-MINLINE void zero_sh(float r[9]);
-MINLINE void copy_sh_sh(float r[9], const float a[9]);
-MINLINE void mul_sh_fl(float r[9], float f);
-MINLINE void add_sh_shsh(float r[9], const float a[9], const float b[9]);
-MINLINE float dot_shsh(const float a[9], const float b[9]);
-
-MINLINE float eval_shv3(float sh[9], const float v[3]);
-MINLINE float diffuse_shv3(const float sh[9], const float v[3]);
-MINLINE void vec_fac_to_sh(float r[9], const float v[3], float f);
-MINLINE void madd_sh_shfl(float r[9], const float sh[9], float f);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Form Factor
- * \{ */
-
-float form_factor_quad(const float p[3],
-                       const float n[3],
-                       const float q0[3],
-                       const float q1[3],
-                       const float q2[3],
-                       const float q3[3]);
-bool form_factor_visible_quad(const float p[3],
-                              const float n[3],
-                              const float v0[3],
-                              const float v1[3],
-                              const float v2[3],
-                              float q0[3],
-                              float q1[3],
-                              float q2[3],
-                              float q3[3]);
-float form_factor_hemi_poly(
-    float p[3], float n[3], float v1[3], float v2[3], float v3[3], float v4[3]);
 
 /**
  * Same as axis_dominant_v3_to_m3, but flips the normal

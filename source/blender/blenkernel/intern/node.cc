@@ -41,7 +41,7 @@
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -51,10 +51,10 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_bpath.h"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -68,7 +68,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_interface.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_type_conversions.hh"
@@ -79,7 +79,7 @@
 #include "RNA_prototypes.h"
 
 #include "NOD_common.h"
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
@@ -514,7 +514,7 @@ static void construct_interface_as_legacy_sockets(bNodeTree *ntree)
   auto make_legacy_socket = [&](const bNodeTreeInterfaceSocket &socket,
                                 eNodeSocketInOut in_out) -> bNodeSocket * {
     bNodeSocket *iosock = make_socket(
-        ntree, in_out, socket.socket_type, socket.name, socket.identifier);
+        ntree, in_out, socket.socket_type, socket.name ? socket.name : "", socket.identifier);
     if (!iosock) {
       return nullptr;
     }
@@ -788,6 +788,9 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     if (node->type == GEO_NODE_REPEAT_OUTPUT) {
       blender::nodes::RepeatItemsAccessor::blend_write(writer, *node);
     }
+    if (node->type == GEO_NODE_INDEX_SWITCH) {
+      blender::nodes::IndexSwitchItemsAccessor::blend_write(writer, *node);
+    }
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -833,6 +836,34 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 }
 
+/**
+ * Sockets with default_value data must be known built-in types, otherwise reading and writing data
+ * correctly cannot be guaranteed. Discard any socket with default_value data that has an unknown
+ * type.
+ */
+static bool is_node_socket_supported(const bNodeSocket *sock)
+{
+  switch (eNodeSocketDatatype(sock->type)) {
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+    case SOCK_STRING:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_GEOMETRY:
+    case SOCK_OBJECT:
+    case SOCK_IMAGE:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_MATERIAL:
+    case SOCK_ROTATION:
+      return true;
+  }
+  return false;
+}
+
 static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 {
   BLO_read_data_address(reader, &sock->prop);
@@ -844,6 +875,20 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   BLO_read_data_address(reader, &sock->default_value);
   BLO_read_data_address(reader, &sock->default_attribute_name);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
+}
+
+static void direct_link_node_socket_list(BlendDataReader *reader, ListBase *socket_list)
+{
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, socket_list) {
+    if (is_node_socket_supported(sock)) {
+      direct_link_node_socket(reader, sock);
+    }
+    else {
+      /* Remove unsupported sockets. */
+      BLI_remlink(socket_list, sock);
+      MEM_SAFE_FREE(sock);
+    }
+  }
 }
 
 void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
@@ -985,6 +1030,10 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
           blender::nodes::RepeatItemsAccessor::blend_read_data(reader, *node);
           break;
         }
+        case GEO_NODE_INDEX_SWITCH: {
+          blender::nodes::IndexSwitchItemsAccessor::blend_read_data(reader, *node);
+          break;
+        }
 
         default:
           break;
@@ -998,12 +1047,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     BLO_read_data_address(reader, &node->parent);
 
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      direct_link_node_socket(reader, sock);
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      direct_link_node_socket(reader, sock);
-    }
+    direct_link_node_socket_list(reader, &node->inputs);
+    direct_link_node_socket_list(reader, &node->outputs);
 
     /* Socket storage. */
     if (node->type == CMP_NODE_OUTPUT_FILE) {
@@ -1018,12 +1063,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   /* Read legacy interface socket lists for versioning. */
   BLO_read_list(reader, &ntree->inputs_legacy);
   BLO_read_list(reader, &ntree->outputs_legacy);
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
-    direct_link_node_socket(reader, sock);
-  }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
-    direct_link_node_socket(reader, sock);
-  }
+  direct_link_node_socket_list(reader, &ntree->inputs_legacy);
+  direct_link_node_socket_list(reader, &ntree->outputs_legacy);
 
   ntree->tree_interface.read_data(reader);
 
@@ -1087,11 +1128,11 @@ void node_update_asset_metadata(bNodeTree &node_tree)
   auto outputs = idprop::create_group("outputs");
   node_tree.ensure_interface_cache();
   for (const bNodeTreeInterfaceSocket *socket : node_tree.interface_inputs()) {
-    auto property = idprop::create(socket->name, socket->socket_type);
+    auto property = idprop::create(socket->name ? socket->name : "", socket->socket_type);
     IDP_AddToGroup(inputs.get(), property.release());
   }
   for (const bNodeTreeInterfaceSocket *socket : node_tree.interface_outputs()) {
-    auto property = idprop::create(socket->name, socket->socket_type);
+    auto property = idprop::create(socket->name ? socket->name : "", socket->socket_type);
     IDP_AddToGroup(outputs.get(), property.release());
   }
   BKE_asset_metadata_idprop_ensure(asset_data, inputs.release());
@@ -1126,7 +1167,7 @@ IDTypeInfo IDType_ID_NT = {
     /*main_listbase_index*/ INDEX_ID_NT,
     /*struct_size*/ sizeof(bNodeTree),
     /*name*/ "NodeTree",
-    /*name_plural*/ "node_groups",
+    /*name_plural*/ N_("node_groups"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_NODETREE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ &AssetType_NT,
@@ -1153,7 +1194,7 @@ namespace blender::bke {
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
-  if (ntype->declare || ntype->declare_dynamic) {
+  if (ntype->declare) {
     node_verify_sockets(ntree, node, true);
     return;
   }
@@ -1455,8 +1496,8 @@ static void node_free_type(void *nodetype_v)
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   blender::bke::update_typeinfo(G_MAIN, nullptr, nullptr, nodetype, nullptr, true);
 
-  delete nodetype->fixed_declaration;
-  nodetype->fixed_declaration = nullptr;
+  delete nodetype->static_declaration;
+  nodetype->static_declaration = nullptr;
 
   /* Can be null when the type is not dynamically allocated. */
   if (nodetype->free_self) {
@@ -1470,11 +1511,9 @@ void nodeRegisterType(bNodeType *nt)
   BLI_assert(nt->idname[0] != '\0');
   BLI_assert(nt->poll != nullptr);
 
-  if (nt->declare && !nt->declare_dynamic) {
-    if (nt->fixed_declaration == nullptr) {
-      nt->fixed_declaration = new blender::nodes::NodeDeclaration();
-      blender::nodes::build_node_declaration(*nt, *nt->fixed_declaration);
-    }
+  if (nt->declare) {
+    nt->static_declaration = new blender::nodes::NodeDeclaration();
+    blender::nodes::build_node_declaration(*nt, *nt->static_declaration, nullptr, nullptr);
   }
 
   BLI_ghash_insert(blender::bke::nodetypes_hash, nt->idname, nt);
@@ -3268,8 +3307,12 @@ void node_free_node(bNodeTree *ntree, bNode *node)
     MEM_freeN(node->prop);
   }
 
-  if (node->typeinfo->declare_dynamic) {
-    delete node->runtime->declaration;
+  if (node->runtime->declaration) {
+    /* Only free if this declaration is not shared with the node type, which can happen if it does
+     * not depend on any context. */
+    if (node->runtime->declaration != node->typeinfo->static_declaration) {
+      delete node->runtime->declaration;
+    }
   }
 
   MEM_delete(node->runtime);
@@ -3734,16 +3777,18 @@ bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
   if (node->runtime->declaration != nullptr) {
     return false;
   }
-  if (node->typeinfo->declare_dynamic) {
+  if (node->typeinfo->declare) {
+    if (node->typeinfo->static_declaration) {
+      if (!node->typeinfo->static_declaration->is_context_dependent) {
+        node->runtime->declaration = node->typeinfo->static_declaration;
+        return true;
+      }
+    }
+  }
+  if (node->typeinfo->declare) {
     BLI_assert(ntree != nullptr);
     BLI_assert(node != nullptr);
     blender::nodes::update_node_declaration_and_sockets(*ntree, *node);
-    return true;
-  }
-  if (node->typeinfo->declare) {
-    /* Declaration should have been created in #nodeRegisterType. */
-    BLI_assert(node->typeinfo->fixed_declaration != nullptr);
-    node->runtime->declaration = node->typeinfo->fixed_declaration;
     return true;
   }
   return false;
@@ -4099,6 +4144,52 @@ void node_type_base_custom(bNodeType *ntype,
 }
 
 namespace blender::bke {
+
+std::optional<eCustomDataType> socket_type_to_custom_data_type(eNodeSocketDatatype type)
+{
+  switch (type) {
+    case SOCK_FLOAT:
+      return CD_PROP_FLOAT;
+    case SOCK_VECTOR:
+      return CD_PROP_FLOAT3;
+    case SOCK_RGBA:
+      return CD_PROP_COLOR;
+    case SOCK_BOOLEAN:
+      return CD_PROP_BOOL;
+    case SOCK_ROTATION:
+      return CD_PROP_QUATERNION;
+    case SOCK_INT:
+      return CD_PROP_INT32;
+    case SOCK_STRING:
+      return CD_PROP_STRING;
+    default:
+      return std::nullopt;
+  }
+}
+
+std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataType type)
+{
+  switch (type) {
+    case CD_PROP_FLOAT:
+      return SOCK_FLOAT;
+    case CD_PROP_INT32:
+      return SOCK_INT;
+    case CD_PROP_FLOAT3:
+      return SOCK_VECTOR;
+    case CD_PROP_FLOAT2:
+      return SOCK_VECTOR;
+    case CD_PROP_BOOL:
+      return SOCK_BOOLEAN;
+    case CD_PROP_COLOR:
+      return SOCK_RGBA;
+    case CD_PROP_BYTE_COLOR:
+      return SOCK_RGBA;
+    case CD_PROP_QUATERNION:
+      return SOCK_ROTATION;
+    default:
+      return std::nullopt;
+  }
+}
 
 struct SocketTemplateIdentifierCallbackData {
   bNodeSocketTemplate *list;

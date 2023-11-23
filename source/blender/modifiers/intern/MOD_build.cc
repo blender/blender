@@ -24,9 +24,9 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -302,7 +302,7 @@ ModifierTypeInfo modifierType_Build = {
     /*struct_name*/ "BuildModifierData",
     /*struct_size*/ sizeof(BuildModifierData),
     /*srna*/ &RNA_BuildModifier,
-    /*type*/ eModifierTypeType_Nonconstructive,
+    /*type*/ ModifierTypeType::Nonconstructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_BUILD,
 

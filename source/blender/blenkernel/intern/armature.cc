@@ -37,15 +37,16 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_anim_visualization.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_scene.h"
 
 #include "ANIM_bone_collections.h"
@@ -374,7 +375,7 @@ IDTypeInfo IDType_ID_AR = {
     /*main_listbase_index*/ INDEX_ID_AR,
     /*struct_size*/ sizeof(bArmature),
     /*name*/ "Armature",
-    /*name_plural*/ "armatures",
+    /*name_plural*/ N_("armatures"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_ARMATURE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -2924,10 +2925,10 @@ static void boundbox_armature(Object *ob)
   BoundBox *bb;
   float min[3], max[3];
 
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Armature boundbox"));
+  if (ob->runtime->bb == nullptr) {
+    ob->runtime->bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Armature boundbox"));
   }
-  bb = ob->runtime.bb;
+  bb = ob->runtime->bb;
 
   INIT_MINMAX(min, max);
   if (!minmax_armature(ob, min, max)) {
@@ -2944,7 +2945,7 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
 {
   boundbox_armature(ob);
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 void BKE_pchan_minmax(const Object *ob,
@@ -2956,17 +2957,15 @@ void BKE_pchan_minmax(const Object *ob,
   const bArmature *arm = static_cast<const bArmature *>(ob->data);
   Object *ob_custom = (arm->flag & ARM_NO_CUSTOM) ? nullptr : pchan->custom;
   const bPoseChannel *pchan_tx = (ob_custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
-  const BoundBox *bb_custom = nullptr;
-  BoundBox bb_custom_buf;
 
+  std::optional<BoundBox> bb_custom;
   if (ob_custom) {
     float min[3], max[3];
     if (use_empty_drawtype && (ob_custom->type == OB_EMPTY) &&
         BKE_object_minmax_empty_drawtype(ob_custom, min, max))
     {
-      memset(&bb_custom_buf, 0x0, sizeof(bb_custom_buf));
-      BKE_boundbox_init_from_minmax(&bb_custom_buf, min, max);
-      bb_custom = &bb_custom_buf;
+      bb_custom.emplace();
+      BKE_boundbox_init_from_minmax(&bb_custom.value(), min, max);
     }
     else {
       bb_custom = BKE_object_boundbox_get(ob_custom);
@@ -2984,7 +2983,7 @@ void BKE_pchan_minmax(const Object *ob,
                  pchan->custom_translation[1],
                  pchan->custom_translation[2]);
     mul_m4_series(mat, ob->object_to_world, tmp, rmat, smat);
-    BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
+    BKE_boundbox_minmax(&bb_custom.value(), mat, r_min, r_max);
   }
   else {
     float vec[3];

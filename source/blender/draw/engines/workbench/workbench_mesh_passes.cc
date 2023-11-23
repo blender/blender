@@ -91,7 +91,11 @@ PassMain::Sub &MeshPass::get_subpass(
         /* TODO(@pragma37): This setting should be exposed on the user side,
          * either as a global parameter (and set it here)
          * or by reading the Material Clipping Threshold (and set it per material) */
-        sub_pass->push_constant("imageTransparencyCutoff", 0.1f);
+        float alpha_cutoff = 0.1f;
+        if (ELEM(image->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED)) {
+          alpha_cutoff = -FLT_MAX;
+        }
+        sub_pass->push_constant("imageTransparencyCutoff", alpha_cutoff);
         return sub_pass;
       };
 
@@ -211,9 +215,12 @@ void OpaquePass::draw(Manager &manager,
     deferred_ps_stencil_tx = nullptr;
   }
 
-  deferred_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
-  deferred_fb.bind();
-  manager.submit(deferred_ps_, view);
+  if (!shadow_pass || !shadow_pass->is_debug()) {
+    /** Don't override the shadow debug output. */
+    deferred_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
+    deferred_fb.bind();
+    manager.submit(deferred_ps_, view);
+  }
 
   gbuffer_normal_tx.release();
   gbuffer_material_tx.release();

@@ -23,8 +23,8 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_context.h"
-#include "BKE_modifier.h"
+#include "BKE_context.hh"
+#include "BKE_modifier.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -148,8 +148,7 @@ void SCULPT_filter_cache_init(bContext *C,
   invert_m4_m4(ss->filter_cache->obmat_inv, ob->object_to_world);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   ss->filter_cache->vc = vc;
   if (vc.rv3d) {
@@ -378,15 +377,15 @@ static void mesh_filter_task(Object *ob,
    * boundaries. */
   const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->filter_cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->filter_cache->automasking, &automask_data, node);
 
   /* Smooth parameters. */
   float projection = 0.0f;
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float orig_co[3], val[3], avg[3], disp[3], disp2[3], transform[3][3], final_pos[3];
     float fade = vd.mask;
@@ -680,10 +679,10 @@ static void mesh_filter_surface_smooth_displace_task(Object *ob,
   PBVHVertexIter vd;
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->filter_cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->filter_cache->automasking, &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float fade = vd.mask;
     fade = 1.0f - fade;
@@ -897,7 +896,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
+      SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
       copy_v3_v3(vd.co, orig_data.co);
     }

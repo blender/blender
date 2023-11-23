@@ -79,7 +79,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
  public:
   /**
    * Keeps track of what changed in the node tree until the next update.
-   * Should not be changed directly, instead use the functions in `BKE_node_tree_update.h`.
+   * Should not be changed directly, instead use the functions in `BKE_node_tree_update.hh`.
    * #eNodeTreeChangedFlag.
    */
   uint32_t changed_flag = 0;
@@ -553,19 +553,37 @@ inline void bNodeTree::ensure_interface_cache() const
   this->tree_interface.ensure_items_cache();
 }
 
-inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs() const
+inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs()
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
   return this->tree_interface.runtime->inputs_;
 }
 
-inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs() const
+inline blender::Span<const bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs() const
+{
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->inputs_;
+}
+
+inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs()
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
   return this->tree_interface.runtime->outputs_;
 }
 
-inline blender::Span<bNodeTreeInterfaceItem *> bNodeTree::interface_items() const
+inline blender::Span<const bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs() const
+{
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->outputs_;
+}
+
+inline blender::Span<bNodeTreeInterfaceItem *> bNodeTree::interface_items()
+{
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->items_;
+}
+
+inline blender::Span<const bNodeTreeInterfaceItem *> bNodeTree::interface_items() const
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
   return this->tree_interface.runtime->items_;

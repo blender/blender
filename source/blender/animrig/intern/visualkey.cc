@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,10 +9,11 @@
 #include <cstdio>
 #include <cstring>
 
+#include "ANIM_rna.hh"
 #include "ANIM_visualkey.hh"
 
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -22,15 +23,13 @@
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 
-#include "ED_keyframing.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
 namespace blender::animrig {
 
-/* internal status codes for visualkey_can_use */
+/* Internal status codes for visualkey_can_use. */
 enum {
   VISUALKEY_NONE = 0,
   VISUALKEY_LOC,
@@ -38,42 +37,32 @@ enum {
   VISUALKEY_SCA,
 };
 
-/**
- * This helper function determines if visual-keyframing should be used when
- * inserting keyframes for the given channel. As visual-keyframing only works
- * on Object and Pose-Channel blocks, this should only get called for those
- * block-types, when using "standard" keying but 'Visual Keying' option in Auto-Keying
- * settings is on.
- */
 bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 {
   bConstraint *con = nullptr;
   bool has_rigidbody = false;
   bool has_parent = false;
 
-  /* validate data */
   if (ELEM(nullptr, ptr, ptr->data, prop)) {
     return false;
   }
 
-  /* get first constraint and determine type of keyframe constraints to check for
+  /* Get first constraint and determine type of keyframe constraints to check for
    * - constraints can be on either Objects or PoseChannels, so we only check if the
    *   ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
    *   those structs, allowing us to identify the owner of the data
    */
   if (ptr->type == &RNA_Object) {
-    /* Object */
     Object *ob = static_cast<Object *>(ptr->data);
     RigidBodyOb *rbo = ob->rigidbody_object;
 
     con = static_cast<bConstraint *>(ob->constraints.first);
     has_parent = (ob->parent != nullptr);
 
-    /* active rigidbody objects only, as only those are affected by sim */
+    /* Active rigidbody objects only, as only those are affected by sim. */
     has_rigidbody = ((rbo) && (rbo->type == RBO_TYPE_ACTIVE));
   }
   else if (ptr->type == &RNA_PoseBone) {
-    /* Pose Channel */
     bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
 
     if (pchan->constflag & (PCHAN_HAS_IK | PCHAN_INFLUENCED_BY_IK)) {
@@ -128,9 +117,9 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
       continue;
     }
 
-    /* some constraints may alter these transforms */
+    /* Some constraints may alter these transforms. */
     switch (con->type) {
-      /* multi-transform constraints */
+      /* Multi-transform constraints. */
       case CONSTRAINT_TYPE_CHILDOF:
       case CONSTRAINT_TYPE_ARMATURE:
         return true;
@@ -207,21 +196,14 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
   return false;
 }
 
-/**
- * This helper function extracts the value to use for visual-keyframing
- * In the event that it is not possible to perform visual keying, try to fall-back
- * to using the default method. Assumes that all data it has been passed is valid.
- */
-float *visualkey_get_values(
-    PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count)
+Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop)
 {
-  BLI_assert(buffer_size >= 4);
-
+  Vector<float> values;
   const char *identifier = RNA_property_identifier(prop);
   float tmat[4][4];
   int rotmode;
 
-  /* handle for Objects or PoseChannels only
+  /* Handle for Objects or PoseChannels only
    * - only Location, Rotation or Scale keyframes are supported currently
    * - constraints can be on either Objects or PoseChannels, so we only check if the
    *   ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
@@ -232,9 +214,8 @@ float *visualkey_get_values(
     Object *ob = static_cast<Object *>(ptr->data);
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
-      copy_v3_v3(buffer, ob->object_to_world[3]);
-      *r_count = 3;
-      return buffer;
+      values.extend({ob->object_to_world[3], 3});
+      return values;
     }
 
     copy_m4_m4(tmat, ob->object_to_world);
@@ -248,49 +229,44 @@ float *visualkey_get_values(
 
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
-      /* only use for non-connected bones */
+      /* Only use for non-connected bones. */
       if ((pchan->bone->parent == nullptr) || !(pchan->bone->flag & BONE_CONNECTED)) {
-        copy_v3_v3(buffer, tmat[3]);
-        *r_count = 3;
-        return buffer;
+        values.extend({tmat[3], 3});
+        return values;
       }
     }
   }
   else {
-    return ANIM_setting_get_rna_values(ptr, prop, buffer, buffer_size, r_count);
+    return get_rna_values(ptr, prop);
   }
 
   /* Rot/Scale code are common! */
   if (strstr(identifier, "rotation_euler")) {
-    mat4_to_eulO(buffer, rotmode, tmat);
-
-    *r_count = 3;
-    return buffer;
+    values.resize(3);
+    mat4_to_eulO(values.data(), rotmode, tmat);
+    return values;
   }
 
   if (strstr(identifier, "rotation_quaternion")) {
-    mat4_to_quat(buffer, tmat);
-
-    *r_count = 4;
-    return buffer;
+    values.resize(4);
+    mat4_to_quat(values.data(), tmat);
+    return values;
   }
 
   if (strstr(identifier, "rotation_axis_angle")) {
     /* w = 0, x,y,z = 1,2,3 */
-    mat4_to_axis_angle(buffer + 1, buffer, tmat);
-
-    *r_count = 4;
-    return buffer;
+    values.resize(4);
+    mat4_to_axis_angle(&values[1], &values[0], tmat);
+    return values;
   }
 
   if (strstr(identifier, "scale")) {
-    mat4_to_size(buffer, tmat);
-
-    *r_count = 3;
-    return buffer;
+    values.resize(3);
+    mat4_to_size(values.data(), tmat);
+    return values;
   }
 
-  /* as the function hasn't returned yet, read value from system in the default way */
-  return ANIM_setting_get_rna_values(ptr, prop, buffer, buffer_size, r_count);
+  /* As the function hasn't returned yet, read value from system in the default way. */
+  return get_rna_values(ptr, prop);
 }
 }  // namespace blender::animrig

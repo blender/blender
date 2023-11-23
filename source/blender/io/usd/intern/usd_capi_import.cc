@@ -13,7 +13,7 @@
 #include "BKE_blender_version.h"
 #include "BKE_cachefile.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -21,6 +21,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
 
@@ -111,6 +112,52 @@ static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings *r_setting
   copy_m4_m3(r_settings->conversion_mat, rmat);
 }
 
+/**
+ * Find the lowest level of Blender generated roots
+ * so that round tripping an export can be more invisible
+ */
+static void find_prefix_to_skip(pxr::UsdStageRefPtr stage, ImportSettings *r_settings)
+{
+  if (!stage) {
+    return;
+  }
+
+  pxr::TfToken generated_key("Blender:generated");
+  pxr::SdfPath path("/");
+  auto prim = stage->GetPseudoRoot();
+  while (true) {
+
+    uint32_t child_count = 0;
+    for (auto child : prim.GetChildren()) {
+      if (child_count == 0) {
+        prim = child.GetPrim();
+      }
+      ++child_count;
+    }
+
+    if (child_count != 1) {
+      /* Our blender write out only supports a single root chain,
+       * so whenever we encounter more than one child, we should
+       * early exit */
+      break;
+    }
+
+    /* We only care about prims that have the key and the value doesn't matter */
+    if (!prim.HasCustomDataKey(generated_key)) {
+      break;
+    }
+    path = path.AppendChild(prim.GetName());
+  }
+
+  /* Treat the root as empty */
+  auto path_string = path.GetString();
+  if (path == pxr::SdfPath("/")) {
+    path = pxr::SdfPath();
+  }
+
+  r_settings->skip_prefix = path;
+}
+
 enum {
   USD_NO_ERROR = 0,
   USD_ARCHIVE_FAIL,
@@ -157,6 +204,8 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   data->archive = nullptr;
   data->start_time = timeit::Clock::now();
 
+  data->params.worker_status = worker_status;
+
   WM_set_locked_interface(data->wm, true);
   G.is_break = false;
 
@@ -173,6 +222,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
     WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
 
+    BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     data->view_layer->active_collection = BKE_layer_collection_first_from_scene_collection(
         data->view_layer, import_collection);
   }
@@ -221,13 +271,17 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
                                   pxr::UsdStage::OpenMasked(data->filepath, pop_mask);
 
   if (!stage) {
-    WM_reportf(RPT_ERROR, "USD Import: unable to open stage to read %s", data->filepath);
+    BKE_reportf(worker_status->reports,
+                RPT_ERROR,
+                "USD Import: unable to open stage to read %s",
+                data->filepath);
     data->import_ok = false;
     data->error_code = USD_ARCHIVE_FAIL;
     return;
   }
 
   convert_to_z_up(stage, &data->settings);
+  find_prefix_to_skip(stage, &data->settings);
   data->settings.stage_meters_per_unit = UsdGeomGetStageMetersPerUnit(stage);
 
   /* Set up the stage for animated data. */
@@ -392,7 +446,9 @@ static void import_endjob(void *customdata)
       data->import_ok = !data->was_canceled;
       break;
     case USD_ARCHIVE_FAIL:
-      WM_report(RPT_ERROR, "Could not open USD archive for reading, see console for detail");
+      BKE_report(data->params.worker_status->reports,
+                 RPT_ERROR,
+                 "Could not open USD archive for reading, see console for detail");
       break;
   }
 
@@ -417,7 +473,8 @@ using namespace blender::io::usd;
 bool USD_import(bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
-                bool as_background_job)
+                bool as_background_job,
+                ReportList *reports)
 {
   /* Using new here since `MEM_*` functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
@@ -460,6 +517,9 @@ bool USD_import(bContext *C,
   }
   else {
     wmJobWorkerStatus worker_status = {};
+    /* Use the operator's reports in non-background case. */
+    worker_status.reports = reports;
+
     import_startjob(job, &worker_status);
     import_endjob(job);
     import_ok = job->import_ok;
@@ -548,15 +608,14 @@ CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
     return reader;
   }
 
+  if (reader) {
+    USD_CacheReader_free(reader);
+  }
+
   pxr::UsdPrim prim = archive->stage()->GetPrimAtPath(pxr::SdfPath(object_path));
 
   if (!prim) {
-    WM_reportf(RPT_WARNING, "USD Import: unable to open cache reader for object %s", object_path);
     return nullptr;
-  }
-
-  if (reader) {
-    USD_CacheReader_free(reader);
   }
 
   /* TODO(makowalski): The handle does not have the proper import params or settings. */
@@ -596,7 +655,7 @@ CacheArchiveHandle *USD_create_handle(Main * /*bmain*/,
 
   blender::io::usd::ImportSettings settings{};
   convert_to_z_up(stage, &settings);
-
+  find_prefix_to_skip(stage, &settings);
   USDStageReader *stage_reader = new USDStageReader(stage, params, settings);
 
   if (object_paths) {

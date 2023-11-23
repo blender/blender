@@ -39,9 +39,10 @@ vec3 extrude_offset(vec3 ls_P)
   if (L_dot_FP > 0.0) {
     float signed_distance = dot(pass_data.far_plane.xyz, ws_P) - pass_data.far_plane.w;
     extrude_distance = -signed_distance / L_dot_FP;
+    /* Ensure we don't overlap the far plane. */
+    extrude_distance -= 1e-3f;
   }
-  vec3 ls_light_direction = normal_world_to_object(vec3(pass_data.light_direction_ws));
-  return ls_light_direction * extrude_distance;
+  return pass_data.light_direction_ws * extrude_distance;
 }
 
 void emit_cap(const bool front, bool reversed, int triangle_vertex_id)
@@ -87,13 +88,16 @@ void main()
 
   /* Calculate front/back Positions. */
   vData[0].frontPosition = point_object_to_ndc(vData[0].pos);
-  vData[0].backPosition = point_object_to_ndc(vData[0].pos + extrude_offset(vData[0].pos));
+  vData[0].backPosition = point_world_to_ndc(point_object_to_world(vData[0].pos) +
+                                             extrude_offset(vData[0].pos));
 
   vData[1].frontPosition = point_object_to_ndc(vData[1].pos);
-  vData[1].backPosition = point_object_to_ndc(vData[1].pos + extrude_offset(vData[1].pos));
+  vData[1].backPosition = point_world_to_ndc(point_object_to_world(vData[1].pos) +
+                                             extrude_offset(vData[1].pos));
 
   vData[2].frontPosition = point_object_to_ndc(vData[2].pos);
-  vData[2].backPosition = point_object_to_ndc(vData[2].pos + extrude_offset(vData[2].pos));
+  vData[2].backPosition = point_world_to_ndc(point_object_to_world(vData[2].pos) +
+                                             extrude_offset(vData[2].pos));
 
   /* Geometry shader equivalent calc. */
   vec3 v10 = vData[0].pos - vData[1].pos;

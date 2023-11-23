@@ -11,6 +11,8 @@ namespace blender::compositor {
 class KuwaharaClassicOperation : public MultiThreadedOperation {
   SocketReader *image_reader_;
   SocketReader *size_reader_;
+  SocketReader *sat_reader_;
+  SocketReader *sat_squared_reader_;
 
  public:
   KuwaharaClassicOperation();

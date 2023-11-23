@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 #include <iostream>
 
 void blender::internal::vector_print_stats(const char *name,
-                                           void *address,
+                                           const void *address,
                                            int64_t size,
                                            int64_t capacity,
                                            int64_t inlineCapacity,

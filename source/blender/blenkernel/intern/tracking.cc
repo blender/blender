@@ -32,7 +32,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -2124,7 +2124,7 @@ void BKE_tracking_camera_to_blender(
   float focal = tracking->camera.focal;
 
   camera->sensor_x = tracking->camera.sensor_width;
-  camera->sensor_fit = CAMERA_SENSOR_FIT_AUTO;
+  camera->sensor_fit = CAMERA_SENSOR_FIT_HOR;
   camera->lens = focal * camera->sensor_x / width;
 
   scene->r.xsch = width;

@@ -126,9 +126,9 @@ vec3 volume_shadow(
     vec3 ndcP = drw_point_world_to_ndc(P);
     vec3 ndcL = drw_point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
 
-    vec3 frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
+    vec3 ndc_frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
 
-    L = drw_point_screen_to_world(frustum_isect) - P;
+    L = drw_point_ndc_to_world(ndc_frustum_isect) - P;
     L /= uniform_buf.volumes.shadow_steps;
     dd = length(L);
   }

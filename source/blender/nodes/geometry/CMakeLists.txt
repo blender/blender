@@ -82,6 +82,7 @@ set(SRC
   nodes/node_geo_image_info.cc
   nodes/node_geo_image_texture.cc
   nodes/node_geo_index_of_nearest.cc
+  nodes/node_geo_index_switch.cc
   nodes/node_geo_input_curve_handles.cc
   nodes/node_geo_input_curve_tilt.cc
   nodes/node_geo_input_edge_smooth.cc
@@ -101,6 +102,7 @@ set(SRC
   nodes/node_geo_input_mesh_island.cc
   nodes/node_geo_input_mesh_vertex_neighbors.cc
   nodes/node_geo_input_named_attribute.cc
+  nodes/node_geo_input_named_layer_selection.cc
   nodes/node_geo_input_normal.cc
   nodes/node_geo_input_position.cc
   nodes/node_geo_input_radius.cc
@@ -182,6 +184,7 @@ set(SRC
   nodes/node_geo_set_spline_resolution.cc
   nodes/node_geo_simulation_input.cc
   nodes/node_geo_simulation_output.cc
+  nodes/node_geo_split_to_instances.cc
   nodes/node_geo_store_named_attribute.cc
   nodes/node_geo_string_join.cc
   nodes/node_geo_string_to_curves.cc

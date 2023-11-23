@@ -16,7 +16,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_main.h"
 
@@ -1354,7 +1354,7 @@ void WM_gizmoconfig_update(Main *bmain)
     LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
       const uchar type_update_all = WM_GIZMOMAPTYPE_UPDATE_INIT | WM_GIZMOMAPTYPE_KEYMAP_INIT;
       if (gzmap_type->type_update_flag & type_update_all) {
-        gzmap_type->type_update_flag &= eWM_GizmoFlagMapTypeUpdateFlag(~type_update_all);
+        gzmap_type->type_update_flag &= ~eWM_GizmoFlagMapTypeUpdateFlag(type_update_all);
         LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
           if (gzgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_KEYMAP_INIT) {
             WM_gizmomaptype_group_init_runtime_keymap(bmain, gzgt_ref->type);

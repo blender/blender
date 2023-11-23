@@ -28,14 +28,14 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_editmesh.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -46,7 +46,7 @@
 
 #include "ANIM_bone_collections.h"
 
-#include "SEQ_select.h"
+#include "SEQ_select.hh"
 
 #include "transform.hh"
 #include "transform_orientations.hh"

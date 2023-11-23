@@ -45,7 +45,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_bpath.h"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -57,7 +58,7 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 
@@ -243,6 +244,7 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
+  using namespace blender::bke;
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
@@ -276,6 +278,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
     CustomData_blend_write_prepare(mesh->loop_data, loop_layers, {});
     CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
+    mesh_sculpt_mask_to_legacy(vert_layers);
   }
 
   mesh->runtime = nullptr;
@@ -372,7 +375,7 @@ IDTypeInfo IDType_ID_ME = {
     /*main_listbase_index*/ INDEX_ID_ME,
     /*struct_size*/ sizeof(Mesh),
     /*name*/ "Mesh",
-    /*name_plural*/ "meshes",
+    /*name_plural*/ N_("meshes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MESH,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -972,7 +975,6 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   /* Copy general settings. */
   me_dst->editflag = me_src->editflag;
   me_dst->flag = me_src->flag;
-  me_dst->smoothresh = me_src->smoothresh;
   me_dst->remesh_voxel_size = me_src->remesh_voxel_size;
   me_dst->remesh_voxel_adaptivity = me_src->remesh_voxel_adaptivity;
   me_dst->remesh_mode = me_src->remesh_mode;
@@ -1159,47 +1161,31 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
   ensure_orig_index_layer(mesh->face_data, mesh->faces_num);
 }
 
-BoundBox *BKE_mesh_boundbox_get(Object *ob)
+BoundBox BKE_mesh_boundbox_get(Object *ob)
 {
-  /* This is Object-level data access,
-   * DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
-  if (ob->runtime.bb == nullptr || ob->runtime.bb->flag & BOUNDBOX_DIRTY) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    float min[3], max[3];
+  using namespace blender;
+  Mesh *me = static_cast<Mesh *>(ob->data);
+  const Bounds<float3> bounds = me->bounds_min_max().value_or(
+      Bounds<float3>{float3(-1.0f), float3(1.0f)});
 
-    INIT_MINMAX(min, max);
-    if (!BKE_mesh_wrapper_minmax(me, min, max)) {
-      min[0] = min[1] = min[2] = -1.0f;
-      max[0] = max[1] = max[2] = 1.0f;
-    }
-
-    if (ob->runtime.bb == nullptr) {
-      ob->runtime.bb = (BoundBox *)MEM_mallocN(sizeof(*ob->runtime.bb), __func__);
-    }
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-    ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
-  }
-
-  return ob->runtime.bb;
+  BoundBox bb;
+  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
+  return bb;
 }
 
 void BKE_mesh_texspace_calc(Mesh *me)
 {
+  using namespace blender;
   if (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
-    float min[3], max[3];
-
-    INIT_MINMAX(min, max);
-    if (!BKE_mesh_wrapper_minmax(me, min, max)) {
-      min[0] = min[1] = min[2] = -1.0f;
-      max[0] = max[1] = max[2] = 1.0f;
-    }
+    const Bounds<float3> bounds = me->bounds_min_max().value_or(
+        Bounds<float3>{float3(-1.0f), float3(1.0f)});
 
     float texspace_location[3], texspace_size[3];
-    mid_v3_v3v3(texspace_location, min, max);
+    mid_v3_v3v3(texspace_location, bounds.min, bounds.max);
 
-    texspace_size[0] = (max[0] - min[0]) / 2.0f;
-    texspace_size[1] = (max[1] - min[1]) / 2.0f;
-    texspace_size[2] = (max[2] - min[2]) / 2.0f;
+    texspace_size[0] = (bounds.max[0] - bounds.min[0]) / 2.0f;
+    texspace_size[1] = (bounds.max[1] - bounds.min[1]) / 2.0f;
+    texspace_size[2] = (bounds.max[2] - bounds.min[2]) / 2.0f;
 
     for (int a = 0; a < 3; a++) {
       if (texspace_size[a] == 0.0f) {
@@ -1441,9 +1427,11 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
   if (use_smooth) {
+    attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
   }
   else {
+    attributes.remove("sharp_edge");
     SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
         "sharp_face", ATTR_DOMAIN_FACE);
     sharp_faces.span.fill(true);
@@ -1451,17 +1439,33 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   }
 }
 
-void BKE_mesh_auto_smooth_flag_set(Mesh *me,
-                                   const bool use_auto_smooth,
-                                   const float auto_smooth_angle)
+void BKE_mesh_sharp_edges_set_from_angle(Mesh *me, const float angle)
 {
-  if (use_auto_smooth) {
-    me->flag |= ME_AUTOSMOOTH;
-    me->smoothresh = auto_smooth_angle;
+  using namespace blender;
+  using namespace blender::bke;
+  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  if (angle >= M_PI) {
+    attributes.remove("sharp_edge");
+    attributes.remove("sharp_face");
+    return;
   }
-  else {
-    me->flag &= ~ME_AUTOSMOOTH;
+  if (angle == 0.0f) {
+    BKE_mesh_smooth_flag_set(me, false);
+    return;
   }
+  bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_edge", ATTR_DOMAIN_EDGE);
+  const bool *sharp_faces = static_cast<const bool *>(
+      CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
+  bke::mesh::edges_sharp_from_angle_set(me->faces(),
+                                        me->corner_verts(),
+                                        me->corner_edges(),
+                                        me->face_normals(),
+                                        me->corner_to_face_map(),
+                                        sharp_faces,
+                                        angle,
+                                        sharp_edges.span);
+  sharp_edges.finish();
 }
 
 void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
@@ -1488,11 +1492,21 @@ void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
 std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
 {
   using namespace blender;
-  if (this->totvert == 0) {
+  const int verts_num = BKE_mesh_wrapper_vert_len(this);
+  if (verts_num == 0) {
     return std::nullopt;
   }
-  this->runtime->bounds_cache.ensure(
-      [&](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(this->vert_positions()); });
+  this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
+    switch (this->runtime->wrapper_type) {
+      case ME_WRAPPER_TYPE_BMESH:
+        r_bounds = *BKE_editmesh_cache_calc_minmax(this->edit_mesh, this->runtime->edit_data);
+        break;
+      case ME_WRAPPER_TYPE_MDATA:
+      case ME_WRAPPER_TYPE_SUBD:
+        r_bounds = *bounds::min_max(this->vert_positions());
+        break;
+    }
+  });
   return this->runtime->bounds_cache.data();
 }
 
@@ -1518,20 +1532,6 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
     }
   }
 
-  /* don't update normals, caller can do this explicitly.
-   * We do update loop normals though, those may not be auto-generated
-   * (see e.g. STL import script)! */
-  float(*lnors)[3] = (float(*)[3])CustomData_get_layer_for_write(
-      &me->loop_data, CD_NORMAL, me->totloop);
-  if (lnors) {
-    float m3[3][3];
-
-    copy_m3_m4(m3, mat);
-    normalize_m3(m3);
-    for (int i = 0; i < me->totloop; i++, lnors++) {
-      mul_m3_v3(m3, *lnors);
-    }
-  }
   BKE_mesh_tag_positions_changed(me);
 }
 
@@ -1741,63 +1741,6 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
     mul_v3_m4v3(positions[i], mat, vert_coords[i]);
   }
   BKE_mesh_tag_positions_changed(mesh);
-}
-
-static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
-{
-  float(*r_loop_normals)[3];
-  if (CustomData_has_layer(&mesh.loop_data, CD_NORMAL)) {
-    r_loop_normals = (float(*)[3])CustomData_get_layer_for_write(
-        &mesh.loop_data, CD_NORMAL, mesh.totloop);
-    memset(r_loop_normals, 0, sizeof(float[3]) * mesh.totloop);
-  }
-  else {
-    r_loop_normals = (float(*)[3])CustomData_add_layer(
-        &mesh.loop_data, CD_NORMAL, CD_SET_DEFAULT, mesh.totloop);
-    CustomData_set_layer_flag(&mesh.loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-  }
-  return r_loop_normals;
-}
-
-void BKE_mesh_calc_normals_split_ex(const Mesh *mesh,
-                                    MLoopNorSpaceArray *r_lnors_spacearr,
-                                    float (*r_corner_normals)[3])
-{
-  /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
-   * However, we obviously only use the auto-smooth angle threshold
-   * only in case auto-smooth is enabled. */
-  const bool use_split_normals = (r_lnors_spacearr != nullptr) ||
-                                 ((mesh->flag & ME_AUTOSMOOTH) != 0);
-  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
-
-  const blender::short2 *clnors = static_cast<const blender::short2 *>(
-      CustomData_get_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL));
-  const bool *sharp_edges = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "sharp_edge"));
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
-
-  blender::bke::mesh::normals_calc_loop(
-      mesh->vert_positions(),
-      mesh->edges(),
-      mesh->faces(),
-      mesh->corner_verts(),
-      mesh->corner_edges(),
-      mesh->corner_to_face_map(),
-      mesh->vert_normals(),
-      mesh->face_normals(),
-      sharp_edges,
-      sharp_faces,
-      clnors,
-      use_split_normals,
-      split_angle,
-      nullptr,
-      {reinterpret_cast<float3 *>(r_corner_normals), mesh->totloop});
-}
-
-void BKE_mesh_calc_normals_split(Mesh *mesh)
-{
-  BKE_mesh_calc_normals_split_ex(mesh, nullptr, ensure_corner_normal_layer(*mesh));
 }
 
 /* **** Depsgraph evaluation **** */

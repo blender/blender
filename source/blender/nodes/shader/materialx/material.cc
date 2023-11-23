@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,8 @@
 #include "DNA_material_types.h"
 
 #include "NOD_shader.h"
+
+#include "material.h"
 
 namespace blender::nodes::materialx {
 

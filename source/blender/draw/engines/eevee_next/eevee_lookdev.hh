@@ -79,7 +79,6 @@ class LookdevModule {
 
   LookdevParameters parameters_;
   ListBase gpu_materials_ = {nullptr, nullptr};
-  GPUMaterial *gpu_material_ = nullptr;
 
  public:
   LookdevModule(Instance &inst) : inst_(inst){};

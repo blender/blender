@@ -386,8 +386,11 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     face_offsets.take_front(faces_num).copy_from(mesh->face_offsets().drop_back(1));
   }
 
-  float *result_edge_bweight = nullptr;
-  if (do_bevel_convex) {
+  const float *orig_vert_bweight = static_cast<const float *>(
+      CustomData_get_layer_named(&mesh->vert_data, CD_PROP_FLOAT, "bevel_weight_vert"));
+  float *result_edge_bweight = static_cast<float *>(CustomData_get_layer_named_for_write(
+      &result->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", result->totedge));
+  if (!result_edge_bweight && (do_bevel_convex || orig_vert_bweight)) {
     result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(
         &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "bevel_weight_edge"));
   }
@@ -1026,6 +1029,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     for (i = 0; i < rimVerts; i++) {
       edges[new_edge_index][0] = new_vert_arr[i];
       edges[new_edge_index][1] = (do_shell ? new_vert_arr[i] : i) + verts_num;
+
+      if (orig_vert_bweight) {
+        result_edge_bweight[new_edge_index] = orig_vert_bweight[new_vert_arr[i]];
+      }
 
       if (orig_ed) {
         *orig_ed = ORIGINDEX_NONE;

@@ -39,8 +39,17 @@ void static adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpr
     info.has_peer_memory = false;
   }
 
-  if (info.type == DEVICE_METAL && !get_boolean(cpreferences, "use_metalrt")) {
-    info.use_hardware_raytracing = false;
+  if (info.type == DEVICE_METAL) {
+    MetalRTSetting use_metalrt = (MetalRTSetting)get_enum(
+        cpreferences, "metalrt", METALRT_NUM_SETTINGS, METALRT_AUTO);
+
+    info.use_hardware_raytracing = info.use_metalrt_by_default;
+    if (use_metalrt == METALRT_OFF) {
+      info.use_hardware_raytracing = false;
+    }
+    else if (use_metalrt == METALRT_ON) {
+      info.use_hardware_raytracing = true;
+    }
   }
 
   if (info.type == DEVICE_ONEAPI && !get_boolean(cpreferences, "use_oneapirt")) {

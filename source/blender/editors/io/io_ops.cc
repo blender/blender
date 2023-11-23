@@ -72,5 +72,6 @@ void ED_operatortypes_io()
 
 #ifdef WITH_IO_STL
   WM_operatortype_append(WM_OT_stl_import);
+  WM_operatortype_append(WM_OT_stl_export);
 #endif
 }

@@ -5,7 +5,7 @@
 #include "usd_reader_geom.h"
 
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
 #include "BLI_listbase.h"

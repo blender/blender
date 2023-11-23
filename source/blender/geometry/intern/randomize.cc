@@ -16,7 +16,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_instances.hh"
@@ -240,7 +240,7 @@ void debug_randomize_instance_order(bke::Instances *instances)
   const int seed = seed_from_instances(*instances);
   const Array<int> new_by_old_map = get_permutation(instances_num, seed);
 
-  reorder_customdata(instances->custom_data_attributes().data, new_by_old_map);
+  reorder_customdata(instances->custom_data_attributes(), new_by_old_map);
 
   const Span<int> old_reference_handles = instances->reference_handles();
   const Span<float4x4> old_transforms = instances->transforms();

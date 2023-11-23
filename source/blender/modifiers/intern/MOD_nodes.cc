@@ -41,7 +41,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_compute_contexts.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
@@ -50,9 +50,9 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.hh"
@@ -90,7 +90,6 @@
 #include "NOD_node_declaration.hh"
 
 #include "FN_field.hh"
-#include "FN_field_cpp_type.hh"
 #include "FN_lazy_function_execute.hh"
 #include "FN_lazy_function_graph_executor.hh"
 #include "FN_multi_function.hh"
@@ -110,98 +109,6 @@ static void init_data(ModifierData *md)
   MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
   nmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
   nmd->runtime->cache = std::make_shared<bake::ModifierCache>();
-}
-
-static void add_used_ids_from_sockets(const ListBase &sockets, Set<ID *> &ids)
-{
-  LISTBASE_FOREACH (const bNodeSocket *, socket, &sockets) {
-    switch (socket->type) {
-      case SOCK_OBJECT: {
-        if (Object *object = ((bNodeSocketValueObject *)socket->default_value)->value) {
-          ids.add(&object->id);
-        }
-        break;
-      }
-      case SOCK_COLLECTION: {
-        if (Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value)
-        {
-          ids.add(&collection->id);
-        }
-        break;
-      }
-      case SOCK_MATERIAL: {
-        if (Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value) {
-          ids.add(&material->id);
-        }
-        break;
-      }
-      case SOCK_TEXTURE: {
-        if (Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value) {
-          ids.add(&texture->id);
-        }
-        break;
-      }
-      case SOCK_IMAGE: {
-        if (Image *image = ((bNodeSocketValueImage *)socket->default_value)->value) {
-          ids.add(&image->id);
-        }
-        break;
-      }
-    }
-  }
-}
-
-/**
- * \note We can only check properties here that cause the dependency graph to update relations when
- * they are changed, otherwise there may be a missing relation after editing. So this could check
- * more properties like whether the node is muted, but we would have to accept the cost of updating
- * relations when those properties are changed.
- */
-static bool node_needs_own_transform_relation(const bNode &node)
-{
-  if (node.type == GEO_NODE_COLLECTION_INFO) {
-    const NodeGeometryCollectionInfo &storage = *static_cast<const NodeGeometryCollectionInfo *>(
-        node.storage);
-    return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
-  }
-
-  if (node.type == GEO_NODE_OBJECT_INFO) {
-    const NodeGeometryObjectInfo &storage = *static_cast<const NodeGeometryObjectInfo *>(
-        node.storage);
-    return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
-  }
-
-  if (node.type == GEO_NODE_SELF_OBJECT) {
-    return true;
-  }
-  if (node.type == GEO_NODE_DEFORM_CURVES_ON_SURFACE) {
-    return true;
-  }
-
-  return false;
-}
-
-static void process_nodes_for_depsgraph(const bNodeTree &tree,
-                                        Set<ID *> &ids,
-                                        bool &r_needs_own_transform_relation,
-                                        Set<const bNodeTree *> &checked_groups)
-{
-  if (!checked_groups.add(&tree)) {
-    return;
-  }
-
-  tree.ensure_topology_cache();
-  for (const bNode *node : tree.all_nodes()) {
-    add_used_ids_from_sockets(node->inputs, ids);
-    add_used_ids_from_sockets(node->outputs, ids);
-    r_needs_own_transform_relation |= node_needs_own_transform_relation(*node);
-  }
-
-  for (const bNode *node : tree.group_nodes()) {
-    if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
-      process_nodes_for_depsgraph(*sub_tree, ids, r_needs_own_transform_relation, checked_groups);
-    }
-  }
 }
 
 static void find_used_ids_from_settings(const NodesModifierSettings &settings, Set<ID *> &ids)
@@ -259,9 +166,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   bool needs_own_transform_relation = false;
   Set<ID *> used_ids;
   find_used_ids_from_settings(nmd->settings, used_ids);
-  Set<const bNodeTree *> checked_groups;
-  process_nodes_for_depsgraph(
-      *nmd->node_group, used_ids, needs_own_transform_relation, checked_groups);
+  nodes::find_node_tree_dependencies(*nmd->node_group, used_ids, needs_own_transform_relation);
 
   if (ctx->object->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(ctx->object->data);
@@ -606,7 +511,7 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
           compute_context->iteration());
       current_zone = repeat_zone;
     }
-    else if (const auto *compute_context = dynamic_cast<const bke::NodeGroupComputeContext *>(
+    else if (const auto *compute_context = dynamic_cast<const bke::GroupNodeComputeContext *>(
                  compute_context_generic))
     {
       const bNode *group_node = current_tree->node_by_id(compute_context->node_id());
@@ -782,14 +687,17 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
         geometry_socket_count++;
       }
       else {
-        BKE_modifier_set_error(ob, md, "Missing property for input socket \"%s\"", socket->name);
+        BKE_modifier_set_error(
+            ob, md, "Missing property for input socket \"%s\"", socket->name ? socket->name : "");
       }
       continue;
     }
 
     if (!nodes::id_property_type_matches_socket(*socket, *property)) {
-      BKE_modifier_set_error(
-          ob, md, "Property type does not match input socket \"(%s)\"", socket->name);
+      BKE_modifier_set_error(ob,
+                             md,
+                             "Property type does not match input socket \"(%s)\"",
+                             socket->name ? socket->name : "");
       continue;
     }
   }
@@ -1528,7 +1436,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
     uiItemL(name_row, "", ICON_NONE);
   }
   else {
-    uiItemL(name_row, socket.name, ICON_NONE);
+    uiItemL(name_row, socket.name ? IFACE_(socket.name) : "", ICON_NONE);
   }
 
   uiLayout *prop_row = uiLayoutRow(split, true);
@@ -1542,7 +1450,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
     uiItemL(layout, "", ICON_BLANK1);
   }
   else {
-    const char *name = type == SOCK_BOOLEAN ? socket.name : "";
+    const char *name = type == SOCK_BOOLEAN ? (socket.name ? IFACE_(socket.name) : "") : "";
     uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
     uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
@@ -1595,34 +1503,42 @@ static void draw_property_for_socket(const bContext &C,
    * pointer IDProperties contain no information about their type. */
   const bNodeSocketType *typeinfo = socket.socket_typeinfo();
   const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+  const char *name = socket.name ? IFACE_(socket.name) : "";
   switch (type) {
     case SOCK_OBJECT: {
-      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "objects", name, ICON_OBJECT_DATA);
       break;
     }
     case SOCK_COLLECTION: {
       uiItemPointerR(
-          row, md_ptr, rna_path, bmain_ptr, "collections", socket.name, ICON_OUTLINER_COLLECTION);
+          row, md_ptr, rna_path, bmain_ptr, "collections", name, ICON_OUTLINER_COLLECTION);
       break;
     }
     case SOCK_MATERIAL: {
-      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "materials", name, ICON_MATERIAL);
       break;
     }
     case SOCK_TEXTURE: {
-      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "textures", name, ICON_TEXTURE);
       break;
     }
     case SOCK_IMAGE: {
-      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "images", name, ICON_IMAGE);
       break;
+    }
+    case SOCK_BOOLEAN: {
+      if (is_layer_selection_field(socket)) {
+        uiItemR(row, md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+        break;
+      }
+      ATTR_FALLTHROUGH;
     }
     default: {
       if (nodes::input_has_attribute_toggle(*nmd->node_group, socket_index)) {
         add_attribute_search_or_value_buttons(C, row, *nmd, md_ptr, socket);
       }
       else {
-        uiItemR(row, md_ptr, rna_path, UI_ITEM_NONE, socket.name, ICON_NONE);
+        uiItemR(row, md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
       }
     }
   }
@@ -1646,7 +1562,7 @@ static void draw_property_for_output_socket(const bContext &C,
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
-  uiItemL(name_row, socket.name, ICON_NONE);
+  uiItemL(name_row, socket.name ? socket.name : "", ICON_NONE);
 
   uiLayout *row = uiLayoutRow(split, true);
   add_attribute_search_button(C, row, nmd, md_ptr, rna_path_attribute_name, socket, true);
@@ -1685,7 +1601,8 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     for (const int socket_index : nmd->node_group->interface_inputs().index_range()) {
       const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[socket_index];
-      if (!(socket->flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
+      if (is_layer_selection_field(*socket) ||
+          !(socket->flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
         draw_property_for_socket(*C, layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
       }
     }
@@ -1967,7 +1884,7 @@ ModifierTypeInfo modifierType_Nodes = {
     /*struct_name*/ "NodesModifierData",
     /*struct_size*/ sizeof(NodesModifierData),
     /*srna*/ &RNA_NodesModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/
     static_cast<ModifierTypeFlag>(
         eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |

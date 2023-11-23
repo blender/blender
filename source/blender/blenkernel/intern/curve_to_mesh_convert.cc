@@ -22,6 +22,14 @@
 
 namespace blender::bke {
 
+static int segments_num_no_duplicate_edge(const int points_num, const bool cyclic)
+{
+  if (points_num <= 2) {
+    return curves::segments_num(points_num, false);
+  }
+  return curves::segments_num(points_num, cyclic);
+}
+
 static void fill_mesh_topology(const int vert_offset,
                                const int edge_offset,
                                const int face_offset,
@@ -36,7 +44,7 @@ static void fill_mesh_topology(const int vert_offset,
                                MutableSpan<int> corner_edges,
                                MutableSpan<int> face_offsets)
 {
-  const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
+  const int main_segment_num = segments_num_no_duplicate_edge(main_point_num, main_cyclic);
   const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
 
   if (profile_point_num == 1) {
@@ -46,7 +54,7 @@ static void fill_mesh_topology(const int vert_offset,
       edge[1] = vert_offset + i + 1;
     }
 
-    if (main_cyclic && main_segment_num > 1) {
+    if (main_cyclic && main_segment_num > 2) {
       int2 &edge = edges[edge_offset + main_segment_num - 1];
       edge[0] = vert_offset + main_point_num - 1;
       edge[1] = vert_offset;
@@ -268,7 +276,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
         for (const int i_main : main_offsets.index_range()) {
           const bool main_cyclic = info.main_cyclic[i_main];
           const int main_point_num = main_offsets[i_main].size();
-          const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
+          const int main_segment_num = segments_num_no_duplicate_edge(main_point_num, main_cyclic);
           for (const int i_profile : profile_offsets.index_range()) {
             result.vert[mesh_index] = vert_offset;
             result.edge[mesh_index] = edge_offset;
@@ -796,8 +804,6 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   CustomData_free_layer_named(&mesh->vert_data, "position", 0);
   mesh->totvert = offsets.vert.last();
 
-  mesh->flag |= ME_AUTOSMOOTH;
-  mesh->smoothresh = DEG2RADF(180.0f);
   MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
@@ -841,6 +847,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   build_mesh_positions(curves_info, offsets, eval_buffer, *mesh);
 
+  mesh->tag_overlapping_none();
   if (!offsets.any_single_point_main) {
     /* If there are no single point curves, every combination will have at least loose edges. */
     mesh->tag_loose_verts_none();

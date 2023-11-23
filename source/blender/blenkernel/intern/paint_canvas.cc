@@ -9,7 +9,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_paint.hh"

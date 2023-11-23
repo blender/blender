@@ -11,7 +11,7 @@
 #include "DRW_render.h"
 
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"

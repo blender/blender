@@ -26,6 +26,7 @@ set(SRC
   intern/grease_pencil_frames.cc
   intern/grease_pencil_geom.cc
   intern/grease_pencil_layers.cc
+  intern/grease_pencil_material.cc
   intern/grease_pencil_ops.cc
   intern/grease_pencil_select.cc
   intern/grease_pencil_utils.cc

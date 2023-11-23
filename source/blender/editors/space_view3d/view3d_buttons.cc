@@ -33,12 +33,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
@@ -1237,7 +1237,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     const int butw = 200;
     const int buth = 20 * UI_SCALE_FAC;
 
-    BKE_object_dimensions_get(ob, tfp->ob_dims);
+    BKE_object_dimensions_eval_cached_get(ob, tfp->ob_dims);
     copy_v3_v3(tfp->ob_dims_orig, tfp->ob_dims);
     copy_v3_v3(tfp->ob_scale_orig, ob->scale);
     copy_m4_m4(tfp->ob_obmat_orig, ob->object_to_world);

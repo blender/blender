@@ -10,7 +10,7 @@
 #include <cstring>
 
 #ifdef WIN32
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #  include <windows.h>
 #endif
 
@@ -42,20 +42,20 @@
 #include "BKE_brush.hh"
 #include "BKE_cachefile.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
-#include "BKE_cpp_types.h"
+#include "BKE_context.hh"
+#include "BKE_cpp_types.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_vfont.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #ifndef WITH_PYTHON_MODULE
 #  include "BLI_args.h"
@@ -486,16 +486,23 @@ int main(int argc,
   /* After parsing number of threads argument. */
   BLI_task_scheduler_init();
 
-  /* Initialize sub-systems that use `BKE_appdir.h`. */
-  IMB_init();
-
 #ifndef WITH_PYTHON_MODULE
-  /* First test for background-mode (#Global.background) */
+  /* The settings pass includes:
+   * - Background-mode assignment (#Global.background), checked by other subsystems
+   *   which may be skipped in background mode.
+   * - The animation player may be launched which takes over argument passing,
+   *   initializes the sub-systems it needs which have not yet been started.
+   *   The animation player will call `exit(..)` too, so code after this call
+   *   never runs when it's invoked.
+   * - All the `--debug-*` flags.
+   */
   BLI_args_parse(ba, ARG_PASS_SETTINGS, nullptr, nullptr);
 
   main_signal_setup();
 #endif
 
+  /* Must be initialized after #BKE_appdir_init to account for color-management paths. */
+  IMB_init();
 #ifdef WITH_FFMPEG
   /* Keep after #ARG_PASS_SETTINGS since debug flags are checked. */
   IMB_ffmpeg_init();

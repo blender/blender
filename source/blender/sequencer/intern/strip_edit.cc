@@ -23,21 +23,21 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "strip_time.h"
-#include "utils.h"
+#include "strip_time.hh"
+#include "utils.hh"
 
-#include "SEQ_add.h"
-#include "SEQ_animation.h"
-#include "SEQ_channels.h"
-#include "SEQ_edit.h"
-#include "SEQ_effects.h"
-#include "SEQ_iterator.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_add.hh"
+#include "SEQ_animation.hh"
+#include "SEQ_channels.hh"
+#include "SEQ_edit.hh"
+#include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 #include <cstring>
 
@@ -244,17 +244,14 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
     return false;
   }
 
-  SeqCollection *collection = SEQ_collection_create(__func__);
-  SEQ_collection_append_strip(src_seq, collection);
-  SEQ_collection_expand(scene, seqbase, collection, SEQ_query_strip_effect_chain);
+  blender::VectorSet<Sequence *> strips;
+  strips.add(src_seq);
+  SEQ_iterator_set_expand(scene, seqbase, strips, SEQ_query_strip_effect_chain);
 
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
+  for (Sequence *seq : strips) {
     /* Move to meta. */
     SEQ_edit_move_strip_to_seqbase(scene, seqbase, seq, &dst_seqm->seqbase);
   }
-
-  SEQ_collection_free(collection);
 
   return true;
 }
@@ -383,12 +380,11 @@ static bool seq_edit_split_effect_inputs_intersect(const Scene *scene,
 }
 
 static bool seq_edit_split_operation_permitted_check(const Scene *scene,
-                                                     SeqCollection *strips,
+                                                     blender::Span<Sequence *> strips,
                                                      const int timeline_frame,
                                                      const char **r_error)
 {
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : strips) {
     ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(scene));
     if (SEQ_transform_is_locked(channels, seq)) {
       *r_error = "Strip is locked.";
@@ -428,12 +424,11 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   }
 
   /* Whole strip chain must be duplicated in order to preserve relationships. */
-  SeqCollection *collection = SEQ_collection_create(__func__);
-  SEQ_collection_append_strip(seq, collection);
-  SEQ_collection_expand(scene, seqbase, collection, SEQ_query_strip_effect_chain);
+  blender::VectorSet<Sequence *> strips;
+  strips.add(seq);
+  SEQ_iterator_set_expand(scene, seqbase, strips, SEQ_query_strip_effect_chain);
 
-  if (!seq_edit_split_operation_permitted_check(scene, collection, timeline_frame, r_error)) {
-    SEQ_collection_free(collection);
+  if (!seq_edit_split_operation_permitted_check(scene, strips, timeline_frame, r_error)) {
     return nullptr;
   }
 
@@ -442,7 +437,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   SEQ_animation_backup_original(scene, &animation_backup);
 
   ListBase left_strips = {nullptr, nullptr};
-  SEQ_ITERATOR_FOREACH (seq, collection) {
+  for (Sequence *seq : strips) {
     /* Move strips in collection from seqbase to new ListBase. */
     BLI_remlink(seqbase, seq);
     BLI_addtail(&left_strips, seq);
@@ -450,8 +445,6 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     /* Duplicate curves from backup, so they can be renamed along with split strips. */
     SEQ_animation_duplicate_backup_to_scene(scene, seq, &animation_backup);
   }
-
-  SEQ_collection_free(collection);
 
   /* Duplicate ListBase. */
   ListBase right_strips = {nullptr, nullptr};

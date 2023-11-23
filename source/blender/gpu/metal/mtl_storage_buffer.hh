@@ -54,6 +54,10 @@ class MTLStorageBuf : public StorageBuf {
   /** Usage type. */
   GPUUsageType usage_;
 
+  /* Synchronization event for host reads. */
+  id<MTLSharedEvent> gpu_write_fence_ = nil;
+  uint64_t host_read_signal_value_ = 0;
+
  public:
   MTLStorageBuf(size_t size, GPUUsageType usage, const char *name);
   ~MTLStorageBuf();
@@ -68,6 +72,7 @@ class MTLStorageBuf : public StorageBuf {
   void clear(uint32_t clear_value) override;
   void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;
   void read(void *data) override;
+  void async_flush_to_host() override;
 
   void init();
 

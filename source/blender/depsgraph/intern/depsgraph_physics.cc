@@ -17,7 +17,7 @@
 
 #include "BKE_collision.h"
 #include "BKE_effect.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_force_types.h"

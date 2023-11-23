@@ -21,8 +21,9 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
@@ -74,36 +75,35 @@ static void partialvis_update_mesh(Object *ob,
                                    PartialVisArea area,
                                    float planes[4][4])
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  const float(*positions)[3] = BKE_pbvh_get_vert_positions(pbvh);
-  const float *paint_mask;
+  using namespace blender;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const blender::Span<blender::float3> positions = BKE_pbvh_get_vert_positions(pbvh);
   bool any_changed = false, any_visible = false;
 
   const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-  paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
 
-  bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert));
-  if (hide_vert == nullptr) {
-    hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &me->vert_data, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
-  }
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  const VArray<float> mask = *attributes.lookup_or_default<float>(
+      ".sculpt_mask", ATTR_DOMAIN_POINT, 0.0f);
+
+  bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".hide_vert", ATTR_DOMAIN_POINT);
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
   for (const int vert : verts) {
-    float vmask = paint_mask ? paint_mask[vert] : 0;
-
     /* Hide vertex if in the hide volume. */
-    if (is_effected(area, planes, positions[vert], vmask)) {
-      hide_vert[vert] = (action == PARTIALVIS_HIDE);
+    if (is_effected(area, planes, positions[vert], mask[vert])) {
+      hide_vert.span[vert] = (action == PARTIALVIS_HIDE);
       any_changed = true;
     }
 
-    if (!hide_vert[vert]) {
+    if (!hide_vert.span[vert]) {
       any_visible = true;
     }
   }
+
+  hide_vert.finish();
 
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);
@@ -206,9 +206,10 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
                                           bool *any_changed,
                                           bool *any_visible)
 {
+  const int mask_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+
   for (BMVert *v : *verts) {
-    float *vmask = static_cast<float *>(
-        CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK));
+    float *vmask = BM_ELEM_CD_PTR<float *>(v, mask_offset);
 
     /* Hide vertex if in the hide volume. */
     if (is_effected(area, planes, v->co, *vmask)) {
@@ -293,11 +294,10 @@ static void clip_planes_from_rect(bContext *C,
                                   float clip_planes[4][4],
                                   const rcti *rect)
 {
-  ViewContext vc;
   BoundBox bb;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, rect);
 }
 

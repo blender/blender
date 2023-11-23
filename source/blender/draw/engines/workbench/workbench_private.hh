@@ -391,6 +391,8 @@ class ShadowPass {
             GPUTexture &depth_stencil_tx,
             /* Needed when there are opaque "In Front" objects in the scene */
             bool force_fail_method);
+
+  bool is_debug();
 };
 
 class VolumePass {
@@ -515,10 +517,6 @@ class DofPass {
 class AntiAliasingPass {
  private:
   bool enabled_ = false;
-  /* Current TAA sample index in [0..samples_len_] range. */
-  int sample_ = 0;
-  /* Total number of samples to after which TAA stops accumulating samples. */
-  int samples_len_ = 0;
   /* Weight accumulated. */
   float weight_accum_ = 0;
   /* Samples weight for this iteration. */

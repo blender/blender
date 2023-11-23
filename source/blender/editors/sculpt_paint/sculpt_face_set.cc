@@ -35,8 +35,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_fair.hh"
 #include "BKE_mesh_mapping.hh"
@@ -70,14 +70,16 @@ using blender::Vector;
 
 int ED_sculpt_face_sets_find_next_available_id(Mesh *mesh)
 {
-  const int *face_sets = static_cast<const int *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_INT32, ".sculpt_face_set"));
-  if (!face_sets) {
+  using namespace blender;
+  const VArray<int> attribute = *mesh->attributes().lookup<int>(".sculpt_face_set",
+                                                                ATTR_DOMAIN_FACE);
+  if (!attribute) {
     return SCULPT_FACE_SET_NONE;
   }
+  const VArraySpan<int> face_sets(attribute);
 
   int next_face_set_id = 0;
-  for (int i = 0; i < mesh->faces_num; i++) {
+  for (const int i : face_sets.index_range()) {
     next_face_set_id = max_ii(next_face_set_id, face_sets[i]);
   }
   next_face_set_id++;
@@ -87,15 +89,17 @@ int ED_sculpt_face_sets_find_next_available_id(Mesh *mesh)
 
 void ED_sculpt_face_sets_initialize_none_to_id(Mesh *mesh, const int new_id)
 {
-  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
+  using namespace blender;
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<int> face_sets = attributes.lookup_for_write_span<int>(
+      ".sculpt_face_set");
   if (!face_sets) {
     return;
   }
 
-  for (int i = 0; i < mesh->faces_num; i++) {
-    if (face_sets[i] == SCULPT_FACE_SET_NONE) {
-      face_sets[i] = new_id;
+  for (const int i : face_sets.span.index_range()) {
+    if (face_sets.span[i] == SCULPT_FACE_SET_NONE) {
+      face_sets.span[i] = new_id;
     }
   }
 }
@@ -131,18 +135,16 @@ static void do_draw_face_sets_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  const Span<float3> positions(
-      reinterpret_cast<const float3 *>(SCULPT_mesh_deformed_positions_get(ss)),
-      SCULPT_vertex_count_get(ss));
+  const MutableSpan<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
   /* Ensure automasking data is up to date. */
   if (ss->cache->automasking) {
     PBVHVertexIter vd;
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
-      SCULPT_automasking_node_update(ss, &automask_data, &vd);
+      SCULPT_automasking_node_update(&automask_data, &vd);
     }
     BKE_pbvh_vertex_iter_end;
   }
@@ -249,10 +251,10 @@ static void do_relax_face_sets_brush_task(Object *ob,
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -285,12 +287,6 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
   using namespace blender;
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-
-  if (ss->pbvh) {
-    Mesh *mesh = BKE_mesh_from_object(ob);
-    BKE_pbvh_face_sets_color_set(
-        ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
-  }
 
   BKE_curvemapping_init(brush->curve);
 
@@ -427,8 +423,6 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
     if (all_visible) {
       mesh->face_sets_color_default = next_face_set;
-      BKE_pbvh_face_sets_color_set(
-          ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
     }
 
     for (int i = 0; i < tot_vert; i++) {
@@ -1031,7 +1025,6 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op
     mesh->face_sets_color_default = blender::bke::paint::face_attr_get<int>(face,
                                                                             ss->attrs.face_set);
   }
-  BKE_pbvh_face_sets_color_set(pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
   for (PBVHNode *node : nodes) {
@@ -1433,7 +1426,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
                     SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
-  float(*positions)[3] = nullptr;
+  blender::MutableSpan<float3> positions;
 
   if (ss->bm) {
     BKE_bmesh_prefair_and_fair_verts(ss->bm, fair_verts.data(), fair_order);
@@ -1445,7 +1438,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-    float *co = ss->bm ? reinterpret_cast<BMVert *>(vertex.i)->co : positions[i];
+    float *co = ss->bm ? reinterpret_cast<BMVert *>(vertex.i)->co : &positions[i][0];
 
     if (fair_verts[i]) {
       interp_v3_v3v3(co, orig_positions[i], co, strength);

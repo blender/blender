@@ -113,8 +113,6 @@ TEST_F(AssetLibraryServiceTest, library_from_reference)
 {
   AssetLibraryService *service = AssetLibraryService::get();
 
-  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
-                                                                      asset_library_root_);
   AssetLibrary *const curfile_lib = service->get_asset_library_current_file();
 
   AssetLibraryReference ref{};
@@ -123,12 +121,24 @@ TEST_F(AssetLibraryServiceTest, library_from_reference)
       << "Getting the local (current file) reference without a main saved on disk should return "
          "the current file library";
 
-  Main dummy_main{};
-  std::string dummy_filepath = asset_library_root_ + SEP + "dummy.blend";
-  STRNCPY(dummy_main.filepath, dummy_filepath.c_str());
-  EXPECT_EQ(lib, service->get_asset_library(&dummy_main, ref))
-      << "Getting the local (current file) reference with a main saved on disk should return "
-         "the an asset library for this directory";
+  {
+    Main dummy_main{};
+    std::string dummy_filepath = asset_library_root_ + SEP + "dummy.blend";
+    STRNCPY(dummy_main.filepath, dummy_filepath.c_str());
+
+    AssetLibrary *custom_lib = service->get_asset_library_on_disk_custom(__func__,
+                                                                         asset_library_root_);
+    AssetLibrary *tmp_curfile_lib = service->get_asset_library(&dummy_main, ref);
+
+    /* Requested a current file library with a (fake) file saved in the same directory as a custom
+     * asset library. The resulting library should never match the custom asset library, even
+     * though the paths match. */
+
+    EXPECT_NE(custom_lib, tmp_curfile_lib)
+        << "Getting an asset library from a local (current file) library reference should never "
+           "match any custom asset library";
+    EXPECT_EQ(custom_lib->root_path(), tmp_curfile_lib->root_path());
+  }
 }
 
 TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)

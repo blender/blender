@@ -29,27 +29,35 @@ Result Result::Temporary(ResultType type, TexturePool &texture_pool, ResultPreci
   return result;
 }
 
-eGPUTextureFormat Result::get_texture_format() const
+eGPUTextureFormat Result::texture_format(ResultType type, ResultPrecision precision)
 {
-  switch (precision_) {
+  switch (precision) {
     case ResultPrecision::Half:
-      switch (type_) {
+      switch (type) {
         case ResultType::Float:
           return GPU_R16F;
         case ResultType::Vector:
         case ResultType::Color:
           return GPU_RGBA16F;
+        case ResultType::Float2:
+          return GPU_RG16F;
+        case ResultType::Float3:
+          return GPU_RGB16F;
         case ResultType::Int2:
           return GPU_RG16I;
       }
       break;
     case ResultPrecision::Full:
-      switch (type_) {
+      switch (type) {
         case ResultType::Float:
           return GPU_R32F;
         case ResultType::Vector:
         case ResultType::Color:
           return GPU_RGBA32F;
+        case ResultType::Float2:
+          return GPU_RG32F;
+        case ResultType::Float3:
+          return GPU_RGB32F;
         case ResultType::Int2:
           return GPU_RG32I;
       }
@@ -58,6 +66,11 @@ eGPUTextureFormat Result::get_texture_format() const
 
   BLI_assert_unreachable();
   return GPU_RGBA32F;
+}
+
+eGPUTextureFormat Result::get_texture_format() const
+{
+  return Result::texture_format(type_, precision_);
 }
 
 void Result::allocate_texture(Domain domain)
@@ -177,6 +190,11 @@ void Result::steal_data(Result &source)
 
   source.texture_ = nullptr;
   source.texture_pool_ = nullptr;
+}
+
+void Result::set_transformation(const float3x3 &transformation)
+{
+  domain_.transformation = transformation;
 }
 
 void Result::transform(const float3x3 &transformation)

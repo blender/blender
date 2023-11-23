@@ -30,11 +30,7 @@ const int NEGATIVE_INIT = -10;
 
 class OBJMesh : NonCopyable {
  private:
-  /**
-   * We need to copy the entire Object structure here because the dependency graph iterator
-   * sometimes builds an Object in a temporary space that doesn't persist.
-   */
-  Object export_object_eval_;
+  std::string object_name_;
   /** A pointer to #owned_export_mesh_ or the object'ed evaluated/original mesh. */
   const Mesh *export_mesh_;
   /** A mesh owned here, if created or modified for the export. May be null. */
@@ -89,6 +85,8 @@ class OBJMesh : NonCopyable {
   Vector<int> poly_order_;
 
  public:
+  Array<const Material *> materials;
+
   /**
    * Store evaluated Object and Mesh pointers. Conditionally triangulate a mesh, or
    * create a new Mesh from a Curve.
@@ -114,12 +112,6 @@ class OBJMesh : NonCopyable {
    * \return Total materials in the object.
    */
   int16_t tot_materials() const;
-  /**
-   * Return mat_nr-th material of the object. The given index should be zero-based.
-   */
-  const Material *get_object_material(int16_t mat_nr) const;
-
-  void ensure_mesh_normals() const;
 
   /**
    * Calculate smooth groups of a smooth-shaded object.
@@ -140,10 +132,6 @@ class OBJMesh : NonCopyable {
    * Get Object's Mesh's name.
    */
   const char *get_object_mesh_name() const;
-  /**
-   * Get object's material (at the given index) name. The given index should be zero-based.
-   */
-  const char *get_object_material_name(int16_t mat_nr) const;
 
   /**
    * Calculate coordinates of the vertex at the given index.
@@ -234,6 +222,6 @@ class OBJMesh : NonCopyable {
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */
-  void set_world_axes_transform(eIOAxis forward, eIOAxis up);
+  void set_world_axes_transform(const Object &obj_eval, eIOAxis forward, eIOAxis up);
 };
 }  // namespace blender::io::obj

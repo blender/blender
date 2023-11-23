@@ -10,7 +10,7 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_tracking.h"
 
@@ -112,9 +112,13 @@ class MovieDistortionOperation : public NodeOperation {
 
     const Domain domain = compute_domain();
     const DistortionGrid &distortion_grid = context().cache_manager().distortion_grids.get(
-        get_movie_clip(), domain.size, get_distortion_type(), context().get_frame_number());
+        context(),
+        get_movie_clip(),
+        domain.size,
+        get_distortion_type(),
+        context().get_frame_number());
 
-    GPUShader *shader = shader_manager().get("compositor_movie_distortion");
+    GPUShader *shader = context().get_shader("compositor_movie_distortion");
     GPU_shader_bind(shader);
 
     GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);

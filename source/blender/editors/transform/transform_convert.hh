@@ -11,6 +11,10 @@
 
 #include "RE_engine.h"
 
+#include "BKE_curves.hh"
+
+#include "BLI_index_mask.hh"
+
 struct BMEditMesh;
 struct BMesh;
 struct BezTriple;
@@ -106,6 +110,20 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc);
  */
 void animrecord_check_state(TransInfo *t, ID *id);
 
+/* `transform_convert_curves.cc` */
+
+/**
+ * Used for both curves and grease pencil objects.
+ */
+void curve_populate_trans_data_structs(TransDataContainer &tc,
+                                       blender::bke::CurvesGeometry &curves,
+                                       std::optional<blender::MutableSpan<float>> value_attribute,
+                                       const blender::IndexMask &selected_indices,
+                                       bool use_proportional_edit,
+                                       const blender::IndexMask &affected_curves,
+                                       bool use_connected_only,
+                                       int trans_data_offset);
+
 /* `transform_convert_action.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Action;
@@ -131,7 +149,7 @@ extern TransConvertTypeInfo TransConvertType_Cursor3D;
 
 extern TransConvertTypeInfo TransConvertType_Curve;
 
-/* transform_convert_curves.cc */
+/* `transform_convert_curves.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Curves;
 
@@ -142,6 +160,10 @@ extern TransConvertTypeInfo TransConvertType_Graph;
 /* `transform_convert_gpencil_legacy.cc` */
 
 extern TransConvertTypeInfo TransConvertType_GPencil;
+
+/* `transform_convert_greasepencil.cc` */
+
+extern TransConvertTypeInfo TransConvertType_GreasePencil;
 
 /* `transform_convert_lattice.cc` */
 
@@ -178,7 +200,7 @@ struct TransMirrorData {
 
 struct TransMeshDataCrazySpace {
   float (*quats)[4];
-  float (*defmats)[3][3];
+  blender::Array<blender::float3x3, 0> defmats;
 };
 
 void transform_convert_mesh_islands_calc(BMEditMesh *em,

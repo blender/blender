@@ -49,7 +49,7 @@ void main()
     }
 
     view_clipping_distances_set(gl_in[i]);
-    EmitVertex();
+    gpu_EmitVertex();
   }
   EndPrimitive();
 }

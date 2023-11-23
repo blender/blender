@@ -1160,7 +1160,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     if (geom->geometry_type == Geometry::HAIR) {
       /* Build BLAS for curve primitives. */
       Hair *const hair = static_cast<Hair *const>(geom);
-      if (hair->num_curves() == 0) {
+      if (hair->num_segments() == 0) {
         return;
       }
 

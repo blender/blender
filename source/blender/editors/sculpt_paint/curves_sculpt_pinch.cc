@@ -15,7 +15,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "BKE_brush.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_paint.hh"
 
@@ -192,7 +192,7 @@ struct PinchOperationExecutor {
           }
 
           const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-          const float t = safe_divide(dist_to_brush_re, brush_radius_base_re_);
+          const float t = math::safe_divide(dist_to_brush_re, brush_radius_base_re_);
           const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
           const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
                                point_factors_[point_i];
@@ -261,7 +261,7 @@ struct PinchOperationExecutor {
           }
 
           const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-          const float t = safe_divide(dist_to_brush_cu, brush_radius_cu);
+          const float t = math::safe_divide(dist_to_brush_cu, brush_radius_cu);
           const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
           const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
                                point_factors_[point_i];

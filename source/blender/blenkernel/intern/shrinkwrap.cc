@@ -26,16 +26,17 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_context.h"
-#include "BKE_lattice.h"
+#include "BKE_context.hh"
+#include "BKE_lattice.hh"
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_shrinkwrap.h"
 
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh" /* for OMP limits. */
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
@@ -141,9 +142,8 @@ bool BKE_shrinkwrap_init_tree(
 
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
     data->face_normals = reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
-    if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
-      data->clnors = static_cast<const float(*)[3]>(
-          CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
+    if (mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner) {
+      data->clnors = reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data());
     }
   }
 

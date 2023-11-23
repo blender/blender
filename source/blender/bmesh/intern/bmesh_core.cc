@@ -20,7 +20,7 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
 #include "bmesh.h"
@@ -400,8 +400,8 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 }
 
 BMFace *BM_face_create(BMesh *bm,
-                       BMVert **verts,
-                       BMEdge **edges,
+                       BMVert *const *verts,
+                       BMEdge *const *edges,
                        const int len,
                        const BMFace *f_example,
                        const eBMCreateFlag create_flag)

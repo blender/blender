@@ -10,9 +10,7 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/cpp_types.cc
   intern/field.cc
-  intern/field_cpp_type.cc
   intern/lazy_function.cc
   intern/lazy_function_execute.cc
   intern/lazy_function_graph.cc
@@ -26,8 +24,6 @@ set(SRC
   intern/multi_function_procedure_optimization.cc
 
   FN_field.hh
-  FN_field_cpp_type.hh
-  FN_field_cpp_type_make.hh
   FN_init.h
   FN_lazy_function.hh
   FN_lazy_function_execute.hh

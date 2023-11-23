@@ -10,7 +10,7 @@
 
 #include "extract_mesh.hh"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 namespace blender::draw {
 /* ---------------------------------------------------------------------- */

@@ -30,7 +30,7 @@
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
-#  include "SEQ_relations.h"
+#  include "SEQ_relations.hh"
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {

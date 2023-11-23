@@ -16,13 +16,14 @@
 #include "BKE_anim_path.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_tracking.h"
 
 #include "BLI_listbase.h"
@@ -360,21 +361,21 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
     return;
   }
 
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
   BoundBox bb_local;
-  if (bb == nullptr) {
+  if (!bb) {
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
     BKE_boundbox_init_from_minmax(&bb_local, min, max);
-    bb = &bb_local;
+    bb.emplace(bb_local);
   }
 
-  BKE_boundbox_calc_size_aabb(bb, size);
+  BKE_boundbox_calc_size_aabb(&*bb, size);
 
   if (around_origin) {
     zero_v3(center);
   }
   else {
-    BKE_boundbox_calc_center_aabb(bb, center);
+    BKE_boundbox_calc_center_aabb(&*bb, center);
   }
 
   switch (boundtype) {
@@ -536,7 +537,7 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
       DRW_buffer_add_entry(cb->field_vortex, color, &instdata);
       break;
     case PFIELD_GUIDE:
-      if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->anim_path_accum_length) {
+      if (cu && (cu->flag & CU_PATH) && ob->runtime->curve_cache->anim_path_accum_length) {
         instdata.size_x = instdata.size_y = instdata.size_z = pd->f_strength;
         float pos[4];
         BKE_where_on_path(ob, 0.0f, pos, nullptr, nullptr, nullptr, nullptr);
@@ -949,7 +950,7 @@ static void camera_view3d_reconstruction(
       }
 
       if (is_select) {
-        DRW_select_load_id(ob->runtime.select_id | (track_index << 16));
+        DRW_select_load_id(ob->runtime->select_id | (track_index << 16));
         track_index++;
       }
 
@@ -1284,7 +1285,7 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
   float *constraint_color = G_draw.block.color_grid_axis_z; /* ? */
 
   if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
-    float *parent_pos = ob->runtime.parent_display_origin;
+    float *parent_pos = ob->runtime->parent_display_origin;
     OVERLAY_extra_line_dashed(cb, parent_pos, ob->object_to_world[3], relation_color);
   }
 

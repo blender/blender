@@ -27,8 +27,8 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_image.h"
 #include "BKE_paint.hh"
 
@@ -916,7 +916,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   float zoomx, zoomy;
 
-  ED_view3d_viewcontext_init(C, &stroke->vc, depsgraph);
+  stroke->vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   stroke->get_location = get_location;
   stroke->test_start = test_start;

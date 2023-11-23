@@ -102,7 +102,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       BLI_assert_unreachable();
     }
     if (!params.output_was_set(0)) {
-      params.set_output(0, fn::ValueOrField<float>(delta_time));
+      params.set_output(0, bke::ValueOrField<float>(delta_time));
     }
   }
 
@@ -182,18 +182,22 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
 
 namespace blender::nodes::node_geo_simulation_input_cc {
 
-static void node_declare_dynamic(const bNodeTree &node_tree,
-                                 const bNode &node,
-                                 NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  const bNode *output_node = node_tree.node_by_id(node_storage(node).output_node_id);
+  b.add_output<decl::Float>("Delta Time");
+
+  const bNode *node = b.node_or_null();
+  const bNodeTree *node_tree = b.tree_or_null();
+  if (ELEM(nullptr, node, node_tree)) {
+    return;
+  }
+
+  const bNode *output_node = node_tree->node_by_id(node_storage(*node).output_node_id);
   if (!output_node) {
     return;
   }
   const auto &output_storage = *static_cast<const NodeGeometrySimulationOutput *>(
       output_node->storage);
-
-  b.add_output<decl::Float>("Delta Time");
 
   for (const int i : IndexRange(output_storage.items_num)) {
     const NodeSimulationItem &item = output_storage.items[i];
@@ -234,7 +238,7 @@ static void node_register()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SIMULATION_INPUT, "Simulation Input", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
-  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.declare = node_declare;
   ntype.insert_link = node_insert_link;
   ntype.gather_link_search_ops = nullptr;
   node_type_storage(&ntype,

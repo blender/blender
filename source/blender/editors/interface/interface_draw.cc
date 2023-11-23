@@ -619,7 +619,7 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
   int scissor[4];
   float colors[3][3];
   const float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
-  /* colors  pre multiplied by alpha for speed up */
+  /* Colors pre-multiplied by alpha for speed up. */
   float colors_alpha[3][3], colorsycc_alpha[3][3];
   float min, max;
 
@@ -1121,10 +1121,11 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Allow the lines to decrease as we get really small. */
-  float line_width = MAX2(MIN2(U.pixelsize / 5.0f * fabs(half_width - 4.0f), U.pixelsize), 0.5f);
+  float line_width = std::max(std::min(U.pixelsize / 5.0f * fabs(half_width - 4.0f), U.pixelsize),
+                              0.5f);
 
   /* Make things transparent as we get tiny. */
-  uchar alpha = MIN2(int(fabs(half_width - 2.0f) * 50.0f), 255);
+  uchar alpha = std::min(int(fabs(half_width - 2.0f) * 50.0f), 255);
 
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 

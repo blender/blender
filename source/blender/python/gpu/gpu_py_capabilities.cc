@@ -230,6 +230,48 @@ static PyObject *pygpu_hdr_support_get(PyObject * /*self*/)
   return PyBool_FromLong(GPU_hdr_support());
 }
 
+PyDoc_STRVAR(pygpu_max_work_group_count_get_doc,
+             ".. function:: max_work_group_count_get(index)\n"
+             "\n"
+             "   Get maximum number of work groups that may be dispatched to a compute shader.\n"
+             "\n"
+             "   :arg index: Index of the dimension.\n"
+             "   :type index: int\n"
+             "   :return: Maximum number of work groups for the queried dimension.\n"
+             "   :rtype: int\n");
+static PyObject *pygpu_max_work_group_count_get(PyObject * /*self*/, PyObject *args)
+{
+  int index;
+  if (!PyArg_ParseTuple(args, "i", &index)) {
+    return nullptr;
+  }
+
+  const int max_work_group_count = GPU_max_work_group_count(index);
+
+  return PyLong_FromLong(max_work_group_count);
+}
+
+PyDoc_STRVAR(pygpu_max_work_group_size_get_doc,
+             ".. function:: max_work_group_size_get(index)\n"
+             "\n"
+             "   Get maximum size of a work group that may be dispatched to a compute shader.\n"
+             "\n"
+             "   :arg index: Index of the dimension.\n"
+             "   :type index: int\n"
+             "   :return: Maximum size of a work group for the queried dimension.\n"
+             "   :rtype: int\n");
+static PyObject *pygpu_max_work_group_size_get(PyObject * /*self*/, PyObject *args)
+{
+  int index;
+  if (!PyArg_ParseTuple(args, "i", &index)) {
+    return nullptr;
+  }
+
+  const int max_work_group_size = GPU_max_work_group_size(index);
+
+  return PyLong_FromLong(max_work_group_size);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -304,7 +346,16 @@ static PyMethodDef pygpu_capabilities__tp_methods[] = {
      (PyCFunction)pygpu_hdr_support_get,
      METH_NOARGS,
      pygpu_hdr_support_get_doc},
-
+    {"max_work_group_count_get",
+      (PyCFunction)pygpu_max_work_group_count_get,
+      METH_VARARGS,
+      pygpu_max_work_group_count_get_doc,
+    },
+    {"max_work_group_size_get",
+      (PyCFunction)pygpu_max_work_group_size_get,
+      METH_VARARGS,
+      pygpu_max_work_group_size_get_doc,
+    },
     {nullptr, nullptr, 0, nullptr},
 };
 

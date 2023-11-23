@@ -436,26 +436,26 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name NLA Channel Defines
+/** \name NLA Track Defines
  * \{ */
 
-/** NLA channel heights */
-#define NLACHANNEL_FIRST_TOP(ac) \
-  (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLACHANNEL_SKIP)
-#define NLACHANNEL_HEIGHT(snla) \
+/** NLA track heights */
+#define NLATRACK_FIRST_TOP(ac) \
+  (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLATRACK_SKIP)
+#define NLATRACK_HEIGHT(snla) \
   (((snla) && ((snla)->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : \
                                                      (1.2f * U.widget_unit))
-#define NLACHANNEL_SKIP (0.1f * U.widget_unit)
-#define NLACHANNEL_STEP(snla) (NLACHANNEL_HEIGHT(snla) + NLACHANNEL_SKIP)
+#define NLATRACK_SKIP (0.1f * U.widget_unit)
+#define NLATRACK_STEP(snla) (NLATRACK_HEIGHT(snla) + NLATRACK_SKIP)
 /** Additional offset to give some room at the end. */
-#define NLACHANNEL_TOT_HEIGHT(ac, item_amount) \
-  (-NLACHANNEL_FIRST_TOP(ac) + NLACHANNEL_STEP(((SpaceNla *)(ac)->sl)) * (item_amount + 1))
+#define NLATRACK_TOT_HEIGHT(ac, item_amount) \
+  (-NLATRACK_FIRST_TOP(ac) + NLATRACK_STEP(((SpaceNla *)(ac)->sl)) * (item_amount + 1))
 
-/** Channel widths */
-#define NLACHANNEL_NAMEWIDTH (10 * U.widget_unit)
+/** Track widths */
+#define NLATRACK_NAMEWIDTH (10 * U.widget_unit)
 
-/** Channel toggle-buttons */
-#define NLACHANNEL_BUTTON_WIDTH (0.8f * U.widget_unit)
+/** Track toggle-buttons */
+#define NLATRACK_BUTTON_WIDTH (0.8f * U.widget_unit)
 
 /** \} */
 
@@ -718,20 +718,6 @@ void ANIM_set_active_channel(bAnimContext *ac,
  */
 bool ANIM_is_active_channel(bAnimListElem *ale);
 
-/**
- * Delete the F-Curve from the given AnimData block (if possible),
- * as appropriate according to animation context.
- */
-void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu);
-
-/**
- * Unlink the action from animdata if it's empty.
- *
- * If the action has no F-Curves, unlink it from AnimData if it did not
- * come from a NLA Strip being tweaked.
- */
-bool ANIM_remove_empty_action_from_animdata(AnimData *adt);
-
 /* ************************************************ */
 /* DRAWING API */
 /* `anim_draw.cc` */
@@ -937,6 +923,7 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 /** Flags for conversion mapping. */
 enum eAnimUnitConv_Flags {
+  ANIM_UNITCONV_NONE = 0,
   /** Restore to original internal values. */
   ANIM_UNITCONV_RESTORE = (1 << 0),
   /** Ignore handles (i.e. only touch main keyframes). */
@@ -958,7 +945,7 @@ enum eAnimUnitConv_Flags {
 /**
  * Get flags used for normalization in ANIM_unit_mapping_get_factor.
  */
-short ANIM_get_normalization_flags(bAnimContext *ac);
+short ANIM_get_normalization_flags(SpaceLink *space_link);
 /**
  * Get unit conversion factor for given ID + F-Curve.
  */

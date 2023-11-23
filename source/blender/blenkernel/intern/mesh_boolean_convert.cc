@@ -6,12 +6,14 @@
  * \ingroup bke
  */
 
+#include <iostream>
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_boolean_convert.hh"
@@ -233,7 +235,7 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  * All allocation of memory for the IMesh comes from `arena`.
  */
 static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
-                             Span<const float4x4 *> obmats,
+                             Span<float4x4> obmats,
                              Span<Array<short>> material_remaps,
                              const float4x4 &target_transform,
                              IMeshArena &arena,
@@ -295,9 +297,8 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     r_info->mesh_face_offset[mi] = f;
     /* Get matrix that transforms a coordinate in meshes[mi]'s local space
      * to the target space. */
-    const float4x4 objn_mat = (obmats.is_empty() || obmats[mi] == nullptr) ?
-                                  float4x4::identity() :
-                                  clean_transform(*obmats[mi]);
+    const float4x4 objn_mat = obmats.is_empty() ? float4x4::identity() :
+                                                  clean_transform(obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
     r_info->has_negative_transform[mi] = math::is_negative(objn_mat);
 
@@ -316,7 +317,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
      * Skip the matrix multiplication for each point when there is no transform for a mesh,
      * for example when the first mesh is already in the target space. (Note the logic
      * directly above, which uses an identity matrix with a null input transform). */
-    if (obmats.is_empty() || obmats[mi] == nullptr) {
+    if (obmats.is_empty() || obmats[mi] == float4x4::identity()) {
       threading::parallel_for(vert_positions.index_range(), 2048, [&](IndexRange range) {
         for (int i : range) {
           float3 co = vert_positions[i];
@@ -797,7 +798,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
 #endif  // WITH_GMP
 
 Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
-                          Span<const float4x4 *> transforms,
+                          Span<float4x4> transforms,
                           const float4x4 &target_transform,
                           Span<Array<short>> material_remaps,
                           const bool use_self,

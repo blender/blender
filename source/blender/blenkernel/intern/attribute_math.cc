@@ -176,4 +176,28 @@ void gather(const GVArray &src, const Span<int> map, GMutableSpan dst)
   });
 }
 
+void gather_group_to_group(const OffsetIndices<int> src_offsets,
+                           const OffsetIndices<int> dst_offsets,
+                           const IndexMask &selection,
+                           const GSpan src,
+                           GMutableSpan dst)
+{
+  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    array_utils::gather_group_to_group(
+        src_offsets, dst_offsets, selection, src.typed<T>(), dst.typed<T>());
+  });
+}
+
+void gather_to_groups(const OffsetIndices<int> dst_offsets,
+                      const IndexMask &src_selection,
+                      const GSpan src,
+                      GMutableSpan dst)
+{
+  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    array_utils::gather_to_groups(dst_offsets, src_selection, src.typed<T>(), dst.typed<T>());
+  });
+}
+
 }  // namespace blender::bke::attribute_math

@@ -21,9 +21,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_compute_contexts.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
@@ -371,7 +371,7 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
         }
       }
     }
-    compute_context_builder.push<bke::NodeGroupComputeContext>(*group_node);
+    compute_context_builder.push<bke::GroupNodeComputeContext>(*group_node, *tree);
   }
   return true;
 }
@@ -452,15 +452,8 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 static void node_free(SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
-
-  LISTBASE_FOREACH_MUTABLE (bNodeTreePath *, path, &snode->treepath) {
-    MEM_freeN(path);
-  }
-
-  if (snode->runtime) {
-    snode->runtime->linkdrag.reset();
-    MEM_delete(snode->runtime);
-  }
+  BLI_freelistN(&snode->treepath);
+  MEM_delete(snode->runtime);
 }
 
 /* spacetype; init callback */
@@ -569,9 +562,6 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         case ND_TRANSFORM_DONE:
           node_area_tag_recalc_auto_compositing(snode, area);
           break;
-        case ND_LAYER_CONTENT:
-          node_area_tag_tree_recalc(snode, area);
-          break;
       }
       break;
 
@@ -626,7 +616,9 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_NODE:
       if (wmn->action == NA_EDITED) {
-        node_area_tag_tree_recalc(snode, area);
+        if (wmn->reference == snode->id || snode->id == nullptr) {
+          node_area_tag_tree_recalc(snode, area);
+        }
       }
       else if (wmn->action == NA_SELECTED) {
         ED_area_tag_redraw(area);

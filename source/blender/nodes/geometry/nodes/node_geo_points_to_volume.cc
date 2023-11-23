@@ -15,7 +15,7 @@
 #include "GEO_points_to_volume.hh"
 
 #include "BKE_lib_id.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "NOD_rna_define.hh"
 
@@ -249,7 +249,7 @@ static void node_register()
                     "NodeGeometryPointsToVolume",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  blender::bke::node_type_size(&ntype, 170, 120, 700);
+  bke::node_type_size(&ntype, 170, 120, 700);
   ntype.initfunc = node_init;
   ntype.updatefunc = node_update;
   ntype.declare = node_declare;

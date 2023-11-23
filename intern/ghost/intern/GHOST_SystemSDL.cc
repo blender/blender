@@ -781,7 +781,9 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
           /* This SDL back-end has not yet implemented color sampling the desktop. */
           GHOST_kCapabilityDesktopSample |
           /* This SDL back-end has not yet implemented image copy/paste. */
-          GHOST_kCapabilityClipboardImages));
+          GHOST_kCapabilityClipboardImages |
+          /* No support yet for IME input methods. */
+          GHOST_kCapabilityInputIME));
 }
 
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const

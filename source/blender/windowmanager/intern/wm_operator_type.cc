@@ -24,7 +24,7 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idprop.h"
 
 #include "RNA_access.hh"

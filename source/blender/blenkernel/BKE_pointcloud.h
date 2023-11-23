@@ -9,6 +9,8 @@
  * \brief General operations for point clouds.
  */
 
+#include "DNA_object_types.h" /* #BoundBox. */
+
 #ifdef __cplusplus
 #  include <mutex>
 
@@ -18,7 +20,7 @@
 
 #  include "DNA_pointcloud_types.h"
 
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #endif
 
 #ifdef __cplusplus
@@ -74,7 +76,7 @@ struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
                                          struct PointCloud *pointcloud_dst);
 
-struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
+BoundBox BKE_pointcloud_boundbox_get(struct Object *ob);
 
 bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, const char *name);
 

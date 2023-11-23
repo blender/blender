@@ -36,7 +36,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.h"
@@ -45,7 +45,7 @@
 
 #include "RNA_define.hh"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 
 #include <ocio_capi.h>
 

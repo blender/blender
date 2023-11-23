@@ -4,6 +4,7 @@
 
 import bpy
 from bpy.types import Operator
+from bpy.props import IntProperty
 
 from bpy.app.translations import pgettext_data as data_
 
@@ -55,11 +56,13 @@ def geometry_node_group_empty_tool_new(context):
     else:
         group.is_type_mesh = True
 
-    mode = context.object.mode if context.object else 'EDIT'
+    mode = context.object.mode if context.object else 'OBJECT'
     if mode in {'SCULPT', 'SCULPT_CURVES'}:
         group.is_mode_sculpt = True
-    else:
+    elif mode == 'EDIT':
         group.is_mode_edit = True
+    else:
+        group.is_mode_object = True
 
     return group
 
@@ -284,7 +287,6 @@ class NewGeometryNodeTreeAssign(Operator):
         return geometry_modifier_poll(context)
 
     def execute(self, context):
-        space = context.space_data
         modifier = get_context_modifier(context)
         if not modifier:
             return {'CANCELLED'}
@@ -458,6 +460,55 @@ class RepeatZoneItemMoveOperator(RepeatZoneOperator, ZoneMoveItemOperator, Opera
     bl_options = {'REGISTER', 'UNDO'}
 
 
+def _editable_tree_with_active_node_type(context, node_type):
+    space = context.space_data
+    # Needs active node editor and a tree.
+    if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or space.edit_tree.library:
+        return False
+    node = context.active_node
+    if node is None or node.bl_idname != node_type:
+        return False
+    return True
+
+
+class IndexSwitchItemAddOperator(Operator):
+    """Add an item to the index switch"""
+    bl_idname = "node.index_switch_item_add"
+    bl_label = "Add Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return _editable_tree_with_active_node_type(context, 'GeometryNodeIndexSwitch')
+
+    def execute(self, context):
+        node = context.active_node
+        node.index_switch_items.new()
+        return {'FINISHED'}
+
+
+class IndexSwitchItemRemoveOperator(Operator):
+    """Remove an item from the index switch"""
+    bl_idname = "node.index_switch_item_remove"
+    bl_label = "Remove Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    index: IntProperty(
+        name="Index",
+        description="Index of item to remove",
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return _editable_tree_with_active_node_type(context, 'GeometryNodeIndexSwitch')
+
+    def execute(self, context):
+        node = context.active_node
+        items = node.index_switch_items
+        items.remove(items[self.index])
+        return {'FINISHED'}
+
+
 classes = (
     NewGeometryNodesModifier,
     NewGeometryNodeTreeAssign,
@@ -469,4 +520,6 @@ classes = (
     RepeatZoneItemAddOperator,
     RepeatZoneItemRemoveOperator,
     RepeatZoneItemMoveOperator,
+    IndexSwitchItemAddOperator,
+    IndexSwitchItemRemoveOperator,
 )

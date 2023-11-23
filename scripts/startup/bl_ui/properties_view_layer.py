@@ -155,7 +155,7 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
                  text="Ambient Occlusion")
 
 
-class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
+class VIEWLAYER_PT_eevee_next_layer_passes_light(ViewLayerButtonsPanel, Panel):
     bl_label = "Light"
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
     COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
@@ -335,6 +335,7 @@ classes = (
     VIEWLAYER_PT_eevee_layer_passes_data,
     VIEWLAYER_PT_eevee_next_layer_passes_data,
     VIEWLAYER_PT_eevee_layer_passes_light,
+    VIEWLAYER_PT_eevee_next_layer_passes_light,
     VIEWLAYER_PT_eevee_layer_passes_effects,
     VIEWLAYER_PT_layer_passes_cryptomatte,
     VIEWLAYER_PT_layer_passes_aov,

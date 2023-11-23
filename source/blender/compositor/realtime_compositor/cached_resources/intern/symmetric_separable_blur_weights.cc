@@ -15,6 +15,8 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
+#include "COM_context.hh"
+#include "COM_result.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
 
 namespace blender::realtime_compositor {
@@ -43,7 +45,9 @@ bool operator==(const SymmetricSeparableBlurWeightsKey &a,
  * Symmetric Separable Blur Weights.
  */
 
-SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(int type, float radius)
+SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(Context &context,
+                                                             int type,
+                                                             float radius)
 {
   /* The size of filter is double the radius plus 1, but since the filter is symmetric, we only
    * compute half of it and no doubling happens. We add 1 to make sure the filter size is always
@@ -74,7 +78,14 @@ SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(int type, float rad
   }
 
   texture_ = GPU_texture_create_1d(
-      "Weights", size, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, weights.data());
+      "Weights",
+      size,
+      1,
+      Result::texture_format(ResultType::Float, context.get_precision()),
+      GPU_TEXTURE_USAGE_GENERAL,
+      weights.data());
+  GPU_texture_filter_mode(texture_, true);
+  GPU_texture_extend_mode(texture_, GPU_SAMPLER_EXTEND_MODE_EXTEND);
 }
 
 SymmetricSeparableBlurWeights::~SymmetricSeparableBlurWeights()
@@ -110,12 +121,15 @@ void SymmetricSeparableBlurWeightsContainer::reset()
   }
 }
 
-SymmetricSeparableBlurWeights &SymmetricSeparableBlurWeightsContainer::get(int type, float radius)
+SymmetricSeparableBlurWeights &SymmetricSeparableBlurWeightsContainer::get(Context &context,
+                                                                           int type,
+                                                                           float radius)
 {
   const SymmetricSeparableBlurWeightsKey key(type, radius);
 
-  auto &weights = *map_.lookup_or_add_cb(
-      key, [&]() { return std::make_unique<SymmetricSeparableBlurWeights>(type, radius); });
+  auto &weights = *map_.lookup_or_add_cb(key, [&]() {
+    return std::make_unique<SymmetricSeparableBlurWeights>(context, type, radius);
+  });
 
   weights.needed = true;
   return weights;

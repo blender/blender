@@ -50,6 +50,7 @@ struct rctf;
 struct rcti;
 struct wmEvent;
 struct wmGizmo;
+struct wmKeyMapItem;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -212,7 +213,7 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
  *
  * \note modal map events can also be used in `ED_view3d_navigation_do`.
  */
-ViewOpsData *ED_view3d_navigation_init(bContext *C, const bool use_alt_navigation);
+ViewOpsData *ED_view3d_navigation_init(bContext *C, const wmKeyMapItem *kmi_merge);
 bool ED_view3d_navigation_do(bContext *C,
                              ViewOpsData *vod,
                              const wmEvent *event,
@@ -944,7 +945,7 @@ int view3d_opengl_select_with_id_filter(ViewContext *vc,
 /* view3d_select.cc */
 
 float ED_view3d_select_dist_px();
-void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph);
+ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
 
 /**
  * Re-initialize `vc` with `obact` as if it's active object (with some differences).

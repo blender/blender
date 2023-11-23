@@ -16,13 +16,13 @@
 #include "BLI_stack.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_screen.hh"
 
 #include "ED_node.hh" /* own include */
@@ -50,6 +50,7 @@
 #include "BLT_translation.h"
 
 #include "NOD_node_declaration.hh"
+#include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
@@ -435,27 +436,6 @@ static bool socket_can_be_viewed(const bNode &node, const bNodeSocket &socket)
               SOCK_RGBA);
 }
 
-static eCustomDataType socket_type_to_custom_data_type(const eNodeSocketDatatype socket_type)
-{
-  switch (socket_type) {
-    case SOCK_FLOAT:
-      return CD_PROP_FLOAT;
-    case SOCK_INT:
-      return CD_PROP_INT32;
-    case SOCK_VECTOR:
-      return CD_PROP_FLOAT3;
-    case SOCK_BOOLEAN:
-      return CD_PROP_BOOL;
-    case SOCK_RGBA:
-      return CD_PROP_COLOR;
-    case SOCK_ROTATION:
-      return CD_PROP_QUATERNION;
-    default:
-      /* Fallback. */
-      return CD_AUTO_FROM_NAME;
-  }
-}
-
 /**
  * Find the socket to link to in a viewer node.
  */
@@ -468,21 +448,24 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
     return (bNodeSocket *)viewer_node.inputs.first;
   }
   /* For the geometry nodes viewer, find the socket with the correct type. */
-  LISTBASE_FOREACH (bNodeSocket *, viewer_socket, &viewer_node.inputs) {
-    if (viewer_socket->type == src_socket.type) {
-      if (viewer_socket->type == SOCK_GEOMETRY) {
-        return viewer_socket;
-      }
-      NodeGeometryViewer *storage = (NodeGeometryViewer *)viewer_node.storage;
-      const eCustomDataType data_type = socket_type_to_custom_data_type(
-          (eNodeSocketDatatype)src_socket.type);
-      BLI_assert(data_type != CD_AUTO_FROM_NAME);
-      storage->data_type = data_type;
-      viewer_node.typeinfo->updatefunc(&ntree, &viewer_node);
-      return viewer_socket;
-    }
+
+  if (src_socket.type == SOCK_GEOMETRY) {
+    return static_cast<bNodeSocket *>(viewer_node.inputs.first);
   }
-  return nullptr;
+
+  ntree.ensure_topology_cache();
+  if (!socket_can_be_viewed(src_socket.owner_node(), src_socket)) {
+    return nullptr;
+  }
+
+  NodeGeometryViewer &storage = *static_cast<NodeGeometryViewer *>(viewer_node.storage);
+  const eCustomDataType data_type = *bke::socket_type_to_custom_data_type(
+      eNodeSocketDatatype(src_socket.type));
+  BLI_assert(data_type != CD_AUTO_FROM_NAME);
+  storage.data_type = data_type;
+  nodes::update_node_declaration_and_sockets(ntree, viewer_node);
+
+  return static_cast<bNodeSocket *>(viewer_node.inputs.last);
 }
 
 static bool is_viewer_node(const bNode &node)

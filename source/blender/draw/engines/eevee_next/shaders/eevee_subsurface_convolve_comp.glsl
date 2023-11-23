@@ -5,8 +5,8 @@
 /**
  * Process in screen space the diffuse radiance input to mimic subsurface transmission.
  *
- * This implementation follows the technique described in the siggraph presentation:
- * "Efficient screen space subsurface scattering Siggraph 2018"
+ * This implementation follows the technique described in the SIGGRAPH presentation:
+ * "Efficient screen space subsurface scattering SIGGRAPH 2018"
  * by Evgenii Golubev
  *
  * But, instead of having all the precomputed weights for all three color primaries,
@@ -90,6 +90,12 @@ void main(void)
   vec2 sample_scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) *
                       (0.5 * max_radius / homcoord);
 
+  float pixel_footprint = sample_scale.x * textureSize(depth_tx, 0).x;
+  if (pixel_footprint <= 1.0) {
+    /* Early out, avoid divisions by zero. */
+    return;
+  }
+
   /* Avoid too small radii that have float imprecision. */
   vec3 clamped_sss_radius = max(vec3(1e-4), gbuf.diffuse.sss_radius / max_radius) * max_radius;
   /* Scale albedo because we can have HDR value caused by BSDF sampling. */
@@ -127,5 +133,6 @@ void main(void)
 
   /* Put result in direct diffuse. */
   imageStore(out_direct_light_img, texel, vec4(accum_radiance, 0.0));
+  /* Clear the indirect pass since its content has been merged and convolved with direct light. */
   imageStore(out_indirect_light_img, texel, vec4(0.0, 0.0, 0.0, 0.0));
 }

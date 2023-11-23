@@ -15,8 +15,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_unit.h"
 
@@ -241,7 +241,7 @@ static BMLoop *get_next_loop(
           BM_loop_calc_face_direction(l_tmp, tdir);
           cross_v3_v3v3(vec_accum, l_tmp->f->no, tdir);
 #if 0
-          /* rough guess, we can  do better! */
+          /* Rough guess, we can do better! */
           normalize_v3_length(vec_accum,
                               (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
 #else

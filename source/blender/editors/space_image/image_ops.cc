@@ -34,7 +34,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
@@ -3334,7 +3334,10 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 /** \name Sample Image Operator
  * \{ */
 
-bool ED_space_image_get_position(SpaceImage *sima, ARegion *region, int mval[2], float fpos[2])
+bool ED_space_image_get_position(SpaceImage *sima,
+                                 ARegion *region,
+                                 const int mval[2],
+                                 float r_fpos[2])
 {
   void *lock;
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
@@ -3344,7 +3347,7 @@ bool ED_space_image_get_position(SpaceImage *sima, ARegion *region, int mval[2],
     return false;
   }
 
-  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &fpos[0], &fpos[1]);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &r_fpos[0], &r_fpos[1]);
 
   ED_space_image_release_buffer(sima, ibuf, lock);
   return true;

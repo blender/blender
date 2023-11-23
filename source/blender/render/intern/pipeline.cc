@@ -54,7 +54,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
@@ -64,7 +64,7 @@
 #include "BKE_sound.h"
 #include "BKE_writeavi.h" /* <------ should be replaced once with generic movie module */
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -81,8 +81,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
 
 #include "GPU_context.h"
 #include "WM_api.hh"
@@ -442,7 +442,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
       /* The render result uses shallow initialization, and the caller is not expected to
        * explicitly free it. So simply assign the buffers as a shallow copy here as well.
        *
-       * The thread safety is ensured via the  re->resultmutex. */
+       * The thread safety is ensured via the `re->resultmutex`. */
       rr->ibuf = rv->ibuf;
 
       /* active layer */

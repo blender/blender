@@ -60,8 +60,13 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
     rcti cur_section_bounds;
     BLI_rcti_init_minmax(&cur_section_bounds);
 
+    /* A bit annoying, but this function is called for both drawing and event handling. When
+     * drawing, we need to exclude inactive blocks since they mess with the result. However, this
+     * active state is only useful during drawing and must be ignored for handling (at which point
+     * #uiBlock::active is false for all blocks). */
+    const bool is_drawing = region->do_draw & RGN_DRAWING;
     LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-      if (!block->active) {
+      if (is_drawing && !block->active) {
         continue;
       }
 

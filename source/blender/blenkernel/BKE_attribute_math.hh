@@ -14,8 +14,9 @@
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_offset_indices.hh"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 namespace blender::bke::attribute_math {
 
@@ -634,6 +635,15 @@ template<typename T> using DefaultMixer = typename DefaultMixerStruct<T>::type;
 
 void gather(GSpan src, Span<int> map, GMutableSpan dst);
 void gather(const GVArray &src, Span<int> map, GMutableSpan dst);
+void gather_group_to_group(OffsetIndices<int> src_offsets,
+                           OffsetIndices<int> dst_offsets,
+                           const IndexMask &selection,
+                           GSpan src,
+                           GMutableSpan dst);
+void gather_to_groups(OffsetIndices<int> dst_offsets,
+                      const IndexMask &src_selection,
+                      GSpan src,
+                      GMutableSpan dst);
 
 /** \} */
 

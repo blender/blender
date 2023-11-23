@@ -10,7 +10,7 @@
 
 #  include "DNA_space_types.h"
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 
@@ -127,7 +127,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(
       sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-
+  uiItemR(sub, imfptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);

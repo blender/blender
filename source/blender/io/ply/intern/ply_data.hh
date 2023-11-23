@@ -9,16 +9,24 @@
 #pragma once
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
 namespace blender::io::ply {
 
 enum PlyDataTypes { NONE, CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE, PLY_TYPE_COUNT };
 
+struct PlyCustomAttribute {
+  PlyCustomAttribute(const StringRef name_, int64_t size) : name(name_), data(size, 0.0f) {}
+  std::string name;
+  Vector<float> data; /* Any custom PLY attributes are converted to floats. */
+};
+
 struct PlyData {
   Vector<float3> vertices;
   Vector<float3> vertex_normals;
   Vector<float4> vertex_colors; /* Linear space, 0..1 range colors. */
+  Vector<PlyCustomAttribute> vertex_custom_attr;
   Vector<std::pair<int, int>> edges;
   Vector<uint32_t> face_vertices;
   Vector<uint32_t> face_sizes;

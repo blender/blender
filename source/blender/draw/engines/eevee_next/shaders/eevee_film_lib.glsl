@@ -37,7 +37,7 @@ vec4 film_texelfetch_as_YCoCg_opacity(sampler2D tx, ivec2 texel)
 /* Returns a weight based on Luma to reduce the flickering introduced by high energy pixels. */
 float film_luma_weight(float luma)
 {
-  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014. */
+  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
   return 1.0 / (4.0 + luma * uniform_buf.film.exposure_scale);
 }
@@ -223,7 +223,7 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
 {
   /**
    * Dilate velocity by using the nearest pixel in a cross pattern.
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 27)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
   const ivec2 corners[4] = ivec2[4](ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
   float min_depth = texelFetch(depth_tx, texel_sample, 0).x;
@@ -291,7 +291,7 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
   /**
    * Use optimized version by leveraging bilinear filtering from hardware sampler and by removing
    * corner taps.
-   * From "Filmic SMAA" by Jorge Jimenez at Siggraph 2016
+   * From "Filmic SMAA" by Jorge Jimenez at SIGGRAPH 2016
    * http://advances.realtimerendering.com/s2016/Filmic%20SMAA%20v7.pptx
    */
   center_texel += 0.5;
@@ -359,7 +359,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
 #else
   /**
    * Simple bounding box calculation in YCoCg as described in:
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
    */
   min_c = vec4(1e16);
   max_c = vec4(-1e16);
@@ -422,7 +422,7 @@ float film_history_blend_factor(float velocity,
   /* Blend less history if the pixel has substantial velocity. */
   blend = mix(blend, 0.20, saturate(velocity * 0.02));
   /**
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
   float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
@@ -747,13 +747,33 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
                         ao_accum);
       film_sample_accum_mist(src, mist_accum);
     }
+    /* Monochrome render passes that have colored outputs. Set alpha to 1. */
+    vec4 shadow_accum_color = vec4(vec3(shadow_accum), weight_accum);
+    vec4 ao_accum_color = vec4(vec3(ao_accum), weight_accum);
+
     film_store_color(dst, uniform_buf.film.diffuse_color_id, diffuse_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.specular_color_id, specular_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.environment_id, environment_accum, out_color);
-    film_store_color(dst, uniform_buf.film.shadow_id, vec4(vec3(shadow_accum), 1.0), out_color);
-    film_store_color(
-        dst, uniform_buf.film.ambient_occlusion_id, vec4(vec3(ao_accum), 1.0), out_color);
+    film_store_color(dst, uniform_buf.film.shadow_id, shadow_accum_color, out_color);
+    film_store_color(dst, uniform_buf.film.ambient_occlusion_id, ao_accum_color, out_color);
     film_store_value(dst, uniform_buf.film.mist_id, mist_accum, out_color);
+  }
+
+  if (uniform_buf.film.any_render_pass_3) {
+    vec4 transparent_accum = vec4(0.0);
+
+    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
+      FilmSample src = film_sample_get(i, texel_film);
+      film_sample_accum(src,
+                        uniform_buf.film.transparent_id,
+                        uniform_buf.render_pass.transparent_id,
+                        rp_color_tx,
+                        transparent_accum);
+    }
+    /* Alpha stores transmittance for transparent pass. */
+    transparent_accum.a = weight_accum - transparent_accum.a;
+
+    film_store_color(dst, uniform_buf.film.transparent_id, transparent_accum, out_color);
   }
 
   for (int aov = 0; aov < uniform_buf.film.aov_color_len; aov++) {

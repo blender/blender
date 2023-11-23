@@ -24,14 +24,14 @@
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 #include "BKE_texture.h"
 
@@ -338,11 +338,11 @@ static void warpModifier_do(WarpModifierData *wmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
-  warpModifier_do(wmd, ctx, mesh, vertexCos, verts_num);
+  warpModifier_do(
+      wmd, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -361,7 +361,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   if (!RNA_pointer_is_null(&from_obj_ptr) && RNA_enum_get(&from_obj_ptr, "type") == OB_ARMATURE) {
 
     PointerRNA from_obj_data_ptr = RNA_pointer_get(&from_obj_ptr, "data");
-    uiItemPointerR(col, ptr, "bone_from", &from_obj_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
+    uiItemPointerR(
+        col, ptr, "bone_from", &from_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
   col = uiLayoutColumn(layout, true);
@@ -369,7 +370,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA to_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&to_obj_ptr) && RNA_enum_get(&to_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA to_obj_data_ptr = RNA_pointer_get(&to_obj_ptr, "data");
-    uiItemPointerR(col, ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
+    uiItemPointerR(col, ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
   uiItemR(layout, ptr, "use_volume_preserve", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -436,7 +437,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
   }
 }
 
@@ -476,7 +477,7 @@ ModifierTypeInfo modifierType_Warp = {
     /*struct_name*/ "WarpModifierData",
     /*struct_size*/ sizeof(WarpModifierData),
     /*srna*/ &RNA_WarpModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WARP,

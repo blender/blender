@@ -543,7 +543,6 @@ bool ED_operator_editable_mesh(bContext *C);
 bool ED_operator_editmesh(bContext *C);
 bool ED_operator_editmesh_view3d(bContext *C);
 bool ED_operator_editmesh_region_view3d(bContext *C);
-bool ED_operator_editmesh_auto_smooth(bContext *C);
 bool ED_operator_editarmature(bContext *C);
 bool ED_operator_editcurve(bContext *C);
 bool ED_operator_editcurve_3d(bContext *C);

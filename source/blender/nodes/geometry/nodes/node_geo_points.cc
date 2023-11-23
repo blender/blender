@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .supports_field()
       .description("The radii of the new points");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Points", "Geometry");
 }
 
 class PointsFieldContext : public FieldContext {

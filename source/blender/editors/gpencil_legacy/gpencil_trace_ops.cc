@@ -17,7 +17,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
@@ -234,7 +234,7 @@ static void trace_start_job(void *customdata, wmJobWorkerStatus *worker_status)
   /* Image sequence. */
   else if (trace_job->image->type == IMA_TYPE_IMAGE) {
     ImageUser *iuser = trace_job->ob_active->iuser;
-    for (int i = init_frame; i < iuser->frames; i++) {
+    for (int i = init_frame; i <= iuser->frames; i++) {
       if (G.is_break) {
         trace_job->was_canceled = true;
         break;
@@ -243,7 +243,7 @@ static void trace_start_job(void *customdata, wmJobWorkerStatus *worker_status)
       *(trace_job->progress) = float(i) / float(iuser->frames);
       worker_status->do_update = true;
 
-      iuser->framenr = i + 1;
+      iuser->framenr = i;
 
       void *lock;
       ImBuf *ibuf = BKE_image_acquire_ibuf(trace_job->image, iuser, &lock);

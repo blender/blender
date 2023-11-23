@@ -64,8 +64,8 @@ TEST(greasepencil, remove_drawings)
   GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1));
   drawing->wrap().strokes_for_write().resize(0, 10);
 
-  Layer &layer1 = grease_pencil.add_layer(grease_pencil.root_group(), "Layer1");
-  Layer &layer2 = grease_pencil.add_layer(grease_pencil.root_group(), "Layer2");
+  Layer &layer1 = grease_pencil.add_layer("Layer1");
+  Layer &layer2 = grease_pencil.add_layer("Layer2");
 
   layer1.add_frame(0, 0);
   layer1.add_frame(10, 1);
@@ -144,7 +144,7 @@ struct GreasePencilLayerTreeExample {
     grease_pencil.add_layer(group2, names[4]);
     grease_pencil.add_layer(group2, names[5]);
 
-    grease_pencil.add_layer(grease_pencil.root_group(), names[6]);
+    grease_pencil.add_layer(names[6]);
   }
 };
 
@@ -187,6 +187,29 @@ TEST(greasepencil, layer_tree_node_types)
     EXPECT_EQ(child.is_layer(), ex.is_layer[i]);
     EXPECT_EQ(child.is_group(), !ex.is_layer[i]);
   }
+}
+
+TEST(greasepencil, layer_tree_is_child_of)
+{
+  GreasePencilLayerTreeExample ex;
+
+  EXPECT_FALSE(ex.grease_pencil.root_group().is_child_of(ex.grease_pencil.root_group()));
+
+  const LayerGroup &group1 = ex.grease_pencil.find_node_by_name("Group1")->as_group();
+  const LayerGroup &group2 = ex.grease_pencil.find_node_by_name("Group2")->as_group();
+  const Layer &layer1 = ex.grease_pencil.find_node_by_name("Layer1")->as_layer();
+  const Layer &layer3 = ex.grease_pencil.find_node_by_name("Layer3")->as_layer();
+  const Layer &layer5 = ex.grease_pencil.find_node_by_name("Layer5")->as_layer();
+
+  EXPECT_TRUE(layer1.is_child_of(ex.grease_pencil.root_group()));
+  EXPECT_TRUE(layer1.is_child_of(group1));
+  EXPECT_TRUE(layer3.is_child_of(group1));
+  EXPECT_FALSE(layer5.is_child_of(group1));
+
+  EXPECT_TRUE(layer3.is_child_of(group2));
+  EXPECT_FALSE(layer1.is_child_of(group2));
+
+  EXPECT_TRUE(layer5.is_child_of(ex.grease_pencil.root_group()));
 }
 
 /* --------------------------------------------------------------------------------------------- */

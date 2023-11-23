@@ -6,7 +6,7 @@
 #include "ED_screen.hh"
 
 #include "BKE_compute_contexts.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
@@ -470,7 +470,7 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
     }
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
       const auto &elem = reinterpret_cast<const GroupNodeViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::NodeGroupComputeContext>(elem.node_id);
+      compute_context_builder.push<bke::GroupNodeComputeContext>(elem.node_id);
       return true;
     }
     case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {

@@ -13,14 +13,11 @@
 #include "BLI_bitmap.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 
 #include "BKE_ccg.h"
 #include "BKE_dyntopo_set.hh"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 class PBVHAttrReq;
 struct GPUBatch;
@@ -57,7 +54,6 @@ struct PBVH_GPU_Args {
   const char *render_color;
 
   int face_sets_color_seed, face_sets_color_default;
-  const int *face_sets; /* for PBVH_FACES and PBVH_GRIDS */
 
   SubdivCCG *subdiv_ccg;
   const DMFlagMat *grid_flag_mats;
@@ -77,6 +73,7 @@ struct PBVH_GPU_Args {
   /* Debug mode to show original coordinates instead of vertex positions. */
   bool show_orig;
 
+  /* BMesh. */
   int cd_mask_layer;
   struct PBVHTriBuf *tribuf, *tri_buffers;
   int tot_tri_buffers, updategen;
@@ -105,7 +102,3 @@ GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
                              const PBVH_GPU_Args &args,
                              int *r_prim_count,
                              bool do_coarse_grids);
-
-#ifdef __cplusplus
-}
-#endif

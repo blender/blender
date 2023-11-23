@@ -61,8 +61,8 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_customdata.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_customdata.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
@@ -491,17 +491,14 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   }
 
   const TSpace *tspace = nullptr;
-  const float(*loop_normals)[3] = nullptr;
+  blender::Span<blender::float3> corner_normals;
   if (tangent) {
-    BKE_mesh_ensure_normals_for_display(me_eval);
-    BKE_mesh_calc_normals_split(me_eval);
     BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
 
     tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->loop_data, CD_TANGENT));
     BLI_assert(tspace);
 
-    loop_normals = static_cast<const float(*)[3]>(
-        CustomData_get_layer(&me_eval->loop_data, CD_NORMAL));
+    corner_normals = me_eval->corner_normals();
   }
 
   const blender::Span<blender::float3> vert_normals = me->vert_normals();
@@ -524,10 +521,10 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
       triangles[i].tspace[2] = &tspace[lt->tri[2]];
     }
 
-    if (loop_normals) {
-      triangles[i].loop_normal[0] = loop_normals[lt->tri[0]];
-      triangles[i].loop_normal[1] = loop_normals[lt->tri[1]];
-      triangles[i].loop_normal[2] = loop_normals[lt->tri[2]];
+    if (!corner_normals.is_empty()) {
+      triangles[i].loop_normal[0] = corner_normals[lt->tri[0]];
+      triangles[i].loop_normal[1] = corner_normals[lt->tri[1]];
+      triangles[i].loop_normal[2] = corner_normals[lt->tri[2]];
     }
 
     if (calculate_normal) {

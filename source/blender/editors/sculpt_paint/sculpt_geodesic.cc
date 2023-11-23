@@ -33,7 +33,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_ccg.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
@@ -56,7 +56,7 @@ using blender::uint3;
 using blender::Vector;
 
 /* Propagate distance from v1 and v2 to v0. */
-static bool sculpt_geodesic_mesh_test_dist_add(float (*cos)[3],
+static bool sculpt_geodesic_mesh_test_dist_add(blender::Span<blender::float3> vert_positions,
                                                const int v0,
                                                const int v1,
                                                const int v2,
@@ -73,9 +73,9 @@ static bool sculpt_geodesic_mesh_test_dist_add(float (*cos)[3],
     return false;
   }
 
-  float *co0 = cos[v0];
-  float *co1 = cos[v1];
-  float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ? cos[v2] : nullptr;
+  const float *co0 = vert_positions[v0];
+  const float *co1 = vert_positions[v1];
+  const float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ? vert_positions[v2] : nullptr;
 
   float dist0;
   if (v2 != SCULPT_GEODESIC_VERTEX_NONE) {
@@ -130,7 +130,7 @@ static bool sculpt_geodesic_grids_test_dist_add(SculptSession *ss,
                                                 float *dists,
                                                 GSet *initial_verts,
                                                 PBVHVertRef *r_closest_verts,
-                                                float (*cos)[3])
+                                                const Span<float3> vert_positions)
 {
   if (BLI_gset_haskey(initial_verts, POINTER_FROM_INT(v0))) {
     return false;
@@ -141,13 +141,16 @@ static bool sculpt_geodesic_grids_test_dist_add(SculptSession *ss,
     return false;
   }
 
-  const float *co0 = cos ? cos[v0] :
-                           SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v0));
-  const float *co1 = cos ? cos[v1] :
-                           SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v1));
+  const float *co0 = !vert_positions.is_empty() ?
+                         &vert_positions[v0][0] :
+                         SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v0));
+  const float *co1 = !vert_positions.is_empty() ?
+                         &vert_positions[v1][0] :
+                         SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v1));
   const float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ?
-                         (cos ? cos[v2] :
-                                SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v2))) :
+                         (!vert_positions.is_empty() ?
+                              &vert_positions[v2][0] :
+                              SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v2))) :
                          nullptr;
 
   float dist0;
@@ -201,17 +204,19 @@ static bool sculpt_geodesic_mesh_test_dist_add_bmesh(BMVert *v0,
                                                      BMVert *v1,
                                                      BMVert *v2,
                                                      float *dists,
-                                                     GSet */*initial_verts*/,
+                                                     GSet * /*initial_verts*/,
                                                      PBVHVertRef *r_closest_verts,
-                                                     float (*cos)[3])
+                                                     const Span<float3> vert_positions)
 {
   const int v0_i = BM_elem_index_get(v0);
   const int v1_i = BM_elem_index_get(v1);
   const int v2_i = v2 ? BM_elem_index_get(v2) : SCULPT_GEODESIC_VERTEX_NONE;
 
-  const float *v0co = cos ? cos[BM_elem_index_get(v0)] : v0->co;
-  const float *v1co = cos ? cos[BM_elem_index_get(v1)] : v1->co;
-  const float *v2co = v2 ? (cos ? cos[BM_elem_index_get(v2)] : v2->co) : nullptr;
+  const float *v0co = !vert_positions.is_empty() ? vert_positions[BM_elem_index_get(v0)] : v0->co;
+  const float *v1co = !vert_positions.is_empty() ? vert_positions[BM_elem_index_get(v1)] : v1->co;
+  const float *v2co = v2 ? (!vert_positions.is_empty() ? vert_positions[BM_elem_index_get(v2)] :
+                                                         v2->co) :
+                           nullptr;
 
   if (BM_elem_flag_test(v0, BMESH_INITIAL_VERT_TAG)) {
     return false;
@@ -278,7 +283,7 @@ static float *geodesic_mesh_create(Object *ob,
                                    GSet *initial_verts,
                                    const float limit_radius,
                                    PBVHVertRef *r_closest_verts,
-                                   float (*cos)[3])
+                                   Span<float3> vert_positions)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -288,8 +293,8 @@ static float *geodesic_mesh_create(Object *ob,
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  if (!cos) {
-    cos = SCULPT_mesh_deformed_positions_get(ss);
+  if (vert_positions.is_empty()) {
+    vert_positions = SCULPT_mesh_deformed_positions_get(ss);
   }
 
   const blender::Span<blender::int2> edges = mesh->edges();
@@ -349,10 +354,9 @@ static float *geodesic_mesh_create(Object *ob,
      * number of verts (usually just 1 or 2). */
     GSET_ITER (gs_iter, initial_verts) {
       const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-      float *v_co = cos[v];
-
+      const float *v_co = vert_positions[v];
       for (int i = 0; i < totvert; i++) {
-        if (len_squared_v3v3(v_co, cos[i]) <= limit_radius_sq) {
+        if (len_squared_v3v3(v_co, vert_positions[i]) <= limit_radius_sq) {
           BLI_BITMAP_ENABLE(affected_vertex, i);
         }
       }
@@ -381,8 +385,13 @@ static float *geodesic_mesh_create(Object *ob,
         if (dists[v1] > dists[v2]) {
           SWAP(int, v1, v2);
         }
-        sculpt_geodesic_mesh_test_dist_add(
-            cos, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts, r_closest_verts);
+        sculpt_geodesic_mesh_test_dist_add(vert_positions,
+                                           v2,
+                                           v1,
+                                           SCULPT_GEODESIC_VERTEX_NONE,
+                                           dists,
+                                           initial_verts,
+                                           r_closest_verts);
       }
 
       if (ss->epmap[e].size() != 0) {
@@ -396,7 +405,8 @@ static float *geodesic_mesh_create(Object *ob,
               continue;
             }
             if (sculpt_geodesic_mesh_test_dist_add(
-                    cos, v_other, v1, v2, dists, initial_verts, nullptr)) {
+                    vert_positions, v_other, v1, v2, dists, initial_verts, nullptr))
+            {
               for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].size();
                    edge_map_index++) {
                 const int e_other = ss->vemap[v_other][edge_map_index];
@@ -444,9 +454,11 @@ static float *geodesic_bmesh_create(Object *ob,
                                     GSet *initial_verts,
                                     const float limit_radius,
                                     PBVHVertRef *r_closest_verts,
-                                    float (*cos)[3])
+                                    const Span<float3> vert_positions)
 {
   SculptSession *ss = ob->sculpt;
+
+  bool pos_override = !vert_positions.is_empty();
 
   if (!ss->bm) {
     return nullptr;
@@ -511,13 +523,13 @@ static float *geodesic_bmesh_create(Object *ob,
     GSET_ITER (gs_iter, initial_verts) {
       const int v_i = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
       BMVert *v = (BMVert *)BKE_pbvh_index_to_vertex(ss->pbvh, v_i).i;
-      float *co1 = cos ? cos[BM_elem_index_get(v)] : v->co;
+      const float *co1 = pos_override ? vert_positions[BM_elem_index_get(v)] : v->co;
 
       BM_elem_flag_enable(v, BMESH_INITIAL_VERT_TAG);
 
       for (int i = 0; i < totvert; i++) {
         BMVert *v2 = (BMVert *)BKE_pbvh_index_to_vertex(ss->pbvh, i).i;
-        float *co2 = cos ? cos[BM_elem_index_get(v2)] : v2->co;
+        const float *co2 = pos_override ? vert_positions[BM_elem_index_get(v2)] : v2->co;
 
         if (len_squared_v3v3(co1, co2) <= limit_radius_sq) {
           BLI_BITMAP_ENABLE(affected_vertex, i);
@@ -554,7 +566,7 @@ static float *geodesic_bmesh_create(Object *ob,
           SWAP(int, v1_i, v2_i);
         }
         sculpt_geodesic_mesh_test_dist_add_bmesh(
-            v2, v1, nullptr, dists, initial_verts, r_closest_verts, cos);
+            v2, v1, nullptr, dists, initial_verts, r_closest_verts, vert_positions);
       }
 
       BMLoop *l = e->l;
@@ -579,7 +591,7 @@ static float *geodesic_bmesh_create(Object *ob,
             const int v_other_i = BM_elem_index_get(v_other);
 
             if (sculpt_geodesic_mesh_test_dist_add_bmesh(
-                    v_other, v1, v2, dists, initial_verts, r_closest_verts, cos))
+                    v_other, v1, v2, dists, initial_verts, r_closest_verts, vert_positions))
             {
               BMIter eiter;
               BMEdge *e_other;
@@ -677,9 +689,11 @@ static float *geodesic_grids_create(Object *ob,
                                     GSet *initial_verts,
                                     const float limit_radius,
                                     PBVHVertRef *r_closest_verts,
-                                    float (*cos)[3])
+                                    const Span<float3> vert_positions)
 {
   SculptSession *ss = ob->sculpt;
+
+  const bool pos_override = !vert_positions.is_empty();
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -728,11 +742,12 @@ static float *geodesic_grids_create(Object *ob,
     GSET_ITER (gs_iter, initial_verts) {
       const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, v);
-      const float *v_co = cos ? cos[v] : SCULPT_vertex_co_get(ss, vertex);
+      const float *v_co = pos_override ? &vert_positions[v][0] : SCULPT_vertex_co_get(ss, vertex);
 
       for (int i = 0; i < totvert; i++) {
-        const float *v_co2 = cos ? cos[i] :
-                                   SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, i));
+        const float *v_co2 = pos_override ?
+                                 &vert_positions[i][0] :
+                                 SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, i));
         if (len_squared_v3v3(v_co, v_co2) <= limit_radius_sq) {
           BLI_BITMAP_ENABLE(affected_vertex, i);
         }
@@ -859,8 +874,14 @@ static float *geodesic_grids_create(Object *ob,
         if (dists[v1] > dists[v2]) {
           SWAP(int, v1, v2);
         }
-        sculpt_geodesic_grids_test_dist_add(
-            ss, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts, r_closest_verts, cos);
+        sculpt_geodesic_grids_test_dist_add(ss,
+                                            v2,
+                                            v1,
+                                            SCULPT_GEODESIC_VERTEX_NONE,
+                                            dists,
+                                            initial_verts,
+                                            r_closest_verts,
+                                            vert_positions);
       }
 
       for (int pi = 0; pi < 4; pi++) {
@@ -876,7 +897,7 @@ static float *geodesic_grids_create(Object *ob,
         //}
 
         if (sculpt_geodesic_grids_test_dist_add(
-                ss, v_other, v1, v2, dists, initial_verts, r_closest_verts, cos))
+                ss, v_other, v1, v2, dists, initial_verts, r_closest_verts, vert_positions))
         {
           for (int edge_map_index = 0; edge_map_index < vmap[v_other].count; edge_map_index++) {
             const int e_other = vmap[v_other].indices[edge_map_index];
@@ -962,7 +983,7 @@ float *SCULPT_geodesic_distances_create(Object *ob,
                                         GSet *initial_verts,
                                         const float limit_radius,
                                         PBVHVertRef *r_closest_verts,
-                                        float (*vertco_override)[3])
+                                        Span<float3> vertco_override)
 {
   SculptSession *ss = ob->sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -1008,8 +1029,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
     }
   }
 
-  float *dists = SCULPT_geodesic_distances_create(
-      ob, initial_verts, limit_radius, nullptr, nullptr);
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius, nullptr, {});
   BLI_gset_free(initial_verts, nullptr);
   return dists;
 }
@@ -1024,8 +1044,7 @@ float *SCULPT_geodesic_from_vertex(Object *ob, const PBVHVertRef vertex, const f
 
   BLI_gset_add(initial_verts, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, vertex)));
 
-  float *dists = SCULPT_geodesic_distances_create(
-      ob, initial_verts, limit_radius, nullptr, nullptr);
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius, nullptr, {});
   BLI_gset_free(initial_verts, nullptr);
 
   return dists;

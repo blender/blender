@@ -19,11 +19,12 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -279,8 +280,9 @@ void ViewOpsData::init_navigation(bContext *C,
     negate_v3_v3(this->dyn_ofs, pivot_new);
     this->use_dyn_ofs = true;
 
-    if (!(nav_type->flag & VIEWOPS_FLAG_ORBIT_SELECT)) {
-      /* Calculate new #RegionView3D::ofs and #RegionView3D::dist. */
+    {
+      /* The pivot has changed so the offset needs to be updated as well.
+       * Calculate new #RegionView3D::ofs and #RegionView3D::dist. */
 
       if (rv3d->is_persp) {
         float my_origin[3]; /* Original #RegionView3D.ofs. */
@@ -404,7 +406,7 @@ struct ViewOpsData_Utility : ViewOpsData {
   /* Used by #ED_view3d_navigation_do. */
   bool is_modal_event;
 
-  ViewOpsData_Utility(bContext *C, const bool use_alt_navigation = false)
+  ViewOpsData_Utility(bContext *C, const wmKeyMapItem *kmi_merge = nullptr)
       : ViewOpsData(), keymap_items(), is_modal_event(false)
   {
     this->init_context(C);
@@ -427,9 +429,31 @@ struct ViewOpsData_Utility : ViewOpsData {
         continue;
       }
 
-      wmKeyMapItem *kmi_copy = WM_keymap_add_item_copy(&keymap_tmp, kmi);
-      if (use_alt_navigation) {
-        kmi_copy->alt = true;
+      wmKeyMapItem *kmi_cpy = WM_keymap_add_item_copy(&keymap_tmp, kmi);
+      if (kmi_merge) {
+        if (kmi_merge->shift == 1 || ELEM(kmi_merge->type, EVT_RIGHTSHIFTKEY, EVT_LEFTSHIFTKEY)) {
+          kmi_cpy->shift = 1;
+        }
+        if (kmi_merge->ctrl == 1 || ELEM(kmi_merge->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
+          kmi_cpy->ctrl = 1;
+        }
+        if (kmi_merge->alt == 1 || ELEM(kmi_merge->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
+          kmi_cpy->alt = 1;
+        }
+        if (kmi_merge->oskey == 1 || ELEM(kmi_merge->type, EVT_OSKEY)) {
+          kmi_cpy->oskey = 1;
+        }
+        if (!ELEM(kmi_merge->type,
+                  EVT_LEFTCTRLKEY,
+                  EVT_LEFTALTKEY,
+                  EVT_RIGHTALTKEY,
+                  EVT_RIGHTCTRLKEY,
+                  EVT_RIGHTSHIFTKEY,
+                  EVT_LEFTSHIFTKEY,
+                  EVT_OSKEY))
+        {
+          kmi_cpy->keymodifier |= kmi_merge->type;
+        }
       }
     }
 
@@ -810,10 +834,10 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
         /* use the boundbox if we can */
         Object *ob_eval = base_eval->object;
 
-        if (ob_eval->runtime.bb && !(ob_eval->runtime.bb->flag & BOUNDBOX_DIRTY)) {
+        if (ob_eval->runtime->bb && !(ob_eval->runtime->bb->flag & BOUNDBOX_DIRTY)) {
           float cent[3];
 
-          BKE_boundbox_calc_center_aabb(ob_eval->runtime.bb, cent);
+          BKE_boundbox_calc_center_aabb(ob_eval->runtime->bb, cent);
 
           mul_m4_v3(ob_eval->object_to_world, cent);
           add_v3_v3(select_center, cent);
@@ -1037,13 +1061,13 @@ static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
 
 /* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
  * with an array of `wmKeyMapItem`s used for navigation. */
-ViewOpsData *ED_view3d_navigation_init(bContext *C, const bool use_alt_navigation)
+ViewOpsData *ED_view3d_navigation_init(bContext *C, const wmKeyMapItem *kmi_merge)
 {
   if (!CTX_wm_region_view3d(C)) {
     return nullptr;
   }
 
-  return new ViewOpsData_Utility(C, use_alt_navigation);
+  return new ViewOpsData_Utility(C, kmi_merge);
 }
 
 bool ED_view3d_navigation_do(bContext *C,

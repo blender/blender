@@ -22,7 +22,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
+#include "BKE_mesh_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -54,7 +55,7 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include "BLI_math_vector.h"
 
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #  include "BKE_main.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"
@@ -478,27 +479,7 @@ static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*layer)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&me->loop_data, CD_NORMAL));
-
-  if (!layer) {
-    zero_v3(values);
-  }
-  else {
-    copy_v3_v3(values, layer[index]);
-  }
-}
-
-static void rna_MeshLoop_normal_set(PointerRNA *ptr, const float *values)
-{
-  Mesh *me = rna_mesh(ptr);
-  const int index = rna_MeshLoop_index_get(ptr);
-  float(*layer)[3] = static_cast<float(*)[3]>(
-      CustomData_get_layer_for_write(&me->loop_data, CD_NORMAL, me->totloop));
-
-  if (layer) {
-    normalize_v3_v3(layer[index], values);
-  }
+  copy_v3_v3(values, me->corner_normals()[index]);
 }
 
 static void rna_MeshLoop_tangent_get(PointerRNA *ptr, float *values)
@@ -530,13 +511,11 @@ static void rna_MeshLoop_bitangent_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*nor)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&me->loop_data, CD_NORMAL));
   const float(*vec)[4] = static_cast<const float(*)[4]>(
       CustomData_get_layer(&me->loop_data, CD_MLOOPTANGENT));
 
-  if (nor && vec) {
-    cross_v3_v3v3(values, nor[index], vec[index]);
+  if (vec) {
+    cross_v3_v3v3(values, me->corner_normals()[index], vec[index]);
     mul_v3_fl(values, vec[index][3]);
   }
   else {
@@ -604,7 +583,10 @@ static void rna_MeshPolygon_use_smooth_set(PointerRNA *ptr, bool value)
         &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, "sharp_face"));
   }
   const int index = rna_MeshPolygon_index_get(ptr);
-  sharp_faces[index] = !value;
+  if (value == sharp_faces[index]) {
+    sharp_faces[index] = !value;
+    BKE_mesh_tag_sharpness_changed(mesh);
+  }
 }
 
 static bool rna_MeshPolygon_select_get(PointerRNA *ptr)
@@ -706,20 +688,11 @@ static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
 static void rna_MeshLoopTriangle_split_normals_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
-  const float(*lnors)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&me->loop_data, CD_NORMAL));
-
-  if (!lnors) {
-    zero_v3(values + 0);
-    zero_v3(values + 3);
-    zero_v3(values + 6);
-  }
-  else {
-    MLoopTri *lt = (MLoopTri *)ptr->data;
-    copy_v3_v3(values + 0, lnors[lt->tri[0]]);
-    copy_v3_v3(values + 3, lnors[lt->tri[1]]);
-    copy_v3_v3(values + 6, lnors[lt->tri[2]]);
-  }
+  const blender::Span<blender::float3> loop_normals = me->corner_normals();
+  const MLoopTri *lt = (const MLoopTri *)ptr->data;
+  copy_v3_v3(values + 0, loop_normals[lt->tri[0]]);
+  copy_v3_v3(values + 3, loop_normals[lt->tri[1]]);
+  copy_v3_v3(values + 6, loop_normals[lt->tri[2]]);
 }
 
 static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)
@@ -1107,7 +1080,7 @@ DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_color, ldata, CD_PROP_BYTE_COLOR)
 static PointerRNA rna_Mesh_vertex_color_active_get(PointerRNA *ptr)
 {
   Mesh *mesh = (Mesh *)ptr->data;
-  CustomDataLayer *layer = BKE_id_attribute_search(
+  CustomDataLayer *layer = BKE_id_attribute_search_for_write(
       &mesh->id, mesh->active_color_attribute, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_CORNER);
   return rna_pointer_inherit_refine(ptr, &RNA_MeshLoopColorLayer, layer);
 }
@@ -1129,7 +1102,7 @@ static void rna_Mesh_vertex_color_active_set(PointerRNA *ptr,
 static int rna_Mesh_vertex_color_active_index_get(PointerRNA *ptr)
 {
   Mesh *mesh = (Mesh *)ptr->data;
-  CustomDataLayer *layer = BKE_id_attribute_search(
+  const CustomDataLayer *layer = BKE_id_attribute_search(
       &mesh->id, mesh->active_color_attribute, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_CORNER);
   if (!layer) {
     return 0;
@@ -1235,38 +1208,6 @@ static int rna_MeshSkinVertexLayer_data_length(PointerRNA *ptr)
 
 /* End skin vertices */
 
-/* Paint mask */
-DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_paint_mask, vdata, CD_PAINT_MASK)
-
-static char *rna_MeshPaintMaskLayer_path(const PointerRNA *ptr)
-{
-  const CustomDataLayer *cdl = static_cast<const CustomDataLayer *>(ptr->data);
-  char name_esc[sizeof(cdl->name) * 2];
-  BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
-  return BLI_sprintfN("vertex_paint_masks[\"%s\"]", name_esc);
-}
-
-static char *rna_MeshPaintMask_path(const PointerRNA *ptr)
-{
-  return rna_VertCustomData_data_path(ptr, "vertex_paint_masks", CD_PAINT_MASK);
-}
-
-static void rna_MeshPaintMaskLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(
-      iter, layer->data, sizeof(MFloatProperty), (me->edit_mesh) ? 0 : me->totvert, 0, nullptr);
-}
-
-static int rna_MeshPaintMaskLayer_data_length(PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  return (me->edit_mesh) ? 0 : me->totvert;
-}
-
-/* End paint mask */
-
 /* poly.vertices - this is faked loop access for convenience */
 static int rna_MeshPoly_vertices_get_length(const PointerRNA *ptr,
                                             int length[RNA_MAX_ARRAY_DIMENSION])
@@ -1286,16 +1227,6 @@ static void rna_MeshPoly_vertices_get(PointerRNA *ptr, int *values)
   const int poly_start = *poly_offset_p;
   const int poly_size = *(poly_offset_p + 1) - poly_start;
   memcpy(values, &me->corner_verts()[poly_start], sizeof(int) * poly_size);
-}
-
-static int rna_MeshPolygon_loop_start_get(PointerRNA *ptr)
-{
-  return *static_cast<const int *>(ptr->data);
-}
-
-static void rna_MeshPolygon_loop_start_set(PointerRNA *ptr, int value)
-{
-  *static_cast<int *>(ptr->data) = value;
 }
 
 static int rna_MeshPolygon_loop_total_get(PointerRNA *ptr)
@@ -1399,7 +1330,10 @@ static void rna_MeshEdge_use_edge_sharp_set(PointerRNA *ptr, bool value)
         &mesh->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totedge, "sharp_edge"));
   }
   const int index = rna_MeshEdge_index_get(ptr);
-  sharp_edge[index] = value;
+  if (value != sharp_edge[index]) {
+    sharp_edge[index] = value;
+    BKE_mesh_tag_sharpness_changed(mesh);
+  }
 }
 
 static bool rna_MeshEdge_use_seam_get(PointerRNA *ptr)
@@ -1642,6 +1576,11 @@ int rna_Mesh_loops_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   return true;
 }
 
+static int rna_Mesh_normals_domain_get(PointerRNA *ptr)
+{
+  return int(rna_mesh(ptr)->normals_domain());
+}
+
 static void rna_Mesh_vertex_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
@@ -1707,41 +1646,32 @@ int rna_Mesh_poly_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_p
 static void rna_Mesh_corner_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const blender::float3 *normals = static_cast<const blender::float3 *>(
-      CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
-  if (!normals) {
+  const blender::Span<blender::float3> normals = mesh->corner_normals();
+  if (normals.is_empty()) {
     iter->valid = false;
     return;
   }
-  rna_iterator_array_begin(iter,
-                           const_cast<blender::float3 *>(normals),
-                           sizeof(float[3]),
-                           mesh->totloop,
-                           false,
-                           nullptr);
+  rna_iterator_array_begin(
+      iter, (void *)normals.data(), sizeof(float[3]), mesh->totloop, false, nullptr);
 }
 
 static int rna_Mesh_corner_normals_length(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  if (!CustomData_has_layer(&mesh->loop_data, CD_NORMAL)) {
-    return 0;
-  }
   return mesh->totloop;
 }
 
 int rna_Mesh_corner_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const blender::float3 *normals = static_cast<const blender::float3 *>(
-      CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
-  if (index < 0 || index >= mesh->totloop || !normals) {
+  const blender::Span<blender::float3> normals = mesh->corner_normals();
+  if (index < 0 || index >= mesh->totloop || normals.is_empty()) {
     return false;
   }
   /* Casting away const is okay because this RNA type doesn't allow changing the value. */
   r_ptr->owner_id = (ID *)&mesh->id;
   r_ptr->type = &RNA_MeshNormalValue;
-  r_ptr->data = const_cast<blender::float3 *>(&normals[index]);
+  r_ptr->data = (float *)&normals[index];
   return true;
 }
 
@@ -2193,8 +2123,7 @@ static void rna_def_mlooptri(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Split Normals",
-      "Local space unit length split normals vectors of the vertices of this triangle "
-      "(must be computed beforehand using calc_normals_split or calc_tangents)");
+      "Local space unit length split normal vectors of the face corners of this triangle");
 
   prop = RNA_def_property(srna, "area", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -2243,15 +2172,14 @@ static void rna_def_mloop(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Index", "Index of this loop");
 
   prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_array(prop, 3);
   RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_float_funcs(
-      prop, "rna_MeshLoop_normal_get", "rna_MeshLoop_normal_set", nullptr);
-  RNA_def_property_ui_text(
-      prop,
-      "Normal",
-      "Local space unit length split normal vector of this vertex for this face "
-      "(must be computed beforehand using calc_normals_split or calc_tangents)");
+  RNA_def_property_float_funcs(prop, "rna_MeshLoop_normal_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Normal",
+                           "The normal direction of the face corner, taking into account sharp "
+                           "faces, sharp edges, and custom normal data");
 
   prop = RNA_def_property(srna, "tangent", PROP_FLOAT, PROP_DIRECTION);
   RNA_def_property_array(prop, 3);
@@ -2312,8 +2240,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 
   /* these are both very low level access */
   prop = RNA_def_property(srna, "loop_start", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_funcs(
-      prop, "rna_MeshPolygon_loop_start_get", "rna_MeshPolygon_loop_start_set", nullptr);
+  RNA_def_property_int_sdna(prop, nullptr, "i");
   RNA_def_property_ui_text(prop, "Loop Start", "Index of the first loop of this face");
   /* also low level */
   prop = RNA_def_property(srna, "loop_total", PROP_INT, PROP_UNSIGNED);
@@ -2912,41 +2839,6 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA * /*cprop*/)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 }
 
-static void rna_def_paint_mask(BlenderRNA *brna, PropertyRNA * /*cprop*/)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "MeshPaintMaskLayer", nullptr);
-  RNA_def_struct_ui_text(srna, "Mesh Paint Mask Layer", "Per-vertex paint mask data");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
-  RNA_def_struct_path_func(srna, "rna_MeshPaintMaskLayer_path");
-
-  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_type(prop, "MeshPaintMaskProperty");
-  RNA_def_property_ui_text(prop, "Data", "");
-
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_MeshPaintMaskLayer_data_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_get",
-                                    "rna_MeshPaintMaskLayer_data_length",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr);
-
-  srna = RNA_def_struct(brna, "MeshPaintMaskProperty", nullptr);
-  RNA_def_struct_sdna(srna, "MFloatProperty");
-  RNA_def_struct_ui_text(srna, "Mesh Paint Mask Property", "Floating-point paint mask value");
-  RNA_def_struct_path_func(srna, "rna_MeshPaintMask_path");
-
-  prop = RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "f");
-  RNA_def_property_ui_text(prop, "Value", "");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-}
-
 static void rna_def_looptri_poly_value(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "ReadOnlyInteger", nullptr);
@@ -3029,6 +2921,22 @@ static void rna_def_mesh(BlenderRNA *brna)
   rna_def_mesh_polygons(brna, prop);
 
   rna_def_normal_layer_value(brna);
+
+  static const EnumPropertyItem normal_domain_items[] = {
+      {int(blender::bke::MeshNormalDomain::Point), "POINT", 0, "Point", ""},
+      {int(blender::bke::MeshNormalDomain::Face), "FACE", 0, "Face", ""},
+      {int(blender::bke::MeshNormalDomain::Corner), "CORNER", 0, "Corner", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  prop = RNA_def_property(srna, "normals_domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, normal_domain_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Normal Domain",
+      "The attribute domain that gives enough information to represent the mesh's normals");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_funcs(prop, "rna_Mesh_normals_domain_get", nullptr, nullptr);
 
   prop = RNA_def_property(srna, "vertex_normals", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshNormalValue");
@@ -3211,24 +3119,6 @@ static void rna_def_mesh(BlenderRNA *brna)
   rna_def_skin_vertices(brna, prop);
   /* End skin vertices */
 
-  /* Paint mask */
-  prop = RNA_def_property(srna, "vertex_paint_masks", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "vert_data.layers", "vert_data.totlayer");
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_Mesh_vertex_paint_masks_begin",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    "rna_Mesh_vertex_paint_masks_length",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr);
-  RNA_def_property_struct_type(prop, "MeshPaintMaskLayer");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
-  RNA_def_property_ui_text(prop, "Vertex Paint Mask", "Vertex paint mask");
-  rna_def_paint_mask(brna, prop);
-  /* End paint mask */
-
   /* Attributes */
   rna_def_attributes_common(srna);
 
@@ -3258,7 +3148,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_remesh_fix_poles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_FIX_POLES);
-  RNA_def_property_ui_text(prop, "Fix Poles", "Produces less poles and a better topology flow");
+  RNA_def_property_ui_text(prop, "Fix Poles", "Produces fewer poles and a better topology flow");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
@@ -3271,23 +3161,9 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
-  prop = RNA_def_property(srna, "use_remesh_preserve_paint_mask", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_PAINT_MASK);
-  RNA_def_property_ui_text(prop, "Preserve Paint Mask", "Keep the current mask on the new mesh");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-
-  prop = RNA_def_property(srna, "use_remesh_preserve_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_SCULPT_FACE_SETS);
-  RNA_def_property_ui_text(
-      prop, "Preserve Face Sets", "Keep the current Face Sets on the new mesh");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-
-  prop = RNA_def_property(srna, "use_remesh_preserve_vertex_colors", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_VERTEX_COLORS);
-  RNA_def_property_ui_text(
-      prop, "Preserve Vertex Colors", "Keep the current vertex colors on the new mesh");
+  prop = RNA_def_property(srna, "use_remesh_preserve_attributes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_ATTRIBUTES);
+  RNA_def_property_ui_text(prop, "Preserve Attributes", "Transfer all attributes to the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
@@ -3325,24 +3201,6 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
   /* End Symmetry */
-
-  prop = RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_AUTOSMOOTH);
-  RNA_def_property_ui_text(
-      prop,
-      "Auto Smooth",
-      "Auto smooth (based on smooth/sharp faces/edges and angle between faces), "
-      "or use custom split normals data if available");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
-
-  prop = RNA_def_property(srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "smoothresh");
-  RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
-  RNA_def_property_ui_text(prop,
-                           "Auto Smooth Angle",
-                           "Maximum angle between face normals that will be considered as smooth "
-                           "(unused if custom split normals data are available)");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
 
   RNA_define_verify_sdna(false);
   prop = RNA_def_property(srna, "has_custom_normals", PROP_BOOLEAN, PROP_NONE);

@@ -32,9 +32,9 @@
 
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
@@ -525,7 +525,7 @@ static float density_falloff(PointDensityRangeData *pdr, int index, float square
       break;
     case TEX_PD_FALLOFF_PARTICLE_AGE:
       if (pdr->point_data_life) {
-        density = dist * MIN2(pdr->point_data_life[index], 1.0f);
+        density = dist * std::min(pdr->point_data_life[index], 1.0f);
       }
       else {
         density = dist;
@@ -853,10 +853,7 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
   }
   else {
     const float radius[3] = {pd->radius, pd->radius, pd->radius};
-    const BoundBox *bb = BKE_object_boundbox_get(object);
-
-    if (bb != nullptr) {
-      BLI_assert((bb->flag & BOUNDBOX_DIRTY) == 0);
+    if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(object)) {
       copy_v3_v3(r_min, bb->vec[0]);
       copy_v3_v3(r_max, bb->vec[6]);
       /* Adjust texture space to include density points on the boundaries. */

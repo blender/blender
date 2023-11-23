@@ -26,9 +26,9 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_report.h"
@@ -2580,7 +2580,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case WHEELDOWNMOUSE:
       if ((event->val == KM_PRESS) && (event->modifier & KM_ALT)) {
         ssc->limit_dist -= 0.01f;
-        ssc->limit_dist = MAX2(0.01f, ssc->limit_dist);
+        ssc->limit_dist = std::max(0.01f, ssc->limit_dist);
         if (!stitch_process_data(ssc, active_state, scene, false)) {
           stitch_cancel(C, op);
           return OPERATOR_CANCELLED;

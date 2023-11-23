@@ -45,7 +45,7 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   float4 diff = make_float4(x0, y1, x1, y0) - make_float4(x1, y0, x0, y1);
   float4 nz = make_float4(y0, x1, y1, x0) * diff;
   nz = nz / sqrt(z0 * z0 * diff * diff + nz * nz);
-  /* The original paper uses acos() to compute the internal angles here, and then computes the
+  /* The original paper uses `acos()` to compute the internal angles here, and then computes the
    * solid angle as their sum minus 2*pi. However, for very small rectangles, this results in
    * excessive cancellation error since the sum will be almost 2*pi as well.
    * This can be avoided by using that `asin(x) = pi/2 - acos(x)`. */
@@ -62,8 +62,8 @@ ccl_device_inline float area_light_rect_sample(float3 P,
     float b0sq = b0 * b0;
     /* Compute cu.
      * In the original paper, an additional constant k is involved here. However, just like above,
-     * it causes cancellation issues. The same asin() terms from above can be used instead, and the
-     * extra +pi that would remain in the expression for au can be removed by flipping the sign
+     * it causes cancellation issues. The same `asin()` terms from above can be used instead, and
+     * the extra +pi that would remain in the expression for au can be removed by flipping the sign
      * of cos(au) and sin(au), which also cancels if we flip the sign of b1 in the fu term. */
     float au = rand.x * S + g2 + g3;
     float fu = (cosf(au) * b0 + b1) / sinf(au);

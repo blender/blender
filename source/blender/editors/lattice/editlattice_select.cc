@@ -26,8 +26,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "BKE_context.h"
-#include "BKE_lattice.h"
+#include "BKE_context.hh"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
@@ -75,8 +75,7 @@ bool ED_lattice_deselect_all_multi_ex(Base **bases, const uint bases_len)
 bool ED_lattice_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
@@ -620,12 +619,11 @@ static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
 bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   BPoint *bp = nullptr;
   Base *basact = nullptr;
   bool changed = false;
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   vc.mval[0] = mval[0];
   vc.mval[1] = mval[1];
 

@@ -33,7 +33,9 @@ static const char *get_realization_shader(Result &input,
       case ResultType::Float:
         return "compositor_realize_on_domain_bicubic_float";
       case ResultType::Int2:
-        /* Realization does not support integer images. */
+      case ResultType::Float2:
+      case ResultType::Float3:
+        /* Realization does not support internal image types. */
         break;
     }
   }
@@ -46,7 +48,9 @@ static const char *get_realization_shader(Result &input,
       case ResultType::Float:
         return "compositor_realize_on_domain_float";
       case ResultType::Int2:
-        /* Realization does not support integer images. */
+      case ResultType::Float2:
+      case ResultType::Float3:
+        /* Realization does not support internal image types. */
         break;
     }
   }
@@ -62,9 +66,14 @@ void realize_on_domain(Context &context,
                        const float3x3 &input_transformation,
                        const RealizationOptions &realization_options)
 {
+  const Domain input_domain = Domain(input.domain().size, input_transformation);
+  if (input_domain == domain) {
+    input.pass_through(output);
+    output.set_transformation(domain.transformation);
+    return;
+  }
 
-  GPUShader *shader = context.shader_manager().get(
-      get_realization_shader(input, realization_options));
+  GPUShader *shader = context.get_shader(get_realization_shader(input, realization_options));
   GPU_shader_bind(shader);
 
   /* Transform the input space into the domain space. */
@@ -87,16 +96,14 @@ void realize_on_domain(Context &context,
       realization_options.interpolation, Interpolation::Bilinear, Interpolation::Bicubic);
   GPU_texture_filter_mode(input.texture(), use_bilinear);
 
-  /* If the input repeats, set a repeating wrap mode for out-of-bound texture access. Otherwise,
+  /* If the input wraps, set a repeating wrap mode for out-of-bound texture access. Otherwise,
    * make out-of-bound texture access return zero by setting a clamp to border extend mode. */
   GPU_texture_extend_mode_x(input.texture(),
-                            realization_options.repeat_x ?
-                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
-                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+                            realization_options.wrap_x ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                                         GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
   GPU_texture_extend_mode_y(input.texture(),
-                            realization_options.repeat_y ?
-                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
-                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+                            realization_options.wrap_y ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                                         GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
   input.bind_as_texture(shader, "input_tx");
 

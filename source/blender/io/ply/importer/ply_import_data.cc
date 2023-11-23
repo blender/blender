@@ -131,6 +131,9 @@ static int get_index(const PlyElement &element, StringRef property)
 static const char *parse_row_ascii(PlyReadBuffer &file, Vector<float> &r_values)
 {
   Span<char> line = file.read_line();
+  if (line.is_empty()) {
+    return "Could not read row of ascii property";
+  }
 
   /* Parse whole line as floats. */
   const char *p = line.data();
@@ -251,6 +254,19 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     return "Vertex positions are not present in the file";
   }
 
+  Vector<int64_t> custom_attr_indices;
+  for (const int64_t prop_idx : element.properties.index_range()) {
+    const PlyProperty &prop = element.properties[prop_idx];
+    bool is_standard = ELEM(
+        prop.name, "x", "y", "z", "nx", "ny", "nz", "red", "green", "blue", "alpha", "s", "t");
+    if (is_standard)
+      continue;
+
+    custom_attr_indices.append(prop_idx);
+    PlyCustomAttribute attr(prop.name, element.count);
+    data->vertex_custom_attr.append(attr);
+  }
+
   data->vertices.reserve(element.count);
   if (has_color) {
     data->vertex_colors.reserve(element.count);
@@ -328,6 +344,12 @@ static const char *load_vertex_element(PlyReadBuffer &file,
       uvmap.x = value_vec[uv_index.x];
       uvmap.y = value_vec[uv_index.y];
       data->uv_coordinates.append(uvmap);
+    }
+
+    /* Custom attributes */
+    for (const int64_t ci : custom_attr_indices.index_range()) {
+      float value = value_vec[custom_attr_indices[ci]];
+      data->vertex_custom_attr[ci].data[i] = value;
     }
   }
   return nullptr;

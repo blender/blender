@@ -98,7 +98,7 @@ void main()
   cl_refl.N = g_reflection_data.N;
   cl_refl.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.roughness);
   cl_refl.type = LIGHT_SPECULAR;
-  stack.cl[1] = cl_diff;
+  stack.cl[1] = cl_refl;
 
 #ifdef SSS_TRANSMITTANCE
   ClosureLight cl_sss;

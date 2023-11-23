@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "ED_screen.hh"
 

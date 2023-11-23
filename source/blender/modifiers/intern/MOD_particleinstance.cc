@@ -11,6 +11,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -24,12 +25,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_effect.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_screen.hh"
@@ -451,7 +452,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           cross_v3_v3v3(cross, temp, state.vel);
 
           /* state.vel[axis] is the only component surviving from a dot product with the axis */
-          axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
+          axis_angle_to_quat(state.rot, cross, safe_acosf(state.vel[axis]));
         }
 #endif
       }
@@ -641,7 +642,7 @@ ModifierTypeInfo modifierType_ParticleInstance = {
     /*struct_name*/ "ParticleInstanceModifierData",
     /*struct_size*/ sizeof(ParticleInstanceModifierData),
     /*srna*/ &RNA_ParticleInstanceModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_PARTICLE_INSTANCE,

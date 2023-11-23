@@ -174,7 +174,7 @@ NODE_SHADER_MATERIALX_BEGIN
       res = (vector[0] + vector[1]) * val(0.5f);
       break;
     case SHD_BLEND_RADIAL:
-      res = vector[1].atan2(vector[0]) / (val(float(M_PI * 2.0f))) + val(0.5f);
+      res = vector[1].atan2(vector[0]) / val(float(M_PI * 2.0f)) + val(0.5f);
       break;
     case SHD_BLEND_QUADRATIC_SPHERE:
       res = (val(1.0f) - vector.dotproduct(vector).sqrt()).max(val(0.0f));

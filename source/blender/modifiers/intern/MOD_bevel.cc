@@ -21,11 +21,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -193,13 +193,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  Object *ob = ctx->object;
-
-  if (harden_normals && (ob->type == OB_MESH) && !(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
-    BKE_modifier_set_error(ob, md, "Enable 'Auto Smooth' in Object Data Properties");
-    harden_normals = false;
-  }
-
   BM_mesh_bevel(bm,
                 value,
                 offset_type,
@@ -220,7 +213,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                 miter_outer,
                 miter_inner,
                 spread,
-                mesh->smoothresh,
                 bmd->custom_profile,
                 bmd->vmesh_method);
 
@@ -428,7 +420,7 @@ ModifierTypeInfo modifierType_Bevel = {
     /*struct_name*/ "BevelModifierData",
     /*struct_size*/ sizeof(BevelModifierData),
     /*srna*/ &RNA_BevelModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_BEVEL,

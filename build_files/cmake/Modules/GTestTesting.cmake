@@ -72,7 +72,7 @@ macro(BLENDER_SRC_GTEST_EX)
     if(DEFINED PTHREADS_LIBRARIES) # Needed for GLOG.
       target_link_libraries(${TARGET_NAME} PRIVATE ${PTHREADS_LIBRARIES})
     endif()
-    if(WITH_OPENMP_STATIC)
+    if(WITH_OPENMP AND WITH_OPENMP_STATIC)
       target_link_libraries(${TARGET_NAME} PRIVATE ${OpenMP_LIBRARIES})
     endif()
     if(UNIX AND NOT APPLE)

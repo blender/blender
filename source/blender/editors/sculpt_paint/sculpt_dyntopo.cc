@@ -31,12 +31,12 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
@@ -208,8 +208,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object
     SCULPT_ensure_persistent_layers(ss, ob);
   }
 
-  if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
-    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  if (!CustomData_has_layer_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask")) {
+    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
     BKE_sculptsession_update_attr_refs(ob);
   }
 }
@@ -477,7 +477,7 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
         flag |= DYNTOPO_ERROR_MULTIRES;
       }
 
-      if (mti->type == eModifierTypeType_Constructive) {
+      if (mti->type == ModifierTypeType::Constructive) {
         flag |= DYNTOPO_WARN_MODIFIER;
         break;
       }

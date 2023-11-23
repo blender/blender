@@ -5,7 +5,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"

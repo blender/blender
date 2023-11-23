@@ -93,8 +93,7 @@ class ScaleOperation : public NodeOperation {
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
-    const Interpolation interpolation = input.get_realization_options().interpolation;
-    transform(context(), input, output, transformation, interpolation);
+    transform(context(), input, output, transformation, input.get_realization_options());
   }
 
   float2 get_scale()

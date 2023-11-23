@@ -166,11 +166,15 @@ struct GeoNodesModifierData {
 };
 
 struct GeoNodesOperatorData {
+  eObjectMode mode;
   /** The object currently effected by the operator. */
   const Object *self_object = nullptr;
   /** Current evaluated depsgraph. */
   Depsgraph *depsgraph = nullptr;
   Scene *scene = nullptr;
+
+  /** Optional logger. */
+  geo_eval_log::GeoModifierLog *eval_log = nullptr;
 };
 
 /**
@@ -358,6 +362,7 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     const bNode &node,
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
+std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(const bNode &node);
 
 struct FoundNestedNodeID {
   int id;

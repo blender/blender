@@ -23,8 +23,7 @@ namespace blender::eevee {
 
 void IrradianceCache::init()
 {
-  display_grids_enabled_ = DRW_state_draw_support() &&
-                           (inst_.scene->eevee.flag & SCE_EEVEE_SHOW_IRRADIANCE);
+  display_grids_enabled_ = DRW_state_draw_support();
 
   int atlas_byte_size = 1024 * 1024 * inst_.scene->eevee.gi_irradiance_pool_size;
   /* This might become an option in the future. */
@@ -535,15 +534,13 @@ void IrradianceCache::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
   }
 
   for (const IrradianceGrid &grid : inst_.light_probes.grid_map_.values()) {
-    if (grid.cache == nullptr) {
+    if (!grid.viewport_display || grid.viewport_display_size == 0.0f || !grid.cache ||
+        !grid.cache->grid_static_cache)
+    {
       continue;
     }
 
     LightProbeGridCacheFrame *cache = grid.cache->grid_static_cache;
-
-    if (cache == nullptr) {
-      continue;
-    }
 
     /* Display texture. Updated for each individual light grid to avoid increasing VRAM usage. */
     draw::Texture irradiance_a_tx = {"irradiance_a_tx"};
@@ -596,7 +593,7 @@ void IrradianceCache::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
     display_grids_ps_.framebuffer_set(&view_fb);
     display_grids_ps_.shader_set(inst_.shaders.static_shader_get(DISPLAY_PROBE_GRID));
 
-    display_grids_ps_.push_constant("sphere_radius", inst_.scene->eevee.gi_irradiance_draw_size);
+    display_grids_ps_.push_constant("sphere_radius", grid.viewport_display_size);
     display_grids_ps_.push_constant("grid_resolution", grid_size);
     display_grids_ps_.push_constant("grid_to_world", grid.object_to_world);
     display_grids_ps_.push_constant("world_to_grid", grid.world_to_object);
@@ -863,13 +860,22 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   irradiance_L1_b_tx_.ensure_3d(GPU_RGBA32F, grid_resolution, texture_usage);
   irradiance_L1_c_tx_.ensure_3d(GPU_RGBA32F, grid_resolution, texture_usage);
   validity_tx_.ensure_3d(GPU_R32F, grid_resolution, texture_usage);
+  virtual_offset_tx_.ensure_3d(GPU_RGBA16F, grid_resolution, texture_usage);
+
+  if (!irradiance_L0_tx_.is_valid() || !irradiance_L1_a_tx_.is_valid() ||
+      !irradiance_L1_b_tx_.is_valid() || !irradiance_L1_c_tx_.is_valid() ||
+      !validity_tx_.is_valid() || !virtual_offset_tx_.is_valid())
+  {
+    inst_.info = "Error: Not enough memory to bake " + std::string(probe_object.id.name) + ".";
+    do_break_ = true;
+    return;
+  }
+
   irradiance_L0_tx_.clear(float4(0.0f));
   irradiance_L1_a_tx_.clear(float4(0.0f));
   irradiance_L1_b_tx_.clear(float4(0.0f));
   irradiance_L1_c_tx_.clear(float4(0.0f));
   validity_tx_.clear(float4(0.0f));
-
-  virtual_offset_tx_.ensure_3d(GPU_RGBA16F, grid_resolution, texture_usage);
   virtual_offset_tx_.clear(float4(0.0f));
 
   DRW_stats_group_start("IrradianceBake.SceneBounds");
@@ -950,10 +956,28 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   capture_info_buf_.read();
   if (capture_info_buf_.surfel_len == 0) {
     /* No surfel to allocated. */
+    do_break_ = true;
     return;
   }
 
-  /* TODO(fclem): Check for GL limit and abort if the surfel cache doesn't fit the GPU memory. */
+  if (capture_info_buf_.surfel_len > surfels_buf_.size()) {
+    size_t max_size = GPU_max_storage_buffer_size();
+    if (GPU_mem_stats_supported()) {
+      int total_mem_kb, free_mem_kb;
+      GPU_mem_stats_get(&total_mem_kb, &free_mem_kb);
+      max_size = min(max_size, size_t(free_mem_kb) * 1024);
+    }
+
+    size_t required_mem = sizeof(Surfel) * (capture_info_buf_.surfel_len - surfels_buf_.size());
+    if (required_mem > max_size) {
+      capture_info_buf_.surfel_len = 0u;
+      capture_info_buf_.push_update();
+      inst_.info = "Error: Not enough memory to bake " + std::string(probe_object.id.name) + ".";
+      do_break_ = true;
+      return;
+    }
+  }
+
   surfels_buf_.resize(capture_info_buf_.surfel_len);
   surfels_buf_.clear_to_zero();
 

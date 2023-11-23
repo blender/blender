@@ -21,7 +21,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "RNA_access.hh"
 
@@ -1327,7 +1327,7 @@ static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
 
   const int w = BLI_rcti_size_x(rect);
   const int h = BLI_rcti_size_y(rect);
-  const int size = MIN2(w, h) - PREVIEW_PAD * 2;
+  const int size = std::min(w, h) - PREVIEW_PAD * 2;
 
   if (size > 0) {
     const int x = rect->xmin + w / 2 - size / 2;
@@ -1393,7 +1393,7 @@ static void widget_draw_icon(
     if (but->flag & UI_SELECT) {
       /* pass */
     }
-    else if (but->flag & UI_ACTIVE) {
+    else if (but->flag & UI_HOVER) {
       /* pass */
     }
     else {
@@ -1449,11 +1449,11 @@ static void widget_draw_icon(
     const bool has_theme = UI_icon_get_theme_color(icon, color);
 
     /* to indicate draggable */
-    if (ui_but_drag_is_draggable(but) && (but->flag & UI_ACTIVE)) {
+    if (ui_but_drag_is_draggable(but) && (but->flag & UI_HOVER)) {
       UI_icon_draw_ex(
           xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme, &but->icon_overlay_text);
     }
-    else if (but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW)) {
+    else if (but->flag & (UI_HOVER | UI_SELECT | UI_SELECT_DRAW)) {
       UI_icon_draw_ex(
           xs, ys, icon, aspect, alpha, 0.0f, color, has_theme, &but->icon_overlay_text);
     }
@@ -1659,10 +1659,9 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
   /* The following assert is meant to catch code changes that break this function's result, but
    * some wriggle room is fine and needed. Just a couple pixels for large sizes and with some
    * settings like "Full" hinting which can move features both left and right a pixel. We could
-   * probably reduce this to one pixel if we consolodate text output with length measuring. But
+   * probably reduce this to one pixel if we consolidate text output with length measuring. But
    * our text string lengths include the last character's right-side bearing anyway, so a string
-   * can be longer by that amount and still fit visibly in the required space.
-   */
+   * can be longer by that amount and still fit visibly in the required space. */
 
   BLI_assert((strwidth <= (okwidth + 2)) || (okwidth <= 0.0f));
 
@@ -2032,7 +2031,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       }
     }
 
-    /* text cursor */
+    /* Text cursor position. */
     but_pos_ofs = but->pos;
 
 #ifdef WITH_INPUT_IME
@@ -2042,14 +2041,56 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
 #endif
 
+    /* Draw text cursor (caret). */
     if (but->pos >= but->ofs) {
-      int t;
+      int t = 0;
+
       if (drawstr[0] != 0) {
-        t = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but_pos_ofs - but->ofs);
+        const int pos = but_pos_ofs - but->ofs;
+        rcti bounds;
+
+        /* Find right edge of previous character if available. */
+        int prev_right_edge = 0;
+        bool has_prev = false;
+        if (pos > 0) {
+          if (BLF_str_offset_to_glyph_bounds(
+                  fstyle->uifont_id, drawstr + but->ofs, pos - 1, &bounds)) {
+            if (bounds.xmax > bounds.xmin) {
+              prev_right_edge = bounds.xmax;
+            }
+            else {
+              /* Some characters, like space, have empty bounds. */
+              prev_right_edge = BLF_width(fstyle->uifont_id, drawstr + but->ofs, pos);
+            }
+            has_prev = true;
+          }
+        }
+
+        /* Find left edge of next character if available. */
+        int next_left_edge = 0;
+        bool has_next = false;
+        if (pos < strlen(drawstr + but->ofs)) {
+          if (BLF_str_offset_to_glyph_bounds(fstyle->uifont_id, drawstr + but->ofs, pos, &bounds))
+          {
+            next_left_edge = bounds.xmin;
+            has_next = true;
+          }
+        }
+
+        if (has_next && !has_prev) {
+          /* Left of the first character. */
+          t = next_left_edge - U.pixelsize;
+        }
+        else if (has_prev && !has_next) {
+          /* Right of the last character. */
+          t = prev_right_edge + U.pixelsize;
+        }
+        else if (has_prev && has_next) {
+          /* Middle of the string, so in between. */
+          t = (prev_right_edge + next_left_edge) / 2;
+        }
       }
-      else {
-        t = 0;
-      }
+
       /* We are drawing on top of widget bases. Flush cache. */
       GPU_blend(GPU_BLEND_ALPHA);
       UI_widgetbase_draw_cache_flush();
@@ -2583,8 +2624,8 @@ static void widget_state(uiWidgetType *wt, const uiWidgetStateInfo *state, eUIEm
     /* Add "hover" highlight. Ideally this could apply in all cases,
      * even if UI_SELECT. But currently this causes some flickering
      * as buttons can be created and updated without respect to mouse
-     * position and so can draw without UI_ACTIVE set.  See D6503. */
-    if (state->but_flag & UI_ACTIVE) {
+     * position and so can draw without UI_HOVER set.  See D6503. */
+    if (state->but_flag & UI_HOVER) {
       widget_active_color(&wt->wcol);
     }
   }
@@ -2706,8 +2747,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
 {
   wt->wcol = *(wt->wcol_theme);
 
-  /* active and disabled (not so common) */
-  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_ACTIVE)) {
+  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_HOVER)) {
     color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.5f);
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
@@ -2716,7 +2756,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
   }
   else {
     /* regular active */
-    if (state->but_flag & (UI_SELECT | UI_ACTIVE)) {
+    if (state->but_flag & (UI_SELECT | UI_HOVER)) {
       copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
     else if (state->but_flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
@@ -2727,7 +2767,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
     if (state->but_flag & UI_SELECT) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     }
-    else if (state->but_flag & UI_ACTIVE) {
+    else if (state->but_flag & UI_HOVER) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
     }
   }
@@ -2740,7 +2780,7 @@ static void widget_state_menu_item(uiWidgetType *wt,
 {
   wt->wcol = *(wt->wcol_theme);
 
-  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_ACTIVE)) {
+  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_HOVER)) {
     /* Hovering over disabled item. */
     wt->wcol.text[3] = 128;
     color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.5f);
@@ -2752,7 +2792,7 @@ static void widget_state_menu_item(uiWidgetType *wt,
   }
   else if (state->but_flag & UI_BUT_INACTIVE) {
     /* Inactive. */
-    if (state->but_flag & UI_ACTIVE) {
+    if (state->but_flag & UI_HOVER) {
       color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
       wt->wcol.inner[3] = 255;
     }
@@ -2770,7 +2810,7 @@ static void widget_state_menu_item(uiWidgetType *wt,
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
   }
-  else if (state->but_flag & UI_ACTIVE) {
+  else if (state->but_flag & UI_HOVER) {
     /* Regular hover. */
     color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
     copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
@@ -2869,25 +2909,43 @@ static void widget_menu_back(
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void ui_hsv_cursor(const float x, const float y, const float zoom)
+static void ui_hsv_cursor(const float x,
+                          const float y,
+                          const float zoom,
+                          const float rgb[3],
+                          const float hsv[3],
+                          const bool is_active)
 {
-  const float radius = zoom * 3.0f * U.pixelsize;
-  const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-  immUniformColor3f(1.0f, 1.0f, 1.0f);
-  imm_draw_circle_fill_2d(pos, x, y, radius, 8);
+  /* Draw the circle larger while the mouse button is pressed down. */
+  const float radius = zoom * (((is_active ? 20.0f : 12.0f) * UI_SCALE_FAC) + U.pixelsize);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_line_smooth(true);
-  immUniformColor3f(0.0f, 0.0f, 0.0f);
-  imm_draw_circle_wire_2d(pos, x, y, radius, 12);
-  GPU_blend(GPU_BLEND_NONE);
-  GPU_line_smooth(false);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  GPU_program_point_size(true);
+  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
+  immUniformColor3fv(rgb);
+  immUniform1f("outlineWidth", U.pixelsize);
+
+  /* Alpha of outline colors just strong enough to give good contrast. */
+  const float fg = MIN2(1.0f - hsv[2] + 0.2, 0.8f);
+  const float bg = hsv[2] / 2.0f;
+
+  immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, bg);
+  immUniform1f("size", radius);
+  immBegin(GPU_PRIM_POINTS, 1);
+  immVertex2f(pos, x, y);
+  immEnd();
+
+  immUniform4f("outlineColor", 1.0f, 1.0f, 1.0f, fg);
+  immUniform1f("size", radius - 1.0f);
+  immBegin(GPU_PRIM_POINTS, 1);
+  immVertex2f(pos, x, y);
+  immEnd();
 
   immUnbindProgram();
+  GPU_program_point_size(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 void ui_hsvcircle_vals_from_pos(
@@ -3031,7 +3089,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   float xpos, ypos;
   ui_hsvcircle_pos_from_vals(cpicker, rect, hsv, &xpos, &ypos);
   const float zoom = 1.0f / but->block->aspect;
-  ui_hsv_cursor(xpos, ypos, zoom);
+  ui_hsv_cursor(xpos, ypos, zoom, rgb, hsv, but->flag & UI_SELECT);
 }
 
 /** \} */
@@ -3263,12 +3321,8 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   ui_draw_gradient(rect, hsv_n, hsv_but->gradient_type, 1.0f);
 
   ui_hsvcube_pos_from_vals(hsv_but, rect, hsv_n, &x, &y);
-  CLAMP(x, rect->xmin + 3.0f, rect->xmax - 3.0f);
-  CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
 
   const float zoom = 1.0f / but->block->aspect;
-
-  ui_hsv_cursor(x, y, zoom);
 
   /* outline */
   const uint pos = GPU_vertformat_attr_add(
@@ -3277,17 +3331,48 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   immUniformColor3ub(0, 0, 0);
   imm_draw_box_wire_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
   immUnbindProgram();
+
+  if (BLI_rcti_size_x(rect) / BLI_rcti_size_y(rect) < 3) {
+    /* This is for the full square HSV cube. */
+    float margin = (4.0f * UI_SCALE_FAC);
+    CLAMP(x, rect->xmin + margin, rect->xmax - margin);
+    CLAMP(y, rect->ymin + margin, rect->ymax - margin);
+    ui_hsv_cursor(x, y, zoom, rgb, hsv, but->flag & UI_SELECT);
+  }
+  else {
+    /* This is for the narrow horizontal gradient. */
+    rctf rectf;
+    BLI_rctf_rcti_copy(&rectf, rect);
+    const float margin = (2.0f * UI_SCALE_FAC);
+    CLAMP(x, rect->xmin + margin, rect->xmax - margin);
+    CLAMP(y, rect->ymin + margin, rect->ymax - margin);
+    rectf.ymax += 1;
+    rectf.xmin = x - (4.0f * UI_SCALE_FAC) - U.pixelsize;
+    rectf.xmax = x + (4.0f * UI_SCALE_FAC) + U.pixelsize;
+
+    if (but->flag & UI_SELECT) {
+      /* Make the indicator larger while the mouse button is pressed. */
+      rectf.xmin -= U.pixelsize;
+      rectf.xmax += U.pixelsize;
+      rectf.ymin -= U.pixelsize;
+      rectf.ymax += U.pixelsize;
+    }
+
+    const float col[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    UI_draw_roundbox_4fv(&rectf, false, 0, col);
+
+    rectf.xmin += 1.0f;
+    rectf.xmax -= 1.0f;
+    const float inner[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    const float col2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    UI_draw_roundbox_4fv_ex(&rectf, col2, nullptr, 0.0f, inner, U.pixelsize, 0.0f);
+  }
 }
 
 /* vertical 'value' slider, using new widget code */
 static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 {
   const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
-  bTheme *btheme = UI_GetTheme();
-  uiWidgetColors *wcol = &btheme->tui.wcol_numslider;
-  uiWidgetBase wtb;
-  const float rad = wcol->roundness * BLI_rcti_size_x(rect);
-  float x, y;
   float rgb[3], hsv[3], v;
 
   ui_but_v3_get(but, rgb);
@@ -3307,38 +3392,34 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
     v = (v - min) / (max - min);
   }
 
-  widget_init(&wtb);
+  rctf rectf;
+  BLI_rctf_rcti_copy(&rectf, rect);
 
-  /* fully rounded */
-  round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
-
-  /* setup temp colors */
-  uiWidgetColors colors{};
-  colors.outline[0] = 0;
-  colors.outline[1] = 0;
-  colors.outline[2] = 0;
-  colors.outline[3] = 255;
-  colors.inner[0] = 128;
-  colors.inner[1] = 128;
-  colors.inner[2] = 128;
-  colors.inner[3] = 255;
-  colors.shadetop = 127;
-  colors.shadedown = -128;
-  colors.shaded = 1;
-  widgetbase_draw(&wtb, &colors);
-
-  /* We are drawing on top of widget bases. Flush cache. */
-  GPU_blend(GPU_BLEND_ALPHA);
-  UI_widgetbase_draw_cache_flush();
-  GPU_blend(GPU_BLEND_NONE);
+  const float inner1[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  const float inner2[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  const float outline[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  UI_draw_roundbox_4fv_ex(&rectf, inner1, inner2, U.pixelsize, outline, 1.0f, 0.0f);
 
   /* cursor */
-  x = rect->xmin + 0.5f * BLI_rcti_size_x(rect);
-  y = rect->ymin + v * BLI_rcti_size_y(rect);
-  CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
-  const float zoom = 1.0f / but->block->aspect;
+  const float y = rect->ymin + v * BLI_rcti_size_y(rect);
+  rectf.ymin = y - (4.0f * UI_SCALE_FAC) - U.pixelsize;
+  rectf.ymax = y + (4.0f * UI_SCALE_FAC) + U.pixelsize;
+  float col[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
-  ui_hsv_cursor(x, y, zoom);
+  if (but->flag & UI_SELECT) {
+    /* Enlarge the indicator while the mouse button is pressed down. */
+    rectf.xmin -= U.pixelsize;
+    rectf.xmax += U.pixelsize;
+    rectf.ymin -= U.pixelsize;
+    rectf.ymax += U.pixelsize;
+  }
+
+  UI_draw_roundbox_4fv(&rectf, false, 0.0f, col);
+
+  rectf.ymin += 1.0f;
+  rectf.ymax -= 1.0f;
+  const float col2[4] = {v, v, v, 1.0f};
+  UI_draw_roundbox_4fv_ex(&rectf, col2, nullptr, 0.0f, inner1, U.pixelsize, 0.0f);
 }
 
 /** Separator for menus. */
@@ -3404,7 +3485,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
   }
 
   /* decoration */
-  if ((state->but_flag & UI_ACTIVE) && !state->is_text_input) {
+  if ((state->but_flag & UI_HOVER) && !state->is_text_input) {
     uiWidgetColors wcol_zone;
     uiWidgetBase wtb_zone;
     rcti rect_zone;
@@ -3417,7 +3498,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (state->but_drawflag & UI_BUT_ACTIVE_LEFT) {
+    if (state->but_drawflag & UI_BUT_HOVER_LEFT) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3437,7 +3518,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (state->but_drawflag & UI_BUT_ACTIVE_RIGHT) {
+    if (state->but_drawflag & UI_BUT_HOVER_RIGHT) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3456,7 +3537,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (!(state->but_drawflag & (UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT))) {
+    if (!(state->but_drawflag & (UI_BUT_HOVER_LEFT | UI_BUT_HOVER_RIGHT))) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3701,7 +3782,7 @@ static void widget_progress_type_bar(uiButProgress *but_progress,
   float w = factor * BLI_rcti_size_x(&rect_prog);
 
   /* Ensure minimum size. */
-  w = MAX2(w, ofs);
+  w = std::max(w, ofs);
 
   rect_bar.xmax = rect_bar.xmin + w;
 
@@ -4109,11 +4190,11 @@ static void widget_pulldownbut(uiWidgetColors *wcol,
   float back[4];
   UI_GetThemeColor4fv(TH_BACK, back);
 
-  if ((state->but_flag & UI_ACTIVE) || (back[3] < 1.0f)) {
+  if ((state->but_flag & UI_HOVER) || (back[3] < 1.0f)) {
     uiWidgetBase wtb;
     const float rad = widget_radius_from_zoom(zoom, wcol);
 
-    if (state->but_flag & UI_ACTIVE) {
+    if (state->but_flag & UI_HOVER) {
       copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
       copy_v3_v3_uchar(wcol->text, wcol->text_sel);
       copy_v3_v3_uchar(wcol->outline, wcol->inner);
@@ -4231,7 +4312,7 @@ static void widget_list_itembut(uiBut *but,
   const float rad = widget_radius_from_zoom(zoom, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, &draw_rect, rad);
 
-  if (state->but_flag & UI_ACTIVE && !(state->but_flag & UI_SELECT)) {
+  if (state->but_flag & UI_HOVER && !(state->but_flag & UI_SELECT)) {
     copy_v3_v3_uchar(wcol->inner, wcol->text);
     wcol->inner[3] = 20;
   }
@@ -5115,7 +5196,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
 
 #ifdef USE_UI_POPOVER_ONCE
   if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
-    if ((but->flag & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
+    if ((but->flag & UI_HOVER) && ui_but_is_popover_once_compat(but)) {
       state.but_flag |= UI_BUT_ACTIVE_DEFAULT;
     }
   }

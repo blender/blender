@@ -17,7 +17,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
@@ -26,7 +26,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
@@ -39,6 +39,7 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "RE_engine.h"
@@ -65,7 +66,7 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.hh"
@@ -234,6 +235,7 @@ static void compo_initjob(void *cjv)
   ViewLayer *view_layer = cj->view_layer;
 
   cj->compositor_depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
+  DEG_debug_name_set(cj->compositor_depsgraph, "COMPOSITOR");
   DEG_graph_build_for_compositor_preview(cj->compositor_depsgraph, cj->ntree);
 
   /* NOTE: Don't update animation to preserve unkeyed changes, this means can not use
@@ -415,7 +417,7 @@ bool composite_node_editable(bContext *C)
 
 static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
 {
-  WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
+  WM_main_add_notifier(NC_NODE | NA_EDITED, id);
 
   if (ntree->type == NTREE_SHADER && id != nullptr) {
     if (GS(id->name) == ID_MA) {
@@ -1133,7 +1135,7 @@ bool node_is_previewable(const SpaceNode &snode, const bNodeTree &ntree, const b
     return false;
   }
   if (ntree.type == NTREE_SHADER) {
-    return U.experimental.use_shader_node_previews && !(node.is_frame());
+    return U.experimental.use_shader_node_previews && !node.is_frame();
   }
   return node.typeinfo->flag & NODE_PREVIEW;
 }

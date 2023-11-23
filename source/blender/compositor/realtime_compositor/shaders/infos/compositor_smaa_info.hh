@@ -43,9 +43,14 @@ GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_shared)
     .sampler(1, ImageType::FLOAT_2D, "weights_tx")
     .compute_source("compositor_smaa_neighborhood_blending.glsl");
 
-GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_color)
+GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_float4)
     .additional_info("compositor_smaa_neighborhood_blending_shared")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_float2)
+    .additional_info("compositor_smaa_neighborhood_blending_shared")
+    .image(0, GPU_RG16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_float)

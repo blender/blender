@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Output the entire object as single instance. "
           "This allows instancing non-geometry object types");
   b.add_output<decl::Vector>("Location");
-  b.add_output<decl::Vector>("Rotation");
+  b.add_output<decl::Rotation>("Rotation");
   b.add_output<decl::Vector>("Scale");
   b.add_output<decl::Geometry>("Geometry");
 }
@@ -56,7 +56,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const float4x4 transform = float4x4(self_object->world_to_object) * object_matrix;
 
   float3 location, scale;
-  math::EulerXYZ rotation;
+  math::Quaternion rotation;
   if (transform_space_relative) {
     math::to_loc_rot_scale(transform, location, rotation, scale);
   }
@@ -64,7 +64,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     math::to_loc_rot_scale(object_matrix, location, rotation, scale);
   }
   params.set_output("Location", location);
-  params.set_output("Rotation", float3(rotation));
+  params.set_output("Rotation", rotation);
   params.set_output("Scale", scale);
 
   if (params.output_is_required("Geometry")) {

@@ -20,7 +20,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

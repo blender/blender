@@ -31,9 +31,9 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
@@ -4810,10 +4810,9 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const float angle_snapping_increment = RAD2DEGF(
       RNA_float_get(op->ptr, "angle_snapping_increment"));
 
-  ViewContext vc;
   KnifeTool_OpData *kcd;
 
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
 
   /* alloc new customdata */
   kcd = static_cast<KnifeTool_OpData *>(
@@ -4966,7 +4965,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   while (p) {
     const float(*mval_fl)[2] = static_cast<const float(*)[2]>(p->link);
     const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
-    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1, false));
+    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1));
     p = p->next;
   }
 

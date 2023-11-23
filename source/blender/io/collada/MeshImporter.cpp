@@ -19,7 +19,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_attribute.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
@@ -1173,7 +1173,6 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
     }
     else {
       BKE_mesh_set_custom_normals(me, reinterpret_cast<float(*)[3]>(loop_normals.data()));
-      me->flag |= ME_AUTOSMOOTH;
     }
   }
 

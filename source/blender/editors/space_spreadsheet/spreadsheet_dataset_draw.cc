@@ -7,10 +7,10 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

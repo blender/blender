@@ -23,7 +23,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_collection.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
@@ -34,7 +34,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "RNA_access.hh"
 
 #include "DEG_depsgraph.hh"
@@ -545,7 +545,7 @@ static bool anything_showing_through(PointerRNA *ptr)
   const int level_start = RNA_int_get(ptr, "level_start");
   const int level_end = RNA_int_get(ptr, "level_end");
   if (use_multiple_levels) {
-    return (MAX2(level_start, level_end) > 0);
+    return (std::max(level_start, level_end) > 0);
   }
   return (level_start > 0);
 }

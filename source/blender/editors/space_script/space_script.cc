@@ -14,7 +14,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_query.h"
 #include "BKE_screen.hh"
 

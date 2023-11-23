@@ -108,6 +108,31 @@ using namespace metal::raytracing;
 
 /* Generate a struct containing the entry-point parameters and a "run"
  * method which can access them implicitly via this-> */
+
+#ifdef __METAL_GLOBAL_BUILTINS__
+
+#define ccl_gpu_kernel_signature(name, ...) \
+struct kernel_gpu_##name \
+{ \
+  PARAMS_MAKER(__VA_ARGS__)(__VA_ARGS__) \
+  void run(thread MetalKernelContext& context, \
+           threadgroup atomic_int *threadgroup_array) ccl_global const; \
+}; \
+kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
+                                constant KernelParamsMetal &ccl_restrict   _launch_params_metal, \
+                                constant MetalAncillaries *_metal_ancillaries, \
+                                threadgroup atomic_int *threadgroup_array[[ threadgroup(0) ]]) { \
+  MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
+  params_struct->run(context, threadgroup_array); \
+} \
+void kernel_gpu_##name::run(thread MetalKernelContext& context, \
+                  threadgroup atomic_int *threadgroup_array) ccl_global const
+
+#else
+
+/* On macOS versions before 14.x, builtin constants (e.g. metal_global_id) must
+ * be accessed through attributed entry-point parameters. */
+
 #define ccl_gpu_kernel_signature(name, ...) \
 struct kernel_gpu_##name \
 { \
@@ -148,6 +173,8 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
                   uint simd_lane_index, \
                   uint simd_group_index, \
                   uint num_simd_groups) ccl_global const
+
+#endif /* __METAL_GLOBAL_BUILTINS__ */
 
 #define ccl_gpu_kernel_postfix
 #define ccl_gpu_kernel_call(x) context.x
@@ -365,3 +392,14 @@ constant constexpr array<sampler, SamplerCount> metal_samplers = {
     sampler(address::clamp_to_zero, filter::linear),
     sampler(address::mirrored_repeat, filter::linear),
 };
+
+#ifdef __METAL_GLOBAL_BUILTINS__
+const uint metal_global_id [[thread_position_in_grid]];
+const ushort metal_local_id [[thread_position_in_threadgroup]];
+const ushort metal_local_size [[threads_per_threadgroup]];
+const uint metal_grid_id [[threadgroup_position_in_grid]];
+const uint simdgroup_size [[threads_per_simdgroup]];
+const uint simd_lane_index [[thread_index_in_simdgroup]];
+const uint simd_group_index [[simdgroup_index_in_threadgroup]];
+const uint num_simd_groups [[simdgroups_per_threadgroup]];
+#endif /* __METAL_GLOBAL_BUILTINS__ */

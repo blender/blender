@@ -543,7 +543,7 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_string_utils.h"
+#  include "BLI_string_utils.hh"
 
 #  include "WM_api.hh"
 

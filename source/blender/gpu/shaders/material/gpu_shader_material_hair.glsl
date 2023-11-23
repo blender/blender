@@ -10,6 +10,8 @@ void node_bsdf_hair(vec4 color,
                     float weight,
                     out Closure result)
 {
+  color = max(color, vec4(0));
+
 #if 0
   /* NOTE(fclem): This is the way it should be. But we don't have proper implementation of the hair
    * closure yet. For now fall back to a simpler diffuse surface so that we have at least a color

@@ -17,9 +17,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
+#include "BKE_object_types.hh"
 #include "BKE_pointcloud.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
@@ -205,11 +206,7 @@ std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() 
     bounds = bounds::merge(bounds, pointcloud->bounds_min_max());
   }
   if (const Mesh *mesh = this->get_mesh()) {
-    Bounds<float3> mesh_bounds{float3(std::numeric_limits<float>::max()),
-                               float3(std::numeric_limits<float>::lowest())};
-    if (BKE_mesh_wrapper_minmax(mesh, mesh_bounds.min, mesh_bounds.max)) {
-      bounds = bounds::merge(bounds, {mesh_bounds});
-    }
+    bounds = bounds::merge(bounds, mesh->bounds_min_max());
   }
   if (const Volume *volume = this->get_volume()) {
     Bounds<float3> volume_bounds{float3(std::numeric_limits<float>::max()),
@@ -753,7 +750,7 @@ void GeometrySet::modify_geometry_sets(ForeachSubGeometryCallback callback)
 
 bool object_has_geometry_set_instances(const Object &object)
 {
-  const GeometrySet *geometry_set = object.runtime.geometry_set_eval;
+  const GeometrySet *geometry_set = object.runtime->geometry_set_eval;
   if (geometry_set == nullptr) {
     return false;
   }

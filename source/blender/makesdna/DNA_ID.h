@@ -933,7 +933,7 @@ enum {
   LIB_TAG_TEMP_MAIN = 1 << 20,
   /** General ID management info, for freeing or copying behavior e.g. */
   /**
-   * ID is not listed/stored in Main database.
+   * ID is not listed/stored in any #Main database.
    *
    * RESET_NEVER
    */

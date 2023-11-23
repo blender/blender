@@ -5,7 +5,7 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "DNA_customdata_types.h"
 
@@ -36,7 +36,7 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
       PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
-      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
+      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
     }
   }
 }

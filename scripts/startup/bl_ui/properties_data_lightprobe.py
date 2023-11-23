@@ -112,6 +112,12 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
 
             col.separator()
 
+            row = col.row(align=True)
+            row.prop(probe, "data_display_size", text="Display Data")
+            row.prop(probe, "use_data_display", text="", toggle=True)
+
+            col.separator()
+
             col.prop(probe, "grid_bake_samples")
             col.prop(probe, "surfel_density")
             col.prop(probe, "clip_end", text="Capture Distance")
@@ -160,11 +166,15 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             sub.prop(probe, "clip_start", text="Clipping Start")
             sub.prop(probe, "clip_end", text="End")
 
+            row = col.row(align=True)
+            row.prop(probe, "data_display_size", text="Display Data")
+            row.prop(probe, "use_data_display", text="", toggle=True)
+
         elif probe.type == 'PLANE':
             col = layout.column()
-            row = col.row()
             col.prop(probe, "clip_start", text="Clipping Offset")
             col.prop(probe, "influence_distance", text="Distance")
+            col.prop(probe, "use_data_display", toggle=True)
             pass
         else:
             # Currently unsupported
@@ -228,7 +238,7 @@ class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
 class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout

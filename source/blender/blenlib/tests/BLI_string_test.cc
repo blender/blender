@@ -15,7 +15,7 @@
 
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 using std::initializer_list;
@@ -948,9 +948,10 @@ TEST(string, StrJoin_Truncate)
     EXPECT_STREQ(buffer, "");
   }
   { /* Empty array. */
-    string_join_array_test_truncate(nullptr, 0, buffer);
+    const char *strings[] = {"a"};
+    string_join_array_test_truncate(strings, 0, buffer);
     EXPECT_STREQ(buffer, "");
-    string_join_array_with_sep_char_test_truncate(nullptr, 0, buffer);
+    string_join_array_with_sep_char_test_truncate(strings, 0, buffer);
     EXPECT_STREQ(buffer, "");
   }
 }
@@ -1389,7 +1390,7 @@ class StringEscape : public testing::Test {
     size_t dst_test_len;
     char dst_test[64]; /* Must be big enough for all input. */
     for (const auto &item : items) {
-      /* Validate the static size is big enough (test the test it's self). */
+      /* Validate the static size is big enough (test the test itself). */
       EXPECT_LT((strlen(item[0]) * 2) + 1, sizeof(dst_test));
       /* Escape the string. */
       dst_test_len = BLI_str_escape(dst_test, item[0], sizeof(dst_test));

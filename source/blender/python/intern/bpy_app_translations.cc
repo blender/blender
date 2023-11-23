@@ -672,7 +672,7 @@ PyDoc_STRVAR(
     app_translations_locale_explode_doc,
     ".. method:: locale_explode(locale)\n"
     "\n"
-    "   Return all components and their combinations  of the given ISO locale string.\n"
+    "   Return all components and their combinations of the given ISO locale string.\n"
     "\n"
     "   >>> bpy.app.translations.locale_explode(\"sr_RS@latin\")\n"
     "   (\"sr\", \"RS\", \"latin\", \"sr_RS\", \"sr@latin\")\n"

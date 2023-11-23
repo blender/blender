@@ -12,7 +12,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 
 #include "BKE_editmesh_bvh.h" /* own include */
 

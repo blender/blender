@@ -24,7 +24,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_screen.hh"
@@ -85,7 +85,7 @@ static void nla_action_draw_keyframes(
 
   /* get a list of the keyframes with NLA-scaling applied */
   AnimKeylist *keylist = ED_keylist_create();
-  action_to_keylist(adt, act, keylist, 0);
+  action_to_keylist(adt, act, keylist, 0, {-FLT_MAX, FLT_MAX});
 
   if (ED_keylist_is_empty(keylist)) {
     ED_keylist_free(keylist);
@@ -793,35 +793,36 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
   const float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
   const float text_margin_x = (8 * UI_SCALE_FAC) * pixelx;
 
-  /* build list of channels to draw */
+  /* build list of tracks to draw */
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                               ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   size_t items = ANIM_animdata_filter(
       ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-  /* Update max-extent of channels here (taking into account scrollers):
-   * - this is done to allow the channel list to be scrollable, but must be done here
-   *   to avoid regenerating the list again and/or also because channels list is drawn first
-   * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
+  /* Update max-extent of tracks here (taking into account scrollers):
+   * - this is done to allow the track list to be scrollable, but must be done here
+   *   to avoid regenerating the list again and/or also because tracks list is drawn first
+   * - offset of NLATRACK_HEIGHT*2 is added to the height of the tracks, as first is for
    *   start of list offset, and the second is as a correction for the scrollers.
    */
-  int height = NLACHANNEL_TOT_HEIGHT(ac, items);
+  int height = NLATRACK_TOT_HEIGHT(ac, items);
   v2d->tot.ymin = -height;
 
-  /* Loop through channels, and set up drawing depending on their type. */
-  float ymax = NLACHANNEL_FIRST_TOP(ac);
+  /* Loop through tracks, and set up drawing depending on their type. */
+  float ymax = NLATRACK_FIRST_TOP(ac);
 
   for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= NLACHANNEL_STEP(snla))
+       ale = ale->next, ymax -= NLATRACK_STEP(snla))
   {
-    float ymin = ymax - NLACHANNEL_HEIGHT(snla);
+    float ymin = ymax - NLATRACK_HEIGHT(snla);
     float ycenter = (ymax + ymin) / 2.0f;
 
     /* check if visible */
     if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
-      /* data to draw depends on the type of channel */
+        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax))
+    {
+      /* data to draw depends on the type of track */
       switch (ale->type) {
         case ANIMTYPE_NLATRACK: {
           AnimData *adt = ale->adt;
@@ -873,16 +874,13 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
           nla_action_get_color(adt, static_cast<bAction *>(ale->data), color);
           immUniformColor4fv(color);
 
-          /* draw slightly shifted up for greater separation from standard channels,
+          /* draw slightly shifted up for greater separation from standard tracks,
            * but also slightly shorter for some more contrast when viewing the strips
            */
           switch (adt->act_extendmode) {
             case NLASTRIP_EXTEND_HOLD: {
-              immRectf(pos,
-                       v2d->cur.xmin,
-                       ymin + NLACHANNEL_SKIP,
-                       v2d->cur.xmax,
-                       ymax - NLACHANNEL_SKIP);
+              immRectf(
+                  pos, v2d->cur.xmin, ymin + NLATRACK_SKIP, v2d->cur.xmax, ymax - NLATRACK_SKIP);
               break;
             }
             case NLASTRIP_EXTEND_HOLD_FORWARD: {
@@ -891,7 +889,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
               BKE_action_frame_range_get(static_cast<bAction *>(ale->data), &r_start, &r_end);
               BKE_nla_clip_length_ensure_nonzero(&r_start, &r_end);
 
-              immRectf(pos, r_end, ymin + NLACHANNEL_SKIP, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
+              immRectf(pos, r_end, ymin + NLATRACK_SKIP, v2d->cur.xmax, ymax - NLATRACK_SKIP);
               break;
             }
             case NLASTRIP_EXTEND_NOTHING:
@@ -905,8 +903,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
                                     adt,
                                     static_cast<bAction *>(ale->data),
                                     ycenter,
-                                    ymin + NLACHANNEL_SKIP,
-                                    ymax - NLACHANNEL_SKIP);
+                                    ymin + NLATRACK_SKIP,
+                                    ymax - NLATRACK_SKIP);
 
           GPU_blend(GPU_BLEND_NONE);
           break;
@@ -915,14 +913,14 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
     }
   }
 
-  /* Free temporary channels. */
+  /* Free temporary tracks. */
   ANIM_animdata_freelist(&anim_data);
 }
 
 /* *********************************************** */
-/* Channel List */
+/* Track List */
 
-void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
+void draw_nla_track_list(const bContext *C, bAnimContext *ac, ARegion *region)
 {
   ListBase anim_data = {nullptr, nullptr};
 
@@ -930,63 +928,65 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
   View2D *v2d = &region->v2d;
   size_t items;
 
-  /* build list of channels to draw */
+  /* build list of tracks to draw */
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                               ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-  /* Update max-extent of channels here (taking into account scrollers):
-   * - this is done to allow the channel list to be scrollable, but must be done here
-   *   to avoid regenerating the list again and/or also because channels list is drawn first
-   * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
+  /* Update max-extent of tracks here (taking into account scrollers):
+   * - this is done to allow the track list to be scrollable, but must be done here
+   *   to avoid regenerating the list again and/or also because tracks list is drawn first
+   * - offset of NLATRACK_HEIGHT*2 is added to the height of the tracks, as first is for
    *  start of list offset, and the second is as a correction for the scrollers.
    */
-  int height = NLACHANNEL_TOT_HEIGHT(ac, items);
+  int height = NLATRACK_TOT_HEIGHT(ac, items);
   v2d->tot.ymin = -height;
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
   UI_view2d_sync(nullptr, ac->area, v2d, V2D_LOCK_COPY);
 
-  /* draw channels */
+  /* draw tracks */
   { /* first pass: just the standard GL-drawing for backdrop + text */
-    size_t channel_index = 0;
-    float ymax = NLACHANNEL_FIRST_TOP(ac);
+    size_t track_index = 0;
+    float ymax = NLATRACK_FIRST_TOP(ac);
 
     for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++)
+         ale = ale->next, ymax -= NLATRACK_STEP(snla), track_index++)
     {
-      float ymin = ymax - NLACHANNEL_HEIGHT(snla);
+      float ymin = ymax - NLATRACK_HEIGHT(snla);
 
       /* check if visible */
       if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
-          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
-        /* draw all channels using standard channel-drawing API */
-        ANIM_channel_draw(ac, ale, ymin, ymax, channel_index);
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax))
+      {
+        /* draw all tracks using standard channel-drawing API */
+        ANIM_channel_draw(ac, ale, ymin, ymax, track_index);
       }
     }
   }
   { /* second pass: UI widgets */
     uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-    size_t channel_index = 0;
-    float ymax = NLACHANNEL_FIRST_TOP(ac);
+    size_t track_index = 0;
+    float ymax = NLATRACK_FIRST_TOP(ac);
 
     /* set blending again, as may not be set in previous step */
     GPU_blend(GPU_BLEND_ALPHA);
 
-    /* Loop through channels, and set up drawing depending on their type. */
+    /* Loop through tracks, and set up drawing depending on their type. */
     for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++)
+         ale = ale->next, ymax -= NLATRACK_STEP(snla), track_index++)
     {
-      float ymin = ymax - NLACHANNEL_HEIGHT(snla);
+      float ymin = ymax - NLATRACK_HEIGHT(snla);
 
       /* check if visible */
       if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
-          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
-        /* draw all channels using standard channel-drawing API */
-        rctf channel_rect;
-        BLI_rctf_init(&channel_rect, 0, v2d->cur.xmax, ymin, ymax);
-        ANIM_channel_draw_widgets(C, ac, ale, block, &channel_rect, channel_index);
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax))
+      {
+        /* draw all tracks using standard channel-drawing API */
+        rctf track_rect;
+        BLI_rctf_init(&track_rect, 0, v2d->cur.xmax, ymin, ymax);
+        ANIM_channel_draw_widgets(C, ac, ale, block, &track_rect, track_index);
       }
     }
 
@@ -996,7 +996,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
     GPU_blend(GPU_BLEND_NONE);
   }
 
-  /* free temporary channels */
+  /* free temporary tracks */
   ANIM_animdata_freelist(&anim_data);
 }
 

@@ -49,8 +49,8 @@ void KeyingDespillOperation::execute_pixel_sampled(float output[4],
   const int other_1 = (screen_primary_channel + 1) % 3;
   const int other_2 = (screen_primary_channel + 2) % 3;
 
-  const int min_channel = MIN2(other_1, other_2);
-  const int max_channel = MAX2(other_1, other_2);
+  const int min_channel = std::min(other_1, other_2);
+  const int max_channel = std::max(other_1, other_2);
 
   float average_value, amount;
 
@@ -78,8 +78,8 @@ void KeyingDespillOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const int other_1 = (screen_primary_channel + 1) % 3;
     const int other_2 = (screen_primary_channel + 2) % 3;
 
-    const int min_channel = MIN2(other_1, other_2);
-    const int max_channel = MAX2(other_1, other_2);
+    const int min_channel = std::min(other_1, other_2);
+    const int max_channel = std::max(other_1, other_2);
 
     const float average_value = color_balance_ * pixel_color[min_channel] +
                                 (1.0f - color_balance_) * pixel_color[max_channel];

@@ -15,12 +15,14 @@ using namespace blender::math;
 
 void PlanarProbe::sync(const float4x4 &world_to_object,
                        float clipping_offset,
-                       float influence_distance)
+                       float influence_distance,
+                       bool viewport_display)
 {
   this->plane_to_world = float4x4(world_to_object);
   this->plane_to_world.z_axis() = normalize(this->plane_to_world.z_axis()) * influence_distance;
   this->world_to_plane = invert(this->plane_to_world);
   this->clipping_offset = clipping_offset;
+  this->viewport_display = viewport_display;
 }
 
 void PlanarProbe::set_view(const draw::View &view, int layer_id)
@@ -59,6 +61,8 @@ void PlanarProbeModule::init()
   if (assign_if_different(update_probes_, !probes_.is_empty())) {
     instance_.sampling.reset();
   }
+
+  do_display_draw_ = false;
 }
 
 void PlanarProbeModule::begin_sync()
@@ -76,7 +80,10 @@ void PlanarProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
   }
 
   PlanarProbe &probe = find_or_insert(ob_handle);
-  probe.sync(float4x4(ob->object_to_world), light_probe->clipsta, light_probe->distinf);
+  probe.sync(float4x4(ob->object_to_world),
+             light_probe->clipsta,
+             light_probe->distinf,
+             light_probe->flag & LIGHTPROBE_FLAG_SHOW_DATA);
   probe.is_probe_used = true;
 }
 
@@ -108,7 +115,10 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
   radiance_tx_.ensure_2d_array(GPU_R11F_G11F_B10F, extent, layer_count, usage);
   depth_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, extent, layer_count, usage);
 
+  do_display_draw_ = DRW_state_draw_support() && num_probes > 0;
+
   int resource_index = 0;
+  int display_index = 0;
   for (PlanarProbe &probe : probes_.values()) {
     if (resource_index == PLANAR_PROBES_MAX) {
       break;
@@ -131,6 +141,10 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
 
     instance_.pipelines.planar.render(res.view, res.combined_fb, resource_index, extent);
 
+    if (do_display_draw_ && probe.viewport_display) {
+      display_data_buf_.get_or_resize(display_index++) = {probe.plane_to_world, resource_index};
+    }
+
     resource_index++;
   }
 
@@ -139,12 +153,36 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     probe_planar_buf_[resource_index].layer_id = -1;
   }
   probe_planar_buf_.push_update();
+
+  do_display_draw_ = display_index > 0;
+  if (do_display_draw_) {
+    display_data_buf_.resize(display_index);
+    display_data_buf_.push_update();
+  }
 }
 
 PlanarProbe &PlanarProbeModule::find_or_insert(ObjectHandle &ob_handle)
 {
   PlanarProbe &planar_probe = probes_.lookup_or_add_default(ob_handle.object_key.hash());
   return planar_probe;
+}
+
+void PlanarProbeModule::viewport_draw(View &view, GPUFrameBuffer *view_fb)
+{
+  if (!do_display_draw_) {
+    return;
+  }
+
+  viewport_display_ps_.init();
+  viewport_display_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                                 DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
+  viewport_display_ps_.framebuffer_set(&view_fb);
+  viewport_display_ps_.shader_set(instance_.shaders.static_shader_get(DISPLAY_PROBE_PLANAR));
+  bind_resources(viewport_display_ps_);
+  viewport_display_ps_.bind_ssbo("display_data_buf", display_data_buf_);
+  viewport_display_ps_.draw_procedural(GPU_PRIM_TRIS, 1, display_data_buf_.size() * 6);
+
+  instance_.manager->submit(viewport_display_ps_, view);
 }
 
 /** \} */

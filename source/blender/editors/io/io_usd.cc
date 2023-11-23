@@ -12,7 +12,7 @@
 
 #  include <cstring>
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 
@@ -108,8 +108,15 @@ static void process_prim_path(char *prim_path)
 
   /* The absolute root "/" path indicates a no-op,
    * so clear the string. */
-  if (prim_path[0] == '/' && strlen(prim_path) == 1) {
+  if (prim_path[0] == '/' && prim_path[1] == '\0') {
     prim_path[0] = '\0';
+  }
+
+  /* If a prim path doesn't start with a "/" it
+   * is invalid when creating the prim. */
+  if (prim_path[0] != '/') {
+    const std::string prim_path_copy = std::string(prim_path);
+    BLI_snprintf(prim_path, FILE_MAX, "/%s", prim_path_copy.c_str());
   }
 }
 
@@ -179,7 +186,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   STRNCPY(params.root_prim_path, root_prim_path);
 
-  bool ok = USD_export(C, filepath, &params, as_background_job);
+  bool ok = USD_export(C, filepath, &params, as_background_job, op->reports);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -371,7 +378,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
   RNA_def_string(ot->srna,
                  "root_prim_path",
-                 nullptr,
+                 "/root",
                  FILE_MAX,
                  "Root Prim",
                  "If set, add a transform primitive with the given path to the stage "
@@ -515,7 +522,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
-  const bool ok = USD_import(C, filepath, &params, as_background_job);
+  const bool ok = USD_import(C, filepath, &params, as_background_job, op->reports);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

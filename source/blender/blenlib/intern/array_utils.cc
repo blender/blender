@@ -85,6 +85,11 @@ void invert_booleans(MutableSpan<bool> span)
   });
 }
 
+void invert_booleans(MutableSpan<bool> span, const IndexMask &mask)
+{
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) { span[i] = !span[i]; });
+}
+
 BooleanMix booleans_mix_calc(const VArray<bool> &varray, const IndexRange range_to_check)
 {
   if (varray.is_empty()) {
@@ -134,6 +139,42 @@ BooleanMix booleans_mix_calc(const VArray<bool> &varray, const IndexRange range_
         return first ? BooleanMix::AllTrue : BooleanMix::AllFalse;
       },
       [&](BooleanMix a, BooleanMix b) { return (a == b) ? a : BooleanMix::Mixed; });
+}
+
+int64_t count_booleans(const VArray<bool> &varray)
+{
+  if (varray.is_empty()) {
+    return 0;
+  }
+  const CommonVArrayInfo info = varray.common_info();
+  if (info.type == CommonVArrayInfo::Type::Single) {
+    return *static_cast<const bool *>(info.data) ? varray.size() : 0;
+  }
+  if (info.type == CommonVArrayInfo::Type::Span) {
+    const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
+    return threading::parallel_reduce(
+        varray.index_range(),
+        4096,
+        0,
+        [&](const IndexRange range, const int64_t init) {
+          const Span<bool> slice = span.slice(range);
+          return init + std::count(slice.begin(), slice.end(), true);
+        },
+        std::plus<int64_t>());
+  }
+  return threading::parallel_reduce(
+      varray.index_range(),
+      2048,
+      0,
+      [&](const IndexRange range, const int64_t init) {
+        int64_t value = init;
+        /* Alternatively, this could use #materialize to retrieve many values at once. */
+        for (const int64_t i : range) {
+          value += int64_t(varray[i]);
+        }
+        return value;
+      },
+      std::plus<int64_t>());
 }
 
 }  // namespace blender::array_utils

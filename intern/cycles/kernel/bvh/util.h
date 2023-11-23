@@ -37,7 +37,7 @@ ccl_device_forceinline float intersection_t_offset(const float t)
    * always return smallest normalized value. If a denormalized zero is returned
    * it will cause false-positive intersection detection with a distance of 0.
    *
-   * The check relies on the fact that comparison of de-normal values with zero
+   * The check relies on the fact that comparison of denormal values with zero
    * returns true. */
   if (t == 0.0f) {
     /* The exact bit value of this should be 0x1p-126, but hex floating point values notation is

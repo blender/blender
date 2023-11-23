@@ -140,7 +140,7 @@ bool MTLCommandBufferManager::submit(bool wait)
     MTL_LOG_WARNING(
         "Maximum number of command buffers in flight. Host will wait until GPU work has "
         "completed. Consider increasing GHOST_ContextCGL::max_command_buffer_count or reducing "
-        "work fragmentation to better utilise system hardware. Command buffers are flushed upon "
+        "work fragmentation to better utilize system hardware. Command buffers are flushed upon "
         "GPUContext switches, this is the most common cause of excessive command buffer "
         "generation.");
   }
@@ -1000,7 +1000,7 @@ void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer,
   }
 }
 
-void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint64_t length, uint index)
+void MTLRenderPassState::bind_vertex_bytes(const void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
@@ -1025,7 +1025,7 @@ void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint64_t length, uint in
   }
 }
 
-void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint64_t length, uint index)
+void MTLRenderPassState::bind_fragment_bytes(const void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
@@ -1050,7 +1050,7 @@ void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint64_t length, uint 
   }
 }
 
-void MTLComputeState::bind_compute_bytes(void *bytes, uint64_t length, uint index)
+void MTLComputeState::bind_compute_bytes(const void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);

@@ -26,7 +26,7 @@
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_screen.hh"
 
@@ -385,7 +385,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
  * Ensure View2D rects remain in a viable configuration
  * 'cur' is not allowed to be: larger than max, smaller than min, or outside of 'tot'
  */
-/* XXX pre2.5 -> this used to be called  test_view2d() */
+/* XXX pre2.5 -> this used to be called #test_view2d() */
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
 {
   float totwidth, totheight, curwidth, curheight, width, height;
@@ -1303,6 +1303,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
   /* Scaling the dots fully with the zoom looks too busy, but a bit of size variation is nice. */
@@ -1384,6 +1385,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
   }
 
   immUnbindProgram();
+  GPU_program_point_size(false);
 }
 
 /** \} */

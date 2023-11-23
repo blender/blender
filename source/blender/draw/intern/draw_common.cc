@@ -61,6 +61,7 @@ void DRW_globals_update()
   UI_COLOR_RGBA_FROM_U8(0xB0, 0x00, 0xB0, 0xFF, gb->color_vertex_missing_data);
   UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, gb->color_edit_mesh_active);
   UI_GetThemeColor4fv(TH_EDGE_SELECT, gb->color_edge_select);
+  UI_GetThemeColor4fv(TH_EDGE_MODE_SELECT, gb->color_edge_mode_select);
   UI_GetThemeColor4fv(TH_GP_VERTEX, gb->color_gpencil_vertex);
   UI_GetThemeColor4fv(TH_GP_VERTEX_SELECT, gb->color_gpencil_vertex_select);
 
@@ -71,6 +72,7 @@ void DRW_globals_update()
   UI_GetThemeColor4fv(TH_EDGE_FACESEL, gb->color_edge_face_select);
   UI_GetThemeColor4fv(TH_FACE, gb->color_face);
   UI_GetThemeColor4fv(TH_FACE_SELECT, gb->color_face_select);
+  UI_GetThemeColor4fv(TH_FACE_MODE_SELECT, gb->color_face_mode_select);
   UI_GetThemeColor4fv(TH_FACE_RETOPOLOGY, gb->color_face_retopology);
   UI_GetThemeColor4fv(TH_FACE_BACK, gb->color_face_back);
   UI_GetThemeColor4fv(TH_FACE_FRONT, gb->color_face_front);

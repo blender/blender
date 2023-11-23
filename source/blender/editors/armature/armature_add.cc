@@ -20,14 +20,14 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
@@ -225,7 +225,6 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
   ARegion *region;
   View3D *v3d;
   float tvec[3], oldcurs[3], mval_f[2];
-  int retv;
 
   scene = CTX_data_scene(C);
   region = CTX_wm_region(C);
@@ -240,12 +239,16 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
   copy_v3_v3(cursor->location, tvec);
 
   /* extrude to the where new cursor is and store the operation result */
-  retv = armature_click_extrude_exec(C, op);
+  int retval = armature_click_extrude_exec(C, op);
 
   /* restore previous 3d cursor position */
   copy_v3_v3(cursor->location, oldcurs);
 
-  return retv;
+  /* Support dragging to move after extrude, see: #114282. */
+  if (retval & OPERATOR_FINISHED) {
+    retval |= OPERATOR_PASS_THROUGH;
+  }
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void ARMATURE_OT_click_extrude(wmOperatorType *ot)

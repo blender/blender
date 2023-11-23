@@ -103,7 +103,6 @@
 /* Keep this as a define to avoid shader variations. */
 #define RAYTRACE_RADIANCE_FORMAT GPU_R11F_G11F_B10F
 #define RAYTRACE_RAYTIME_FORMAT GPU_R32F
-#define RAYTRACE_HORIZON_FORMAT GPU_R32UI
 #define RAYTRACE_VARIANCE_FORMAT GPU_R16F
 #define RAYTRACE_TILEMASK_FORMAT GPU_R8UI
 
@@ -154,6 +153,7 @@
 /* Volumes. */
 #define VOLUME_GROUP_SIZE 4
 #define VOLUME_INTEGRATION_GROUP_SIZE 8
+#define VOLUME_HIT_DEPTH_MAX 16
 
 /* Resource bindings. */
 
@@ -184,6 +184,10 @@
 #define VOLUME_PROP_EXTINCTION_IMG_SLOT 1
 #define VOLUME_PROP_EMISSION_IMG_SLOT 2
 #define VOLUME_PROP_PHASE_IMG_SLOT 3
+#define VOLUME_OCCUPANCY_SLOT 4
+/* Only during volume pre-pass. */
+#define VOLUME_HIT_DEPTH_SLOT 0
+#define VOLUME_HIT_COUNT_SLOT 1
 /* Only during shadow rendering. */
 #define SHADOW_ATLAS_IMG_SLOT 4
 

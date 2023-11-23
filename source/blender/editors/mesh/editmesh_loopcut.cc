@@ -17,10 +17,10 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_report.h"
 #include "BKE_unit.h"
 
@@ -282,7 +282,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
   lcd = static_cast<RingSelOpData *>(
       op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data"));
 
-  em_setup_viewcontext(C, &lcd->vc);
+  lcd->vc = em_setup_viewcontext(C);
 
   lcd->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -554,7 +554,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
   bool show_cuts = false;
   const bool has_numinput = hasNumInput(&lcd->num);
 
-  em_setup_viewcontext(C, &lcd->vc);
+  lcd->vc = em_setup_viewcontext(C);
   lcd->region = lcd->vc.region;
 
   view3d_operator_needs_opengl(C);

@@ -41,19 +41,19 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
-#include "multiview.h"
-#include "proxy.h"
-#include "render.h"
-#include "sequencer.h"
-#include "strip_time.h"
-#include "utils.h"
+#include "multiview.hh"
+#include "proxy.hh"
+#include "render.hh"
+#include "sequencer.hh"
+#include "strip_time.hh"
+#include "utils.hh"
 
 struct SeqIndexBuildContext {
   IndexBuildContext *index_context;
@@ -215,7 +215,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    int frameno = int(SEQ_give_frame_index(context->scene, seq, timeline_frame)) +
+    int frameno = round_fl_to_int(SEQ_give_frame_index(context->scene, seq, timeline_frame)) +
                   seq->anim_startofs;
     if (proxy->anim == nullptr) {
       if (seq_proxy_get_filepath(

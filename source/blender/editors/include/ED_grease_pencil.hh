@@ -22,6 +22,7 @@ struct Main;
 struct Object;
 struct KeyframeEditData;
 struct wmKeyConfig;
+struct ToolSettings;
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -38,11 +39,12 @@ void ED_operatortypes_grease_pencil_frames();
 void ED_operatortypes_grease_pencil_layers();
 void ED_operatortypes_grease_pencil_select();
 void ED_operatortypes_grease_pencil_edit();
+void ED_operatortypes_grease_pencil_material();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
-eAttrDomain ED_grease_pencil_selection_domain_get(bContext *C);
+eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
 
 /** \} */
 
@@ -109,9 +111,46 @@ bool editable_grease_pencil_poll(bContext *C);
 bool editable_grease_pencil_point_selection_poll(bContext *C);
 bool grease_pencil_painting_poll(bContext *C);
 
+struct DrawingInfo {
+  const bke::greasepencil::Drawing &drawing;
+  const int layer_index;
+  const int frame_number;
+};
+struct MutableDrawingInfo {
+  bke::greasepencil::Drawing &drawing;
+  const int layer_index;
+  const int frame_number;
+};
+Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
+                                                     GreasePencil &grease_pencil);
+Array<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
+                                             const GreasePencil &grease_pencil);
+
+IndexMask retrieve_editable_strokes(Object &grease_pencil_object,
+                                    const bke::greasepencil::Drawing &drawing,
+                                    IndexMaskMemory &memory);
+IndexMask retrieve_editable_points(Object &object,
+                                   const bke::greasepencil::Drawing &drawing,
+                                   IndexMaskMemory &memory);
+IndexMask retrieve_editable_elements(Object &object,
+                                     const bke::greasepencil::Drawing &drawing,
+                                     eAttrDomain selection_domain,
+                                     IndexMaskMemory &memory);
+
+IndexMask retrieve_editable_and_selected_strokes(Object &grease_pencil_object,
+                                                 const bke::greasepencil::Drawing &drawing,
+                                                 IndexMaskMemory &memory);
+IndexMask retrieve_editable_and_selected_points(Object &object,
+                                                const bke::greasepencil::Drawing &drawing,
+                                                IndexMaskMemory &memory);
+IndexMask retrieve_editable_and_selected_elements(Object &object,
+                                                  const bke::greasepencil::Drawing &drawing,
+                                                  eAttrDomain selection_domain,
+                                                  IndexMaskMemory &memory);
+
 void create_blank(Main &bmain, Object &object, int frame_number);
 void create_stroke(Main &bmain, Object &object, float4x4 matrix, int frame_number);
-void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int frame_number);
+void create_suzanne(Main &bmain, Object &object, float4x4 matrix, int frame_number);
 
 void gaussian_blur_1D(const GSpan src,
                       int64_t iterations,

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
+
 #include "GEO_join_geometries.hh"
 #include "GEO_realize_instances.hh"
 
@@ -32,9 +34,9 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
               attribute_id,
               [&](AttributeMetaData *meta_data_final) { *meta_data_final = meta_data; },
               [&](AttributeMetaData *meta_data_final) {
-                meta_data_final->data_type = blender::bke::attribute_data_type_highest_complexity(
+                meta_data_final->data_type = bke::attribute_data_type_highest_complexity(
                     {meta_data_final->data_type, meta_data.data_type});
-                meta_data_final->domain = blender::bke::attribute_domain_highest_priority(
+                meta_data_final->domain = bke::attribute_domain_highest_priority(
                     {meta_data_final->domain, meta_data.domain});
               });
           return true;
@@ -97,20 +99,22 @@ static void join_attributes(const Span<const GeometryComponent *> src_components
 static void join_instances(const Span<const GeometryComponent *> src_components,
                            GeometrySet &result)
 {
-  std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
-
-  int tot_instances = 0;
-  for (const GeometryComponent *src_component : src_components) {
-    const bke::InstancesComponent &src_instance_component =
-        static_cast<const bke::InstancesComponent &>(*src_component);
-    tot_instances += src_instance_component.get()->instances_num();
+  Array<int> offsets_data(src_components.size() + 1);
+  for (const int i : src_components.index_range()) {
+    const auto &src_component = static_cast<const bke::InstancesComponent &>(*src_components[i]);
+    offsets_data[i] = src_component.get()->instances_num();
   }
-  dst_instances->reserve(tot_instances);
+  const OffsetIndices offsets = offset_indices::accumulate_counts_to_offsets(offsets_data);
 
-  for (const GeometryComponent *src_component : src_components) {
-    const bke::InstancesComponent &src_instance_component =
-        static_cast<const bke::InstancesComponent &>(*src_component);
-    const bke::Instances &src_instances = *src_instance_component.get();
+  std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
+  dst_instances->resize(offsets.total_size());
+
+  MutableSpan<float4x4> all_transforms = dst_instances->transforms();
+  MutableSpan<int> all_handles = dst_instances->reference_handles();
+
+  for (const int i : src_components.index_range()) {
+    const auto &src_component = static_cast<const bke::InstancesComponent &>(*src_components[i]);
+    const bke::Instances &src_instances = *src_component.get();
 
     const Span<bke::InstanceReference> src_references = src_instances.references();
     Array<int> handle_map(src_references.size());
@@ -118,20 +122,15 @@ static void join_instances(const Span<const GeometryComponent *> src_components,
       handle_map[src_handle] = dst_instances->add_reference(src_references[src_handle]);
     }
 
-    const Span<float4x4> src_transforms = src_instances.transforms();
-    const Span<int> src_reference_handles = src_instances.reference_handles();
+    const IndexRange dst_range = offsets[i];
 
-    for (const int i : src_transforms.index_range()) {
-      const int src_handle = src_reference_handles[i];
-      const int dst_handle = handle_map[src_handle];
-      const float4x4 &transform = src_transforms[i];
-      dst_instances->add_instance(dst_handle, transform);
-    }
+    const Span<int> src_handles = src_instances.reference_handles();
+    array_utils::gather(handle_map.as_span(), src_handles, all_handles.slice(dst_range));
+    array_utils::copy(src_instances.transforms(), all_transforms.slice(dst_range));
   }
 
   result.replace_instances(dst_instances.release());
-  bke::InstancesComponent &dst_component =
-      result.get_component_for_write<bke::InstancesComponent>();
+  auto &dst_component = result.get_component_for_write<bke::InstancesComponent>();
   join_attributes(src_components, dst_component, {"position"});
 }
 

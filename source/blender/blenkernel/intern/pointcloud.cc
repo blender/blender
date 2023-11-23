@@ -25,7 +25,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -34,8 +34,9 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_pointcloud.h"
 
 #include "BLT_translation.h"
@@ -147,7 +148,7 @@ IDTypeInfo IDType_ID_PT = {
     /*main_listbase_index*/ INDEX_ID_PT,
     /*struct_size*/ sizeof(PointCloud),
     /*name*/ "PointCloud",
-    /*name_plural*/ "pointclouds",
+    /*name_plural*/ N_("pointclouds"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_POINTCLOUD,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -259,34 +260,29 @@ std::optional<blender::Bounds<blender::float3>> PointCloud::bounds_min_max() con
   return this->runtime->bounds_cache.data();
 }
 
-BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
+BoundBox BKE_pointcloud_boundbox_get(Object *ob)
 {
   using namespace blender;
   BLI_assert(ob->type == OB_POINTCLOUD);
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
-    return ob->runtime.bb;
-  }
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
 
   std::optional<Bounds<float3>> bounds;
-  if (ob->runtime.geometry_set_eval) {
-    bounds = ob->runtime.geometry_set_eval->compute_boundbox_without_instances();
+  if (ob->runtime->geometry_set_eval) {
+    bounds = ob->runtime->geometry_set_eval->compute_boundbox_without_instances();
   }
   else {
     const PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
     bounds = pointcloud->bounds_min_max();
   }
 
+  BoundBox bb;
   if (bounds) {
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, bounds->min, bounds->max);
+    BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
   }
   else {
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, float3(-1), float3(1));
+    BKE_boundbox_init_from_minmax(&bb, float3(-1), float3(1));
   }
 
-  return ob->runtime.bb;
+  return bb;
 }
 
 bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const char *name)
@@ -377,7 +373,7 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
   /* Assign evaluated object. */
   const bool eval_is_owned = pointcloud_eval != pointcloud;
   BKE_object_eval_assign_data(object, &pointcloud_eval->id, eval_is_owned);
-  object->runtime.geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
+  object->runtime->geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
 }
 
 void PointCloud::tag_positions_changed()

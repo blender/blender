@@ -21,9 +21,9 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
@@ -67,7 +67,6 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 {
   MultiresModifierData *mmd = (MultiresModifierData *)md;
   if (mmd->flags & eMultiresModifierFlag_UseCustomNormals) {
-    r_cddata_masks->lmask |= CD_MASK_NORMAL;
     r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
   }
 }
@@ -217,8 +216,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     return result;
   }
   const bool use_clnors = mmd->flags & eMultiresModifierFlag_UseCustomNormals &&
-                          mesh->flag & ME_AUTOSMOOTH &&
-                          CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL);
+                          mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner;
   /* NOTE: Orco needs final coordinates on CPU side, which are expected to be
    * accessible via mesh vertices. For this reason we do not evaluate multires to
    * grids when orco is requested. */
@@ -253,10 +251,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
   else {
     if (use_clnors) {
-      /* If custom normals are present and the option is turned on calculate the split
-       * normals and clear flag so the normals get interpolated to the result mesh. */
-      BKE_mesh_calc_normals_split(mesh);
-      CustomData_clear_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+      void *data = CustomData_add_layer(&mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->totloop);
+      memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
     }
 
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
@@ -264,10 +260,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     if (use_clnors) {
       float(*lnors)[3] = static_cast<float(*)[3]>(
           CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
-      BLI_assert(lnors != nullptr);
       BKE_mesh_set_custom_normals(result, lnors);
-      CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-      CustomData_set_layer_flag(&result->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_free_layers(&result->loop_data, CD_NORMAL, result->totloop);
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {
@@ -280,18 +274,14 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 static void deform_matrices(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            float (*vertex_cos)[3],
-                            float (*deform_matrices)[3][3],
-                            int verts_num)
+                            blender::MutableSpan<blender::float3> positions,
+                            blender::MutableSpan<blender::float3x3> /*matrices*/)
 
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return;
 #endif
-
-  /* Subsurf does not require extra space mapping, keep matrices as is. */
-  (void)deform_matrices;
 
   MultiresModifierData *mmd = (MultiresModifierData *)md;
 
@@ -314,7 +304,8 @@ static void deform_matrices(ModifierData *md,
     return;
   }
   BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
-  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
+  BKE_subdiv_deform_coarse_vertices(
+      subdiv, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
   if (subdiv != runtime_data->subdiv) {
     BKE_subdiv_free(subdiv);
   }
@@ -493,7 +484,7 @@ ModifierTypeInfo modifierType_Multires = {
     /*struct_name*/ "MultiresModifierData",
     /*struct_size*/ sizeof(MultiresModifierData),
     /*srna*/ &RNA_MultiresModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_RequiresOriginalData,
     /*icon*/ ICON_MOD_MULTIRES,

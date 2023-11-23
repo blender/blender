@@ -130,11 +130,20 @@ class IrradianceBake {
   /** True if emission is recorded during the light propagation. */
   bool capture_emission_ = false;
 
+  /** True if the bake job should stop. */
+  bool do_break_ = false;
+
  public:
   IrradianceBake(Instance &inst) : inst_(inst){};
 
   void init(const Object &probe_object);
   void sync();
+
+  /** True if the bake job should stop. */
+  bool should_break()
+  {
+    return do_break_;
+  }
 
   /** Create the views used to rasterize the scene into surfel representation. */
   void surfel_raster_views_sync(float3 scene_min, float3 scene_max, float4x4 probe_to_world);

@@ -11,7 +11,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,10 +79,15 @@ struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               eCustomDataType type,
                                               eAttrDomain domain);
 
-struct CustomDataLayer *BKE_id_attribute_search(struct ID *id,
-                                                const char *name,
-                                                eCustomDataMask type,
-                                                eAttrDomainMask domain_mask);
+const struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
+                                                      const char *name,
+                                                      eCustomDataMask type,
+                                                      eAttrDomainMask domain_mask);
+
+struct CustomDataLayer *BKE_id_attribute_search_for_write(struct ID *id,
+                                                          const char *name,
+                                                          eCustomDataMask type,
+                                                          eAttrDomainMask domain_mask);
 
 eAttrDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);
@@ -94,8 +99,7 @@ bool BKE_id_attribute_rename(struct ID *id,
 
 int BKE_id_attributes_length(const struct ID *id,
                              eAttrDomainMask domain_mask,
-                             eCustomDataMask mask,
-                             bool skip_temporary);
+                             eCustomDataMask mask);
 
 struct CustomDataLayer *BKE_id_attributes_active_get(struct ID *id);
 void BKE_id_attributes_active_set(struct ID *id, const char *name);
@@ -120,7 +124,7 @@ void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
 
 const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
-bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
+void BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
 
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer);
 const char *BKE_uv_map_edge_select_name_get(const char *uv_map_name, char *buffer);

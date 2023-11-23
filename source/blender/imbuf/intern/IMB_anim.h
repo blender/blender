@@ -122,7 +122,6 @@ struct anim {
   AVFrame *pFrame_backup;
   bool pFrame_backup_complete;
 
-  struct ImBuf *cur_frame_final;
   int64_t cur_pts;
   int64_t cur_key_frame_pts;
   AVPacket *cur_packet;

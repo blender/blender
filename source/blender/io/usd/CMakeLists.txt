@@ -150,7 +150,6 @@ set(SRC
 
 if(WITH_HYDRA)
   list(APPEND SRC
-    hydra/camera.cc
     hydra/curves.cc
     hydra/hydra_scene_delegate.cc
     hydra/id.cc
@@ -165,7 +164,6 @@ if(WITH_HYDRA)
     hydra/volume_modifier.cc
     hydra/world.cc
 
-    hydra/camera.h
     hydra/curves.h
     hydra/hydra_scene_delegate.h
     hydra/id.h
@@ -186,6 +184,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::animrig
   bf_imbuf
   PRIVATE bf::intern::guardedalloc
   bf_io_common

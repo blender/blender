@@ -18,7 +18,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_scene.h"
 
@@ -39,15 +39,15 @@
 
 #include "BIF_glutil.hh"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_prefetch.h"
-#include "SEQ_proxy.h"
-#include "SEQ_render.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_prefetch.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_render.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -135,8 +135,9 @@ ImBuf *sequencer_ibuf_get(Main *bmain,
     GPU_framebuffer_restore();
   }
 
-  if (special_seq_update) {
-    ibuf = SEQ_render_give_ibuf_direct(&context, timeline_frame + frame_ofs, special_seq_update);
+  if (ED_sequencer_special_preview_get()) {
+    ibuf = SEQ_render_give_ibuf_direct(
+        &context, timeline_frame + frame_ofs, ED_sequencer_special_preview_get());
   }
   else {
     ibuf = SEQ_render_give_ibuf(&context, timeline_frame + frame_ofs, sseq->chanshown);
@@ -797,14 +798,12 @@ void sequencer_draw_preview(const bContext *C,
   if (!draw_backdrop && scene->ed != nullptr) {
     Editing *ed = SEQ_editing_get(scene);
     ListBase *channels = SEQ_channels_displayed_get(ed);
-    SeqCollection *collection = SEQ_query_rendered_strips(
+    blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, ed->seqbasep, timeline_frame, 0);
-    Sequence *seq;
     Sequence *active_seq = SEQ_select_active_get(scene);
-    SEQ_ITERATOR_FOREACH (seq, collection) {
+    for (Sequence *seq : strips) {
       seq_draw_image_origin_and_outline(C, seq, seq == active_seq);
     }
-    SEQ_collection_free(collection);
   }
 
   if (draw_gpencil && show_imbuf && (sseq->flag & SEQ_SHOW_OVERLAY)) {

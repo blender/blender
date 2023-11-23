@@ -268,9 +268,9 @@ struct FilmData {
   /** Is true if accumulation of filtered passes is needed. */
   bool1 any_render_pass_1;
   bool1 any_render_pass_2;
+  bool1 any_render_pass_3;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
-  float _pad0, _pad1;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
@@ -287,6 +287,7 @@ struct FilmData {
   int environment_id;
   int shadow_id;
   int ambient_occlusion_id;
+  int transparent_id;
   /** Not indexed but still not -1 if enabled. */
   int depth_id;
   int combined_id;
@@ -376,11 +377,12 @@ struct RenderBuffersInfoData {
   int volume_light_id;
   int emission_id;
   int environment_id;
+  int transparent_id;
   /* Value */
   int value_len;
   int shadow_id;
   int ambient_occlusion_id;
-  int _pad0, _pad1, _pad2;
+  int _pad0, _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 
@@ -621,7 +623,7 @@ static inline float regular_polygon_side_length(float sides_count)
  * Start first corners at theta == 0. */
 static inline float circle_to_polygon_radius(float sides_count, float theta)
 {
-  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide 36). */
+  /* From Graphics Gems from CryENGINE 3 (SIGGRAPH 2013) by Tiago Sousa (slide 36). */
   float side_angle = (2.0f * M_PI) / sides_count;
   return cosf(side_angle * 0.5f) /
          cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
@@ -1200,14 +1202,14 @@ struct RayTraceData {
   /** Maximum brightness during lighting evaluation. */
   float brightness_clamp;
   /** Maximum roughness for which we will trace a ray. */
-  float max_trace_roughness;
+  float roughness_mask_scale;
+  float roughness_mask_bias;
   /** If set to true will bypass spatial denoising. */
   bool1 skip_denoise;
   /** Closure being ray-traced. */
   eClosureBits closure_active;
   int _pad0;
   int _pad1;
-  int _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 
@@ -1218,9 +1220,14 @@ BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
  * \{ */
 
 struct AOData {
+  float2 pixel_size;
   float distance;
   float quality;
-  float2 pixel_size;
+
+  float thickness;
+  float angle_bias;
+  float _pad1;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(AOData, 16)
 
@@ -1348,6 +1355,15 @@ struct ReflectionProbeData {
 };
 BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
 
+/** Viewport Display Pass. */
+struct ReflectionProbeDisplayData {
+  int probe_index;
+  float display_size;
+  float _pad0;
+  float _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeDisplayData, 16)
+
 struct ProbePlanarData {
   /** Matrices used to render the planar capture. */
   float4x4 viewmat;
@@ -1366,6 +1382,16 @@ struct ClipPlaneData {
   float4 plane;
 };
 BLI_STATIC_ASSERT_ALIGN(ClipPlaneData, 16)
+
+/** Viewport Display Pass. */
+struct ProbePlanarDisplayData {
+  float4x4 plane_to_world;
+  int probe_index;
+  float _pad0;
+  float _pad1;
+  float _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(ProbePlanarDisplayData, 16)
 
 /** \} */
 
@@ -1404,7 +1430,7 @@ BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 #define UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER 1
 #define UTIL_LTC_MAT_LAYER 2
 #define UTIL_BSDF_LAYER 3
-#define UTIL_BTDF_LAYER 5
+#define UTIL_BTDF_LAYER 4
 #define UTIL_DISK_INTEGRAL_LAYER UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER
 #define UTIL_DISK_INTEGRAL_COMP 3
 
@@ -1484,7 +1510,9 @@ using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 using SubsurfaceTileBuf = RayTraceTileBuf;
 using ReflectionProbeDataBuf =
     draw::UniformArrayBuffer<ReflectionProbeData, REFLECTION_PROBES_MAX>;
+using ReflectionProbeDisplayDataBuf = draw::StorageArrayBuffer<ReflectionProbeDisplayData>;
 using ProbePlanarDataBuf = draw::UniformArrayBuffer<ProbePlanarData, PLANAR_PROBES_MAX>;
+using ProbePlanarDisplayDataBuf = draw::StorageArrayBuffer<ProbePlanarDisplayData>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using ShadowStatisticsBuf = draw::StorageBuffer<ShadowStatistics>;
 using ShadowPagesInfoDataBuf = draw::StorageBuffer<ShadowPagesInfoData>;

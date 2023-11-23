@@ -27,6 +27,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -37,18 +38,19 @@
 #include "PIL_time.h"
 
 #include "BKE_anim_path.h" /* needed for where_on_path */
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_collection.h"
 #include "BKE_collision.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
@@ -150,13 +152,13 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
   if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type == OB_CURVES_LEGACY) {
     Curve *cu = static_cast<Curve *>(eff->ob->data);
     if (cu->flag & CU_PATH) {
-      if (eff->ob->runtime.curve_cache == nullptr ||
-          eff->ob->runtime.curve_cache->anim_path_accum_length == nullptr)
+      if (eff->ob->runtime->curve_cache == nullptr ||
+          eff->ob->runtime->curve_cache->anim_path_accum_length == nullptr)
       {
         BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false);
       }
 
-      if (eff->ob->runtime.curve_cache->anim_path_accum_length) {
+      if (eff->ob->runtime->curve_cache->anim_path_accum_length) {
         BKE_where_on_path(
             eff->ob, 0.0, eff->guide_loc, eff->guide_dir, nullptr, &eff->guide_radius, nullptr);
         mul_m4_v3(eff->ob->object_to_world, eff->guide_loc);
@@ -636,7 +638,7 @@ float effector_falloff(EffectorCache *eff,
           break;
         }
 
-        r_fac = RAD2DEGF(saacos(fac / len_v3(efd->vec_to_point2)));
+        r_fac = RAD2DEGF(safe_acosf(fac / len_v3(efd->vec_to_point2)));
         falloff *= falloff_func_rad(eff->pd, r_fac);
 
         break;

@@ -84,9 +84,6 @@ enum eCollectionLineArt_Flags {
 };
 
 typedef struct Collection_Runtime {
-  /** The ID owning this collection, in case it is an embedded one. */
-  ID *owner_id;
-
   /**
    * Cache of objects in this collection and all its children.
    * This is created on demand when e.g. some physics simulation needs it,
@@ -111,6 +108,9 @@ typedef struct Collection_Runtime {
 typedef struct Collection {
   ID id;
 
+  /** The ID owning this collection, in case it is an embedded one. */
+  ID *owner_id;
+
   /** CollectionObject. */
   ListBase gobject;
   /** CollectionChild. */
@@ -131,7 +131,6 @@ typedef struct Collection {
   uint8_t lineart_intersection_mask;
   uint8_t lineart_intersection_priority;
 
-  void *_pad1;
   struct ViewLayer *view_layer DNA_DEPRECATED;
 
   /* Keep last. */

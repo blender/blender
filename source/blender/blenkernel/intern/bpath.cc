@@ -69,7 +69,7 @@
 
 #include "CLG_log.h"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 
 #ifndef _MSC_VER
 #  include "BLI_strict_flags.h"

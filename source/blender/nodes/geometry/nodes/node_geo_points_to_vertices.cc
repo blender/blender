@@ -13,8 +13,6 @@
 
 namespace blender::nodes::node_geo_points_to_vertices_cc {
 
-using blender::Array;
-
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Points").supported_type(GeometryComponent::Type::PointCloud);
@@ -83,6 +81,7 @@ static void geometry_set_points_to_vertices(
   }
 
   mesh->tag_loose_edges_none();
+  mesh->tag_overlapping_none();
 
   geometry_set.replace_mesh(mesh);
   geometry_set.keep_only_during_modify({GeometryComponent::Type::Mesh});

@@ -218,7 +218,7 @@ MatBase<T, Size, Size> pseudo_invert(const MatBase<T, Size, Size> &mat, T epsilo
 {
   /* Start by trying normal inversion first. */
   bool success;
-  MatBase<T, Size, Size> inv = invert(mat, success);
+  MatBase<T, Size, Size> inv = invert<T, Size>(mat, success);
   if (success) {
     return inv;
   }
@@ -505,6 +505,8 @@ template float4x4 orthographic(
     float left, float right, float bottom, float top, float near_clip, float far_clip);
 template float4x4 perspective(
     float left, float right, float bottom, float top, float near_clip, float far_clip);
+template float4x4 perspective_infinite(
+    float left, float right, float bottom, float top, float near_clip);
 
 }  // namespace projection
 

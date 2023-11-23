@@ -278,7 +278,7 @@ static ImBuf *ibJpegImageFromCinfo(
     if (max_size > 0) {
       /* `libjpeg` can more quickly decompress while scaling down to 1/2, 1/4, 1/8,
        * while `libjpeg-turbo` can also do 3/8, 5/8, etc. But max is 1/8. */
-      float scale = float(max_size) / MAX2(cinfo->image_width, cinfo->image_height);
+      float scale = float(max_size) / std::max(cinfo->image_width, cinfo->image_height);
       cinfo->scale_denom = 8;
       cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * float(cinfo->scale_denom))));
       cinfo->dct_method = JDCT_FASTEST;

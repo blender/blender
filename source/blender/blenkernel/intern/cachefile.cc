@@ -30,7 +30,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -128,7 +128,7 @@ IDTypeInfo IDType_ID_CF = {
     /*main_listbase_index*/ INDEX_ID_CF,
     /*struct_size*/ sizeof(CacheFile),
     /*name*/ "CacheFile",
-    /*name_plural*/ "cache_files",
+    /*name_plural*/ N_("cache_files"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_CACHEFILE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

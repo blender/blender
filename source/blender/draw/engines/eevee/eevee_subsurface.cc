@@ -10,7 +10,7 @@
 
 #include "DRW_render.h"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DEG_depsgraph_query.hh"
 

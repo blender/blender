@@ -78,7 +78,7 @@
 
 #include "CLG_log.h"
 
-/* allow writefile to use deprecated functionality (for forward compatibility code) */
+/* Allow writefile to use deprecated functionality (for forward compatibility code). */
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_collection_types.h"
@@ -101,7 +101,7 @@
 
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
-#include "BKE_global.h" /* for G */
+#include "BKE_global.h" /* For #Global `G`. */
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -149,11 +149,6 @@ static CLG_LogRef LOG = {"blo.writefile"};
 /** \name Internal Write Wrapper's (Abstracts Compression)
  * \{ */
 
-enum eWriteWrapType {
-  WW_WRAP_NONE = 1,
-  WW_WRAP_ZSTD,
-};
-
 struct ZstdFrame {
   ZstdFrame *next, *prev;
 
@@ -161,70 +156,93 @@ struct ZstdFrame {
   uint32_t uncompressed_size;
 };
 
-struct WriteWrap {
-  /* callbacks */
-  bool (*open)(WriteWrap *ww, const char *filepath);
-  bool (*close)(WriteWrap *ww);
-  size_t (*write)(WriteWrap *ww, const char *data, size_t data_len);
+class WriteWrap {
+ public:
+  virtual bool open(const char *filepath) = 0;
+  virtual bool close() = 0;
+  virtual bool write(const void *buf, size_t buf_len) = 0;
 
-  /* Buffer output (we only want when output isn't already buffered). */
-  bool use_buf;
-
-  /* internal */
-  int file_handle;
-  struct {
-    ListBase threadpool;
-    ListBase tasks;
-    ThreadMutex mutex;
-    ThreadCondition condition;
-    int next_frame;
-    int num_frames;
-
-    int level;
-    ListBase frames;
-
-    bool write_error;
-  } zstd;
+  /** Buffer output (we only want when output isn't already buffered). */
+  bool use_buf = true;
 };
 
-/* none */
-static bool ww_open_none(WriteWrap *ww, const char *filepath)
+class RawWriteWrap : public WriteWrap {
+ public:
+  bool open(const char *filepath) override;
+  bool close() override;
+  bool write(const void *buf, size_t buf_len) override;
+
+ private:
+  int file_handle = 0;
+};
+
+bool RawWriteWrap::open(const char *filepath)
 {
   int file;
 
   file = BLI_open(filepath, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 
   if (file != -1) {
-    ww->file_handle = file;
+    file_handle = file;
     return true;
   }
 
   return false;
 }
-static bool ww_close_none(WriteWrap *ww)
+bool RawWriteWrap::close()
 {
-  return (close(ww->file_handle) != -1);
+  return (::close(file_handle) != -1);
 }
-static size_t ww_write_none(WriteWrap *ww, const char *buf, size_t buf_len)
+bool RawWriteWrap::write(const void *buf, size_t buf_len)
 {
-  return write(ww->file_handle, buf, buf_len);
+  return ::write(file_handle, buf, buf_len) == buf_len;
 }
 
-/* zstd */
+class ZstdWriteWrap : public WriteWrap {
+  WriteWrap &base_wrap;
 
-struct ZstdWriteBlockTask {
+  ListBase threadpool = {};
+  ListBase tasks = {};
+  ThreadMutex mutex = {};
+  ThreadCondition condition = {};
+  int next_frame = 0;
+  int num_frames = 0;
+
+  ListBase frames = {};
+
+  bool write_error = false;
+
+ public:
+  ZstdWriteWrap(WriteWrap &base_wrap) : base_wrap(base_wrap) {}
+
+  bool open(const char *filepath) override;
+  bool close() override;
+  bool write(const void *buf, size_t buf_len) override;
+
+ private:
+  struct ZstdWriteBlockTask;
+  void write_task(ZstdWriteBlockTask *task);
+  void write_u32_le(uint32_t val);
+  void write_seekable_frames();
+};
+
+struct ZstdWriteWrap::ZstdWriteBlockTask {
   ZstdWriteBlockTask *next, *prev;
   void *data;
   size_t size;
   int frame_number;
-  WriteWrap *ww;
+  ZstdWriteWrap *ww;
+
+  static void *write_task(void *userdata)
+  {
+    auto *task = static_cast<ZstdWriteBlockTask *>(userdata);
+    task->ww->write_task(task);
+    return nullptr;
+  }
 };
 
-static void *zstd_write_task(void *userdata)
+void ZstdWriteWrap::write_task(ZstdWriteBlockTask *task)
 {
-  ZstdWriteBlockTask *task = static_cast<ZstdWriteBlockTask *>(userdata);
-  WriteWrap *ww = task->ww;
-
   size_t out_buf_len = ZSTD_compressBound(task->size);
   void *out_buf = MEM_mallocN(out_buf_len, "Zstd out buffer");
   size_t out_size = ZSTD_compress(
@@ -232,58 +250,57 @@ static void *zstd_write_task(void *userdata)
 
   MEM_freeN(task->data);
 
-  BLI_mutex_lock(&ww->zstd.mutex);
+  BLI_mutex_lock(&mutex);
 
-  while (ww->zstd.next_frame != task->frame_number) {
-    BLI_condition_wait(&ww->zstd.condition, &ww->zstd.mutex);
+  while (next_frame != task->frame_number) {
+    BLI_condition_wait(&condition, &mutex);
   }
 
   if (ZSTD_isError(out_size)) {
-    ww->zstd.write_error = true;
+    write_error = true;
   }
   else {
-    if (ww_write_none(ww, static_cast<const char *>(out_buf), out_size) == out_size) {
+    if (base_wrap.write(out_buf, out_size)) {
       ZstdFrame *frameinfo = static_cast<ZstdFrame *>(
           MEM_mallocN(sizeof(ZstdFrame), "zstd frameinfo"));
       frameinfo->uncompressed_size = task->size;
       frameinfo->compressed_size = out_size;
-      BLI_addtail(&ww->zstd.frames, frameinfo);
+      BLI_addtail(&frames, frameinfo);
     }
     else {
-      ww->zstd.write_error = true;
+      write_error = true;
     }
   }
 
-  ww->zstd.next_frame++;
+  next_frame++;
 
-  BLI_mutex_unlock(&ww->zstd.mutex);
-  BLI_condition_notify_all(&ww->zstd.condition);
+  BLI_mutex_unlock(&mutex);
+  BLI_condition_notify_all(&condition);
 
   MEM_freeN(out_buf);
-  return nullptr;
 }
 
-static bool ww_open_zstd(WriteWrap *ww, const char *filepath)
+bool ZstdWriteWrap::open(const char *filepath)
 {
-  if (!ww_open_none(ww, filepath)) {
+  if (!base_wrap.open(filepath)) {
     return false;
   }
 
   /* Leave one thread open for the main writing logic, unless we only have one HW thread. */
   int num_threads = max_ii(1, BLI_system_thread_count() - 1);
-  BLI_threadpool_init(&ww->zstd.threadpool, zstd_write_task, num_threads);
-  BLI_mutex_init(&ww->zstd.mutex);
-  BLI_condition_init(&ww->zstd.condition);
+  BLI_threadpool_init(&threadpool, ZstdWriteBlockTask::write_task, num_threads);
+  BLI_mutex_init(&mutex);
+  BLI_condition_init(&condition);
 
   return true;
 }
 
-static void zstd_write_u32_le(WriteWrap *ww, uint32_t val)
+void ZstdWriteWrap::write_u32_le(uint32_t val)
 {
 #ifdef __BIG_ENDIAN__
   BLI_endian_switch_uint32(&val);
 #endif
-  ww_write_none(ww, (char *)&val, sizeof(uint32_t));
+  base_wrap.write(&val, sizeof(uint32_t));
 }
 
 /* In order to implement efficient seeking when reading the .blend, we append
@@ -294,49 +311,49 @@ static void zstd_write_u32_le(WriteWrap *ww, uint32_t val)
  * If this information is not present in a file (e.g. if it was compressed
  * with external tools), it can still be opened in Blender, but seeking will
  * not be supported, so more memory might be needed. */
-static void zstd_write_seekable_frames(WriteWrap *ww)
+void ZstdWriteWrap::write_seekable_frames()
 {
   /* Write seek table header (magic number and frame size). */
-  zstd_write_u32_le(ww, 0x184D2A5E);
+  write_u32_le(0x184D2A5E);
 
-  /* The actual frame number might not match ww->zstd.num_frames if there was a write error. */
-  const uint32_t num_frames = BLI_listbase_count(&ww->zstd.frames);
+  /* The actual frame number might not match num_frames if there was a write error. */
+  const uint32_t num_frames = BLI_listbase_count(&frames);
   /* Each frame consists of two u32, so 8 bytes each.
    * After the frames, a footer containing two u32 and one byte (9 bytes total) is written. */
   const uint32_t frame_size = num_frames * 8 + 9;
-  zstd_write_u32_le(ww, frame_size);
+  write_u32_le(frame_size);
 
   /* Write seek table entries. */
-  LISTBASE_FOREACH (ZstdFrame *, frame, &ww->zstd.frames) {
-    zstd_write_u32_le(ww, frame->compressed_size);
-    zstd_write_u32_le(ww, frame->uncompressed_size);
+  LISTBASE_FOREACH (ZstdFrame *, frame, &frames) {
+    write_u32_le(frame->compressed_size);
+    write_u32_le(frame->uncompressed_size);
   }
 
   /* Write seek table footer (number of frames, option flags and second magic number). */
-  zstd_write_u32_le(ww, num_frames);
+  write_u32_le(num_frames);
   const char flags = 0; /* We don't store checksums for each frame. */
-  ww_write_none(ww, &flags, 1);
-  zstd_write_u32_le(ww, 0x8F92EAB1);
+  base_wrap.write(&flags, 1);
+  write_u32_le(0x8F92EAB1);
 }
 
-static bool ww_close_zstd(WriteWrap *ww)
+bool ZstdWriteWrap::close()
 {
-  BLI_threadpool_end(&ww->zstd.threadpool);
-  BLI_freelistN(&ww->zstd.tasks);
+  BLI_threadpool_end(&threadpool);
+  BLI_freelistN(&tasks);
 
-  BLI_mutex_end(&ww->zstd.mutex);
-  BLI_condition_end(&ww->zstd.condition);
+  BLI_mutex_end(&mutex);
+  BLI_condition_end(&condition);
 
-  zstd_write_seekable_frames(ww);
-  BLI_freelistN(&ww->zstd.frames);
+  write_seekable_frames();
+  BLI_freelistN(&frames);
 
-  return ww_close_none(ww) && !ww->zstd.write_error;
+  return base_wrap.close() && !write_error;
 }
 
-static size_t ww_write_zstd(WriteWrap *ww, const char *buf, size_t buf_len)
+bool ZstdWriteWrap::write(const void *buf, size_t buf_len)
 {
-  if (ww->zstd.write_error) {
-    return 0;
+  if (write_error) {
+    return false;
   }
 
   ZstdWriteBlockTask *task = static_cast<ZstdWriteBlockTask *>(
@@ -344,54 +361,30 @@ static size_t ww_write_zstd(WriteWrap *ww, const char *buf, size_t buf_len)
   task->data = MEM_mallocN(buf_len, __func__);
   memcpy(task->data, buf, buf_len);
   task->size = buf_len;
-  task->frame_number = ww->zstd.num_frames++;
-  task->ww = ww;
+  task->frame_number = num_frames++;
+  task->ww = this;
 
-  BLI_mutex_lock(&ww->zstd.mutex);
-  BLI_addtail(&ww->zstd.tasks, task);
+  BLI_mutex_lock(&mutex);
+  BLI_addtail(&tasks, task);
 
   /* If there's a free worker thread, just push the block into that thread.
    * Otherwise, we wait for the earliest thread to finish.
    * We look up the earliest thread while holding the mutex, but release it
    * before joining the thread to prevent a deadlock. */
-  ZstdWriteBlockTask *first_task = static_cast<ZstdWriteBlockTask *>(ww->zstd.tasks.first);
-  BLI_mutex_unlock(&ww->zstd.mutex);
-  if (!BLI_available_threads(&ww->zstd.threadpool)) {
-    BLI_threadpool_remove(&ww->zstd.threadpool, first_task);
+  ZstdWriteBlockTask *first_task = static_cast<ZstdWriteBlockTask *>(tasks.first);
+  BLI_mutex_unlock(&mutex);
+  if (!BLI_available_threads(&threadpool)) {
+    BLI_threadpool_remove(&threadpool, first_task);
 
     /* If the task list was empty before we pushed our task, there should
      * always be a free thread. */
     BLI_assert(first_task != task);
-    BLI_remlink(&ww->zstd.tasks, first_task);
+    BLI_remlink(&tasks, first_task);
     MEM_freeN(first_task);
   }
-  BLI_threadpool_insert(&ww->zstd.threadpool, task);
+  BLI_threadpool_insert(&threadpool, task);
 
-  return buf_len;
-}
-
-/* --- end compression types --- */
-
-static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
-{
-  memset(r_ww, 0, sizeof(*r_ww));
-
-  switch (ww_type) {
-    case WW_WRAP_ZSTD: {
-      r_ww->open = ww_open_zstd;
-      r_ww->close = ww_close_zstd;
-      r_ww->write = ww_write_zstd;
-      r_ww->use_buf = true;
-      break;
-    }
-    default: {
-      r_ww->open = ww_open_none;
-      r_ww->close = ww_close_none;
-      r_ww->write = ww_write_none;
-      r_ww->use_buf = true;
-      break;
-    }
-  }
+  return true;
 }
 
 /** \} */
@@ -478,12 +471,12 @@ static void writedata_do_write(WriteData *wd, const void *mem, size_t memlen)
     return;
   }
 
-  /* memory based save */
+  /* Memory based save. */
   if (wd->use_memfile) {
     BLO_memfile_chunk_add(&wd->mem, static_cast<const char *>(mem), memlen);
   }
   else {
-    if (wd->ww->write(wd->ww, static_cast<const char *>(mem), memlen) != memlen) {
+    if (!wd->ww->write(mem, memlen)) {
       wd->error = true;
     }
   }
@@ -539,8 +532,8 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
     writedata_do_write(wd, adr, len);
   }
   else {
-    /* if we have a single big chunk, write existing data in
-     * buffer and write out big chunk in smaller pieces */
+    /* If we have a single big chunk, write existing data in
+     * buffer and write out big chunk in smaller pieces. */
     if (len > wd->buffer.chunk_size) {
       if (wd->buffer.used_len != 0) {
         writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
@@ -548,7 +541,7 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
       }
 
       do {
-        size_t writelen = MIN2(len, wd->buffer.chunk_size);
+        size_t writelen = std::min(len, wd->buffer.chunk_size);
         writedata_do_write(wd, adr, writelen);
         adr = (const char *)adr + writelen;
         len -= writelen;
@@ -557,13 +550,13 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
       return;
     }
 
-    /* if data would overflow buffer, write out the buffer */
+    /* If data would overflow buffer, write out the buffer. */
     if (len + wd->buffer.used_len > wd->buffer.max_size - 1) {
       writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
       wd->buffer.used_len = 0;
     }
 
-    /* append data at end of buffer */
+    /* Append data at end of buffer. */
     memcpy(&wd->buffer.buf[wd->buffer.used_len], adr, len);
     wd->buffer.used_len += len;
   }
@@ -676,7 +669,7 @@ static void writestruct_at_address_nr(
     return;
   }
 
-  /* init BHead */
+  /* Initialize #BHead. */
   bh.code = filecode;
   bh.old = adr;
   bh.nr = nr;
@@ -700,7 +693,9 @@ static void writestruct_nr(
   writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
 }
 
-/* do not use for structs */
+/**
+ * \warning Do not use for structs.
+ */
 static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
 {
   BHead bh;
@@ -714,10 +709,10 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
     return;
   }
 
-  /* align to 4 (writes uninitialized bytes in some cases) */
+  /* Align to 4 (writes uninitialized bytes in some cases). */
   len = (len + 3) & ~size_t(3);
 
-  /* init BHead */
+  /* Initialize #BHead. */
   bh.code = filecode;
   bh.old = adr;
   bh.nr = 1;
@@ -728,7 +723,9 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
   mywrite(wd, adr, len);
 }
 
-/* use this to force writing of lists in same order as reading (using link_list) */
+/**
+ * Use this to force writing of lists in same order as reading (using link_list).
+ */
 static void writelist_nr(WriteData *wd, int filecode, const int struct_nr, const ListBase *lb)
 {
   const Link *link = static_cast<Link *>(lb->first);
@@ -789,20 +786,20 @@ static void current_screen_compat(Main *mainvar,
   wmWindowManager *wm;
   wmWindow *window = nullptr;
 
-  /* find a global current screen in the first open window, to have
-   * a reasonable default for reading in older versions */
+  /* Find a global current screen in the first open window, to have
+   * a reasonable default for reading in older versions. */
   wm = static_cast<wmWindowManager *>(mainvar->wm.first);
 
   if (wm) {
     if (use_active_win) {
-      /* write the active window into the file, needed for multi-window undo #43424 */
+      /* Write the active window into the file, needed for multi-window undo #43424. */
       for (window = static_cast<wmWindow *>(wm->windows.first); window; window = window->next) {
         if (window->active) {
           break;
         }
       }
 
-      /* fallback */
+      /* Fallback. */
       if (window == nullptr) {
         window = static_cast<wmWindow *>(wm->windows.first);
       }
@@ -836,7 +833,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
   Scene *curscene = nullptr;
   ViewLayer *view_layer;
 
-  /* XXX in future, handle multiple windows with multiple screens? */
+  /* XXX: in future, handle multiple windows with multiple screens? */
   current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
   LISTBASE_FOREACH (Scene *, sce, &mainvar->scenes) {
@@ -946,7 +943,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-/* Keep it last of write_foodata functions. */
+/** Keep it last of `write_*_data` functions. */
 static void write_libraries(WriteData *wd, Main *main)
 {
   ListBase *lbarray[INDEX_ID_MAX];
@@ -957,7 +954,7 @@ static void write_libraries(WriteData *wd, Main *main)
   for (; main; main = main->next) {
     a = tot = set_listbasepointers(main, lbarray);
 
-    /* test: is lib being used */
+    /* Test: is lib being used. */
     if (main->curlib && main->curlib->packedfile) {
       found_one = true;
     }
@@ -1031,9 +1028,11 @@ extern "C" ulong build_commit_timestamp;
 extern "C" char build_hash[];
 #endif
 
-/* context is usually defined by WM, two cases where no WM is available:
- * - for forward compatibility, curscreen has to be saved
- * - for undofile, curscene needs to be saved */
+/**
+ * Context is usually defined by WM, two cases where no WM is available:
+ * - for forward compatibility, `curscreen` has to be saved
+ * - for undo-file, `curscene` needs to be saved.
+ */
 static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 {
   const bool is_undo = wd->use_memfile;
@@ -1043,7 +1042,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   ViewLayer *view_layer;
   char subvstr[8];
 
-  /* prevent mem checkers from complaining */
+  /* Prevent memory checkers from complaining. */
   memset(fg._pad, 0, sizeof(fg._pad));
   memset(fg.filepath, 0, sizeof(fg.filepath));
   memset(fg.build_hash, 0, sizeof(fg.build_hash));
@@ -1051,12 +1050,12 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 
   current_screen_compat(mainvar, is_undo, &screen, &scene, &view_layer);
 
-  /* XXX still remap G */
+  /* XXX: still remap `G`. */
   fg.curscreen = screen;
   fg.curscene = scene;
   fg.cur_view_layer = view_layer;
 
-  /* prevent to save this, is not good convention, and feature with concerns... */
+  /* Prevent to save this, is not good convention, and feature with concerns. */
   fg.fileflags = (fileflags & ~G_FILE_FLAG_ALL_RUNTIME);
 
   fg.globalf = G.f;
@@ -1199,7 +1198,12 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
   return IDWALK_RET_NOP;
 }
 
-/* if MemFile * there's filesave to memory */
+/**
+ * When #MemFile arguments are non-null, this is a file-safe to memory.
+ *
+ * \param compare: Previous memory file (can be nullptr).
+ * \param current: The current memory file (can be nullptr).
+ */
 static bool write_file_handle(Main *mainvar,
                               WriteWrap *ww,
                               MemFile *compare,
@@ -1371,7 +1375,7 @@ static bool write_file_handle(Main *mainvar,
    * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
   writedata(wd, BLO_CODE_DNA1, size_t(wd->sdna->data_len), wd->sdna->data);
 
-  /* end of file */
+  /* End of file. */
   memset(&bhead, 0, sizeof(BHead));
   bhead.code = BLO_CODE_ENDB;
   mywrite(wd, &bhead, sizeof(BHead));
@@ -1463,23 +1467,17 @@ static void write_file_main_validate_post(Main *bmain, ReportList *reports)
   }
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name File Writing (Public)
- * \{ */
-
-bool BLO_write_file(Main *mainvar,
-                    const char *filepath,
-                    const int write_flags,
-                    const BlendFileWriteParams *params,
-                    ReportList *reports)
+static bool BLO_write_file_impl(Main *mainvar,
+                                const char *filepath,
+                                const int write_flags,
+                                const BlendFileWriteParams *params,
+                                ReportList *reports,
+                                WriteWrap &ww)
 {
   BLI_assert(!BLI_path_is_rel(filepath));
   BLI_assert(BLI_path_is_abs_from_cwd(filepath));
 
   char tempname[FILE_MAX + 1];
-  WriteWrap ww;
 
   eBLO_WritePathRemap remap_mode = params->remap_mode;
   const bool use_save_versions = params->use_save_versions;
@@ -1488,19 +1486,17 @@ bool BLO_write_file(Main *mainvar,
   const BlendThumbnail *thumb = params->thumb;
   const bool relbase_valid = (mainvar->filepath[0] != '\0');
 
-  /* path backup/restore */
+  /* Path backup/restore. */
   void *path_list_backup = nullptr;
   const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
                                             BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
   write_file_main_validate_pre(mainvar, reports);
 
-  /* open temporary file, so we preserve the original in case we crash */
+  /* Open temporary file, so we preserve the original in case we crash. */
   SNPRINTF(tempname, "%s@", filepath);
 
-  ww_handle_init((write_flags & G_FILE_COMPRESS) ? WW_WRAP_ZSTD : WW_WRAP_NONE, &ww);
-
-  if (ww.open(&ww, tempname) == false) {
+  if (ww.open(tempname) == false) {
     BKE_reportf(
         reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
     return false;
@@ -1589,11 +1585,11 @@ bool BLO_write_file(Main *mainvar,
     }
   }
 
-  /* actual file writing */
+  /* Actual file writing. */
   const bool err = write_file_handle(
       mainvar, &ww, nullptr, nullptr, write_flags, use_userdef, thumb);
 
-  ww.close(&ww);
+  ww.close();
 
   if (UNLIKELY(path_list_backup)) {
     BKE_bpath_list_restore(mainvar, path_list_flag, path_list_backup);
@@ -1607,8 +1603,8 @@ bool BLO_write_file(Main *mainvar,
     return false;
   }
 
-  /* file save to temporary file was successful */
-  /* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
+  /* File save to temporary file was successful, now do reverse file history
+   * (move `.blend1` -> `.blend2`, `.blend` -> `.blend1` .. etc). */
   if (use_save_versions) {
     if (!do_history(filepath, reports)) {
       BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
@@ -1624,6 +1620,28 @@ bool BLO_write_file(Main *mainvar,
   write_file_main_validate_post(mainvar, reports);
 
   return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name File Writing (Public)
+ * \{ */
+
+bool BLO_write_file(Main *mainvar,
+                    const char *filepath,
+                    const int write_flags,
+                    const BlendFileWriteParams *params,
+                    ReportList *reports)
+{
+  RawWriteWrap raw_wrap;
+
+  if (write_flags & G_FILE_COMPRESS) {
+    ZstdWriteWrap zstd_wrap(raw_wrap);
+    return BLO_write_file_impl(mainvar, filepath, write_flags, params, reports, zstd_wrap);
+  }
+
+  return BLO_write_file_impl(mainvar, filepath, write_flags, params, reports, raw_wrap);
 }
 
 bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)

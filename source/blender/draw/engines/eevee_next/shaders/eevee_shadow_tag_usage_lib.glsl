@@ -124,6 +124,8 @@ void shadow_tag_usage_tilemap_punctual(
   }
   /* Apply resolution ratio. */
   footprint_ratio *= tilemap_projection_ratio;
+  /* Take the frustum padding into account. */
+  footprint_ratio *= light.clip_side / orderedIntBitsToFloat(light.clip_near);
 
   if (radius == 0) {
     int face_id = shadow_punctual_face_index_get(lP);

@@ -17,8 +17,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.hh"
 
@@ -67,6 +67,7 @@ struct MeshRenderData {
   blender::Span<blender::float3> bm_vert_normals;
   blender::Span<blender::float3> bm_face_normals;
   blender::Span<blender::float3> bm_face_centers;
+  blender::Array<blender::float3> bm_loop_normals;
 
   const int *v_origindex, *e_origindex, *p_origindex;
   int edge_crease_ofs;
@@ -91,6 +92,7 @@ struct MeshRenderData {
   const int *material_indices;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
+  blender::Span<blender::float3> loop_normals;
   const bool *hide_vert;
   const bool *hide_edge;
   const bool *hide_poly;
@@ -98,7 +100,6 @@ struct MeshRenderData {
   const bool *select_edge;
   const bool *select_poly;
   const bool *sharp_faces;
-  blender::Array<blender::float3> loop_normals;
 
   blender::Span<int> loose_verts;
   blender::Span<int> loose_edges;

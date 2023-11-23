@@ -4,7 +4,7 @@
 
 #include "BLI_set.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_node.hh"
 
 #include "UI_interface.hh"
@@ -141,18 +141,10 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
 void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  if (!node_type.declare) {
+  if (!node_type.static_declaration) {
     return;
   }
-
-  if (node_type.declare_dynamic) {
-    /* Dynamic declarations aren't supported here, but avoid crashing in release builds. */
-    BLI_assert_unreachable();
-    return;
-  }
-
-  const NodeDeclaration &declaration = *node_type.fixed_declaration;
-
+  const NodeDeclaration &declaration = *node_type.static_declaration;
   search_link_ops_for_declarations(params, declaration.sockets(params.in_out()));
 }
 

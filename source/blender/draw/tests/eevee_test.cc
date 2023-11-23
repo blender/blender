@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
@@ -647,6 +647,10 @@ class TestAlloc {
   {
     GPU_render_begin();
     int tiles_index = 1;
+
+    for (int i : IndexRange(SHADOW_MAX_TILE)) {
+      tiles_data[i] = 0;
+    }
 
     for (uint i : IndexRange(0, page_free_count)) {
       uint2 page = {i % SHADOW_PAGE_PER_ROW, i / SHADOW_PAGE_PER_ROW};

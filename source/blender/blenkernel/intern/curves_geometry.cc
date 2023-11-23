@@ -27,7 +27,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 
 namespace blender::bke {
@@ -1230,8 +1230,8 @@ CurvesGeometry curves_copy_curve_selection(
   gather_attributes(
       src_attributes, ATTR_DOMAIN_CURVE, propagation_info, {}, curves_to_copy, dst_attributes);
 
-  dst_curves.remove_attributes_based_on_types();
   dst_curves.update_curve_types();
+  dst_curves.remove_attributes_based_on_types();
 
   return dst_curves;
 }

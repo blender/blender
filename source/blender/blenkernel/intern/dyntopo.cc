@@ -20,6 +20,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_map.hh"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -37,7 +38,7 @@
 #include "PIL_time.h"
 #include "atomic_ops.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -373,7 +374,7 @@ void EdgeQueueContext::surface_smooth(BMVert *v, float fac)
   surface_smooth_v_safe(ss, pbvh, v, fac, distort_correction_mode);
 }
 
-void EdgeQueueContext::insert_edge(BMEdge *e, float w, WeightMode mode)
+void EdgeQueueContext::insert_edge(BMEdge *e, float w, WeightMode /*mode*/)
 {
   if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
 #ifdef DYNTOPO_USE_SEP_HEAPS
@@ -3806,7 +3807,7 @@ static bool reproject_bm_data(BMesh *bm,
     normalize_v2(t1);
     normalize_v2(t2);
 
-    float angle = saacos(dot_v2v2(t1, t2));
+    float angle = blender::math::safe_acos(dot_v2v2(t1, t2));
     if (angle > M_PI * 0.95) {
       return false; /* Very acute face */
     }

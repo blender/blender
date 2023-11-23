@@ -38,7 +38,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
 #include "BLI_stack.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -48,9 +48,9 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_blendfile.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
@@ -4131,7 +4131,7 @@ static void filelist_readjob_update(void *flrjv)
 
   /* if no new_entries_num, this is NOP */
   BLI_movelisttolist(&fl_intern->entries, &new_entries);
-  flrj->filelist->filelist.entries_num = MAX2(entries_num, 0) + new_entries_num;
+  flrj->filelist->filelist.entries_num = std::max(entries_num, 0) + new_entries_num;
 }
 
 static void filelist_readjob_endjob(void *flrjv)

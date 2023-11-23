@@ -11,7 +11,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_screen.hh"
 
 #include "BLI_blenlib.h"
@@ -30,9 +30,9 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "SEQ_channels.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
+#include "SEQ_channels.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

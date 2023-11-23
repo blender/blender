@@ -16,7 +16,7 @@
 
 #include "BLI_math_vector.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #define ELE_NEW 1
 

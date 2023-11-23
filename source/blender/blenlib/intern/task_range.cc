@@ -105,7 +105,7 @@ void BLI_task_parallel_range(const int start,
   /* Multithreading. */
   if (settings->use_threading && BLI_task_scheduler_num_threads() > 1) {
     RangeTask task(func, userdata, settings);
-    const size_t grainsize = MAX2(settings->min_iter_per_thread, 1);
+    const size_t grainsize = std::max(settings->min_iter_per_thread, 1);
     const tbb::blocked_range<int> range(start, stop, grainsize);
 
     blender::lazy_threading::send_hint();

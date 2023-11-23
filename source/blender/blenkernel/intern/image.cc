@@ -22,7 +22,7 @@
 #include <string>
 
 #include "BLI_array.hh"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "CLG_log.h"
 
@@ -73,7 +73,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_packedFile.h"
 #include "BKE_preview_image.hh"
 #include "BKE_report.h"
@@ -86,7 +86,7 @@
 
 #include "RE_pipeline.h"
 
-#include "SEQ_utils.h" /* SEQ_get_topmost_sequence() */
+#include "SEQ_utils.hh" /* SEQ_get_topmost_sequence() */
 
 #include "GPU_material.h"
 #include "GPU_texture.h"
@@ -1894,6 +1894,14 @@ static void stampdata_from_template(StampData *stamp_data,
   else {
     stamp_data->frame[0] = '\0';
   }
+  if (scene->r.stamp & R_STAMP_FRAME_RANGE) {
+    SNPRINTF(stamp_data->frame_range,
+             do_prefix ? "Frame Range %s" : "%s",
+             stamp_data_template->frame_range);
+  }
+  else {
+    stamp_data->frame_range[0] = '\0';
+  }
   if (scene->r.stamp & R_STAMP_CAMERA) {
     SNPRINTF(stamp_data->camera, do_prefix ? "Camera %s" : "%s", stamp_data_template->camera);
   }
@@ -2219,6 +2227,28 @@ void BKE_image_stamp_buf(Scene *scene,
     /* and pad the text. */
     BLF_position(mono, x, y + y_ofs, 0.0);
     BLF_draw_buffer(mono, stamp_data.frame, sizeof(stamp_data.frame));
+
+    /* space width. */
+    x += w + pad;
+  }
+
+  if (TEXT_SIZE_CHECK(stamp_data.frame_range, w, h)) {
+
+    /* extra space for background. */
+    buf_rectfill_area(rect,
+                      rectf,
+                      width,
+                      height,
+                      scene->r.bg_stamp,
+                      display,
+                      x - BUFF_MARGIN_X,
+                      y - BUFF_MARGIN_Y,
+                      x + w + BUFF_MARGIN_X,
+                      y + h + BUFF_MARGIN_Y);
+
+    /* and pad the text. */
+    BLF_position(mono, x, y + y_ofs, 0.0);
+    BLF_draw_buffer(mono, stamp_data.frame_range, sizeof(stamp_data.frame_range));
 
     /* space width. */
     x += w + pad;

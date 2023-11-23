@@ -18,9 +18,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -291,11 +291,15 @@ static void waveModifier_do(WaveModifierData *md,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;
-  waveModifier_do(wmd, ctx, ctx->object, mesh, vertexCos, verts_num);
+  waveModifier_do(wmd,
+                  ctx,
+                  ctx->object,
+                  mesh,
+                  reinterpret_cast<float(*)[3]>(positions.data()),
+                  positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -401,7 +405,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
   }
 }
 
@@ -421,7 +425,7 @@ ModifierTypeInfo modifierType_Wave = {
     /*struct_name*/ "WaveModifierData",
     /*struct_size*/ sizeof(WaveModifierData),
     /*srna*/ &RNA_WaveModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WAVE,

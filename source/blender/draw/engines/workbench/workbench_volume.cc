@@ -4,8 +4,8 @@
 
 #include "workbench_private.hh"
 
-#include "BKE_volume.h"
-#include "BKE_volume_render.h"
+#include "BKE_volume.hh"
+#include "BKE_volume_render.hh"
 #include "BLI_rand.h"
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"
@@ -15,7 +15,7 @@ namespace blender::workbench {
 VolumePass::~VolumePass()
 {
   GPUShader **sh_p = &shaders_[0][0][0][0];
-  const int n = sizeof(shaders_) / sizeof(*shaders_);
+  const int n = ARRAY_SIZE(shaders_);
   for (int i = 0; i < n; i++, sh_p++) {
     GPUShader *sh = *sh_p;
     if (sh) {

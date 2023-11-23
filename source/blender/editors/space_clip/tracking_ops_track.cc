@@ -13,7 +13,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
@@ -153,10 +153,10 @@ static bool track_markers_initjob(bContext *C, TrackMarkersJob *tmj, bool backwa
   /* Limit frames to be tracked by user setting. */
   if (frames_limit) {
     if (backwards) {
-      tmj->efra = MAX2(tmj->efra, tmj->sfra - frames_limit);
+      tmj->efra = std::max(tmj->efra, tmj->sfra - frames_limit);
     }
     else {
-      tmj->efra = MIN2(tmj->efra, tmj->sfra + frames_limit);
+      tmj->efra = std::min(tmj->efra, tmj->sfra + frames_limit);
     }
   }
 

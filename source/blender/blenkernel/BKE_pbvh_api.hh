@@ -10,14 +10,17 @@
  */
 
 #include "BKE_dyntopo_set.hh"
+
+#include <optional>
 #include <string>
 
+#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
-#include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_brush_enums.h" /* for eAttrCorrectMode */
@@ -26,7 +29,7 @@
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh.hh"
 
 #include "bmesh.h"
 #include "bmesh_log.hh"
@@ -92,7 +95,7 @@ struct PBVHTriBuf {
  */
 
 struct PBVHProxyNode {
-  float (*co)[3];
+  blender::Vector<blender::float3> co;
 };
 
 struct PBVHPixels {
@@ -478,12 +481,14 @@ void BKE_pbvh_node_num_verts(const PBVH *pbvh,
                              const PBVHNode *node,
                              int *r_uniquevert,
                              int *r_totvert);
+int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
 blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
                              const int **r_corner_verts);
+blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
 
 /* Get number of faces in the mesh; for PBVH_GRIDS the
  * number of base mesh faces is returned.
@@ -511,6 +516,8 @@ blender::bke::dyntopo::DyntopoSet<BMFace> *BKE_pbvh_bmesh_node_faces(PBVHNode *n
 void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh, bool report);
 void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node);
 
+void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
+
 /* Update Bounding Box/Redraw and clear flags. */
 
 void BKE_pbvh_update_bounds(PBVH *pbvh, int flags);
@@ -535,11 +542,9 @@ void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
  */
 void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh);
 
-void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);
-
 /* Vertex Deformer. */
 
-void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], int totvert);
+void BKE_pbvh_vert_coords_apply(PBVH *pbvh, blender::Span<blender::float3> vert_positions);
 bool BKE_pbvh_is_deformed(PBVH *pbvh);
 
 /* Vertex Iterator. */
@@ -732,9 +737,9 @@ void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
   } \
   BKE_pbvh_face_iter_finish(&fd)
 
-void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
+blender::MutableSpan<PBVHProxyNode> BKE_pbvh_node_get_proxies(PBVHNode *node);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
-PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *pbvh, PBVHNode *node);
+PBVHProxyNode &BKE_pbvh_node_add_proxy(PBVH &pbvh, PBVHNode &node);
 
 /**
  * \note doing a full search on all vertices here seems expensive,
@@ -759,7 +764,7 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode);
 
-float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3];
+blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh);
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh);
 bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
@@ -948,10 +953,10 @@ void update_edge_boundary_grids(int edge,
                                 float sharp_angle_limit,
                                 blender::Span<int> corner_verts,
                                 blender::Span<int> corner_edges);
-void update_vert_boundary_grids(PBVH *pbvh, int vertex);
+void update_vert_boundary_grids(PBVH *pbvh, int vertex, int *face_sets);
 
-bool check_vert_boundary(PBVH *pbvh, PBVHVertRef vertex);
-bool check_edge_boundary(PBVH *pbvh, PBVHEdgeRef edge);
+bool check_vert_boundary(PBVH *pbvh, PBVHVertRef vertex, int *face_sets);
+bool check_edge_boundary(PBVH *pbvh, PBVHEdgeRef edge, int *face_sets);
 
 Vector<PBVHNode *> search_gather(PBVH *pbvh,
                                  FunctionRef<bool(PBVHNode &)> scb,
@@ -973,7 +978,7 @@ float test_sharp_faces_mesh(int f1,
                             blender::Span<int> corner_verts);
 
 blender::Span<blender::float3> get_poly_normals(const PBVH *pbvh);
-void set_vert_boundary_map(PBVH *pbvh, BLI_bitmap *vert_boundary_map);
+void set_vert_boundary_map(PBVH *pbvh, blender::BitVector<> *vert_boundary_map);
 void on_stroke_start(PBVH *pbvh);
 
 }  // namespace blender::bke::pbvh

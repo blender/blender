@@ -1075,6 +1075,7 @@ static char *glsl_patch_default_get()
 
   /* Vulkan GLSL compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n");
+  STR_CONCAT(patch, slen, "#define gpu_EmitVertex EmitVertex\n");
 
   /* Array compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");

@@ -22,7 +22,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"
@@ -138,20 +138,12 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
     return;
   }
 
-  const float(*loop_normals)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
-  if (!loop_normals) {
-    BKE_report(
-        reports, RPT_ERROR, "Tangent space computation needs loop normals, none found, aborting");
-    return;
-  }
-
   BKE_mesh_calc_loop_tangent_single_ex(
       reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
       mesh->totvert,
       mesh->corner_verts().data(),
       r_looptangents,
-      loop_normals,
+      reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
       reinterpret_cast<const float(*)[2]>(uv_map.data()),
       mesh->totloop,
       mesh->faces(),
@@ -606,7 +598,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       tangent_names_len,
       reinterpret_cast<const float(*)[3]>(me_eval->vert_normals().data()),
       reinterpret_cast<const float(*)[3]>(me_eval->face_normals().data()),
-      static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->loop_data, CD_NORMAL)),
+      reinterpret_cast<const float(*)[3]>(me_eval->corner_normals().data()),
       /* may be nullptr */
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vert_data, CD_ORCO)),
       /* result */

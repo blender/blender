@@ -23,7 +23,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "MOD_nodes.hh"
 
@@ -563,8 +563,12 @@ class NodeTreeMainUpdater {
         if (ntype.updatefunc) {
           ntype.updatefunc(&ntree, node);
         }
-        if (ntype.declare_dynamic) {
-          nodes::update_node_declaration_and_sockets(ntree, *node);
+        if (ntype.declare) {
+          /* Should have been created when the node was registered. */
+          BLI_assert(ntype.static_declaration != nullptr);
+          if (ntype.static_declaration->is_context_dependent) {
+            nodes::update_node_declaration_and_sockets(ntree, *node);
+          }
         }
       }
     }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,15 +7,21 @@
  */
 
 #include "BKE_brush.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_material.h"
 
+#include "BLI_bit_span_ops.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_brush_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
@@ -74,6 +80,210 @@ float brush_radius_world_space(bContext &C, int x, int y)
   radius = (1.0f / distance) * (brush_size / 64.0f);
 
   return radius;
+}
+
+static Array<int> get_frame_numbers_for_layer(const bke::greasepencil::Layer &layer,
+                                              const int current_frame,
+                                              const bool use_multi_frame_editing)
+{
+  Vector<int> frame_numbers({current_frame});
+  if (use_multi_frame_editing) {
+    for (const auto [frame_number, frame] : layer.frames().items()) {
+      if (frame_number != current_frame && frame.is_selected()) {
+        frame_numbers.append_unchecked(frame_number);
+      }
+    }
+  }
+  return frame_numbers.as_span();
+}
+
+Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
+                                                     GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+  const int current_frame = scene.r.cfra;
+  const ToolSettings *toolsettings = scene.toolsettings;
+  const bool use_multi_frame_editing = (toolsettings->gpencil_flags &
+                                        GP_USE_MULTI_FRAME_EDITING) != 0;
+
+  Vector<MutableDrawingInfo> editable_drawings;
+  Span<const Layer *> layers = grease_pencil.layers();
+  for (const int layer_i : layers.index_range()) {
+    const Layer *layer = layers[layer_i];
+    if (!layer->is_editable()) {
+      continue;
+    }
+    const Array<int> frame_numbers = get_frame_numbers_for_layer(
+        *layer, current_frame, use_multi_frame_editing);
+    for (const int frame_number : frame_numbers) {
+      if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
+        editable_drawings.append({*drawing, layer_i, frame_number});
+      }
+    }
+  }
+
+  return editable_drawings.as_span();
+}
+
+Array<DrawingInfo> retrieve_visible_drawings(const Scene &scene, const GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+  const int current_frame = scene.r.cfra;
+  const ToolSettings *toolsettings = scene.toolsettings;
+  const bool use_multi_frame_editing = (toolsettings->gpencil_flags &
+                                        GP_USE_MULTI_FRAME_EDITING) != 0;
+
+  Vector<DrawingInfo> visible_drawings;
+  Span<const Layer *> layers = grease_pencil.layers();
+  for (const int layer_i : layers.index_range()) {
+    const Layer *layer = layers[layer_i];
+    if (!layer->is_visible()) {
+      continue;
+    }
+    const Array<int> frame_numbers = get_frame_numbers_for_layer(
+        *layer, current_frame, use_multi_frame_editing);
+    for (const int frame_number : frame_numbers) {
+      if (const Drawing *drawing = grease_pencil.get_drawing_at(layer, frame_number)) {
+        visible_drawings.append({*drawing, layer_i, frame_number});
+      }
+    }
+  }
+
+  return visible_drawings.as_span();
+}
+
+static VectorSet<int> get_locked_material_indices(Object &object)
+{
+  BLI_assert(object.type == OB_GREASE_PENCIL);
+  VectorSet<int> locked_material_indices;
+  for (const int mat_i : IndexRange(object.totcol)) {
+    Material *material = BKE_object_material_get(&object, mat_i + 1);
+    if (material != nullptr && material->gp_style != nullptr &&
+        (material->gp_style->flag & GP_MATERIAL_LOCKED) != 0)
+    {
+      locked_material_indices.add(mat_i);
+    }
+  }
+  return locked_material_indices;
+}
+
+IndexMask retrieve_editable_strokes(Object &object,
+                                    const bke::greasepencil::Drawing &drawing,
+                                    IndexMaskMemory &memory)
+{
+  using namespace blender;
+
+  /* Get all the locked material indices */
+  VectorSet<int> locked_material_indices = get_locked_material_indices(object);
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = drawing.strokes().curves_range();
+  const bke::AttributeAccessor attributes = curves.attributes();
+
+  /* Get all the strokes that have their material unlocked. */
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_CURVE, -1);
+  return IndexMask::from_predicate(
+      curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
+        const int material_index = materials[curve_i];
+        return !locked_material_indices.contains(material_index);
+      });
+}
+
+IndexMask retrieve_editable_points(Object &object,
+                                   const bke::greasepencil::Drawing &drawing,
+                                   IndexMaskMemory &memory)
+{
+  /* Get all the locked material indices */
+  VectorSet<int> locked_material_indices = get_locked_material_indices(object);
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange points_range = drawing.strokes().points_range();
+  const bke::AttributeAccessor attributes = curves.attributes();
+
+  /* Propagate the material index to the points. */
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_POINT, -1);
+  /* Get all the points that are part of a stroke with an unlocked material. */
+  return IndexMask::from_predicate(
+      points_range, GrainSize(4096), memory, [&](const int64_t point_i) {
+        const int material_index = materials[point_i];
+        return !locked_material_indices.contains(material_index);
+      });
+}
+
+IndexMask retrieve_editable_elements(Object &object,
+                                     const bke::greasepencil::Drawing &drawing,
+                                     const eAttrDomain selection_domain,
+                                     IndexMaskMemory &memory)
+{
+  if (selection_domain == ATTR_DOMAIN_CURVE) {
+    return ed::greasepencil::retrieve_editable_strokes(object, drawing, memory);
+  }
+  else if (selection_domain == ATTR_DOMAIN_POINT) {
+    return ed::greasepencil::retrieve_editable_points(object, drawing, memory);
+  }
+  return {};
+}
+
+IndexMask retrieve_editable_and_selected_strokes(Object &object,
+                                                 const bke::greasepencil::Drawing &drawing,
+                                                 IndexMaskMemory &memory)
+{
+  using namespace blender;
+
+  /* Get all the locked material indices */
+  VectorSet<int> locked_material_indices = get_locked_material_indices(object);
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = drawing.strokes().curves_range();
+
+  const IndexMask editable_strokes = retrieve_editable_strokes(object, drawing, memory);
+  const IndexMask selected_strokes = ed::curves::retrieve_selected_curves(curves, memory);
+
+  BitVector<> editable_strokes_bits(curves.curves_num(), false);
+  editable_strokes.to_bits(editable_strokes_bits);
+  BitVector<> selected_strokes_bits(curves.curves_num(), false);
+  selected_strokes.to_bits(selected_strokes_bits);
+
+  editable_strokes_bits &= selected_strokes_bits;
+  return IndexMask::from_bits(curves_range, editable_strokes_bits, memory);
+}
+
+IndexMask retrieve_editable_and_selected_points(Object &object,
+                                                const bke::greasepencil::Drawing &drawing,
+                                                IndexMaskMemory &memory)
+{
+  /* Get all the locked material indices */
+  VectorSet<int> locked_material_indices = get_locked_material_indices(object);
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange points_range = drawing.strokes().points_range();
+
+  const IndexMask editable_points = retrieve_editable_points(object, drawing, memory);
+  const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, memory);
+
+  BitVector<> editable_points_bits(curves.points_num(), false);
+  editable_points.to_bits(editable_points_bits);
+  BitVector<> selected_points_bits(curves.points_num(), false);
+  selected_points.to_bits(selected_points_bits);
+
+  editable_points_bits &= selected_points_bits;
+  return IndexMask::from_bits(points_range, editable_points_bits, memory);
+}
+
+IndexMask retrieve_editable_and_selected_elements(Object &object,
+                                                  const bke::greasepencil::Drawing &drawing,
+                                                  const eAttrDomain selection_domain,
+                                                  IndexMaskMemory &memory)
+{
+  if (selection_domain == ATTR_DOMAIN_CURVE) {
+    return ed::greasepencil::retrieve_editable_and_selected_strokes(object, drawing, memory);
+  }
+  else if (selection_domain == ATTR_DOMAIN_POINT) {
+    return ed::greasepencil::retrieve_editable_and_selected_points(object, drawing, memory);
+  }
+  return {};
 }
 
 }  // namespace blender::ed::greasepencil

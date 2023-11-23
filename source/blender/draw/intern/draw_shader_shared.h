@@ -204,7 +204,7 @@ struct ObjectBounds {
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
   void sync();
-  void sync(Object &ob);
+  void sync(Object &ob, float inflate_bounds = 0.0f);
   void sync(const float3 &center, const float3 &size);
 #endif
 };

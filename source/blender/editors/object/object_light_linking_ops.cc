@@ -8,7 +8,7 @@
 
 #include "object_intern.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_light_linking.h"
 
 #include "ED_object.hh"

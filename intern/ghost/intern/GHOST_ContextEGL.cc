@@ -436,11 +436,6 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   attrib_list.push_back(EGL_BLUE_SIZE);
   attrib_list.push_back(8);
 
-#ifdef GHOST_OPENGL_ALPHA
-  attrib_list.push_back(EGL_ALPHA_SIZE);
-  attrib_list.push_back(8);
-#endif
-
   if (m_nativeWindow == 0) {
     /* Off-screen surface. */
     attrib_list.push_back(EGL_SURFACE_TYPE);

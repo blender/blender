@@ -13,6 +13,10 @@
 #  error WIN32 only!
 #endif /* WIN32 */
 
+#ifndef NOMINMAX
+#  define NOMINMAX
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 #include <ole2.h> /* For drag-n-drop. */
 #include <windows.h>

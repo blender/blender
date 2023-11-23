@@ -10,7 +10,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_viewer_path.h"
+#include "BKE_viewer_path.hh"
 
 struct Main;
 struct SpaceNode;

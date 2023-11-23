@@ -6,7 +6,7 @@
  * \ingroup edinterface
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "BLT_translation.h"
@@ -208,9 +208,15 @@ class LayerViewItem : public AbstractTreeViewItem {
     return true;
   }
 
-  bool rename(const bContext & /*C*/, StringRefNull new_name) override
+  bool rename(const bContext &C, StringRefNull new_name) override
   {
-    grease_pencil_.rename_node(layer_.as_node(), new_name);
+    PointerRNA layer_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
+    PropertyRNA *prop = RNA_struct_find_property(&layer_ptr, "name");
+
+    RNA_property_string_set(&layer_ptr, prop, new_name.c_str());
+    RNA_property_update(&const_cast<bContext &>(C), &layer_ptr, prop);
+
+    ED_undo_push(&const_cast<bContext &>(C), "Rename Grease Pencil Layer");
     return true;
   }
 
@@ -315,9 +321,16 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     return true;
   }
 
-  bool rename(const bContext & /*C*/, StringRefNull new_name) override
+  bool rename(const bContext &C, StringRefNull new_name) override
   {
-    grease_pencil_.rename_node(group_.as_node(), new_name);
+    PointerRNA group_ptr = RNA_pointer_create(
+        &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
+    PropertyRNA *prop = RNA_struct_find_property(&group_ptr, "name");
+
+    RNA_property_string_set(&group_ptr, prop, new_name.c_str());
+    RNA_property_update(&const_cast<bContext &>(C), &group_ptr, prop);
+
+    ED_undo_push(&const_cast<bContext &>(C), "Rename Grease Pencil Layer Group");
     return true;
   }
 

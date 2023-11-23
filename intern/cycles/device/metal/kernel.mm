@@ -41,6 +41,12 @@ struct ShaderCache {
     if (MetalInfo::get_device_vendor(mtlDevice) == METAL_GPU_APPLE) {
       switch (MetalInfo::get_apple_gpu_architecture(mtlDevice)) {
         default:
+        case APPLE_M3:
+          /* Peak occupancy is achieved through Dynamic Caching on M3 GPUs. */
+          for (size_t i = 0; i < DEVICE_KERNEL_NUM; i++) {
+            occupancy_tuning[i] = {64, 64};
+          }
+          break;
         case APPLE_M2_BIG:
           occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {384, 128};
           occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {640, 128};

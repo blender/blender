@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2008-03-23 12:20+0200\n"
 "Last-Translator: Kostas Karvouniaris <neogen556@yahoo.gr>\n"
 "Language-Team: \n"
@@ -35,6 +35,10 @@ msgstr "Επιλογή"
 
 msgid "Message"
 msgstr "Μήνυμα"
+
+
+msgid "On"
+msgstr "Ενεργό"
 
 
 msgid "Action"
@@ -79,6 +83,10 @@ msgstr "Σημείο"
 
 msgid "Edge"
 msgstr "Ακμές"
+
+
+msgid "Layer"
+msgstr "Στρώμα"
 
 
 msgid "Extend"
@@ -347,10 +355,6 @@ msgstr "Σύγκρουση"
 
 msgid "Border"
 msgstr "Πλαίσιο"
-
-
-msgid "Layer"
-msgstr "Στρώμα"
 
 
 msgid "Grid"
@@ -762,6 +766,10 @@ msgid "Next Keyframe"
 msgstr "Επόμενο Καρέ με Κλειδί"
 
 
+msgid "Flat"
+msgstr "Επίπεδο"
+
+
 msgctxt "Operator"
 msgid "Replace Image"
 msgstr "Replace Image"
@@ -1015,10 +1023,6 @@ msgid "Lens"
 msgstr "Φακός"
 
 
-msgid "Flat"
-msgstr "Επίπεδο"
-
-
 msgid "Bezier U"
 msgstr "Bezier U"
 
@@ -1058,10 +1062,6 @@ msgstr "Ακύρωση"
 
 msgid "Life"
 msgstr "Ζωή"
-
-
-msgid "On"
-msgstr "Ενεργό"
 
 
 msgid "Esc"

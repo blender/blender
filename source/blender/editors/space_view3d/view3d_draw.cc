@@ -15,14 +15,14 @@
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
@@ -177,7 +177,7 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
       len_sc = float(max_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)));
     }
     else {
-      len_sc = float(MAX2(region->winx, region->winy));
+      len_sc = float(std::max(region->winx, region->winy));
     }
 
     rv3d->pixsize = len_px / len_sc;
@@ -1535,6 +1535,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     int xoffset = rect->xmin + (0.5f * U.widget_unit);
     int yoffset = rect->ymax - (0.1f * U.widget_unit);
     BLF_default_size(UI_style_get()->widgetlabel.points);
+    BLF_set_default();
 
     if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
       if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
@@ -1915,16 +1916,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   bool is_ortho = false;
   float winmat[4][4];
 
-  /* Determine desired offscreen format depending on HDR availability. */
-  bool use_hdr = false;
-  if (scene && ((scene->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0)) {
-    use_hdr = GPU_hdr_support();
-  }
-  eGPUTextureFormat desired_format = (use_hdr) ? GPU_RGBA16F : GPU_RGBA8;
+  /* Guess format based on output buffer. */
+  eGPUTextureFormat desired_format = (imbuf_flag & IB_rectfloat) ? GPU_RGBA16F : GPU_RGBA8;
 
-  if (ofs && ((GPU_offscreen_width(ofs) != sizex) || (GPU_offscreen_height(ofs) != sizey) ||
-              (GPU_offscreen_format(ofs) != desired_format)))
-  {
+  if (ofs && ((GPU_offscreen_width(ofs) != sizex) || (GPU_offscreen_height(ofs) != sizey))) {
+    /* If offscreen has already been created, recreate with the same format. */
+    desired_format = GPU_offscreen_format(ofs);
     /* sizes differ, can't reuse */
     ofs = nullptr;
   }
@@ -2499,10 +2496,6 @@ void ED_view3d_datamask(const Scene *scene,
             if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) {
               r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
             }
-            break;
-          }
-          case OB_MODE_SCULPT: {
-            r_cddata_masks->vmask |= CD_MASK_PAINT_MASK;
             break;
           }
         }

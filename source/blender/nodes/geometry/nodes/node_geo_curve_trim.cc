@@ -96,7 +96,7 @@ class SocketSearchOp {
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
 
   search_link_ops_for_declarations(params, declaration.outputs);
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
@@ -141,8 +141,7 @@ static bool trim_curves(const bke::CurvesGeometry &src_curves,
     return false;
   }
 
-  dst_curves = std::move(
-      geometry::trim_curves(src_curves, selection, starts, ends, mode, propagation_info));
+  dst_curves = geometry::trim_curves(src_curves, selection, starts, ends, mode, propagation_info);
   return true;
 }
 

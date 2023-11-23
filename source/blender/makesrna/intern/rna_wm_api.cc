@@ -64,7 +64,7 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 
 extern "C" void wm_autosave_write(Main *bmain, wmWindowManager *wm);
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_undo_system.h"
 
 #  include "WM_types.hh"

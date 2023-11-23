@@ -329,6 +329,7 @@ add_bundled_libraries(embree/lib)
 
 if(WITH_OPENIMAGEDENOISE)
   find_package(OpenImageDenoise REQUIRED)
+  add_bundled_libraries(openimagedenoise/lib)
 endif()
 
 if(WITH_TBB)

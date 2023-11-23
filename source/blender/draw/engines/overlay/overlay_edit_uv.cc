@@ -12,8 +12,8 @@
 
 #include "BLI_math_color.h"
 
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_mask.h"

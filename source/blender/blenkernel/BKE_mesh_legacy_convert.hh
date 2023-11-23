@@ -13,8 +13,14 @@
 #include "BLI_utildefines.h"
 
 struct CustomData;
+struct Main;
 struct Mesh;
 struct MFace;
+
+namespace blender::bke {
+void mesh_sculpt_mask_to_legacy(MutableSpan<CustomDataLayer> vert_layers);
+void mesh_sculpt_mask_to_generic(Mesh &mesh);
+}  // namespace blender::bke
 
 void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);
 
@@ -72,7 +78,7 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh);
 
 void BKE_mesh_legacy_convert_loops_to_corners(Mesh *mesh);
 
-void BKE_mesh_legacy_face_map_to_generic(Mesh *mesh);
+void BKE_mesh_legacy_face_map_to_generic(Main *bmain);
 
 /**
  * Recreate #MFace Tessellation.
@@ -108,9 +114,11 @@ void BKE_mesh_calc_edges_legacy(Mesh *me);
 
 void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh);
 
+void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain);
+
 /* Inlines */
 
-/* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.h,
+/* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.hh,
  * but I don't want to force every user of BKE_mesh.h to also include that file. */
 BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
                                               const int *index_mp_to_orig,

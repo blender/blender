@@ -39,10 +39,10 @@
 #include "WM_api.hh"
 #include "WM_message.hh"
 
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"

@@ -511,11 +511,15 @@ Boost uses ICU library (required for linking with static Boost built with libicu
 endif()
 
 # Misc
-if(WIN32 OR APPLE)
+if(WIN32 OR APPLE OR ((UNIX AND (NOT HAIKU)) AND WITH_GHOST_WAYLAND))
   option(WITH_INPUT_IME "Enable Input Method Editor (IME) for complex Asian character input" ON)
+else()
+  set(WITH_INPUT_IME OFF)
 endif()
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
-if(UNIX AND NOT APPLE)
+# On Windows and for the Blender application on macOS, portable install
+# is the only supported installation type, so there is no option.
+if(UNIX AND (NOT APPLE OR WITH_PYTHON_MODULE))
   option(WITH_INSTALL_PORTABLE "\
 Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX"
     ON
@@ -645,7 +649,7 @@ if(NOT APPLE)
     gfx900 gfx90c gfx902
     gfx1010 gfx1011 gfx1012
     gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1036
-    gfx1100 gfx1101 gfx1102
+    gfx1100 gfx1101 gfx1102 gfx1103
     CACHE STRING "AMD HIP architectures to build binaries for"
   )
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
@@ -757,6 +761,24 @@ option(WITH_GTESTS "Enable GTest unit testing" OFF)
 option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)
 option(WITH_OPENGL_DRAW_TESTS "Enable OpenGL UI drawing related unit testing (Experimental)" OFF)
 option(WITH_COMPOSITOR_REALTIME_TESTS "Enable regression testing for realtime compositor" OFF)
+if(UNIX AND NOT (APPLE OR HAIKU))
+  option(WITH_UI_TESTS "\
+Enable user-interface tests using a headless display server. \
+Currently this depends on WITH_GHOST_WAYLAND and the weston compositor \
+(Experimental)"
+    OFF
+  )
+else()
+  # TODO: support running GUI tests on other platforms.
+  set(WITH_UI_TESTS OFF)
+endif()
+
+# Enabled by default for typical use cases to speed up development cycles. However, when looking
+# into threading or memory related issues (in dependency graph, out-of-bounds, etc) forcing single
+# test per Blender instance could give much better clues about the root of the problem.
+option(WITH_TESTS_BATCHED "Run multiple tests in a single Blender invocation, for faster test execution" ON)
+mark_as_advanced(WITH_TESTS_BATCHED)
+
 # NOTE: All callers of this must add `TEST_PYTHON_EXE_EXTRA_ARGS` before any other arguments.
 set(TEST_PYTHON_EXE "" CACHE PATH "Python executable to run unit tests")
 mark_as_advanced(TEST_PYTHON_EXE)
@@ -791,7 +813,7 @@ endif()
 if(NOT APPLE)
   option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (experimental)" ON)
   option(WITH_VULKAN_GUARDEDALLOC "\
-  Use guardedalloc for host allocations done inside Vulkan (development option)"
+Use guardedalloc for host allocations done inside Vulkan (development option)"
     OFF
   )
   mark_as_advanced(
@@ -844,6 +866,12 @@ Build and link against address sanitizer (only for Debug & RelWithDebInfo target
   OFF
 )
 mark_as_advanced(WITH_COMPILER_ASAN)
+option(WITH_COMPILER_ASAN_EXTERN "\
+Build `extern` dependencies with address sanitizer when WITH_COMPILER_ASAN is on. \
+Can cause linking issues due to too large binary size."
+  OFF
+)
+mark_as_advanced(WITH_COMPILER_ASAN_EXTERN)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(WITH_COMPILER_ASAN)
@@ -1138,13 +1166,17 @@ if(UNIX AND NOT (APPLE OR HAIKU))
 endif()
 set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_SDL OFF)
 
-if(WIN32 OR APPLE)
+if(WITH_INPUT_IME)
   set_and_warn_incompatible(WITH_HEADLESS WITH_INPUT_IME OFF)
   set_and_warn_incompatible(WITH_GHOST_SDL WITH_INPUT_IME OFF)
 endif()
 
 set_and_warn_incompatible(WITH_HEADLESS WITH_XR_OPENXR OFF)
 set_and_warn_incompatible(WITH_GHOST_SDL WITH_XR_OPENXR OFF)
+
+if(WITH_UI_TESTS)
+  set_and_warn_dependency(WITH_GHOST_WAYLAND WITH_UI_TESTS OFF)
+endif()
 
 if(WITH_BUILDINFO)
   find_package(Git)

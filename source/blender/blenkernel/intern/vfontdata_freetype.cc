@@ -30,7 +30,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_vfontdata.h"
 
 #include "DNA_curve_types.h"
@@ -351,6 +351,11 @@ VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int /*flag*/)
 VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
 {
   if (!vfont) {
+    return nullptr;
+  }
+
+  /* nullptr when the font file can't be found on disk. */
+  if (vfont->temp_pf == nullptr) {
     return nullptr;
   }
 

@@ -185,6 +185,69 @@ static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder
   builder.construct_and_set_matching_fn<WhiteNoiseFunction>(int(node.custom1));
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* MaterialX cellnoise node rounds float value of texture coordinate.
+   * Therefore it changes at different integer coordinates.
+   * The simple trick would be to multiply the texture coordinate by a large number. */
+  const float LARGE_NUMBER = 10000.0f;
+
+  NodeItem noise = empty();
+  NodeItem vector = empty();
+  NodeItem w = empty();
+
+  int dimension = node_->custom1;
+  switch (dimension) {
+    case 1:
+      w = get_input_value("W", NodeItem::Type::Vector2);
+      noise = create_node(
+          "cellnoise2d", NodeItem::Type::Float, {{"texcoord", w * val(LARGE_NUMBER)}});
+      break;
+    case 2:
+      vector = get_input_link("Vector", NodeItem::Type::Vector2);
+      if (!vector) {
+        vector = texcoord_node();
+      }
+      noise = create_node(
+          "cellnoise2d", NodeItem::Type::Float, {{"texcoord", vector * val(LARGE_NUMBER)}});
+      break;
+    case 3:
+      vector = get_input_link("Vector", NodeItem::Type::Vector3);
+      if (!vector) {
+        vector = texcoord_node(NodeItem::Type::Vector3);
+      }
+      noise = create_node(
+          "cellnoise3d", NodeItem::Type::Float, {{"position", vector * val(LARGE_NUMBER)}});
+      break;
+    case 4:
+      vector = get_input_link("Vector", NodeItem::Type::Vector3);
+      if (!vector) {
+        vector = texcoord_node(NodeItem::Type::Vector3);
+      }
+      w = get_input_value("W", NodeItem::Type::Float);
+      noise = create_node(
+          "cellnoise3d", NodeItem::Type::Float, {{"position", (vector + w) * val(LARGE_NUMBER)}});
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+
+  if (STREQ(socket_out_->name, "Value")) {
+    return noise;
+  }
+
+  /* NOTE: cellnoise node doesn't have colored output, so we create hsvtorgb node and put
+   * noise in first (Hue) channel to generate color. */
+  NodeItem combine = create_node("combine3",
+                                 NodeItem::Type::Color3,
+                                 {{"in1", noise}, {"in2", val(1.0f)}, {"in3", val(0.5f)}});
+  return create_node("hsvtorgb", NodeItem::Type::Color3, {{"in", combine}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_tex_white_noise_cc
 
 void register_node_type_sh_tex_white_noise()
@@ -200,6 +263,7 @@ void register_node_type_sh_tex_white_noise()
   ntype.gpu_fn = file_ns::gpu_shader_tex_white_noise;
   ntype.updatefunc = file_ns::node_shader_update_tex_white_noise;
   ntype.build_multi_function = file_ns::sh_node_noise_build_multi_function;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

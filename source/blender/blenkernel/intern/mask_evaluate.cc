@@ -8,6 +8,7 @@
  * Functions for evaluating the mask beziers into points for the outline and feather.
  */
 
+#include <algorithm> /* For `min/max`. */
 #include <cstddef>
 #include <cstring>
 
@@ -22,7 +23,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.hh"
@@ -57,7 +58,7 @@ uint BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
     len = a + b + c;
     cur_resol = len / max_segment;
 
-    resol = MAX2(resol, cur_resol);
+    resol = std::max(resol, cur_resol);
 
     if (resol >= MASK_RESOL_MAX) {
       break;

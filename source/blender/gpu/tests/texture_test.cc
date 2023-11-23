@@ -63,13 +63,39 @@ static void test_texture_read()
 }
 GPU_TEST(texture_read)
 
+static void test_texture_1d()
+{
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ |
+                           GPU_TEXTURE_USAGE_SHADER_WRITE;
+  GPUTexture *tex = GPU_texture_create_1d("tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  float4 clear_color(0.9f, 0.7f, 0.2f, 1.0f);
+  GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  for (int index : IndexRange(SIZE)) {
+    EXPECT_EQ(clear_color, data[index]);
+  }
+  MEM_freeN(data);
+
+  GPU_texture_free(tex);
+
+  GPU_render_end();
+}
+GPU_TEST(texture_1d)
+
 static void test_texture_1d_array()
 {
   const int LAYERS = 8;
   const int SIZE = 32;
   GPU_render_begin();
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ |
+                           GPU_TEXTURE_USAGE_SHADER_WRITE;
   GPUTexture *tex = GPU_texture_create_1d_array(
       "tex", SIZE, LAYERS, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
@@ -214,6 +240,30 @@ static void test_texture_cube_array()
   GPU_render_end();
 }
 GPU_TEST(texture_cube_array)
+
+static void test_texture_3d()
+{
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *tex = GPU_texture_create_3d("tex", SIZE, SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
+  GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  for (int index : IndexRange(SIZE * SIZE * SIZE)) {
+    EXPECT_EQ(clear_color, data[index]);
+  }
+  MEM_freeN(data);
+
+  GPU_texture_free(tex);
+
+  GPU_render_end();
+}
+GPU_TEST(texture_3d)
 
 static void test_texture_copy()
 {

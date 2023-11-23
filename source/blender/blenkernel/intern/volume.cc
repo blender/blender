@@ -37,12 +37,13 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "BLT_translation.h"
@@ -639,7 +640,7 @@ IDTypeInfo IDType_ID_VO = {
     /*main_listbase_index*/ INDEX_ID_VO,
     /*struct_size*/ sizeof(Volume),
     /*name*/ "Volume",
-    /*name_plural*/ "volumes",
+    /*name_plural*/ N_("volumes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_VOLUME,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -994,12 +995,12 @@ BoundBox *BKE_volume_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
 
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
-    return ob->runtime.bb;
+  if (ob->runtime->bb != nullptr && (ob->runtime->bb->flag & BOUNDBOX_DIRTY) == 0) {
+    return ob->runtime->bb;
   }
 
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
+  if (ob->runtime->bb == nullptr) {
+    ob->runtime->bb = MEM_cnew<BoundBox>(__func__);
   }
 
   const Volume *volume = (Volume *)ob->data;
@@ -1011,9 +1012,9 @@ BoundBox *BKE_volume_boundbox_get(Object *ob)
     max = float3(1);
   }
 
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+  BKE_boundbox_init_from_minmax(ob->runtime->bb, min, max);
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 bool BKE_volume_is_y_up(const Volume *volume)
@@ -1165,7 +1166,7 @@ void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   /* Assign evaluated object. */
   const bool eval_is_owned = (volume != volume_eval);
   BKE_object_eval_assign_data(object, &volume_eval->id, eval_is_owned);
-  object->runtime.geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
+  object->runtime->geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
 }
 
 void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, const char *filepath)

@@ -37,9 +37,9 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -607,7 +607,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 {
   /* pointers to modifier data for unwrap control */
   SubsurfModifierData *smd_real;
-  /* Modifier initialization data, will  control what type of subdivision will happen. */
+  /* Modifier initialization data, will control what type of subdivision will happen. */
   SubsurfModifierData smd = {{nullptr}};
 
   /* Holds a map to edit-faces for every subdivision-surface face.

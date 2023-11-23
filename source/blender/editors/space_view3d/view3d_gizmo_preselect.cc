@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"

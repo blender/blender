@@ -57,9 +57,8 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
     def draw(self, context):
         layout = self.layout
         ob_type = context.object.type
-
         geometry_nodes_supported = ob_type in {'MESH', 'CURVE', 'CURVES',
-                                               'FONT', 'SURFACE', 'VOLUME', 'POINTCLOUD', 'GREASEPENCIL'}
+                                               'FONT', 'VOLUME', 'POINTCLOUD', 'GREASEPENCIL'}
 
         if layout.operator_context == 'EXEC_REGION_WIN':
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -229,7 +228,10 @@ class AddModifierMenu(Operator):
     @classmethod
     def poll(cls, context):
         # NOTE: This operator only exists to add a poll to the add modifier shortcut in the property editor.
+        object = context.object
         space = context.space_data
+        if object and object.type == 'GPENCIL':
+            return False
         return space and space.type == 'PROPERTIES' and space.context == 'MODIFIER'
 
     def invoke(self, context, event):

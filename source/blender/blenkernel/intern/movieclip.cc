@@ -55,7 +55,7 @@
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
 #include "IMB_imbuf.h"
@@ -288,7 +288,7 @@ IDTypeInfo IDType_ID_MC = {
     /*main_listbase_index*/ INDEX_ID_MC,
     /*struct_size*/ sizeof(MovieClip),
     /*name*/ "MovieClip",
-    /*name_plural*/ "movieclips",
+    /*name_plural*/ N_("movieclips"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MOVIECLIP,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

@@ -165,6 +165,7 @@ const UserDef U_default = {
     .glalphaclip = 0.004,
     .autokey_mode = (AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON),
     .autokey_flag = AUTOKEY_FLAG_XYZ2RGB,
+    .key_insert_channels = USER_ANIM_KEY_CHANNEL_LOCATION,
     .animation_flag = USER_ANIM_HIGH_QUALITY_DRAWING,
     .text_render = 0,
     .navigation_mode = VIEW_NAVIGATION_WALK,

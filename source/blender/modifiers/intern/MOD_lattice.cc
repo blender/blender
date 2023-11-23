@@ -16,14 +16,14 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
-#include "BKE_lattice.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_lattice.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -96,35 +96,47 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
-  MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
+  /* if next modifier needs original vertices */
+  MOD_previous_vcos_store(md, reinterpret_cast<const float(*)[3]>(positions.data()));
 
-  BKE_lattice_deform_coords_with_mesh(
-      lmd->object, ctx->object, vertexCos, verts_num, lmd->flag, lmd->name, lmd->strength, mesh);
+  BKE_lattice_deform_coords_with_mesh(lmd->object,
+                                      ctx->object,
+                                      reinterpret_cast<float(*)[3]>(positions.data()),
+                                      positions.size(),
+                                      lmd->flag,
+                                      lmd->name,
+                                      lmd->strength,
+                                      mesh);
 }
 
 static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             BMEditMesh *em,
                             Mesh *mesh,
-                            float (*vertexCos)[3],
-                            int verts_num)
+                            blender::MutableSpan<blender::float3> positions)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    deform_verts(md, ctx, mesh, vertexCos, verts_num);
+    deform_verts(md, ctx, mesh, positions);
     return;
   }
 
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
-  MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
+  /* if next modifier needs original vertices */
+  MOD_previous_vcos_store(md, reinterpret_cast<const float(*)[3]>(positions.data()));
 
-  BKE_lattice_deform_coords_with_editmesh(
-      lmd->object, ctx->object, vertexCos, verts_num, lmd->flag, lmd->name, lmd->strength, em);
+  BKE_lattice_deform_coords_with_editmesh(lmd->object,
+                                          ctx->object,
+                                          reinterpret_cast<float(*)[3]>(positions.data()),
+                                          positions.size(),
+                                          lmd->flag,
+                                          lmd->name,
+                                          lmd->strength,
+                                          em);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -156,7 +168,7 @@ ModifierTypeInfo modifierType_Lattice = {
     /*struct_name*/ "LatticeModifierData",
     /*struct_size*/ sizeof(LatticeModifierData),
     /*srna*/ &RNA_LatticeModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_LATTICE,

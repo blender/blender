@@ -22,7 +22,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_blender_undo.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"

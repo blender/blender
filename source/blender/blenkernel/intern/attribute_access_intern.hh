@@ -128,8 +128,8 @@ class DynamicAttributesProvider {
 class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  private:
   static constexpr uint64_t supported_types_mask = CD_MASK_PROP_ALL;
-  const eAttrDomain domain_;
-  const CustomDataAccessInfo custom_data_access_;
+  eAttrDomain domain_;
+  CustomDataAccessInfo custom_data_access_;
 
  public:
   CustomDataAttributeProvider(const eAttrDomain domain,

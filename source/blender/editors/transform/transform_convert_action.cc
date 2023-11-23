@@ -16,7 +16,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -423,8 +423,11 @@ static int GPLayerToTransData(TransData *td,
         tfd->val = float(gpf->framenum);
         tfd->sdata = &gpf->framenum;
 
-        td->val = td->loc = &tfd->val;
-        td->ival = td->iloc[0] = tfd->val;
+        td->loc = tfd->loc;
+        td->iloc[0] = tfd->loc[0];
+
+        td->val = &tfd->val;
+        td->ival = tfd->val;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
@@ -498,7 +501,7 @@ static int GreasePencilLayerToTransData(TransData *td,
   };
 
   const blender::Map<int, GreasePencilFrame> &frame_map =
-      duplicate ? (layer->runtime->trans_data_.temp_frames_buffer) : (layer->frames());
+      duplicate ? (layer->runtime->trans_data_.temp_frames_buffer) : layer->frames();
 
   for (const auto [frame_number, frame] : frame_map.items()) {
     grease_pencil_frame_to_trans_data(frame_number, frame.is_selected());
@@ -535,8 +538,11 @@ static int MaskLayerToTransData(TransData *td,
         tfd->val = float(masklay_shape->frame);
         tfd->sdata = &masklay_shape->frame;
 
-        td->val = td->loc = &tfd->val;
-        td->ival = td->iloc[0] = tfd->val;
+        td->loc = tfd->loc;
+        td->iloc[0] = tfd->loc[0];
+
+        td->val = &tfd->val;
+        td->ival = tfd->val;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;

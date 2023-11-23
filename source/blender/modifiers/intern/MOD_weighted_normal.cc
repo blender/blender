@@ -23,7 +23,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
@@ -83,7 +83,6 @@ struct WeightedNormalData {
   blender::Span<int> loop_to_face;
   blender::MutableSpan<blender::short2> clnors;
   bool has_clnors; /* True if clnors already existed, false if we had to create them. */
-  float split_angle;
 
   blender::OffsetIndices<int> faces;
   blender::Span<blender::float3> face_normals;
@@ -207,7 +206,6 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   ModePair *mode_pair = wn_data->mode_pair;
 
   const bool has_clnors = wn_data->has_clnors;
-  const float split_angle = wn_data->split_angle;
   bke::mesh::CornerNormalSpaceArray lnors_spacearr;
 
   const bool keep_sharp = (wnmd->flag & MOD_WEIGHTEDNORMAL_KEEP_SHARP) != 0;
@@ -233,8 +231,6 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                  wn_data->sharp_edges.data(),
                                  wn_data->sharp_faces,
                                  has_clnors ? clnors.data() : nullptr,
-                                 true,
-                                 split_angle,
                                  &lnors_spacearr,
                                  loop_normals);
 
@@ -363,8 +359,6 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                             wn_data->sharp_edges.data(),
                                             wn_data->sharp_faces,
                                             has_clnors ? clnors.data() : nullptr,
-                                            true,
-                                            split_angle,
                                             nullptr,
                                             loop_normals);
 
@@ -482,23 +476,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 {
   using namespace blender;
   WeightedNormalModifierData *wnmd = (WeightedNormalModifierData *)md;
-  Object *ob = ctx->object;
-
-  /* XXX TODO(Rohan Rathi):
-   * Once we fully switch to Mesh evaluation of modifiers,
-   * we can expect to get that flag from the COW copy.
-   * But for now, it is lost in the DM intermediate step,
-   * so we need to directly check orig object's data. */
-#if 0
-  if (!(mesh->flag & ME_AUTOSMOOTH))
-#else
-  if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH))
-#endif
-  {
-    BKE_modifier_set_error(
-        ctx->object, (ModifierData *)wnmd, "Enable 'Auto Smooth' in Object Data Properties");
-    return mesh;
-  }
 
   Mesh *result;
   result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
@@ -527,7 +504,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     weight = (weight - 1) * 25;
   }
 
-  const float split_angle = mesh->smoothresh;
   blender::short2 *clnors = static_cast<blender::short2 *>(
       CustomData_get_layer_for_write(&result->loop_data, CD_CUSTOMLOOPNORMAL, mesh->totloop));
 
@@ -562,7 +538,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   wn_data.loop_to_face = loop_to_face_map;
   wn_data.clnors = {clnors, mesh->totloop};
   wn_data.has_clnors = has_clnors;
-  wn_data.split_angle = split_angle;
 
   wn_data.faces = faces;
   wn_data.face_normals = mesh->face_normals();
@@ -663,7 +638,7 @@ ModifierTypeInfo modifierType_WeightedNormal = {
     /*struct_name*/ "WeightedNormalModifierData",
     /*struct_size*/ sizeof(WeightedNormalModifierData),
     /*srna*/ &RNA_WeightedNormalModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_NORMALEDIT,

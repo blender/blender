@@ -24,11 +24,14 @@ const uint max_page = SHADOW_MAX_PAGE;
 
 void find_first_valid(inout uint src, uint dst)
 {
-  for (; src < dst; src++) {
-    if (pages_cached_buf[src % max_page].x != uint(-1)) {
+  for (uint i = src; i < dst; i++) {
+    if (pages_cached_buf[i % max_page].x != uint(-1)) {
+      src = i;
       return;
     }
   }
+
+  src = dst;
 }
 
 void page_cached_free(uint page_index)

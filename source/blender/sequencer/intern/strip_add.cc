@@ -23,7 +23,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -39,22 +39,22 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
-#include "SEQ_add.h"
-#include "SEQ_edit.h"
-#include "SEQ_effects.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_add.hh"
+#include "SEQ_edit.hh"
+#include "SEQ_effects.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
-#include "multiview.h"
-#include "proxy.h"
-#include "sequencer.h"
-#include "strip_time.h"
-#include "utils.h"
+#include "multiview.hh"
+#include "proxy.hh"
+#include "sequencer.hh"
+#include "strip_time.hh"
+#include "utils.hh"
 
 void SEQ_add_load_data_init(SeqLoadData *load_data,
                             const char *name,
@@ -78,6 +78,7 @@ static void seq_add_generic_update(Scene *scene, Sequence *seq)
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
   SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
+  seq_time_effect_range_set(scene, seq);
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
 
@@ -183,7 +184,6 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *loa
 
   seq_add_set_name(scene, seq, load_data);
   seq_add_generic_update(scene, seq);
-  seq_time_effect_range_set(scene, seq);
 
   return seq;
 }
@@ -490,7 +490,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     }
   }
 
-  seq->len = MAX2(1, seq->len);
+  seq->len = std::max(1, seq->len);
   if (load_data->adjust_playback_rate) {
     seq->flag |= SEQ_AUTO_PLAYBACK_RATE;
   }

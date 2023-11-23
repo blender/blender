@@ -18,7 +18,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -394,8 +394,8 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
   View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
 
   wmWindow *source_win = CTX_wm_window(C);
-  int r_mval[2];
-  wmWindow *target_win = WM_window_find_under_cursor(source_win, event->xy, &r_mval[0]);
+  int event_xy_target[2];
+  wmWindow *target_win = WM_window_find_under_cursor(source_win, event->xy, &event_xy_target[0]);
 
   /* Exit if we release the mouse button, hit escape, or enter a different window. */
   if (event->val == KM_RELEASE || event->type == EVT_ESCKEY || source_win != target_win) {

@@ -15,8 +15,8 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_report.h"
 

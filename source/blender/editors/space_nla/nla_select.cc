@@ -17,7 +17,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 #include "BKE_screen.hh"
 
@@ -194,7 +194,7 @@ void NLA_OT_select_all(wmOperatorType *ot)
  * - BKEY     - 1: all strips within region are selected #NLAEDIT_BOX_ALLSTRIPS.
  * - ALT-BKEY - depending on which axis of the region was larger.
  *   - 2: x-axis, so select all frames within frame range #NLAEDIT_BOXSEL_FRAMERANGE.
- *   - 3: y-axis, so select all frames within channels that region included
+ *   - 3: y-axis, so select all frames within tracks that region included
  *     #NLAEDIT_BOXSEL_CHANNELS.
  */
 
@@ -226,11 +226,11 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
   selectmode = selmodes_to_flagmodes(selectmode);
 
   /* loop over data, doing box select */
-  float ymax = NLACHANNEL_FIRST_TOP(ac);
+  float ymax = NLATRACK_FIRST_TOP(ac);
   for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= NLACHANNEL_STEP(snla))
+       ale = ale->next, ymax -= NLATRACK_STEP(snla))
   {
-    float ymin = ymax - NLACHANNEL_HEIGHT(snla);
+    float ymin = ymax - NLATRACK_HEIGHT(snla);
 
     /* perform vertical suitability check (if applicable) */
     if ((mode == NLA_BOXSEL_FRAMERANGE) || !((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
@@ -241,7 +241,8 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
         /* only select strips if they fall within the required ranges (if applicable) */
         LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
           if ((mode == NLA_BOXSEL_CHANNELS) ||
-              BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax)) {
+              BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
+          {
             /* set selection */
             ACHANNEL_SET_FLAG(strip, selectmode, NLASTRIP_FLAG_SELECT);
 
@@ -269,16 +270,10 @@ static void nlaedit_strip_at_region_position(
   View2D *v2d = &ac->region->v2d;
 
   float view_x, view_y;
-  int channel_index;
+  int track_index;
   UI_view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
-  UI_view2d_listview_view_to_cell(0,
-                                  NLACHANNEL_STEP(snla),
-                                  0,
-                                  NLACHANNEL_FIRST_TOP(ac),
-                                  view_x,
-                                  view_y,
-                                  nullptr,
-                                  &channel_index);
+  UI_view2d_listview_view_to_cell(
+      0, NLATRACK_STEP(snla), 0, NLATRACK_FIRST_TOP(ac), view_x, view_y, nullptr, &track_index);
 
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -292,7 +287,7 @@ static void nlaedit_strip_at_region_position(
   const float xmin = UI_view2d_region_to_view_x(v2d, region_x - 7);
   const float xmax = UI_view2d_region_to_view_x(v2d, region_x + 7);
 
-  bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, channel_index));
+  bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, track_index));
   if (ale != nullptr) {
     if (ale->type == ANIMTYPE_NLATRACK) {
       NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
@@ -378,9 +373,9 @@ static int nlaedit_box_select_exec(bContext *C, wmOperator *op)
     /* mode depends on which axis of the range is larger to determine which axis to use.
      * - Checking this in region-space is fine,
      *   as it's fundamentally still going to be a different rect size.
-     * - The frame-range select option is favored over the channel one (x over y),
+     * - The frame-range select option is favored over the track one (x over y),
      *   as frame-range one is often.
-     *   Used for tweaking timing when "blocking", while channels is not that useful.
+     *   Used for tweaking timing when "blocking", while tracks is not that useful.
      */
     if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect)) {
       mode = NLA_BOXSEL_FRAMERANGE;
@@ -459,12 +454,12 @@ static void nlaedit_select_leftright(bContext *C,
     WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
   }
 
-  /* if select mode is replace, deselect all keyframes (and channels) first */
+  /* if select mode is replace, deselect all keyframes (and tracks) first */
   if (select_mode == SELECT_REPLACE) {
     select_mode = SELECT_ADD;
 
     /* - deselect all other keyframes, so that just the newly selected remain
-     * - channels aren't deselected, since we don't re-select any as a consequence
+     * - tracks aren't deselected, since we don't re-select any as a consequence
      */
     deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
   }
@@ -531,7 +526,7 @@ static int nlaedit_select_leftright_exec(bContext *C, wmOperator *op)
   /* do the selecting now */
   nlaedit_select_leftright(C, &ac, leftright, selectmode);
 
-  /* set notifier that keyframe selection (and channels too) have changed */
+  /* set notifier that keyframe selection (and tracks too) have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, nullptr);
 
@@ -638,12 +633,12 @@ static int mouse_nla_strips(bContext *C,
       /* deselect all strips */
       deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 
-      /* deselect all other channels first */
+      /* deselect all other tracks first */
       ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     }
   }
 
-  /* only select strip if we clicked on a valid channel and hit something */
+  /* only select strip if we clicked on a valid track and hit something */
   if (ale != nullptr) {
     /* select the strip accordingly (if a matching one was found) */
     if (strip != nullptr) {
@@ -672,7 +667,7 @@ static int mouse_nla_strips(bContext *C,
       }
     }
 
-    /* free this channel */
+    /* free this track */
     MEM_freeN(ale);
   }
 

@@ -13,7 +13,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_unit.h"
 
 #include "ED_screen.hh"
@@ -24,9 +24,9 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
 #include "BLT_translation.h"
 

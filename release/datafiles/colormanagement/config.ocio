@@ -227,7 +227,7 @@ colorspaces:
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.709}
-        - !<ExponentWithLinearTransform> {gamma: 2.4, offset: 0, direction: inverse}
+        - !<ExponentTransform> {value: 2.4, direction: inverse}
 
   - !<ColorSpace>
     name: Rec.2020
@@ -241,7 +241,7 @@ colorspaces:
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.2020}
-        - !<ExponentWithLinearTransform> {gamma: 2.4, offset: 0, direction: inverse}
+        - !<ExponentTransform> {value: 2.4, direction: inverse}
 
   - !<ColorSpace>
     name: Non-Color
@@ -456,7 +456,7 @@ colorspaces:
         - !<ColorSpaceTransform> {src: Rec.2020, dst: Linear Rec.2020}
         - !<MatrixTransform> {matrix: [0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0, 0, 0, 1]}
         - !<ExponentTransform> {value: 2.5, direction: inverse}
-        - !<FileTransform> {src: AgX_False_Color.spi1d, interpolation: tetrahedral}
+        - !<FileTransform> {src: AgX_False_Color.spi1d, interpolation: linear}
 
   - !<ColorSpace>
     name: AgX False Color P3
@@ -633,6 +633,109 @@ looks:
 
   - !<Look>
     name: AgX - Very Low Contrast
+    process_space: AgX Log
+    description: A Very Low Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [0.7, 0.7, 0.7], master: 1}
+          saturation: 1.15
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: False Color - Punchy
+    process_space: AgX Log
+    description: A darkening punchy look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingToneTransform>
+         shadows: {rgb: [0.2, 0.2, 0.2], master: 0.35, start: 0.4, pivot: 0.1}
+        - !<CDLTransform> {power: [1.0912, 1.0912, 1.0912]}
+
+  - !<Look>
+    name: False Color - Greyscale
+    process_space: AgX Log
+    description: A Black and White Look
+    transform: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117], direction: inverse}
+        - !<MatrixTransform> {matrix: [0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0, 0, 0, 1]}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+
+  - !<Look>
+    name: False Color - Very High Contrast
+    process_space: AgX Log
+    description: A Very High Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1.57, 1.57, 1.57], master: 1}
+          saturation: 0.9
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: False Color - High Contrast
+    process_space: AgX Log
+    description: A High Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1.4, 1.4, 1.4], master: 1}
+          saturation: 0.95
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: False Color - Medium High Contrast
+    process_space: AgX Log
+    description: A Medium High Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1.2, 1.2, 1.2], master: 1}
+          saturation: 1
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: False Color - Base Contrast
+    process_space: AgX Log
+    description: A Base Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1, 1, 1], master: 1}
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: False Color - Medium Low Contrast
+    process_space: AgX Log
+    description: A Medium Low Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [0.9, 0.9, 0.9], master: 1}
+          saturation: 1.05
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: False Color - Low Contrast
+    process_space: AgX Log
+    description: A Low Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [0.8, 0.8, 0.8], master: 1}
+          saturation: 1.1
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: False Color - Very Low Contrast
     process_space: AgX Log
     description: A Very Low Contrast Look
     transform: !<GroupTransform>

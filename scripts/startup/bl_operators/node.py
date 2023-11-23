@@ -166,8 +166,6 @@ class NodeAddZoneOperator(NodeAddOperator):
         space = context.space_data
         tree = space.edit_tree
 
-        props = self.properties
-
         self.deselect_nodes(context)
         input_node = self.create_node(context, self.input_node_type)
         output_node = self.create_node(context, self.output_node_type)

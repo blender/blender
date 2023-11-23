@@ -44,6 +44,31 @@ enum eMeshWrapperType {
 namespace blender::bke {
 
 /**
+ * The complexity requirement of attribute domains needed to process normals.
+ * See #Mesh::normals_domain().
+ */
+enum class MeshNormalDomain : int8_t {
+  /**
+   * The mesh is completely smooth shaded; either all faces or edges are sharp.
+   * Only #Mesh::face_normals() is necessary. This case is generally the best
+   * for performance, since no mixing is necessary and multithreading is simple.
+   */
+  Face,
+  /**
+   * The mesh is completely smooth shaded; there are no sharp face or edges. Only
+   * #Mesh::vert_normals() is necessary. Calculating face normals is still necessary though,
+   * since they have to be mixed to become vertex normals.
+   */
+  Point,
+  /**
+   * The mesh has mixed smooth and sharp shading. In order to split the normals on each side of
+   * sharp edges, they need to be processed per-face-corner. Normals can be retrieved with
+   * #Mesh::corner_normals().
+   */
+  Corner,
+};
+
+/**
  * Cache of a mesh's loose edges, accessed with #Mesh::loose_edges(). *
  */
 struct LooseGeomCache {
@@ -116,7 +141,7 @@ struct MeshRuntime {
    * Copied from edit-mesh (hint, draw with edit-mesh data when true).
    *
    * Modifiers that edit the mesh data in-place must set this to false
-   * (most #eModifierTypeType_NonGeometrical modifiers). Otherwise the edit-mesh
+   * (most #ModifierTypeType::NonGeometrical modifiers). Otherwise the edit-mesh
    * data will be used for drawing, missing changes from modifiers. See #79517.
    */
   bool is_original_bmesh = false;
@@ -136,9 +161,10 @@ struct MeshRuntime {
    */
   SubsurfRuntimeData *subsurf_runtime_data = nullptr;
 
-  /** Caches for lazily computed vertex and face normals. */
+  /** Caches for lazily computed normals. */
   SharedCache<Vector<float3>> vert_normals_cache;
   SharedCache<Vector<float3>> face_normals_cache;
+  SharedCache<Vector<float3>> corner_normals_cache;
 
   /**
    * Cache of offsets for vert to face/corner maps. The same offsets array is used to group

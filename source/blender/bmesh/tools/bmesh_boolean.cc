@@ -216,7 +216,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
 
   /* Save the original #BMEdge's so we can use them as examples. */
   Array<BMEdge *> old_edges(bm->totedge);
-  std::copy(bm->etable, bm->etable + bm->totedge, old_edges.begin());
+  std::copy_n(bm->etable, bm->totedge, old_edges.begin());
 
   /* Reuse or make new #BMFace's, as the faces are identical to old ones or not.
    * If reusing, mark them as "keep". First find the maximum face length

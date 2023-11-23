@@ -5,6 +5,8 @@
 
 #include "usd.h"
 
+#include "WM_types.hh"
+
 #include "BLI_map.hh"
 
 #include <pxr/usd/usdShade/material.h>
@@ -85,6 +87,12 @@ class USDMaterialReader {
   USDMaterialReader(const USDImportParams &params, Main *bmain);
 
   Material *add_material(const pxr::UsdShadeMaterial &usd_material) const;
+
+  /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
+  ReportList *reports() const
+  {
+    return params_.worker_status ? params_.worker_status->reports : nullptr;
+  }
 
  protected:
   /** Create the Principled BSDF shader node network. */

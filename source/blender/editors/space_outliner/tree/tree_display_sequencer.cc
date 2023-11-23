@@ -15,7 +15,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sequencer.hh"
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"

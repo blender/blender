@@ -22,7 +22,7 @@
 #include "BKE_colortools.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"

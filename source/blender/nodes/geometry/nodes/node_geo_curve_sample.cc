@@ -122,11 +122,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(4));
   search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(3));
 
-  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
@@ -471,17 +471,17 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
 {
   switch (data_type) {
     case CD_PROP_FLOAT:
-      return params.extract_input<Field<float>>("Value_Float");
+      return params.extract_input<GField>("Value_Float");
     case CD_PROP_FLOAT3:
-      return params.extract_input<Field<float3>>("Value_Vector");
+      return params.extract_input<GField>("Value_Vector");
     case CD_PROP_COLOR:
-      return params.extract_input<Field<ColorGeometry4f>>("Value_Color");
+      return params.extract_input<GField>("Value_Color");
     case CD_PROP_BOOL:
-      return params.extract_input<Field<bool>>("Value_Bool");
+      return params.extract_input<GField>("Value_Bool");
     case CD_PROP_INT32:
-      return params.extract_input<Field<int>>("Value_Int");
+      return params.extract_input<GField>("Value_Int");
     case CD_PROP_QUATERNION:
-      return params.extract_input<Field<math::Quaternion>>("Value_Rotation");
+      return params.extract_input<GField>("Value_Rotation");
     default:
       BLI_assert_unreachable();
   }

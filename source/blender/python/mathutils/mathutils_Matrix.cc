@@ -3698,7 +3698,7 @@ static PyObject *MatrixAccess_slice(MatrixAccessObject *self, Py_ssize_t begin, 
     end = (matrix_access_len + 1) + end;
   }
   CLAMP(end, 0, matrix_access_len);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {

@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
-"PO-Revision-Date: 2023-10-03 21:49+0000\n"
-"Last-Translator: Mani <manivasagam0024@gmail.com>\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-05 13:30+0000\n"
+"Last-Translator: saran <saranmurugappan2020@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
 "Language: ta\n"
 "MIME-Version: 1.0\n"
@@ -272,7 +272,7 @@ msgstr "துணை நிரல்"
 
 
 msgid "Python add-ons to be loaded automatically"
-msgstr "பைதான் துணை நிரல்கள் தானாக ஏற்றப்படும்"
+msgstr "துணை நிரலான பைத்தான் தானாகவே எடுத்து இணைக்கப்படும்"
 
 
 msgid "Module"
@@ -296,7 +296,7 @@ msgstr "மின்னஞ்சல் முகவரி"
 
 
 msgid "Error Message"
-msgstr "பிழை செய்தி"
+msgstr "பிழைப்பற்றி செய்தி"
 
 
 msgid "Message"
@@ -329,4 +329,84 @@ msgstr "கர்னல் மேம்பாட்டை முடக்கு.
 
 msgid "Intersection only"
 msgstr "குறுக்குவெட்டு(பொதுவானவை) மட்டும்"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "குறுக்கே சந்திக்கும் கர்னல்கள்(kernels) மட்டும் திறன் மேன்படுத்துக்க. Rendering வேகமாகவும், குறைவான அளவு CPU வின் பின்னணி பயன்பாடு"
+
+
+msgid "Full"
+msgstr "முழு"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "அனைத்து கர்னல்கள்(kernels) திறன் மேன்படுத்துக்க. Rendering வேகமாகவும், அனால் கூடுதலாக CPU வின் பின்னணி பயன்பாடு ஏற்படலாம்"
+
+
+msgid "Distribute memory across devices"
+msgstr "பல்வேறு சாதனங்கள் முழுதும் நினைவை விநியோகிக்கவும்"
+
+
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (பரிசோதனைக்குரியது)"
+
+
+msgid "Embree on GPU"
+msgstr "GPU மேல் Embree"
+
+
+msgid "Fribidi Library"
+msgstr "Fribidi தொகுப்பு"
+
+
+msgid "Import Paths"
+msgstr "உள்ளேசெற்கும் பாதை"
+
+
+msgid "Spell Cache"
+msgstr "எழுத்துக்கள் சேகரிப்பு"
+
+
+msgid "Animation Data"
+msgstr "உயிர் ஊட்டு தகவல்கள்"
+
+
+msgid "Animation data for data-block"
+msgstr "தகவல்கள் தொகுதிக்கான உயிர் ஊட்டு தகவல்கள்"
+
+
+msgid "Action"
+msgstr "செயல்"
+
+
+msgid "Add"
+msgstr "சேர்க்க"
+
+
+msgid "Subtract"
+msgstr "கழிக்க"
+
+
+msgid "Multiply"
+msgstr "பெருக்க"
+
+
+msgid "Nothing"
+msgstr "ஒன்றுமில்லை"
+
+
+msgid "Hold"
+msgstr "பிடிக்க"
+
+
+msgid "True or false"
+msgstr "சரியா தவறா"
+
+
+msgid "Point"
+msgstr "புள்ளி"
+
+
+msgid "Face"
+msgstr "முகப்பு"
 

@@ -19,15 +19,15 @@ NODE_STORAGE_FUNCS(NodeGeometryInputNamedAttribute)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNode *node = b.node_or_null();
+
   b.add_input<decl::String>("Name").is_attribute_name();
 
-  b.add_output<decl::Vector>("Attribute", "Attribute_Vector").field_source();
-  b.add_output<decl::Float>("Attribute", "Attribute_Float").field_source();
-  b.add_output<decl::Color>("Attribute", "Attribute_Color").field_source();
-  b.add_output<decl::Bool>("Attribute", "Attribute_Bool").field_source();
-  b.add_output<decl::Int>("Attribute", "Attribute_Int").field_source();
-  b.add_output<decl::Rotation>("Attribute", "Attribute_Rotation").field_source();
-
+  if (node != nullptr) {
+    const NodeGeometryInputNamedAttribute &storage = node_storage(*node);
+    const eCustomDataType data_type = eCustomDataType(storage.data_type);
+    b.add_output(data_type, "Attribute").field_source();
+  }
   b.add_output<decl::Bool>("Exists").field_source();
 }
 
@@ -43,34 +43,14 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryInputNamedAttribute &storage = node_storage(*node);
-  const eCustomDataType data_type = eCustomDataType(storage.data_type);
-
-  bNodeSocket *socket_vector = static_cast<bNodeSocket *>(node->outputs.first);
-  bNodeSocket *socket_float = socket_vector->next;
-  bNodeSocket *socket_color4f = socket_float->next;
-  bNodeSocket *socket_boolean = socket_color4f->next;
-  bNodeSocket *socket_int32 = socket_boolean->next;
-  bNodeSocket *socket_quat = socket_int32->next;
-
-  bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
-  bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
-  bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
-  bke::nodeSetSocketAvailability(ntree, socket_quat, data_type == CD_PROP_QUATERNION);
-}
-
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   search_link_ops_for_declarations(params, declaration.inputs);
 
   const bNodeType &node_type = params.node_type();
   if (params.in_out() == SOCK_OUT) {
-    const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
+    const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
         eNodeSocketDatatype(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
@@ -113,29 +93,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   params.used_named_attribute(name, NamedAttributeUsage::Read);
 
-  switch (data_type) {
-    case CD_PROP_FLOAT:
-      params.set_output("Attribute_Float", AttributeFieldInput::Create<float>(name));
-      break;
-    case CD_PROP_FLOAT3:
-      params.set_output("Attribute_Vector", AttributeFieldInput::Create<float3>(name));
-      break;
-    case CD_PROP_COLOR:
-      params.set_output("Attribute_Color", AttributeFieldInput::Create<ColorGeometry4f>(name));
-      break;
-    case CD_PROP_BOOL:
-      params.set_output("Attribute_Bool", AttributeFieldInput::Create<bool>(name));
-      break;
-    case CD_PROP_INT32:
-      params.set_output("Attribute_Int", AttributeFieldInput::Create<int>(name));
-      break;
-    case CD_PROP_QUATERNION:
-      params.set_output("Attribute_Rotation", AttributeFieldInput::Create<math::Quaternion>(name));
-      break;
-    default:
-      break;
-  }
+  const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
+  params.set_output<GField>("Attribute", AttributeFieldInput::Create(name, type));
   params.set_output("Exists", bke::AttributeExistsFieldInput::Create(std::move(name)));
 }
 
@@ -157,10 +117,9 @@ static void node_register()
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_NAMED_ATTRIBUTE, "Named Attribute", NODE_CLASS_INPUT);
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  ntype.updatefunc = node_update;
+  ntype.declare = node_declare;
   ntype.initfunc = node_init;
   node_type_storage(&ntype,
                     "NodeGeometryInputNamedAttribute",

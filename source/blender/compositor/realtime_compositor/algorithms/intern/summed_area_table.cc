@@ -57,8 +57,8 @@ static void compute_incomplete_prologues(Context &context,
                                          Result &incomplete_x_prologues,
                                          Result &incomplete_y_prologues)
 {
-  GPUShader *shader = context.shader_manager().get(
-      get_compute_incomplete_prologues_shader(operation));
+  GPUShader *shader = context.get_shader(get_compute_incomplete_prologues_shader(operation),
+                                         ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   input.bind_as_texture(shader, "input_tx");
@@ -94,8 +94,8 @@ static void compute_complete_x_prologues(Context &context,
                                          Result &complete_x_prologues,
                                          Result &complete_x_prologues_sum)
 {
-  GPUShader *shader = context.shader_manager().get(
-      "compositor_summed_area_table_compute_complete_x_prologues");
+  GPUShader *shader = context.get_shader(
+      "compositor_summed_area_table_compute_complete_x_prologues", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   incomplete_x_prologues.bind_as_texture(shader, "incomplete_x_prologues_tx");
@@ -129,8 +129,8 @@ static void compute_complete_y_prologues(Context &context,
                                          Result &complete_x_prologues_sum,
                                          Result &complete_y_prologues)
 {
-  GPUShader *shader = context.shader_manager().get(
-      "compositor_summed_area_table_compute_complete_y_prologues");
+  GPUShader *shader = context.get_shader(
+      "compositor_summed_area_table_compute_complete_y_prologues", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   incomplete_y_prologues.bind_as_texture(shader, "incomplete_y_prologues_tx");
@@ -175,7 +175,8 @@ static void compute_complete_blocks(Context &context,
                                     SummedAreaTableOperation operation,
                                     Result &output)
 {
-  GPUShader *shader = context.shader_manager().get(get_compute_complete_blocks_shader(operation));
+  GPUShader *shader = context.get_shader(get_compute_complete_blocks_shader(operation),
+                                         ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   input.bind_as_texture(shader, "input_tx");
@@ -203,23 +204,23 @@ void summed_area_table(Context &context,
                        Result &output,
                        SummedAreaTableOperation operation)
 {
-  Result incomplete_x_prologues = Result::Temporary(
-      ResultType::Color, context.texture_pool(), ResultPrecision::Full);
-  Result incomplete_y_prologues = Result::Temporary(
-      ResultType::Color, context.texture_pool(), ResultPrecision::Full);
+  Result incomplete_x_prologues = context.create_temporary_result(ResultType::Color,
+                                                                  ResultPrecision::Full);
+  Result incomplete_y_prologues = context.create_temporary_result(ResultType::Color,
+                                                                  ResultPrecision::Full);
   compute_incomplete_prologues(
       context, input, operation, incomplete_x_prologues, incomplete_y_prologues);
 
-  Result complete_x_prologues = Result::Temporary(
-      ResultType::Color, context.texture_pool(), ResultPrecision::Full);
-  Result complete_x_prologues_sum = Result::Temporary(
-      ResultType::Color, context.texture_pool(), ResultPrecision::Full);
+  Result complete_x_prologues = context.create_temporary_result(ResultType::Color,
+                                                                ResultPrecision::Full);
+  Result complete_x_prologues_sum = context.create_temporary_result(ResultType::Color,
+                                                                    ResultPrecision::Full);
   compute_complete_x_prologues(
       context, input, incomplete_x_prologues, complete_x_prologues, complete_x_prologues_sum);
   incomplete_x_prologues.release();
 
-  Result complete_y_prologues = Result::Temporary(
-      ResultType::Color, context.texture_pool(), ResultPrecision::Full);
+  Result complete_y_prologues = context.create_temporary_result(ResultType::Color,
+                                                                ResultPrecision::Full);
   compute_complete_y_prologues(
       context, input, incomplete_y_prologues, complete_x_prologues_sum, complete_y_prologues);
   incomplete_y_prologues.release();

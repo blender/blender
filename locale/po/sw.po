@@ -1,0 +1,536 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: 2023-11-16 03:55+0000\n"
+"Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
+"Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
+"Language: sw\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Valid"
+msgstr "Halali"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "Je, jina la AOV linakinzana"
+
+
+msgid "Name"
+msgstr "Jina"
+
+
+msgid "Name of the AOV"
+msgstr "Jina la AOV"
+
+
+msgid "Type"
+msgstr "Aina"
+
+
+msgid "Data type of the AOV"
+msgstr "Aina ya data ya AOV"
+
+
+msgid "Color"
+msgstr "Rangi"
+
+
+msgid "Value"
+msgstr "Thamani"
+
+
+msgid "List of AOVs"
+msgstr "Orodha ya AOV"
+
+
+msgid "Collection of AOVs"
+msgstr "Makusanyo wa AOV"
+
+
+msgid "Action Group"
+msgstr "Kikundi cha vitendo"
+
+
+msgid "Groups of F-Curves"
+msgstr "Kikundi cha F-Curves"
+
+
+msgid "Channels"
+msgstr "Vituo"
+
+
+msgid "Color Set"
+msgstr "Seti ya rangi"
+
+
+msgid "Custom color set to use"
+msgstr "Seti ya Rangi maalum imewekwa kutumika"
+
+
+msgid "Default Colors"
+msgstr "Rangi Chaguomsingi"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01- Seti ya Rangi ya Mandhari"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02- Seti ya Rangi ya Mandhari"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Seti ya Rangi ya Mandhari"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Seti ya Rangi ya Mandhari"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Seti ya Rangi ya Mandhari"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Seti ya Rangi ya Mandhari"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Seti ya Rangi ya Mandhari"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Seti ya Rangi ya Mandhari"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Seti ya Rangi ya Mandhari"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Seti ya Rangi ya Mandhari"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Seti ya Rangi ya Mandhari"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Seti ya Rangi ya Mandhari"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Seti ya Rangi ya Mandhari"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Seti ya rangi ya mandhari"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Seti ya Rangi ya Mandhari"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Seti ya Rangi ya Mandhari"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Seti ya Rangi ya Mandhari"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Seti ya Rangi ya Mandhari"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Seti ya Rangi ya Mandhari"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Seti ya Rangi ya Mandhari"
+
+
+msgid "Custom Color Set"
+msgstr "Seti ya Rangi maalum"
+
+
+msgid "Colors"
+msgstr "Rangi"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Nakala ya rangi zinazohusiana na seti ya rangi ya kikundi"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Seti ya rangi iliyofafanuliwa na mtumiaji badala ya seti ya rangi ya mandhari isiyobadilika"
+
+
+msgid "Lock"
+msgstr "Funga"
+
+
+msgid "Action group is locked"
+msgstr "Kikundi cha vitendo kimefungwa"
+
+
+msgid "Mute"
+msgstr "Nyamazisha"
+
+
+msgid "Action group is muted"
+msgstr "Kikundi cha vitendo kimenyamazishwa"
+
+
+msgid "Select"
+msgstr "chagua"
+
+
+msgid "Action group is selected"
+msgstr "Kikundi cha vitendo kimechaguliwa"
+
+
+msgid "Expanded"
+msgstr "Imepanuliwa"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Imepanuliwa katika Kihariri cha Grafu"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Bandika kwenye Kihariri cha Grafu"
+
+
+msgid "Action Pose Markers"
+msgstr "Alama za Mkao wa Kitendo"
+
+
+msgid "Active Pose Marker"
+msgstr "Alama ya Mkao Amilifu"
+
+
+msgid "Active pose marker for this action"
+msgstr "Alama ya mkao inayotumika kwa kitendo hiki"
+
+
+msgid "Add-on"
+msgstr "Kiongezi"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "Viongezi vya Python kupakiwa kiotomatiki"
+
+
+msgid "Module"
+msgstr "Moduli"
+
+
+msgid "Module name"
+msgstr "Jina la Moduli"
+
+
+msgid "Add-on Preferences"
+msgstr "Mapendeleo ya Viongezi"
+
+
+msgid "Password"
+msgstr "Nenosiri"
+
+
+msgid "E-mail address"
+msgstr "Barua pepe"
+
+
+msgid "Error Message"
+msgstr "Ujumbe wa makosa"
+
+
+msgid "Message"
+msgstr "Ujumbe"
+
+
+msgid "Compute Device Type"
+msgstr "Hesabu aina ya kifaa"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "Kifaa cha kutumia kukokotoa (kutoa na Cycles)"
+
+
+msgid "Kernel Optimization"
+msgstr "Uboreshaji wa Kernel"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Kernels zinaweza kuboreshwa kulingana na maudhui ya tukio. Kernels zilizoboreshwa zinaombwa mwanzoni mwa utoaji. Ikiwa Kernels zilizoboreshwa hazipatikani, uwasilishaji utaendelea kwa kutumia Kernels za jumla hadi seti iliyoboreshwa ipatikane kwenye akiba. Hii inaweza kusababisha matumizi ya ziada ya CPU kwa muda mfupi (makumi ya sekunde)"
+
+
+msgid "Off"
+msgstr "Zima"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Lemaza uboreshaji wa kernel. Utoaji wa polepole zaidi, hakuna matumizi ya msingi ya CPU"
+
+
+msgid "Intersection only"
+msgstr "Makutano pekee"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Boresha Kernels za makutano pekee. Uwasilishaji wa haraka, utumiaji kiasi sana wa chinichini ya CPU"
+
+
+msgid "Full"
+msgstr "Imejaa"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Boresha kernels zote. Utoaji wa haraka zaidi, unaweza kusababisha matumizi ya ziada ya chinichini ya CPU"
+
+
+msgid "Distribute memory across devices"
+msgstr "Sambaza kumbukumbu kwenye vifaa"
+
+
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Tafuta nafasi zaidi ya matukio makubwa kutoshea kwa kusambaza kumbukumbu kwenye vifaa vilivyounganishwa (k.m. kupitia NVLink) badala ya kuiiga"
+
+
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (Majaribio)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT huwezesha ufuatiliaji wa miale ya maunzi ya AMD kwenye RDNA2 na hapo juu, na urejesho wa shader kwenye kadi za zamani. Kipengele hiki ni cha majaribio na baadhi ya matukio yanaweza kutoa kimakosa"
+
+
+msgid "Embree on GPU"
+msgstr "Embree kwenye GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree kwenye GPU huwezesha utumiaji wa ufuatiliaji wa miale ya maunzi kwenye Intel GPU, ikitoa utendakazi bora kwa ujumla"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Huonyesha kiolesura cha glTF ili kudhibiti vibadala vya nyenzo"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Onyesha kiolesura cha glTF ili kudhibiti uhuishaji"
+
+
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Inaonyesha nodi ya Pato la Nyenzo ya glTF katika Kihariri cha Shader (Menyu Ongeza > Pato)"
+
+
+msgid "Fribidi Library"
+msgstr "Maktaba ya Fribidi"
+
+
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "Maktaba ya FriBidi C iliyokusanywa (.so chini ya Linux, .dll chini ya windows...), itabidi uihariri ikiwa uko na Windows, k.m. kwa kutumia ile iliyojumuishwa kwenye hazina ya maktaba ya Blender"
+
+
+msgid "Translation Root"
+msgstr "Mzizi wa Tafsiri"
+
+
+msgid "The bf-translation repository"
+msgstr "Hazina ya tafsiri ya bf"
+
+
+msgid "Import Paths"
+msgstr "Njia za Kuingiza"
+
+
+msgid "Additional paths to add to sys.path (';' separated)"
+msgstr "Njia za ziada za kuongeza kwa sys.path (';' kutengwa)"
+
+
+msgid "Source Root"
+msgstr "Chanzo"
+
+
+msgid "The Blender source root path"
+msgstr "Njia ya chanzo cha Blender"
+
+
+msgid "Spell Cache"
+msgstr "Tahajia Akiba"
+
+
+msgid "A cache storing validated msgids, to avoid re-spellchecking them"
+msgstr "Akiba inayohifadhi msgid zilizoidhinishwa, ili kuepuka kukagua tena tahajia"
+
+
+msgid "Warn Msgid Not Capitalized"
+msgstr "Onya Msgid Haina herufi kubwa"
+
+
+msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
+msgstr "Onya kuhusu barua pepe zisizoanza kwa herufi kubwa (pamoja na vighairi vichache vinavyoruhusiwa!)"
+
+
+msgid "Persistent Data Path"
+msgstr "Njia ya Data Inayoendelea"
+
+
+msgid "Animation Data"
+msgstr "Data ya Uhuishaji"
+
+
+msgid "Action"
+msgstr "Kitendo"
+
+
+msgid "Combine"
+msgstr "Unganisha"
+
+
+msgid "Add"
+msgstr "Ongeza"
+
+
+msgid "Subtract"
+msgstr "Ondoa"
+
+
+msgid "Multiply"
+msgstr "Zidisha"
+
+
+msgid "Nothing"
+msgstr "Hakuna"
+
+
+msgid "Hold"
+msgstr "Shikilia"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "Mipangilio ya taswira ya mwendo"
+
+
+msgid "Motion Paths"
+msgstr "Njia za Mwendo"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "Mipangilio ya Njia ya Mwendo kwa taswira"
+
+
+msgid "Motion Path Settings"
+msgstr "Mipangilio ya Njia ya Mwendo"
+
+
+msgid "Bake Location"
+msgstr "Oka Mahali"
+
+
+msgid "Heads"
+msgstr "Vichwa"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Hesabu njia za mfupa kutoka kwa vichwa"
+
+
+msgid "Tails"
+msgstr "Mikia"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Hesabu njia za mfupa kutoka kwa mikia"
+
+
+msgid "After Current"
+msgstr "Baada ya Sasa"
+
+
+msgid "Before Current"
+msgstr "Kabla ya Sasa"
+
+
+msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
+msgstr "Idadi ya fremu za kuonyesha kabla ya fremu ya sasa (kwa mbinu ya 'Kuzunguka Fremu ya Sasa' njia ya ngozi ya vitunguu)"
+
+
+msgid "End Frame"
+msgstr "Mwisho wa Fremu"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "Line Art"
+msgstr "Line Art"
+
+
+msgid "EEVEE"
+msgstr "EEVEE"
+
+
+msgid "Blender"
+msgstr "Blender"
+
+
+msgid "Freestyle"
+msgstr "Freestyle"
+
+
+msgid "Cycles"
+msgstr "Cycles"
+
+
+msgid "All Add-ons"
+msgstr "Viongezi vyote"
+
+
+msgid "Rotates each hair curve around an axis"
+msgstr "Huzungusha kila curve ya nywele kuzunguka mhimili"
+
+
+msgid "Smooth Hair Curves"
+msgstr "Lainisha nywele"
+
+
+msgid "Smoothes the shape of hair curves"
+msgstr "Lainisha umbo la nywele"
+
+
+msgid "Straighten Hair Curves"
+msgstr "Nyoosha mikunjo ya nywele"
+
+
+msgid "Straightens hair curves between root and tip"
+msgstr "Hunyoosha mikunjo ya nywele kati ya mizizi na ncha"
+
+
+msgid "Trim Hair Curves"
+msgstr "Punguza mikunjo ya Nywele"
+
+
+msgid "Trims or scales hair curves to a certain length"
+msgstr "Hupunguza nywele kwa urefu fulani"
+
+
+msgid "Smooth by Angle"
+msgstr "Lainisha kwa Pembe"
+

@@ -13,7 +13,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math_matrix.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 
 UnitConverter::UnitConverter() : up_axis(COLLADAFW::FileInfo::Z_UP)
 {

@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.h"
 
 #include "DNA_customdata_types.h"

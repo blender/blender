@@ -941,6 +941,14 @@ def dump_asset_messages(msgs, reports, settings):
 
     # Parse the asset blend files
     asset_files = {}
+    # Store assets according to this structure:
+    # {"basename": [
+    #     {"name": "Name",
+    #      "description": "Description",
+    #      "sockets": [
+    #          ("Name", "Description"),
+    #      ]},
+    # ]}
 
     bfiles = glob.glob(assets_dir + "/**/*.blend", recursive=True)
     for bfile in bfiles:
@@ -953,17 +961,33 @@ def dump_asset_messages(msgs, reports, settings):
                 if asset.asset_data is None:  # Not an asset
                     continue
                 assets = asset_files.setdefault(basename, [])
-                assets.append((asset.name, asset.asset_data.description))
+                asset_data = {"name": asset.name,
+                              "description": asset.asset_data.description}
+                for interface in asset.interface.items_tree:
+                    if interface.name == "Geometry":  # Ignore common socket
+                        continue
+                    socket_data = asset_data.setdefault("sockets", [])
+                    socket_data.append((interface.name, interface.description))
+                assets.append(asset_data)
 
     for asset_file in sorted(asset_files):
-        for asset in sorted(asset_files[asset_file]):
-            name, description = asset
+        for asset in sorted(asset_files[asset_file], key=lambda a: a["name"]):
+            name, description = asset["name"], asset["description"]
             msgsrc = "Asset name from file " + asset_file
             process_msg(msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
                         reports, None, settings)
             msgsrc = "Asset description from file " + asset_file
             process_msg(msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
                         reports, None, settings)
+
+            if "sockets" in asset:
+                for socket_name, socket_description in asset["sockets"]:
+                    msgsrc = f"Socket name from node group {name}, file {asset_file}"
+                    process_msg(msgs, settings.DEFAULT_CONTEXT, socket_name, msgsrc,
+                                reports, None, settings)
+                    msgsrc = f"Socket description from node group {name}, file {asset_file}"
+                    process_msg(msgs, settings.DEFAULT_CONTEXT, socket_description, msgsrc,
+                                reports, None, settings)
 
 
 def dump_addon_bl_info(msgs, reports, module, settings):

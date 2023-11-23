@@ -15,7 +15,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "eevee_private.h"
 

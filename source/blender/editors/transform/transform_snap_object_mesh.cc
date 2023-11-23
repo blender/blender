@@ -9,8 +9,8 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_editmesh.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
@@ -104,7 +104,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
     local_depth *= local_scale;
   }
 
-  /* Test BoundBox */
+  /* Test bounding box */
   if (ob_eval->data == me_eval) {
     const Bounds<float3> bounds = *me_eval->bounds_min_max();
     /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
@@ -201,15 +201,10 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
     return false;
   }
 
-  float4x4 imat = math::invert(obmat);
-  float3 init_co = math::transform_point(imat, float3(sctx->runtime.init_co));
-  float3 curr_co = math::transform_point(imat, float3(sctx->runtime.curr_co));
-
   BVHTreeNearest nearest{};
-  nearest.dist_sq = sctx->ret.dist_px_sq;
+  nearest.dist_sq = sctx->ret.dist_nearest_sq;
   if (nearest_world_tree(
-          sctx, treedata.tree, treedata.nearest_callback, init_co, curr_co, &treedata, &nearest))
-  {
+          sctx, treedata.tree, treedata.nearest_callback, obmat, &treedata, &nearest)) {
     SnapData::register_result(sctx, ob_eval, &me_eval->id, obmat, &nearest);
     return true;
   }

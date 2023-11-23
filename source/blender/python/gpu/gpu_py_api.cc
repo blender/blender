@@ -22,6 +22,7 @@
 #include "gpu_py_select.h"
 #include "gpu_py_state.h"
 #include "gpu_py_types.h"
+#include "gpu_py_compute.h"
 
 #include "gpu_py.h"
 #include "gpu_py_api.h" /* Own include. */
@@ -75,6 +76,9 @@ PyObject *BPyInit_gpu()
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   PyModule_AddObject(mod, "texture", (submodule = bpygpu_texture_init()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
+  PyModule_AddObject(mod, "compute", (submodule = bpygpu_compute_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   return mod;

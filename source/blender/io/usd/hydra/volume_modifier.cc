@@ -13,7 +13,7 @@
 #include "BLI_string.h"
 
 #include "BKE_mesh.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "hydra_scene_delegate.h"
 

@@ -27,7 +27,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -37,9 +37,9 @@
 #include "BKE_appdir.h"
 #include "BKE_blender_copybuffer.h"
 #include "BKE_brush.hh"
-#include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
@@ -59,7 +59,7 @@
 #include "BKE_workspace.h"
 #include "BKE_world.h"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

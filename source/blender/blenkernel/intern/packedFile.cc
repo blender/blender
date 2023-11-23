@@ -35,7 +35,7 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 #include "BKE_vfont.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

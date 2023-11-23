@@ -57,9 +57,9 @@ Topology rake:
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -1956,7 +1956,7 @@ namespace blender::bke::pbvh {
 
 float test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit)
 {
-  float angle = saacos(dot_v3v3(f1->no, f2->no));
+  float angle = math::safe_acos(dot_v3v3(f1->no, f2->no));
 
   /* Detect coincident triangles. */
   if (f1->len == 3 && test_colinear_tri(f1)) {
@@ -2400,7 +2400,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
-  pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  pbvh->cd_vert_mask_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   pbvh->cd_boundary_flag = cd_boundary_flag;
   pbvh->cd_edge_boundary = cd_edge_boundary;
   pbvh->cd_origco = cd_origco;
@@ -3815,7 +3816,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_area = cd_face_areas;
-  pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
+  pbvh->cd_vert_mask_offset = CustomData_get_offset_named(
+      &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   pbvh->cd_faceset_offset = CustomData_get_offset_named(
       &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 

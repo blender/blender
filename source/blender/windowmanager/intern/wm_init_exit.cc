@@ -12,11 +12,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifdef _WIN32
-#  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
@@ -41,7 +36,7 @@
 #include "BKE_blender.h"
 #include "BKE_blendfile.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
@@ -68,7 +63,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
 
-#include "SEQ_clipboard.h" /* free seq clipboard */
+#include "SEQ_clipboard.hh" /* free seq clipboard */
 
 #include "IMB_thumbs.h"
 
@@ -120,7 +115,7 @@
 #include "GPU_init_exit.h"
 #include "GPU_material.h"
 
-#include "COM_compositor.h"
+#include "COM_compositor.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -349,11 +344,19 @@ void WM_init(bContext *C, int argc, const char **argv)
   STRNCPY(G.filepath_last_library, BKE_main_blendfile_path_from_global());
 
   CTX_py_init_set(C, true);
+
+  /* Postpone updating the key-configuration until after add-ons have been registered,
+   * needed to properly load user-configured add-on key-maps, see: #113603. */
+  WM_keyconfig_update_postpone_begin();
+
   WM_keyconfig_init(C);
 
   /* Load add-ons after key-maps have been initialized (but before the blend file has been read),
    * important to guarantee default key-maps have been declared & before post-read handlers run. */
   wm_init_scripts_extensions_once(C);
+
+  WM_keyconfig_update_postpone_end();
+  WM_keyconfig_update(static_cast<wmWindowManager *>(G_MAIN->wm.first));
 
   wm_homefile_read_post(C, params_file_read_post);
 }
@@ -433,30 +436,6 @@ static void free_openrecent()
 
   BLI_freelistN(&(G.recent_files));
 }
-
-#ifdef WIN32
-/* Read console events until there is a key event. Also returns on any error. */
-static void wait_for_console_key()
-{
-  HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
-
-  if (!ELEM(hConsoleInput, nullptr, INVALID_HANDLE_VALUE) &&
-      FlushConsoleInputBuffer(hConsoleInput)) {
-    for (;;) {
-      INPUT_RECORD buffer;
-      DWORD ignored;
-
-      if (!ReadConsoleInput(hConsoleInput, &buffer, 1, &ignored)) {
-        break;
-      }
-
-      if (buffer.EventType == KEY_EVENT) {
-        break;
-      }
-    }
-  }
-}
-#endif
 
 static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
 {
@@ -608,6 +587,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   BKE_vfont_clipboard_free();
   ED_node_clipboard_free();
   UV_clipboard_free();
+  wm_clipboard_free();
 
 #ifdef WITH_COMPOSITOR_CPU
   COM_deinitialize();
@@ -728,14 +708,6 @@ void WM_exit(bContext *C, const int exit_code)
   WM_exit_ex(C, true, do_user_exit_actions);
 
   printf("\nBlender quit\n");
-
-#ifdef WIN32
-  /* ask user to press a key when in debug mode */
-  if (G.debug & G_DEBUG) {
-    printf("Press any key to exit . . .\n\n");
-    wait_for_console_key();
-  }
-#endif
 
   exit(exit_code);
 }

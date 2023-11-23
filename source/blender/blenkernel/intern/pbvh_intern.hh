@@ -7,6 +7,7 @@
 #include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -19,6 +20,7 @@
 #define PBVH_STACK_FIXED_DEPTH 100
 
 #include "DNA_meshdata_types.h"
+#include "DNA_scene_enums.h"
 
 /** \file
  * \ingroup bke
@@ -29,6 +31,8 @@ struct PBVHTriBuf;
 struct PBVHGPUFormat;
 struct MLoopTri;
 struct BMIdMap;
+struct BMVert;
+struct BMFace;
 
 /* Axis-aligned bounding box */
 struct BB {
@@ -117,8 +121,7 @@ struct PBVHNode {
   /* Scalar displacements for sculpt mode's layer brush. */
   float *layer_disp = nullptr;
 
-  int proxy_count = 0;
-  PBVHProxyNode *proxies = nullptr;
+  blender::Vector<PBVHProxyNode> proxies;
 
   /* GSet of pointers to the BMFaces used by this node.
    * NOTE: PBVH_BMESH only.
@@ -175,14 +178,20 @@ struct PBVH {
   /* Mesh data */
   Mesh *mesh;
 
+  /** Local array used when not sculpting base mesh positions directly. */
+  blender::Array<blender::float3> vert_positions_deformed;
+  /** Local array used when not sculpting base mesh positions directly. */
+  blender::Array<blender::float3> vert_normals_deformed;
+  /** Local array used when not sculpting base mesh positions directly. */
+  blender::Array<blender::float3> face_normals_deformed;
+
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
-  bool *hide_vert;
-  blender::MutableSpan<blender::float3> vert_positions;
-  /** Local vertex positions owned by the PVBH when not sculpting base mesh positions directly. */
-  blender::Array<blender::float3> vert_positions_deformed;
   blender::Span<int> looptri_faces;
   blender::Span<blender::int2> edges;
+
+  bool *hide_vert;
   bool *hide_poly;
   /** Only valid for polygon meshes. */
   blender::Span<int> corner_verts;
@@ -206,7 +215,6 @@ struct PBVH {
 
   int face_sets_color_seed;
   int face_sets_color_default;
-  int *face_sets;
   float *face_areas; /* float2 vector, double buffered to avoid thread contention */
   int face_area_i;
 
@@ -282,7 +290,7 @@ struct PBVH {
   bool show_orig;
   float sharp_angle_limit;
 
-  BLI_bitmap *vert_boundary_map;
+  blender::BitVector<> *vert_boundary_map;
 };
 
 /* pbvh.cc */

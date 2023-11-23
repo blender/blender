@@ -54,12 +54,12 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_effect.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_gpencil_legacy.h"
@@ -69,7 +69,7 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -78,7 +78,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -90,7 +90,7 @@
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_world.h"
 
 #include "RNA_access.hh"
@@ -101,8 +101,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_key.h"
@@ -544,7 +544,7 @@ void DepsgraphNodeBuilder::end_build()
   update_invalid_cow_pointers();
 }
 
-void DepsgraphNodeBuilder::build_id(ID *id)
+void DepsgraphNodeBuilder::build_id(ID *id, const bool force_be_visible)
 {
   if (id == nullptr) {
     return;
@@ -575,7 +575,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
        * If this happened to be affecting visible object, then it is up to
        * deg_graph_build_flush_visibility() to ensure visibility of the
        * object is true. */
-      build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, false);
+      build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, force_be_visible);
       break;
     case ID_KE:
       build_shapekeys((Key *)id);

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "final_engine.h"
+#include "camera.h"
 
 #include <pxr/imaging/hd/light.h>
 #include <pxr/imaging/hd/renderBuffer.h>
@@ -19,8 +20,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_engine.h"
-
-#include "hydra/camera.h"
 
 namespace blender::render::hydra {
 
@@ -42,8 +41,8 @@ void FinalEngine::render()
   pxr::GfVec2i image_res(r.xsch * r.size / 100, r.ysch * r.size / 100);
   int width = image_res[0] * border[2];
   int height = image_res[1] * border[3];
-  pxr::GfCamera camera =
-      io::hydra::CameraData(scene_->camera, image_res, pxr::GfVec4f(0, 0, 1, 1)).gf_camera(border);
+
+  pxr::GfCamera camera = gf_camera(scene_->camera, image_res, border);
 
   free_camera_delegate_->SetCamera(camera);
   render_task_delegate_->set_viewport(pxr::GfVec4d(0, 0, width, height));

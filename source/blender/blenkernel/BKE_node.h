@@ -362,17 +362,22 @@ typedef struct bNodeType {
   /* Execute a geometry node. */
   NodeGeometryExecFunction geometry_node_execute;
 
-  /* Declares which sockets the node has. */
-  NodeDeclareFunction declare;
   /**
-   * Declare which sockets the node has for declarations that aren't static per node type.
-   * In other words, defining this callback means that different nodes of this type can have
-   * different declarations and different sockets.
+   * Declares which sockets and panels the node has. It has to be able to generate a declaration
+   * with and without a specific node context. If the declaration depends on the node, but the node
+   * is not provided, then the declaration should be generated as much as possible and everything
+   * that depends on the node context should be skipped.
    */
-  NodeDeclareDynamicFunction declare_dynamic;
+  NodeDeclareFunction declare;
 
-  /* Declaration to be used when it is not dynamic. */
-  NodeDeclarationHandle *fixed_declaration;
+  /**
+   * Declaration of the node outside of any context. If the node declaration is never dependent on
+   * the node context, this declaration is also shared with the corresponding node instances.
+   * Otherwise, it mainly allows checking what sockets a node will have, without having to create
+   * the node. In this case, the static declaration is mostly just a hint, and does not have to
+   * match with the final node.
+   */
+  NodeDeclarationHandle *static_declaration;
 
   /**
    * Add to the list of search names and operations gathered by node link drag searching.
@@ -901,7 +906,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_TEX_MAGIC 148
 #define SH_NODE_TEX_WAVE 149
 #define SH_NODE_TEX_NOISE 150
-#define SH_NODE_TEX_MUSGRAVE 152
+#define SH_NODE_TEX_MUSGRAVE_DEPRECATED 152
 #define SH_NODE_TEX_COORD 155
 #define SH_NODE_ADD_SHADER 156
 #define SH_NODE_TEX_ENVIRONMENT 157
@@ -1309,6 +1314,9 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_TOOL_SET_FACE_SET 2113
 #define GEO_NODE_POINTS_TO_CURVES 2114
 #define GEO_NODE_INPUT_EDGE_SMOOTH 2115
+#define GEO_NODE_SPLIT_TO_INSTANCES 2116
+#define GEO_NODE_INPUT_NAMED_LAYER_SELECTION 2117
+#define GEO_NODE_INDEX_SWITCH 2118
 
 /** \} */
 

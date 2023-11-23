@@ -16,7 +16,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -384,7 +384,7 @@ int sculpt_detail_flood_fill_invoke(bContext *C, wmOperator *op, const wmEvent *
     flood_fill_job.C = C;
     flood_fill_job.scene = CTX_data_scene(C);
     flood_fill_job.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    ED_view3d_viewcontext_init(C, &flood_fill_job.vc, flood_fill_job.depsgraph);
+    flood_fill_job.vc = ED_view3d_viewcontext_init(C, flood_fill_job.depsgraph);
 
     if (!flood_fill_job.vc.rv3d) {
       LISTBASE_FOREACH (ScrArea *, area, &CTX_wm_screen(C)->areabase) {
@@ -583,7 +583,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   Object *ob = vc.obact;
   if (ob == nullptr) {

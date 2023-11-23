@@ -50,7 +50,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -5460,7 +5460,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
         /* Request failed. A `PyExc_BufferError` will have been raised,
          * so clear it to silently fall back to accessing as a sequence. */
         PyErr_Clear();
@@ -5521,7 +5521,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
         /* Request failed. A `PyExc_BufferError` will have been raised,
          * so clear it to silently fall back to accessing as a sequence. */
         PyErr_Clear();
@@ -5665,7 +5665,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   }
 
   Py_buffer buf;
-  if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+  if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
     PyErr_Clear();
 
     switch (prop_type) {
@@ -6613,7 +6613,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 #ifdef DEBUG_STRING_FREE
 #  if 0
   if (PyList_GET_SIZE(string_free_ls)) {
-    printf("%.200s.%.200s():  has %d strings\n",
+    printf("%.200s.%.200s(): has %d strings\n",
            RNA_struct_identifier(self_ptr->type),
            RNA_function_identifier(self_func),
            int(PyList_GET_SIZE(string_free_ls)));
@@ -8710,7 +8710,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (ret_len == 1) {
       err = pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
 
-      /* When calling operator functions only gives `Function.result` with  no line number
+      /* When calling operator functions only gives `Function.result` with no line number
        * since the function has finished calling on error, re-raise the exception with more
        * information since it would be slow to create prefix on every call
        * (when there are no errors). */
@@ -9091,8 +9091,15 @@ PyDoc_STRVAR(pyrna_unregister_class_doc,
              "\n"
              "   Unload the Python class from blender.\n"
              "\n"
-             "   If the class has an *unregister* class method it will be called\n"
-             "   before unregistering.\n");
+             "   :arg cls: Blender type class, \n"
+             "      see :mod:`bpy.utils.register_class` for classes which can \n"
+             "      be registered.\n"
+             "   :type cls: class\n"
+             "\n"
+             "   .. note::\n"
+             "\n"
+             "      If the class has an *unregister* class method it will be called\n"
+             "      before unregistering.\n");
 PyMethodDef meth_bpy_unregister_class = {
     "unregister_class",
     pyrna_unregister_class,

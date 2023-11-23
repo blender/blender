@@ -17,7 +17,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -84,12 +84,12 @@ static void color_filter_task(Object *ob,
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COLOR);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->filter_cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->filter_cache->automasking, &automask_data, node);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float orig_color[3], final_color[4], hsv_color[3];
     int hue;

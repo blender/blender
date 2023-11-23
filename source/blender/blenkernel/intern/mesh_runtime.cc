@@ -19,7 +19,7 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
@@ -199,6 +199,11 @@ const blender::bke::LooseVertCache &Mesh::verts_no_face() const
   return this->runtime->verts_no_face_cache.data();
 }
 
+bool Mesh::no_overlapping_topology() const
+{
+  return this->flag & ME_NO_OVERLAPPING_TOPOLOGY;
+}
+
 const blender::bke::LooseEdgeCache &Mesh::loose_edges() const
 {
   using namespace blender::bke;
@@ -227,6 +232,12 @@ void Mesh::tag_loose_edges_none() const
     r_data.count = 0;
   });
   try_tag_verts_no_face_none(*this);
+}
+
+void Mesh::tag_overlapping_none()
+{
+  using namespace blender::bke;
+  this->flag |= ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
 blender::Span<MLoopTri> Mesh::looptris() const
@@ -321,6 +332,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
     mesh->runtime->shrinkwrap_data = nullptr;
   }
+  mesh->flag &= ~ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
 void BKE_mesh_tag_edges_split(Mesh *mesh)
@@ -355,10 +367,16 @@ void BKE_mesh_tag_edges_split(Mesh *mesh)
   }
 }
 
+void BKE_mesh_tag_sharpness_changed(Mesh *mesh)
+{
+  mesh->runtime->corner_normals_cache.tag_dirty();
+}
+
 void BKE_mesh_tag_face_winding_changed(Mesh *mesh)
 {
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  mesh->runtime->corner_normals_cache.tag_dirty();
   mesh->runtime->vert_to_corner_map_cache.tag_dirty();
 }
 
@@ -366,6 +384,7 @@ void BKE_mesh_tag_positions_changed(Mesh *mesh)
 {
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  mesh->runtime->corner_normals_cache.tag_dirty();
   BKE_mesh_tag_positions_changed_no_normals(mesh);
 }
 

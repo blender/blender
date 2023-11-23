@@ -9,7 +9,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_task.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -286,7 +286,7 @@ static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   if (params.in_out() == SOCK_OUT) {
     search_link_ops_for_declarations(params, declaration.outputs);
     return;

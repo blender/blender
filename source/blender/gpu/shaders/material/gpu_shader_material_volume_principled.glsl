@@ -21,13 +21,20 @@ void node_volume_principled(vec4 color,
                             float layer,
                             out Closure result)
 {
+  color = max(color, vec4(0));
+  density = max(density, 0);
+  absorption_color = max(absorption_color, vec4(0));
+  emission_strength = max(emission_strength, 0);
+  emission_color = max(emission_color, vec4(0));
+  blackbody_intensity = max(blackbody_intensity, 0);
+  blackbody_tint = max(blackbody_tint, vec4(0));
+  temperature = max(temperature, 0);
+
   vec3 absorption_coeff = vec3(0.0);
   vec3 scatter_coeff = vec3(0.0);
   vec3 emission_coeff = vec3(0.0);
 
   /* Compute density. */
-  density = max(density, 0.0);
-
   if (density > 1e-5) {
     density = max(density * density_attribute.x, 0.0);
   }

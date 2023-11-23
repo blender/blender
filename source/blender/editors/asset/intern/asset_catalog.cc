@@ -13,7 +13,7 @@
 
 #include "BKE_main.h"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

@@ -26,9 +26,8 @@ void VKUniformBuffer::allocate()
 {
   buffer_.create(size_in_bytes_,
                  GPU_USAGE_STATIC,
-                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                     VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   debug::object_label(buffer_.vk_handle(), name_);
 }
 
@@ -41,7 +40,9 @@ void VKUniformBuffer::clear_to_zero()
   buffer_.clear(context, 0);
 }
 
-void VKUniformBuffer::bind(int slot, shader::ShaderCreateInfo::Resource::BindType bind_type)
+void VKUniformBuffer::bind(int slot,
+                           shader::ShaderCreateInfo::Resource::BindType bind_type,
+                           const GPUSamplerState /*sampler_state*/)
 {
   if (!buffer_.is_allocated()) {
     allocate();
@@ -59,7 +60,7 @@ void VKUniformBuffer::bind(int slot, shader::ShaderCreateInfo::Resource::BindTyp
   const std::optional<VKDescriptorSet::Location> location =
       shader_interface.descriptor_set_location(bind_type, slot);
   if (location) {
-    VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+    VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
     /* TODO: move to descriptor set. */
     if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
       descriptor_set.bind(*this, *location);

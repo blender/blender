@@ -11,6 +11,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -73,9 +74,11 @@ class TranslateOperation : public NodeOperation {
     const float2 translation = float2(x, y);
     const float3x3 transformation = math::from_location<float3x3>(translation);
 
-    result.transform(transformation);
-    result.get_realization_options().repeat_x = get_repeat_x();
-    result.get_realization_options().repeat_y = get_repeat_y();
+    RealizationOptions realization_options = input.get_realization_options();
+    realization_options.wrap_x = get_wrap_x();
+    realization_options.wrap_y = get_wrap_y();
+
+    transform(context(), input, result, transformation, realization_options);
   }
 
   bool get_use_relative()
@@ -83,12 +86,12 @@ class TranslateOperation : public NodeOperation {
     return node_storage(bnode()).relative;
   }
 
-  bool get_repeat_x()
+  bool get_wrap_x()
   {
     return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY);
   }
 
-  bool get_repeat_y()
+  bool get_wrap_y()
   {
     return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY);
   }

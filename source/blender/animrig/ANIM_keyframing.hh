@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include <string>
+
+#include "BLI_vector.hh"
 #include "DNA_anim_types.h"
 #include "ED_transform.hh"
 #include "RNA_types.hh"
@@ -50,7 +53,6 @@ int insert_keyframe(Main *bmain,
                     int array_index,
                     const AnimationEvalContext *anim_eval_context,
                     eBezTriple_KeyframeType keytype,
-                    ListBase *nla_cache,
                     eInsertKeyFlags flag);
 
 /**
@@ -93,6 +95,16 @@ int delete_keyframe(Main *bmain,
                     int array_index,
                     float cfra);
 
+/**
+ * Main Keyframing API call:
+ * Use this when validation of necessary animation data isn't necessary as it
+ * already exists. It will clear the current buttons fcurve(s).
+ *
+ * The flag argument is used for special settings that alter the behavior of
+ * the keyframe deletion. These include the quick refresh options.
+ *
+ * \return The number of f-curves removed.
+ */
 int clear_keyframe(Main *bmain,
                    ReportList *reports,
                    ID *id,
@@ -120,7 +132,7 @@ bool is_autokey_on(const Scene *scene);
 bool is_autokey_mode(const Scene *scene, eAutokey_Mode mode);
 
 /** Check if a flag is set for auto-key-framing (per scene takes precedence). */
-bool is_autokey_flag(const Scene *scene, eAutokey_Flag flag);
+bool is_autokey_flag(const Scene *scene, eKeyInsert_Flag flag);
 
 /**
  * Auto-keyframing feature - checks for whether anything should be done for the current frame.
@@ -129,9 +141,27 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id);
 
 void autokeyframe_object(
     bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, eTfmMode tmode);
+/**
+ * Auto-keyframing feature - for objects
+ *
+ * \param tmode: A transform mode.
+ *
+ * \note Context may not always be available,
+ * so must check before using it as it's a luxury for a few cases.
+ */
 bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks);
 bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks);
-
+/**
+ * Auto-keyframing feature - for poses/pose-channels
+ *
+ * \param tmode: A transform mode.
+ *
+ * targetless_ik: has targetless ik been done on any channels?
+ *
+ * \note Context may not always be available,
+ * so must check before using it as it's a luxury for a few cases.
+ */
+void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik);
 /**
  * Use for auto-key-framing.
  * \param only_if_property_keyed: if true, auto-key-framing only creates keyframes on already keyed
@@ -147,5 +177,21 @@ bool autokeyframe_property(bContext *C,
                            bool only_if_property_keyed);
 
 /** \} */
+
+/**
+ * Insert keys for the given rna_path in the given action. The length of the values Span is
+ * expected to be the size of the property array.
+ * \param frame is expected to be in the local time of the action, meaning it has to be NLA mapped
+ * already.
+ * \returns The number of keys inserted.
+ */
+int insert_key_action(Main *bmain,
+                      bAction *action,
+                      PointerRNA *ptr,
+                      const std::string &rna_path,
+                      float frame,
+                      const Span<float> values,
+                      eInsertKeyFlags insert_key_flag,
+                      eBezTriple_KeyframeType key_type);
 
 }  // namespace blender::animrig

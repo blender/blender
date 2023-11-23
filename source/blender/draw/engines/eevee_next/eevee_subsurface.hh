@@ -8,8 +8,8 @@
  * Postprocess diffuse radiance output from the diffuse evaluation pass to mimic subsurface
  * transmission.
  *
- * This implementation follows the technique described in the siggraph presentation:
- * "Efficient screen space subsurface scattering Siggraph 2018"
+ * This implementation follows the technique described in the SIGGRAPH presentation:
+ * "Efficient screen space subsurface scattering SIGGRAPH 2018"
  * by Evgenii Golubev
  *
  * But, instead of having all the precomputed weights for all three color primaries,

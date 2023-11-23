@@ -78,7 +78,7 @@ void ColorSpillOperation::execute_pixel_sampled(float output[4],
   float input[4];
   input_fac_reader_->read_sampled(fac, x, y, sampler);
   input_image_reader_->read_sampled(input, x, y, sampler);
-  float rfac = MIN2(1.0f, fac[0]);
+  float rfac = std::min(1.0f, fac[0]);
   float map;
 
   switch (spill_method_) {
@@ -108,7 +108,7 @@ void ColorSpillOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const float *color = it.in(0);
-    const float factor = MIN2(1.0f, *it.in(1));
+    const float factor = std::min(1.0f, *it.in(1));
 
     float map;
     switch (spill_method_) {

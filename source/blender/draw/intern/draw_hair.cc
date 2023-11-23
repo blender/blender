@@ -10,7 +10,7 @@
 
 #include "DRW_render.h"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_collection_types.h"
@@ -130,7 +130,7 @@ static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, con
     const int max_strands_per_call = GPU_max_work_group_count(0);
     int strands_start = 0;
     while (strands_start < strands_len) {
-      int batch_strands_len = MIN2(strands_len - strands_start, max_strands_per_call);
+      int batch_strands_len = std::min(strands_len - strands_start, max_strands_per_call);
       DRWShadingGroup *subgroup = DRW_shgroup_create_sub(shgrp);
       DRW_shgroup_uniform_int_copy(subgroup, "hairStrandOffset", strands_start);
       DRW_shgroup_call_compute(subgroup, batch_strands_len, cache->final[subdiv].strands_res, 1);

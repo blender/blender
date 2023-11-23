@@ -14,7 +14,7 @@
 #include "node_composite_register.hh"
 #include "node_util.hh"
 
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 

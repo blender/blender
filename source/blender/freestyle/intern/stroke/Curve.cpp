@@ -553,7 +553,7 @@ Vec2d CurvePoint::directionFredo() const
 /*                                */
 /**********************************/
 
-/* for  functions */
+/* for functions */
 
 Curve::~Curve()
 {

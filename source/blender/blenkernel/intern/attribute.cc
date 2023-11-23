@@ -23,15 +23,15 @@
 #include "BLI_index_range.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
@@ -158,7 +158,7 @@ static bool bke_id_attribute_rename_if_exists(ID *id,
                                               const char *new_name,
                                               ReportList *reports)
 {
-  CustomDataLayer *layer = BKE_id_attribute_search(
+  CustomDataLayer *layer = BKE_id_attribute_search_for_write(
       id, old_name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
   if (layer == nullptr) {
     return false;
@@ -194,7 +194,7 @@ bool BKE_id_attribute_rename(ID *id,
     }
   }
 
-  CustomDataLayer *layer = BKE_id_attribute_search(
+  CustomDataLayer *layer = BKE_id_attribute_search_for_write(
       id, old_name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
   if (layer == nullptr) {
     BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
@@ -263,18 +263,18 @@ static bool unique_name_cb(void *arg, const char *name)
   return false;
 }
 
-bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
+void BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 {
   AttrUniqueData data{id};
 
   const int name_maxncpy = CustomData_name_maxncpy_calc(name);
 
   /* Set default name if none specified.
-   * NOTE: We only call IFACE_() if needed to avoid locale lookup overhead. */
-  BLI_strncpy_utf8(outname, (name && name[0]) ? name : IFACE_("Attribute"), name_maxncpy);
+   * NOTE: We only call DATA_() if needed to avoid locale lookup overhead. */
+  BLI_strncpy_utf8(outname, (name && name[0]) ? name : DATA_("Attribute"), name_maxncpy);
 
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
-  return BLI_uniquename_cb(unique_name_cb, &data, defname, '.', outname, name_maxncpy);
+  BLI_uniquename_cb(unique_name_cb, &data, defname, '.', outname, name_maxncpy);
 }
 
 CustomDataLayer *BKE_id_attribute_new(ID *id,
@@ -383,7 +383,7 @@ CustomDataLayer *BKE_id_attribute_duplicate(ID *id, const char *name, ReportList
                                     BKE_uv_map_pin_name_get(uniquename, buffer_dst));
   }
 
-  return BKE_id_attribute_search(id, uniquename, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+  return BKE_id_attribute_search_for_write(id, uniquename, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
 }
 
 static int color_name_to_index(ID *id, const char *name)
@@ -395,7 +395,7 @@ static int color_name_to_index(ID *id, const char *name)
 
 static int color_clamp_index(ID *id, int index)
 {
-  const int length = BKE_id_attributes_length(id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL, true);
+  const int length = BKE_id_attributes_length(id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
   return min_ii(index, length - 1);
 }
 
@@ -540,10 +540,10 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return nullptr;
 }
 
-CustomDataLayer *BKE_id_attribute_search(ID *id,
-                                         const char *name,
-                                         const eCustomDataMask type_mask,
-                                         const eAttrDomainMask domain_mask)
+const CustomDataLayer *BKE_id_attribute_search(const ID *id,
+                                               const char *name,
+                                               const eCustomDataMask type_mask,
+                                               const eAttrDomainMask domain_mask)
 {
   if (!name) {
     return nullptr;
@@ -574,26 +574,29 @@ CustomDataLayer *BKE_id_attribute_search(ID *id,
   return nullptr;
 }
 
-static int count_layers_typemask(const CustomData *data, eCustomDataMask mask, bool skip_temporary)
+CustomDataLayer *BKE_id_attribute_search_for_write(ID *id,
+                                                   const char *name,
+                                                   const eCustomDataMask type_mask,
+                                                   const eAttrDomainMask domain_mask)
 {
-  int number = 0;
-
-  for (int i = 0; i < data->totlayer; i++) {
-    bool ok = mask & CD_TYPE_AS_MASK(data->layers[i].type);
-    ok = ok && (!skip_temporary || !(data->layers[i].flag & (int)CD_FLAG_TEMPORARY));
-
-    if (ok) {
-      number++;
-    }
+  /* Reuse the implementation of the const version.
+   * Implicit sharing for the layer's data is handled below. */
+  CustomDataLayer *layer = const_cast<CustomDataLayer *>(
+      BKE_id_attribute_search(id, name, type_mask, domain_mask));
+  if (!layer) {
+    return nullptr;
   }
 
-  return number;
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+
+  const eAttrDomain domain = BKE_id_attribute_domain(id, layer);
+  CustomData_ensure_data_is_mutable(layer, info[domain].length);
+
+  return layer;
 }
 
-int BKE_id_attributes_length(const ID *id,
-                             eAttrDomainMask domain_mask,
-                             eCustomDataMask mask,
-                             bool skip_temporary)
+int BKE_id_attributes_length(const ID *id, eAttrDomainMask domain_mask, eCustomDataMask mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -606,8 +609,8 @@ int BKE_id_attributes_length(const ID *id,
       continue;
     }
 
-    if ((1 << (int)domain) & domain_mask) {
-      length += count_layers_typemask(customdata, mask, skip_temporary);
+    if ((1 << int(domain)) & domain_mask) {
+      length += CustomData_number_of_layers_typemask(customdata, mask);
     }
   }
 
@@ -684,7 +687,7 @@ bool BKE_id_attribute_required(const ID *id, const char *name)
 CustomDataLayer *BKE_id_attributes_active_get(ID *id)
 {
   int active_index = *BKE_id_attributes_active_index_p(id);
-  if (active_index > BKE_id_attributes_length(id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL, false)) {
+  if (active_index > BKE_id_attributes_length(id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
     active_index = 0;
   }
 

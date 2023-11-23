@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,9 @@
  * \ingroup edinterface
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_node_tree_interface.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "BLI_color.hh"
 #include "BLI_string.h"
@@ -153,6 +153,8 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   }
   bool rename(const bContext &C, StringRefNull new_name) override
   {
+    MEM_SAFE_FREE(socket_.name);
+
     socket_.name = BLI_strdup(new_name.c_str());
     nodetree_.tree_interface.tag_items_changed();
     ED_node_tree_propagate_change(&C, CTX_data_main(&C), &nodetree_);
@@ -210,6 +212,8 @@ class NodePanelViewItem : public BasicTreeViewItem {
   }
   bool rename(const bContext &C, StringRefNull new_name) override
   {
+    MEM_SAFE_FREE(panel_.name);
+
     panel_.name = BLI_strdup(new_name.c_str());
     nodetree_.tree_interface.tag_items_changed();
     ED_node_tree_propagate_change(&C, CTX_data_main(&C), &nodetree_);

@@ -18,7 +18,7 @@
  */
 
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
@@ -69,7 +69,6 @@ inline void remove_item(T **items,
 
   const int old_items_num = *items_num;
   const int new_items_num = old_items_num - 1;
-  const int old_active_index = *active_index;
 
   T *old_items = *items;
   T *new_items = MEM_cnew_array<T>(new_items_num, __func__);
@@ -81,12 +80,15 @@ inline void remove_item(T **items,
   destruct_item(&old_items[remove_index]);
   MEM_SAFE_FREE(old_items);
 
-  const int new_active_index = std::max(
-      0, old_active_index == new_items_num ? new_items_num - 1 : old_active_index);
-
   *items = new_items;
   *items_num = new_items_num;
-  *active_index = new_active_index;
+
+  if (active_index) {
+    const int old_active_index = active_index ? *active_index : 0;
+    const int new_active_index = std::max(
+        0, old_active_index == new_items_num ? new_items_num - 1 : old_active_index);
+    *active_index = new_active_index;
+  }
 }
 
 /**
@@ -101,7 +103,9 @@ inline void clear_items(T **items, int *items_num, int *active_index, void (*des
   }
   MEM_SAFE_FREE(*items);
   *items_num = 0;
-  *active_index = 0;
+  if (active_index) {
+    *active_index = 0;
+  }
 }
 
 /**
@@ -209,16 +213,11 @@ inline void set_item_name_and_make_unique(bNode &node,
   *item_name = BLI_strdup(unique_name);
 }
 
-/**
- * Add a new item at the end with the given socket type and name.
- */
-template<typename Accessor>
-inline typename Accessor::ItemT *add_item_with_socket_and_name(
-    bNode &node, const eNodeSocketDatatype socket_type, const char *name)
+namespace detail {
+
+template<typename Accessor> inline typename Accessor::ItemT &add_item_to_array(bNode &node)
 {
   using ItemT = typename Accessor::ItemT;
-  BLI_assert(Accessor::supports_socket_type(socket_type));
-
   SocketItemsRef array = Accessor::get_items_from_node(node);
 
   ItemT *old_items = *array.items;
@@ -229,13 +228,40 @@ inline typename Accessor::ItemT *add_item_with_socket_and_name(
   std::copy_n(old_items, old_items_num, new_items);
   ItemT &new_item = new_items[old_items_num];
 
-  Accessor::init_with_socket_type_and_name(node, new_item, socket_type, name);
-
   MEM_SAFE_FREE(old_items);
   *array.items = new_items;
   *array.items_num = new_items_num;
-  *array.active_index = old_items_num;
+  if (array.active_index) {
+    *array.active_index = old_items_num;
+  }
 
+  return new_item;
+}
+
+}  // namespace detail
+
+/**
+ * Add a new item at the end with the given socket type and name.
+ */
+template<typename Accessor>
+inline typename Accessor::ItemT *add_item_with_socket_and_name(
+    bNode &node, const eNodeSocketDatatype socket_type, const char *name)
+{
+  using ItemT = typename Accessor::ItemT;
+  BLI_assert(Accessor::supports_socket_type(socket_type));
+  ItemT &new_item = detail::add_item_to_array<Accessor>(node);
+  Accessor::init_with_socket_type_and_name(node, new_item, socket_type, name);
+  return &new_item;
+}
+
+/**
+ * Add a new item at the end.
+ */
+template<typename Accessor> inline typename Accessor::ItemT *add_item(bNode &node)
+{
+  using ItemT = typename Accessor::ItemT;
+  ItemT &new_item = detail::add_item_to_array<Accessor>(node);
+  Accessor::init(node, new_item);
   return &new_item;
 }
 
@@ -262,15 +288,22 @@ template<typename Accessor>
   else {
     return false;
   }
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(src_socket->type);
-  if (!Accessor::supports_socket_type(socket_type)) {
-    return false;
+
+  const ItemT *item = nullptr;
+  if constexpr (Accessor::has_name && Accessor::has_type) {
+    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(src_socket->type);
+    if (!Accessor::supports_socket_type(socket_type)) {
+      return false;
+    }
+    item = add_item_with_socket_and_name<Accessor>(storage_node, socket_type, src_socket->name);
   }
-  const ItemT *item = add_item_with_socket_and_name<Accessor>(
-      storage_node, socket_type, src_socket->name);
+  else {
+    item = add_item<Accessor>(storage_node);
+  }
   if (item == nullptr) {
     return false;
   }
+
   update_node_declaration_and_sockets(ntree, extend_node);
   const std::string item_identifier = Accessor::socket_identifier_for_item(*item);
   if (extend_socket.is_input()) {

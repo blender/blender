@@ -33,6 +33,16 @@ using namespace metal;
 #  define DIMS 3
 #endif
 
+/* `base_offset` refers to the base read offset in bytes of the input data buffer.
+ * Component offset adds an additional offset to read components. When clearing a buffer
+ * and only one source color data element is provided, the base_offset is always zero.*/
+#if IS_TEXTURE_CLEAR == 1
+#  define READ_INPUT_DATA(base_offset, component_offset) (input_data[0 + component_offset])
+#else
+#  define READ_INPUT_DATA(base_offset, component_offset) \
+    (input_data[base_offset + component_offset])
+#endif
+
 /* Position dimensionality for thread-group. */
 #if DIMS == 1
 #  define POSITION_TYPE uint
@@ -65,7 +75,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
 
   vec<OUTPUT_DATA_TYPE, /*COMPONENT_COUNT_OUTPUT*/ 4> output;
   for (int i = 0; i < COMPONENT_COUNT_INPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(input_data[index + i]);
+    output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
     output[i] = OUTPUT_DATA_TYPE(0);
@@ -82,7 +92,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
 
   vec<OUTPUT_DATA_TYPE, /*COMPONENT_COUNT_OUTPUT*/ 4> output;
   for (int i = 0; i < COMPONENT_COUNT_INPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(input_data[index + i]);
+    output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
     output[i] = OUTPUT_DATA_TYPE(0);
@@ -102,7 +112,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
 
   vec<OUTPUT_DATA_TYPE, /*COMPONENT_COUNT_OUTPUT*/ 4> output;
   for (int i = 0; i < COMPONENT_COUNT_INPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(input_data[index + i]);
+    output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
     output[i] = OUTPUT_DATA_TYPE(0);
@@ -120,7 +130,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
 
   vec<OUTPUT_DATA_TYPE, /*COMPONENT_COUNT_OUTPUT*/ 4> output;
   for (int i = 0; i < COMPONENT_COUNT_INPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(input_data[index + i]);
+    output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
     output[i] = OUTPUT_DATA_TYPE(0);
@@ -141,7 +151,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
 
   vec<OUTPUT_DATA_TYPE, /*COMPONENT_COUNT_OUTPUT*/ 4> output;
   for (int i = 0; i < COMPONENT_COUNT_INPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(input_data[index + i]);
+    output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
     output[i] = OUTPUT_DATA_TYPE(0);

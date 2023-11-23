@@ -12,7 +12,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "DNA_workspace_types.h"
 

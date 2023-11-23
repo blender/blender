@@ -17,7 +17,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
@@ -1297,7 +1297,7 @@ static int average_tracks_exec(bContext *C, wmOperator *op)
   }
 
   /* Create new empty track, which will be the averaged result.
-   * Makes it simple to average all selection  to it. */
+   * Makes it simple to average all selection to it. */
   MovieTrackingTrack *result_track = BKE_tracking_track_add_empty(tracking,
                                                                   &tracking_object->tracks);
 

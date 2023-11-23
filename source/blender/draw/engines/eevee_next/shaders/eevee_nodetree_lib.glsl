@@ -312,7 +312,7 @@ void brdf_f82_tint_lut(vec3 F0,
 #ifdef EEVEE_UTILITY_TX
   vec3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
 #else
-  vec3 split_sum = vec2(1.0, 0.0, 0.0);
+  vec3 split_sum = vec3(1.0, 0.0, 0.0);
 #endif
 
   reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :
@@ -507,7 +507,7 @@ vec3 coordinate_camera(vec3 P)
     vP = P;
   }
   else {
-#ifdef MAT_WORLD
+#ifdef MAT_GEOM_WORLD
     vP = drw_normal_world_to_view(P);
 #else
     vP = drw_point_world_to_view(P);
@@ -525,8 +525,12 @@ vec3 coordinate_screen(vec3 P)
     window.xy = vec2(0.5);
   }
   else {
+#ifdef MAT_GEOM_WORLD
+    window.xy = drw_point_view_to_screen(interp.P).xy;
+#else
     /* TODO(fclem): Actual camera transform. */
     window.xy = drw_point_world_to_screen(P).xy;
+#endif
     window.xy = window.xy * uniform_buf.camera.uv_scale + uniform_buf.camera.uv_bias;
   }
   return window;
@@ -534,7 +538,7 @@ vec3 coordinate_screen(vec3 P)
 
 vec3 coordinate_reflect(vec3 P, vec3 N)
 {
-#ifdef MAT_WORLD
+#ifdef MAT_GEOM_WORLD
   return N;
 #else
   return -reflect(drw_world_incident_vector(P), N);
@@ -543,7 +547,7 @@ vec3 coordinate_reflect(vec3 P, vec3 N)
 
 vec3 coordinate_incoming(vec3 P)
 {
-#ifdef MAT_WORLD
+#ifdef MAT_GEOM_WORLD
   return -P;
 #else
   return drw_world_incident_vector(P);

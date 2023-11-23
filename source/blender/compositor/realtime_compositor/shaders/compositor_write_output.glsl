@@ -18,5 +18,5 @@ void main()
   vec4 output_color = vec4(input_color.rgb, alpha);
 #endif
 
-  imageStore(output_img, texel + compositing_region_lower_bound, output_color);
+  imageStore(output_img, texel + lower_bound, output_color);
 }

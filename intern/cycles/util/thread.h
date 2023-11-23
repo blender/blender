@@ -43,7 +43,7 @@ class thread {
 
  protected:
   function<void()> run_cb_;
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
   pthread_t pthread_id;
 #else
   std::thread std_thread;

@@ -64,6 +64,8 @@
 #include "draw_manager.h"
 #include "draw_texture_pool.h"
 
+#include "BKE_global.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
@@ -246,6 +248,11 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     GPU_storagebuf_clear_to_zero(ssbo_);
   }
 
+  void async_flush_to_host()
+  {
+    GPU_storagebuf_sync_to_host(ssbo_);
+  }
+
   void read()
   {
     GPU_storagebuf_read(ssbo_, this->data_);
@@ -366,6 +373,20 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
     return this->data_[index];
   }
 
+  /*
+   * Ensure the allocated size is not much larger than the currently required size,
+   * using the same heuristic as `get_or_resize`.
+   */
+  void trim_to_next_power_of_2(int64_t required_size)
+  {
+    /* Don't go below the size used at creation. */
+    required_size = std::max(required_size, len);
+    size_t target_size = power_of_2_max_u(required_size);
+    if (this->len_ > target_size) {
+      this->resize(target_size);
+    }
+  }
+
   int64_t size() const
   {
     return this->len_;
@@ -405,6 +426,16 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
   void clear()
   {
     item_len_ = 0;
+  }
+
+  /**
+   * Set item count to zero
+   * and trim the buffer if current size is much larger than the current item count.
+   */
+  void clear_and_trim()
+  {
+    this->trim_to_next_power_of_2(item_len_);
+    clear();
   }
 
   /**
@@ -859,6 +890,25 @@ class Texture : NonCopyable {
   }
 
   /**
+   * Clear the texture to NaN for floats, or a to debug value for integers.
+   * (For debugging uninitialized data issues)
+   */
+  void debug_clear()
+  {
+    if (GPU_texture_has_float_format(this->tx_) || GPU_texture_has_normalized_format(this->tx_)) {
+      this->clear(float4(NAN_FLT));
+    }
+    else if (GPU_texture_has_integer_format(this->tx_)) {
+      if (GPU_texture_has_signed_format(this->tx_)) {
+        this->clear(int4(0xF0F0F0F0));
+      }
+      else {
+        this->clear(uint4(0xF0F0F0F0));
+      }
+    }
+  }
+
+  /**
    * Returns a buffer containing the texture data for the specified miplvl.
    * The memory block needs to be manually freed by MEM_freeN().
    */
@@ -923,6 +973,9 @@ class Texture : NonCopyable {
     }
     if (tx_ == nullptr) {
       tx_ = create(w, h, d, mip_len, format, usage, data, layered, cubemap);
+      if (data == nullptr && (G.debug & G_DEBUG_GPU)) {
+        debug_clear();
+      }
       return true;
     }
     return false;
@@ -981,6 +1034,10 @@ class TextureFromPool : public Texture, NonMovable {
 
     this->tx_ = DRW_texture_pool_texture_acquire(
         DST.vmempool->texture_pool, UNPACK2(extent), format, usage);
+
+    if (G.debug & G_DEBUG_GPU) {
+      debug_clear();
+    }
   }
 
   void release()

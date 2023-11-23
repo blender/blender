@@ -10,7 +10,7 @@
 #include <cstdlib>
 
 #include "BKE_dynamicpaint.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 #include "BLI_string_utf8_symbols.h"
 
@@ -37,7 +37,7 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_particle.h"
 
 #  include "DEG_depsgraph.hh"

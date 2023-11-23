@@ -28,15 +28,15 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -512,7 +512,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 {
   PE_set_data(C, data);
 
-  ED_view3d_viewcontext_init(C, &data->vc, data->depsgraph);
+  data->vc = ED_view3d_viewcontext_init(C, data->depsgraph);
 
   if (!XRAY_ENABLED(data->vc.v3d)) {
     ED_view3d_depth_override(data->depsgraph,

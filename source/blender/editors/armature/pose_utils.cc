@@ -23,7 +23,7 @@
 #include "BKE_layer.h"
 #include "BKE_object.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "DEG_depsgraph.hh"
 

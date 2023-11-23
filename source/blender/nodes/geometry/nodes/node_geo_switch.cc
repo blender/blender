@@ -8,11 +8,10 @@
 #include "UI_resources.hh"
 
 #include "NOD_rna_define.hh"
+#include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"
-
-#include "FN_field_cpp_type.hh"
 
 namespace blender::nodes::node_geo_switch_cc {
 
@@ -162,8 +161,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   {
     const NodeSwitch &storage = node_storage(node);
     const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
-    can_be_field_ = ELEM(
-        data_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_ROTATION);
+    can_be_field_ = socket_type_supports_fields(data_type);
 
     const bNodeSocketType *socket_type = nullptr;
     for (const bNodeSocket *socket : node.output_sockets()) {
@@ -230,7 +228,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
     }
 
     const CPPType &type = *outputs_[0].type;
-    const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
+    const bke::ValueOrFieldCPPType &value_or_field_type = *bke::ValueOrFieldCPPType::get_from_self(
         type);
     const CPPType &value_type = value_or_field_type.value;
     const MultiFunction &switch_multi_function = this->get_switch_multi_function(value_type);

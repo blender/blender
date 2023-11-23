@@ -11,7 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "GPU_batch.h"
 
@@ -311,7 +311,7 @@ void WM_gizmo_set_flag(wmGizmo *gz, const int flag, const bool enable)
     gz->flag |= eWM_GizmoFlag(flag);
   }
   else {
-    gz->flag &= eWM_GizmoFlag(~flag);
+    gz->flag &= ~eWM_GizmoFlag(flag);
   }
 }
 

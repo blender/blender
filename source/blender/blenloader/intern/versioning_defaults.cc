@@ -13,6 +13,8 @@
  * To update preference defaults see `userdef_default.c`.
  */
 
+#define DNA_DEPRECATED_ALLOW
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -45,7 +47,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
@@ -56,7 +58,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
@@ -186,8 +188,8 @@ static void blo_update_defaults_screen(bScreen *screen,
       v3d->overlay.texture_paint_mode_opacity = 1.0f;
       v3d->overlay.weight_paint_mode_opacity = 1.0f;
       v3d->overlay.vertex_paint_mode_opacity = 1.0f;
-      /* Use dimmed selected edges. */
-      v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_EDGES;
+      /* Clear this deprecated bit for later reuse. */
+      v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_EDGES_DEPRECATED;
       /* grease pencil settings */
       v3d->vertex_opacity = 1.0f;
       v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
@@ -545,7 +547,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     blo_update_defaults_scene(bmain, scene);
 
-    if (app_template && STREQ(app_template, "Video_Editing")) {
+    if (app_template && STR_ELEM(app_template, "Video_Editing", "2D_Animation")) {
       /* Filmic is too slow, use standard until it is optimized. */
       STRNCPY(scene->view_settings.view_transform, "Standard");
       STRNCPY(scene->view_settings.look, "None");
@@ -553,7 +555,13 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     else {
       /* Default to AgX view transform. */
       STRNCPY(scene->view_settings.view_transform, "AgX");
+    }
 
+    if (app_template && STREQ(app_template, "Video_Editing")) {
+      /* Pass: no extra tweaks needed. Keep the view settings configured above, and rely on the
+       * default state of enabled AV sync. */
+    }
+    else {
       /* AV Sync break physics sim caching, disable until that is fixed. */
       scene->audio.flag &= ~AUDIO_SYNC;
       scene->flag &= ~SCE_FRAME_DROP;
@@ -584,10 +592,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     /* Match default for new meshes. */
-    mesh->smoothresh = DEG2RADF(30);
+    mesh->smoothresh_legacy = DEG2RADF(30);
     /* Match voxel remesher options for all existing meshes in templates. */
-    mesh->flag |= ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_PAINT_MASK |
-                  ME_REMESH_REPROJECT_SCULPT_FACE_SETS | ME_REMESH_REPROJECT_VERTEX_COLORS;
+    mesh->flag |= ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_ATTRIBUTES;
 
     /* For Sculpting template. */
     if (app_template && STREQ(app_template, "Sculpting")) {

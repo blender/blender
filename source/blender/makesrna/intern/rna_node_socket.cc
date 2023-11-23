@@ -43,7 +43,7 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 
 #  include "BKE_node.h"
 #  include "BKE_node_runtime.hh"
-#  include "BKE_node_tree_update.h"
+#  include "BKE_node_tree_update.hh"
 
 #  include "DEG_depsgraph_build.hh"
 
@@ -406,6 +406,9 @@ static void rna_NodeSocketStandard_value_and_relation_update(bContext *C, Pointe
 
 bool rna_NodeSocketMaterial_default_value_poll(PointerRNA * /*ptr*/, PointerRNA value)
 {
+  if (U.experimental.use_grease_pencil_version3) {
+    return true;
+  }
   /* Do not show grease pencil materials for now. */
   Material *ma = static_cast<Material *>(value.data);
   return ma->gp_style == nullptr;
@@ -589,7 +592,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_function_output(func, parm);
 
   func = RNA_def_function(srna, "draw_color_simple", nullptr);
-  RNA_def_function_ui_description(func, "Color of the socket icon");
+  RNA_def_function_ui_description(
+      func,
+      "Color of the socket icon. Used to draw sockets in places where the socket does not belong "
+      "to a node, like the node interface panel. Also used to draw node sockets if draw_color is "
+      "not defined");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_float_array(
       func, "color", 4, default_draw_color, 0.0f, 1.0f, "Color", "", 0.0f, 1.0f);

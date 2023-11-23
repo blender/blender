@@ -365,7 +365,7 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*cha
 
   int height = ft_pix_to_int((ft_pix)face->size->metrics.ascender -
                              (ft_pix)face->size->metrics.descender);
-  width = MAX2(width, height);
+  width = std::max(width, height);
 
   /* Fill up to 96% horizontally or vertically. */
   float font_size = MIN3(float(w),
@@ -410,7 +410,7 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*cha
           if (dest_col >= 0 && dest_col < w) {
             uchar *source = &face->glyph->bitmap.buffer[y * int(face->glyph->bitmap.width) + x];
             uchar *dest = &buf[dest_row * w * 4 + (dest_col * 4 + 3)];
-            *dest = uchar(MIN2((uint(*dest) + uint(*source)), 255u));
+            *dest = uchar(std::min((uint(*dest) + uint(*source)), 255u));
           }
         }
       }

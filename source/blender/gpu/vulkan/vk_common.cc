@@ -11,7 +11,7 @@
 #include "vk_common.hh"
 
 namespace blender::gpu {
-VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat format)
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUTextureFormat format)
 {
   switch (format) {
     /* Formats texture & render-buffer */
@@ -62,8 +62,7 @@ VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat forma
 
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
-      return static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT |
-                                                VK_IMAGE_ASPECT_STENCIL_BIT);
+      return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
     /* Texture only formats. */
     case GPU_RGB32UI:
@@ -98,20 +97,20 @@ VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat forma
       return VK_IMAGE_ASPECT_COLOR_BIT;
   }
   BLI_assert_unreachable();
-  return static_cast<VkImageAspectFlagBits>(0);
+  return 0;
 }
 
-VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers)
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers)
 {
-  VkImageAspectFlagBits result = static_cast<VkImageAspectFlagBits>(0);
+  VkImageAspectFlags result = 0;
   if (buffers & GPU_COLOR_BIT) {
-    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_COLOR_BIT);
+    result |= VK_IMAGE_ASPECT_COLOR_BIT;
   }
   if (buffers & GPU_DEPTH_BIT) {
-    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_DEPTH_BIT);
+    result |= VK_IMAGE_ASPECT_DEPTH_BIT;
   }
   if (buffers & GPU_STENCIL_BIT) {
-    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_STENCIL_BIT);
+    result |= VK_IMAGE_ASPECT_STENCIL_BIT;
   }
   return result;
 }
@@ -764,7 +763,8 @@ VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const voi
 {
   VkClearColorValue result = {{0.0f}};
   switch (format) {
-    case GPU_DATA_FLOAT: {
+    case GPU_DATA_FLOAT:
+    case GPU_DATA_10_11_11_REV: {
       const float *float_data = static_cast<const float *>(data);
       copy_color<float>(result.float32, float_data);
       break;
@@ -785,7 +785,6 @@ VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const voi
     case GPU_DATA_HALF_FLOAT:
     case GPU_DATA_UBYTE:
     case GPU_DATA_UINT_24_8:
-    case GPU_DATA_10_11_11_REV:
     case GPU_DATA_2_10_10_10_REV: {
       BLI_assert_unreachable();
       break;
@@ -852,6 +851,23 @@ VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test)
   }
   BLI_assert_unreachable();
   return VK_CULL_MODE_NONE;
+}
+
+VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode extend_mode)
+{
+  switch (extend_mode) {
+    case GPU_SAMPLER_EXTEND_MODE_EXTEND:
+      return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    case GPU_SAMPLER_EXTEND_MODE_REPEAT:
+      return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
+      return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+    case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
+      return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  }
+
+  BLI_assert_unreachable();
+  return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 }
 
 const char *to_string(VkObjectType type)

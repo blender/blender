@@ -28,7 +28,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -804,10 +804,9 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
     }
   }
   else {
-    /* If user wants to switch to brush with the same  tool as
+    /* If user wants to switch to brush with the same tool as
      * currently active brush do a cycling via all possible
-     * brushes with requested tool.
-     */
+     * brushes with requested tool. */
     first_brush = brush_orig->id.next ? static_cast<Brush *>(brush_orig->id.next) :
                                         static_cast<Brush *>(bmain->brushes.first);
   }

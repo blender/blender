@@ -159,7 +159,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
                       icon='MOD_MASK' if gpl.use_mask_layer else 'LAYER_ACTIVE')
 
             srow = col.row(align=True)
-            srow.prop(gpl, "use_lights")
+            srow.prop(gpl, "use_lights", text="Lights")
 
         col = row.column()
 
@@ -514,6 +514,8 @@ class TOPBAR_MT_file_export(Menu):
             self.layout.operator("wm.obj_export", text="Wavefront (.obj)")
         if bpy.app.build_options.io_ply:
             self.layout.operator("wm.ply_export", text="Stanford PLY (.ply)")
+        if bpy.app.build_options.io_stl:
+            self.layout.operator("wm.stl_export", text="STL (.stl) (experimental)")
 
 
 class TOPBAR_MT_file_external_data(Menu):

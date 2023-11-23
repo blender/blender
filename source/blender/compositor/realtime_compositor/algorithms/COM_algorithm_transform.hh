@@ -12,8 +12,8 @@
 
 namespace blender::realtime_compositor {
 
-/* Transforms the given result based on the given transformation and interpolation, writing the
- * transformed result to the given output.
+/* Transforms the given result based on the given transformation and realization options, writing
+ * the transformed result to the given output.
  *
  * The rotation and scale components of the transformation are realized and the size of the result
  * is increased/reduced to adapt to the new transformation. For instance, if the transformation is
@@ -23,11 +23,16 @@ namespace blender::realtime_compositor {
  * 16k.
  *
  * The translation component of the transformation is delayed and only stored in the domain of the
- * result to be realized later when needed. */
+ * result to be realized later when needed, except if the realization options has wrapping enabled,
+ * in which case, the result will be translated such that it is clipped on the one side and wrapped
+ * on the opposite side.
+ *
+ * The empty areas around the image after rotation will either be transparent or repetitions of the
+ * image based on the realization options. */
 void transform(Context &context,
                Result &input,
                Result &output,
                float3x3 transformation,
-               Interpolation interpolation);
+               RealizationOptions realization_options);
 
 }  // namespace blender::realtime_compositor

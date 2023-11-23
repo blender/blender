@@ -20,7 +20,7 @@
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -150,11 +150,11 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float total_disp[3];
     zero_v3(total_disp);
@@ -220,7 +220,7 @@ static void pose_brush_grow_factor_task(Object *ob,
     /* Grow the factor. */
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       float vmask_f = prev_mask[ni.index];
-      max = MAX2(vmask_f, max);
+      max = std::max(vmask_f, max);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 

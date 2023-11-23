@@ -54,27 +54,23 @@ NODE_STORAGE_FUNCS(NodeGeometrySampleIndex);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNode *node = b.node_or_null();
   b.add_input<decl::Geometry>("Geometry")
       .supported_type({GeometryComponent::Type::Mesh,
                        GeometryComponent::Type::PointCloud,
                        GeometryComponent::Type::Curve,
                        GeometryComponent::Type::Instance});
-
-  b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
-  b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
-  b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
-  b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
-  b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
-  b.add_input<decl::Rotation>("Value", "Value_Rotation").hide_value().field_on_all();
+  if (node != nullptr) {
+    const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
+    b.add_input(data_type, "Value").hide_value().field_on_all();
+  }
   b.add_input<decl::Int>("Index").supports_field().description(
       "Which element to retrieve a value from on the geometry");
 
-  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({7});
-  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({7});
-  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({7});
-  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({7});
-  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({7});
-  b.add_output<decl::Rotation>("Value", "Value_Rotation").dependent_field({7});
+  if (node != nullptr) {
+    const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
+    b.add_output(data_type, "Value").dependent_field({2});
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -93,47 +89,12 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
-
-  bNodeSocket *in_socket_geometry = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *in_socket_float = in_socket_geometry->next;
-  bNodeSocket *in_socket_int32 = in_socket_float->next;
-  bNodeSocket *in_socket_vector = in_socket_int32->next;
-  bNodeSocket *in_socket_color4f = in_socket_vector->next;
-  bNodeSocket *in_socket_bool = in_socket_color4f->next;
-  bNodeSocket *in_socket_quat = in_socket_bool->next;
-
-  bke::nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
-  bke::nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
-  bke::nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
-  bke::nodeSetSocketAvailability(ntree, in_socket_quat, data_type == CD_PROP_QUATERNION);
-
-  bNodeSocket *out_socket_float = static_cast<bNodeSocket *>(node->outputs.first);
-  bNodeSocket *out_socket_int32 = out_socket_float->next;
-  bNodeSocket *out_socket_vector = out_socket_int32->next;
-  bNodeSocket *out_socket_color4f = out_socket_vector->next;
-  bNodeSocket *out_socket_bool = out_socket_color4f->next;
-  bNodeSocket *out_socket_quat = out_socket_bool->next;
-
-  bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
-  bke::nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
-  bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
-  bke::nodeSetSocketAvailability(ntree, out_socket_quat, data_type == CD_PROP_QUATERNION);
-}
-
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
-  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
+  search_link_ops_for_declarations(params, declaration.inputs);
 
-  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
@@ -264,78 +225,23 @@ class SampleIndexFunction : public mf::MultiFunction {
   }
 };
 
-static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustomDataType data_type)
-{
-  switch (data_type) {
-    case CD_PROP_FLOAT:
-      return params.extract_input<Field<float>>("Value_Float");
-    case CD_PROP_FLOAT3:
-      return params.extract_input<Field<float3>>("Value_Vector");
-    case CD_PROP_COLOR:
-      return params.extract_input<Field<ColorGeometry4f>>("Value_Color");
-    case CD_PROP_BOOL:
-      return params.extract_input<Field<bool>>("Value_Bool");
-    case CD_PROP_INT32:
-      return params.extract_input<Field<int>>("Value_Int");
-    case CD_PROP_QUATERNION:
-      return params.extract_input<Field<math::Quaternion>>("Value_Rotation");
-    default:
-      BLI_assert_unreachable();
-  }
-  return {};
-}
-
-static void output_attribute_field(GeoNodeExecParams &params, GField field)
-{
-  switch (bke::cpp_type_to_custom_data_type(field.cpp_type())) {
-    case CD_PROP_FLOAT: {
-      params.set_output("Value_Float", field);
-      break;
-    }
-    case CD_PROP_FLOAT3: {
-      params.set_output("Value_Vector", field);
-      break;
-    }
-    case CD_PROP_COLOR: {
-      params.set_output("Value_Color", field);
-      break;
-    }
-    case CD_PROP_BOOL: {
-      params.set_output("Value_Bool", field);
-      break;
-    }
-    case CD_PROP_INT32: {
-      params.set_output("Value_Int", field);
-      break;
-    }
-    case CD_PROP_QUATERNION: {
-      params.set_output("Value_Rotation", field);
-      break;
-    }
-    default:
-      break;
-  }
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   const NodeGeometrySampleIndex &storage = node_storage(params.node());
-  const eCustomDataType data_type = eCustomDataType(storage.data_type);
   const eAttrDomain domain = eAttrDomain(storage.domain);
   const bool use_clamp = bool(storage.clamp);
 
-  GField value_field = get_input_attribute_field(params, data_type);
+  GField value_field = params.extract_input<GField>("Value");
   ValueOrField<int> index_value_or_field = params.extract_input<ValueOrField<int>>("Index");
   const CPPType &cpp_type = value_field.cpp_type();
 
-  GField output_field;
   if (index_value_or_field.is_field()) {
     /* If the index is a field, the output has to be a field that still depends on the input. */
     auto fn = std::make_shared<SampleIndexFunction>(
         std::move(geometry), std::move(value_field), domain, use_clamp);
     auto op = FieldOperation::Create(std::move(fn), {index_value_or_field.as_field()});
-    output_field = GField(std::move(op));
+    params.set_output("Value", GField(std::move(op)));
   }
   else if (const GeometryComponent *component = find_source_component(geometry, domain)) {
     /* Optimization for the case when the index is a single value. Here only that one index has to
@@ -354,19 +260,17 @@ static void node_geo_exec(GeoNodeExecParams params)
       const GVArray &data = evaluator.get_evaluated(0);
       BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, buffer);
       data.get_to_uninitialized(index, buffer);
-      output_field = fn::make_constant_field(cpp_type, buffer);
+      params.set_output("Value", fn::make_constant_field(cpp_type, buffer));
       cpp_type.destruct(buffer);
     }
     else {
-      output_field = fn::make_constant_field(cpp_type, cpp_type.default_value());
+      params.set_output("Value", fn::make_constant_field(cpp_type, cpp_type.default_value()));
     }
   }
   else {
     /* Output default value if there is no geometry. */
-    output_field = fn::make_constant_field(cpp_type, cpp_type.default_value());
+    params.set_output("Value", fn::make_constant_field(cpp_type, cpp_type.default_value()));
   }
-
-  output_attribute_field(params, std::move(output_field));
 }
 
 static void node_register()
@@ -375,7 +279,6 @@ static void node_register()
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_INDEX, "Sample Index", NODE_CLASS_GEOMETRY);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   ntype.declare = node_declare;
   node_type_storage(
       &ntype, "NodeGeometrySampleIndex", node_free_standard_storage, node_copy_standard_storage);

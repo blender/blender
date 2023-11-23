@@ -12,8 +12,8 @@
 #include "GHOST_DropTargetWin32.hh"
 #include "GHOST_SystemWin32.hh"
 #include "GHOST_WindowManager.hh"
-#include "utf_winfunc.h"
-#include "utfconv.h"
+#include "utf_winfunc.hh"
+#include "utfconv.hh"
 
 #ifdef WITH_OPENGL_BACKEND
 #  include "GHOST_ContextWGL.hh"

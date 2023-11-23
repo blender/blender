@@ -228,6 +228,7 @@ void MESH_OT_select_ungrouped(struct wmOperatorType *ot);
 void MESH_OT_select_axis(struct wmOperatorType *ot);
 void MESH_OT_region_to_loop(struct wmOperatorType *ot);
 void MESH_OT_loop_to_region(struct wmOperatorType *ot);
+void MESH_OT_select_by_attribute(struct wmOperatorType *ot);
 void MESH_OT_shortest_path_select(struct wmOperatorType *ot);
 
 extern struct EnumPropertyItem *corner_type_items;

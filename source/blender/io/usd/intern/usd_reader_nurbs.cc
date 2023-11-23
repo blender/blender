@@ -7,7 +7,7 @@
 
 #include "usd_reader_nurbs.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 

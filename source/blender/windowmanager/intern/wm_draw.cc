@@ -26,7 +26,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -1592,12 +1592,9 @@ void wm_draw_region_clear(wmWindow *win, ARegion * /*region*/)
   screen->do_draw = true;
 }
 
-void WM_draw_region_free(ARegion *region, bool hide)
+void WM_draw_region_free(ARegion *region)
 {
   wm_draw_region_buffer_free(region);
-  if (hide) {
-    region->visible = 0;
-  }
 }
 
 void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)

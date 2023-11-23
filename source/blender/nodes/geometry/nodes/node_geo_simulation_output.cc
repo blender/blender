@@ -4,17 +4,18 @@
 
 #include "BLI_math_matrix.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_bake_items_socket.hh"
 #include "BKE_compute_contexts.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
+#include "BKE_node_socket_value_cpp_type.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 
@@ -26,8 +27,6 @@
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
 #include "NOD_zone_socket_items.hh"
-
-#include "FN_field_cpp_type.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
@@ -407,8 +406,8 @@ static void mix_simulation_state(const NodeSimulationItem &item,
     case SOCK_ROTATION:
     case SOCK_RGBA: {
       const CPPType &type = get_simulation_item_cpp_type(item);
-      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
-          type);
+      const bke::ValueOrFieldCPPType &value_or_field_type =
+          *bke::ValueOrFieldCPPType::get_from_self(type);
       if (value_or_field_type.is_field(prev) || value_or_field_type.is_field(next)) {
         /* Fields are evaluated on geometries and are mixed there. */
         break;
@@ -672,15 +671,18 @@ std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
 
 namespace blender::nodes::node_geo_simulation_output_cc {
 
-static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
-                                 const bNode &node,
-                                 NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  const NodeGeometrySimulationOutput &storage = node_storage(node);
-
   b.add_input<decl::Bool>("Skip").description(
       "Forward the output of the simulation input node directly to the output node and ignore "
       "the nodes in the simulation zone");
+
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
+
+  const NodeGeometrySimulationOutput &storage = node_storage(*node);
 
   for (const int i : IndexRange(storage.items_num)) {
     const NodeSimulationItem &item = storage.items[i];
@@ -877,7 +879,7 @@ static void node_register()
   geo_node_type_base(
       &ntype, GEO_NODE_SIMULATION_OUTPUT, "Simulation Output", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
-  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.declare = node_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;

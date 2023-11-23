@@ -25,8 +25,8 @@
 
 #include "BKE_attribute.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
@@ -36,7 +36,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
@@ -712,9 +712,8 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
 {
   Mesh *me = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
 
-  if (me->flag & ME_AUTOSMOOTH) {
+  if (me->normals_domain() == blender::bke::MeshNormalDomain::Corner) {
     ED_mesh_split_faces(me);
-    CustomData_free_layers(&me->loop_data, CD_NORMAL, me->totloop);
   }
 
   return me;

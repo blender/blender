@@ -20,7 +20,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_undo_system.h"
@@ -333,6 +333,8 @@ static Object *editfont_object_from_context(bContext *C)
 
 struct FontUndoStep {
   UndoStep step;
+  /** See #ED_undo_object_editmode_validate_scene_from_windows code comment for details. */
+  UndoRefID_Scene scene_ref;
   /* NOTE: will split out into list for multi-object-editmode. */
   UndoRefID_Object obedit_ref;
   UndoFont data;
@@ -346,6 +348,7 @@ static bool font_undosys_poll(bContext *C)
 static bool font_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   FontUndoStep *us = (FontUndoStep *)us_p;
+  us->scene_ref.ptr = CTX_data_scene(C);
   us->obedit_ref.ptr = editfont_object_from_context(C);
   Curve *cu = static_cast<Curve *>(us->obedit_ref.ptr->data);
   undofont_from_editfont(&us->data, cu);
@@ -362,18 +365,22 @@ static void font_undosys_step_decode(
 
   FontUndoStep *us = (FontUndoStep *)us_p;
   Object *obedit = us->obedit_ref.ptr;
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Pass in an array of 1 (typically used for multi-object edit-mode). */
-  ED_undo_object_editmode_restore_helper(C, &obedit, 1, sizeof(Object *));
+  ED_undo_object_editmode_validate_scene_from_windows(
+      CTX_wm_manager(C), us->scene_ref.ptr, &scene, &view_layer);
+  ED_undo_object_editmode_restore_helper(scene, view_layer, &obedit, 1, sizeof(Object *));
 
   Curve *cu = static_cast<Curve *>(obedit->data);
   undofont_to_editfont(&us->data, cu);
   DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
 
-  ED_undo_object_set_active_or_warn(
-      CTX_data_scene(C), CTX_data_view_layer(C), obedit, us_p->name, &LOG);
+  ED_undo_object_set_active_or_warn(scene, view_layer, obedit, us_p->name, &LOG);
 
-  BLI_assert(font_undosys_poll(C));
+  /* Check after setting active (unless undoing into another scene). */
+  BLI_assert(font_undosys_poll(C) || (scene != CTX_data_scene(C)));
 
   cu->editfont->needs_flush_to_id = 1;
   bmain->is_memfile_undo_flush_needed = true;
@@ -391,6 +398,7 @@ static void font_undosys_foreach_ID_ref(UndoStep *us_p,
                                         void *user_data)
 {
   FontUndoStep *us = (FontUndoStep *)us_p;
+  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
   foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->obedit_ref));
 }
 

@@ -19,7 +19,7 @@
 
 #  include "BLI_utildefines.h"
 
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 
 #  include "bmesh.h"
 

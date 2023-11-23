@@ -35,9 +35,11 @@
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BLT_translation.h"
+
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
@@ -5278,6 +5280,7 @@ void UV_OT_select_similar(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop = ot->prop = RNA_def_enum(
       ot->srna, "type", uv_select_similar_type_items, SIMVERT_NORMAL, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_enum_funcs(prop, uv_select_similar_type_itemf);
   RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
   RNA_def_float(ot->srna, "threshold", 0.0f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);

@@ -67,6 +67,23 @@ inline void copy(const Span<T> src,
 }
 
 /**
+ * Fill the specified indices of the destination with the values in the source span.
+ */
+template<typename T, typename IndexT>
+inline void scatter(const Span<T> src,
+                    const Span<IndexT> indices,
+                    MutableSpan<T> dst,
+                    const int64_t grain_size = 4096)
+{
+  BLI_assert(indices.size() == src.size());
+  threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      dst[indices[i]] = src[i];
+    }
+  });
+}
+
+/**
  * Fill the destination span by gathering indexed values from the `src` array.
  */
 void gather(const GVArray &src,
@@ -148,6 +165,29 @@ inline void gather(const VArray<T> &src,
   });
 }
 
+template<typename T>
+inline void gather_group_to_group(const OffsetIndices<int> src_offsets,
+                                  const OffsetIndices<int> dst_offsets,
+                                  const IndexMask &selection,
+                                  const Span<T> src,
+                                  MutableSpan<T> dst)
+{
+  selection.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
+    dst.slice(dst_offsets[dst_i]).copy_from(src.slice(src_offsets[src_i]));
+  });
+}
+
+template<typename T>
+inline void gather_to_groups(const OffsetIndices<int> dst_offsets,
+                             const IndexMask &src_selection,
+                             const Span<T> src,
+                             MutableSpan<T> dst)
+{
+  src_selection.foreach_index(GrainSize(1024), [&](const int src_i, const int dst_i) {
+    dst.slice(dst_offsets[dst_i]).fill(src[src_i]);
+  });
+}
+
 /**
  * Copy the \a src data from the groups defined by \a src_offsets to the groups in \a dst defined
  * by \a dst_offsets. Groups to use are masked by \a selection, and it is assumed that the
@@ -179,6 +219,9 @@ void copy_group_to_group(OffsetIndices<int> src_offsets,
 void count_indices(Span<int> indices, MutableSpan<int> counts);
 
 void invert_booleans(MutableSpan<bool> span);
+void invert_booleans(MutableSpan<bool> span, const IndexMask &mask);
+
+int64_t count_booleans(const VArray<bool> &varray);
 
 enum class BooleanMix {
   None,

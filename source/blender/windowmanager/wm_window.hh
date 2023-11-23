@@ -28,6 +28,8 @@ void wm_ghost_init(bContext *C);
 void wm_ghost_init_background();
 void wm_ghost_exit();
 
+void wm_clipboard_free();
+
 /**
  * This one should correctly check for apple top header...
  * done for Cocoa: returns window contents (and not frame) max size.

@@ -156,7 +156,6 @@ void MTLBackend::render_step()
       MTLContext::get_global_memory_manager()->get_current_safe_list();
   if (cmd_free_buffer_list->should_flush()) {
     MTLContext::get_global_memory_manager()->begin_new_safe_list();
-    cmd_free_buffer_list->decrement_reference();
   }
 }
 

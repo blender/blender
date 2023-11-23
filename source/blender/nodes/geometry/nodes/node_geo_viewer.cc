@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
@@ -23,13 +23,13 @@ NODE_STORAGE_FUNCS(NodeGeometryViewer)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNode *node = b.node_or_null();
+
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Float>("Value").field_on_all().hide_value();
-  b.add_input<decl::Vector>("Value", "Value_001").field_on_all().hide_value();
-  b.add_input<decl::Color>("Value", "Value_002").field_on_all().hide_value();
-  b.add_input<decl::Int>("Value", "Value_003").field_on_all().hide_value();
-  b.add_input<decl::Bool>("Value", "Value_004").field_on_all().hide_value();
-  b.add_input<decl::Rotation>("Value", "Value_005").field_on_all().hide_value();
+  if (node != nullptr) {
+    const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
+    b.add_input(data_type, "Value").field_on_all().hide_value();
+  }
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -51,41 +51,6 @@ static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static eNodeSocketDatatype custom_data_type_to_socket_type(const eCustomDataType type)
-{
-  switch (type) {
-    case CD_PROP_FLOAT:
-      return SOCK_FLOAT;
-    case CD_PROP_INT32:
-      return SOCK_INT;
-    case CD_PROP_FLOAT3:
-      return SOCK_VECTOR;
-    case CD_PROP_BOOL:
-      return SOCK_BOOLEAN;
-    case CD_PROP_COLOR:
-      return SOCK_RGBA;
-    case CD_PROP_QUATERNION:
-      return SOCK_ROTATION;
-    default:
-      BLI_assert_unreachable();
-      return SOCK_FLOAT;
-  }
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryViewer &storage = node_storage(*node);
-  const eCustomDataType data_type = eCustomDataType(storage.data_type);
-  const eNodeSocketDatatype socket_type = custom_data_type_to_socket_type(data_type);
-
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-    if (socket->type == SOCK_GEOMETRY) {
-      continue;
-    }
-    bke::nodeSetSocketAvailability(ntree, socket, socket->type == socket_type);
-  }
-}
-
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   auto set_active_fn = [](LinkSearchOpParams &params, bNode &viewer_node) {
@@ -96,8 +61,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     ed::viewer_path::activate_geometry_node(*bmain, *snode, viewer_node);
   };
 
-  const std::optional<eCustomDataType> type = node_socket_to_custom_data_type(
-      params.other_socket());
+  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.other_socket().type);
+  const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(socket_type);
   if (params.in_out() == SOCK_OUT) {
     /* The viewer node only has inputs. */
     return;
@@ -165,9 +130,8 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
   node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
-  ntype.updatefunc = node_update;
-  ntype.initfunc = node_init;
   ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.gather_link_search_ops = node_gather_link_searches;

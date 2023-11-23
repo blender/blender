@@ -173,7 +173,7 @@ float safe_sqrt(float a)
 }
 
 /**
- * Safe arccosine function. Returns `acos(a)`.
+ * Safe `arccosine` function. Returns `acos(a)`.
  * If `a` is greater than 1, returns 0.
  * If `a` is less than -1, returns PI.
  */

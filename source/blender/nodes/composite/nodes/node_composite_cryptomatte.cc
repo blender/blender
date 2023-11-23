@@ -16,7 +16,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -228,15 +228,20 @@ CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *n
 
 namespace blender::nodes::node_composite_cryptomatte_cc {
 
-static bNodeSocketTemplate cmp_node_cryptomatte_in[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f}, {-1, ""}};
-
 static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
     {SOCK_RGBA, N_("Image")},
     {SOCK_FLOAT, N_("Matte")},
     {SOCK_RGBA, N_("Pick")},
     {-1, ""},
 };
+
+static void cmp_node_cryptomatte_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Float>("Matte");
+  b.add_output<decl::Color>("Pick");
+}
 
 static void node_init_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
 {
@@ -334,8 +339,7 @@ void register_node_type_cmp_cryptomatte()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, "Cryptomatte", NODE_CLASS_MATTE);
-  blender::bke::node_type_socket_templates(
-      &ntype, file_ns::cmp_node_cryptomatte_in, file_ns::cmp_node_cryptomatte_out);
+  ntype.declare = file_ns::cmp_node_cryptomatte_declare;
   blender::bke::node_type_size(&ntype, 240, 100, 700);
   ntype.initfunc = file_ns::node_init_cryptomatte;
   ntype.initfunc_api = file_ns::node_init_api_cryptomatte;

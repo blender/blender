@@ -143,23 +143,23 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
 
   if (args_contain_key(kwargs, "min")) {
     ui_data.min = min;
-    ui_data.soft_min = MAX2(ui_data.soft_min, ui_data.min);
-    ui_data.max = MAX2(ui_data.min, ui_data.max);
+    ui_data.soft_min = std::max(ui_data.soft_min, ui_data.min);
+    ui_data.max = std::max(ui_data.min, ui_data.max);
   }
   if (args_contain_key(kwargs, "max")) {
     ui_data.max = max;
-    ui_data.soft_max = MIN2(ui_data.soft_max, ui_data.max);
-    ui_data.min = MIN2(ui_data.min, ui_data.max);
+    ui_data.soft_max = std::min(ui_data.soft_max, ui_data.max);
+    ui_data.min = std::min(ui_data.min, ui_data.max);
   }
   if (args_contain_key(kwargs, "soft_min")) {
     ui_data.soft_min = soft_min;
-    ui_data.soft_min = MAX2(ui_data.soft_min, ui_data.min);
-    ui_data.soft_max = MAX2(ui_data.soft_min, ui_data.soft_max);
+    ui_data.soft_min = std::max(ui_data.soft_min, ui_data.min);
+    ui_data.soft_max = std::max(ui_data.soft_min, ui_data.soft_max);
   }
   if (args_contain_key(kwargs, "soft_max")) {
     ui_data.soft_max = soft_max;
-    ui_data.soft_max = MIN2(ui_data.soft_max, ui_data.max);
-    ui_data.soft_min = MIN2(ui_data.soft_min, ui_data.soft_max);
+    ui_data.soft_max = std::min(ui_data.soft_max, ui_data.max);
+    ui_data.soft_min = std::min(ui_data.soft_min, ui_data.soft_max);
   }
   if (args_contain_key(kwargs, "step")) {
     ui_data.step = step;
@@ -354,23 +354,23 @@ static bool idprop_ui_data_update_float(IDProperty *idprop, PyObject *args, PyOb
 
   if (args_contain_key(kwargs, "min")) {
     ui_data.min = min;
-    ui_data.soft_min = MAX2(ui_data.soft_min, ui_data.min);
-    ui_data.max = MAX2(ui_data.min, ui_data.max);
+    ui_data.soft_min = std::max(ui_data.soft_min, ui_data.min);
+    ui_data.max = std::max(ui_data.min, ui_data.max);
   }
   if (args_contain_key(kwargs, "max")) {
     ui_data.max = max;
-    ui_data.soft_max = MIN2(ui_data.soft_max, ui_data.max);
-    ui_data.min = MIN2(ui_data.min, ui_data.max);
+    ui_data.soft_max = std::min(ui_data.soft_max, ui_data.max);
+    ui_data.min = std::min(ui_data.min, ui_data.max);
   }
   if (args_contain_key(kwargs, "soft_min")) {
     ui_data.soft_min = soft_min;
     ui_data.soft_min = MAX2(ui_data.soft_min, ui_data.min);
-    ui_data.soft_max = MAX2(ui_data.soft_min, ui_data.soft_max);
+    ui_data.soft_max = std::max(ui_data.soft_min, ui_data.soft_max);
   }
   if (args_contain_key(kwargs, "soft_max")) {
     ui_data.soft_max = soft_max;
     ui_data.soft_max = MIN2(ui_data.soft_max, ui_data.max);
-    ui_data.soft_min = MIN2(ui_data.soft_min, ui_data.soft_max);
+    ui_data.soft_min = std::min(ui_data.soft_min, ui_data.soft_max);
   }
   if (args_contain_key(kwargs, "step")) {
     ui_data.step = float(step);
@@ -644,7 +644,11 @@ static void idprop_ui_data_to_dict_id(IDProperty *property, PyObject *dict)
   }
 
   const char *id_type = nullptr;
-  RNA_enum_identifier(rna_enum_id_type_items, id_type_value, &id_type);
+  if (!RNA_enum_identifier(rna_enum_id_type_items, id_type_value, &id_type)) {
+    /* Same fall-back as above, in case it is an unknown ID type (from a future version of Blender
+     * e.g.). */
+    RNA_enum_identifier(rna_enum_id_type_items, ID_OB, &id_type);
+  }
   PyObject *item = PyUnicode_FromString(id_type);
   PyDict_SetItemString(dict, "id_type", item);
   Py_DECREF(item);

@@ -55,7 +55,7 @@ class NormalizeOperation : public NodeOperation {
         context(), input_image.texture(), -range_, range_);
     const float scale = (maximum != minimum) ? (1.0f / (maximum - minimum)) : 0.0f;
 
-    GPUShader *shader = shader_manager().get("compositor_normalize");
+    GPUShader *shader = context().get_shader("compositor_normalize");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "minimum", minimum);

@@ -406,6 +406,15 @@ template<typename T>
     T left, T right, T bottom, T top, T near_clip, T far_clip);
 
 /**
+ * \brief Create an orthographic projection matrix using OpenGL coordinate convention:
+ * Maps each axis range to [-1..1] range for all axes except Z.
+ * The Z axis is collapsed to 0 which eliminates the depth component. So it cannot be used with
+ * depth testing.
+ * The resulting matrix can be used with either #project_point or #transform_point.
+ */
+template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top);
+
+/**
  * \brief Create a perspective projection matrix using OpenGL coordinate convention:
  * Maps each axis range to [-1..1] range for all axes.
  * `left`, `right`, `bottom`, `top` are frustum side distances at `z=near_clip`.
@@ -424,6 +433,16 @@ template<typename T>
 template<typename T>
 [[nodiscard]] MatBase<T, 4, 4> perspective_fov(
     T angle_left, T angle_right, T angle_bottom, T angle_top, T near_clip, T far_clip);
+
+/**
+ * \brief Create a perspective projection matrix using OpenGL coordinate convention:
+ * Maps each axis range to [-1..1] range for all axes except for the Z where [near_clip..inf] is
+ * mapped to [-1..1].
+ * `left`, `right`, `bottom`, `top` are frustum side distances at `z=near_clip`.
+ * The resulting matrix can be used with #project_point.
+ */
+template<typename T>
+[[nodiscard]] MatBase<T, 4, 4> perspective_infinite(T left, T right, T bottom, T top, T near_clip);
 
 }  // namespace projection
 
@@ -739,7 +758,7 @@ void normalized_to_eul2(const MatBase<T, 3, 3> &mat, EulerXYZBase<T> &eul1, Eule
   BLI_assert(math::is_unit_scale(mat));
 
   const T cy = math::hypot(mat[0][0], mat[0][1]);
-  if (cy > T(16) * FLT_EPSILON) {
+  if (cy > T(16) * std::numeric_limits<T>::epsilon()) {
     eul1.x() = math::atan2(mat[1][2], mat[2][2]);
     eul1.y() = math::atan2(-mat[0][2], cy);
     eul1.z() = math::atan2(mat[0][1], mat[0][0]);
@@ -765,7 +784,7 @@ void normalized_to_eul2(const MatBase<T, 3, 3> &mat, Euler3Base<T> &eul1, Euler3
   const int k_index = eul1.k_index();
 
   const T cy = math::hypot(mat[i_index][i_index], mat[i_index][j_index]);
-  if (cy > T(16) * FLT_EPSILON) {
+  if (cy > T(16) * std::numeric_limits<T>::epsilon()) {
     eul1.i() = math::atan2(mat[j_index][k_index], mat[k_index][k_index]);
     eul1.j() = math::atan2(-mat[i_index][k_index], cy);
     eul1.k() = math::atan2(mat[i_index][j_index], mat[i_index][i_index]);
@@ -891,7 +910,7 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
 template<typename T> QuaternionBase<T> normalized_to_quat_with_checks(const MatBase<T, 3, 3> &mat)
 {
   const T det = math::determinant(mat);
-  if (UNLIKELY(!isfinite(det))) {
+  if (UNLIKELY(!std::isfinite(det))) {
     return QuaternionBase<T>::identity();
   }
   else if (UNLIKELY(det < T(0))) {
@@ -1554,6 +1573,23 @@ MatBase<T, 4, 4> orthographic(T left, T right, T bottom, T top, T near_clip, T f
   return mat;
 }
 
+template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top)
+{
+  const T x_delta = right - left;
+  const T y_delta = top - bottom;
+
+  MatBase<T, 4, 4> mat = MatBase<T, 4, 4>::identity();
+  if (x_delta != 0 && y_delta != 0) {
+    mat[0][0] = T(2.0) / x_delta;
+    mat[3][0] = -(right + left) / x_delta;
+    mat[1][1] = T(2.0) / y_delta;
+    mat[3][1] = -(top + bottom) / y_delta;
+    mat[2][2] = 0.0f;
+    mat[3][2] = 0.0f;
+  }
+  return mat;
+}
+
 template<typename T>
 MatBase<T, 4, 4> perspective(T left, T right, T bottom, T top, T near_clip, T far_clip)
 {
@@ -1570,6 +1606,29 @@ MatBase<T, 4, 4> perspective(T left, T right, T bottom, T top, T near_clip, T fa
     mat[2][2] = -(far_clip + near_clip) / z_delta;
     mat[2][3] = -1.0f;
     mat[3][2] = (-2.0f * near_clip * far_clip) / z_delta;
+    mat[3][3] = 0.0f;
+  }
+  return mat;
+}
+
+template<typename T>
+MatBase<T, 4, 4> perspective_infinite(T left, T right, T bottom, T top, T near_clip)
+{
+  const T x_delta = right - left;
+  const T y_delta = top - bottom;
+
+  /* From "Projection Matrix Tricks" by Eric Lengyel GDC 2007. */
+  MatBase<T, 4, 4> mat = MatBase<T, 4, 4>::identity();
+  if (x_delta != 0 && y_delta != 0) {
+    mat[0][0] = near_clip * T(2.0) / x_delta;
+    mat[1][1] = near_clip * T(2.0) / y_delta;
+    mat[2][0] = (right + left) / x_delta; /* NOTE: negate Z. */
+    mat[2][1] = (top + bottom) / y_delta;
+    /* Page 17. Choosing an epsilon for 32 bit floating-point precision. */
+    constexpr float eps = 2.4e-7f;
+    mat[2][2] = -1.0f;
+    mat[2][3] = (eps - 1.0f);
+    mat[3][2] = (eps - 2.0f) * near_clip;
     mat[3][3] = 0.0f;
   }
   return mat;

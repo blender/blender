@@ -34,6 +34,7 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -56,7 +57,7 @@
 #include "BKE_effect.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -65,7 +66,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -382,7 +383,7 @@ IDTypeInfo IDType_ID_PA = {
     /*main_listbase_index*/ INDEX_ID_PA,
     /*struct_size*/ sizeof(ParticleSettings),
     /*name*/ "ParticleSettings",
-    /*name_plural*/ "particles",
+    /*name_plural*/ N_("particles"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
     /*flags*/ 0,
     /*asset_type_info*/ nullptr,
@@ -492,12 +493,12 @@ static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot,
   ParticleCacheKey **cache;
   int i, totkey, totbufkey;
 
-  tot = MAX2(tot, 1);
+  tot = std::max(tot, 1);
   totkey = 0;
   cache = static_cast<ParticleCacheKey **>(MEM_callocN(tot * sizeof(void *), "PathCacheArray"));
 
   while (totkey < tot) {
-    totbufkey = MIN2(tot - totkey, PATH_CACHE_BUF_SIZE);
+    totbufkey = std::min(tot - totkey, PATH_CACHE_BUF_SIZE);
     buf = static_cast<LinkData *>(MEM_callocN(sizeof(LinkData), "PathCacheLinkData"));
     buf->data = MEM_callocN(sizeof(ParticleCacheKey) * totbufkey * totkeys, "ParticleCacheKey");
 
@@ -1309,8 +1310,8 @@ static void init_particle_interpolation(Object *ob,
     pind->dietime = pa ? pa->dietime : (pind->cache->endframe + 1);
 
     if (get_pointcache_times_for_particle(pind->cache, pa - psys->particles, &start, &dietime)) {
-      pind->birthtime = MAX2(pind->birthtime, start);
-      pind->dietime = MIN2(pind->dietime, dietime);
+      pind->birthtime = std::max(pind->birthtime, start);
+      pind->dietime = std::min(pind->dietime, dietime);
     }
   }
   else {
@@ -2396,7 +2397,7 @@ bool do_guides(Depsgraph *depsgraph,
         /* curve direction */
         cross_v3_v3v3(temp, eff->guide_dir, guidedir);
         angle = dot_v3v3(eff->guide_dir, guidedir) / len_v3(eff->guide_dir);
-        angle = saacos(angle);
+        angle = safe_acosf(angle);
         axis_angle_to_quat(rot2, temp, angle);
         mul_qt_v3(rot2, vec_to_point);
 
@@ -2871,7 +2872,7 @@ static void psys_thread_create_path(ParticleTask *task,
             normalize_v3(v1);
             normalize_v3(v2);
 
-            d = RAD2DEGF(saacos(dot_v3v3(v1, v2)));
+            d = RAD2DEGF(safe_acosf(dot_v3v3(v1, v2)));
           }
 
           if (p_max > p_min) {
@@ -3237,7 +3238,7 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0,
         copy_v4_v4(key1->rot, key2->rot);
       }
       else {
-        angle = saacos(cosangle);
+        angle = safe_acosf(cosangle);
         cross_v3_v3v3(normal, prev_tangent, tangent);
         axis_angle_to_quat(q, normal, angle);
         mul_qt_qtqt(key1->rot, q, key2->rot);
@@ -3352,7 +3353,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 
     if (part->draw & PART_ABS_PATH_TIME) {
       birthtime = MAX2(pind.birthtime, part->path_start);
-      dietime = MIN2(pind.dietime, part->path_end);
+      dietime = std::min(pind.dietime, part->path_end);
     }
     else {
       float tb = pind.birthtime;
@@ -3674,7 +3675,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph,
     return;
   }
 
-  segments = MAX2(segments, 4);
+  segments = std::max(segments, 4);
 
   if (!cache || edit->totpoint != edit->totcached) {
     /* Clear out old and create new empty path cache. */
@@ -4934,7 +4935,7 @@ bool psys_get_particle_state(ParticleSimulationData *sim,
       }
     }
 
-    cfra = MIN2(cfra, pa->dietime);
+    cfra = std::min(cfra, pa->dietime);
   }
 
   if (sim->psys->flag & PSYS_KEYED) {

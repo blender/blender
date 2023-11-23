@@ -16,7 +16,7 @@
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_screen.hh"
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
@@ -821,7 +821,7 @@ int text_get_visible_lines(const SpaceText *st, ARegion *region, const char *str
     while (chars--) {
       if (i + columns - start > max) {
         lines++;
-        start = MIN2(end, i);
+        start = std::min(end, i);
         end += max;
       }
       else if (ELEM(ch, ' ', '-')) {
@@ -927,7 +927,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
   sell_off = text_get_span_wrap(
       st, region, static_cast<TextLine *>(st->text->lines.first), st->text->sell);
   lhlstart = MIN2(curl_off, sell_off);
-  lhlend = MAX2(curl_off, sell_off);
+  lhlend = std::max(curl_off, sell_off);
 
   if (ltexth > 0) {
     hlstart = (lhlstart * pix_available) / ltexth;
@@ -1085,7 +1085,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   boxh = SUGG_LIST_SIZE * lheight + 8;
 
   if (x + boxw > region->winx) {
-    x = MAX2(0, region->winx - boxw);
+    x = std::max(0, region->winx - boxw);
   }
 
   /* not needed but stands out nicer */

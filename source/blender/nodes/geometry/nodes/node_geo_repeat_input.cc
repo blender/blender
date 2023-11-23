@@ -20,14 +20,18 @@ namespace blender::nodes::node_geo_repeat_input_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryRepeatInput);
 
-static void node_declare_dynamic(const bNodeTree &tree,
-                                 const bNode &node,
-                                 NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Iterations").min(0).default_value(1);
 
-  const NodeGeometryRepeatInput &storage = node_storage(node);
-  const bNode *output_node = tree.node_by_id(storage.output_node_id);
+  const bNode *node = b.node_or_null();
+  const bNodeTree *tree = b.tree_or_null();
+  if (ELEM(nullptr, node, tree)) {
+    return;
+  }
+
+  const NodeGeometryRepeatInput &storage = node_storage(*node);
+  const bNode *output_node = tree->node_by_id(storage.output_node_id);
   if (output_node == nullptr) {
     return;
   }
@@ -72,7 +76,7 @@ static void node_register()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
-  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.declare = node_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   node_type_storage(

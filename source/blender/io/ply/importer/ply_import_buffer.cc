@@ -96,8 +96,12 @@ bool PlyReadBuffer::refill_buffer()
   pos_ = 0;
   buf_used_ = int(read);
 
-  /* Find last newline. */
+  /* Skip past newlines at the front of the buffer and find last newline. */
   if (!is_binary_) {
+    while (pos_ < buf_used_ && is_newline(buffer_[pos_])) {
+      pos_++;
+    }
+
     int last_nl = buf_used_;
     if (!at_eof_) {
       while (last_nl > 0) {

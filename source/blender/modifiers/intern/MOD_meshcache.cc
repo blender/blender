@@ -25,7 +25,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -278,13 +278,17 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-  meshcache_do(mcmd, scene, ctx->object, mesh, vertexCos, verts_num);
+  meshcache_do(mcmd,
+               scene,
+               ctx->object,
+               mesh,
+               reinterpret_cast<float(*)[3]>(positions.data()),
+               positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -374,7 +378,7 @@ ModifierTypeInfo modifierType_MeshCache = {
     /*struct_name*/ "MeshCacheModifierData",
     /*struct_size*/ sizeof(MeshCacheModifierData),
     /*srna*/ &RNA_MeshCacheModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_MESHDEFORM, /* TODO: Use correct icon. */

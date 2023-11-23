@@ -84,6 +84,7 @@ void normals_calc_faces(Span<float3> vert_positions,
 void normals_calc_verts(Span<float3> vert_positions,
                         OffsetIndices<int> faces,
                         Span<int> corner_verts,
+                        GroupedSpan<int> vert_to_face_map,
                         Span<float3> face_normals,
                         MutableSpan<float3> vert_normals);
 
@@ -162,8 +163,6 @@ void normals_calc_loop(Span<float3> vert_positions,
                        const bool *sharp_edges,
                        const bool *sharp_faces,
                        const short2 *clnors_data,
-                       bool use_split_normals,
-                       float split_angle,
                        CornerNormalSpaceArray *r_lnors_spacearr,
                        MutableSpan<float3> r_loop_normals);
 
@@ -270,17 +269,14 @@ inline int face_triangles_num(const int face_size)
 
 /**
  * Return the index of the edge's vertex that is not the \a vert.
- * If neither edge vertex is equal to \a v, returns -1.
  */
-inline int edge_other_vert(const int2 &edge, const int vert)
+inline int edge_other_vert(const int2 edge, const int vert)
 {
-  if (edge[0] == vert) {
-    return edge[1];
-  }
-  if (edge[1] == vert) {
-    return edge[0];
-  }
-  return -1;
+  BLI_assert(ELEM(vert, edge[0], edge[1]));
+  BLI_assert(edge[0] >= 0);
+  BLI_assert(edge[1] >= 0);
+  /* Order is important to avoid overflow. */
+  return (edge[0] - vert) + edge[1];
 }
 
 /** \} */

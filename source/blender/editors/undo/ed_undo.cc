@@ -22,7 +22,7 @@
 
 #include "BKE_blender_undo.h"
 #include "BKE_callbacks.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -826,14 +826,30 @@ void ED_undo_object_set_active_or_warn(
   }
 }
 
-void ED_undo_object_editmode_restore_helper(bContext *C,
+void ED_undo_object_editmode_validate_scene_from_windows(wmWindowManager *wm,
+                                                         const Scene *scene_ref,
+                                                         Scene **scene_p,
+                                                         ViewLayer **view_layer_p)
+{
+  if (*scene_p == scene_ref) {
+    return;
+  }
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    if (win->scene == scene_ref) {
+      *scene_p = win->scene;
+      *view_layer_p = WM_window_get_active_view_layer(win);
+      return;
+    }
+  }
+}
+
+void ED_undo_object_editmode_restore_helper(Scene *scene,
+                                            ViewLayer *view_layer,
                                             Object **object_array,
                                             uint object_array_len,
                                             uint object_array_stride)
 {
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Main *bmain = G_MAIN;
   uint bases_len = 0;
   /* Don't request unique data because we want to de-select objects when exiting edit-mode
    * for that to be done on all objects we can't skip ones that share data. */

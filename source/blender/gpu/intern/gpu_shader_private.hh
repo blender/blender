@@ -79,6 +79,10 @@ class Shader {
   /* DEPRECATED: Kept only because of BGL API. */
   virtual int program_handle_get() const = 0;
 
+  /* Only used by SSBO Vertex fetch. */
+  virtual bool get_uses_ssbo_vertex_fetch() const = 0;
+  virtual int get_ssbo_vertex_fetch_output_num_verts() const = 0;
+
   inline const char *const name_get() const
   {
     return name;

@@ -65,7 +65,7 @@ class ViewerOperation : public NodeOperation {
      * that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
-    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
     GPU_shader_uniform_1f(shader, "split_ratio", get_split_ratio());
 
@@ -106,10 +106,10 @@ class ViewerOperation : public NodeOperation {
   GPUShader *get_split_viewer_shader()
   {
     if (get_split_axis() == CMP_NODE_SPLIT_VIEWER_HORIZONTAL) {
-      return shader_manager().get("compositor_split_viewer_horizontal");
+      return context().get_shader("compositor_split_viewer_horizontal", ResultPrecision::Half);
     }
 
-    return shader_manager().get("compositor_split_viewer_vertical");
+    return context().get_shader("compositor_split_viewer_vertical", ResultPrecision::Half);
   }
 
   CMPNodeSplitViewerAxis get_split_axis()

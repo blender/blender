@@ -6,29 +6,56 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
+#include <string_view>
+
+#include <fmt/format.h>
 
 namespace blender::timeit {
 
-void print_duration(Nanoseconds duration)
+static void format_duration(Nanoseconds duration, fmt::memory_buffer &buf)
 {
   using namespace std::chrono;
   if (duration < microseconds(100)) {
-    std::cout << duration.count() << " ns";
+    fmt::format_to(fmt::appender(buf), FMT_STRING("{} ns"), duration.count());
   }
   else if (duration < seconds(5)) {
-    std::cout << std::fixed << std::setprecision(1) << duration.count() / 1.0e6 << " ms";
+    fmt::format_to(fmt::appender(buf), FMT_STRING("{:.2f} ms"), duration.count() / 1.0e6);
   }
   else if (duration > seconds(90)) {
     /* Long durations: print seconds, and also H:m:s */
     const auto dur_hours = duration_cast<hours>(duration);
     const auto dur_mins = duration_cast<minutes>(duration - dur_hours);
     const auto dur_sec = duration_cast<seconds>(duration - dur_hours - dur_mins);
-    std::cout << std::fixed << std::setprecision(1) << duration.count() / 1.0e9 << " s ("
-              << dur_hours.count() << "H:" << dur_mins.count() << "m:" << dur_sec.count() << "s)";
+    fmt::format_to(fmt::appender(buf),
+                   FMT_STRING("{:.1f} s ({}H:{}m:{}s)"),
+                   duration.count() / 1.0e9,
+                   dur_hours.count(),
+                   dur_mins.count(),
+                   dur_sec.count());
   }
   else {
-    std::cout << std::fixed << std::setprecision(1) << duration.count() / 1.0e9 << " s";
+    fmt::format_to(fmt::appender(buf), FMT_STRING("{:.1f} s"), duration.count() / 1.0e9);
   }
+}
+
+void print_duration(Nanoseconds duration)
+{
+  fmt::memory_buffer buf;
+  format_duration(duration, buf);
+  std::cout << std::string_view(buf.data(), buf.size());
+}
+
+ScopedTimer::~ScopedTimer()
+{
+  const TimePoint end = Clock::now();
+  const Nanoseconds duration = end - start_;
+
+  fmt::memory_buffer buf;
+  fmt::format_to(fmt::appender(buf), FMT_STRING("Timer '{}' took "), name_);
+  format_duration(duration, buf);
+  buf.append(std::string_view("\n"));
+  std::cout << std::string_view(buf.data(), buf.size());
 }
 
 ScopedTimerAveraged::~ScopedTimerAveraged()
@@ -40,13 +67,15 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   total_time_ += duration;
   min_time_ = std::min(duration, min_time_);
 
-  std::cout << "Timer '" << name_ << "': (Average: ";
-  print_duration(total_time_ / total_count_);
-  std::cout << ", Min: ";
-  print_duration(min_time_);
-  std::cout << ", Last: ";
-  print_duration(duration);
-  std::cout << ")\n";
+  fmt::memory_buffer buf;
+  fmt::format_to(fmt::appender(buf), FMT_STRING("Timer '{}': (Average: "), name_);
+  format_duration(total_time_ / total_count_, buf);
+  buf.append(std::string_view(", Min: "));
+  format_duration(min_time_, buf);
+  buf.append(std::string_view(", Last: "));
+  format_duration(duration, buf);
+  buf.append(std::string_view(")\n"));
+  std::cout << std::string_view(buf.data(), buf.size());
 }
 
 }  // namespace blender::timeit

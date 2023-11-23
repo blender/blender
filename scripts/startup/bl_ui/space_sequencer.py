@@ -675,6 +675,7 @@ class SEQUENCER_MT_navigation(Menu):
 class SEQUENCER_MT_add(Menu):
     bl_label = "Add"
     bl_translation_context = i18n_contexts.operator_default
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
 
@@ -1829,16 +1830,6 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         if strip.scene_input == 'CAMERA':
             layout.template_ID(strip, "scene_camera", text="Camera")
 
-        if scene:
-            # Build a manual split layout as a hack to get proper alignment with the rest of the buttons.
-            sub = layout.row(align=True)
-            sub.use_property_decorate = True
-            split = sub.split(factor=0.4, align=True)
-            split.alignment = 'RIGHT'
-            split.label(text="Volume", text_ctxt=i18n_contexts.id_sound)
-            split.prop(scene, "audio_volume", text="")
-            sub.use_property_decorate = False
-
         if strip.scene_input == 'CAMERA':
             layout = layout.column(heading="Show")
             layout.prop(strip, "use_annotations", text="Annotations")
@@ -1846,6 +1837,39 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the "Render" menu is very inconvenient.
                 layout.prop(scene.render, "film_transparent")
+
+
+class SEQUENCER_PT_scene_sound(SequencerButtonsPanel, Panel):
+    bl_label = "Sound"
+    bl_category = "Strip"
+
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+
+        strip = context.active_sequence_strip
+        if not strip:
+            return False
+
+        return (strip.type == 'SCENE')
+
+    def draw(self, context):
+        strip = context.active_sequence_strip
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        layout.active = not strip.mute
+
+        col = layout.column()
+
+        col.use_property_decorate = True
+        split = col.split(factor=0.4)
+        split.alignment = 'RIGHT'
+        split.label(text="Strip Volume", text_ctxt=i18n_contexts.id_sound)
+        split.prop(strip, "volume", text="")
+        col.use_property_decorate = False
 
 
 class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
@@ -2256,6 +2280,7 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
         col = layout.column()
         col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "color_multiply", text="Multiply")
+        col.prop(strip, "multiply_alpha")
         col.prop(strip, "use_float", text="Convert to Float")
 
 
@@ -2811,6 +2836,7 @@ classes = (
 
     SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,
+    SEQUENCER_PT_scene_sound,
     SEQUENCER_PT_mask,
     SEQUENCER_PT_effect_text_style,
     SEQUENCER_PT_effect_text_layout,

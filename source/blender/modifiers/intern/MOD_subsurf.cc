@@ -23,8 +23,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -66,7 +66,6 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
-    r_cddata_masks->lmask |= CD_MASK_NORMAL;
     r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
   }
 }
@@ -206,7 +205,6 @@ static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
   runtime_data->has_gpu_subdiv = true;
   runtime_data->resolution = mesh_settings.resolution;
   runtime_data->use_optimal_display = mesh_settings.use_optimal_display;
-  runtime_data->calc_loop_normals = false; /* Set at the end of modifier stack evaluation. */
   runtime_data->use_loop_normals = (smd->flags & eSubsurfModifierFlag_UseCustomNormals);
 
   mesh->runtime->subsurf_runtime_data = runtime_data;
@@ -260,10 +258,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
   const bool use_clnors = BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh);
   if (use_clnors) {
-    /* If custom normals are present and the option is turned on calculate the split
-     * normals and clear flag so the normals get interpolated to the result mesh. */
-    BKE_mesh_calc_normals_split(mesh);
-    CustomData_clear_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    void *data = CustomData_add_layer(&mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->totloop);
+    memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
   }
   /* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
    * maybe when it is a last modifier in the stack? */
@@ -275,12 +271,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   if (use_clnors) {
-    float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
-    BLI_assert(lnors != nullptr);
-    BKE_mesh_set_custom_normals(result, lnors);
-    CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-    CustomData_set_layer_flag(&result->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    BKE_mesh_set_custom_normals(result,
+                                static_cast<float(*)[3]>(CustomData_get_layer_for_write(
+                                    &result->loop_data, CD_NORMAL, result->totloop)));
+    CustomData_free_layers(&result->loop_data, CD_NORMAL, result->totloop);
   }
   // BKE_subdiv_stats_print(&subdiv->stats);
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
@@ -292,9 +286,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 static void deform_matrices(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            float (*vertex_cos)[3],
-                            float (*deform_matrices)[3][3],
-                            int verts_num)
+                            blender::MutableSpan<blender::float3> positions,
+                            blender::MutableSpan<blender::float3x3> /*matrices*/)
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -302,7 +295,6 @@ static void deform_matrices(ModifierData *md,
 #endif
 
   /* Subsurf does not require extra space mapping, keep matrices as is. */
-  (void)deform_matrices;
 
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   if (!BKE_subsurf_modifier_runtime_init(smd, (ctx->flag & MOD_APPLY_RENDER) != 0)) {
@@ -314,7 +306,8 @@ static void deform_matrices(ModifierData *md,
     /* Happens on bad topology, but also on empty input mesh. */
     return;
   }
-  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
+  BKE_subdiv_deform_coarse_vertices(
+      subdiv, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
     BKE_subdiv_free(subdiv);
   }
@@ -392,12 +385,12 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
   if (ob_use_adaptive_subdivision && show_adaptive_options) {
     uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, nullptr, ICON_NONE);
-    float render = MAX2(RNA_float_get(&cycles_ptr, "dicing_rate") *
-                            RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                        0.1f);
-    float preview = MAX2(RNA_float_get(&cycles_ptr, "preview_dicing_rate") *
-                             RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                         0.1f);
+    float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
+                                RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
+                            0.1f);
+    float preview = std::max(RNA_float_get(&cycles_ptr, "preview_dicing_rate") *
+                                 RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
+                             0.1f);
     char output[256];
     SNPRINTF(output, TIP_("Final Scale: Render %.2f px, Viewport %.2f px"), render, preview);
     uiItemL(layout, output, ICON_NONE);
@@ -495,7 +488,7 @@ ModifierTypeInfo modifierType_Subsurf = {
     /*struct_name*/ "SubsurfModifierData",
     /*struct_size*/ sizeof(SubsurfModifierData),
     /*srna*/ &RNA_SubsurfModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
         eModifierTypeFlag_AcceptsCVs,

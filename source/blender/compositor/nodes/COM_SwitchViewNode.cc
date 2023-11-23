@@ -20,7 +20,7 @@ void SwitchViewNode::convert_to_operations(NodeConverter &converter,
 
   /* get the internal index of the socket with a matching name */
   int nr = BLI_findstringindex(&bnode->inputs, view_name, offsetof(bNodeSocket, name));
-  nr = MAX2(nr, 0);
+  nr = std::max(nr, 0);
 
   result = converter.add_input_proxy(get_input_socket(nr), false);
   converter.map_output_socket(get_output_socket(0), result);

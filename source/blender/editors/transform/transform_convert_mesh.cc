@@ -20,11 +20,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 
-#include "BKE_context.h"
-#include "BKE_crazyspace.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_crazyspace.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_scene.h"
 
 #include "ED_mesh.hh"
@@ -1318,10 +1318,9 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
                                               TransMeshDataCrazySpace *r_crazyspace_data)
 {
   float(*quats)[4] = nullptr;
-  float(*defmats)[3][3] = nullptr;
   const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
   if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, nullptr, true) != -1) {
-    float(*defcos)[3] = nullptr;
+    blender::Array<blender::float3, 0> defcos;
     int totleft = -1;
     if (BKE_modifiers_is_correctable_deformed(t->scene, tc->obedit)) {
       BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
@@ -1333,7 +1332,7 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
       /* check if we can use deform matrices for modifier from the
        * start up to stack, they are more accurate than quats */
       totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
-          t->depsgraph, scene_eval, obedit_eval, em_eval, &defmats, &defcos);
+          t->depsgraph, scene_eval, obedit_eval, em_eval, r_crazyspace_data->defmats, defcos);
     }
 
     /* If we still have more modifiers, also do crazy-space
@@ -1346,22 +1345,14 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
     if (totleft > 0)
 #endif
     {
-      float(*mappedcos)[3] = nullptr;
-      mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph, tc->obedit);
+      const blender::Array<blender::float3> mappedcos = BKE_crazyspace_get_mapped_editverts(
+          t->depsgraph, tc->obedit);
       quats = static_cast<float(*)[4]>(
           MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats"));
       BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
-      if (mappedcos) {
-        MEM_freeN(mappedcos);
-      }
-    }
-
-    if (defcos) {
-      MEM_freeN(defcos);
     }
   }
   r_crazyspace_data->quats = quats;
-  r_crazyspace_data->defmats = defmats;
 }
 
 void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
@@ -1404,9 +1395,6 @@ void transform_convert_mesh_crazyspace_free(TransMeshDataCrazySpace *r_crazyspac
 {
   if (r_crazyspace_data->quats) {
     MEM_freeN(r_crazyspace_data->quats);
-  }
-  if (r_crazyspace_data->defmats) {
-    MEM_freeN(r_crazyspace_data->defmats);
   }
 }
 
@@ -1496,7 +1484,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
 
     TransIslandData island_data = {nullptr};
     TransMirrorData mirror_data = {nullptr};
-    TransMeshDataCrazySpace crazyspace_data = {nullptr};
+    TransMeshDataCrazySpace crazyspace_data = {};
 
     /**
      * Quick check if we can transform.
@@ -1669,7 +1657,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
         transform_convert_mesh_crazyspace_transdata_set(
             mtx,
             smtx,
-            crazyspace_data.defmats ? crazyspace_data.defmats[a] : nullptr,
+            !crazyspace_data.defmats.is_empty() ? crazyspace_data.defmats[a].ptr() : nullptr,
             crazyspace_data.quats && BM_elem_flag_test(eve, BM_ELEM_TAG) ?
                 crazyspace_data.quats[a] :
                 nullptr,
@@ -1964,10 +1952,10 @@ static void mesh_partial_update(TransInfo *t,
   /* Promote the partial update types based on the previous state
    * so the values that no longer modified are reset before being left as-is.
    * Needed for translation which can toggle snap-to-normal during transform. */
-  const enum ePartialType partial_for_looptri = MAX2(partial_state->for_looptri,
-                                                     partial_state_prev->for_looptri);
-  const enum ePartialType partial_for_normals = MAX2(partial_state->for_normals,
-                                                     partial_state_prev->for_normals);
+  const enum ePartialType partial_for_looptri = std::max(partial_state->for_looptri,
+                                                         partial_state_prev->for_looptri);
+  const enum ePartialType partial_for_normals = std::max(partial_state->for_normals,
+                                                         partial_state_prev->for_normals);
 
   if ((partial_for_looptri == PARTIAL_TYPE_ALL) && (partial_for_normals == PARTIAL_TYPE_ALL) &&
       (em->bm->totvert == em->bm->totvertsel))

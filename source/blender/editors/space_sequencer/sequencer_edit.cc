@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_timecode.h"
@@ -24,7 +25,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
@@ -32,21 +33,21 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
-#include "SEQ_add.h"
-#include "SEQ_animation.h"
-#include "SEQ_channels.h"
-#include "SEQ_clipboard.h"
-#include "SEQ_edit.h"
-#include "SEQ_effects.h"
-#include "SEQ_iterator.h"
-#include "SEQ_prefetch.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
-#include "SEQ_utils.h"
+#include "SEQ_add.hh"
+#include "SEQ_animation.hh"
+#include "SEQ_channels.hh"
+#include "SEQ_clipboard.hh"
+#include "SEQ_edit.hh"
+#include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_prefetch.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -385,6 +386,8 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
           SEQ_time_right_handle_frame_set(scene, seq, snap_frame);
         }
       }
+
+      SEQ_relations_invalidate_cache_composite(scene, seq);
     }
   }
 
@@ -1428,8 +1431,10 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
 
   const bool use_cursor_position = RNA_boolean_get(op->ptr, "use_cursor_position");
 
-  const int split_frame = use_cursor_position ? RNA_int_get(op->ptr, "frame") : scene->r.cfra;
-  const int split_channel = use_cursor_position ? RNA_int_get(op->ptr, "channel") : 0;
+  const int split_frame = RNA_struct_property_is_set(op->ptr, "frame") ?
+                              RNA_int_get(op->ptr, "frame") :
+                              scene->r.cfra;
+  const int split_channel = RNA_int_get(op->ptr, "channel");
 
   const eSeqSplitMethod method = eSeqSplitMethod(RNA_enum_get(op->ptr, "type"));
   const int split_side = sequence_split_side_for_exec_get(op);
@@ -1733,18 +1738,13 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 
   SEQ_prefetch_stop(scene);
 
-  SeqCollection *selected_strips = selected_strips_from_context(C);
-  Sequence *seq;
-
-  SEQ_ITERATOR_FOREACH (seq, selected_strips) {
+  for (Sequence *seq : selected_strips_from_context(C)) {
     SEQ_edit_flag_for_removal(scene, seqbasep, seq);
     if (delete_data) {
       sequencer_delete_strip_data(C, seq);
     }
   }
   SEQ_edit_remove_flagged_sequences(scene, seqbasep);
-
-  SEQ_collection_free(selected_strips);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
@@ -1901,7 +1901,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         seq_new->start = start_ofs;
         seq_new->type = SEQ_TYPE_IMAGE;
         seq_new->len = 1;
-        seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+        seq_new->flag |= SEQ_SINGLE_FRAME_CONTENT;
         seq_new->endofs = 1 - step;
 
         /* New strip. */

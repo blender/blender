@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -50,7 +50,7 @@ class NodeParser {
   virtual NodeItem compute_full();
 
  protected:
-  std::string node_name() const;
+  std::string node_name(bool with_out_socket = true) const;
   NodeItem create_node(const std::string &category, NodeItem::Type type);
   NodeItem create_node(const std::string &category,
                        NodeItem::Type type,

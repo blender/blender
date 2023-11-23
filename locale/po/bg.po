@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
 "PO-Revision-Date: 2023-09-26 10:37+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -38,6 +38,10 @@ msgstr "Избор"
 
 msgid "Module"
 msgstr "Модул"
+
+
+msgid "On"
+msgstr "Върху"
 
 
 msgid "Action"
@@ -90,6 +94,10 @@ msgstr "Тип на Пространството"
 
 msgid "Point"
 msgstr "Точка"
+
+
+msgid "Layer"
+msgstr "Слой"
 
 
 msgid "Extend"
@@ -446,10 +454,6 @@ msgstr "Кадри"
 
 msgid "Onion Skinning"
 msgstr "Onion Skinning"
-
-
-msgid "Layer"
-msgstr "Слой"
 
 
 msgid "Grid"
@@ -1124,6 +1128,10 @@ msgid "Next Keyframe"
 msgstr "Следващ Ключов Кадър"
 
 
+msgid "Flat"
+msgstr "Дъска"
+
+
 msgid "Mouse cursor style to use during the modal operator"
 msgstr "Стил на курсора по време на режимните оператори"
 
@@ -1780,10 +1788,6 @@ msgid "Chroma Vectorscope"
 msgstr "Цветен Векторскоп"
 
 
-msgid "Flat"
-msgstr "Дъска"
-
-
 msgid "Bezier U"
 msgstr "Беазие U"
 
@@ -1879,10 +1883,6 @@ msgstr "{} (String)"
 
 msgid "{} (Integer)"
 msgstr "{} (Integer)"
-
-
-msgid "On"
-msgstr "Върху"
 
 
 msgid "OK?"

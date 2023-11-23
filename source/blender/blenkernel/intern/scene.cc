@@ -43,7 +43,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -55,14 +55,14 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_bpath.h"
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
 #include "BKE_duplilist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_freestyle.h"
@@ -101,9 +101,9 @@
 
 #include "RNA_access.hh"
 
-#include "SEQ_edit.h"
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_edit.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
 
 #include "BLO_read_write.hh"
 
@@ -278,7 +278,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                    (ID *)scene_src->master_collection,
                    (ID **)&scene_dst->master_collection,
                    flag_private_id_data);
-    scene_dst->master_collection->runtime.owner_id = &scene_dst->id;
+    scene_dst->master_collection->owner_id = &scene_dst->id;
   }
 
   /* View Layers */
@@ -1186,6 +1186,9 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (sce->master_collection) {
     BLO_write_init_id_buffer_from_id(
         temp_embedded_id_buffer, &sce->master_collection->id, BLO_write_is_undo(writer));
+    BKE_collection_blend_write_prepare_nolib(
+        writer,
+        reinterpret_cast<Collection *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
     BLO_write_struct_at_address(writer,
                                 Collection,
                                 sce->master_collection,

@@ -5,7 +5,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "BKE_type_conversions.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "BLI_virtual_array.hh"
@@ -85,7 +85,7 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
   if (!U.experimental.use_new_volume_nodes) {
     return;
   }
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 

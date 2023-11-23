@@ -16,8 +16,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_unit.h"
@@ -262,7 +262,7 @@ static bool edbm_inset_calc(wmOperator *op)
       EDBM_op_init(em,
                    &bmop,
                    op,
-                   "inset_individual faces=%hf use_even_offset=%b  use_relative_offset=%b "
+                   "inset_individual faces=%hf use_even_offset=%b use_relative_offset=%b "
                    "use_interpolate=%b thickness=%f depth=%f",
                    BM_ELEM_SELECT,
                    use_even_offset,

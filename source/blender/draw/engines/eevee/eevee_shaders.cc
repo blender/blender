@@ -12,7 +12,7 @@
 #include "BKE_node.hh"
 
 #include "BLI_dynstr.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_world_types.h"
 

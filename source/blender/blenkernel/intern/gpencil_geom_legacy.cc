@@ -28,7 +28,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -41,7 +41,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
@@ -50,6 +50,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -133,11 +134,11 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
  */
 static void boundbox_gpencil(Object *ob)
 {
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
+  if (ob->runtime->bb == nullptr) {
+    ob->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
   }
 
-  BoundBox *bb = ob->runtime.bb;
+  BoundBox *bb = ob->runtime->bb;
   bGPdata *gpd = (bGPdata *)ob->data;
 
   float3 min;
@@ -159,8 +160,8 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
   }
 
   bGPdata *gpd = (bGPdata *)ob->data;
-  if ((ob->runtime.bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
-    return ob->runtime.bb;
+  if ((ob->runtime->bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
+    return ob->runtime->bb;
   }
 
   boundbox_gpencil(ob);
@@ -170,15 +171,15 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
    * called with the evaluated object and need update the original object bound box data
    * to keep both values synchronized. */
   if (!ELEM(ob_orig, nullptr, ob)) {
-    if (ob_orig->runtime.bb == nullptr) {
-      ob_orig->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
+    if (ob_orig->runtime->bb == nullptr) {
+      ob_orig->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
     }
     for (int i = 0; i < 8; i++) {
-      copy_v3_v3(ob_orig->runtime.bb->vec[i], ob->runtime.bb->vec[i]);
+      copy_v3_v3(ob_orig->runtime->bb->vec[i], ob->runtime->bb->vec[i]);
     }
   }
 
-  return ob->runtime.bb;
+  return ob->runtime->bb;
 }
 
 /** \} */
@@ -1717,7 +1718,7 @@ float BKE_gpencil_stroke_segment_length(const bGPDstroke *gps,
   }
 
   int index = MAX2(start_index, 0) + 1;
-  int last_index = MIN2(end_index, gps->totpoints - 1) + 1;
+  int last_index = std::min(end_index, gps->totpoints - 1) + 1;
 
   float *last_pt = &gps->points[index - 1].x;
   float total_length = 0.0f;
@@ -3560,8 +3561,8 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
   if (smooth) {
     const int sample_points = 8;
     /* Get the segment to smooth using n points on each side of the join. */
-    int start = MAX2(0, totpoints_a - sample_points);
-    int end = MIN2(gps_a->totpoints - 1, start + (sample_points * 2));
+    int start = std::max(0, totpoints_a - sample_points);
+    int end = std::min(gps_a->totpoints - 1, start + (sample_points * 2));
     const int len = (end - start);
     float step = 1.0f / ((len / 2) + 1);
 

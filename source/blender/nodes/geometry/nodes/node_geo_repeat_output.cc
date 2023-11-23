@@ -16,7 +16,7 @@
 #include "NOD_socket.hh"
 #include "NOD_zone_socket_items.hh"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "node_geometry_util.hh"
 
@@ -24,11 +24,13 @@ namespace blender::nodes::node_geo_repeat_output_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryRepeatOutput);
 
-static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
-                                 const bNode &node,
-                                 NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  const NodeGeometryRepeatOutput &storage = node_storage(node);
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
+  const NodeGeometryRepeatOutput &storage = node_storage(*node);
   for (const int i : IndexRange(storage.items_num)) {
     const NodeRepeatItem &item = storage.items[i];
     const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
@@ -86,7 +88,7 @@ static void node_register()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_OUTPUT, "Repeat Output", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
-  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.declare = node_declare;
   ntype.insert_link = node_insert_link;
   node_type_storage(&ntype, "NodeGeometryRepeatOutput", node_free_storage, node_copy_storage);
   nodeRegisterType(&ntype);

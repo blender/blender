@@ -26,7 +26,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -38,16 +38,16 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "SEQ_channels.h"
-#include "SEQ_iterator.h"
-#include "SEQ_prefetch.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_channels.hh"
+#include "SEQ_iterator.hh"
+#include "SEQ_prefetch.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 
-#include "image_cache.h"
-#include "prefetch.h"
-#include "render.h"
+#include "image_cache.hh"
+#include "prefetch.hh"
+#include "render.hh"
 
 struct PrefetchJob {
   PrefetchJob *next, *prev;
@@ -397,7 +397,7 @@ static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
 static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
                                                  ListBase *channels,
                                                  ListBase *seqbase,
-                                                 SeqCollection *scene_strips,
+                                                 blender::Span<Sequence *> scene_strips,
                                                  bool is_recursive_check)
 {
   float cfra = seq_prefetch_cfra(pfjob);
@@ -421,8 +421,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
     }
 
     /* Check if strip is effect of scene strip or uses it as modifier. This is recursive check. */
-    Sequence *seq_scene;
-    SEQ_ITERATOR_FOREACH (seq_scene, scene_strips) {
+    for (Sequence *seq_scene : scene_strips) {
       if (SEQ_relations_render_loop_check(seq, seq_scene)) {
         return true;
       }
@@ -431,27 +430,25 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
   return false;
 }
 
-static SeqCollection *query_scene_strips(ListBase *seqbase)
+static blender::VectorSet<Sequence *> query_scene_strips(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_query_all_strips_recursive(seqbase);
+  blender::VectorSet<Sequence *> strips;
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type != SEQ_TYPE_SCENE || (seq->flag & SEQ_SCENE_STRIPS) != 0) {
-      SEQ_collection_remove_strip(seq, collection);
+      strips.add(seq);
     }
   }
-  return collection;
+  return strips;
 }
 
 /* Prefetch must avoid rendering scene strips, because rendering in background locks UI and can
  * make it unresponsive for long time periods. */
 static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *channels, ListBase *seqbase)
 {
-  SeqCollection *scene_strips = query_scene_strips(seqbase);
+  blender::VectorSet<Sequence *> scene_strips = query_scene_strips(seqbase);
   if (seq_prefetch_scene_strip_is_rendered(pfjob, channels, seqbase, scene_strips, false)) {
-    SEQ_collection_free(scene_strips);
     return true;
   }
-  SEQ_collection_free(scene_strips);
   return false;
 }
 
@@ -500,6 +497,10 @@ static void *seq_prefetch_frames(void *job)
     ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(pfjob->scene_eval));
     if (seq_prefetch_must_skip_frame(pfjob, channels, seqbase)) {
       pfjob->num_frames_prefetched++;
+      /* Break instead of keep looping if the job should be terminated. */
+      if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) || pfjob->stop) {
+        break;
+      }
       continue;
     }
 
@@ -580,10 +581,9 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
     bool running = seq_prefetch_job_is_running(scene);
     seq_prefetch_resume(scene);
     /* conditions to start:
-     * prefetch enabled, prefetch not running, not scrubbing,  not playing,
+     * prefetch enabled, prefetch not running, not scrubbing, not playing,
      * cache storage enabled, has strips to render, not rendering, not doing modal transform -
-     * important, see D7820.
-     */
+     * important, see D7820. */
     if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing && !playing &&
         ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving)
     {

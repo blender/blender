@@ -1,0 +1,131 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: __POT__\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit"
+
+
+msgid "Valid"
+msgstr "មានសុពលភាព"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "តើឈ្មោះរបស់ AOV ត្រូវគ្នាទេ?"
+
+
+msgid "Name"
+msgstr "ឈ្មោះ"
+
+
+msgid "Name of the AOV"
+msgstr "ឈ្មោះរបស់ AOV "
+
+
+msgid "Data type of the AOV"
+msgstr "ប្រភេទទិន្នន័យ AOV"
+
+
+msgid "Color"
+msgstr "ពណ៌"
+
+
+msgid "Value"
+msgstr "តម្លៃ"
+
+
+msgid "List of AOVs"
+msgstr "បញ្ជីនៃ AOVs"
+
+
+msgid "Collection of AOVs"
+msgstr "Collection of AOVs"
+
+
+msgid "Channels"
+msgstr "ឆានែល"
+
+
+msgid "Default Colors"
+msgstr "ពណ៌ដើម"
+
+
+msgid "Custom Color Set"
+msgstr "ពណ៌ផ្ទាល់ខ្លួន"
+
+
+msgid "Colors"
+msgstr "ពណ៌"
+
+
+msgid "Lock"
+msgstr "ចាក់សោ"
+
+
+msgid "Action group is locked"
+msgstr "Action group is ត្រូវបានចាក់សោ"
+
+
+msgid "Select"
+msgstr "ជ្រើសរើស"
+
+
+msgid "Action group is selected"
+msgstr "Action group ត្រូវបានជ្រើសរើស"
+
+
+msgid "Expanded"
+msgstr "បានពង្រីក"
+
+
+msgid "Module name"
+msgstr "ឈ្មោះ Module"
+
+
+msgid "Add-on Preferences"
+msgstr "ចំណូលចិត្ត Add-on"
+
+
+msgid "Password"
+msgstr "ពាក្យសម្ងាត់"
+
+
+msgid "E-mail address"
+msgstr "អាស័យ​ដ្ឋាន​អ៊ី​ម៉េ​ល"
+
+
+msgid "Error Message"
+msgstr "សារ Error"
+
+
+msgid "Message"
+msgstr "សារ"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "ឧបករណ៍ដែលត្រូវប្រើសម្រាប់ការ Render ជាមួយ  Cycles"
+
+
+msgid "File"
+msgstr "ឯកសារ"
+
+
+msgid "Defaults"
+msgstr "កំណត់​លំនាំដើម"
+
+
+msgid "Help"
+msgstr "ជំនួយ"
+
+
+msgctxt "Operator"
+msgid "Select Box"
+msgstr "ប្រអប់ជ្រើសរើស"
+

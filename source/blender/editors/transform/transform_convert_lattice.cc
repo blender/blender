@@ -14,8 +14,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
-#include "BKE_lattice.h"
+#include "BKE_context.hh"
+#include "BKE_lattice.hh"
 
 #include "transform.hh"
 #include "transform_snap.hh"

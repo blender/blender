@@ -78,7 +78,7 @@ MTLFrameBuffer::~MTLFrameBuffer()
     }
   }
 
-  /* Free colour attachment descriptors. */
+  /* Free color attachment descriptors. */
   for (int i = 0; i < GPU_FB_MAX_COLOR_ATTACHMENT; i++) {
     if (colour_attachment_descriptors_[i] != nil) {
       [colour_attachment_descriptors_[i] release];
@@ -717,7 +717,7 @@ void MTLFrameBuffer::update_attachments(bool /*update_viewport*/)
       case GPU_FB_COLOR_ATTACHMENT5: {
         int color_slot_ind = type - GPU_FB_COLOR_ATTACHMENT0;
         if (attach.tex) {
-          /* If we already had a colour attachment, preserve load/clear-state parameters,
+          /* If we already had a color attachment, preserve load/clear-state parameters,
            * but remove existing and add new attachment. */
           if (this->has_attachment_at_slot(color_slot_ind)) {
             MTLAttachment color_attachment_prev = this->get_color_attachment(color_slot_ind);
@@ -936,8 +936,8 @@ bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
   }
   else {
     MTL_LOG_ERROR(
-        "Passing in null texture to MTLFrameBuffer::addColourAttachment (This could be due to not "
-        "all texture types being supported).");
+        "Passing in null texture to MTLFrameBuffer::add_color_attachment (This could be due to "
+        "not all texture types being supported).");
   }
   return true;
 }
@@ -1696,7 +1696,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
                                                             atIndexedSubscript:attachment_ind];
       }
       else {
-        /* Disable colour attachment. */
+        /* Disable color attachment. */
         [framebuffer_descriptor_[descriptor_config].colorAttachments setObject:nil
                                                             atIndexedSubscript:attachment_ind];
       }

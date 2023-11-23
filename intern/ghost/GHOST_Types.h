@@ -119,6 +119,10 @@ typedef enum {
    * Support for sampling a color outside of the Blender windows.
    */
   GHOST_kCapabilityDesktopSample = (1 << 5),
+  /**
+   * Supports IME text input methods (when `WITH_INPUT_IME` is defined).
+   */
+  GHOST_kCapabilityInputIME = (1 << 6),
 } GHOST_TCapabilityFlag;
 
 /**
@@ -128,7 +132,7 @@ typedef enum {
 #define GHOST_CAPABILITY_FLAG_ALL \
   (GHOST_kCapabilityCursorWarp | GHOST_kCapabilityWindowPosition | \
    GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer | \
-   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityDesktopSample)
+   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityDesktopSample | GHOST_kCapabilityInputIME)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the

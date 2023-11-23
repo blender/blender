@@ -16,20 +16,20 @@
 #include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "ED_select_utils.hh"
 #include "ED_sequencer.hh"
 
-#include "SEQ_iterator.h"
-#include "SEQ_relations.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
 #include "WM_api.hh"
 #include "WM_toolsystem.h"
@@ -148,14 +148,13 @@ static bool retiming_poll(bContext *C)
 static void retiming_key_overlap(Scene *scene, Sequence *seq)
 {
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
-  SeqCollection *strips = SEQ_collection_create(__func__);
-  SEQ_collection_append_strip(seq, strips);
-  SeqCollection *dependant = SEQ_collection_create(__func__);
-  SEQ_collection_expand(scene, seqbase, strips, SEQ_query_strip_effect_chain);
-  SEQ_collection_remove_strip(seq, dependant);
+  blender::VectorSet<Sequence *> strips;
+  blender::VectorSet<Sequence *> dependant;
+  strips.add(seq);
+  dependant.add(seq);
+  SEQ_iterator_set_expand(scene, seqbase, dependant, SEQ_query_strip_effect_chain);
+  dependant.remove(seq);
   SEQ_transform_handle_overlap(scene, seqbase, strips, dependant, true);
-  SEQ_collection_free(strips);
-  SEQ_collection_free(dependant);
 }
 
 /*-------------------------------------------------------------------- */
@@ -202,11 +201,10 @@ static bool retiming_key_add_new_for_seq(bContext *C,
                                          const int timeline_frame)
 {
   Scene *scene = CTX_data_scene(C);
-  SEQ_retiming_data_ensure(seq);
   const int frame_index = BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq);
   const SeqRetimingKey *key = SEQ_retiming_find_segment_start_key(seq, frame_index);
 
-  if (SEQ_retiming_key_is_transition_start(key)) {
+  if (key != nullptr && SEQ_retiming_key_is_transition_start(key)) {
     BKE_report(op->reports, RPT_WARNING, "Can not create key inside of speed transition");
     return false;
   }
@@ -216,19 +214,19 @@ static bool retiming_key_add_new_for_seq(bContext *C,
     return false;
   }
 
+  SEQ_retiming_data_ensure(seq);
   SEQ_retiming_add_key(scene, seq, timeline_frame);
   return true;
 }
 
 static int retiming_key_add_from_selection(bContext *C,
                                            wmOperator *op,
-                                           SeqCollection *strips,
+                                           blender::Span<Sequence *> strips,
                                            const int timeline_frame)
 {
   bool inserted = false;
 
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : strips) {
     inserted |= retiming_key_add_new_for_seq(C, op, seq, timeline_frame);
   }
 
@@ -268,14 +266,13 @@ static int sequencer_retiming_key_add_exec(bContext *C, wmOperator *op)
   }
 
   int ret_val;
-  SeqCollection *strips = selected_strips_from_context(C);
-  if (SEQ_collection_len(strips) != 0) {
+  blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
+  if (!strips.is_empty()) {
     ret_val = retiming_key_add_from_selection(C, op, strips, timeline_frame);
   }
   else {
     ret_val = retiming_key_add_to_editable_strips(C, op, timeline_frame);
   }
-  SEQ_collection_free(strips);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   return ret_val;
@@ -352,16 +349,14 @@ static bool freeze_frame_add_from_strip_selection(bContext *C,
                                                   const int duration)
 {
   Scene *scene = CTX_data_scene(C);
-  SeqCollection *strips = selected_strips_from_context(C);
+  blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
   const int timeline_frame = BKE_scene_frame_get(scene);
   bool success = false;
 
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : strips) {
     success |= freeze_frame_add_new_for_seq(C, op, seq, timeline_frame, duration);
     SEQ_relations_invalidate_cache_raw(scene, seq);
   }
-  SEQ_collection_free(strips);
   return success;
 }
 
@@ -449,6 +444,11 @@ static bool transition_add_new_for_seq(const bContext *C,
 
   if (key == nullptr) {
     key = SEQ_retiming_key_get_by_timeline_frame(scene, seq, timeline_frame);
+  }
+
+  if (SEQ_retiming_is_last_key(seq, key) || key->strip_frame_index == 0) {
+    BKE_report(op->reports, RPT_WARNING, "Can not create transition from first or last key");
+    return false;
   }
 
   SeqRetimingKey *transition = SEQ_retiming_add_transition(scene, seq, key, duration);
@@ -543,10 +543,9 @@ static SeqRetimingKey *ensure_left_and_right_keys(const bContext *C, Sequence *s
 static int strip_speed_set_exec(bContext *C, const wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  SeqCollection *strips = selected_strips_from_context(C);
+  blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
 
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : strips) {
     SEQ_retiming_data_ensure(seq);
     SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);
 
@@ -557,7 +556,6 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
     SEQ_retiming_key_speed_set(scene, seq, key, RNA_float_get(op->ptr, "speed"));
     SEQ_relations_invalidate_cache_raw(scene, seq);
   }
-  SEQ_collection_free(strips);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   return OPERATOR_FINISHED;
@@ -811,12 +809,11 @@ int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   int action = RNA_enum_get(op->ptr, "action");
 
-  SeqCollection *strips = all_strips_from_context(C);
-  Sequence *seq;
+  blender::VectorSet<Sequence *> strips = all_strips_from_context(C);
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    SEQ_ITERATOR_FOREACH (seq, strips) {
+    for (Sequence *seq : strips) {
       if (!SEQ_retiming_data_is_editable(seq)) {
         continue;
       }
@@ -833,7 +830,7 @@ int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op)
     SEQ_retiming_selection_clear(SEQ_editing_get(scene));
   }
 
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : strips) {
     if (!SEQ_retiming_data_is_editable(seq)) {
       continue;
     }

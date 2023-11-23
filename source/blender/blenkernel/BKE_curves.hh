@@ -344,8 +344,10 @@ class CurvesGeometry : public ::CurvesGeometry {
 
  public:
   /**
-   * Change the number of elements. New values for existing attributes should be properly
-   * initialized afterwards.
+   * Change the number of curves and/or points.
+   *
+   * \warning To avoid redundant writes, newly created attribute values are not initialized.
+   * They must be initialized by the caller afterwards.
    */
   void resize(int points_num, int curves_num);
 

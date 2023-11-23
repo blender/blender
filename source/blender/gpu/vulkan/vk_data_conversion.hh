@@ -12,7 +12,10 @@
 
 #include "gpu_texture_private.hh"
 
+#include "vk_common.hh"
+
 namespace blender::gpu {
+struct VKWorkarounds;
 
 /**
  * Convert host buffer to device buffer.
@@ -21,6 +24,7 @@ namespace blender::gpu {
  * \param src_buffer: host buffer.
  * \param buffer_size: number of pixels to convert from the start of the given buffer.
  * \param host_format: format of the host buffer.
+ * \param host_texture_format: texture format of the host buffer.
  * \param device_format: format of the device buffer.
  *
  * \note Will assert when the host_format/device_format combination isn't valid
@@ -31,6 +35,7 @@ void convert_host_to_device(void *dst_buffer,
                             const void *src_buffer,
                             size_t buffer_size,
                             eGPUDataFormat host_format,
+                            eGPUTextureFormat host_texture_format,
                             eGPUTextureFormat device_format);
 
 /**
@@ -40,6 +45,7 @@ void convert_host_to_device(void *dst_buffer,
  * \param src_buffer: device buffer.
  * \param buffer_size: number of pixels to convert from the start of the given buffer.
  * \param host_format: format of the host buffer
+ * \param host_texture_format: texture format of the host buffer.
  * \param device_format: format of the device buffer.
  *
  * \note Will assert when the host_format/device_format combination isn't valid
@@ -50,6 +56,7 @@ void convert_device_to_host(void *dst_buffer,
                             const void *src_buffer,
                             size_t buffer_size,
                             eGPUDataFormat host_format,
+                            eGPUTextureFormat host_texture_format,
                             eGPUTextureFormat device_format);
 
 /**
@@ -75,6 +82,119 @@ bool conversion_needed(const GPUVertFormat &vertex_format);
  *        The number of vertices to convert.
  */
 void convert_in_place(void *data, const GPUVertFormat &vertex_format, const uint vertex_len);
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex Buffers
+ * \{ */
+
+/**
+ * Utility to make vertex buffers device compatible.
+ *
+ * Some vertex formats used by vertex buffers cannot be handled by vulkan.
+ * This could be that vulkan doesn't support it, or that the device itself doesn't support it.
+ *
+ * In this case the vertex buffer needs to be converted before it can be uploaded.
+ * The approach is to do this during upload so we reduce the read/write actions during
+ * transform/upload.
+ */
+struct VertexFormatConverter {
+ private:
+  /** The original format of the vertex buffer constructed by Blender. */
+  const GPUVertFormat *source_format_ = nullptr;
+
+  /**
+   * The format of the vertex buffer that is compatible by the device.
+   *
+   * This can be #source_format when no conversion is needed, or points to #conversion_format when
+   * conversion is needed.
+   */
+  const GPUVertFormat *device_format_ = nullptr;
+
+  bool needs_conversion_ = false;
+
+  /**
+   * When conversion is needed, this is filled with a variant of source_format_ that is compatible
+   * with Vulkan and the active workarounds passed by the #init method.
+   */
+  GPUVertFormat converted_format_;
+
+ public:
+  /**
+   * Has this instance already been initialized?
+   *
+   * Call #init to initialize the instance.
+   */
+  bool is_initialized() const;
+
+  /**
+   * Initialize the vertex format converter instance.
+   *
+   * Can be run on both initialized and uninitialized instances.
+   * After calling this method:
+   * - #is_initialized will return true.
+   * - #device_format_get will return the GPUVertFormat that needs to be used to
+   *   setup the vertex attribute bindings.
+   * - #convert can be called to convert source data to device data.
+   */
+  void init(const GPUVertFormat *vertex_format, const VKWorkarounds &workarounds);
+
+  /**
+   * Get the #GPUVertFormat that is compatible with the Vulkan and the active workarounds passed by
+   * the #init function.
+   *
+   * Will assert when this isn't initialized.
+   */
+  const GPUVertFormat &device_format_get() const;
+
+  /**
+   * Can be called after init to check if conversion is needed.
+   */
+  bool needs_conversion() const;
+
+  /**
+   * Convert src_data to device data.
+   *
+   * Only call this after init and when needs_conversion returns true. Will assert if this isn't
+   * the case. src_data and device_data can point to the same memory address and perform an inline
+   * conversion.
+   *
+   * After this method completes the src_data is converted to device compatible data.
+   */
+  void convert(void *device_data, const void *src_data, const uint vertex_len) const;
+
+  /**
+   * Reset this instance by clearing internal data.
+   *
+   * After calling this #is_initialized() will be false.
+   */
+  void reset();
+
+ private:
+  /**
+   * Update conversion flags happens at the start of initialization and updated the
+   * #needs_conversion flag.
+   */
+  void update_conversion_flags(const GPUVertFormat &vertex_format,
+                               const VKWorkarounds &workarounds);
+  void update_conversion_flags(const GPUVertAttr &vertex_attribute,
+                               const VKWorkarounds &workarounds);
+
+  /**
+   * Update the conversion_format to contain a device compatible version of the #source_format_.
+   */
+  void init_device_format(const VKWorkarounds &workarounds);
+  void make_device_compatible(GPUVertAttr &vertex_attribute,
+                              const VKWorkarounds &workarounds,
+                              bool &needs_repack) const;
+
+  void convert_row(void *device_row_data, const void *source_row_data) const;
+  void convert_attribute(void *device_row_data,
+                         const void *source_row_data,
+                         const GPUVertAttr &device_attribute,
+                         const GPUVertAttr &source_attribute) const;
+};
+
+/* \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Floating point conversions
@@ -243,4 +363,5 @@ uint32_t convert_float_formats(uint32_t value)
 }
 
 /* \} */
+
 };  // namespace blender::gpu

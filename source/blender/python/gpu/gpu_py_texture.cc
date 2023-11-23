@@ -34,7 +34,7 @@
 /** \name GPUTexture Common Utilities
  * \{ */
 
-static const PyC_StringEnumItems pygpu_textureformat_items[] = {
+const PyC_StringEnumItems pygpu_textureformat_items[] = {
     {GPU_RGBA8UI, "RGBA8UI"},
     {GPU_RGBA8I, "RGBA8I"},
     {GPU_RGBA8, "RGBA8"},
