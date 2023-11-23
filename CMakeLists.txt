@@ -419,6 +419,10 @@ option(WITH_MATERIALX "Enable MaterialX Support" ON)
 # Hydra render engine
 option(WITH_HYDRA "Enable Hydra render engine" ON)
 
+# RTL Languages, Complex Shaping, OpenType Features
+option(WITH_FRIBIDI "Enable features relying on fribidi" OFF)
+option(WITH_HARFBUZZ "Enable features relying on harfbuzz" OFF)
+
 # 3D format support
 # Disable opencollada when we don't have precompiled libs
 option(WITH_OPENCOLLADA "Enable OpenCollada Support (http://www.opencollada.org)" ON)
