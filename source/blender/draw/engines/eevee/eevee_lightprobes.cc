@@ -103,8 +103,7 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 
   /* We need an Array texture so allocate it ourself */
   if (!txl->planar_pool) {
-    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
-                                    GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
     eGPUTextureUsage planar_usage_depth = GPU_TEXTURE_USAGE_ATTACHMENT |
                                           GPU_TEXTURE_USAGE_SHADER_READ;
     if (num_planar_ref > 0) {
@@ -203,8 +202,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
   if (!e_data.planar_pool_placeholder) {
-    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
-                                    GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
     e_data.planar_pool_placeholder = DRW_texture_create_2d_array_ex(
         1, 1, 1, GPU_RGBA8, planar_usage, DRW_TEX_FILTER, nullptr);
   }

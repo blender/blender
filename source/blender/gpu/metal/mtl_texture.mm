@@ -131,29 +131,38 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
       }
     }
 
-    /* Ensure we have texture view usage flagged. */
-    BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
-
     /* if a texture view was previously created we release it. */
     if (mip_swizzle_view_ != nil) {
       [mip_swizzle_view_ release];
       mip_swizzle_view_ = nil;
     }
 
+    /* Use source texture to determine range limits. If we are using a GPU texture view, the range
+     * check should only validate the range */
+    const gpu::Texture *tex_view_src = this;
+    if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
+      tex_view_src = unwrap(source_texture_);
+    }
+
     /* Determine num slices */
+    int max_slices = 1;
     int num_slices = 1;
     switch (type_) {
       case GPU_TEXTURE_1D_ARRAY:
+        max_slices = tex_view_src->height_get();
         num_slices = h_;
         break;
       case GPU_TEXTURE_2D_ARRAY:
+        max_slices = tex_view_src->depth_get();
         num_slices = d_;
         break;
       case GPU_TEXTURE_CUBE:
+        max_slices = 6;
         num_slices = 6;
         break;
       case GPU_TEXTURE_CUBE_ARRAY:
         /* d_ is equal to array levels * 6, including face count. */
+        max_slices = tex_view_src->depth_get();
         num_slices = d_;
         break;
       default:
@@ -163,7 +172,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
 
     /* Determine texture view format. If texture view is used as a stencil view, we instead provide
      * the equivalent format for performing stencil reads/samples. */
-    MTLPixelFormat texture_view_pixel_format = texture_.pixelFormat;
+    MTLPixelFormat texture_view_pixel_format = gpu_texture_format_to_metal(format_);
     if (texture_view_stencil_) {
       switch (texture_view_pixel_format) {
         case MTLPixelFormatDepth24Unorm_Stencil8:
@@ -182,11 +191,21 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
      * via modifying this textures type flags. */
     MTLTextureType texture_view_texture_type = to_metal_type(type_);
 
+    /* Ensure we have texture view usage flagged.
+     * NOTE: This check exists in high level GPU API, however does not cover internal Metal backend
+     * uses of texture views such as when required to support SRGB enablement toggle during
+     * rendering. */
+    BLI_assert_msg(
+        (texture_view_pixel_format == texture_.pixelFormat) ||
+            (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW),
+        "Usage Flag GPU_TEXTURE_USAGE_FORMAT_VIEW must be specified if a texture view is "
+        "created with a different format to its source texture.");
+
     int range_len = min_ii((mip_texture_max_level_ - mip_texture_base_level_) + 1,
                            (int)texture_.mipmapLevelCount - mip_texture_base_level_);
     BLI_assert(range_len > 0);
     BLI_assert(mip_texture_base_level_ < texture_.mipmapLevelCount);
-    BLI_assert(mip_texture_base_layer_ < num_slices);
+    BLI_assert(mip_texture_base_layer_ < max_slices);
     mip_swizzle_view_ = [texture_
         newTextureViewWithPixelFormat:texture_view_pixel_format
                           textureType:texture_view_texture_type
@@ -672,7 +691,7 @@ void gpu::MTLTexture::update_sub(
        * format is unwritable, if our texture has not been initialized with
        * texture view support, use a staging texture. */
       if ((compatible_write_format != destination_format) &&
-          !(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW))
+          !(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW))
       {
         use_staging_texture = true;
       }
@@ -688,7 +707,7 @@ void gpu::MTLTexture::update_sub(
         use_staging_texture = true;
       }
       if (compatible_write_format != destination_format) {
-        if (!(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW)) {
+        if (!(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW)) {
           use_staging_texture = true;
         }
       }
@@ -713,7 +732,7 @@ void gpu::MTLTexture::update_sub(
     else {
       /* Use texture view. */
       if (compatible_write_format != destination_format) {
-        BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
+        BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW);
         texture_handle = [texture_ newTextureViewWithPixelFormat:compatible_write_format];
       }
       else {
@@ -1440,8 +1459,6 @@ void gpu::MTLTexture::swizzle_set(const char swizzle_mask[4])
         swizzle_to_mtl(swizzle_mask[2]),
         swizzle_to_mtl(swizzle_mask[3]));
 
-    BLI_assert_msg(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-                   "Texture view support is required to change swizzle parameters.");
     mtl_swizzle_mask_ = new_swizzle_mask;
     texture_view_dirty_flags_ |= TEXTURE_VIEW_SWIZZLE_DIRTY;
   }
@@ -1645,7 +1662,7 @@ void gpu::MTLTexture::read_internal(int mip,
     /* Texture View for SRGB special case. */
     id<MTLTexture> read_texture = texture_;
     if (format_ == GPU_SRGB8_A8) {
-      BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
+      BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW);
       read_texture = [texture_ newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
     }
 
@@ -2098,9 +2115,6 @@ bool gpu::MTLTexture::init_internal(GPUTexture *src,
 
   /* Assign usage. */
   gpu_image_usage_flags_ = GPU_texture_usage(src);
-  BLI_assert_msg(
-      gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-      "Source texture of TextureView must have GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW usage flag.");
 
   /* Assign texture as view. */
   gpu::MTLTexture *mtltex = static_cast<gpu::MTLTexture *>(unwrap(src));
@@ -2187,7 +2201,7 @@ void gpu::MTLTexture::ensure_baked()
      * disabled. Enabling the texture_view or texture_read usage flags disables lossless
      * compression, so the situations in which it is used should be limited. */
     if (format_ == GPU_SRGB8_A8) {
-      gpu_image_usage_flags_ = gpu_image_usage_flags_ | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+      gpu_image_usage_flags_ = gpu_image_usage_flags_ | GPU_TEXTURE_USAGE_FORMAT_VIEW;
     }
 
     /* Create texture descriptor. */

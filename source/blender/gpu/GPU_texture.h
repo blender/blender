@@ -539,10 +539,9 @@ typedef enum eGPUTextureUsage {
   GPU_TEXTURE_USAGE_SHADER_WRITE = (1 << 1),
   /* Whether a texture is used as an attachment in a frame-buffer. */
   GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
-  /* Whether the texture is used as a texture view, uses mip-map layer adjustment,
-   * OR, uses swizzle access masks. Mip-map base layer adjustment and texture channel swizzling
-   * requires a texture view under-the-hood. */
-  GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW = (1 << 3),
+  /* Whether a texture is used to create a texture view utilising a different texture format to the
+   * source textures format. This includes the use of stencil views.  */
+  GPU_TEXTURE_USAGE_FORMAT_VIEW = (1 << 3),
   /* Whether the texture needs to be read from by the CPU. */
   GPU_TEXTURE_USAGE_HOST_READ = (1 << 4),
   /* When used, the texture will not have any backing storage and can solely exist as a virtual

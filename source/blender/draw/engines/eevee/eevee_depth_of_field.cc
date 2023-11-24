@@ -578,8 +578,7 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
 
     void *owner = (void *)&EEVEE_depth_of_field_init;
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     fx->dof_downsample_tx = DRW_texture_pool_query_2d_ex(
         UNPACK2(quater_res), COLOR_FORMAT, usage, static_cast<DrawEngineType *>(owner));
 
@@ -643,8 +642,7 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
   if (txl->dof_reduced_color == nullptr) {
     /* Color needs to be signed format here. See note in shader for explanation. */
     /* Do not use texture pool because of needs mipmaps. */
-    eGPUTextureUsage tex_flags = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                                 GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage tex_flags = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     txl->dof_reduced_color = GPU_texture_create_2d(
         "dof_reduced_color", UNPACK2(res), mip_count, GPU_RGBA16F, tex_flags, nullptr);
     txl->dof_reduced_coc = GPU_texture_create_2d(
