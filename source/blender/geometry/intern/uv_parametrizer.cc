@@ -3618,7 +3618,6 @@ static void p_chart_rotate_fit_aabb(PChart *chart)
 
 ParamHandle::ParamHandle()
 {
-  state = PHANDLE_STATE_ALLOCATED;
   arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
   polyfill_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "param polyfill arena");
   polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
@@ -3628,17 +3627,6 @@ ParamHandle::ParamHandle()
   hash_verts = phash_new((PHashLink **)&construction_chart->verts, 1);
   hash_edges = phash_new((PHashLink **)&construction_chart->edges, 1);
   hash_faces = phash_new((PHashLink **)&construction_chart->faces, 1);
-
-  pin_hash = nullptr;
-  unique_pin_count = 0;
-
-  charts = nullptr;
-  ncharts = 0;
-
-  aspect_y = 1.0f;
-
-  rng = nullptr;
-  blend = 0.0f;
 }
 
 ParamHandle::~ParamHandle()
