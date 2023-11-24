@@ -1044,7 +1044,7 @@ void insert_key_rna(PointerRNA *rna_pointer,
                   rna_path.c_str());
       continue;
     }
-    std::string rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr, prop);
+    char *rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr, prop);
     Vector<float> rna_values = get_keyframe_values(&ptr, prop, visual_keyframing);
 
     insert_key_count += insert_key_action(bmain,
@@ -1055,6 +1055,8 @@ void insert_key_rna(PointerRNA *rna_pointer,
                                           rna_values.as_span(),
                                           insert_key_flags,
                                           key_type);
+
+    MEM_freeN(rna_path_id_to_prop);
   }
 
   if (insert_key_count == 0) {
