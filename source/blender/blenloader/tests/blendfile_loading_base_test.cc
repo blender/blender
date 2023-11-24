@@ -20,6 +20,8 @@
 #include "BKE_scene.h"
 #include "BKE_vfont.h"
 
+#include "BLF_api.h"
+
 #include "BLI_path_util.h"
 #include "BLI_threads.h"
 
@@ -65,6 +67,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_node_system_init();
   BKE_callback_global_init();
   BKE_vfont_builtin_register(datatoc_bfont_pfb, datatoc_bfont_pfb_size);
+  BLF_init();
 
   G.background = true;
   G.factory_startup = true;
@@ -87,6 +90,7 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
   BKE_blender_free();
   RNA_exit();
 
+  BLF_exit();
   DEG_free_node_types();
   GHOST_DisposeSystemPaths();
   DNA_sdna_current_free();

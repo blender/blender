@@ -34,6 +34,7 @@ set(SRC
   gpu_py_uniformbuffer.cc
   gpu_py_vertex_buffer.cc
   gpu_py_vertex_format.cc
+  gpu_py_compute.cc
 
   gpu_py.h
   gpu_py_api.h
@@ -53,6 +54,7 @@ set(SRC
   gpu_py_uniformbuffer.h
   gpu_py_vertex_buffer.h
   gpu_py_vertex_format.h
+  gpu_py_compute.h
 )
 
 set(LIB

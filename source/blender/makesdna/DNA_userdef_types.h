@@ -1281,22 +1281,21 @@ typedef enum eZoomFrame_Mode {
 } eZoomFrame_Mode;
 
 /**
- * Auto-Keying flag
- * #UserDef.autokey_flag (not strictly used when autokeying only -
- * is also used when keyframing these days).
+ * Defines how keyframes are inserted.
+ * Used for regular keying and auto-keying.
  */
-typedef enum eAutokey_Flag {
-  AUTOKEY_FLAG_INSERTAVAIL = (1 << 0),
+typedef enum eKeyInsert_Flag {
+  AUTOKEY_FLAG_INSERTAVAILABLE = (1 << 0),
   AUTOKEY_FLAG_INSERTNEEDED = (1 << 1),
-  AUTOKEY_FLAG_AUTOMATKEY = (1 << 2),
+  AUTOKEY_FLAG_VISUALKEY = (1 << 2),
   AUTOKEY_FLAG_XYZ2RGB = (1 << 3),
 
   /* toolsettings->autokey_flag */
   AUTOKEY_FLAG_ONLYKEYINGSET = (1 << 6),
   AUTOKEY_FLAG_NOWARNING = (1 << 7),
   AUTOKEY_FLAG_CYCLEAWARE = (1 << 8),
-  ANIMRECORD_FLAG_WITHNLA = (1 << 10),
-} eAutokey_Flag;
+  AUTOKEY_FLAG_LAYERED_RECORD = (1 << 10),
+} eKeyInsert_Flag;
 
 typedef enum eKeyInsertChannels {
   USER_ANIM_KEY_CHANNEL_LOCATION = (1 << 0),
@@ -1309,7 +1308,7 @@ typedef enum eKeyInsertChannels {
 /**
  * Animation flags
  * #UserDef.animation_flag, used for animation flags that aren't covered by more specific flags
- * (like eAutokey_Flag).
+ * (like eKeyInsert_Flag).
  */
 typedef enum eUserpref_Anim_Flags {
   USER_ANIM_SHOW_CHANNEL_GROUP_COLORS = (1 << 0),

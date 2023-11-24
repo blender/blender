@@ -173,6 +173,14 @@ if(NOT WITH_SYSTEM_FREETYPE)
   check_freetype_for_brotli()
 endif()
 
+if(WITH_HARFBUZZ)
+  find_package(Harfbuzz)
+endif()
+
+if(WITH_FRIBIDI)
+  find_package(Fribidi)
+endif()
+
 if(WITH_PYTHON)
   # This could be used, see: D14954 for details.
   # `find_package(PythonLibs)`

@@ -146,6 +146,14 @@ set(BROTLI_LIBRARIES
   ${LIBDIR}/brotli/lib/libbrotlidec-static.a
 )
 
+if(WITH_HARFBUZZ)
+  find_package(Harfbuzz)
+endif()
+
+if(WITH_FRIBIDI)
+  find_package(Fribidi)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
   find_package(OpenEXR)
 endif()

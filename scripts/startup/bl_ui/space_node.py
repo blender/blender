@@ -1157,7 +1157,6 @@ class NODE_PT_index_switch_node_items(Panel):
         if snode is None:
             return False
         node = context.active_node
-        print()
         if node is None or node.bl_idname != 'GeometryNodeIndexSwitch':
             return False
         return True

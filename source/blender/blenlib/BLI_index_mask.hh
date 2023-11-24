@@ -851,6 +851,9 @@ inline IndexMask IndexMask::from_predicate(const IndexMask &universe,
           const int64_t global_index = int64_t(local_index) + offset;
           const bool condition = predicate(global_index);
           *r_current = local_index;
+          /* This expects the boolean to be either 0 or 1 which is generally the case but may not
+           * be if the values are uninitialized. */
+          BLI_assert(ELEM(int8_t(condition), 0, 1));
           /* Branchless conditional increment. */
           r_current += condition;
         }

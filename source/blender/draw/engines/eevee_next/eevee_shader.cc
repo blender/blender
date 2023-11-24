@@ -274,6 +274,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_surfel_list_sort";
     case SURFEL_RAY:
       return "eevee_surfel_ray";
+    case VERTEX_COPY:
+      return "eevee_vertex_copy";
     case VOLUME_INTEGRATION:
       return "eevee_volume_integration";
     case VOLUME_OCCUPANCY_CONVERT:

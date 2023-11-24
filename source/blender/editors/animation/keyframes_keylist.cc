@@ -928,7 +928,10 @@ int actkeyblock_get_valid_hold(const ActKeyColumn *ac)
 
 /* *************************** Keyframe List Conversions *************************** */
 
-void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, const int saction_flag)
+void summary_to_keylist(bAnimContext *ac,
+                        AnimKeylist *keylist,
+                        const int saction_flag,
+                        blender::float2 range)
 {
   if (!ac) {
     return;
@@ -950,7 +953,8 @@ void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, const int sactio
      * there isn't really any benefit at all from including them. - Aligorith */
     switch (ale->datatype) {
       case ALE_FCURVE:
-        fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
+        fcurve_to_keylist(
+            ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, range);
         break;
       case ALE_MASKLAY:
         mask_to_keylist(ac->ads, static_cast<MaskLayer *>(ale->data), keylist);
@@ -970,7 +974,11 @@ void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, const int sactio
   ANIM_animdata_freelist(&anim_data);
 }
 
-void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const int saction_flag)
+void scene_to_keylist(bDopeSheet *ads,
+                      Scene *sce,
+                      AnimKeylist *keylist,
+                      const int saction_flag,
+                      blender::float2 range)
 {
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
@@ -999,13 +1007,17 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const i
 
   /* Loop through each F-Curve, grabbing the keyframes. */
   LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
+    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, range);
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int saction_flag)
+void ob_to_keylist(bDopeSheet *ads,
+                   Object *ob,
+                   AnimKeylist *keylist,
+                   const int saction_flag,
+                   blender::float2 range)
 {
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
@@ -1036,7 +1048,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int 
 
   /* Loop through each F-Curve, grabbing the keyframes. */
   LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
+    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, range);
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -1071,13 +1083,18 @@ void cachefile_to_keylist(bDopeSheet *ads,
 
   /* Loop through each F-Curve, grabbing the keyframes. */
   LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
+    fcurve_to_keylist(
+        ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, {-FLT_MAX, FLT_MAX});
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const int saction_flag)
+void fcurve_to_keylist(AnimData *adt,
+                       FCurve *fcu,
+                       AnimKeylist *keylist,
+                       const int saction_flag,
+                       blender::float2 range)
 {
   if (!fcu || fcu->totvert == 0 || !fcu->bezt) {
     return;
@@ -1093,8 +1110,22 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const i
 
   BezTripleChain chain = {nullptr};
 
+  int start_index = 0;
+  /* Used in an exclusive way. */
+  int end_index = fcu->totvert;
+
+  bool replace;
+  start_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, range[0], fcu->totvert, &replace);
+  if (start_index > 0) {
+    start_index--;
+  }
+  end_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, range[1], fcu->totvert, &replace);
+  if (end_index < fcu->totvert) {
+    end_index++;
+  }
+
   /* Loop through beztriples, making ActKeysColumns. */
-  for (int v = 0; v < fcu->totvert; v++) {
+  for (int v = start_index; v < end_index; v++) {
     chain.cur = &fcu->bezt[v];
 
     /* Neighbor columns, accounting for being cyclic. */
@@ -1110,7 +1141,7 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const i
     add_bezt_to_keycolumns_list(keylist, &chain);
   }
 
-  update_keyblocks(keylist, fcu->bezt, fcu->totvert);
+  update_keyblocks(keylist, &fcu->bezt[start_index], end_index - start_index);
 
   if (adt) {
     ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
@@ -1120,7 +1151,8 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const i
 void action_group_to_keylist(AnimData *adt,
                              bActionGroup *agrp,
                              AnimKeylist *keylist,
-                             const int saction_flag)
+                             const int saction_flag,
+                             blender::float2 range)
 {
   if (!agrp) {
     return;
@@ -1130,18 +1162,22 @@ void action_group_to_keylist(AnimData *adt,
     if (fcu->grp != agrp) {
       break;
     }
-    fcurve_to_keylist(adt, fcu, keylist, saction_flag);
+    fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
   }
 }
 
-void action_to_keylist(AnimData *adt, bAction *act, AnimKeylist *keylist, const int saction_flag)
+void action_to_keylist(AnimData *adt,
+                       bAction *act,
+                       AnimKeylist *keylist,
+                       const int saction_flag,
+                       blender::float2 range)
 {
   if (!act) {
     return;
   }
 
   LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-    fcurve_to_keylist(adt, fcu, keylist, saction_flag);
+    fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
   }
 }
 

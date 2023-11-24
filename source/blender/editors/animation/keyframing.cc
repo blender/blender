@@ -83,7 +83,7 @@ eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, const bool use_autokey_m
   /* standard flags */
   {
     /* visual keying */
-    if (is_autokey_flag(scene, AUTOKEY_FLAG_AUTOMATKEY)) {
+    if (is_autokey_flag(scene, AUTOKEY_FLAG_VISUALKEY)) {
       flag |= INSERTKEY_MATRIX;
     }
 
