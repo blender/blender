@@ -478,10 +478,27 @@ static void draw_marker(const uiFontStyle *fstyle,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 20, region_height);
+  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 28, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
-  UI_icon_draw(xpos - 0.55f * UI_ICON_SIZE, UI_SCALE_FAC * 18, icon_id);
+
+  uchar marker_color[4];
+  if (marker->flag & SELECT) {
+    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
+  }
+  else {
+    UI_GetThemeColor4ubv(TH_TEXT, marker_color);
+  }
+
+  UI_icon_draw_ex(xpos - (0.5f * UI_ICON_SIZE) - (0.5f * U.pixelsize),
+                  UI_SCALE_FAC * 18,
+                  icon_id,
+                  UI_INV_SCALE_FAC,
+                  1.0f,
+                  0.0f,
+                  marker_color,
+                  false,
+                  UI_NO_ICON_OVERLAY_TEXT);
 
   GPU_blend(GPU_BLEND_NONE);
 
