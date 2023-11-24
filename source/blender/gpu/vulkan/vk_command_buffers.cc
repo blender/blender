@@ -415,7 +415,9 @@ void VKCommandBuffers::copy(VKTexture &dst_texture,
   command_buffer.command_recorded();
 }
 
-void VKCommandBuffers::copy(VKBuffer &dst_buffer, VkBuffer src_buffer, Span<VkBufferCopy> regions)
+void VKCommandBuffers::copy(const VKBuffer &dst_buffer,
+                            VkBuffer src_buffer,
+                            Span<VkBufferCopy> regions)
 {
   VKCommandBuffer &command_buffer = command_buffer_get(Type::DataTransferCompute);
   vkCmdCopyBuffer(command_buffer.vk_command_buffer(),

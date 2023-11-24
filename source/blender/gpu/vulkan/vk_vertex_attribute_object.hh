@@ -47,6 +47,14 @@ class VKVertexAttributeObject {
   void update_bindings(const VKContext &context, VKBatch &batch);
   void update_bindings(VKImmediate &immediate);
 
+  /**
+   * Ensure that all Vertex Buffers are uploaded to the GPU.
+   *
+   * This is a separate step as uploading could flush the graphics pipeline making the state
+   * inconsistent.
+   */
+  void ensure_vbos_uploaded() const;
+
   void debug_print() const;
 
  private:
