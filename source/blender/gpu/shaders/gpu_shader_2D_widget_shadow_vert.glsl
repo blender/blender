@@ -67,17 +67,41 @@ void main()
                                       vec2(0.02, -0.805),
                                       vec2(0.0, -1.0));
 
+  const vec2 center_offset[4] = vec2[4](
+      vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0), vec2(1.0, -1.0));
+
   uint cflag = vflag & CNR_FLAG_RANGE;
   uint vofs = (vflag >> CORNER_VEC_OFS) & CORNER_VEC_RANGE;
 
-  vec2 v = cornervec[cflag * 9u + vofs];
-
   bool is_inner = (vflag & INNER_FLAG) != 0u;
 
-  shadowFalloff = (is_inner) ? 1.0 : 0.0;
+  float shadow_width = rads - radsi;
+  float shadow_width_top = rect.w - recti.w;
 
-  /* Scale by corner radius */
-  v *= roundCorners[cflag] * ((is_inner) ? radsi : rads);
+  float rad_inner = radsi * roundCorners[cflag];
+  float rad_outer = rad_inner + shadow_width;
+  float radius = (is_inner) ? rad_inner : rad_outer;
+
+  float shadow_offset = (is_inner && (cflag > BOTTOM_RIGHT)) ? (shadow_width - shadow_width_top) :
+                                                               0.0;
+
+  vec2 c = center_offset[cflag];
+  vec2 center_outer = rad_outer * c;
+  vec2 center = radius * c;
+
+  /* First expand all vertices to the outer shadow border. */
+  vec2 v = rad_outer * cornervec[cflag * 9u + vofs];
+
+  /* Now shrink the inner vertices onto the inner rectangle.
+   * At the top corners we keep the vertical offset to distribute a few of the vertices along the
+   * straight part of the rectangle. This allows us to get a better falloff at the top. */
+  if (is_inner && (cflag > BOTTOM_RIGHT) && (v.y < (shadow_offset - rad_outer))) {
+    v.y += shadow_width_top;
+    v.x = 0.0;
+  }
+  else {
+    v = radius * normalize(v - (center_outer + vec2(0.0, shadow_offset))) + center;
+  }
 
   /* Position to corner */
   vec4 rct = (is_inner) ? recti : rect;
@@ -93,6 +117,10 @@ void main()
   else /* (cflag == TOP_LEFT) */ {
     v += rct.xw;
   }
+
+  float inner_shadow_strength = min((rect.w - v.y) / rad_outer + 0.1, 1.0);
+  shadowFalloff = (is_inner) ? inner_shadow_strength : 0.0;
+  innerMask = (is_inner) ? 0.0 : 1.0;
 
   gl_Position = ModelViewProjectionMatrix * vec4(v, 0.0, 1.0);
 }

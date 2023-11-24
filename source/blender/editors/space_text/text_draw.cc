@@ -1056,7 +1056,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
     rect.xmax = x + boxw;
     rect.ymin = y - boxh;
     rect.ymax = y;
-    UI_draw_box_shadow(&rect, 220);
+    ui_draw_dropshadow(&rect, 0.0f, 8.0f, 1.0f, 0.5f);
   }
 
   uint pos = GPU_vertformat_attr_add(

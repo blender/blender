@@ -599,86 +599,6 @@ static void widget_init(uiWidgetBase *wtb)
 /** \name Draw Round Box
  * \{ */
 
-/* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
-/* return tot */
-static int round_box_shadow_edges(
-    float (*vert)[2], const rcti *rect, float rad, int roundboxalign, float step)
-{
-  float vec[WIDGET_CURVE_RESOLU][2];
-  int tot = 0;
-
-  rad += step;
-
-  if (2.0f * rad > BLI_rcti_size_y(rect)) {
-    rad = 0.5f * BLI_rcti_size_y(rect);
-  }
-
-  const float minx = rect->xmin - step;
-  const float miny = rect->ymin - step;
-  const float maxx = rect->xmax + step;
-  const float maxy = rect->ymax + step;
-
-  /* Multiply. */
-  for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
-    vec[a][0] = rad * cornervec[a][0];
-    vec[a][1] = rad * cornervec[a][1];
-  }
-
-  /* start with left-top, anti clockwise */
-  if (roundboxalign & UI_CNR_TOP_LEFT) {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = minx + rad - vec[a][0];
-      vert[tot][1] = maxy - vec[a][1];
-    }
-  }
-  else {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = minx;
-      vert[tot][1] = maxy;
-    }
-  }
-
-  if (roundboxalign & UI_CNR_BOTTOM_LEFT) {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = minx + vec[a][1];
-      vert[tot][1] = miny + rad - vec[a][0];
-    }
-  }
-  else {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = minx;
-      vert[tot][1] = miny;
-    }
-  }
-
-  if (roundboxalign & UI_CNR_BOTTOM_RIGHT) {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = maxx - rad + vec[a][0];
-      vert[tot][1] = miny + vec[a][1];
-    }
-  }
-  else {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = maxx;
-      vert[tot][1] = miny;
-    }
-  }
-
-  if (roundboxalign & UI_CNR_TOP_RIGHT) {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = maxx - vec[a][1];
-      vert[tot][1] = maxy - rad + vec[a][0];
-    }
-  }
-  else {
-    for (int a = 0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
-      vert[tot][0] = maxx;
-      vert[tot][1] = maxy;
-    }
-  }
-  return tot;
-}
-
 /* this call has 1 extra arg to allow mask outline */
 static void round_box__edges(
     uiWidgetBase *wt, int roundboxalign, const rcti *rect, float rad, float radi)
@@ -2828,54 +2748,18 @@ static void widget_state_menu_item(uiWidgetType *wt,
 /* outside of rect, rad to left/bottom/right */
 static void widget_softshadow(const rcti *rect, int roundboxalign, const float radin)
 {
-  bTheme *btheme = UI_GetTheme();
-  uiWidgetBase wtb;
-  rcti rect1 = *rect;
-  float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2];
-  const float radout = UI_ThemeMenuShadowWidth();
+  const float outline = U.pixelsize;
 
-  /* disabled shadow */
-  if (radout == 0.0f) {
-    return;
-  }
+  rctf shadow_rect;
+  BLI_rctf_rcti_copy(&shadow_rect, rect);
+  BLI_rctf_pad(&shadow_rect, -outline, -outline);
 
-  /* prevent tooltips to not show round shadow */
-  if (radout > 0.2f * BLI_rcti_size_y(&rect1)) {
-    rect1.ymax -= 0.2f * BLI_rcti_size_y(&rect1);
-  }
-  else {
-    rect1.ymax -= radout;
-  }
+  UI_draw_roundbox_corner_set(roundboxalign);
 
-  /* inner part */
-  const int totvert = round_box_shadow_edges(wtb.inner_v,
-                                             &rect1,
-                                             radin,
-                                             roundboxalign &
-                                                 (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT),
-                                             0.0f);
+  const float shadow_alpha = UI_GetTheme()->tui.menu_shadow_fac;
+  const float shadow_width = UI_ThemeMenuShadowWidth();
 
-  /* we draw a number of increasing size alpha quad strips */
-  const float alphastep = 3.0f * btheme->tui.menu_shadow_fac / radout;
-
-  const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-  for (int step = 1; step <= int(radout); step++) {
-    const float expfac = sqrtf(step / radout);
-
-    round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, float(step));
-
-    immUniformColor4f(0.0f, 0.0f, 0.0f, alphastep * (1.0f - expfac));
-
-    widget_verts_to_triangle_strip(&wtb, totvert, triangle_strip);
-
-    widget_draw_vertex_buffer(pos, 0, GPU_PRIM_TRI_STRIP, triangle_strip, nullptr, totvert * 2);
-  }
-
-  immUnbindProgram();
+  ui_draw_dropshadow(&shadow_rect, radin, shadow_width, 1.0f, shadow_alpha);
 }
 
 static void widget_menu_back(
@@ -5534,9 +5418,7 @@ static void ui_draw_widget_back_color(uiWidgetTypeEnum type,
   uiWidgetType *wt = widget_type(type);
 
   if (use_shadow) {
-    GPU_blend(GPU_BLEND_ALPHA);
     widget_softshadow(rect, UI_CNR_ALL, 0.25f * U.widget_unit);
-    GPU_blend(GPU_BLEND_NONE);
   }
 
   rcti rect_copy = *rect;

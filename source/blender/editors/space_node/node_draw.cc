@@ -91,8 +91,6 @@
 
 #include "GEO_fillet_curves.hh"
 
-#include "../interface/interface_intern.hh" /* TODO: Remove */
-
 #include "node_intern.hh" /* own include */
 
 #include <fmt/format.h>
@@ -1857,7 +1855,20 @@ static void node_draw_shadow(const SpaceNode &snode,
 {
   const rctf &rct = node.runtime->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  ui_draw_dropshadow(&rct, radius, snode.runtime->aspect, alpha, node.flag & SELECT);
+
+  const float shadow_width = 0.6f * U.widget_unit;
+  const float shadow_alpha = 0.5f * alpha;
+
+  ui_draw_dropshadow(&rct, radius, shadow_width, snode.runtime->aspect, shadow_alpha);
+
+  /* Outline emphasis. Slight darkening _inside_ the outline. */
+  const float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
+  rctf rect{};
+  rect.xmin = rct.xmin - 0.5f;
+  rect.xmax = rct.xmax + 0.5f;
+  rect.ymin = rct.ymin - 0.5f;
+  rect.ymax = rct.ymax + 0.5f;
+  UI_draw_roundbox_4fv(&rect, false, radius + 0.5f, color);
 }
 
 static void node_draw_sockets(const View2D &v2d,
