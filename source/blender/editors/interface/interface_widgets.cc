@@ -2775,11 +2775,20 @@ static void widget_menu_back(
     // rect->ymin -= 4.0;
     // rect->ymax += 4.0;
   }
-  else if (direction == UI_DIR_DOWN) {
-    roundboxalign = (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
-  }
-  else if (direction == UI_DIR_UP) {
-    roundboxalign = UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
+  else if (direction & (UI_DIR_DOWN | UI_DIR_UP)) {
+    if (direction & UI_DIR_DOWN) {
+      roundboxalign = (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
+    }
+    else {
+      roundboxalign = (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+    }
+    /* Corner rounding based on secondary direction. */
+    if (direction & UI_DIR_LEFT) {
+      roundboxalign |= (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+    }
+    if (direction & UI_DIR_RIGHT) {
+      roundboxalign |= (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
+    }
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -4742,10 +4751,11 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
   if (but->active && (but->type != UI_BTYPE_POPOVER) && !ui_but_menu_draw_as_popover(but)) {
     const int direction = ui_but_menu_direction(but);
 
-    if (direction == UI_DIR_UP) {
+    /* Pulldown menus that open above or below a button can have more than one direction. */
+    if (direction & UI_DIR_UP) {
       roundbox &= ~(UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT);
     }
-    else if (direction == UI_DIR_DOWN) {
+    else if (direction & UI_DIR_DOWN) {
       roundbox &= ~(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
     }
     else if (direction == UI_DIR_LEFT) {
