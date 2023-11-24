@@ -5750,7 +5750,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             nullptr);
 
         opptr_b = UI_but_operator_ptr_get(but);
-        RNA_int_set(opptr_b, "channel_index", channel_index);
+        RNA_int_set(opptr_b, "track_index", channel_index);
 
         UI_block_emboss_set(block, UI_EMBOSS_NONE);
       }
