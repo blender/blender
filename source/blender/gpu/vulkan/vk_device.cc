@@ -23,6 +23,7 @@ namespace blender::gpu {
 
 void VKDevice::deinit()
 {
+  VK_ALLOCATION_CALLBACKS
   if (!is_initialized()) {
     return;
   }
@@ -34,8 +35,10 @@ void VKDevice::deinit()
   }
   samplers_.free();
   destroy_discarded_resources();
+  vkDestroyPipelineCache(vk_device_, vk_pipeline_cache_, vk_allocation_callbacks);
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
+
   debugging_tools_.deinit(vk_instance_);
 
   vk_instance_ = VK_NULL_HANDLE;
@@ -68,6 +71,7 @@ void VKDevice::init(void *ghost_context)
   VKBackend::capabilities_init(*this);
   init_debug_callbacks();
   init_memory_allocator();
+  init_pipeline_cache();
 
   samplers_.init();
 
@@ -120,6 +124,14 @@ void VKDevice::init_memory_allocator()
   info.instance = vk_instance_;
   info.pAllocationCallbacks = vk_allocation_callbacks;
   vmaCreateAllocator(&info, &mem_allocator_);
+}
+
+void VKDevice::init_pipeline_cache()
+{
+  VK_ALLOCATION_CALLBACKS;
+  VkPipelineCacheCreateInfo create_info = {};
+  create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+  vkCreatePipelineCache(vk_device_, &create_info, vk_allocation_callbacks, &vk_pipeline_cache_);
 }
 
 void VKDevice::init_dummy_buffer(VKContext &context)
