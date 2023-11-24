@@ -59,9 +59,6 @@ void VolumeModule::init()
     data_.shadow_steps = float(scene_eval->eevee.volumetric_shadow_samples);
   }
 
-  data_.use_lights = (scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_LIGHTS) != 0;
-  data_.use_soft_shadows = (scene_eval->eevee.flag & SCE_EEVEE_SHADOW_SOFT) != 0;
-
   data_.light_clamp = scene_eval->eevee.volumetric_light_clamp;
 }
 
@@ -94,13 +91,11 @@ void VolumeModule::begin_sync()
     data_.depth_far = integration_end;
     data_.depth_distribution = 1.0f / (integration_end - integration_start);
   }
-
-  enabled_ = inst_.world.has_volume();
 }
 
 void VolumeModule::end_sync()
 {
-  enabled_ = enabled_ || inst_.pipelines.volume.is_enabled();
+  enabled_ = inst_.world.has_volume() || inst_.pipelines.volume.is_enabled();
 
   if (!enabled_) {
     occupancy_tx_.free();
@@ -118,6 +113,13 @@ void VolumeModule::end_sync()
 
     return;
   }
+
+  bool has_scatter = inst_.world.has_volume_scatter() || inst_.pipelines.volume.has_scatter();
+  bool has_absorption = inst_.world.has_volume_absorption() ||
+                        inst_.pipelines.volume.has_absorption();
+  use_lights_ = has_scatter;
+  /* TODO(fclem): Allocate extinction texture as dummy (1px^3) if has_absorption are false. */
+  UNUSED_VARS(has_absorption);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                            GPU_TEXTURE_USAGE_ATTACHMENT;
@@ -159,13 +161,6 @@ void VolumeModule::end_sync()
     occupancy_fb_.ensure(data_.tex_size.xy());
   }
 
-  if (!inst_.pipelines.world_volume.is_valid()) {
-    prop_scattering_tx_.clear(float4(0.0f));
-    prop_extinction_tx_.clear(float4(0.0f));
-    prop_emission_tx_.clear(float4(0.0f));
-    prop_phase_tx_.clear(float4(0.0f));
-  }
-
   scatter_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
   extinction_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
 
@@ -176,8 +171,8 @@ void VolumeModule::end_sync()
   transparent_pass_transmit_tx_ = integrated_transmit_tx_;
 
   scatter_ps_.init();
-  scatter_ps_.shader_set(inst_.shaders.static_shader_get(
-      data_.use_lights ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
+  scatter_ps_.shader_set(
+      inst_.shaders.static_shader_get(use_lights_ ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
   inst_.lights.bind_resources(scatter_ps_);
   inst_.reflection_probes.bind_resources(scatter_ps_);
   inst_.irradiance_cache.bind_resources(scatter_ps_);

@@ -35,38 +35,48 @@ struct LookdevParameters {
   LookdevParameters(const ::View3D *v3d);
   bool operator==(const LookdevParameters &other) const;
   bool operator!=(const LookdevParameters &other) const;
-  bool gpu_parameters_changed(const LookdevParameters &other) const;
 };
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Viewport Override Node-Tree
+/** \name Viewport Override World
  *
  * In a viewport the world can be overridden by a custom HDRI and some settings.
  * \{ */
 
-class LookdevWorldNodeTree {
+class LookdevWorld {
  private:
-  bNodeTree *ntree_ = nullptr;
   bNode *environment_node_ = nullptr;
   bNodeSocketValueFloat *intensity_socket_ = nullptr;
   bNodeSocketValueFloat *angle_socket_ = nullptr;
   ::Image image = {};
+  ::World world = {};
+
+  LookdevParameters parameters_;
 
  public:
-  LookdevWorldNodeTree();
-  ~LookdevWorldNodeTree();
+  LookdevWorld();
+  ~LookdevWorld();
 
-  bNodeTree *nodetree_get(const LookdevParameters &parameters);
+  /* Returns true if an update was detected. */
+  bool sync(const LookdevParameters &new_parameters);
+
+  ::World *world_get()
+  {
+    return &world;
+  }
+
+  float background_opacity_get()
+  {
+    return parameters_.background_opacity;
+  }
 };
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Lookdev
- *
- * Look Development can override the world.
  *
  * \{ */
 
@@ -75,19 +85,10 @@ class LookdevModule {
  private:
   Instance &inst_;
 
-  LookdevWorldNodeTree world_override_tree;
-
-  LookdevParameters parameters_;
-  ListBase gpu_materials_ = {nullptr, nullptr};
-
  public:
   LookdevModule(Instance &inst) : inst_(inst){};
-  ~LookdevModule();
 
-  bool sync_world();
-
- private:
-  ::World *get_world(::bNodeTree *node_tree);
+  /* TODO(fclem): This is where the lookdev balls display should go. */
 };
 
 /** \} */
