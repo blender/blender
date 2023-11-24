@@ -715,6 +715,25 @@ PropertyRNA *rna_def_asset_library_reference_common(StructRNA *srna,
   return prop;
 }
 
+static void rna_def_asset_weak_reference(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "AssetWeakReference", nullptr);
+  RNA_def_struct_ui_text(srna, "Asset Weak Reference", "Weak reference to some asset");
+
+  prop = RNA_def_property(srna, "asset_library_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_asset_library_type_items);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "asset_library_identifier", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "relative_asset_identifier", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
 void RNA_def_asset(BlenderRNA *brna)
 {
   RNA_define_animate_sdna(false);
@@ -725,6 +744,7 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_handle(brna);
   rna_def_asset_representation(brna);
   rna_def_asset_catalog_path(brna);
+  rna_def_asset_weak_reference(brna);
 
   RNA_define_animate_sdna(true);
 }
