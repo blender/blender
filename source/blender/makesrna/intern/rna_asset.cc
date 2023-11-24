@@ -19,7 +19,7 @@
 
 #include "rna_internal.h"
 
-const EnumPropertyItem rna_enum_aset_library_type_items[] = {
+const EnumPropertyItem rna_enum_asset_library_type_items[] = {
     {ASSET_LIBRARY_LOCAL, "LOCAL", 0, "Local", ""},
     {ASSET_LIBRARY_ALL, "ALL", 0, "All", ""},
     {ASSET_LIBRARY_ESSENTIALS, "ESSENTIALS", 0, "Essentials", ""},
