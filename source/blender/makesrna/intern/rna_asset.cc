@@ -20,10 +20,18 @@
 #include "rna_internal.h"
 
 const EnumPropertyItem rna_enum_asset_library_type_items[] = {
-    {ASSET_LIBRARY_LOCAL, "LOCAL", 0, "Local", ""},
-    {ASSET_LIBRARY_ALL, "ALL", 0, "All", ""},
-    {ASSET_LIBRARY_ESSENTIALS, "ESSENTIALS", 0, "Essentials", ""},
-    {ASSET_LIBRARY_CUSTOM, "CUSTOM", 0, "Custom", ""},
+    {ASSET_LIBRARY_ALL, "ALL", 0, "All", "Show assets from all of the listed asset libraries"},
+    {ASSET_LIBRARY_LOCAL,
+     "LOCAL",
+     0,
+     "Current File",
+     "Show the assets currently available in this Blender session"},
+    {ASSET_LIBRARY_ESSENTIALS,
+     "ESSENTIALS",
+     0,
+     "Essentials",
+     "Show the basic building blocks and utilities coming with Blender"},
+    {ASSET_LIBRARY_CUSTOM, "CUSTOM", 0, "Custom", "All external 'normal' asset repositories"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -701,7 +709,7 @@ PropertyRNA *rna_def_asset_library_reference_common(StructRNA *srna,
                                                     const char *set)
 {
   PropertyRNA *prop = RNA_def_property(srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
+  RNA_def_property_enum_items(prop, rna_enum_asset_library_type_items);
   RNA_def_property_enum_funcs(prop, get, set, "rna_asset_library_reference_itemf");
 
   return prop;
