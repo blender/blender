@@ -500,7 +500,10 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
                                 (GHOST_SetPath(handle, filepath) == GHOST_kFailure);
 
   std::string str;
-  str += wm->file_saved ? " " : "* ";
+  if (!wm->file_saved) {
+    str += "* ";
+  }
+
   if (has_filepath) {
     const size_t filename_no_ext_len = BLI_path_extension_or_end(filename) - filename;
     str.append(filename, filename_no_ext_len);
