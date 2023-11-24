@@ -71,9 +71,12 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   data->next_identifier = 0;
 
   BLI_assert(data->items == nullptr);
-  data->items = MEM_cnew_array<IndexSwitchItem>(1, __func__);
-  data->items[0].identifier = data->next_identifier++;
-  data->items_num = 1;
+  const int default_items_num = 2;
+  data->items = MEM_cnew_array<IndexSwitchItem>(default_items_num, __func__);
+  for (const int i : IndexRange(default_items_num)) {
+    data->items[i].identifier = data->next_identifier++;
+  }
+  data->items_num = default_items_num;
 
   node->storage = data;
 }
