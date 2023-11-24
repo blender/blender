@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenfont
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
@@ -47,6 +46,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna

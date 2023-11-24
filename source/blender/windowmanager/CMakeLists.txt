@@ -7,7 +7,6 @@ set(INC
   gizmo
   gizmo/intern
   ../asset_system
-  ../blenfont
   ../blenkernel
   ../blenloader
   ../blentranslation
@@ -98,6 +97,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_screen

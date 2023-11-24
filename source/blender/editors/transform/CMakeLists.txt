@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenfont
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
@@ -118,7 +117,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
-  bf_blenfont
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
   bf_bmesh

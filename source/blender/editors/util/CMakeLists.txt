@@ -6,7 +6,6 @@ set(INC
   ../include
   ../space_sequencer
   ../../asset_system
-  ../../blenfont
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
@@ -110,6 +109,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::blenfont
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::clog
