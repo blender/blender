@@ -32,12 +32,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
   const bool supports_fields = socket_type_supports_fields(data_type);
 
-  auto &index = b.add_input<decl::Int>("Index");
+  const Span<IndexSwitchItem> items = storage.items_span();
+  auto &index = b.add_input<decl::Int>("Index").min(0).max(std::max<int>(0, items.size() - 1));
   if (supports_fields) {
     index.supports_field();
   }
 
-  const Span<IndexSwitchItem> items = storage.items_span();
   for (const int i : items.index_range()) {
     const std::string identifier = IndexSwitchItemsAccessor::socket_identifier_for_item(items[i]);
     auto &input = b.add_input(data_type, std::to_string(i), std::move(identifier));
