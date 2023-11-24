@@ -9,6 +9,7 @@
 #pragma once
 
 #include "vk_command_buffer.hh"
+#include "vk_timeline_semaphore.hh"
 
 namespace blender::gpu {
 class VKFrameBuffer;
@@ -31,16 +32,12 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
   };
 
   bool initialized_ = false;
-  /**
-   * Timeout to use when waiting for fences in nanoseconds.
-   *
-   * Currently added as the fence will halt when there are no commands in the command buffer for
-   * the second time. This should be solved and this timeout should be removed.
-   */
-  static constexpr uint64_t FenceTimeout = UINT64_MAX;
 
-  /* Fence for CPU GPU synchronization when submitting the command buffers. */
-  VkFence vk_fence_ = VK_NULL_HANDLE;
+  /**
+   * Last submitted timeline value, what can be used to validate that all commands related
+   * submitted by this command buffers have been finished.
+   */
+  VKTimelineSemaphore::Value last_signal_value_;
 
   /**
    * Active framebuffer for graphics command buffer.
@@ -142,6 +139,7 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
                              uint32_t stride);
 
   void submit();
+  void finish();
 
   const VKSubmissionID &submission_id_get() const
   {
@@ -149,9 +147,10 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
   }
 
  private:
-  void init_fence(const VKDevice &device);
   void init_command_pool(const VKDevice &device);
   void init_command_buffers(const VKDevice &device);
+
+  void submit_command_buffers(VKDevice &device, MutableSpan<VKCommandBuffer *> command_buffers);
 
   VKCommandBuffer &command_buffer_get(Type type)
   {

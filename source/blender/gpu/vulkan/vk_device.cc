@@ -28,6 +28,7 @@ void VKDevice::deinit()
     return;
   }
 
+  timeline_semaphore_.free(*this);
   dummy_buffer_.free();
   if (dummy_color_attachment_.has_value()) {
     delete &(*dummy_color_attachment_).get();
@@ -74,6 +75,7 @@ void VKDevice::init(void *ghost_context)
   init_pipeline_cache();
 
   samplers_.init();
+  timeline_semaphore_.init(*this);
 
   debug::object_label(device_get(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");

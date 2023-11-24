@@ -28,11 +28,6 @@ VKCommandBuffers::~VKCommandBuffers()
   VK_ALLOCATION_CALLBACKS;
   const VKDevice &device = VKBackend::get().device_get();
 
-  if (vk_fence_ != VK_NULL_HANDLE) {
-    vkDestroyFence(device.device_get(), vk_fence_, vk_allocation_callbacks);
-    vk_fence_ = VK_NULL_HANDLE;
-  }
-
   if (vk_command_pool_ != VK_NULL_HANDLE) {
     vkDestroyCommandPool(device.device_get(), vk_command_pool_, vk_allocation_callbacks);
     vk_command_pool_ = VK_NULL_HANDLE;
@@ -54,7 +49,6 @@ void VKCommandBuffers::init(const VKDevice &device)
   }
   init_command_pool(device);
   init_command_buffers(device);
-  init_fence(device);
   submission_id_.reset();
 }
 
@@ -103,38 +97,44 @@ void VKCommandBuffers::init_command_buffers(const VKDevice &device)
                       "Graphics Command Buffer");
 }
 
-void VKCommandBuffers::init_fence(const VKDevice &device)
+void VKCommandBuffers::submit_command_buffers(VKDevice &device,
+                                              MutableSpan<VKCommandBuffer *> command_buffers)
 {
-  if (vk_fence_ == VK_NULL_HANDLE) {
-    VK_ALLOCATION_CALLBACKS;
-    VkFenceCreateInfo fenceInfo{};
-    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    vkCreateFence(device.device_get(), &fenceInfo, vk_allocation_callbacks, &vk_fence_);
-  }
-}
+  VKTimelineSemaphore &timeline_semaphore = device.timeline_semaphore_get();
+  VkSemaphore timeline_handle = timeline_semaphore.vk_handle();
+  VKTimelineSemaphore::Value wait_value = timeline_semaphore.value_get();
+  last_signal_value_ = timeline_semaphore.value_increase();
 
-static void submit_command_buffers(const VKDevice &device,
-                                   MutableSpan<VKCommandBuffer *> command_buffers,
-                                   VkFence vk_fence,
-                                   uint64_t timeout)
-{
   BLI_assert(ELEM(command_buffers.size(), 1, 2));
   VkCommandBuffer handles[2];
   int num_command_buffers = 0;
+
   for (VKCommandBuffer *command_buffer : command_buffers) {
     command_buffer->end_recording();
     handles[num_command_buffers++] = command_buffer->vk_command_buffer();
   }
 
+  VkTimelineSemaphoreSubmitInfo timelineInfo;
+  timelineInfo.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
+  timelineInfo.pNext = NULL;
+  timelineInfo.waitSemaphoreValueCount = 1;
+  timelineInfo.pWaitSemaphoreValues = wait_value;
+  timelineInfo.signalSemaphoreValueCount = 1;
+  timelineInfo.pSignalSemaphoreValues = last_signal_value_;
+  VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
   VkSubmitInfo submit_info = {};
   submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submit_info.commandBufferCount = num_command_buffers;
   submit_info.pCommandBuffers = handles;
+  submit_info.pNext = &timelineInfo;
+  submit_info.waitSemaphoreCount = 1;
+  submit_info.pWaitSemaphores = &timeline_handle;
+  submit_info.pWaitDstStageMask = &wait_stages;
+  submit_info.signalSemaphoreCount = 1;
+  submit_info.pSignalSemaphores = &timeline_handle;
 
-  vkQueueSubmit(device.queue_get(), 1, &submit_info, vk_fence);
-
-  vkWaitForFences(device.device_get(), 1, &vk_fence, VK_TRUE, timeout);
-  vkResetFences(device.device_get(), 1, &vk_fence);
+  vkQueueSubmit(device.queue_get(), 1, &submit_info, VK_NULL_HANDLE);
+  finish();
 
   for (VKCommandBuffer *command_buffer : command_buffers) {
     command_buffer->commands_submitted();
@@ -144,7 +144,7 @@ static void submit_command_buffers(const VKDevice &device,
 
 void VKCommandBuffers::submit()
 {
-  const VKDevice &device = VKBackend::get().device_get();
+  VKDevice &device = VKBackend::get().device_get();
   VKCommandBuffer &data_transfer_compute = command_buffer_get(Type::DataTransferCompute);
   VKCommandBuffer &graphics = command_buffer_get(Type::Graphics);
 
@@ -163,22 +163,21 @@ void VKCommandBuffers::submit()
     end_render_pass(*framebuffer);
     command_buffers[command_buffer_index++] = &graphics;
     submit_command_buffers(device,
-                           MutableSpan<VKCommandBuffer *>(command_buffers, command_buffer_index),
-                           vk_fence_,
-                           FenceTimeout);
+                           MutableSpan<VKCommandBuffer *>(command_buffers, command_buffer_index));
     begin_render_pass(*framebuffer);
   }
   else if (has_data_transfer_compute_work) {
     submit_command_buffers(device,
-                           MutableSpan<VKCommandBuffer *>(command_buffers, command_buffer_index),
-                           vk_fence_,
-                           FenceTimeout);
+                           MutableSpan<VKCommandBuffer *>(command_buffers, command_buffer_index));
   }
+}
 
-  const bool reset_submission_id = has_data_transfer_compute_work || has_graphics_work;
-  if (reset_submission_id) {
-    submission_id_.next();
-  }
+void VKCommandBuffers::finish()
+{
+  VKDevice &device = VKBackend::get().device_get();
+  VKTimelineSemaphore &timeline_semaphore = device.timeline_semaphore_get();
+  timeline_semaphore.wait(device, last_signal_value_);
+  submission_id_.next();
 }
 
 void VKCommandBuffers::ensure_no_draw_commands()

@@ -247,11 +247,13 @@ class GHOST_DeviceVK {
 
     void *device_create_info_p_next = nullptr;
 
-    /* Enable optional vulkan 12 features when supported on physical device. */
+    /* Enable optional vulkan 12 features when supported on physical device.
+     * Support level for timelineSemaphores is 99%+. */
     VkPhysicalDeviceVulkan12Features vulkan_12_features = {};
     vulkan_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     vulkan_12_features.shaderOutputLayer = features_12.shaderOutputLayer;
     vulkan_12_features.shaderOutputViewportIndex = features_12.shaderOutputViewportIndex;
+    vulkan_12_features.timelineSemaphore = VK_TRUE;
     vulkan_12_features.pNext = device_create_info_p_next;
     device_create_info_p_next = &vulkan_12_features;
 
