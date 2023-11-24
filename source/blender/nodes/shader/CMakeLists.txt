@@ -16,7 +16,6 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/clog
   ../../../../intern/sky/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -131,6 +130,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_functions
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_intern_sky
   bf_nodes

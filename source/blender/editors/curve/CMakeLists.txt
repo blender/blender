@@ -10,7 +10,6 @@ set(INC
   ../../gpu
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -38,6 +37,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::extern::curve_fit_nd
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 

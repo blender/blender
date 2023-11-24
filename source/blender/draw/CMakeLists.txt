@@ -27,7 +27,6 @@ set(INC
   ../compositor/realtime_compositor/cached_resources
   ../windowmanager
 
-  ../../../intern/clog
   ../../../intern/opensubdiv
 )
 
@@ -353,6 +352,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   bf_windowmanager

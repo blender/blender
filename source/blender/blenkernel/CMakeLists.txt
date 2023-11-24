@@ -26,7 +26,6 @@ set(INC
   ../../../intern/eigen
   ../../../intern/ghost
   ../../../intern/iksolver/extern
-  ../../../intern/clog
   ../../../intern/libmv
   ../../../intern/mantaflow/extern
   ../../../intern/memutil
@@ -554,7 +553,7 @@ set(LIB
   bf_gpu
   bf_ikplugin
   bf_imbuf
-  bf_intern_clog
+  PRIVATE bf::intern::clog
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc
   bf_intern_libmv  # Uses stub when disabled.

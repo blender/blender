@@ -22,7 +22,6 @@ if(WITH_COMPOSITOR_CPU)
     ../render
     ../render/intern
     ../../../extern/clew/include
-    ../../../intern/clog
 
     # RNA_prototypes.h
     ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -601,6 +600,7 @@ if(WITH_COMPOSITOR_CPU)
     bf_blenkernel
     PRIVATE bf::blenlib
     PRIVATE bf::dna
+    PRIVATE bf::intern::clog
     PRIVATE bf::intern::guardedalloc
     extern_clew
     PRIVATE bf::intern::atomic

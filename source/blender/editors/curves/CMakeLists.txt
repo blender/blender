@@ -12,7 +12,6 @@ set(INC
   ../../gpu
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   ../../bmesh
 
   # RNA_prototypes.h
@@ -37,6 +36,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 

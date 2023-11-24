@@ -14,7 +14,6 @@ set(INC
   ../../imbuf/intern/oiio
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   ../../../../intern/mantaflow/extern
   ../../../../intern/opencolorio
   # RNA_prototypes.h
@@ -125,6 +124,7 @@ set(LIB
   bf_editor_animation
   bf_editor_interface
   bf_editor_space_api
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
   bf_python_gpu

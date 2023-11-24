@@ -21,7 +21,6 @@ set(INC
   ../nodes
   ../render
   ../sequencer
-  ../../../intern/clog
   ../../../intern/memutil
   ../../../extern/fmtlib/include
   ../bmesh
@@ -102,6 +101,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
   bf_sequencer

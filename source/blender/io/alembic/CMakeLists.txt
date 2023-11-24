@@ -13,7 +13,6 @@ set(INC
   ../../editors/include
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   ../../../../intern/utfconv
 )
 
@@ -91,6 +90,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
 

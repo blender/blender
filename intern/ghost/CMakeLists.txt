@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ../clog
   ../../source/blender/imbuf
 )
 
@@ -73,6 +72,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
 )
 
 if(WITH_INPUT_IME)

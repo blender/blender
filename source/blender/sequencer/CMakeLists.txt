@@ -14,7 +14,6 @@ set(INC
   ../makesrna
   ../render
   ../windowmanager
-  ../../../intern/clog
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -86,6 +85,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 

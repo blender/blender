@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  ../../intern/clog
   ../blender/blenkernel
   ../blender/depsgraph
   ../blender/editors/include
@@ -19,6 +18,7 @@ set(INC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_windowmanager
 )
