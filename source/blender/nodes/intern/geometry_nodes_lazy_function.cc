@@ -1128,6 +1128,38 @@ class LazyFunctionForSwitchSocketUsage : public lf::LazyFunction {
 };
 
 /**
+ * Outputs booleans that indicate which inputs of a switch node are used. Note that it's possible
+ * that all inputs are used when the index input is a field.
+ */
+class LazyFunctionForIndexSwitchSocketUsage : public lf::LazyFunction {
+ public:
+  LazyFunctionForIndexSwitchSocketUsage(const bNode &bnode)
+  {
+    debug_name_ = "Index Switch Socket Usage";
+    inputs_.append_as("Index", CPPType::get<ValueOrField<int>>());
+    for (const bNodeSocket *socket : bnode.input_sockets().drop_front(1)) {
+      outputs_.append_as(socket->identifier, CPPType::get<bool>());
+    }
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
+  {
+    const ValueOrField<int> &index = params.get_input<ValueOrField<int>>(0);
+    if (index.is_field()) {
+      for (const int i : outputs_.index_range()) {
+        params.set_output(i, true);
+      }
+    }
+    else {
+      const int value = index.as_value();
+      for (const int i : outputs_.index_range()) {
+        params.set_output(i, i == value);
+      }
+    }
+  }
+};
+
+/**
  * Takes a field as input and extracts the set of anonymous attributes that it references.
  */
 class LazyFunctionForAnonymousAttributeSetExtract : public lf::LazyFunction {
@@ -3024,6 +3056,10 @@ struct GeometryNodesLazyFunctionBuilder {
         this->build_switch_node(bnode, graph_params);
         break;
       }
+      case GEO_NODE_INDEX_SWITCH: {
+        this->build_index_switch_node(bnode, graph_params);
+        break;
+      }
       default: {
         if (node_type->geometry_node_execute) {
           this->build_geometry_node(bnode, graph_params);
@@ -3566,6 +3602,53 @@ struct GeometryNodesLazyFunctionBuilder {
     }
   }
 
+  void build_index_switch_node(const bNode &bnode, BuildGraphParams &graph_params)
+  {
+    std::unique_ptr<LazyFunction> lazy_function = get_index_switch_node_lazy_function(bnode);
+    lf::FunctionNode &lf_node = graph_params.lf_graph.add_function(*lazy_function);
+    scope_.add(std::move(lazy_function));
+
+    for (const int i : bnode.input_sockets().drop_back(1).index_range()) {
+      graph_params.lf_inputs_by_bsocket.add(&bnode.input_socket(i), &lf_node.input(i));
+      mapping_->bsockets_by_lf_socket_map.add(&lf_node.input(i), &bnode.input_socket(i));
+    }
+
+    graph_params.lf_output_by_bsocket.add(&bnode.output_socket(0), &lf_node.output(0));
+    mapping_->bsockets_by_lf_socket_map.add(&lf_node.output(0), &bnode.output_socket(0));
+
+    this->build_index_switch_node_socket_usage(bnode, graph_params);
+  }
+
+  void build_index_switch_node_socket_usage(const bNode &bnode, BuildGraphParams &graph_params)
+  {
+    const bNodeSocket &index_socket = bnode.input_socket(0);
+    const int items_num = bnode.input_sockets().size() - 1;
+
+    lf::OutputSocket *output_is_used = graph_params.usage_by_bsocket.lookup_default(
+        &bnode.output_socket(0), nullptr);
+    if (output_is_used == nullptr) {
+      return;
+    }
+    graph_params.usage_by_bsocket.add(&index_socket, output_is_used);
+    if (index_socket.is_directly_linked()) {
+      /* The condition input is dynamic, so the usage of the other inputs is as well. */
+      auto usage_fn = std::make_unique<LazyFunctionForIndexSwitchSocketUsage>(bnode);
+      lf::Node &lf_node = graph_params.lf_graph.add_function(*usage_fn);
+      scope_.add(std::move(usage_fn));
+
+      graph_params.lf_inputs_by_bsocket.add(&index_socket, &lf_node.input(0));
+      for (const int i : IndexRange(items_num)) {
+        graph_params.usage_by_bsocket.add(&bnode.input_socket(i + 1), &lf_node.output(i));
+      }
+    }
+    else {
+      const int index = index_socket.default_value_typed<bNodeSocketValueInt>()->value;
+      if (IndexRange(items_num).contains(index)) {
+        graph_params.usage_by_bsocket.add(&bnode.input_socket(index + 1), output_is_used);
+      }
+    }
+  }
+
   void build_undefined_node(const bNode &bnode, BuildGraphParams &graph_params)
   {
     auto &lazy_function = scope_.construct<LazyFunctionForUndefinedNode>(
@@ -4098,17 +4181,16 @@ void GeoNodesLFLocalUserData::ensure_tree_logger(const GeoNodesLFUserData &user_
   if (GeoNodesModifierData *md_data = user_data.modifier_data) {
     if (geo_eval_log::GeoModifierLog *log = md_data->eval_log) {
       tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
+      return;
     }
   }
-  else if (GeoNodesOperatorData *op_data = user_data.operator_data) {
+  if (GeoNodesOperatorData *op_data = user_data.operator_data) {
     if (geo_eval_log::GeoModifierLog *log = op_data->eval_log) {
       tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
+      return;
     }
   }
-  else {
-    BLI_assert_unreachable();
-    this->tree_logger_.emplace(nullptr);
-  }
+  this->tree_logger_.emplace(nullptr);
 }
 
 std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &user_data,

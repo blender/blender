@@ -155,6 +155,9 @@
 #define VOLUME_INTEGRATION_GROUP_SIZE 8
 #define VOLUME_HIT_DEPTH_MAX 16
 
+/* Velocity. */
+#define VERTEX_COPY_GROUP_SIZE 64
+
 /* Resource bindings. */
 
 /* Textures. */

@@ -178,13 +178,15 @@ struct MaterialKey {
 
   uint64_t hash() const
   {
-    BLI_assert(options < sizeof(*mat));
     return uint64_t(mat) + options;
   }
 
   bool operator<(const MaterialKey &k) const
   {
-    return (mat < k.mat) || (options < k.options);
+    if (mat == k.mat) {
+      return options < k.options;
+    }
+    return mat < k.mat;
   }
 
   bool operator==(const MaterialKey &k) const

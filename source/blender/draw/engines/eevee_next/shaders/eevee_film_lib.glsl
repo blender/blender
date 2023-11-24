@@ -759,6 +759,23 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     film_store_value(dst, uniform_buf.film.mist_id, mist_accum, out_color);
   }
 
+  if (uniform_buf.film.any_render_pass_3) {
+    vec4 transparent_accum = vec4(0.0);
+
+    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
+      FilmSample src = film_sample_get(i, texel_film);
+      film_sample_accum(src,
+                        uniform_buf.film.transparent_id,
+                        uniform_buf.render_pass.transparent_id,
+                        rp_color_tx,
+                        transparent_accum);
+    }
+    /* Alpha stores transmittance for transparent pass. */
+    transparent_accum.a = weight_accum - transparent_accum.a;
+
+    film_store_color(dst, uniform_buf.film.transparent_id, transparent_accum, out_color);
+  }
+
   for (int aov = 0; aov < uniform_buf.film.aov_color_len; aov++) {
     vec4 aov_accum = vec4(0.0);
 

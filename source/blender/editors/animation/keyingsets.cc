@@ -699,7 +699,7 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *tra
     return ANIM_scene_get_active_keyingset(scene);
   }
 
-  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAIL)) {
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE)) {
     return ANIM_builtin_keyingset_get_named(ANIM_KS_AVAILABLE_ID);
   }
 

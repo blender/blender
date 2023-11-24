@@ -11,6 +11,7 @@
 #include "gpu_py_buffer.h"
 
 #include "gpu_py_batch.h"
+#include "gpu_py_compute.h"
 #include "gpu_py_element.h"
 #include "gpu_py_framebuffer.h"
 #include "gpu_py_offscreen.h"

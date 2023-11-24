@@ -3148,7 +3148,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_remesh_fix_poles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_FIX_POLES);
-  RNA_def_property_ui_text(prop, "Fix Poles", "Produces less poles and a better topology flow");
+  RNA_def_property_ui_text(prop, "Fix Poles", "Produces fewer poles and a better topology flow");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
@@ -3161,23 +3161,9 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
-  prop = RNA_def_property(srna, "use_remesh_preserve_paint_mask", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_PAINT_MASK);
-  RNA_def_property_ui_text(prop, "Preserve Paint Mask", "Keep the current mask on the new mesh");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-
-  prop = RNA_def_property(srna, "use_remesh_preserve_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_SCULPT_FACE_SETS);
-  RNA_def_property_ui_text(
-      prop, "Preserve Face Sets", "Keep the current Face Sets on the new mesh");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-
-  prop = RNA_def_property(srna, "use_remesh_preserve_vertex_colors", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_VERTEX_COLORS);
-  RNA_def_property_ui_text(
-      prop, "Preserve Vertex Colors", "Keep the current vertex colors on the new mesh");
+  prop = RNA_def_property(srna, "use_remesh_preserve_attributes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_ATTRIBUTES);
+  RNA_def_property_ui_text(prop, "Preserve Attributes", "Transfer all attributes to the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 

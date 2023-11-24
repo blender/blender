@@ -38,4 +38,14 @@ GPU_SHADER_CREATE_INFO(eevee_velocity_geom)
     .fragment_out(0, Type::VEC4, "out_velocity")
     .additional_info("eevee_velocity_camera");
 
+GPU_SHADER_CREATE_INFO(eevee_vertex_copy)
+    .compute_source("eevee_vertex_copy_comp.glsl")
+    .local_group_size(VERTEX_COPY_GROUP_SIZE)
+    .storage_buf(0, Qualifier::READ, "float", "in_buf[]")
+    .storage_buf(1, Qualifier::WRITE, "vec4", "out_buf[]")
+    .push_constant(Type::INT, "start_offset")
+    .push_constant(Type::INT, "vertex_stride")
+    .push_constant(Type::INT, "vertex_count")
+    .do_static_compilation(true);
+
 /** \} */

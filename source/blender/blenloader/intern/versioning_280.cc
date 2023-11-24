@@ -4712,7 +4712,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
       me->flag &= ~(ME_FLAG_UNUSED_0 | ME_FLAG_UNUSED_1 | ME_FLAG_UNUSED_3 | ME_FLAG_UNUSED_4 |
-                    ME_FLAG_UNUSED_6 | ME_FLAG_UNUSED_7 | ME_REMESH_REPROJECT_VERTEX_COLORS);
+                    ME_FLAG_UNUSED_6 | ME_FLAG_UNUSED_7 | ME_REMESH_REPROJECT_ATTRIBUTES);
     }
 
     LISTBASE_FOREACH (Material *, mat, &bmain->materials) {

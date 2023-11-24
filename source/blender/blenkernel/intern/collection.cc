@@ -179,7 +179,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 
   BKE_LIB_FOREACHID_PROCESS_ID(
       data,
-      collection->runtime.owner_id,
+      collection->owner_id,
       (IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF | IDWALK_CB_READFILE_IGNORE));
 
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
@@ -225,12 +225,18 @@ static ID **collection_owner_pointer_get(ID *id)
 
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
-  BLI_assert(master_collection->runtime.owner_id != nullptr);
-  BLI_assert(GS(master_collection->runtime.owner_id->name) == ID_SCE);
-  BLI_assert(((Scene *)master_collection->runtime.owner_id)->master_collection ==
-             master_collection);
+  BLI_assert(master_collection->owner_id != nullptr);
+  BLI_assert(GS(master_collection->owner_id->name) == ID_SCE);
+  BLI_assert(((Scene *)master_collection->owner_id)->master_collection == master_collection);
 
-  return &master_collection->runtime.owner_id;
+  return &master_collection->owner_id;
+}
+
+void BKE_collection_blend_write_prepare_nolib(BlendWriter * /*writer*/, Collection *collection)
+{
+  memset(&collection->runtime, 0, sizeof(collection->runtime));
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 }
 
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
@@ -253,9 +259,7 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
 {
   Collection *collection = (Collection *)id;
 
-  memset(&collection->runtime, 0, sizeof(collection->runtime));
-  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
+  BKE_collection_blend_write_prepare_nolib(writer, collection);
 
   /* write LibData */
   BLO_write_id_struct(writer, Collection, id_address, &collection->id);
@@ -294,7 +298,7 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
   memset(&collection->runtime, 0, sizeof(collection->runtime));
   collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 
-  collection->runtime.owner_id = owner_id;
+  collection->owner_id = owner_id;
 
   BLO_read_list(reader, &collection->gobject);
   BLO_read_list(reader, &collection->children);
@@ -872,7 +876,7 @@ Collection *BKE_collection_master_add(Scene *scene)
   Collection *master_collection = static_cast<Collection *>(
       BKE_libblock_alloc(nullptr, ID_GR, BKE_SCENE_COLLECTION_NAME, LIB_ID_CREATE_NO_MAIN));
   master_collection->id.flag |= LIB_EMBEDDED_DATA;
-  master_collection->runtime.owner_id = &scene->id;
+  master_collection->owner_id = &scene->id;
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;
 

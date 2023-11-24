@@ -41,7 +41,7 @@ def blender_extract_info() -> Dict[str, str]:
         # Happens when built without WITH_BUILD_INFO e.g.
         blender_date = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
     else:
-        blender_date = time.strftime("%B %d, %Y", time.strptime(blender_build_date_text, "%Y-%m-%d"))
+        blender_date = time.strftime("%B %d, %Y", time.strptime(blender_build_date_text.decode(), "%Y-%m-%d"))
 
     return {
         "help": blender_help_text,

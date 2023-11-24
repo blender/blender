@@ -268,9 +268,9 @@ struct FilmData {
   /** Is true if accumulation of filtered passes is needed. */
   bool1 any_render_pass_1;
   bool1 any_render_pass_2;
+  bool1 any_render_pass_3;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
-  float _pad0, _pad1;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
@@ -287,6 +287,7 @@ struct FilmData {
   int environment_id;
   int shadow_id;
   int ambient_occlusion_id;
+  int transparent_id;
   /** Not indexed but still not -1 if enabled. */
   int depth_id;
   int combined_id;
@@ -376,11 +377,12 @@ struct RenderBuffersInfoData {
   int volume_light_id;
   int emission_id;
   int environment_id;
+  int transparent_id;
   /* Value */
   int value_len;
   int shadow_id;
   int ambient_occlusion_id;
-  int _pad0, _pad1, _pad2;
+  int _pad0, _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 

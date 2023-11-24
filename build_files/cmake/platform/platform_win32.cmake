@@ -374,6 +374,24 @@ set(BROTLI_LIBRARIES
 
 windows_find_package(Freetype REQUIRED)
 
+if(WITH_HARFBUZZ)
+  windows_find_package(Harfbuzz)
+  if(NOT Harfbuzz_FOUND)
+    set(LIBHARFBUZZ_INCLUDE_DIRS ${LIBDIR}/harfbuzz/include)
+    set(LIBHARFBUZZ_LIBRARIES optimized ${LIBDIR}/harfbuzz/lib/libharfbuzz.lib debug ${LIBDIR}/harfbuzz/lib/libharfbuzz_d.lib)
+    set(Harfbuzz_FOUND ON)
+  endif()
+endif()
+
+if(WITH_FRIBIDI)
+  windows_find_package(Fribidi)
+  if(NOT Fribidi_FOUND)
+    set(LIBFRIBIDI_INCLUDE_DIRS ${LIBDIR}/fribidi/include)
+    set(LIBFRIBIDI_LIBRARIES ${LIBDIR}/fribidi/lib/libfribidi.lib)
+    set(Fribidi_FOUND ON)
+  endif()
+endif()
+
 if(WITH_FFTW3)
   set(FFTW3 ${LIBDIR}/fftw3)
   if(EXISTS ${FFTW3}/lib/libfftw3-3.lib) # 3.6 libraries

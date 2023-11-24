@@ -60,6 +60,7 @@ typedef struct BPyGPUShaderCreateInfo {
   /* Just to keep a user to prevent freeing buf's we're using. */
   PyObject *vertex_source;
   PyObject *fragment_source;
+  PyObject *compute_source;
   PyObject *typedef_source;
   PyObject *references;
 #endif

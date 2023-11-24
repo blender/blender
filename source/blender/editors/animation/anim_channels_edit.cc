@@ -1340,7 +1340,7 @@ static bool rearrange_animchannel_islands(ListBase *list,
  * ! NLA tracks are displayed in opposite order, so directions need care
  * mode: REARRANGE_ANIMCHAN_*
  */
-static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
+static void rearrange_nla_tracks(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
 {
   AnimChanRearrangeFp rearrange_func;
   ListBase anim_data_visible = {nullptr, nullptr};
@@ -1773,7 +1773,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 
       switch (ac.datatype) {
         case ANIMCONT_NLA: /* NLA-tracks only */
-          rearrange_nla_channels(&ac, adt, mode);
+          rearrange_nla_tracks(&ac, adt, mode);
           DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION);
           break;
 
@@ -2983,7 +2983,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
 
   float ymax;
   if (ac->datatype == ANIMCONT_NLA) {
-    ymax = NLACHANNEL_FIRST_TOP(ac);
+    ymax = NLATRACK_FIRST_TOP(ac);
   }
   else {
     ymax = ANIM_UI_get_first_channel_top(v2d);
@@ -2999,7 +2999,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
     }
 
     if (ac->datatype == ANIMCONT_NLA) {
-      ymin = ymax - NLACHANNEL_STEP(snla);
+      ymin = ymax - NLATRACK_STEP(snla);
     }
     else {
       ymin = ymax - ANIM_UI_get_channel_step();
@@ -3209,10 +3209,10 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
 
   if (ac->datatype == ANIMCONT_NLA) {
     SpaceNla *snla = (SpaceNla *)ac->sl;
-    UI_view2d_listview_view_to_cell(NLACHANNEL_NAMEWIDTH,
-                                    NLACHANNEL_STEP(snla),
+    UI_view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
+                                    NLATRACK_STEP(snla),
                                     0,
-                                    NLACHANNEL_FIRST_TOP(ac),
+                                    NLATRACK_FIRST_TOP(ac),
                                     x,
                                     y,
                                     nullptr,
@@ -3821,7 +3821,7 @@ static int mouse_anim_channels(bContext *C,
   }
 
   /* action to take depends on what channel we've got */
-  /* WARNING: must keep this in sync with the equivalent function in `nla_channels.cc`. */
+  /* WARNING: must keep this in sync with the equivalent function in `nla_tracks.cc`. */
   switch (ale->type) {
     case ANIMTYPE_SCENE:
       notifierFlags |= click_select_channel_scene(ale, selectmode);

@@ -23,7 +23,7 @@
     .remesh_voxel_adaptivity = 0.0f, \
     .face_sets_color_seed = 0, \
     .face_sets_color_default = 1, \
-    .flag = ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_PAINT_MASK | ME_REMESH_REPROJECT_SCULPT_FACE_SETS | ME_REMESH_REPROJECT_VERTEX_COLORS, \
+    .flag = ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_ATTRIBUTES, \
     .editflag = ME_EDIT_MIRROR_VERTEX_GROUPS \
   }
 

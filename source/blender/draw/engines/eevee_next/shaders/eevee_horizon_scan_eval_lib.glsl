@@ -207,9 +207,8 @@ void horizon_scan_context_slice_finish(inout HorizonScanContext context)
 {
 #ifdef HORIZON_OCCLUSION
   float occlusion = horizon_scan_bitmask_to_occlusion_cosine(context.occlusion_common.bitmask);
-  /* Replace light by occlusion. Should eliminate any reference to the radiance texture fetch */
-  context.occlusion_common.light_slice = vec3(occlusion);
-  horizon_scan_context_slice_finish(context.occlusion_common);
+  context.occlusion_common.light_accum += vec4(occlusion) * context.occlusion_common.N_length;
+  context.occlusion_common.weight_accum += context.occlusion_common.N_length;
 #endif
 #ifdef HORIZON_DIFFUSE
   horizon_scan_context_slice_finish(context.diffuse_common);

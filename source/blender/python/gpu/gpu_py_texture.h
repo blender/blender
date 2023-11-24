@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 extern PyTypeObject BPyGPUTexture_Type;
+extern const struct PyC_StringEnumItems pygpu_textureformat_items[];
 
 #define BPyGPUTexture_Check(v) (Py_TYPE(v) == &BPyGPUTexture_Type)
 

@@ -588,11 +588,11 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
   }
 
   /* populate tree with keyframe nodes */
-  scene_to_keylist(&ads, scene, keylist, 0);
+  scene_to_keylist(&ads, scene, keylist, 0, {-FLT_MAX, FLT_MAX});
   gpencil_to_keylist(&ads, scene->gpd, keylist, false);
 
   if (ob) {
-    ob_to_keylist(&ads, ob, keylist, 0);
+    ob_to_keylist(&ads, ob, keylist, 0, {-FLT_MAX, FLT_MAX});
     gpencil_to_keylist(&ads, static_cast<bGPdata *>(ob->data), keylist, false);
   }
 

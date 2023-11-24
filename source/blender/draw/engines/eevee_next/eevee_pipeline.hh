@@ -148,8 +148,6 @@ class ForwardPipeline {
   PassSortable transparent_ps_ = {"Forward.Transparent"};
   float3 camera_forward_;
 
-  // GPUTexture *input_screen_radiance_tx_ = nullptr;
-
  public:
   ForwardPipeline(Instance &inst) : inst_(inst){};
 
@@ -165,10 +163,7 @@ class ForwardPipeline {
                                           ::Material *blender_mat,
                                           GPUMaterial *gpumat);
 
-  void render(View &view,
-              Framebuffer &prepass_fb,
-              Framebuffer &combined_fb,
-              GPUTexture *combined_tx);
+  void render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb);
 };
 
 /** \} */

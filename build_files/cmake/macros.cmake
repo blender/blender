@@ -403,6 +403,11 @@ function(blender_add_lib__impl
 
   add_library(${name} ${sources})
 
+  # On windows vcpkg goes out of its way to make its libs the preferred
+  # libs, and needs to be explicitly be told not to do that.
+  if(WIN32)
+    set_target_properties(${name} PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
+  endif()
   blender_target_include_dirs(${name} ${includes})
   blender_target_include_dirs_sys(${name} ${includes_sys})
 

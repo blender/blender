@@ -113,23 +113,21 @@ bNodeTree *LookdevWorldNodeTree::nodetree_get(const LookdevParameters &parameter
 LookdevModule::~LookdevModule()
 {
   GPU_material_free(&gpu_materials_);
-  gpu_material_ = nullptr;
 }
 
 bool LookdevModule::sync_world()
 {
   /* Check based on the v3d if the world is overridden. */
   LookdevParameters new_parameters(inst_.v3d);
-  bool parameters_changed = parameters_ != new_parameters;
-  if (parameters_changed) {
-    if (parameters_.gpu_parameters_changed(new_parameters)) {
-      GPU_material_free(&gpu_materials_);
-      gpu_material_ = nullptr;
-    }
+  const bool parameters_changed = parameters_ != new_parameters;
+  const bool gpu_parameters_changed = parameters_.gpu_parameters_changed(new_parameters);
 
+  if (gpu_parameters_changed) {
+    GPU_material_free(&gpu_materials_);
+  }
+  if (parameters_changed) {
     parameters_ = new_parameters;
     inst_.sampling.reset();
-    gpu_status_ = GPU_MAT_CREATED;
   }
 
   if (parameters_.show_scene_world) {
@@ -137,25 +135,15 @@ bool LookdevModule::sync_world()
   }
 
   ::bNodeTree *node_tree = world_override_tree.nodetree_get(parameters_);
-  gpu_material_ = inst_.shaders.material_shader_get("EEVEE Lookdev Background",
-                                                    gpu_materials_,
-                                                    node_tree,
-                                                    MAT_PIPE_DEFERRED,
-                                                    MAT_GEOM_WORLD,
-                                                    true);
+  GPUMaterial *gpu_material = inst_.shaders.material_shader_get(
+      "EEVEE Lookdev Background", gpu_materials_, node_tree, MAT_PIPE_DEFERRED, MAT_GEOM_WORLD);
 
-  if (assign_if_different(gpu_status_, GPU_material_status(gpu_material_)) &&
-      gpu_status_ == GPU_MAT_SUCCESS)
-  {
+  if (gpu_parameters_changed) {
     inst_.reflection_probes.sync_world_lookdev();
   }
-  else if (gpu_status_ == GPU_MAT_QUEUED) {
-    inst_.sampling.reset();
-    DRW_viewport_request_redraw();
-  }
 
-  inst_.pipelines.world.sync(gpu_material_);
-  inst_.pipelines.background.sync(gpu_material_, parameters_.background_opacity);
+  inst_.pipelines.world.sync(gpu_material);
+  inst_.pipelines.background.sync(gpu_material, parameters_.background_opacity);
 
   return true;
 }

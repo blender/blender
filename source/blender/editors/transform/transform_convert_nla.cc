@@ -559,7 +559,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
         tdn->trackIndex = BLI_findindex(&adt->nla_tracks, nlt);
         tdn->signed_track_index = tdn->trackIndex;
 
-        yval = float(tdn->trackIndex * NLACHANNEL_STEP(snla));
+        yval = float(tdn->trackIndex * NLATRACK_STEP(snla));
 
         tdn->h1[0] = strip->start;
         tdn->h1[1] = yval;
@@ -726,8 +726,8 @@ static void recalcData_nla(TransInfo *t)
       continue;
     }
 
-    delta_y1 = (int(tdn->h1[1]) / NLACHANNEL_STEP(snla) - tdn->signed_track_index);
-    delta_y2 = (int(tdn->h2[1]) / NLACHANNEL_STEP(snla) - tdn->signed_track_index);
+    delta_y1 = (int(tdn->h1[1]) / NLATRACK_STEP(snla) - tdn->signed_track_index);
+    delta_y2 = (int(tdn->h2[1]) / NLATRACK_STEP(snla) - tdn->signed_track_index);
 
     /* Move strip into track in the requested direction. */
     /* If we cannot find the strip in the track, this strip has moved tracks already (if multiple
@@ -959,7 +959,7 @@ static void special_aftertrans_update__nla(bContext *C, TransInfo *t)
   ListBase anim_data = {nullptr, nullptr};
   short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY);
 
-  /* get channels to work on */
+  /* get tracks to work on */
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 

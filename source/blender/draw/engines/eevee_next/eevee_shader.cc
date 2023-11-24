@@ -274,6 +274,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_surfel_list_sort";
     case SURFEL_RAY:
       return "eevee_surfel_ray";
+    case VERTEX_COPY:
+      return "eevee_vertex_copy";
     case VOLUME_INTEGRATION:
       return "eevee_volume_integration";
     case VOLUME_OCCUPANCY_CONVERT:
@@ -687,8 +689,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                ListBase &materials,
                                                bNodeTree *nodetree,
                                                eMaterialPipeline pipeline_type,
-                                               eMaterialGeometry geometry_type,
-                                               bool is_lookdev)
+                                               eMaterialGeometry geometry_type)
 {
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
@@ -701,10 +702,10 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                    name,
                                                    shader_uuid,
                                                    is_volume,
-                                                   is_lookdev,
+                                                   false,
                                                    codegen_callback,
                                                    this);
-  GPU_material_status_set(gpumat, GPU_MAT_QUEUED);
+  GPU_material_status_set(gpumat, GPU_MAT_CREATED);
   GPU_material_compile(gpumat);
   /* Queue deferred material optimization. */
   DRW_shader_queue_optimize_material(gpumat);
