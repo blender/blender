@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "../vulkan/vk_memory_layout.hh"
+#include "vk_memory_layout.hh"
 
 namespace blender::gpu {
 

@@ -114,6 +114,15 @@ void VKVertexAttributeObject::bind_buffers(VKContext &context)
   }
 }
 
+void VKVertexAttributeObject::ensure_vbos_uploaded() const
+{
+  for (VKVertexBuffer *vbo : vbos) {
+    if (vbo) {
+      vbo->upload();
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

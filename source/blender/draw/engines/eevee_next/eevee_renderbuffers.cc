@@ -69,7 +69,7 @@ void RenderBuffers::acquire(int2 extent)
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   /* Depth and combined are always needed. */
-  depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, extent, usage | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
+  depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, extent, usage | GPU_TEXTURE_USAGE_FORMAT_VIEW);
   /* TODO(fclem): depth_tx should ideally be a texture from pool but we need stencil_view
    * which is currently unsupported by pool textures. */
   // depth_tx.acquire(extent, GPU_DEPTH24_STENCIL8);
@@ -80,9 +80,7 @@ void RenderBuffers::acquire(int2 extent)
                                                  GPU_TEXTURE_USAGE_SHADER_WRITE;
 
   /* TODO(fclem): Make vector pass allocation optional if no TAA or motion blur is needed. */
-  vector_tx.acquire(extent,
-                    vector_tx_format(),
-                    usage_attachment_read_write | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
+  vector_tx.acquire(extent, vector_tx_format(), usage_attachment_read_write);
 
   int color_len = data.color_len + data.aovs.color_len;
   int value_len = data.value_len + data.aovs.value_len;

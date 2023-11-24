@@ -486,12 +486,12 @@ struct VolumesInfoData {
   int tile_size;
   int tile_size_lod;
   float shadow_steps;
-  bool1 use_lights;
-  bool1 use_soft_shadows;
   float depth_near;
   float depth_far;
   float depth_distribution;
   float _pad0;
+  float _pad1;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(VolumesInfoData, 16)
 
