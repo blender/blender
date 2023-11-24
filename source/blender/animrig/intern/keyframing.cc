@@ -1003,4 +1003,79 @@ int insert_key_action(Main *bmain,
   return inserted_keys;
 }
 
+static blender::Vector<float> get_keyframe_values(PointerRNA *ptr,
+                                                  PropertyRNA *prop,
+                                                  const bool visual_key)
+{
+  Vector<float> values;
+
+  if (visual_key && visualkey_can_use(ptr, prop)) {
+    /* Visual-keying is only available for object and pchan datablocks, as
+     * it works by keyframing using a value extracted from the final matrix
+     * instead of using the kt system to extract a value.
+     */
+    values = visualkey_get_values(ptr, prop);
+  }
+  else {
+    values = get_rna_values(ptr, prop);
+  }
+  return values;
+}
+
+void insert_key_rna(PointerRNA *rna_pointer,
+                    const blender::Span<std::string> rna_paths,
+                    const float scene_frame,
+                    const eInsertKeyFlags insert_key_flags,
+                    const eBezTriple_KeyframeType key_type,
+                    Main *bmain,
+                    ReportList *reports)
+{
+  ID *id = rna_pointer->owner_id;
+  bAction *action = ED_id_action_ensure(bmain, id);
+  if (action == nullptr) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not insert keyframe, as this type does not support animation data (ID = "
+                "%s)",
+                id->name);
+    return;
+  }
+
+  AnimData *adt = BKE_animdata_from_id(id);
+  const float nla_frame = BKE_nla_tweakedit_remap(adt, scene_frame, NLATIME_CONVERT_UNMAP);
+  const bool visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
+
+  int insert_key_count = 0;
+  for (const std::string &rna_path : rna_paths) {
+    PointerRNA ptr;
+    PropertyRNA *prop = nullptr;
+    const bool path_resolved = RNA_path_resolve_property(
+        rna_pointer, rna_path.c_str(), &ptr, &prop);
+    if (!path_resolved) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "Could not insert keyframe, as this property does not exist (ID = "
+                  "%s, path = %s)",
+                  id->name,
+                  rna_path.c_str());
+      continue;
+    }
+    std::string rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr, prop);
+    Vector<float> rna_values = get_keyframe_values(&ptr, prop, visual_keyframing);
+
+    insert_key_count += insert_key_action(bmain,
+                                          action,
+                                          rna_pointer,
+                                          rna_path_id_to_prop,
+                                          nla_frame,
+                                          rna_values.as_span(),
+                                          insert_key_flags,
+                                          key_type);
+  }
+
+  if (insert_key_count == 0) {
+    BKE_reportf(reports, RPT_ERROR, "Failed to insert any keys");
+  }
+}
+
 }  // namespace blender::animrig
