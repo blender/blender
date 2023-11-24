@@ -37,10 +37,8 @@
 #include "ED_keyframing.hh"
 #include "MEM_guardedalloc.h"
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -546,20 +544,6 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
   }
 
   const bool is_new_curve = (fcu->totvert == 0);
-
-  /* Set color mode if the F-Curve is new (i.e. without any keyframes). */
-  if (is_new_curve && (flag & INSERTKEY_XYZ2RGB)) {
-    /* For Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
-     * is determined by the array index for the F-Curve
-     */
-    PropertySubType prop_subtype = RNA_property_subtype(prop);
-    if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
-      fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
-    }
-    else if (ELEM(prop_subtype, PROP_QUATERNION)) {
-      fcu->color_mode = FCURVE_COLOR_AUTO_YRGB;
-    }
-  }
 
   /* If the curve has only one key, make it cyclic if appropriate. */
   const bool is_cyclic_action = (flag & INSERTKEY_CYCLE_AWARE) && BKE_action_is_cyclic(act);

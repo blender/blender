@@ -294,10 +294,6 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 
     keyingflag |= ANIM_get_keyframing_flags(scene, false);
 
-    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_XYZ2RGB)) {
-      keyingflag |= INSERTKEY_XYZ2RGB;
-    }
-
     /* call the API func, and set the active keyingset index */
     ks = BKE_keyingset_add(
         &scene->keyingsets, "ButtonKeyingSet", "Button Keying Set", flag, keyingflag);
@@ -1011,7 +1007,6 @@ static eInsertKeyFlags keyingset_apply_keying_flags(const eInsertKeyFlags base_f
    */
   APPLY_KEYINGFLAG_OVERRIDE(INSERTKEY_NEEDED)
   APPLY_KEYINGFLAG_OVERRIDE(INSERTKEY_MATRIX)
-  APPLY_KEYINGFLAG_OVERRIDE(INSERTKEY_XYZ2RGB)
 
 #undef APPLY_KEYINGFLAG_OVERRIDE
 

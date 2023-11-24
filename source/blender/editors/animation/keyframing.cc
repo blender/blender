@@ -91,11 +91,6 @@ eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, const bool use_autokey_m
     if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       flag |= INSERTKEY_NEEDED;
     }
-
-    /* default F-Curve color mode - RGB from XYZ indices */
-    if (is_autokey_flag(scene, AUTOKEY_FLAG_XYZ2RGB)) {
-      flag |= INSERTKEY_XYZ2RGB;
-    }
   }
 
   /* only if including settings from the autokeying mode... */
