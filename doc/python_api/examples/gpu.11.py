@@ -13,7 +13,7 @@ from gpu_extras.batch import batch_for_shader
 import array
 import time
 
-start_time = time.time() 
+start_time = time.time()
 
 size = 128
 texture = gpu.types.GPUTexture((size, size), format='RGBA32F')
@@ -25,9 +25,9 @@ compute_shader_info.compute_source('''
 void main()
 {
   vec4 pixel = vec4(
-    sin(time / 1.0), 
-    gl_GlobalInvocationID.y/128.0, 
-    0.0, 
+    sin(time / 1.0),
+    gl_GlobalInvocationID.y/128.0,
+    0.0,
     1.0
   );
   imageStore(img_output, ivec2(gl_GlobalInvocationID.xy), pixel);
@@ -73,7 +73,8 @@ batch = batch_for_shader(
     },
 )
 
-def draw(): 
+
+def draw():
     shader.uniform_float("modelMatrix", Matrix.Translation((0, 0, 0)) @ Matrix.Scale(1, 4))
     shader.uniform_float("viewProjectionMatrix", bpy.context.region_data.perspective_matrix)
     shader.uniform_sampler("img_input", texture)
@@ -81,12 +82,14 @@ def draw():
     compute_shader.image('img_output', texture)
     compute_shader.uniform_float("time", time.time() - start_time)
     gpu.compute.dispatch(compute_shader, 128, 128, 1)
-  
-def drawTimer(): 
-  for area in bpy.context.screen.areas:
-    if area.type == 'VIEW_3D':
-      area.tag_redraw()
-  return 1.0 / 60.0
+
+
+def drawTimer():
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            area.tag_redraw()
+    return 1.0 / 60.0
+
 
 bpy.app.timers.register(drawTimer)
 bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_VIEW')
