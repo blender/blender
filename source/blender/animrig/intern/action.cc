@@ -60,19 +60,21 @@ FCurve *action_fcurve_ensure(Main *bmain,
   fcu->rna_path = BLI_strdup(rna_path);
   fcu->array_index = array_index;
 
-  if (U.autokey_flag & AUTOKEY_FLAG_XYZ2RGB) {
+  if (U.autokey_flag & AUTOKEY_FLAG_XYZ2RGB && ptr != nullptr) {
     /* For Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
      * is determined by the array index for the F-Curve.
      */
     PropertyRNA *prop;
     PointerRNA r_ptr;
-    RNA_path_resolve_property(ptr, rna_path, &r_ptr, &prop);
-    PropertySubType prop_subtype = RNA_property_subtype(prop);
-    if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
-      fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
-    }
-    else if (ELEM(prop_subtype, PROP_QUATERNION)) {
-      fcu->color_mode = FCURVE_COLOR_AUTO_YRGB;
+    const bool resolved = RNA_path_resolve_property(ptr, rna_path, &r_ptr, &prop);
+    if (resolved) {
+      PropertySubType prop_subtype = RNA_property_subtype(prop);
+      if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
+        fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
+      }
+      else if (ELEM(prop_subtype, PROP_QUATERNION)) {
+        fcu->color_mode = FCURVE_COLOR_AUTO_YRGB;
+      }
     }
   }
 
