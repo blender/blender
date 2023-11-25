@@ -11,7 +11,6 @@ set(INC
   ../../editors/include
   ../../functions
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -130,6 +129,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_intern_sky

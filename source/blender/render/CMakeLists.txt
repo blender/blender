@@ -13,7 +13,6 @@ set(INC
   ../draw
   ../gpu
   ../gpu/intern
-  ../imbuf
   ../makesrna
   ../nodes
   ../sequencer
@@ -62,6 +61,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   PRIVATE bf::intern::atomic

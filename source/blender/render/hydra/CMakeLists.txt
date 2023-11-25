@@ -39,7 +39,6 @@ set(INC
   ../../../../intern/guardedalloc
   ../../blenkernel
   ../../blenlib
-  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../nodes
@@ -69,6 +68,7 @@ set(LIB
   ${USD_LIBRARIES}
   ${TBB_LIBRARIES}
   PRIVATE bf::depsgraph
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   bf_io_usd
 )

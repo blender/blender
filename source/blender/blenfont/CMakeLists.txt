@@ -7,7 +7,6 @@ set(INC
   ../blenkernel
   ../blentranslation
   ../gpu
-  ../imbuf
   ../makesrna
 )
 
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}

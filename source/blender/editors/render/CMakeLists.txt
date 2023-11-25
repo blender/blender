@@ -10,7 +10,6 @@ set(INC
   ../../bmesh
   ../../draw
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../render
@@ -40,6 +39,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_draw
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

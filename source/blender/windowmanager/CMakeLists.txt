@@ -14,7 +14,6 @@ set(INC
   ../editors/include
   ../draw
   ../gpu
-  ../imbuf
   ../makesrna
   ../nodes
   ../render
@@ -101,6 +100,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

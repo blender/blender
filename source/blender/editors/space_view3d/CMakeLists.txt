@@ -12,7 +12,6 @@ set(INC
   ../../bmesh
   ../../draw
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -86,6 +85,7 @@ set(LIB
   bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

@@ -13,7 +13,6 @@ set(INC
   ../gpencil_modifiers_legacy
   ../gpu
   ../ikplugin
-  ../imbuf
   ../makesrna
   ../modifiers
   ../nodes
@@ -550,7 +549,7 @@ set(LIB
   bf_gpencil_modifiers_legacy
   bf_gpu
   bf_ikplugin
-  bf_imbuf
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc

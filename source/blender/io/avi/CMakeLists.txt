@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../../imbuf
 )
 
 set(INC_SYS
@@ -32,6 +31,7 @@ set(LIB
   ${JPEG_LIBRARIES}
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

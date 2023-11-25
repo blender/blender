@@ -13,7 +13,6 @@ set(INC
   ../../functions
   ../../geometry
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../modifiers
   ../../render
@@ -216,6 +215,7 @@ set(LIB
   PRIVATE bf::dna
   bf_functions
   bf_geometry
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_nodes
   extern_fmtlib

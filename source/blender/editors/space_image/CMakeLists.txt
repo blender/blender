@@ -10,7 +10,6 @@ set(INC
   ../../bmesh
   ../../draw
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -41,6 +40,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_uvedit
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

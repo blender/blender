@@ -62,7 +62,6 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../editors/include
-  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../python/intern
@@ -184,7 +183,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::animrig
-  bf_imbuf
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common

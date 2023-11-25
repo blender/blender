@@ -11,7 +11,6 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../sequencer
   ../../windowmanager
@@ -49,6 +48,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_datafiles
   bf_editor_space_sequencer
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

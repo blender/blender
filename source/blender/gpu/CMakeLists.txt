@@ -12,7 +12,6 @@ set(INC
   ../blenkernel
   ../bmesh
   ../draw
-  ../imbuf
   ../makesrna
 
   # For theme color access.
@@ -330,6 +329,7 @@ set(METAL_SRC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
