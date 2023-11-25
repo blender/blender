@@ -9,7 +9,6 @@ set(INC
   ../blenloader
   ../blentranslation
   ../bmesh
-  ../depsgraph
   ../editors/include
   ../functions
   ../geometry
@@ -109,6 +108,7 @@ set(LIB
   PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PUBLIC bf::dna
   PRIVATE bf::intern::guardedalloc
 )

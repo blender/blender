@@ -58,7 +58,6 @@ set(INC
   ../blenloader
   ../blentranslation
   ../bmesh
-  ../depsgraph
   ../functions
   ../geometry
   ../gpu
@@ -125,6 +124,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenlib
   bf_bmesh
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions
   PRIVATE bf::intern::guardedalloc

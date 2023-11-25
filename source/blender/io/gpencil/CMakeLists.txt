@@ -8,7 +8,6 @@ set(INC
   ../../blenkernel
   ../../blenloader
   ../../bmesh
-  ../../depsgraph
   ../../editors/include
   ../../makesdna
   ../../makesrna
@@ -36,6 +35,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::nanosvg
   PRIVATE bf::intern::clog

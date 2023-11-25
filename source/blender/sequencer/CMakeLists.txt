@@ -8,7 +8,6 @@ set(INC
   ../blenkernel
   ../blenloader
   ../blentranslation
-  ../depsgraph
   ../imbuf
   ../makesrna
   ../render
@@ -83,6 +82,7 @@ set(LIB
   PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog

@@ -7,7 +7,6 @@ set(INC
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
-  ../../depsgraph
   ../../editors/include
   ../../gpu
   ../../imbuf
@@ -120,6 +119,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_animation
   bf_editor_interface

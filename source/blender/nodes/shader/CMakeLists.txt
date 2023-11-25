@@ -8,7 +8,6 @@ set(INC
   ../intern
   ../../blenkernel
   ../../blentranslation
-  ../../depsgraph
   ../../editors/include
   ../../functions
   ../../gpu
@@ -128,6 +127,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions
   PRIVATE bf::intern::clog

@@ -23,7 +23,6 @@ set(INC
   .
   ../../blenkernel
   ../../blentranslation
-  ../../depsgraph
   ../../editors/include
   ../../ikplugin
   ../../imbuf
@@ -116,6 +115,7 @@ set(LIB
   ${XML2_LIBRARIES}
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )

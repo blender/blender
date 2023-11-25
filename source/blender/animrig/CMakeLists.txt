@@ -8,7 +8,6 @@ set(INC
 
   ../blenkernel
   ../blentranslation
-  ../depsgraph
   ../editors/include
   ../makesrna
   ../windowmanager
@@ -45,6 +44,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf::blenlib
+  PRIVATE bf::depsgraph
   bf::dna
   PRIVATE bf_editor_interface
   PRIVATE bf::intern::guardedalloc

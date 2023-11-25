@@ -8,7 +8,6 @@ set(INC
   ../blenkernel
   ../blentranslation
   ../bmesh
-  ../depsgraph
   ../editors/include
   ../makesrna
   ../render
@@ -90,6 +89,7 @@ endif()
 set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )

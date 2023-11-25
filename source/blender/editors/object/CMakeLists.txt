@@ -8,7 +8,6 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../functions
   ../../gpencil_modifiers_legacy
   ../../gpu
@@ -65,6 +64,7 @@ set(LIB
   PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil

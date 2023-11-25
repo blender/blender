@@ -61,7 +61,6 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../editors/include
   ../../imbuf
   ../../makesrna
@@ -182,6 +181,7 @@ endif()
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::animrig
   bf_imbuf

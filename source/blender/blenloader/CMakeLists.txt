@@ -6,7 +6,6 @@ set(INC
   .
   ../blenkernel
   ../blentranslation
-  ../depsgraph
   ../draw
   ../editors/include
   ../gpu
@@ -62,6 +61,7 @@ set(LIB
   PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
