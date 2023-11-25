@@ -174,12 +174,12 @@ static bool node_under_mouse_tweak(const SpaceNode &snode, const float2 &mouse)
   return false;
 }
 
-static bool is_position_over_node_or_socket(SpaceNode &snode, const float2 &mouse)
+static bool is_position_over_node_or_socket(SpaceNode &snode, ARegion &region, const float2 &mouse)
 {
   if (node_under_mouse_tweak(snode, mouse)) {
     return true;
   }
-  if (node_find_indicated_socket(snode, mouse, SOCK_IN | SOCK_OUT)) {
+  if (node_find_indicated_socket(snode, region, mouse, SOCK_IN | SOCK_OUT)) {
     return true;
   }
   return false;
@@ -195,7 +195,7 @@ static bool is_event_over_node_or_socket(const bContext &C, const wmEvent &event
 
   float2 mouse;
   UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &mouse.x, &mouse.y);
-  return is_position_over_node_or_socket(snode, mouse);
+  return is_position_over_node_or_socket(snode, region, mouse);
 }
 
 void node_socket_select(bNode *node, bNodeSocket &sock)
@@ -566,7 +566,7 @@ static bool node_mouse_select(bContext *C,
   if (socket_select) {
     /* NOTE: unlike nodes #SelectPick_Params isn't fully supported. */
     const bool extend = (params->sel_op == SEL_OP_XOR);
-    sock = node_find_indicated_socket(snode, cursor, SOCK_IN);
+    sock = node_find_indicated_socket(snode, region, cursor, SOCK_IN);
     if (sock) {
       node = &sock->owner_node();
       found = true;
@@ -578,7 +578,7 @@ static bool node_mouse_select(bContext *C,
       changed = true;
     }
     if (!changed) {
-      sock = node_find_indicated_socket(snode, cursor, SOCK_OUT);
+      sock = node_find_indicated_socket(snode, region, cursor, SOCK_OUT);
       if (sock) {
         node = &sock->owner_node();
         found = true;

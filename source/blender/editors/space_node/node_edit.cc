@@ -1162,70 +1162,68 @@ static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSoc
 }
 
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
+                                        ARegion &region,
                                         const float2 &cursor,
                                         const eNodeSocketInOut in_out)
 {
-  rctf rect;
-  const float size_sock_padded = NODE_SOCKSIZE + 4;
+  const float view2d_scale = UI_view2d_scale_get_x(&region.v2d);
+  const float max_distance = NODE_SOCKSIZE + std::clamp(20.0f / view2d_scale, 5.0f, 30.0f);
 
-  bNodeTree &node_tree = *snode.edittree;
-  node_tree.ensure_topology_cache();
+  bNodeTree &tree = *snode.edittree;
+  tree.ensure_topology_cache();
 
-  const Array<bNode *> sorted_nodes = tree_draw_order_calc_nodes_reversed(*snode.edittree);
+  const Array<bNode *> sorted_nodes = tree_draw_order_calc_nodes_reversed(tree);
   if (sorted_nodes.is_empty()) {
     return nullptr;
   }
 
-  for (const int i : sorted_nodes.index_range()) {
-    bNode &node = *sorted_nodes[i];
+  float best_distance = FLT_MAX;
+  bNodeSocket *best_socket = nullptr;
 
-    BLI_rctf_init_pt_radius(&rect, cursor, size_sock_padded);
-    if (!(node.flag & NODE_HIDDEN)) {
-      /* Extra padding inside and out - allow dragging on the text areas too. */
-      if (in_out == SOCK_IN) {
-        rect.xmax += NODE_SOCKSIZE;
-        rect.xmin -= NODE_SOCKSIZE * 4;
-      }
-      else if (in_out == SOCK_OUT) {
-        rect.xmax += NODE_SOCKSIZE * 4;
-        rect.xmin -= NODE_SOCKSIZE;
-      }
+  auto update_best_socket = [&](bNodeSocket *socket, const float distance) {
+    if (socket_is_occluded(socket->runtime->location, socket->owner_node(), sorted_nodes)) {
+      return;
     }
+    if (distance < best_distance) {
+      best_distance = distance;
+      best_socket = socket;
+    }
+  };
 
+  for (bNode *node : sorted_nodes) {
     if (in_out & SOCK_IN) {
-      for (bNodeSocket *sock : node.input_sockets()) {
-        if (node.is_socket_icon_drawn(*sock)) {
-          const float2 location = sock->runtime->location;
-          if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
-            if (cursor_isect_multi_input_socket(cursor, *sock)) {
-              if (!socket_is_occluded(location, node, sorted_nodes)) {
-                return sock;
-              }
-            }
+      for (bNodeSocket *sock : node->input_sockets()) {
+        if (!node->is_socket_icon_drawn(*sock)) {
+          continue;
+        }
+        const float2 location = sock->runtime->location;
+        const float distance = math::distance(location, cursor);
+        if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
+          if (cursor_isect_multi_input_socket(cursor, *sock)) {
+            update_best_socket(sock, distance);
+            continue;
           }
-          else if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, sorted_nodes)) {
-              return sock;
-            }
-          }
+        }
+        if (distance < max_distance) {
+          update_best_socket(sock, distance);
         }
       }
     }
     if (in_out & SOCK_OUT) {
-      for (bNodeSocket *sock : node.output_sockets()) {
-        if (node.is_socket_icon_drawn(*sock)) {
-          const float2 location = sock->runtime->location;
-          if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, sorted_nodes)) {
-              return sock;
-            }
-          }
+      for (bNodeSocket *sock : node->output_sockets()) {
+        if (!node->is_socket_icon_drawn(*sock)) {
+          continue;
+        }
+        const float2 location = sock->runtime->location;
+        const float distance = math::distance(location, cursor);
+        if (distance < max_distance) {
+          update_best_socket(sock, distance);
         }
       }
     }
   }
 
-  return nullptr;
+  return best_socket;
 }
 
 /** \} */
