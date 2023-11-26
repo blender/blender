@@ -232,7 +232,7 @@ static bool or_into_each_other(BitGroupVector<> &vec, const int64_t a, const int
   return or_into_each_other(vec[a], vec[b]);
 }
 
-static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
+static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
     const bNodeTree &tree)
 {
   BLI_assert(!tree.has_available_link_cycle());
@@ -643,7 +643,7 @@ bool update_anonymous_attribute_relations(bNodeTree &tree)
     return changed;
   }
 
-  AnonymousAttributeInferencingResult result = analyse_anonymous_attribute_usages(tree);
+  AnonymousAttributeInferencingResult result = analyze_anonymous_attribute_usages(tree);
 
   const bool group_interface_changed =
       !tree.runtime->anonymous_attribute_inferencing ||

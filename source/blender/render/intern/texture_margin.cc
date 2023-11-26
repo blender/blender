@@ -251,7 +251,7 @@ class TextureMarginMap {
 
           int other_poly;
           bool found_pixel_in_polygon = false;
-          if (lookup_pixel_polygon_neighbourhood(x, y, &face, &destX, &destY, &other_poly)) {
+          if (lookup_pixel_polygon_neighborhood(x, y, &face, &destX, &destY, &other_poly)) {
 
             for (int i = 0; i < maxPolygonSteps; i++) {
               /* Force to pixel grid. */
@@ -326,7 +326,7 @@ class TextureMarginMap {
    * face we need can be the one next to the one the Dijkstra map provides. To prevent missing
    * pixels also check the neighboring polygons.
    */
-  bool lookup_pixel_polygon_neighbourhood(
+  bool lookup_pixel_polygon_neighborhood(
       float x, float y, uint32_t *r_start_poly, float *r_destx, float *r_desty, int *r_other_poly)
   {
     float found_dist;

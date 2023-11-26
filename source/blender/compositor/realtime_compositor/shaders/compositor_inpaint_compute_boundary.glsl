@@ -18,8 +18,8 @@ void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  /* Identify if any of the 8 neighbours around the center pixel are transparent. */
-  bool has_transparent_neighbours = false;
+  /* Identify if any of the 8 neighbors around the center pixel are transparent. */
+  bool has_transparent_neighbors = false;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       ivec2 offset = ivec2(i, j);
@@ -27,16 +27,16 @@ void main()
       /* Exempt the center pixel. */
       if (all(notEqual(offset, ivec2(0)))) {
         if (texture_load(input_tx, texel + offset).a < 1.0) {
-          has_transparent_neighbours = true;
+          has_transparent_neighbors = true;
           break;
         }
       }
     }
   }
 
-  /* The pixels at the boundary are those that are opaque and have transparent neighbours. */
+  /* The pixels at the boundary are those that are opaque and have transparent neighbors. */
   bool is_opaque = texture_load(input_tx, texel).a == 1.0;
-  bool is_boundary_pixel = is_opaque && has_transparent_neighbours;
+  bool is_boundary_pixel = is_opaque && has_transparent_neighbors;
 
   /* Encode the boundary information in the format expected by the jump flooding algorithm. */
   ivec2 jump_flooding_value = initialize_jump_flooding_value(texel, is_boundary_pixel);

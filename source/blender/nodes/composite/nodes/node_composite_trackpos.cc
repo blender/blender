@@ -169,13 +169,13 @@ class TrackPositionOperation : public NodeOperation {
     /* Compute the speed as the difference between the previous marker position and the current
      * marker position. Notice that we compute the speed from the current to the previous position,
      * not the other way around. */
-    const float2 previous_marker_position = compute_temporally_neighbouring_marker_position(
+    const float2 previous_marker_position = compute_temporally_neighboring_marker_position(
         track, current_marker_position, -1);
     const float2 speed_toward_previous = previous_marker_position - current_marker_position;
 
     /* Compute the speed as the difference between the current marker position and the next marker
      * position. */
-    const float2 next_marker_position = compute_temporally_neighbouring_marker_position(
+    const float2 next_marker_position = compute_temporally_neighboring_marker_position(
         track, current_marker_position, 1);
     const float2 speed_toward_next = current_marker_position - next_marker_position;
 
@@ -210,9 +210,9 @@ class TrackPositionOperation : public NodeOperation {
    * marker exist for that particular frame or is disabled, the current marker position is
    * returned. This is useful for computing the speed by providing small negative and positive
    * delta times. */
-  float2 compute_temporally_neighbouring_marker_position(MovieTrackingTrack *track,
-                                                         float2 current_marker_position,
-                                                         int time_delta)
+  float2 compute_temporally_neighboring_marker_position(MovieTrackingTrack *track,
+                                                        float2 current_marker_position,
+                                                        int time_delta)
   {
     const int local_frame_number = BKE_movieclip_remap_scene_to_clip_frame(
         get_movie_clip(), get_frame() + time_delta);

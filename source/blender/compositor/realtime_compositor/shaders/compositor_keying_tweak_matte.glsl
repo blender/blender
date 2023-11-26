@@ -20,8 +20,8 @@ void main()
     int count = 0;
     for (int j = -edge_search_radius; j <= edge_search_radius; j++) {
       for (int i = -edge_search_radius; i <= edge_search_radius; i++) {
-        float neighbour_matte = texture_load(input_matte_tx, texel + ivec2(i, j)).x;
-        count += int(distance(matte, neighbour_matte) < edge_tolerance);
+        float neighbor_matte = texture_load(input_matte_tx, texel + ivec2(i, j)).x;
+        count += int(distance(matte, neighbor_matte) < edge_tolerance);
       }
     }
 

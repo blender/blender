@@ -4365,7 +4365,7 @@ void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
  * \endcode
  */
 
-static float cie_colour_match[81][3] = {
+static float cie_color_match[81][3] = {
     {0.0014f, 0.0000f, 0.0065f}, {0.0022f, 0.0001f, 0.0105f}, {0.0042f, 0.0001f, 0.0201f},
     {0.0076f, 0.0002f, 0.0362f}, {0.0143f, 0.0004f, 0.0679f}, {0.0232f, 0.0006f, 0.1102f},
     {0.0435f, 0.0012f, 0.2074f}, {0.0776f, 0.0022f, 0.3713f}, {0.1344f, 0.0040f, 0.6456f},
@@ -4406,7 +4406,7 @@ static void wavelength_to_xyz(float xyz[3], float lambda_nm)
   }
   else {
     ii -= float(i);
-    const float *c = cie_colour_match[i];
+    const float *c = cie_color_match[i];
     xyz[0] = c[0] + ii * (c[3] - c[0]);
     xyz[1] = c[1] + ii * (c[4] - c[1]);
     xyz[2] = c[2] + ii * (c[5] - c[2]);
