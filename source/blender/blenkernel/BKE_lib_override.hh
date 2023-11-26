@@ -107,7 +107,7 @@ bool BKE_lib_override_library_is_hierarchy_leaf(Main *bmain, ID *id);
 /**
  * Tag the liboverride ID for auto-refresh when it gets tagged for depsgraph update.
  *
- * NOTE: This should only handle direct user editing, it is assumed that indirct updates should
+ * NOTE: This should only handle direct user editing, it is assumed that indirect updates should
  * never require an update of the liboverride diffing info.
  */
 void BKE_lib_override_id_tag_on_deg_tag_from_user(ID *id);

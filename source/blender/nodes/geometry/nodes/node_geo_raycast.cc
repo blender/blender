@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type(GeometryComponent::Type::Mesh);
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
-    /* TODO: Field interfacind is depend in offsetd of next declrations! */
+    /* TODO: Field interfacing depends on the offset of the next declarations! */
     b.add_input(data_type, "Attribute").hide_value().field_on_all();
   }
 

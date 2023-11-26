@@ -8,7 +8,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
-#include "DNA_gpencil_modifier_types.h" /* needed for all enum typdefs */
+#include "DNA_gpencil_modifier_types.h" /* Needed for all enum type definitions. */
 
 #ifdef __cplusplus
 extern "C" {

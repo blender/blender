@@ -539,7 +539,7 @@ typedef enum eGPUTextureUsage {
   GPU_TEXTURE_USAGE_SHADER_WRITE = (1 << 1),
   /* Whether a texture is used as an attachment in a frame-buffer. */
   GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
-  /* Whether a texture is used to create a texture view utilising a different texture format to the
+  /* Whether a texture is used to create a texture view utilizing a different texture format to the
    * source textures format. This includes the use of stencil views.  */
   GPU_TEXTURE_USAGE_FORMAT_VIEW = (1 << 3),
   /* Whether the texture needs to be read from by the CPU. */

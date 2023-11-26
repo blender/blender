@@ -115,7 +115,7 @@ static int text_font_draw(const TextDrawContext *tdc,
     char fmt_prev = 0xff;
     for (int a = 0; a < str_len; a++) {
       if (format[a] != fmt_prev) {
-        /* Change of format so ouptut the previous section. */
+        /* Change of format so output the previous section. */
         if (a - str_pos > 0) {
           BLF_position(tdc->font_id, x + (columns * tdc->cwidth_px), y, 0);
           columns += BLF_draw_mono(

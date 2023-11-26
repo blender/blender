@@ -643,7 +643,7 @@ GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short /*scanCode*/) 
       key = GHOST_kKeyAccentGrave;
       break;
     case u'i':
-      /* `i` key on Turkish kbd. */
+      /* `i` key on Turkish keyboard. */
       key = GHOST_kKeyI;
       break;
     default:

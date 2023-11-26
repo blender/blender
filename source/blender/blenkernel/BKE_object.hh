@@ -356,7 +356,7 @@ std::optional<BoundBox> BKE_object_boundbox_get(Object *ob);
 void BKE_object_dimensions_get(Object *ob, float r_vec[3]);
 
 /**
- * Retrieve the bounds of the evalauted object's geometry, stored on the original object as part of
+ * Retrieve the bounds of the evaluated object's geometry, stored on the original object as part of
  * the latest dependency graph evaluation, or fall back to the current bounds of the object if no
  * such cache exists. For evaluated objects this indirection is unnecessary, so
  * #BKE_object_boundbox_get should be used instead.

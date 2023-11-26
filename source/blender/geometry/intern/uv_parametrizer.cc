@@ -1386,7 +1386,7 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
 
 /* Simplify/Complexity
  *
- * This is currently used for elminating degenerate vertex coordinates.
+ * This is currently used for eliminating degenerate vertex coordinates.
  * In the future this can be used for efficient unwrapping of high resolution
  * charts at lower resolution. */
 

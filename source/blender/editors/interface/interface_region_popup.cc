@@ -369,7 +369,7 @@ static void ui_popup_block_position(wmWindow *window,
       dir2 |= (UI_DIR_LEFT | UI_DIR_RIGHT);
     }
 
-    /* Popovers don't need secondary direction. Pulldowns to
+    /* Popovers don't need secondary direction. Pull-downs to
      * the left or right are currently not supported. */
     const bool no_2nd_dir = (but->type == UI_BTYPE_POPOVER || ui_but_menu_draw_as_popover(but) ||
                              dir1 & (UI_DIR_RIGHT | UI_DIR_LEFT));

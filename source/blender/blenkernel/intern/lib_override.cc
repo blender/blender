@@ -430,7 +430,7 @@ void BKE_lib_override_id_tag_on_deg_tag_from_user(ID *id)
   }
   /* NOTE: Valid relationships between IDs here (especially the beloved ObData <-> ShapeKey special
    * case) cannot be always expected when ID get tagged. So now, embedded IDs and similar also get
-   * tagged, and the 'liboverride refresh' code is responsible to properly progagate the update to
+   * tagged, and the 'liboverride refresh' code is responsible to properly propagate the update to
    * the owner ID when needed (see #BKE_lib_override_library_main_operations_create). */
   id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
 }
@@ -4384,7 +4384,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
     if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       continue;
     }
-    /* Propagate potential embedded data tagg to the owner ID (see also
+    /* Propagate potential embedded data tag to the owner ID (see also
      * #BKE_lib_override_id_tag_on_deg_tag_from_user). */
     if (Key *key = BKE_key_from_id(id)) {
       if (key->id.tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH) {

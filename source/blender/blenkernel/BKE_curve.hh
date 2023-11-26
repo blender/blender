@@ -160,7 +160,7 @@ void BKE_curve_editNurb_keyIndex_delCV(GHash *keyindex, const void *cv);
 void BKE_curve_editNurb_keyIndex_free(GHash **keyindex);
 void BKE_curve_editNurb_free(Curve *cu);
 /**
- * Get list of nurbs from edit-nurbs ure.
+ * Get list of nurbs from edit-nurbs structure.
  */
 ListBase *BKE_curve_editNurbs_get(Curve *cu);
 const ListBase *BKE_curve_editNurbs_get_for_read(const Curve *cu);
