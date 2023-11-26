@@ -6,6 +6,8 @@
 
 #include "BKE_mesh.hh"
 
+#include "GEO_mesh_selection.hh"
+
 namespace blender::geometry {
 
 IndexMask vert_selection_from_edge(const Span<int2> edges,
