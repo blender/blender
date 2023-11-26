@@ -9,9 +9,9 @@
 namespace blender::geometry {
 
 IndexMask vert_selection_from_edge(const Span<int2> edges,
-                                  const IndexMask &edge_mask,
-                                  const int verts_num,
-                                  IndexMaskMemory &memory)
+                                   const IndexMask &edge_mask,
+                                   const int verts_num,
+                                   IndexMaskMemory &memory)
 {
   Array<bool> array(verts_num, false);
   edge_mask.foreach_index_optimized<int>(GrainSize(4096), [&](const int i) {
@@ -22,10 +22,10 @@ IndexMask vert_selection_from_edge(const Span<int2> edges,
 }
 
 static IndexMask mapped_corner_selection_from_face(const OffsetIndices<int> faces,
-                                             const IndexMask &face_mask,
-                                             const Span<int> corner_verts_or_edges,
-                                             const int verts_or_edges_num,
-                                             IndexMaskMemory &memory)
+                                                   const IndexMask &face_mask,
+                                                   const Span<int> corner_verts_or_edges,
+                                                   const int verts_or_edges_num,
+                                                   IndexMaskMemory &memory)
 {
   Array<bool> array(verts_or_edges_num, false);
   face_mask.foreach_index(GrainSize(512), [&](const int64_t i) {
@@ -35,26 +35,26 @@ static IndexMask mapped_corner_selection_from_face(const OffsetIndices<int> face
 }
 
 IndexMask vert_selection_from_face(const OffsetIndices<int> faces,
-                                          const IndexMask &face_mask,
-                                          const Span<int> corner_verts,
-                                          const int verts_num,
-                                          IndexMaskMemory &memory)
+                                   const IndexMask &face_mask,
+                                   const Span<int> corner_verts,
+                                   const int verts_num,
+                                   IndexMaskMemory &memory)
 {
   return mapped_corner_selection_from_face(faces, face_mask, corner_verts, verts_num, memory);
 }
 
 IndexMask edge_selection_from_face(const OffsetIndices<int> faces,
-                                    const IndexMask &face_mask,
-                                    const Span<int> corner_edges,
-                                    const int edges_num,
-                                    IndexMaskMemory &memory)
+                                   const IndexMask &face_mask,
+                                   const Span<int> corner_edges,
+                                   const int edges_num,
+                                   IndexMaskMemory &memory)
 {
   return mapped_corner_selection_from_face(faces, face_mask, corner_edges, edges_num, memory);
 }
 
 IndexMask edge_selection_from_vert(const Span<int2> edges,
-                                  const Span<bool> vert_selection,
-                                  IndexMaskMemory &memory)
+                                   const Span<bool> vert_selection,
+                                   IndexMaskMemory &memory)
 {
   return IndexMask::from_predicate(
       edges.index_range(), GrainSize(1024), memory, [&](const int64_t i) {
@@ -64,9 +64,9 @@ IndexMask edge_selection_from_vert(const Span<int2> edges,
 }
 
 static IndexMask face_selection_from_mapped_corner(const OffsetIndices<int> faces,
-                                             const Span<int> corner_verts_or_edges,
-                                             const Span<bool> vert_or_edge_selection,
-                                             IndexMaskMemory &memory)
+                                                   const Span<int> corner_verts_or_edges,
+                                                   const Span<bool> vert_or_edge_selection,
+                                                   IndexMaskMemory &memory)
 {
   return IndexMask::from_predicate(
       faces.index_range(), GrainSize(1024), memory, [&](const int64_t i) {
@@ -78,17 +78,17 @@ static IndexMask face_selection_from_mapped_corner(const OffsetIndices<int> face
 }
 
 IndexMask face_selection_from_vert(const OffsetIndices<int> faces,
-                                          const Span<int> corner_verts,
-                                          const Span<bool> vert_selection,
-                                          IndexMaskMemory &memory)
+                                   const Span<int> corner_verts,
+                                   const Span<bool> vert_selection,
+                                   IndexMaskMemory &memory)
 {
   return face_selection_from_mapped_corner(faces, corner_verts, vert_selection, memory);
 }
 
 IndexMask face_selection_from_edge(const OffsetIndices<int> faces,
-                                          const Span<int> corner_edges,
-                                          const Span<bool> edge_mask,
-                                          IndexMaskMemory &memory)
+                                   const Span<int> corner_edges,
+                                   const Span<bool> edge_mask,
+                                   IndexMaskMemory &memory)
 {
   return face_selection_from_mapped_corner(faces, corner_edges, edge_mask, memory);
 }
