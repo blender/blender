@@ -34,6 +34,8 @@ KeyingOperation::KeyingOperation()
 
   pixel_reader_ = nullptr;
   screen_reader_ = nullptr;
+
+  flags_.can_be_constant = true;
 }
 
 void KeyingOperation::init_execution()

@@ -100,6 +100,7 @@ AntiAliasOperation::AntiAliasOperation()
   this->add_output_socket(DataType::Value);
   value_reader_ = nullptr;
   flags_.complex = true;
+  flags_.can_be_constant = true;
 }
 
 void AntiAliasOperation::init_execution()
