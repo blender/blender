@@ -35,8 +35,12 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor);
  *
  * \param ob_arm: The armature object
  * \param r_names: The returned list of bone names
+ * \param use_deform: If true, use only deform bone names, including their parents, to match
+ *                    Armature export joint indices.
  */
-void get_armature_bone_names(const Object *ob_arm, Vector<std::string> &r_names);
+void get_armature_bone_names(const Object *ob_arm,
+                             Vector<std::string> &r_names,
+                             const bool use_deform);
 
 /**
  * Return the USD joint path corresponding to the given bone. For example, for the bone
@@ -55,7 +59,9 @@ pxr::TfToken build_usd_joint_path(const Bone *bone);
  * \param skel_anim: The animation whose joints attribute will be set
  * \param ob_arm: The armature object
  */
-void create_pose_joints(pxr::UsdSkelAnimation &skel_anim, const Object *obj);
+void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
+                        const Object *obj,
+                        std::unordered_map<const char *, const Bone *> *deform_map);
 
 /**
  * Return a list of all the modifiers on the given object enabled for the
@@ -67,7 +73,6 @@ void create_pose_joints(pxr::UsdSkelAnimation &skel_anim, const Object *obj);
  *
  */
 Vector<ModifierData *> get_enabled_modifiers(const Object *obj, const Depsgraph *depsgraph);
-
 
 /**
  * Return the modifier of the given type enabled for the given dependency graph's
@@ -111,5 +116,17 @@ bool is_armature_modifier_bone_name(const Object *obj,
  * \return: True if skinned mesh export is supported, false otherwise
  */
 bool can_export_skinned_mesh(const Object *obj, const Depsgraph *depsgraph);
+
+/**
+ * Initialize the deform bones map:
+ * - First: grab all bones marked for deforming and store them.
+ * - Second: loop the deform bones you found and recursively walk up their parent
+ *           hierarchies, marking those bones as deform as well.
+ * \param obj: Object to query
+ * \param deform_map: A pointer to the deform_map to fill with deform bones and
+ *                    their parents found on the object.
+ */
+void init_deform_bones_map(const Object *obj,
+                           std::unordered_map<const char *, const Bone *> *deform_map);
 
 }  // namespace blender::io::usd

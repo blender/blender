@@ -306,6 +306,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
   const bool export_shapekeys = RNA_boolean_get(op->ptr, "export_shapekeys");
+  const bool use_deform = RNA_boolean_get(op->ptr, "use_deform");
 
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
@@ -426,6 +427,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    fix_skel_root,
                                    overwrite_textures,
                                    export_shapekeys,
+                                   use_deform,
                                    usdz_downscale_size,
                                    usdz_downscale_custom_size,
                                    usdz_is_arkit,
@@ -656,6 +658,12 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "export_shapekeys", true, "Shape Keys", "Export shape keys as USD blend shapes");
+
+  RNA_def_boolean(ot->srna,
+                  "use_deform",
+                  false,
+                  "Only Deform Bones",
+                  "Only export Deform bones and their parents");
 
   RNA_def_boolean(ot->srna,
                   "use_instancing",
@@ -1663,6 +1671,7 @@ static void usd_export_panel_rigging_draw(const bContext *C, Panel *panel)
   col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Shapes: "));
   uiLayoutSetPropSep(col, true);
   uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, "Export Shape Keys", ICON_NONE);
+  uiItemR(col, ptr, "use_deform", UI_ITEM_NONE, "Only Deform Bones", ICON_NONE);
 }
 
 void usd_panel_register(const char *idname,
