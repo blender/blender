@@ -79,21 +79,21 @@ void VKCommandBuffers::init_command_pool(const VKDevice &device)
 void VKCommandBuffers::init_command_buffers(const VKDevice &device)
 {
   BLI_assert(vk_command_pool_ != VK_NULL_HANDLE);
-  VkCommandBuffer vk_command_buffers[(uint32_t)Type::Max] = {VK_NULL_HANDLE};
+  VkCommandBuffer vk_command_buffers[uint32_t(Type::Max)] = {VK_NULL_HANDLE};
   VkCommandBufferAllocateInfo alloc_info = {};
   alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   alloc_info.commandPool = vk_command_pool_;
   alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  alloc_info.commandBufferCount = (uint32_t)Type::Max;
+  alloc_info.commandBufferCount = uint32_t(Type::Max);
   vkAllocateCommandBuffers(device.device_get(), &alloc_info, vk_command_buffers);
 
   init_command_buffer(command_buffer_get(Type::DataTransferCompute),
                       vk_command_pool_,
-                      vk_command_buffers[(int)Type::DataTransferCompute],
+                      vk_command_buffers[int(Type::DataTransferCompute)],
                       "Data Transfer Compute Command Buffer");
   init_command_buffer(command_buffer_get(Type::Graphics),
                       vk_command_pool_,
-                      vk_command_buffers[(int)Type::Graphics],
+                      vk_command_buffers[int(Type::Graphics)],
                       "Graphics Command Buffer");
 }
 
@@ -116,7 +116,7 @@ void VKCommandBuffers::submit_command_buffers(VKDevice &device,
 
   VkTimelineSemaphoreSubmitInfo timelineInfo;
   timelineInfo.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
-  timelineInfo.pNext = NULL;
+  timelineInfo.pNext = nullptr;
   timelineInfo.waitSemaphoreValueCount = 1;
   timelineInfo.pWaitSemaphoreValues = wait_value;
   timelineInfo.signalSemaphoreValueCount = 1;
