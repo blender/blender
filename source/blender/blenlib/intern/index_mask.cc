@@ -575,7 +575,6 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
 IndexMask IndexMask::from_union(const IndexMask &mask_a,
                                 const IndexMask &mask_b,
                                 IndexMaskMemory &memory)
-
 {
   const int64_t new_size = math::max(mask_a.min_array_size(), mask_b.min_array_size());
   Array<bool> tmp(new_size, false);
