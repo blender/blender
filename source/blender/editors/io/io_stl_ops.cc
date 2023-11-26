@@ -51,6 +51,7 @@ static int wm_stl_export_execute(bContext *C, wmOperator *op)
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
+  export_params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
   export_params.use_batch = RNA_boolean_get(op->ptr, "use_batch");
 
