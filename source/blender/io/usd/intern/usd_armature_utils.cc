@@ -199,10 +199,6 @@ void init_deform_bones_map(const Object *obj,
     return;
   }
 
-  size_t num_bones = 0;
-  size_t num_deform_bones = 0;
-  size_t num_deform_parent_bones = 0;
-
   deform_map->clear();
 
   auto deform_visitor = [&](const Bone *bone) {
@@ -214,8 +210,6 @@ void init_deform_bones_map(const Object *obj,
     if (deform && deform_map) {
       deform_map->insert_or_assign(bone->name, bone);
     }
-    num_deform_bones += int(deform);
-    num_bones += 1;
   };
 
   visit_bones(obj, deform_visitor);
@@ -227,9 +221,6 @@ void init_deform_bones_map(const Object *obj,
     if (pair.second) {
       Bone *parent = const_cast<Bone *>(pair.second)->parent;
       while (parent) {
-        if (deform_parent_bones.find(parent->name) == deform_parent_bones.end()) {
-          num_deform_parent_bones += 1;
-        }
         deform_parent_bones.insert_or_assign(parent->name, parent);
         parent = parent->parent;
       }

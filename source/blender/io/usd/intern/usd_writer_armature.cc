@@ -28,23 +28,6 @@ namespace usdtokens {
 static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-static inline bool is_deform_bone(const Bone *bone)
-{
-  return !(bone->flag & BONE_NO_DEFORM);
-}
-
-static inline bool is_deform_bone(const Bone *bone,
-                                  std::unordered_map<const char *, bool> &should_export)
-{
-  const auto result = should_export.find(&bone->name[2]);
-  if (result == should_export.end()) {
-    //! TODO: Better error?
-    return false;
-  }
-
-  return result->second;
-}
-
 /* Initialize the given skeleton and animation from
  * the given armature object. */
 static void initialize(const Object *obj,
