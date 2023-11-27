@@ -27,6 +27,7 @@
 #  include "BKE_attribute.hh"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh.hh"
+#  include "BKE_mesh_compare.hh"
 #  include "BKE_mesh_mapping.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_mesh_tangent.hh"
@@ -40,13 +41,14 @@
 
 static const char *rna_Mesh_unit_test_compare(Mesh *mesh, Mesh *mesh2, float threshold)
 {
-  const char *ret = BKE_mesh_cmp(mesh, mesh2, threshold);
+  using namespace blender::bke::compare_meshes;
+  const std::optional<MeshMismatch> mismatch = compare_meshes(*mesh, *mesh2, threshold);
 
-  if (!ret) {
-    ret = "Same";
+  if (!mismatch) {
+    return "Same";
   }
 
-  return ret;
+  return mismatch_to_string(mismatch.value());
 }
 
 static void rna_Mesh_sharp_from_angle_set(Mesh *mesh, const float angle)
