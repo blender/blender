@@ -150,6 +150,7 @@ static void sort_indices(MutableSpan<int> indices, const Span<T> values, const i
     }
 
     BLI_assert_unreachable();
+    return false;
   });
 }
 
