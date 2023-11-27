@@ -19,10 +19,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 struct IDNameLib_Map;
 struct Main;
@@ -43,31 +39,23 @@ enum {
  * \param create_valid_ids_set: If \a true, generate a reference to prevent freed memory accesses.
  * \param old_bmain: If not NULL, its IDs will be added the valid references set.
  */
-struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
-                                            bool create_valid_ids_set,
-                                            struct Main *old_bmain,
-                                            int idmap_types) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-void BKE_main_idmap_destroy(struct IDNameLib_Map *id_map) ATTR_NONNULL();
+IDNameLib_Map *BKE_main_idmap_create(Main *bmain,
+                                     bool create_valid_ids_set,
+                                     Main *old_bmain,
+                                     int idmap_types) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void BKE_main_idmap_destroy(IDNameLib_Map *id_map) ATTR_NONNULL();
 
-void BKE_main_idmap_insert_id(struct IDNameLib_Map *id_map, struct ID *id) ATTR_NONNULL();
-void BKE_main_idmap_remove_id(struct IDNameLib_Map *id_map, struct ID *id) ATTR_NONNULL();
+void BKE_main_idmap_insert_id(IDNameLib_Map *id_map, ID *id) ATTR_NONNULL();
+void BKE_main_idmap_remove_id(IDNameLib_Map *id_map, ID *id) ATTR_NONNULL();
 
-struct Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_map) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+Main *BKE_main_idmap_main_get(IDNameLib_Map *id_map) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-struct ID *BKE_main_idmap_lookup_name(struct IDNameLib_Map *id_map,
-                                      short id_type,
-                                      const char *name,
-                                      const struct Library *lib) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 3);
-struct ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_map,
-                                    const struct ID *id) ATTR_WARN_UNUSED_RESULT
+ID *BKE_main_idmap_lookup_name(IDNameLib_Map *id_map,
+                               short id_type,
+                               const char *name,
+                               const Library *lib) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3);
+ID *BKE_main_idmap_lookup_id(IDNameLib_Map *id_map, const ID *id) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 
-struct ID *BKE_main_idmap_lookup_uuid(struct IDNameLib_Map *id_map,
-                                      uint session_uuid) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-
-#ifdef __cplusplus
-}
-#endif
+ID *BKE_main_idmap_lookup_uuid(IDNameLib_Map *id_map, uint session_uuid) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);

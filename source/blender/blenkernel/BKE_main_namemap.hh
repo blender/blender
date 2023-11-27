@@ -20,16 +20,12 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 struct Main;
 struct UniqueName_Map;
 
-struct UniqueName_Map *BKE_main_namemap_create(void) ATTR_WARN_UNUSED_RESULT;
-void BKE_main_namemap_destroy(struct UniqueName_Map **r_name_map) ATTR_NONNULL();
+UniqueName_Map *BKE_main_namemap_create(void) ATTR_WARN_UNUSED_RESULT;
+void BKE_main_namemap_destroy(UniqueName_Map **r_name_map) ATTR_NONNULL();
 
 /**
  * Destroy all name_maps in given bmain:
@@ -38,7 +34,7 @@ void BKE_main_namemap_destroy(struct UniqueName_Map **r_name_map) ATTR_NONNULL()
  *   readfile code).
  * - In all of the libraries IDs (for linked IDs).
  */
-void BKE_main_namemap_clear(struct Main *bmain) ATTR_NONNULL();
+void BKE_main_namemap_clear(Main *bmain) ATTR_NONNULL();
 
 /**
  * Ensures the given name is unique within the given ID type.
@@ -50,18 +46,15 @@ void BKE_main_namemap_clear(struct Main *bmain) ATTR_NONNULL();
  *
  * \return true if the name had to be adjusted for uniqueness.
  */
-bool BKE_main_namemap_get_name(struct Main *bmain,
-                               struct ID *id,
-                               char *name,
-                               const bool do_unique_in_bmain) ATTR_NONNULL();
+bool BKE_main_namemap_get_name(Main *bmain, ID *id, char *name, const bool do_unique_in_bmain)
+    ATTR_NONNULL();
 
 /**
  * Remove a given name from usage.
  *
  * Call this whenever deleting or renaming an object.
  */
-void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char *name)
-    ATTR_NONNULL();
+void BKE_main_namemap_remove_name(Main *bmain, ID *id, const char *name) ATTR_NONNULL();
 
 /**
  * Check that all ID names in given `bmain` are unique (per ID type and library), and that existing
@@ -69,7 +62,7 @@ void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char 
  *
  * This is typically called within an assert, or in tests.
  */
-bool BKE_main_namemap_validate(struct Main *bmain) ATTR_NONNULL();
+bool BKE_main_namemap_validate(Main *bmain) ATTR_NONNULL();
 
 /**
  * Same as #BKE_main_namemap_validate, but also fixes any issue by re-generating all name maps,
@@ -77,8 +70,4 @@ bool BKE_main_namemap_validate(struct Main *bmain) ATTR_NONNULL();
  *
  * This is typically only used in `do_versions` code to fix broken files.
  */
-bool BKE_main_namemap_validate_and_fix(struct Main *bmain) ATTR_NONNULL();
-
-#ifdef __cplusplus
-}
-#endif
+bool BKE_main_namemap_validate_and_fix(Main *bmain) ATTR_NONNULL();

@@ -424,8 +424,8 @@ set(SRC
   BKE_lightprobe.h
   BKE_linestyle.h
   BKE_main.h
-  BKE_main_idmap.h
-  BKE_main_namemap.h
+  BKE_main_idmap.hh
+  BKE_main_namemap.hh
   BKE_mask.h
   BKE_material.h
   BKE_mball.h
