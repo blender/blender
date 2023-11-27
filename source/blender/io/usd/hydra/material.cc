@@ -105,7 +105,8 @@ void MaterialData::init()
   else
 #endif
   {
-    usd_material = usd::create_usd_material(export_context, material_path, (Material *)id, "st");
+    usd_material = usd::create_usd_material(
+        export_context, material_path, (Material *)id, "st", nullptr);
   }
 
   /* Convert USD material to Hydra material network map, adapted for render delegate. */
