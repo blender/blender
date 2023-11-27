@@ -827,6 +827,7 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
                              float r_min[3],
                              float r_max[3])
 {
+  using namespace blender;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   Object *object = pd->object;
   if (object == nullptr) {
@@ -853,9 +854,9 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
   }
   else {
     const float radius[3] = {pd->radius, pd->radius, pd->radius};
-    if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(object)) {
-      copy_v3_v3(r_min, bb->vec[0]);
-      copy_v3_v3(r_max, bb->vec[6]);
+    if (const std::optional<Bounds<float3>> bb = BKE_object_boundbox_get(object)) {
+      copy_v3_v3(r_min, bb->min);
+      copy_v3_v3(r_max, bb->max);
       /* Adjust texture space to include density points on the boundaries. */
       sub_v3_v3(r_min, radius);
       add_v3_v3(r_max, radius);

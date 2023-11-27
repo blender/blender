@@ -783,18 +783,6 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
   ensure_orig_index_layer(mesh->face_data, mesh->faces_num);
 }
 
-BoundBox BKE_mesh_boundbox_get(Object *ob)
-{
-  using namespace blender;
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  const Bounds<float3> bounds = me->bounds_min_max().value_or(
-      Bounds<float3>{float3(-1.0f), float3(1.0f)});
-
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
-  return bb;
-}
-
 void BKE_mesh_texspace_calc(Mesh *me)
 {
   using namespace blender;

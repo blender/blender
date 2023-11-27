@@ -80,7 +80,7 @@ static void view3d_object_calc_minmax(Depsgraph *depsgraph,
       minmax_v3v3_v3(min, max, ob_eval->object_to_world[3]);
     }
     else {
-      BKE_object_minmax(ob_eval, min, max, false);
+      BKE_object_minmax(ob_eval, min, max);
     }
   }
 }

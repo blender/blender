@@ -15,6 +15,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 
 #include "BLT_translation.h"
@@ -834,11 +835,9 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
         /* use the boundbox if we can */
         Object *ob_eval = base_eval->object;
 
-        if (ob_eval->runtime->bb && !(ob_eval->runtime->bb->flag & BOUNDBOX_DIRTY)) {
-          float cent[3];
-
-          BKE_boundbox_calc_center_aabb(ob_eval->runtime->bb, cent);
-
+        if (ob_eval->runtime->bounds_eval) {
+          blender::float3 cent = blender::math::midpoint(ob_eval->runtime->bounds_eval->min,
+                                                         ob_eval->runtime->bounds_eval->max);
           mul_m4_v3(ob_eval->object_to_world, cent);
           add_v3_v3(select_center, cent);
         }

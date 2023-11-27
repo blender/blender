@@ -1520,11 +1520,6 @@ void SCULPT_undo_push_end_ex(Object *ob, const bool use_nested_undo);
 void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, blender::Span<blender::float3> vertCos);
 
 /**
- * Copy the PBVH bounding box into the object's bounding box.
- */
-void SCULPT_update_object_bounding_box(Object *ob);
-
-/**
  * Get a screen-space rectangle of the modified area.
  */
 bool SCULPT_get_redraw_rect(ARegion *region, RegionView3D *rv3d, Object *ob, rcti *rect);

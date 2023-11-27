@@ -2908,44 +2908,21 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 /** \name Calculate Bounding Box (Armature & Pose)
  * \{ */
 
-static int minmax_armature(Object *ob, float r_min[3], float r_max[3])
+std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const bPose *pose)
 {
+  if (BLI_listbase_is_empty(&pose->chanbase)) {
+    return std::nullopt;
+  }
+  blender::float3 min(-FLT_MAX);
+  blender::float3 max(FLT_MAX);
   /* For now, we assume BKE_pose_where_is has already been called
    * (hence we have valid data in pachan). */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    minmax_v3v3_v3(r_min, r_max, pchan->pose_head);
-    minmax_v3v3_v3(r_min, r_max, pchan->pose_tail);
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+    minmax_v3v3_v3(min, max, pchan->pose_head);
+    minmax_v3v3_v3(min, max, pchan->pose_tail);
   }
 
-  return (BLI_listbase_is_empty(&ob->pose->chanbase) == false);
-}
-
-static void boundbox_armature(Object *ob)
-{
-  BoundBox *bb;
-  float min[3], max[3];
-
-  if (ob->runtime->bb == nullptr) {
-    ob->runtime->bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "Armature boundbox"));
-  }
-  bb = ob->runtime->bb;
-
-  INIT_MINMAX(min, max);
-  if (!minmax_armature(ob, min, max)) {
-    min[0] = min[1] = min[2] = -1.0f;
-    max[0] = max[1] = max[2] = 1.0f;
-  }
-
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
-  bb->flag &= ~BOUNDBOX_DIRTY;
-}
-
-BoundBox *BKE_armature_boundbox_get(Object *ob)
-{
-  boundbox_armature(ob);
-
-  return ob->runtime->bb;
+  return blender::Bounds<blender::float3>{min, max};
 }
 
 void BKE_pchan_minmax(const Object *ob,
@@ -2954,18 +2931,18 @@ void BKE_pchan_minmax(const Object *ob,
                       float r_min[3],
                       float r_max[3])
 {
+  using namespace blender;
   const bArmature *arm = static_cast<const bArmature *>(ob->data);
   Object *ob_custom = (arm->flag & ARM_NO_CUSTOM) ? nullptr : pchan->custom;
   const bPoseChannel *pchan_tx = (ob_custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
 
-  std::optional<BoundBox> bb_custom;
+  std::optional<Bounds<float3>> bb_custom;
   if (ob_custom) {
-    float min[3], max[3];
+    float3 min, max;
     if (use_empty_drawtype && (ob_custom->type == OB_EMPTY) &&
         BKE_object_minmax_empty_drawtype(ob_custom, min, max))
     {
-      bb_custom.emplace();
-      BKE_boundbox_init_from_minmax(&bb_custom.value(), min, max);
+      bb_custom.emplace(Bounds<float3>{min, max});
     }
     else {
       bb_custom = BKE_object_boundbox_get(ob_custom);
@@ -2983,7 +2960,9 @@ void BKE_pchan_minmax(const Object *ob,
                  pchan->custom_translation[1],
                  pchan->custom_translation[2]);
     mul_m4_series(mat, ob->object_to_world, tmp, rmat, smat);
-    BKE_boundbox_minmax(&bb_custom.value(), mat, r_min, r_max);
+    BoundBox bb;
+    BKE_boundbox_init_from_minmax(&bb, bb_custom->min, bb_custom->max);
+    BKE_boundbox_minmax(&bb, mat, r_min, r_max);
   }
   else {
     float vec[3];

@@ -4035,9 +4035,9 @@ static void do_tiled(Sculpt *sd,
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const float radius = cache->radius;
-  const BoundBox bb = *BKE_object_boundbox_get(ob);
-  const float *bbMin = bb.vec[0];
-  const float *bbMax = bb.vec[6];
+  const blender::Bounds<blender::float3> bb = *BKE_object_boundbox_get(ob);
+  const float *bbMin = bb.min;
+  const float *bbMax = bb.max;
   const float *step = sd->paint.tile_offset;
 
   /* These are integer locations, for real location: multiply with step and add orgLoc.
@@ -5372,16 +5372,6 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
   }
 }
 
-void SCULPT_update_object_bounding_box(Object *ob)
-{
-  if (ob->runtime->bb) {
-    float bb_min[3], bb_max[3];
-
-    BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
-    BKE_boundbox_init_from_minmax(ob->runtime->bb, bb_min, bb_max);
-  }
-}
-
 void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 {
   using namespace blender;
@@ -5428,10 +5418,6 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 
     if (update_flags & SCULPT_UPDATE_COORDS) {
       BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
-      /* Update the object's bounding box too so that the object
-       * doesn't get incorrectly clipped during drawing in
-       * draw_mesh_object(). #33790. */
-      SCULPT_update_object_bounding_box(ob);
     }
 
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -5459,12 +5445,17 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
        * modifies, it's generally okay.
        *
        * Vertex and face normals are updated later in #BKE_pbvh_update_normals. However, we update
-       * the mesh's bounds eagerly here since they are trivial to access from the PBVH. */
+       * the mesh's bounds eagerly here since they are trivial to access from the PBVH. Updating
+       * the object's evaluated geometry bounding box is necessary because sculpt strokes don't
+       * cause an object reevaluation. */
       BKE_mesh_tag_positions_changed_no_normals(mesh);
 
       Bounds<float3> bounds;
       BKE_pbvh_bounding_box(ob->sculpt->pbvh, bounds.min, bounds.max);
       mesh->bounds_set_eager(bounds);
+      if (ob->runtime->bounds_eval) {
+        ob->runtime->bounds_eval = mesh->bounds_min_max();
+      }
     }
   }
 }

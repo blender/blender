@@ -103,9 +103,10 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
 
   switch (GS(reinterpret_cast<ID *>(ref.object->data)->name)) {
     case ID_VO: {
-      BoundBox &bbox = *BKE_volume_boundbox_get(ref.object);
-      orco_add = (float3(bbox.vec[6]) + float3(bbox.vec[0])) * 0.5f; /* Center. */
-      orco_mul = (float3(bbox.vec[6]) - float3(bbox.vec[0])) * 0.5f; /* Half-Size. */
+      const blender::Bounds<float3> bounds = *BKE_volume_min_max(
+          static_cast<const Volume *>(ref.object->data));
+      orco_add = blender::math::midpoint(bounds.min, bounds.max);
+      orco_mul = (bounds.max - bounds.max) * 0.5f;
       break;
     }
     case ID_ME: {
@@ -161,15 +162,17 @@ inline void ObjectBounds::sync()
 
 inline void ObjectBounds::sync(Object &ob, float inflate_bounds)
 {
-  const std::optional<BoundBox> bbox = BKE_object_boundbox_get(&ob);
-  if (!bbox) {
+  const std::optional<blender::Bounds<float3>> bounds = BKE_object_boundbox_get(&ob);
+  if (!bounds) {
     bounding_sphere.w = -1.0f; /* Disable test. */
     return;
   }
-  *reinterpret_cast<float3 *>(&bounding_corners[0]) = bbox->vec[0];
-  *reinterpret_cast<float3 *>(&bounding_corners[1]) = bbox->vec[4];
-  *reinterpret_cast<float3 *>(&bounding_corners[2]) = bbox->vec[3];
-  *reinterpret_cast<float3 *>(&bounding_corners[3]) = bbox->vec[1];
+  BoundBox bbox;
+  BKE_boundbox_init_from_minmax(&bbox, bounds->min, bounds->max);
+  *reinterpret_cast<float3 *>(&bounding_corners[0]) = bbox.vec[0];
+  *reinterpret_cast<float3 *>(&bounding_corners[1]) = bbox.vec[4];
+  *reinterpret_cast<float3 *>(&bounding_corners[2]) = bbox.vec[3];
+  *reinterpret_cast<float3 *>(&bounding_corners[3]) = bbox.vec[1];
   bounding_sphere.w = 0.0f; /* Enable test. */
 
   if (inflate_bounds != 0.0f) {

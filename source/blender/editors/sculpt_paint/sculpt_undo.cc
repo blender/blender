@@ -1075,9 +1075,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     if (tag_update) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
-    else {
-      SCULPT_update_object_bounding_box(ob);
-    }
   }
 
   MEM_SAFE_FREE(modified_hidden_verts);

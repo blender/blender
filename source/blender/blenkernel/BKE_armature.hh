@@ -8,8 +8,10 @@
  * \ingroup bke
  */
 
+#include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 
 #include "DNA_armature_types.h"
@@ -152,8 +154,7 @@ void BKE_armature_copy_bone_transforms(struct bArmature *armature_dst,
 
 void BKE_armature_transform(struct bArmature *arm, const float mat[4][4], bool do_props);
 
-/* Bounding box. */
-struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
+std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const bPose *pose);
 
 /**
  * Calculate the axis-aligned bounds of `pchan` in world-space,

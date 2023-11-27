@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_array.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -50,8 +53,13 @@ struct ObjectRuntime {
   /** Start time of the mode transfer overlay animation. */
   double overlay_mode_transfer_start_time = 0.0f;
 
-  /** Axis aligned bound-box (in local-space). */
-  BoundBox *bb = nullptr;
+  /**
+   * The bounding box of the object's evaluated geometry in the active dependency graph. The bounds
+   * are copied back to the original object for the RNA API and for display in the interface.
+   *
+   * Only set on original objects.
+   */
+  std::optional<Bounds<float3>> bounds_eval;
 
   /**
    * Original data pointer, before object->data was changed to point

@@ -1127,23 +1127,6 @@ GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_
   return grease_pencil;
 }
 
-BoundBox BKE_grease_pencil_boundbox_get(Object *ob)
-{
-  using namespace blender;
-  BLI_assert(ob->type == OB_GREASE_PENCIL);
-  const GreasePencil *grease_pencil = static_cast<const GreasePencil *>(ob->data);
-
-  BoundBox bb;
-  if (const std::optional<Bounds<float3>> bounds = grease_pencil->bounds_min_max_eval()) {
-    BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
-  }
-  else {
-    BKE_boundbox_init_from_minmax(&bb, float3(-1), float3(1));
-  }
-
-  return bb;
-}
-
 static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
                                              Scene *scene,
                                              Object *object,

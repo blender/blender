@@ -83,11 +83,9 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
     usd_volume.CreateFieldRelationship(pxr::TfToken(grid_id), grid_path);
   }
 
-  float3 volume_bound_min(std::numeric_limits<float>::max());
-  float3 volume_bound_max(std::numeric_limits<float>::lowest());
-  if (BKE_volume_min_max(volume, volume_bound_min, volume_bound_max)) {
-    const pxr::VtArray<pxr::GfVec3f> volume_extent = {pxr::GfVec3f(&volume_bound_min[0]),
-                                                      pxr::GfVec3f(&volume_bound_max[0])};
+  if (const std::optional<Bounds<float3>> bounds = BKE_volume_min_max(volume)) {
+    const pxr::VtArray<pxr::GfVec3f> volume_extent = {pxr::GfVec3f(&bounds->min.x),
+                                                      pxr::GfVec3f(&bounds->max.x)};
     usd_volume.GetExtentAttr().Set(volume_extent, timecode);
   }
 

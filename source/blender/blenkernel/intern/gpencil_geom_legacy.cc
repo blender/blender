@@ -89,36 +89,35 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
   return changed;
 }
 
-bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
+std::optional<blender::Bounds<blender::float3>> BKE_gpencil_data_minmax(const bGPdata *gpd)
 {
   bool changed = false;
 
-  INIT_MINMAX(r_min, r_max);
-
-  if (gpd == nullptr) {
-    return changed;
-  }
-
+  float3 min;
+  float3 max;
+  INIT_MINMAX(min, max);
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf = gpl->actframe;
 
     if (gpf != nullptr) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        changed |= BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
+        changed |= BKE_gpencil_stroke_minmax(gps, false, min, max);
       }
     }
   }
 
-  return changed;
+  if (!changed) {
+    return std::nullopt;
+  }
+
+  return blender::Bounds<blender::float3>{min, max};
 }
 
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
-  float3 min;
-  float3 max;
-  BKE_gpencil_data_minmax(gpd, min, max);
+  const blender::Bounds<blender::float3> bounds = *BKE_gpencil_data_minmax(gpd);
 
-  const float3 tot = min + max;
+  const float3 tot = bounds.min + bounds.max;
   mul_v3_v3fl(r_centroid, tot, 0.5f);
 }
 
@@ -126,60 +125,6 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
 {
   INIT_MINMAX(gps->boundbox_min, gps->boundbox_max);
   BKE_gpencil_stroke_minmax(gps, false, gps->boundbox_min, gps->boundbox_max);
-}
-
-/**
- * Create bounding box values.
- * \param ob: Grease pencil object
- */
-static void boundbox_gpencil(Object *ob)
-{
-  if (ob->runtime->bb == nullptr) {
-    ob->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
-  }
-
-  BoundBox *bb = ob->runtime->bb;
-  bGPdata *gpd = (bGPdata *)ob->data;
-
-  float3 min;
-  float3 max;
-  if (!BKE_gpencil_data_minmax(gpd, min, max)) {
-    min = float3(-1);
-    max = float3(1);
-  }
-
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
-  bb->flag &= ~BOUNDBOX_DIRTY;
-}
-
-BoundBox *BKE_gpencil_boundbox_get(Object *ob)
-{
-  if (ELEM(nullptr, ob, ob->data)) {
-    return nullptr;
-  }
-
-  bGPdata *gpd = (bGPdata *)ob->data;
-  if ((ob->runtime->bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
-    return ob->runtime->bb;
-  }
-
-  boundbox_gpencil(ob);
-
-  Object *ob_orig = (Object *)DEG_get_original_id(&ob->id);
-  /* Update orig object's boundbox with re-computed evaluated values. This function can be
-   * called with the evaluated object and need update the original object bound box data
-   * to keep both values synchronized. */
-  if (!ELEM(ob_orig, nullptr, ob)) {
-    if (ob_orig->runtime->bb == nullptr) {
-      ob_orig->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
-    }
-    for (int i = 0; i < 8; i++) {
-      copy_v3_v3(ob_orig->runtime->bb->vec[i], ob->runtime->bb->vec[i]);
-    }
-  }
-
-  return ob->runtime->bb;
 }
 
 /** \} */

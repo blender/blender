@@ -210,11 +210,7 @@ std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() 
     bounds = bounds::merge(bounds, mesh->bounds_min_max());
   }
   if (const Volume *volume = this->get_volume()) {
-    Bounds<float3> volume_bounds{float3(std::numeric_limits<float>::max()),
-                                 float3(std::numeric_limits<float>::lowest())};
-    if (BKE_volume_min_max(volume, volume_bounds.min, volume_bounds.max)) {
-      bounds = bounds::merge(bounds, {volume_bounds});
-    }
+    bounds = bounds::merge(bounds, BKE_volume_min_max(volume));
   }
   if (const Curves *curves_id = this->get_curves()) {
     bounds = bounds::merge(bounds, curves_id->geometry.wrap().bounds_min_max());

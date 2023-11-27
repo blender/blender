@@ -11,11 +11,12 @@
 
 #include <optional>
 
+#include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
 #include "DNA_object_enums.h"
-#include "DNA_object_types.h" /* #BoundBox. */
 #include "DNA_userdef_enums.h"
 
 struct Base;
@@ -352,7 +353,7 @@ void BKE_boundbox_minmax(const BoundBox *bb,
  * (not accounting for the object's transform). For evaluated objects, this includes
  * the evaluated geometry (not just #Object.data).
  */
-std::optional<BoundBox> BKE_object_boundbox_get(Object *ob);
+std::optional<blender::Bounds<blender::float3>> BKE_object_boundbox_get(const Object *ob);
 void BKE_object_dimensions_get(Object *ob, float r_vec[3]);
 
 /**
@@ -361,7 +362,8 @@ void BKE_object_dimensions_get(Object *ob, float r_vec[3]);
  * such cache exists. For evaluated objects this indirection is unnecessary, so
  * #BKE_object_boundbox_get should be used instead.
  */
-std::optional<BoundBox> BKE_object_boundbox_eval_cached_get(Object *ob);
+std::optional<blender::Bounds<blender::float3>> BKE_object_boundbox_eval_cached_get(
+    const Object *ob);
 /** Similar to #BKE_object_boundbox_eval_cached_get but gives the size of the bounds instead. */
 void BKE_object_dimensions_eval_cached_get(Object *ob, float r_vec[3]);
 
@@ -382,9 +384,9 @@ void BKE_object_dimensions_set(Object *ob, const float value[3], int axis_mask);
 
 void BKE_object_empty_draw_type_set(Object *ob, int value);
 
-void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval);
-bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob);
-void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden);
+std::optional<blender::Bounds<blender::float3>> BKE_object_evaluated_geometry_bounds(
+    const Object *ob);
+void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3]);
 bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
                              Scene *scene,
                              Object *ob,

@@ -643,9 +643,10 @@ static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
   if (ob_data != nullptr) {
     switch (GS(ob_data->name)) {
       case ID_VO: {
-        BoundBox *bbox = BKE_volume_boundbox_get(ob);
-        mid_v3_v3v3(static_buf.texspace_location, bbox->vec[0], bbox->vec[6]);
-        sub_v3_v3v3(static_buf.texspace_size, bbox->vec[0], bbox->vec[6]);
+        const Volume &volume = *reinterpret_cast<const Volume *>(ob_data);
+        const blender::Bounds<blender::float3> bounds = *BKE_volume_min_max(&volume);
+        mid_v3_v3v3(static_buf.texspace_location, bounds.max, bounds.min);
+        sub_v3_v3v3(static_buf.texspace_size, bounds.max, bounds.min);
         texspace_location = static_buf.texspace_location;
         texspace_size = static_buf.texspace_size;
         break;
@@ -730,12 +731,13 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
 
 static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
 {
-  std::optional<BoundBox> bbox;
-  if (ob != nullptr && (bbox = BKE_object_boundbox_get(ob))) {
+  using namespace blender;
+  std::optional<Bounds<float3>> bounds;
+  if (ob != nullptr && (bounds = BKE_object_boundbox_get(ob))) {
     float corner[3];
     /* Get BoundSphere center and radius from the BoundBox. */
-    mid_v3_v3v3(cull->bsphere.center, bbox->vec[0], bbox->vec[6]);
-    mul_v3_m4v3(corner, ob->object_to_world, bbox->vec[0]);
+    mid_v3_v3v3(cull->bsphere.center, bounds->max, bounds->min);
+    mul_v3_m4v3(corner, ob->object_to_world, bounds->max);
     mul_m4_v3(ob->object_to_world, cull->bsphere.center);
     cull->bsphere.radius = len_v3v3(cull->bsphere.center, corner);
 
