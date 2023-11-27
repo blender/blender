@@ -883,6 +883,7 @@ static void node_register()
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
+  ntype.no_muting = true;
   node_type_storage(&ntype, "NodeGeometrySimulationOutput", node_free_storage, node_copy_storage);
   nodeRegisterType(&ntype);
 }

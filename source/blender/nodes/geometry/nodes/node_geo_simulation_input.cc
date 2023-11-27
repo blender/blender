@@ -241,6 +241,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.insert_link = node_insert_link;
   ntype.gather_link_search_ops = nullptr;
+  ntype.no_muting = true;
   node_type_storage(&ntype,
                     "NodeGeometrySimulationInput",
                     node_free_standard_storage,
