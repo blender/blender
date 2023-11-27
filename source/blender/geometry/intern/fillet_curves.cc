@@ -15,51 +15,22 @@
 
 namespace blender::geometry {
 
-template<typename T>
-static void threaded_slice_fill(const Span<T> src,
-                                const OffsetIndices<int> offsets,
-                                MutableSpan<T> dst)
-{
-  threading::parallel_for(src.index_range(), 512, [&](IndexRange range) {
-    for (const int i : range) {
-      dst.slice(offsets[i]).fill(src[i]);
-    }
-  });
-}
-
-template<typename T>
 static void duplicate_fillet_point_data(const OffsetIndices<int> src_points_by_curve,
                                         const OffsetIndices<int> dst_points_by_curve,
                                         const IndexMask &curve_selection,
                                         const Span<int> all_point_offsets,
-                                        const Span<T> src,
-                                        MutableSpan<T> dst)
+                                        const GSpan src,
+                                        GMutableSpan dst)
 {
   curve_selection.foreach_index(GrainSize(512), [&](const int curve_i) {
     const IndexRange src_points = src_points_by_curve[curve_i];
     const IndexRange dst_points = dst_points_by_curve[curve_i];
     const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points,
                                                                                 curve_i);
-    const OffsetIndices<int> offsets(all_point_offsets.slice(offsets_range));
-    threaded_slice_fill(src.slice(src_points), offsets, dst.slice(dst_points));
-  });
-}
-
-static void duplicate_fillet_point_data(const OffsetIndices<int> src_points_by_curve,
-                                        const OffsetIndices<int> dst_points_by_curve,
-                                        const IndexMask &selection,
-                                        const Span<int> all_point_offsets,
-                                        const GSpan src,
-                                        GMutableSpan dst)
-{
-  bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    duplicate_fillet_point_data(src_points_by_curve,
-                                dst_points_by_curve,
-                                selection,
-                                all_point_offsets,
-                                src.typed<T>(),
-                                dst.typed<T>());
+    bke::attribute_math::gather_to_groups(all_point_offsets.slice(offsets_range),
+                                          IndexRange(src_points.size()),
+                                          src.slice(src_points),
+                                          dst.slice(dst_points));
   });
 }
 
