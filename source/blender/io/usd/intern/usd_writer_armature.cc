@@ -174,9 +174,8 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
   std::unordered_map<const char *, const Bone *> *use_deform =
       usd_export_context_.export_params.use_deform ? &deform_map_ : nullptr;
 
-  init_deform_bones_map(context.object, use_deform);
-
   if (!this->frame_has_been_written_) {
+    init_deform_bones_map(context.object, use_deform);
     initialize(context.object, skel, skel_anim, use_deform);
   }
 
