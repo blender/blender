@@ -1168,6 +1168,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 {
   const float view2d_scale = UI_view2d_scale_get_x(&region.v2d);
   const float max_distance = NODE_SOCKSIZE + std::clamp(20.0f / view2d_scale, 5.0f, 30.0f);
+  const float padded_socket_size = NODE_SOCKSIZE + 4;
 
   bNodeTree &tree = *snode.edittree;
   tree.ensure_topology_cache();
@@ -1217,6 +1218,12 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
         const float2 location = sock->runtime->location;
         const float distance = math::distance(location, cursor);
         if (distance < max_distance) {
+          if (node->flag & NODE_HIDDEN) {
+            if (location.x - cursor.x > padded_socket_size) {
+              /* Needed to be able to resize collapsed nodes. */
+              continue;
+            }
+          }
           update_best_socket(sock, distance);
         }
       }
