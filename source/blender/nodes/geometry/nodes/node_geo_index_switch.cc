@@ -121,7 +121,7 @@ class IndexSwitchFunction : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const int inputs_num = signature_.params.size() - 2;
     const VArray<int> indices = params.readonly_single_input<int>(0, "Index");
