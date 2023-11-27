@@ -171,6 +171,9 @@ struct Depsgraph {
 
   light_linking::Cache light_linking_cache;
 
+  /* The number of times this graph has been evaluated. */
+  uint64_t update_count;
+
   MEM_CXX_CLASS_ALLOC_FUNCS("Depsgraph");
 };
 

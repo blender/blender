@@ -121,6 +121,11 @@ struct ObjectRuntime {
 
   Array<float3x3, 0> crazyspace_deform_imats;
   Array<float3, 0> crazyspace_deform_cos;
+
+  /* The Depsgraph::update_count when this object was last updated. */
+  uint64_t last_update_transform = 0;
+  uint64_t last_update_geometry = 0;
+  uint64_t last_update_shading = 0;
 };
 
 }  // namespace blender::bke

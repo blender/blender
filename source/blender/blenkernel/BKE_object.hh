@@ -452,6 +452,8 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob);
 void BKE_object_eval_uber_transform(Depsgraph *depsgraph, Object *object);
 void BKE_object_eval_uber_data(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
+void BKE_object_eval_shading(Depsgraph *depsgraph, Object *ob);
+
 void BKE_object_eval_light_linking(Depsgraph *depsgraph, Object *object);
 
 /**

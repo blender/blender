@@ -137,6 +137,8 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
   else {
     ob->transflag &= ~OB_NEG_SCALE;
   }
+
+  ob->runtime->last_update_transform = DEG_get_update_count(depsgraph);
 }
 
 void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
@@ -339,6 +341,8 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph, Scene *scene, Object *ob)
   BLI_assert(ob->type != OB_ARMATURE);
   BKE_object_handle_data_update(depsgraph, scene, ob);
   BKE_object_batch_cache_dirty_tag(ob);
+
+  ob->runtime->last_update_geometry = DEG_get_update_count(depsgraph);
 }
 
 void BKE_object_eval_ptcache_reset(Depsgraph *depsgraph, Scene *scene, Object *object)
@@ -457,4 +461,11 @@ void BKE_object_eval_light_linking(Depsgraph *depsgraph, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   deg::light_linking::eval_runtime_data(depsgraph, *object);
+}
+
+void BKE_object_eval_shading(Depsgraph *depsgraph, Object *object)
+{
+  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+
+  object->runtime->last_update_shading = DEG_get_update_count(depsgraph);
 }
