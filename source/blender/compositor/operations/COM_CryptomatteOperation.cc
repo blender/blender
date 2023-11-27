@@ -14,6 +14,7 @@ CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
   }
   this->add_output_socket(DataType::Color);
   flags_.complex = true;
+  flags_.can_be_constant = true;
 }
 
 void CryptomatteOperation::init_execution()

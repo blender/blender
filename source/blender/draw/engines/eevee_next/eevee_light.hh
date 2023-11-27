@@ -118,8 +118,10 @@ class LightModule {
   int64_t light_map_size_ = 0;
   /** Luminous intensity to consider the light boundary at. Used for culling. */
   float light_threshold_ = 0.01f;
-  /** If false, will prevent all scene light from being synced. */
+  /** If false, will prevent all scene lights from being synced. */
   bool use_scene_lights_ = false;
+  /** If false, will prevent all sun lights from being synced. */
+  bool use_sun_lights_ = false;
   /** Number of sun lights synced during the last sync. Used as offset. */
   int sun_lights_len_ = 0;
   int local_lights_len_ = 0;

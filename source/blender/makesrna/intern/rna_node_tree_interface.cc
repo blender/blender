@@ -194,15 +194,13 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
 
   PointerRNA ptr = RNA_pointer_create(
       id, &RNA_NodeTreeInterfaceSocket, const_cast<bNodeTreeInterfaceSocket *>(interface_socket));
-  PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, node);
-  PointerRNA socket_ptr = RNA_pointer_create(id, &RNA_NodeSocket, socket);
 
   FunctionRNA *func = &rna_NodeTreeInterfaceSocket_init_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "node", &node_ptr);
-  RNA_parameter_set_lookup(&list, "socket", &socket_ptr);
+  RNA_parameter_set_lookup(&list, "node", node);
+  RNA_parameter_set_lookup(&list, "socket", socket);
   RNA_parameter_set_lookup(&list, "data_path", &data_path);
   typeinfo->ext_interface.call(nullptr, &ptr, func, &list);
 
@@ -230,16 +228,13 @@ static void rna_NodeTreeInterfaceSocket_from_socket_custom(
   }
 
   PointerRNA ptr = RNA_pointer_create(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
-  PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, const_cast<bNode *>(node));
-  PointerRNA socket_ptr = RNA_pointer_create(
-      id, &RNA_NodeSocket, const_cast<bNodeSocket *>(socket));
 
   FunctionRNA *func = &rna_NodeTreeInterfaceSocket_from_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "node", &node_ptr);
-  RNA_parameter_set_lookup(&list, "socket", &socket_ptr);
+  RNA_parameter_set_lookup(&list, "node", node);
+  RNA_parameter_set_lookup(&list, "socket", socket);
   typeinfo->ext_interface.call(nullptr, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);

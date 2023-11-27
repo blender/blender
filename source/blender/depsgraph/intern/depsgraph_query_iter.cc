@@ -78,21 +78,6 @@ void ensure_id_properties_freed(const Object *dupli_object, Object *temp_dupli_o
   temp_dupli_object->id.properties = nullptr;
 }
 
-void ensure_boundbox_freed(const Object *dupli_object, Object *temp_dupli_object)
-{
-  if (temp_dupli_object->runtime->bb == nullptr) {
-    /* No Bounding Box in temp data-block -- no leak is possible. */
-    return;
-  }
-  if (temp_dupli_object->runtime->bb == dupli_object->runtime->bb) {
-    /* Temp copy of object did not modify Bounding Box. */
-    return;
-  }
-  /* Free memory which is owned by temporary storage which is about to get overwritten. */
-  MEM_freeN(temp_dupli_object->runtime->bb);
-  temp_dupli_object->runtime->bb = nullptr;
-}
-
 void free_owned_memory(DEGObjectIterData *data)
 {
   if (data->dupli_object_current == nullptr) {
@@ -104,7 +89,6 @@ void free_owned_memory(DEGObjectIterData *data)
   Object *temp_dupli_object = &data->temp_dupli_object;
 
   ensure_id_properties_freed(dupli_object, temp_dupli_object);
-  ensure_boundbox_freed(dupli_object, temp_dupli_object);
 }
 
 bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject *dob)
@@ -180,8 +164,6 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     copy_v4_v4(temp_dupli_object->color, dupli_parent->color);
     temp_dupli_object->runtime->select_id = dupli_parent->runtime->select_id;
     if (dob->ob->data != dob->ob_data) {
-      /* Do not modify the original boundbox. */
-      temp_dupli_object->runtime->bb = nullptr;
       BKE_object_replace_data_on_shallow_copy(temp_dupli_object, dob->ob_data);
     }
 

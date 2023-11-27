@@ -1336,8 +1336,6 @@ static void mesh_build_data(Depsgraph *depsgraph,
   ob->runtime->last_data_mask = *dataMask;
   ob->runtime->last_need_mapping = need_mapping;
 
-  BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
-
   /* Make sure that drivers can target shapekey properties.
    * Note that this causes a potential inconsistency, as the shapekey may have a
    * different topology than the evaluated mesh. */
@@ -1396,8 +1394,6 @@ static void editbmesh_build_data(Depsgraph *depsgraph,
   obedit->runtime->editmesh_eval_cage = me_cage;
 
   obedit->runtime->geometry_set_eval = non_mesh_components;
-
-  BKE_object_boundbox_calc_from_mesh(obedit, me_final);
 
   obedit->runtime->last_data_mask = *dataMask;
 }

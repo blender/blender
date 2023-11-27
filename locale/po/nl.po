@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-10-08 06:34+0000\n"
 "Last-Translator: Wannes Malfait <wannes.malfait@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -478,6 +478,14 @@ msgid "World"
 msgstr "Wereld"
 
 
+msgid "All"
+msgstr "Alle"
+
+
+msgid "Custom"
+msgstr "Aangepast"
+
+
 msgid "Options"
 msgstr "Opties"
 
@@ -826,10 +834,6 @@ msgid "Visible"
 msgstr "Zichtbaar"
 
 
-msgid "Custom"
-msgstr "Aangepast"
-
-
 msgid "Has Color"
 msgstr "Heeft Kleur"
 
@@ -860,10 +864,6 @@ msgstr "Kleur van Punt"
 
 msgid "Dissolve"
 msgstr "Oplossen"
-
-
-msgid "All"
-msgstr "Alle"
 
 
 msgid "Precision"
@@ -1997,12 +1997,56 @@ msgid "Show Line"
 msgstr "Toon Lijn"
 
 
-msgid "Is Indirect"
-msgstr "Is Indirect"
+msgid "Brush"
+msgstr "Kwast"
+
+
+msgid "Font"
+msgstr "Lettertype"
+
+
+msgid "Key"
+msgstr "Sleutel"
 
 
 msgid "Library"
 msgstr "Bibliotheek"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Mask"
+msgstr "Mask"
+
+
+msgid "Node Tree"
+msgstr "Node Boom"
+
+
+msgid "Particle"
+msgstr "Deeltje"
+
+
+msgid "Sound"
+msgstr "Geluid"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Workspace"
+msgstr "Werkomgeving"
+
+
+msgid "World"
+msgstr "Wereld"
+
+
+msgid "Is Indirect"
+msgstr "Is Indirect"
 
 
 msgid "Full Name"
@@ -2067,10 +2111,6 @@ msgstr "Geprojecteerd"
 
 msgid "Repeat"
 msgstr "Herhaal"
-
-
-msgid "Brush"
-msgstr "Kwast"
 
 
 msgid "Elastic"
@@ -2229,10 +2269,6 @@ msgid "Edit Format"
 msgstr "Bewerk Formaat"
 
 
-msgid "Font"
-msgstr "Lettertype"
-
-
 msgid "Font Size"
 msgstr "Groote Lettertype"
 
@@ -2263,10 +2299,6 @@ msgstr "Min"
 
 msgid "Max"
 msgstr "Max"
-
-
-msgid "Node Tree"
-msgstr "Node Boom"
 
 
 msgid "Rounds"
@@ -2469,10 +2501,6 @@ msgid "Material Slot"
 msgstr "Materiaal Plek"
 
 
-msgid "Particle"
-msgstr "Deeltje"
-
-
 msgid "Death"
 msgstr "Dood"
 
@@ -2566,10 +2594,6 @@ msgid "Mute the speaker"
 msgstr "Demp de speaker"
 
 
-msgid "Sound"
-msgstr "Geluid"
-
-
 msgid "Area"
 msgstr "Gebied"
 
@@ -2584,10 +2608,6 @@ msgstr "Spiegel Y"
 
 msgid "Sharp"
 msgstr "Scherp"
-
-
-msgid "Workspace"
-msgstr "Werkomgeving"
 
 
 msgid "Animation"
@@ -2812,10 +2832,6 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
-msgid "Mask"
-msgstr "Mask"
-
-
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clip"
@@ -2837,10 +2853,6 @@ msgid "Channel"
 msgstr "Kanaal"
 
 
-msgid "Key"
-msgstr "Sleutel"
-
-
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
@@ -2848,10 +2860,6 @@ msgstr "Selecteer Aaneengesloten"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Toevoegen"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Layout"
@@ -2937,10 +2945,6 @@ msgstr "Haken"
 
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Light"
-msgstr "Licht"
 
 
 msgid "Convert"
@@ -3049,10 +3053,6 @@ msgstr "Spiegel As"
 
 msgid "Copy"
 msgstr "Kopieer"
-
-
-msgid "World"
-msgstr "Wereld"
 
 
 msgctxt "Operator"
@@ -7750,10 +7750,6 @@ msgid "Paths:"
 msgstr "Paden:"
 
 
-msgid "XYZ to RGB"
-msgstr "XYZ naar RGB"
-
-
 msgctxt "Operator"
 msgid "Export to File"
 msgstr "Exporteren naar Bestand"
@@ -8262,6 +8258,10 @@ msgid "Show Warning"
 msgstr "Toon Waarschuwing"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ naar RGB"
+
+
 msgctxt "Operator"
 msgid "Install..."
 msgstr "Installeer..."
@@ -8452,11 +8452,6 @@ msgstr "Achtergrond"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Maak Lokaal..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Voeg Sleutelframe toe..."
 
 
 msgctxt "Operator"
@@ -8839,6 +8834,10 @@ msgid "Hidden %d"
 msgstr "Verborgen %d"
 
 
+msgid "Nothing selected"
+msgstr "Niets geselecteerd"
+
+
 msgid "Delete Modifier"
 msgstr "Verwijder Aanpasser"
 
@@ -8917,10 +8916,6 @@ msgstr "Niets om te gummen"
 
 msgid "Object created"
 msgstr "Object gecreëerd"
-
-
-msgid "Nothing selected"
-msgstr "Niets geselecteerd"
 
 
 msgid "Pin"

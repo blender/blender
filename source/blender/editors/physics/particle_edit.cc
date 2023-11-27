@@ -206,7 +206,7 @@ int PE_minmax(
   }
 
   if (!ok) {
-    BKE_object_minmax(ob, min, max, true);
+    BKE_object_minmax(ob, min, max);
     ok = 1;
   }
 

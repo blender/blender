@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -680,6 +680,10 @@ msgstr "Aktywna Kość"
 
 msgid "Description"
 msgstr "Opis"
+
+
+msgid "All"
+msgstr "Wszystko"
 
 
 msgid "Vector"
@@ -1832,10 +1836,6 @@ msgstr "Materiał"
 
 msgid "Direction"
 msgstr "Kierunek"
-
-
-msgid "All"
-msgstr "Wszystko"
 
 
 msgid "Threshold"
@@ -6056,8 +6056,60 @@ msgid "Fixed"
 msgstr "Stałe"
 
 
+msgid "Brush"
+msgstr "Pędzel"
+
+
+msgid "Font"
+msgstr "Czcionka"
+
+
+msgid "Key"
+msgstr "Klucz"
+
+
 msgid "Library"
 msgstr "Biblioteka"
+
+
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Mesh"
+msgstr "Siatka"
+
+
+msgid "Paint Curve"
+msgstr "Krzywa graficzna"
+
+
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgid "Particle"
+msgstr "Cząstka"
+
+
+msgid "Sound"
+msgstr "Dźwięk"
+
+
+msgid "Speaker"
+msgstr "Głośnik"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Window Manager"
+msgstr "Zarządca okien"
+
+
+msgid "World"
+msgstr "Świat"
 
 
 msgid "Groups"
@@ -6066,14 +6118,6 @@ msgstr "Grupy"
 
 msgid "Local"
 msgstr "Lokalnie"
-
-
-msgid "Brush"
-msgstr "Pędzel"
-
-
-msgid "Paint Curve"
-msgstr "Krzywa graficzna"
 
 
 msgid "Laplacian"
@@ -6090,10 +6134,6 @@ msgstr "Początek przycinania"
 
 msgid "Dimensions"
 msgstr "Wymiary"
-
-
-msgid "Font"
-msgstr "Czcionka"
 
 
 msgid "X Offset"
@@ -6132,10 +6172,6 @@ msgid "Edit"
 msgstr "Edytuj"
 
 
-msgid "Mesh"
-msgstr "Siatka"
-
-
 msgid "Faces"
 msgstr "Ściany"
 
@@ -6152,10 +6188,6 @@ msgid "Mass"
 msgstr "Masa"
 
 
-msgid "Particle"
-msgstr "Cząstka"
-
-
 msgid "Reference Distance"
 msgstr "Odległość odniesienia"
 
@@ -6165,20 +6197,12 @@ msgid "Pitch"
 msgstr "Wysokość"
 
 
-msgid "Sound"
-msgstr "Dźwięk"
-
-
 msgid "Blend"
 msgstr "Mieszanie"
 
 
 msgid "Filter"
 msgstr "Filtr"
-
-
-msgid "Window Manager"
-msgstr "Zarządca okien"
 
 
 msgid "Operation"
@@ -6211,18 +6235,6 @@ msgstr "Łącznik Y"
 
 msgid "ID Type"
 msgstr "Typ ID"
-
-
-msgid "Mask"
-msgstr "Maska"
-
-
-msgid "Key"
-msgstr "Klucz"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Distort"
@@ -6259,10 +6271,6 @@ msgstr "Nadpisz"
 
 msgid "Copy"
 msgstr "Skopiuj"
-
-
-msgid "World"
-msgstr "Świat"
 
 
 msgid "Smooth Shading"
@@ -6427,10 +6435,6 @@ msgid "Reset"
 msgstr "Zresetuj"
 
 
-msgid "Palette"
-msgstr "Paleta"
-
-
 msgid "Hinge"
 msgstr "Zawias"
 
@@ -6464,10 +6468,6 @@ msgstr "Obróć zaznaczone obiekty"
 
 msgid "Pinned"
 msgstr "Przypięty"
-
-
-msgid "Speaker"
-msgstr "Głośnik"
 
 
 msgid "Property Name"
@@ -7107,6 +7107,10 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "Wyświetl akcję bez jakiegokolwiek przemapowania czasu (gdy odpięta)"
 
 
+msgid "Nothing selected"
+msgstr "Nic nie zaznaczono"
+
+
 msgid "<invalid>"
 msgstr "<nieprawidłowy>"
 
@@ -7469,10 +7473,6 @@ msgstr "Brak danych szkicownika"
 
 msgid "No active frame to delete"
 msgstr "Brak aktywnej klatki do usunięcia"
-
-
-msgid "Nothing selected"
-msgstr "Nic nie zaznaczono"
 
 
 msgid "No active area"
@@ -9478,30 +9478,6 @@ msgid "Now"
 msgstr "Teraz"
 
 
-msgid "Internal Error - AnimData block is not valid"
-msgstr "Błąd wewnętrzny - AnimData block jest nieprawidłowy"
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "Nie można pchnąć w dół akcji gdy manipulujesz (tweak) akcją paska, najpierw wyjdź z trybu tweak"
-
-
-msgid "No active action to push down"
-msgstr "Brak aktywnej akcji do pchnięcia w dół"
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "Zaznacz najpierw istniejącą ścieżkę NLA lub pustą linię akcji."
-
-
-msgid "No animation channel found at index %d"
-msgstr "Pod indeksem %d nie odnaleziono kanału animacji"
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "Kanał animacji w indeksie %d nie jest kanałem NLA aktywnej akcji (NLA 'Active Action')"
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "Brak AnimData blocks dla których można uruchomić tryb tweak"
 
@@ -9548,6 +9524,22 @@ msgstr "Nie można zamienić '%s' i '%s' ponieważ jeden lub oba nie będą paso
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "Modyfikator nie mógł być dodany to (%s : %s) (szczegóły w konsoli)"
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "Błąd wewnętrzny - AnimData block jest nieprawidłowy"
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "Nie można pchnąć w dół akcji gdy manipulujesz (tweak) akcją paska, najpierw wyjdź z trybu tweak"
+
+
+msgid "No active action to push down"
+msgstr "Brak aktywnej akcji do pchnięcia w dół"
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "Zaznacz najpierw istniejącą ścieżkę NLA lub pustą linię akcji."
 
 
 msgid "Library path '%s' does not exist, correct this before saving"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -115,6 +115,14 @@ msgstr "Egenskaper"
 
 msgid "Width"
 msgstr "Bredd"
+
+
+msgid "All"
+msgstr "Alla"
+
+
+msgid "Custom"
+msgstr "Anpassad"
 
 
 msgid "Options"
@@ -265,10 +273,6 @@ msgid "Local Location"
 msgstr "Lokalposition"
 
 
-msgid "Custom"
-msgstr "Anpassad"
-
-
 msgid "Remove"
 msgstr "Ta bort"
 
@@ -283,10 +287,6 @@ msgstr "Material"
 
 msgid "Direction"
 msgstr "Riktning"
-
-
-msgid "All"
-msgstr "Alla"
 
 
 msgid "Radius"
@@ -853,6 +853,34 @@ msgid "Statistical view of the levels of color in an image"
 msgstr "Statistisk vy över bildens färgnivåer"
 
 
+msgid "Font"
+msgstr "Typsnitt"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Mesh"
+msgstr "Mesh"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Sound"
+msgstr "Ljud"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "World"
+msgstr "Värld"
+
+
 msgid "Groups"
 msgstr "Grupper"
 
@@ -891,10 +919,6 @@ msgstr "Visa bakgrundsbilder"
 
 msgid "Path"
 msgstr "Bana"
-
-
-msgid "Font"
-msgstr "Typsnitt"
 
 
 msgid "Shear"
@@ -1041,10 +1065,6 @@ msgid "Tool"
 msgstr "Verktyg"
 
 
-msgid "Mesh"
-msgstr "Mesh"
-
-
 msgid "Cylinder"
 msgstr "Cylinder"
 
@@ -1119,10 +1139,6 @@ msgstr "3D-markör"
 
 msgid "Frame Dropping"
 msgstr "Tappa rutor"
-
-
-msgid "Sound"
-msgstr "Ljud"
 
 
 msgid "Blend"
@@ -1233,10 +1249,6 @@ msgid "Shape Key Specials"
 msgstr "Specialare för formnycklar"
 
 
-msgid "Text"
-msgstr "Text"
-
-
 msgid "Node"
 msgstr "Nod"
 
@@ -1287,14 +1299,6 @@ msgstr "Förinställningar"
 
 msgid "Names"
 msgstr "Namn"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Ljus"
 
 
 msgid "Rigid Body"
@@ -1355,10 +1359,6 @@ msgstr "Normaliserad"
 
 msgid "Random Seed"
 msgstr "Slumpfrö"
-
-
-msgid "World"
-msgstr "Värld"
 
 
 msgid "Limits"

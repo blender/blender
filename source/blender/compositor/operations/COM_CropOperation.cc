@@ -12,6 +12,7 @@ CropBaseOperation::CropBaseOperation()
   this->add_output_socket(DataType::Color);
   input_operation_ = nullptr;
   settings_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
 void CropBaseOperation::update_area()

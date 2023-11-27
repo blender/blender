@@ -842,6 +842,8 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 
   build_object_light_linking(object);
 
+  build_object_shading(object);
+
   /* Synchronization back to original object. */
   add_operation_node(&object->id,
                      NodeType::SYNCHRONIZATION,
@@ -1166,6 +1168,16 @@ void DepsgraphNodeBuilder::build_light_linking_collection(Collection *collection
   {
     add_operation_node(&collection->id, NodeType::PARAMETERS, OperationCode::LIGHT_LINKING_UPDATE);
   }
+}
+
+void DepsgraphNodeBuilder::build_object_shading(Object *object)
+{
+  Object *object_cow = get_cow_datablock(object);
+  add_operation_node(
+      &object->id,
+      NodeType::SHADING,
+      OperationCode::SHADING,
+      [object_cow](::Depsgraph *depsgraph) { BKE_object_eval_shading(depsgraph, object_cow); });
 }
 
 void DepsgraphNodeBuilder::build_animdata(ID *id)
@@ -1652,6 +1664,9 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object)
       NodeType::BATCH_CACHE,
       OperationCode::GEOMETRY_SELECT_UPDATE,
       [object_cow](::Depsgraph *depsgraph) { BKE_object_select_update(depsgraph, object_cow); });
+  /* Shading (No-Op).
+   * Needed to allow the Material shading updates reach the Object. */
+  add_operation_node((ID *)object->data, NodeType::SHADING, OperationCode::SHADING);
 }
 
 void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)

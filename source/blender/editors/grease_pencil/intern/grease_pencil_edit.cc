@@ -1329,13 +1329,13 @@ static void GREASE_PENCIL_OT_stroke_switch_direction(wmOperatorType *ot)
  * \{ */
 
 enum class CapsMode : int8_t {
-  /* Switchs both to Flat. */
+  /* Switches both to Flat. */
   FLAT,
   /* Change only start. */
   START,
   /* Change only end. */
   END,
-  /* Switchs both to default rounded. */
+  /* Switches both to default rounded. */
   ROUND,
 };
 

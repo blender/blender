@@ -7,7 +7,6 @@ set(INC
   ../../blenkernel
   ../../editors/include
   ../../gpu
-  ../../imbuf
 )
 
 set(INC_SYS
@@ -62,6 +61,7 @@ set(LIB
   ${PYTHON_LIBRARIES}
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

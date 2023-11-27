@@ -22,6 +22,8 @@ TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mod
   factor_y_ = 1.0f;
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
+
+  this->flags_.can_be_constant = true;
 }
 
 void TranslateOperation::init_execution()

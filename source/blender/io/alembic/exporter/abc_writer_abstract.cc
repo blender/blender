@@ -99,9 +99,8 @@ const Imath::Box3d &ABCAbstractWriter::bounding_box() const
 
 void ABCAbstractWriter::update_bounding_box(Object *object)
 {
-  const std::optional<BoundBox> bb = BKE_object_boundbox_get(object);
-
-  if (!bb) {
+  const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(object);
+  if (!bounds) {
     if (object->type != OB_CAMERA) {
       CLOG_WARN(&LOG, "Bounding box is null!");
     }
@@ -110,14 +109,17 @@ void ABCAbstractWriter::update_bounding_box(Object *object)
     return;
   }
 
-  /* Convert Z-up to Y-up. This also changes which vector goes into which min/max property. */
-  bounding_box_.min.x = bb->vec[0][0];
-  bounding_box_.min.y = bb->vec[0][2];
-  bounding_box_.min.z = -bb->vec[6][1];
+  BoundBox bb;
+  BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
 
-  bounding_box_.max.x = bb->vec[6][0];
-  bounding_box_.max.y = bb->vec[6][2];
-  bounding_box_.max.z = -bb->vec[0][1];
+  /* Convert Z-up to Y-up. This also changes which vector goes into which min/max property. */
+  bounding_box_.min.x = bb.vec[0][0];
+  bounding_box_.min.y = bb.vec[0][2];
+  bounding_box_.min.z = -bb.vec[6][1];
+
+  bounding_box_.max.x = bb.vec[6][0];
+  bounding_box_.max.y = bb.vec[6][2];
+  bounding_box_.max.z = -bb.vec[0][1];
 }
 
 void ABCAbstractWriter::write_visibility(const HierarchyContext &context)

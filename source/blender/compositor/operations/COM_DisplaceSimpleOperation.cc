@@ -18,6 +18,8 @@ DisplaceSimpleOperation::DisplaceSimpleOperation()
   input_vector_program_ = nullptr;
   input_scale_xprogram_ = nullptr;
   input_scale_yprogram_ = nullptr;
+
+  flags_.can_be_constant = true;
 }
 
 void DisplaceSimpleOperation::init_execution()

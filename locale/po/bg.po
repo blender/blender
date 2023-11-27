@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-09-26 10:37+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -88,6 +88,14 @@ msgid "Author"
 msgstr "Автор"
 
 
+msgid "All"
+msgstr "Всички"
+
+
+msgid "Custom"
+msgstr "Потребителски"
+
+
 msgid "Space Type"
 msgstr "Тип на Пространството"
 
@@ -136,16 +144,8 @@ msgid "Deform"
 msgstr "Деформиране"
 
 
-msgid "Custom"
-msgstr "Потребителски"
-
-
 msgid "Remove"
 msgstr "Премахване"
-
-
-msgid "All"
-msgstr "Всички"
 
 
 msgid "Fill"
@@ -488,6 +488,30 @@ msgid "Merge"
 msgstr "Слей"
 
 
+msgid "Brush"
+msgstr "Четка"
+
+
+msgid "Key"
+msgstr "Клавиш"
+
+
+msgid "Mesh"
+msgstr "Меш"
+
+
+msgid "Sound"
+msgstr "Звук"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "World"
+msgstr "Свят"
+
+
 msgid "Wire"
 msgstr "Мрежа"
 
@@ -498,10 +522,6 @@ msgstr "Кутия"
 
 msgid "Dynamic"
 msgstr "Динамика"
-
-
-msgid "Brush"
-msgstr "Четка"
 
 
 msgid "Perspective"
@@ -568,10 +588,6 @@ msgid "Tool"
 msgstr "Прибор"
 
 
-msgid "Mesh"
-msgstr "Меш"
-
-
 msgid "Constraints"
 msgstr "Ограничители"
 
@@ -598,10 +614,6 @@ msgstr "Неродени"
 
 msgid "3D Cursor"
 msgstr "3D Курсор"
-
-
-msgid "Sound"
-msgstr "Звук"
 
 
 msgid "Blend"
@@ -724,14 +736,6 @@ msgid "Languages..."
 msgstr "Езици..."
 
 
-msgid "Key"
-msgstr "Клавиш"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
 msgid "Apply"
 msgstr "Прилагане"
 
@@ -810,10 +814,6 @@ msgstr "Презаписване"
 
 msgid "Copy"
 msgstr "Копиране"
-
-
-msgid "World"
-msgstr "Свят"
 
 
 msgid "Even"
@@ -903,10 +903,6 @@ msgstr "Включва дадената настройка за всички и�
 
 msgid "Toggle specified setting on all selected animation channels"
 msgstr "Превключи дадената настройка за всички избрани анимационни канали"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Вмъкни ключови кадри в текущия кадър за всички свойства на дадената Ключова Група"
 
 
 msgid "Top/Bottom"

@@ -94,8 +94,8 @@ static std::shared_ptr<AnonymousAttributeFieldInput> make_attribute_field(
     const NodeSimulationItem &item,
     const CPPType &type)
 {
-  AnonymousAttributeIDPtr attribute_id = MEM_new<NodeAnonymousAttributeID>(
-      __func__, self_object, compute_context, node, std::to_string(item.identifier), item.name);
+  AnonymousAttributeIDPtr attribute_id = AnonymousAttributeIDPtr(MEM_new<NodeAnonymousAttributeID>(
+      __func__, self_object, compute_context, node, std::to_string(item.identifier), item.name));
   return std::make_shared<AnonymousAttributeFieldInput>(attribute_id, type, node.label_or_name());
 }
 
@@ -883,6 +883,7 @@ static void node_register()
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
+  ntype.no_muting = true;
   node_type_storage(&ntype, "NodeGeometrySimulationOutput", node_free_storage, node_copy_storage);
   nodeRegisterType(&ntype);
 }

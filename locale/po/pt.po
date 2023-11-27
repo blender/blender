@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
-"PO-Revision-Date: 2023-11-09 04:54+0000\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"PO-Revision-Date: 2023-11-24 02:55+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -1266,6 +1266,11 @@ msgstr "Lápis de cera"
 
 
 msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
+
+
+msgctxt "ID"
 msgid "Image"
 msgstr "Imagem"
 
@@ -1426,6 +1431,14 @@ msgstr "Biblioteca de Recursos"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Escolha a biblioteca de recursos da qual se mostram os recursos"
+
+
+msgid "All"
+msgstr "Todos"
+
+
+msgid "Custom"
+msgstr "Personalizar"
 
 
 msgid "ID Name"
@@ -3938,10 +3951,6 @@ msgid "Theme color or custom color of a bone"
 msgstr "Cor da paleta ou cor personalizada de um osso"
 
 
-msgid "Custom"
-msgstr "Personalizar"
-
-
 msgid "The custom bone colors, used when palette is 'CUSTOM'"
 msgstr "As cores personalizadas de ossos; utilizado quando a paleta é 'CUSTOM'"
 
@@ -4415,10 +4424,6 @@ msgstr "Preencher área invertida"
 
 msgid "Mode to draw boundary limits"
 msgstr "Modo para desenhar fronteiras dos limites"
-
-
-msgid "All"
-msgstr "Todos"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -6511,6 +6516,10 @@ msgid "High Dynamic Range"
 msgstr "Alto Alcance Dinâmico"
 
 
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors"
+msgstr "Activar exibição em alto alcance dinâmico, removendo limites de brilho. Isto requer um monitor com suporte para HDR, e uma transformação de exibição concebida para HDR. 'Filmic' e 'AgX' não geram cores HDR"
+
+
 msgid "View Transform"
 msgstr "Transformação visual"
 
@@ -7716,8 +7725,28 @@ msgid "Power"
 msgstr "Potência"
 
 
+msgid "Raise the target's scale to the specified power"
+msgstr "Elevar a escala do alvo à potência especificada"
+
+
 msgid "Additive"
 msgstr "Aditivo"
+
+
+msgid "Use addition instead of multiplication to combine scale (2.7 compatibility)"
+msgstr "Usar adição em vez de multiplicação para combinar a escala (Compatibilidade com 2.7)"
+
+
+msgid "Make Uniform"
+msgstr "Tornar Uniforme"
+
+
+msgid "Redistribute the copied change in volume equally between the three axes of the owner"
+msgstr "Redistribuir a alteração em volume copiada igualmente por entre os três eixos do dono"
+
+
+msgid "Combine original scale with copied scale"
+msgstr "Combinar a escala original com a escala copiada"
 
 
 msgid "Copy the target's X scale"
@@ -7740,6 +7769,14 @@ msgid "Copy all the transforms of the target"
 msgstr "Copia todas as transformações do alvo."
 
 
+msgid "Specify how the copied and existing transformations are combined"
+msgstr "Especificar como as transformações copiadas e existentes são combinadas"
+
+
+msgid "Replace the original transformation with copied"
+msgstr "Substituir a transformação original com a copiada"
+
+
 msgid "Apply copied transformation before original, using simple matrix multiplication as if the constraint target is a parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale"
 msgstr "Aplicar transformação copiada antes da original, usando multiplicações de matrizes simples como se o alvo da restrição fosse um pai em modo Herdar Escala Completa. Irá causar cisalhamento quando combinar rotação e escala não uniforme"
 
@@ -7750,6 +7787,22 @@ msgstr "Aplicar transformação copiada antes da original, usando multiplicaçõ
 
 msgid "Apply copied transformation before original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
 msgstr "Aplicar transformação copiada antes da original, lidando com posição rotação e escala separadamente, semelhante a uma sequência de três restrições Copiar"
+
+
+msgid "Apply copied transformation after original, using simple matrix multiplication as if the constraint target is a child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale"
+msgstr "Aplicar transformação copiada após original, usando multiplicações de matriz simples como se o alvo da restrição estiver em mode de Herança Total de Escala. Irá criar cisalhamento quando combinar rotação e escala não uniforme"
+
+
+msgid "Apply copied transformation after original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
+msgstr "Aplicar transformações copiadas depois das originais, lidando com a posição, rotação e escala separadamente, semelhante a uma sequência de três restrições Copiar"
+
+
+msgid "Remove Target Shear"
+msgstr "Remover cisalhamento do alvo"
+
+
+msgid "Remove shear from the target transformation before combining"
+msgstr "Remover cisalhamento da transformação do alvo antes de combinar"
 
 
 msgid "Damped Track Constraint"
@@ -7822,6 +7875,10 @@ msgstr "Fator de deslocamento"
 
 msgid "Percentage value defining target position along length of curve"
 msgstr "Valor percentual definindo a posição alvo ao longo do comprimento da curva."
+
+
+msgid "Target Curve object"
+msgstr "Objecto Curva alvo"
 
 
 msgid "Up Axis"
@@ -7996,12 +8053,24 @@ msgid "Constraint position along Z axis"
 msgstr "Posição de restrição ao longo do eixo Z."
 
 
+msgid "Lock X Rotation"
+msgstr "Travar rotação em X"
+
+
 msgid "Constraint rotation along X axis"
 msgstr "Restrição de rotação ao longo do eixo X."
 
 
+msgid "Lock Y Rotation"
+msgstr "Travar rotação em Y"
+
+
 msgid "Constraint rotation along Y axis"
 msgstr "Restrição de rotação ao longo do eixo Y."
+
+
+msgid "Lock Z Rotation"
+msgstr "Travar rotação em Z"
 
 
 msgid "Constraint rotation along Z axis"
@@ -8078,6 +8147,10 @@ msgstr "Restrição - Limitar distância"
 
 msgid "Limit the distance from target object"
 msgstr "Limita a distância a partir do objeto alvo."
+
+
+msgid "Affect Transform"
+msgstr "Afectar Transformação"
 
 
 msgid "Transforms are affected by this constraint as well"
@@ -8164,6 +8237,10 @@ msgid "Use the minimum Z value"
 msgstr "Usa o valor mínimo em Z."
 
 
+msgid "Transform tools are affected by this constraint as well"
+msgstr "Ferramentas de transformação são também afectadas por esta restrição"
+
+
 msgid "Limit Rotation Constraint"
 msgstr "Restrição - Limitar rotação"
 
@@ -8218,6 +8295,14 @@ msgstr "Eixo livre"
 
 msgid "The free scaling axis of the object"
 msgstr "O eixo livre de escalonamento do objeto."
+
+
+msgid "The way the constraint treats original non-free axis scaling"
+msgstr "A forma como a restrição trata redimensionamento de eixos não livres"
+
+
+msgid "Strict"
+msgstr "Estrito"
 
 
 msgid "Uniform"
@@ -13692,6 +13777,74 @@ msgid "Base type for data-blocks, defining a unique name, linking from other lib
 msgstr "Tipo de base para blocos de dados, definindo um nome único, vinculando a partir de outras bibliotecas e coleções destacáveis."
 
 
+msgid "Brush"
+msgstr "Pincel"
+
+
+msgid "Font"
+msgstr "Fonte"
+
+
+msgid "Key"
+msgstr "Chave"
+
+
+msgid "Library"
+msgstr "Biblioteca"
+
+
+msgid "Light"
+msgstr "Leve"
+
+
+msgid "Mask"
+msgstr "Máscara"
+
+
+msgid "Mesh"
+msgstr "Malha"
+
+
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
+msgid "Node Tree"
+msgstr "Árvore de nós"
+
+
+msgid "Paint Curve"
+msgstr "Curva de pintura"
+
+
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgid "Particle"
+msgstr "Partículas"
+
+
+msgid "Sound"
+msgstr "Som"
+
+
+msgid "Speaker"
+msgstr "Alto-falante"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Window Manager"
+msgstr "Gerenciador de janelas"
+
+
+msgid "World"
+msgstr "Ambiente"
+
+
 msgid "Is Indirect"
 msgstr "Vínculo indireto"
 
@@ -13700,16 +13853,8 @@ msgid "Is this ID block linked indirectly"
 msgstr "Este identificador de bloco está vinculado indiretamente."
 
 
-msgid "Library"
-msgstr "Biblioteca"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "Biblioteca de ficheiro ao qual o bloco de dados está vinculado."
-
-
-msgid "Unique data-block ID name"
-msgstr "Nome único do identificador do bloco de dados"
 
 
 msgid "Tag"
@@ -14101,10 +14246,6 @@ msgid "Jitter the position of the brush in pixels while painting"
 msgstr "Quantidade de tremulação na posição do pincel em pixeis durante a pintura."
 
 
-msgid "Brush"
-msgstr "Pincel"
-
-
 msgid "Mask Stencil Dimensions"
 msgstr "Dimensões de máscara de estêncil"
 
@@ -14131,10 +14272,6 @@ msgstr "Compartimentos de máscara de textura"
 
 msgid "Normal Weight"
 msgstr "Peso das normais"
-
-
-msgid "Paint Curve"
-msgstr "Curva de pintura"
 
 
 msgid "Plane Offset"
@@ -15209,10 +15346,6 @@ msgid "Curve deforming text object"
 msgstr "Curva deformando o objeto de texto"
 
 
-msgid "Font"
-msgstr "Fonte"
-
-
 msgid "Font Bold"
 msgstr "Fonte em negrito"
 
@@ -15555,10 +15688,6 @@ msgstr "Comprimento curvilíneo 2D mínimo para a seleção de encadeamentos."
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "Caso verdadeiro, encadeamentos de arestas de funcionalidade são divididas nas margens do material."
-
-
-msgid "Node Tree"
-msgstr "Árvore de nós"
 
 
 msgid "Node tree for node-based shaders"
@@ -16533,6 +16662,18 @@ msgid "Diffuse color of the material"
 msgstr "A cor difusa do material."
 
 
+msgid "Displacement Method"
+msgstr "Método de deslocamento"
+
+
+msgid "Method to use for the displacement"
+msgstr "Método para usar para deslocamento."
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "Mapa de relevos, para simular a aparência de deslocamento."
+
+
 msgid "Grease Pencil Settings"
 msgstr "Definições para lápis de cera"
 
@@ -16809,14 +16950,6 @@ msgid "Vertex Colors"
 msgstr "Cores de vértices"
 
 
-msgid "Vertex Paint Mask"
-msgstr "Máscara de pintura de vértices"
-
-
-msgid "Vertex paint mask"
-msgstr "Máscara de pintura de vértices."
-
-
 msgid "Vertices"
 msgstr "Vértices"
 
@@ -17059,10 +17192,6 @@ msgstr "Modificador"
 
 msgid "Tool"
 msgstr "Ferramentas"
-
-
-msgid "Mesh"
-msgstr "Malha"
 
 
 msgid "Shader Node Tree"
@@ -18029,10 +18158,6 @@ msgid "Let the object give the particle a starting velocity"
 msgstr "Permite que o objeto forneça às partículas uma velocidade inicial."
 
 
-msgid "Particle"
-msgstr "Partículas"
-
-
 msgid "Let the target particle give the particle a starting velocity"
 msgstr "Permite que as partículas alvo forneçam às partículas uma velocidade inicial."
 
@@ -18885,10 +19010,6 @@ msgstr "Compasso"
 
 msgid "Playback pitch of the sound"
 msgstr "Valor de compasso para a reprodução dos sons."
-
-
-msgid "Sound"
-msgstr "Som"
 
 
 msgid "Sound data-block used by this speaker"
@@ -19921,10 +20042,6 @@ msgstr "Fonte vetorial para objetos de texto."
 
 msgid "Offset the number of the frame to use in the animation"
 msgstr "Desloca o número do fotograma para usar dentro da animação."
-
-
-msgid "Window Manager"
-msgstr "Gerenciador de janelas"
 
 
 msgid "Window manager data-block defining open windows and other user interface data"
@@ -21847,28 +21964,12 @@ msgid "Override default setting to insert keyframes based on 'visual transforms'
 msgstr "Sobrepõe o padrão de inserção de fotogramas chave com base nas \"transformações visuais\"."
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "Sobrepor as cores para as curvas-f - XYZ para RGB"
-
-
-msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
-msgstr "Sobrepõe as definições padrão de cores para as transformações novas recém adicionadas ás curvas-f (localização, rotação, escala), para usar como base o eixo de transformação."
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "Inserção de fotogramas chave - Visuais"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "Insere fotogramas chave com base em \"transformações visuais\"."
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "Cores para as curvas-f - XYZ para RGB"
-
-
-msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) is based on the transform axis"
-msgstr "A cor para as curvas-f das transformações recém adicionadas (referentes a localização, rotação e escala) , tendo como base o eixo de transformação."
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
@@ -23200,10 +23301,6 @@ msgid "Mix Factor"
 msgstr "Fator de mistura"
 
 
-msgid "Mask"
-msgstr "Máscara"
-
-
 msgid "Material slot in an object"
 msgstr "Compartimentos de material dentro de um objeto."
 
@@ -23269,10 +23366,6 @@ msgid "Dope Sheet Channel"
 msgstr "Canal da tabela de animação"
 
 
-msgid "Key"
-msgstr "Chave"
-
-
 msgid "Snap"
 msgstr "Atrair"
 
@@ -23316,10 +23409,6 @@ msgstr "Especiais para chaves de formato"
 
 msgid "Vertex Group Specials"
 msgstr "Especiais para grupo de vértices"
-
-
-msgid "Text"
-msgstr "Texto"
 
 
 msgid "Math"
@@ -23519,16 +23608,8 @@ msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
-
-
-msgid "Light"
-msgstr "Leve"
 
 
 msgid "Make Single User"
@@ -23705,18 +23786,6 @@ msgstr "Anéis de malha"
 
 msgid "Collection of mesh loops"
 msgstr "Coleção de anéis de malhas."
-
-
-msgid "Mesh Paint Mask Layer"
-msgstr "Camada de máscara de pintura de malha"
-
-
-msgid "Per-vertex paint mask data"
-msgstr "Dados de pintura de máscara por vértice."
-
-
-msgid "Mesh Paint Mask Property"
-msgstr "Propriedade de máscara de pintura de malha"
 
 
 msgid "Mesh Polygon"
@@ -25841,10 +25910,6 @@ msgstr "Mostra instâncias quando as partículas estão mortas."
 
 msgid "Show instances when particles are unborn"
 msgstr "Mostra instâncias quando as partículas ainda não nasceram."
-
-
-msgid "World"
-msgstr "Ambiente"
 
 
 msgid "Create instances from child particles"
@@ -31792,10 +31857,6 @@ msgstr "Remove os fotogramas chave no fotograma atual para os objetos e ossos se
 msgctxt "Operator"
 msgid "Insert Keyframe"
 msgstr "Inserir fotograma chave"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Insere fotogramas chave dentro do fotograma atual para todas as propriedades dentro do conjunto de inserção de chaves especificado."
 
 
 msgctxt "Operator"
@@ -39808,14 +39869,6 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "Ação de empurrar para baixo como uma nova faixa, a partir do topo da pilha de animação não linear."
 
 
-msgid "Channel Index"
-msgstr "Índice do canal"
-
-
-msgid "Index of NLA action channel to perform pushdown operation on"
-msgstr "Índice do canal de ação de animação não linear no qual perfazer a operação de empurrar para baixo."
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Sincronizar comprimento da ação"
@@ -43243,10 +43296,6 @@ msgstr "Apagar a cor da paleta"
 
 msgid "Remove active color from palette"
 msgstr "Remove a cor ativa da patela."
-
-
-msgid "Palette"
-msgstr "Paleta"
 
 
 msgctxt "Operator"
@@ -49115,10 +49164,6 @@ msgid "Edit Property"
 msgstr "Edição de propriedades"
 
 
-msgid "Speaker"
-msgstr "Alto-falante"
-
-
 msgid "Property Name"
 msgstr "Nome das propriedades"
 
@@ -52714,18 +52759,6 @@ msgid "Multiple Importance Sample"
 msgstr "Amostra de múltipla importância"
 
 
-msgid "Displacement Method"
-msgstr "Método de deslocamento"
-
-
-msgid "Method to use for the displacement"
-msgstr "Método para usar para deslocamento."
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "Mapa de relevos, para simular a aparência de deslocamento."
-
-
 msgid "Homogeneous Volume"
 msgstr "Volume homogêneo"
 
@@ -55543,6 +55576,10 @@ msgid "Camera Override"
 msgstr "Sobrepor câmara"
 
 
+msgid "Playback volume of the sound"
+msgstr "Volume para reproduzir o som."
+
+
 msgid "Sound Sequence"
 msgstr "Sequência de som"
 
@@ -55557,10 +55594,6 @@ msgstr "Arrasto panorâmico ao reproduzir som (somente para fontes monaurais)."
 
 msgid "Sound data-block used by this sequence"
 msgstr "Blocos de dados de sons usados por esta sequência."
-
-
-msgid "Playback volume of the sound"
-msgstr "Volume para reproduzir o som."
 
 
 msgid "Sequence Color Balance Data"
@@ -61448,10 +61481,6 @@ msgid "Paths:"
 msgstr "Caminhos:"
 
 
-msgid "XYZ to RGB"
-msgstr "XYZ para RGB"
-
-
 msgctxt "Operator"
 msgid "Export to File"
 msgstr "Exportar para ficheiro"
@@ -62287,6 +62316,10 @@ msgid "Only Insert Available"
 msgstr "Inserir somente nas curvas disponíveis"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ para RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "Contingenciador de mistura"
 
@@ -62590,11 +62623,6 @@ msgstr "Alto-falante"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Tornar local..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Inserir fotograma chave..."
 
 
 msgctxt "Operator"
@@ -63744,6 +63772,10 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "Mostra a ação sem qualquer remapeamento de tempo (quando não afixada)."
 
 
+msgid "Nothing selected"
+msgstr "Nada selecionado."
+
+
 msgid "<invalid>"
 msgstr "<inválido>"
 
@@ -64174,10 +64206,6 @@ msgstr "Nenhum fotograma ativo para apagar."
 
 msgid "No active frame(s) to delete"
 msgstr "Sem quaisquer fotogramas ativos para apagar."
-
-
-msgid "Nothing selected"
-msgstr "Nada selecionado."
 
 
 msgid "No active area"
@@ -66462,34 +66490,6 @@ msgid "Now"
 msgstr "Agora"
 
 
-msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
-msgstr "Sem bloco de dados ativo de dados de animação para usar (selecione um expansor de bloco de dados primeiro ou então defina as bandeiras apropriadas nos blocos de dados de animação)."
-
-
-msgid "Internal Error - AnimData block is not valid"
-msgstr "Erro interno - O bloco de dados de animação não é válido."
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "Não é possível empurrar para baixo as ações durante o ajuste de uma faixa de ação, é necessário sair do modo de ajuste primeiro."
-
-
-msgid "No active action to push down"
-msgstr "Nenhuma ação ativa para empurrar para baixo."
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "Seleciona primeiro uma trilha de animação não linear existente ou uma linha de ação vazia."
-
-
-msgid "No animation channel found at index %d"
-msgstr "Nenhum canal de animação encontrado no índice %d ."
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "Canal de animação no índice %d não é um canal de \"Ação ativa\" de animação não linear."
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "Sem blocos de dados de animação para os quais entrar no modo de ajuste."
 
@@ -66540,6 +66540,26 @@ msgstr "Não é possível trocar '%s' e '%s' por que uma ou ambas não são se e
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "O modificador não pôde ser adicionado para (%s : %s) (veja a linha de comando para detalhes)."
+
+
+msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
+msgstr "Sem bloco de dados ativo de dados de animação para usar (selecione um expansor de bloco de dados primeiro ou então defina as bandeiras apropriadas nos blocos de dados de animação)."
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "Erro interno - O bloco de dados de animação não é válido."
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "Não é possível empurrar para baixo as ações durante o ajuste de uma faixa de ação, é necessário sair do modo de ajuste primeiro."
+
+
+msgid "No active action to push down"
+msgstr "Nenhuma ação ativa para empurrar para baixo."
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "Seleciona primeiro uma trilha de animação não linear existente ou uma linha de ação vazia."
 
 
 msgid "Number of users of this data-block"

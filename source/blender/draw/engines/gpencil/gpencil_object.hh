@@ -276,7 +276,7 @@ class ObjectModule {
      * computationally heavy and should go into the GPData evaluation. */
     BLI_assert(object.type == OB_GREASE_PENCIL);
     const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object.data);
-    const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max();
+    const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max_eval();
     if (!bounds) {
       return float4x4::identity();
     }

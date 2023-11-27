@@ -68,7 +68,7 @@ World::~World()
 {
   if (default_world_ == nullptr) {
     default_world_ = static_cast<::World *>(BKE_id_new_nomain(ID_WO, "EEVEEE default world"));
-    copy_v3_fl(&default_world_->horr, 0.0f);
+    default_world_->horr = default_world_->horg = default_world_->horb = 0.0f;
     default_world_->use_nodes = 0;
     default_world_->nodetree = nullptr;
     BLI_listbase_clear(&default_world_->gpumaterial);
@@ -76,42 +76,57 @@ World::~World()
   return default_world_;
 }
 
-void World::world_and_ntree_get(::World *&world, bNodeTree *&ntree)
-{
-  world = inst_.scene->world;
-  if (world == nullptr) {
-    world = default_world_get();
-  }
-
-  ntree = (world->nodetree && world->use_nodes && !inst_.use_studio_light()) ?
-              world->nodetree :
-              default_tree.nodetree_get(world);
-}
-
 void World::sync()
 {
-  ::World *bl_world;
-  bNodeTree *ntree;
-  world_and_ntree_get(bl_world, ntree);
+  ::World *bl_world = inst_.use_studio_light() ? nullptr : inst_.scene->world;
 
-  GPUMaterial *volume_gpumat = inst_.shaders.world_shader_get(
-      bl_world, ntree, MAT_PIPE_VOLUME_MATERIAL);
-  inst_.pipelines.world_volume.sync(volume_gpumat);
+  bool has_update = false;
 
-  if (inst_.lookdev.sync_world()) {
-    return;
+  if (bl_world) {
+    /* Detect world update before overriding it. */
+    WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);
+    has_update = (wo_handle.recalc != 0);
+    wo_handle.reset_recalc_flag();
   }
 
-  WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);
-  inst_.reflection_probes.sync_world(bl_world, wo_handle);
-  if (wo_handle.recalc != 0) {
+  /* Sync volume first since its result can override the surface world. */
+  sync_volume();
+
+  if (inst_.use_studio_light()) {
+    has_update = lookdev_world_.sync(LookdevParameters(inst_.v3d));
+    bl_world = lookdev_world_.world_get();
+  }
+  else if (has_volume_absorption_) {
+    bl_world = default_world_get();
+  }
+  else if (inst_.scene->world != nullptr) {
+    bl_world = inst_.scene->world;
+  }
+  else {
+    bl_world = default_world_get();
+  }
+
+  bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?
+                         bl_world->nodetree :
+                         default_tree.nodetree_get(bl_world);
+
+  {
+    if (has_volume_absorption_) {
+      /* Replace world by black world. */
+      bl_world = default_world_get();
+    }
+  }
+
+  inst_.reflection_probes.sync_world(bl_world);
+  if (has_update) {
     inst_.reflection_probes.do_world_update_set(true);
+    inst_.sampling.reset();
   }
-  wo_handle.reset_recalc_flag();
 
-  /* TODO(fclem) This should be detected to scene level. */
+  /* We have to manually test here because we have overrides. */
   ::World *orig_world = (::World *)DEG_get_original_id(&bl_world->id);
   if (assign_if_different(prev_original_world, orig_world)) {
+    inst_.reflection_probes.do_world_update_set(true);
     inst_.sampling.reset();
   }
 
@@ -119,18 +134,36 @@ void World::sync()
 
   inst_.manager->register_layer_attributes(gpumat);
 
-  inst_.pipelines.background.sync(gpumat, inst_.film.background_opacity_get());
+  float opacity = inst_.use_studio_light() ? lookdev_world_.background_opacity_get() :
+                                             inst_.film.background_opacity_get();
+
+  inst_.pipelines.background.sync(gpumat, opacity);
   inst_.pipelines.world.sync(gpumat);
 }
 
-bool World::has_volume()
+void World::sync_volume()
 {
-  ::World *bl_world;
-  bNodeTree *ntree;
-  world_and_ntree_get(bl_world, ntree);
+  /* Studio lights have no volume shader. */
+  ::World *world = inst_.use_studio_light() ? nullptr : inst_.scene->world;
 
-  GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_VOLUME_MATERIAL);
-  return GPU_material_has_volume_output(gpumat);
+  GPUMaterial *gpumat = nullptr;
+
+  /* Only the scene world nodetree can have volume shader. */
+  if (world && world->nodetree && world->use_nodes) {
+    gpumat = inst_.shaders.world_shader_get(world, world->nodetree, MAT_PIPE_VOLUME_MATERIAL);
+  }
+
+  if (gpumat && (GPU_material_status(gpumat) == GPU_MAT_SUCCESS)) {
+    has_volume_ = true;
+    has_volume_scatter_ = GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER);
+    has_volume_absorption_ = GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_ABSORPTION);
+  }
+  else {
+    has_volume_ = has_volume_absorption_ = has_volume_scatter_ = false;
+  }
+
+  /* World volume needs to be always synced for correct clearing of parameter buffers. */
+  inst_.pipelines.world_volume.sync(gpumat);
 }
 
 /** \} */

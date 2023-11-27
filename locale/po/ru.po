@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -1301,6 +1301,14 @@ msgstr "Мир"
 
 msgid "Asset Library"
 msgstr "Библиотека ассетов"
+
+
+msgid "All"
+msgstr "Все"
+
+
+msgid "Custom"
+msgstr "Особый"
 
 
 msgid "ID Name"
@@ -3505,10 +3513,6 @@ msgid "Active Collection"
 msgstr "Активная коллекция"
 
 
-msgid "Custom"
-msgstr "Особый"
-
-
 msgid "Bool Attribute Value"
 msgstr "Значение булевого атрибута"
 
@@ -3843,10 +3847,6 @@ msgstr "Залить обратную область"
 
 msgid "Mode to draw boundary limits"
 msgstr "Режим рисования границ"
-
-
-msgid "All"
-msgstr "Все"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -17100,6 +17100,86 @@ msgid "Base type for data-blocks, defining a unique name, linking from other lib
 msgstr "Базовый тип датаблока, определяющий уникальное имя, связь с другими библиотеками и сборку мусора"
 
 
+msgid "Brush"
+msgstr "Кисть"
+
+
+msgid "Font"
+msgstr "Шрифт"
+
+
+msgid "Key"
+msgstr "Ключ"
+
+
+msgid "Library"
+msgstr "Библиотека"
+
+
+msgid "Light"
+msgstr "Свет"
+
+
+msgid "Light Probe"
+msgstr "Зонд освещения"
+
+
+msgid "Mask"
+msgstr "Маска"
+
+
+msgid "Mesh"
+msgstr "Меш"
+
+
+msgid "Metaball"
+msgstr "Метасфера"
+
+
+msgid "Node Tree"
+msgstr "Нодовое дерево"
+
+
+msgid "Paint Curve"
+msgstr "Кривая силы штриха"
+
+
+msgid "Palette"
+msgstr "Палитра"
+
+
+msgid "Particle"
+msgstr "Частица"
+
+
+msgid "Point Cloud"
+msgstr "Облако точек"
+
+
+msgid "Sound"
+msgstr "Звук"
+
+
+msgid "Speaker"
+msgstr "Источник звука"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Window Manager"
+msgstr "Менеджер окон"
+
+
+msgid "Workspace"
+msgstr "Рабочее пространство"
+
+
+msgid "World"
+msgstr "Мир"
+
+
 msgid "Is Evaluated"
 msgstr "Является вычисляемым"
 
@@ -17116,16 +17196,8 @@ msgid "Is this ID block linked indirectly"
 msgstr "Связан ли этот блок не напрямую"
 
 
-msgid "Library"
-msgstr "Библиотека"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "Библиотечный файл, на который ссылается датаблок"
-
-
-msgid "Unique data-block ID name"
-msgstr "Уникальное ID-имя датаблока"
 
 
 msgid "Full Name"
@@ -17782,10 +17854,6 @@ msgid "Jitter the position of the brush in pixels while painting"
 msgstr "Отклонять положение кисти случайным образом при рисовании"
 
 
-msgid "Brush"
-msgstr "Кисть"
-
-
 msgid "Mask Stencil Dimensions"
 msgstr "Размеры трафаретной маски"
 
@@ -17820,10 +17888,6 @@ msgstr "Соотношение между радиусом кисти и рад�
 
 msgid "Normal Weight"
 msgstr "Базовый вес"
-
-
-msgid "Paint Curve"
-msgstr "Кривая силы штриха"
 
 
 msgid "Plane Offset"
@@ -19156,10 +19220,6 @@ msgid "Curve deforming text object"
 msgstr "Кривая, деформирующая тектовой объект"
 
 
-msgid "Font"
-msgstr "Шрифт"
-
-
 msgid "Font Bold"
 msgstr "Жирный шрифт"
 
@@ -19538,10 +19598,6 @@ msgstr "Минимальная криволинейная 2D-длина для �
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "Разделять линии штрихов на границах материалов"
-
-
-msgid "Node Tree"
-msgstr "Нодовое дерево"
 
 
 msgid "Node tree for node-based shaders"
@@ -21083,6 +21139,38 @@ msgid "Diffuse color of the material"
 msgstr "Цвет материала при рассеянном освещении"
 
 
+msgid "Displacement Method"
+msgstr "Метод смещения"
+
+
+msgid "Method to use for the displacement"
+msgstr "Метод, используемый для смещения"
+
+
+msgid "Bump Only"
+msgstr "Только текстурой"
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "Карта неровностей для имитации рельефной поверхности"
+
+
+msgid "Displacement Only"
+msgstr "Только смещение"
+
+
+msgid "Use true displacement of surface only, requires fine subdivision"
+msgstr "Использовать настоящее выдавливание поверхности, необходимо хорошее подразделение"
+
+
+msgid "Displacement and Bump"
+msgstr "Геометрией и текстурой"
+
+
+msgid "Combination of true displacement and bump mapping for finer detail"
+msgstr "Комбинация настоящего смещения геометрии и имитации картой неровностей для более мелких деталей"
+
+
 msgid "Grease Pencil Settings"
 msgstr "Настройки Grease Pencil"
 
@@ -21451,26 +21539,6 @@ msgid "Fix Poles"
 msgstr "Исправить полюса"
 
 
-msgid "Produces less poles and a better topology flow"
-msgstr "Создает меньше полюсов и улучшенную топологию"
-
-
-msgid "Preserve Paint Mask"
-msgstr "Сохранять маску рисования"
-
-
-msgid "Keep the current mask on the new mesh"
-msgstr "Сохранять текущую маску на новом меше"
-
-
-msgid "Preserve Face Sets"
-msgstr "Сохранять наборы граней"
-
-
-msgid "Preserve Vertex Colors"
-msgstr "Сохранять цвета вершин"
-
-
 msgid "Projects the mesh to preserve the volume and details of the original mesh"
 msgstr "Проецировать меш, чтобы сохранить объём и детали исходного меша"
 
@@ -21517,14 +21585,6 @@ msgstr "Все слои UV-петель"
 
 msgid "Vertex Colors"
 msgstr "Цвета вершин"
-
-
-msgid "Vertex Paint Mask"
-msgstr "Маска рисования по вершинам"
-
-
-msgid "Vertex paint mask"
-msgstr "Маска рисования по вершинам"
 
 
 msgid "Vertices"
@@ -21781,14 +21841,6 @@ msgstr "Модификатор"
 
 msgid "Tool"
 msgstr "Инструмент"
-
-
-msgid "Mesh"
-msgstr "Меш"
-
-
-msgid "Point Cloud"
-msgstr "Облако точек"
 
 
 msgid "Shader Node Tree"
@@ -23027,10 +23079,6 @@ msgid "Let the object give the particle a starting velocity"
 msgstr "Позволить объекту задавать начальную скорость частиц"
 
 
-msgid "Particle"
-msgstr "Частица"
-
-
 msgid "Let the target particle give the particle a starting velocity"
 msgstr "Целевая частица придаёт начальную скорость для других частиц"
 
@@ -24009,10 +24057,6 @@ msgstr "Высота"
 
 msgid "Playback pitch of the sound"
 msgstr "Высота воспроизведения звука"
-
-
-msgid "Sound"
-msgstr "Звук"
 
 
 msgid "Sound data-block used by this speaker"
@@ -25110,10 +25154,6 @@ msgid "Ping-Pong"
 msgstr "Пинг-понг"
 
 
-msgid "Window Manager"
-msgstr "Менеджер окон"
-
-
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "Датаблок оконного менеджера, определяющий открытые окна и другие данные пользовательского интерфейса"
 
@@ -25184,10 +25224,6 @@ msgstr "Окна"
 
 msgid "Open windows"
 msgstr "Открытые окна"
-
-
-msgid "Workspace"
-msgstr "Рабочее пространство"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -27446,28 +27482,12 @@ msgid "Override default setting to insert keyframes based on 'visual transforms'
 msgstr "Переопределить настройку по умолчанию, чтобы вставлять ключевые кадры на основе «визуальной трансформации»"
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "Переопределить цвета F-кривой — XYZ в RGB"
-
-
-msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
-msgstr "Переопределить значение по умолчанию для установки цвета новых F-кривых преобразования (положения, вращения, масштабирования) на основе оси трансформации"
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "Вставка ключевых кадров — визуально"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "Вставлять ключевые кадры на основе «визуальной трансформации»"
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "Цвета F-кривой - XYZ в RGB"
-
-
-msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) is based on the transform axis"
-msgstr "Определять цвет новых F-кривых преобразования (положения, вращения, масштабирования) на основе осей трансформации"
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
@@ -29004,10 +29024,6 @@ msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "Отключить трафарет и перекрытие самопересечений с помощью прозрачных материалов"
 
 
-msgid "Mask"
-msgstr "Маска"
-
-
 msgid "Material slot in an object"
 msgstr "Слот материала в объекте"
 
@@ -29110,10 +29126,6 @@ msgid "Dope Sheet Channel"
 msgstr "Канал экспозиционного листа"
 
 
-msgid "Key"
-msgstr "Ключ"
-
-
 msgid "Snap"
 msgstr "Привязка"
 
@@ -29170,10 +29182,6 @@ msgstr "Настройка ключа формы"
 
 msgid "Vertex Group Specials"
 msgstr "Настройка группы вершин"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Math"
@@ -29442,10 +29450,6 @@ msgid "Select Similar"
 msgstr "Выделить схожие"
 
 
-msgid "Metaball"
-msgstr "Метасфера"
-
-
 msgid "Generate Weights"
 msgstr "Генерировать веса"
 
@@ -29456,14 +29460,6 @@ msgstr "Крюки"
 
 msgid "Add Image"
 msgstr "Добавить изображение"
-
-
-msgid "Light"
-msgstr "Свет"
-
-
-msgid "Light Probe"
-msgstr "Зонд освещения"
 
 
 msgid "Link/Transfer Data"
@@ -29716,18 +29712,6 @@ msgstr "Петли меша"
 
 msgid "Collection of mesh loops"
 msgstr "Коллекция петель меша"
-
-
-msgid "Mesh Paint Mask Layer"
-msgstr "Слой маски рисования на меше"
-
-
-msgid "Per-vertex paint mask data"
-msgstr "Данные маски рисования на каждую вершину"
-
-
-msgid "Mesh Paint Mask Property"
-msgstr "Свойство маски рисования на меше"
 
 
 msgid "Mesh Polygon"
@@ -32228,10 +32212,6 @@ msgstr "Место, используемое для копирования да�
 
 msgid "Use offset from the particle object in the instance object"
 msgstr "Использовать смещение от объекта-частицы у объекта экземпляра"
-
-
-msgid "World"
-msgstr "Мир"
 
 
 msgid "Use world space offset in the instance object"
@@ -39176,10 +39156,6 @@ msgstr "Удалить ключевые кадры на текущем кадр�
 msgctxt "Operator"
 msgid "Insert Keyframe"
 msgstr "Вставить ключевой кадр"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Вставить ключевые кадры на текущем кадре для всех свойств используемого ключевого набора"
 
 
 msgctxt "Operator"
@@ -49700,14 +49676,6 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "Выдвинуть действие в начало стека НЛА в виде нового клипа"
 
 
-msgid "Channel Index"
-msgstr "Индекс канала"
-
-
-msgid "Index of NLA action channel to perform pushdown operation on"
-msgstr "Индекс НЛА-канала выдвигаемого действия"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Синхронизировать длину действия"
@@ -51957,10 +51925,6 @@ msgid "Input target number of faces in the new mesh"
 msgstr "Указать нужное количество полигонов в новом меше"
 
 
-msgid "Reproject the paint mask onto the new mesh"
-msgstr "Перепроецировать маску на новый меш"
-
-
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
 msgstr "Вариация случайности, используемая алгоритмом. Различные вариации строят различную топологию меша"
 
@@ -54109,10 +54073,6 @@ msgstr "Удалить цвет в палитре"
 
 msgid "Remove active color from palette"
 msgstr "Удалить активный цвет из палитры"
-
-
-msgid "Palette"
-msgstr "Палитра"
 
 
 msgctxt "Operator"
@@ -61415,10 +61375,6 @@ msgid "Edit Property"
 msgstr "Редактировать свойство"
 
 
-msgid "Speaker"
-msgstr "Источник звука"
-
-
 msgid "Property Name"
 msgstr "Имя свойства"
 
@@ -66786,38 +66742,6 @@ msgid "Use multiple importance sampling for the light, reduces noise for area li
 msgstr "Использовать множественную выборку по значимости для источников света; уменьшает шум для протяжённых источников и зеркальных материалов"
 
 
-msgid "Displacement Method"
-msgstr "Метод смещения"
-
-
-msgid "Method to use for the displacement"
-msgstr "Метод, используемый для смещения"
-
-
-msgid "Bump Only"
-msgstr "Только текстурой"
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "Карта неровностей для имитации рельефной поверхности"
-
-
-msgid "Displacement Only"
-msgstr "Только смещение"
-
-
-msgid "Use true displacement of surface only, requires fine subdivision"
-msgstr "Использовать настоящее выдавливание поверхности, необходимо хорошее подразделение"
-
-
-msgid "Displacement and Bump"
-msgstr "Геометрией и текстурой"
-
-
-msgid "Combination of true displacement and bump mapping for finer detail"
-msgstr "Комбинация настоящего смещения геометрии и имитации картой неровностей для более мелких деталей"
-
-
 msgid "Homogeneous Volume"
 msgstr "Однородный объём"
 
@@ -70740,6 +70664,10 @@ msgid "Use the Scene's Sequencer timeline as input"
 msgstr "Использовать временную шкалу секвенсора сцены в качестве входа"
 
 
+msgid "Playback volume of the sound"
+msgstr "Громкость воспроизведения звука"
+
+
 msgid "Sound Sequence"
 msgstr "Аудио последовательность"
 
@@ -70762,10 +70690,6 @@ msgstr "Показывать форму волны аудиосигнала вн
 
 msgid "Sound data-block used by this sequence"
 msgstr "Датаблок звука, используемый в видеоредакторе"
-
-
-msgid "Playback volume of the sound"
-msgstr "Громкость воспроизведения звука"
 
 
 msgid "Sequence Color Balance Data"
@@ -79428,13 +79352,13 @@ msgstr "Инвертировать"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Заблокировать невыделенное"
+msgid "Lock Unused"
+msgstr "Заблокировать неиспользуемое"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Заблокировать неиспользуемое"
+msgid "Lock Unselected"
+msgstr "Заблокировать невыделенное"
 
 
 msgid "Flip Colors"
@@ -80082,10 +80006,6 @@ msgstr "Пути:"
 
 msgid "Doppler Speed"
 msgstr "Скорость звука"
-
-
-msgid "XYZ to RGB"
-msgstr "XYZ в RGB"
 
 
 msgid "Active Set Override"
@@ -81956,6 +81876,10 @@ msgid "Default Handles"
 msgstr "Рукоятки по умолчанию"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ в RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "Буфер смешивания"
 
@@ -82427,11 +82351,6 @@ msgstr "Фон"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Создать локально…"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Добавить ключевой кадр…"
 
 
 msgctxt "Operator"
@@ -84370,6 +84289,10 @@ msgid "Can't edit this property from a linked data-block"
 msgstr "Невозможно отредактировать свойство из связанного датаблока"
 
 
+msgid "Nothing selected"
+msgstr "Ничего не выбрано"
+
+
 msgid "<invalid>"
 msgstr "<неверно>"
 
@@ -84988,10 +84911,6 @@ msgstr "Нет активных кадров для удаления"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Невозможно отделить объект только с одним слоем"
-
-
-msgid "Nothing selected"
-msgstr "Ничего не выбрано"
 
 
 msgid "No active area"
@@ -87977,34 +87896,6 @@ msgid "Now"
 msgstr "Сейчас"
 
 
-msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
-msgstr "Нет активного блока AnimData для использования (выберите блок данных с списке или установите соответствующие флаги на блок AnimData)"
-
-
-msgid "Internal Error - AnimData block is not valid"
-msgstr "Внутренняя ошибка — блок AnimData не является допустимым"
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "Невозможно выдвинуть действия в режиме настройки клипа, выйдите из этого режима"
-
-
-msgid "No active action to push down"
-msgstr "Нет активного действия для выдвижения"
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "Сначала выделите существующий трек НЛА или пустую строку действия"
-
-
-msgid "No animation channel found at index %d"
-msgstr "Нет канала анимации с индексом %d"
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "Канал анимации с индексом %d не является каналом активного действия НЛА"
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "Нет блоков AnimData для перехода в режим подстройки"
 
@@ -88055,6 +87946,26 @@ msgstr "Невозможно поменять «%s» и «%s» местами, �
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "Модификатор не может быть добавлен в (%s : %s) (см. консоль для дополнительной информации)"
+
+
+msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
+msgstr "Нет активного блока AnimData для использования (выберите блок данных с списке или установите соответствующие флаги на блок AnimData)"
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "Внутренняя ошибка — блок AnimData не является допустимым"
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "Невозможно выдвинуть действия в режиме настройки клипа, выйдите из этого режима"
+
+
+msgid "No active action to push down"
+msgstr "Нет активного действия для выдвижения"
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "Сначала выделите существующий трек НЛА или пустую строку действия"
 
 
 msgid "More than one collection is selected"

@@ -10,7 +10,6 @@ set(INC
   ../../blentranslation
   ../../draw
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../render
@@ -112,7 +111,7 @@ set(LIB
   bf_gpu
   PRIVATE bf::intern::guardedalloc
   bf_nodes
-  bf_imbuf
+  PRIVATE bf::imbuf
   bf_render
   PRIVATE bf::blenlib
   bf_blenkernel

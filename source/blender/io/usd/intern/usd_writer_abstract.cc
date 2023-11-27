@@ -118,7 +118,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   }
 
   std::string active_uv = get_mesh_active_uvlayer_name(context.object);
-  return create_usd_material(usd_export_context_, usd_path, material, active_uv);
+  return create_usd_material(usd_export_context_, usd_path, material, active_uv, reports());
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,

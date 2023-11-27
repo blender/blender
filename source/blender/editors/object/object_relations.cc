@@ -2572,7 +2572,7 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
 
   blender::VectorSet<Collection *> potential_root_collections;
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    /* Only check for linked collections from the same library, in the current viewlayer. */
+    /* Only check for linked collections from the same library, in the current view-layer. */
     if (!ID_IS_LINKED(&collection->id) || collection->id.lib != obact->id.lib ||
         !BKE_view_layer_has_collection(view_layer, collection))
     {

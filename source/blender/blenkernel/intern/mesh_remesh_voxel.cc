@@ -477,7 +477,7 @@ static void gather_attributes(const Span<AttributeIDRef> ids,
 
 void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
 {
-  /* Gather attributes to tranfer for each domain. This makes it possible to skip
+  /* Gather attributes to transfer for each domain. This makes it possible to skip
    * building index maps and even the main BVH tree if there are no attributes. */
   const AttributeAccessor src_attributes = src.attributes();
   Vector<AttributeIDRef> point_ids;

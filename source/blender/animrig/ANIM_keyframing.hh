@@ -194,4 +194,16 @@ int insert_key_action(Main *bmain,
                       eInsertKeyFlags insert_key_flag,
                       eBezTriple_KeyframeType key_type);
 
+/** Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an
+ * action if none exists yet.
+ * \param scene_frame is expected to be not NLA mapped as that happens within the function.
+ */
+void insert_key_rna(PointerRNA *rna_pointer,
+                    const blender::Span<std::string> rna_paths,
+                    float scene_frame,
+                    eInsertKeyFlags insert_key_flags,
+                    eBezTriple_KeyframeType key_type,
+                    Main *bmain,
+                    ReportList *reports);
+
 }  // namespace blender::animrig

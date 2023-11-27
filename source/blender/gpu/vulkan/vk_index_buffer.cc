@@ -9,6 +9,7 @@
 #include "vk_index_buffer.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
+#include "vk_staging_buffer.hh"
 #include "vk_state_manager.hh"
 
 namespace blender::gpu {
@@ -24,10 +25,15 @@ void VKIndexBuffer::ensure_updated()
     allocate();
   }
 
-  if (data_ != nullptr) {
-    buffer_.update(data_);
-    MEM_SAFE_FREE(data_);
+  if (data_ == nullptr) {
+    return;
   }
+
+  VKContext &context = *VKContext::get();
+  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
+  staging_buffer.host_buffer_get().update(data_);
+  staging_buffer.copy_to_device(context);
+  MEM_SAFE_FREE(data_);
 }
 
 void VKIndexBuffer::upload_data()
@@ -65,9 +71,9 @@ void VKIndexBuffer::bind(int binding,
 void VKIndexBuffer::read(uint32_t *data) const
 {
   VKContext &context = *VKContext::get();
-  context.flush();
-
-  buffer_.read(data);
+  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
+  staging_buffer.copy_from_device(context);
+  staging_buffer.host_buffer_get().read(data);
 }
 
 void VKIndexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data*/)
@@ -83,8 +89,11 @@ void VKIndexBuffer::strip_restart_indices()
 void VKIndexBuffer::allocate()
 {
   GPUUsageType usage = data_ == nullptr ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_STATIC;
-  buffer_.create(
-      size_get(), usage, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+  buffer_.create(size_get(),
+                 usage,
+                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 false);
   debug::object_label(buffer_.vk_handle(), "IndexBuffer");
 }
 

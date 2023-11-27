@@ -14,6 +14,8 @@ VectorCurveOperation::VectorCurveOperation()
   this->add_output_socket(DataType::Vector);
 
   input_program_ = nullptr;
+
+  this->flags_.can_be_constant = true;
 }
 void VectorCurveOperation::init_execution()
 {

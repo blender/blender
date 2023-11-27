@@ -226,13 +226,6 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
   return ml;
 }
 
-BoundBox *BKE_mball_boundbox_get(Object *ob)
-{
-  BLI_assert(ob->type == OB_MBALL);
-  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
-  return ob->runtime->bb;
-}
-
 bool BKE_mball_is_basis(const Object *ob)
 {
   /* Meta-Ball Basis Notes from Blender-2.5x
@@ -663,6 +656,4 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
 
   ob->runtime->geometry_set_eval = new GeometrySet(GeometrySet::from_mesh(mesh));
-
-  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 };

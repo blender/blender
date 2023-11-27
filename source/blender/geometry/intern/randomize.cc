@@ -159,7 +159,7 @@ static void reorder_customdata_groups(CustomData &data,
 
 void debug_randomize_face_order(Mesh *mesh)
 {
-  if (mesh == nullptr || !use_debug_randomization()) {
+  if (mesh == nullptr || mesh->faces_num == 0 || !use_debug_randomization()) {
     return;
   }
 

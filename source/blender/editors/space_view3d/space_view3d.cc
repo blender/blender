@@ -28,6 +28,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -739,6 +740,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
                                             Object *ob,
                                             float obmat_final[4][4])
 {
+  using namespace blender;
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   UNUSED_VARS_NDEBUG(snap_state);
@@ -749,10 +751,9 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   mat4_to_size(scale, ob->object_to_world);
   rescale_m4(obmat_final, scale);
 
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
-    float offset[3];
-    BKE_boundbox_calc_center_aabb(&bb.value(), offset);
-    offset[2] = bb->vec[0][2];
+  if (const std::optional<Bounds<float3>> bb = BKE_object_boundbox_get(ob)) {
+    float3 offset = math::midpoint(bb->min, bb->max);
+    offset[2] = bb->min[2];
     mul_mat3_m4_v3(obmat_final, offset);
     sub_v3_v3(obmat_final[3], offset);
   }

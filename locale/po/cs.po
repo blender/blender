@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-10-12 15:54+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1233,6 +1233,14 @@ msgstr "Metadata assetu"
 
 msgid "Asset Library"
 msgstr "Knihovna Grafických položek"
+
+
+msgid "All"
+msgstr "Vše"
+
+
+msgid "Custom"
+msgstr "Vlastní"
 
 
 msgid "ID Name"
@@ -2667,10 +2675,6 @@ msgid "Active Collection"
 msgstr "Aktivní kolekce"
 
 
-msgid "Custom"
-msgstr "Vlastní"
-
-
 msgid "Brush Capabilities"
 msgstr "Schopnosti Štetce"
 
@@ -2901,10 +2905,6 @@ msgstr "Normála"
 
 msgid "Fill inverted area"
 msgstr "Vyplnit obrácenou oblast"
-
-
-msgid "All"
-msgstr "Vše"
 
 
 msgid "Strokes"
@@ -8487,6 +8487,82 @@ msgid "Display lines rather than filled shapes"
 msgstr "Zobrazí mód ze seznamu souborů"
 
 
+msgid "Brush"
+msgstr "Štětec"
+
+
+msgid "Font"
+msgstr "Písmo"
+
+
+msgid "Key"
+msgstr "Klíč"
+
+
+msgid "Library"
+msgstr "Knihovna"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Mesh"
+msgstr "Síť"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Node Tree"
+msgstr "Uzel"
+
+
+msgid "Paint Curve"
+msgstr "Kreslit křivku"
+
+
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgid "Particle"
+msgstr "Částice"
+
+
+msgid "Point Cloud"
+msgstr "Bodový Mrak"
+
+
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgid "Speaker"
+msgstr "Reproduktor"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Window Manager"
+msgstr "Správce oken"
+
+
+msgid "Workspace"
+msgstr "Pracovní prostor"
+
+
+msgid "World"
+msgstr "Okolí"
+
+
 msgid "Embedded Data"
 msgstr "Vložená Data"
 
@@ -8497,10 +8573,6 @@ msgstr "Je Hodnocen"
 
 msgid "Is Indirect"
 msgstr "Je nepřímý"
-
-
-msgid "Library"
-msgstr "Knihovna"
 
 
 msgid "Original ID"
@@ -8791,16 +8863,8 @@ msgid "Jitter Unit"
 msgstr "Jednotka chvění"
 
 
-msgid "Brush"
-msgstr "Štětec"
-
-
 msgid "Normal Weight"
 msgstr "Nastavit váhu"
-
-
-msgid "Paint Curve"
-msgstr "Kreslit křivku"
 
 
 msgid "Plane Offset"
@@ -9651,10 +9715,6 @@ msgid "Curve deforming text object"
 msgstr "Křivka deformující textový objekt"
 
 
-msgid "Font"
-msgstr "Písmo"
-
-
 msgid "Font Bold"
 msgstr "Označit okraje"
 
@@ -9793,10 +9853,6 @@ msgstr "Min"
 
 msgid "Max"
 msgstr "Max"
-
-
-msgid "Node Tree"
-msgstr "Uzel"
 
 
 msgid "Base Color"
@@ -10401,6 +10457,14 @@ msgid "Diffuse color of the material"
 msgstr "Barva difuzní složky OpenGL světla"
 
 
+msgid "Displacement Method"
+msgstr "Displacement metoda"
+
+
+msgid "Method to use for the displacement"
+msgstr "Skript linky pro tuto událost"
+
+
 msgid "Line Art Settings"
 msgstr "Nastavení Kresby Tužkou"
 
@@ -10771,14 +10835,6 @@ msgstr "Modifikátory"
 
 msgid "Tool"
 msgstr "Nástroje"
-
-
-msgid "Mesh"
-msgstr "Síť"
-
-
-msgid "Point Cloud"
-msgstr "Bodový Mrak"
 
 
 msgid "Shader Node Tree"
@@ -11480,10 +11536,6 @@ msgid "Object Velocity"
 msgstr "Rychlost Objektu"
 
 
-msgid "Particle"
-msgstr "Částice"
-
-
 msgid "The size of the particles"
 msgstr "Velikost štětce"
 
@@ -12044,10 +12096,6 @@ msgstr "Jméno aktuálního klíče pro tvar"
 msgctxt "Sound"
 msgid "Pitch"
 msgstr "Seškrcení"
-
-
-msgid "Sound"
-msgstr "Zvuk"
 
 
 msgid "How loud the sound is"
@@ -12622,10 +12670,6 @@ msgid "Sequence playback mode"
 msgstr "Režim přehrávání sekvencí"
 
 
-msgid "Window Manager"
-msgstr "Správce oken"
-
-
 msgid "Category"
 msgstr "Category"
 
@@ -12684,10 +12728,6 @@ msgstr "Okna"
 
 msgid "Open windows"
 msgstr "Otevřít okna"
-
-
-msgid "Workspace"
-msgstr "Pracovní prostor"
 
 
 msgid "Switch to this object mode when activating the workspace"
@@ -14329,10 +14369,6 @@ msgid "Mix Factor"
 msgstr "Činitel"
 
 
-msgid "Mask"
-msgstr "Maska"
-
-
 msgid "Material slot in an object"
 msgstr "Přivlastnit"
 
@@ -14394,10 +14430,6 @@ msgid "Channel"
 msgstr "Kanál"
 
 
-msgid "Key"
-msgstr "Klíč"
-
-
 msgid "Snap"
 msgstr "Přichytit"
 
@@ -14441,10 +14473,6 @@ msgstr "Zaklíčovat tvar"
 
 msgid "Vertex Group Specials"
 msgstr "Skupina vertexů"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Utilities"
@@ -14628,16 +14656,8 @@ msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
 msgid "Hooks"
 msgstr "Háky"
-
-
-msgid "Light"
-msgstr "Světlo"
 
 
 msgid "Make Single User"
@@ -15834,10 +15854,6 @@ msgstr "Rotace okolo cesty"
 
 msgid "Show instances when particles are dead"
 msgstr "Zobrazit případy, kdy jsou částice mrtvé"
-
-
-msgid "World"
-msgstr "Okolí"
 
 
 msgctxt "ParticleSettings"
@@ -19500,10 +19516,6 @@ msgstr "Odebrat klíčový snímek"
 msgctxt "Operator"
 msgid "Insert Keyframe"
 msgstr "Vložit klíčový snímek"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Vloží klíčové snímky na vybraný snímek pro všechna nastavení v určeném klíčovací sestavy"
 
 
 msgctxt "Operator"
@@ -27873,10 +27885,6 @@ msgid "Extract all colors used in Image and create a Palette"
 msgstr "Extrahovat všechny barvy použité v obrázku a vytvořit z nich paletu"
 
 
-msgid "Palette"
-msgstr "Paleta"
-
-
 msgid "Name of the Palette"
 msgstr "Název palety"
 
@@ -31860,10 +31868,6 @@ msgid "Edit Property"
 msgstr "Upravit Vlastnost"
 
 
-msgid "Speaker"
-msgstr "Reproduktor"
-
-
 msgid "Property Name"
 msgstr "Název Vlastnosti"
 
@@ -35149,14 +35153,6 @@ msgstr "3D Křivky"
 
 msgid "Cast Shadow"
 msgstr "Stín"
-
-
-msgid "Displacement Method"
-msgstr "Displacement metoda"
-
-
-msgid "Method to use for the displacement"
-msgstr "Skript linky pro tuto událost"
 
 
 msgid "Use Adaptive Subdivision"
@@ -41269,10 +41265,6 @@ msgid "Doppler Speed"
 msgstr "Rychlost doppleru"
 
 
-msgid "XYZ to RGB"
-msgstr "XYZ na RGB"
-
-
 msgid "Target ID-Block"
 msgstr "Cílový ID-Blok"
 
@@ -42582,6 +42574,10 @@ msgid "Enable in New Scenes"
 msgstr "Povolit v nových scénách"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ na RGB"
+
+
 msgid "Sample Format"
 msgstr "Ukázkový formát"
 
@@ -42915,11 +42911,6 @@ msgstr "Pozadí"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Vytvořit lokální..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Vložit klíčový snímek..."
 
 
 msgctxt "Operator"
@@ -43963,6 +43954,10 @@ msgid "Select ID"
 msgstr "Vybrat ID"
 
 
+msgid "Nothing selected"
+msgstr "Není nic vybrané"
+
+
 msgid "Scene not found"
 msgstr "Zvuk"
 
@@ -44227,10 +44222,6 @@ msgstr "Automaticky vkládat klíče objektu a Action Ipo křivky"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Objekt nelze oddělit pouze s jednou vrstvou"
-
-
-msgid "Nothing selected"
-msgstr "Není nic vybrané"
 
 
 msgid "No active area"

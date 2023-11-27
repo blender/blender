@@ -8,6 +8,10 @@
  * \ingroup bke
  */
 
+#include <optional>
+
+#include "BLI_bounds_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
 #include "DNA_listBase.h"
@@ -96,16 +100,13 @@ short BKE_curve_type_get(const Curve *cu);
 void BKE_curve_type_test(Object *ob);
 void BKE_curve_dimension_update(Curve *cu);
 
-BoundBox *BKE_curve_boundbox_get(Object *ob);
-
 void BKE_curve_texspace_calc(Curve *cu);
 void BKE_curve_texspace_ensure(Curve *cu);
 
 /* Basic vertex data functions. */
 
-bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3]);
+std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu, bool use_radius);
 bool BKE_curve_center_median(Curve *cu, float cent[3]);
-bool BKE_curve_center_bounds(Curve *cu, float cent[3]);
 void BKE_curve_transform_ex(
     Curve *cu, const float mat[4][4], bool do_keys, bool do_props, float unit_scale);
 void BKE_curve_transform(Curve *cu, const float mat[4][4], bool do_keys, bool do_props);
@@ -160,7 +161,7 @@ void BKE_curve_editNurb_keyIndex_delCV(GHash *keyindex, const void *cv);
 void BKE_curve_editNurb_keyIndex_free(GHash **keyindex);
 void BKE_curve_editNurb_free(Curve *cu);
 /**
- * Get list of nurbs from edit-nurbs ure.
+ * Get list of nurbs from edit-nurbs structure.
  */
 ListBase *BKE_curve_editNurbs_get(Curve *cu);
 const ListBase *BKE_curve_editNurbs_get_for_read(const Curve *cu);
@@ -224,11 +225,6 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu);
 Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv);
 
 void BKE_nurb_project_2d(Nurb *nu);
-/**
- * if use_radius is truth, minmax will take points' radius into account,
- * which will make bound-box closer to beveled curve.
- */
-void BKE_nurb_minmax(const Nurb *nu, bool use_radius, float min[3], float max[3]);
 float BKE_nurb_calc_length(const Nurb *nu, int resolution);
 
 /**

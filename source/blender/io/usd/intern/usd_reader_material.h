@@ -129,6 +129,14 @@ class USDMaterialReader {
                               int column,
                               NodePlacementContext *r_ctx) const;
 
+  void convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
+                                const pxr::TfToken &usd_source_name,
+                                bNode *dest_node,
+                                const char *dest_socket_name,
+                                bNodeTree *ntree,
+                                int column,
+                                NodePlacementContext *r_ctx) const;
+
   /**
    * Load the texture image node's texture from the path given by the USD shader's
    * file input value.

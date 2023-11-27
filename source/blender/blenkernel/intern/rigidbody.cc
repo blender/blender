@@ -493,10 +493,8 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
    */
   /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
   /* get object dimensions without scaling */
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
-    size[0] = (bb->vec[4][0] - bb->vec[0][0]);
-    size[1] = (bb->vec[2][1] - bb->vec[0][1]);
-    size[2] = (bb->vec[1][2] - bb->vec[0][2]);
+  if (const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob)) {
+    copy_v3_v3(size, bounds->max - bounds->min);
   }
   mul_v3_fl(size, 0.5f);
 
@@ -1769,14 +1767,14 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
       float(*positions)[3] = reinterpret_cast<float(*)[3]>(
           mesh->vert_positions_for_write().data());
       int totvert = mesh->totvert;
-      const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
+      const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob);
 
       RB_shape_trimesh_update(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
                               (float *)positions,
                               totvert,
                               sizeof(float[3]),
-                              bb->vec[0],
-                              bb->vec[6]);
+                              bounds->min,
+                              bounds->max);
     }
   }
 

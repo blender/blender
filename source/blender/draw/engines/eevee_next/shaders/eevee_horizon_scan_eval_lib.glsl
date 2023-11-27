@@ -167,7 +167,7 @@ void horizon_scan_context_sample_finish(
   vec3 sample_radiance = horizon_scan_sample_radiance(sample_uv);
   /* Take emitter surface normal into consideration. */
   vec3 sample_normal = horizon_scan_sample_normal(sample_uv);
-  /* Discard backfacing samples.
+  /* Discard back-facing samples.
    * The paper suggests a smooth test which is not physically correct since we
    * already consider the sample reflected radiance.
    * Set the weight to allow energy conservation. If we modulate the radiance, we loose energy. */

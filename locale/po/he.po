@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -493,6 +493,14 @@ msgid "Blue"
 msgstr "לוחכ"
 
 
+msgid "Mask"
+msgstr "הכסמ"
+
+
+msgid "World"
+msgstr "םלוע"
+
+
 msgid "Full Name"
 msgstr "אלמ םש"
 
@@ -636,10 +644,6 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
-msgid "Mask"
-msgstr "הכסמ"
-
-
 msgid "Languages..."
 msgstr "..תופש"
 
@@ -678,10 +682,6 @@ msgstr "עלצ ינותנ"
 
 msgid "Vertex Data"
 msgstr "דוקדוק ינותנ"
-
-
-msgid "World"
-msgstr "םלוע"
 
 
 msgid "Lift"

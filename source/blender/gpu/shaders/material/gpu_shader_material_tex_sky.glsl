@@ -18,7 +18,7 @@ float sky_angle_between(float thetav, float phiv, float theta, float phi)
 
 vec3 sky_spherical_coordinates(vec3 dir)
 {
-  return vec3(M_PI_2 - atan(dir.z, length(dir.xy)), atan(dir.x, dir.y), 0);
+  return vec3(M_PI_2 - atan(dir.z, length(dir.xy)), atan(dir.x, dir.y), 0.0);
 }
 
 /* Preetham */

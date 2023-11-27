@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -1119,6 +1119,14 @@ msgstr "작업공간"
 msgctxt "ID"
 msgid "World"
 msgstr "월드"
+
+
+msgid "All"
+msgstr "모두"
+
+
+msgid "Custom"
+msgstr "커스텀"
 
 
 msgid "ID Name"
@@ -2977,10 +2985,6 @@ msgid "Active Collection"
 msgstr "활성 컬렉션"
 
 
-msgid "Custom"
-msgstr "커스텀"
-
-
 msgid "Brush Capabilities"
 msgstr "브러시 기능"
 
@@ -3231,10 +3235,6 @@ msgstr "노멀"
 
 msgid "Mode to draw boundary limits"
 msgstr "경계 제한을 그리는 모드"
-
-
-msgid "All"
-msgstr "모두"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -14169,6 +14169,82 @@ msgid "Base type for data-blocks, defining a unique name, linking from other lib
 msgstr "고유한 이름을 정의하고 다른 라이브러리 및 가비지 컬렉션에서 연결하는 데이터-블록에 대한 기본 유형"
 
 
+msgid "Brush"
+msgstr "브러시"
+
+
+msgid "Font"
+msgstr "폰트"
+
+
+msgid "Key"
+msgstr "키"
+
+
+msgid "Library"
+msgstr "라이브러리"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Mask"
+msgstr "마스크"
+
+
+msgid "Mesh"
+msgstr "메쉬"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Node Tree"
+msgstr "노드 트리"
+
+
+msgid "Paint Curve"
+msgstr "페인트 커브"
+
+
+msgid "Palette"
+msgstr "팔레트"
+
+
+msgid "Particle"
+msgstr "파티클"
+
+
+msgid "Sound"
+msgstr "사운드"
+
+
+msgid "Speaker"
+msgstr "스피커"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Window Manager"
+msgstr "창 관리자"
+
+
+msgid "Workspace"
+msgstr "작업공간"
+
+
+msgid "World"
+msgstr "월드"
+
+
 msgid "Is Evaluated"
 msgstr "Is 평가됨"
 
@@ -14185,16 +14261,8 @@ msgid "Is this ID block linked indirectly"
 msgstr "이 ID 블록은 간접적으로 연결되어 있음"
 
 
-msgid "Library"
-msgstr "라이브러리"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "데이터 블록이 다음에서 연결된 라이브러리 파일"
-
-
-msgid "Unique data-block ID name"
-msgstr "고유 데이터 블록 ID 이름"
 
 
 msgid "Full Name"
@@ -14842,10 +14910,6 @@ msgid "Jitter in screen space or relative to brush size"
 msgstr "화면 공간의 지터 또는 브러시 크기와 관련"
 
 
-msgid "Brush"
-msgstr "브러시"
-
-
 msgid "Mask Stencil Dimensions"
 msgstr "마스크 스텐실 크기"
 
@@ -14888,10 +14952,6 @@ msgstr "브러시 반경과 노멀을 샘플링하는 데 사용되는 반경 �
 
 msgid "Normal Weight"
 msgstr "노멀 웨이트"
-
-
-msgid "Paint Curve"
-msgstr "페인트 커브"
 
 
 msgid "Plane Offset"
@@ -16206,10 +16266,6 @@ msgid "Curve deforming text object"
 msgstr "커브 변형 텍스트 오브젝트"
 
 
-msgid "Font"
-msgstr "폰트"
-
-
 msgid "Font Bold"
 msgstr "폰트 굵게"
 
@@ -16588,10 +16644,6 @@ msgstr "체인의 선택에 대한 최소 커브의 2D 길이"
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "True일 경우, 특색 에지들의 체인은 매테리얼 경계에서 분할"
-
-
-msgid "Node Tree"
-msgstr "노드 트리"
 
 
 msgid "Node tree for node-based shaders"
@@ -18140,6 +18192,38 @@ msgid "Diffuse color of the material"
 msgstr "매테리얼의 확산 컬러"
 
 
+msgid "Displacement Method"
+msgstr "변위 메서드"
+
+
+msgid "Method to use for the displacement"
+msgstr "변위에 대해 사용하는 메서드"
+
+
+msgid "Bump Only"
+msgstr "범프 만"
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "변위의 외관을 시뮬레이션하는 범프 맵핑"
+
+
+msgid "Displacement Only"
+msgstr "변위 만"
+
+
+msgid "Use true displacement of surface only, requires fine subdivision"
+msgstr "표면의 True 변위 만 사용하고 섭디비젼이 필요합니다"
+
+
+msgid "Displacement and Bump"
+msgstr "변위 및 범프"
+
+
+msgid "Combination of true displacement and bump mapping for finer detail"
+msgstr "더 정밀한 디테일을위한 True 변위와 범프 맵핑의 결합"
+
+
 msgid "Grease Pencil Settings"
 msgstr "그리스 펜슬 설정"
 
@@ -18508,18 +18592,6 @@ msgid "Fix Poles"
 msgstr "폴을 고치기"
 
 
-msgid "Produces less poles and a better topology flow"
-msgstr "적은 폴과 더 나은 토폴로지 흐름을 생성합니다"
-
-
-msgid "Preserve Paint Mask"
-msgstr "페인트 마스크를 보존"
-
-
-msgid "Keep the current mask on the new mesh"
-msgstr "현재 마스크를 새로운 메쉬에서 유지합니다"
-
-
 msgid "Projects the mesh to preserve the volume and details of the original mesh"
 msgstr "원래 메쉬의 볼륨과 디테일을 유지하기 위해 메쉬를 투사합니다"
 
@@ -18566,14 +18638,6 @@ msgstr "모든 UV 루프 레이어"
 
 msgid "Vertex Colors"
 msgstr "버텍스 컬러"
-
-
-msgid "Vertex Paint Mask"
-msgstr "버텍스 페인트 마스크"
-
-
-msgid "Vertex paint mask"
-msgstr "버텍스 페인트 마스크"
 
 
 msgid "Vertices"
@@ -18826,10 +18890,6 @@ msgstr "모디파이어"
 
 msgid "Tool"
 msgstr "도구"
-
-
-msgid "Mesh"
-msgstr "메쉬"
 
 
 msgid "Shader Node Tree"
@@ -20063,10 +20123,6 @@ msgid "Let the object give the particle a starting velocity"
 msgstr "오브젝트가 파티클에게 시작 속도를 부여합니다"
 
 
-msgid "Particle"
-msgstr "파티클"
-
-
 msgid "Let the target particle give the particle a starting velocity"
 msgstr "대상 파티클이 파티클에게 시작 속도를 부여합니다"
 
@@ -20999,10 +21055,6 @@ msgstr "피치"
 
 msgid "Playback pitch of the sound"
 msgstr "사운드의 재생 피치"
-
-
-msgid "Sound"
-msgstr "사운드"
 
 
 msgid "Sound data-block used by this speaker"
@@ -22061,10 +22113,6 @@ msgid "Offset the number of the frame to use in the animation"
 msgstr "에니메이션에서 사용하는 프레임의 번호를 오프셋"
 
 
-msgid "Window Manager"
-msgstr "창 관리자"
-
-
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "다른 사용자 인터페이스의 데이터와 창 열기를 정의하는 창 관리자 데이터 블록"
 
@@ -22131,10 +22179,6 @@ msgstr "창"
 
 msgid "Open windows"
 msgstr "창을 열기"
-
-
-msgid "Workspace"
-msgstr "작업공간"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -24262,28 +24306,12 @@ msgid "Override default setting to insert keyframes based on 'visual transforms'
 msgstr "'시각적 변환'을 기반으로 키 프레임을 삽입하는 기본 설정을 재정의"
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "재정의 F-커브 컬러- RGB로 XYZ"
-
-
-msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
-msgstr "새로 추가된 변환 F-커브(위치, 회전, 축적)를 변환 축을 기준으로 컬러를 설정하는 기본 설정을 재정의"
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "키 프레임을 삽입 - 시각"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "키 프레임을 '시각 변환'에 따라 삽입"
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "F-커브 컬러 - RGB로 XYZ"
-
-
-msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) is based on the transform axis"
-msgstr "새롭게 추가된 변환 F-커브(위치, 회전, 축적)데 대한 컬러은 변환 축을 기준으로 합니다"
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
@@ -25817,10 +25845,6 @@ msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "알파 매테리얼과 함께 스텐실 비활성화 및 자체 겹침"
 
 
-msgid "Mask"
-msgstr "마스크"
-
-
 msgid "Material slot in an object"
 msgstr "오브젝트에 매테리얼 슬롯"
 
@@ -25914,10 +25938,6 @@ msgid "Dope Sheet Channel"
 msgstr "도프시트 채널"
 
 
-msgid "Key"
-msgstr "키"
-
-
 msgid "Snap"
 msgstr "스냅"
 
@@ -25969,10 +25989,6 @@ msgstr "셰이프 키 지정"
 
 msgid "Vertex Group Specials"
 msgstr "버텍스 그룹 지정"
-
-
-msgid "Text"
-msgstr "텍스트"
 
 
 msgid "Math"
@@ -26240,10 +26256,6 @@ msgid "Select Similar"
 msgstr "유사한 선택"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Generate Weights"
 msgstr "웨이트를 생성"
 
@@ -26254,14 +26266,6 @@ msgstr "후크"
 
 msgid "Add Image"
 msgstr "이미지를 추가"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
 
 
 msgid "Make Single User"
@@ -26502,18 +26506,6 @@ msgstr "메쉬 루프"
 
 msgid "Collection of mesh loops"
 msgstr "메쉬 루프의 컬렉션"
-
-
-msgid "Mesh Paint Mask Layer"
-msgstr "메쉬 페인트 마스크 레이어"
-
-
-msgid "Per-vertex paint mask data"
-msgstr "버텍스 페인트 마스크 데이터 당"
-
-
-msgid "Mesh Paint Mask Property"
-msgstr "메쉬 페인트 마스크 속성"
 
 
 msgid "Mesh Polygon"
@@ -29130,10 +29122,6 @@ msgstr "메쉬 데이터 복사에 사용할 공간"
 
 msgid "Use offset from the particle object in the instance object"
 msgstr "인스턴스 오브젝트에서 파티클 오브젝트의 오프셋을 사용합니다"
-
-
-msgid "World"
-msgstr "월드"
 
 
 msgid "Use world space offset in the instance object"
@@ -35934,10 +35922,6 @@ msgstr "선택된 오브젝트와 본에 대해 현재 프레임에서 키 프�
 msgctxt "Operator"
 msgid "Insert Keyframe"
 msgstr "키 프레임을 삽입"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "지정된 키잉 설정의 모든 속성에 대해 현재 프레임에 키 프레임을 삽입"
 
 
 msgctxt "Operator"
@@ -46362,14 +46346,6 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "새로운 스트립으로 NLA 스텍의 위에 액션을 아래로 밀기"
 
 
-msgid "Channel Index"
-msgstr "체널 인덱스"
-
-
-msgid "Index of NLA action channel to perform pushdown operation on"
-msgstr "다음에 대한 아래로 밀기 액션을 수행하기 위한 NLA 액션 채널 인덱스"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "액션 길이를 동기화"
@@ -48563,10 +48539,6 @@ msgid "Input target number of faces in the new mesh"
 msgstr "새 메시에 대상 페이스 수를 입력합니다"
 
 
-msgid "Reproject the paint mask onto the new mesh"
-msgstr "페인트 마스크를 새 메시에 재투사"
-
-
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
 msgstr "솔버와 함께 사용할 랜덤 시드. 시드가 다르면 리메셔가 메쉬에 다른 쿼드 레이아웃을 생성하게됩니다"
 
@@ -50710,10 +50682,6 @@ msgstr "팔레트 컬러를 삭제"
 
 msgid "Remove active color from palette"
 msgstr "팔레트에서 활성 컬러를 제거"
-
-
-msgid "Palette"
-msgstr "팔레트"
 
 
 msgctxt "Operator"
@@ -57949,10 +57917,6 @@ msgid "Edit Property"
 msgstr "속성을 편집"
 
 
-msgid "Speaker"
-msgstr "스피커"
-
-
 msgid "Property Name"
 msgstr "속성 이름"
 
@@ -63307,38 +63271,6 @@ msgid "Use multiple importance sampling for the light, reduces noise for area li
 msgstr "라이트에 대해 여러 중요도 샘플링을 사용하고, 영역 라이트 및 날카로운 광택 매테리얼의 노이즈를 줄입니다"
 
 
-msgid "Displacement Method"
-msgstr "변위 메서드"
-
-
-msgid "Method to use for the displacement"
-msgstr "변위에 대해 사용하는 메서드"
-
-
-msgid "Bump Only"
-msgstr "범프 만"
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "변위의 외관을 시뮬레이션하는 범프 맵핑"
-
-
-msgid "Displacement Only"
-msgstr "변위 만"
-
-
-msgid "Use true displacement of surface only, requires fine subdivision"
-msgstr "표면의 True 변위 만 사용하고 섭디비젼이 필요합니다"
-
-
-msgid "Displacement and Bump"
-msgstr "변위 및 범프"
-
-
-msgid "Combination of true displacement and bump mapping for finer detail"
-msgstr "더 정밀한 디테일을위한 True 변위와 범프 맵핑의 결합"
-
-
 msgid "Homogeneous Volume"
 msgstr "동종의 볼륨"
 
@@ -67193,6 +67125,10 @@ msgid "Use the Scene's Sequencer timeline as input"
 msgstr "씬의 시퀀서 타임 라인을 입력으로 사용"
 
 
+msgid "Playback volume of the sound"
+msgstr "소리의 재생 볼륨"
+
+
 msgid "Sound Sequence"
 msgstr "사운드 시퀀스"
 
@@ -67215,10 +67151,6 @@ msgstr "스트립 안에 오디오 파형을 표시"
 
 msgid "Sound data-block used by this sequence"
 msgstr "이 시퀀스로 사용되는 사운드 데이터 블록"
-
-
-msgid "Playback volume of the sound"
-msgstr "소리의 재생 볼륨"
 
 
 msgid "Sequence Color Balance Data"
@@ -75415,13 +75347,13 @@ msgstr "반전"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "선택되지 않음 잠금"
+msgid "Lock Unused"
+msgstr "미사용을 잠금"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "미사용을 잠금"
+msgid "Lock Unselected"
+msgstr "선택되지 않음 잠금"
 
 
 msgid "Flip Colors"
@@ -76194,10 +76126,6 @@ msgstr "경로:"
 
 msgid "Doppler Speed"
 msgstr "도플러 속력"
-
-
-msgid "XYZ to RGB"
-msgstr "XYZ를 RGB로 표현"
 
 
 msgid "Active Set Override"
@@ -77898,6 +77826,10 @@ msgid "Default Handles"
 msgstr "기본 핸들"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ를 RGB로 표현"
+
+
 msgid "Mixing Buffer"
 msgstr "믹싱 버퍼"
 
@@ -78330,11 +78262,6 @@ msgstr "배경"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "로컬을 만들기..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "키 프레임을 삽입..."
 
 
 msgctxt "Operator"
@@ -80181,6 +80108,10 @@ msgid "Can't edit this property from a linked data-block"
 msgstr "재정의 데이터 블록에서 이 속성을 편집할 수 없습니다"
 
 
+msgid "Nothing selected"
+msgstr "아무 것도 선택되지 않음"
+
+
 msgid "<invalid>"
 msgstr "<invalid>"
 
@@ -80791,10 +80722,6 @@ msgstr "삭제하는 활성 프레임(들)이 없음"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "한 레이어 만 오브젝트를 분리 할 수 없습니다"
-
-
-msgid "Nothing selected"
-msgstr "아무 것도 선택되지 않음"
 
 
 msgid "No active area"
@@ -83674,34 +83601,6 @@ msgid "Now"
 msgstr "지금"
 
 
-msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
-msgstr "사용할 활성 AnimData 블록이 없습니다 (먼저 데이터 블록 확장기를 선택하거나 AnimData 블록에서 적절한 플래그를 설정하십시오)"
-
-
-msgid "Internal Error - AnimData block is not valid"
-msgstr "내부 오류 - AnimData 블록이 유효하지 않습니다"
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "스트립의 액션을 조정하는 동안 액션을 푸시할 수 없으며 먼저 조정 모드를 종료합니다"
-
-
-msgid "No active action to push down"
-msgstr "아래로 밀 활성 액션이 없음"
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "엠프티 액션 라인 첫 뻔째 또는 기존의 NLA 트랙을 선택"
-
-
-msgid "No animation channel found at index %d"
-msgstr "인덱스 %d 에서 애니메이션 채널을 찾을 수 없음"
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "인덱스 %d의 애니메이션 채널이 NLA '활성 액션' 채널이 아닙니다"
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "다음에 대해 트윅 모드로 들어가는 AnimData 블록들이 없음"
 
@@ -83752,6 +83651,26 @@ msgstr "'%s'과 '%s'는 새로운 장소에 적합하지 않으므로 교체할 
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "모디파이어를 (%s : %s)에 추가할 수 없습니다 (자세한 내용은 콘솔 참조)"
+
+
+msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
+msgstr "사용할 활성 AnimData 블록이 없습니다 (먼저 데이터 블록 확장기를 선택하거나 AnimData 블록에서 적절한 플래그를 설정하십시오)"
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "내부 오류 - AnimData 블록이 유효하지 않습니다"
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "스트립의 액션을 조정하는 동안 액션을 푸시할 수 없으며 먼저 조정 모드를 종료합니다"
+
+
+msgid "No active action to push down"
+msgstr "아래로 밀 활성 액션이 없음"
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "엠프티 액션 라인 첫 뻔째 또는 기존의 NLA 트랙을 선택"
 
 
 msgid "More than one collection is selected"

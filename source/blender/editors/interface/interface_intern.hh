@@ -1028,10 +1028,6 @@ void ui_draw_aligned_panel(const uiStyle *style,
                            bool region_search_filter_active);
 void ui_panel_tag_search_filter_match(Panel *panel);
 
-/* interface_draw.cc */
-
-void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
-
 /**
  * Draws in resolution of 48x4 colors.
  */

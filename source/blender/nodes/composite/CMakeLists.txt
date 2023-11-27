@@ -9,10 +9,8 @@ set(INC
   ../../editors/include
   ../../blenkernel
   ../../blentranslation
-  ../../depsgraph
   ../../functions
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -128,7 +126,9 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
 )

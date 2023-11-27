@@ -12,8 +12,6 @@ if(WITH_COMPOSITOR_CPU)
     operations
     ../blenkernel
     ../blentranslation
-    ../depsgraph
-    ../imbuf
     ../makesrna
     ../nodes
     ../windowmanager
@@ -22,7 +20,6 @@ if(WITH_COMPOSITOR_CPU)
     ../render
     ../render/intern
     ../../../extern/clew/include
-    ../../../intern/clog
 
     # RNA_prototypes.h
     ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -600,7 +597,10 @@ if(WITH_COMPOSITOR_CPU)
   set(LIB
     bf_blenkernel
     PRIVATE bf::blenlib
+    PRIVATE bf::depsgraph
     PRIVATE bf::dna
+    PRIVATE bf::imbuf
+    PRIVATE bf::intern::clog
     PRIVATE bf::intern::guardedalloc
     extern_clew
     PRIVATE bf::intern::atomic

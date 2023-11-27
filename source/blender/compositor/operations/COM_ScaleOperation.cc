@@ -40,6 +40,7 @@ ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
   input_operation_ = nullptr;
   input_xoperation_ = nullptr;
   input_yoperation_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
 float ScaleOperation::get_constant_scale(const int input_op_idx, const float factor)

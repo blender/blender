@@ -14,6 +14,7 @@ ConvolutionFilterOperation::ConvolutionFilterOperation()
   this->set_canvas_input_index(0);
   input_operation_ = nullptr;
   flags_.complex = true;
+  flags_.can_be_constant = true;
 }
 void ConvolutionFilterOperation::init_execution()
 {

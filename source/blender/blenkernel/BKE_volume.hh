@@ -9,9 +9,11 @@
  * \brief Volume data-block.
  */
 
+#include <optional>
+
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 
-struct BoundBox;
 struct Depsgraph;
 struct Main;
 struct Object;
@@ -29,8 +31,6 @@ void BKE_volumes_init();
 
 void BKE_volume_init_grids(Volume *volume);
 void *BKE_volume_add(Main *bmain, const char *name);
-
-BoundBox *BKE_volume_boundbox_get(Object *ob);
 
 bool BKE_volume_is_y_up(const Volume *volume);
 bool BKE_volume_is_points_only(const Volume *volume);
@@ -153,4 +153,4 @@ bool BKE_volume_save(const Volume *volume,
  * Access to OpenVDB grid for C++. These will automatically load grids from
  * file or copy shared grids to make them writeable. */
 
-bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);
+std::optional<blender::Bounds<blender::float3>> BKE_volume_min_max(const Volume *volume);

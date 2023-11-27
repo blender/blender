@@ -12,6 +12,7 @@
 
 #include "BLI_math_color.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_anim_path.h"
 #include "BKE_camera.h"
@@ -355,28 +356,18 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
                            char boundtype,
                            bool around_origin)
 {
-  float center[3], size[3], tmp[4][4], final_mat[4][4];
+  using namespace blender;
+  float tmp[4][4], final_mat[4][4];
 
   if (ob->type == OB_MBALL && !BKE_mball_is_basis(ob)) {
     return;
   }
 
-  std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
-  BoundBox bb_local;
-  if (!bb) {
-    const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
-    BKE_boundbox_init_from_minmax(&bb_local, min, max);
-    bb.emplace(bb_local);
-  }
+  const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(
+      Bounds<float3>{float3(-1.0f), float3(1.0f)});
 
-  BKE_boundbox_calc_size_aabb(&*bb, size);
-
-  if (around_origin) {
-    zero_v3(center);
-  }
-  else {
-    BKE_boundbox_calc_center_aabb(&*bb, center);
-  }
+  float3 size = bounds.max - bounds.min;
+  const float3 center = around_origin ? float3(0) : math::midpoint(bounds.min, bounds.max);
 
   switch (boundtype) {
     case OB_BOUND_BOX:

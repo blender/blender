@@ -26,20 +26,24 @@ void VKBatch::draw_setup()
   /* Finalize graphics pipeline */
   VKContext &context = *VKContext::get();
   VKStateManager &state_manager = context.state_manager_get();
-  state_manager.apply_state();
-  state_manager.apply_bindings();
-  VKVertexAttributeObject vao;
-  vao.update_bindings(context, *this);
-  context.bind_graphics_pipeline(prim_type, vao);
-
-  /* Bind geometry resources. */
-  vao.bind(context);
   VKIndexBuffer *index_buffer = index_buffer_get();
   const bool draw_indexed = index_buffer != nullptr;
+  state_manager.apply_state();
+  state_manager.apply_bindings();
+  /*
+   * The next statements are order dependent. VBOs and IBOs must be uploaded, before resources can
+   * be bound. Uploading device located buffers flush the graphics pipeline and already bound
+   * resources will be unbound.
+   */
+  VKVertexAttributeObject vao;
+  vao.update_bindings(context, *this);
+  vao.ensure_vbos_uploaded();
   if (draw_indexed) {
     index_buffer->upload_data();
     index_buffer->bind(context);
   }
+  vao.bind(context);
+  context.bind_graphics_pipeline(prim_type, vao);
 }
 
 void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)

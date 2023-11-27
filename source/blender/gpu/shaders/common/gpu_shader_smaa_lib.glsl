@@ -615,7 +615,7 @@ float mad(float a, float b, float c)
 /**
  * Gathers current pixel, and the top-left neighbors.
  */
-float3 SMAAGatherNeighbours(float2 texcoord, float4 offset[3], SMAATexture2D(tex))
+float3 SMAAGatherNeighbors(float2 texcoord, float4 offset[3], SMAATexture2D(tex))
 {
 #ifdef SMAAGather
   return SMAAGather(tex, texcoord + SMAA_RT_METRICS.xy * float2(-0.5, -0.5)).grb;
@@ -634,8 +634,8 @@ float2 SMAACalculatePredicatedThreshold(float2 texcoord,
                                         float4 offset[3],
                                         SMAATexture2D(predicationTex))
 {
-  float3 neighbours = SMAAGatherNeighbours(texcoord, offset, SMAATexturePass2D(predicationTex));
-  float2 delta = abs(neighbours.xx - neighbours.yz);
+  float3 neighbors = SMAAGatherNeighbors(texcoord, offset, SMAATexturePass2D(predicationTex));
+  float2 delta = abs(neighbors.xx - neighbors.yz);
   float2 edges = step(SMAA_PREDICATION_THRESHOLD, delta);
   return SMAA_PREDICATION_SCALE * SMAA_THRESHOLD * (1.0 - SMAA_PREDICATION_STRENGTH * edges);
 }
@@ -876,8 +876,8 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
  */
 float2 SMAADepthEdgeDetectionPS(float2 texcoord, float4 offset[3], SMAATexture2D(depthTex))
 {
-  float3 neighbours = SMAAGatherNeighbours(texcoord, offset, SMAATexturePass2D(depthTex));
-  float2 delta = abs(neighbours.xx - float2(neighbours.y, neighbours.z));
+  float3 neighbors = SMAAGatherNeighbors(texcoord, offset, SMAATexturePass2D(depthTex));
+  float2 delta = abs(neighbors.xx - float2(neighbors.y, neighbors.z));
   float2 edges = step(SMAA_DEPTH_THRESHOLD, delta);
 
 #  ifdef GPU_FRAGMENT_SHADER

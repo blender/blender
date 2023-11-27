@@ -77,9 +77,8 @@ void main()
   /* Divide by phase total weight, to compute the mean anisotropy. */
   float s_anisotropy = phase.x / max(1.0, phase.y);
 
-  scattering += volume_irradiance(P) * s_scattering * volume_phase_function_isotropic();
-
 #ifdef VOLUME_LIGHTING
+  scattering += volume_irradiance(P) * s_scattering * volume_phase_function_isotropic();
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     scattering += volume_scatter_light_eval(true, P, V, l_idx, s_anisotropy) * s_scattering;

@@ -40,27 +40,19 @@ static void draw_data_init_cb(DrawData *dd)
   dd->recalc = ID_RECALC_ALL;
 }
 
-ObjectHandle &SyncModule::sync_object(Object *ob)
+ObjectHandle &SyncModule::sync_object(const ObjectRef &ob_ref)
 {
-  ObjectKey key(ob);
+  ObjectKey key(ob_ref.object);
 
   ObjectHandle &handle = ob_handles.lookup_or_add_cb(key, [&]() {
     ObjectHandle new_handle;
     new_handle.object_key = key;
-    new_handle.recalc = ID_RECALC_ALL;
     return new_handle;
   });
 
-  /** TODO(Miguel Pozo): DrawData is the only way of retrieving the correct recalc flags.
-   * We should find a more optimal way to handle this. */
-  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
-  DrawData *dd = DRW_drawdata_ensure((ID *)ob, owner, sizeof(DrawData), nullptr, nullptr);
-  handle.recalc |= dd->recalc;
-  dd->recalc = 0;
+  handle.recalc = inst_.get_recalc_flags(ob_ref);
 
-  const int recalc_flags = ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_SHADING |
-                           ID_RECALC_GEOMETRY;
-  if ((handle.recalc & recalc_flags) != 0) {
+  if (handle.recalc != 0) {
     inst_.sampling.reset();
   }
 

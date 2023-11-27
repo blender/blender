@@ -24,6 +24,7 @@ BokehBlurOperation::BokehBlurOperation()
 
   flags_.complex = true;
   flags_.open_cl = true;
+  flags_.can_be_constant = true;
 
   size_ = 1.0f;
   sizeavailable_ = false;

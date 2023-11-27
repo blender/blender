@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -489,6 +489,14 @@ msgstr "Aktivna kost"
 
 msgid "Description"
 msgstr "Opis"
+
+
+msgid "All"
+msgstr "Sve"
+
+
+msgid "Custom"
+msgstr "Prilagođeno"
 
 
 msgid "ID Name"
@@ -1263,10 +1271,6 @@ msgid "Visible"
 msgstr "Vidljivo"
 
 
-msgid "Custom"
-msgstr "Prilagođeno"
-
-
 msgid "Has Overlay"
 msgstr "Sa preklapanjem"
 
@@ -1341,10 +1345,6 @@ msgstr "Potez"
 
 msgid "Normal"
 msgstr "Normalno"
-
-
-msgid "All"
-msgstr "Sve"
 
 
 msgid "Strokes"
@@ -5194,12 +5194,64 @@ msgid "Show Line"
 msgstr "Prikaži liniju"
 
 
-msgid "Is Indirect"
-msgstr "Indirektno"
+msgid "Brush"
+msgstr "Četkica"
+
+
+msgid "Font"
+msgstr "Font"
+
+
+msgid "Key"
+msgstr "Ključ"
 
 
 msgid "Library"
 msgstr "Zbirka"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Mesh"
+msgstr "Meš"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Node Tree"
+msgstr "Drvo čvorova"
+
+
+msgid "Particle"
+msgstr "Čestica"
+
+
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgid "Speaker"
+msgstr "Zvučnik"
+
+
+msgid "Window Manager"
+msgstr "Upravljač prozorima"
+
+
+msgid "World"
+msgstr "Svet"
+
+
+msgid "Is Indirect"
+msgstr "Indirektno"
 
 
 msgid "Tag"
@@ -5372,10 +5424,6 @@ msgstr "Stega"
 
 msgid "File path to brush icon"
 msgstr "Putanja za upis datoteke"
-
-
-msgid "Brush"
-msgstr "Četkica"
 
 
 msgid "Mask Texture"
@@ -5886,10 +5934,6 @@ msgid "Text on Curve"
 msgstr "Tekst na krivoj"
 
 
-msgid "Font"
-msgstr "Font"
-
-
 msgid "Font Bold"
 msgstr "Podebljana slova"
 
@@ -6032,10 +6076,6 @@ msgstr "Poslednji"
 
 msgid "Max 2D Length"
 msgstr "Maks. 2D dužina"
-
-
-msgid "Node Tree"
-msgstr "Drvo čvorova"
 
 
 msgid "Panel"
@@ -6618,14 +6658,6 @@ msgid "Vertex Colors"
 msgstr "Boje temena"
 
 
-msgid "Vertex Paint Mask"
-msgstr "Maska bojenja temena"
-
-
-msgid "Vertex paint mask"
-msgstr "Maska bojenja temena"
-
-
 msgid "Vertices"
 msgstr "Temena"
 
@@ -6776,10 +6808,6 @@ msgstr "Modifikator"
 
 msgid "Tool"
 msgstr "Alatka"
-
-
-msgid "Mesh"
-msgstr "Meš"
 
 
 msgid "Shader Node Tree"
@@ -7314,10 +7342,6 @@ msgid "Dummy"
 msgstr "Lutka"
 
 
-msgid "Particle"
-msgstr "Čestica"
-
-
 msgid "Path End"
 msgstr "Kraj putanje"
 
@@ -7742,10 +7766,6 @@ msgstr "Utišava zvučnik"
 msgctxt "Sound"
 msgid "Pitch"
 msgstr "Visina tona"
-
-
-msgid "Sound"
-msgstr "Zvuk"
 
 
 msgid "Maximum Volume"
@@ -8278,10 +8298,6 @@ msgstr "Dodaj šum na prstenje"
 
 msgid "Vector Font"
 msgstr "Vektorski font"
-
-
-msgid "Window Manager"
-msgstr "Upravljač prozorima"
 
 
 msgid "Category"
@@ -9037,10 +9053,6 @@ msgid "Mix Factor"
 msgstr "Faktor mešanja"
 
 
-msgid "Mask"
-msgstr "Maska"
-
-
 msgid "Material slot in an object"
 msgstr "Slot materijala u objektu"
 
@@ -9080,10 +9092,6 @@ msgstr "Jezici..."
 
 msgid "Channel"
 msgstr "Kanal"
-
-
-msgid "Key"
-msgstr "Ključ"
 
 
 msgid "Snap"
@@ -9279,16 +9287,8 @@ msgid "Mesh Select Mode"
 msgstr "Mod izbora mreže"
 
 
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
 msgid "Hooks"
 msgstr "Udice"
-
-
-msgid "Light"
-msgstr "Svetlost"
 
 
 msgid "Quick Effects"
@@ -10185,10 +10185,6 @@ msgstr "Nasumična pozicija duž putanje"
 
 msgid "Show instances when particles are dead"
 msgstr "Visina Fh područja"
-
-
-msgid "World"
-msgstr "Svet"
 
 
 msgid "Don't stretch the object"
@@ -16231,10 +16227,6 @@ msgid "Remove original faces"
 msgstr "Otkriva sakrivene stranice"
 
 
-msgid "Channel Index"
-msgstr "Indeks kanala"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Povećaj/smanji po osi"
@@ -20245,10 +20237,6 @@ msgid "Edit Property"
 msgstr "Izmeni osobinu"
 
 
-msgid "Speaker"
-msgstr "Zvučnik"
-
-
 msgid "Property Name"
 msgstr "Naziv osobine"
 
@@ -22569,12 +22557,12 @@ msgid "Scene Sequence"
 msgstr "Sekvenca scene"
 
 
-msgid "Sound Sequence"
-msgstr "Zvučna sekvenca"
-
-
 msgid "Playback volume of the sound"
 msgstr "Jačina zvuka pri reprodukciji"
+
+
+msgid "Sound Sequence"
+msgstr "Zvučna sekvenca"
 
 
 msgid "Inverse Gamma"
@@ -24849,10 +24837,6 @@ msgid "Paths:"
 msgstr "Putanje:"
 
 
-msgid "XYZ to RGB"
-msgstr "XYZ u RGB"
-
-
 msgctxt "Operator"
 msgid "Export to File"
 msgstr "Izvezi u datoteku"
@@ -25342,6 +25326,10 @@ msgid "Minimum Grid Spacing"
 msgstr "Najmanji razmak mreže"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ u RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "Bafer mešanja"
 
@@ -25581,11 +25569,6 @@ msgstr "Zvučnik"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Stvori veze..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Umetni ključni kadar..."
 
 
 msgctxt "Operator"
@@ -25996,6 +25979,10 @@ msgid "Basic"
 msgstr "Osnovno"
 
 
+msgid "Nothing selected"
+msgstr "Ništa nije izabrano"
+
+
 msgid "Scene not found"
 msgstr "Brzina zvuka"
 
@@ -26088,10 +26075,6 @@ msgstr "Tekst je previše dugačak"
 
 msgid "No active frame to delete"
 msgstr "Modifikator vrednosti F-krive"
-
-
-msgid "Nothing selected"
-msgstr "Ništa nije izabrano"
 
 
 msgid "Pin"

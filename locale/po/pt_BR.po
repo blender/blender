@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
-"PO-Revision-Date: 2023-09-28 03:54+0000\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"PO-Revision-Date: 2023-11-27 09:55+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -344,20 +344,68 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Otimizar todos os núcleos. Renderização mais rápida, deve resultar em utilização extra de CPU no fundo"
 
 
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "O MetalRT, para renderização raytracing, ocupa menos memória em cenas com muitas curvas, e pode performar melhor em casos específicos"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Desativar o MetalRT (usar estrutura BVH2 para procura de intersecções)"
+
+
 msgid "On"
 msgstr "Ligado"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "Habilitar o MetalRT para procura de intersecções"
 
 
 msgid "Auto"
 msgstr "Automático"
 
 
+msgid "Automatically pick the fastest intersection method"
+msgstr "Automaticamente definir o método de intersecção mais rápido"
+
+
 msgid "Distribute memory across devices"
 msgstr "Distribuir memória pelos dispositivos"
 
 
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Distribuir a cena na memória de múltiplos dispositivos interconectados, por exemplo via NVLink, em vez de duplicá-la para cada dispositivo"
+
+
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (experimental)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "O recurso HIP RT permite raytracing por hardware em placas AMD de arquiteturas a partir da RDNA2, com recuo de shader em placas mais antigas. Este recurso é experimental e pode resultar em renderizações incorretas"
+
+
+msgid "Embree on GPU"
+msgstr "Embree na GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree na GPU habilita o uso de ray tracing por hardware em placas gráficas Intel, oferecendo um melhor desempenho geral"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Exibe a interface de usuário do glTF para gerenciar variantes de materiais"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Exibe a interface de usuario do glTF para gerenciar animações"
 
 
 msgid "Fribidi Library"
@@ -1134,6 +1182,14 @@ msgstr "Ambiente"
 
 msgid "Asset Library"
 msgstr "Biblioteca de Recursos"
+
+
+msgid "All"
+msgstr "Todos"
+
+
+msgid "Custom"
+msgstr "Personalizar"
 
 
 msgid "ID Name"
@@ -2884,10 +2940,6 @@ msgid "Visible"
 msgstr "Visíveis"
 
 
-msgid "Custom"
-msgstr "Personalizar"
-
-
 msgid "Brush Capabilities"
 msgstr "Capacidades do pincel"
 
@@ -3074,10 +3126,6 @@ msgstr "Traços"
 
 msgid "Normal"
 msgstr "Normais"
-
-
-msgid "All"
-msgstr "Todos"
 
 
 msgid "Strokes"
@@ -11620,6 +11668,86 @@ msgid "Base type for data-blocks, defining a unique name, linking from other lib
 msgstr "Tipo de base para blocos de dados, definindo um nome único, vinculando a partir de outras bibliotecas e coleções destacáveis."
 
 
+msgid "Brush"
+msgstr "Pincel"
+
+
+msgid "Font"
+msgstr "Fonte"
+
+
+msgid "Key"
+msgstr "Chave"
+
+
+msgid "Library"
+msgstr "Biblioteca"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Mask"
+msgstr "Máscara"
+
+
+msgid "Mesh"
+msgstr "Malha"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Node Tree"
+msgstr "Árvore de nós"
+
+
+msgid "Paint Curve"
+msgstr "Curva de pintura"
+
+
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgid "Particle"
+msgstr "Partículas"
+
+
+msgid "Point Cloud"
+msgstr "Nuvem de Pontos"
+
+
+msgid "Sound"
+msgstr "Som"
+
+
+msgid "Speaker"
+msgstr "Alto-falante"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Window Manager"
+msgstr "Gerenciador de janelas"
+
+
+msgid "Workspace"
+msgstr "Espaço de Trabalho"
+
+
+msgid "World"
+msgstr "Ambiente"
+
+
 msgid "Is Indirect"
 msgstr "Vínculo indireto"
 
@@ -11628,16 +11756,8 @@ msgid "Is this ID block linked indirectly"
 msgstr "Este identificador de bloco está vinculado indiretamente."
 
 
-msgid "Library"
-msgstr "Biblioteca"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "Biblioteca de arquivo ao qual o bloco de dados está vinculado."
-
-
-msgid "Unique data-block ID name"
-msgstr "Nome único do identificador do bloco de dados"
 
 
 msgid "Tag"
@@ -12045,10 +12165,6 @@ msgid "Jitter the position of the brush in pixels while painting"
 msgstr "Quantidade de tremulação na posição do pincel em pixeis durante a pintura."
 
 
-msgid "Brush"
-msgstr "Pincel"
-
-
 msgid "Mask Stencil Dimensions"
 msgstr "Dimensões de máscara de estêncil"
 
@@ -12075,10 +12191,6 @@ msgstr "Compartimentos de máscara de textura"
 
 msgid "Normal Weight"
 msgstr "Influência das normais"
-
-
-msgid "Paint Curve"
-msgstr "Curva de pintura"
 
 
 msgid "Plane Offset"
@@ -13245,10 +13357,6 @@ msgid "Curve deforming text object"
 msgstr "Curva deformando o objeto de texto"
 
 
-msgid "Font"
-msgstr "Fonte"
-
-
 msgid "Font Bold"
 msgstr "Fonte em negrito"
 
@@ -13591,10 +13699,6 @@ msgstr "Comprimento curvilíneo 2D mínimo para a seleção de encadeamentos."
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "Caso verdadeiro, encadeamentos de arestas de funcionalidade são divididas nas margens do material."
-
-
-msgid "Node Tree"
-msgstr "Árvore de nós"
 
 
 msgid "Node tree for node-based shaders"
@@ -14655,6 +14759,38 @@ msgid "Diffuse color of the material"
 msgstr "A cor difusa do material."
 
 
+msgid "Displacement Method"
+msgstr "Método de deslocamento"
+
+
+msgid "Method to use for the displacement"
+msgstr "Método para usar para deslocamento."
+
+
+msgid "Bump Only"
+msgstr "Somente resaltos"
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "Mapa de relevos, para simular a aparência de deslocamento."
+
+
+msgid "Displacement Only"
+msgstr "Somente deslocamento"
+
+
+msgid "Use true displacement of surface only, requires fine subdivision"
+msgstr "Usa o deslocamento verdadeiro somente para a superfície, requer uma subdivisão fina."
+
+
+msgid "Displacement and Bump"
+msgstr "Deslocamento e ressaltos"
+
+
+msgid "Combination of true displacement and bump mapping for finer detail"
+msgstr "Combinação de deslocamento verdadeiro e mapa de relevos, pra detalhes mais refinados."
+
+
 msgid "Grease Pencil Settings"
 msgstr "Configurações para lápis de cera"
 
@@ -14923,10 +15059,6 @@ msgid "Vertex Selection"
 msgstr "Seleção de vértices"
 
 
-msgid "Preserve Face Sets"
-msgstr "Preservar Conjuntos de Faces"
-
-
 msgid "UV loop layer to be used as cloning source"
 msgstr "A camada de anéis de UVs para ser usada como fonte da clonagem."
 
@@ -14953,14 +15085,6 @@ msgstr "Todas as camadas de anéis UV."
 
 msgid "Vertex Colors"
 msgstr "Cores de vértices"
-
-
-msgid "Vertex Paint Mask"
-msgstr "Máscara de pintura de vértices"
-
-
-msgid "Vertex paint mask"
-msgstr "Máscara de pintura de vértices."
 
 
 msgid "Vertices"
@@ -15209,14 +15333,6 @@ msgstr "Modificador"
 
 msgid "Tool"
 msgstr "Ferramentas"
-
-
-msgid "Mesh"
-msgstr "Malha"
-
-
-msgid "Point Cloud"
-msgstr "Nuvem de Pontos"
 
 
 msgid "Shader Node Tree"
@@ -16227,10 +16343,6 @@ msgid "Let the object give the particle a starting velocity"
 msgstr "Permite que o objeto forneça às partículas uma velocidade inicial."
 
 
-msgid "Particle"
-msgstr "Partículas"
-
-
 msgid "Let the target particle give the particle a starting velocity"
 msgstr "Permite que as partículas alvo forneçam às partículas uma velocidade inicial."
 
@@ -17115,10 +17227,6 @@ msgstr "Compasso"
 
 msgid "Playback pitch of the sound"
 msgstr "Valor de compasso para a reprodução dos sons."
-
-
-msgid "Sound"
-msgstr "Som"
 
 
 msgid "Sound data-block used by this speaker"
@@ -18169,10 +18277,6 @@ msgid "Ping-Pong"
 msgstr "Ping-Pong"
 
 
-msgid "Window Manager"
-msgstr "Gerenciador de janelas"
-
-
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "Blocos de dados de gerenciador de janelas definindo janelas abertas e outros dados da interface de usuário."
 
@@ -18231,10 +18335,6 @@ msgstr "Janelas"
 
 msgid "Open windows"
 msgstr "Abrir janelas"
-
-
-msgid "Workspace"
-msgstr "Espaço de Trabalho"
 
 
 msgid "World data-block describing the environment and ambient lighting of a scene"
@@ -20466,28 +20566,12 @@ msgid "Override default setting to insert keyframes based on 'visual transforms'
 msgstr "Sobrepõe o padrão de inserção de quadros-chave com base nas \"transformações visuais\"."
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "Sobrepor as cores para as curvas-f - XYZ para RGB"
-
-
-msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
-msgstr "Sobrepõe as definições padrão de cores para as transformações novas recém adicionadas ás curvas-f (localização, rotação, escala), para usar como base o eixo de transformação."
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "Inserção de quadros-chave - Visuais"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "Insere quadros-chave com base em \"transformações visuais\"."
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "Cores para as curvas-f - XYZ para RGB"
-
-
-msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) is based on the transform axis"
-msgstr "A cor para as curvas-f das transformações recém adicionadas (referentes a localização, rotação e escala) , tendo como base o eixo de transformação."
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
@@ -21823,10 +21907,6 @@ msgid "Mix Factor"
 msgstr "Fator de mistura"
 
 
-msgid "Mask"
-msgstr "Máscara"
-
-
 msgid "Material slot in an object"
 msgstr "Compartimentos de material dentro de um objeto."
 
@@ -21896,10 +21976,6 @@ msgid "Dope Sheet Channel"
 msgstr "Canal da tabela de animação"
 
 
-msgid "Key"
-msgstr "Chave"
-
-
 msgid "Snap"
 msgstr "Atrair"
 
@@ -21943,10 +22019,6 @@ msgstr "Especiais para chaves de formato"
 
 msgid "Vertex Group Specials"
 msgstr "Especiais para grupo de vértices"
-
-
-msgid "Text"
-msgstr "Texto"
 
 
 msgid "Math"
@@ -22170,24 +22242,12 @@ msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
 
 
 msgid "Add Image"
 msgstr "Adicionar Imagem"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
 
 
 msgid "Make Single User"
@@ -22396,18 +22456,6 @@ msgstr "Anéis de malha"
 
 msgid "Collection of mesh loops"
 msgstr "Coleção de anéis de malhas."
-
-
-msgid "Mesh Paint Mask Layer"
-msgstr "Camada de máscara de pintura de malha"
-
-
-msgid "Per-vertex paint mask data"
-msgstr "Dados de pintura de máscara por vértice."
-
-
-msgid "Mesh Paint Mask Property"
-msgstr "Propriedade de máscara de pintura de malha"
 
 
 msgid "Mesh Polygon"
@@ -24652,10 +24700,6 @@ msgstr "Mostra instâncias quando as partículas estão mortas."
 
 msgid "Show instances when particles are unborn"
 msgstr "Mostra instâncias quando as partículas ainda não nasceram."
-
-
-msgid "World"
-msgstr "Ambiente"
 
 
 msgctxt "ParticleSettings"
@@ -31007,10 +31051,6 @@ msgstr "Remove os quadros-chave no quadro atual para os objetos e ossos selecion
 msgctxt "Operator"
 msgid "Insert Keyframe"
 msgstr "Inserir quadro-chave"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Insere quadros-chave dentro do quadro atual para todas as propriedades dentro do conjunto de inserção de chaves especificado."
 
 
 msgctxt "Operator"
@@ -40315,14 +40355,6 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "Ação de empurrar para baixo como uma nova faixa, a partir do topo da pilha de animação não linear."
 
 
-msgid "Channel Index"
-msgstr "Índice do canal"
-
-
-msgid "Index of NLA action channel to perform pushdown operation on"
-msgstr "Índice do canal de ação de animação não linear no qual perfazer a operação de empurrar para baixo."
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Sincronizar comprimento da ação"
@@ -44457,10 +44489,6 @@ msgstr "Extrair Paleta da Imagem"
 msgctxt "Operator"
 msgid "Join Palette Swatches"
 msgstr "Juntar Amostras de Paletas"
-
-
-msgid "Palette"
-msgstr "Paleta"
 
 
 msgid "Name of the Palette"
@@ -50907,10 +50935,6 @@ msgid "Edit Property"
 msgstr "Edição de propriedades"
 
 
-msgid "Speaker"
-msgstr "Alto-falante"
-
-
 msgid "Property Name"
 msgstr "Nome das propriedades"
 
@@ -55465,38 +55489,6 @@ msgid "Multiple Importance Sample"
 msgstr "Amostra de múltipla importância"
 
 
-msgid "Displacement Method"
-msgstr "Método de deslocamento"
-
-
-msgid "Method to use for the displacement"
-msgstr "Método para usar para deslocamento."
-
-
-msgid "Bump Only"
-msgstr "Somente resaltos"
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "Mapa de relevos, para simular a aparência de deslocamento."
-
-
-msgid "Displacement Only"
-msgstr "Somente deslocamento"
-
-
-msgid "Use true displacement of surface only, requires fine subdivision"
-msgstr "Usa o deslocamento verdadeiro somente para a superfície, requer uma subdivisão fina."
-
-
-msgid "Displacement and Bump"
-msgstr "Deslocamento e ressaltos"
-
-
-msgid "Combination of true displacement and bump mapping for finer detail"
-msgstr "Combinação de deslocamento verdadeiro e mapa de relevos, pra detalhes mais refinados."
-
-
 msgid "Homogeneous Volume"
 msgstr "Volume homogêneo"
 
@@ -58711,6 +58703,10 @@ msgid "Camera Override"
 msgstr "Sobrepor câmera"
 
 
+msgid "Playback volume of the sound"
+msgstr "Volume para reproduzir o som."
+
+
 msgid "Sound Sequence"
 msgstr "Sequência de som"
 
@@ -58725,10 +58721,6 @@ msgstr "Arrasto panorâmico ao reproduzir som (somente para fontes monaurais)."
 
 msgid "Sound data-block used by this sequence"
 msgstr "Blocos de dados de sons usados por esta sequência."
-
-
-msgid "Playback volume of the sound"
-msgstr "Volume para reproduzir o som."
 
 
 msgid "Sequence Color Balance Data"
@@ -65244,10 +65236,6 @@ msgid "Paths:"
 msgstr "Caminhos:"
 
 
-msgid "XYZ to RGB"
-msgstr "XYZ para RGB"
-
-
 msgctxt "Operator"
 msgid "Export to File"
 msgstr "Exportar para arquivo"
@@ -66699,6 +66687,10 @@ msgid "Only Insert Available"
 msgstr "Inserir somente nas curvas disponíveis"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ para RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "Contingenciador de mistura"
 
@@ -67093,11 +67085,6 @@ msgstr "Plano de fundo"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Tornar local..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Inserir quadro-chave..."
 
 
 msgctxt "Operator"
@@ -68695,6 +68682,10 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "Mostra a ação sem qualquer remapeamento de tempo (quando não afixada)."
 
 
+msgid "Nothing selected"
+msgstr "Nada selecionado."
+
+
 msgid "<invalid>"
 msgstr "<inválido>"
 
@@ -69149,10 +69140,6 @@ msgstr "Nenhum quadro ativo para apagar."
 
 msgid "No active frame(s) to delete"
 msgstr "Sem quaisquer quadros ativos para apagar."
-
-
-msgid "Nothing selected"
-msgstr "Nada selecionado."
 
 
 msgid "No active area"
@@ -71702,34 +71689,6 @@ msgid "Now"
 msgstr "Agora"
 
 
-msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
-msgstr "Sem bloco de dados ativo de dados de animação para usar (selecione um expansor de bloco de dados primeiro ou então defina as bandeiras apropriadas nos blocos de dados de animação)."
-
-
-msgid "Internal Error - AnimData block is not valid"
-msgstr "Erro interno - O bloco de dados de animação não é válido."
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "Não é possível empurrar para baixo as ações durante o ajuste de uma faixa de ação, é necessário sair do modo de ajuste primeiro."
-
-
-msgid "No active action to push down"
-msgstr "Nenhuma ação ativa para empurrar para baixo."
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "Seleciona primeiro uma trilha de animação não linear existente ou uma linha de ação vazia."
-
-
-msgid "No animation channel found at index %d"
-msgstr "Nenhum canal de animação encontrado no índice %d ."
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "Canal de animação no índice %d não é um canal de \"Ação ativa\" de animação não linear."
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "Sem blocos de dados de animação para os quais entrar no modo de ajuste."
 
@@ -71780,6 +71739,26 @@ msgstr "Não é possível trocar '%s' e '%s' por que uma ou ambas não são se e
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "O modificador não pôde ser adicionado para (%s : %s) (veja o console para detalhes)."
+
+
+msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
+msgstr "Sem bloco de dados ativo de dados de animação para usar (selecione um expansor de bloco de dados primeiro ou então defina as bandeiras apropriadas nos blocos de dados de animação)."
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "Erro interno - O bloco de dados de animação não é válido."
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "Não é possível empurrar para baixo as ações durante o ajuste de uma faixa de ação, é necessário sair do modo de ajuste primeiro."
+
+
+msgid "No active action to push down"
+msgstr "Nenhuma ação ativa para empurrar para baixo."
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "Seleciona primeiro uma trilha de animação não linear existente ou uma linha de ação vazia."
 
 
 msgid "Add Crypto Layer"

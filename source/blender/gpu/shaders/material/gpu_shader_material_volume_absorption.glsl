@@ -4,8 +4,8 @@
 
 void node_volume_absorption(vec4 color, float density, float weight, out Closure result)
 {
-  color = max(color, vec4(0));
-  density = max(density, 0);
+  color = max(color, vec4(0.0));
+  density = max(density, 0.0);
 
   ClosureVolumeAbsorption volume_absorption_data;
   volume_absorption_data.weight = weight;

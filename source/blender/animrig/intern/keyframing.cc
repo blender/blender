@@ -37,10 +37,8 @@
 #include "ED_keyframing.hh"
 #include "MEM_guardedalloc.h"
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -547,20 +545,6 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
 
   const bool is_new_curve = (fcu->totvert == 0);
 
-  /* Set color mode if the F-Curve is new (i.e. without any keyframes). */
-  if (is_new_curve && (flag & INSERTKEY_XYZ2RGB)) {
-    /* For Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
-     * is determined by the array index for the F-Curve
-     */
-    PropertySubType prop_subtype = RNA_property_subtype(prop);
-    if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
-      fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
-    }
-    else if (ELEM(prop_subtype, PROP_QUATERNION)) {
-      fcu->color_mode = FCURVE_COLOR_AUTO_YRGB;
-    }
-  }
-
   /* If the curve has only one key, make it cyclic if appropriate. */
   const bool is_cyclic_action = (flag & INSERTKEY_CYCLE_AWARE) && BKE_action_is_cyclic(act);
 
@@ -1001,6 +985,83 @@ int insert_key_action(Main *bmain,
     property_array_index++;
   }
   return inserted_keys;
+}
+
+static blender::Vector<float> get_keyframe_values(PointerRNA *ptr,
+                                                  PropertyRNA *prop,
+                                                  const bool visual_key)
+{
+  Vector<float> values;
+
+  if (visual_key && visualkey_can_use(ptr, prop)) {
+    /* Visual-keying is only available for object and pchan datablocks, as
+     * it works by keyframing using a value extracted from the final matrix
+     * instead of using the kt system to extract a value.
+     */
+    values = visualkey_get_values(ptr, prop);
+  }
+  else {
+    values = get_rna_values(ptr, prop);
+  }
+  return values;
+}
+
+void insert_key_rna(PointerRNA *rna_pointer,
+                    const blender::Span<std::string> rna_paths,
+                    const float scene_frame,
+                    const eInsertKeyFlags insert_key_flags,
+                    const eBezTriple_KeyframeType key_type,
+                    Main *bmain,
+                    ReportList *reports)
+{
+  ID *id = rna_pointer->owner_id;
+  bAction *action = ED_id_action_ensure(bmain, id);
+  if (action == nullptr) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not insert keyframe, as this type does not support animation data (ID = "
+                "%s)",
+                id->name);
+    return;
+  }
+
+  AnimData *adt = BKE_animdata_from_id(id);
+  const float nla_frame = BKE_nla_tweakedit_remap(adt, scene_frame, NLATIME_CONVERT_UNMAP);
+  const bool visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
+
+  int insert_key_count = 0;
+  for (const std::string &rna_path : rna_paths) {
+    PointerRNA ptr;
+    PropertyRNA *prop = nullptr;
+    const bool path_resolved = RNA_path_resolve_property(
+        rna_pointer, rna_path.c_str(), &ptr, &prop);
+    if (!path_resolved) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "Could not insert keyframe, as this property does not exist (ID = "
+                  "%s, path = %s)",
+                  id->name,
+                  rna_path.c_str());
+      continue;
+    }
+    char *rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr, prop);
+    Vector<float> rna_values = get_keyframe_values(&ptr, prop, visual_keyframing);
+
+    insert_key_count += insert_key_action(bmain,
+                                          action,
+                                          rna_pointer,
+                                          rna_path_id_to_prop,
+                                          nla_frame,
+                                          rna_values.as_span(),
+                                          insert_key_flags,
+                                          key_type);
+
+    MEM_freeN(rna_path_id_to_prop);
+  }
+
+  if (insert_key_count == 0) {
+    BKE_reportf(reports, RPT_ERROR, "Failed to insert any keys");
+  }
 }
 
 }  // namespace blender::animrig

@@ -79,7 +79,6 @@ struct SubdivMeshContext {
   blender::Array<bool> subdiv_display_edges;
 
   /* Lazily initialize a map from vertices to connected edges. */
-  std::mutex vert_to_edge_map_mutex;
   blender::Array<int> vert_to_edge_offsets;
   blender::Array<int> vert_to_edge_indices;
   blender::GroupedSpan<int> vert_to_edge_map;
@@ -1084,22 +1083,8 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
                                              const int subdiv_vertex_index)
 {
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
   const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_index];
   const bool is_simple = ctx->subdiv->settings.is_simple;
-
-  /* Lazily initialize a vertex to edge map to avoid quadratic runtime when subdividing loose
-   * edges. Do this here to avoid the cost in common cases when there are no loose edges at all. */
-  if (ctx->vert_to_edge_map.is_empty()) {
-    std::lock_guard lock{ctx->vert_to_edge_map_mutex};
-    if (ctx->vert_to_edge_map.is_empty()) {
-      ctx->vert_to_edge_map = blender::bke::mesh::build_vert_to_edge_map(
-          ctx->coarse_edges,
-          coarse_mesh->totvert,
-          ctx->vert_to_edge_offsets,
-          ctx->vert_to_edge_indices);
-    }
-  }
 
   /* Interpolate custom data when not an end point.
    * This data has already been copied from the original vertex by #subdiv_mesh_vertex_loose. */
@@ -1181,6 +1166,13 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   subdiv_context.coarse_edges = coarse_mesh->edges();
   subdiv_context.coarse_faces = coarse_mesh->faces();
   subdiv_context.coarse_corner_verts = coarse_mesh->corner_verts();
+  if (coarse_mesh->loose_edges().count > 0) {
+    subdiv_context.vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
+        subdiv_context.coarse_edges,
+        coarse_mesh->totvert,
+        subdiv_context.vert_to_edge_offsets,
+        subdiv_context.vert_to_edge_indices);
+  }
 
   subdiv_context.subdiv = subdiv;
   subdiv_context.have_displacement = (subdiv->displacement_evaluator != nullptr);

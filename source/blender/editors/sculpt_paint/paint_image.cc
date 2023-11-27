@@ -28,6 +28,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_brush.hh"
 #include "BKE_colorband.h"
@@ -818,11 +819,11 @@ static blender::float3 paint_init_pivot_curves(Object *ob)
   return blender::math::midpoint(bounds.min, bounds.max);
 }
 
-static blender::float3 paint_init_pivot_grease_pencil(Object *ob)
+static blender::float3 paint_init_pivot_grease_pencil(Object *ob, const int frame)
 {
   using namespace blender;
   const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(ob->data);
-  const blender::Bounds<blender::float3> bounds = *grease_pencil.bounds_min_max();
+  const blender::Bounds<blender::float3> bounds = *grease_pencil.bounds_min_max(frame);
   return blender::math::midpoint(bounds.min, bounds.max);
 }
 
@@ -839,7 +840,7 @@ void paint_init_pivot(Object *ob, Scene *scene)
       location = paint_init_pivot_curves(ob);
       break;
     case OB_GREASE_PENCIL:
-      location = paint_init_pivot_grease_pencil(ob);
+      location = paint_init_pivot_grease_pencil(ob, scene->r.cfra);
       break;
     default:
       BLI_assert_unreachable();

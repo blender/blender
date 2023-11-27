@@ -17,9 +17,7 @@ VolumeGrid *BKE_volume_grid_add_vdb(Volume &volume,
                                     blender::StringRef name,
                                     openvdb::GridBase::Ptr vdb_grid);
 
-bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid,
-                            blender::float3 &r_min,
-                            blender::float3 &r_max);
+std::optional<blender::Bounds<blender::float3>> BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid);
 
 /**
  * Return a new grid pointer with only the metadata and transform changed.

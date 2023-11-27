@@ -1097,7 +1097,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
     }
   }
 
-  /* Caches can have a large memory impact and aren't necessarily used, so don't indiscriminantly
+  /* Caches can have a large memory impact and aren't necessarily used, so don't indiscriminately
    * store all of them in the #Main data-base mesh. However, some caches are quite small and
    * copying them is "free" relative to how much work would be required if the data was needed. */
   copy_loose_vert_hint(*mesh_src, *mesh_dst);

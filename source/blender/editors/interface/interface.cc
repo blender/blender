@@ -4364,7 +4364,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
 
   /* Wrap long single-column lists. */
   if (categories == 0) {
-    columns = MAX2((totitems + 20) / 20, 1);
+    columns = std::max((totitems + 20) / 20, 1);
     if (columns > 8) {
       columns = (totitems + 25) / 25;
     }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -796,6 +796,14 @@ msgstr "Työtila"
 msgctxt "ID"
 msgid "World"
 msgstr "Maailma"
+
+
+msgid "All"
+msgstr "Kaikki"
+
+
+msgid "Current File"
+msgstr "Nykyinen tiedosto"
 
 
 msgid "Geometry attribute"
@@ -2132,10 +2140,6 @@ msgstr "Piirto"
 
 msgid "Normal"
 msgstr "Normaali"
-
-
-msgid "All"
-msgstr "Kaikki"
 
 
 msgid "Strokes"
@@ -4665,6 +4669,34 @@ msgid "Active Grease Pencil layer"
 msgstr "Aktiivinen öljykynän taso"
 
 
+msgid "Key"
+msgstr "Avain"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Mesh"
+msgstr "Muoto"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "Text"
+msgstr "Teksti"
+
+
+msgid "World"
+msgstr "Maailma"
+
+
 msgid "Push"
 msgstr "Työnnä"
 
@@ -4697,10 +4729,6 @@ msgid "Modifier"
 msgstr "Muunnin"
 
 
-msgid "Mesh"
-msgstr "Muoto"
-
-
 msgid "Mirror Object"
 msgstr "Peilaa objekti"
 
@@ -4725,10 +4753,6 @@ msgid "Channel"
 msgstr "Kanava"
 
 
-msgid "Key"
-msgstr "Avain"
-
-
 msgid "Move to Layer"
 msgstr "Siirrä tasolle"
 
@@ -4741,10 +4765,6 @@ msgstr "Alue"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Lisää"
-
-
-msgid "Text"
-msgstr "Teksti"
 
 
 msgid "Utilities"
@@ -4856,24 +4876,12 @@ msgid "Select Similar"
 msgstr "Valitse samankaltainen"
 
 
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Hooks"
 msgstr "Koukut"
 
 
 msgid "Add Image"
 msgstr "Lisää kuva"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
 
 
 msgid "Random Mask"
@@ -5122,10 +5130,6 @@ msgstr "Aallon skaala"
 
 msgid "Smallest Wave"
 msgstr "Pienin aalto"
-
-
-msgid "World"
-msgstr "Maailma"
 
 
 msgctxt "ParticleSettings"
@@ -8775,6 +8779,10 @@ msgid "Workbench"
 msgstr "Työtila"
 
 
+msgid "Nothing selected"
+msgstr "Mitään ei ole valittu"
+
+
 msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
@@ -8837,10 +8845,6 @@ msgstr "Pupillit"
 
 msgid "Grey"
 msgstr "Harnaa"
-
-
-msgid "Nothing selected"
-msgstr "Mitään ei ole valittu"
 
 
 msgid "Stroke: ON"
@@ -9921,10 +9925,6 @@ msgstr "Ei aktiivista esinettä uudelleen nimettäväksi"
 
 msgid "No data to paste"
 msgstr "Ei dataa liitettäväksi"
-
-
-msgid "Current File"
-msgstr "Nykyinen tiedosto"
 
 
 msgid "Missing library"

@@ -9,11 +9,9 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../editors/include
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   ../../../../intern/utfconv
 )
 
@@ -90,7 +88,9 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
 

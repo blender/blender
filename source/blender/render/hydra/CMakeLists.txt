@@ -36,12 +36,9 @@ if(WIN32)
 endif()
 
 set(INC
-  ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../blenkernel
   ../../blenlib
-  ../../depsgraph
-  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../nodes
@@ -70,6 +67,9 @@ set(LIB
   ${BOOST_LIBRARIES}
   ${USD_LIBRARIES}
   ${TBB_LIBRARIES}
+  PRIVATE bf::depsgraph
+  PRIVATE bf::imbuf
+  PRIVATE bf::intern::clog
   bf_io_usd
 )
 

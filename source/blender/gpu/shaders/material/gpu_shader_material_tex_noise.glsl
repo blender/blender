@@ -224,7 +224,7 @@ void node_noise_tex_fbm_4d(vec3 co,
   NOISE_FRACTAL_DISTORTED_4D(noise_fbm)
 }
 
-/* Noise Multifractal */
+/* Noise Multi-fractal. */
 
 void node_noise_tex_multi_fractal_1d(vec3 co,
                                      float w,
@@ -396,7 +396,7 @@ void node_noise_tex_hetero_terrain_4d(vec3 co,
   NOISE_FRACTAL_DISTORTED_4D(noise_hetero_terrain)
 }
 
-/* Noise Hybrid Multifractal */
+/* Noise Hybrid Multi-fractal. */
 
 void node_noise_tex_hybrid_multi_fractal_1d(vec3 co,
                                             float w,
@@ -482,7 +482,7 @@ void node_noise_tex_hybrid_multi_fractal_4d(vec3 co,
   NOISE_FRACTAL_DISTORTED_4D(noise_hybrid_multi_fractal)
 }
 
-/* Noise Ridged Multifractal */
+/* Noise Ridged Multi-fractal. */
 
 void node_noise_tex_ridged_multi_fractal_1d(vec3 co,
                                             float w,

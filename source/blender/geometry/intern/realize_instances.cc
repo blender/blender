@@ -615,7 +615,8 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         const auto *volume_component = static_cast<const bke::VolumeComponent *>(component);
         if (!gather_info.r_tasks.first_volume) {
           volume_component->add_user();
-          gather_info.r_tasks.first_volume = volume_component;
+          gather_info.r_tasks.first_volume = ImplicitSharingPtr<const bke::VolumeComponent>(
+              volume_component);
         }
         break;
       }
@@ -624,7 +625,8 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
             component);
         if (!gather_info.r_tasks.first_edit_data) {
           edit_component->add_user();
-          gather_info.r_tasks.first_edit_data = edit_component;
+          gather_info.r_tasks.first_edit_data =
+              ImplicitSharingPtr<const bke::GeometryComponentEditData>(edit_component);
         }
         break;
       }

@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
+
 # - Find Fribidi library
 # Find the native fribidi includes and library
 # This module defines

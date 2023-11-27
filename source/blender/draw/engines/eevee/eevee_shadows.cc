@@ -155,7 +155,9 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   }
 
   /* Update World AABB in frontbuffer. */
-  const BoundBox bb = *BKE_object_boundbox_get(ob);
+  const blender::Bounds<blender::float3> bounds = *BKE_object_boundbox_get(ob);
+  BoundBox bb;
+  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
   float min[3], max[3];
   INIT_MINMAX(min, max);
   for (int i = 0; i < 8; i++) {

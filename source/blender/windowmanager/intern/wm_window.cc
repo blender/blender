@@ -504,7 +504,10 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
                                 (GHOST_SetPath(handle, filepath) == GHOST_kFailure);
 
   std::string str;
-  str += wm->file_saved ? " " : "* ";
+  if (!wm->file_saved) {
+    str += "* ";
+  }
+
   if (has_filepath) {
     const blender::bke::BlenderProject *project = CTX_wm_project();
     if (project) {

@@ -54,6 +54,8 @@ class Instance {
 
   UniformDataBuf global_ubo_;
 
+  uint64_t depsgraph_last_update_ = 0;
+
  public:
   ShaderModule &shaders;
   SyncModule sync;
@@ -227,6 +229,27 @@ class Instance {
   template<typename T> void bind_uniform_data(draw::detail::PassBase<T> *pass)
   {
     pass->bind_ubo(UNIFORM_BUF_SLOT, &global_ubo_);
+  }
+
+  int get_recalc_flags(const ObjectRef &ob_ref)
+  {
+    auto get_flags = [&](const ObjectRuntimeHandle &runtime) {
+      int flags = 0;
+      SET_FLAG_FROM_TEST(
+          flags, runtime.last_update_transform > depsgraph_last_update_, ID_RECALC_TRANSFORM);
+      SET_FLAG_FROM_TEST(
+          flags, runtime.last_update_geometry > depsgraph_last_update_, ID_RECALC_GEOMETRY);
+      SET_FLAG_FROM_TEST(
+          flags, runtime.last_update_shading > depsgraph_last_update_, ID_RECALC_SHADING);
+      return flags;
+    };
+
+    int flags = get_flags(*ob_ref.object->runtime);
+    if (ob_ref.dupli_parent) {
+      flags |= get_flags(*ob_ref.dupli_parent->runtime);
+    }
+
+    return flags;
   }
 
  private:

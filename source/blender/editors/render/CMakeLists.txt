@@ -8,10 +8,8 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../draw
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../render
@@ -38,8 +36,10 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_draw
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

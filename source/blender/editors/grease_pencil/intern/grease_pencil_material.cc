@@ -196,7 +196,7 @@ static int grease_pencil_material_unlock_all_exec(bContext *C, wmOperator * /*op
 static void GREASE_PENCIL_OT_material_unlock_all(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Unclock All Materials";
+  ot->name = "Unlock All Materials";
   ot->idname = "GREASE_PENCIL_OT_material_unlock_all";
   ot->description = "Unlock all Grease Pencil materials so that they can be edited";
 

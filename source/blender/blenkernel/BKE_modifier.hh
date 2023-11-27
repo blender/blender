@@ -9,7 +9,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_matrix_types.hh"
 
-#include "DNA_modifier_types.h" /* needed for all enum typdefs */
+#include "DNA_modifier_types.h" /* Needed for all enum type definitions. */
 
 #include "BKE_customdata.hh"
 
@@ -81,7 +81,7 @@ enum ModifierTypeFlag {
 
   /**
    * For modifiers that require original data and so cannot
-   * be placed after any non-deformative modifier.
+   * be placed after any non-deforming modifier.
    */
   eModifierTypeFlag_RequiresOriginalData = (1 << 5),
 

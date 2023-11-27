@@ -269,7 +269,7 @@ void IrradianceCache::set_view(View & /*view*/)
     draw::Texture irradiance_d_tx = {"irradiance_d_tx"};
     draw::Texture validity_tx = {"validity_tx"};
 
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
     int3 grid_size = int3(cache->size);
     if (cache->baking.L0) {
       irradiance_a_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L0);

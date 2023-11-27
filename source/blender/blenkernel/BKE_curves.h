@@ -5,7 +5,6 @@
 #pragma once
 
 #include "DNA_curves_types.h"
-#include "DNA_object_types.h" /* #BoundBox. */
 
 /** \file
  * \ingroup bke
@@ -16,7 +15,6 @@
 extern "C" {
 #endif
 
-struct BoundBox;
 struct Curves;
 struct Depsgraph;
 struct Main;
@@ -24,8 +22,6 @@ struct Object;
 struct Scene;
 
 void *BKE_curves_add(struct Main *bmain, const char *name);
-
-BoundBox BKE_curves_boundbox_get(struct Object *ob);
 
 bool BKE_curves_attribute_required(const struct Curves *curves, const char *name);
 

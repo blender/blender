@@ -8,6 +8,11 @@
  * \ingroup bke
  */
 
+#include <optional>
+
+#include "BLI_bounds_types.hh"
+#include "BLI_math_vector_types.hh"
+
 struct Depsgraph;
 struct Main;
 struct Object;
@@ -28,7 +33,7 @@ struct bGPdata;
  * \param r_max: Result maximum coordinates
  * \return True if it was possible to calculate
  */
-bool BKE_gpencil_data_minmax(const struct bGPdata *gpd, float r_min[3], float r_max[3]);
+std::optional<blender::Bounds<blender::float3>> BKE_gpencil_data_minmax(const struct bGPdata *gpd);
 /**
  * Get min/max coordinate bounds for single stroke.
  * \param gps: Grease pencil stroke
@@ -42,12 +47,6 @@ bool BKE_gpencil_stroke_minmax(const struct bGPDstroke *gps,
                                float r_min[3],
                                float r_max[3]);
 
-/**
- * Get grease pencil object bounding box.
- * \param ob: Grease pencil object
- * \return Bounding box
- */
-struct BoundBox *BKE_gpencil_boundbox_get(struct Object *ob);
 /**
  * Compute center of bounding box.
  * \param gpd: Grease pencil data-block

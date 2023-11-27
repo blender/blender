@@ -26,6 +26,7 @@ set(SRC
   intern/mesh_primitive_grid.cc
   intern/mesh_primitive_line.cc
   intern/mesh_primitive_uv_sphere.cc
+  intern/mesh_selection.cc
   intern/mesh_split_edges.cc
   intern/mesh_to_curve_convert.cc
   intern/mesh_to_volume.cc
@@ -52,6 +53,7 @@ set(SRC
   GEO_mesh_primitive_grid.hh
   GEO_mesh_primitive_line.hh
   GEO_mesh_primitive_uv_sphere.hh
+  GEO_mesh_selection.hh
   GEO_mesh_split_edges.hh
   GEO_mesh_to_curve.hh
   GEO_mesh_to_volume.hh

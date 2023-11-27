@@ -11,6 +11,7 @@
 #include <string>
 
 struct Material;
+struct ReportList;
 
 namespace blender::io::usd {
 
@@ -24,7 +25,8 @@ struct USDExporterContext;
 pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_context,
                                           pxr::SdfPath usd_path,
                                           Material *material,
-                                          const std::string &active_uv);
+                                          const std::string &active_uv,
+                                          ReportList *reports);
 
 /* Returns a USDPreviewSurface token name for a given Blender shader Socket name,
  * or an empty TfToken if the input name is not found in the map. */
