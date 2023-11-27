@@ -219,7 +219,7 @@ std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() 
     bounds = bounds::merge(bounds, curves_id->geometry.wrap().bounds_min_max());
   }
   if (const GreasePencil *grease_pencil = this->get_grease_pencil()) {
-    bounds = bounds::merge(bounds, grease_pencil->bounds_min_max());
+    bounds = bounds::merge(bounds, grease_pencil->bounds_min_max_eval());
   }
   return bounds;
 }

@@ -577,7 +577,8 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Drawing *get_editable_drawing_at(
       const blender::bke::greasepencil::Layer *layer, int frame_number);
 
-  std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max(int frame) const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max_eval() const;
 
   blender::bke::AttributeAccessor attributes() const;
   blender::bke::MutableAttributeAccessor attributes_for_write();
