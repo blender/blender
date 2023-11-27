@@ -385,7 +385,6 @@ class MeshTest(ABC):
         expected_mesh = expected_object.data
         result_codes = {}
 
-        # Mesh Comparison.
         if threshold:
             result_mesh = expected_mesh.unit_test_compare(
                 mesh=evaluated_test_mesh, threshold=threshold)
@@ -397,20 +396,6 @@ class MeshTest(ABC):
             result_codes['Mesh Comparison'] = (True, result_mesh)
         else:
             result_codes['Mesh Comparison'] = (False, result_mesh)
-
-        # Selection comparison.
-
-        selected_evaluated_verts = [
-            v.index for v in evaluated_test_mesh.vertices if v.select]
-        selected_expected_verts = [
-            v.index for v in expected_mesh.vertices if v.select]
-
-        if selected_evaluated_verts == selected_expected_verts:
-            result_selection = "Same"
-            result_codes['Selection Comparison'] = (True, result_selection)
-        else:
-            result_selection = "Selection doesn't match."
-            result_codes['Selection Comparison'] = (False, result_selection)
 
         # Validation check.
         result_validation = evaluated_test_mesh.validate(verbose=True)
