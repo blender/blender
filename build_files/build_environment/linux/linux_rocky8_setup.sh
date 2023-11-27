@@ -148,3 +148,6 @@ yum -y install python3 python3-pip python3-devel
 # Dependencies for asound.
 yum -y install -y  \
     alsa-lib-devel pulseaudio-libs-devel
+
+# Required by Blender build option: `WITH_JACK`.
+yum -y install jack-audio-connection-kit-devel
