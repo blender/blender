@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -139,6 +139,10 @@ msgstr "Активдүү сөөк"
 
 msgid "Description"
 msgstr "Баяндама"
+
+
+msgid "All"
+msgstr "Баары"
 
 
 msgid "Data Type"
@@ -319,10 +323,6 @@ msgstr "Чоку түсү"
 
 msgid "Normal"
 msgstr "Нормаль"
-
-
-msgid "All"
-msgstr "Баары"
 
 
 msgid "Simplify"
@@ -924,12 +924,52 @@ msgid "Blue"
 msgstr "Көк"
 
 
-msgid "Users"
-msgstr "Колдонуучулар"
-
-
 msgid "Brush"
 msgstr "Чачы"
+
+
+msgid "Font"
+msgstr "Арип"
+
+
+msgid "Key"
+msgstr "Ачкыч"
+
+
+msgid "Mask"
+msgstr "Маска"
+
+
+msgid "Mesh"
+msgstr "Политор"
+
+
+msgid "Particle"
+msgstr "Бөлүкчө"
+
+
+msgid "Sound"
+msgstr "Үн"
+
+
+msgid "Speaker"
+msgstr "Үн булагы"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Window Manager"
+msgstr "Терезе менеджери"
+
+
+msgid "World"
+msgstr "Дүйнө"
+
+
+msgid "Users"
+msgstr "Колдонуучулар"
 
 
 msgid "Rate"
@@ -990,10 +1030,6 @@ msgstr "Жартысы"
 
 msgid "Text Curve"
 msgstr "Текст ийриси"
-
-
-msgid "Font"
-msgstr "Арип"
 
 
 msgid "Font Size"
@@ -1128,10 +1164,6 @@ msgid "Tool"
 msgstr "Аспап"
 
 
-msgid "Mesh"
-msgstr "Политор"
-
-
 msgid "Active Material"
 msgstr "Активдүү материал"
 
@@ -1158,10 +1190,6 @@ msgstr "Скульптинг режими"
 
 msgid "Mass"
 msgstr "Масса"
-
-
-msgid "Particle"
-msgstr "Бөлүкчө"
 
 
 msgid "Halo"
@@ -1199,10 +1227,6 @@ msgstr "Көрсөтүү ырастоолору"
 msgctxt "Sound"
 msgid "Pitch"
 msgstr "Бийиктик"
-
-
-msgid "Sound"
-msgstr "Үн"
 
 
 msgid "Clouds"
@@ -1285,10 +1309,6 @@ msgid "(x*x+y*y+z*z)"
 msgstr "(x*x+y*y+z*z)"
 
 
-msgid "Window Manager"
-msgstr "Терезе менеджери"
-
-
 msgid "Category"
 msgstr "Категориясы"
 
@@ -1369,10 +1389,6 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Mask"
-msgstr "Маска"
-
-
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Видеофрагмент"
@@ -1398,10 +1414,6 @@ msgid "Channel"
 msgstr "Канал"
 
 
-msgid "Key"
-msgstr "Ачкыч"
-
-
 msgid "Files"
 msgstr "Файлдар"
 
@@ -1413,10 +1425,6 @@ msgstr "Түздөө"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Кошуу"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Tracking"
@@ -1529,10 +1537,6 @@ msgstr "Деңгээлдер"
 
 msgid "Copy"
 msgstr "Көчүрүү"
-
-
-msgid "World"
-msgstr "Дүйнө"
 
 
 msgid "Origin"
@@ -2651,10 +2655,6 @@ msgid "Trusted Source"
 msgstr "Ишеничтүү булак"
 
 
-msgid "Speaker"
-msgstr "Үн булагы"
-
-
 msgctxt "Operator"
 msgid "Quit Blender"
 msgstr "Blender'ден чыгуу"
@@ -3483,11 +3483,6 @@ msgstr "Камера"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Үн булагы"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Ачкыч кадрын кошуу..."
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-11-18 16:52+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -2408,8 +2408,52 @@ msgid "Blue"
 msgstr "ﯽﺑﺁ"
 
 
+msgid "Brush"
+msgstr "ﻮﻣ ﻢﻠﻗ"
+
+
+msgid "Font"
+msgstr "ﺖﻧﻮﻓ"
+
+
+msgid "Key"
+msgstr "ﺪﯿﻠﮐ"
+
+
 msgid "Library"
 msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ"
+
+
+msgid "Mesh"
+msgstr "ﺶﻣ"
+
+
+msgid "Paint Curve"
+msgstr "ﮓﻧﺭ ﯽﻨﺤﻨﻣ"
+
+
+msgid "Particle"
+msgstr "ﻩﺭﺫ"
+
+
+msgid "Sound"
+msgstr "ﺍﺪﺻ"
+
+
+msgid "Speaker"
+msgstr "ﻮﮔﺪﻨﻠﺑ"
+
+
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
+msgid "Window Manager"
+msgstr "ﻩﺮﺠﻨﭘ ﺖﯾﺮﯾﺪﻣ"
+
+
+msgid "World"
+msgstr "ﻥﺎﻬﺟ"
 
 
 msgid "B-Bone"
@@ -2535,10 +2579,6 @@ msgid "Mask"
 msgstr "ﮏﺳﺎﻣ"
 
 
-msgid "Brush"
-msgstr "ﻮﻣ ﻢﻠﻗ"
-
-
 msgctxt "Mask"
 msgid "Draw"
 msgstr "ﯽﺷﺎﻘﻧ"
@@ -2547,10 +2587,6 @@ msgstr "ﯽﺷﺎﻘﻧ"
 msgctxt "Mask"
 msgid "Smooth"
 msgstr "ﻑﺎﺻ"
-
-
-msgid "Paint Curve"
-msgstr "ﮓﻧﺭ ﯽﻨﺤﻨﻣ"
 
 
 msgctxt "Brush"
@@ -2635,10 +2671,6 @@ msgid "Text on Curve"
 msgstr "ﯽﻨﺤﻨﻣ ﯼﻭﺭ ﺮﺑ ﻦﺘﻣ"
 
 
-msgid "Font"
-msgstr "ﺖﻧﻮﻓ"
-
-
 msgid "X Offset"
 msgstr "X ﺖﺴﻓﺍ"
 
@@ -2707,10 +2739,6 @@ msgstr "ﺶﯾﺍﺮﯾﻭ"
 
 msgid "Sculpt"
 msgstr "ﻥﺩﺮﮐ ﯼﺭﺎﺠﺣ"
-
-
-msgid "Mesh"
-msgstr "ﺶﻣ"
 
 
 msgid "Active Material"
@@ -2857,10 +2885,6 @@ msgid "Mass"
 msgstr "ﻢﺠﺣ"
 
 
-msgid "Particle"
-msgstr "ﻩﺭﺫ"
-
-
 msgid "Roughness 1"
 msgstr "1 ﯼﺮﺑﺯ"
 
@@ -2888,10 +2912,6 @@ msgstr "ﺕﺎﻤﯿﻈﻨﺗ ﺶﯾﺎﻤﻧ"
 msgctxt "Sound"
 msgid "Mute"
 msgstr "ﺵﻮﻣ‌ﺎﺧ"
-
-
-msgid "Sound"
-msgstr "ﺍﺪﺻ"
 
 
 msgid "Memory"
@@ -2922,10 +2942,6 @@ msgstr "ﯽﻓﺎﺻ"
 
 msgid "Weight 1"
 msgstr "ﯽﻨﯿﮕﻨﺳ"
-
-
-msgid "Window Manager"
-msgstr "ﻩﺮﺠﻨﭘ ﺖﯾﺮﯾﺪﻣ"
 
 
 msgid "Animation"
@@ -3041,14 +3057,6 @@ msgstr "ﻁﻮﻠﺨﻣ"
 
 msgid "Pivot Point"
 msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
-msgid "Key"
-msgstr "ﺪﯿﻠﮐ"
-
-
-msgid "Text"
-msgstr "ﻦﺘﻣ"
 
 
 msgid "Math"
@@ -3176,10 +3184,6 @@ msgstr "ﺡﻮﻄﺳ"
 
 msgid "Copy"
 msgstr "ﯽﭙﮐ"
-
-
-msgid "World"
-msgstr "ﻥﺎﻬﺟ"
 
 
 msgid "Sharpness"
@@ -4352,10 +4356,6 @@ msgid "Operator Cheat Sheet"
 msgstr "ﺮﺑﺭﺎﮐ ﺐﻠﻘﺗ ﻪﮔﺮﺑ"
 
 
-msgid "Speaker"
-msgstr "ﻮﮔﺪﻨﻠﺑ"
-
-
 msgid "Property Name"
 msgstr "ﯽﮔﮋﯾﻭ ﻡﺎﻧ"
 
@@ -4919,10 +4919,6 @@ msgid "Displace Type"
 msgstr "ﯽﯾﺎﺠﺑﺎﺟ ﻉﻮﻧ"
 
 
-msgid "XYZ to RGB"
-msgstr "XYZ ﻪﺑ RGB"
-
-
 msgid "Build Original:"
 msgstr ":ﯽﻠﺻﺍ ﺖﺧﺎﺳ"
 
@@ -4954,6 +4950,10 @@ msgstr "ﯽﺟﺭﺎﺧ :ﻦﺘﻣ"
 
 msgid "Text: Internal"
 msgstr "ﯽﻠﺧﺍﺩ :ﻦﺘﻣ"
+
+
+msgid "XYZ to RGB"
+msgstr "XYZ ﻪﺑ RGB"
 
 
 msgid "Mixing Buffer"
@@ -5050,12 +5050,12 @@ msgid "IK"
 msgstr "(IK) ﺱﻮﮑﻌﻣ ﺖﮐﺮﺣ"
 
 
-msgid "Out"
-msgstr "ﯽﺟﻭﺮﺧ"
-
-
 msgid "Nothing selected"
 msgstr "ﻩﺪﺸﻧ ﺏﺎﺨﺘﻧﺍ ﺰﯿﭼ ﭻﯿﻫ"
+
+
+msgid "Out"
+msgstr "ﯽﺟﻭﺮﺧ"
 
 
 msgctxt "Operator"

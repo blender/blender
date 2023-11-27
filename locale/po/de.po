@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1201,6 +1201,18 @@ msgstr "Asset-Metadaten"
 
 msgid "Asset Library"
 msgstr "Bestand-Bibliothek"
+
+
+msgid "All"
+msgstr "Alle"
+
+
+msgid "Current File"
+msgstr "Aktuelle Datei"
+
+
+msgid "Custom"
+msgstr "Benutzerdefiniert"
 
 
 msgid "ID Name"
@@ -3339,10 +3351,6 @@ msgid "Active Collection"
 msgstr "Aktive Sammlung"
 
 
-msgid "Custom"
-msgstr "Benutzerdefiniert"
-
-
 msgid "Bool Attribute Value"
 msgstr "Bool-Attributwert"
 
@@ -3685,10 +3693,6 @@ msgstr "Invertierten Bereich füllen"
 
 msgid "Mode to draw boundary limits"
 msgstr "Modus zum Zeichnen von Begrenzungsgrenzen"
-
-
-msgid "All"
-msgstr "Alle"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -12451,6 +12455,86 @@ msgid "Additional data for an asset data-block"
 msgstr "Zusätzliche Daten für einen Asset-Datenblock"
 
 
+msgid "Brush"
+msgstr "Pinsel"
+
+
+msgid "Font"
+msgstr "Schrift"
+
+
+msgid "Key"
+msgstr "Schlüsselbild"
+
+
+msgid "Library"
+msgstr "Bibliothek"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Mask"
+msgstr "Maske"
+
+
+msgid "Mesh"
+msgstr "Masche"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Node Tree"
+msgstr "Knotenbaum"
+
+
+msgid "Paint Curve"
+msgstr "Mal-Kurve"
+
+
+msgid "Palette"
+msgstr "Palette"
+
+
+msgid "Particle"
+msgstr "Partikel"
+
+
+msgid "Point Cloud"
+msgstr "Punkt Wolke"
+
+
+msgid "Sound"
+msgstr "Sound"
+
+
+msgid "Speaker"
+msgstr "Lautsprecher"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Window Manager"
+msgstr "Fensterverwaltung"
+
+
+msgid "Workspace"
+msgstr "Arbeitsplatz"
+
+
+msgid "World"
+msgstr "Welt"
+
+
 msgid "Is Evaluated"
 msgstr "Wird evaluiert"
 
@@ -12459,16 +12543,8 @@ msgid "Is Indirect"
 msgstr "Ist Indirekt"
 
 
-msgid "Library"
-msgstr "Bibliothek"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "Bibliotheksdatei, von der aus der Datenblock verknüpft ist"
-
-
-msgid "Unique data-block ID name"
-msgstr "Eindeutiger Datenblock-ID-Name"
 
 
 msgid "Full Name"
@@ -12984,10 +13060,6 @@ msgid "Jitter the position of the brush in pixels while painting"
 msgstr "Flimmern der Pinselposition während des Malens"
 
 
-msgid "Brush"
-msgstr "Pinsel"
-
-
 msgid "Mask Texture"
 msgstr "Maskentextur"
 
@@ -13006,10 +13078,6 @@ msgstr "Verhältnis zwischen dem Pinselradius und dem Radius, der zum Abtasten d
 
 msgid "Normal Weight"
 msgstr "Normalengewichtung"
-
-
-msgid "Paint Curve"
-msgstr "Mal-Kurve"
 
 
 msgid "Active paint curve"
@@ -13820,10 +13888,6 @@ msgid "Text on Curve"
 msgstr "Text auf Kurve"
 
 
-msgid "Font"
-msgstr "Schrift"
-
-
 msgid "Font Bold"
 msgstr "Schrift Fett"
 
@@ -14110,10 +14174,6 @@ msgstr "Minimale Krümmung der 2D Länge für die Auswahl von Ketten"
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "Wenn aktiv, Ketten von besonderen Kanten trennen sich an Materialgrenzen"
-
-
-msgid "Node Tree"
-msgstr "Knotenbaum"
 
 
 msgid "Node tree for node-based shaders"
@@ -15071,6 +15131,14 @@ msgid "Diffuse color of the material"
 msgstr "Diffuse Farbe dieses Materials"
 
 
+msgid "Displacement Method"
+msgstr "Versatzmethode"
+
+
+msgid "Displacement Only"
+msgstr "Nur Verdrängung"
+
+
 msgid "Grease Pencil Settings"
 msgstr "Wachsstifteinstellungen"
 
@@ -15271,14 +15339,6 @@ msgid "Vertex Selection"
 msgstr "Punktauswahl"
 
 
-msgid "Preserve Paint Mask"
-msgstr "Farbmaske erhalten"
-
-
-msgid "Preserve Vertex Colors"
-msgstr "Punktfarbe reservieren"
-
-
 msgid "Clone UV Loop Layer"
 msgstr "UV Schleifenebene klonen"
 
@@ -15321,14 +15381,6 @@ msgstr "Alle UV Schleifenebenen"
 
 msgid "Vertex Colors"
 msgstr "Punktfarben"
-
-
-msgid "Vertex Paint Mask"
-msgstr "Punktmalereimaske"
-
-
-msgid "Vertex paint mask"
-msgstr "Punktmalereimaske"
 
 
 msgid "Vertices"
@@ -15509,14 +15561,6 @@ msgstr "Modifikator"
 
 msgid "Tool"
 msgstr "Werkzeug"
-
-
-msgid "Mesh"
-msgstr "Masche"
-
-
-msgid "Point Cloud"
-msgstr "Punkt Wolke"
 
 
 msgid "Shader Node Tree"
@@ -16350,10 +16394,6 @@ msgid "Object Aligned"
 msgstr "Objekt ausgerichtet"
 
 
-msgid "Particle"
-msgstr "Partikel"
-
-
 msgid "Path End"
 msgstr "Pfadende"
 
@@ -17028,10 +17068,6 @@ msgid "Pitch"
 msgstr "Tonhöhe"
 
 
-msgid "Sound"
-msgstr "Sound"
-
-
 msgid "Sound data-block used by this speaker"
 msgstr "Sound-Datenblock, der von diesem Lautsprecher verwendet wird"
 
@@ -17688,10 +17724,6 @@ msgid "Velocity Z Grid"
 msgstr "Velocity Z-Raster"
 
 
-msgid "Window Manager"
-msgstr "Fensterverwaltung"
-
-
 msgid "Category"
 msgstr "Kategorie"
 
@@ -17750,10 +17782,6 @@ msgstr "Fenster"
 
 msgid "Open windows"
 msgstr "Fenster öffnen"
-
-
-msgid "Workspace"
-msgstr "Arbeitsplatz"
 
 
 msgid "Grease Pencil Edit Mode"
@@ -19566,20 +19594,12 @@ msgid "Override default setting to only insert keyframes where they're needed in
 msgstr "Standardeinstellung überschreiben, um Schlüsselbilder nur dort einzufügen, wo sie in den relevanten F-Kurven benötigt werden"
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "F-Kurvenfarben überschreiben - XYZ zu RGB"
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "Schlüsselbilder hinzufügen - Visuell"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "Schlüsselbild einfügen, der auf \"sichtbare Transformation\" basiert"
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "F-Kurvenfarben - XYZ zu RGB"
 
 
 msgid "Available"
@@ -20243,10 +20263,6 @@ msgid "Self Overlap"
 msgstr "Selbstüberlagerung"
 
 
-msgid "Mask"
-msgstr "Maske"
-
-
 msgid "Material slot in an object"
 msgstr "Materialsteckplatz in einem Objekt"
 
@@ -20344,10 +20360,6 @@ msgid "Dope Sheet Channel"
 msgstr "DopeSheet-Kanal"
 
 
-msgid "Key"
-msgstr "Schlüsselbild"
-
-
 msgid "Snap"
 msgstr "Einrasten"
 
@@ -20395,10 +20407,6 @@ msgstr "Auspacken"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Hinzufügen"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Math"
@@ -20662,10 +20670,6 @@ msgid "Select Similar"
 msgstr "Ähnliche auswählen"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Generate Weights"
 msgstr "Gewichtung generieren"
 
@@ -20676,14 +20680,6 @@ msgstr "Haken"
 
 msgid "Add Image"
 msgstr "Bild hinzufügen"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
 
 
 msgid "Make Single User"
@@ -22216,10 +22212,6 @@ msgstr "Zufällige Position entlang des Pfades"
 
 msgid "Randomize rotation around path"
 msgstr "Zufällige Rotation entlang des Pfades"
-
-
-msgid "World"
-msgstr "Welt"
 
 
 msgctxt "ParticleSettings"
@@ -27332,10 +27324,6 @@ msgstr "Schlüsselbild löschen"
 msgctxt "Operator"
 msgid "Insert Keyframe"
 msgstr "Schlüsselbild einfügen"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Schlüsselbilder auf dem aktuellen Einzelbild einfügen, für alle Eigenschaften im festgelegten Schlüsselbildsatz"
 
 
 msgctxt "Operator"
@@ -34212,10 +34200,6 @@ msgid "Remove original faces"
 msgstr "Entfernen"
 
 
-msgid "Channel Index"
-msgstr "Kanal Index"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Brennweite"
@@ -36996,10 +36980,6 @@ msgstr "Palettenfarbe verschieben"
 
 msgid "Move the active Color up/down in the list"
 msgstr "Aktive Farbe in der Liste nach oben/unten verschieben"
-
-
-msgid "Palette"
-msgstr "Palette"
 
 
 msgid "Name of the Palette"
@@ -41465,10 +41445,6 @@ msgid "Array Length"
 msgstr "Arraylänge"
 
 
-msgid "Speaker"
-msgstr "Lautsprecher"
-
-
 msgid "Property Name"
 msgstr "Eigenschaftsname"
 
@@ -45608,14 +45584,6 @@ msgstr "Schatten werfen"
 
 msgid "Light casts shadows"
 msgstr "Licht wirft Schatten"
-
-
-msgid "Displacement Method"
-msgstr "Versatzmethode"
-
-
-msgid "Displacement Only"
-msgstr "Nur Verdrängung"
 
 
 msgid "Volume Interpolation"
@@ -54369,13 +54337,13 @@ msgstr "Materialien maskieren"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Sperre unausgewähltes"
+msgid "Lock Unused"
+msgstr "Sperre unbenutztes"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Sperre unbenutztes"
+msgid "Lock Unselected"
+msgstr "Sperre unausgewähltes"
 
 
 msgctxt "Operator"
@@ -55005,10 +54973,6 @@ msgstr "Allgemein überschreiben"
 
 msgid "Paths:"
 msgstr "Pfade:"
-
-
-msgid "XYZ to RGB"
-msgstr "XYZ zu RGB"
 
 
 msgid "Target ID-Block"
@@ -56928,6 +56892,10 @@ msgid "Default Handles"
 msgstr "Standardgriffe"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ zu RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "Puffer mischen"
 
@@ -57414,11 +57382,6 @@ msgstr "Hintergrund"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Lokal machen..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Schlüsselbild einfügen..."
 
 
 msgctxt "Operator"
@@ -59092,6 +59055,10 @@ msgid "Enable F-Curve modifiers"
 msgstr "Aktiviere F-Kurven Modifikator"
 
 
+msgid "Nothing selected"
+msgstr "Nichts ausgewählt"
+
+
 msgid "<invalid>"
 msgstr "<ungültig>"
 
@@ -59390,10 +59357,6 @@ msgstr "Kein aktives Einzelbild zum Löschen"
 
 msgid "No active frame(s) to delete"
 msgstr "Kein aktive(s) Einzelbild(er) zum Löschen"
-
-
-msgid "Nothing selected"
-msgstr "Nichts ausgewählt"
 
 
 msgid "No active area"
@@ -61681,10 +61644,6 @@ msgstr "Lösche %d Datenblöck(e)"
 
 msgid "Not yet implemented"
 msgstr "Aktuell implementiert"
-
-
-msgid "Current File"
-msgstr "Aktuelle Datei"
 
 
 msgid "No Library Overrides"

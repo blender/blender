@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-10-25 09:54+0000\n"
 "Last-Translator: Yassir Amry Priyono <yassir_a_p@protonmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1145,6 +1145,14 @@ msgstr "Spasi Kerja"
 msgctxt "ID"
 msgid "World"
 msgstr "Dunia"
+
+
+msgid "All"
+msgstr "Semua"
+
+
+msgid "Custom"
+msgstr "Kustom"
 
 
 msgid "ID Name"
@@ -3023,10 +3031,6 @@ msgid "Active Collection"
 msgstr "Koleksi Aktif"
 
 
-msgid "Custom"
-msgstr "Kustom"
-
-
 msgid "Bool Attribute Value"
 msgstr "Nilai Atribut Bool"
 
@@ -3341,10 +3345,6 @@ msgstr "Isi area terbalik"
 
 msgid "Mode to draw boundary limits"
 msgstr "Mode ke menggambar batas batasan"
-
-
-msgid "All"
-msgstr "Semua"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -9013,12 +9013,52 @@ msgid "Show Line"
 msgstr "Tampilkan Garis"
 
 
-msgid "Is Indirect"
-msgstr "Orientasi Transformasi"
+msgid "Brush"
+msgstr "Kuas"
+
+
+msgid "Font"
+msgstr "Font"
+
+
+msgid "Key"
+msgstr "Kunci"
 
 
 msgid "Library"
 msgstr "Perpustakaan"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Node Tree"
+msgstr "Pohon Node"
+
+
+msgid "Paint Curve"
+msgstr "Kurva Cat"
+
+
+msgid "Palette"
+msgstr "Palet"
+
+
+msgid "Sound"
+msgstr "Suara"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Workspace"
+msgstr "Spasi kerja"
+
+
+msgid "Is Indirect"
+msgstr "Orientasi Transformasi"
 
 
 msgid "Full Name"
@@ -9198,10 +9238,6 @@ msgid "Brush Height"
 msgstr "Tinggi Kuas"
 
 
-msgid "Brush"
-msgstr "Kuas"
-
-
 msgid "Mask Texture"
 msgstr "Masker Tekstur"
 
@@ -9212,10 +9248,6 @@ msgstr "Slot Masker Tekstur"
 
 msgid "Normal Radius"
 msgstr "Radius Biasa"
-
-
-msgid "Paint Curve"
-msgstr "Kurva Cat"
 
 
 msgid "Active paint curve"
@@ -9470,10 +9502,6 @@ msgid "Text on Curve"
 msgstr "Tekstur"
 
 
-msgid "Font"
-msgstr "Font"
-
-
 msgid "Font Bold"
 msgstr "Font Bold"
 
@@ -9608,10 +9636,6 @@ msgstr "Panjang 2D Maks"
 
 msgid "Min 2D Length"
 msgstr "Panjang 2D Min"
-
-
-msgid "Node Tree"
-msgstr "Pohon Node"
 
 
 msgid "Panel"
@@ -10198,10 +10222,6 @@ msgid "Attenuation"
 msgstr "Atenuasi"
 
 
-msgid "Sound"
-msgstr "Suara"
-
-
 msgid "Filename of the text file"
 msgstr "Tidak dapat membuka dokumen"
 
@@ -10412,10 +10432,6 @@ msgstr "Pengaturan Sesi XR"
 
 msgid "XR Session State"
 msgstr "Keadaan Sesi XR"
-
-
-msgid "Workspace"
-msgstr "Spasi kerja"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -11144,10 +11160,6 @@ msgid "Insert keyframes based on 'visual transforms'"
 msgstr "Masukkan keyframe berdasarkan 'transformasi visual'"
 
 
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "Warna F-Kurva - XYZ ke RGB"
-
-
 msgid "Available"
 msgstr "Tersedia"
 
@@ -11573,10 +11585,6 @@ msgid "Channel"
 msgstr "Saluran"
 
 
-msgid "Key"
-msgstr "Kunci"
-
-
 msgid "Snap"
 msgstr "Jepret"
 
@@ -11620,10 +11628,6 @@ msgstr "Spesial Kunci Bentuk"
 
 msgid "Vertex Group Specials"
 msgstr "Spesial Kelompok Vertex"
-
-
-msgid "Text"
-msgstr "Teks"
 
 
 msgid "Utilities"
@@ -11803,10 +11807,6 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Light"
-msgstr "Cahaya"
-
-
 msgid "Edge index"
 msgstr "Hanya Garis"
 
@@ -11821,10 +11821,6 @@ msgstr "Warna Standar"
 
 msgid "Polygon"
 msgstr "Poligon"
-
-
-msgid "Floating-point paint mask value"
-msgstr "Nilai masker cat floating-point"
 
 
 msgid "Polygon Normal"
@@ -17783,10 +17779,6 @@ msgid "Set Weight"
 msgstr "Orientasi Transformasi"
 
 
-msgid "Palette"
-msgstr "Palet"
-
-
 msgid "Name of the Palette"
 msgstr "Nama Palet"
 
@@ -22759,13 +22751,13 @@ msgstr "Balikkan"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Kunci yang Tidak Terseleksi"
+msgid "Lock Unused"
+msgstr "Kunci yang Tidak Terpakai"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Kunci yang Tidak Terpakai"
+msgid "Lock Unselected"
+msgstr "Kunci yang Tidak Terseleksi"
 
 
 msgctxt "Operator"
@@ -24354,11 +24346,6 @@ msgstr "Tambah Gambar"
 
 
 msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Tambahkan Keyframe..."
-
-
-msgctxt "Operator"
 msgid "Delete Keyframes..."
 msgstr "Hapus Keyframe..."
 
@@ -24655,6 +24642,10 @@ msgid "Loops are not connected by wire/boundary edges"
 msgstr "Loop tidak terkoneksi oleh tepi kabel/batas"
 
 
+msgid "Nothing selected"
+msgstr "Tidak ada yang terseleksi"
+
+
 msgid "Cannot re-link markers into the same scene"
 msgstr "Adegan"
 
@@ -24765,10 +24756,6 @@ msgstr "Tidak ada frame aktif untuk dihapus"
 
 msgid "No active frame(s) to delete"
 msgstr "Tidak ada frame-frame aktif untuk dihapus"
-
-
-msgid "Nothing selected"
-msgstr "Tidak ada yang terseleksi"
 
 
 msgid "Active layer is locked or hidden"

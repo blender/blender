@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -477,6 +477,14 @@ msgid "World"
 msgstr "โลก"
 
 
+msgid "All"
+msgstr "ทั้งหมด"
+
+
+msgid "Custom"
+msgstr "กำหนดเอง"
+
+
 msgid "ID Name"
 msgstr "ชื่อ ID"
 
@@ -653,10 +661,6 @@ msgid "Connected"
 msgstr "เชื่อมต่อกัน"
 
 
-msgid "Custom"
-msgstr "กำหนดเอง"
-
-
 msgid "Remove"
 msgstr "ลบ"
 
@@ -679,10 +683,6 @@ msgstr "สีจุดยอด"
 
 msgid "Normal"
 msgstr "แนวฉาก"
-
-
-msgid "All"
-msgstr "ทั้งหมด"
 
 
 msgid "Radius"
@@ -1315,6 +1315,54 @@ msgid "B"
 msgstr "B"
 
 
+msgid "Font"
+msgstr "ฟอนต์"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Mask"
+msgstr "หน้ากาก"
+
+
+msgid "Mesh"
+msgstr "เมช"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "Palette"
+msgstr "จานสี"
+
+
+msgid "Particle"
+msgstr "อนุภาค"
+
+
+msgid "Sound"
+msgstr "เสียง"
+
+
+msgid "Speaker"
+msgstr "ลำโพง"
+
+
+msgid "Text"
+msgstr "ช้อความ"
+
+
+msgid "Workspace"
+msgstr "พื้นที่ใช้งาน"
+
+
+msgid "World"
+msgstr "โลก"
+
+
 msgid "Users"
 msgstr "ผู้ใช้"
 
@@ -1409,10 +1457,6 @@ msgstr "ความละเอียด V"
 
 msgid "Path"
 msgstr "เส้นทาง"
-
-
-msgid "Font"
-msgstr "ฟอนต์"
 
 
 msgid "Font Bold"
@@ -1653,10 +1697,6 @@ msgid "Sculpt"
 msgstr "แกะสลัก"
 
 
-msgid "Mesh"
-msgstr "เมช"
-
-
 msgid "Bounding Box"
 msgstr "ขอบเขต"
 
@@ -1768,10 +1808,6 @@ msgid "Display"
 msgstr "แสดง"
 
 
-msgid "Particle"
-msgstr "อนุภาค"
-
-
 msgid "Path Start"
 msgstr "เส้นทางเริ้่มต้น"
 
@@ -1814,10 +1850,6 @@ msgstr "โหมดซิงค์"
 
 msgid "Animation Editors"
 msgstr "ตัวแก้ไขแอนิเมชัน"
-
-
-msgid "Sound"
-msgstr "เสียง"
 
 
 msgid "Memory"
@@ -1874,10 +1906,6 @@ msgstr "แหลม"
 
 msgid "Rings"
 msgstr "แหวน"
-
-
-msgid "Workspace"
-msgstr "พื้นที่ใช้งาน"
 
 
 msgid "Animation"
@@ -2019,10 +2047,6 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Mask"
-msgstr "หน้ากาก"
-
-
 msgid "Pivot Point"
 msgstr "จุดหมุน"
 
@@ -2038,10 +2062,6 @@ msgstr "ไฟล์"
 msgctxt "Operator"
 msgid "Add"
 msgstr "เพิ่ม"
-
-
-msgid "Text"
-msgstr "ช้อความ"
 
 
 msgid "Math"
@@ -2137,20 +2157,12 @@ msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
 msgid "Hooks"
 msgstr "ตะขอ"
 
 
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
-
-
-msgid "Light"
-msgstr "แสง"
 
 
 msgid "Proportional Editing Falloff"
@@ -2291,10 +2303,6 @@ msgstr "สะท้อน V"
 
 msgid "Copy"
 msgstr "คัดลอก"
-
-
-msgid "World"
-msgstr "โลก"
 
 
 msgid "UV Center"
@@ -3109,10 +3117,6 @@ msgid "(De)select all"
 msgstr "(ยกเลิก)เลือกทั้งหมด"
 
 
-msgid "Palette"
-msgstr "จานสี"
-
-
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
@@ -3321,10 +3325,6 @@ msgstr "พัก"
 
 msgid "Render Anim"
 msgstr "เรนเดอร์อนิเมชัน"
-
-
-msgid "Speaker"
-msgstr "ลำโพง"
 
 
 msgctxt "Operator"
@@ -4818,11 +4818,6 @@ msgstr "อ้างอิง"
 msgctxt "Operator"
 msgid "Background"
 msgstr "พื้นหลัง"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "แทรกคีย์เฟรม..."
 
 
 msgctxt "Operator"

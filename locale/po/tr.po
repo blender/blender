@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1403,6 +1403,14 @@ msgstr "Varlık Kitaplığı"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Varlıkların görüntüleneceği varlık kitaplığını seç"
+
+
+msgid "All"
+msgstr "Tümü"
+
+
+msgid "Custom"
+msgstr "Özel"
 
 
 msgid "ID Name"
@@ -3915,10 +3923,6 @@ msgid "Theme color or custom color of a bone"
 msgstr "Bir kemiğin tema veya özel rengi"
 
 
-msgid "Custom"
-msgstr "Özel"
-
-
 msgid "The custom bone colors, used when palette is 'CUSTOM'"
 msgstr "Özel kemik renkleri, palet 'CUSTOM' iken kullanılır"
 
@@ -4392,10 +4396,6 @@ msgstr "Ters çevrilen alanı doldur"
 
 msgid "Mode to draw boundary limits"
 msgstr "Had sınırlarını çizmek için kip"
-
-
-msgid "All"
-msgstr "Tümü"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -6463,8 +6463,60 @@ msgid "Blue"
 msgstr "Mavi"
 
 
+msgid "Font"
+msgstr "Yazıtipi"
+
+
+msgid "Key"
+msgstr "Anahtar"
+
+
 msgid "Library"
 msgstr "Kütüphane"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Mask"
+msgstr "Maske"
+
+
+msgid "Mesh"
+msgstr "Örgü"
+
+
+msgid "Node Tree"
+msgstr "Düğüm Ağacı"
+
+
+msgid "Particle"
+msgstr "Parçacık"
+
+
+msgid "Point Cloud"
+msgstr "Nokta Bulutu"
+
+
+msgid "Sound"
+msgstr "Ses"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Window Manager"
+msgstr "Pencere Yöneticisi"
+
+
+msgid "Workspace"
+msgstr "Çalışma Alanı"
+
+
+msgid "World"
+msgstr "Dünya"
 
 
 msgid "Save this data-block even if it has no users"
@@ -6807,10 +6859,6 @@ msgid "Path"
 msgstr "Yol"
 
 
-msgid "Font"
-msgstr "Yazıtipi"
-
-
 msgid "Font Size"
 msgstr "Yazıtipi Boyutu"
 
@@ -6829,10 +6877,6 @@ msgstr "Asg"
 
 msgid "Max"
 msgstr "Azm"
-
-
-msgid "Node Tree"
-msgstr "Düğüm Ağacı"
 
 
 msgid "2D Length"
@@ -6994,14 +7038,6 @@ msgstr "Düzen"
 
 msgid "Tool"
 msgstr "Araç"
-
-
-msgid "Mesh"
-msgstr "Örgü"
-
-
-msgid "Point Cloud"
-msgstr "Nokta Bulutu"
 
 
 msgid "Data"
@@ -7188,10 +7224,6 @@ msgid "Mass"
 msgstr "Kütle"
 
 
-msgid "Particle"
-msgstr "Parçacık"
-
-
 msgid "Newtonian"
 msgstr "Newtoncu"
 
@@ -7296,10 +7328,6 @@ msgid "5 Channels"
 msgstr "5 Kanal"
 
 
-msgid "Sound"
-msgstr "Ses"
-
-
 msgctxt "Text"
 msgid "Modified"
 msgstr "Değiştirildi"
@@ -7322,10 +7350,6 @@ msgid "Sequence Mode"
 msgstr "Sekans Kipi"
 
 
-msgid "Window Manager"
-msgstr "Pencere Yöneticisi"
-
-
 msgid "Support"
 msgstr "Destek"
 
@@ -7340,10 +7364,6 @@ msgstr "XR Oturumu Ayarları"
 
 msgid "XR Session State"
 msgstr "XR Oturumu Durumu"
-
-
-msgid "Workspace"
-msgstr "Çalışma Alanı"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -7522,10 +7542,6 @@ msgid "Texture"
 msgstr "Doku"
 
 
-msgid "Mask"
-msgstr "Maske"
-
-
 msgid "Bone Collection Specials"
 msgstr "Kemik Koleksiyonu Özel Seçimleri"
 
@@ -7550,10 +7566,6 @@ msgid "Dope Sheet Channel"
 msgstr "Döküm Kağıdı Kanalı"
 
 
-msgid "Key"
-msgstr "Anahtar"
-
-
 msgid "Snap"
 msgstr "Yakala"
 
@@ -7565,10 +7577,6 @@ msgstr "Açılım"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Ekle"
-
-
-msgid "Text"
-msgstr "Metin"
 
 
 msgid "Keying"
@@ -7680,10 +7688,6 @@ msgid "Add Image"
 msgstr "Resim Ekle"
 
 
-msgid "Light"
-msgstr "Işık"
-
-
 msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
@@ -7776,10 +7780,6 @@ msgstr "Kopya"
 
 msgid "Viewport Resolution"
 msgstr "Görüş Alanı Çözünürlüğü"
-
-
-msgid "World"
-msgstr "Dünya"
 
 
 msgid "Smooth Shading"

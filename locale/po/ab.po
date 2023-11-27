@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -197,6 +197,26 @@ msgid "Library"
 msgstr "Ашәҟәыԥхьарҭа"
 
 
+msgid "Light"
+msgstr "Алашара"
+
+
+msgid "Mesh"
+msgstr "Аҿарҧага"
+
+
+msgid "Metaball"
+msgstr "Метампыл"
+
+
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgid "Text"
+msgstr "Аҳәоу"
+
+
 msgid "Local"
 msgstr "Ҷыдала"
 
@@ -229,10 +249,6 @@ msgstr "Ацырцырра"
 
 msgid "Edit"
 msgstr "Аиҭакра"
-
-
-msgid "Mesh"
-msgstr "Аҿарҧага"
 
 
 msgid "Circle"
@@ -268,10 +284,6 @@ msgid "3D Cursor"
 msgstr "3Д Ахырхага"
 
 
-msgid "Text"
-msgstr "Аҳәоу"
-
-
 msgid "Keying"
 msgstr " Аиҭаганҵа"
 
@@ -282,14 +294,6 @@ msgstr "Ашәҟәы"
 
 msgid "Help"
 msgstr "Аилыркаа"
-
-
-msgid "Metaball"
-msgstr "Метампыл"
-
-
-msgid "Light"
-msgstr "Алашара"
 
 
 msgid "Intersect"
@@ -376,10 +380,6 @@ msgstr "Аҿыц"
 msgctxt "Sequence"
 msgid "Text"
 msgstr "Аҳәоу"
-
-
-msgid "Speaker"
-msgstr "Абжьы Ахыҵхырҭа"
 
 
 msgid "Overlays"

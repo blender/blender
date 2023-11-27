@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-11-14 09:51+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -1428,6 +1428,22 @@ msgstr "Knižnica aktív"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Vyberte knižnicu aktív, z ktorej chcete aktíva zobraziť"
+
+
+msgid "All"
+msgstr "Všetky"
+
+
+msgid "Current File"
+msgstr "Aktuálny súbor"
+
+
+msgid "Essentials"
+msgstr "Základné údaje"
+
+
+msgid "Custom"
+msgstr "Vlastný"
 
 
 msgid "ID Name"
@@ -3944,10 +3960,6 @@ msgid "Theme color or custom color of a bone"
 msgstr "Farba motívu alebo vlastná farba kosti"
 
 
-msgid "Custom"
-msgstr "Vlastný"
-
-
 msgid "The custom bone colors, used when palette is 'CUSTOM'"
 msgstr "Vlastné farby kostí, ktoré sa používajú, keď je paleta 'VLASTNÁ'"
 
@@ -4421,10 +4433,6 @@ msgstr "Vyplní oblasť obrátene"
 
 msgid "Mode to draw boundary limits"
 msgstr "Režim na kreslenie limitov okrajov"
-
-
-msgid "All"
-msgstr "Všetky"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -19310,6 +19318,86 @@ msgid "Additional data for an asset data-block"
 msgstr "Prídavné údaje pre blok údajov aktív"
 
 
+msgid "Brush"
+msgstr "Štetec"
+
+
+msgid "Font"
+msgstr "Písmo"
+
+
+msgid "Key"
+msgstr "Kľúč"
+
+
+msgid "Library"
+msgstr "Knižnica"
+
+
+msgid "Light"
+msgstr "Svetlo"
+
+
+msgid "Light Probe"
+msgstr "Snímač svetla"
+
+
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Mesh"
+msgstr "Povrchová sieť"
+
+
+msgid "Metaball"
+msgstr "Meta guľa"
+
+
+msgid "Node Tree"
+msgstr "Uzol stromu"
+
+
+msgid "Paint Curve"
+msgstr "Maľovanie krivky"
+
+
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgid "Particle"
+msgstr "Častica"
+
+
+msgid "Point Cloud"
+msgstr "Mračno bodov"
+
+
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgid "Speaker"
+msgstr "Reproduktor"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Window Manager"
+msgstr "Manažér okna"
+
+
+msgid "Workspace"
+msgstr "Pracovný priestor"
+
+
+msgid "World"
+msgstr "Svet"
+
+
 msgid "Embedded Data"
 msgstr "Vsadené údaje"
 
@@ -19350,10 +19438,6 @@ msgid "This data-block is runtime data, i.e. it won't be saved in .blend file. N
 msgstr "Tento blok údajov sú údaje v čase priebehu, t. j. nebudú uložené v súbore .blend. Upozorňujeme, že napr. vyhodnotené identifikátory sú vždy v priebehu času, takže túto hodnotu je možné upravovať iba pre bloky údajov v hlavnej databáze"
 
 
-msgid "Library"
-msgstr "Knižnica"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "Prepojenie súboru knižnice na blok údajov"
 
@@ -19364,10 +19448,6 @@ msgstr "Knižnica Slabá referencia"
 
 msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
 msgstr "Slabá referencia na blok údajov v inom súbore knižnice .blend (používa sa na opätovné použitie už pridaných údajov namiesto pridávania nových kópií)"
-
-
-msgid "Unique data-block ID name"
-msgstr "Jedinečný názov ID bloku údajov"
 
 
 msgid "Full Name"
@@ -20605,10 +20685,6 @@ msgid "Jittering happens in screen space, in pixels"
 msgstr "Chvenie nastáva v priestore obrazovky, v pixeloch"
 
 
-msgid "Brush"
-msgstr "Štetec"
-
-
 msgid "Jittering happens relative to the brush size"
 msgstr "Chveniu nastáva relatívne k veľkosti štetca"
 
@@ -20674,10 +20750,6 @@ msgstr "Váha normálov"
 
 msgid "How much grab will pull vertices out of surface during a grab"
 msgstr "Ako veľmi budú vyťahované vrcholy z povrchu pri uchopení"
-
-
-msgid "Paint Curve"
-msgstr "Maľovanie krivky"
 
 
 msgid "Active paint curve"
@@ -22869,10 +22941,6 @@ msgid "Curve deforming text object"
 msgstr "Krivka deformácie objektu textu"
 
 
-msgid "Font"
-msgstr "Písmo"
-
-
 msgid "Font Bold"
 msgstr "Tučné písmo"
 
@@ -23351,10 +23419,6 @@ msgstr "Minimálna dĺžka krivých 2D čiar pre výber reťazí"
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "Ak je pravdivé, reťaze prvkov hrán sú oddelené od okrajov materiálu"
-
-
-msgid "Node Tree"
-msgstr "Uzol stromu"
 
 
 msgid "Node tree for node-based shaders"
@@ -25269,6 +25333,38 @@ msgid "Diffuse color of the material"
 msgstr "Rozptylová farba materiálu"
 
 
+msgid "Displacement Method"
+msgstr "Metóda posunutia"
+
+
+msgid "Method to use for the displacement"
+msgstr "Metóda použitá pri posunutí"
+
+
+msgid "Bump Only"
+msgstr "Len nerovnosti"
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "Mapovanie nerovností na simuláciu vzhľadu posunutie"
+
+
+msgid "Displacement Only"
+msgstr "Len posunutie"
+
+
+msgid "Use true displacement of surface only, requires fine subdivision"
+msgstr "Použije iba skutočné posunutie povrchu, vyžaduje jemné delenie"
+
+
+msgid "Displacement and Bump"
+msgstr "Posunutie a nerovnosti"
+
+
+msgid "Combination of true displacement and bump mapping for finer detail"
+msgstr "Kombinácia skutočného posunutia a mapovania nerovností pre jemnejší detail"
+
+
 msgid "Grease Pencil Settings"
 msgstr "Nastavenia pastelky"
 
@@ -25733,34 +25829,6 @@ msgid "Fix Poles"
 msgstr "Opraviť póly"
 
 
-msgid "Produces less poles and a better topology flow"
-msgstr "Vytvorí menej pólov a vylepšuje prúdenie topológie"
-
-
-msgid "Preserve Paint Mask"
-msgstr "Zachovať farbu masky"
-
-
-msgid "Keep the current mask on the new mesh"
-msgstr "Zachová aktuálnu masku na novej povrchovej sieti"
-
-
-msgid "Preserve Face Sets"
-msgstr "Zachovať sústavy plôšok"
-
-
-msgid "Keep the current Face Sets on the new mesh"
-msgstr "Zachová súčasnú sústavu plôšok na novej povrchovej sieti"
-
-
-msgid "Preserve Vertex Colors"
-msgstr "Zachovať farbu vrcholov"
-
-
-msgid "Keep the current vertex colors on the new mesh"
-msgstr "Na novej povrchovej sieti zachová aktuálne farby vrcholov"
-
-
 msgid "Projects the mesh to preserve the volume and details of the original mesh"
 msgstr "Premietne povrchovú sieť pre zachovanie objemu a detailov pôvodnej povrchovej siete"
 
@@ -25819,14 +25887,6 @@ msgstr "Normály vrcholov"
 
 msgid "The normal direction of each vertex, defined as the average of the surrounding face normals"
 msgstr "Normálový smer každého vrcholu definovaný ako priemer normálov okolitých plôšok"
-
-
-msgid "Vertex Paint Mask"
-msgstr "Maska maľby vrcholov"
-
-
-msgid "Vertex paint mask"
-msgstr "Maska maľby vrcholov"
 
 
 msgid "Vertices"
@@ -26237,16 +26297,8 @@ msgid "The node group is used for curves"
 msgstr "Skupina uzlov sa používa pre krivky"
 
 
-msgid "Mesh"
-msgstr "Povrchová sieť"
-
-
 msgid "The node group is used for meshes"
 msgstr "Skupina uzlov sa používa pre povrchové siete"
-
-
-msgid "Point Cloud"
-msgstr "Mračno bodov"
 
 
 msgid "The node group is used for point clouds"
@@ -26555,14 +26607,6 @@ msgstr "Modifikátory pastelky"
 
 msgid "Modifiers affecting the data of the grease pencil object"
 msgstr "Modifikátory ovplyvňujúce údaje objektu pastelky"
-
-
-msgid "Disable in Cubemap Probes"
-msgstr "Zakázať v snímačoch kockového mapovania"
-
-
-msgid "Globally disable in cubemap probes"
-msgstr "Globálne vypnutie snímačov v kockovej mape"
 
 
 msgid "Disable in Volume Probes"
@@ -27781,10 +27825,6 @@ msgstr "Rýchlosť objektu"
 
 msgid "Let the object give the particle a starting velocity"
 msgstr "Dovolí objektu dať častici počiatočnú rýchlosť"
-
-
-msgid "Particle"
-msgstr "Častica"
 
 
 msgid "Let the target particle give the particle a starting velocity"
@@ -29039,10 +29079,6 @@ msgid "Playback pitch of the sound"
 msgstr "Odstup prehrávania zvuku"
 
 
-msgid "Sound"
-msgstr "Zvuk"
-
-
 msgid "Sound data-block used by this speaker"
 msgstr "Blok údajov zvuku používaný týmto reproduktorom"
 
@@ -30270,10 +30306,6 @@ msgid "Name of the grid for the Z axis component of the velocity field if it was
 msgstr "Názov mriežky pre zložku poľa rýchlosti v osi Z, ak bolo rozdelené do viacerých mriežok"
 
 
-msgid "Window Manager"
-msgstr "Manažér okna"
-
-
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "Blok údajov Manažéra okna definujúci otváranie okien a ďalších údajov užívateľského rozhrania"
 
@@ -30380,10 +30412,6 @@ msgstr "Stav relácie XR"
 
 msgid "Runtime state information about the VR session"
 msgstr "Informácie o stave runtime v relácii VR"
-
-
-msgid "Workspace"
-msgstr "Pracovný priestor"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -33210,28 +33238,12 @@ msgid "Override default setting to insert keyframes based on 'visual transforms'
 msgstr "Prepíše predvolené nastavenie na vkladanie kľúčových snímok na základe \"vizuálnych transformácií\""
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "Prepíše farby F-krivky XYZ za RGB"
-
-
-msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
-msgstr "Prepíše predvolené nastavenie nastavením farby pre novo pridané transformácie F-kriviek (poloha, rotácia, mierka), ktoré majú byť založené na osi transformácie"
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "Vložiť kľúčové snímky - vizuálne"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "Vloží kľúčové snímky na základe 'vizuálnych transformácií'"
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "Farby F-krivky XYZ na RGB"
-
-
-msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) is based on the transform axis"
-msgstr "Farba pre novo pridané transformácie F-kriviek (poloha, rotácia, mierka) je založená na osi transformácie"
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
@@ -34961,10 +34973,6 @@ msgid "Override object and collection intersection priority value"
 msgstr "Prepíše hodnoty priority priesečníkov objektov a kolekcií"
 
 
-msgid "Mask"
-msgstr "Maska"
-
-
 msgid "Material slot in an object"
 msgstr "Zásuvka materiálu objektu"
 
@@ -35103,10 +35111,6 @@ msgid "Dope Sheet Channel"
 msgstr "Kanál expozičného hárku"
 
 
-msgid "Key"
-msgstr "Kľúč"
-
-
 msgid "Snap"
 msgstr "Prichytiť"
 
@@ -35199,10 +35203,6 @@ msgstr "Špeciálne skupiny vrcholov"
 
 msgid "NLA"
 msgstr "NLA"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Utilities"
@@ -35548,10 +35548,6 @@ msgid "Select Similar"
 msgstr "Vybrať podobné"
 
 
-msgid "Metaball"
-msgstr "Meta guľa"
-
-
 msgid "Face Sets Init"
 msgstr "Počiatočná sústava plôšok"
 
@@ -35566,14 +35562,6 @@ msgstr "Háky"
 
 msgid "Add Image"
 msgstr "Pridať obrázok"
-
-
-msgid "Light"
-msgstr "Svetlo"
-
-
-msgid "Light Probe"
-msgstr "Snímač svetla"
 
 
 msgid "Link/Transfer Data"
@@ -35894,22 +35882,6 @@ msgstr "Vektor normálu povrchovej siete"
 
 msgid "Vector in a mesh normal array"
 msgstr "Vektor v poli normálov povrchovej siete"
-
-
-msgid "Mesh Paint Mask Layer"
-msgstr "Vrstva maľby masky povrchovej siete"
-
-
-msgid "Per-vertex paint mask data"
-msgstr "Údaje maľby masky na vrchol"
-
-
-msgid "Mesh Paint Mask Property"
-msgstr "Vlastnosť maľby masky povrchovej siete"
-
-
-msgid "Floating-point paint mask value"
-msgstr "Hodnota bodu na pohyblivej čiarke maľby masky"
 
 
 msgid "Mesh Polygon"
@@ -39225,10 +39197,6 @@ msgstr "Priestor použitý pri kopírovaní údajov z povrchovej siete"
 
 msgid "Use offset from the particle object in the instance object"
 msgstr "Použiť posuv objektu častice v objekte inštancie"
-
-
-msgid "World"
-msgstr "Svet"
 
 
 msgid "Use world space offset in the instance object"
@@ -51001,10 +50969,6 @@ msgid "Insert Keyframe"
 msgstr "Vložiť kľúčovú snímku"
 
 
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Vloží kľúčové snímky na aktuálnu snímku pre všetky vlastnosti určených v sústave kľúčovania"
-
-
 msgctxt "Operator"
 msgid "Insert Keyframe (Buttons)"
 msgstr "Vložiť kľúčovú snímku (tlačidlá)"
@@ -57597,10 +57561,6 @@ msgstr "Identifikátor knižnice aktív"
 
 msgid "Asset Library Type"
 msgstr "Typ knižnice aktív"
-
-
-msgid "Essentials"
-msgstr "Základné údaje"
 
 
 msgid "Name of the data-block to use by the operator"
@@ -65898,14 +65858,6 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "Akcia vytláčania na vrchol zásobníka NLA ako nového pásu"
 
 
-msgid "Channel Index"
-msgstr "Index kanála"
-
-
-msgid "Index of NLA action channel to perform pushdown operation on"
-msgstr "Index akčného kanála NLA na vykonanie operácie vytlačenia"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Synchronizácia dĺžky akcie"
@@ -66686,6 +66638,11 @@ msgstr "Prepne skrytie vybraných uzlov"
 
 
 msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Odstrániť položku"
+
+
+msgctxt "Operator"
 msgid "Insert Offset"
 msgstr "Posuv vkladania"
 
@@ -66714,11 +66671,6 @@ msgstr "Pridá novú položku do rozhrania"
 
 msgid "Type of the item to create"
 msgstr "Typ položky na vytvorenie"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Odstrániť položku"
 
 
 msgid "Remove active item from the interface"
@@ -69221,10 +69173,6 @@ msgstr "Určí cieľovú dĺžku hrany v novej povrchovej siete"
 
 msgid "Input target number of faces in the new mesh"
 msgstr "Určí cieľový počet plôšok v novej povrchovej siete"
-
-
-msgid "Reproject the paint mask onto the new mesh"
-msgstr "Znovu premietne maľbu masky na novú povrchovú sieť"
 
 
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
@@ -72156,10 +72104,6 @@ msgstr "Spojiť vzorky paliet"
 
 msgid "Join Palette Swatches"
 msgstr "Spojí vzorky paliet"
-
-
-msgid "Palette"
-msgstr "Paleta"
 
 
 msgid "Name of the Palette"
@@ -82891,10 +82835,6 @@ msgid "Python value for unsupported custom property types"
 msgstr "Hodnota jazyka Python pre nepodporované vlastné typy vlastností"
 
 
-msgid "Speaker"
-msgstr "Reproduktor"
-
-
 msgid "Library Overridable"
 msgstr "Prepisovateľná knižnica"
 
@@ -90954,38 +90894,6 @@ msgid "Use multiple importance sampling for the light, reduces noise for area li
 msgstr "Použije Snímanie viacnásobnou dôležitosťou svetla, znižuje šum svetelnej plochy a ostrý odlesk materiálov"
 
 
-msgid "Displacement Method"
-msgstr "Metóda posunutia"
-
-
-msgid "Method to use for the displacement"
-msgstr "Metóda použitá pri posunutí"
-
-
-msgid "Bump Only"
-msgstr "Len nerovnosti"
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "Mapovanie nerovností na simuláciu vzhľadu posunutie"
-
-
-msgid "Displacement Only"
-msgstr "Len posunutie"
-
-
-msgid "Use true displacement of surface only, requires fine subdivision"
-msgstr "Použije iba skutočné posunutie povrchu, vyžaduje jemné delenie"
-
-
-msgid "Displacement and Bump"
-msgstr "Posunutie a nerovnosti"
-
-
-msgid "Combination of true displacement and bump mapping for finer detail"
-msgstr "Kombinácia skutočného posunutia a mapovania nerovností pre jemnejší detail"
-
-
 msgctxt "Light"
 msgid "Emission Sampling"
 msgstr "Snímanie emisie"
@@ -96382,6 +96290,10 @@ msgid "Show Annotations in OpenGL previews"
 msgstr "Zobrazí poznámky v náhľadoch OpenGL"
 
 
+msgid "Playback volume of the sound"
+msgstr "Hlasitosť prehrávania zvuku"
+
+
 msgid "Sound Sequence"
 msgstr "Sekvencia zvuku"
 
@@ -96409,10 +96321,6 @@ msgstr "Zobrazí tvarovú vlnu vnútri pásu"
 
 msgid "Sound data-block used by this sequence"
 msgstr "Blok údajov zvuku používaný touto sekvenciou"
-
-
-msgid "Playback volume of the sound"
-msgstr "Hlasitosť prehrávania zvuku"
 
 
 msgid "Sequence Color Balance Data"
@@ -111635,13 +111543,13 @@ msgstr "Vlastné pohlcovanie"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Zamknúť nevybrané"
+msgid "Lock Unused"
+msgstr "Zamknúť nepoužité"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Zamknúť nepoužité"
+msgid "Lock Unselected"
+msgstr "Zamknúť nevybrané"
 
 
 msgctxt "Operator"
@@ -111690,10 +111598,6 @@ msgstr "Zarovnať normály vrcholov"
 
 msgid "Show Instancer"
 msgstr "Zobraziť vzor inštancie"
-
-
-msgid "Cubemap"
-msgstr "Kockové mapovanie"
 
 
 msgctxt "Time"
@@ -112618,10 +112522,6 @@ msgstr "Potrebné"
 
 msgid "Visual"
 msgstr "Vizuálne"
-
-
-msgid "XYZ to RGB"
-msgstr "XYZ na RGB"
 
 
 msgid "Active Set Override"
@@ -115256,6 +115156,10 @@ msgid "Default Handles"
 msgstr "Predvolené manipulátory"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ na RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "Zásobník zmiešavania"
 
@@ -115906,11 +115810,6 @@ msgstr "Pozadie"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Vytvoriť lokálne..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Vložiť kľúčovú snímku..."
 
 
 msgctxt "Operator"
@@ -119159,6 +119058,10 @@ msgid "No keyframes to focus on"
 msgstr "Žiadne kľúčové snímky na zameranie"
 
 
+msgid "Nothing selected"
+msgstr "Nič vybraté"
+
+
 msgid "<invalid>"
 msgstr "<neplatné>"
 
@@ -120248,10 +120151,6 @@ msgstr "Režim editácie krivky nie je podporovaný"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Nemožno oddeliť objekt iba s jednou vrstvou"
-
-
-msgid "Nothing selected"
-msgstr "Nič vybraté"
 
 
 msgid "No active area"
@@ -125077,34 +124976,6 @@ msgid "Active Strip Name"
 msgstr "Názov aktívneho pásu"
 
 
-msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
-msgstr "Žiadny aktívny blok údajov animácie na použitie (vyberte najprv blok údajov rozšírenia alebo nastavte príslušné príznaky bloku údajov animácie)"
-
-
-msgid "Internal Error - AnimData block is not valid"
-msgstr "Vnútorná chyba – blok údajov animácie je neplatný"
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "Nemožno pretlačiť akcie nadol počas potiahnutie akcií pásu, skôr než ukončíte režim potiahnutia"
-
-
-msgid "No active action to push down"
-msgstr "Žiadna aktívna akcia na pretlačenie"
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "Najprv vyberte existujúcu stopu NLA alebo prázdny riadok akcie"
-
-
-msgid "No animation channel found at index %d"
-msgstr "V indexe %d sa nenašiel žiadny kanála animácie"
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "Kanál animácie v indexe %d nie je kanálom 'aktívnej akcie' NLA"
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "Chýba blok údajov animácie pre vstup do režimu potiahnutia"
 
@@ -125159,6 +125030,26 @@ msgstr "Nemožno vymeniť '%s' a '%s' ako jeden alebo obidva sa nebudú môcť p
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "Modifikátor nemožno pridať do (%s : %s) (podrobnosti nájdete na konzole)"
+
+
+msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
+msgstr "Žiadny aktívny blok údajov animácie na použitie (vyberte najprv blok údajov rozšírenia alebo nastavte príslušné príznaky bloku údajov animácie)"
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "Vnútorná chyba – blok údajov animácie je neplatný"
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "Nemožno pretlačiť akcie nadol počas potiahnutie akcií pásu, skôr než ukončíte režim potiahnutia"
+
+
+msgid "No active action to push down"
+msgstr "Žiadna aktívna akcia na pretlačenie"
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "Najprv vyberte existujúcu stopu NLA alebo prázdny riadok akcie"
 
 
 msgid ""
@@ -125899,10 +125790,6 @@ msgstr "Nemožno vymazať vložený prepis knižnice '%s', priamo možno vymaza�
 
 msgid "Cannot clear linked library override '%s', only local overrides can be directly cleared"
 msgstr "Nemožno vymazať prepis prepojenej knižnice '%s', priamo možno vymazať len lokálne prepisy"
-
-
-msgid "Current File"
-msgstr "Aktuálny súbor"
 
 
 msgid "No Library Overrides"

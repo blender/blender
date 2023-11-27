@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -1273,6 +1273,18 @@ msgstr "Dữ Liệu Tích Sản"
 
 msgid "Asset Library"
 msgstr "Thư Viện Tích Sản"
+
+
+msgid "All"
+msgstr "Tất Cả"
+
+
+msgid "Current File"
+msgstr "Tập Tin Hiện Tại"
+
+
+msgid "Custom"
+msgstr "Tùy Chọn"
 
 
 msgid "ID Name"
@@ -3571,10 +3583,6 @@ msgid "Active Collection"
 msgstr "Sưu Tập Hoạt Động"
 
 
-msgid "Custom"
-msgstr "Tùy Chọn"
-
-
 msgid "Bool Attribute Value"
 msgstr "Giá Trị Đặc Điểm Bool"
 
@@ -4005,10 +4013,6 @@ msgstr "Tô đầy vùng nội bộ"
 
 msgid "Mode to draw boundary limits"
 msgstr "Chế độ để vẽ giới hạn ranh giới"
-
-
-msgid "All"
-msgstr "Tất Cả"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -18075,6 +18079,86 @@ msgid "Additional data for an asset data-block"
 msgstr "Dữ liệu thêm cho một cục dữ liệu tích sản"
 
 
+msgid "Brush"
+msgstr "Bút"
+
+
+msgid "Font"
+msgstr "Phông"
+
+
+msgid "Key"
+msgstr "Bức Ảnh Mẫu"
+
+
+msgid "Library"
+msgstr "Thư Viện"
+
+
+msgid "Light"
+msgstr "Nhẹ"
+
+
+msgid "Light Probe"
+msgstr "Quang Kế"
+
+
+msgid "Mask"
+msgstr "Mặt Nạ"
+
+
+msgid "Mesh"
+msgstr "Mạng Lưới"
+
+
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
+msgid "Node Tree"
+msgstr "Cây Giao Điểm"
+
+
+msgid "Paint Curve"
+msgstr "Đường Cong Nước Sơn"
+
+
+msgid "Palette"
+msgstr "Bảng Màu"
+
+
+msgid "Particle"
+msgstr "Hạt"
+
+
+msgid "Point Cloud"
+msgstr "Điểm Mây"
+
+
+msgid "Sound"
+msgstr "Âm Thanh"
+
+
+msgid "Speaker"
+msgstr "Loa"
+
+
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgid "Window Manager"
+msgstr "Bộ Quản Lý Cửa Sổ"
+
+
+msgid "Workspace"
+msgstr "Công Trường"
+
+
+msgid "World"
+msgstr "Thế Giới"
+
+
 msgid "Embedded Data"
 msgstr "Dữ Liệu Đã Nhét"
 
@@ -18099,10 +18183,6 @@ msgid "Is this ID block linked indirectly"
 msgstr "Cục ID này được liên kết gián tiếp"
 
 
-msgid "Library"
-msgstr "Thư Viện"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "Tập tin thư viện được nối với cục dữ liệu nào"
 
@@ -18113,10 +18193,6 @@ msgstr "Tham Chiếu Thư Viện Yếu"
 
 msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
 msgstr "Tham chiếu yếu đến một cục dữ liệu trong một tập tin .blend thư viện khác (dùng cho sử dụng lại dữ liệu kèm rồi thay thế kèm bản sao mới)"
-
-
-msgid "Unique data-block ID name"
-msgstr "Tên ID cục dữ liệu độc đáo"
 
 
 msgid "Full Name"
@@ -19056,10 +19132,6 @@ msgid "Jittering happens in screen space, in pixels"
 msgstr "Hốt hoảng được xảy ra trong không gian màn (đơn vị điểm ảnh)"
 
 
-msgid "Brush"
-msgstr "Bút"
-
-
 msgid "Jittering happens relative to the brush size"
 msgstr "Hốt hoảng được xảy ra tương đối với kích thước bút"
 
@@ -19110,10 +19182,6 @@ msgstr "Quyền Lượng Bình Thường"
 
 msgid "How much grab will pull vertices out of surface during a grab"
 msgstr "Mức độ cầm sẽ kéo đỉnh ra khỏi bề mật khi cầm"
-
-
-msgid "Paint Curve"
-msgstr "Đường Cong Nước Sơn"
 
 
 msgid "Active paint curve"
@@ -21036,10 +21104,6 @@ msgid "Curve deforming text object"
 msgstr "Đường cong đang méo hóa vật thể văn bản"
 
 
-msgid "Font"
-msgstr "Phông"
-
-
 msgid "Font Bold"
 msgstr "Phông Đậm"
 
@@ -21470,10 +21534,6 @@ msgstr "Bề dài cong 2 cực tiểu cho lực chọn chuỗi"
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "Nếu đúng, chuỗi của cạnh đặc trưng được chẻ tại ranh giới vật liệu"
-
-
-msgid "Node Tree"
-msgstr "Cây Giao Điểm"
 
 
 msgid "Node tree for node-based shaders"
@@ -23195,6 +23255,38 @@ msgid "Diffuse color of the material"
 msgstr "Màu tán xạ của vật liệu"
 
 
+msgid "Displacement Method"
+msgstr "Phương Pháp Dịch Bề Mặt"
+
+
+msgid "Method to use for the displacement"
+msgstr "Dùng phương pháp nào cho dịch"
+
+
+msgid "Bump Only"
+msgstr "Chỉ Nhám"
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "Bản đồ nhám để mô phỏng hiện tượng dịch bề mặt"
+
+
+msgid "Displacement Only"
+msgstr "Chỉ Dịch"
+
+
+msgid "Use true displacement of surface only, requires fine subdivision"
+msgstr "Chỉ sử dụng sự nới thật của bề mặt, yêu cầu có độ phân hóa nhiễn"
+
+
+msgid "Displacement and Bump"
+msgstr "Dịch và Nhám"
+
+
+msgid "Combination of true displacement and bump mapping for finer detail"
+msgstr "Gồm cả hai, bản đồ dịch và nhám cho có chi tiếi rõ hơn"
+
+
 msgid "Grease Pencil Settings"
 msgstr "Cài Đặt Bút Sáp"
 
@@ -23595,34 +23687,6 @@ msgid "Fix Poles"
 msgstr "Sửa Cực"
 
 
-msgid "Produces less poles and a better topology flow"
-msgstr "Nó gỉm tạo cực và có lưu vòng hình dạng học tốt hơn"
-
-
-msgid "Preserve Paint Mask"
-msgstr "Giữ Lại Mặt Nạ Sơn"
-
-
-msgid "Keep the current mask on the new mesh"
-msgstr "Giữ lại mặt nạ hiện tại trên mạng lưới mới"
-
-
-msgid "Preserve Face Sets"
-msgstr "Giữ Nguyên Tập Hợp Mặt"
-
-
-msgid "Keep the current Face Sets on the new mesh"
-msgstr "Giữ lại tập hợp mặt hiện tại trên mạng lưới mới"
-
-
-msgid "Preserve Vertex Colors"
-msgstr "Giữ Nguyên Màu Đỉnh"
-
-
-msgid "Keep the current vertex colors on the new mesh"
-msgstr "Giữ lại màu định hiện tại trên mạng lưới mới"
-
-
 msgid "Projects the mesh to preserve the volume and details of the original mesh"
 msgstr "Chiếu mạng lưới để giữ nguyên thể tích và chi tiết của mạng lưới ban đầu"
 
@@ -23681,14 +23745,6 @@ msgstr "Pháp Tuyến Đỉnh"
 
 msgid "The normal direction of each vertex, defined as the average of the surrounding face normals"
 msgstr "Hướng pháp tuyến từng đỉnh, được chỉ định bởi giá trị trung bình của pháp tuyến của các mặt xung quanh"
-
-
-msgid "Vertex Paint Mask"
-msgstr "Mặt Nạ Sơn Đỉnh"
-
-
-msgid "Vertex paint mask"
-msgstr "Mặt nạ sơn đỉnh"
 
 
 msgid "Vertices"
@@ -24005,14 +24061,6 @@ msgstr "Bộ Điều Chỉnh"
 
 msgid "Tool"
 msgstr "Dụng Cụ"
-
-
-msgid "Mesh"
-msgstr "Mạng Lưới"
-
-
-msgid "Point Cloud"
-msgstr "Điểm Mây"
 
 
 msgid "Shader Node Tree"
@@ -25471,10 +25519,6 @@ msgid "Let the object give the particle a starting velocity"
 msgstr "Cho vật thể được đặt tốc độ bắt đầu của hạt"
 
 
-msgid "Particle"
-msgstr "Hạt"
-
-
 msgid "Let the target particle give the particle a starting velocity"
 msgstr "Cho hạt mục tiêu được đặt tốc độ bắt đầu của hạt"
 
@@ -26632,10 +26676,6 @@ msgstr "Tần Số"
 
 msgid "Playback pitch of the sound"
 msgstr "Tần số khi hát lại âm thanh"
-
-
-msgid "Sound"
-msgstr "Âm Thanh"
 
 
 msgid "Sound data-block used by this speaker"
@@ -27810,10 +27850,6 @@ msgid "Name of the grid for the Z axis component of the velocity field if it was
 msgstr "Tên của đồ thị cho thành phần Z của vận tốc trường, nếu vận tốc được chẻ thành nhiêu đồ thị"
 
 
-msgid "Window Manager"
-msgstr "Bộ Quản Lý Cửa Sổ"
-
-
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "Cục dữ liệu quản lý cửa sổ được định nghĩa các cửa sổ mở và dữ liệu giao diện khác"
 
@@ -27920,10 +27956,6 @@ msgstr "Trạng Thái Phiên Chạy XR"
 
 msgid "Runtime state information about the VR session"
 msgstr "Thông tin trạng thái của thời gian chạy của phiên chạy VR"
-
-
-msgid "Workspace"
-msgstr "Công Trường"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -30626,28 +30658,12 @@ msgid "Override default setting to insert keyframes based on 'visual transforms'
 msgstr "Vượt quyền cài đặt mặc định cho chèn bức ảnh mẫu tùy 'biến hóa thị giác'"
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "Vượt quyền Màu Cong-F - XYZ đến RGB"
-
-
-msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
-msgstr "Vượt quyền cài đặt mặc định cho đặt màu cho Cong-F biến hóa mới thêm (Vị Trí, Xoay, Phóng To) tùy trục biến hóa"
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "Chèn Bức Ảnh Mẫu - Thị Giác"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "Chèn bức ảnh mẫu tùy 'biến hóa hiển thị'"
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "Màu Cong-F - XYZ đến RGB"
-
-
-msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) is based on the transform axis"
-msgstr "Màu cho Cong-F biến hóa mới thêm (Vị Trí, Xoay, Phóng To) tùy trục biến hóa"
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
@@ -32315,10 +32331,6 @@ msgid "Override object and collection intersection priority value"
 msgstr "Vượt quyền giá trị ưu tiên của vật thể và giao cắt sưu tập"
 
 
-msgid "Mask"
-msgstr "Mặt Nạ"
-
-
 msgid "Material slot in an object"
 msgstr "Khe vật liệu trong một vật thể"
 
@@ -32436,10 +32448,6 @@ msgid "Dope Sheet Channel"
 msgstr "Kênh Bảng Hoạt Hình"
 
 
-msgid "Key"
-msgstr "Bức Ảnh Mẫu"
-
-
 msgid "Snap"
 msgstr "Hút Dính"
 
@@ -32515,10 +32523,6 @@ msgstr "Đồ Đặc Biệt Mẫu Dạng"
 
 msgid "Vertex Group Specials"
 msgstr "Đồ Đặc Biệt Nhóm Đỉnh"
-
-
-msgid "Text"
-msgstr "Văn Bản"
 
 
 msgid "Utilities"
@@ -32838,10 +32842,6 @@ msgid "Select Similar"
 msgstr "Chọn Giống"
 
 
-msgid "Metaball"
-msgstr "Siêu Cầu"
-
-
 msgid "Face Sets Init"
 msgstr "Khởi Động Tập Hợp Mặt"
 
@@ -32856,14 +32856,6 @@ msgstr "Móc"
 
 msgid "Add Image"
 msgstr "Thêm Ảnh"
-
-
-msgid "Light"
-msgstr "Nhẹ"
-
-
-msgid "Light Probe"
-msgstr "Quang Kế"
 
 
 msgid "Link/Transfer Data"
@@ -33156,22 +33148,6 @@ msgstr "Vectơ Pháp Tuyến Mạng Lưới"
 
 msgid "Vector in a mesh normal array"
 msgstr "Vectơ trong một mảng pháp tuyến mạng lưới"
-
-
-msgid "Mesh Paint Mask Layer"
-msgstr "Lớp Mặt Nạ Sơn Lưới"
-
-
-msgid "Per-vertex paint mask data"
-msgstr "Dữ liệu mặt nạ sơn từng đỉnh"
-
-
-msgid "Mesh Paint Mask Property"
-msgstr "Đặc Tính Mặt Nạ Sơn Mạng Lưới"
-
-
-msgid "Floating-point paint mask value"
-msgstr "Giá trị mặt nạ nước sơn số thật dấu phẩy động"
 
 
 msgid "Mesh Polygon"
@@ -36280,10 +36256,6 @@ msgstr "Không gian để sử dụng chép dữ liệu mạng lưới"
 
 msgid "Use offset from the particle object in the instance object"
 msgstr "Sử dụng dịch từ vật thể hạt trong vật thể thực thể"
-
-
-msgid "World"
-msgstr "Thế Giới"
 
 
 msgid "Use world space offset in the instance object"
@@ -46781,10 +46753,6 @@ msgstr "Xóa bức ảnh mẫu trong bức ảnh hiện tại cho vật thể v�
 msgctxt "Operator"
 msgid "Insert Keyframe"
 msgstr "Chèn Bức Ảnh Mẫu"
-
-
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "Chèn bức ảnh mẫu vào bức ảnh hiện tại cho hết đặc tính trong Tập Mẫu Dạng xác định"
 
 
 msgctxt "Operator"
@@ -59938,14 +59906,6 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "Đẩy hành động xuống trên xếp đống NLA để làm một đoạn mới"
 
 
-msgid "Channel Index"
-msgstr "Chỉ Số Kênh"
-
-
-msgid "Index of NLA action channel to perform pushdown operation on"
-msgstr "Chỉ số kênh hành động NLA để thực hành thao tác đẩy xuống"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Đồng Bộ Chiều Dài Hoạt Động"
@@ -62882,10 +62842,6 @@ msgid "Input target number of faces in the new mesh"
 msgstr "Gõ số lượng mặt cho mạng lưới mới"
 
 
-msgid "Reproject the paint mask onto the new mesh"
-msgstr "Chiéu lại mặt nạ sơn trên mạng lưới mới"
-
-
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
 msgstr "Số hạy ngẫu nhiên để dùng với trình giải nghiệm. Số hạt khác sẽ ảnh hưởng bộ làm lại mạng lưới sáng tạo mẫu bố cục tư giác khác nhau trên mạng lưới"
 
@@ -65610,10 +65566,6 @@ msgstr "Góp Bảng Màu"
 
 msgid "Join Palette Swatches"
 msgstr "Góp Bảng Màu"
-
-
-msgid "Palette"
-msgstr "Bảng Màu"
 
 
 msgid "Name of the Palette"
@@ -75401,10 +75353,6 @@ msgid "Python value for unsupported custom property types"
 msgstr "Giá trị Python cho loại đặc tính tùy chọn không được hỗ trợ"
 
 
-msgid "Speaker"
-msgstr "Loa"
-
-
 msgid "Library Overridable"
 msgstr "Có Thể Vượt Quyền Bằng Thư Viện"
 
@@ -82562,38 +82510,6 @@ msgid "Use multiple importance sampling for the light, reduces noise for area li
 msgstr "Dùng đa mẫu vật quan trọng cho đèn, được giảm huyên náo cho đèn diện tích và vật liệu bóng loáng"
 
 
-msgid "Displacement Method"
-msgstr "Phương Pháp Dịch Bề Mặt"
-
-
-msgid "Method to use for the displacement"
-msgstr "Dùng phương pháp nào cho dịch"
-
-
-msgid "Bump Only"
-msgstr "Chỉ Nhám"
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "Bản đồ nhám để mô phỏng hiện tượng dịch bề mặt"
-
-
-msgid "Displacement Only"
-msgstr "Chỉ Dịch"
-
-
-msgid "Use true displacement of surface only, requires fine subdivision"
-msgstr "Chỉ sử dụng sự nới thật của bề mặt, yêu cầu có độ phân hóa nhiễn"
-
-
-msgid "Displacement and Bump"
-msgstr "Dịch và Nhám"
-
-
-msgid "Combination of true displacement and bump mapping for finer detail"
-msgstr "Gồm cả hai, bản đồ dịch và nhám cho có chi tiếi rõ hơn"
-
-
 msgid "Homogeneous Volume"
 msgstr "Thể Tích Đồng Loại"
 
@@ -87272,6 +87188,10 @@ msgid "Show Annotations in OpenGL previews"
 msgstr "Hiện Lời Ghi Chú trong dự khán OpenGL"
 
 
+msgid "Playback volume of the sound"
+msgstr "Âm lượng hát lại âm thanh"
+
+
 msgid "Sound Sequence"
 msgstr "Trình Tự Âm Thanh"
 
@@ -87294,10 +87214,6 @@ msgstr "Hiển thị dạng sóng của âm thanh ở trong đoạn"
 
 msgid "Sound data-block used by this sequence"
 msgstr "Cục dữ liệu âm thanh được trình tự này dùng"
-
-
-msgid "Playback volume of the sound"
-msgstr "Âm lượng hát lại âm thanh"
 
 
 msgid "Sequence Color Balance Data"
@@ -100514,13 +100430,13 @@ msgstr "Che Khuất Tùy Chọn"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Khóa Không Được Chọn"
+msgid "Lock Unused"
+msgstr "Khóa Không Được Dùng"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Khóa Không Được Dùng"
+msgid "Lock Unselected"
+msgstr "Khóa Không Được Chọn"
 
 
 msgctxt "Operator"
@@ -101450,10 +101366,6 @@ msgstr "Cần"
 
 msgid "Visual"
 msgstr "Thị Giác"
-
-
-msgid "XYZ to RGB"
-msgstr "XYZ đến RGB"
 
 
 msgid "Active Set Override"
@@ -103843,6 +103755,10 @@ msgid "Default Handles"
 msgstr "Tay Cầm Mặc Định"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ đến RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "Đệm Pha Trộn"
 
@@ -104396,11 +104312,6 @@ msgstr "Nền"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Làm Địa Phương..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Chèn Bức Ảnh Mẫu..."
 
 
 msgctxt "Operator"
@@ -107046,6 +106957,10 @@ msgid "Can't edit this property from a linked data-block"
 msgstr "Không thể biên tập đặc tính này từ một cục dữ liệu được liên kết"
 
 
+msgid "Nothing selected"
+msgstr "Chưa chọn cái gì"
+
+
 msgid "<invalid>"
 msgstr "<không hợp lệ>"
 
@@ -107893,10 +107808,6 @@ msgstr "Không có (các) bức ảnh hoạt động nào để xóa"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Không thể chia riêng một vật thể chỉ có một lớp"
-
-
-msgid "Nothing selected"
-msgstr "Chưa chọn cái gì"
 
 
 msgid "No active area"
@@ -111962,34 +111873,6 @@ msgid "Active Strip Name"
 msgstr "Tên Đoạn Hoạt Động"
 
 
-msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
-msgstr "Không có cục Dữ Liệu Hoạt Hình hoạt động để dùng (trước chọn một bộ mở rộng cục dữ liệu hay đặt các cờ cần trong một cục Dữ Liệu Hoạt Hình)"
-
-
-msgid "Internal Error - AnimData block is not valid"
-msgstr "Sai Lầm Nội Bộ - Cục Dữ Liệu Hoạt Hình không hợp lệ"
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "Không thể đẩy xuống hành động khi đang chỉnh hành động của một đoạn, hãy thoát chế độ chỉnh trước"
-
-
-msgid "No active action to push down"
-msgstr "Không có hành động hoạt động để đẩy xuống"
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "Chọn một Rãnh NLA tồn tại hay một dòng hành động rỗng trước"
-
-
-msgid "No animation channel found at index %d"
-msgstr "Không tìm được kênh hoạt hình tại chỉ số %d"
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "Kênh hoạt hình tại chỉ số %d không phải là kênh 'Hành Động Hoạt Động' NLA"
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "Không có cục Dữ Liệu Hoạt Hình để vào chế độ chỉnh"
 
@@ -112040,6 +111923,26 @@ msgstr "Không thể trao đổi '%s' và '%s' vì một hay cả hai không v�
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "Không thể thêm bộ điều chỉnh cho (%s : %s) (xem chi tiết trong diện điều khiển)"
+
+
+msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
+msgstr "Không có cục Dữ Liệu Hoạt Hình hoạt động để dùng (trước chọn một bộ mở rộng cục dữ liệu hay đặt các cờ cần trong một cục Dữ Liệu Hoạt Hình)"
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "Sai Lầm Nội Bộ - Cục Dữ Liệu Hoạt Hình không hợp lệ"
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "Không thể đẩy xuống hành động khi đang chỉnh hành động của một đoạn, hãy thoát chế độ chỉnh trước"
+
+
+msgid "No active action to push down"
+msgstr "Không có hành động hoạt động để đẩy xuống"
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "Chọn một Rãnh NLA tồn tại hay một dòng hành động rỗng trước"
 
 
 msgid "Some nodes references could not be restored, will be left empty"
@@ -112578,10 +112481,6 @@ msgstr "Đã tìm rễ tầng bậc không hợp lệ ('%s'), cần để chế 
 
 msgid "Could not create library override from one or more of the selected data-blocks"
 msgstr "Không thể chế tạo được đồ vượt quyền thư viện từ một hay nhiều hơn dữ liệu được chọn"
-
-
-msgid "Current File"
-msgstr "Tập Tin Hiện Tại"
 
 
 msgid "No Library Overrides"

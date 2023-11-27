@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -343,6 +343,10 @@ msgid "X Position"
 msgstr "स्थिति x"
 
 
+msgid "All"
+msgstr "सभी"
+
+
 msgid "Display Filter"
 msgstr "निस्पादक प्रदर्शित करें"
 
@@ -649,10 +653,6 @@ msgstr "दिशा"
 
 msgid "Dissolve"
 msgstr "भंग"
-
-
-msgid "All"
-msgstr "सभी"
 
 
 msgid "Radius"
@@ -1734,6 +1734,46 @@ msgid "Show Line"
 msgstr "रेखा दिखाएँ"
 
 
+msgid "Brush"
+msgstr "तूलिका"
+
+
+msgid "Font"
+msgstr "मुद्र"
+
+
+msgid "Key"
+msgstr "कुंजी"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Mask"
+msgstr "आवरण"
+
+
+msgid "Mesh"
+msgstr "जाल"
+
+
+msgid "Sound"
+msgstr "ध्वनि"
+
+
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Window Manager"
+msgstr "खिडकी प्रबंधक"
+
+
+msgid "World"
+msgstr "जगत"
+
+
 msgid "Tag"
 msgstr "टैग"
 
@@ -1812,10 +1852,6 @@ msgstr "दोहराएँ"
 
 msgid "Clamp"
 msgstr "कीलक"
-
-
-msgid "Brush"
-msgstr "तूलिका"
 
 
 msgid "Normal Weight"
@@ -1948,10 +1984,6 @@ msgstr "स्वरूप संपादन"
 
 msgid "Text on Curve"
 msgstr "वक्र पर पाठ"
-
-
-msgid "Font"
-msgstr "मुद्र"
 
 
 msgid "Font Bold"
@@ -2234,10 +2266,6 @@ msgid "Tool"
 msgstr "यंत्र"
 
 
-msgid "Mesh"
-msgstr "जाल"
-
-
 msgid "Data"
 msgstr "सामग्री"
 
@@ -2459,10 +2487,6 @@ msgid "Mute the speaker"
 msgstr "स्पीकर म्यूट करें"
 
 
-msgid "Sound"
-msgstr "ध्वनि"
-
-
 msgid "Current Line"
 msgstr "वर्तमान रेखा"
 
@@ -2549,10 +2573,6 @@ msgstr "मोड"
 
 msgid "Rings"
 msgstr "छल्ले"
-
-
-msgid "Window Manager"
-msgstr "खिडकी प्रबंधक"
 
 
 msgid "Category"
@@ -2755,10 +2775,6 @@ msgid "Flip"
 msgstr "पलटें"
 
 
-msgid "Mask"
-msgstr "आवरण"
-
-
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "छांटन"
@@ -2780,10 +2796,6 @@ msgid "Channel"
 msgstr "सरणि"
 
 
-msgid "Key"
-msgstr "कुंजी"
-
-
 msgid "Snap"
 msgstr "स्नैप"
 
@@ -2799,10 +2811,6 @@ msgstr "संरेखित करें"
 msgctxt "Operator"
 msgid "Add"
 msgstr "जोड़ें"
-
-
-msgid "Text"
-msgstr "पाठ"
 
 
 msgid "Math"
@@ -2903,10 +2911,6 @@ msgstr "हड्डी पंजी"
 
 msgid "Hooks"
 msgstr "खूँटी"
-
-
-msgid "Light"
-msgstr "प्रकाश"
 
 
 msgid "Make Single User"
@@ -3031,10 +3035,6 @@ msgstr "बाध्य"
 
 msgid "Copy"
 msgstr "प्रतिलिपि"
-
-
-msgid "World"
-msgstr "जगत"
 
 
 msgid "Limits"

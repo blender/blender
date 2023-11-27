@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2023-10-30 06:54+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -1409,6 +1409,22 @@ msgstr "アセットライブラリ"
 
 msgid "Choose the asset library to display assets from"
 msgstr "表示するアセットのあるアセットライブラリを選択します"
+
+
+msgid "All"
+msgstr "全て"
+
+
+msgid "Current File"
+msgstr "現在のファイル"
+
+
+msgid "Essentials"
+msgstr "エッセンシャル"
+
+
+msgid "Custom"
+msgstr "カスタム"
 
 
 msgid "ID Name"
@@ -3938,10 +3954,6 @@ msgid "Theme color or custom color of a bone"
 msgstr "ボーンのテーマカラーまたはカスタムカラー"
 
 
-msgid "Custom"
-msgstr "カスタム"
-
-
 msgid "The custom bone colors, used when palette is 'CUSTOM'"
 msgstr "カスタムボーンカラー（パレットが「カスタム」の場合）"
 
@@ -4415,10 +4427,6 @@ msgstr "反転した領域を塗りつぶします"
 
 msgid "Mode to draw boundary limits"
 msgstr "境界を塗りつぶすモード"
-
-
-msgid "All"
-msgstr "全て"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -19510,6 +19518,86 @@ msgid "Additional data for an asset data-block"
 msgstr "アセットデータブロック用の追加のデータ"
 
 
+msgid "Brush"
+msgstr "ブラシ"
+
+
+msgid "Font"
+msgstr "フォント"
+
+
+msgid "Key"
+msgstr "キー"
+
+
+msgid "Library"
+msgstr "ライブラリ"
+
+
+msgid "Light"
+msgstr "ライト"
+
+
+msgid "Light Probe"
+msgstr "ライトプローブ"
+
+
+msgid "Mask"
+msgstr "マスク"
+
+
+msgid "Mesh"
+msgstr "メッシュ"
+
+
+msgid "Metaball"
+msgstr "メタボール"
+
+
+msgid "Node Tree"
+msgstr "ノードツリー"
+
+
+msgid "Paint Curve"
+msgstr "ペイントカーブ"
+
+
+msgid "Palette"
+msgstr "パレット"
+
+
+msgid "Particle"
+msgstr "パーティクル"
+
+
+msgid "Point Cloud"
+msgstr "ポイントクラウド"
+
+
+msgid "Sound"
+msgstr "サウンド"
+
+
+msgid "Speaker"
+msgstr "スピーカー"
+
+
+msgid "Text"
+msgstr "テキスト"
+
+
+msgid "Window Manager"
+msgstr "ウィンドウマネージャ"
+
+
+msgid "Workspace"
+msgstr "ワークスペース"
+
+
+msgid "World"
+msgstr "ワールド"
+
+
 msgid "Embedded Data"
 msgstr "添付データ"
 
@@ -19553,10 +19641,6 @@ msgid "This data-block is runtime data, i.e. it won't be saved in .blend file. N
 msgstr "このデータブロックは実行時，つまり .blend ファイルに未保存のデータです．例えば評価済み ID は常に実行時のデータであり，その値はメインデータベース中のデータブロックのみ編集可能です"
 
 
-msgid "Library"
-msgstr "ライブラリ"
-
-
 msgid "Library file the data-block is linked from"
 msgstr "データブロックのリンク元のライブラリファイル"
 
@@ -19567,10 +19651,6 @@ msgstr "ライブラリの弱い参照"
 
 msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
 msgstr "別のライブラリ .blend ファイル内のデータブロックへの弱い参照（新しいコピーのアペンドの代わりに，アペンド済みのデータの再利用に使用）"
-
-
-msgid "Unique data-block ID name"
-msgstr "データブロックの一意のID名"
 
 
 msgid "Full Name"
@@ -20827,10 +20907,6 @@ msgid "Jittering happens in screen space, in pixels"
 msgstr "スクリーン空間でずらします（ピクセル）"
 
 
-msgid "Brush"
-msgstr "ブラシ"
-
-
 msgid "Jittering happens relative to the brush size"
 msgstr "ブラシサイズとの相対量でずらします"
 
@@ -20896,10 +20972,6 @@ msgstr "法線ウェイト"
 
 msgid "How much grab will pull vertices out of surface during a grab"
 msgstr "グラブ中に表面から引き出す頂点の量"
-
-
-msgid "Paint Curve"
-msgstr "ペイントカーブ"
 
 
 msgid "Active paint curve"
@@ -23124,10 +23196,6 @@ msgid "Curve deforming text object"
 msgstr "カーブがテキストオブジェクトを変形"
 
 
-msgid "Font"
-msgstr "フォント"
-
-
 msgid "Font Bold"
 msgstr "太字"
 
@@ -23606,10 +23674,6 @@ msgstr "チェーンを選択する最小曲線2D長さ"
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "有効時，特徴エッジのチェーンをマテリアル境界で分割します"
-
-
-msgid "Node Tree"
-msgstr "ノードツリー"
 
 
 msgid "Node tree for node-based shaders"
@@ -25542,6 +25606,38 @@ msgid "Diffuse color of the material"
 msgstr "マテリアルのディフューズ色"
 
 
+msgid "Displacement Method"
+msgstr "ディスプレイスメント方法"
+
+
+msgid "Method to use for the displacement"
+msgstr "ディスプレイスメントに使用される方法"
+
+
+msgid "Bump Only"
+msgstr "バンプのみ"
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "ディスプレイスメントの表現を模倣するバンプマッピング"
+
+
+msgid "Displacement Only"
+msgstr "ディスプレイスメントのみ"
+
+
+msgid "Use true displacement of surface only, requires fine subdivision"
+msgstr "サーフェスに真のディスプレイスメントのみ使用．面を細く分割する必要があります"
+
+
+msgid "Displacement and Bump"
+msgstr "ディスプレイスメントとバンプ"
+
+
+msgid "Combination of true displacement and bump mapping for finer detail"
+msgstr "細かいディテール用の，ディスプレイスメントとバンプマッピングの組み合わせ"
+
+
 msgid "Grease Pencil Settings"
 msgstr "グリースペンシル設定"
 
@@ -26010,34 +26106,6 @@ msgid "Fix Poles"
 msgstr "ポールを修正"
 
 
-msgid "Produces less poles and a better topology flow"
-msgstr "ポールの少ない，綺麗なトポロジーフローを生成します"
-
-
-msgid "Preserve Paint Mask"
-msgstr "ペイントマスクを維持"
-
-
-msgid "Keep the current mask on the new mesh"
-msgstr "新規メッシュで現在のマスクを維持します"
-
-
-msgid "Preserve Face Sets"
-msgstr "面セットを維持"
-
-
-msgid "Keep the current Face Sets on the new mesh"
-msgstr "新規メッシュで現在の面セットを維持します"
-
-
-msgid "Preserve Vertex Colors"
-msgstr "頂点カラーを維持"
-
-
-msgid "Keep the current vertex colors on the new mesh"
-msgstr "新規メッシュで現在の頂点カラーを維持します"
-
-
 msgid "Projects the mesh to preserve the volume and details of the original mesh"
 msgstr "メッシュを投影し，ボリュームとオリジナルメッシュの細部を維持します"
 
@@ -26096,14 +26164,6 @@ msgstr "頂点の法線"
 
 msgid "The normal direction of each vertex, defined as the average of the surrounding face normals"
 msgstr "周囲の面の法線により定義される，各頂点の法線の方向"
-
-
-msgid "Vertex Paint Mask"
-msgstr "頂点ペイントマスク"
-
-
-msgid "Vertex paint mask"
-msgstr "頂点ペイントマスク"
 
 
 msgid "Vertices"
@@ -26518,16 +26578,8 @@ msgid "The node group is used for curves"
 msgstr "このノードグループはカーブ用に使用されます"
 
 
-msgid "Mesh"
-msgstr "メッシュ"
-
-
 msgid "The node group is used for meshes"
 msgstr "このノードグループはメッシュ用に使用されます"
-
-
-msgid "Point Cloud"
-msgstr "ポイントクラウド"
 
 
 msgid "The node group is used for point clouds"
@@ -26837,14 +26889,6 @@ msgstr "グリースペンシルモディファイアー"
 
 msgid "Modifiers affecting the data of the grease pencil object"
 msgstr "グリースペンシルオブジェクトのデータに影響を与えるモディファイアー"
-
-
-msgid "Disable in Cubemap Probes"
-msgstr "キューブマッププローブ内で無効"
-
-
-msgid "Globally disable in cubemap probes"
-msgstr "全体的にキューブマッププローブ内で無効にします"
 
 
 msgid "Disable in Volume Probes"
@@ -28084,10 +28128,6 @@ msgstr "オブジェクトの速度"
 
 msgid "Let the object give the particle a starting velocity"
 msgstr "オブジェクトの動きがパーティクルの初期速度に影響します"
-
-
-msgid "Particle"
-msgstr "パーティクル"
 
 
 msgid "Let the target particle give the particle a starting velocity"
@@ -29352,10 +29392,6 @@ msgid "Playback pitch of the sound"
 msgstr "音の再生ピッチ"
 
 
-msgid "Sound"
-msgstr "サウンド"
-
-
 msgid "Sound data-block used by this speaker"
 msgstr "このスピーカーで使用されるサウンドデータブロック"
 
@@ -30586,10 +30622,6 @@ msgid "Name of the grid for the Z axis component of the velocity field if it was
 msgstr "速度フィールドの Z 軸成分のグリッド名（複数のグリッドに分離されていた場合）"
 
 
-msgid "Window Manager"
-msgstr "ウィンドウマネージャ"
-
-
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "開いているウィンドウやその他のユーザーインタフェースのデータを定義するウィンドウマネージャデータブロック"
 
@@ -30698,10 +30730,6 @@ msgstr "XR セッション状態"
 
 msgid "Runtime state information about the VR session"
 msgstr "VR セッションのランタイム状態の情報"
-
-
-msgid "Workspace"
-msgstr "ワークスペース"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -33544,32 +33572,12 @@ msgid "Override default setting to insert keyframes based on 'visual transforms'
 msgstr "デフォルト設定をオーバーライドし「ビジュアルトランスフォーム」を元にキーフレームを挿入します"
 
 
-msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "Fカーブの色のオーバーライド（XYZをRGBに）"
-
-
-msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
-msgstr ""
-"デフォルトの色設定をオーバーライドし，新規追加されたトランスフォーム\n"
-"（位置，回転，スケール）のFカーブの色を軸に基づいた物にします"
-
-
 msgid "Insert Keyframes - Visual"
 msgstr "キーフレームを挿入（ビジュアル）"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
 msgstr "コンストレイントなどの結果によるトランスフォームでキーを挿入します"
-
-
-msgid "F-Curve Colors - XYZ to RGB"
-msgstr "Fカーブの色（XYZをRGBに）"
-
-
-msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) is based on the transform axis"
-msgstr ""
-"新規追加されたトランスフォーム（位置，回転，スケール）の\n"
-"Fカーブの色をその軸に基づいた物にします"
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
@@ -35305,10 +35313,6 @@ msgid "Override object and collection intersection priority value"
 msgstr "オブジェクトとコレクションの交差の優先順位をオーバーライドします"
 
 
-msgid "Mask"
-msgstr "マスク"
-
-
 msgid "Material slot in an object"
 msgstr "オブジェクトのマテリアルスロット"
 
@@ -35447,10 +35451,6 @@ msgid "Dope Sheet Channel"
 msgstr "ドープシートチャンネル"
 
 
-msgid "Key"
-msgstr "キー"
-
-
 msgid "Snap"
 msgstr "スナップ"
 
@@ -35543,10 +35543,6 @@ msgstr "頂点グループスペシャル"
 
 msgid "NLA"
 msgstr "NLA"
-
-
-msgid "Text"
-msgstr "テキスト"
 
 
 msgid "Utilities"
@@ -35892,10 +35888,6 @@ msgid "Select Similar"
 msgstr "類似選択"
 
 
-msgid "Metaball"
-msgstr "メタボール"
-
-
 msgid "Face Sets Init"
 msgstr "面セットを初期化"
 
@@ -35910,14 +35902,6 @@ msgstr "フック"
 
 msgid "Add Image"
 msgstr "画像を追加"
-
-
-msgid "Light"
-msgstr "ライト"
-
-
-msgid "Light Probe"
-msgstr "ライトプローブ"
 
 
 msgid "Link/Transfer Data"
@@ -36238,22 +36222,6 @@ msgstr "メッシュ法線ベクトル"
 
 msgid "Vector in a mesh normal array"
 msgstr "メッシュ法線配列内のベクトル"
-
-
-msgid "Mesh Paint Mask Layer"
-msgstr "メッシュペイントマスクレイヤー"
-
-
-msgid "Per-vertex paint mask data"
-msgstr "頂点毎のペイントマスクデータ"
-
-
-msgid "Mesh Paint Mask Property"
-msgstr "メッシュペイントマスクプロパティ"
-
-
-msgid "Floating-point paint mask value"
-msgstr "浮動小数点数のペイントマスク値"
 
 
 msgid "Mesh Polygon"
@@ -39592,10 +39560,6 @@ msgstr "メッシュデータをコピーするのに使用される空間"
 
 msgid "Use offset from the particle object in the instance object"
 msgstr "インスタンスオブジェクト内でパーティクルオブジェクトからのオフセットを使用します"
-
-
-msgid "World"
-msgstr "ワールド"
 
 
 msgid "Use world space offset in the instance object"
@@ -51441,10 +51405,6 @@ msgid "Insert Keyframe"
 msgstr "キーフレームを挿入"
 
 
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "現在のフレームに指定されたキーイングセットの全プロパティのキーフレームを挿入します"
-
-
 msgctxt "Operator"
 msgid "Insert Keyframe (Buttons)"
 msgstr "キーフレームを挿入(ボタン)"
@@ -58123,10 +58083,6 @@ msgstr "アセットライブラリ識別子"
 
 msgid "Asset Library Type"
 msgstr "アセットライブラリタイプ"
-
-
-msgid "Essentials"
-msgstr "エッセンシャル"
 
 
 msgid "Name of the data-block to use by the operator"
@@ -66469,14 +66425,6 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "アクションを NLA スタックの上に，新規ストリップとして追加します"
 
 
-msgid "Channel Index"
-msgstr "チャンネルインデックス"
-
-
-msgid "Index of NLA action channel to perform pushdown operation on"
-msgstr "上に追加される NLA アクションチャンネルのインデックス"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "アクションの長さに同期"
@@ -67259,6 +67207,11 @@ msgstr "選択中のノードの表示/非表示を切り替えます"
 
 
 msgctxt "Operator"
+msgid "Remove Item"
+msgstr "アイテムを削除"
+
+
+msgctxt "Operator"
 msgid "Insert Offset"
 msgstr "オフセットを挿入"
 
@@ -67287,11 +67240,6 @@ msgstr "インターフェイスに新規アイテムを追加します"
 
 msgid "Type of the item to create"
 msgstr "作成するアイテムタイプ"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "アイテムを削除"
 
 
 msgid "Remove active item from the interface"
@@ -69812,10 +69760,6 @@ msgstr "新規メッシュ内の目標とする辺の長さを入力します"
 
 msgid "Input target number of faces in the new mesh"
 msgstr "新規メッシュ内の目標とする面の数を入力します"
-
-
-msgid "Reproject the paint mask onto the new mesh"
-msgstr "新規メッシュ上にペイントマスクを再投影します"
 
 
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
@@ -72769,10 +72713,6 @@ msgstr "パレット見本を統合"
 
 msgid "Join Palette Swatches"
 msgstr "パレット見本を統合"
-
-
-msgid "Palette"
-msgstr "パレット"
 
 
 msgid "Name of the Palette"
@@ -83573,10 +83513,6 @@ msgid "Python value for unsupported custom property types"
 msgstr "未対応のカスタムプロパティタイプ用の Python 値"
 
 
-msgid "Speaker"
-msgstr "スピーカー"
-
-
 msgid "Library Overridable"
 msgstr "ライブラリオーバーライドを許可"
 
@@ -91713,38 +91649,6 @@ msgid "Use multiple importance sampling for the light, reduces noise for area li
 msgstr "ライトに多重重点的サンプリングを使用し，エリアライトとシャープな光沢マテリアルでのノイズを減らします"
 
 
-msgid "Displacement Method"
-msgstr "ディスプレイスメント方法"
-
-
-msgid "Method to use for the displacement"
-msgstr "ディスプレイスメントに使用される方法"
-
-
-msgid "Bump Only"
-msgstr "バンプのみ"
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "ディスプレイスメントの表現を模倣するバンプマッピング"
-
-
-msgid "Displacement Only"
-msgstr "ディスプレイスメントのみ"
-
-
-msgid "Use true displacement of surface only, requires fine subdivision"
-msgstr "サーフェスに真のディスプレイスメントのみ使用．面を細く分割する必要があります"
-
-
-msgid "Displacement and Bump"
-msgstr "ディスプレイスメントとバンプ"
-
-
-msgid "Combination of true displacement and bump mapping for finer detail"
-msgstr "細かいディテール用の，ディスプレイスメントとバンプマッピングの組み合わせ"
-
-
 msgctxt "Light"
 msgid "Emission Sampling"
 msgstr "放射サンプリング"
@@ -97220,6 +97124,10 @@ msgid "Show Annotations in OpenGL previews"
 msgstr "OpenGL プレビューでアノテーションを表示します"
 
 
+msgid "Playback volume of the sound"
+msgstr "音声の再生ボリューム"
+
+
 msgid "Sound Sequence"
 msgstr "音声シーケンス"
 
@@ -97247,10 +97155,6 @@ msgstr "ストリップ内に音声の波形を表示します"
 
 msgid "Sound data-block used by this sequence"
 msgstr "このシーケンスに使う音声データブロック"
-
-
-msgid "Playback volume of the sound"
-msgstr "音声の再生ボリューム"
 
 
 msgid "Sequence Color Balance Data"
@@ -112529,13 +112433,13 @@ msgstr "カスタム遮蔽"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "非選択をロック"
+msgid "Lock Unused"
+msgstr "未使用をロック"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "未使用をロック"
+msgid "Lock Unselected"
+msgstr "非選択をロック"
 
 
 msgctxt "Operator"
@@ -112584,10 +112488,6 @@ msgstr "頂点の法線に揃える"
 
 msgid "Show Instancer"
 msgstr "インスタンサーを表示"
-
-
-msgid "Cubemap"
-msgstr "キューブマップ"
 
 
 msgctxt "Time"
@@ -113512,10 +113412,6 @@ msgstr "必要な物"
 
 msgid "Visual"
 msgstr "ビジュアル"
-
-
-msgid "XYZ to RGB"
-msgstr "XYZをRGBに"
 
 
 msgid "Active Set Override"
@@ -116150,6 +116046,10 @@ msgid "Default Handles"
 msgstr "デフォルトのハンドル"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZをRGBに"
+
+
 msgid "Mixing Buffer"
 msgstr "ミキシングバッファー"
 
@@ -116800,11 +116700,6 @@ msgstr "背景"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "ローカル化..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "キーフレームを挿入..."
 
 
 msgctxt "Operator"
@@ -120007,6 +119902,10 @@ msgid "No keyframes to focus on"
 msgstr "フォーカスするキーフレームがありません"
 
 
+msgid "Nothing selected"
+msgstr "何も選択していません"
+
+
 msgid "<invalid>"
 msgstr "<無効>"
 
@@ -121094,10 +120993,6 @@ msgstr "カーブ編集モードに未対応です"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "レイヤー一つのみのオブジェクトは分離できません"
-
-
-msgid "Nothing selected"
-msgstr "何も選択していません"
 
 
 msgid "No active area"
@@ -125927,34 +125822,6 @@ msgid "Active Strip Name"
 msgstr "アクティブストリップ名"
 
 
-msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
-msgstr "使用するアクティブアニメデータブロックがありません（先にデータブロック拡張を選択，またはアニメデータブロックに適切なフラグを設定してください）"
-
-
-msgid "Internal Error - AnimData block is not valid"
-msgstr "内部エラー: 無効なアニメデータブロックです"
-
-
-msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
-msgstr "ストリップのアクション調整中はアクションを変換できません．先に調整モードを出てください"
-
-
-msgid "No active action to push down"
-msgstr "変換するアクティブアクションがありません"
-
-
-msgid "Select an existing NLA Track or an empty action line first"
-msgstr "先に現存のNLAトラックまたは空のアクションラインを選択してください"
-
-
-msgid "No animation channel found at index %d"
-msgstr "インデックス「%d」にアニメーションチャンネルがありません"
-
-
-msgid "Animation channel at index %d is not a NLA 'Active Action' channel"
-msgstr "インデックス「%d」のアニメーションチャンネルは NLA の「アクティブアクション」ではありません"
-
-
 msgid "No AnimData blocks to enter tweak mode for"
 msgstr "アニメデータブロックがないため，調整モードに入れません"
 
@@ -126009,6 +125876,26 @@ msgstr "「%s」と「%s」の片方または両方が新しい場所に対応�
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "モディファイアーが(%s : %s)に追加できませんでした（コンソールに詳細）"
+
+
+msgid "No active AnimData block to use (select a data-block expander first or set the appropriate flags on an AnimData block)"
+msgstr "使用するアクティブアニメデータブロックがありません（先にデータブロック拡張を選択，またはアニメデータブロックに適切なフラグを設定してください）"
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "内部エラー: 無効なアニメデータブロックです"
+
+
+msgid "Cannot push down actions while tweaking a strip's action, exit tweak mode first"
+msgstr "ストリップのアクション調整中はアクションを変換できません．先に調整モードを出てください"
+
+
+msgid "No active action to push down"
+msgstr "変換するアクティブアクションがありません"
+
+
+msgid "Select an existing NLA Track or an empty action line first"
+msgstr "先に現存のNLAトラックまたは空のアクションラインを選択してください"
 
 
 msgid ""
@@ -126749,10 +126636,6 @@ msgstr "添付されたライブラリオーバーライド「%s」はクリア�
 
 msgid "Cannot clear linked library override '%s', only local overrides can be directly cleared"
 msgstr "リンクライブラリオーバーライド「%s」はクリアできません．直接削除可能なのはローカルオーバーライドのみです"
-
-
-msgid "Current File"
-msgstr "現在のファイル"
 
 
 msgid "No Library Overrides"
