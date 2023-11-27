@@ -3690,7 +3690,7 @@ void BKE_object_dimensions_set_ex(Object *ob,
                                   const float ob_scale_orig[3],
                                   const float ob_obmat_orig[4][4])
 {
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
+  if (const std::optional<BoundBox> bb = BKE_object_boundbox_eval_cached_get(ob)) {
     float3 len;
     len.x = bb->vec[4][0] - bb->vec[0][0];
     len.y = bb->vec[2][1] - bb->vec[0][1];
