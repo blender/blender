@@ -192,19 +192,16 @@ static CustomData &mesh_custom_data_for_domain(Mesh &mesh, const eAttrDomain dom
   }
 }
 
-/**
- * \note The result may be an empty span.
- */
-static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
+static std::optional<MutableSpan<int>> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
 {
   const bke::AttributeAccessor attributes = mesh.attributes();
   CustomData &custom_data = mesh_custom_data_for_domain(mesh, domain);
   if (int *orig_indices = static_cast<int *>(CustomData_get_layer_for_write(
           &custom_data, CD_ORIGINDEX, attributes.domain_size(domain))))
   {
-    return {orig_indices, attributes.domain_size(domain)};
+    return MutableSpan<int>(orig_indices, attributes.domain_size(domain));
   }
-  return {};
+  return std::nullopt;
 }
 
 template<typename T>
@@ -376,14 +373,12 @@ static void extrude_mesh_vertices(Mesh &mesh,
     new_positions[i] = positions[index] + offsets[index];
   });
 
-  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  if (!vert_orig_indices.is_empty()) {
-    array_utils::gather(
-        vert_orig_indices.as_span(), selection, vert_orig_indices.slice(new_vert_range));
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+    array_utils::gather(indices->as_span(), selection, indices->slice(new_vert_range));
   }
-
-  MutableSpan<int> new_edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  new_edge_orig_indices.slice_safe(new_edge_range).fill(ORIGINDEX_NONE);
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+    indices->slice(new_edge_range).fill(ORIGINDEX_NONE);
+  }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -742,22 +737,16 @@ static void extrude_mesh_edges(Mesh &mesh,
     });
   }
 
-  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  if (!vert_orig_indices.is_empty()) {
-    array_utils::gather(
-        vert_orig_indices.as_span(), new_verts, vert_orig_indices.slice(new_vert_range));
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+    array_utils::gather(indices->as_span(), new_verts, indices->slice(new_vert_range));
   }
-
-  MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  if (!edge_orig_indices.is_empty()) {
-    edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
-    array_utils::gather(edge_orig_indices.as_span(),
-                        edge_selection,
-                        edge_orig_indices.slice(duplicate_edge_range));
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+    indices->slice(connect_edge_range).fill(ORIGINDEX_NONE);
+    array_utils::gather(indices->as_span(), edge_selection, indices->slice(duplicate_edge_range));
   }
-
-  MutableSpan<int> face_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  face_orig_indices.slice_safe(new_face_range).fill(ORIGINDEX_NONE);
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE)) {
+    indices->slice(new_face_range).fill(ORIGINDEX_NONE);
+  }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -1136,29 +1125,21 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     });
   }
 
-  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  if (!vert_orig_indices.is_empty()) {
-    array_utils::gather(vert_orig_indices.as_span(),
-                        new_vert_indices.as_span(),
-                        vert_orig_indices.slice(new_vert_range));
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+    array_utils::gather(
+        indices->as_span(), new_vert_indices.as_span(), indices->slice(new_vert_range));
   }
-
-  MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  if (!edge_orig_indices.is_empty()) {
-    edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
-    array_utils::gather(edge_orig_indices.as_span(),
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+    indices->slice(connect_edge_range).fill(ORIGINDEX_NONE);
+    array_utils::gather(indices->as_span(),
                         new_inner_edge_indices.as_span(),
-                        edge_orig_indices.slice(new_inner_edge_range));
-    array_utils::gather(edge_orig_indices.as_span(),
-                        boundary_edge_indices.as_span(),
-                        edge_orig_indices.slice(boundary_edge_range));
+                        indices->slice(new_inner_edge_range));
+    array_utils::gather(
+        indices->as_span(), boundary_edge_indices.as_span(), indices->slice(boundary_edge_range));
   }
-
-  MutableSpan<int> face_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  if (!face_orig_indices.is_empty()) {
-    array_utils::gather(face_orig_indices.as_span(),
-                        edge_extruded_face_indices.as_span(),
-                        face_orig_indices.slice(side_face_range));
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE)) {
+    array_utils::gather(
+        indices->as_span(), edge_extruded_face_indices.as_span(), indices->slice(side_face_range));
   }
 
   if (attribute_outputs.top_id) {
@@ -1392,27 +1373,19 @@ static void extrude_individual_mesh_faces(
                                  }
                                });
 
-  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  if (!vert_orig_indices.is_empty()) {
-    array_utils::gather(vert_orig_indices.as_span(),
-                        new_vert_indices.as_span(),
-                        vert_orig_indices.slice(new_vert_range));
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+    array_utils::gather(
+        indices->as_span(), new_vert_indices.as_span(), indices->slice(new_vert_range));
   }
-
-  MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  if (!edge_orig_indices.is_empty()) {
-    edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
-    array_utils::gather(edge_orig_indices.as_span(),
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+    indices->slice(connect_edge_range).fill(ORIGINDEX_NONE);
+    array_utils::gather(indices->as_span(),
                         duplicate_edge_indices.as_span(),
-                        edge_orig_indices.slice(duplicate_edge_range));
+                        indices->slice(duplicate_edge_range));
   }
-
-  MutableSpan<int> face_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  if (!face_orig_indices.is_empty()) {
-    array_utils::gather_to_groups(group_per_face,
-                                  face_selection,
-                                  face_orig_indices.as_span(),
-                                  face_orig_indices.slice(side_face_range));
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE)) {
+    array_utils::gather_to_groups(
+        group_per_face, face_selection, indices->as_span(), indices->slice(side_face_range));
   }
 
   if (attribute_outputs.top_id) {
