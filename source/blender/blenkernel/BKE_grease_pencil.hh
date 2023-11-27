@@ -683,7 +683,7 @@ class GreasePencilRuntime {
    */
   void *batch_cache = nullptr;
   /* The frame on which the object was evaluated (only valid for evaluated object). */
-  int eval_frame;
+  int eval_frame = 0;
 
  public:
   GreasePencilRuntime() {}
