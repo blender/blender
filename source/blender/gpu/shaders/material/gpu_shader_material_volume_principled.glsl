@@ -21,8 +21,8 @@ void node_volume_principled(vec4 color,
                             float layer,
                             out Closure result)
 {
-  color = max(color, vec4(0));
-  density = max(density, 0);
+  color = max(color, vec4(0.0));
+  density = max(density, 0.0);
   absorption_color = max(absorption_color, vec4(0));
   emission_strength = max(emission_strength, 0);
   emission_color = max(emission_color, vec4(0));
