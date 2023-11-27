@@ -25,7 +25,10 @@ template<typename T> class ImplicitSharingPtr {
  public:
   ImplicitSharingPtr() = default;
 
-  ImplicitSharingPtr(T *data) : data_(data) {}
+  explicit ImplicitSharingPtr(T *data) : data_(data) {}
+
+  /* Implicit conversion from nullptr. */
+  ImplicitSharingPtr(std::nullptr_t) : data_(nullptr) {}
 
   ImplicitSharingPtr(const ImplicitSharingPtr &other) : data_(other.data_)
   {

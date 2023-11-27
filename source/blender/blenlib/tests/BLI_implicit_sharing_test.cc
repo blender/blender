@@ -14,7 +14,7 @@ class ImplicitlySharedData : public ImplicitSharingMixin {
  public:
   ImplicitSharingPtr<ImplicitlySharedData> copy() const
   {
-    return MEM_new<ImplicitlySharedData>(__func__);
+    return ImplicitSharingPtr<ImplicitlySharedData>(MEM_new<ImplicitlySharedData>(__func__));
   }
 
   void delete_self() override

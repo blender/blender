@@ -42,19 +42,19 @@ GeometryComponentPtr GeometryComponent::create(Type component_type)
 {
   switch (component_type) {
     case Type::Mesh:
-      return new MeshComponent();
+      return GeometryComponentPtr(new MeshComponent());
     case Type::PointCloud:
-      return new PointCloudComponent();
+      return GeometryComponentPtr(new PointCloudComponent());
     case Type::Instance:
-      return new InstancesComponent();
+      return GeometryComponentPtr(new InstancesComponent());
     case Type::Volume:
-      return new VolumeComponent();
+      return GeometryComponentPtr(new VolumeComponent());
     case Type::Curve:
-      return new CurveComponent();
+      return GeometryComponentPtr(new CurveComponent());
     case Type::Edit:
-      return new GeometryComponentEditData();
+      return GeometryComponentPtr(new GeometryComponentEditData());
     case Type::GreasePencil:
-      return new GreasePencilComponent();
+      return GeometryComponentPtr(new GreasePencilComponent());
   }
   BLI_assert_unreachable();
   return {};
@@ -129,7 +129,7 @@ GeometryComponent &GeometrySet::get_component_for_write(GeometryComponent::Type 
   }
   /* If the referenced component is shared, make a copy. The copy is not shared and is
    * therefore mutable. */
-  component_ptr = component_ptr->copy();
+  component_ptr = GeometryComponentPtr(component_ptr->copy());
   return *component_ptr;
 }
 
@@ -185,7 +185,8 @@ void GeometrySet::add(const GeometryComponent &component)
 {
   BLI_assert(!components_[size_t(component.type())]);
   component.add_user();
-  components_[size_t(component.type())] = const_cast<GeometryComponent *>(&component);
+  components_[size_t(component.type())] = GeometryComponentPtr(
+      const_cast<GeometryComponent *>(&component));
 }
 
 Vector<const GeometryComponent *> GeometrySet::get_components() const

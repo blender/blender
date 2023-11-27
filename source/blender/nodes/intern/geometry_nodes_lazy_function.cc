@@ -263,13 +263,13 @@ class LazyFunctionForGeometryNode : public LazyFunction {
         }
       }
       const bNodeSocket &bsocket = node_.output_socket(output_bsocket_index);
-      AnonymousAttributeIDPtr attribute_id = MEM_new<NodeAnonymousAttributeID>(
-          __func__,
-          *this->get_self_object(*user_data),
-          *user_data->compute_context,
-          node_,
-          bsocket.identifier,
-          bsocket.name);
+      AnonymousAttributeIDPtr attribute_id = AnonymousAttributeIDPtr(
+          MEM_new<NodeAnonymousAttributeID>(__func__,
+                                            *this->get_self_object(*user_data),
+                                            *user_data->compute_context,
+                                            node_,
+                                            bsocket.identifier,
+                                            bsocket.name));
       storage->attributes.append({output_bsocket_index, attribute_id});
       return attribute_id;
     };

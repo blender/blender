@@ -94,8 +94,8 @@ static std::shared_ptr<AnonymousAttributeFieldInput> make_attribute_field(
     const NodeSimulationItem &item,
     const CPPType &type)
 {
-  AnonymousAttributeIDPtr attribute_id = MEM_new<NodeAnonymousAttributeID>(
-      __func__, self_object, compute_context, node, std::to_string(item.identifier), item.name);
+  AnonymousAttributeIDPtr attribute_id = AnonymousAttributeIDPtr(MEM_new<NodeAnonymousAttributeID>(
+      __func__, self_object, compute_context, node, std::to_string(item.identifier), item.name));
   return std::make_shared<AnonymousAttributeFieldInput>(attribute_id, type, node.label_or_name());
 }
 
