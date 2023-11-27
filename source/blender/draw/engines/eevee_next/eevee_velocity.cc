@@ -78,7 +78,8 @@ static void step_object_sync_render(void *instance,
 
   /* NOTE: Dummy resource handle since this won't be used for drawing. */
   ResourceHandle resource_handle(0);
-  ObjectHandle &ob_handle = inst.sync.sync_object(ob);
+  ObjectRef ob_ref = DRW_object_ref_get(ob);
+  ObjectHandle &ob_handle = inst.sync.sync_object(ob_ref);
 
   if (partsys_is_visible) {
     auto sync_hair =

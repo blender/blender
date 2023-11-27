@@ -180,7 +180,7 @@ void Instance::scene_sync()
   /* This refers specifically to the Scene camera that can be accessed
    * via View Layer Attribute nodes, rather than the actual render camera. */
   if (scene->camera != nullptr) {
-    ObjectHandle &ob_handle = sync.sync_object(scene->camera);
+    ObjectHandle &ob_handle = sync.sync_object({scene->camera, nullptr, nullptr});
 
     ob_handle.reset_recalc_flag();
   }
@@ -209,7 +209,7 @@ void Instance::object_sync(Object *ob)
 
   /* TODO cleanup. */
   ObjectRef ob_ref = DRW_object_ref_get(ob);
-  ObjectHandle &ob_handle = sync.sync_object(ob);
+  ObjectHandle &ob_handle = sync.sync_object(ob_ref);
   ResourceHandle res_handle = {0};
   if (is_drawable_type) {
     res_handle = manager->resource_handle(ob_ref);
@@ -289,6 +289,8 @@ void Instance::end_sync()
   planar_probes.end_sync();
 
   global_ubo_.push_update();
+
+  depsgraph_last_update_ = DEG_get_update_count(depsgraph);
 }
 
 void Instance::render_sync()

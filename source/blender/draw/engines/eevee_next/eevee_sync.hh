@@ -140,7 +140,7 @@ class SyncModule {
   SyncModule(Instance &inst) : inst_(inst){};
   ~SyncModule(){};
 
-  ObjectHandle &sync_object(Object *ob);
+  ObjectHandle &sync_object(const ObjectRef &ob_ref);
   WorldHandle &sync_world(::World *world);
   SceneHandle &sync_scene(::Scene *scene);
 
