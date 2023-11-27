@@ -29,7 +29,7 @@ ccl_device int bsdf_sheen_setup(KernelGlobals kg,
   bsdf->type = CLOSURE_BSDF_SHEEN_ID;
 
   bsdf->roughness = clamp(bsdf->roughness, 1e-3f, 1.0f);
-  make_orthonormals_tangent(bsdf->N, sd->wi, &bsdf->T, &bsdf->B);
+  make_orthonormals_safe_tangent(bsdf->N, sd->wi, &bsdf->T, &bsdf->B);
   float cosNI = dot(bsdf->N, sd->wi);
 
   int offset = kernel_data.tables.sheen_ltc;
