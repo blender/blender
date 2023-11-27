@@ -260,7 +260,6 @@ void debug_randomize_instance_order(bke::Instances *instances)
 
 bool use_debug_randomization()
 {
-  return true;
   return G.randomize_geometry_element_order;
 }
 
