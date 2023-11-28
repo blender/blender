@@ -1431,14 +1431,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               }
             }
           }
-          bvhtree_from_mesh_verts_ex(&treedata[tindex],
-                                     reinterpret_cast<const float(*)[3]>(positions_src.data()),
-                                     num_verts_src,
-                                     verts_active,
-                                     num_verts_active,
-                                     0.0,
-                                     2,
-                                     6);
+          bvhtree_from_mesh_verts_ex(
+              &treedata[tindex], positions_src, verts_active, num_verts_active, 0.0, 2, 6);
         }
       }
       else {
@@ -1463,10 +1457,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
             }
           }
           bvhtree_from_mesh_looptri_ex(&treedata[tindex],
-                                       reinterpret_cast<const float(*)[3]>(positions_src.data()),
-                                       corner_verts_src.data(),
-                                       looptris_src.data(),
-                                       int(looptris_src.size()),
+                                       positions_src,
+                                       corner_verts_src,
+                                       looptris_src,
                                        looptri_active,
                                        num_looptri_active,
                                        0.0,

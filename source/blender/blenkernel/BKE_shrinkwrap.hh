@@ -11,6 +11,10 @@
 #include "BKE_bvhutils.hh"
 #include "BLI_bitmap.h"
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
+
 /*
  * Shrinkwrap is composed by a set of functions and options that define the type of shrink.
  *
@@ -70,12 +74,13 @@ struct ShrinkwrapTreeData {
   BVHTree *bvh;
   BVHTreeFromMesh treeData;
 
-  const int *face_offsets;
-  const float (*vert_normals)[3];
-  const int *corner_edges;
-  const float (*face_normals)[3];
+  blender::OffsetIndices<int> faces;
+  blender::Span<int> corner_edges;
+
+  blender::Span<blender::float3> face_normals;
+  blender::Span<blender::float3> vert_normals;
+  blender::Span<blender::float3> corner_normals;
   const bool *sharp_faces;
-  const float (*clnors)[3];
   ShrinkwrapBoundaryData *boundary;
 };
 
