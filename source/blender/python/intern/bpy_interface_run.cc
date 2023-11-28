@@ -122,9 +122,8 @@ static PyObject *python_compat_wrapper_PyRun_FileExFlags(FILE *fp,
     Py_DECREF(filepath_py);
 
     if (compiled == nullptr) {
-      if (!PyErr_Occurred()) {
-        PyErr_Format(PyExc_SyntaxError, "Python file \"%s\" could not be compiled", filepath);
-      }
+      /* Based on Python's internal usage, an error must always be set. */
+      BLI_assert(PyErr_Occurred());
     }
     else {
       py_result = PyEval_EvalCode(compiled, globals, locals);
@@ -169,21 +168,12 @@ static bool python_script_exec(
     filepath_namespace = filepath_dummy;
 
     if (text->compiled == nullptr) { /* if it wasn't already compiled, do it now */
-      char *buf;
-      PyObject *filepath_dummy_py;
-
-      filepath_dummy_py = PyC_UnicodeFromBytes(filepath_dummy);
-
+      PyObject *filepath_dummy_py = PyC_UnicodeFromBytes(filepath_dummy);
       size_t buf_len_dummy;
-      buf = txt_to_buf(text, &buf_len_dummy);
+      char *buf = txt_to_buf(text, &buf_len_dummy);
       text->compiled = Py_CompileStringObject(buf, filepath_dummy_py, Py_file_input, nullptr, -1);
       MEM_freeN(buf);
-
       Py_DECREF(filepath_dummy_py);
-
-      if (PyErr_Occurred()) {
-        BPY_text_free_code(text);
-      }
     }
 
     if (text->compiled) {
@@ -196,22 +186,26 @@ static bool python_script_exec(
     filepath_namespace = filepath;
 
     if (fp) {
+      /* Matches behavior of running Python with a directory argument.
+       * Without the `fstat`, the directory will execute & return None. */
       BLI_stat_t st;
       if (BLI_fstat(fileno(fp), &st) == 0 && S_ISDIR(st.st_mode)) {
         PyErr_Format(PyExc_IsADirectoryError, "Python file \"%s\" is a directory", filepath);
-        py_result = nullptr;
+        BLI_assert(py_result == nullptr);
+        fclose(fp);
       }
       else {
+        /* Calls `fclose(fp)`, run the script with one fewer open files. */
+        const int closeit = 1;
         py_dict = PyC_DefaultNameSpace(filepath);
         py_result = python_compat_wrapper_PyRun_FileExFlags(
-            fp, filepath, Py_file_input, py_dict, py_dict, 0, nullptr);
+            fp, filepath, Py_file_input, py_dict, py_dict, closeit, nullptr);
       }
-      fclose(fp);
     }
     else {
       PyErr_Format(
           PyExc_IOError, "Python file \"%s\" could not be opened: %s", filepath, strerror(errno));
-      py_result = nullptr;
+      BLI_assert(py_result == nullptr);
     }
   }
 
@@ -307,19 +301,11 @@ static bool bpy_run_string_impl(bContext *C,
 
   if (retval == nullptr) {
     ok = false;
-
-    ReportList reports;
-    BKE_reports_init(&reports, RPT_STORE);
-    BPy_errors_to_report(&reports);
-
+    if (ReportList *wm_reports = CTX_wm_reports(C)) {
+      BPy_errors_to_report(wm_reports);
+    }
     PyErr_Print();
     PyErr_Clear();
-
-    ReportList *wm_reports = CTX_wm_reports(C);
-    if (wm_reports) {
-      BKE_reports_move_to_reports(wm_reports, &reports);
-    }
-    BKE_reports_free(&reports);
   }
   else {
     Py_DECREF(retval);
