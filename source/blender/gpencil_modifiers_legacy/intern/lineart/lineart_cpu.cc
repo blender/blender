@@ -1681,12 +1681,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     }
   }
 
-  int real_edges[3];
-  BKE_mesh_looptri_get_real_edges(e_feat_data->edges.data(),
-                                  e_feat_data->corner_verts.data(),
-                                  e_feat_data->corner_edges.data(),
-                                  &looptris[i / 3],
-                                  real_edges);
+  const blender::int3 real_edges = blender::bke::mesh::looptri_get_real_edges(
+      e_feat_data->edges, e_feat_data->corner_verts, e_feat_data->corner_edges, looptris[i / 3]);
 
   if (real_edges[i % 3] >= 0) {
     if (ld->conf.use_crease && ld->conf.sharp_as_crease &&

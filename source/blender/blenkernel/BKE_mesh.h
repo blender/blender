@@ -115,19 +115,6 @@ void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
  */
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
 
-#ifdef __cplusplus
-
-/**
- * Sets each output array element to the edge index if it is a real edge, or -1.
- */
-void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
-                                     const int *corner_verts,
-                                     const int *corner_edges,
-                                     const struct MLoopTri *tri,
-                                     int r_edges[3]);
-
-#endif
-
 /**
  * Free (or release) any data used by this mesh (does not free the mesh itself).
  * Only use for undo, in most cases `BKE_id_free(nullptr, me)` should be used.
