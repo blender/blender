@@ -352,6 +352,17 @@ bool BLI_file_older(const char *file1, const char *file2) ATTR_WARN_UNUSED_RESUL
  * \return the lines in a linked list (an empty list when file reading fails).
  */
 struct LinkNode *BLI_file_read_as_lines(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+/**
+ * Read the contents of `fp`, returning the result as a buffer or null when it can't be read.
+ *
+ * \param r_size: The size of the file contents read into the buffer (excluding `pad_bytes`).
+ */
+void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
+                                            bool read_size_exact,
+                                            size_t pad_bytes,
+                                            size_t *r_size);
+
 void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
 /**
  * Return the text file data with:
@@ -368,6 +379,7 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
  * \param pad_bytes: When this is non-zero, the first byte is set to nil,
  * to simplify parsing the file.
  * It's recommended to pass in 1, so all text is nil terminated.
+ * \param r_size: The size of the file contents read into the buffer (excluding `pad_bytes`).
  *
  * Example looping over lines:
  *

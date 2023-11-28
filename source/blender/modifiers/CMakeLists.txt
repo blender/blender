@@ -10,7 +10,6 @@ set(INC
   ../blentranslation
   ../bmesh
   ../editors/include
-  ../functions
   ../geometry
   ../makesrna
   ../nodes
@@ -110,6 +109,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PUBLIC bf::dna
+  PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
 )
 

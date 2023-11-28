@@ -4375,6 +4375,13 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
           slot_last = slot;
         }
 
+        /* Don't allow painting on linked images. */
+        if (slot->ima != nullptr && (ID_IS_LINKED(slot->ima) || ID_IS_OVERRIDE_LIBRARY(slot->ima)))
+        {
+          skip_tri = true;
+          tpage = nullptr;
+        }
+
         /* Don't allow using the same image for painting and stenciling. */
         if (slot->ima == ps->stencil_ima) {
           /* Delay continuing the loop until after loop_uvs and bleed faces are initialized.
@@ -6396,7 +6403,7 @@ void ED_paint_data_warning(ReportList *reports, bool uvs, bool mat, bool tex, bo
               "Missing%s%s%s%s detected!",
               !uvs ? TIP_(" UVs,") : "",
               !mat ? TIP_(" Materials,") : "",
-              !tex ? TIP_(" Textures,") : "",
+              !tex ? TIP_(" Textures (or linked),") : "",
               !stencil ? TIP_(" Stencil,") : "");
 }
 
@@ -6437,9 +6444,9 @@ bool ED_paint_proj_mesh_data_check(
             BKE_texpaint_slot_refresh_cache(scene, ma, ob);
           }
           if (ma->texpaintslot != nullptr &&
-              (ma->texpaintslot[ma->paint_active_slot].ima == nullptr ||
-               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) ||
-               !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima)))
+              ma->texpaintslot[ma->paint_active_slot].ima != nullptr &&
+              !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) &&
+              !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima))
           {
             hastex = true;
             break;

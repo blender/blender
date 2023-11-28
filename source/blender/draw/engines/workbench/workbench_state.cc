@@ -153,7 +153,7 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
   }
 
   if (assign_if_different(overlays_enabled, v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS))) {
-    /** Reset TAA when enabling overlays, since we won't have valid sample0 depth textures.
+    /* Reset TAA when enabling overlays, since we won't have valid sample0 depth textures.
      * (See #113741) */
     reset_taa = true;
   }

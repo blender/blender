@@ -80,6 +80,60 @@ struct PyModuleObject {
 #endif
 
 /**
+ * Compatibility wrapper for #PyRun_FileExFlags.
+ */
+static PyObject *python_compat_wrapper_PyRun_FileExFlags(FILE *fp,
+                                                         const char *filepath,
+                                                         const int start,
+                                                         PyObject *globals,
+                                                         PyObject *locals,
+                                                         const int closeit,
+                                                         PyCompilerFlags *flags)
+{
+  /* Previously we used #PyRun_File to run directly the code on a FILE
+   * object, but as written in the Python/C API Ref Manual, chapter 2,
+   * 'FILE structs for different C libraries can be different and incompatible'.
+   * So now we load the script file data to a buffer on MS-Windows. */
+#ifdef _WIN32
+  bool use_file_handle_workaround = true;
+#else
+  bool use_file_handle_workaround = false;
+#endif
+
+  if (!use_file_handle_workaround) {
+    return PyRun_FileExFlags(fp, filepath, start, globals, locals, closeit, flags);
+  }
+
+  PyObject *py_result = nullptr;
+  size_t buf_len;
+  char *buf = static_cast<char *>(BLI_file_read_data_as_mem_from_handle(fp, false, 1, &buf_len));
+  if (closeit) {
+    fclose(fp);
+  }
+
+  if (UNLIKELY(buf == nullptr)) {
+    PyErr_Format(PyExc_IOError, "Python file \"%s\" could not read buffer", filepath);
+  }
+  else {
+    buf[buf_len] = '\0';
+    PyObject *filepath_py = PyC_UnicodeFromBytes(filepath);
+    PyObject *compiled = Py_CompileStringObject(buf, filepath_py, Py_file_input, flags, -1);
+    MEM_freeN(buf);
+    Py_DECREF(filepath_py);
+
+    if (compiled == nullptr) {
+      /* Based on Python's internal usage, an error must always be set. */
+      BLI_assert(PyErr_Occurred());
+    }
+    else {
+      py_result = PyEval_EvalCode(compiled, globals, locals);
+      Py_DECREF(compiled);
+    }
+  }
+  return py_result;
+}
+
+/**
  * Execute a file-path or text-block.
  *
  * \param reports: Report exceptions as errors (may be nullptr).
@@ -114,21 +168,12 @@ static bool python_script_exec(
     filepath_namespace = filepath_dummy;
 
     if (text->compiled == nullptr) { /* if it wasn't already compiled, do it now */
-      char *buf;
-      PyObject *filepath_dummy_py;
-
-      filepath_dummy_py = PyC_UnicodeFromBytes(filepath_dummy);
-
+      PyObject *filepath_dummy_py = PyC_UnicodeFromBytes(filepath_dummy);
       size_t buf_len_dummy;
-      buf = txt_to_buf(text, &buf_len_dummy);
+      char *buf = txt_to_buf(text, &buf_len_dummy);
       text->compiled = Py_CompileStringObject(buf, filepath_dummy_py, Py_file_input, nullptr, -1);
       MEM_freeN(buf);
-
       Py_DECREF(filepath_dummy_py);
-
-      if (PyErr_Occurred()) {
-        BPY_text_free_code(text);
-      }
     }
 
     if (text->compiled) {
@@ -137,50 +182,37 @@ static bool python_script_exec(
     }
   }
   else {
-    FILE *fp = BLI_fopen(filepath, "r");
+    FILE *fp = BLI_fopen(filepath, "rb");
     filepath_namespace = filepath;
 
     if (fp) {
-      py_dict = PyC_DefaultNameSpace(filepath);
-
-#ifdef _WIN32
-      /* Previously we used PyRun_File to run directly the code on a FILE
-       * object, but as written in the Python/C API Ref Manual, chapter 2,
-       * 'FILE structs for different C libraries can be different and
-       * incompatible'.
-       * So now we load the script file data to a buffer.
-       *
-       * Note on use of 'globals()', it's important not copy the dictionary because
-       * tools may inspect 'sys.modules["__main__"]' for variables defined in the code
-       * where using a copy of 'globals()' causes code execution
-       * to leave the main namespace untouched. see: #51444
-       *
-       * This leaves us with the problem of variables being included,
-       * currently this is worked around using 'dict.__del__' it's ugly but works.
-       */
-      {
-        const char *pystring =
-            "with open(__file__, 'rb') as f:"
-            "exec(compile(f.read(), __file__, 'exec'), globals().__delitem__('f') or globals())";
-
+      /* Matches behavior of running Python with a directory argument.
+       * Without the `fstat`, the directory will execute & return None. */
+      BLI_stat_t st;
+      if (BLI_fstat(fileno(fp), &st) == 0 && S_ISDIR(st.st_mode)) {
+        PyErr_Format(PyExc_IsADirectoryError, "Python file \"%s\" is a directory", filepath);
+        BLI_assert(py_result == nullptr);
         fclose(fp);
-
-        py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
       }
-#else
-      py_result = PyRun_File(fp, filepath, Py_file_input, py_dict, py_dict);
-      fclose(fp);
-#endif
+      else {
+        /* Calls `fclose(fp)`, run the script with one fewer open files. */
+        const int closeit = 1;
+        py_dict = PyC_DefaultNameSpace(filepath);
+        py_result = python_compat_wrapper_PyRun_FileExFlags(
+            fp, filepath, Py_file_input, py_dict, py_dict, closeit, nullptr);
+      }
     }
     else {
       PyErr_Format(
           PyExc_IOError, "Python file \"%s\" could not be opened: %s", filepath, strerror(errno));
-      py_result = nullptr;
+      BLI_assert(py_result == nullptr);
     }
   }
 
   if (!py_result) {
-    BPy_errors_to_report(reports);
+    if (reports) {
+      BPy_errors_to_report(reports);
+    }
     if (text) {
       if (do_jump) {
         /* ensure text is valid before use, the script may have freed itself */
@@ -190,6 +222,7 @@ static bool python_script_exec(
         }
       }
     }
+    PyErr_Print();
     PyErr_Clear();
   }
   else {
@@ -268,22 +301,11 @@ static bool bpy_run_string_impl(bContext *C,
 
   if (retval == nullptr) {
     ok = false;
-
-    ReportList reports;
-    BKE_reports_init(&reports, RPT_STORE);
-    BPy_errors_to_report(&reports);
+    if (ReportList *wm_reports = CTX_wm_reports(C)) {
+      BPy_errors_to_report(wm_reports);
+    }
+    PyErr_Print();
     PyErr_Clear();
-
-    /* Ensure the reports are printed. */
-    if (!BKE_reports_print_test(&reports, RPT_ERROR)) {
-      BKE_reports_print(&reports, RPT_ERROR);
-    }
-
-    ReportList *wm_reports = CTX_wm_reports(C);
-    if (wm_reports) {
-      BKE_reports_move_to_reports(wm_reports, &reports);
-    }
-    BKE_reports_free(&reports);
   }
   else {
     Py_DECREF(retval);

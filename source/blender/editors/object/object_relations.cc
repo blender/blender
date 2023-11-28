@@ -3011,19 +3011,6 @@ char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
 static bool check_geometry_node_group_sockets(wmOperator *op, const bNodeTree *tree)
 {
   tree->ensure_interface_cache();
-  if (!tree->interface_inputs().is_empty()) {
-    const bNodeTreeInterfaceSocket *first_input = tree->interface_inputs()[0];
-    if (!first_input) {
-      BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry input socket");
-      return false;
-    }
-    const bNodeSocketType *typeinfo = first_input->socket_typeinfo();
-    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
-    if (type != SOCK_GEOMETRY) {
-      BKE_report(op->reports, RPT_ERROR, "The first input must be a geometry socket");
-      return false;
-    }
-  }
   if (!tree->interface_outputs().is_empty()) {
     const bNodeTreeInterfaceSocket *first_output = tree->interface_outputs()[0];
     if (!first_output) {

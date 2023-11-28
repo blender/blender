@@ -9,7 +9,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_main_namemap.h"
+#include "BKE_main_namemap.hh"
 
 #include "BLI_assert.h"
 #include "BLI_bitmap.h"

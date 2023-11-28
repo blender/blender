@@ -423,7 +423,7 @@ const IndexMask &get_static_index_mask_for_min_size(const int64_t min_size);
 std::ostream &operator<<(std::ostream &stream, const IndexMask &mask);
 
 /* -------------------------------------------------------------------- */
-/** \name Inline Utilities
+/** \name Utilities
  * \{ */
 
 inline const std::array<int16_t, max_segment_size> &get_static_indices_array()
@@ -438,6 +438,13 @@ inline void masked_fill(MutableSpan<T> data, const T &value, const IndexMask &ma
 {
   mask.foreach_index_optimized<int64_t>([&](const int64_t i) { data[i] = value; });
 }
+
+/**
+ * Fill masked indices of \a r_mask with the index of that item in the mask such that
+ * `r_map[mask[i]] == i` for the whole mask. The size of `r_map` needs to be at least
+ * `mask.min_array_size()`.
+ */
+template<typename T> void build_reverse_map(const IndexMask &mask, MutableSpan<T> r_map);
 
 /* -------------------------------------------------------------------- */
 /** \name #RawMaskIterator Inline Methods

@@ -1906,7 +1906,12 @@ static void scroller_activate_init(bContext *C,
    * - zooming must be allowed on this axis, otherwise, default to pan
    */
   View2DScrollers scrollers;
-  view2d_scrollers_calc(v2d, nullptr, &scrollers);
+  /* Some Editors like the Filebrowser or Spreadsheet already set up custom masks for scrollbars
+   * (they dont cover the whole region width or height), these need to be considered, otherwise
+   * coords for `mouse_in_scroller_handle` later are not compatible. */
+  rcti scroller_mask = v2d->hor;
+  BLI_rcti_union(&scroller_mask, &v2d->vert);
+  view2d_scrollers_calc(v2d, &scroller_mask, &scrollers);
 
   /* Use a union of 'cur' & 'tot' in case the current view is far outside 'tot'. In this cases
    * moving the scroll bars has far too little effect and the view can get stuck #31476. */

@@ -88,6 +88,7 @@ LANGUAGES = (
     (49, "Tamil (தமிழ்)", "ta"),
     (50, "Khmer (ខ្មែរ)", "km"),
     (51, "Swahili (Kiswahili)", "sw"),
+    (52, "Belarusian (беларуску)", "be"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
@@ -104,7 +105,7 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in the working repository that should not be imported in the Blender one currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'et_EE', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ',
+    'am_ET', 'et_EE', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ', 'be',
 }
 
 # Languages that need RTL pre-processing.

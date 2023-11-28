@@ -734,8 +734,7 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
         source_shader, source_name, dest_node, dest_socket_name, ntree, column + 1, r_ctx);
   }
   else if (shader_id == usdtokens::UsdTransform2d) {
-    convert_usd_transform_2d(
-        source_shader, source_name, dest_node, dest_socket_name, ntree, column + 1, r_ctx);
+    convert_usd_transform_2d(source_shader, dest_node, dest_socket_name, ntree, column + 1, r_ctx);
   }
 
   return true;
@@ -790,7 +789,6 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
 }
 
 void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
-                                                 const pxr::TfToken &usd_source_name,
                                                  bNode *dest_node,
                                                  const char *dest_socket_name,
                                                  bNodeTree *ntree,

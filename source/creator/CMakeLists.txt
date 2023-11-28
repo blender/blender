@@ -1805,6 +1805,7 @@ if(UNIX AND NOT APPLE)
       install(
         CODE "\
 set(BLENDER_BIN \"${CMAKE_INSTALL_PREFIX}/${BLENDER_BIN}\")\n\
+set(PYTHON_EXECUTABLE \"${PYTHON_EXECUTABLE}\")\n\
 set(MANPAGE_GEN \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\")\n\
 set(MANPAGE_OUT \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\")\n\
 if(\n\
@@ -1818,12 +1819,9 @@ strict_init_order=0:\
 detect_leaks=0\"\n\
   )\n\
   execute_process(\n\
-    OUTPUT_QUIET\n\
-    COMMAND $\{BLENDER_BIN\}\n\
-    --background\n\
-    --factory-startup\n\
-    --python $\{MANPAGE_GEN\}\n\
-    --\n\
+    COMMAND\n\
+    $\{PYTHON_EXECUTABLE\} $\{MANPAGE_GEN\}\n\
+    --blender $\{BLENDER_BIN\}\n\
     --output $\{MANPAGE_OUT\}\n\
   )\n\
 endif()\n\

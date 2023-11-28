@@ -12,7 +12,6 @@ set(INC
   ../../editors/include
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/utfconv
 )
 
 set(INC_SYS
@@ -92,6 +91,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::utfconv
   bf_io_common
 
   ${ALEMBIC_LIBRARIES}

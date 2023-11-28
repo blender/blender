@@ -43,7 +43,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_main_namemap.h"
+#include "BKE_main_namemap.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
 #include "BKE_report.h"

@@ -66,7 +66,6 @@ set(INC
   ../../nodes
   ../../python/intern
   ../../windowmanager
-  ../../../../intern/utfconv
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -186,6 +185,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::utfconv
   bf_io_common
 )
 
