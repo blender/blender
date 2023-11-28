@@ -224,7 +224,7 @@ static void sort_per_set_with_id_maps(const Span<int> set_sizes,
 
 /**
  * Checks if the two values are different. For float types, the equality is checked based on a
- * treshold.
+ * threshold.
  */
 template<typename T>
 static bool values_different(const T value1,
@@ -660,14 +660,14 @@ static bool all_set_sizes_one(const Span<int> set_sizes)
 /**
  * Tries to construct a (bijective) mapping from the vertices of the first mesh to the
  * vertices of the second mesh, such that:
- *  - Edge topology is preserved under this mapping, i.e. if v_1 and v_2 are on an edge in mesh1
- * then f(v_1) and f(v_2) are on an edge in mesh2.
- *  - Face topology is preserved under this mapping, i.e. if v_1, ..., v_n form a face in mesh1,
- * then f(v_1), ..., f(v_n) form a face in mesh2.
- *  - The mapping preserves all vertex attributes, i.e. if attr is some vertex attribute on mesh1,
- * then for every vertex v of mesh1, attr(v) = attr(f(v)).
+ * - Edge topology is preserved under this mapping, i.e. if v_1 and v_2 are on an edge in mesh1
+ *   then `f(v_1)` and `f(v_2)` are on an edge in mesh2.
+ * - Face topology is preserved under this mapping, i.e. if v_1, ..., v_n form a face in mesh1,
+ *   then `f(v_1)`, ..., `f(v_n)` form a face in mesh2.
+ * - The mapping preserves all vertex attributes, i.e. if `attr` is some vertex attribute on mesh1,
+ *   then for every vertex v of mesh1, `attr(v) = attr(f(v))`.
  *
- * \returns the type of mismatch that occured if the mapping couldn't be constructed.
+ * \returns the type of mismatch that occurred if the mapping couldn't be constructed.
  */
 static std::optional<MeshMismatch> construct_vertex_mapping(const Mesh &mesh1,
                                                             const Mesh &mesh2,
@@ -679,7 +679,7 @@ static std::optional<MeshMismatch> construct_vertex_mapping(const Mesh &mesh1,
     return std::nullopt;
   }
 
-  /* Since we are not yet able to distiniguish all vertices based on their attributes alone, we
+  /* Since we are not yet able to distinguish all vertices based on their attributes alone, we
   need to use the edge topology. */
   Array<int> vert_to_edge_offsets1;
   Array<int> vert_to_edge_indices1;

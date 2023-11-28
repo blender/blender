@@ -825,14 +825,14 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     is_set = true;
   }
   else if (ob_act == nullptr || ob_act->mode == OB_MODE_OBJECT) {
-    /* object mode use boundbox centers */
+    /* Object mode uses bounding-box centers. */
     uint tot = 0;
     float select_center[3];
 
     zero_v3(select_center);
     LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
       if (BASE_SELECTED(v3d, base_eval)) {
-        /* use the boundbox if we can */
+        /* Use the bounding-box if we can. */
         Object *ob_eval = base_eval->object;
 
         if (ob_eval->runtime->bounds_eval) {
