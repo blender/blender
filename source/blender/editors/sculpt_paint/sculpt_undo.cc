@@ -842,13 +842,12 @@ static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
                                       Object *object,
                                       Subdiv *subdiv)
 {
-  float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
-      depsgraph, object, ss->multires.modifier, nullptr);
+  blender::Array<blender::float3> deformed_verts =
+      BKE_multires_create_deformed_base_mesh_vert_coords(depsgraph, object, ss->multires.modifier);
 
-  BKE_subdiv_eval_refine_from_mesh(
-      subdiv, static_cast<const Mesh *>(object->data), deformed_verts);
-
-  MEM_freeN(deformed_verts);
+  BKE_subdiv_eval_refine_from_mesh(subdiv,
+                                   static_cast<const Mesh *>(object->data),
+                                   reinterpret_cast<float(*)[3]>(deformed_verts.data()));
 }
 
 static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)

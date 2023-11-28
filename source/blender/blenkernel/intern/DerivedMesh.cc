@@ -391,7 +391,9 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
   orco = get_orco_coords(ob, em, layer, &free);
 
   if (orco) {
-    BKE_mesh_vert_coords_apply(mesh, orco);
+    mesh->vert_positions_for_write().copy_from(
+        {reinterpret_cast<const float3 *>(orco), mesh->totvert});
+    BKE_mesh_tag_positions_changed(mesh);
     if (free) {
       MEM_freeN(orco);
     }

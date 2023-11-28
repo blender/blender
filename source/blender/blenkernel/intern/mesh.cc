@@ -1322,37 +1322,6 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
   /* We could support faces in paint modes. */
 }
 
-float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
-{
-  float(*vert_coords)[3] = (float(*)[3])MEM_mallocN(sizeof(float[3]) * mesh->totvert, __func__);
-  MutableSpan(reinterpret_cast<float3 *>(vert_coords), mesh->totvert)
-      .copy_from(mesh->vert_positions());
-  if (r_vert_len) {
-    *r_vert_len = mesh->totvert;
-  }
-  return vert_coords;
-}
-
-void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    copy_v3_v3(positions[i], vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
-}
-
-void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
-                                          const float (*vert_coords)[3],
-                                          const float mat[4][4])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    mul_v3_m4v3(positions[i], mat, vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
-}
-
 /* **** Depsgraph evaluation **** */
 
 void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)

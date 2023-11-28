@@ -159,11 +159,10 @@ void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *resh
   BLI_assert(object != nullptr);
   BLI_assert(mmd != nullptr);
 
-  float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
-      depsgraph, object, mmd, nullptr);
+  blender::Array<blender::float3> deformed_verts =
+      BKE_multires_create_deformed_base_mesh_vert_coords(depsgraph, object, mmd);
 
-  BKE_subdiv_eval_refine_from_mesh(
-      reshape_context->subdiv, reshape_context->base_mesh, deformed_verts);
-
-  MEM_freeN(deformed_verts);
+  BKE_subdiv_eval_refine_from_mesh(reshape_context->subdiv,
+                                   reshape_context->base_mesh,
+                                   reinterpret_cast<float(*)[3]>(deformed_verts.data()));
 }

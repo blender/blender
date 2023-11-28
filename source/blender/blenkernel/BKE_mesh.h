@@ -299,13 +299,6 @@ void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
 
-float (*BKE_mesh_vert_coords_alloc(const struct Mesh *mesh, int *r_vert_len))[3];
-
-void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
-                                          const float (*vert_coords)[3],
-                                          const float mat[4][4]);
-void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
-
 /* *** mesh_tessellate.cc *** */
 
 /**
