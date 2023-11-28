@@ -4,13 +4,11 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 /** \file
  * \ingroup bke
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct UnitSettings;
 
@@ -120,7 +118,3 @@ enum {
   B_UNIT_TEMPERATURE = 12,
   B_UNIT_TYPE_TOT = 13,
 };
-
-#ifdef __cplusplus
-}
-#endif

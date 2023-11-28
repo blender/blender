@@ -18,7 +18,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "BLF_api.h"
 

@@ -39,7 +39,7 @@
 #include "BKE_layer.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

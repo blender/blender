@@ -11,10 +11,6 @@
 #include "BKE_bvhutils.hh"
 #include "BLI_bitmap.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * Shrinkwrap is composed by a set of functions and options that define the type of shrink.
  *
@@ -218,7 +214,3 @@ void BKE_shrinkwrap_snap_point_to_surface(const struct ShrinkwrapTreeData *tree,
   { \
     0, \
   }
-
-#ifdef __cplusplus
-}
-#endif

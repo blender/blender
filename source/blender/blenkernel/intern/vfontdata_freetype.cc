@@ -22,8 +22,8 @@
 #include "BLI_string_utf8.h"
 
 #include "BKE_curve.hh"
-#include "BKE_vfont.h"
-#include "BKE_vfontdata.h"
+#include "BKE_vfont.hh"
+#include "BKE_vfontdata.hh"
 
 #include "DNA_packedFile_types.h"
 #include "DNA_vfont_types.h"

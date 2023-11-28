@@ -42,7 +42,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_screen.hh"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

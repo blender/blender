@@ -41,8 +41,8 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_shrinkwrap.h"
-#include "BKE_unit.h"
+#include "BKE_shrinkwrap.hh"
+#include "BKE_unit.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

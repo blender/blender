@@ -3,13 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "BLI_sys_types.h"
+
 /** \file
  * \ingroup bke
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct CharInfo;
 struct Curve;
@@ -132,7 +130,3 @@ void BKE_vfont_clipboard_get(char32_t **r_text_buf,
                              struct CharInfo **r_info_buf,
                              size_t *r_len_utf8,
                              size_t *r_len_utf32);
-
-#ifdef __cplusplus
-}
-#endif

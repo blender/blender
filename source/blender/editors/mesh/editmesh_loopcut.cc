@@ -22,7 +22,7 @@
 #include "BKE_layer.h"
 #include "BKE_modifier.hh"
 #include "BKE_report.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "UI_interface.hh"
 

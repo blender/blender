@@ -68,7 +68,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_scene.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

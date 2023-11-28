@@ -481,7 +481,7 @@ set(SRC
   BKE_screen.hh
   BKE_sequencer_offscreen.h
   BKE_shader_fx.h
-  BKE_shrinkwrap.h
+  BKE_shrinkwrap.hh
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
@@ -501,9 +501,9 @@ set(SRC
   BKE_tracking.h
   BKE_type_conversions.hh
   BKE_undo_system.h
-  BKE_unit.h
-  BKE_vfont.h
-  BKE_vfontdata.h
+  BKE_unit.hh
+  BKE_vfont.hh
+  BKE_vfontdata.hh
   BKE_viewer_path.hh
   BKE_volume.hh
   BKE_volume_openvdb.hh

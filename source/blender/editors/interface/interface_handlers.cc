@@ -46,7 +46,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "GHOST_C-api.h"
 

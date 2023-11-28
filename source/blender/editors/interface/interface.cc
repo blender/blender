@@ -39,7 +39,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "ED_asset.hh"
 

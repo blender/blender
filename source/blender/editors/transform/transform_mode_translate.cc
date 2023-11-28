@@ -21,7 +21,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_report.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "ED_node.hh"
 #include "ED_screen.hh"

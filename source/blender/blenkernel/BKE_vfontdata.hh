@@ -12,10 +12,6 @@
 
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct PackedFile;
 struct VFont;
 
@@ -45,7 +41,3 @@ VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, int flag);
 
 VChar *BKE_vfontdata_char_from_freetypefont(struct VFont *vfont, unsigned long character);
 VChar *BKE_vfontdata_char_copy(const VChar *vchar_src);
-
-#ifdef __cplusplus
-}
-#endif

@@ -60,7 +60,7 @@
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 

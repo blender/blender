@@ -32,7 +32,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_studiolight.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "BLF_api.h"
 
