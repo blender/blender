@@ -274,6 +274,11 @@ class TEXTURE_UL_texpaintslots(UIList):
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # mat = data
 
+        # Hint that painting on linked images is prohibited
+        ima = _data.texture_paint_images.get(item.name)
+        if ima is not None and ima.library is not None:
+            layout.enabled = False
+
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon_value=item.icon_value)
         elif self.layout_type == 'GRID':
