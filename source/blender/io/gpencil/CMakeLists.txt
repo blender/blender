@@ -13,7 +13,6 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
-  ../../../../intern/utfconv
 )
 
 set(INC_SYS
@@ -40,6 +39,7 @@ set(LIB
   PRIVATE bf::extern::nanosvg
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::utfconv
   bf_io_common
 )
 
