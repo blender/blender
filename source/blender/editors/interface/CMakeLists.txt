@@ -10,7 +10,6 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../draw
-  ../../functions
   ../../gpu
   ../../makesrna
   ../../nodes
@@ -100,6 +99,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_datafiles
+  PRIVATE bf::functions
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

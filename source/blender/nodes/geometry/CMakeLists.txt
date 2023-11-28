@@ -10,7 +10,6 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
-  ../../functions
   ../../geometry
   ../../gpu
   ../../makesrna
@@ -213,7 +212,7 @@ set(LIB
   bf_bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  bf_functions
+  PRIVATE bf::functions
   bf_geometry
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
