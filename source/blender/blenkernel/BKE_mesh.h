@@ -227,14 +227,6 @@ void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigne
 void BKE_mesh_smooth_flag_set(struct Mesh *me, bool use_smooth);
 void BKE_mesh_sharp_edges_set_from_angle(struct Mesh *me, float angle);
 
-/**
- * Used for unit testing; compares two meshes, checking only
- * differences we care about.  should be usable with leaf's
- * testing framework I get RNA work done, will use hackish
- * testing code for now.
- */
-const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
-
 void BKE_mesh_texspace_calc(struct Mesh *me);
 void BKE_mesh_texspace_ensure(struct Mesh *me);
 void BKE_mesh_texspace_get(struct Mesh *me,
@@ -298,19 +290,6 @@ int BKE_mesh_mselect_active_get(struct Mesh *me, int type);
 void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
-
-/* *** mesh_tessellate.cc *** */
-
-/**
- * See #bke::mesh::looptris_calc
- */
-void BKE_mesh_recalc_looptri(const int *corner_verts,
-                             const int *face_offsets,
-                             const float (*vert_positions)[3],
-                             int totvert,
-                             int totloop,
-                             int faces_num,
-                             struct MLoopTri *mlooptri);
 
 /* *** mesh_normals.cc *** */
 
@@ -673,22 +652,6 @@ BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
   }
   return (int *)CustomData_add_layer_named(
       &mesh->face_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
-}
-
-BLI_INLINE const float (*BKE_mesh_vert_positions(const Mesh *mesh))[3]
-{
-  return (const float(*)[3])CustomData_get_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT3, "position");
-}
-
-BLI_INLINE const int *BKE_mesh_face_offsets(const Mesh *mesh)
-{
-  return mesh->face_offset_indices;
-}
-
-BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
-{
-  return (const int *)CustomData_get_layer_named(&mesh->loop_data, CD_PROP_INT32, ".corner_vert");
 }
 
 BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)

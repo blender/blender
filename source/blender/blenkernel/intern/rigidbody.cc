@@ -674,14 +674,14 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 
         const blender::Span<blender::float3> positions = mesh->vert_positions();
         const blender::Span<MLoopTri> looptris = mesh->looptris();
-        const int *corner_verts = BKE_mesh_corner_verts(mesh);
+        const blender::Span<int> corner_verts = mesh->corner_verts();
 
         if (!positions.is_empty() && !looptris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float(*)[3]>(positions.data()),
                                positions.size(),
                                looptris.data(),
                                looptris.size(),
-                               corner_verts,
+                               corner_verts.data(),
                                &volume,
                                nullptr);
           const float volume_scale = mat4_to_volume_scale(ob->object_to_world);

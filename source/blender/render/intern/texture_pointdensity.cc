@@ -278,7 +278,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
                                             Mesh *mesh,
                                             float *data_color)
 {
-  const int *corner_verts = BKE_mesh_corner_verts(mesh);
+  const blender::Span<int> corner_verts = mesh->corner_verts();
   const int totloop = mesh->totloop;
   char layername[MAX_CUSTOMDATA_LAYER_NAME];
   int i;
@@ -391,7 +391,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
   }
 #endif
 
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh); /* local object space */
+  const blender::Span<blender::float3> positions = mesh->vert_positions(); /* local object space */
   pd->totpoints = mesh->totvert;
   if (pd->totpoints == 0) {
     return;
