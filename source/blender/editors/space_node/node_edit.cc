@@ -593,12 +593,12 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   sce->nodetree->render_quality = NTREE_QUALITY_HIGH;
 
   bNode *out = nodeAddStaticNode(C, sce->nodetree, CMP_NODE_COMPOSITE);
-  out->locx = 300.0f;
-  out->locy = 400.0f;
+  out->locx = 200.0f;
+  out->locy = 200.0f;
 
   bNode *in = nodeAddStaticNode(C, sce->nodetree, CMP_NODE_R_LAYERS);
-  in->locx = 10.0f;
-  in->locy = 400.0f;
+  in->locx = -200.0f;
+  in->locy = 200.0f;
   nodeSetActive(sce->nodetree, in);
 
   /* Links from color to color. */
