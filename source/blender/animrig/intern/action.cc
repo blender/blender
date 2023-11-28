@@ -64,11 +64,13 @@ FCurve *action_fcurve_ensure(Main *bmain,
     /* For Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
      * is determined by the array index for the F-Curve.
      */
-    PropertyRNA *prop;
-    PointerRNA r_ptr;
-    const bool resolved = RNA_path_resolve_property(ptr, rna_path, &r_ptr, &prop);
+    PropertyRNA *resolved_prop;
+    PointerRNA resolved_ptr;
+    PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
+    const bool resolved = RNA_path_resolve_property(
+        &id_ptr, rna_path, &resolved_ptr, &resolved_prop);
     if (resolved) {
-      PropertySubType prop_subtype = RNA_property_subtype(prop);
+      PropertySubType prop_subtype = RNA_property_subtype(resolved_prop);
       if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
         fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
       }
