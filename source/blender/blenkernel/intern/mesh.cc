@@ -278,7 +278,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
     CustomData_blend_write_prepare(mesh->loop_data, loop_layers, {});
     CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
-    mesh_sculpt_mask_to_legacy(vert_layers);
+    if (!is_undo) {
+      mesh_sculpt_mask_to_legacy(vert_layers);
+    }
   }
 
   mesh->runtime = nullptr;
