@@ -444,15 +444,6 @@ static void fill_quad_consistent_direction(const Span<int> other_face_verts,
   }
 }
 
-static void create_reverse_map(const IndexMask &mask, MutableSpan<int> r_map)
-{
-#ifdef DEBUG
-  r_map.fill(-1);
-#endif
-  mask.foreach_index_optimized<int>(
-      GrainSize(4096), [&](const int src_i, const int dst_i) { r_map[src_i] = dst_i; });
-}
-
 static GroupedSpan<int> build_vert_to_edge_map(const Span<int2> edges,
                                                const IndexMask &edge_mask,
                                                const int verts_num,
@@ -596,7 +587,7 @@ static void extrude_mesh_edges(Mesh &mesh,
 
   {
     Array<int> vert_to_new_vert(orig_vert_size);
-    create_reverse_map(new_verts, vert_to_new_vert);
+    index_mask::build_reverse_map<int>(new_verts, vert_to_new_vert);
     for (const int i : duplicate_edges.index_range()) {
       const int2 orig_edge = edges[edge_selection[i]];
       const int i_new_vert_1 = vert_to_new_vert[orig_edge[0]];

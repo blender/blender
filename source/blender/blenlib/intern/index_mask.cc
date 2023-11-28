@@ -20,6 +20,19 @@
 
 namespace blender::index_mask {
 
+template<typename T> void build_reverse_map(const IndexMask &mask, MutableSpan<T> r_map)
+{
+#ifdef DEBUG
+  /* Catch errors with asserts in debug builds. */
+  r_map.fill(-1);
+#endif
+  BLI_assert(r_map.size() >= mask.min_array_size());
+  mask.foreach_index_optimized<T>(GrainSize(4096),
+                                  [&](const T src, const T dst) { r_map[src] = dst; });
+}
+
+template void build_reverse_map<int>(const IndexMask &mask, MutableSpan<int> r_map);
+
 std::array<int16_t, max_segment_size> build_static_indices_array()
 {
   std::array<int16_t, max_segment_size> data;
