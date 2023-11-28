@@ -128,9 +128,9 @@ static void sort_indices(MutableSpan<int> indices, const Span<T> values, const i
       return value1[component_i] < value2[component_i];
     }
     if constexpr (std::is_same_v<T, math::Quaternion>) {
-      const float4 value1 = float4(value1);
-      const float4 value2 = float4(value2);
-      return value1[component_i] < value2[component_i];
+      const float4 value1_quat = float4(value1);
+      const float4 value2_quat = float4(value2);
+      return value1_quat[component_i] < value2_quat[component_i];
     }
     if constexpr (std::is_same_v<T, int2>) {
       for (int i = 0; i < 2; i++) {
