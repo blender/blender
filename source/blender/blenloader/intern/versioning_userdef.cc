@@ -905,6 +905,12 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(401, 9)) {
+    userdef->key_insert_channels = (USER_ANIM_KEY_CHANNEL_LOCATION |
+                                    USER_ANIM_KEY_CHANNEL_ROTATION | USER_ANIM_KEY_CHANNEL_SCALE |
+                                    USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -916,9 +922,6 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
-    userdef->key_insert_channels = (USER_ANIM_KEY_CHANNEL_LOCATION |
-                                    USER_ANIM_KEY_CHANNEL_ROTATION | USER_ANIM_KEY_CHANNEL_SCALE |
-                                    USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES);
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {
