@@ -141,36 +141,38 @@ static bool python_script_exec(
     filepath_namespace = filepath;
 
     if (fp) {
-      py_dict = PyC_DefaultNameSpace(filepath);
-
-#ifdef _WIN32
-      /* Previously we used PyRun_File to run directly the code on a FILE
-       * object, but as written in the Python/C API Ref Manual, chapter 2,
-       * 'FILE structs for different C libraries can be different and
-       * incompatible'.
-       * So now we load the script file data to a buffer.
-       *
-       * Note on use of 'globals()', it's important not copy the dictionary because
-       * tools may inspect 'sys.modules["__main__"]' for variables defined in the code
-       * where using a copy of 'globals()' causes code execution
-       * to leave the main namespace untouched. see: #51444
-       *
-       * This leaves us with the problem of variables being included,
-       * currently this is worked around using 'dict.__del__' it's ugly but works.
-       */
-      {
-        const char *pystring =
-            "with open(__file__, 'rb') as f:"
-            "exec(compile(f.read(), __file__, 'exec'), globals().__delitem__('f') or globals())";
-
-        fclose(fp);
-
-        py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
+      BLI_stat_t st;
+      if (BLI_fstat(fileno(fp), &st) == 0 && S_ISDIR(st.st_mode)) {
+        PyErr_Format(PyExc_IsADirectoryError, "Python file \"%s\" is a directory", filepath);
+        py_result = nullptr;
       }
+      else {
+#ifdef _WIN32
+        /* Previously we used PyRun_File to run directly the code on a FILE
+         * object, but as written in the Python/C API Ref Manual, chapter 2,
+         * 'FILE structs for different C libraries can be different and
+         * incompatible'.
+         * So now we load the script file data to a buffer.
+         *
+         * Note on use of 'globals()', it's important not copy the dictionary because
+         * tools may inspect 'sys.modules["__main__"]' for variables defined in the code
+         * where using a copy of 'globals()' causes code execution
+         * to leave the main namespace untouched. see: #51444
+         *
+         * This leaves us with the problem of variables being included,
+         * currently this is worked around using 'dict.__del__' it's ugly but works.
+         */
+        {
+          const char *pystring =
+              "with open(__file__, 'rb') as f:"
+              "exec(compile(f.read(), __file__, 'exec'), globals().__delitem__('f') or globals())";
+          py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
+        }
 #else
-      py_result = PyRun_File(fp, filepath, Py_file_input, py_dict, py_dict);
-      fclose(fp);
+        py_result = PyRun_File(fp, filepath, Py_file_input, py_dict, py_dict);
 #endif
+      }
+      fclose(fp);
     }
     else {
       PyErr_Format(
