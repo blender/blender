@@ -31,7 +31,11 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
      0,
      "Essentials",
      "Show the basic building blocks and utilities coming with Blender"},
-    {ASSET_LIBRARY_CUSTOM, "CUSTOM", 0, "Custom", "All external 'normal' asset repositories"},
+    {ASSET_LIBRARY_CUSTOM,
+     "CUSTOM",
+     0,
+     "Custom",
+     "Show assets from the asset libraries configured in the Preferences"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
