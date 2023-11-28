@@ -9,8 +9,12 @@
 #include "DNA_material_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
+
+#include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -253,6 +257,82 @@ static void GREASE_PENCIL_OT_material_lock_unused(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Lock Unselected Materials Operator
+ * \{ */
+
+static int grease_pencil_material_lock_unselected_exec(bContext *C, wmOperator * /*op*/)
+{
+  using namespace blender;
+  using namespace blender::bke;
+
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  bool changed = false;
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+
+  Set<int> materials_used;
+
+  for (const MutableDrawingInfo &info : drawings) {
+    IndexMaskMemory memory;
+    const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+        *object, info.drawing, memory);
+    if (strokes.is_empty()) {
+      return OPERATOR_CANCELLED;
+    }
+
+    AttributeAccessor attributes = info.drawing.strokes().attributes();
+    const VArray<int> material_indices = *attributes.lookup_or_default<int>(
+        "material_index", ATTR_DOMAIN_CURVE, 0);
+
+    if (const std::optional<int> single = material_indices.get_if_single()) {
+      materials_used.add(*single);
+    }
+    else {
+      strokes.foreach_index([&](const int i) { materials_used.add(material_indices[i]); });
+    }
+  };
+
+  /* The material lock must be done outside of the drawing loop to prevent
+   * 'retrieve_editable_and_selected_strokes' from returning an incorrect IndexMask.
+   */
+  for (const int i : IndexRange(object->totcol)) {
+    if (!materials_used.contains(i)) {
+      if (Material *ma = BKE_object_material_get(object, i + 1)) {
+        MaterialGPencilStyle &gp_style = *ma->gp_style;
+        gp_style.flag |= GP_MATERIAL_LOCKED;
+        DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_material_lock_unselected(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Lock Unselected Materials";
+  ot->idname = "GREASE_PENCIL_OT_material_lock_unselected";
+  ot->description = "Lock any material not used in any selected stroke";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_material_lock_unselected_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_material()
@@ -263,4 +343,5 @@ void ED_operatortypes_grease_pencil_material()
   WM_operatortype_append(GREASE_PENCIL_OT_material_lock_all);
   WM_operatortype_append(GREASE_PENCIL_OT_material_unlock_all);
   WM_operatortype_append(GREASE_PENCIL_OT_material_lock_unused);
+  WM_operatortype_append(GREASE_PENCIL_OT_material_lock_unselected);
 }
