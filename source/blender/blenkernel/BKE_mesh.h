@@ -531,16 +531,6 @@ bool BKE_mesh_validate_material_indices(struct Mesh *me);
  * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
  *
  * \return false if no changes needed to be made.
- *
- * Vertex Normals
- * ==============
- *
- * While zeroed normals are checked, these checks aren't comprehensive.
- * Technically, to detect errors here a normal recalculation and comparison is necessary.
- * However this function is mainly to prevent severe errors in geometry
- * (invalid data that will crash Blender, or cause some features to behave incorrectly),
- * not to detect subtle differences in the resulting normals which could be caused
- * by importers that load normals (for example).
  */
 bool BKE_mesh_validate_arrays(struct Mesh *me,
                               float (*vert_positions)[3],
