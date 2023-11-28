@@ -96,7 +96,7 @@ static void bm_vert_calc_normals_impl(BMVert *v)
    * so face loops that share an edge would not calculate it multiple times.
    * From my tests the performance improvements are so small they're difficult to measure,
    * the time saved removing `sqrtf` calls is lost on storing and looking up the information,
-   * even in the case of `BLI_smallhash.h` & small inline lookup tables.
+   * even in the case of small inline lookup tables.
    *
    * Further, local data structures would need to support cases where
    * stack memory isn't sufficient - adding additional complexity for corner-cases

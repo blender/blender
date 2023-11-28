@@ -20,12 +20,13 @@
 #include "BLI_array.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
-#include "BLI_smallhash.h"
+#include "BLI_set.hh"
 #include "BLI_stack.h"
 #include "BLI_string.h"
 
@@ -2314,17 +2315,12 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
   BMesh *bm = em->bm;
   KnifeEdge *kfe;
   KnifeVert *kfv;
-  BMFace *f;
-  BMEdge *e, *enew;
+  BMEdge *enew;
   ListBase *list;
   float pct;
-  SmallHashIter hiter;
   BLI_mempool_iter iter;
-  SmallHash fhash_, *fhash = &fhash_;
-  SmallHash ehash_, *ehash = &ehash_;
-
-  BLI_smallhash_init(fhash);
-  BLI_smallhash_init(ehash);
+  Map<BMFace *, ListBase *> fhash;
+  Map<BMEdge *, ListBase *> ehash;
 
   /* Put list of cutting edges for a face into fhash, keyed by face. */
   BLI_mempool_iternew(kcd->kedges, &iter);
@@ -2342,14 +2338,14 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
       }
     }
 
-    f = kfe->basef;
+    BMFace *f = kfe->basef;
     if (!f || kfe->e) {
       continue;
     }
-    list = static_cast<ListBase *>(BLI_smallhash_lookup(fhash, uintptr_t(f)));
+    list = fhash.lookup_default(f, nullptr);
     if (!list) {
       list = knife_empty_list(kcd);
-      BLI_smallhash_insert(fhash, uintptr_t(f), list);
+      fhash.add(f, list);
     }
     knife_append_list(kcd, list, kfe);
   }
@@ -2364,14 +2360,14 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
     }
     LISTBASE_FOREACH (Ref *, ref, &kfv->edges) {
       kfe = static_cast<KnifeEdge *>(ref->ref);
-      e = kfe->e;
+      BMEdge *e = kfe->e;
       if (!e) {
         continue;
       }
-      list = static_cast<ListBase *>(BLI_smallhash_lookup(ehash, uintptr_t(e)));
+      list = ehash.lookup_default(e, nullptr);
       if (!list) {
         list = knife_empty_list(kcd);
-        BLI_smallhash_insert(ehash, uintptr_t(e), list);
+        ehash.add(e, list);
       }
       /* There can be more than one kfe in kfv's list with same e. */
       if (!find_ref(list, kfv)) {
@@ -2381,9 +2377,7 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
   }
 
   /* Split bmesh edges where needed. */
-  for (list = static_cast<ListBase *>(BLI_smallhash_iternew(ehash, &hiter, (uintptr_t *)&e)); list;
-       list = static_cast<ListBase *>(BLI_smallhash_iternext(&hiter, (uintptr_t *)&e)))
-  {
+  for (auto [e, list] : ehash.items()) {
     BLI_listbase_sort_r(list, sort_verts_by_dist_cb, e->v1->co);
 
     LISTBASE_FOREACH (Ref *, ref, list) {
@@ -2398,14 +2392,9 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
   }
 
   /* Do cuts for each face. */
-  for (list = static_cast<ListBase *>(BLI_smallhash_iternew(fhash, &hiter, (uintptr_t *)&f)); list;
-       list = static_cast<ListBase *>(BLI_smallhash_iternext(&hiter, (uintptr_t *)&f)))
-  {
+  for (auto [f, list] : fhash.items()) {
     knife_make_face_cuts(kcd, bm, f, list);
   }
-
-  BLI_smallhash_release(fhash);
-  BLI_smallhash_release(ehash);
 }
 
 /* User has just left-clicked after the first time.
@@ -2839,20 +2828,13 @@ static void set_linehit_depth(KnifeTool_OpData *kcd, KnifeLineHit *lh)
  */
 static void knife_find_line_hits(KnifeTool_OpData *kcd)
 {
-  SmallHash faces, kfes, kfvs, fobs;
   float v1[3], v2[3], v3[3], v4[3], s1[2], s2[2];
   int *results, *result;
   BMLoop **ls;
-  BMFace *f;
-  KnifeEdge *kfe;
-  KnifeVert *v;
   ListBase *list;
   KnifeLineHit *linehits = nullptr;
   BLI_array_declare(linehits);
-  SmallHashIter hiter;
   KnifeLineHit hit;
-  void *val;
-  void **val_p;
   float s[2], se1[2], se2[2], sint[2];
   float d1, d2, lambda;
   float vert_tol, vert_tol_sq;
@@ -2922,10 +2904,10 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     return;
   }
 
-  BLI_smallhash_init(&faces);
-  BLI_smallhash_init(&kfes);
-  BLI_smallhash_init(&kfvs);
-  BLI_smallhash_init(&fobs);
+  Set<BMFace *> faces;
+  Map<BMFace *, uint> fobs;
+  Set<KnifeEdge *> kfes;
+  Set<KnifeVert *> kfvs;
 
   Object *ob;
   BMEditMesh *em;
@@ -2942,7 +2924,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       *result -= em->tottri;
     }
 
-    f = ls[0]->f;
+    BMFace *f = ls[0]->f;
     set_lowest_face_tri(kcd, em, f, *result);
 
     /* Occlude but never cut unselected faces (when only_select is used). */
@@ -2950,27 +2932,25 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       continue;
     }
     /* For faces, store index of lowest hit looptri in hash. */
-    if (BLI_smallhash_haskey(&faces, uintptr_t(f))) {
+    if (faces.contains(f)) {
       continue;
     }
     /* Don't care what the value is except that it is non-null, for iterator. */
-    BLI_smallhash_insert(&faces, uintptr_t(f), f);
-    BLI_smallhash_insert(&fobs, uintptr_t(f), (void *)uintptr_t(ob_index));
+    faces.add(f);
+    fobs.add(f, ob_index);
 
     list = knife_get_face_kedges(kcd, ob, ob_index, f);
     LISTBASE_FOREACH (Ref *, ref, list) {
-      kfe = static_cast<KnifeEdge *>(ref->ref);
+      KnifeEdge *kfe = static_cast<KnifeEdge *>(ref->ref);
       if (kfe->is_invalid) {
         continue;
       }
-      if (BLI_smallhash_haskey(&kfes, uintptr_t(kfe))) {
+      if (kfes.contains(kfe)) {
         continue;
       }
-      BLI_smallhash_insert(&kfes, uintptr_t(kfe), kfe);
-      v = kfe->v1;
-      BLI_smallhash_reinsert(&kfvs, uintptr_t(v), v);
-      v = kfe->v2;
-      BLI_smallhash_reinsert(&kfvs, uintptr_t(v), v);
+      kfes.add(kfe);
+      kfvs.add(kfe->v1);
+      kfvs.add(kfe->v2);
     }
   }
 
@@ -2998,9 +2978,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   /* Assume these tolerances swamp floating point rounding errors in calculations below. */
 
   /* First look for vertex hits. */
-  for (val_p = BLI_smallhash_iternew_p(&kfvs, &hiter, (uintptr_t *)&v); val_p;
-       val_p = BLI_smallhash_iternext_p(&hiter, (uintptr_t *)&v))
-  {
+  for (KnifeVert *v : kfvs) {
     KnifeEdge *kfe_hit = nullptr;
 
     bool kfv_is_in_cut = false;
@@ -3045,19 +3023,14 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       /* This vertex isn't used so remove from `kfvs`.
        * This is useful to detect KnifeEdges that can be skipped.
        * And it optimizes smallhash_iternext a little bit. */
-      *val_p = nullptr;
+      kfvs.remove(v);
     }
   }
 
   /* Now edge hits; don't add if a vertex at end of edge should have hit. */
-  for (val = BLI_smallhash_iternew(&kfes, &hiter, (uintptr_t *)&kfe); val;
-       val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&kfe))
-  {
-
+  for (KnifeEdge *kfe : kfes) {
     /* If we intersect any of the vertices, don't attempt to intersect the edge. */
-    if (BLI_smallhash_lookup(&kfvs, intptr_t(kfe->v1)) ||
-        BLI_smallhash_lookup(&kfvs, intptr_t(kfe->v2)))
-    {
+    if (kfvs.contains(kfe->v1) || kfvs.contains(kfe->v2)) {
       continue;
     }
 
@@ -3130,12 +3103,10 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   const bool use_hit_curr = (kcd->curr.vert == nullptr) && (kcd->curr.edge == nullptr) &&
                             !kcd->is_drag_hold;
   if (use_hit_prev || use_hit_curr) {
-    for (val = BLI_smallhash_iternew(&faces, &hiter, (uintptr_t *)&f); val;
-         val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f))
-    {
+    for (BMFace *f : faces) {
       float p[3], p_cage[3];
 
-      uint ob_index = uint(uintptr_t(BLI_smallhash_lookup(&fobs, uintptr_t(f))));
+      uint ob_index = fobs.lookup(f);
       ob = kcd->objects[ob_index];
 
       if (use_hit_prev &&
@@ -3182,10 +3153,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     lh->l = len_v2v2(lh->schit, s1) / len_v2v2(s2, s1);
   }
 
-  BLI_smallhash_release(&faces);
-  BLI_smallhash_release(&kfes);
-  BLI_smallhash_release(&kfvs);
-  BLI_smallhash_release(&fobs);
   MEM_freeN(results);
 }
 
