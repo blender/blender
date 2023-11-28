@@ -12,23 +12,24 @@
 
 #include "DNA_listBase.h"
 
+struct GHash;
 struct PackedFile;
 struct VFont;
 
-typedef struct VFontData {
-  struct GHash *characters;
+struct VFontData {
+  GHash *characters;
   char name[128];
   float scale;
   /* Calculated from the font. */
   float em_height;
   float ascender;
-} VFontData;
+};
 
-typedef struct VChar {
+struct VChar {
   ListBase nurbsbase;
   unsigned int index;
   float width;
-} VChar;
+};
 
 /**
  * Construct a new #VFontData structure from free-type font data in `pf`.
@@ -36,8 +37,8 @@ typedef struct VChar {
  * \param pf: The font data.
  * \retval A new #VFontData structure, or NULL if unable to load.
  */
-VFontData *BKE_vfontdata_from_freetypefont(struct PackedFile *pf);
+VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf);
 VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, int flag);
 
-VChar *BKE_vfontdata_char_from_freetypefont(struct VFont *vfont, unsigned long character);
+VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, unsigned long character);
 VChar *BKE_vfontdata_char_copy(const VChar *vchar_src);
