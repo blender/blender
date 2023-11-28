@@ -2578,6 +2578,12 @@ static int rebuild_pose_bone(
   pchan->bone = bone;
   pchan->parent = parchan;
 
+  /* Prevent custom bone colors from having alpha zero.
+   * Part of the fix for issue #115434. */
+  pchan->color.custom.solid[3] = 255;
+  pchan->color.custom.select[3] = 255;
+  pchan->color.custom.active[3] = 255;
+
   /* We ensure the current pchan is immediately after the one we just generated/updated in the
    * previous call to `rebuild_pose_bone`.
    *
