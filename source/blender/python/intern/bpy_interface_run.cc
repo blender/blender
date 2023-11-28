@@ -137,7 +137,7 @@ static bool python_script_exec(
     }
   }
   else {
-    FILE *fp = BLI_fopen(filepath, "r");
+    FILE *fp = BLI_fopen(filepath, "rb");
     filepath_namespace = filepath;
 
     if (fp) {
