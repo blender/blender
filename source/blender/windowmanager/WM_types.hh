@@ -1189,6 +1189,9 @@ using WMDropboxTooltipFunc = char *(*)(bContext *C,
                                        wmDropBox *drop);
 
 struct wmDragActiveDropState {
+  wmDragActiveDropState();
+  ~wmDragActiveDropState();
+
   /**
    * Informs which dropbox is activated with the drag item.
    * When this value changes, the #on_enter() and #on_exit() dropbox callbacks are triggered.
