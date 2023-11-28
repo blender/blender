@@ -180,7 +180,9 @@ static bool python_script_exec(
   }
 
   if (!py_result) {
-    BPy_errors_to_report(reports);
+    if (reports) {
+      BPy_errors_to_report(reports);
+    }
     if (text) {
       if (do_jump) {
         /* ensure text is valid before use, the script may have freed itself */
@@ -190,6 +192,7 @@ static bool python_script_exec(
         }
       }
     }
+    PyErr_Print();
     PyErr_Clear();
   }
   else {
@@ -272,12 +275,9 @@ static bool bpy_run_string_impl(bContext *C,
     ReportList reports;
     BKE_reports_init(&reports, RPT_STORE);
     BPy_errors_to_report(&reports);
-    PyErr_Clear();
 
-    /* Ensure the reports are printed. */
-    if (!BKE_reports_print_test(&reports, RPT_ERROR)) {
-      BKE_reports_print(&reports, RPT_ERROR);
-    }
+    PyErr_Print();
+    PyErr_Clear();
 
     ReportList *wm_reports = CTX_wm_reports(C);
     if (wm_reports) {

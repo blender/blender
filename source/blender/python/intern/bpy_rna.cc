@@ -8781,18 +8781,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       reports = CTX_wm_reports(C);
     }
 
-    /* Typically null reports are sent to the output,
-     * in this case however PyErr_Print is responsible for that,
-     * so only run this if reports are non-null. */
     if (reports) {
-      /* Create a temporary report list so none of the reports are printed (only stored).
-       * Only do this when reports is non-null because the error is printed to the `stderr`
-       * #PyErr_Print below. */
-      ReportList reports_temp = {{0}};
-      BKE_reports_init(&reports_temp, reports->flag | RPT_PRINT_HANDLED_BY_OWNER);
-      reports_temp.storelevel = reports->storelevel;
-      BPy_errors_to_report(&reports_temp);
-      BLI_movelisttolist(&reports->list, &reports_temp.list);
+      BPy_errors_to_report(reports);
     }
 
     /* Also print in the console for Python. */
@@ -9006,11 +8996,12 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     if (!has_error) {
       BPy_reports_write_stdout(&reports, error_prefix);
     }
-    BKE_reports_clear(&reports);
     if (has_error) {
+      BKE_reports_clear(&reports);
       return nullptr;
     }
   }
+  BKE_reports_clear(&reports);
 
   /* Python errors validating are not converted into reports so the check above will fail.
    * the cause for returning nullptr will be printed as an error */
