@@ -4355,9 +4355,9 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     }
     if (item->name && item->name[0]) {
       float item_width = BLF_width(BLF_default(), item->name, BLF_DRAW_STR_DUMMY_MAX);
-      col_width = MAX2(col_width, item_width + (100.0f * UI_SCALE_FAC));
+      col_width = std::max(col_width, item_width + (100.0f * UI_SCALE_FAC));
     }
-    rows = MAX2(rows, col_rows);
+    rows = std::max(rows, col_rows);
   }
   text_width += col_width;
   text_width /= but->block->aspect;
@@ -4368,7 +4368,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     if (columns > 8) {
       columns = (totitems + 25) / 25;
     }
-    rows = MAX2(totitems / columns, 1);
+    rows = std::max(totitems / columns, 1);
     while (rows * columns < totitems) {
       rows++;
     }
