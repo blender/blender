@@ -583,7 +583,7 @@ struct PBVHBatches {
             [&](int /*x*/, int /*y*/, int grid_index, CCGElem * /*elems*/[4], int /*i*/) {
               uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
-              const int face_index = BKE_subdiv_ccg_grid_to_face_index(args.subdiv_ccg,
+              const int face_index = BKE_subdiv_ccg_grid_to_face_index(*args.subdiv_ccg,
                                                                        grid_index);
               const int fset = face_sets_span[face_index];
 
@@ -1151,7 +1151,7 @@ struct PBVHBatches {
         CustomData_get_layer_named(args.face_data, CD_PROP_INT32, "material_index"));
 
     if (mat_index && !args.grid_indices.is_empty()) {
-      int face_i = BKE_subdiv_ccg_grid_to_face_index(args.subdiv_ccg, args.grid_indices[0]);
+      int face_i = BKE_subdiv_ccg_grid_to_face_index(*args.subdiv_ccg, args.grid_indices[0]);
       material_index = mat_index[face_i];
     }
 

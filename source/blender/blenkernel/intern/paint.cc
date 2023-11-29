@@ -2151,23 +2151,23 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
     /* Nothing is hidden, so we can just remove all visibility bitmaps. */
     for (const int i : IndexRange(subdiv_ccg->num_grids)) {
-      BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg, i);
+      BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg, i);
     }
     return;
   }
 
   const VArraySpan<bool> hide_poly_span(hide_poly);
   CCGKey key;
-  BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+  BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
   for (int i = 0; i < mesh->totloop; i++) {
-    const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, i);
+    const int face_index = BKE_subdiv_ccg_grid_to_face_index(*subdiv_ccg, i);
     const bool is_hidden = hide_poly_span[face_index];
 
     /* Avoid creating and modifying the grid_hidden bitmap if the base mesh face is visible and
      * there is not bitmap for the grid. This is because missing grid_hidden implies grid is fully
      * visible. */
     if (is_hidden) {
-      BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg, i);
+      BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg, i);
     }
 
     BLI_bitmap *gh = subdiv_ccg->grid_hidden[i];
@@ -2209,7 +2209,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 {
   CCGKey key;
-  BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+  BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
   PBVH *pbvh = BKE_pbvh_new(PBVH_GRIDS);
 
   Mesh *base_mesh = BKE_mesh_from_object(ob);
@@ -2304,7 +2304,7 @@ bool BKE_object_sculpt_use_dyntopo(const Object *object)
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
   CCGKey key;
-  BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+  BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
 
   BKE_pbvh_grids_update(pbvh,
                         subdiv_ccg->grids,

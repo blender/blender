@@ -472,7 +472,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
 
     grids = subdiv_ccg->grids;
     gridsize = subdiv_ccg->grid_size;
-    BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+    BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
 
     blender::MutableSpan<blender::float3> co = unode->co;
     int index = 0;
@@ -590,7 +590,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
 
     grids = subdiv_ccg->grids;
     gridsize = subdiv_ccg->grid_size;
-    BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+    BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
 
     blender::MutableSpan<float> mask = unode->mask;
     int index = 0;

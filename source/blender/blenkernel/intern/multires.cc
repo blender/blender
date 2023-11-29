@@ -1220,7 +1220,7 @@ void multires_stitch_grids(Object *ob)
   blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
   const blender::IndexMask mask = BKE_pbvh_get_grid_updates(pbvh, nodes, memory);
   if (!mask.is_empty()) {
-    BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, mask);
+    BKE_subdiv_ccg_average_stitch_faces(*subdiv_ccg, mask);
   }
 }
 

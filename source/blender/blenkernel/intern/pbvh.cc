@@ -236,10 +236,10 @@ static int partition_indices_grids(blender::MutableSpan<int> prim_indices,
   int i1 = lo, i2 = 0;
 
   while (i1 < hi) {
-    int face_i = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]);
+    int face_i = BKE_subdiv_ccg_grid_to_face_index(*subdiv_ccg, prim_scratch[i2]);
     bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
 
-    while (i1 < hi && BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]) == face_i) {
+    while (i1 < hi && BKE_subdiv_ccg_grid_to_face_index(*subdiv_ccg, prim_scratch[i2]) == face_i) {
       prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
       i1++;
       i2++;
@@ -1961,7 +1961,7 @@ blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBV
       const SubdivCCG &subdiv_ccg = *pbvh.subdiv_ccg;
       int prev_face = -1;
       for (const int prim : node.prim_indices) {
-        const int face = BKE_subdiv_ccg_grid_to_face_index(&subdiv_ccg, prim);
+        const int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim);
         if (face != prev_face) {
           faces.append(face);
           prev_face = face;
@@ -2846,7 +2846,7 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
   else if (pbvh->header.type == PBVH_GRIDS) {
     IndexMaskMemory memory;
     const IndexMask faces_to_update = BKE_pbvh_get_grid_updates(pbvh, nodes, memory);
-    BKE_subdiv_ccg_update_normals(subdiv_ccg, faces_to_update);
+    BKE_subdiv_ccg_update_normals(*subdiv_ccg, faces_to_update);
     for (PBVHNode *node : nodes) {
       node->flag &= ~PBVH_UpdateNormals;
     }

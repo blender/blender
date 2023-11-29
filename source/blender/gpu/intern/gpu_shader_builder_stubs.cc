@@ -192,17 +192,6 @@ bool CustomData_has_layer(const struct CustomData * /*data*/, eCustomDataType /*
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_subdiv_ccg.hh
- * \{ */
-int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG * /*subdiv_ccg*/, const int /*grid_index*/)
-{
-  BLI_assert_unreachable();
-  return 0;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Stubs of BKE_node.h
  * \{ */
 extern "C" void ntreeGPUMaterialNodes(struct bNodeTree * /*localtree*/,
