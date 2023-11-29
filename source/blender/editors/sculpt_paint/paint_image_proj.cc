@@ -496,7 +496,7 @@ struct ProjPixel {
 };
 
 struct ProjPixelClone {
-  ProjPixel __pp;
+  ProjPixel _pp;
   PixelStore clonepx;
 };
 
