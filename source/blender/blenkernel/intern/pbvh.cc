@@ -1712,57 +1712,24 @@ void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
   copy_v3_v3(bb_max, bb.bmax);
 }
 
-void BKE_pbvh_get_grid_updates(PBVH *pbvh,
-                               bool clear,
-                               SubdivCCGFace ***r_gridfaces,
-                               int *r_totface)
+blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
+                                             const Span<const PBVHNode *> nodes,
+                                             blender::IndexMaskMemory &memory)
 {
-  if (pbvh->nodes.is_empty()) {
-    return;
-  }
-  GSet *face_set = BLI_gset_ptr_new(__func__);
-  PBVHNode *node;
-  PBVHIter iter;
-
-  pbvh_iter_begin(&iter, pbvh, {});
-
-  SubdivCCGFace *all_faces = pbvh->subdiv_ccg->faces;
-  while ((node = pbvh_iter_next(&iter, PBVH_Leaf))) {
-    if (node->flag & PBVH_UpdateNormals) {
+  using namespace blender;
+  /* Using a #VectorSet for index deduplication would also work, but the performance gets much
+   * worse with large selections since the loop would be single-threaded. A boolean array has an
+   * overhead regardless of selection size, but that is small. */
+  Array<bool> faces_to_update(pbvh->faces_num, false);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const PBVHNode *node : nodes.slice(range)) {
       for (const int grid : node->prim_indices) {
-        void *face = &all_faces[pbvh->grid_to_face_map[grid]];
-        BLI_gset_add(face_set, face);
-      }
-
-      if (clear) {
-        node->flag &= ~PBVH_UpdateNormals;
+        const int face = pbvh->grid_to_face_map[grid];
+        faces_to_update[face] = true;
       }
     }
-  }
-
-  pbvh_iter_end(&iter);
-
-  const int tot = BLI_gset_len(face_set);
-  if (tot == 0) {
-    *r_totface = 0;
-    *r_gridfaces = nullptr;
-    BLI_gset_free(face_set, nullptr);
-    return;
-  }
-
-  SubdivCCGFace **faces = static_cast<SubdivCCGFace **>(
-      MEM_mallocN(sizeof(*faces) * tot, __func__));
-
-  GSetIterator gs_iter;
-  int i;
-  GSET_ITER_INDEX (gs_iter, face_set, i) {
-    faces[i] = static_cast<SubdivCCGFace *>(BLI_gsetIterator_getKey(&gs_iter));
-  }
-
-  BLI_gset_free(face_set, nullptr);
-
-  *r_totface = tot;
-  *r_gridfaces = faces;
+  });
+  return IndexMask::from_bools(faces_to_update, memory);
 }
 
 /***************************** PBVH Access ***********************************/
@@ -2865,6 +2832,7 @@ bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, PBVHFrustumPlanes *data)
 
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
+  using namespace blender;
   /* Update normals */
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
       pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateNormals); });
@@ -2876,12 +2844,11 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
     pbvh_faces_update_normals(pbvh, nodes, *pbvh->mesh);
   }
   else if (pbvh->header.type == PBVH_GRIDS) {
-    SubdivCCGFace **faces;
-    int num_faces;
-    BKE_pbvh_get_grid_updates(pbvh, true, &faces, &num_faces);
-    if (num_faces > 0) {
-      BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
-      MEM_freeN(faces);
+    IndexMaskMemory memory;
+    const IndexMask faces_to_update = BKE_pbvh_get_grid_updates(pbvh, nodes, memory);
+    BKE_subdiv_ccg_update_normals(subdiv_ccg, faces_to_update);
+    for (PBVHNode *node : nodes) {
+      node->flag &= ~PBVH_UpdateNormals;
     }
   }
 }

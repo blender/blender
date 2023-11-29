@@ -236,17 +236,14 @@ void BKE_subdiv_ccg_key_top_level(CCGKey *key, const SubdivCCG *subdiv_ccg);
 void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg);
 
 /* Update normals of affected faces. */
-void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
-                                   SubdivCCGFace **effected_faces,
-                                   int num_effected_faces);
+void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg, const blender::IndexMask &face_mask);
 
 /* Average grid coordinates and normals along the grid boundaries. */
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg);
 
 /* Similar to above, but only updates given faces. */
 void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
-                                         SubdivCCGFace **effected_faces,
-                                         int num_effected_faces);
+                                         const blender::IndexMask &face_mask);
 
 /* Get geometry counters at the current subdivision level. */
 void BKE_subdiv_ccg_topology_counters(const SubdivCCG *subdiv_ccg,

@@ -15,6 +15,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -458,10 +459,9 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flags);
 void BKE_pbvh_update_visibility(PBVH *pbvh);
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3]);
-void BKE_pbvh_get_grid_updates(PBVH *pbvh,
-                               bool clear,
-                               SubdivCCGFace ***r_gridfaces,
-                               int *r_totface);
+blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
+                                             blender::Span<const PBVHNode *> nodes,
+                                             blender::IndexMaskMemory &memory);
 void BKE_pbvh_grids_update(PBVH *pbvh,
                            CCGElem **grids,
                            blender::Span<int> grid_to_face_map,
