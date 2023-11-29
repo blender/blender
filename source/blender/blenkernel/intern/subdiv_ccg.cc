@@ -963,8 +963,8 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG &subdiv_ccg)
 
 static void subdiv_ccg_affected_face_adjacency(SubdivCCG &subdiv_ccg,
                                                const IndexMask &face_mask,
-                                               VectorSet<int> &adjacent_verts,
-                                               VectorSet<int> &adjacent_edges)
+                                               blender::Set<int> &adjacent_verts,
+                                               blender::Set<int> &adjacent_edges)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
@@ -988,9 +988,15 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG &subdiv_ccg,
                                                      CCGKey &key,
                                                      const IndexMask &face_mask)
 {
-  VectorSet<int> adjacent_verts;
-  VectorSet<int> adjacent_edges;
-  subdiv_ccg_affected_face_adjacency(subdiv_ccg, face_mask, adjacent_verts, adjacent_edges);
+  blender::Set<int> adjacent_vert_set;
+  blender::Set<int> adjacent_edge_set;
+  subdiv_ccg_affected_face_adjacency(subdiv_ccg, face_mask, adjacent_vert_set, adjacent_edge_set);
+
+  Vector<int> adjacent_verts(adjacent_vert_set.begin(), adjacent_vert_set.end());
+  Vector<int> adjacent_edges(adjacent_edge_set.begin(), adjacent_edge_set.end());
+
+  std::sort(adjacent_verts.begin(), adjacent_verts.end());
+  std::sort(adjacent_edges.begin(), adjacent_edges.end());
 
   IndexMaskMemory memory;
   subdiv_ccg_average_boundaries(
