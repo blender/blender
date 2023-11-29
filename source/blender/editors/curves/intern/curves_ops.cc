@@ -572,8 +572,8 @@ static void CURVES_OT_convert_from_particle_system(wmOperatorType *ot)
 namespace snap_curves_to_surface {
 
 enum class AttachMode {
-  Nearest,
-  Deform,
+  Nearest = 0,
+  Deform = 1,
 };
 
 static void snap_curves_to_surface_exec_object(Object &curves_ob,

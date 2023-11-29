@@ -728,12 +728,12 @@ static void GREASE_PENCIL_OT_delete(wmOperatorType *ot)
  * \{ */
 
 enum class DissolveMode : int8_t {
-  /* Dissolve all selected points. */
-  POINTS,
-  /* Dissolve between selected points. */
-  BETWEEN,
-  /* Dissolve unselected points. */
-  UNSELECT,
+  /** Dissolve all selected points. */
+  POINTS = 0,
+  /** Dissolve between selected points. */
+  BETWEEN = 1,
+  /** Dissolve unselected points. */
+  UNSELECT = 2,
 };
 
 static const EnumPropertyItem prop_dissolve_types[] = {
@@ -884,10 +884,10 @@ static void GREASE_PENCIL_OT_dissolve(wmOperatorType *ot)
  * \{ */
 
 enum class DeleteFrameMode : int8_t {
-  /* Delete the active frame for the current layer. */
-  ACTIVE_FRAME,
-  /* Delete the active frames for all layers. */
-  ALL_FRAMES,
+  /** Delete the active frame for the current layer. */
+  ACTIVE_FRAME = 0,
+  /** Delete the active frames for all layers. */
+  ALL_FRAMES = 1,
 };
 
 static const EnumPropertyItem prop_greasepencil_deleteframe_types[] = {
@@ -1019,12 +1019,12 @@ static void GREASE_PENCIL_OT_stroke_material_set(wmOperatorType *ot)
  * \{ */
 
 enum class CyclicalMode : int8_t {
-  /* Sets all strokes to cycle. */
-  CLOSE,
-  /* Sets all strokes to not cycle. */
-  OPEN,
-  /* Switches the cyclic state of the strokes. */
-  TOGGLE,
+  /** Sets all strokes to cycle. */
+  CLOSE = 0,
+  /** Sets all strokes to not cycle. */
+  OPEN = 1,
+  /** Switches the cyclic state of the strokes. */
+  TOGGLE = 2,
 };
 
 static const EnumPropertyItem prop_cyclical_types[] = {
@@ -1329,14 +1329,14 @@ static void GREASE_PENCIL_OT_stroke_switch_direction(wmOperatorType *ot)
  * \{ */
 
 enum class CapsMode : int8_t {
-  /* Switches both to Flat. */
-  FLAT,
-  /* Change only start. */
-  START,
-  /* Change only end. */
-  END,
-  /* Switches both to default rounded. */
-  ROUND,
+  /** Switches both to Flat. */
+  FLAT = 0,
+  /** Change only start. */
+  START = 1,
+  /** Change only end. */
+  END = 2,
+  /** Switches both to default rounded. */
+  ROUND = 3,
 };
 
 static void toggle_caps(MutableSpan<int8_t> caps, const IndexMask &strokes)
