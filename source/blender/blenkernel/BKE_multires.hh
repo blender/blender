@@ -78,9 +78,8 @@ Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresMod
  * Get coordinates of a deformed base mesh which is an input to the given multi-res modifier.
  * \note The modifiers will be re-evaluated.
  */
-blender::Array<blender::float3> BKE_multires_create_deformed_base_mesh_vert_coords(Depsgraph *depsgraph,
-                                                           Object *object,
-                                                           MultiresModifierData *mmd);
+blender::Array<blender::float3> BKE_multires_create_deformed_base_mesh_vert_coords(
+    Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd);
 
 /**
  * \param direction: 1 for delete higher, 0 for lower (not implemented yet).
