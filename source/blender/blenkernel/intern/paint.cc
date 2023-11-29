@@ -2150,7 +2150,7 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
     /* Nothing is hidden, so we can just remove all visibility bitmaps. */
-    for (const int i : IndexRange(subdiv_ccg->num_grids)) {
+    for (const int i : subdiv_ccg->grid_hidden.index_range()) {
       BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg, i);
     }
     return;
@@ -2217,7 +2217,6 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 
   BKE_pbvh_build_grids(pbvh,
                        subdiv_ccg->grids,
-                       subdiv_ccg->num_grids,
                        &key,
                        subdiv_ccg->grid_to_face_map,
                        subdiv_ccg->grid_flag_mats,

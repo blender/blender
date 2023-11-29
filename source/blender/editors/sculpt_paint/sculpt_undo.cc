@@ -470,7 +470,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
     CCGKey key;
     int gridsize;
 
-    grids = subdiv_ccg->grids;
+    grids = subdiv_ccg->grids.data();
     gridsize = subdiv_ccg->grid_size;
     BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
 
@@ -511,7 +511,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
     }
   }
   else if (unode->maxgrid && subdiv_ccg != nullptr) {
-    BLI_bitmap **grid_hidden = subdiv_ccg->grid_hidden;
+    blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
 
     for (int i = 0; i < unode->totgrid; i++) {
       SWAP(BLI_bitmap *, unode->grid_hidden[i], grid_hidden[unode->grids[i]]);
@@ -588,7 +588,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
     CCGKey key;
     int gridsize;
 
-    grids = subdiv_ccg->grids;
+    grids = subdiv_ccg->grids.data();
     gridsize = subdiv_ccg->grid_size;
     BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
 
@@ -927,8 +927,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
     }
     else if (unode->maxgrid && subdiv_ccg != nullptr) {
-      if ((subdiv_ccg->num_grids != unode->maxgrid) || (subdiv_ccg->grid_size != unode->gridsize))
-      {
+      if ((subdiv_ccg->grids.size() != unode->maxgrid) ||
+          (subdiv_ccg->grid_size != unode->gridsize)) {
         continue;
       }
 
@@ -1166,7 +1166,7 @@ SculptUndoNode *SCULPT_undo_get_first_node()
 static size_t sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *unode)
 {
   PBVHNode *node = static_cast<PBVHNode *>(unode->node);
-  BLI_bitmap **grid_hidden = BKE_pbvh_grid_hidden(pbvh);
+  const blender::Span<const BLI_bitmap *> grid_hidden = BKE_pbvh_get_grid_visibility(pbvh);
 
   const int *grid_indices;
   int totgrid;

@@ -28,6 +28,7 @@
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
+#include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.hh"
@@ -120,15 +121,17 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
                                     PartialVisArea area,
                                     float planes[4][4])
 {
-  CCGElem **grids;
-  BLI_bitmap **grid_hidden;
+  CCGElem *const *grids;
   const int *grid_indices;
   int totgrid;
   bool any_changed = false, any_visible = false;
 
   /* Get PBVH data. */
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, nullptr, &grids);
-  grid_hidden = BKE_pbvh_grid_hidden(pbvh);
+
+  SculptSession *ss = ob->sculpt;
+  SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
+  blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
   CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);

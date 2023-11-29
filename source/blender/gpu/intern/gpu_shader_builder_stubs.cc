@@ -262,19 +262,3 @@ extern "C" bool IMB_saveiff(struct ImBuf * /*ibuf*/, const char * /*filepath*/, 
 }
 
 /** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_pbvh.hh
- * \{ */
-
-int BKE_pbvh_count_grid_quads(BLI_bitmap ** /*grid_hidden*/,
-                              const int * /*grid_indices*/,
-                              int /*totgrid*/,
-                              int /*gridsize*/,
-                              int /*display_gridsize*/)
-{
-  BLI_assert_unreachable();
-  return 0;
-}
-
-/** \} */

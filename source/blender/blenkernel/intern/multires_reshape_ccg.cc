@@ -24,7 +24,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
   const int reshape_grid_size = reshape_context->reshape.grid_size;
   const float reshape_grid_size_1_inv = 1.0f / (float(reshape_grid_size) - 1.0f);
 
-  int num_grids = subdiv_ccg->num_grids;
+  int num_grids = subdiv_ccg->grids.size();
   for (int grid_index = 0; grid_index < num_grids; ++grid_index) {
     CCGElem *ccg_grid = subdiv_ccg->grids[grid_index];
     for (int y = 0; y < reshape_grid_size; ++y) {

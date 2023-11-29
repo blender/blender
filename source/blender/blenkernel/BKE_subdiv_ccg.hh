@@ -132,10 +132,9 @@ struct SubdivCCG {
    */
   /* Indexed by a grid index, points to a grid data which is stored in
    * grids_storage. */
-  CCGElem **grids = nullptr;
+  blender::Array<CCGElem *> grids;
   /* Flat array of all grids' data. */
-  unsigned char *grids_storage = nullptr;
-  int num_grids = -1;
+  blender::Array<uchar> grids_storage;
   /* Loose edges, each array element contains grid_size elements
    * corresponding to vertices created by subdividing coarse edges. */
   CCGElem **edges = nullptr;
@@ -157,25 +156,22 @@ struct SubdivCCG {
   int mask_offset = -1;
 
   /* Faces from which grids are emitted. */
-  int num_faces = -1;
-  SubdivCCGFace *faces = nullptr;
+  blender::Array<SubdivCCGFace> faces;
   /* Indexed by grid index, points to corresponding face from `faces`. */
   blender::Array<int> grid_to_face_map;
 
   /* Edges which are adjacent to faces.
    * Used for faster grid stitching, in the cost of extra memory.
    */
-  int num_adjacent_edges = -1;
-  SubdivCCGAdjacentEdge *adjacent_edges = nullptr;
+  blender::Array<SubdivCCGAdjacentEdge> adjacent_edges;
 
   /* Vertices which are adjacent to faces
    * Used for faster grid stitching, in the cost of extra memory.
    */
-  int num_adjacent_vertices = -1;
-  SubdivCCGAdjacentVertex *adjacent_vertices = nullptr;
+  blender::Array<SubdivCCGAdjacentVertex> adjacent_verts;
 
-  DMFlagMat *grid_flag_mats = nullptr;
-  BLI_bitmap **grid_hidden = nullptr;
+  blender::Array<DMFlagMat> grid_flag_mats;
+  blender::Array<BLI_bitmap *> grid_hidden;
 
   /* TODO(sergey): Consider adding some accessors to a "decoded" geometry,
    * to make integration with draw manager and such easy.
@@ -198,7 +194,7 @@ struct SubdivCCG {
   /* Cached values, are not supposed to be accessed directly. */
   struct {
     /* Indexed by face, indicates index of the first grid which corresponds to the face. */
-    int *start_face_grid_index = nullptr;
+    blender::Array<int> start_face_grid_index;
   } cache_;
 };
 
