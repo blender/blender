@@ -170,10 +170,17 @@ struct MaterialKey {
   ::Material *mat;
   uint64_t options;
 
-  MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline pipeline) : mat(mat_)
+  MaterialKey(::Material *mat_,
+              eMaterialGeometry geometry,
+              eMaterialPipeline pipeline,
+              short visibility_flags)
+      : mat(mat_)
   {
     options = shader_uuid_from_material_type(
         pipeline, geometry, to_displacement_type(mat_->displacement_method), mat_->blend_flag);
+    options = (options << 1) | (visibility_flags & OB_HIDE_SHADOW ? 0 : 1);
+    options = (options << 1) | (visibility_flags & OB_HIDE_PROBE_CUBEMAP ? 0 : 1);
+    options = (options << 1) | (visibility_flags & OB_HIDE_PROBE_PLANAR ? 0 : 1);
   }
 
   uint64_t hash() const
