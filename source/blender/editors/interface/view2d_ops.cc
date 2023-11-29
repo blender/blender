@@ -1906,8 +1906,8 @@ static void scroller_activate_init(bContext *C,
    * - zooming must be allowed on this axis, otherwise, default to pan
    */
   View2DScrollers scrollers;
-  /* Some Editors like the Filebrowser or Spreadsheet already set up custom masks for scrollbars
-   * (they dont cover the whole region width or height), these need to be considered, otherwise
+  /* Some Editors like the File-browser or Spreadsheet already set up custom masks for scroll-bars
+   * (they don't cover the whole region width or height), these need to be considered, otherwise
    * coords for `mouse_in_scroller_handle` later are not compatible. */
   rcti scroller_mask = v2d->hor;
   BLI_rcti_union(&scroller_mask, &v2d->vert);
