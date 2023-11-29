@@ -403,6 +403,7 @@ GroupedSpan<int> build_vert_to_edge_map(const Span<int2> edges,
       }
     }
   });
+  sort_small_groups(offsets, 1024, r_indices);
   return {offsets, r_indices};
 }
 
