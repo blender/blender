@@ -57,7 +57,7 @@
 #  include "BKE_speaker.h"
 #  include "BKE_text.h"
 #  include "BKE_texture.h"
-#  include "BKE_vfont.h"
+#  include "BKE_vfont.hh"
 #  include "BKE_volume.hh"
 #  include "BKE_workspace.h"
 #  include "BKE_world.h"

@@ -66,7 +66,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.h"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 #include "BKE_tracking.h"
 
 #include "BIK_api.h"
@@ -354,7 +354,8 @@ void BKE_constraint_mat_convertspace(Object *ob,
         /* local to pose - do inverse procedure that was done for pose to local */
         else {
           if (pchan->bone) {
-            /* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
+            /* We need the:
+             *  `posespace_matrix = local_matrix + (parent_posespace_matrix + restpos)`. */
             BKE_armature_mat_bone_to_pose(pchan, mat, mat);
           }
 

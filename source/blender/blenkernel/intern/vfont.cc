@@ -44,8 +44,8 @@
 #include "BKE_main.h"
 #include "BKE_object_types.hh"
 #include "BKE_packedFile.h"
-#include "BKE_vfont.h"
-#include "BKE_vfontdata.h"
+#include "BKE_vfont.hh"
+#include "BKE_vfontdata.hh"
 
 #include "BLO_read_write.hh"
 

@@ -1152,36 +1152,36 @@ static void modifyGeometry(ModifierData *md,
     use_orig_index_faces = CustomData_has_layer(&mesh->face_data, CD_ORIGINDEX);
   }
 
+  nodes::GeoNodesCallData call_data;
+
   nodes::GeoNodesModifierData modifier_eval_data{};
   modifier_eval_data.depsgraph = ctx->depsgraph;
   modifier_eval_data.self_object = ctx->object;
   auto eval_log = std::make_unique<geo_log::GeoModifierLog>();
+  call_data.modifier_data = &modifier_eval_data;
 
   NodesModifierSimulationParams simulation_params(*nmd, *ctx);
-  modifier_eval_data.simulation_params = &simulation_params;
+  call_data.simulation_params = &simulation_params;
 
   Set<ComputeContextHash> socket_log_contexts;
   if (logging_enabled(ctx)) {
-    modifier_eval_data.eval_log = eval_log.get();
+    call_data.eval_log = eval_log.get();
 
     find_socket_log_contexts(*nmd, *ctx, socket_log_contexts);
-    modifier_eval_data.socket_log_contexts = &socket_log_contexts;
+    call_data.socket_log_contexts = &socket_log_contexts;
   }
 
   nodes::GeoNodesSideEffectNodes side_effect_nodes;
   find_side_effect_nodes(*nmd, *ctx, side_effect_nodes);
-  modifier_eval_data.side_effect_nodes = &side_effect_nodes;
+  call_data.side_effect_nodes = &side_effect_nodes;
 
   bke::ModifierComputeContext modifier_compute_context{nullptr, nmd->modifier.name};
 
-  geometry_set = nodes::execute_geometry_nodes_on_geometry(
-      tree,
-      nmd->settings.properties,
-      modifier_compute_context,
-      std::move(geometry_set),
-      [&](nodes::GeoNodesLFUserData &user_data) {
-        user_data.modifier_data = &modifier_eval_data;
-      });
+  geometry_set = nodes::execute_geometry_nodes_on_geometry(tree,
+                                                           nmd->settings.properties,
+                                                           modifier_compute_context,
+                                                           call_data,
+                                                           std::move(geometry_set));
 
   if (logging_enabled(ctx)) {
     nmd_orig->runtime->eval_log = std::move(eval_log);

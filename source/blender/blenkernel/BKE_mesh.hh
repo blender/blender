@@ -44,6 +44,12 @@ void looptris_calc_with_normals(Span<float3> vert_positions,
 
 void looptris_calc_face_indices(OffsetIndices<int> faces, MutableSpan<int> looptri_faces);
 
+/** Return the triangle's three edge indices they are real edges, otherwise -1. */
+int3 looptri_get_real_edges(Span<int2> edges,
+                            Span<int> corner_verts,
+                            Span<int> corner_edges,
+                            const MLoopTri &tri);
+
 /** Calculate the average position of the vertices in the face. */
 float3 face_center_calc(Span<float3> vert_positions, Span<int> face_verts);
 

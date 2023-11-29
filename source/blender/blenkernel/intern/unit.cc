@@ -20,7 +20,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_unit.h" /* own include */
+#include "BKE_unit.hh" /* own include */
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

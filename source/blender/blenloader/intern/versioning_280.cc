@@ -90,7 +90,7 @@
 #include "BKE_rigidbody.h"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 #include "BKE_workspace.h"
 
 #include "SEQ_iterator.hh"

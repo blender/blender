@@ -278,7 +278,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
     CustomData_blend_write_prepare(mesh->loop_data, loop_layers, {});
     CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
-    mesh_sculpt_mask_to_legacy(vert_layers);
+    if (!is_undo) {
+      mesh_sculpt_mask_to_legacy(vert_layers);
+    }
   }
 
   mesh->runtime = nullptr;
@@ -1078,27 +1080,6 @@ void BKE_mesh_sharp_edges_set_from_angle(Mesh *me, const float angle)
   sharp_edges.finish();
 }
 
-void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
-                                     const int *corner_verts,
-                                     const int *corner_edges,
-                                     const MLoopTri *tri,
-                                     int r_edges[3])
-{
-  for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
-    const int corner_1 = tri->tri[i];
-    const int corner_2 = tri->tri[i_next];
-    const int vert_1 = corner_verts[corner_1];
-    const int vert_2 = corner_verts[corner_2];
-    const int edge_i = corner_edges[corner_1];
-    const blender::int2 &edge = edges[edge_i];
-
-    bool is_real = (vert_1 == edge[0] && vert_2 == edge[1]) ||
-                   (vert_1 == edge[1] && vert_2 == edge[0]);
-
-    r_edges[i] = is_real ? edge_i : -1;
-  }
-}
-
 std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
 {
   using namespace blender;
@@ -1320,37 +1301,6 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
     r_count[2] = bm->totfacesel;
   }
   /* We could support faces in paint modes. */
-}
-
-float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
-{
-  float(*vert_coords)[3] = (float(*)[3])MEM_mallocN(sizeof(float[3]) * mesh->totvert, __func__);
-  MutableSpan(reinterpret_cast<float3 *>(vert_coords), mesh->totvert)
-      .copy_from(mesh->vert_positions());
-  if (r_vert_len) {
-    *r_vert_len = mesh->totvert;
-  }
-  return vert_coords;
-}
-
-void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    copy_v3_v3(positions[i], vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
-}
-
-void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
-                                          const float (*vert_coords)[3],
-                                          const float mat[4][4])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    mul_v3_m4v3(positions[i], mat, vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
 }
 
 /* **** Depsgraph evaluation **** */

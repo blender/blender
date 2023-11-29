@@ -11,9 +11,9 @@
 #include "BKE_bvhutils.hh"
 #include "BLI_bitmap.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
 
 /*
  * Shrinkwrap is composed by a set of functions and options that define the type of shrink.
@@ -27,6 +27,7 @@ extern "C" {
  * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
+struct bContext;
 struct BVHTree;
 struct MDeformVert;
 struct Mesh;
@@ -37,15 +38,15 @@ struct ShrinkwrapModifierData;
 struct SpaceTransform;
 
 /* Information about boundary edges in the mesh. */
-typedef struct ShrinkwrapBoundaryVertData {
+struct ShrinkwrapBoundaryVertData {
   /* Average direction of edges that meet here. */
   float direction[3];
 
   /* Closest vector to direction that is orthogonal to vertex normal. */
   float normal_plane[3];
-} ShrinkwrapBoundaryVertData;
+};
 
-typedef struct ShrinkwrapBoundaryData {
+struct ShrinkwrapBoundaryData {
   /* True if the edge belongs to exactly one face. */
   const BLI_bitmap *edge_is_boundary;
   /* True if the looptri has any boundary edges. */
@@ -58,29 +59,30 @@ typedef struct ShrinkwrapBoundaryData {
 
   /* Direction data about boundary vertices. */
   const ShrinkwrapBoundaryVertData *boundary_verts;
-} ShrinkwrapBoundaryData;
+};
 
 /**
  * Free boundary data for target project.
  */
 void BKE_shrinkwrap_boundary_data_free(ShrinkwrapBoundaryData *data);
-void BKE_shrinkwrap_compute_boundary_data(struct Mesh *mesh);
+void BKE_shrinkwrap_compute_boundary_data(Mesh *mesh);
 
 /* Information about a mesh and BVH tree. */
-typedef struct ShrinkwrapTreeData {
+struct ShrinkwrapTreeData {
   Mesh *mesh;
 
   BVHTree *bvh;
   BVHTreeFromMesh treeData;
 
-  const int *face_offsets;
-  const float (*vert_normals)[3];
-  const int *corner_edges;
-  const float (*face_normals)[3];
+  blender::OffsetIndices<int> faces;
+  blender::Span<int> corner_edges;
+
+  blender::Span<blender::float3> face_normals;
+  blender::Span<blender::float3> vert_normals;
+  blender::Span<blender::float3> corner_normals;
   const bool *sharp_faces;
-  const float (*clnors)[3];
   ShrinkwrapBoundaryData *boundary;
-} ShrinkwrapTreeData;
+};
 
 /**
  * Checks if the modifier needs target normals with these settings.
@@ -90,33 +92,30 @@ bool BKE_shrinkwrap_needs_normals(int shrinkType, int shrinkMode);
 /**
  * Initializes the mesh data structure from the given mesh and settings.
  */
-bool BKE_shrinkwrap_init_tree(struct ShrinkwrapTreeData *data,
-                              Mesh *mesh,
-                              int shrinkType,
-                              int shrinkMode,
-                              bool force_normals);
+bool BKE_shrinkwrap_init_tree(
+    ShrinkwrapTreeData *data, Mesh *mesh, int shrinkType, int shrinkMode, bool force_normals);
 
 /**
  * Frees the tree data if necessary.
  */
-void BKE_shrinkwrap_free_tree(struct ShrinkwrapTreeData *data);
+void BKE_shrinkwrap_free_tree(ShrinkwrapTreeData *data);
 
 /**
  * Main shrink-wrap function (implementation of the shrink-wrap modifier).
  */
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
-                               const struct ModifierEvalContext *ctx,
-                               struct Scene *scene,
-                               struct Object *ob,
-                               struct Mesh *mesh,
-                               const struct MDeformVert *dvert,
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
+                               const ModifierEvalContext *ctx,
+                               Scene *scene,
+                               Object *ob,
+                               Mesh *mesh,
+                               const MDeformVert *dvert,
                                int defgrp_index,
                                float (*vertexCos)[3],
                                int numVerts);
 /* Implementation of the Shrinkwrap Grease Pencil modifier. */
-void shrinkwrapGpencilModifier_deform(struct ShrinkwrapGpencilModifierData *mmd,
-                                      struct Object *ob,
-                                      struct MDeformVert *dvert,
+void shrinkwrapGpencilModifier_deform(ShrinkwrapGpencilModifierData *mmd,
+                                      Object *ob,
+                                      MDeformVert *dvert,
                                       int defgrp_index,
                                       float (*vertexCos)[3],
                                       int numVerts);
@@ -124,16 +123,12 @@ void shrinkwrapGpencilModifier_deform(struct ShrinkwrapGpencilModifierData *mmd,
 /**
  * Used in `editmesh_mask_extract.cc` to shrink-wrap the extracted mesh to the sculpt.
  */
-void BKE_shrinkwrap_mesh_nearest_surface_deform(struct bContext *C,
-                                                struct Object *ob_source,
-                                                struct Object *ob_target);
+void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, Object *ob_target);
 
 /**
  * Used in `object_remesh.cc` to preserve the details and volume in the voxel remesher.
  */
-void BKE_shrinkwrap_remesh_target_project(struct Mesh *src_me,
-                                          struct Mesh *target_me,
-                                          struct Object *ob_target);
+void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object *ob_target);
 
 /**
  * This function ray-cast a single vertex and updates the hit if the "hit" is considered valid.
@@ -156,15 +151,15 @@ bool BKE_shrinkwrap_project_normal(char options,
                                    const float vert[3],
                                    const float dir[3],
                                    float ray_radius,
-                                   const struct SpaceTransform *transf,
-                                   struct ShrinkwrapTreeData *tree,
+                                   const SpaceTransform *transf,
+                                   ShrinkwrapTreeData *tree,
                                    BVHTreeRayHit *hit);
 
 /**
  * Maps the point to the nearest surface, either by simple nearest, or by target normal projection.
  */
-void BKE_shrinkwrap_find_nearest_surface(struct ShrinkwrapTreeData *tree,
-                                         struct BVHTreeNearest *nearest,
+void BKE_shrinkwrap_find_nearest_surface(ShrinkwrapTreeData *tree,
+                                         BVHTreeNearest *nearest,
                                          float co[3],
                                          int type);
 
@@ -175,8 +170,8 @@ void BKE_shrinkwrap_find_nearest_surface(struct ShrinkwrapTreeData *tree,
  * \param transform: transform from the hit coordinate space to the object space; may be null.
  * \param r_no: output in hit coordinate space; may be shared with inputs.
  */
-void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
-                                          const struct SpaceTransform *transform,
+void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
+                                          const SpaceTransform *transform,
                                           int looptri_idx,
                                           const float hit_co[3],
                                           const float hit_no[3],
@@ -189,8 +184,8 @@ void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
  * \param transform: transform from the hit coordinate space to the object space; may be null.
  * \param r_point_co: may be the same memory location as `point_co`, `hit_co`, or `hit_no`.
  */
-void BKE_shrinkwrap_snap_point_to_surface(const struct ShrinkwrapTreeData *tree,
-                                          const struct SpaceTransform *transform,
+void BKE_shrinkwrap_snap_point_to_surface(const ShrinkwrapTreeData *tree,
+                                          const SpaceTransform *transform,
                                           int mode,
                                           int hit_idx,
                                           const float hit_co[3],
@@ -218,7 +213,3 @@ void BKE_shrinkwrap_snap_point_to_surface(const struct ShrinkwrapTreeData *tree,
   { \
     0, \
   }
-
-#ifdef __cplusplus
-}
-#endif

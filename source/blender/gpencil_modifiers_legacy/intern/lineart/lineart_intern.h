@@ -72,8 +72,8 @@ void lineart_count_and_print_render_buffer_memory(struct LineartData *ld);
 #define LRT_ITER_ALL_LINES_BEGIN \
   { \
     LineartEdge *e; \
-    for (int __i = 0; __i < ld->pending_edges.next; __i++) { \
-      e = ld->pending_edges.array[__i];
+    for (int _i = 0; _i < ld->pending_edges.next; _i++) { \
+      e = ld->pending_edges.array[_i];
 
 #define LRT_ITER_ALL_LINES_NEXT ; /* Doesn't do anything now with new array setup. */
 

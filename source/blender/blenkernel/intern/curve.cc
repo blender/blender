@@ -51,7 +51,7 @@
 #include "BKE_main.h"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

@@ -124,7 +124,7 @@ enum {
  * }
  * \endcode
  *
- * See #BKE_mesh_looptri_get_real_edges for a utility that does this.
+ * See #bke::mesh::looptri_get_real_edges for a utility that does this.
  *
  * \note A #MLoopTri may be in the middle of an ngon and not reference **any** edges.
  */

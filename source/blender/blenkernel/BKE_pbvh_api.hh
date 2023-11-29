@@ -43,6 +43,7 @@ struct PBVHNode;
 struct PBVHBatches;
 struct PBVH_GPU_Args;
 struct SculptSession;
+struct SubdivCCGFace;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
@@ -457,7 +458,10 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flags);
 void BKE_pbvh_update_visibility(PBVH *pbvh);
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3]);
-void BKE_pbvh_get_grid_updates(PBVH *pbvh, bool clear, void ***r_gridfaces, int *r_totface);
+void BKE_pbvh_get_grid_updates(PBVH *pbvh,
+                               bool clear,
+                               SubdivCCGFace ***r_gridfaces,
+                               int *r_totface);
 void BKE_pbvh_grids_update(PBVH *pbvh,
                            CCGElem **grids,
                            blender::Span<int> grid_to_face_map,

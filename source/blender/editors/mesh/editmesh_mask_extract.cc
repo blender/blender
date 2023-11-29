@@ -22,7 +22,7 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 
 #include "BLI_math_vector.h"
 

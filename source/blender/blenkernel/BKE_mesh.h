@@ -115,19 +115,6 @@ void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
  */
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
 
-#ifdef __cplusplus
-
-/**
- * Sets each output array element to the edge index if it is a real edge, or -1.
- */
-void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
-                                     const int *corner_verts,
-                                     const int *corner_edges,
-                                     const struct MLoopTri *tri,
-                                     int r_edges[3]);
-
-#endif
-
 /**
  * Free (or release) any data used by this mesh (does not free the mesh itself).
  * Only use for undo, in most cases `BKE_id_free(nullptr, me)` should be used.
@@ -227,14 +214,6 @@ void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigne
 void BKE_mesh_smooth_flag_set(struct Mesh *me, bool use_smooth);
 void BKE_mesh_sharp_edges_set_from_angle(struct Mesh *me, float angle);
 
-/**
- * Used for unit testing; compares two meshes, checking only
- * differences we care about.  should be usable with leaf's
- * testing framework I get RNA work done, will use hackish
- * testing code for now.
- */
-const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
-
 void BKE_mesh_texspace_calc(struct Mesh *me);
 void BKE_mesh_texspace_ensure(struct Mesh *me);
 void BKE_mesh_texspace_get(struct Mesh *me,
@@ -298,26 +277,6 @@ int BKE_mesh_mselect_active_get(struct Mesh *me, int type);
 void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
-
-float (*BKE_mesh_vert_coords_alloc(const struct Mesh *mesh, int *r_vert_len))[3];
-
-void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
-                                          const float (*vert_coords)[3],
-                                          const float mat[4][4]);
-void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
-
-/* *** mesh_tessellate.cc *** */
-
-/**
- * See #bke::mesh::looptris_calc
- */
-void BKE_mesh_recalc_looptri(const int *corner_verts,
-                             const int *face_offsets,
-                             const float (*vert_positions)[3],
-                             int totvert,
-                             int totloop,
-                             int faces_num,
-                             struct MLoopTri *mlooptri);
 
 /* *** mesh_normals.cc *** */
 
@@ -572,16 +531,6 @@ bool BKE_mesh_validate_material_indices(struct Mesh *me);
  * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
  *
  * \return false if no changes needed to be made.
- *
- * Vertex Normals
- * ==============
- *
- * While zeroed normals are checked, these checks aren't comprehensive.
- * Technically, to detect errors here a normal recalculation and comparison is necessary.
- * However this function is mainly to prevent severe errors in geometry
- * (invalid data that will crash Blender, or cause some features to behave incorrectly),
- * not to detect subtle differences in the resulting normals which could be caused
- * by importers that load normals (for example).
  */
 bool BKE_mesh_validate_arrays(struct Mesh *me,
                               float (*vert_positions)[3],
@@ -680,22 +629,6 @@ BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
   }
   return (int *)CustomData_add_layer_named(
       &mesh->face_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
-}
-
-BLI_INLINE const float (*BKE_mesh_vert_positions(const Mesh *mesh))[3]
-{
-  return (const float(*)[3])CustomData_get_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT3, "position");
-}
-
-BLI_INLINE const int *BKE_mesh_face_offsets(const Mesh *mesh)
-{
-  return mesh->face_offset_indices;
-}
-
-BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
-{
-  return (const int *)CustomData_get_layer_named(&mesh->loop_data, CD_PROP_INT32, ".corner_vert");
 }
 
 BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)

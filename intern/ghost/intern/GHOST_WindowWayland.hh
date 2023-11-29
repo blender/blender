@@ -54,6 +54,14 @@
  */
 #define USE_EVENT_BACKGROUND_THREAD
 
+/**
+ * Hack for KDE where the initial window size includes window decorations (title-bar, borders etc),
+ * making the usable region smaller than requested. As the size of decorations is unknown:
+ * account for this by ignoring the initial size and using the size requested from GHOST instead
+ * (with some exceptions & sanity checks for overly large windows), see: #113059.
+ */
+#define USE_XDG_INIT_WINDOW_SIZE_HACK
+
 class GHOST_SystemWayland;
 
 struct GWL_Output;

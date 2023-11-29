@@ -134,7 +134,6 @@ set(SRC
   intern/serialize.cc
   intern/session_uuid.c
   intern/smaa_textures.c
-  intern/smallhash.c
   intern/sort.c
   intern/sort_utils.c
   intern/stack.c
@@ -160,7 +159,6 @@ set(SRC
   intern/uvproject.c
   intern/vector.cc
   intern/virtual_array.cc
-  intern/voronoi_2d.c
   intern/voxel.c
   intern/winstuff.cc
   intern/winstuff_dir.cc
@@ -342,7 +340,6 @@ set(SRC
   BLI_shared_cache.hh
   BLI_simd.h
   BLI_smaa_textures.h
-  BLI_smallhash.h
   BLI_sort.h
   BLI_sort.hh
   BLI_sort_utils.h
@@ -382,7 +379,6 @@ set(SRC
   BLI_vector_set_slots.hh
   BLI_virtual_array.hh
   BLI_virtual_vector_array.hh
-  BLI_voronoi_2d.h
   BLI_voxel.h
   BLI_winstuff.h
   BLI_winstuff_com.hh

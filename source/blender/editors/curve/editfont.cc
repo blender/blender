@@ -34,7 +34,7 @@
 #include "BKE_main.h"
 #include "BKE_object.hh"
 #include "BKE_report.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "BLI_string_utf8.h"
 

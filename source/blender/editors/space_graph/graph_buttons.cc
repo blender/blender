@@ -33,7 +33,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_screen.hh"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

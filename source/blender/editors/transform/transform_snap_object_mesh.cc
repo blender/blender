@@ -55,12 +55,12 @@ static void mesh_looptri_raycast_backface_culling_cb(void *userdata,
                                                      BVHTreeRayHit *hit)
 {
   const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
-  const float(*vert_positions)[3] = data->vert_positions;
-  const MLoopTri *lt = &data->looptri[index];
+  const blender::Span<blender::float3> positions = data->vert_positions;
+  const MLoopTri *lt = &data->looptris[index];
   const float *vtri_co[3] = {
-      vert_positions[data->corner_verts[lt->tri[0]]],
-      vert_positions[data->corner_verts[lt->tri[1]]],
-      vert_positions[data->corner_verts[lt->tri[2]]],
+      positions[data->corner_verts[lt->tri[0]]],
+      positions[data->corner_verts[lt->tri[1]]],
+      positions[data->corner_verts[lt->tri[2]]],
   };
   float dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
 

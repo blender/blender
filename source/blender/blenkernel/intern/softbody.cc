@@ -56,7 +56,7 @@
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
@@ -571,13 +571,10 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
 static int count_mesh_quads(Mesh *me)
 {
   int result = 0;
-  const int *face_offsets = BKE_mesh_face_offsets(me);
-  if (face_offsets) {
-    for (int i = 0; i < me->faces_num; i++) {
-      const int poly_size = face_offsets[i + 1] - face_offsets[i];
-      if (poly_size == 4) {
-        result++;
-      }
+  const blender::OffsetIndices faces = me->faces();
+  for (const int i : faces.index_range()) {
+    if (faces[i].size() == 4) {
+      result++;
     }
   }
   return result;
@@ -593,8 +590,8 @@ static void add_mesh_quad_diag_springs(Object *ob)
 
     nofquads = count_mesh_quads(me);
     if (nofquads) {
-      const int *corner_verts = BKE_mesh_corner_verts(me);
-      const int *face_offsets = BKE_mesh_face_offsets(me);
+      const blender::OffsetIndices faces = me->faces();
+      const blender::Span<int> corner_verts = me->corner_verts();
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
@@ -605,14 +602,14 @@ static void add_mesh_quad_diag_springs(Object *ob)
       bs = &ob->soft->bspring[ob->soft->totspring];
       // bp = ob->soft->bpoint; /* UNUSED */
       for (int a = 0; a < me->faces_num; a++) {
-        const int poly_size = face_offsets[a + 1] - face_offsets[a];
+        const int poly_size = faces[a].size();
         if (poly_size == 4) {
-          bs->v1 = corner_verts[face_offsets[a] + 0];
-          bs->v2 = corner_verts[face_offsets[a] + 2];
+          bs->v1 = corner_verts[faces[a].start() + 0];
+          bs->v2 = corner_verts[faces[a].start() + 2];
           bs->springtype = SB_STIFFQUAD;
           bs++;
-          bs->v1 = corner_verts[face_offsets[a] + 1];
-          bs->v2 = corner_verts[face_offsets[a] + 3];
+          bs->v1 = corner_verts[faces[a].start() + 1];
+          bs->v2 = corner_verts[faces[a].start() + 3];
           bs->springtype = SB_STIFFQUAD;
           bs++;
         }
@@ -2651,7 +2648,7 @@ static void springs_from_mesh(Object *ob)
   BodyPoint *bp;
   int a;
   float scale = 1.0f;
-  const float(*vert_positions)[3] = BKE_mesh_vert_positions(me);
+  const blender::Span<blender::float3> positions = me->vert_positions();
 
   sb = ob->soft;
   if (me && sb) {
@@ -2662,7 +2659,7 @@ static void springs_from_mesh(Object *ob)
     if (me->totvert) {
       bp = ob->soft->bpoint;
       for (a = 0; a < me->totvert; a++, bp++) {
-        copy_v3_v3(bp->origS, vert_positions[a]);
+        copy_v3_v3(bp->origS, positions[a]);
         mul_m4_v3(ob->object_to_world, bp->origS);
       }
     }
@@ -2772,25 +2769,19 @@ static void mesh_faces_to_scratch(Object *ob)
 {
   SoftBody *sb = ob->soft;
   const Mesh *me = static_cast<const Mesh *>(ob->data);
-  MLoopTri *looptri, *lt;
+  MLoopTri *lt;
   BodyFace *bodyface;
   int a;
-  const float(*vert_positions)[3] = BKE_mesh_vert_positions(me);
-  const int *face_offsets = BKE_mesh_face_offsets(me);
-  const int *corner_verts = BKE_mesh_corner_verts(me);
+  const blender::Span<int> corner_verts = me->corner_verts();
 
   /* Allocate and copy faces. */
 
   sb->scratch->totface = poly_to_tri_count(me->faces_num, me->totloop);
-  looptri = lt = static_cast<MLoopTri *>(
-      MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__));
-  BKE_mesh_recalc_looptri(corner_verts,
-                          face_offsets,
-                          vert_positions,
-                          me->totvert,
-                          me->totloop,
-                          me->faces_num,
-                          looptri);
+  blender::Array<MLoopTri> looptri(me->totvert);
+  blender::bke::mesh::looptris_calc(
+      me->vert_positions(), me->faces(), me->corner_verts(), looptri);
+
+  lt = looptri.data();
 
   bodyface = sb->scratch->bodyface = static_cast<BodyFace *>(
       MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface, "SB_body_Faces"));
@@ -2803,8 +2794,6 @@ static void mesh_faces_to_scratch(Object *ob)
     bodyface->ext_force[0] = bodyface->ext_force[1] = bodyface->ext_force[2] = 0.0f;
     bodyface->flag = 0;
   }
-
-  MEM_freeN(looptri);
 }
 static void reference_to_scratch(Object *ob)
 {

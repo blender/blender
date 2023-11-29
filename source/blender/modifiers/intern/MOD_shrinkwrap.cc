@@ -25,7 +25,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

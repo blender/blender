@@ -41,8 +41,8 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_shrinkwrap.h"
-#include "BKE_unit.h"
+#include "BKE_shrinkwrap.hh"
+#include "BKE_unit.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -163,6 +163,11 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   if (mesh->flag & ME_REMESH_REPROJECT_ATTRIBUTES) {
     bke::mesh_remesh_reproject_attributes(*mesh, *new_mesh);
+  }
+  else {
+    const VArray<bool> sharp_face = *mesh->attributes().lookup_or_default<bool>(
+        "sharp_face", ATTR_DOMAIN_FACE, false);
+    BKE_mesh_smooth_flag_set(new_mesh, !sharp_face[0]);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);

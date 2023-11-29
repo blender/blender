@@ -30,7 +30,7 @@ struct UVStretchAngle {
 #if defined(WITH_METAL_BACKEND)
   /* For apple platforms, vertex data struct must align to minimum per-vertex-stride of 4 bytes.
    * Hence, this struct needs to align to 8 bytes. */
-  int16_t __pad;
+  int16_t _pad0;
 #endif
 };
 #if defined(WITH_METAL_BACKEND)

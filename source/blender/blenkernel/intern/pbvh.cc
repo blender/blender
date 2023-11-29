@@ -1712,7 +1712,10 @@ void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
   copy_v3_v3(bb_max, bb.bmax);
 }
 
-void BKE_pbvh_get_grid_updates(PBVH *pbvh, bool clear, void ***r_gridfaces, int *r_totface)
+void BKE_pbvh_get_grid_updates(PBVH *pbvh,
+                               bool clear,
+                               SubdivCCGFace ***r_gridfaces,
+                               int *r_totface)
 {
   if (pbvh->nodes.is_empty()) {
     return;
@@ -1747,12 +1750,13 @@ void BKE_pbvh_get_grid_updates(PBVH *pbvh, bool clear, void ***r_gridfaces, int 
     return;
   }
 
-  void **faces = static_cast<void **>(MEM_mallocN(sizeof(*faces) * tot, __func__));
+  SubdivCCGFace **faces = static_cast<SubdivCCGFace **>(
+      MEM_mallocN(sizeof(*faces) * tot, __func__));
 
   GSetIterator gs_iter;
   int i;
   GSET_ITER_INDEX (gs_iter, face_set, i) {
-    faces[i] = BLI_gsetIterator_getKey(&gs_iter);
+    faces[i] = static_cast<SubdivCCGFace *>(BLI_gsetIterator_getKey(&gs_iter));
   }
 
   BLI_gset_free(face_set, nullptr);
@@ -2872,9 +2876,9 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
     pbvh_faces_update_normals(pbvh, nodes, *pbvh->mesh);
   }
   else if (pbvh->header.type == PBVH_GRIDS) {
-    CCGFace **faces;
+    SubdivCCGFace **faces;
     int num_faces;
-    BKE_pbvh_get_grid_updates(pbvh, true, (void ***)&faces, &num_faces);
+    BKE_pbvh_get_grid_updates(pbvh, true, &faces, &num_faces);
     if (num_faces > 0) {
       BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
       MEM_freeN(faces);

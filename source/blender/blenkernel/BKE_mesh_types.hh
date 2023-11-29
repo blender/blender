@@ -53,19 +53,19 @@ enum class MeshNormalDomain : int8_t {
    * Only #Mesh::face_normals() is necessary. This case is generally the best
    * for performance, since no mixing is necessary and multithreading is simple.
    */
-  Face,
+  Face = 0,
   /**
    * The mesh is completely smooth shaded; there are no sharp face or edges. Only
    * #Mesh::vert_normals() is necessary. Calculating face normals is still necessary though,
    * since they have to be mixed to become vertex normals.
    */
-  Point,
+  Point = 1,
   /**
    * The mesh has mixed smooth and sharp shading. In order to split the normals on each side of
    * sharp edges, they need to be processed per-face-corner. Normals can be retrieved with
    * #Mesh::corner_normals().
    */
-  Corner,
+  Corner = 2,
 };
 
 /**

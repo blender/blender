@@ -41,7 +41,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "BLI_sys_types.h" /* For #intptr_t support. */
 

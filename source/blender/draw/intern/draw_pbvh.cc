@@ -1058,6 +1058,7 @@ struct PBVHBatches {
 
   void create_index_faces(const PBVH_GPU_Args &args)
   {
+    using namespace blender;
     const int *mat_index = static_cast<const int *>(
         CustomData_get_layer_named(args.face_data, CD_PROP_INT32, "material_index"));
 
@@ -1077,18 +1078,16 @@ struct PBVHBatches {
         continue;
       }
 
-      const MLoopTri *lt = &args.mlooptri[looptri_i];
-      int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(
-          edges.data(), args.corner_verts.data(), args.corner_edges.data(), lt, r_edges);
+      const blender::int3 real_edges = bke::mesh::looptri_get_real_edges(
+          edges, args.corner_verts, args.corner_edges, args.mlooptri[looptri_i]);
 
-      if (r_edges[0] != -1) {
+      if (real_edges[0] != -1) {
         edge_count++;
       }
-      if (r_edges[1] != -1) {
+      if (real_edges[1] != -1) {
         edge_count++;
       }
-      if (r_edges[2] != -1) {
+      if (real_edges[2] != -1) {
         edge_count++;
       }
     }
@@ -1103,18 +1102,16 @@ struct PBVHBatches {
         continue;
       }
 
-      const MLoopTri *lt = &args.mlooptri[looptri_i];
-      int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(
-          edges.data(), args.corner_verts.data(), args.corner_edges.data(), lt, r_edges);
+      const blender::int3 real_edges = bke::mesh::looptri_get_real_edges(
+          edges, args.corner_verts, args.corner_edges, args.mlooptri[looptri_i]);
 
-      if (r_edges[0] != -1) {
+      if (real_edges[0] != -1) {
         GPU_indexbuf_add_line_verts(&elb_lines, vertex_i, vertex_i + 1);
       }
-      if (r_edges[1] != -1) {
+      if (real_edges[1] != -1) {
         GPU_indexbuf_add_line_verts(&elb_lines, vertex_i + 1, vertex_i + 2);
       }
-      if (r_edges[2] != -1) {
+      if (real_edges[2] != -1) {
         GPU_indexbuf_add_line_verts(&elb_lines, vertex_i + 2, vertex_i);
       }
 

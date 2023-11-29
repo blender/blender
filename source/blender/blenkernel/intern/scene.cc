@@ -88,7 +88,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 #include "BKE_workspace.h"
 #include "BKE_world.h"
 

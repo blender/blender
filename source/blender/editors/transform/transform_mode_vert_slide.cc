@@ -15,7 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

@@ -376,8 +376,8 @@ static int geometry_color_attribute_add_invoke(bContext *C, wmOperator *op, cons
 }
 
 enum class ConvertAttributeMode {
-  Generic,
-  VertexGroup,
+  Generic = 0,
+  VertexGroup = 1,
 };
 
 static bool geometry_attribute_convert_poll(bContext *C)

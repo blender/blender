@@ -2253,7 +2253,7 @@ static void propagate_windings_and_in_output_volume(PatchesInfo &pinfo,
 }
 
 /**
- * Given an array of winding numbers, where the ith entry is a cell's winding
+ * Given an array of winding numbers, where the `i-th` entry is a cell's winding
  * number with respect to input shape (mesh part) i, return true if the
  * cell should be included in the output of the boolean operation.
  *   Intersection: all the winding numbers must be nonzero.

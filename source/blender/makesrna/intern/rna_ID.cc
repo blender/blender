@@ -225,7 +225,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_library.h"
 #  include "BKE_material.h"
 #  include "BKE_preview_image.hh"
-#  include "BKE_vfont.h"
+#  include "BKE_vfont.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

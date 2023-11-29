@@ -11,9 +11,10 @@
 
 #include <mutex>
 
-#include "BLI_bit_vector.hh"
+#include "BLI_bit_span.hh"
 #include "BLI_kdopbvh.h"
-#include "BLI_threads.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 struct BMEditMesh;
 struct BVHCache;
@@ -49,11 +50,12 @@ struct BVHTreeFromMesh {
   BVHTree_RayCastCallback raycast_callback;
 
   /* Vertex array, so that callbacks have instant access to data. */
-  const float (*vert_positions)[3];
-  const vec2i *edge;
+  blender::Span<blender::float3> vert_positions;
+  blender::Span<blender::int2> edges;
+  blender::Span<int> corner_verts;
+  blender::Span<MLoopTri> looptris;
+
   const MFace *face;
-  const int *corner_verts;
-  const MLoopTri *looptri;
 
   /* Private data */
   bool cached;
@@ -110,8 +112,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
  * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
-                                    const float (*vert_positions)[3],
-                                    int verts_num,
+                                    blender::Span<blender::float3> vert_positions,
                                     blender::BitSpan verts_mask,
                                     int verts_num_active,
                                     float epsilon,
@@ -141,9 +142,8 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
  * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
-                                    const float (*vert_positions)[3],
-                                    const blender::int2 *edge,
-                                    int edges_num,
+                                    blender::Span<blender::float3> vert_positions,
+                                    blender::Span<blender::int2> edges,
                                     blender::BitSpan edges_mask,
                                     int edges_num_active,
                                     float epsilon,
@@ -168,10 +168,9 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
  * Builds a BVH-tree where nodes are the looptri faces of the given mesh.
  */
 BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
-                                      const float (*vert_positions)[3],
-                                      const int *corner_verts,
-                                      const MLoopTri *looptri,
-                                      int looptri_num,
+                                      blender::Span<blender::float3> vert_positions,
+                                      blender::Span<int> corner_verts,
+                                      blender::Span<MLoopTri> looptris,
                                       blender::BitSpan mask,
                                       int looptri_num_active,
                                       float epsilon,

@@ -59,7 +59,7 @@
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_type_conversions.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

@@ -63,7 +63,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "BKE_bpath.h" /* own include */
 

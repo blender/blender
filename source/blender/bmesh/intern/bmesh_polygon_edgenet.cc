@@ -1496,7 +1496,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 
   bm->elem_index_dirty |= BM_VERT;
 
-  /* Now create bvh tree
+  /* Now create BVH tree.
    *
    * Note that a large epsilon is used because meshes with dimensions of around 100+ need it.
    * see #52329. */

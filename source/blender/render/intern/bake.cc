@@ -566,7 +566,6 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
 
   Mesh *me_eval_low = nullptr;
   Mesh **me_highpoly;
-  BVHTreeFromMesh *treeData;
 
   /* NOTE: all coordinates are in local space. */
   TriTessFace *tris_low = nullptr;
@@ -579,7 +578,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = static_cast<Mesh **>(
       MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes"));
-  treeData = MEM_cnew_array<BVHTreeFromMesh>(tot_highpoly, "Highpoly BVH Trees");
+  blender::Array<BVHTreeFromMesh> treeData(tot_highpoly);
 
   if (!is_cage) {
     me_eval_low = BKE_mesh_copy_for_eval(me_low);
@@ -646,7 +645,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
     }
 
     /* cast ray */
-    if (!cast_ray_highpoly(treeData,
+    if (!cast_ray_highpoly(treeData.data(),
                            tri_low,
                            tris_high,
                            pixel_array_from,
@@ -675,7 +674,6 @@ cleanup:
   }
 
   MEM_freeN(tris_high);
-  MEM_freeN(treeData);
   MEM_freeN(me_highpoly);
 
   if (me_eval_low) {

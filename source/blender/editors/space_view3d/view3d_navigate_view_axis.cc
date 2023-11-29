@@ -25,7 +25,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "DEG_depsgraph_query.hh"
 

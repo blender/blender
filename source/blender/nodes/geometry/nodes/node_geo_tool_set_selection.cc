@@ -38,7 +38,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
-  if (params.user_data()->operator_data->mode == OB_MODE_OBJECT) {
+  if (params.user_data()->call_data->operator_data->mode == OB_MODE_OBJECT) {
     params.error_message_add(NodeWarningType::Error,
                              "Selection control is not supported in object mode");
     params.set_output("Geometry", std::move(geometry));

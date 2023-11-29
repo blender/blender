@@ -497,7 +497,7 @@ struct PEData {
 
 static void PE_set_data(bContext *C, PEData *data)
 {
-  memset(data, 0, sizeof(*data));
+  *data = {};
 
   data->context = C;
   data->bmain = CTX_data_main(C);
@@ -529,7 +529,7 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
   Object *shapeob_eval = DEG_get_evaluated_object(data->depsgraph, shapeob);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(shapeob_eval);
 
-  memset(&data->shape_bvh, 0, sizeof(data->shape_bvh));
+  data->shape_bvh = {};
 
   if (!mesh) {
     return false;

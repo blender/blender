@@ -9,7 +9,7 @@
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "BLI_bounds.hh"
 #include "BLI_hash.h"
