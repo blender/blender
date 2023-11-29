@@ -386,7 +386,7 @@ static void grease_pencil_geom_batch_ensure(const GreasePencil &grease_pencil, c
 
   /* First, count how many vertices and triangles are needed for the whole object. Also record the
    * offsets into the curves for the vertices and triangles. */
-  int total_points_num = 0;
+  // int total_points_num = 0; /* UNUSED. */
   int total_verts_num = 0;
   int total_triangles_num = 0;
   int v_offset = 0;
@@ -422,7 +422,7 @@ static void grease_pencil_geom_batch_ensure(const GreasePencil &grease_pencil, c
       v_offset += 1 + points.size() + (is_cyclic ? 1 : 0) + 1;
     }
 
-    total_points_num += curves.points_num();
+    // total_points_num += curves.points_num(); /* UNUSED. */
 
     /* One vertex is stored before and after as padding. Cyclic strokes have one extra vertex. */
     total_verts_num += curves.points_num() + num_cyclic + curves.curves_num() * 2;

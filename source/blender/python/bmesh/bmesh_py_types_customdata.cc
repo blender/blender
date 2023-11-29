@@ -94,8 +94,6 @@ PyDoc_STRVAR(
     "Accessor for :class:`BMLoopUV` UV (as a 2D Vector).\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__skin_doc,
              "Accessor for skin layer.\n\ntype: :class:`BMLayerCollection`");
-PyDoc_STRVAR(bpy_bmlayeraccess_collection__paint_mask_doc,
-             "Accessor for paint mask layer.\n\ntype: :class:`BMLayerCollection`");
 #ifdef WITH_FREESTYLE
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_edge_doc,
              "Accessor for Freestyle edge layer.\n\ntype: :class:`BMLayerCollection`");

@@ -86,7 +86,11 @@ class LookdevModule {
   Instance &inst_;
 
  public:
-  LookdevModule(Instance &inst) : inst_(inst){};
+  LookdevModule(Instance &inst) : inst_(inst)
+  {
+    /* Suppress CLANG `-Wunused-private-field` warning. */
+    (void)inst_;
+  };
 
   /* TODO(fclem): This is where the lookdev balls display should go. */
 };
