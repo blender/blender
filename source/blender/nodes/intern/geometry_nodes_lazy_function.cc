@@ -883,11 +883,6 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
   {
     const GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     const GeoNodesCallData &call_data = *user_data.call_data;
-    if (!call_data.modifier_data) {
-      params.set_default_remaining_outputs();
-      return;
-    }
-    const GeoNodesModifierData &modifier_data = *call_data.modifier_data;
     if (!call_data.simulation_params) {
       params.set_default_remaining_outputs();
       return;
