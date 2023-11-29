@@ -249,7 +249,6 @@ static void grease_pencil_edit_batch_ensure(const GreasePencil &grease_pencil, c
     const bke::CurvesGeometry &curves = info.drawing.strokes();
     const bke::AttributeAccessor attributes = curves.attributes();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-    const Span<float3> positions = curves.positions();
 
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
