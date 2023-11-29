@@ -387,10 +387,10 @@ ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
 
 Sequence *SEQ_get_meta_by_seqbase(ListBase *seqbase_main, ListBase *meta_seqbase)
 {
-  blender::VectorSet strips = SEQ_query_all_strips_recursive(seqbase_main);
+  blender::VectorSet strips = SEQ_query_all_meta_strips_recursive(seqbase_main);
 
   for (Sequence *seq : strips) {
-    if (seq->type == SEQ_TYPE_META && &seq->seqbase == meta_seqbase) {
+    if (&seq->seqbase == meta_seqbase) {
       return seq;
     }
   }

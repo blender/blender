@@ -1517,13 +1517,10 @@ static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
 /* Find channel owner. If nullptr, owner is `Editing`, otherwise it's `Sequence`. */
 static Sequence *rna_SeqTimelineChannel_owner_get(Editing *ed, SeqTimelineChannel *channel)
 {
-  blender::VectorSet strips = SEQ_query_all_strips_recursive(&ed->seqbase);
+  blender::VectorSet strips = SEQ_query_all_meta_strips_recursive(&ed->seqbase);
 
   Sequence *channel_owner = nullptr;
   for (Sequence *seq : strips) {
-    if (seq->type != SEQ_TYPE_META) {
-      continue;
-    }
     if (BLI_findindex(&seq->channels, channel) != -1) {
       channel_owner = seq;
       break;

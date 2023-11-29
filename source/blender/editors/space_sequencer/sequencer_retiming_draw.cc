@@ -53,6 +53,7 @@
 
 /* Own include. */
 #include "sequencer_intern.hh"
+#include "sequencer_quads_batch.hh"
 
 #define KEY_SIZE (10 * U.pixelsize)
 #define KEY_CENTER (UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 0.0f)) + 4 + KEY_SIZE / 2)
@@ -261,7 +262,11 @@ SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], 
 /** \name Retiming Key
  * \{ */
 
-static void retime_key_draw(const bContext *C, const Sequence *seq, const SeqRetimingKey *key)
+static void retime_key_draw(const bContext *C,
+                            const Sequence *seq,
+                            const SeqRetimingKey *key,
+                            const KeyframeShaderBindings &sh_bindings,
+                            const blender::Map<SeqRetimingKey *, Sequence *> &selection)
 {
   const Scene *scene = CTX_data_scene(C);
   const float key_x = key_x_get(scene, seq, key);
@@ -272,24 +277,6 @@ static void retime_key_draw(const bContext *C, const Sequence *seq, const SeqRet
     return; /* Key out of the strip bounds. */
   }
 
-  GPUVertFormat *format = immVertexFormat();
-  KeyframeShaderBindings sh_bindings;
-
-  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  sh_bindings.color_id = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  sh_bindings.outline_color_id = GPU_vertformat_attr_add(
-      format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
-
-  GPU_blend(GPU_BLEND_ALPHA);
-  GPU_program_point_size(true);
-  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
-  immUniform1f("outline_scale", 1.0f);
-  immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
-  immBegin(GPU_PRIM_POINTS, 1);
-
   eBezTriple_KeyframeType key_type = BEZT_KEYTYPE_KEYFRAME;
   if (SEQ_retiming_key_is_freeze_frame(key)) {
     key_type = BEZT_KEYTYPE_BREAKDOWN;
@@ -298,7 +285,7 @@ static void retime_key_draw(const bContext *C, const Sequence *seq, const SeqRet
     key_type = BEZT_KEYTYPE_MOVEHOLD;
   }
 
-  const bool is_selected = SEQ_retiming_selection_contains(SEQ_editing_get(scene), key);
+  const bool is_selected = selection.contains(const_cast<SeqRetimingKey *>(key));
   const int size = KEY_SIZE;
   const float bottom = KEY_CENTER;
 
@@ -323,17 +310,16 @@ static void retime_key_draw(const bContext *C, const Sequence *seq, const SeqRet
                       &sh_bindings,
                       0,
                       0);
-  immEnd();
-  GPU_program_point_size(false);
-  immUnbindProgram();
-  GPU_blend(GPU_BLEND_NONE);
 }
 
-static void draw_continuity(const bContext *C, const Sequence *seq, const SeqRetimingKey *key)
+static void draw_continuity(const bContext *C,
+                            const Sequence *seq,
+                            const SeqRetimingKey *key,
+                            const blender::Map<SeqRetimingKey *, Sequence *> &selection,
+                            SeqQuadsBatch *quads)
 {
   const View2D *v2d = UI_view2d_fromcontext(C);
   const Scene *scene = CTX_data_scene(C);
-  const Editing *ed = SEQ_editing_get(scene);
 
   if (key_x_get(scene, seq, key) == SEQ_time_left_handle_frame_get(scene, seq) ||
       key->strip_frame_index == 0)
@@ -358,29 +344,34 @@ static void draw_continuity(const bContext *C, const Sequence *seq, const SeqRet
   const float bottom = y_center - size * width_fac;
   const float top = y_center + size * width_fac;
 
-  GPU_blend(GPU_BLEND_ALPHA);
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
+  uchar color[4];
   if (SEQ_retiming_data_is_editable(seq) &&
-      (SEQ_retiming_selection_contains(ed, key) || SEQ_retiming_selection_contains(ed, key - 1)))
+      (selection.contains(const_cast<SeqRetimingKey *>(key)) ||
+       selection.contains(const_cast<SeqRetimingKey *>(key - 1))))
   {
-    immUniform4f("color", 0.65f, 0.5f, 0.2f, 1.0f);
+    color[0] = 166;
+    color[1] = 127;
+    color[2] = 51;
+    color[3] = 255;
   }
   else {
-    immUniform4f("color", 0.0f, 0.0f, 0.0f, 0.1f);
+    color[0] = 0;
+    color[1] = 0;
+    color[2] = 0;
+    color[3] = 25;
   }
-  immRectf(pos, prev_key_position, bottom, key_position, top);
-  immUnbindProgram();
-  GPU_blend(GPU_BLEND_NONE);
+  quads->add_quad(prev_key_position, bottom, key_position, top, color);
 }
 
 /* If there are no keys, draw fake keys and create real key when they are selected. */
 /* TODO: would be nice to draw continuity between fake keys. */
-static void fake_keys_draw(const bContext *C, Sequence *seq)
+static bool fake_keys_draw(const bContext *C,
+                           Sequence *seq,
+                           const KeyframeShaderBindings &sh_bindings,
+                           const blender::Map<SeqRetimingKey *, Sequence *> &selection)
 {
   if (!SEQ_retiming_is_active(seq) && !SEQ_retiming_data_is_editable(seq)) {
-    return;
+    return false;
   }
 
   const Scene *scene = CTX_data_scene(C);
@@ -391,18 +382,19 @@ static void fake_keys_draw(const bContext *C, Sequence *seq)
     SeqRetimingKey fake_key;
     fake_key.strip_frame_index = left_key_frame - SEQ_time_start_frame_get(seq);
     fake_key.flag = 0;
-    retime_key_draw(C, seq, &fake_key);
+    retime_key_draw(C, seq, &fake_key, sh_bindings, selection);
   }
 
   if (SEQ_retiming_key_get_by_timeline_frame(scene, seq, right_key_frame) == nullptr) {
     SeqRetimingKey fake_key;
     fake_key.strip_frame_index = right_key_frame - SEQ_time_start_frame_get(seq);
     fake_key.flag = 0;
-    retime_key_draw(C, seq, &fake_key);
+    retime_key_draw(C, seq, &fake_key, sh_bindings, selection);
   }
+  return true;
 }
 
-static void retime_keys_draw(const bContext *C)
+static void retime_keys_draw(const bContext *C, SeqQuadsBatch *quads)
 {
   const Scene *scene = CTX_data_scene(C);
   if (scene->ed == nullptr) {
@@ -413,22 +405,75 @@ static void retime_keys_draw(const bContext *C)
     return;
   }
 
+  /* Get the selection here once, for faster "is key selected?" lookups later. */
+  blender::Map<SeqRetimingKey *, Sequence *> selection = SEQ_retiming_selection_get(scene->ed);
+
   wmOrtho2_region_pixelspace(CTX_wm_region(C));
 
-  for (Sequence *seq : sequencer_visible_strips_get(C)) {
+  blender::Vector<Sequence *> strips = sequencer_visible_strips_get(C);
+
+  /* Draw all continuity sections. */
+  GPU_blend(GPU_BLEND_ALPHA);
+  for (Sequence *seq : strips) {
     if (!SEQ_retiming_is_allowed(seq)) {
       continue;
     }
 
     for (const SeqRetimingKey &key : SEQ_retiming_keys_get(seq)) {
-      draw_continuity(C, seq, &key);
-    }
-
-    fake_keys_draw(C, seq);
-    for (const SeqRetimingKey &key : SEQ_retiming_keys_get(seq)) {
-      retime_key_draw(C, seq, &key);
+      draw_continuity(C, seq, &key, selection, quads);
     }
   }
+  quads->draw();
+
+  /* Draw all keys. */
+  const View2D *v2d = UI_view2d_fromcontext(C);
+
+  GPUVertFormat *format = immVertexFormat();
+  KeyframeShaderBindings sh_bindings;
+
+  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  sh_bindings.color_id = GPU_vertformat_attr_add(
+      format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  sh_bindings.outline_color_id = GPU_vertformat_attr_add(
+      format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+
+  GPU_program_point_size(true);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
+  immUniform1f("outline_scale", 1.0f);
+  immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
+
+  constexpr int MAX_KEYS_IN_BATCH = 1024;
+  int point_counter = 0;
+  immBeginAtMost(GPU_PRIM_POINTS, MAX_KEYS_IN_BATCH);
+
+  for (Sequence *seq : strips) {
+    if (!SEQ_retiming_is_allowed(seq)) {
+      continue;
+    }
+
+    if (fake_keys_draw(C, seq, sh_bindings, selection)) {
+      point_counter += 2;
+    }
+
+    for (const SeqRetimingKey &key : SEQ_retiming_keys_get(seq)) {
+      retime_key_draw(C, seq, &key, sh_bindings, selection);
+      point_counter++;
+
+      /* Next key plus possible two fake keys for next sequence would need at
+       * most 3 points, so restart the batch if we're close to that. */
+      if (point_counter + 3 >= MAX_KEYS_IN_BATCH) {
+        immEnd();
+        immBeginAtMost(GPU_PRIM_POINTS, MAX_KEYS_IN_BATCH);
+        point_counter = 0;
+      }
+    }
+  }
+  immEnd();
+  GPU_program_point_size(false);
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 /** \} */
@@ -550,8 +595,8 @@ static void retime_speed_draw(const bContext *C)
 
 /** \} */
 
-void sequencer_draw_retiming(const bContext *C)
+void sequencer_draw_retiming(const bContext *C, SeqQuadsBatch *quads)
 {
-  retime_keys_draw(C);
+  retime_keys_draw(C, quads);
   retime_speed_draw(C);
 }
