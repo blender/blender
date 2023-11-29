@@ -883,15 +883,15 @@ struct GWL_Seat {
    * so every time a modifier is accessed a string lookup isn't required.
    * Be sure to check for #XKB_MOD_INVALID before using.
    */
-  xkb_mod_index_t xkb_keymap_mod_index[MOD_INDEX_NUM];
+  xkb_mod_index_t xkb_keymap_mod_index[MOD_INDEX_NUM] = {XKB_MOD_INVALID};
 
   /* Cache result for other modifiers which aren't stored in `xkb_keymap_mod_index`
    * since their depressed state isn't tracked. */
 
   /** Cache result of `xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM)`. */
-  xkb_mod_index_t xkb_keymap_mod_index_mod2;
+  xkb_mod_index_t xkb_keymap_mod_index_mod2 = XKB_MOD_INVALID;
   /** Cache result of `xkb_keymap_mod_get_index(keymap, "NumLock")`. */
-  xkb_mod_index_t xkb_keymap_mod_index_numlock;
+  xkb_mod_index_t xkb_keymap_mod_index_numlock = XKB_MOD_INVALID;
 
   struct {
     /** Key repetition in character per second. */
