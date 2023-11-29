@@ -896,14 +896,14 @@ bool BLI_path_parent_dir_until_exists(char *dir)
 /**
  * Looks for a sequence of "#" characters in the last slash-separated component of `path`,
  * returning the indexes of the first and one past the last character in the sequence in
- * `char_start` and `char_end` respectively.
+ * `r_char_start` and `r_char_end` respectively.
  *
- * \param char_start: The first `#` character.
- * \param char_end: The last `#` character +1.
+ * \param r_char_start: The first `#` character.
+ * \param r_char_end: The last `#` character +1.
  *
  * \return true if a frame sequence range was found.
  */
-static bool path_frame_chars_find_range(const char *path, int *char_start, int *char_end)
+static bool path_frame_chars_find_range(const char *path, int *r_char_start, int *r_char_end)
 {
   uint ch_sta, ch_end, i;
   /* Insert current frame: `file###` -> `file001`. */
@@ -925,13 +925,13 @@ static bool path_frame_chars_find_range(const char *path, int *char_start, int *
   }
 
   if (ch_end) {
-    *char_start = ch_sta;
-    *char_end = ch_end;
+    *r_char_start = ch_sta;
+    *r_char_end = ch_end;
     return true;
   }
 
-  *char_start = -1;
-  *char_end = -1;
+  *r_char_start = -1;
+  *r_char_end = -1;
   return false;
 }
 

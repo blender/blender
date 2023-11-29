@@ -1754,7 +1754,7 @@ bool WM_event_is_xr(const wmEvent *event);
  * If this is a tablet event, return tablet pressure and set `*pen_flip`
  * to 1 if the eraser tool is being used, 0 otherwise.
  */
-float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2]);
+float WM_event_tablet_data(const wmEvent *event, bool *r_pen_flip, float r_tilt[2]);
 bool WM_event_is_tablet(const wmEvent *event);
 
 int WM_event_absolute_delta_x(const wmEvent *event);

@@ -1923,7 +1923,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       short frs_sec = 25;
       float frs_sec_base = 1.0;
 
-      IMB_anim_get_fps(anim_movie, &frs_sec, &frs_sec_base, true);
+      IMB_anim_get_fps(anim_movie, true, &frs_sec, &frs_sec_base);
 
       g_playanim.fps_movie = double(frs_sec) / double(frs_sec_base);
       /* Enforce same fps for movie as sound. */

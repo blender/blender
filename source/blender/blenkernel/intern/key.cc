@@ -641,34 +641,35 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
   return static_cast<char *>(kb->data);
 }
 
-/* currently only the first value of 'ofs' may be set. */
-static bool key_pointer_size(const Key *key, const int mode, int *poinsize, int *ofs, int *step)
+/* currently only the first value of 'r_ofs' may be set. */
+static bool key_pointer_size(
+    const Key *key, const int mode, int *r_poinsize, int *r_ofs, int *r_step)
 {
   if (key->from == nullptr) {
     return false;
   }
 
-  *step = 1;
+  *r_step = 1;
 
   switch (GS(key->from->name)) {
     case ID_ME:
-      *ofs = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
-      *poinsize = *ofs;
+      *r_ofs = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
+      *r_poinsize = *r_ofs;
       break;
     case ID_LT:
-      *ofs = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
-      *poinsize = *ofs;
+      *r_ofs = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
+      *r_poinsize = *r_ofs;
       break;
     case ID_CU_LEGACY:
       if (mode == KEY_MODE_BPOINT) {
-        *ofs = sizeof(float[KEYELEM_FLOAT_LEN_BPOINT]);
-        *step = KEYELEM_ELEM_LEN_BPOINT;
+        *r_ofs = sizeof(float[KEYELEM_FLOAT_LEN_BPOINT]);
+        *r_step = KEYELEM_ELEM_LEN_BPOINT;
       }
       else {
-        *ofs = sizeof(float[KEYELEM_FLOAT_LEN_BEZTRIPLE]);
-        *step = KEYELEM_ELEM_LEN_BEZTRIPLE;
+        *r_ofs = sizeof(float[KEYELEM_FLOAT_LEN_BEZTRIPLE]);
+        *r_step = KEYELEM_ELEM_LEN_BEZTRIPLE;
       }
-      *poinsize = sizeof(float[KEYELEM_ELEM_SIZE_CURVE]);
+      *r_poinsize = sizeof(float[KEYELEM_ELEM_SIZE_CURVE]);
       break;
     default:
       BLI_assert_msg(0, "invalid 'key->from' ID type");

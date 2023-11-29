@@ -1262,7 +1262,7 @@ static AviMovie *alloc_proxy_output_avi(
   short frs_sec = 25;
   float frs_sec_base = 1.0;
 
-  IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base, false);
+  IMB_anim_get_fps(anim, false, &frs_sec, &frs_sec_base);
 
   x = width;
   y = height;

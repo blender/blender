@@ -342,7 +342,7 @@ float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
       }
       short frs_sec;
       float frs_sec_base;
-      if (IMB_anim_get_fps(strip_anim->anim, &frs_sec, &frs_sec_base, true)) {
+      if (IMB_anim_get_fps(strip_anim->anim, true, &frs_sec, &frs_sec_base)) {
         return float(frs_sec) / frs_sec_base;
       }
       break;

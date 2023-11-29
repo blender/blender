@@ -235,7 +235,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot);
 void SEQUENCER_OT_select_box(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
-Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, int *hand, const int mval[2]);
+Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, const int mval[2], int *r_hand);
 
 /* `sequencer_add.cc` */
 

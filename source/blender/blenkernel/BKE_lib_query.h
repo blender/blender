@@ -316,8 +316,8 @@ bool BKE_library_ID_is_indirectly_used(struct Main *bmain, void *idv);
  */
 void BKE_library_ID_test_usages(struct Main *bmain,
                                 void *idv,
-                                bool *is_used_local,
-                                bool *is_used_linked);
+                                bool *r_is_used_local,
+                                bool *r_is_used_linked);
 
 /**
  * Tag all unused IDs (a.k.a 'orphaned').

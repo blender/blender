@@ -2414,9 +2414,9 @@ void wm_window_set_swap_interval(wmWindow *win, int interval)
   GHOST_SetSwapInterval(static_cast<GHOST_WindowHandle>(win->ghostwin), interval);
 }
 
-bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut)
+bool wm_window_get_swap_interval(wmWindow *win, int *r_interval)
 {
-  return GHOST_GetSwapInterval(static_cast<GHOST_WindowHandle>(win->ghostwin), intervalOut);
+  return GHOST_GetSwapInterval(static_cast<GHOST_WindowHandle>(win->ghostwin), r_interval);
 }
 
 /** \} */

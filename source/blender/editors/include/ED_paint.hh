@@ -38,13 +38,18 @@ void ED_imapaint_bucket_fill(bContext *C, float color[3], wmOperator *op, const 
 
 /* `paint_image_proj.cc` */
 
-void ED_paint_data_warning(ReportList *reports, bool uvs, bool mat, bool tex, bool stencil);
+void ED_paint_data_warning(
+    ReportList *reports, bool has_uvs, bool has_mat, bool has_tex, bool has_stencil);
 /**
  * Make sure that active object has a material,
  * and assign UVs and image layers if they do not exist.
  */
-bool ED_paint_proj_mesh_data_check(
-    Scene *scene, Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil);
+bool ED_paint_proj_mesh_data_check(Scene *scene,
+                                   Object *ob,
+                                   bool *r_has_uvs,
+                                   bool *r_has_mat,
+                                   bool *r_has_tex,
+                                   bool *r_has_stencil);
 
 /* `image_undo.cc` */
 

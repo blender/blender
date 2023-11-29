@@ -1876,7 +1876,7 @@ static int ptcache_old_elemsize(PTCacheID *pid)
   return 0;
 }
 
-static void ptcache_find_frames_around(PTCacheID *pid, uint frame, int *fra1, int *fra2)
+static void ptcache_find_frames_around(PTCacheID *pid, uint frame, int *r_fra1, int *r_fra2)
 {
   if (pid->cache->flag & PTCACHE_DISK_CACHE) {
     int cfra1 = frame, cfra2 = frame + 1;
@@ -1898,12 +1898,12 @@ static void ptcache_find_frames_around(PTCacheID *pid, uint frame, int *fra1, in
     }
 
     if (cfra1 && !cfra2) {
-      *fra1 = 0;
-      *fra2 = cfra1;
+      *r_fra1 = 0;
+      *r_fra2 = cfra1;
     }
     else {
-      *fra1 = cfra1;
-      *fra2 = cfra2;
+      *r_fra1 = cfra1;
+      *r_fra2 = cfra2;
     }
   }
   else if (pid->cache->mem_cache.first) {
@@ -1924,12 +1924,12 @@ static void ptcache_find_frames_around(PTCacheID *pid, uint frame, int *fra1, in
     }
 
     if (!pm2) {
-      *fra1 = 0;
-      *fra2 = pm->frame;
+      *r_fra1 = 0;
+      *r_fra2 = pm->frame;
     }
     else {
-      *fra1 = pm->frame;
-      *fra2 = pm2->frame;
+      *r_fra1 = pm->frame;
+      *r_fra2 = pm2->frame;
     }
   }
 }

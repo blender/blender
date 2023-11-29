@@ -456,11 +456,11 @@ void MTLContext::finish()
   this->main_command_buffer.submit(true);
 }
 
-void MTLContext::memory_statistics_get(int *total_mem, int *free_mem)
+void MTLContext::memory_statistics_get(int *r_total_mem, int *r_free_mem)
 {
   /* TODO(Metal): Implement. */
-  *total_mem = 0;
-  *free_mem = 0;
+  *r_total_mem = 0;
+  *r_free_mem = 0;
 }
 
 void MTLContext::framebuffer_bind(MTLFrameBuffer *framebuffer)

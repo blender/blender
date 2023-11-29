@@ -57,9 +57,9 @@ class ExtraTags {
   std::map<std::string, std::string> tags;
 
   /** Get text data for tag as an int. */
-  int asInt(std::string tag, bool *ok);
+  int asInt(std::string tag, bool *r_ok);
   /** Get text data for tag as a float. */
-  float asFloat(std::string tag, bool *ok);
+  float asFloat(std::string tag, bool *r_ok);
   /** Get text data for tag as a string. */
-  std::string asString(std::string tag, bool *ok);
+  std::string asString(std::string tag, bool *r_ok);
 };

@@ -35,33 +35,33 @@ bool ExtraTags::addTag(std::string tag, std::string data)
   return true;
 }
 
-int ExtraTags::asInt(std::string tag, bool *ok)
+int ExtraTags::asInt(std::string tag, bool *r_ok)
 {
   if (tags.find(tag) == tags.end()) {
-    *ok = false;
+    *r_ok = false;
     return -1;
   }
-  *ok = true;
+  *r_ok = true;
   return atoi(tags[tag].c_str());
 }
 
-float ExtraTags::asFloat(std::string tag, bool *ok)
+float ExtraTags::asFloat(std::string tag, bool *r_ok)
 {
   if (tags.find(tag) == tags.end()) {
-    *ok = false;
+    *r_ok = false;
     return -1.0f;
   }
-  *ok = true;
+  *r_ok = true;
   return float(atof(tags[tag].c_str()));
 }
 
-std::string ExtraTags::asString(std::string tag, bool *ok)
+std::string ExtraTags::asString(std::string tag, bool *r_ok)
 {
   if (tags.find(tag) == tags.end()) {
-    *ok = false;
+    *r_ok = false;
     return "";
   }
-  *ok = true;
+  *r_ok = true;
   return tags[tag];
 }
 
