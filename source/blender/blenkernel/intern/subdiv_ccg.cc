@@ -694,7 +694,7 @@ static void subdiv_ccg_recalc_inner_grid_normals(SubdivCCG &subdiv_ccg, const In
 
   const int grid_size_1 = subdiv_ccg.grid_size - 1;
   threading::EnumerableThreadSpecific<Array<float3>> face_normals_tls(
-      Array<float3>(grid_size_1 * grid_size_1));
+      [&]() { return Array<float3>(grid_size_1 * grid_size_1); });
 
   const Span<SubdivCCGFace> faces = subdiv_ccg.faces;
   face_mask.foreach_segment(GrainSize(512), [&](const IndexMaskSegment segment) {
@@ -927,7 +927,7 @@ static void subdiv_ccg_average_boundaries(SubdivCCG &subdiv_ccg,
 {
   using namespace blender;
   threading::EnumerableThreadSpecific<Array<GridElementAccumulator>> all_accumulators(
-      Array<GridElementAccumulator>(subdiv_ccg.grid_size * 2));
+      [&]() { return Array<GridElementAccumulator>(subdiv_ccg.grid_size * 2); });
 
   adjacent_edge_mask.foreach_segment(GrainSize(1024), [&](const IndexMaskSegment segment) {
     MutableSpan<GridElementAccumulator> accumulators = all_accumulators.local();
@@ -1242,8 +1242,6 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG &subdiv_ccg,
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
 
   const int adjacent_vertex_index = adjacent_vertex_index_from_coord(subdiv_ccg, coord);
-  BLI_assert(adjacent_vertex_index >= 0);
-  BLI_assert(adjacent_vertex_index < subdiv_ccg.num_adjacent_vertices);
   const int num_vertex_edges = topology_refiner->getNumVertexEdges(topology_refiner,
                                                                    adjacent_vertex_index);
 
@@ -1399,8 +1397,6 @@ static void neighbor_coords_edge_get(const SubdivCCG &subdiv_ccg,
 {
   const bool is_corner = is_corner_grid_coord(subdiv_ccg, coord);
   const int adjacent_edge_index = adjacent_edge_index_from_coord(subdiv_ccg, coord);
-  BLI_assert(adjacent_edge_index >= 0);
-  BLI_assert(adjacent_edge_index < subdiv_ccg.num_adjacent_edges);
   const SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg.adjacent_edges[adjacent_edge_index];
 
   /* 2 neighbor points along the edge, plus one inner point per every adjacent grid. */
@@ -1565,7 +1561,7 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG &subdiv_ccg,
                                         SubdivCCGNeighbors &r_neighbors)
 {
   BLI_assert(coord.grid_index >= 0);
-  BLI_assert(coord.grid_index < subdiv_ccg.num_grids);
+  BLI_assert(coord.grid_index < subdiv_ccg.grids.size());
   BLI_assert(coord.x >= 0);
   BLI_assert(coord.x < subdiv_ccg.grid_size);
   BLI_assert(coord.y >= 0);
