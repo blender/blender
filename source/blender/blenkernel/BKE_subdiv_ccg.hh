@@ -161,12 +161,12 @@ struct SubdivCCG {
   blender::Array<int> grid_to_face_map;
 
   /* Edges which are adjacent to faces.
-   * Used for faster grid stitching, in the cost of extra memory.
+   * Used for faster grid stitching, at the cost of extra memory.
    */
   blender::Array<SubdivCCGAdjacentEdge> adjacent_edges;
 
   /* Vertices which are adjacent to faces
-   * Used for faster grid stitching, in the cost of extra memory.
+   * Used for faster grid stitching, at the cost of extra memory.
    */
   blender::Array<SubdivCCGAdjacentVertex> adjacent_verts;
 

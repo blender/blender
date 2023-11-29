@@ -46,7 +46,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
                sizeof(float[3]));
 
         /* NOTE: The sculpt mode might have SubdivCCG's data out of sync from what is stored in
-         * the original object. This happens upon the following scenario:
+         * the original object. This happens in the following scenario:
          *
          *  - User enters sculpt mode of the default cube object.
          *  - Sculpt mode creates new `layer`
@@ -61,9 +61,9 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
          * for example, that if the undo system says object does not have paint mask layer, it is
          * not to be updated.
          *
-         * This is a fragile logic, and is only working correctly because the code path is only
+         * This is fragile logic, and is only working correctly because the code path is only
          * used by sculpt changes. In other use cases the code might not catch inconsistency and
-         * silently do wrong decision. */
+         * silently make the wrong decision. */
         /* NOTE: There is a known bug in Undo code that results in first Sculpt step
          * after a Memfile one to never be undone (see #83806). This might be the root cause of
          * this inconsistency. */
