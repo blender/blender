@@ -837,6 +837,10 @@ struct GWL_Seat {
      */
     xkb_state *state_empty_with_numlock = nullptr;
 
+    /**
+     * The active layout, where a single #xkb_keymap may have multiple layouts.
+     */
+    xkb_layout_index_t layout_active = 0;
   } xkb;
 
 #ifdef WITH_INPUT_IME
@@ -880,6 +884,14 @@ struct GWL_Seat {
    * Be sure to check for #XKB_MOD_INVALID before using.
    */
   xkb_mod_index_t xkb_keymap_mod_index[MOD_INDEX_NUM];
+
+  /* Cache result for other modifiers which aren't stored in `xkb_keymap_mod_index`
+   * since their depressed state isn't tracked. */
+
+  /** Cache result of `xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM)`. */
+  xkb_mod_index_t xkb_keymap_mod_index_mod2;
+  /** Cache result of `xkb_keymap_mod_get_index(keymap, "NumLock")`. */
+  xkb_mod_index_t xkb_keymap_mod_index_numlock;
 
   struct {
     /** Key repetition in character per second. */
@@ -939,6 +951,39 @@ static GWL_SeatStatePointer *gwl_seat_state_pointer_from_cursor_surface(
   }
   GHOST_ASSERT(0, "Surface found without pointer/tablet tag");
   return nullptr;
+}
+
+/**
+ * Account for changes to #GWL_Seat::xkb::layout_active by running #xkb_state_update_mask
+ * on static states which are used for lookups.
+ *
+ * This is also used when initializing the states.
+ */
+static void gwl_seat_key_layout_active_state_update_mask(GWL_Seat *seat)
+{
+  const xkb_layout_index_t group = seat->xkb.layout_active;
+  const xkb_mod_index_t mod_shift = seat->xkb_keymap_mod_index[MOD_INDEX_SHIFT];
+  const xkb_mod_index_t mod_mod2 = seat->xkb_keymap_mod_index_mod2;
+  const xkb_mod_index_t mod_numlock = seat->xkb_keymap_mod_index_numlock;
+
+  /* Handle `state_empty`. */
+  xkb_state_update_mask(seat->xkb.state_empty, 0, 0, 0, 0, 0, group);
+
+  /* Handle `state_empty_with_shift`. */
+  GHOST_ASSERT((mod_shift == XKB_MOD_INVALID) == (seat->xkb.state_empty_with_shift == nullptr),
+               "Invalid state for SHIFT");
+  if (seat->xkb.state_empty_with_shift) {
+    xkb_state_update_mask(seat->xkb.state_empty_with_shift, 1 << mod_shift, 0, 0, 0, 0, group);
+  }
+
+  /* Handle `state_empty_with_shift`. */
+  GHOST_ASSERT((mod_mod2 == XKB_MOD_INVALID || mod_numlock == XKB_MOD_INVALID) ==
+                   (seat->xkb.state_empty_with_numlock == nullptr),
+               "Invalid state for NUMLOCK");
+  if (seat->xkb.state_empty_with_numlock) {
+    xkb_state_update_mask(
+        seat->xkb.state_empty_with_numlock, 1 << mod_mod2, 0, 1 << mod_numlock, 0, 0, group);
+  }
 }
 
 /**
@@ -3925,6 +3970,13 @@ static void keyboard_handle_keymap(void *data,
 
   CLOG_INFO(LOG, 2, "keymap");
 
+  /* Reset in case there was a previous non-zero active layout for the the last key-map.
+   * Note that this is set later by `wl_keyboard_listener::modifiers`, it's possible that handling
+   * the first modifier will run #xkb_state_update_mask again (if the active layout is non-zero)
+   * however as this is only done when the layout changed, it's harmless.
+   * With a single layout - in practice the active layout will be zero. */
+  seat->xkb.layout_active = 0;
+
   if (seat->xkb.compose_state) {
     xkb_compose_state_reset(seat->xkb.compose_state);
   }
@@ -3944,28 +3996,24 @@ static void keyboard_handle_keymap(void *data,
     const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
     seat->xkb_keymap_mod_index[i] = xkb_keymap_mod_get_index(keymap, mod_info.xkb_id);
   }
+  seat->xkb_keymap_mod_index_mod2 = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
+  seat->xkb_keymap_mod_index_numlock = xkb_keymap_mod_get_index(keymap, "NumLock");
 
   xkb_state_unref(seat->xkb.state_empty_with_shift);
   seat->xkb.state_empty_with_shift = nullptr;
-  {
-    const xkb_mod_index_t mod_shift = seat->xkb_keymap_mod_index[MOD_INDEX_SHIFT];
-    if (mod_shift != XKB_MOD_INVALID) {
-      seat->xkb.state_empty_with_shift = xkb_state_new(keymap);
-      xkb_state_update_mask(seat->xkb.state_empty_with_shift, (1 << mod_shift), 0, 0, 0, 0, 0);
-    }
+  if (seat->xkb_keymap_mod_index[MOD_INDEX_SHIFT] != XKB_MOD_INVALID) {
+    seat->xkb.state_empty_with_shift = xkb_state_new(keymap);
   }
 
   xkb_state_unref(seat->xkb.state_empty_with_numlock);
   seat->xkb.state_empty_with_numlock = nullptr;
+  if ((seat->xkb_keymap_mod_index_mod2 != XKB_MOD_INVALID) &&
+      (seat->xkb_keymap_mod_index_numlock != XKB_MOD_INVALID))
   {
-    const xkb_mod_index_t mod2 = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
-    const xkb_mod_index_t num = xkb_keymap_mod_get_index(keymap, "NumLock");
-    if (num != XKB_MOD_INVALID && mod2 != XKB_MOD_INVALID) {
-      seat->xkb.state_empty_with_numlock = xkb_state_new(keymap);
-      xkb_state_update_mask(
-          seat->xkb.state_empty_with_numlock, (1 << mod2), 0, (1 << num), 0, 0, 0);
-    }
+    seat->xkb.state_empty_with_numlock = xkb_state_new(keymap);
   }
+
+  gwl_seat_key_layout_active_state_update_mask(seat);
 
 #ifdef USE_NON_LATIN_KB_WORKAROUND
   seat->xkb_use_non_latin_workaround = false;
@@ -4360,6 +4408,13 @@ static void keyboard_handle_modifiers(void *data,
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   xkb_state_update_mask(seat->xkb.state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+
+  /* Account for the active layout changing within the same key-map,
+   * needed so modifiers are detected from the expected layout, see: #115160. */
+  if (group != seat->xkb.layout_active) {
+    seat->xkb.layout_active = group;
+    gwl_seat_key_layout_active_state_update_mask(seat);
+  }
 
   /* A modifier changed so reset the timer,
    * see comment in #keyboard_handle_key regarding this behavior. */
