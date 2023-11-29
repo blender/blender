@@ -43,7 +43,7 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
 
 void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
                                                      CCGKey *key,
-                                                     CCGFace **effected_faces,
+                                                     SubdivCCGFace **effected_faces,
                                                      int num_effected_faces);
 
 /** \} */
@@ -807,7 +807,7 @@ static void subdiv_ccg_recalc_modified_inner_normal_free(const void *__restrict 
 }
 
 static void subdiv_ccg_recalc_modified_inner_grid_normals(SubdivCCG *subdiv_ccg,
-                                                          CCGFace **effected_faces,
+                                                          SubdivCCGFace **effected_faces,
                                                           int num_effected_faces)
 {
   CCGKey key;
@@ -830,7 +830,7 @@ static void subdiv_ccg_recalc_modified_inner_grid_normals(SubdivCCG *subdiv_ccg,
 }
 
 void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
-                                   CCGFace **effected_faces,
+                                   SubdivCCGFace **effected_faces,
                                    int num_effected_faces)
 {
   if (!subdiv_ccg->has_normal) {
@@ -1181,7 +1181,7 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
 }
 
 static void subdiv_ccg_affected_face_adjacency(SubdivCCG *subdiv_ccg,
-                                               CCGFace **effected_faces,
+                                               SubdivCCGFace **effected_faces,
                                                int num_effected_faces,
                                                GSet *r_adjacent_vertices,
                                                GSet *r_adjacent_edges)
@@ -1193,7 +1193,7 @@ static void subdiv_ccg_affected_face_adjacency(SubdivCCG *subdiv_ccg,
   Vector<int, 64> face_edges;
 
   for (int i = 0; i < num_effected_faces; i++) {
-    SubdivCCGFace *face = (SubdivCCGFace *)effected_faces[i];
+    SubdivCCGFace *face = effected_faces[i];
     int face_index = face - subdiv_ccg->faces;
     const int num_face_grids = face->num_grids;
     face_vertices.reinitialize(num_face_grids);
@@ -1221,7 +1221,7 @@ static void subdiv_ccg_affected_face_adjacency(SubdivCCG *subdiv_ccg,
 
 void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
                                                      CCGKey *key,
-                                                     CCGFace **effected_faces,
+                                                     SubdivCCGFace **effected_faces,
                                                      int num_effected_faces)
 {
   GSet *adjacent_vertices = BLI_gset_ptr_new(__func__);
@@ -1260,7 +1260,7 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
 struct StitchFacesInnerGridsData {
   SubdivCCG *subdiv_ccg;
   CCGKey *key;
-  CCGFace **effected_ccg_faces;
+  SubdivCCGFace **effected_ccg_faces;
 };
 
 static void subdiv_ccg_stitch_face_inner_grids_task(void *__restrict userdata_v,
@@ -1270,14 +1270,12 @@ static void subdiv_ccg_stitch_face_inner_grids_task(void *__restrict userdata_v,
   StitchFacesInnerGridsData *data = static_cast<StitchFacesInnerGridsData *>(userdata_v);
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   CCGKey *key = data->key;
-  CCGFace **effected_ccg_faces = data->effected_ccg_faces;
-  CCGFace *effected_ccg_face = effected_ccg_faces[face_index];
-  SubdivCCGFace *face = (SubdivCCGFace *)effected_ccg_face;
+  SubdivCCGFace *face = data->effected_ccg_faces[face_index];
   subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, face);
 }
 
 void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
-                                         CCGFace **effected_faces,
+                                         SubdivCCGFace **effected_faces,
                                          int num_effected_faces)
 {
   CCGKey key;

@@ -237,7 +237,7 @@ void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg);
 
 /* Update normals of affected faces. */
 void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
-                                   CCGFace **effected_faces,
+                                   SubdivCCGFace **effected_faces,
                                    int num_effected_faces);
 
 /* Average grid coordinates and normals along the grid boundaries. */
@@ -245,7 +245,7 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg);
 
 /* Similar to above, but only updates given faces. */
 void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
-                                         CCGFace **effected_faces,
+                                         SubdivCCGFace **effected_faces,
                                          int num_effected_faces);
 
 /* Get geometry counters at the current subdivision level. */
