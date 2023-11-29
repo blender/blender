@@ -3022,7 +3022,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     else {
       /* This vertex isn't used so remove from `kfvs`.
        * This is useful to detect KnifeEdges that can be skipped.
-       * And it optimizes smallhash_iternext a little bit. */
+       * And it optimizes iteration a little bit. */
       kfvs.remove(v);
     }
   }
