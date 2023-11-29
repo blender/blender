@@ -18,16 +18,16 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_brush.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
@@ -128,7 +128,7 @@ struct AddOperationExecutor {
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
     Object &surface_ob_orig = *curves_id_orig_->surface;
-    Mesh &surface_orig = *static_cast<Mesh *>(surface_ob_orig.data);
+    const Mesh &surface_orig = *static_cast<const Mesh *>(surface_ob_orig.data);
     if (surface_orig.faces_num == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;
@@ -207,15 +207,7 @@ struct AddOperationExecutor {
     }
 
     const Span<MLoopTri> surface_looptris_orig = surface_orig.looptris();
-
-    /* Find normals. */
-    if (!CustomData_has_layer(&surface_orig.loop_data, CD_NORMAL)) {
-      BKE_mesh_calc_normals_split(&surface_orig);
-    }
-    const Span<float3> corner_normals_su = {
-        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig.loop_data, CD_NORMAL)),
-        surface_orig.totloop};
-
+    const Span<float3> corner_normals_su = surface_orig.corner_normals();
     const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris_orig};
 
     geometry::AddCurvesOnMeshInputs add_inputs;

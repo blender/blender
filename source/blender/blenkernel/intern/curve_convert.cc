@@ -12,11 +12,11 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
-#include "BKE_vfont.h"
+#include "BKE_modifier.hh"
+#include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

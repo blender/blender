@@ -30,7 +30,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_collection.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
@@ -39,8 +39,8 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
-#include "BKE_node_tree_update.h"
-#include "BKE_object.h"
+#include "BKE_node_tree_update.hh"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "BLI_ghash.h"

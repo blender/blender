@@ -12,7 +12,7 @@
 
 #include "draw_cache_impl.hh"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 namespace blender::draw {
 

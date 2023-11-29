@@ -26,10 +26,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_deform.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -1134,11 +1135,11 @@ static void cp_shade_color3ub(uchar cp[3], const int offset)
 static void use_bone_color(float *r_color, const uint8_t *color_from_theme, const int shade_offset)
 {
   uint8_t srgb_color[4];
-  copy_v3_v3_uchar(srgb_color, color_from_theme);
+  copy_v4_v4_uchar(srgb_color, color_from_theme);
   if (shade_offset != 0) {
     cp_shade_color3ub(srgb_color, shade_offset);
   }
-  rgb_uchar_to_float(r_color, srgb_color);
+  rgba_uchar_to_float(r_color, srgb_color);
   /* Meh, hardcoded srgb transform here. */
   srgb_to_linearrgb_v4(r_color, r_color);
 };
@@ -1227,7 +1228,7 @@ static void get_pchan_color_constraint(const ThemeWireColor *bcolor,
   else if (constflag & PCHAN_HAS_CONST) {
     constraint_color = G_draw.block.color_bone_pose_constraint;
   }
-  interp_v3_v3v3(r_color, solid_color, constraint_color, 0.5f);
+  interp_v4_v4v4(r_color, solid_color, constraint_color, 0.5f);
 }
 
 /** \} */
@@ -2553,7 +2554,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
   const ArmatureBoneDrawStrategy &draw_strat = strategy_for_armature_drawtype(
       eArmature_Drawtype(arm->drawtype));
 
-  for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime.select_id;
+  for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime->select_id;
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
@@ -2643,7 +2644,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
     if (is_pose_select) {
       const Object *ob_orig = DEG_get_original_object(ob);
-      index = ob_orig->runtime.select_id;
+      index = ob_orig->runtime->select_id;
     }
   }
 

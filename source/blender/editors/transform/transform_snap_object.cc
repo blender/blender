@@ -12,13 +12,13 @@
 
 #include "DNA_screen_types.h"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_duplilist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -156,7 +156,7 @@ void SnapData::clip_planes_enable(SnapObjectContext *sctx,
 
 bool SnapData::snap_boundbox(const float3 &min, const float3 &max)
 {
-  /* In vertex and edges you need to get the pixel distance from ray to BoundBox,
+  /* In vertex and edges you need to get the pixel distance from ray to bounding box,
    * see: #46099, #46816 */
 
 #ifdef TEST_CLIPPLANES_IN_BOUNDBOX
@@ -672,32 +672,35 @@ static void nearest_world_tree_co(BVHTree *tree,
   r_nearest->dist_sq = FLT_MAX;
 
   BLI_bvhtree_find_nearest(tree, co, r_nearest, nearest_cb, treedata);
-
-  float diff[3];
-  sub_v3_v3v3(diff, co, r_nearest->co);
-  r_nearest->dist_sq = len_squared_v3(diff);
 }
 
 bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
-                        const float3 &init_co,
-                        const float3 &curr_co,
+                        const blender::float4x4 &obmat,
                         void *treedata,
                         BVHTreeNearest *r_nearest)
 {
+  float4x4 imat = math::invert(obmat);
+  float3 init_co = math::transform_point(imat, sctx->runtime.init_co);
+  float3 curr_co = math::transform_point(imat, sctx->runtime.curr_co);
+
   BVHTreeNearest nearest{};
+  float3 vec;
   if (sctx->runtime.params.keep_on_same_target) {
     nearest_world_tree_co(tree, nearest_cb, treedata, init_co, &nearest);
+    vec = float3(nearest.co) - init_co;
   }
   else {
     /* NOTE: when `params->face_nearest_steps == 1`, the return variables of function below contain
      * the answer.  We could return immediately after updating r_loc, r_no, r_index, but that would
      * also complicate the code. Foregoing slight optimization for code clarity. */
     nearest_world_tree_co(tree, nearest_cb, treedata, curr_co, &nearest);
+    vec = float3(nearest.co) - curr_co;
   }
 
-  if (r_nearest->dist_sq <= nearest.dist_sq) {
+  float original_distance = math::length(math::transform_direction(obmat, vec));
+  if (r_nearest->dist_sq <= original_distance) {
     return false;
   }
 
@@ -715,6 +718,16 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   }
 
   *r_nearest = nearest;
+  if (sctx->runtime.params.keep_on_same_target) {
+    r_nearest->dist_sq = original_distance;
+  }
+  else if (sctx->runtime.params.face_nearest_steps > 1) {
+    /* Recalculate the distance.
+     * When multiple steps are tested, we cannot depend on the distance calculated for
+     * `nearest.dist_sq`, as it reduces with each step. */
+    vec = co - curr_co;
+    r_nearest->dist_sq = math::length(math::transform_direction(obmat, vec));
+  }
   return true;
 }
 
@@ -899,58 +912,59 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
                              bool is_object_active,
                              bool use_hide)
 {
-  eSnapMode retval = SCE_SNAP_TO_NONE;
-
   if (ob_data == nullptr && (ob_eval->type == OB_MESH)) {
-    retval = snap_object_editmesh(
+    return snap_object_editmesh(
         sctx, ob_eval, nullptr, obmat, sctx->runtime.snap_to_flag, use_hide);
   }
-  else if (ob_data == nullptr) {
-    retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
+
+  if (ob_data == nullptr) {
+    return snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
   }
-  else {
-    switch (ob_eval->type) {
-      case OB_MESH: {
-        if (ob_eval->dt == OB_BOUNDBOX) {
-          /* Do not snap to objects that are in bounding box display mode */
-          return SCE_SNAP_TO_NONE;
-        }
-        if (GS(ob_data->name) == ID_ME) {
-          retval = snap_object_mesh(
-              sctx, ob_eval, ob_data, obmat, sctx->runtime.snap_to_flag, use_hide);
-        }
-        break;
-      }
-      case OB_ARMATURE:
-        retval = snapArmature(sctx, ob_eval, obmat, is_object_active);
-        break;
-      case OB_CURVES_LEGACY:
-      case OB_SURF:
-        if (ob_eval->type == OB_CURVES_LEGACY || BKE_object_is_in_editmode(ob_eval)) {
-          retval = snapCurve(sctx, ob_eval, obmat);
-          if (sctx->runtime.params.edit_mode_type != SNAP_GEOM_FINAL) {
-            break;
-          }
-        }
-        ATTR_FALLTHROUGH;
-      case OB_FONT: {
-        const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-        if (mesh_eval) {
-          retval |= snap_object_mesh(
-              sctx, ob_eval, (ID *)mesh_eval, obmat, sctx->runtime.snap_to_flag, use_hide);
-        }
-        break;
-      }
-      case OB_EMPTY:
-      case OB_GPENCIL_LEGACY:
-      case OB_LAMP:
-        retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
-        break;
-      case OB_CAMERA:
-        retval = snapCamera(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
-        break;
+
+  if (ob_eval->dt == OB_BOUNDBOX) {
+    /* Do not snap to objects that are in bounding box display mode */
+    return SCE_SNAP_TO_NONE;
+  }
+
+  if (GS(ob_data->name) == ID_ME) {
+    return snap_object_mesh(sctx, ob_eval, ob_data, obmat, sctx->runtime.snap_to_flag, use_hide);
+  }
+
+  eSnapMode retval = SCE_SNAP_TO_NONE;
+  switch (ob_eval->type) {
+    case OB_MESH: {
+      break;
     }
+    case OB_ARMATURE:
+      retval = snapArmature(sctx, ob_eval, obmat, is_object_active);
+      break;
+    case OB_CURVES_LEGACY:
+    case OB_SURF:
+      if (ob_eval->type == OB_CURVES_LEGACY || BKE_object_is_in_editmode(ob_eval)) {
+        retval = snapCurve(sctx, ob_eval, obmat);
+        if (sctx->runtime.params.edit_mode_type != SNAP_GEOM_FINAL) {
+          break;
+        }
+      }
+      ATTR_FALLTHROUGH;
+    case OB_FONT: {
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      if (mesh_eval) {
+        retval |= snap_object_mesh(
+            sctx, ob_eval, (ID *)mesh_eval, obmat, sctx->runtime.snap_to_flag, use_hide);
+      }
+      break;
+    }
+    case OB_EMPTY:
+    case OB_GPENCIL_LEGACY:
+    case OB_LAMP:
+      retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
+      break;
+    case OB_CAMERA:
+      retval = snapCamera(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
+      break;
   }
+
   return retval;
 }
 
@@ -1257,21 +1271,33 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                      float r_face_nor[3])
 {
   eSnapMode retval = SCE_SNAP_TO_NONE;
+  float ray_depth_max = BVH_RAYCAST_DIST_MAX;
 
   bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
 
   if (use_occlusion_test || (snap_to_flag & SCE_SNAP_TO_FACE)) {
-    if (!ED_view3d_win_to_ray_clipped_ex(depsgraph,
-                                         region,
-                                         v3d,
-                                         mval,
-                                         nullptr,
-                                         sctx->runtime.ray_dir,
-                                         sctx->runtime.ray_start,
-                                         true))
-    {
-      snap_to_flag &= ~SCE_SNAP_TO_FACE;
-      use_occlusion_test = false;
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
+    float3 ray_end;
+    ED_view3d_win_to_ray_clipped_ex(depsgraph,
+                                    region,
+                                    v3d,
+                                    mval,
+                                    false,
+                                    nullptr,
+                                    sctx->runtime.ray_dir,
+                                    sctx->runtime.ray_start,
+                                    ray_end);
+
+    if (rv3d->rflag & RV3D_CLIPPING) {
+      if (clip_segment_v3_plane_n(
+              sctx->runtime.ray_start, ray_end, rv3d->clip, 6, sctx->runtime.ray_start, ray_end))
+      {
+        ray_depth_max = math::dot(ray_end - sctx->runtime.ray_start, sctx->runtime.ray_dir);
+      }
+      else {
+        snap_to_flag &= ~SCE_SNAP_TO_FACE;
+        use_occlusion_test = false;
+      }
     }
   }
 
@@ -1283,7 +1309,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                         params,
                                         sctx->runtime.ray_start,
                                         sctx->runtime.ray_dir,
-                                        BVH_RAYCAST_DIST_MAX,
+                                        ray_depth_max,
                                         mval,
                                         init_co,
                                         prev_co,
@@ -1462,12 +1488,22 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
                                                     bool sort,
                                                     ListBase *r_hit_list)
 {
-  float ray_start[3], ray_normal[3];
+  float3 ray_start, ray_normal, ray_end;
+  const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
 
   if (!ED_view3d_win_to_ray_clipped_ex(
-          depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true))
+          depsgraph, region, v3d, mval, false, nullptr, ray_normal, ray_start, ray_end))
   {
     return false;
+  }
+
+  if ((rv3d->rflag & RV3D_CLIPPING) &&
+      clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end))
+  {
+    float ray_depth_max = math::dot(ray_end - ray_start, ray_normal);
+    if ((ray_depth == -1.0f) || (ray_depth > ray_depth_max)) {
+      ray_depth = ray_depth_max;
+    }
   }
 
   return ED_transform_snap_object_project_ray_all(

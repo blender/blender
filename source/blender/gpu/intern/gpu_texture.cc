@@ -469,9 +469,13 @@ GPUTexture *GPU_texture_create_view(const char *name,
 {
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
-  BLI_assert_msg(
-      GPU_texture_usage(src) & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-      "Source texture of TextureView must have GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW usage flag.");
+  BLI_assert_msg(use_stencil == false || (GPU_texture_usage(src) & GPU_TEXTURE_USAGE_FORMAT_VIEW),
+                 "Source texture of TextureView must have GPU_TEXTURE_USAGE_FORMAT_VIEW usage "
+                 "flag if view texture uses stencil texturing.");
+  BLI_assert_msg((format == GPU_texture_format(src)) ||
+                     (GPU_texture_usage(src) & GPU_TEXTURE_USAGE_FORMAT_VIEW),
+                 "Source texture of TextureView must have GPU_TEXTURE_USAGE_FORMAT_VIEW usage "
+                 "flag if view texture format is different.");
   Texture *view = GPUBackend::get()->texture_alloc(name);
   view->init_view(src,
                   format,
@@ -918,6 +922,22 @@ bool GPU_texture_has_stencil_format(const GPUTexture *tex)
 bool GPU_texture_has_integer_format(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_INTEGER) != 0;
+}
+
+bool GPU_texture_has_float_format(const GPUTexture *tex)
+{
+  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_FLOAT) != 0;
+}
+
+bool GPU_texture_has_normalized_format(const GPUTexture *tex)
+{
+  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() &
+          GPU_FORMAT_NORMALIZED_INTEGER) != 0;
+}
+
+bool GPU_texture_has_signed_format(const GPUTexture *tex)
+{
+  return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_SIGNED) != 0;
 }
 
 bool GPU_texture_is_cube(const GPUTexture *tex)

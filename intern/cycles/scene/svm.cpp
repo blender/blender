@@ -798,7 +798,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
     switch (type) {
       case SHADER_TYPE_SURFACE: /* generate surface shader */
         find_aov_nodes_and_dependencies(state.aov_nodes, graph, &state);
-        if (clin->link || state.aov_nodes.size() > 0) {
+        if (clin->link) {
           shader->has_surface = true;
           state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_SURFACE;
         }

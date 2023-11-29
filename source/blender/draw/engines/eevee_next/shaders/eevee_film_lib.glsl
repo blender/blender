@@ -6,12 +6,12 @@
  * Film accumulation utils functions.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_camera_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_cryptomatte_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 
 /* Return scene linear Z depth from the camera or radial depth for panoramic cameras. */
 float film_depth_convert_to_scene(float depth)
@@ -20,7 +20,7 @@ float film_depth_convert_to_scene(float depth)
     /* TODO */
     return 1.0;
   }
-  return abs(get_view_z_from_depth(depth));
+  return abs(drw_depth_screen_to_view(depth));
 }
 
 /* Load a texture sample in a specific format. Combined pass needs to use this. */
@@ -37,7 +37,7 @@ vec4 film_texelfetch_as_YCoCg_opacity(sampler2D tx, ivec2 texel)
 /* Returns a weight based on Luma to reduce the flickering introduced by high energy pixels. */
 float film_luma_weight(float luma)
 {
-  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014. */
+  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
   return 1.0 / (4.0 + luma * uniform_buf.film.exposure_scale);
 }
@@ -70,7 +70,7 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
    * can be used by many final pixel. */
   vec2 offset = uniform_buf.film.subpixel_offset -
                 vec2(texel_film % uniform_buf.film.scaling_factor);
-  film_sample.weight = film_filter_weight(uniform_buf.film.filter_size, len_squared(offset));
+  film_sample.weight = film_filter_weight(uniform_buf.film.filter_size, length_squared(offset));
 #  endif
 
 #endif /* PANORAMIC */
@@ -119,7 +119,7 @@ void film_sample_accum_mist(FilmSample samp, inout float accum)
   }
   float depth = texelFetch(depth_tx, samp.texel, 0).x;
   vec2 uv = (vec2(samp.texel) + 0.5) / vec2(textureSize(depth_tx, 0).xy);
-  vec3 vP = get_view_space_from_depth(uv, depth);
+  vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
   bool is_persp = ProjectionMatrix[3][3] == 0.0;
   float mist = (is_persp) ? length(vP) : abs(vP.z);
   /* Remap to 0..1 range. */
@@ -223,7 +223,7 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
 {
   /**
    * Dilate velocity by using the nearest pixel in a cross pattern.
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 27)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
   const ivec2 corners[4] = ivec2[4](ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
   float min_depth = texelFetch(depth_tx, texel_sample, 0).x;
@@ -291,7 +291,7 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
   /**
    * Use optimized version by leveraging bilinear filtering from hardware sampler and by removing
    * corner taps.
-   * From "Filmic SMAA" by Jorge Jimenez at Siggraph 2016
+   * From "Filmic SMAA" by Jorge Jimenez at SIGGRAPH 2016
    * http://advances.realtimerendering.com/s2016/Filmic%20SMAA%20v7.pptx
    */
   center_texel += 0.5;
@@ -312,7 +312,7 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
   color += textureLod(color_tx, vec2(uv_3.x, uv_12.y), 0.0) * weight_cross.z;
   color += textureLod(color_tx, vec2(uv_12.x, uv_3.y), 0.0) * weight_cross.w;
   /* Re-normalize for the removed corners. */
-  return color / (weight_center + sum(weight_cross));
+  return color / (weight_center + reduce_add(weight_cross));
 
 #else /* Nearest interpolation for debugging. 1 Tap. */
   ivec2 texel = ivec2(center_texel) + ivec2(greaterThan(inter_texel, vec2(0.5)));
@@ -343,7 +343,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
   for (int i = 0; i < 5; i++) {
     vec4 color = film_texelfetch_as_YCoCg_opacity(combined_tx, texel + plus_offsets[i]);
     mu1 += color;
-    mu2 += sqr(color);
+    mu2 += square(color);
   }
   mu1 *= (1.0 / 5.0);
   mu2 *= (1.0 / 5.0);
@@ -352,14 +352,14 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
    * Balance between more flickering (0.75) or more ghosting (1.25). */
   const float gamma = 1.25;
   /* Standard deviation. */
-  vec4 sigma = sqrt(abs(mu2 - sqr(mu1)));
+  vec4 sigma = sqrt(abs(mu2 - square(mu1)));
   /* eq. 6 in "A Survey of Temporal Anti-aliasing Techniques". */
   min_c = mu1 - gamma * sigma;
   max_c = mu1 + gamma * sigma;
 #else
   /**
    * Simple bounding box calculation in YCoCg as described in:
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
    */
   min_c = vec4(1e16);
   max_c = vec4(-1e16);
@@ -422,10 +422,10 @@ float film_history_blend_factor(float velocity,
   /* Blend less history if the pixel has substantial velocity. */
   blend = mix(blend, 0.20, saturate(velocity * 0.02));
   /**
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
-  float distance_to_luma_clip = min_v2(vec2(luma_history - luma_min, luma_max - luma_history));
+  float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
   distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */
@@ -747,13 +747,33 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
                         ao_accum);
       film_sample_accum_mist(src, mist_accum);
     }
+    /* Monochrome render passes that have colored outputs. Set alpha to 1. */
+    vec4 shadow_accum_color = vec4(vec3(shadow_accum), weight_accum);
+    vec4 ao_accum_color = vec4(vec3(ao_accum), weight_accum);
+
     film_store_color(dst, uniform_buf.film.diffuse_color_id, diffuse_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.specular_color_id, specular_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.environment_id, environment_accum, out_color);
-    film_store_color(dst, uniform_buf.film.shadow_id, vec4(vec3(shadow_accum), 1.0), out_color);
-    film_store_color(
-        dst, uniform_buf.film.ambient_occlusion_id, vec4(vec3(ao_accum), 1.0), out_color);
+    film_store_color(dst, uniform_buf.film.shadow_id, shadow_accum_color, out_color);
+    film_store_color(dst, uniform_buf.film.ambient_occlusion_id, ao_accum_color, out_color);
     film_store_value(dst, uniform_buf.film.mist_id, mist_accum, out_color);
+  }
+
+  if (uniform_buf.film.any_render_pass_3) {
+    vec4 transparent_accum = vec4(0.0);
+
+    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
+      FilmSample src = film_sample_get(i, texel_film);
+      film_sample_accum(src,
+                        uniform_buf.film.transparent_id,
+                        uniform_buf.render_pass.transparent_id,
+                        rp_color_tx,
+                        transparent_accum);
+    }
+    /* Alpha stores transmittance for transparent pass. */
+    transparent_accum.a = weight_accum - transparent_accum.a;
+
+    film_store_color(dst, uniform_buf.film.transparent_id, transparent_accum, out_color);
   }
 
   for (int aov = 0; aov < uniform_buf.film.aov_color_len; aov++) {

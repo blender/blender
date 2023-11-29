@@ -12,7 +12,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_screen.hh"
@@ -28,8 +28,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 
 #include "UI_view2d.hh"
 

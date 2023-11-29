@@ -13,11 +13,11 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_duplilist.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_volume.h"
+#include "BKE_object.hh"
+#include "BKE_volume.hh"
 #include "BLI_hash.h"
 #include "DNA_curve_types.h"
 #include "DNA_layer_types.h"
@@ -103,9 +103,10 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
 
   switch (GS(reinterpret_cast<ID *>(ref.object->data)->name)) {
     case ID_VO: {
-      BoundBox &bbox = *BKE_volume_boundbox_get(ref.object);
-      orco_add = (float3(bbox.vec[6]) + float3(bbox.vec[0])) * 0.5f; /* Center. */
-      orco_mul = (float3(bbox.vec[6]) - float3(bbox.vec[0])) * 0.5f; /* Half-Size. */
+      const blender::Bounds<float3> bounds = *BKE_volume_min_max(
+          static_cast<const Volume *>(ref.object->data));
+      orco_add = blender::math::midpoint(bounds.min, bounds.max);
+      orco_mul = (bounds.max - bounds.max) * 0.5f;
       break;
     }
     case ID_ME: {
@@ -159,18 +160,30 @@ inline void ObjectBounds::sync()
   bounding_sphere.w = -1.0f; /* Disable test. */
 }
 
-inline void ObjectBounds::sync(Object &ob)
+inline void ObjectBounds::sync(Object &ob, float inflate_bounds)
 {
-  const BoundBox *bbox = BKE_object_boundbox_get(&ob);
-  if (bbox == nullptr) {
+  const std::optional<blender::Bounds<float3>> bounds = BKE_object_boundbox_get(&ob);
+  if (!bounds) {
     bounding_sphere.w = -1.0f; /* Disable test. */
     return;
   }
-  *reinterpret_cast<float3 *>(&bounding_corners[0]) = bbox->vec[0];
-  *reinterpret_cast<float3 *>(&bounding_corners[1]) = bbox->vec[4];
-  *reinterpret_cast<float3 *>(&bounding_corners[2]) = bbox->vec[3];
-  *reinterpret_cast<float3 *>(&bounding_corners[3]) = bbox->vec[1];
+  BoundBox bbox;
+  BKE_boundbox_init_from_minmax(&bbox, bounds->min, bounds->max);
+  *reinterpret_cast<float3 *>(&bounding_corners[0]) = bbox.vec[0];
+  *reinterpret_cast<float3 *>(&bounding_corners[1]) = bbox.vec[4];
+  *reinterpret_cast<float3 *>(&bounding_corners[2]) = bbox.vec[3];
+  *reinterpret_cast<float3 *>(&bounding_corners[3]) = bbox.vec[1];
   bounding_sphere.w = 0.0f; /* Enable test. */
+
+  if (inflate_bounds != 0.0f) {
+    BLI_assert(inflate_bounds >= 0.0f);
+    float p = inflate_bounds;
+    float n = -inflate_bounds;
+    bounding_corners[0] += float4(n, n, n, 0.0f);
+    bounding_corners[1] += float4(p, n, n, 0.0f);
+    bounding_corners[2] += float4(n, p, n, 0.0f);
+    bounding_corners[3] += float4(n, n, p, 0.0f);
+  }
 }
 
 inline void ObjectBounds::sync(const float3 &center, const float3 &size)

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_object_types.hh"
+
 #include "DRW_gpu_wrapper.hh"
 
 #include "GPU_select.h"
@@ -19,7 +21,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-#include "select_defines.h"
+#include "select_defines.hh"
 #include "select_shader_shared.hh"
 
 namespace blender::draw::select {
@@ -84,7 +86,7 @@ struct SelectBuf {
 struct SelectMap {
   const SelectionType selection_type;
 
-  /** Mapping between internal IDs and `object->runtime.select_id`. */
+  /** Mapping between internal IDs and `object->runtime->select_id`. */
   Vector<uint> select_id_map;
 #ifdef DEBUG
   /** Debug map containing a copy of the object name. */
@@ -109,7 +111,7 @@ struct SelectMap {
       return {0};
     }
 
-    uint object_id = ob_ref.object->runtime.select_id;
+    uint object_id = ob_ref.object->runtime->select_id;
     uint id = select_id_map.append_and_get_index(object_id | sub_object_id);
 #ifdef DEBUG
     map_names.append(ob_ref.object->id.name);

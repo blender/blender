@@ -24,12 +24,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_collision.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -90,8 +90,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int /*verts_num*/)
+                         blender::MutableSpan<blender::float3> positions)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
   Object *ob = ctx->object;
@@ -110,7 +109,8 @@ static void deform_verts(ModifierData *md,
     float current_time = 0;
     int mvert_num = 0;
 
-    BKE_mesh_vert_coords_apply(mesh, vertexCos);
+    mesh->vert_positions_for_write().copy_from(positions);
+    BKE_mesh_tag_positions_changed(mesh);
 
     current_time = DEG_get_ctime(ctx->depsgraph);
 
@@ -136,7 +136,11 @@ static void deform_verts(ModifierData *md,
 
     if (collmd->time_xnew == -1000) { /* first time */
 
-      collmd->x = BKE_mesh_vert_coords_alloc(mesh, &mvert_num); /* frame start position */
+      mvert_num = mesh->totvert;
+      collmd->x = static_cast<float(*)[3]>(
+          MEM_malloc_arrayN(mvert_num, sizeof(float[3]), __func__));
+      blender::MutableSpan(reinterpret_cast<blender::float3 *>(collmd->x), mvert_num)
+          .copy_from(mesh->vert_positions());
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
@@ -277,7 +281,7 @@ ModifierTypeInfo modifierType_Collision = {
     /*struct_name*/ "CollisionModifierData",
     /*struct_size*/ sizeof(CollisionModifierData),
     /*srna*/ &RNA_CollisionModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_PHYSICS,
 

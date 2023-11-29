@@ -109,7 +109,7 @@ void ExecutionSystem::execute_work(const rcti &work_rect,
 
   /* Split work vertically to maximize continuous memory. */
   const int work_height = BLI_rcti_size_y(&work_rect);
-  const int num_sub_works = MIN2(num_work_threads_, work_height);
+  const int num_sub_works = std::min(num_work_threads_, work_height);
   const int split_height = num_sub_works == 0 ? 0 : work_height / num_sub_works;
   int remaining_height = work_height - split_height * num_sub_works;
 

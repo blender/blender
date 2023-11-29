@@ -17,7 +17,6 @@
  * - Stabilized Color and CoC (half-resolution).
  */
 
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
@@ -108,7 +107,7 @@ float dof_fetch_half_depth(ivec2 offset)
 
 float dof_luma_weight(float luma)
 {
-  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014. */
+  /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
   const float exposure_scale = 1.0; /* TODO. */
   return 1.0 / (4.0 + luma * exposure_scale);
@@ -169,7 +168,7 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
   const ivec2 plus_offsets[4] = ivec2[4](ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
   /**
    * Simple bounding box calculation in YCoCg as described in:
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
    */
   DofSample min_c = dof_fetch_input_sample(ivec2(0));
   DofSample max_c = min_c;
@@ -205,7 +204,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
 {
   /**
    * Dilate velocity by using the nearest pixel in a cross pattern.
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 27)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
   const ivec2 corners[4] = ivec2[4](ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
   float min_depth = dof_fetch_half_depth(ivec2(0));
@@ -242,7 +241,7 @@ DofSample dof_sample_history(vec2 input_texel)
   /**
    * Use optimized version by leveraging bilinear filtering from hardware sampler and by removing
    * corner taps.
-   * From "Filmic SMAA" by Jorge Jimenez at Siggraph 2016
+   * From "Filmic SMAA" by Jorge Jimenez at SIGGRAPH 2016
    * http://advances.realtimerendering.com/s2016/Filmic%20SMAA%20v7.pptx
    */
   center_texel += 0.5;
@@ -263,7 +262,7 @@ DofSample dof_sample_history(vec2 input_texel)
   color += textureLod(in_history_tx, vec2(uv_3.x, uv_12.y), 0.0) * weight_cross.z;
   color += textureLod(in_history_tx, vec2(uv_12.x, uv_3.y), 0.0) * weight_cross.w;
   /* Re-normalize for the removed corners. */
-  color /= (weight_center + sum(weight_cross));
+  color /= (weight_center + reduce_add(weight_cross));
 #endif
   /* NOTE(fclem): Opacity is wrong on purpose. Final Opacity does not rely on history. */
   return DofSample(color.xyzz, color.w);
@@ -303,10 +302,10 @@ float dof_history_blend_factor(
   /* NOTE(fclem): velocity threshold multiplied by 2 because of half resolution. */
   blend = mix(blend, 0.20, saturate(velocity * 0.02 * 2.0));
   /**
-   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
+   * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
-  float distance_to_luma_clip = min_v2(vec2(luma_history - luma_min, luma_max - luma_history));
+  float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
   distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */

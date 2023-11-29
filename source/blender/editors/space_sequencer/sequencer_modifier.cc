@@ -13,7 +13,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -21,12 +21,12 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "SEQ_iterator.h"
-#include "SEQ_modifier.h"
-#include "SEQ_relations.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_sound.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_sound.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"

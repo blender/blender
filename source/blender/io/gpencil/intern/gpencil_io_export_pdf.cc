@@ -17,7 +17,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_main.h"
@@ -30,7 +30,7 @@
 #include "ED_view3d.hh"
 
 #ifdef WIN32
-#  include "utfconv.h"
+#  include "utfconv.hh"
 #endif
 
 #include "UI_view2d.hh"
@@ -247,7 +247,7 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
     const float estimated_width = (radius * 2.0f) + gpl->line_change;
     const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
                                                        estimated_width;
-    HPDF_Page_SetLineWidth(page_, MAX2(final_width, 1.0f));
+    HPDF_Page_SetLineWidth(page_, std::max(final_width, 1.0f));
   }
 
   /* Loop all points. */

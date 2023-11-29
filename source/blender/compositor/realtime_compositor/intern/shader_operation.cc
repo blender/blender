@@ -331,7 +331,7 @@ void ShaderOperation::populate_operation_result(DOutputSocket output_socket, GPU
   std::string output_identifier = "output" + std::to_string(output_id);
 
   const ResultType result_type = get_node_socket_result_type(output_socket.bsocket());
-  const Result result = Result(result_type, texture_pool());
+  const Result result = context().create_result(result_type);
   populate_result(output_identifier, result);
 
   /* Map the output socket to the identifier of the newly populated result. */
@@ -400,24 +400,6 @@ void ShaderOperation::generate_code(void *thunk,
   shader_create_info.compute_source_generated += "}\n";
 }
 
-static eGPUTextureFormat texture_format_from_result_type(ResultType type)
-{
-  switch (type) {
-    case ResultType::Float:
-      return GPU_R16F;
-    case ResultType::Vector:
-      return GPU_RGBA16F;
-    case ResultType::Color:
-      return GPU_RGBA16F;
-    default:
-      /* Other types are internal and needn't be handled by operations. */
-      break;
-  }
-
-  BLI_assert_unreachable();
-  return GPU_RGBA16F;
-}
-
 /* Texture storers in the shader always take a vec4 as an argument, so encode each type in a vec4
  * appropriately. */
 static const char *glsl_store_expression_from_result_type(ResultType type)
@@ -470,11 +452,11 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
 
     /* Add a write-only image for this output where its values will be written. */
     shader_create_info.image(0,
-                             texture_format_from_result_type(result.type()),
+                             result.get_texture_format(),
                              Qualifier::WRITE,
                              ImageType::FLOAT_2D,
                              output_identifier,
-                             Frequency::BATCH);
+                             Frequency::PASS);
 
     /* Add a case for the index of this output followed by a break statement. */
     std::stringstream case_code;
@@ -563,7 +545,7 @@ void ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
 
   /* Add a texture sampler for each of the inputs with the same name as the attribute. */
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
-    shader_create_info.sampler(0, ImageType::FLOAT_2D, attribute->name, Frequency::BATCH);
+    shader_create_info.sampler(0, ImageType::FLOAT_2D, attribute->name, Frequency::PASS);
   }
 
   /* Declare a struct called var_attrs that includes an appropriately typed member for each of the

@@ -11,8 +11,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
@@ -167,9 +167,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     /* XXX: investigate using EditMesh data. */
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      corner_normals = {
-          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
-          mesh->totloop};
+      corner_normals = mesh->corner_normals();
     }
 
     int f_idx;
@@ -194,9 +192,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
   else {
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      corner_normals = {
-          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
-          mesh->totloop};
+      corner_normals = mesh->corner_normals();
     }
 
     const blender::Span<blender::float3> positions = mesh->vert_positions();

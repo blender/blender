@@ -33,17 +33,17 @@
 #include "BLI_string.h"
 
 #include "BKE_attribute.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_texture.h"
 
@@ -4210,9 +4210,9 @@ static float bm_edge_seg_isect(const float sco_a[2],
       y2max = max_ff(y21, y22) + 0.001f;
       y2min = min_ff(y21, y22) - 0.001f;
 
-      /* Found an intersect,  calc intersect point */
-      if (m1 == m2) { /* co-incident lines */
-        /* cut at 50% of overlap area */
+      /* Found an intersect, calc intersect point. */
+      if (m1 == m2) { /* Co-incident lines. */
+        /* Cut at 50% of overlap area. */
         x1max = max_ff(x11, x12);
         x1min = min_ff(x11, x12);
         xi = (min_ff(x2max, x1max) + max_ff(x2min, x1min)) / 2.0f;
@@ -4742,6 +4742,7 @@ static bool mesh_separate_loose(
     BM_mesh_bm_to_me(nullptr, bm_old, me_old, &to_mesh_params);
   }
 
+  MEM_freeN(groups);
   return result;
 }
 
@@ -8448,8 +8449,7 @@ static bool point_normals_init(bContext *C, wmOperator *op)
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
-  BKE_editmesh_ensure_autosmooth(em, static_cast<Mesh *>(obedit->data));
-  BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(obedit->data));
+  BKE_editmesh_lnorspace_update(em);
   BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
 
   op->customdata = lnors_ed_arr;
@@ -9074,8 +9074,7 @@ static int normals_split_merge(bContext *C, const bool do_merge)
     BMEdge *e;
     BMIter eiter;
 
-    BKE_editmesh_ensure_autosmooth(em, static_cast<Mesh *>(obedit->data));
-    BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(obedit->data));
+    BKE_editmesh_lnorspace_update(em);
 
     /* Note that we need temp lnor editing data for all loops of all affected vertices, since by
      * setting some faces/edges as smooth we are going to change clnors spaces... See also #65809.
@@ -9093,7 +9092,7 @@ static int normals_split_merge(bContext *C, const bool do_merge)
     }
 
     bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
-    BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(obedit->data));
+    BKE_editmesh_lnorspace_update(em);
 
     if (do_merge) {
       normals_merge(bm, lnors_ed_arr);
@@ -9213,9 +9212,8 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
     BMLoop *l, *l_curr, *l_first;
     BMIter fiter;
 
-    BKE_editmesh_ensure_autosmooth(em, static_cast<Mesh *>(obedit->data));
     bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
-    BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(obedit->data));
+    BKE_editmesh_lnorspace_update(em);
 
     const int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
@@ -9465,8 +9463,7 @@ static int edbm_normals_tools_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    BKE_editmesh_ensure_autosmooth(em, static_cast<Mesh *>(obedit->data));
-    BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(obedit->data));
+    BKE_editmesh_lnorspace_update(em);
     BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
     BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
 
@@ -9689,8 +9686,7 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
 
     const bool keep_sharp = RNA_boolean_get(op->ptr, "keep_sharp");
 
-    BKE_editmesh_ensure_autosmooth(em, static_cast<Mesh *>(obedit->data));
-    BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(obedit->data));
+    BKE_editmesh_lnorspace_update(em);
 
     float(*vert_normals)[3] = static_cast<float(*)[3]>(
         MEM_mallocN(sizeof(*vert_normals) * bm->totvert, __func__));
@@ -9798,8 +9794,7 @@ static int edbm_smooth_normals_exec(bContext *C, wmOperator *op)
     BMLoop *l;
     BMIter fiter, liter;
 
-    BKE_editmesh_ensure_autosmooth(em, static_cast<Mesh *>(obedit->data));
-    BKE_editmesh_lnorspace_update(em, static_cast<Mesh *>(obedit->data));
+    BKE_editmesh_lnorspace_update(em);
     BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
 
     float(*smooth_normal)[3] = static_cast<float(*)[3]>(

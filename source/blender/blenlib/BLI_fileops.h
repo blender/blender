@@ -291,6 +291,14 @@ int BLI_open(const char *filepath, int oflag, int pmode) ATTR_WARN_UNUSED_RESULT
 int BLI_access(const char *filepath, int mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
+ * A version of `read` with the following differences:
+ * - continues reading until failure or the requested size is met.
+ * - Reads `size_t` bytes instead of `int` on WIN32.
+ * \return the number of bytes read.
+ */
+int64_t BLI_read(int fd, void *buf, size_t nbytes);
+
+/**
  * Returns true if the file with the specified name can be written.
  * This implementation uses access(2), which makes the check according
  * to the real UID and GID of the process, not its effective UID and GID.
@@ -323,11 +331,11 @@ size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t f
 bool BLI_file_magic_is_zstd(const char header[4]);
 
 /**
- * Returns the file size of an opened file descriptor.
+ * Returns the file size of an opened file descriptor or `size_t(-1)` on failure.
  */
 size_t BLI_file_descriptor_size(int file) ATTR_WARN_UNUSED_RESULT;
 /**
- * Returns the size of a file.
+ * Returns the size of a file or `size_t(-1)` on failure..
  */
 size_t BLI_file_size(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
@@ -344,6 +352,17 @@ bool BLI_file_older(const char *file1, const char *file2) ATTR_WARN_UNUSED_RESUL
  * \return the lines in a linked list (an empty list when file reading fails).
  */
 struct LinkNode *BLI_file_read_as_lines(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+/**
+ * Read the contents of `fp`, returning the result as a buffer or null when it can't be read.
+ *
+ * \param r_size: The size of the file contents read into the buffer (excluding `pad_bytes`).
+ */
+void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
+                                            bool read_size_exact,
+                                            size_t pad_bytes,
+                                            size_t *r_size);
+
 void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
 /**
  * Return the text file data with:
@@ -360,6 +379,7 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
  * \param pad_bytes: When this is non-zero, the first byte is set to nil,
  * to simplify parsing the file.
  * It's recommended to pass in 1, so all text is nil terminated.
+ * \param r_size: The size of the file contents read into the buffer (excluding `pad_bytes`).
  *
  * Example looping over lines:
  *

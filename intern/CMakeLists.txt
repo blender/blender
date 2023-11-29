@@ -43,10 +43,7 @@ if(WITH_BULLET)
   add_subdirectory(rigidbody)
 endif()
 
-# only windows needs utf16 converter
-if(WIN32)
-  add_subdirectory(utfconv)
-endif()
+add_subdirectory(utfconv)
 
 if(WITH_MOD_FLUID)
   add_subdirectory(mantaflow)

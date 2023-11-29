@@ -17,7 +17,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_rand.h"
 #include "BLI_rect.h"
@@ -663,6 +663,16 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Perform render step between samples to allow
      * flushing of freed GPUBackend resources. */
     GPU_render_step();
+    if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
+      if (render_samples > 0 && ((render_samples % 64) == 0)) {
+        /* Allow GPU to sync with CPU to prevent overly large command submissions being in-flight
+         * simultaneously. Reduces total in-flight memory required for rendering. */
+        GPU_finish();
+      }
+      else {
+        GPU_flush();
+      }
+    }
 
     RE_engine_update_progress(engine, float(render_samples++) / float(tot_sample));
   }

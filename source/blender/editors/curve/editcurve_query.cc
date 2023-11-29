@@ -14,7 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 

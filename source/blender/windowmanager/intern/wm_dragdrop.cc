@@ -27,7 +27,7 @@
 
 #include "BIF_glutil.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -66,6 +66,9 @@ static ListBase dropboxes = {nullptr, nullptr};
 
 static void wm_drag_free_asset_data(wmDragAsset **asset_data);
 static void wm_drag_free_path_data(wmDragPath **path_data);
+
+wmDragActiveDropState::wmDragActiveDropState() = default;
+wmDragActiveDropState::~wmDragActiveDropState() = default;
 
 /* drop box maps are stored global for now */
 /* these are part of blender's UI/space specs, and not like keymaps */
@@ -312,8 +315,8 @@ void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
 
 void WM_drag_free(wmDrag *drag)
 {
-  if (drag->drop_state.active_dropbox && drag->drop_state.active_dropbox->draw_deactivate) {
-    drag->drop_state.active_dropbox->draw_deactivate(drag->drop_state.active_dropbox, drag);
+  if (drag->drop_state.active_dropbox && drag->drop_state.active_dropbox->on_exit) {
+    drag->drop_state.active_dropbox->on_exit(drag->drop_state.active_dropbox, drag);
   }
   if (drag->flags & WM_DRAG_FREE_DATA) {
     WM_drag_data_free(drag->type, drag->poin);
@@ -447,12 +450,12 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
   wmDropBox *drop_prev = drag->drop_state.active_dropbox;
   wmDropBox *drop = wm_dropbox_active(C, drag, event);
   if (drop != drop_prev) {
-    if (drop_prev && drop_prev->draw_deactivate) {
-      drop_prev->draw_deactivate(drop_prev, drag);
+    if (drop_prev && drop_prev->on_exit) {
+      drop_prev->on_exit(drop_prev, drag);
       BLI_assert(drop_prev->draw_data == nullptr);
     }
-    if (drop && drop->draw_activate) {
-      drop->draw_activate(drop, drag);
+    if (drop && drop->on_enter) {
+      drop->on_enter(drop, drag);
     }
     drag->drop_state.active_dropbox = drop;
     drag->drop_state.area_from = drop ? CTX_wm_area(C) : nullptr;
@@ -1005,13 +1008,13 @@ void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int
 
 void wm_drags_draw(bContext *C, wmWindow *win)
 {
-  int xy[2];
-  if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
-    wm_cursor_position_get(win, &xy[0], &xy[1]);
-  }
-  else {
-    xy[0] = win->eventstate->xy[0];
-    xy[1] = win->eventstate->xy[1];
+  const int *xy = win->eventstate->xy;
+
+  int xy_buf[2];
+  if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide) &&
+      wm_cursor_position_get(win, &xy_buf[0], &xy_buf[1]))
+  {
+    xy = xy_buf;
   }
 
   bScreen *screen = CTX_wm_screen(C);

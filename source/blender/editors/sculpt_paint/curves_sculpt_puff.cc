@@ -4,8 +4,8 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_brush.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -73,8 +73,8 @@ struct PuffOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  Object *surface_ob_ = nullptr;
-  Mesh *surface_ = nullptr;
+  const Object *surface_ob_ = nullptr;
+  const Mesh *surface_ = nullptr;
   Span<float3> surface_positions_;
   Span<int> surface_corner_verts_;
   Span<MLoopTri> surface_looptris_;
@@ -113,20 +113,14 @@ struct PuffOperationExecutor {
     falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
 
     surface_ob_ = curves_id_->surface;
-    surface_ = static_cast<Mesh *>(surface_ob_->data);
+    surface_ = static_cast<const Mesh *>(surface_ob_->data);
 
     transforms_ = CurvesSurfaceTransforms(*object_, surface_ob_);
-
-    if (!CustomData_has_layer(&surface_->loop_data, CD_NORMAL)) {
-      BKE_mesh_calc_normals_split(surface_);
-    }
-    corner_normals_su_ = {
-        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_->loop_data, CD_NORMAL)),
-        surface_->totloop};
 
     surface_positions_ = surface_->vert_positions();
     surface_corner_verts_ = surface_->corner_verts();
     surface_looptris_ = surface_->looptris();
+    corner_normals_su_ = surface_->corner_normals();
     BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
 

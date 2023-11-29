@@ -129,8 +129,14 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     /* Do first point. */
     const bGPDspoint &first_pt = stroke_points.first();
     stroke_positions.first() = float3(first_pt.x, first_pt.y, first_pt.z);
-    /* Store the actual radius of the stroke (without layer adjustment). */
-    stroke_radii.first() = gps->thickness * first_pt.pressure;
+    /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px` was
+     * the brush size which would be stored in the stroke thickness and then scaled by the point
+     * pressure factor. Finally, the render engine would divide this thickness value by 2000 (we're
+     * going from a thickness to a radius, hence the factor of two) to convert back into blender
+     * units.
+     * Store the radius now directly in blender units. This makes it consistent with how hair
+     * curves handle the radius. */
+    stroke_radii.first() = gps->thickness * first_pt.pressure / 2000.0f;
     stroke_opacities.first() = first_pt.strength;
     stroke_deltatimes.first() = 0;
     stroke_rotations.first() = first_pt.uv_rot;
@@ -143,8 +149,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       const bGPDspoint &pt_prev = stroke_points[point_i - 1];
       const bGPDspoint &pt = stroke_points[point_i];
       stroke_positions[point_i] = float3(pt.x, pt.y, pt.z);
-      /* Store the actual radius of the stroke (without layer adjustment). */
-      stroke_radii[point_i] = gps->thickness * pt.pressure;
+      stroke_radii[point_i] = gps->thickness * pt.pressure / 2000.0f;
       stroke_opacities[point_i] = pt.strength;
       stroke_deltatimes[point_i] = pt.time - pt_prev.time;
       stroke_rotations[point_i] = pt.uv_rot;
@@ -188,7 +193,7 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
   LISTBASE_FOREACH_INDEX (bGPDlayer *, gpl, &gpd.layers, layer_idx) {
     /* Create a new layer. */
     Layer &new_layer = grease_pencil.add_layer(
-        grease_pencil.root_group(), StringRefNull(gpl->info, BLI_strnlen(gpl->info, 128)));
+        StringRefNull(gpl->info, BLI_strnlen(gpl->info, 128)));
 
     /* Flags. */
     new_layer.set_visible((gpl->flag & GP_LAYER_HIDE) == 0);

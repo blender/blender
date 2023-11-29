@@ -19,9 +19,9 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_report.h"
@@ -597,7 +597,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
 
     if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
       CustomData *data = mesh_customdata_get_type(me, BM_VERT, nullptr);
-      if (CustomData_has_layer(data, CD_PAINT_MASK)) {
+      if (CustomData_has_layer_named(data, CD_PROP_FLOAT, ".sculpt_mask")) {
         return true;
       }
       data = mesh_customdata_get_type(me, BM_LOOP, nullptr);
@@ -608,12 +608,14 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
   }
   return false;
 }
-static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator * /*op*/)
+static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
 {
-  int ret_a = mesh_customdata_clear_exec__internal(C, BM_VERT, CD_PAINT_MASK);
+  Object *object = ED_object_context(C);
+  Mesh *mesh = static_cast<Mesh *>(object->data);
+  const bool ret_a = BKE_id_attribute_remove(&mesh->id, ".sculpt_mask", op->reports);
   int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
 
-  if (ret_a == OPERATOR_FINISHED || ret_b == OPERATOR_FINISHED) {
+  if (ret_a || ret_b == OPERATOR_FINISHED) {
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -723,34 +725,9 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
 
   if (me->edit_mesh) {
     BMesh &bm = *me->edit_mesh->bm;
-    /* Tag edges as sharp according to smooth threshold if needed,
-     * to preserve auto-smooth shading. */
-    if (me->flag & ME_AUTOSMOOTH) {
-      BM_edges_sharp_from_angle_set(&bm, me->smoothresh);
-    }
-
     BM_data_layer_add(&bm, &bm.ldata, CD_CUSTOMLOOPNORMAL);
   }
   else {
-    /* Tag edges as sharp according to smooth threshold if needed,
-     * to preserve auto-smooth shading. */
-    if (me->flag & ME_AUTOSMOOTH) {
-      bke::MutableAttributeAccessor attributes = me->attributes_for_write();
-      bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-          "sharp_edge", ATTR_DOMAIN_EDGE);
-      const bool *sharp_faces = static_cast<const bool *>(
-          CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
-      bke::mesh::edges_sharp_from_angle_set(me->faces(),
-                                            me->corner_verts(),
-                                            me->corner_edges(),
-                                            me->face_normals(),
-                                            me->corner_to_face_map(),
-                                            sharp_faces,
-                                            me->smoothresh,
-                                            sharp_edges.span);
-      sharp_edges.finish();
-    }
-
     CustomData_add_layer(&me->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me->totloop);
   }
 
@@ -997,6 +974,7 @@ static void mesh_remove_verts(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->vert_data, mesh->totvert);
   const int totvert = mesh->totvert - len;
   CustomData_free_elem(&mesh->vert_data, totvert, len);
   mesh->totvert = totvert;
@@ -1007,6 +985,7 @@ static void mesh_remove_edges(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->edge_data, mesh->totedge);
   const int totedge = mesh->totedge - len;
   CustomData_free_elem(&mesh->edge_data, totedge, len);
   mesh->totedge = totedge;
@@ -1017,6 +996,7 @@ static void mesh_remove_loops(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->loop_data, mesh->totloop);
   const int totloop = mesh->totloop - len;
   CustomData_free_elem(&mesh->loop_data, totloop, len);
   mesh->totloop = totloop;
@@ -1027,6 +1007,7 @@ static void mesh_remove_faces(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
+  CustomData_ensure_layers_are_mutable(&mesh->face_data, mesh->faces_num);
   const int faces_num = mesh->faces_num - len;
   CustomData_free_elem(&mesh->face_data, faces_num, len);
   mesh->faces_num = faces_num;
@@ -1150,9 +1131,7 @@ void ED_mesh_split_faces(Mesh *mesh)
 {
   using namespace blender;
   const OffsetIndices polys = mesh->faces();
-  const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
-  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> mesh_sharp_edges = *attributes.lookup_or_default<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE, false);
@@ -1161,15 +1140,6 @@ void ED_mesh_split_faces(Mesh *mesh)
 
   Array<bool> sharp_edges(mesh->totedge);
   mesh_sharp_edges.materialize(sharp_edges);
-
-  bke::mesh::edges_sharp_from_angle_set(polys,
-                                        corner_verts,
-                                        corner_edges,
-                                        mesh->face_normals(),
-                                        mesh->corner_to_face_map(),
-                                        sharp_faces,
-                                        split_angle,
-                                        sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
     for (const int face_i : range) {

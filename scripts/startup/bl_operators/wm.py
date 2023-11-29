@@ -8,7 +8,6 @@ import bpy
 from bpy.types import (
     Menu,
     Operator,
-    bpy_prop_array,
 )
 from bpy.props import (
     BoolProperty,
@@ -35,7 +34,7 @@ def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
     line = context_prefix + edit_text
     cursor = len(line)
     namespace = {"context": context}
-    comp_prefix, _, comp_options = intellisense.expand(line=line, cursor=len(line), namespace=namespace, private=False)
+    comp_prefix, _, comp_options = intellisense.expand(line=line, cursor=cursor, namespace=namespace, private=False)
     prefix = comp_prefix[len(context_prefix):]  # Strip "context."
     for attr in comp_options.split("\n"):
         if attr.endswith((
@@ -66,7 +65,6 @@ def rna_path_prop_search_for_context(self, context, edit_text):
             # Users are very unlikely to be setting shortcuts in the preferences, skip this.
             if area.type == 'PREFERENCES':
                 continue
-            space = area.spaces.active
             # Ignore the same region type multiple times in an area.
             # Prevents the 3D-viewport quad-view from attempting to expand 3 extra times for e.g.
             region_type_unique = set()
@@ -1409,12 +1407,18 @@ rna_custom_property_subtype_vector_items = (
     rna_custom_property_subtype_none_item,
     ('COLOR', "Linear Color", "Color in the linear space"),
     ('COLOR_GAMMA', "Gamma-Corrected Color", "Color in the gamma corrected space"),
+    ('TRANSLATION', "Translation", ""),
+    ('DIRECTION', "Direction", ""),
+    ('VELOCITY', "Velocity", ""),
+    ('ACCELERATION', "Acceleration", ""),
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
+    ('AXISANGLE', "Axis-Angle", "Angle and axis to rotate around"),
+    ('XYZ', "XYZ", ""),
 )
 
 rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
-                          for item in bpy.types.Action.bl_rna.properties['id_root'].enum_items)
+                          for item in bpy.types.Action.bl_rna.properties["id_root"].enum_items)
 
 
 class WM_OT_properties_edit(Operator):
@@ -1666,7 +1670,8 @@ class WM_OT_properties_edit(Operator):
             self.soft_max_float = rna_data["soft_max"]
             self.precision = rna_data["precision"]
             self.step_float = rna_data["step"]
-            self.subtype = rna_data["subtype"]
+            if rna_data["subtype"] in [item[0] for item in self.subtype_items_cb(None)]:
+                self.subtype = rna_data["subtype"]
             self.use_soft_limits = (
                 self.min_float != self.soft_min_float or
                 self.max_float != self.soft_max_float
@@ -2682,6 +2687,9 @@ class WM_OT_batch_rename(Operator):
             ('NODE', "Nodes", ""),
             ('SEQUENCE_STRIP', "Sequence Strips", ""),
             ('ACTION_CLIP', "Action Clips", ""),
+            None,
+            ('SCENE', "Scenes", ""),
+            ('BRUSH', "Brushes", ""),
         ),
         description="Type of data to rename",
     )
@@ -2877,6 +2885,26 @@ class WM_OT_batch_rename(Operator):
                     [id for id in bpy.data.actions if id.library is None],
                     "name",
                     iface_("Action(s)"),
+                )
+            elif data_type == 'SCENE':
+                data = (
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Scene)
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.scenes if id.library is None]
+                    ),
+                    "name",
+                    iface_("Scene(s)"),
+                )
+            elif data_type == 'BRUSH':
+                data = (
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Brush)
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.brushes if id.library is None]
+                    ),
+                    "name",
+                    iface_("Brush(es)"),
                 )
             elif data_type in object_data_type_attrs_map.keys():
                 attr, descr, ty = object_data_type_attrs_map[data_type]

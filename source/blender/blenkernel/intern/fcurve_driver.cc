@@ -16,11 +16,12 @@
 #include "BLI_alloca.h"
 #include "BLI_expr_pylike_eval.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -28,11 +29,11 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -410,7 +411,7 @@ static float dvar_eval_rotDiff(const AnimationEvalContext * /*anim_eval_context*
 
   invert_qt_normalized(q1);
   mul_qt_qtqt(quat, q1, q2);
-  angle = 2.0f * saacos(quat[0]);
+  angle = 2.0f * safe_acosf(quat[0]);
   angle = fabsf(angle);
 
   return (angle > float(M_PI)) ? float((2.0f * float(M_PI)) - angle) : float(angle);
@@ -672,17 +673,17 @@ static float dvar_eval_contextProp(const AnimationEvalContext *anim_eval_context
 static void quaternion_to_angles(float quat[4], int channel)
 {
   if (channel < 0) {
-    quat[0] = 2.0f * saacosf(quat[0]);
+    quat[0] = 2.0f * safe_acosf(quat[0]);
 
     for (int i = 1; i < 4; i++) {
-      quat[i] = 2.0f * saasinf(quat[i]);
+      quat[i] = 2.0f * safe_asinf(quat[i]);
     }
   }
   else if (channel == 0) {
-    quat[0] = 2.0f * saacosf(quat[0]);
+    quat[0] = 2.0f * safe_acosf(quat[0]);
   }
   else {
-    quat[channel] = 2.0f * saasinf(quat[channel]);
+    quat[channel] = 2.0f * safe_asinf(quat[channel]);
   }
 }
 

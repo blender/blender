@@ -40,7 +40,14 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
+    {-1, "UNSUPPORTED", 0, "Not Supported", "This region does not support panel categories"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #include "ED_screen.hh"
+
+#include "UI_interface_c.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -56,6 +63,8 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 #  include "DEG_depsgraph.hh"
 
 #  include "UI_view2d.hh"
+
+#  include "BLT_translation.h"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"
@@ -288,6 +297,61 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
     }
   }
   return PointerRNA_NULL;
+}
+
+static int rna_region_active_panel_category_editable_get(PointerRNA *ptr, const char **r_info)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  if (BLI_listbase_is_empty(&region->panels_category)) {
+    if (r_info) {
+      *r_info = N_("This region does not support panel categories");
+    }
+    return 0;
+  }
+  return PROP_EDITABLE;
+}
+
+static int rna_region_active_panel_category_get(PointerRNA *ptr)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  const char *idname = UI_panel_category_active_get(region, false);
+  return UI_panel_category_index_find(region, idname);
+}
+
+static void rna_region_active_panel_category_set(PointerRNA *ptr, int value)
+{
+  BLI_assert(rna_region_active_panel_category_editable_get(ptr, nullptr));
+
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  UI_panel_category_index_active_set(region, value);
+}
+
+static const EnumPropertyItem *rna_region_active_panel_category_itemf(bContext * /*C*/,
+                                                                      PointerRNA *ptr,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+
+  if (!rna_region_active_panel_category_editable_get(ptr, nullptr)) {
+    *r_free = false;
+    return rna_enum_region_panel_category_items;
+  }
+
+  EnumPropertyItem *items = nullptr;
+  EnumPropertyItem item = {0, "", 0, "", ""};
+  int totitems = 0;
+  int category_index;
+  LISTBASE_FOREACH_INDEX (PanelCategoryDyn *, pc_dyn, &region->panels_category, category_index) {
+    item.value = category_index;
+    item.identifier = pc_dyn->idname;
+    item.name = pc_dyn->idname;
+    RNA_enum_item_add(&items, &totitems, &item);
+  }
+
+  RNA_enum_item_end(&items, &totitems);
+  *r_free = true;
+  return items;
 }
 
 static void rna_View2D_region_to_view(View2D *v2d, float x, float y, float result[2])
@@ -563,6 +627,20 @@ static void rna_def_region(BlenderRNA *brna)
       prop, "Region Data", "Region specific data (the type depends on the region type)");
   RNA_def_property_struct_type(prop, "AnyType");
   RNA_def_property_pointer_funcs(prop, "rna_Region_data_get", nullptr, nullptr, nullptr);
+
+  prop = RNA_def_property(srna, "active_panel_category", PROP_ENUM, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_region_active_panel_category_editable_get");
+  RNA_def_property_enum_items(prop, rna_enum_region_panel_category_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_region_active_panel_category_get",
+                              "rna_region_active_panel_category_set",
+                              "rna_region_active_panel_category_itemf");
+  RNA_def_property_ui_text(
+      prop,
+      "Active Panel Category",
+      "The current active panel category, may be Null if the region does not "
+      "support this feature (NOTE: these categories are generated at runtime, so list may be "
+      "empty at initialization, before any drawing took place)");
 
   RNA_def_function(srna, "tag_redraw", "ED_region_tag_redraw");
 }

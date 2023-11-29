@@ -18,19 +18,19 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_blender_copybuffer.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
@@ -49,6 +49,7 @@
 #include "ED_util.hh"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -909,7 +910,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
       bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
       if (pchan != nullptr) {
         /* Keyframing tagging for successful paste, */
-        ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
+        blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
       }
     }
   }
@@ -1197,7 +1198,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
     /* XXX: UGLY HACK (for auto-key + clear transforms). */
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
-    ListBase dsources = {nullptr, nullptr};
+    blender::Vector<PointerRNA> sources;
     bool changed = false;
 
     FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
@@ -1206,9 +1207,9 @@ static int pose_clear_transform_generic_exec(bContext *C,
       changed = true;
 
       /* do auto-keyframing as appropriate */
-      if (autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
+      if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
         /* tag for autokeying later */
-        ANIM_relative_keyingset_add_source(&dsources, &ob_iter->id, &RNA_PoseBone, pchan);
+        ANIM_relative_keyingset_add_source(sources, &ob_iter->id, &RNA_PoseBone, pchan);
 
 #if 1 /* XXX: Ugly Hack - Run clearing function on evaluated copy of pchan */
         bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
@@ -1222,20 +1223,17 @@ static int pose_clear_transform_generic_exec(bContext *C,
       changed_multi = true;
 
       /* perform autokeying on the bones if needed */
-      if (!BLI_listbase_is_empty(&dsources)) {
+      if (!sources.is_empty()) {
         /* get KeyingSet to use */
         KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 
         /* insert keyframes */
-        ANIM_apply_keyingset(
-            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
+        ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
 
         /* now recalculate paths */
         if (ob_iter->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
           ED_pose_recalculate_paths(C, scene, ob_iter, POSE_PATH_CALC_RANGE_FULL);
         }
-
-        BLI_freelistN(&dsources);
       }
 
       DEG_id_tag_update(&ob_iter->id, ID_RECALC_GEOMETRY);

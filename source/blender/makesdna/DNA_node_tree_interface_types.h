@@ -64,8 +64,9 @@ typedef enum NodeTreeInterfaceSocketFlag {
   NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER = 1 << 3,
   NODE_INTERFACE_SOCKET_COMPACT = 1 << 4,
   NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY = 1 << 5,
+  NODE_INTERFACE_SOCKET_LAYER_SELECTION = 1 << 6,
 } NodeTreeInterfaceSocketFlag;
-ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY);
+ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_LAYER_SELECTION);
 
 typedef struct bNodeTreeInterfaceSocket {
   bNodeTreeInterfaceItem item;
@@ -79,7 +80,9 @@ typedef struct bNodeTreeInterfaceSocket {
   int flag;
 
   /* eAttrDomain */
-  int attribute_domain;
+  int16_t attribute_domain;
+  /** GeometryNodeDefaultInputType. */
+  int16_t default_input;
   char *default_attribute_name;
 
   /* Unique identifier for generated sockets. */
@@ -117,6 +120,17 @@ typedef enum NodeTreeInterfacePanelFlag {
   NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS = 1 << 2,
 } NodeTreeInterfacePanelFlag;
 ENUM_OPERATORS(NodeTreeInterfacePanelFlag, NODE_INTERFACE_PANEL_DEFAULT_CLOSED);
+
+/** Use the same default for different node systems. */
+#define NODE_INPUT_DEFAULT_VALUE 0
+
+typedef enum GeometryNodeDefaultInputType {
+  GEO_NODE_DEFAULT_INPUT_VALUE = NODE_INPUT_DEFAULT_VALUE,
+  GEO_NODE_DEFAULT_FIELD_INPUT_INDEX_FIELD = 1,
+  GEO_NODE_DEFAULT_FIELD_INPUT_ID_INDEX_FIELD = 2,
+  GEO_NODE_DEFAULT_FIELD_INPUT_NORMAL_FIELD = 3,
+  GEO_NODE_DEFAULT_FIELD_INPUT_POSITION_FIELD = 4,
+} GeometryNodeDefaultInputType;
 
 typedef struct bNodeTreeInterfacePanel {
   bNodeTreeInterfaceItem item;

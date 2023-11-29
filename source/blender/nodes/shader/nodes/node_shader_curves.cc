@@ -21,8 +21,12 @@ namespace blender::nodes::node_shader_curves_cc::vec {
 static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac").no_muted_links().min(0.0f).max(1.0f).default_value(1.0f).subtype(
-      PROP_FACTOR);
+  b.add_input<decl::Float>("Fac")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .no_muted_links();
   b.add_input<decl::Vector>("Vector").min(-1.0f).max(1.0f);
   b.add_output<decl::Vector>("Vector");
 }
@@ -113,7 +117,7 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   /* TODO: implement */
-  return get_input_value("Value", NodeItem::Type::Vector3);
+  return get_input_value("Vector", NodeItem::Type::Vector3);
 }
 #endif
 NODE_SHADER_MATERIALX_END
@@ -145,8 +149,12 @@ namespace blender::nodes::node_shader_curves_cc::rgb {
 static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac").no_muted_links().min(0.0f).max(1.0f).default_value(1.0f).subtype(
-      PROP_FACTOR);
+  b.add_input<decl::Float>("Fac")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .no_muted_links();
   b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>("Color");
 }
@@ -249,6 +257,7 @@ class CurveRGBFunction : public mf::MultiFunction {
       if (fac[i] != 1.0f) {
         interp_v3_v3v3(col_out[i], col_in[i], col_out[i], fac[i]);
       }
+      col_out[i].a = 1.0f;
     });
   }
 };
@@ -298,11 +307,11 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>("Factor")
-      .no_muted_links()
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .no_muted_links();
   b.add_input<decl::Float>("Value").default_value(1.0f).is_default_link_socket();
   b.add_output<decl::Float>("Value");
 }

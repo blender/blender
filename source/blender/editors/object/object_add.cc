@@ -46,12 +46,12 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_curve_to_mesh.hh"
 #include "BKE_curves.h"
 #include "BKE_displist.h"
@@ -65,7 +65,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
@@ -80,14 +80,15 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_nla.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
-#include "BKE_vfont.h"
-#include "BKE_volume.h"
+#include "BKE_vfont.hh"
+#include "BKE_volume.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -164,21 +165,21 @@ static const EnumPropertyItem field_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-    {LIGHTPROBE_TYPE_CUBE,
-     "CUBEMAP",
-     ICON_LIGHTPROBE_CUBEMAP,
-     "Reflection Cubemap",
-     "Reflection probe with spherical or cubic attenuation"},
-    {LIGHTPROBE_TYPE_PLANAR,
-     "PLANAR",
-     ICON_LIGHTPROBE_PLANAR,
-     "Reflection Plane",
-     "Planar reflection probe"},
-    {LIGHTPROBE_TYPE_GRID,
-     "GRID",
-     ICON_LIGHTPROBE_GRID,
-     "Irradiance Volume",
-     "Irradiance probe to capture diffuse indirect lighting"},
+    {LIGHTPROBE_TYPE_SPHERE,
+     "SPHERE",
+     ICON_LIGHTPROBE_SPHERE,
+     "Sphere",
+     "Light probe that captures precise lighting from all directions at a single point in space"},
+    {LIGHTPROBE_TYPE_PLANE,
+     "PLANE",
+     ICON_LIGHTPROBE_PLANE,
+     "Plane",
+     "Light probe that captures incoming light from a single direction on a plane"},
+    {LIGHTPROBE_TYPE_VOLUME,
+     "VOLUME",
+     ICON_LIGHTPROBE_VOLUME,
+     "Volume",
+     "Light probe that captures low frequency lighting inside a volume"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -746,12 +747,12 @@ void OBJECT_OT_add(wmOperatorType *ot)
 static const char *get_lightprobe_defname(int type)
 {
   switch (type) {
-    case LIGHTPROBE_TYPE_GRID:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "IrradianceVolume");
-    case LIGHTPROBE_TYPE_PLANAR:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionPlane");
-    case LIGHTPROBE_TYPE_CUBE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionCubemap");
+    case LIGHTPROBE_TYPE_VOLUME:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Volume");
+    case LIGHTPROBE_TYPE_PLANE:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Plane");
+    case LIGHTPROBE_TYPE_SPHERE:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Sphere");
     default:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "LightProbe");
   }
@@ -1536,8 +1537,8 @@ static EnumPropertyItem rna_enum_gpencil_add_stroke_depth_order_items[] = {
 void OBJECT_OT_gpencil_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Grease Pencil (legacy)";
-  ot->description = "Add a Grease Pencil (legacy) object to the scene";
+  ot->name = "Add Grease Pencil";
+  ot->description = "Add a Grease Pencil object to the scene";
   ot->idname = "OBJECT_OT_gpencil_add";
 
   /* api callbacks */
@@ -2704,7 +2705,7 @@ static void make_object_duplilist_real(bContext *C,
 
     ob_dst->parent = nullptr;
     BKE_constraints_free(&ob_dst->constraints);
-    ob_dst->runtime.curve_cache = nullptr;
+    ob_dst->runtime->curve_cache = nullptr;
     const bool is_dupli_instancer = (ob_dst->transflag & OB_DUPLI) != 0;
     ob_dst->transflag &= ~OB_DUPLI;
     /* Remove instantiated collection, it's annoying to keep it here
@@ -2913,16 +2914,8 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
-#ifdef WITH_GREASE_PENCIL_V3
-     "Grease Pencil (legacy)",
-#else
      "Grease Pencil",
-#endif
-#ifdef WITH_GREASE_PENCIL_V3
-     "Grease Pencil (legacy) from Curve or Mesh objects"},
-#else
      "Grease Pencil from Curve or Mesh objects"},
-#endif
 #ifdef WITH_POINT_CLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
@@ -2935,8 +2928,8 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_GREASE_PENCIL,
      "GREASEPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
-     "Grease Pencil",
-     "Grease Pencil from Grease Pencil (legacy)"},
+     "Grease Pencil v3",
+     "Grease Pencil v3 from Grease Pencil"},
 #endif
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -3256,8 +3249,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       bke::GeometrySet geometry;
-      if (ob_eval->runtime.geometry_set_eval != nullptr) {
-        geometry = *ob_eval->runtime.geometry_set_eval;
+      if (ob_eval->runtime->geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime->geometry_set_eval;
       }
 
       if (geometry.has_curves()) {
@@ -3554,8 +3547,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       bke::GeometrySet geometry;
-      if (ob_eval->runtime.geometry_set_eval != nullptr) {
-        geometry = *ob_eval->runtime.geometry_set_eval;
+      if (ob_eval->runtime->geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime->geometry_set_eval;
       }
 
       if (keep_original) {
@@ -3683,8 +3676,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  // XXX  ED_object_editmode_enter(C, 0);
-  // XXX  exit_editmode(C, EM_FREEDATA|); /* free data, but no undo */
+  // XXX: ED_object_editmode_enter(C, 0);
+  // XXX: exit_editmode(C, EM_FREEDATA|); /* free data, but no undo. */
 
   if (basact) {
     /* active base was changed */

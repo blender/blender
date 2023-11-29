@@ -17,7 +17,7 @@
 #include "COLLADAFWTypes.h"
 #include "COLLADAFWUniqueId.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "DNA_object_types.h"
 
 #include "TransformReader.h"

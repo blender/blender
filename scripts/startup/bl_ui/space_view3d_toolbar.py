@@ -274,6 +274,11 @@ class TEXTURE_UL_texpaintslots(UIList):
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # mat = data
 
+        # Hint that painting on linked images is prohibited
+        ima = _data.texture_paint_images.get(item.name)
+        if ima is not None and ima.library is not None:
+            layout.enabled = False
+
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon_value=item.icon_value)
         elif self.layout_type == 'GRID':
@@ -1045,9 +1050,7 @@ class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
 
         col = layout.column(heading="Preserve", align=True)
         col.prop(mesh, "use_remesh_preserve_volume", text="Volume")
-        col.prop(mesh, "use_remesh_preserve_paint_mask", text="Paint Mask")
-        col.prop(mesh, "use_remesh_preserve_sculpt_face_sets", text="Face Sets")
-        col.prop(mesh, "use_remesh_preserve_vertex_colors", text="Color Attributes")
+        col.prop(mesh, "use_remesh_preserve_attributes", text="Attributes")
 
         layout.operator("object.voxel_remesh", text="Remesh")
 

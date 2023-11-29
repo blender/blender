@@ -26,7 +26,7 @@ struct IsectPyramid {
   vec4 planes[5];
 };
 
-IsectPyramid isect_data_setup(Pyramid shape)
+IsectPyramid isect_pyramid_setup(Pyramid shape)
 {
   vec3 A1 = shape.corners[1] - shape.corners[0];
   vec3 A2 = shape.corners[2] - shape.corners[0];
@@ -52,7 +52,7 @@ struct IsectBox {
   vec4 planes[6];
 };
 
-IsectBox isect_data_setup(Box shape)
+IsectBox isect_box_setup(Box shape)
 {
   vec3 A1 = shape.corners[1] - shape.corners[0];
   vec3 A3 = shape.corners[3] - shape.corners[0];
@@ -73,7 +73,7 @@ IsectBox isect_data_setup(Box shape)
 }
 
 /* Construct box from 1 corner point + 3 side vectors. */
-IsectBox isect_data_setup(vec3 origin, vec3 side_x, vec3 side_y, vec3 side_z)
+IsectBox isect_box_setup(vec3 origin, vec3 side_x, vec3 side_y, vec3 side_z)
 {
   IsectBox data;
   data.corners[0] = origin;
@@ -101,7 +101,7 @@ struct IsectFrustum {
   vec4 planes[6];
 };
 
-IsectFrustum isect_data_setup(Frustum shape)
+IsectFrustum isect_frustum_setup(Frustum shape)
 {
   vec3 A1 = shape.corners[1] - shape.corners[0];
   vec3 A3 = shape.corners[3] - shape.corners[0];
@@ -129,7 +129,7 @@ IsectFrustum isect_data_setup(Frustum shape)
 /** \name View Intersection functions.
  * \{ */
 
-#ifdef COMMON_VIEW_LIB_GLSL
+#ifdef DRW_VIEW_CULLING_INFO
 
 bool intersect_view(Pyramid pyramid)
 {
@@ -157,7 +157,7 @@ bool intersect_view(Pyramid pyramid)
   }
 
   /* Now do Frustum vertices vs Pyramid planes. */
-  IsectPyramid i_pyramid = isect_data_setup(pyramid);
+  IsectPyramid i_pyramid = isect_pyramid_setup(pyramid);
   for (int p = 0; p < 5; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
@@ -203,7 +203,7 @@ bool intersect_view(Box box)
   }
 
   /* Now do Frustum vertices vs Box planes. */
-  IsectBox i_box = isect_data_setup(box);
+  IsectBox i_box = isect_box_setup(box);
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
@@ -317,7 +317,7 @@ bool intersect(IsectPyramid i_pyramid, Box box)
   }
 
   /* Now do Pyramid vertices vs Box planes. */
-  IsectBox i_box = isect_data_setup(box);
+  IsectBox i_box = isect_box_setup(box);
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 5; ++v) {
@@ -406,7 +406,7 @@ bool intersect(IsectFrustum i_frustum, Pyramid pyramid)
   }
 
   /* Now do Frustum vertices vs Pyramid planes. */
-  IsectPyramid i_pyramid = isect_data_setup(pyramid);
+  IsectPyramid i_pyramid = isect_pyramid_setup(pyramid);
   for (int p = 0; p < 5; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
@@ -451,7 +451,7 @@ bool intersect(IsectFrustum i_frustum, Box box)
   }
 
   /* Now do Frustum vertices vs Box planes. */
-  IsectBox i_box = isect_data_setup(box);
+  IsectBox i_box = isect_box_setup(box);
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {

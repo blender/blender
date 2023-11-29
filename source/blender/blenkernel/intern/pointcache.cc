@@ -12,6 +12,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+/* needed for directory lookup */
+#ifndef WIN32
+#  include <dirent.h>
+#else
+#  include "BLI_winstuff.h"
+#endif
+
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -46,8 +53,8 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
@@ -75,13 +82,6 @@
 
 #ifdef WITH_LZMA
 #  include "LzmaLib.h"
-#endif
-
-/* needed for directory lookup */
-#ifndef WIN32
-#  include <dirent.h>
-#else
-#  include "BLI_winstuff.h"
 #endif
 
 #define PTCACHE_DATA_FROM(data, type, from) \
@@ -410,8 +410,8 @@ static void ptcache_particle_interpolate(int index,
   }
 
   cfra = MIN2(cfra, pa->dietime);
-  cfra1 = MIN2(cfra1, pa->dietime);
-  cfra2 = MIN2(cfra2, pa->dietime);
+  cfra1 = std::min(cfra1, pa->dietime);
+  cfra2 = std::min(cfra2, pa->dietime);
 
   if (cfra1 == cfra2) {
     return;
@@ -2372,7 +2372,7 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old)
       pid->cache->flag &= ~PTCACHE_FRAMES_SKIPPED;
     }
 
-    BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, MAX2(cfrai, pid->cache->last_exact));
+    BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, std::max(cfrai, pid->cache->last_exact));
   }
 
   return ret;
@@ -2653,7 +2653,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
           if (strstr(de->d_name, ext)) {               /* Do we have the right extension? */
             if (STREQLEN(filepath, de->d_name, len)) { /* Do we have the right prefix. */
               if (mode == PTCACHE_CLEAR_ALL) {
-                pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
+                pid->cache->last_exact = std::min(pid->cache->startframe, 0);
                 BLI_path_join(path_full, sizeof(path_full), path, de->d_name);
                 BLI_delete(path_full, false, false);
               }
@@ -2688,7 +2688,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
 
         if (mode == PTCACHE_CLEAR_ALL) {
           /* We want startframe if the cache starts before zero. */
-          pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
+          pid->cache->last_exact = std::min(pid->cache->startframe, 0);
           for (; pm; pm = pm->next) {
             ptcache_mem_clear(pm);
           }
@@ -2803,7 +2803,7 @@ void BKE_ptcache_id_time(
     time = BKE_scene_ctime_get(scene);
     nexttime = BKE_scene_frame_to_ctime(scene, scene->r.cfra + 1);
 
-    *timescale = MAX2(nexttime - time, 0.0f);
+    *timescale = std::max(nexttime - time, 0.0f);
   }
 
   if (startframe && endframe) {
@@ -3219,7 +3219,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
         BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
       }
 
-      startframe = MAX2(cache->last_exact, cache->startframe);
+      startframe = std::max(cache->last_exact, cache->startframe);
 
       if (bake) {
         endframe = cache->endframe;
@@ -3603,8 +3603,8 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 
         if (frame != -1) {
           if (frame) {
-            start = MIN2(start, frame);
-            end = MAX2(end, frame);
+            start = std::min(start, frame);
+            end = std::max(end, frame);
           }
           else {
             info = 1;
@@ -3774,7 +3774,7 @@ void BKE_ptcache_invalidate(PointCache *cache)
   if (cache) {
     cache->flag &= ~PTCACHE_SIMULATION_VALID;
     cache->simframe = 0;
-    cache->last_exact = MIN2(cache->startframe, 0);
+    cache->last_exact = std::min(cache->startframe, 0);
   }
 }
 

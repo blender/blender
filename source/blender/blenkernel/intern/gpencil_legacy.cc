@@ -19,7 +19,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
@@ -268,7 +268,7 @@ IDTypeInfo IDType_ID_GD_LEGACY = {
     /*main_listbase_index*/ INDEX_ID_GD_LEGACY,
     /*struct_size*/ sizeof(bGPdata),
     /*name*/ "GPencil",
-    /*name_plural*/ "grease_pencils",
+    /*name_plural*/ N_("grease_pencils"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_GPENCIL,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

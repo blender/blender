@@ -43,27 +43,21 @@ static EnumPropertyItem parallax_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-    {LIGHTPROBE_TYPE_CUBE,
-     "CUBEMAP",
-     ICON_LIGHTPROBE_CUBEMAP,
-     "Reflection Cubemap",
-     "Capture reflections"},
-    {LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_LIGHTPROBE_PLANAR, "Reflection Plane", ""},
-    {LIGHTPROBE_TYPE_GRID,
-     "GRID",
-     ICON_LIGHTPROBE_GRID,
-     "Irradiance Volume",
-     "Volume used for precomputing indirect lighting"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static EnumPropertyItem lightprobe_resolution_items[] = {
-    {LIGHT_PROBE_RESOLUTION_64, "64", 0, "64", ""},
-    {LIGHT_PROBE_RESOLUTION_128, "128", 0, "128", ""},
-    {LIGHT_PROBE_RESOLUTION_256, "256", 0, "256", ""},
-    {LIGHT_PROBE_RESOLUTION_512, "512", 0, "512", ""},
-    {LIGHT_PROBE_RESOLUTION_1024, "1024", 0, "1024", ""},
-    {LIGHT_PROBE_RESOLUTION_2048, "2048", 0, "2048", ""},
+    {LIGHTPROBE_TYPE_SPHERE,
+     "SPHERE",
+     ICON_LIGHTPROBE_SPHERE,
+     "Sphere",
+     "Light probe that captures precise lighting from all directions at a single point in space"},
+    {LIGHTPROBE_TYPE_PLANE,
+     "PLANE",
+     ICON_LIGHTPROBE_PLANE,
+     "Plane",
+     "Light probe that captures incoming light from a single direction on a plane"},
+    {LIGHTPROBE_TYPE_VOLUME,
+     "VOLUME",
+     ICON_LIGHTPROBE_VOLUME,
+     "Volume",
+     "Light probe that captures low frequency lighting inside a volume"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -296,12 +290,6 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Visibility Blur", "Filter size of the visibility blur");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
-  prop = RNA_def_property(srna, "resolution", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "resolution");
-  RNA_def_property_enum_items(prop, lightprobe_resolution_items);
-  RNA_def_property_ui_text(prop, "Resolution", "Resolution when baked to a texture");
-  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
-
   prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "intensity");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
@@ -328,9 +316,25 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   /* Data preview */
   prop = RNA_def_property(srna, "show_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", LIGHTPROBE_FLAG_SHOW_DATA);
-  RNA_def_property_ui_text(prop,
-                           "Show Preview Plane",
-                           "Show captured lighting data into the 3D view for debugging purpose");
+  RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
+  RNA_def_property_ui_text(
+      prop, "Display Data (Deprecated)", "Deprecated, use use_data_display instead");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
+
+  prop = RNA_def_property(srna, "use_data_display", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", LIGHTPROBE_FLAG_SHOW_DATA);
+  RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
+  RNA_def_property_ui_text(
+      prop, "Display Data", "Display sampled data in the viewport to debug captured light");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
+
+  prop = RNA_def_property(srna, "data_display_size", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "data_display_size");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.01f, 1.0f, 1, 3);
+  RNA_def_property_ui_text(prop, "Display Data Size", "Viewport display size of the sampled data");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
 
   /* common */

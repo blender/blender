@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma BLENDER_REQUIRE(gpu_shader_common_math.glsl)
+
 void node_attribute_color(vec4 attr, out vec4 out_attr)
 {
   out_attr = attr_load_color_post(attr);
@@ -63,6 +65,6 @@ void node_attribute(
 {
   outcol = vec4(attr.xyz, 1.0);
   outvec = attr.xyz;
-  outf = avg(attr.xyz);
+  outf = math_average(attr.xyz);
   outalpha = attr.w;
 }

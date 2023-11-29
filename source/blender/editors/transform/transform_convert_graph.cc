@@ -14,7 +14,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 #include "BKE_nla.h"
@@ -240,7 +240,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     return;
   }
 
-  anim_map_flag |= ANIM_get_normalization_flags(&ac);
+  anim_map_flag |= ANIM_get_normalization_flags(ac.sl);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
@@ -644,18 +644,6 @@ static bool fcu_test_selected(FCurve *fcu)
   return false;
 }
 
-static void invert_snap(eSnapMode &snap_mode)
-{
-  if (snap_mode & SCE_SNAP_TO_FRAME) {
-    snap_mode &= ~SCE_SNAP_TO_FRAME;
-    snap_mode |= SCE_SNAP_TO_SECOND;
-  }
-  else if (snap_mode & SCE_SNAP_TO_SECOND) {
-    snap_mode &= ~SCE_SNAP_TO_SECOND;
-    snap_mode |= SCE_SNAP_TO_FRAME;
-  }
-}
-
 /* This function is called on recalc_data to apply the transforms applied
  * to the transdata on to the actual keyframe data
  */
@@ -667,10 +655,6 @@ static void flushTransGraphData(TransInfo *t)
   int a;
 
   eSnapMode snap_mode = t->tsnap.mode;
-
-  if (t->modifiers & MOD_SNAP_INVERT) {
-    invert_snap(snap_mode);
-  }
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   /* flush to 2d vector from internally used 3d vector */

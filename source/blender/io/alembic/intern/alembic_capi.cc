@@ -31,12 +31,12 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_cachefile.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 
@@ -101,7 +101,7 @@ static void add_object_path(ListBase *object_paths, const IObject &object)
   BLI_addtail(object_paths, abc_path);
 }
 
-//#define USE_NURBS
+// #define USE_NURBS
 
 /* NOTE: this function is similar to visit_objects below, need to keep them in
  * sync. */
@@ -453,15 +453,15 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
-static void import_startjob(void *user_data, bool *stop, bool *do_update, float *progress)
+static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
 {
   SCOPE_TIMER("Alembic import, objects reading and creation");
 
   ImportJobData *data = static_cast<ImportJobData *>(user_data);
 
-  data->stop = stop;
-  data->do_update = do_update;
-  data->progress = progress;
+  data->stop = &worker_status->stop;
+  data->do_update = &worker_status->do_update;
+  data->progress = &worker_status->progress;
   data->start_time = blender::timeit::Clock::now();
 
   WM_set_locked_interface(data->wm, true);
@@ -721,11 +721,8 @@ bool ABC_import(bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need null pointer checks while importing. */
-    bool stop = false, do_update = false;
-    float progress = 0.0f;
-
-    import_startjob(job, &stop, &do_update, &progress);
+    wmJobWorkerStatus worker_status = {};
+    import_startjob(job, &worker_status);
     import_endjob(job);
     import_ok = job->import_ok;
 

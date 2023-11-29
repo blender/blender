@@ -12,8 +12,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
@@ -145,7 +145,7 @@ class TextureMarginMap {
 /* The map contains 2 kinds of pixels: DijkstraPixels and face indices. The top bit determines
  * what kind it is. With the top bit set, it is a 'dijkstra' pixel. The bottom 4 bits encode the
  * direction of the shortest path and the remaining 27 bits are used to store the distance. If
- * the top bit  is not set, the rest of the bits is used to store the face index.
+ * the top bit is not set, the rest of the bits is used to store the face index.
  */
 #define PackDijkstraPixel(dist, dir) (0x80000000 + ((dist) << 4) + (dir))
 #define DijkstraPixelGetDistance(dp) (((dp) ^ 0x80000000) >> 4)
@@ -251,7 +251,7 @@ class TextureMarginMap {
 
           int other_poly;
           bool found_pixel_in_polygon = false;
-          if (lookup_pixel_polygon_neighbourhood(x, y, &face, &destX, &destY, &other_poly)) {
+          if (lookup_pixel_polygon_neighborhood(x, y, &face, &destX, &destY, &other_poly)) {
 
             for (int i = 0; i < maxPolygonSteps; i++) {
               /* Force to pixel grid. */
@@ -326,7 +326,7 @@ class TextureMarginMap {
    * face we need can be the one next to the one the Dijkstra map provides. To prevent missing
    * pixels also check the neighboring polygons.
    */
-  bool lookup_pixel_polygon_neighbourhood(
+  bool lookup_pixel_polygon_neighborhood(
       float x, float y, uint32_t *r_start_poly, float *r_destx, float *r_desty, int *r_other_poly)
   {
     float found_dist;

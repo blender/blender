@@ -7,7 +7,6 @@ set(INC
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
-  ../../depsgraph
   ../../gpu
   ../../makesrna
   ../../modifiers
@@ -35,8 +34,10 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
 )
 
 

@@ -21,7 +21,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
@@ -102,7 +102,7 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
 #endif
 
   if (gzgroup->reports && (gzgroup->reports->flag & RPT_FREE)) {
-    BKE_reports_clear(gzgroup->reports);
+    BKE_reports_free(gzgroup->reports);
     MEM_freeN(gzgroup->reports);
   }
 

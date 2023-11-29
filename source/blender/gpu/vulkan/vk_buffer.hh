@@ -31,10 +31,13 @@ class VKBuffer {
 
   /** Has this buffer been allocated? */
   bool is_allocated() const;
-
-  bool create(int64_t size, GPUUsageType usage, VkBufferUsageFlagBits buffer_usage);
+  bool create(int64_t size,
+              GPUUsageType usage,
+              VkBufferUsageFlags buffer_usage,
+              bool is_host_visible = true);
   void clear(VKContext &context, uint32_t clear_value);
   void update(const void *data) const;
+  void flush() const;
   void read(void *data) const;
   bool free();
 
@@ -55,9 +58,13 @@ class VKBuffer {
    */
   void *mapped_memory_get() const;
 
+  /**
+   * Is this buffer mapped (visible on host)
+   */
+  bool is_mapped() const;
+
  private:
   /** Check if this buffer is mapped. */
-  bool is_mapped() const;
   bool map();
   void unmap();
 };

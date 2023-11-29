@@ -211,6 +211,9 @@ bool DEG_is_active(const Depsgraph *depsgraph);
 void DEG_make_active(Depsgraph *depsgraph);
 void DEG_make_inactive(Depsgraph *depsgraph);
 
+/* Returns the number of times the graph has been evaluated. */
+uint64_t DEG_get_update_count(const Depsgraph *depsgraph);
+
 /**
  * Disable the visibility optimization making it so IDs which affect hidden objects or disabled
  * modifiers are still evaluated.

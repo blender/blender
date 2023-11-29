@@ -59,7 +59,7 @@ void EllipseMaskOperation::execute_pixel_sampled(float output[4],
   switch (mask_type_) {
     case CMP_NODE_MASKTYPE_ADD:
       if (inside) {
-        output[0] = MAX2(input_mask[0], input_value[0]);
+        output[0] = std::max(input_mask[0], input_value[0]);
       }
       else {
         output[0] = input_mask[0];
@@ -106,7 +106,7 @@ void EllipseMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
   switch (mask_type_) {
     case CMP_NODE_MASKTYPE_ADD:
       mask_func = [](const bool is_inside, const float *mask, const float *value) {
-        return is_inside ? MAX2(mask[0], value[0]) : mask[0];
+        return is_inside ? std::max(mask[0], value[0]) : mask[0];
       };
       break;
     case CMP_NODE_MASKTYPE_SUBTRACT:

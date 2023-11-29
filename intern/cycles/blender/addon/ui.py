@@ -892,7 +892,7 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         sub.prop(view_layer, "use_motion_blur", text="Motion Blur")
         sub.active = rd.use_motion_blur
         sub = col.row()
-        sub.prop(view_layer.cycles, 'use_denoising', text='Denoising')
+        sub.prop(view_layer.cycles, "use_denoising", text="Denoising")
         sub.active = scene.cycles.use_denoising
 
 
@@ -1964,9 +1964,10 @@ class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
         cmat = mat.cycles
 
         col = layout.column()
-        col.prop(cmat, "displacement_method", text="Displacement")
+        col.prop(mat, "displacement_method", text="Displacement")
         col.prop(cmat, "emission_sampling")
-        col.prop(cmat, "use_transparent_shadow")
+        col.prop(mat, "use_transparent_shadow")
+        col.prop(cmat, "use_bump_map_correction")
 
     def draw(self, context):
         self.draw_shared(self, context.material)

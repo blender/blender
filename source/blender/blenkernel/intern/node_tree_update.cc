@@ -23,7 +23,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 
 #include "MOD_nodes.hh"
 
@@ -563,8 +563,12 @@ class NodeTreeMainUpdater {
         if (ntype.updatefunc) {
           ntype.updatefunc(&ntree, node);
         }
-        if (ntype.declare_dynamic) {
-          nodes::update_node_declaration_and_sockets(ntree, *node);
+        if (ntype.declare) {
+          /* Should have been created when the node was registered. */
+          BLI_assert(ntype.static_declaration != nullptr);
+          if (ntype.static_declaration->is_context_dependent) {
+            nodes::update_node_declaration_and_sockets(ntree, *node);
+          }
         }
       }
     }
@@ -1285,15 +1289,6 @@ void BKE_ntree_update_tag_socket_availability(bNodeTree *ntree, bNodeSocket *soc
 void BKE_ntree_update_tag_node_removed(bNodeTree *ntree)
 {
   add_tree_tag(ntree, NTREE_CHANGED_REMOVED_NODE);
-}
-
-void BKE_ntree_update_tag_node_reordered(bNodeTree *ntree)
-{
-  /* Don't add a tree update tag to avoid reevaluations for trivial operations like selection or
-   * parenting that typically influence the node order. This means the node order can be different
-   * for original and evaluated trees. A different solution might avoid sorting nodes based on UI
-   * states like selection, which would require not tying the node order to the drawing order. */
-  ntree->runtime->topology_cache_mutex.tag_dirty();
 }
 
 void BKE_ntree_update_tag_node_mute(bNodeTree *ntree, bNode *node)

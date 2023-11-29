@@ -22,6 +22,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_geom.h"
@@ -53,8 +54,8 @@
 #include "BKE_camera.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -67,7 +68,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -495,7 +496,7 @@ struct ProjPixel {
 };
 
 struct ProjPixelClone {
-  ProjPixel __pp;
+  ProjPixel _pp;
   PixelStore clonepx;
 };
 
@@ -829,10 +830,10 @@ static bool project_paint_PickColor(
 /**
  * Check if 'pt' is in front of the 3 verts on the Z axis (used for screen-space occlusion test)
  * \return
- * -  `0`:   no occlusion
- * - `-1`: no occlusion but 2D intersection is true
- * -  `1`: occluded
- * -  `2`: occluded with `w[3]` weights set (need to know in some cases)
+ * -  `0`: no occlusion.
+ * - `-1`: no occlusion but 2D intersection is true.
+ * -  `1`: occluded.
+ * -  `2`: occluded with `w[3]` weights set (need to know in some cases).
  */
 static int project_paint_occlude_ptv(const float pt[3],
                                      const float v1[4],
@@ -3933,7 +3934,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
       if (counter[a] > 0) {
         mul_v3_fl(edges[a], 1.0f / counter[a]);
         /* Augment the difference. */
-        cavities[a] = saacos(10.0f * dot_v3v3(ps->vert_normals[a], edges[a])) * float(M_1_PI);
+        cavities[a] = safe_acosf(10.0f * dot_v3v3(ps->vert_normals[a], edges[a])) * float(M_1_PI);
       }
       else {
         cavities[a] = 0.0;
@@ -4372,6 +4373,13 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
                 CustomData_get_layer(&ps->me_eval->loop_data, CD_PROP_FLOAT2));
           }
           slot_last = slot;
+        }
+
+        /* Don't allow painting on linked images. */
+        if (slot->ima != nullptr && (ID_IS_LINKED(slot->ima) || ID_IS_OVERRIDE_LIBRARY(slot->ima)))
+        {
+          skip_tri = true;
+          tpage = nullptr;
         }
 
         /* Don't allow using the same image for painting and stenciling. */
@@ -6395,7 +6403,7 @@ void ED_paint_data_warning(ReportList *reports, bool uvs, bool mat, bool tex, bo
               "Missing%s%s%s%s detected!",
               !uvs ? TIP_(" UVs,") : "",
               !mat ? TIP_(" Materials,") : "",
-              !tex ? TIP_(" Textures,") : "",
+              !tex ? TIP_(" Textures (or linked),") : "",
               !stencil ? TIP_(" Stencil,") : "");
 }
 
@@ -6436,9 +6444,9 @@ bool ED_paint_proj_mesh_data_check(
             BKE_texpaint_slot_refresh_cache(scene, ma, ob);
           }
           if (ma->texpaintslot != nullptr &&
-              (ma->texpaintslot[ma->paint_active_slot].ima == nullptr ||
-               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) ||
-               !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima)))
+              ma->texpaintslot[ma->paint_active_slot].ima != nullptr &&
+              !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) &&
+              !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima))
           {
             hastex = true;
             break;
@@ -6511,7 +6519,7 @@ enum {
 
 static const EnumPropertyItem layer_type_items[] = {
     {LAYER_BASE_COLOR, "BASE_COLOR", 0, "Base Color", ""},
-    {LAYER_SPECULAR, "SPECULAR", 0, "Specular", ""},
+    {LAYER_SPECULAR, "SPECULAR", 0, "Specular IOR Level", ""},
     {LAYER_ROUGHNESS, "ROUGHNESS", 0, "Roughness", ""},
     {LAYER_METALLIC, "METALLIC", 0, "Metallic", ""},
     {LAYER_NORMAL, "NORMAL", 0, "Normal", ""},

@@ -483,7 +483,6 @@ static void nupdate_ak_bezt(ActKeyColumn *ak, void *data)
     ak->sel = SELECT;
   }
 
-  /* count keyframes in this column */
   ak->totkey++;
 
   /* For keyframe type, 'proper' keyframes have priority over breakdowns
@@ -493,7 +492,7 @@ static void nupdate_ak_bezt(ActKeyColumn *ak, void *data)
   }
 
   /* For interpolation type, select the highest value (enum is sorted). */
-  ak->handle_type = MAX2((eKeyframeHandleDrawOpts)ak->handle_type, bezt_handle_type(bezt));
+  ak->handle_type = std::max((eKeyframeHandleDrawOpts)ak->handle_type, bezt_handle_type(bezt));
 
   /* For extremes, detect when combining different states. */
   const char new_extreme = bezt_extreme_type(chain);
@@ -536,15 +535,14 @@ static void nupdate_ak_cel(ActKeyColumn *ak, void *data)
 {
   GreasePencilCel &cel = *static_cast<GreasePencilCel *>(data);
 
-  /* Update selection status */
+  /* Update selection status. */
   if (cel.frame.flag & GP_FRAME_SELECTED) {
     ak->sel = SELECT;
   }
 
-  /* Count keyframes in this column */
   ak->totkey++;
 
-  /* Update keytype status */
+  /* Update keytype status. */
   if (cel.frame.type == BEZT_KEYTYPE_KEYFRAME) {
     ak->key_type = BEZT_KEYTYPE_KEYFRAME;
   }
@@ -552,7 +550,7 @@ static void nupdate_ak_cel(ActKeyColumn *ak, void *data)
 
 /* ......... */
 
-/* New node callback used for building ActKeyColumns from GPencil frames */
+/* New node callback used for building ActKeyColumns from GPencil frames. */
 static ActKeyColumn *nalloc_ak_gpframe(void *data)
 {
   ActKeyColumn *ak = static_cast<ActKeyColumn *>(
@@ -564,7 +562,7 @@ static ActKeyColumn *nalloc_ak_gpframe(void *data)
   ak->sel = (gpf->flag & GP_FRAME_SELECT) ? SELECT : 0;
   ak->key_type = gpf->key_type;
 
-  /* count keyframes in this column */
+  /* Count keyframes in this column. */
   ak->totkey = 1;
   /* Set as visible block. */
   ak->totblock = 1;
@@ -574,20 +572,19 @@ static ActKeyColumn *nalloc_ak_gpframe(void *data)
   return ak;
 }
 
-/* Node updater callback used for building ActKeyColumns from GPencil frames */
+/* Node updater callback used for building ActKeyColumns from GPencil frames. */
 static void nupdate_ak_gpframe(ActKeyColumn *ak, void *data)
 {
   bGPDframe *gpf = (bGPDframe *)data;
 
-  /* set selection status and 'touched' status */
+  /* Set selection status and 'touched' status. */
   if (gpf->flag & GP_FRAME_SELECT) {
     ak->sel = SELECT;
   }
 
-  /* count keyframes in this column */
   ak->totkey++;
 
-  /* for keyframe type, 'proper' keyframes have priority over breakdowns
+  /* For keyframe type, 'proper' keyframes have priority over breakdowns
    * (and other types for now). */
   if (gpf->key_type == BEZT_KEYTYPE_KEYFRAME) {
     ak->key_type = BEZT_KEYTYPE_KEYFRAME;
@@ -603,11 +600,11 @@ static ActKeyColumn *nalloc_ak_masklayshape(void *data)
       MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnGPF"));
   const MaskLayerShape *masklay_shape = (const MaskLayerShape *)data;
 
-  /* store settings based on state of BezTriple */
+  /* Store settings based on state of BezTriple. */
   ak->cfra = masklay_shape->frame;
   ak->sel = (masklay_shape->flag & MASK_SHAPE_SELECT) ? SELECT : 0;
 
-  /* count keyframes in this column */
+  /* Count keyframes in this column. */
   ak->totkey = 1;
 
   return ak;
@@ -618,12 +615,11 @@ static void nupdate_ak_masklayshape(ActKeyColumn *ak, void *data)
 {
   MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
 
-  /* set selection status and 'touched' status */
+  /* Set selection status and 'touched' status. */
   if (masklay_shape->flag & MASK_SHAPE_SELECT) {
     ak->sel = SELECT;
   }
 
-  /* count keyframes in this column */
   ak->totkey++;
 }
 
@@ -885,14 +881,14 @@ static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, co
  */
 static void update_keyblocks(AnimKeylist *keylist, BezTriple *bezt, const int bezt_len)
 {
-  /* Find the curve count */
+  /* Find the curve count. */
   int max_curve = 0;
 
   LISTBASE_FOREACH (ActKeyColumn *, col, &keylist->key_columns) {
     max_curve = MAX2(max_curve, col->totcurve);
   }
 
-  /* Propagate blocks to inserted keys */
+  /* Propagate blocks to inserted keys. */
   ActKeyColumn *prev_ready = nullptr;
 
   LISTBASE_FOREACH (ActKeyColumn *, col, &keylist->key_columns) {
@@ -909,7 +905,7 @@ static void update_keyblocks(AnimKeylist *keylist, BezTriple *bezt, const int be
     col->totcurve = max_curve + 1;
   }
 
-  /* Add blocks on top */
+  /* Add blocks on top. */
   add_bezt_to_keyblocks_list(keylist, bezt, bezt_len);
 }
 
@@ -922,7 +918,6 @@ bool actkeyblock_is_valid(const ActKeyColumn *ac)
 
 int actkeyblock_get_valid_hold(const ActKeyColumn *ac)
 {
-  /* check that block is valid */
   if (!actkeyblock_is_valid(ac)) {
     return 0;
   }
@@ -933,48 +928,57 @@ int actkeyblock_get_valid_hold(const ActKeyColumn *ac)
 
 /* *************************** Keyframe List Conversions *************************** */
 
-void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, const int saction_flag)
+void summary_to_keylist(bAnimContext *ac,
+                        AnimKeylist *keylist,
+                        const int saction_flag,
+                        blender::float2 range)
 {
-  if (ac) {
-    ListBase anim_data = {nullptr, nullptr};
-
-    /* get F-Curves to take keyframes from */
-    const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE;
-    ANIM_animdata_filter(
-        ac, &anim_data, filter, ac->data, static_cast<eAnimCont_Types>(ac->datatype));
-
-    /* loop through each F-Curve, grabbing the keyframes */
-    LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-      /* Why not use all #eAnim_KeyType here?
-       * All of the other key types are actually "summaries" themselves,
-       * and will just end up duplicating stuff that comes up through
-       * standard filtering of just F-Curves. Given the way that these work,
-       * there isn't really any benefit at all from including them. - Aligorith */
-      switch (ale->datatype) {
-        case ALE_FCURVE:
-          fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
-          break;
-        case ALE_MASKLAY:
-          mask_to_keylist(ac->ads, static_cast<MaskLayer *>(ale->data), keylist);
-          break;
-        case ALE_GPFRAME:
-          gpl_to_keylist(ac->ads, static_cast<bGPDlayer *>(ale->data), keylist);
-          break;
-        case ALE_GREASE_PENCIL_CEL:
-          grease_pencil_cels_to_keylist(
-              ale->adt, static_cast<const GreasePencilLayer *>(ale->data), keylist, saction_flag);
-          break;
-        default:
-          // printf("%s: datatype %d unhandled\n", __func__, ale->datatype);
-          break;
-      }
-    }
-
-    ANIM_animdata_freelist(&anim_data);
+  if (!ac) {
+    return;
   }
+
+  ListBase anim_data = {nullptr, nullptr};
+
+  /* Get F-Curves to take keyframes from. */
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE;
+  ANIM_animdata_filter(
+      ac, &anim_data, filter, ac->data, static_cast<eAnimCont_Types>(ac->datatype));
+
+  /* Loop through each F-Curve, grabbing the keyframes. */
+  LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
+    /* Why not use all #eAnim_KeyType here?
+     * All of the other key types are actually "summaries" themselves,
+     * and will just end up duplicating stuff that comes up through
+     * standard filtering of just F-Curves. Given the way that these work,
+     * there isn't really any benefit at all from including them. - Aligorith */
+    switch (ale->datatype) {
+      case ALE_FCURVE:
+        fcurve_to_keylist(
+            ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, range);
+        break;
+      case ALE_MASKLAY:
+        mask_to_keylist(ac->ads, static_cast<MaskLayer *>(ale->data), keylist);
+        break;
+      case ALE_GPFRAME:
+        gpl_to_keylist(ac->ads, static_cast<bGPDlayer *>(ale->data), keylist);
+        break;
+      case ALE_GREASE_PENCIL_CEL:
+        grease_pencil_cels_to_keylist(
+            ale->adt, static_cast<const GreasePencilLayer *>(ale->data), keylist, saction_flag);
+        break;
+      default:
+        break;
+    }
+  }
+
+  ANIM_animdata_freelist(&anim_data);
 }
 
-void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const int saction_flag)
+void scene_to_keylist(bDopeSheet *ads,
+                      Scene *sce,
+                      AnimKeylist *keylist,
+                      const int saction_flag,
+                      blender::float2 range)
 {
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
@@ -985,7 +989,7 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const i
     return;
   }
 
-  /* create a dummy wrapper data to work with */
+  /* Create a dummy wrapper data to work with. */
   dummy_chan.type = ANIMTYPE_SCENE;
   dummy_chan.data = sce;
   dummy_chan.id = &sce->id;
@@ -995,21 +999,25 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const i
   ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
-  /* get F-Curves to take keyframes from */
+  /* Get F-Curves to take keyframes from. */
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
 
   ANIM_animdata_filter(
       &ac, &anim_data, filter, ac.data, static_cast<eAnimCont_Types>(ac.datatype));
 
-  /* loop through each F-Curve, grabbing the keyframes */
+  /* Loop through each F-Curve, grabbing the keyframes. */
   LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
+    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, range);
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int saction_flag)
+void ob_to_keylist(bDopeSheet *ads,
+                   Object *ob,
+                   AnimKeylist *keylist,
+                   const int saction_flag,
+                   blender::float2 range)
 {
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
@@ -1021,7 +1029,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int 
     return;
   }
 
-  /* create a dummy wrapper data to work with */
+  /* Create a dummy wrapper data to work with. */
   dummy_base.object = ob;
 
   dummy_chan.type = ANIMTYPE_OBJECT;
@@ -1033,14 +1041,14 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int 
   ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
-  /* get F-Curves to take keyframes from */
+  /* Get F-Curves to take keyframes from. */
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
   ANIM_animdata_filter(
       &ac, &anim_data, filter, ac.data, static_cast<eAnimCont_Types>(ac.datatype));
 
-  /* loop through each F-Curve, grabbing the keyframes */
+  /* Loop through each F-Curve, grabbing the keyframes. */
   LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
+    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, range);
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -1055,7 +1063,7 @@ void cachefile_to_keylist(bDopeSheet *ads,
     return;
   }
 
-  /* create a dummy wrapper data to work with */
+  /* Create a dummy wrapper data to work with. */
   bAnimListElem dummy_chan = {nullptr};
   dummy_chan.type = ANIMTYPE_DSCACHEFILE;
   dummy_chan.data = cache_file;
@@ -1067,98 +1075,125 @@ void cachefile_to_keylist(bDopeSheet *ads,
   ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
-  /* get F-Curves to take keyframes from */
+  /* Get F-Curves to take keyframes from. */
   ListBase anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
   ANIM_animdata_filter(
       &ac, &anim_data, filter, ac.data, static_cast<eAnimCont_Types>(ac.datatype));
 
-  /* loop through each F-Curve, grabbing the keyframes */
+  /* Loop through each F-Curve, grabbing the keyframes. */
   LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
-    fcurve_to_keylist(ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag);
+    fcurve_to_keylist(
+        ale->adt, static_cast<FCurve *>(ale->data), keylist, saction_flag, {-FLT_MAX, FLT_MAX});
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const int saction_flag)
+void fcurve_to_keylist(AnimData *adt,
+                       FCurve *fcu,
+                       AnimKeylist *keylist,
+                       const int saction_flag,
+                       blender::float2 range)
 {
-  if (fcu && fcu->totvert && fcu->bezt) {
-    ED_keylist_reset_last_accessed(keylist);
-    /* apply NLA-mapping (if applicable) */
-    if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
+  if (!fcu || fcu->totvert == 0 || !fcu->bezt) {
+    return;
+  }
+  ED_keylist_reset_last_accessed(keylist);
+
+  if (adt) {
+    ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
+  }
+
+  const bool is_cyclic = BKE_fcurve_is_cyclic(fcu) && (fcu->totvert >= 2);
+  const bool do_extremes = (saction_flag & SACTION_SHOW_EXTREMES) != 0;
+
+  BezTripleChain chain = {nullptr};
+
+  int start_index = 0;
+  /* Used in an exclusive way. */
+  int end_index = fcu->totvert;
+
+  bool replace;
+  start_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, range[0], fcu->totvert, &replace);
+  if (start_index > 0) {
+    start_index--;
+  }
+  end_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, range[1], fcu->totvert, &replace);
+  if (end_index < fcu->totvert) {
+    end_index++;
+  }
+
+  /* Loop through beztriples, making ActKeysColumns. */
+  for (int v = start_index; v < end_index; v++) {
+    chain.cur = &fcu->bezt[v];
+
+    /* Neighbor columns, accounting for being cyclic. */
+    if (do_extremes) {
+      chain.prev = (v > 0)   ? &fcu->bezt[v - 1] :
+                   is_cyclic ? &fcu->bezt[fcu->totvert - 2] :
+                               nullptr;
+      chain.next = (v + 1 < fcu->totvert) ? &fcu->bezt[v + 1] :
+                   is_cyclic              ? &fcu->bezt[1] :
+                                            nullptr;
     }
 
-    /* Check if the curve is cyclic. */
-    bool is_cyclic = BKE_fcurve_is_cyclic(fcu) && (fcu->totvert >= 2);
-    bool do_extremes = (saction_flag & SACTION_SHOW_EXTREMES) != 0;
+    add_bezt_to_keycolumns_list(keylist, &chain);
+  }
 
-    /* loop through beztriples, making ActKeysColumns */
-    BezTripleChain chain = {nullptr};
+  update_keyblocks(keylist, &fcu->bezt[start_index], end_index - start_index);
 
-    for (int v = 0; v < fcu->totvert; v++) {
-      chain.cur = &fcu->bezt[v];
-
-      /* Neighbor columns, accounting for being cyclic. */
-      if (do_extremes) {
-        chain.prev = (v > 0)   ? &fcu->bezt[v - 1] :
-                     is_cyclic ? &fcu->bezt[fcu->totvert - 2] :
-                                 nullptr;
-        chain.next = (v + 1 < fcu->totvert) ? &fcu->bezt[v + 1] :
-                     is_cyclic              ? &fcu->bezt[1] :
-                                              nullptr;
-      }
-
-      add_bezt_to_keycolumns_list(keylist, &chain);
-    }
-
-    /* Update keyblocks. */
-    update_keyblocks(keylist, fcu->bezt, fcu->totvert);
-
-    /* unapply NLA-mapping if applicable */
-    if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
-    }
+  if (adt) {
+    ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
   }
 }
 
 void action_group_to_keylist(AnimData *adt,
                              bActionGroup *agrp,
                              AnimKeylist *keylist,
-                             const int saction_flag)
+                             const int saction_flag,
+                             blender::float2 range)
 {
-  if (agrp) {
-    /* loop through F-Curves */
-    LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
-      if (fcu->grp != agrp) {
-        break;
-      }
-      fcurve_to_keylist(adt, fcu, keylist, saction_flag);
+  if (!agrp) {
+    return;
+  }
+
+  LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
+    if (fcu->grp != agrp) {
+      break;
     }
+    fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
   }
 }
 
-void action_to_keylist(AnimData *adt, bAction *act, AnimKeylist *keylist, const int saction_flag)
+void action_to_keylist(AnimData *adt,
+                       bAction *act,
+                       AnimKeylist *keylist,
+                       const int saction_flag,
+                       blender::float2 range)
 {
-  if (act) {
-    /* loop through F-Curves */
-    LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-      fcurve_to_keylist(adt, fcu, keylist, saction_flag);
-    }
+  if (!act) {
+    return;
+  }
+
+  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+    fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
   }
 }
 
 void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, const bool active)
 {
-  if (gpd && keylist) {
-    /* for now, just aggregate out all the frames, but only for visible layers */
-    LISTBASE_FOREACH_BACKWARD (bGPDlayer *, gpl, &gpd->layers) {
-      if ((gpl->flag & GP_LAYER_HIDE) == 0) {
-        if ((!active) || ((active) && (gpl->flag & GP_LAYER_SELECT))) {
-          gpl_to_keylist(ads, gpl, keylist);
-        }
-      }
+  if (!gpd || !keylist) {
+    return;
+  }
+
+  /* For now, just aggregate out all the frames, but only for visible layers. */
+  LISTBASE_FOREACH_BACKWARD (bGPDlayer *, gpl, &gpd->layers) {
+    if (gpl->flag & GP_LAYER_HIDE) {
+      continue;
+    }
+    if ((!active) || ((active) && (gpl->flag & GP_LAYER_SELECT))) {
+      gpl_to_keylist(ads, gpl, keylist);
     }
   }
 }
@@ -1223,26 +1258,29 @@ void grease_pencil_layer_group_to_keylist(AnimData *adt,
 
 void gpl_to_keylist(bDopeSheet * /*ads*/, bGPDlayer *gpl, AnimKeylist *keylist)
 {
-  if (gpl && keylist) {
-    ED_keylist_reset_last_accessed(keylist);
-    /* Although the frames should already be in an ordered list,
-     * they are not suitable for displaying yet. */
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      add_gpframe_to_keycolumns_list(keylist, gpf);
-    }
-
-    update_keyblocks(keylist, nullptr, 0);
+  if (!gpl || !keylist) {
+    return;
   }
+
+  ED_keylist_reset_last_accessed(keylist);
+  /* Although the frames should already be in an ordered list,
+   * they are not suitable for displaying yet. */
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+    add_gpframe_to_keycolumns_list(keylist, gpf);
+  }
+
+  update_keyblocks(keylist, nullptr, 0);
 }
 
 void mask_to_keylist(bDopeSheet * /*ads*/, MaskLayer *masklay, AnimKeylist *keylist)
 {
-  if (masklay && keylist) {
-    ED_keylist_reset_last_accessed(keylist);
-    LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
-      add_masklay_to_keycolumns_list(keylist, masklay_shape);
-    }
-
-    update_keyblocks(keylist, nullptr, 0);
+  if (!masklay || !keylist) {
+    return;
   }
+  ED_keylist_reset_last_accessed(keylist);
+  LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
+    add_masklay_to_keycolumns_list(keylist, masklay_shape);
+  }
+
+  update_keyblocks(keylist, nullptr, 0);
 }

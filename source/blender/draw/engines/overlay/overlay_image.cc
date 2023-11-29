@@ -11,7 +11,7 @@
 #include "BKE_camera.h"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"

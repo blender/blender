@@ -16,15 +16,15 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 
@@ -117,8 +117,6 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   if (dtmd->ob_source != nullptr) {
     CustomData_MeshMasks cddata_masks = {0};
     BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, &cddata_masks);
-    BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
-        dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode, &cddata_masks);
 
     DEG_add_object_relation(
         ctx->node, dtmd->ob_source, DEG_OB_COMP_GEOMETRY, "DataTransfer Modifier");
@@ -222,10 +220,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     BKE_modifier_set_error(ctx->object, md, "%s", report_str);
     MEM_freeN((void *)report_str);
   }
-  else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
-    BKE_modifier_set_error(
-        ctx->object, (ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
-  }
+
+  BKE_reports_free(&reports);
 
   return result;
 }
@@ -508,7 +504,7 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /*struct_name*/ "DataTransferModifierData",
     /*struct_size*/ sizeof(DataTransferModifierData),
     /*srna*/ &RNA_DataTransferModifier,
-    /*type*/ eModifierTypeType_NonGeometrical,
+    /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
     /*icon*/ ICON_MOD_DATA_TRANSFER,

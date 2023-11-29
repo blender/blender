@@ -13,7 +13,7 @@
 
 #include "DNA_screen_types.h"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_report.h"
 
 #include "BLT_translation.h"
@@ -38,7 +38,7 @@ void operator_asset_reference_props_register(StructRNA &srna)
   PropertyRNA *prop;
   prop = RNA_def_enum(&srna,
                       "asset_library_type",
-                      rna_enum_aset_library_type_items,
+                      rna_enum_asset_library_type_items,
                       ASSET_LIBRARY_LOCAL,
                       "Asset Library Type",
                       "");

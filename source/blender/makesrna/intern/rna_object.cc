@@ -34,7 +34,7 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_editlattice.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
@@ -233,9 +233,9 @@ const EnumPropertyItem rna_enum_metaelem_type_items[] = {
 };
 
 const EnumPropertyItem rna_enum_lightprobes_type_items[] = {
-    {LIGHTPROBE_TYPE_CUBE, "CUBE", ICON_LIGHTPROBE_CUBEMAP, "Cube", ""},
-    {LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_LIGHTPROBE_PLANAR, "Planar", ""},
-    {LIGHTPROBE_TYPE_GRID, "GRID", ICON_LIGHTPROBE_GRID, "Grid", ""},
+    {LIGHTPROBE_TYPE_SPHERE, "SPHERE", ICON_LIGHTPROBE_SPHERE, "Sphere", ""},
+    {LIGHTPROBE_TYPE_PLANE, "PLANE", ICON_LIGHTPROBE_PLANE, "Plane", ""},
+    {LIGHTPROBE_TYPE_VOLUME, "VOLUME", ICON_LIGHTPROBE_VOLUME, "Volume", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -262,8 +262,8 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
-    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil (legacy)", ""},
-    {OB_GREASE_PENCIL, "GREASEPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
+    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
+    {OB_GREASE_PENCIL, "GREASEPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil v3", ""},
     RNA_ENUM_ITEM_SEPR,
     {OB_ARMATURE, "ARMATURE", ICON_OUTLINER_OB_ARMATURE, "Armature", ""},
     {OB_LATTICE, "LATTICE", ICON_OUTLINER_OB_LATTICE, "Lattice", ""},
@@ -321,11 +321,11 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "DNA_lattice_types.h"
 #  include "DNA_node_types.h"
 
-#  include "BKE_armature.h"
+#  include "BKE_armature.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_constraint.h"
-#  include "BKE_context.h"
-#  include "BKE_curve.h"
+#  include "BKE_context.hh"
+#  include "BKE_curve.hh"
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
@@ -335,8 +335,8 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_material.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_wrapper.hh"
-#  include "BKE_modifier.h"
-#  include "BKE_object.h"
+#  include "BKE_modifier.hh"
+#  include "BKE_object.hh"
 #  include "BKE_particle.h"
 #  include "BKE_scene.h"
 
@@ -717,8 +717,8 @@ static bool rna_Object_parent_type_override_apply(Main *bmain,
   /* We need a special handling here because setting parent resets invert parent matrix,
    * which is evil in our case. */
   Object *ob = (Object *)(ptr_dst->data);
-  const int parent_type_dst = RNA_property_int_get(ptr_dst, prop_dst);
-  const int parent_type_src = RNA_property_int_get(ptr_src, prop_src);
+  const int parent_type_dst = RNA_property_enum_get(ptr_dst, prop_dst);
+  const int parent_type_src = RNA_property_enum_get(ptr_src, prop_src);
 
   if (parent_type_dst == parent_type_src) {
     return false;
@@ -1233,7 +1233,7 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 {
   Object *ob = static_cast<Object *>(ptr->data);
-  BKE_object_dimensions_get(ob, value);
+  BKE_object_dimensions_eval_cached_get(ob, value);
 }
 
 static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
@@ -1383,7 +1383,7 @@ static bool rna_MaterialSlot_material_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   Material *ma = static_cast<Material *>(value.data);
 
-  if (ob->type == OB_GPENCIL_LEGACY) {
+  if (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
     /* GP Materials only */
     return (ma->gp_style != nullptr);
   }
@@ -1989,13 +1989,15 @@ static void rna_Object_shaderfx_clear(Object *object, bContext *C)
 
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 {
+  using namespace blender;
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
-  if (bb) {
-    memcpy(values, bb->vec, sizeof(bb->vec));
+  if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_eval_cached_get(ob)) {
+    BoundBox bb;
+    BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
+    memcpy(values, bb.vec, sizeof(bb.vec));
   }
   else {
-    copy_vn_fl(values, sizeof(bb->vec) / sizeof(float), 0.0f);
+    copy_vn_fl(values, 8 * 3, 0.0f);
   }
 }
 
@@ -2915,10 +2917,16 @@ static void rna_def_object_visibility(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Disable in Volume Probes", "Globally disable in volume probes");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
-  prop = RNA_def_property(srna, "hide_probe_cubemap", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "hide_probe_sphere", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "visibility_flag", OB_HIDE_PROBE_CUBEMAP);
   RNA_def_property_ui_text(
-      prop, "Disable in Cubemap Probes", "Globally disable in cubemap probes");
+      prop, "Disable in Spherical Light Probes", "Globally disable in spherical light probes");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "hide_probe_plane", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "visibility_flag", OB_HIDE_PROBE_PLANAR);
+  RNA_def_property_ui_text(
+      prop, "Disable in Planar Light Probes", "Globally disable in planar light probes");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
   /* Instancer options. */

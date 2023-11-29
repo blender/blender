@@ -57,7 +57,7 @@ class FairingContext {
                                           float r_adj_prev[3]) = 0;
 
   /* Get the other vertex index for a loop. */
-  virtual int other_vertex_index_from_loop(const int loop, const uint v) = 0;
+  virtual int other_vertex_index_from_loop(const int loop, const int v) = 0;
 
   int vertex_count_get()
   {
@@ -234,7 +234,7 @@ class MeshFairingContext : public FairingContext {
     copy_v3_v3(r_adj_prev, co_[adjecent_verts[1]]);
   }
 
-  int other_vertex_index_from_loop(const int loop, const uint v) override
+  int other_vertex_index_from_loop(const int loop, const int v) override
   {
     const blender::int2 &edge = edges_[corner_edges_[loop]];
     return blender::bke::mesh::edge_other_vert(edge, v);
@@ -299,7 +299,7 @@ class BMeshFairingContext : public FairingContext {
     copy_v3_v3(r_adj_prev, bmloop_[loop]->prev->v->co);
   }
 
-  int other_vertex_index_from_loop(const int loop, const uint v) override
+  int other_vertex_index_from_loop(const int loop, const int v) override
   {
     BMLoop *l = bmloop_[loop];
     BMVert *bmvert = BM_vert_at_index(bm, v);
@@ -451,13 +451,13 @@ static void prefair_and_fair_verts(FairingContext *fairing_context,
 }
 
 void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
-                                     float (*deform_vert_positions)[3],
+                                     blender::MutableSpan<float3> deform_vert_positions,
                                      bool *affect_verts,
                                      const eMeshFairingDepth depth)
 {
   MutableSpan<float3> deform_positions_span;
-  if (deform_vert_positions) {
-    deform_positions_span = {reinterpret_cast<float3 *>(deform_vert_positions), mesh->totvert};
+  if (!deform_vert_positions.is_empty()) {
+    deform_positions_span = deform_vert_positions;
   }
   MeshFairingContext *fairing_context = new MeshFairingContext(mesh, deform_positions_span);
   prefair_and_fair_verts(fairing_context, affect_verts, depth);

@@ -22,15 +22,15 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_blender.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -464,7 +464,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
   CTX_DATA_END;
 }
 
-static void multiresbake_startjob(void *bkv, bool *stop, bool *do_update, float *progress)
+static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
 {
   MultiresBakeJob *bkj = static_cast<MultiresBakeJob *>(bkv);
   int baked_objects = 0, tot_obj;
@@ -510,9 +510,9 @@ static void multiresbake_startjob(void *bkv, bool *stop, bool *do_update, float 
     bkr.tot_obj = tot_obj;
     bkr.baked_objects = baked_objects;
 
-    bkr.stop = stop;
-    bkr.do_update = do_update;
-    bkr.progress = progress;
+    bkr.stop = &worker_status->stop;
+    bkr.do_update = &worker_status->do_update;
+    bkr.progress = &worker_status->progress;
 
     bkr.bias = bkj->bias;
     bkr.number_of_rays = bkj->number_of_rays;

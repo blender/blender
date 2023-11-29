@@ -16,8 +16,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_mempool.h"
 
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
 
@@ -574,7 +574,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   if (is_invoke) {
-    ED_view3d_viewcontext_init(C, &cdd->vc, depsgraph);
+    cdd->vc = ED_view3d_viewcontext_init(C, depsgraph);
     if (ELEM(nullptr, cdd->vc.region, cdd->vc.rv3d, cdd->vc.v3d, cdd->vc.win, cdd->vc.scene)) {
       MEM_freeN(cdd);
       BKE_report(op->reports, RPT_ERROR, "Unable to access 3D viewport");

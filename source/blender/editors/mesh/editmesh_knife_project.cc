@@ -13,15 +13,16 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
@@ -47,7 +48,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
   const Mesh *me_eval;
   bool me_eval_needs_free;
 
-  if (ob->type == OB_MESH || ob->runtime.data_eval) {
+  if (ob->type == OB_MESH || ob->runtime->data_eval) {
     const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     me_eval_needs_free = false;
@@ -123,8 +124,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ViewContext vc;
-  em_setup_viewcontext(C, &vc);
+  ViewContext vc = em_setup_viewcontext(C);
 
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(

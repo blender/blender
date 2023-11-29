@@ -44,7 +44,7 @@
 #include "DNA_text_types.h"
 
 #include "BKE_appdir.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h" /* Only for script checking. */
 #include "BKE_main.h"
 #include "BKE_text.h"
@@ -450,6 +450,18 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 
         status = PyConfig_SetBytesString(&config, &config.home, py_path_bundle);
         pystatus_exit_on_error(status);
+
+#  ifdef PYTHON_SSL_CERT_FILE
+        /* Point to the portable SSL certificate to support HTTPS access, see: #102300. */
+        const char *ssl_cert_file_env = "SSL_CERT_FILE";
+        if (BLI_getenv(ssl_cert_file_env) == nullptr) {
+          const char *ssl_cert_file_suffix = PYTHON_SSL_CERT_FILE;
+          char ssl_cert_file[FILE_MAX];
+          BLI_path_join(
+              ssl_cert_file, sizeof(ssl_cert_file), py_path_bundle, ssl_cert_file_suffix);
+          BLI_setenv(ssl_cert_file_env, ssl_cert_file);
+        }
+#  endif /* PYTHON_SSL_CERT_FILE */
       }
       else {
 /* Common enough to use the system Python on Linux/Unix, warn on other systems. */

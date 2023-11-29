@@ -1185,6 +1185,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
                                                    m_display,
                                                    nullptr,
                                                    nullptr,
+                                                   nullptr,
                                                    1,
                                                    2,
                                                    m_is_debug_context);

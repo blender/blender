@@ -11,7 +11,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BLI_memory_utils.hh"
 #include "IO_ply.hh"
 

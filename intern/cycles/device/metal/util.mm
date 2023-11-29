@@ -56,6 +56,9 @@ AppleGPUArchitecture MetalInfo::get_apple_gpu_architecture(id<MTLDevice> device)
   else if (strstr(device_name, "M2")) {
     return get_apple_gpu_core_count(device) <= 10 ? APPLE_M2 : APPLE_M2_BIG;
   }
+  else if (strstr(device_name, "M3")) {
+    return APPLE_M3;
+  }
   return APPLE_UNKNOWN;
 }
 

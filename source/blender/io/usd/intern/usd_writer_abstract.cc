@@ -10,7 +10,9 @@
 #include <pxr/usd/usd/modelAPI.h>
 #include <pxr/usd/usdGeom/bboxCache.h>
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
+#include "BKE_report.h"
+
 #include "BLI_assert.h"
 #include "DNA_mesh_types.h"
 
@@ -252,6 +254,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   }
 
   std::string active_uv = get_mesh_active_uvlayer_name(context.object);
+<<<<<<< HEAD
 
   usd_material = create_usd_material(usd_export_context_, usd_path, material, active_uv);
 
@@ -261,6 +264,9 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   }
 
   return usd_material;
+=======
+  return create_usd_material(usd_export_context_, usd_path, material, active_uv, reports());
+>>>>>>> main
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,
@@ -436,9 +442,10 @@ void USDAbstractWriter::author_extent(const pxr::UsdTimeCode timecode, pxr::UsdG
   pxr::GfBBox3d bounds = bboxCache.ComputeLocalBound(prim.GetPrim());
   if (pxr::GfBBox3d() == bounds) {
     /* This will occur, for example, if a mesh does not have any vertices. */
-    WM_reportf(RPT_WARNING,
-               "USD Export: no bounds could be computed for %s",
-               prim.GetPrim().GetName().GetText());
+    BKE_reportf(reports(),
+                RPT_WARNING,
+                "USD Export: no bounds could be computed for %s",
+                prim.GetPrim().GetName().GetText());
     return;
   }
 

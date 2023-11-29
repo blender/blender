@@ -6,12 +6,10 @@ set(INC
   ../asset
   ../include
   ../../asset_system
-  ../../blenfont
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -46,9 +44,11 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   extern_fmtlib
   PRIVATE bf::intern::atomic

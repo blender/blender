@@ -14,7 +14,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 
@@ -46,16 +46,22 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "SEQ_iterator.h"
+#include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"
 
 #define KEY_SIZE (10 * U.pixelsize)
 #define KEY_CENTER (UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 0.0f)) + 4 + KEY_SIZE / 2)
+
+bool retiming_keys_are_visible(const bContext *C)
+{
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
+  return (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) != 0;
+}
 
 static float strip_y_rescale(const Sequence *seq, const float y_value)
 {
@@ -65,6 +71,9 @@ static float strip_y_rescale(const Sequence *seq, const float y_value)
 
 static float key_x_get(const Scene *scene, const Sequence *seq, const SeqRetimingKey *key)
 {
+  if (SEQ_retiming_is_last_key(seq, key)) {
+    return SEQ_retiming_key_timeline_frame_get(scene, seq, key) + 1;
+  }
   return SEQ_retiming_key_timeline_frame_get(scene, seq, key);
 }
 
@@ -400,10 +409,7 @@ static void retime_keys_draw(const bContext *C)
     return;
   }
 
-  const SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
-      !sequencer_retiming_mode_is_active(C))
-  {
+  if (!retiming_keys_are_visible(C)) {
     return;
   }
 
@@ -518,10 +524,7 @@ static void retime_speed_draw(const bContext *C)
     return;
   }
 
-  const SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
-      !sequencer_retiming_mode_is_active(C))
-  {
+  if (!retiming_keys_are_visible(C)) {
     return;
   }
 

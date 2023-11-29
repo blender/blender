@@ -10,7 +10,6 @@ set(INC
   ../../blentranslation
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   ../../bmesh
 )
 
@@ -35,6 +34,7 @@ set(LIB
   bf_editor_mesh
   bf_editor_metaball
   bf_editor_physics
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 

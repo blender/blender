@@ -8,6 +8,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <sstream>
 
 #include "MEM_guardedalloc.h"
 
@@ -23,7 +24,7 @@
 
 #include "PIL_time.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -3987,19 +3988,58 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Jump to File at Point (Internal)
- *
- * \note This is the internal implementation, typically `TEXT_OT_jump_to_file_at_point`
- * should be used because it respects the "External Editor" preference.
+/** \name Jump to File at Point
  * \{ */
 
-static int text_jump_to_file_at_point_internal_exec(bContext *C, wmOperator *op)
+static bool text_jump_to_file_at_point_external(bContext *C,
+                                                ReportList *reports,
+                                                const char *filepath,
+                                                const int line_index,
+                                                const int column_index)
 {
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
-  const int line = RNA_int_get(op->ptr, "line");
-  const int column = RNA_int_get(op->ptr, "column");
+  bool success = false;
+#ifdef WITH_PYTHON
+  BPy_RunErrInfo err_info = {};
+  err_info.reports = reports;
+  err_info.report_prefix = "External editor";
 
+  const char *expr_imports[] = {"bl_text_utils", "bl_text_utils.external_editor", "os", nullptr};
+  std::string expr;
+  {
+    std::stringstream expr_stream;
+    expr_stream << "bl_text_utils.external_editor.open_external_editor(os.fsdecode(b'";
+    for (const char *ch = filepath; *ch; ch++) {
+      expr_stream << "\\x" << std::hex << int(*ch);
+    }
+    expr_stream << "'), " << std::dec << line_index << ", " << std::dec << column_index << ")";
+    expr = expr_stream.str();
+  }
+
+  char *expr_result = nullptr;
+  if (BPY_run_string_as_string(C, expr_imports, expr.c_str(), &err_info, &expr_result)) {
+    /* No error. */
+    if (expr_result[0] == '\0') {
+      BKE_reportf(
+          reports, RPT_INFO, "See '%s' in the external editor", BLI_path_basename(filepath));
+      success = true;
+    }
+    else {
+      BKE_report(reports, RPT_ERROR, expr_result);
+    }
+    MEM_freeN(expr_result);
+  }
+#else
+  UNUSED_VARS(C, reports, filepath, line_index, column_index);
+#endif /* WITH_PYTHON */
+  return success;
+}
+
+static bool text_jump_to_file_at_point_internal(bContext *C,
+                                                ReportList *reports,
+                                                const char *filepath,
+                                                const int line_index,
+                                                const int column_index)
+{
   Main *bmain = CTX_data_main(C);
   Text *text = nullptr;
 
@@ -4015,34 +4055,77 @@ static int text_jump_to_file_at_point_internal_exec(bContext *C, wmOperator *op)
   }
 
   if (text == nullptr) {
-    BKE_reportf(op->reports, RPT_WARNING, "File '%s' cannot be opened", filepath);
-    return OPERATOR_CANCELLED;
+    BKE_reportf(reports, RPT_WARNING, "File '%s' cannot be opened", filepath);
+    return false;
   }
 
-  txt_move_to(text, line, column, false);
+  txt_move_to(text, line_index, column_index, false);
 
   /* naughty!, find text area to set, not good behavior
    * but since this is a developer tool lets allow it - campbell */
   if (!ED_text_activate_in_screen(C, text)) {
-    BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
+    BKE_reportf(reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
   }
 
   WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 
-  return OPERATOR_FINISHED;
+  return true;
 }
 
-void TEXT_OT_jump_to_file_at_point_internal(wmOperatorType *ot)
+static int text_jump_to_file_at_point_exec(bContext *C, wmOperator *op)
+{
+  PropertyRNA *prop_filepath = RNA_struct_find_property(op->ptr, "filepath");
+  PropertyRNA *prop_line = RNA_struct_find_property(op->ptr, "line");
+  PropertyRNA *prop_column = RNA_struct_find_property(op->ptr, "column");
+
+  if (!RNA_property_is_set(op->ptr, prop_filepath)) {
+    if (const Text *text = CTX_data_edit_text(C)) {
+      if (text->filepath != nullptr) {
+        const TextLine *line = text->curl;
+        const int line_index = BLI_findindex(&text->lines, text->curl);
+        const int column_index = BLI_str_utf8_offset_to_index(line->line, line->len, text->curc);
+
+        RNA_property_string_set(op->ptr, prop_filepath, text->filepath);
+        RNA_property_int_set(op->ptr, prop_line, line_index);
+        RNA_property_int_set(op->ptr, prop_column, column_index);
+      }
+    }
+  }
+
+  char filepath[FILE_MAX];
+  RNA_property_string_get(op->ptr, prop_filepath, filepath);
+  const int line_index = RNA_property_int_get(op->ptr, prop_line);
+  const int column_index = RNA_property_int_get(op->ptr, prop_column);
+
+  if (filepath[0] == '\0') {
+    BKE_report(op->reports, RPT_WARNING, "File path property not set");
+    return OPERATOR_CANCELLED;
+  }
+
+  bool success;
+  if (U.text_editor[0] != '\0') {
+    success = text_jump_to_file_at_point_external(
+        C, op->reports, filepath, line_index, column_index);
+  }
+  else {
+    success = text_jump_to_file_at_point_internal(
+        C, op->reports, filepath, line_index, column_index);
+  }
+
+  return success ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+void TEXT_OT_jump_to_file_at_point(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Jump to File at Point (Internal)";
-  ot->idname = "TEXT_OT_jump_to_file_at_point_internal";
-  ot->description = "Jump to a file for the internal text editor";
+  ot->name = "Jump to File at Point";
+  ot->idname = "TEXT_OT_jump_to_file_at_point";
+  ot->description = "Jump to a file for the text editor";
 
   /* api callbacks */
-  ot->exec = text_jump_to_file_at_point_internal_exec;
+  ot->exec = text_jump_to_file_at_point_exec;
 
   /* flags */
   ot->flag = 0;

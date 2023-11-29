@@ -13,7 +13,7 @@
 
 #  include <cstring>
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 #  include "BKE_screen.hh"
@@ -233,8 +233,15 @@ static void process_prim_path(char *prim_path)
 
   /* The absolute root "/" path indicates a no-op,
    * so clear the string. */
-  if (prim_path[0] == '/' && strlen(prim_path) == 1) {
+  if (prim_path[0] == '/' && prim_path[1] == '\0') {
     prim_path[0] = '\0';
+  }
+
+  /* If a prim path doesn't start with a "/" it
+   * is invalid when creating the prim. */
+  if (prim_path[0] != '/') {
+    const std::string prim_path_copy = std::string(prim_path);
+    BLI_snprintf(prim_path, FILE_MAX, "/%s", prim_path_copy.c_str());
   }
 }
 
@@ -455,7 +462,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   STRNCPY(params.default_prim_path, default_prim_path);
   STRNCPY(params.material_prim_path, material_prim_path);
 
-  bool ok = USD_export(C, filepath, &params, as_background_job);
+  bool ok = USD_export(C, filepath, &params, as_background_job, op->reports);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -989,11 +996,20 @@ void WM_OT_usd_export(wmOperatorType *ot)
                "Kind to author on the Default Prim");
 
   RNA_def_string(ot->srna,
+<<<<<<< HEAD
                  "default_prim_custom_kind",
                  nullptr,
                  128,
                  "Default Prim Custom Kind",
                  "If default_prim_kind is True, author this value as the Default Prim's Kind");
+=======
+                 "root_prim_path",
+                 "/root",
+                 FILE_MAX,
+                 "Root Prim",
+                 "If set, add a transform primitive with the given path to the stage "
+                 "as the parent of all exported data");
+>>>>>>> main
 }
 
 /* ====== USD Import ====== */
@@ -1160,7 +1176,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
-  const bool ok = USD_import(C, filepath, &params, as_background_job);
+  const bool ok = USD_import(C, filepath, &params, as_background_job, op->reports);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

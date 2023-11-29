@@ -23,8 +23,8 @@
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_mask.h"
@@ -321,10 +321,10 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
 /* *************************************************** */
 /* UNITS CONVERSION MAPPING (required for drawing and editing keyframes) */
 
-short ANIM_get_normalization_flags(bAnimContext *ac)
+short ANIM_get_normalization_flags(SpaceLink *space_link)
 {
-  if (ac->sl->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+  if (space_link->spacetype == SPACE_GRAPH) {
+    SpaceGraph *sipo = (SpaceGraph *)space_link;
     bool use_normalization = (sipo->flag & SIPO_NORMALIZE) != 0;
     bool freeze_normalization = (sipo->flag & SIPO_NORMALIZE_FREEZE) != 0;
     return use_normalization ? (ANIM_UNITCONV_NORMALIZE |
@@ -588,11 +588,11 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
   }
 
   /* populate tree with keyframe nodes */
-  scene_to_keylist(&ads, scene, keylist, 0);
+  scene_to_keylist(&ads, scene, keylist, 0, {-FLT_MAX, FLT_MAX});
   gpencil_to_keylist(&ads, scene->gpd, keylist, false);
 
   if (ob) {
-    ob_to_keylist(&ads, ob, keylist, 0);
+    ob_to_keylist(&ads, ob, keylist, 0, {-FLT_MAX, FLT_MAX});
     gpencil_to_keylist(&ads, static_cast<bGPdata *>(ob->data), keylist, false);
   }
 

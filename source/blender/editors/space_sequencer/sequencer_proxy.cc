@@ -13,15 +13,15 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -116,14 +116,13 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (seq->flag & SELECT) {
       ListBase queue = {nullptr, nullptr};
-      bool stop = false, do_update;
-      float progress;
 
       SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue, false);
 
+      wmJobWorkerStatus worker_status = {};
       LISTBASE_FOREACH (LinkData *, link, &queue) {
         SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
-        SEQ_proxy_rebuild(context, &stop, &do_update, &progress);
+        SEQ_proxy_rebuild(context, &worker_status);
         SEQ_proxy_rebuild_finish(context, false);
       }
       SEQ_relations_free_imbuf(scene, &ed->seqbase, false);

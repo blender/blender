@@ -13,13 +13,13 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subsurf.hh"
 #include "BLI_math_vector.h"
@@ -89,6 +89,7 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
                                                 MultiresModifierData *mmd,
                                                 ModifierData *deform_md)
 {
+  using namespace blender;
   MultiresModifierData highest_mmd = blender::dna::shallow_copy(*mmd);
   highest_mmd.sculptlvl = highest_mmd.totlvl;
   highest_mmd.lvl = highest_mmd.totlvl;
@@ -97,8 +98,7 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
   /* Create mesh for the multires, ignoring any further modifiers (leading
    * deformation modifiers will be applied though). */
   Mesh *multires_mesh = BKE_multires_create_mesh(depsgraph, object, &highest_mmd);
-  int num_deformed_verts;
-  float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(multires_mesh, &num_deformed_verts);
+  Array<float3> deformed_verts(multires_mesh->vert_positions());
 
   /* Apply deformation modifier on the multires, */
   ModifierEvalContext modifier_ctx{};
@@ -106,16 +106,16 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
   modifier_ctx.object = object;
   modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
 
-  BKE_modifier_deform_verts(
-      deform_md, &modifier_ctx, multires_mesh, deformed_verts, multires_mesh->totvert);
+  BKE_modifier_deform_verts(deform_md, &modifier_ctx, multires_mesh, deformed_verts);
   BKE_id_free(nullptr, multires_mesh);
 
   /* Reshaping */
   bool result = multiresModifier_reshapeFromVertcos(
-      depsgraph, object, &highest_mmd, deformed_verts, num_deformed_verts);
-
-  /* Cleanup */
-  MEM_freeN(deformed_verts);
+      depsgraph,
+      object,
+      &highest_mmd,
+      reinterpret_cast<float(*)[3]>(deformed_verts.data()),
+      deformed_verts.size());
 
   return result;
 }

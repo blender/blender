@@ -18,7 +18,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "SEQ_edit.h"
+#include "SEQ_edit.hh"
 
 #include "rna_internal.h"
 
@@ -41,14 +41,14 @@
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
 
-#  include "SEQ_add.h"
-#  include "SEQ_edit.h"
-#  include "SEQ_effects.h"
-#  include "SEQ_relations.h"
-#  include "SEQ_render.h"
+#  include "SEQ_add.hh"
+#  include "SEQ_edit.hh"
+#  include "SEQ_effects.hh"
+#  include "SEQ_relations.hh"
+#  include "SEQ_render.hh"
 #  include "SEQ_retiming.hh"
-#  include "SEQ_sequencer.h"
-#  include "SEQ_time.h"
+#  include "SEQ_sequencer.hh"
+#  include "SEQ_time.hh"
 
 #  include "WM_api.hh"
 

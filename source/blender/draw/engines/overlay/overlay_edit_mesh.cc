@@ -12,9 +12,9 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_customdata.h"
-#include "BKE_editmesh.h"
-#include "BKE_object.h"
+#include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_object.hh"
 
 #include "draw_cache_impl.hh"
 #include "draw_manager_text.h"
@@ -53,6 +53,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  const View3DShading *shading = &draw_ctx->v3d->shading;
   ToolSettings *tsettings = draw_ctx->scene->toolsettings;
   View3D *v3d = draw_ctx->v3d;
   bool select_vert = pd->edit_mesh.select_vert = (tsettings->selectmode & SCE_SELECT_VERTEX) != 0;
@@ -66,7 +67,6 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   float retopology_offset = RETOPOLOGY_OFFSET(v3d);
 
   pd->edit_mesh.do_faces = true;
-  pd->edit_mesh.do_edges = true;
 
   int *mask = shdata->data_mask;
   mask[0] = 0xFF; /* Face Flag */
@@ -85,16 +85,8 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   if ((flag & V3D_OVERLAY_EDIT_FACES) == 0) {
     pd->edit_mesh.do_faces = false;
   }
-  if ((flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
-    if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
-      if ((v3d->shading.type < OB_SOLID) || (v3d->shading.flag & V3D_SHADING_XRAY)) {
-        /* Special case, when drawing wire, draw edges, see: #67637. */
-      }
-      else {
-        pd->edit_mesh.do_edges = false;
-      }
-    }
-  }
+
+  const bool is_wire_shmode = (shading->type == OB_WIRE);
 
   float backwire_opacity = (pd->edit_mesh.do_zbufclip) ? v3d->overlay.backwire_opacity : 1.0f;
   float face_alpha = (!pd->edit_mesh.do_faces) ? 0.0f : 1.0f;
@@ -172,7 +164,8 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_ivec4(grp, "dataMask", mask, 1);
       DRW_shgroup_uniform_float_copy(grp, "alpha", face_alpha);
-      DRW_shgroup_uniform_bool_copy(grp, "selectFaces", select_face);
+      DRW_shgroup_uniform_bool_copy(grp, "selectFace", select_face);
+      DRW_shgroup_uniform_bool_copy(grp, "wireShading", is_wire_shmode);
       DRW_shgroup_uniform_float_copy(grp, "retopologyOffset", retopology_offset);
     }
 
@@ -191,7 +184,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_ivec4(grp, "dataMask", mask, 1);
     DRW_shgroup_uniform_float_copy(grp, "alpha", backwire_opacity);
     DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tex);
-    DRW_shgroup_uniform_bool_copy(grp, "selectEdges", pd->edit_mesh.do_edges || select_edge);
+    DRW_shgroup_uniform_bool_copy(grp, "selectEdge", select_edge);
     DRW_shgroup_uniform_bool_copy(grp, "do_smooth_wire", do_smooth_wire);
     DRW_shgroup_uniform_float_copy(grp, "retopologyOffset", retopology_offset);
 

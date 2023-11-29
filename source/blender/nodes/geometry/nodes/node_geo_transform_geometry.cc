@@ -8,7 +8,7 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_matrix_types.hh"
+#include "BLI_math_rotation.hh"
 #include "BLI_task.hh"
 
 #include "DNA_mesh_types.h"
@@ -16,10 +16,11 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -28,9 +29,9 @@
 
 namespace blender::nodes {
 
-static bool use_translate(const float3 rotation, const float3 scale)
+static bool use_translate(const math::Quaternion &rotation, const float3 scale)
 {
-  if (compare_ff(math::length_squared(rotation), 0.0f, 1e-9f) != 1) {
+  if (math::angle_of(rotation).radian() > 1e-7f) {
     return false;
   }
   if (compare_ff(scale.x, 1.0f, 1e-9f) != 1 || compare_ff(scale.y, 1.0f, 1e-9f) != 1 ||
@@ -96,6 +97,28 @@ static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transfo
       "position", ATTR_DOMAIN_POINT);
   transform_positions(position.span, transform);
   position.finish();
+}
+
+static void translate_greasepencil(GreasePencil &grease_pencil, const float3 translation)
+{
+  using namespace blender::bke::greasepencil;
+  for (const int layer_index : grease_pencil.layers().index_range()) {
+    if (Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                          layer_index)) {
+      drawing->strokes_for_write().translate(translation);
+    }
+  }
+}
+
+static void transform_greasepencil(GreasePencil &grease_pencil, const float4x4 &transform)
+{
+  using namespace blender::bke::greasepencil;
+  for (const int layer_index : grease_pencil.layers().index_range()) {
+    if (Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
+                                                                          layer_index)) {
+      drawing->strokes_for_write().transform(transform);
+    }
+  }
 }
 
 static void translate_instances(bke::Instances &instances, const float3 translation)
@@ -216,6 +239,9 @@ static void translate_geometry_set(GeoNodeExecParams &params,
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     translate_pointcloud(*pointcloud, translation);
   }
+  if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
+    translate_greasepencil(*grease_pencil, translation);
+  }
   if (Volume *volume = geometry.get_volume_for_write()) {
     translate_volume(params, *volume, translation, depsgraph);
   }
@@ -241,6 +267,9 @@ void transform_geometry_set(GeoNodeExecParams &params,
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     transform_pointcloud(*pointcloud, transform);
   }
+  if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
+    transform_greasepencil(*grease_pencil, transform);
+  }
   if (Volume *volume = geometry.get_volume_for_write()) {
     transform_volume(params, *volume, transform, depsgraph);
   }
@@ -254,7 +283,7 @@ void transform_geometry_set(GeoNodeExecParams &params,
 
 void transform_mesh(Mesh &mesh,
                     const float3 translation,
-                    const float3 rotation,
+                    const math::Quaternion rotation,
                     const float3 scale)
 {
   const float4x4 matrix = math::from_loc_rot_scale<float4x4>(translation, rotation, scale);
@@ -269,7 +298,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER);
+  b.add_input<decl::Rotation>("Rotation");
   b.add_input<decl::Vector>("Scale").default_value({1, 1, 1}).subtype(PROP_XYZ);
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
@@ -278,7 +307,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   const float3 translation = params.extract_input<float3>("Translation");
-  const float3 rotation = params.extract_input<float3>("Rotation");
+  const math::Quaternion rotation = params.extract_input<math::Quaternion>("Rotation");
   const float3 scale = params.extract_input<float3>("Scale");
 
   /* Use only translation if rotation and scale don't apply. */

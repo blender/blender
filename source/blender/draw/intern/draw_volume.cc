@@ -17,9 +17,9 @@
 #include "BKE_fluid.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
-#include "BKE_volume.h"
-#include "BKE_volume_render.h"
+#include "BKE_modifier.hh"
+#include "BKE_volume.hh"
+#include "BKE_volume_render.hh"
 
 #include "GPU_material.h"
 

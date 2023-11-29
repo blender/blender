@@ -6,7 +6,7 @@
  * \ingroup spfile
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"

@@ -15,8 +15,19 @@ namespace blender::string_search {
 struct SearchItem {
   void *user_data;
   Span<StringRef> normalized_words;
-  Span<float> word_weight_factors;
-  int length;
+  /**
+   * When using menu-search, the search item is often split into multiple groups of words, each of
+   * which corresponds to a menu entry. This id is the same for words in the same group and
+   * different otherwise.
+   */
+  Span<int> word_group_ids;
+  /**
+   * The id of the group that is highlighted in the UI. In some places, the words in this group are
+   * given higher weight.
+   */
+  int main_group_id;
+  int main_group_length;
+  int total_length;
   int weight;
   /**
    * This is a logical time stamp, i.e. the greater it is, the more recent the item was used. The
@@ -34,6 +45,17 @@ struct RecentCache {
 };
 
 /**
+ * Sometimes every search item has multiple parts. For example, when using menu search, each nested
+ * menu is a separate part. Usually, one of those parts is highlighted in the UI and should be
+ * prioritized in the search.
+ */
+enum class MainWordsHeuristic {
+  FirstGroup,
+  LastGroup,
+  All,
+};
+
+/**
  * Non templated base class so that its methods can be implemented outside of this header.
  */
 class StringSearchBase {
@@ -41,6 +63,7 @@ class StringSearchBase {
   LinearAllocator<> allocator_;
   Vector<SearchItem> items_;
   const RecentCache *recent_cache_ = nullptr;
+  MainWordsHeuristic main_words_heuristic_;
 
  protected:
   void add_impl(StringRef str, void *user_data, int weight);
@@ -59,9 +82,10 @@ class StringSearchBase {
  */
 template<typename T> class StringSearch : private StringSearchBase {
  public:
-  StringSearch(const RecentCache *recent_cache = nullptr)
+  StringSearch(const RecentCache *recent_cache, const MainWordsHeuristic main_words_heuristic)
   {
-    this->recent_cache_ = recent_cache;
+    recent_cache_ = recent_cache;
+    main_words_heuristic_ = main_words_heuristic;
   }
 
   /**
@@ -108,6 +132,6 @@ int get_fuzzy_match_errors(StringRef query, StringRef full);
 void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
                               Vector<StringRef, 64> &r_words,
-                              Vector<float, 64> &r_word_weights);
+                              Vector<int, 64> &r_word_group_ids);
 
 }  // namespace blender::string_search

@@ -16,7 +16,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_screen.hh"
@@ -39,8 +39,14 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "PIL_time.h"
+
+#include "CLG_log.h"
+
 #include <cmath>
 #include <cstdlib>
+
+static CLG_LogRef LOG = {"sculpt.detail"};
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -109,6 +115,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(ob, op);
   SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
 
+  const double start_time = PIL_check_seconds_timer();
+
   while (BKE_pbvh_bmesh_update_topology(
       ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
   {
@@ -116,6 +124,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
       BKE_pbvh_node_mark_topology_update(node);
     }
   }
+
+  CLOG_INFO(&LOG, 2, "Detail flood fill took %f seconds.", PIL_check_seconds_timer() - start_time);
 
   SCULPT_undo_push_end(ob);
 
@@ -246,8 +256,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
   CTX_wm_region_set(C, region);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   Object *ob = vc.obact;
   if (ob == nullptr) {

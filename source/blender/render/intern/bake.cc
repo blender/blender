@@ -61,8 +61,8 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_customdata.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_customdata.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
@@ -491,17 +491,14 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   }
 
   const TSpace *tspace = nullptr;
-  const float(*loop_normals)[3] = nullptr;
+  blender::Span<blender::float3> corner_normals;
   if (tangent) {
-    BKE_mesh_ensure_normals_for_display(me_eval);
-    BKE_mesh_calc_normals_split(me_eval);
     BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
 
     tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->loop_data, CD_TANGENT));
     BLI_assert(tspace);
 
-    loop_normals = static_cast<const float(*)[3]>(
-        CustomData_get_layer(&me_eval->loop_data, CD_NORMAL));
+    corner_normals = me_eval->corner_normals();
   }
 
   const blender::Span<blender::float3> vert_normals = me->vert_normals();
@@ -524,10 +521,10 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
       triangles[i].tspace[2] = &tspace[lt->tri[2]];
     }
 
-    if (loop_normals) {
-      triangles[i].loop_normal[0] = loop_normals[lt->tri[0]];
-      triangles[i].loop_normal[1] = loop_normals[lt->tri[1]];
-      triangles[i].loop_normal[2] = loop_normals[lt->tri[2]];
+    if (!corner_normals.is_empty()) {
+      triangles[i].loop_normal[0] = corner_normals[lt->tri[0]];
+      triangles[i].loop_normal[1] = corner_normals[lt->tri[1]];
+      triangles[i].loop_normal[2] = corner_normals[lt->tri[2]];
     }
 
     if (calculate_normal) {
@@ -569,7 +566,6 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
 
   Mesh *me_eval_low = nullptr;
   Mesh **me_highpoly;
-  BVHTreeFromMesh *treeData;
 
   /* NOTE: all coordinates are in local space. */
   TriTessFace *tris_low = nullptr;
@@ -582,7 +578,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = static_cast<Mesh **>(
       MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes"));
-  treeData = MEM_cnew_array<BVHTreeFromMesh>(tot_highpoly, "Highpoly BVH Trees");
+  blender::Array<BVHTreeFromMesh> treeData(tot_highpoly);
 
   if (!is_cage) {
     me_eval_low = BKE_mesh_copy_for_eval(me_low);
@@ -649,7 +645,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
     }
 
     /* cast ray */
-    if (!cast_ray_highpoly(treeData,
+    if (!cast_ray_highpoly(treeData.data(),
                            tri_low,
                            tris_high,
                            pixel_array_from,
@@ -678,7 +674,6 @@ cleanup:
   }
 
   MEM_freeN(tris_high);
-  MEM_freeN(treeData);
   MEM_freeN(me_highpoly);
 
   if (me_eval_low) {

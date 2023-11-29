@@ -75,7 +75,7 @@ class CornerPinOperation : public NodeOperation {
       return;
     }
 
-    GPUShader *shader = shader_manager().get("compositor_plane_deform");
+    GPUShader *shader = context().get_shader("compositor_plane_deform");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_mat3_as_mat4(shader, "homography_matrix", homography_matrix.ptr());

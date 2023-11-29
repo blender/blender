@@ -54,6 +54,7 @@ NODE_DEFINE(Shader)
               EMISSION_SAMPLING_AUTO);
 
   SOCKET_BOOLEAN(use_transparent_shadow, "Use Transparent Shadow", true);
+  SOCKET_BOOLEAN(use_bump_map_correction, "Bump Map Correction", true);
   SOCKET_BOOLEAN(heterogeneous_volume, "Heterogeneous Volume", true);
 
   static NodeEnum volume_sampling_method_enum;
@@ -347,13 +348,22 @@ void Shader::tag_update(Scene *scene)
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
 
-  if (!has_surface) {
+  if (!has_surface && !has_volume) {
+    /* If we need to output surface AOVs, add a Transparent BSDF so that the
+     * surface shader runs. */
     foreach (ShaderNode *node, graph->nodes) {
       if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
         foreach (const ShaderInput *in, node->inputs) {
           if (in->link) {
+            TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
+            graph->add(transparent);
+            graph->connect(transparent->output("BSDF"), output->input("Surface"));
             has_surface = true;
+            break;
           }
+        }
+        if (has_surface) {
+          break;
         }
       }
     }
@@ -580,6 +590,9 @@ void ShaderManager::device_update_common(Device * /*device*/,
     }
     if (shader->get_displacement_method() != DISPLACE_BUMP) {
       flag |= SD_HAS_DISPLACEMENT;
+    }
+    if (shader->get_use_bump_map_correction()) {
+      flag |= SD_USE_BUMP_MAP_CORRECTION;
     }
 
     /* constant emission check */

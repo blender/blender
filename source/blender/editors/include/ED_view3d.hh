@@ -50,6 +50,7 @@ struct rctf;
 struct rcti;
 struct wmEvent;
 struct wmGizmo;
+struct wmKeyMapItem;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -212,7 +213,7 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
  *
  * \note modal map events can also be used in `ED_view3d_navigation_do`.
  */
-ViewOpsData *ED_view3d_navigation_init(bContext *C, const bool use_alt_navigation);
+ViewOpsData *ED_view3d_navigation_init(bContext *C, const wmKeyMapItem *kmi_merge);
 bool ED_view3d_navigation_do(bContext *C,
                              ViewOpsData *vod,
                              const wmEvent *event,
@@ -561,20 +562,22 @@ bool ED_view3d_win_to_ray_clipped(Depsgraph *depsgraph,
  * \param region: The region (used for the window width and height).
  * \param v3d: The 3d viewport (used for near clipping value).
  * \param mval: The area relative 2d location (such as `event->mval`, converted into float[2]).
+ * \param do_clip_planes: Optionally clip the start of the ray by the view clipping planes.
  * \param r_ray_co: The world-space point where the ray intersects the window plane.
  * \param r_ray_normal: The normalized world-space direction of towards mval.
  * \param r_ray_start: The world-space starting point of the ray.
- * \param do_clip_planes: Optionally clip the start of the ray by the view clipping planes.
+ * \param r_ray_end: The world-space end point of the segment.
  * \return success, false if the ray is totally clipped.
  */
 bool ED_view3d_win_to_ray_clipped_ex(Depsgraph *depsgraph,
                                      const ARegion *region,
                                      const View3D *v3d,
                                      const float mval[2],
+                                     const bool do_clip_planes,
                                      float r_ray_co[3],
                                      float r_ray_normal[3],
                                      float r_ray_start[3],
-                                     bool do_clip_planes);
+                                     float r_ray_end[3]);
 /**
  * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
  * This ray_start is located at the viewpoint, ray_normal is the direction towards `mval`.
@@ -942,7 +945,7 @@ int view3d_opengl_select_with_id_filter(ViewContext *vc,
 /* view3d_select.cc */
 
 float ED_view3d_select_dist_px();
-void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph);
+ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
 
 /**
  * Re-initialize `vc` with `obact` as if it's active object (with some differences).

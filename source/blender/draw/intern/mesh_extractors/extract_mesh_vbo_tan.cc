@@ -10,14 +10,14 @@
 
 #include "BLI_string.h"
 
-#include "BKE_editmesh.h"
-#include "BKE_editmesh_tangent.h"
+#include "BKE_editmesh.hh"
+#include "BKE_editmesh_tangent.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_tangent.hh"
 
 #include "extract_mesh.hh"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 namespace blender::draw {
 

@@ -36,14 +36,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .field_on_all()
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .field_on_all();
   b.add_input<decl::Float>("Vertex Crease")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .field_on_all()
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .field_on_all();
   b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
@@ -227,7 +227,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
+  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::MIDDLE);
   node_type_storage(&ntype,
                     "NodeGeometrySubdivisionSurface",
                     node_free_standard_storage,

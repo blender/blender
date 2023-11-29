@@ -21,8 +21,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_curve.h"
-#include "BKE_object.h"
+#include "BKE_curve.hh"
+#include "BKE_object.hh"
 
 using Alembic::AbcGeom::FloatArraySamplePtr;
 using Alembic::AbcGeom::kWrapExisting;

@@ -12,10 +12,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"

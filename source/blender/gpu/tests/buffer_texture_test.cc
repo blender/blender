@@ -42,7 +42,7 @@ static void test_buffer_texture()
 
   /* Construct SSBO. */
   GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
-      4 * sizeof(float), nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
+      4 * sizeof(float), nullptr, GPU_USAGE_STATIC, __func__);
   GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));
 
   /* Dispatch compute task. */

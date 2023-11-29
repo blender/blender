@@ -603,7 +603,7 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
   bool use_buffer = false;
 
   if (PyObject_CheckBuffer(ob)) {
-    if (PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+    if (PyObject_GetBuffer(ob, &buffer, PyBUF_ND | PyBUF_FORMAT) == -1) {
       /* Request failed. A `PyExc_BufferError` will have been raised,
        * so clear it to silently fall back to accessing as a sequence. */
       PyErr_Clear();

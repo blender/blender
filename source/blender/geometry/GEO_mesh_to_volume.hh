@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_bounds.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_string_ref.hh"
@@ -37,7 +38,7 @@ struct MeshToVolumeResolution {
  * used for deciding the voxel size in "Amount" mode.
  */
 float volume_compute_voxel_size(const Depsgraph *depsgraph,
-                                FunctionRef<void(float3 &r_min, float3 &r_max)> bounds_fn,
+                                FunctionRef<Bounds<float3>()> bounds_fn,
                                 MeshToVolumeResolution resolution,
                                 float exterior_band_width,
                                 const float4x4 &transform);

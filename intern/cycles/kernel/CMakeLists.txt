@@ -43,7 +43,7 @@ set(SRC_KERNEL_DEVICE_OPTIX
 if(WITH_CYCLES_OSL)
   math(EXPR OSL_LIBRARY_VERSION_CODE "${OSL_LIBRARY_VERSION_MAJOR} * 10000 + ${OSL_LIBRARY_VERSION_MINOR} * 100 + ${OSL_LIBRARY_VERSION_PATCH}")
 
-  if (OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
+  if(OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
     set(SRC_KERNEL_DEVICE_OPTIX
       ${SRC_KERNEL_DEVICE_OPTIX}
       osl/services_optix.cu
@@ -178,7 +178,6 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/math.h
   svm/math_util.h
   svm/mix.h
-  svm/musgrave.h
   svm/node_types_template.h
   svm/noise.h
   svm/noisetex.h
@@ -884,7 +883,37 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endif()
   # Enable zebin, a graphics binary format with improved compatibility.
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
-  string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${CYCLES_ONEAPI_SPIR64_GEN_DEVICES} ")
+
+  # Add the list of Intel devices to build binaries for.
+  foreach(device ${CYCLES_ONEAPI_INTEL_BINARIES_ARCH})
+    # Run ocloc ids to test if the device is supported.
+    if(WIN32)
+      execute_process(
+        COMMAND ${OCLOC_INSTALL_DIR}/ocloc.exe ids ${device}
+        RESULT_VARIABLE oclocids_ret
+        OUTPUT_QUIET
+        ERROR_QUIET
+      )
+    else()
+      execute_process(
+        COMMAND ${CMAKE_COMMAND}
+        -E env "LD_LIBRARY_PATH=${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
+        ${OCLOC_INSTALL_DIR}/bin/ocloc ids ${device}
+
+        RESULT_VARIABLE oclocids_ret
+        OUTPUT_QUIET
+        ERROR_QUIET
+      )
+    endif()
+    if(NOT oclocids_ret EQUAL 0)
+      list(REMOVE_ITEM CYCLES_ONEAPI_INTEL_BINARIES_ARCH ${device})
+      message(STATUS "binaries for ${device} not supported by Intel Graphics Compiler/ocloc, skipped.")
+    endif()
+  endforeach()
+  list(JOIN CYCLES_ONEAPI_INTEL_BINARIES_ARCH "," gen_devices_string)
+  if(NOT "${gen_devices_string}" STREQUAL "")
+    string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${gen_devices_string} ")
+  endif()
 
   # Host execution won't use GPU binaries, no need to compile them.
   if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
@@ -893,7 +922,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
     foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
       if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
-        list(APPEND sycl_compiler_flags "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\"")
+        list(APPEND sycl_compiler_flags
+          "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\""
+        )
       endif()
     endforeach()
   else()
@@ -954,12 +985,12 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
         set(next_library_mode "")
       endif()
     endforeach()
-      list(APPEND sycl_compiler_flags
-        "$<$<CONFIG:Release>:${EMBREE_TBB_LIBRARIES_optimized}>"
-        "$<$<CONFIG:RelWithDebInfo>:${EMBREE_TBB_LIBRARIES_optimized}>"
-        "$<$<CONFIG:MinSizeRel>:${EMBREE_TBB_LIBRARIES_optimized}>"
-        "$<$<CONFIG:Debug>:${EMBREE_TBB_LIBRARIES_debug}>"
-      )
+    list(APPEND sycl_compiler_flags
+      "$<$<CONFIG:Release>:${EMBREE_TBB_LIBRARIES_optimized}>"
+      "$<$<CONFIG:RelWithDebInfo>:${EMBREE_TBB_LIBRARIES_optimized}>"
+      "$<$<CONFIG:MinSizeRel>:${EMBREE_TBB_LIBRARIES_optimized}>"
+      "$<$<CONFIG:Debug>:${EMBREE_TBB_LIBRARIES_debug}>"
+    )
   endif()
 
   if(WITH_CYCLES_DEBUG)
@@ -970,16 +1001,17 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   if(WIN32) # Add Windows specific compiler flags.
     list(APPEND sycl_compiler_flags
-    -fuse-ld=link
-    -fms-extensions
-    -fms-compatibility
-    -D_WINDLL
-    -D_MBCS
-    -DWIN32
-    -D_WINDOWS
-    -D_CRT_NONSTDC_NO_DEPRECATE
-    -D_CRT_SECURE_NO_DEPRECATE
-    -DONEAPI_EXPORT)
+      -fuse-ld=link
+      -fms-extensions
+      -fms-compatibility
+      -D_WINDLL
+      -D_MBCS
+      -DWIN32
+      -D_WINDOWS
+      -D_CRT_NONSTDC_NO_DEPRECATE
+      -D_CRT_SECURE_NO_DEPRECATE
+      -DONEAPI_EXPORT
+    )
 
     string(REPLACE /Redist/ /Tools/ MSVC_TOOLS_DIR ${MSVC_REDIST_DIR})
     # Version Folder between Redist and Tools can mismatch sometimes
@@ -995,9 +1027,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
     endif()
     list(APPEND sycl_compiler_flags
-                -L"${MSVC_TOOLS_DIR}/lib/x64"
-                -L"${WINDOWS_KIT_DIR}/um/x64"
-                -L"${WINDOWS_KIT_DIR}/ucrt/x64")
+      -L"${MSVC_TOOLS_DIR}/lib/x64"
+      -L"${WINDOWS_KIT_DIR}/um/x64"
+      -L"${WINDOWS_KIT_DIR}/ucrt/x64"
+    )
   else() # Add Linux specific compiler flags.
     list(APPEND sycl_compiler_flags -fPIC)
     list(APPEND sycl_compiler_flags -fvisibility=hidden)
@@ -1017,22 +1050,22 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   set(sycl_compiler_flags_RelWithDebInfo ${sycl_compiler_flags})
 
   list(APPEND sycl_compiler_flags_Release
-              -DNDEBUG
-              )
+    -DNDEBUG
+  )
   list(APPEND sycl_compiler_flags_RelWithDebInfo
-              -DNDEBUG
-              -g
-              )
+    -DNDEBUG
+    -g
+  )
   list(APPEND sycl_compiler_flags_Debug
-              -g
-              )
+    -g
+  )
 
   if(WIN32)
     list(APPEND sycl_compiler_flags_Debug
-                -D_DEBUG
-                -nostdlib
-                -Xclang --dependent-lib=msvcrtd
-                )
+      -D_DEBUG
+      -nostdlib
+      -Xclang --dependent-lib=msvcrtd
+    )
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env

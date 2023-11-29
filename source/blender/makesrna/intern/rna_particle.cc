@@ -136,16 +136,16 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_string_utils.h"
+#  include "BLI_string_utils.hh"
 
 #  include "BKE_boids.h"
 #  include "BKE_cloth.hh"
 #  include "BKE_colortools.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_material.h"
-#  include "BKE_modifier.h"
+#  include "BKE_modifier.hh"
 #  include "BKE_particle.h"
 #  include "BKE_pointcache.h"
 #  include "BKE_texture.h"
@@ -2429,7 +2429,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   static const EnumPropertyItem react_event_items[] = {
       {PART_EVENT_DEATH, "DEATH", 0, "Death", ""},
       {PART_EVENT_COLLIDE, "COLLIDE", 0, "Collision", ""},
-      {PART_EVENT_NEAR, "NEAR", 0, "Near", ""},
+      {PART_EVENT_NEAR, "NEAR", 0, "Proximity", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

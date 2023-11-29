@@ -2006,7 +2006,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   float *result_edge_bweight = static_cast<float *>(CustomData_get_layer_named_for_write(
       &result->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", result->totedge));
-  if (bevel_convex != 0.0f || orig_vert_bweight != nullptr) {
+  if (!result_edge_bweight && (bevel_convex != 0.0f || orig_vert_bweight != nullptr)) {
     result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(
         &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "bevel_weight_edge"));
   }

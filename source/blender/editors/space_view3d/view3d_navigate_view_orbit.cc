@@ -17,15 +17,15 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -185,7 +185,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 /** \} */
 
 const ViewOpsType ViewOpsType_orbit = {
-    /*flag*/ (VIEWOPS_FLAG_PERSP_ENSURE | VIEWOPS_FLAG_ORBIT_SELECT),
+    /*flag*/ VIEWOPS_FLAG_ORBIT_SELECT,
     /*idname*/ "VIEW3D_OT_view_orbit",
     /*poll_fn*/ nullptr,
     /*init_fn*/ nullptr,

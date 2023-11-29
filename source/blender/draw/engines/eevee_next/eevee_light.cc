@@ -71,10 +71,10 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   float shape_power = shape_radiance_get(la);
   float point_power = point_radiance_get(la);
-  this->diffuse_power = la->diff_fac * shape_power;
-  this->transmit_power = la->diff_fac * point_power;
-  this->specular_power = la->spec_fac * shape_power;
-  this->volume_power = la->volume_fac * point_power;
+  this->power[LIGHT_DIFFUSE] = la->diff_fac * shape_power;
+  this->power[LIGHT_TRANSMIT] = la->diff_fac * point_power;
+  this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power;
+  this->power[LIGHT_VOLUME] = la->volume_fac * point_power;
 
   eLightType new_type = to_light_type(la->type, la->area_shape);
   if (assign_if_different(this->type, new_type)) {
@@ -259,6 +259,9 @@ LightModule::~LightModule()
 void LightModule::begin_sync()
 {
   use_scene_lights_ = inst_.use_scene_lights();
+  /* Disable sunlight if world has a volume shader as we consider the light cannot go through an
+   * infinite opaque medium. */
+  use_sun_lights_ = (inst_.world.has_volume_absorption() == false);
 
   /* In begin_sync so it can be animated. */
   if (assign_if_different(light_threshold_, max_ff(1e-16f, inst_.scene->eevee.light_threshold))) {
@@ -274,6 +277,13 @@ void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
   if (use_scene_lights_ == false) {
     return;
   }
+
+  if (use_sun_lights_ == false) {
+    if (static_cast<const ::Light *>(ob->data)->type == LA_SUN) {
+      return;
+    }
+  }
+
   Light &light = light_map_.lookup_or_add_default(handle.object_key);
   light.used = true;
   if (handle.recalc != 0 || !light.initialized) {
@@ -428,7 +438,7 @@ void LightModule::debug_pass_sync()
     debug_draw_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     debug_draw_ps_.shader_set(inst_.shaders.static_shader_get(LIGHT_CULLING_DEBUG));
     inst_.bind_uniform_data(&debug_draw_ps_);
-    inst_.hiz_buffer.bind_resources(&debug_draw_ps_);
+    inst_.hiz_buffer.bind_resources(debug_draw_ps_);
     debug_draw_ps_.bind_ssbo("light_buf", &culling_light_buf_);
     debug_draw_ps_.bind_ssbo("light_cull_buf", &culling_data_buf_);
     debug_draw_ps_.bind_ssbo("light_zbin_buf", &culling_zbin_buf_);

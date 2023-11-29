@@ -17,7 +17,7 @@ void do_vertex(vec4 color, vec4 pos, float coord, vec2 offset)
 #if 0
   view_clipping_distances_set(gl_in[i]);
 #endif
-  EmitVertex();
+  gpu_EmitVertex();
 }
 
 void main()

@@ -13,10 +13,10 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
 #include "ED_clip.hh"

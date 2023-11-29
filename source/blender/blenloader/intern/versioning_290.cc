@@ -46,12 +46,12 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_attribute.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_cryptomatte.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
@@ -66,11 +66,11 @@
 
 #include "RNA_access.hh"
 
-#include "SEQ_proxy.h"
-#include "SEQ_render.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
+#include "SEQ_proxy.hh"
+#include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
 #include "BLO_readfile.h"
 #include "readfile.hh"

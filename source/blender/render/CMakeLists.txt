@@ -10,11 +10,9 @@ set(INC
   ../blentranslation
   ../compositor/realtime_compositor
   ../compositor/realtime_compositor/cached_resources
-  ../depsgraph
   ../draw
   ../gpu
   ../gpu/intern
-  ../imbuf
   ../makesrna
   ../nodes
   ../sequencer
@@ -61,7 +59,9 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   PRIVATE bf::intern::atomic

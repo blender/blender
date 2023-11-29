@@ -337,15 +337,15 @@ def main() -> None:
     # TODO, there are for sure more companies then are currently listed.
     # 1 liners for in HTML syntax.
     contrib_companies = (
-        "<b>Unity Technologies</b> - FBX Exporter",
-        "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, OBJ Nurbs Import/Export",
-        "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
         "<b>Adidas</b> - Principled BSDF shader in Cycles",
-        "<b>AMD</b> - Cycles HIP GPU rendering, CPU optimizations",
-        "<b>Intel</b> - Cycles oneAPI GPU rendering, CPU optimizations",
-        "<b>NVIDIA</b> - Cycles OptiX GPU rendering, USD importer",
+        "<b>AMD</b> - Cycles HIP GPU rendering, CPU optimizations, Hydra integration",
+        "<b>Apple</b> - Cycles Metal GPU backend, USD integration",
+        "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
+        "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, OBJ Nurbs Import/Export",
         "<b>Facebook</b> - Cycles subsurface scattering improvements",
-        "<b>Apple</b> - Cycles Metal GPU backend",
+        "<b>Intel</b> - Cycles oneAPI GPU rendering, CPU optimizations",
+        "<b>NVIDIA</b> - Cycles OptiX GPU rendering, USD integration",
+        "<b>Unity Technologies</b> - FBX Exporter",
     )
 
     credits = Credits()
@@ -358,7 +358,7 @@ def main() -> None:
     if jobs <= 0:
         # Clamp the value, higher values give errors with too many open files.
         # Allow users to manually pass very high values in as they might want to tweak system limits themselves.
-        jobs = min(multiprocessing.cpu_count() * 2, 400)
+        jobs = min(multiprocessing.cpu_count(), 400)
 
     credits.process(GitCommitIter(args.source_dir, commit_range), jobs=jobs)
 

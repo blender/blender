@@ -40,7 +40,7 @@
 #include "RNA_prototypes.h"
 
 #include "BKE_appdir.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_paint.hh"
@@ -797,10 +797,10 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
       /* blur the alpha channel and store it in blurred_alpha_buffer */
       const int blur_size = 2 / resolution_divider;
       for (int bx = 0; bx < icon_width; bx++) {
-        const int asx = MAX2(bx - blur_size, 0);
+        const int asx = std::max(bx - blur_size, 0);
         const int aex = MIN2(bx + blur_size + 1, icon_width);
         for (int by = 0; by < icon_height; by++) {
-          const int asy = MAX2(by - blur_size, 0);
+          const int asy = std::max(by - blur_size, 0);
           const int aey = MIN2(by + blur_size + 1, icon_height);
 
           /* blur alpha channel */
@@ -827,7 +827,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           const int offset_write = (sy + by) * buf->x + (sx + bx);
           const float blurred_alpha = blurred_alpha_buffer[blurred_alpha_offset];
           const float border_srgb[4] = {
-              0, 0, 0, MIN2(1.0f, blurred_alpha * border_sharpness) * border_intensity};
+              0, 0, 0, std::min(1.0f, blurred_alpha * border_sharpness) * border_intensity};
 
           const uint color_read = buf_rect[offset_write];
           const uchar *orig_color = (uchar *)&color_read;
@@ -1316,10 +1316,7 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
 static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job);
 
-static void ui_studiolight_icon_job_exec(void *customdata,
-                                         bool * /*stop*/,
-                                         bool * /*do_update*/,
-                                         float * /*progress*/)
+static void ui_studiolight_icon_job_exec(void *customdata, wmJobWorkerStatus * /*worker_status*/)
 {
   Icon **tmp = (Icon **)customdata;
   Icon *icon = *tmp;

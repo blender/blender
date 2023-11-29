@@ -713,13 +713,13 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
       } /* TXF alpha: clip = 1; } */
       if (x >= ibuf->x) {
         x = ibuf->x - 1;
-      } /* TXF alpha:  clip = 1; } */
+      } /* TXF alpha: clip = 1; } */
       if (y < 0) {
         y = 0;
-      } /* TXF alpha:  clip = 1; } */
+      } /* TXF alpha: clip = 1; } */
       if (y >= ibuf->y) {
         y = ibuf->y - 1;
-      } /* TXF alpha:  clip = 1; } */
+      } /* TXF alpha: clip = 1; } */
     }
   }
 
@@ -1219,7 +1219,7 @@ static int imagewraposa_aniso(Tex *tex,
       b = max_ff(b, 1.0f);
       fProbes = 2.0f * (a / b) - 1.0f;
       AFD.iProbes = round_fl_to_int(fProbes);
-      AFD.iProbes = MIN2(AFD.iProbes, tex->afmax);
+      AFD.iProbes = std::min(AFD.iProbes, tex->afmax);
       if (AFD.iProbes < fProbes) {
         b = 2.0f * a / float(AFD.iProbes + 1);
       }

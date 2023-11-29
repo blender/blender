@@ -54,7 +54,9 @@ if(NOT DEFINED LIBDIR)
     set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin_${CMAKE_OSX_ARCHITECTURES})
   endif()
 else()
-  message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
+  if(FIRST_RUN)
+    message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
+  endif()
 endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
@@ -102,12 +104,6 @@ if(WITH_MATERIALX)
 endif()
 add_bundled_libraries(materialx/lib)
 
-if(WITH_VULKAN_BACKEND)
-  find_package(MoltenVK REQUIRED)
-  find_package(ShaderC REQUIRED)
-  find_package(Vulkan REQUIRED)
-endif()
-
 if(WITH_OPENSUBDIV)
   find_package(OpenSubdiv)
 endif()
@@ -149,6 +145,14 @@ set(BROTLI_LIBRARIES
   ${LIBDIR}/brotli/lib/libbrotlicommon-static.a
   ${LIBDIR}/brotli/lib/libbrotlidec-static.a
 )
+
+if(WITH_HARFBUZZ)
+  find_package(Harfbuzz)
+endif()
+
+if(WITH_FRIBIDI)
+  find_package(Fribidi)
+endif()
 
 if(WITH_IMAGE_OPENEXR)
   find_package(OpenEXR)
@@ -333,6 +337,7 @@ add_bundled_libraries(embree/lib)
 
 if(WITH_OPENIMAGEDENOISE)
   find_package(OpenImageDenoise REQUIRED)
+  add_bundled_libraries(openimagedenoise/lib)
 endif()
 
 if(WITH_TBB)

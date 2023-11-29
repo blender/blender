@@ -10,6 +10,7 @@
  */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 
 void main()
 {
@@ -36,7 +37,7 @@ void main()
     interp_noperspective.rect_uv3 = ((uv + quad_offsets[2]) * uv_div) * 0.5 + 0.5;
     interp_noperspective.rect_uv4 = ((uv + quad_offsets[3]) * uv_div) * 0.5 + 0.5;
     /* Only for sampling. */
-    interp_flat.distance_scale *= max_v2(abs(rect.half_extent));
+    interp_flat.distance_scale *= reduce_max(abs(rect.half_extent));
   }
   else {
     interp_flat.distance_scale = 1.0;

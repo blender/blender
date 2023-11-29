@@ -119,5 +119,6 @@ void ED_operatortypes_io(void)
 
 #ifdef WITH_IO_STL
   WM_operatortype_append(WM_OT_stl_import);
+  WM_operatortype_append(WM_OT_stl_export);
 #endif
 }

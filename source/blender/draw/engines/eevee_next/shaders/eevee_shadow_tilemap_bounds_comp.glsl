@@ -11,7 +11,6 @@
  */
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
@@ -31,14 +30,14 @@ void main()
     resource_id = (resource_id & 0x7FFFFFFFu);
 
     ObjectBounds bounds = bounds_buf[resource_id];
-    box = isect_data_setup(bounds.bounding_corners[0].xyz,
-                           bounds.bounding_corners[1].xyz,
-                           bounds.bounding_corners[2].xyz,
-                           bounds.bounding_corners[3].xyz);
+    box = isect_box_setup(bounds.bounding_corners[0].xyz,
+                          bounds.bounding_corners[1].xyz,
+                          bounds.bounding_corners[2].xyz,
+                          bounds.bounding_corners[3].xyz);
   }
   else {
     /* Create a dummy box so initialization happens even when there are no shadow casters. */
-    box = isect_data_setup(
+    box = isect_box_setup(
         vec3(-1.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0));
   }
 

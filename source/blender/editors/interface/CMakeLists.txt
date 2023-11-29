@@ -6,15 +6,11 @@ set(INC
   .
   ../include
   ../../asset_system
-  ../../blenfont
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
-  ../../depsgraph
   ../../draw
-  ../../functions
   ../../gpu
-  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../python
@@ -97,11 +93,16 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_datafiles
+  PRIVATE bf::functions
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
 )
 
 if(WITH_INTERNATIONAL)
@@ -116,10 +117,8 @@ if(WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)
 endif()
 
-if(WIN32 OR APPLE)
-  if(WITH_INPUT_IME)
-    add_definitions(-DWITH_INPUT_IME)
-  endif()
+if(WITH_INPUT_IME)
+  add_definitions(-DWITH_INPUT_IME)
 endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)

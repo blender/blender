@@ -18,7 +18,7 @@ float sky_angle_between(float thetav, float phiv, float theta, float phi)
 
 vec3 sky_spherical_coordinates(vec3 dir)
 {
-  return vec3(M_PI_2 - atan(dir.z, length(dir.xy)), atan(dir.x, dir.y), 0);
+  return vec3(M_PI_2 - atan(dir.z, length(dir.xy)), atan(dir.x, dir.y), 0.0);
 }
 
 /* Preetham */
@@ -166,7 +166,8 @@ void node_tex_sky_nishita(vec3 co,
   }
   else {
     /* evaluate longitudinal position on the map */
-    float x = (spherical.y + M_PI + sun_rotation) / M_2PI;
+    const float tau = 6.28318530717958647692;
+    float x = (spherical.y + M_PI + sun_rotation) / tau;
     if (x > 1.0) {
       x -= 1.0;
     }

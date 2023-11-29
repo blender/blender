@@ -11,7 +11,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,8 +31,9 @@ typedef enum eAttrDomain {
   ATTR_DOMAIN_CORNER = 3,   /* Mesh Corner */
   ATTR_DOMAIN_CURVE = 4,    /* A single curve in a larger curve data-block */
   ATTR_DOMAIN_INSTANCE = 5, /* Instance */
+  ATTR_DOMAIN_LAYER = 6,    /* A layer in a grease pencil data-block */
 } eAttrDomain;
-#define ATTR_DOMAIN_NUM 6
+#define ATTR_DOMAIN_NUM 7
 
 typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_POINT = (1 << 0),
@@ -40,7 +41,8 @@ typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_FACE = (1 << 2),
   ATTR_DOMAIN_MASK_CORNER = (1 << 3),
   ATTR_DOMAIN_MASK_CURVE = (1 << 4),
-  ATTR_DOMAIN_MASK_ALL = (1 << 5) - 1
+  ATTR_DOMAIN_MASK_GREASE_PENCIL_LAYER = (1 << 6),
+  ATTR_DOMAIN_MASK_ALL = (1 << 7) - 1
 } eAttrDomainMask;
 ENUM_OPERATORS(eAttrDomainMask, ATTR_DOMAIN_MASK_ALL);
 
@@ -77,10 +79,15 @@ struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               eCustomDataType type,
                                               eAttrDomain domain);
 
-struct CustomDataLayer *BKE_id_attribute_search(struct ID *id,
-                                                const char *name,
-                                                eCustomDataMask type,
-                                                eAttrDomainMask domain_mask);
+const struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
+                                                      const char *name,
+                                                      eCustomDataMask type,
+                                                      eAttrDomainMask domain_mask);
+
+struct CustomDataLayer *BKE_id_attribute_search_for_write(struct ID *id,
+                                                          const char *name,
+                                                          eCustomDataMask type,
+                                                          eAttrDomainMask domain_mask);
 
 eAttrDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);
@@ -117,7 +124,7 @@ void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
 
 const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
-bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
+void BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
 
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer);
 const char *BKE_uv_map_edge_select_name_get(const char *uv_map_name, char *buffer);

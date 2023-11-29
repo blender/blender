@@ -5,9 +5,9 @@
 #include "usd_reader_skeleton.h"
 #include "usd_skel_convert.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_idprop.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
@@ -39,7 +39,7 @@ void USDSkeletonReader::read_object_data(Main *bmain, const double motionSampleT
     return;
   }
 
-  import_skeleton(bmain, object_, skel_);
+  import_skeleton(bmain, object_, skel_, reports());
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
 }

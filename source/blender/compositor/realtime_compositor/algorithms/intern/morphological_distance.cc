@@ -25,7 +25,7 @@ static const char *get_shader_name(int distance)
 
 void morphological_distance(Context &context, Result &input, Result &output, int distance)
 {
-  GPUShader *shader = context.shader_manager().get(get_shader_name(distance));
+  GPUShader *shader = context.get_shader(get_shader_name(distance));
   GPU_shader_bind(shader);
 
   /* Pass the absolute value of the distance. We have specialized shaders for each sign. */

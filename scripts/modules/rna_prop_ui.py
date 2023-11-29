@@ -153,8 +153,6 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
     if not rna_item:
         return
 
-    from bpy.utils import escape_identifier
-
     if rna_item.id_data.library is not None:
         use_edit = False
     is_lib_override = rna_item.id_data.override_library and rna_item.id_data.override_library.reference

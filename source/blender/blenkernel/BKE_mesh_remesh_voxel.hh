@@ -21,7 +21,6 @@ Mesh *BKE_mesh_remesh_quadriflow(const Mesh *mesh,
                                  void (*update_cb)(void *, float progress, int *cancel),
                                  void *update_cb_data);
 
-/* Data reprojection functions */
-void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source);
-void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source);
-void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source);
+namespace blender::bke {
+void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst);
+}

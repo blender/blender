@@ -81,10 +81,37 @@ void VKBackend::detect_workarounds(VKDevice &device)
 {
   VKWorkarounds workarounds;
 
+  if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
+    printf("\n");
+    printf("VK: Forcing workaround usage and disabling features and extensions.\n");
+    printf("    Vendor: %s\n", device.vendor_name().c_str());
+    printf("    Device: %s\n", device.physical_device_properties_get().deviceName);
+    printf("    Driver: %s\n", device.driver_version().c_str());
+    /* Force workarounds. */
+    workarounds.not_aligned_pixel_formats = true;
+    workarounds.shader_output_layer = true;
+    workarounds.shader_output_viewport_index = true;
+    workarounds.vertex_formats.r8g8b8 = true;
+
+    device.workarounds_ = workarounds;
+    return;
+  }
+
+  workarounds.shader_output_layer =
+      !device.physical_device_vulkan_12_features_get().shaderOutputLayer;
+  workarounds.shader_output_viewport_index =
+      !device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
+
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     workarounds.not_aligned_pixel_formats = true;
   }
+
+  VkFormatProperties format_properties = {};
+  vkGetPhysicalDeviceFormatProperties(
+      device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
+  workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
+                                       VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
 
   device.workarounds_ = workarounds;
 }
@@ -110,9 +137,8 @@ void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_
   VKContext &context = *VKContext::get();
   context.state_manager_get().apply_bindings();
   context.bind_compute_pipeline();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.dispatch(groups_x_len, groups_y_len, groups_z_len);
-  command_buffer.submit();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.dispatch(groups_x_len, groups_y_len, groups_z_len);
 }
 
 void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
@@ -122,9 +148,8 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   context.state_manager_get().apply_bindings();
   context.bind_compute_pipeline();
   VKStorageBuffer &indirect_buffer = *unwrap(indirect_buf);
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
-  command_buffer.dispatch(indirect_buffer);
-  command_buffer.submit();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
+  command_buffers.dispatch(indirect_buffer);
 }
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
@@ -251,6 +276,9 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_varying_floats = limits.maxVertexOutputComponents;
   GCaps.max_shader_storage_buffer_bindings = limits.maxPerStageDescriptorStorageBuffers;
   GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
+  GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
+
+  GCaps.mem_stats_support = true;
 
   detect_workarounds(device);
 }

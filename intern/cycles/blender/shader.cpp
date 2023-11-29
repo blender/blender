@@ -56,12 +56,6 @@ static VolumeInterpolation get_volume_interpolation(PointerRNA &ptr)
       ptr, "volume_interpolation", VOLUME_NUM_INTERPOLATION, VOLUME_INTERPOLATION_LINEAR);
 }
 
-static DisplacementMethod get_displacement_method(PointerRNA &ptr)
-{
-  return (DisplacementMethod)get_enum(
-      ptr, "displacement_method", DISPLACE_NUM_METHODS, DISPLACE_BUMP);
-}
-
 static EmissionSampling get_emission_sampling(PointerRNA &ptr)
 {
   return (EmissionSampling)get_enum(
@@ -74,6 +68,12 @@ static int validate_enum_value(int value, int num_values, int default_value)
     return default_value;
   }
   return value;
+}
+
+static DisplacementMethod get_displacement_method(BL::Material &b_mat)
+{
+  int value = b_mat.displacement_method();
+  return (DisplacementMethod)validate_enum_value(value, DISPLACE_NUM_METHODS, DISPLACE_BUMP);
 }
 
 template<typename NodeType> static InterpolationType get_image_interpolation(NodeType &b_node)
@@ -190,6 +190,7 @@ static SocketType::Type convert_socket_type(BL::NodeSocket &b_socket)
   switch (b_socket.type()) {
     case BL::NodeSocket::type_VALUE:
       return SocketType::FLOAT;
+    case BL::NodeSocket::type_BOOLEAN:
     case BL::NodeSocket::type_INT:
       return SocketType::INT;
     case BL::NodeSocket::type_VECTOR:
@@ -935,19 +936,11 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeTexNoise b_noise_node(b_node);
     NoiseTextureNode *noise = graph->create_node<NoiseTextureNode>();
     noise->set_dimensions(b_noise_node.noise_dimensions());
+    noise->set_type((NodeNoiseType)b_noise_node.type());
     noise->set_use_normalize(b_noise_node.normalize());
     BL::TexMapping b_texture_mapping(b_noise_node.texture_mapping());
     get_tex_mapping(noise, b_texture_mapping);
     node = noise;
-  }
-  else if (b_node.is_a(&RNA_ShaderNodeTexMusgrave)) {
-    BL::ShaderNodeTexMusgrave b_musgrave_node(b_node);
-    MusgraveTextureNode *musgrave_node = graph->create_node<MusgraveTextureNode>();
-    musgrave_node->set_musgrave_type((NodeMusgraveType)b_musgrave_node.musgrave_type());
-    musgrave_node->set_dimensions(b_musgrave_node.musgrave_dimensions());
-    BL::TexMapping b_texture_mapping(b_musgrave_node.texture_mapping());
-    get_tex_mapping(musgrave_node, b_texture_mapping);
-    node = musgrave_node;
   }
   else if (b_node.is_a(&RNA_ShaderNodeTexCoord)) {
     BL::ShaderNodeTexCoord b_tex_coord_node(b_node);
@@ -1549,12 +1542,13 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       /* settings */
       PointerRNA cmat = RNA_pointer_get(&b_mat.ptr, "cycles");
       shader->set_emission_sampling_method(get_emission_sampling(cmat));
-      shader->set_use_transparent_shadow(get_boolean(cmat, "use_transparent_shadow"));
+      shader->set_use_transparent_shadow(b_mat.use_transparent_shadow());
+      shader->set_use_bump_map_correction(get_boolean(cmat, "use_bump_map_correction"));
       shader->set_heterogeneous_volume(!get_boolean(cmat, "homogeneous_volume"));
       shader->set_volume_sampling_method(get_volume_sampling(cmat));
       shader->set_volume_interpolation_method(get_volume_interpolation(cmat));
       shader->set_volume_step_rate(get_float(cmat, "volume_step_rate"));
-      shader->set_displacement_method(get_displacement_method(cmat));
+      shader->set_displacement_method(get_displacement_method(b_mat));
 
       shader->set_graph(graph);
 

@@ -11,12 +11,12 @@
 #include "DRW_render.h"
 
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
 #include "BKE_duplilist.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_screen.hh"
 
 #include "DNA_anim_types.h"

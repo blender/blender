@@ -8,7 +8,7 @@
 
 #ifdef WITH_IO_PLY
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 
@@ -80,6 +80,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
   export_params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "export_colors"));
+  export_params.export_attributes = RNA_boolean_get(op->ptr, "export_attributes");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
 
@@ -120,6 +121,7 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
   uiItemR(sub, imfptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
   uiItemR(sub, imfptr, "export_colors", UI_ITEM_NONE, IFACE_("Vertex Colors"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_attributes", UI_ITEM_NONE, IFACE_("Vertex Attributes"), ICON_NONE);
   uiItemR(sub,
           imfptr,
           "export_triangulated_mesh",
@@ -211,7 +213,11 @@ void WM_OT_ply_export(wmOperatorType *ot)
                PLY_VERTEX_COLOR_SRGB,
                "Export Vertex Colors",
                "Export vertex color attributes");
-
+  RNA_def_boolean(ot->srna,
+                  "export_attributes",
+                  true,
+                  "Export Vertex Attributes",
+                  "Export custom vertex attributes");
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,
@@ -243,6 +249,7 @@ static int wm_ply_import_exec(bContext *C, wmOperator *op)
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.merge_verts = RNA_boolean_get(op->ptr, "merge_verts");
+  params.import_attributes = RNA_boolean_get(op->ptr, "import_attributes");
   params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "import_colors"));
 
   int files_len = RNA_collection_length(op->ptr, "files");
@@ -316,8 +323,10 @@ void WM_OT_ply_import(wmOperatorType *ot)
                "import_colors",
                ply_vertex_colors_mode,
                PLY_VERTEX_COLOR_SRGB,
-               "Import Vertex Colors",
+               "Vertex Colors",
                "Import vertex color attributes");
+  RNA_def_boolean(
+      ot->srna, "import_attributes", true, "Vertex Attributes", "Import custom vertex attributes");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");

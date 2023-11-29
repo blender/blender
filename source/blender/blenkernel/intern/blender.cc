@@ -45,7 +45,7 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sequencer.hh"
 
 #include "BLF_api.h"
 
@@ -181,7 +181,7 @@ void BKE_blender_globals_init()
 
   BKE_blender_globals_main_replace(BKE_main_new());
 
-  STRNCPY(G.ima, "//");
+  STRNCPY(G.filepath_last_image, "//");
 
 #ifndef WITH_PYTHON_SECURITY /* default */
   G.f |= G_FLAG_SCRIPT_AUTOEXEC;

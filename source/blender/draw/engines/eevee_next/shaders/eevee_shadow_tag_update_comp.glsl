@@ -11,8 +11,9 @@
  * tag the appropriate tiles.
  */
 
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_aabb_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
@@ -31,16 +32,16 @@ void main()
   IsectPyramid frustum;
   if (tilemap.projection_type == SHADOW_PROJECTION_CUBEFACE) {
     Pyramid pyramid = shadow_tilemap_cubeface_bounds(tilemap, ivec2(0), ivec2(SHADOW_TILEMAP_RES));
-    frustum = isect_data_setup(pyramid);
+    frustum = isect_pyramid_setup(pyramid);
   }
 
   uint resource_id = resource_ids_buf[gl_GlobalInvocationID.x];
   resource_id = (resource_id & 0x7FFFFFFFu);
 
-  IsectBox box = isect_data_setup(bounds_buf[resource_id].bounding_corners[0].xyz,
-                                  bounds_buf[resource_id].bounding_corners[1].xyz,
-                                  bounds_buf[resource_id].bounding_corners[2].xyz,
-                                  bounds_buf[resource_id].bounding_corners[3].xyz);
+  IsectBox box = isect_box_setup(bounds_buf[resource_id].bounding_corners[0].xyz,
+                                 bounds_buf[resource_id].bounding_corners[1].xyz,
+                                 bounds_buf[resource_id].bounding_corners[2].xyz,
+                                 bounds_buf[resource_id].bounding_corners[3].xyz);
 
   int clipped = 0;
   /* NDC space post projection [-1..1] (unclamped). */

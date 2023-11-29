@@ -7,7 +7,7 @@
  */
 
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Microfacet GGX distribution
@@ -17,7 +17,7 @@
 
 float sample_pdf_ggx_reflect(float NH, float NV, float VH, float G1_V, float alpha)
 {
-  float a2 = sqr(alpha);
+  float a2 = square(alpha);
 #if GGX_USE_VISIBLE_NORMAL
   return 0.25 * bxdf_ggx_D(NH, a2) * G1_V / NV;
 #else
@@ -28,10 +28,10 @@ float sample_pdf_ggx_reflect(float NH, float NV, float VH, float G1_V, float alp
 float sample_pdf_ggx_refract(
     float NH, float NV, float VH, float LH, float G1_V, float alpha, float eta)
 {
-  float a2 = sqr(alpha);
+  float a2 = square(alpha);
   float D = bxdf_ggx_D(NH, a2);
-  float Ht2 = sqr(eta * LH + VH);
-  return (D * G1_V * abs(VH * LH) * sqr(eta)) / (NV * Ht2);
+  float Ht2 = square(eta * LH + VH);
+  return (D * G1_V * abs(VH * LH) * square(eta)) / (NV * Ht2);
 }
 
 /**
@@ -70,8 +70,8 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1_V)
   return Ht;
 #else
   /* Theta is the cone angle. */
-  float z = sqrt((1.0 - rand.x) / (1.0 + sqr(alpha) * rand.x - rand.x)); /* cos theta */
-  float r = sqrt(max(0.0, 1.0 - z * z));                                 /* sin theta */
+  float z = sqrt((1.0 - rand.x) / (1.0 + square(alpha) * rand.x - rand.x)); /* cos theta */
+  float r = sqrt(max(0.0, 1.0 - z * z));                                    /* sin theta */
   float x = r * rand.y;
   float y = r * rand.z;
   /* Microfacet Normal */

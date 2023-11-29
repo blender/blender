@@ -15,7 +15,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_sort_utils.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -515,9 +515,9 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
     CustomData mesh_edata = CustomData_shallow_copy_remove_non_bmesh_attributes(
         &me_src->edge_data, CD_MASK_BMESH.emask);
     CustomData mesh_pdata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->face_data, CD_MASK_BMESH.lmask);
+        &me_src->face_data, CD_MASK_BMESH.pmask);
     CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->loop_data, CD_MASK_BMESH.pmask);
+        &me_src->loop_data, CD_MASK_BMESH.lmask);
 
     if (i == 0) {
       CustomData_copy_layout(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);

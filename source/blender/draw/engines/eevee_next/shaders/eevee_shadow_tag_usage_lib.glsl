@@ -9,9 +9,8 @@
  * This contains the common logic used for tagging shadows for opaque and transparent receivers.
  */
 
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_intersect_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
@@ -125,6 +124,8 @@ void shadow_tag_usage_tilemap_punctual(
   }
   /* Apply resolution ratio. */
   footprint_ratio *= tilemap_projection_ratio;
+  /* Take the frustum padding into account. */
+  footprint_ratio *= light.clip_side / orderedIntBitsToFloat(light.clip_near);
 
   if (radius == 0) {
     int face_id = shadow_punctual_face_index_get(lP);

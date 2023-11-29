@@ -95,10 +95,6 @@ class SceneKeyingSetsPanel:
             "use_insertkey_override_visual", "use_insertkey_visual",
             userpref_fallback="use_visual_keying",
         )
-        SceneKeyingSetsPanel._draw_keyframing_setting(
-            context, layout, ks, ksp, iface_("XYZ to RGB"),
-            "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb",
-        )
 
     @staticmethod
     def _draw_keyframing_setting(context, layout, ks, ksp, label, toggle_prop, prop, userpref_fallback=None):

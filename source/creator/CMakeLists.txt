@@ -3,12 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  ../../intern/clog
   ../blender/blenkernel
-  ../blender/depsgraph
   ../blender/editors/include
   ../blender/gpu
-  ../blender/imbuf
   ../blender/io/usd
   ../blender/bmesh
   ../blender/makesrna
@@ -18,7 +15,10 @@ set(INC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_windowmanager
 )
@@ -547,6 +547,15 @@ if(WIN32)
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
   endif()
+  if(EXISTS ${LIBDIR}/OpenImageDenoise/bin/openimagedenoise.dll) # 4.0
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise.dll
+        ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_core.dll
+        ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_cpu.dll
+        ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll
+    )
+  endif()
 endif()
 
 # Show helpful tip.
@@ -668,16 +677,16 @@ if(UNIX AND NOT APPLE)
       # OpenGL now that the lib/ folder is used for other libraries.
       install(
         CODE "\
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
-        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
-        "
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
+file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
+"
       )
     endif()
   else()
@@ -692,6 +701,10 @@ if(UNIX AND NOT APPLE)
     install(
       FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
       DESTINATION "./share/applications"
+    )
+    install(
+      FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/org.blender.Blender.metainfo.xml
+      DESTINATION "./share/metainfo"
     )
     install(
       FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
@@ -896,6 +909,13 @@ elseif(WIN32)
     FILES ${LIBDIR}/epoxy/bin/epoxy-0.dll
     ALL
   )
+
+ if(WITH_VULKAN_BACKEND)
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/vulkan/bin/vulkan-1.dll
+      ALL
+    )
+  endif()
 
   if(WITH_OPENMP AND MSVC_CLANG)
     windows_install_shared_manifest(
@@ -1785,6 +1805,7 @@ if(UNIX AND NOT APPLE)
       install(
         CODE "\
 set(BLENDER_BIN \"${CMAKE_INSTALL_PREFIX}/${BLENDER_BIN}\")\n\
+set(PYTHON_EXECUTABLE \"${PYTHON_EXECUTABLE}\")\n\
 set(MANPAGE_GEN \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\")\n\
 set(MANPAGE_OUT \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\")\n\
 if(\n\
@@ -1798,12 +1819,9 @@ strict_init_order=0:\
 detect_leaks=0\"\n\
   )\n\
   execute_process(\n\
-    OUTPUT_QUIET\n\
-    COMMAND $\{BLENDER_BIN\}\n\
-    --background\n\
-    --factory-startup\n\
-    --python $\{MANPAGE_GEN\}\n\
-    --\n\
+    COMMAND\n\
+    $\{PYTHON_EXECUTABLE\} $\{MANPAGE_GEN\}\n\
+    --blender $\{BLENDER_BIN\}\n\
     --output $\{MANPAGE_OUT\}\n\
   )\n\
 endif()\n\

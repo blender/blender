@@ -19,18 +19,19 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_curve.h"
+#include "BKE_armature.hh"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -735,8 +736,8 @@ void lattice_foreachScreenVert(ViewContext *vc,
   Object *obedit = vc->obedit;
   Lattice *lt = static_cast<Lattice *>(obedit->data);
   BPoint *bp = lt->editlatt->latt->def;
-  DispList *dl = obedit->runtime.curve_cache ?
-                     BKE_displist_find(&obedit->runtime.curve_cache->disp, DL_VERTS) :
+  DispList *dl = obedit->runtime->curve_cache ?
+                     BKE_displist_find(&obedit->runtime->curve_cache->disp, DL_VERTS) :
                      nullptr;
   const float *co = dl ? dl->verts : nullptr;
   int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;

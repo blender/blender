@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
@@ -129,7 +129,7 @@ static void file_free(SpaceLink *sl)
   MEM_SAFE_FREE(sfile->params);
   MEM_SAFE_FREE(sfile->asset_params);
   if (sfile->runtime != nullptr) {
-    BKE_reports_clear(&sfile->runtime->is_blendfile_readable_reports);
+    BKE_reports_free(&sfile->runtime->is_blendfile_readable_reports);
   }
   MEM_SAFE_FREE(sfile->runtime);
 

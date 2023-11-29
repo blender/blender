@@ -21,7 +21,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_main.h"
 #include "BKE_paint.hh"
 
@@ -685,6 +685,9 @@ static int paintcurve_draw_exec(bContext *C, wmOperator * /*op*/)
       break;
     case PAINT_MODE_SCULPT_CURVES:
       name = "SCULPT_CURVES_OT_brush_stroke";
+      break;
+    case PAINT_MODE_GPENCIL:
+      name = "GREASE_PENCIL_OT_brush_stroke";
       break;
     default:
       return OPERATOR_PASS_THROUGH;

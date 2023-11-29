@@ -166,8 +166,6 @@ class NodeAddZoneOperator(NodeAddOperator):
         space = context.space_data
         tree = space.edit_tree
 
-        props = self.properties
-
         self.deselect_nodes(context)
         input_node = self.create_node(context, self.input_node_type)
         output_node = self.create_node(context, self.output_node_type)
@@ -288,7 +286,25 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
         default='INPUT',
     )
 
-    socket_type = 'NodeSocketFloat'
+    # Returns a valid socket type for the given tree or None.
+    @staticmethod
+    def find_valid_socket_type(tree):
+        socket_type = 'NodeSocketFloat'
+        # Socket type validation function is only available for custom
+        # node trees. Assume that 'NodeSocketFloat' is valid for
+        # built-in node tree types.
+        if not hasattr(tree, "valid_socket_type") or tree.valid_socket_type(socket_type):
+            return socket_type
+        # Custom nodes may not support float sockets, search all
+        # registered socket subclasses.
+        types_to_check = [bpy.types.NodeSocket]
+        while types_to_check:
+            t = types_to_check.pop()
+            idname = getattr(t, "bl_idname", "")
+            if tree.valid_socket_type(idname):
+                return idname
+            # Test all subclasses
+            types_to_check.extend(t.__subclasses__())
 
     def execute(self, context):
         snode = context.space_data
@@ -300,9 +316,9 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
         active_pos = active_item.position if active_item else -1
 
         if self.item_type == 'INPUT':
-            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out='INPUT')
+            item = interface.new_socket("Socket", socket_type=self.find_valid_socket_type(tree), in_out='INPUT')
         elif self.item_type == 'OUTPUT':
-            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out='OUTPUT')
+            item = interface.new_socket("Socket", socket_type=self.find_valid_socket_type(tree), in_out='OUTPUT')
         elif self.item_type == 'PANEL':
             item = interface.new_panel("Panel")
         else:

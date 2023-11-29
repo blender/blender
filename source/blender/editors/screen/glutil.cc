@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BIF_glutil.hh"
 
@@ -627,7 +627,7 @@ int ED_draw_imbuf_method(const ImBuf *ibuf)
      * otherwise do color management on CPU side. */
     const size_t threshold = sizeof(float[4]) * 2048 * 2048;
     const size_t data_size = (ibuf->float_buffer.data) ? sizeof(float) : sizeof(uchar);
-    const size_t size = ibuf->x * ibuf->y * ibuf->channels * data_size;
+    const size_t size = size_t(ibuf->x) * size_t(ibuf->y) * size_t(ibuf->channels) * data_size;
 
     return (size > threshold) ? IMAGE_DRAW_METHOD_2DTEXTURE : IMAGE_DRAW_METHOD_GLSL;
   }

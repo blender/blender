@@ -9,6 +9,9 @@
 
 #include "usd.h"
 
+#include "WM_types.hh"
+
+#include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/prim.h>
 
 #include <map>
@@ -55,6 +58,8 @@ struct ImportSettings {
    * correct millimeter scale that Blender uses for camera parameters. */
   double stage_meters_per_unit;
 
+  pxr::SdfPath skip_prefix;
+
   ImportSettings()
       : do_convert_mat(false),
         from_up(0),
@@ -66,7 +71,13 @@ struct ImportSettings {
         sequence_offset(0),
         read_flag(0),
         validate_meshes(false),
+<<<<<<< HEAD
         stage_meters_per_unit(1.0)
+=======
+        cache_file(NULL),
+        stage_meters_per_unit(1.0),
+        skip_prefix(pxr::SdfPath{})
+>>>>>>> main
   {
   }
 };
@@ -115,6 +126,12 @@ class USDPrimReader {
   void parent(USDPrimReader *parent)
   {
     parent_reader_ = parent;
+  }
+
+  /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
+  ReportList *reports() const
+  {
+    return import_params_.worker_status ? import_params_.worker_status->reports : nullptr;
   }
 
   /* Since readers might be referenced through handles

@@ -60,18 +60,18 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BLI_ghash.h"
-#  include "BLI_string_utils.h"
+#  include "BLI_string_utils.hh"
 
 #  include "BIK_api.h"
 #  include "BKE_action.h"
-#  include "BKE_armature.h"
+#  include "BKE_armature.hh"
 
 #  include "DNA_userdef_types.h"
 
 #  include "MEM_guardedalloc.h"
 
 #  include "BKE_constraint.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 
@@ -1162,6 +1162,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "color", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoneColor");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* transform locks */
   prop = RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_NONE);

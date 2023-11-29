@@ -10,10 +10,10 @@
 
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image_format.h"
 
 #include "RNA_access.hh"

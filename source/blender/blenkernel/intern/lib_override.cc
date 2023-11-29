@@ -26,7 +26,7 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_blender.h"
 #include "BKE_collection.h"
 #include "BKE_fcurve.h"
@@ -39,7 +39,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_main_namemap.h"
+#include "BKE_main_namemap.hh"
 #include "BKE_node.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -420,6 +420,19 @@ bool BKE_lib_override_library_is_hierarchy_leaf(Main *bmain, ID *id)
   }
 
   return false;
+}
+
+void BKE_lib_override_id_tag_on_deg_tag_from_user(ID *id)
+{
+  /* Only local liboverrides need to be tagged for refresh, linked ones should not be editable. */
+  if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY(id)) {
+    return;
+  }
+  /* NOTE: Valid relationships between IDs here (especially the beloved ObData <-> ShapeKey special
+   * case) cannot be always expected when ID get tagged. So now, embedded IDs and similar also get
+   * tagged, and the 'liboverride refresh' code is responsible to properly propagate the update to
+   * the owner ID when needed (see #BKE_lib_override_library_main_operations_create). */
+  id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
 }
 
 ID *BKE_lib_override_library_create_from_id(Main *bmain,
@@ -1573,9 +1586,15 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
     BKE_lib_override_library_get(bmain, id, nullptr, &id_owner);
     return lib_override_root_find(bmain, id_owner, curr_level + 1, &best_level_placeholder);
   }
-  /* This way we won't process again that ID, should we encounter it again through another
-   * relationship hierarchy. */
-  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) {
+    /* Re-processing an entry already being processed higher in the call-graph (re-entry caused by
+     * a dependency loops). Just do nothing, there is no more useful info to provide here. */
+    return nullptr;
+  }
+  /* Flag this entry to avoid re-processing it in case some dependency loop leads to it again
+   * downwards in the call-stack. */
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
 
   int best_level_candidate = curr_level;
   ID *best_root_id_candidate = id;
@@ -1617,6 +1636,11 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
 
   BLI_assert(best_root_id_candidate != nullptr);
   BLI_assert((best_root_id_candidate->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) == 0);
+
+  /* This way this ID won't be processed again, should it be encountered again through another
+   * relationship hierarchy. */
+  entry->tags &= ~MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
 
   *r_best_level = best_level_candidate;
   return best_root_id_candidate;
@@ -1663,7 +1687,10 @@ static void lib_override_root_hierarchy_set(
           bmain->relations->relations_from_pointers, id->override_library->reference));
       BLI_assert(entry != nullptr);
 
-      bool do_replace_root = false;
+      /* Enforce replacing hierarchy root if the current one is invalid. */
+      bool do_replace_root = (!id->override_library->hierarchy_root ||
+                              !ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) ||
+                              id->override_library->hierarchy_root->lib != id->lib);
       for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
            from_id_entry = from_id_entry->next)
       {
@@ -1770,6 +1797,7 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
     }
 
     BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS, false);
 
     int best_level = 0;
     ID *id_root = lib_override_root_find(bmain, id, best_level, &best_level);
@@ -3572,7 +3600,7 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 }
 
-void BKE_lib_override_library_make_local(ID *id)
+void BKE_lib_override_library_make_local(Main *bmain, ID *id)
 {
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
     return;
@@ -3601,6 +3629,13 @@ void BKE_lib_override_library_make_local(ID *id)
   bNodeTree *node_tree = ntreeFromID(id);
   if (node_tree != nullptr) {
     node_tree->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+  }
+
+  /* In case a liboverride hierarchy root is 'made local', i.e. is not a liboverride anymore, all
+   * hierarchy roots of all liboverrides need to be validated/re-generated again.
+   * Only in case `bmain` is given, otherwise caller is responsible to do this. */
+  if (bmain) {
+    BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
   }
 }
 
@@ -4346,9 +4381,33 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
   TaskPool *task_pool = BLI_task_pool_create(&create_pool_data, TASK_PRIORITY_HIGH);
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
-        (force_auto || (id->tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH)))
-    {
+    if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+    /* Propagate potential embedded data tag to the owner ID (see also
+     * #BKE_lib_override_id_tag_on_deg_tag_from_user). */
+    if (Key *key = BKE_key_from_id(id)) {
+      if (key->id.tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH) {
+        key->id.tag &= ~LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+        id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+      }
+    }
+    if (bNodeTree *ntree = ntreeFromID(id)) {
+      if (ntree->id.tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH) {
+        ntree->id.tag &= ~LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+        id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+      }
+    }
+    if (GS(id->name) == ID_SCE) {
+      if (Collection *scene_collection = reinterpret_cast<Scene *>(id)->master_collection) {
+        if (scene_collection->id.tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH) {
+          scene_collection->id.tag &= ~LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+          id->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+        }
+      }
+    }
+
+    if (force_auto || (id->tag & LIB_TAG_LIBOVERRIDE_AUTOREFRESH)) {
       /* Usual issue with pose, it's quiet rare but sometimes they may not be up to date when this
        * function is called. */
       if (GS(id->name) == ID_OB) {

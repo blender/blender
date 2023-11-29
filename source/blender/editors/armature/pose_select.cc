@@ -20,13 +20,13 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
@@ -411,8 +411,7 @@ bool ED_pose_deselect_all_multi_ex(Base **bases,
 bool ED_pose_deselect_all_multi(bContext *C, int select_mode, const bool ignore_visibility)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   uint bases_len = 0;
 
   Base **bases = BKE_object_pose_base_array_get_unique(

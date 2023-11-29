@@ -25,7 +25,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -477,22 +477,6 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     return mesh;
   }
 
-  /* XXX TODO(Rohan Rathi):
-   * Once we fully switch to Mesh evaluation of modifiers,
-   * we can expect to get that flag from the COW copy.
-   * But for now, it is lost in the DM intermediate step,
-   * so we need to directly check orig object's data. */
-#if 0
-  if (!(mesh->flag & ME_AUTOSMOOTH))
-#else
-  if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH))
-#endif
-  {
-    BKE_modifier_set_error(
-        ob, (ModifierData *)enmd, "Enable 'Auto Smooth' in Object Data Properties");
-    return mesh;
-  }
-
   Mesh *result;
   if (mesh->edges().data() == ((Mesh *)ob->data)->edges().data()) {
     /* We need to duplicate data here, otherwise setting custom normals
@@ -540,8 +524,6 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                           sharp_edges.span.data(),
                                           sharp_faces,
                                           clnors,
-                                          true,
-                                          result->smoothresh,
                                           nullptr,
                                           loop_normals);
   }
@@ -738,7 +720,7 @@ ModifierTypeInfo modifierType_NormalEdit = {
     /*struct_name*/ "NormalEditModifierData",
     /*struct_size*/ sizeof(NormalEditModifierData),
     /*srna*/ &RNA_NormalEditModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_NORMALEDIT,

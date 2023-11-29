@@ -28,7 +28,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "UI_interface.hh"
 
@@ -537,7 +537,7 @@ static bool decimate_poll_property(const bContext * /*C*/, wmOperator *op, const
   return true;
 }
 
-static std::string decimate_desc(bContext * /*C*/, wmOperatorType * /*op*/, PointerRNA *ptr)
+static std::string decimate_desc(bContext * /*C*/, wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
 
   if (RNA_enum_get(ptr, "mode") == DECIM_ERROR) {

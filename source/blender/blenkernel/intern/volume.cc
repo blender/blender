@@ -14,6 +14,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
@@ -37,12 +38,13 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "BLT_translation.h"
@@ -639,7 +641,7 @@ IDTypeInfo IDType_ID_VO = {
     /*main_listbase_index*/ INDEX_ID_VO,
     /*struct_size*/ sizeof(Volume),
     /*name*/ "Volume",
-    /*name_plural*/ "volumes",
+    /*name_plural*/ N_("volumes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_VOLUME,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -964,56 +966,25 @@ bool BKE_volume_save(const Volume *volume,
 #endif
 }
 
-bool BKE_volume_min_max(const Volume *volume, float3 &r_min, float3 &r_max)
+std::optional<blender::Bounds<blender::float3>> BKE_volume_min_max(const Volume *volume)
 {
-  bool have_minmax = false;
 #ifdef WITH_OPENVDB
   /* TODO: if we know the volume is going to be displayed, it may be good to
    * load it as part of dependency graph evaluation for better threading. We
    * could also share the bounding box computation in the global volume cache. */
   if (BKE_volume_load(const_cast<Volume *>(volume), G.main)) {
+    std::optional<blender::Bounds<blender::float3>> result;
     for (const int i : IndexRange(BKE_volume_num_grids(volume))) {
       const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, i);
       openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
-      float3 grid_min;
-      float3 grid_max;
-      if (BKE_volume_grid_bounds(grid, grid_min, grid_max)) {
-        DO_MIN(grid_min, r_min);
-        DO_MAX(grid_max, r_max);
-        have_minmax = true;
-      }
+      result = blender::bounds::merge(result, BKE_volume_grid_bounds(grid));
     }
+    return result;
   }
 #else
-  UNUSED_VARS(volume, r_min, r_max);
+  UNUSED_VARS(volume);
 #endif
-  return have_minmax;
-}
-
-BoundBox *BKE_volume_boundbox_get(Object *ob)
-{
-  BLI_assert(ob->type == OB_VOLUME);
-
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
-    return ob->runtime.bb;
-  }
-
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
-
-  const Volume *volume = (Volume *)ob->data;
-
-  float3 min, max;
-  INIT_MINMAX(min, max);
-  if (!BKE_volume_min_max(volume, min, max)) {
-    min = float3(-1);
-    max = float3(1);
-  }
-
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-
-  return ob->runtime.bb;
+  return std::nullopt;
 }
 
 bool BKE_volume_is_y_up(const Volume *volume)
@@ -1165,7 +1136,7 @@ void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   /* Assign evaluated object. */
   const bool eval_is_owned = (volume != volume_eval);
   BKE_object_eval_assign_data(object, &volume_eval->id, eval_is_owned);
-  object->runtime.geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
+  object->runtime->geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
 }
 
 void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, const char *filepath)
@@ -1627,20 +1598,17 @@ float BKE_volume_simplify_factor(const Depsgraph *depsgraph)
 
 #ifdef WITH_OPENVDB
 
-bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid, float3 &r_min, float3 &r_max)
+std::optional<blender::Bounds<float3>> BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid)
 {
   /* TODO: we can get this from grid metadata in some cases? */
   openvdb::CoordBBox coordbbox;
   if (!grid->baseTree().evalLeafBoundingBox(coordbbox)) {
-    return false;
+    return std::nullopt;
   }
 
   openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
 
-  r_min = float3(float(bbox.min().x()), float(bbox.min().y()), float(bbox.min().z()));
-  r_max = float3(float(bbox.max().x()), float(bbox.max().y()), float(bbox.max().z()));
-
-  return true;
+  return blender::Bounds<float3>{float3(bbox.min().asPointer()), float3(bbox.max().asPointer())};
 }
 
 openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,

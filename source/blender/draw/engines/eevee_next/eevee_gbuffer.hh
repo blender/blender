@@ -90,11 +90,11 @@ struct GBuffer {
     // color_tx.release();
   }
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_texture("gbuf_header_tx", &header_tx);
-    pass->bind_texture("gbuf_closure_tx", &closure_tx);
-    pass->bind_texture("gbuf_color_tx", &color_tx);
+    pass.bind_texture("gbuf_header_tx", &header_tx);
+    pass.bind_texture("gbuf_closure_tx", &closure_tx);
+    pass.bind_texture("gbuf_color_tx", &color_tx);
   }
 };
 

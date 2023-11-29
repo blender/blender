@@ -21,7 +21,7 @@ float polygon_sides_length(float sides_count)
  * Start first corners at theta == 0. */
 float circle_to_polygon_radius(float sides_count, float theta)
 {
-  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide 36). */
+  /* From Graphics Gems from CryENGINE 3 (SIGGRAPH 2013) by Tiago Sousa (slide 36). */
   float side_angle = M_2PI / sides_count;
   float halfside_angle = side_angle * 0.5;
   return cos(side_angle * 0.5) /

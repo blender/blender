@@ -26,20 +26,24 @@ void VKBatch::draw_setup()
   /* Finalize graphics pipeline */
   VKContext &context = *VKContext::get();
   VKStateManager &state_manager = context.state_manager_get();
-  state_manager.apply_state();
-  state_manager.apply_bindings();
-  VKVertexAttributeObject vao;
-  vao.update_bindings(context, *this);
-  context.bind_graphics_pipeline(prim_type, vao);
-
-  /* Bind geometry resources. */
-  vao.bind(context);
   VKIndexBuffer *index_buffer = index_buffer_get();
   const bool draw_indexed = index_buffer != nullptr;
+  state_manager.apply_state();
+  state_manager.apply_bindings();
+  /*
+   * The next statements are order dependent. VBOs and IBOs must be uploaded, before resources can
+   * be bound. Uploading device located buffers flush the graphics pipeline and already bound
+   * resources will be unbound.
+   */
+  VKVertexAttributeObject vao;
+  vao.update_bindings(context, *this);
+  vao.ensure_vbos_uploaded();
   if (draw_indexed) {
     index_buffer->upload_data();
     index_buffer->bind(context);
   }
+  vao.bind(context);
+  context.bind_graphics_pipeline(prim_type, vao);
 }
 
 void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)
@@ -47,21 +51,21 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   draw_setup();
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
   VKIndexBuffer *index_buffer = index_buffer_get();
   const bool draw_indexed = index_buffer != nullptr;
   if (draw_indexed) {
-    command_buffer.draw_indexed(index_buffer->index_len_get(),
-                                instance_count,
-                                index_buffer->index_start_get(),
-                                vertex_first,
-                                instance_first);
+    command_buffers.draw_indexed(vertex_count,
+                                 instance_count,
+                                 vertex_first,
+                                 index_buffer->index_start_get(),
+                                 instance_first);
   }
   else {
-    command_buffer.draw(vertex_first, vertex_count, instance_first, instance_count);
+    command_buffers.draw(vertex_first, vertex_count, instance_first, instance_count);
   }
 
-  command_buffer.submit();
+  command_buffers.submit();
 }
 
 void VKBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
@@ -78,15 +82,17 @@ void VKBatch::multi_draw_indirect(GPUStorageBuf *indirect_buf,
 
   VKStorageBuffer &indirect_buffer = *unwrap(unwrap(indirect_buf));
   VKContext &context = *VKContext::get();
-  const bool draw_indexed = index_buffer_get() != nullptr;
-  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VKIndexBuffer *index_buffer = index_buffer_get();
+  const bool draw_indexed = index_buffer != nullptr;
+  VKCommandBuffers &command_buffers = context.command_buffers_get();
   if (draw_indexed) {
-    command_buffer.draw_indexed_indirect(indirect_buffer, offset, count, stride);
+    command_buffers.draw_indexed_indirect(indirect_buffer, offset, count, stride);
   }
   else {
-    command_buffer.draw_indirect(indirect_buffer, offset, count, stride);
+    command_buffers.draw_indirect(indirect_buffer, offset, count, stride);
   }
-  command_buffer.submit();
+
+  command_buffers.submit();
 }
 
 VKVertexBuffer *VKBatch::vertex_buffer_get(int index)

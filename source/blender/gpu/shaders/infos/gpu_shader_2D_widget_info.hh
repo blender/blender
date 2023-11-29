@@ -49,7 +49,9 @@ GPU_SHADER_CREATE_INFO(gpu_shader_2D_widget_base_inst)
     .push_constant(Type::VEC4, "parameters", (MAX_PARAM * MAX_INSTANCE))
     .additional_info("gpu_shader_2D_widget_shared");
 
-GPU_SHADER_INTERFACE_INFO(gpu_widget_shadow_iface, "").smooth(Type::FLOAT, "shadowFalloff");
+GPU_SHADER_INTERFACE_INFO(gpu_widget_shadow_iface, "")
+    .smooth(Type::FLOAT, "shadowFalloff")
+    .smooth(Type::FLOAT, "innerMask");
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_widget_shadow)
     .do_static_compilation(true)

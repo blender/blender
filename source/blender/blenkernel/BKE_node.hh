@@ -287,6 +287,12 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int maxle
 const char *nodeSocketLabel(const bNodeSocket *sock);
 
 /**
+ * Get node socket short label if it is set.
+ * It is used when grouping sockets under panels, to avoid redundancy in the label.
+ */
+const char *nodeSocketShortLabel(const bNodeSocket *sock);
+
+/**
  * Initialize a new node type struct with default values and callbacks.
  */
 void node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
@@ -321,6 +327,9 @@ bNodeSocket *node_find_enabled_output_socket(bNode &node, StringRef name);
 extern bNodeTreeType NodeTreeTypeUndefined;
 extern bNodeType NodeTypeUndefined;
 extern bNodeSocketType NodeSocketTypeUndefined;
+
+std::optional<eCustomDataType> socket_type_to_custom_data_type(eNodeSocketDatatype type);
+std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataType type);
 
 /**
  * Contains information about a specific kind of zone (e.g. simulation or repeat zone in geometry

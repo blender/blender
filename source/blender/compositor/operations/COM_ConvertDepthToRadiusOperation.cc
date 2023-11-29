@@ -17,6 +17,8 @@ ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
   camera_object_ = nullptr;
   max_radius_ = 32.0f;
   blur_post_operation_ = nullptr;
+
+  flags_.can_be_constant = true;
 }
 
 float ConvertDepthToRadiusOperation::determine_focal_distance()
@@ -55,7 +57,7 @@ void ConvertDepthToRadiusOperation::init_execution()
   dof_sp_ = minsz / ((cam_sensor / 2.0f) / cam_lens_);
 
   if (blur_post_operation_) {
-    blur_post_operation_->set_sigma(MIN2(aperture_ * 128.0f, max_radius_));
+    blur_post_operation_->set_sigma(std::min(aperture_ * 128.0f, max_radius_));
   }
 }
 

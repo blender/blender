@@ -52,7 +52,7 @@ class MapUVOperation : public NodeOperation {
       return;
     }
 
-    GPUShader *shader = shader_manager().get("compositor_map_uv");
+    GPUShader *shader = context().get_shader("compositor_map_uv");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(

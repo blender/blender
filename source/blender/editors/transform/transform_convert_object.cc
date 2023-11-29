@@ -14,16 +14,17 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_animsys.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
+#include "ANIM_keyframing.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 
@@ -732,135 +733,6 @@ static void createTransObject(bContext *C, TransInfo *t)
 /** \name Transform (Auto-Keyframing)
  * \{ */
 
-/**
- * Auto-keyframing feature - for objects
- *
- * \param tmode: A transform mode.
- *
- * \note Context may not always be available,
- * so must check before using it as it's a luxury for a few cases.
- */
-static void autokeyframe_object(
-    bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int tmode)
-{
-  Main *bmain = CTX_data_main(C);
-  ID *id = &ob->id;
-
-  /* TODO: this should probably be done per channel instead. */
-  if (autokeyframe_cfra_can_key(scene, id)) {
-    ReportList *reports = CTX_wm_reports(C);
-    ToolSettings *ts = scene->toolsettings;
-    KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
-    ListBase dsources = {nullptr, nullptr};
-    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-        depsgraph, BKE_scene_frame_get(scene));
-    eInsertKeyFlags flag = eInsertKeyFlags(0);
-
-    /* Get flags used for inserting keyframes. */
-    flag = ANIM_get_keyframing_flags(scene, true);
-
-    /* Add data-source override for the object. */
-    ANIM_relative_keyingset_add_source(&dsources, id, nullptr, nullptr);
-
-    if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
-      /* Only insert into active keyingset
-       * NOTE: we assume here that the active Keying Set
-       * does not need to have its iterator overridden.
-       */
-      ANIM_apply_keyingset(
-          C, &dsources, nullptr, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
-    }
-    else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
-      AnimData *adt = ob->adt;
-
-      /* only key on available channels */
-      if (adt && adt->action) {
-        ListBase nla_cache = {nullptr, nullptr};
-        LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
-          insert_keyframe(bmain,
-                          reports,
-                          id,
-                          adt->action,
-                          (fcu->grp ? fcu->grp->name : nullptr),
-                          fcu->rna_path,
-                          fcu->array_index,
-                          &anim_eval_context,
-                          eBezTriple_KeyframeType(ts->keyframe_type),
-                          &nla_cache,
-                          flag);
-        }
-
-        BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
-      }
-    }
-    else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
-      bool do_loc = false, do_rot = false, do_scale = false;
-
-      /* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
-      if (tmode == TFM_TRANSLATION) {
-        do_loc = true;
-      }
-      else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
-        if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          BKE_view_layer_synced_ensure(scene, view_layer);
-          if (ob != BKE_view_layer_active_object_get(view_layer)) {
-            do_loc = true;
-          }
-        }
-        else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) {
-          do_loc = true;
-        }
-
-        if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
-          do_rot = true;
-        }
-      }
-      else if (tmode == TFM_RESIZE) {
-        if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          BKE_view_layer_synced_ensure(scene, view_layer);
-          if (ob != BKE_view_layer_active_object_get(view_layer)) {
-            do_loc = true;
-          }
-        }
-        else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) {
-          do_loc = true;
-        }
-
-        if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
-          do_scale = true;
-        }
-      }
-
-      /* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
-      if (do_loc) {
-        KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOCATION_ID);
-        ANIM_apply_keyingset(
-            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
-      }
-      if (do_rot) {
-        KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_ROTATION_ID);
-        ANIM_apply_keyingset(
-            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
-      }
-      if (do_scale) {
-        KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_SCALING_ID);
-        ANIM_apply_keyingset(
-            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
-      }
-    }
-    /* insert keyframe in all (transform) channels */
-    else {
-      KeyingSet *ks = ANIM_builtin_keyingset_get_named(nullptr, ANIM_KS_LOC_ROT_SCALE_ID);
-      ANIM_apply_keyingset(
-          C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
-    }
-
-    /* free temp info */
-    BLI_freelistN(&dsources);
-  }
-}
-
 /* Return if we need to update motion paths, only if they already exist,
  * and we will insert a keyframe at the end of transform. */
 static bool motionpath_need_update_object(Scene *scene, Object *ob)
@@ -870,7 +742,7 @@ static bool motionpath_need_update_object(Scene *scene, Object *ob)
    *      this should be a better fix for #24451 and #37755
    */
 
-  if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+  if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
     return (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
   }
 
@@ -906,9 +778,9 @@ static void recalcData_objects(TransInfo *t)
        */
       /* TODO: autokeyframe calls need some setting to specify to add samples
        * (FPoints) instead of keyframes? */
-      if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+      if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
         animrecord_check_state(t, &ob->id);
-        autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
+        blender::animrig::autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
       }
 
       motionpath_update |= motionpath_need_update_object(t->scene, ob);
@@ -983,7 +855,7 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
     /* Set auto-key if necessary. */
     if (!canceled) {
-      autokeyframe_object(C, t->scene, t->view_layer, ob, t->mode);
+      blender::animrig::autokeyframe_object(C, t->scene, t->view_layer, ob, t->mode);
     }
 
     motionpath_update |= motionpath_need_update_object(t->scene, ob);

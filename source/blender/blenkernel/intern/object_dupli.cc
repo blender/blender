@@ -30,6 +30,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -40,24 +41,25 @@
 
 #include "BKE_collection.h"
 #include "BKE_duplilist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_instances.hh"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_type_conversions.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -927,6 +929,11 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
       make_dupli(ctx, ctx->object, &pointcloud->id, parent_transform, component_index++);
     }
   }
+  if (ctx->object->type != OB_GREASE_PENCIL || geometry_set_is_instance) {
+    if (const GreasePencil *grease_pencil = geometry_set.get_grease_pencil()) {
+      make_dupli(ctx, ctx->object, &grease_pencil->id, parent_transform, component_index++);
+    }
+  }
   const bool creates_duplis_for_components = component_index >= 1;
 
   const Instances *instances = geometry_set.get_instances();
@@ -1039,7 +1046,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
 
 static void make_duplis_geometry_set(const DupliContext *ctx)
 {
-  const GeometrySet *geometry_set = ctx->object->runtime.geometry_set_eval;
+  const GeometrySet *geometry_set = ctx->object->runtime->geometry_set_eval;
   make_duplis_geometry_set_impl(ctx, *geometry_set, ctx->object->object_to_world, false, false);
 }
 
@@ -1706,7 +1713,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   int transflag = ctx->object->transflag;
   int visibility_flag = ctx->object->visibility_flag;
 
-  if ((transflag & OB_DUPLI) == 0 && ctx->object->runtime.geometry_set_eval == nullptr) {
+  if ((transflag & OB_DUPLI) == 0 && ctx->object->runtime->geometry_set_eval == nullptr) {
     return nullptr;
   }
 
@@ -1732,7 +1739,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
     }
   }
 
-  if (ctx->object->runtime.geometry_set_eval != nullptr) {
+  if (ctx->object->runtime->geometry_set_eval != nullptr) {
     if (blender::bke::object_has_geometry_set_instances(*ctx->object)) {
       return &gen_dupli_geometry_set;
     }

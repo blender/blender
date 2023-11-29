@@ -14,13 +14,12 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 struct BMesh;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;
 struct BMeshToMeshParams;
-struct BoundBox;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct Depsgraph;
@@ -76,6 +75,9 @@ void BKE_mesh_tag_topology_changed(struct Mesh *mesh);
  */
 void BKE_mesh_tag_edges_split(struct Mesh *mesh);
 
+/** Call when changing "sharp_face" or "sharp_edge" data. */
+void BKE_mesh_tag_sharpness_changed(struct Mesh *mesh);
+
 /**
  * Call when face vertex order has changed but positions and faces haven't changed
  */
@@ -112,19 +114,6 @@ void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
  * must be done by the caller.
  */
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
-
-#ifdef __cplusplus
-
-/**
- * Sets each output array element to the edge index if it is a real edge, or -1.
- */
-void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
-                                     const int *corner_verts,
-                                     const int *corner_edges,
-                                     const struct MLoopTri *tri,
-                                     int r_edges[3]);
-
-#endif
 
 /**
  * Free (or release) any data used by this mesh (does not free the mesh itself).
@@ -223,17 +212,7 @@ bool BKE_mesh_material_index_used(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
 void BKE_mesh_smooth_flag_set(struct Mesh *me, bool use_smooth);
-void BKE_mesh_auto_smooth_flag_set(struct Mesh *me, bool use_auto_smooth, float auto_smooth_angle);
-
-/**
- * Used for unit testing; compares two meshes, checking only
- * differences we care about.  should be usable with leaf's
- * testing framework I get RNA work done, will use hackish
- * testing code for now.
- */
-const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
-
-struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
+void BKE_mesh_sharp_edges_set_from_angle(struct Mesh *me, float angle);
 
 void BKE_mesh_texspace_calc(struct Mesh *me);
 void BKE_mesh_texspace_ensure(struct Mesh *me);
@@ -299,26 +278,6 @@ void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
 
-float (*BKE_mesh_vert_coords_alloc(const struct Mesh *mesh, int *r_vert_len))[3];
-
-void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
-                                          const float (*vert_coords)[3],
-                                          const float mat[4][4]);
-void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
-
-/* *** mesh_tessellate.cc *** */
-
-/**
- * See #bke::mesh::looptris_calc
- */
-void BKE_mesh_recalc_looptri(const int *corner_verts,
-                             const int *face_offsets,
-                             const float (*vert_positions)[3],
-                             int totvert,
-                             int totloop,
-                             int faces_num,
-                             struct MLoopTri *mlooptri);
-
 /* *** mesh_normals.cc *** */
 
 /** Return true if the mesh vertex normals either are not stored or are dirty. */
@@ -326,11 +285,6 @@ bool BKE_mesh_vert_normals_are_dirty(const struct Mesh *mesh);
 
 /** Return true if the mesh face normals either are not stored or are dirty. */
 bool BKE_mesh_face_normals_are_dirty(const struct Mesh *mesh);
-
-/**
- * Called after calculating all modifiers.
- */
-void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
 
 /**
  * References a contiguous loop-fan with normal offset vars.
@@ -455,18 +409,6 @@ void BKE_mesh_normals_loop_to_vertex(int numVerts,
  */
 bool BKE_mesh_has_custom_loop_normals(struct Mesh *me);
 
-void BKE_mesh_calc_normals_split(struct Mesh *mesh);
-/**
- * Compute 'split' (aka loop, or per face corner's) normals.
- *
- * \param r_lnors_spacearr: Allows to get computed loop normal space array.
- * That data, among other things, contains 'smooth fan' info, useful e.g.
- * to split geometry along sharp edges.
- */
-void BKE_mesh_calc_normals_split_ex(const struct Mesh *mesh,
-                                    struct MLoopNorSpaceArray *r_lnors_spacearr,
-                                    float (*r_corner_normals)[3]);
-
 /**
  * Higher level functions hiding most of the code needed around call to
  * #normals_loop_custom_set().
@@ -539,6 +481,7 @@ void BKE_mesh_flush_hidden_from_faces(struct Mesh *me);
 
 void BKE_mesh_flush_select_from_faces(struct Mesh *me);
 void BKE_mesh_flush_select_from_verts(struct Mesh *me);
+void BKE_mesh_flush_select_from_edges(struct Mesh *me);
 
 /* spatial evaluation */
 /**
@@ -588,16 +531,6 @@ bool BKE_mesh_validate_material_indices(struct Mesh *me);
  * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
  *
  * \return false if no changes needed to be made.
- *
- * Vertex Normals
- * ==============
- *
- * While zeroed normals are checked, these checks aren't comprehensive.
- * Technically, to detect errors here a normal recalculation and comparison is necessary.
- * However this function is mainly to prevent severe errors in geometry
- * (invalid data that will crash Blender, or cause some features to behave incorrectly),
- * not to detect subtle differences in the resulting normals which could be caused
- * by importers that load normals (for example).
  */
 bool BKE_mesh_validate_arrays(struct Mesh *me,
                               float (*vert_positions)[3],
@@ -648,8 +581,7 @@ void BKE_mesh_calc_edges(struct Mesh *mesh, bool keep_existing_edges, bool selec
 void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 
 /* In DerivedMesh.cc */
-void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval,
-                                              const struct CustomData_MeshMasks *cd_mask_finalize);
+void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval);
 
 /* **** Depsgraph evaluation **** */
 
@@ -697,22 +629,6 @@ BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
   }
   return (int *)CustomData_add_layer_named(
       &mesh->face_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
-}
-
-BLI_INLINE const float (*BKE_mesh_vert_positions(const Mesh *mesh))[3]
-{
-  return (const float(*)[3])CustomData_get_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT3, "position");
-}
-
-BLI_INLINE const int *BKE_mesh_face_offsets(const Mesh *mesh)
-{
-  return mesh->face_offset_indices;
-}
-
-BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
-{
-  return (const int *)CustomData_get_layer_named(&mesh->loop_data, CD_PROP_INT32, ".corner_vert");
 }
 
 BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)

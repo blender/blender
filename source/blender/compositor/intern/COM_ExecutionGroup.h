@@ -305,15 +305,15 @@ class ExecutionGroup {
   void init_execution();
 
   /**
-   * \brief get all inputbuffers needed to calculate an chunk
-   * \note all inputbuffers must be executed
+   * \brief get all input-buffers needed to calculate an chunk
+   * \note all input-buffers must be executed
    * \param chunk_number: the chunk to be calculated
    * \return `(MemoryBuffer **)` the input-buffers.
    */
   MemoryBuffer **get_input_buffers_opencl(int chunk_number);
 
   /**
-   * \brief allocate the outputbuffer of a chunk
+   * \brief allocate the output-buffer of a chunk
    * \param chunk_number: the number of the chunk in the ExecutionGroup
    * \param rect: the rect of that chunk
    * \see determine_chunk_rect

@@ -14,10 +14,10 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"

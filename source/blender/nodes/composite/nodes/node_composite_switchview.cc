@@ -6,7 +6,7 @@
  * \ingroup cmpnodes
  */
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 
 #include "UI_interface.hh"
@@ -20,13 +20,16 @@
 
 namespace blender::nodes::node_composite_switchview_cc {
 
-static void node_declare_dynamic(const bNodeTree & /*ntree*/,
-                                 const bNode &node,
-                                 NodeDeclaration &r_declaration)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  Scene *scene = reinterpret_cast<Scene *>(node.id);
-  NodeDeclarationBuilder builder(r_declaration);
-  builder.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>(N_("Image"));
+
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
+
+  Scene *scene = reinterpret_cast<Scene *>(node->id);
 
   if (scene != nullptr) {
     /* add the new views */
@@ -34,7 +37,7 @@ static void node_declare_dynamic(const bNodeTree & /*ntree*/,
       if (srv->viewflag & SCE_VIEW_DISABLE) {
         continue;
       }
-      builder.add_input<decl::Color>(N_(srv->name)).default_value({0.0f, 0.0f, 0.0f, 1.0f});
+      b.add_input<decl::Color>(N_(srv->name)).default_value({0.0f, 0.0f, 0.0f, 1.0f});
     }
   }
 }
@@ -99,7 +102,7 @@ void register_node_type_cmp_switch_view()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
-  ntype.declare_dynamic = file_ns::node_declare_dynamic;
+  ntype.declare = file_ns::node_declare;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
   ntype.initfunc_api = file_ns::init_switch_view;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

@@ -18,7 +18,7 @@ namespace blender::nodes::node_geo_tool_set_selection_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Bool>("Selection").default_value(true).field_on_all();
   b.add_output<decl::Geometry>("Geometry");
 }
 
@@ -37,20 +37,41 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!check_tool_context_and_error(params)) {
     return;
   }
+  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
+  if (params.user_data()->call_data->operator_data->mode == OB_MODE_OBJECT) {
+    params.error_message_add(NodeWarningType::Error,
+                             "Selection control is not supported in object mode");
+    params.set_output("Geometry", std::move(geometry));
+    return;
+  }
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
   const eAttrDomain domain = eAttrDomain(params.node().custom1);
-  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   geometry.modify_geometry_sets([&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       switch (domain) {
         case ATTR_DOMAIN_POINT:
+          /* Remove attributes in case they are on the wrong domain, which can happen after
+           * conversion to and from other geometry types. */
+          mesh->attributes_for_write().remove(".select_edge");
+          mesh->attributes_for_write().remove(".select_poly");
           bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                              ".select_vert",
                                              ATTR_DOMAIN_POINT,
                                              selection);
           BKE_mesh_flush_select_from_verts(mesh);
           break;
+        case ATTR_DOMAIN_EDGE:
+          bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
+                                             ".select_edge",
+                                             ATTR_DOMAIN_EDGE,
+                                             selection);
+          BKE_mesh_flush_select_from_edges(mesh);
+          break;
         case ATTR_DOMAIN_FACE:
+          /* Remove attributes in case they are on the wrong domain, which can happen after
+           * conversion to and from other geometry types. */
+          mesh->attributes_for_write().remove(".select_vert");
+          mesh->attributes_for_write().remove(".select_edge");
           bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                              ".select_poly",
                                              ATTR_DOMAIN_FACE,
@@ -85,7 +106,7 @@ static void node_rna(StructRNA *srna)
                     "domain",
                     "Domain",
                     "",
-                    rna_enum_attribute_domain_point_face_curve_items,
+                    rna_enum_attribute_domain_point_edge_face_curve_items,
                     NOD_inline_enum_accessors(custom1),
                     ATTR_DOMAIN_POINT);
 }

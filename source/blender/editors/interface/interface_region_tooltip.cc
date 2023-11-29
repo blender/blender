@@ -33,7 +33,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
 
@@ -66,8 +66,8 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
-#define UI_TIP_PAD_FAC 1.3f
-#define UI_TIP_PADDING int(UI_TIP_PAD_FAC * UI_UNIT_Y)
+#define UI_TIP_SPACER 0.3f
+#define UI_TIP_PADDING int(1.3f * UI_UNIT_Y)
 #define UI_TIP_MAXWIDTH 600
 #define UI_TIP_MAXIMAGEWIDTH 500
 #define UI_TIP_MAXIMAGEHEIGHT 300
@@ -76,7 +76,6 @@
 struct uiTooltipFormat {
   uiTooltipStyle style;
   uiTooltipColorID color_id;
-  bool is_pad;
 };
 
 struct uiTooltipField {
@@ -121,11 +120,16 @@ void UI_tooltip_text_field_add(uiTooltipData *data,
                                const uiTooltipColorID color_id,
                                const bool is_pad)
 {
+  if (is_pad) {
+    /* Add a spacer field before this one. */
+    UI_tooltip_text_field_add(
+        data, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
+  }
+
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = style;
   field->format.color_id = color_id;
-  field->format.is_pad = is_pad;
   field->text = text;
   field->text_suffix = suffix;
 }
@@ -215,8 +219,6 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 
   for (int i = 0; i < data->fields_len; i++) {
     const uiTooltipField *field = &data->fields[i];
-    const uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] :
-                                                                     nullptr;
 
     bbox.ymin = bbox.ymax - (data->lineh * field->geom.lines);
     if (field->format.style == UI_TIP_STYLE_HEADER) {
@@ -280,6 +282,9 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 
       GPU_blend(GPU_BLEND_ALPHA);
     }
+    else if (field->format.style == UI_TIP_STYLE_SPACER) {
+      bbox.ymax -= data->lineh * UI_TIP_SPACER;
+    }
     else {
       BLI_assert(field->format.style == UI_TIP_STYLE_NORMAL);
       uiFontStyleDraw_Params fs_params{};
@@ -293,10 +298,6 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
     }
 
     bbox.ymax -= data->lineh * field->geom.lines;
-
-    if (field_next && field_next->format.is_pad) {
-      bbox.ymax -= data->lineh * (UI_TIP_PAD_FAC - 1);
-    }
   }
 
   BLF_disable(data->fstyle.uifont_id, BLF_WORD_WRAP);
@@ -1223,8 +1224,6 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   int i, fonth, fontw;
   for (i = 0, fontw = 0, fonth = 0; i < data->fields_len; i++) {
     uiTooltipField *field = &data->fields[i];
-    uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : nullptr;
-
     ResultBLF info = {0};
     int w = 0;
     int x_pos = 0;
@@ -1249,8 +1248,9 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     }
 
     fonth += h * info.lines;
-    if (field_next && field_next->format.is_pad) {
-      fonth += h * (UI_TIP_PAD_FAC - 1);
+
+    if (field->format.style == UI_TIP_STYLE_SPACER) {
+      fonth += h * UI_TIP_SPACER;
     }
 
     if (field->format.style == UI_TIP_STYLE_IMAGE) {

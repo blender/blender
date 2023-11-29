@@ -7,12 +7,12 @@
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
+#include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "BLI_listbase.h"
@@ -137,7 +137,9 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         const Span<float3> positions = mesh->vert_positions();
         EXPECT_V3_NEAR(positions.first(), exp.vert_first, 0.0001f);
         EXPECT_V3_NEAR(positions.last(), exp.vert_last, 0.0001f);
-        const float3 *lnors = (const float3 *)CustomData_get_layer(&mesh->loop_data, CD_NORMAL);
+        const float3 *lnors = mesh->normals_domain() == bke::MeshNormalDomain::Corner ?
+                                  mesh->corner_normals().data() :
+                                  nullptr;
         float3 normal_first = lnors != nullptr ? lnors[0] : float3(0, 0, 0);
         EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
         const float2 *mloopuv = static_cast<const float2 *>(

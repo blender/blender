@@ -16,7 +16,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_layer.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 
 namespace blender::io::alembic {
 

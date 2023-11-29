@@ -58,9 +58,9 @@ void bmesh_edge_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 void bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 {
   BLI_assert(e->v1 == v_src || e->v2 == v_src);
-  bmesh_disk_edge_remove(e, v_src);      /* remove e from tv's disk cycle */
-  bmesh_disk_vert_swap(e, v_dst, v_src); /* swap out tv for v_new in e */
-  bmesh_disk_edge_append(e, v_dst);      /* add e to v_dst's disk cycle */
+  bmesh_disk_edge_remove(e, v_src);      /* Remove `e` from `v_src` disk cycle. */
+  bmesh_disk_vert_swap(e, v_dst, v_src); /* Swap out `v_src` for `v_dst` in `e`. */
+  bmesh_disk_edge_append(e, v_dst);      /* Add `e` to `v_dst` disk cycle. */
   BLI_assert(e->v1 != e->v2);
 }
 

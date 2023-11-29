@@ -184,6 +184,9 @@ void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *framebuffer,
  * This enables a number of bandwidth optimizations specially on Tile Based Deferred Renderers
  * where the attachments can be kept into tile memory and used in place for later sub-passes.
  *
+ * IMPORTANT: When using this, the framebuffer initial state is undefined. A sub-pass transition
+ * need to be issued before any draw-call.
+ *
  * Example:
  * \code{.c}
  * GPU_framebuffer_bind_loadstore(&fb, {

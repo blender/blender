@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifndef WITH_VULKAN_BACKEND
+#  error "ContextVK requires WITH_VULKAN_BACKEND"
+#endif
+
 #include "GHOST_Context.hh"
 
 #ifdef _WIN32
@@ -42,6 +46,10 @@ typedef enum {
 #endif
 } GHOST_TVulkanPlatformType;
 
+struct GHOST_ContextVK_WindowInfo {
+  int size[2];
+};
+
 class GHOST_ContextVK : public GHOST_Context {
  public:
   /**
@@ -61,6 +69,7 @@ class GHOST_ContextVK : public GHOST_Context {
                   /* Wayland */
                   wl_surface *wayland_surface,
                   wl_display *wayland_display,
+                  const GHOST_ContextVK_WindowInfo *wayland_window_info,
 #endif
                   int contextMajorVersion,
                   int contextMinorVersion,
@@ -75,32 +84,32 @@ class GHOST_ContextVK : public GHOST_Context {
    * Swaps front and back buffers of a window.
    * \return  A boolean success indicator.
    */
-  GHOST_TSuccess swapBuffers();
+  GHOST_TSuccess swapBuffers() override;
 
   /**
    * Activates the drawing context of this window.
    * \return  A boolean success indicator.
    */
-  GHOST_TSuccess activateDrawingContext();
+  GHOST_TSuccess activateDrawingContext() override;
 
   /**
    * Release the drawing context of the calling thread.
    * \return  A boolean success indicator.
    */
-  GHOST_TSuccess releaseDrawingContext();
+  GHOST_TSuccess releaseDrawingContext() override;
 
   /**
    * Call immediately after new to initialize.  If this fails then immediately delete the object.
    * \return Indication as to whether initialization has succeeded.
    */
-  GHOST_TSuccess initializeDrawingContext();
+  GHOST_TSuccess initializeDrawingContext() override;
 
   /**
    * Removes references to native handles from this context and then returns
    * \return GHOST_kSuccess if it is OK for the parent to release the handles and
    * GHOST_kFailure if releasing the handles will interfere with sharing
    */
-  GHOST_TSuccess releaseNativeHandles();
+  GHOST_TSuccess releaseNativeHandles() override;
 
   /**
    * Gets the Vulkan context related resource handles.
@@ -110,7 +119,7 @@ class GHOST_ContextVK : public GHOST_Context {
                                   void *r_physical_device,
                                   void *r_device,
                                   uint32_t *r_graphic_queue_family,
-                                  void *r_queue);
+                                  void *r_queue) override;
 
   GHOST_TSuccess getVulkanSwapChainFormat(GHOST_VulkanSwapChainData *r_swap_chain_data) override;
 
@@ -123,7 +132,7 @@ class GHOST_ContextVK : public GHOST_Context {
    * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess setSwapInterval(int /* interval */)
+  GHOST_TSuccess setSwapInterval(int /*interval*/) override
   {
     return GHOST_kFailure;
   }
@@ -133,7 +142,7 @@ class GHOST_ContextVK : public GHOST_Context {
    * \param intervalOut: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &)
+  GHOST_TSuccess getSwapInterval(int & /*intervalOut*/) override
   {
     return GHOST_kFailure;
   };
@@ -151,6 +160,7 @@ class GHOST_ContextVK : public GHOST_Context {
   /* Wayland */
   wl_surface *m_wayland_surface;
   wl_display *m_wayland_display;
+  const GHOST_ContextVK_WindowInfo *m_wayland_window_info;
 #endif
 
   const int m_context_major_version;
@@ -169,6 +179,7 @@ class GHOST_ContextVK : public GHOST_Context {
   std::vector<VkImage> m_swapchain_images;
 
   VkExtent2D m_render_extent;
+  VkExtent2D m_render_extent_min;
   VkSurfaceFormatKHR m_surface_format;
   VkFence m_fence;
 

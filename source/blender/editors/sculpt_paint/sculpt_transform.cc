@@ -10,12 +10,14 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 
 #include "DNA_meshdata_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_kelvinlet.h"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -38,6 +40,9 @@
 
 #include <cmath>
 #include <cstdlib>
+
+using blender::float3;
+using blender::MutableSpan;
 
 void ED_sculpt_init_transform(bContext *C,
                               Object *ob,
@@ -207,7 +212,7 @@ static void sculpt_elastic_transform_task(Object *ob,
 
   SculptSession *ss = ob->sculpt;
 
-  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
@@ -315,9 +320,7 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
         transform_radius = BKE_brush_unprojected_radius_get(scene, brush);
       }
       else {
-        ViewContext vc;
-
-        ED_view3d_viewcontext_init(C, &vc, depsgraph);
+        ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         transform_radius = paint_calc_object_space_radius(
             &vc, ss->init_pivot_pos, BKE_brush_size_get(scene, brush));

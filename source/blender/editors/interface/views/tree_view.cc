@@ -9,7 +9,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLT_translation.h"
 
@@ -242,8 +242,9 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
 
 /* ---------------------------------------------------------------------- */
 
-TreeViewItemDropTarget::TreeViewItemDropTarget(AbstractTreeView &view, DropBehavior behavior)
-    : view_(view), behavior_(behavior)
+TreeViewItemDropTarget::TreeViewItemDropTarget(AbstractTreeViewItem &view_item,
+                                               DropBehavior behavior)
+    : view_item_(view_item), behavior_(behavior)
 {
 }
 
@@ -254,12 +255,11 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
     return DropLocation::Into;
   }
 
-  const AbstractTreeViewItem *hovered_item = view_.find_hovered(region, event.xy);
-  if (!hovered_item) {
+  std::optional<rctf> win_rect = view_item_.get_win_rect(region);
+  if (!win_rect) {
+    BLI_assert_unreachable();
     return std::nullopt;
   }
-  std::optional<rctf> win_rect = hovered_item->get_win_rect(region);
-  BLI_assert(win_rect.has_value());
   const float item_height = BLI_rctf_size_y(&*win_rect);
 
   BLI_assert(ELEM(behavior_, DropBehavior::Reorder, DropBehavior::ReorderAndInsert));
@@ -276,8 +276,8 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
     return DropLocation::Before;
   }
   if (event.xy[1] - win_rect->ymin <= segment_height) {
-    if (behavior_ == DropBehavior::ReorderAndInsert && hovered_item->is_collapsible() &&
-        !hovered_item->is_collapsed())
+    if (behavior_ == DropBehavior::ReorderAndInsert && view_item_.is_collapsible() &&
+        !view_item_.is_collapsed())
     {
       /* Special case: Dropping at the lower 3rd of an uncollapsed item should insert into it, not
        * after. */
@@ -361,12 +361,6 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   }
 }
 
-bool AbstractTreeViewItem::is_collapse_chevron_but(const uiBut *but)
-{
-  return but->type == UI_BTYPE_BUT_TOGGLE && ELEM(but->icon, ICON_TRIA_RIGHT, ICON_TRIA_DOWN) &&
-         (but->func == collapse_chevron_click_fn);
-}
-
 void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
 {
   if (!is_collapsible()) {
@@ -379,9 +373,6 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
   /* Note that we're passing the tree-row button here, not the chevron one. */
   UI_but_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
   UI_but_flag_disable(but, UI_BUT_UNDO);
-
-  /* Check if the query for the button matches the created button. */
-  BLI_assert(is_collapse_chevron_but(but));
 }
 
 void AbstractTreeViewItem::add_rename_button(uiLayout &row)
@@ -502,7 +493,7 @@ bool AbstractTreeViewItem::is_hovered() const
    * Get the matching button from the previous redraw instead. */
   uiButViewItem *old_item_but = ui_block_view_find_matching_view_item_but_in_old_block(
       view_item_but_->block, this_item_handle);
-  return old_item_but && (old_item_but->flag & UI_ACTIVE);
+  return old_item_but && (old_item_but->flag & UI_HOVER);
 }
 
 bool AbstractTreeViewItem::is_collapsed() const
@@ -577,8 +568,6 @@ class TreeViewLayoutBuilder {
  private:
   /* Created through #TreeViewBuilder (friend class). */
   TreeViewLayoutBuilder(uiLayout &layout);
-
-  static void polish_layout(const uiBlock &block);
 };
 
 TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
@@ -597,22 +586,6 @@ void TreeViewLayoutBuilder::build_from_tree(const AbstractTreeView &tree_view)
                              AbstractTreeView::IterOptions::SkipFiltered);
 
   UI_block_layout_set_current(&block(), &parent_layout);
-}
-
-void TreeViewLayoutBuilder::polish_layout(const uiBlock &block)
-{
-  LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block.buttons) {
-    if (AbstractTreeViewItem::is_collapse_chevron_but(but) && but->next &&
-        /* Embossed buttons with padding-less text padding look weird, so don't touch them. */
-        ELEM(but->next->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS))
-    {
-      UI_but_drawflag_enable(static_cast<uiBut *>(but->next), UI_BUT_NO_TEXT_PADDING);
-    }
-
-    if (but->type == UI_BTYPE_VIEW_ITEM) {
-      break;
-    }
-  }
 }
 
 void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
@@ -649,7 +622,6 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   else {
     item.build_row(*row);
   }
-  polish_layout(block_);
 
   UI_block_emboss_set(&block_, previous_emboss);
   UI_block_layout_set_current(&block_, &prev_layout);

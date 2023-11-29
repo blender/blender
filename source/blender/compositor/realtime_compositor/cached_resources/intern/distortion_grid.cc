@@ -20,7 +20,9 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
+#include "COM_context.hh"
 #include "COM_distortion_grid.hh"
+#include "COM_result.hh"
 
 namespace blender::realtime_compositor {
 
@@ -52,10 +54,8 @@ bool operator==(const DistortionGridKey &a, const DistortionGridKey &b)
  * Distortion Grid.
  */
 
-DistortionGrid::DistortionGrid(MovieClip *movie_clip,
-                               int2 size,
-                               DistortionType type,
-                               int2 calibration_size)
+DistortionGrid::DistortionGrid(
+    Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int2 calibration_size)
 {
   MovieDistortion *distortion = BKE_tracking_distortion_new(
       &movie_clip->tracking, calibration_size.x, calibration_size.y);
@@ -88,13 +88,14 @@ DistortionGrid::DistortionGrid(MovieClip *movie_clip,
 
   BKE_tracking_distortion_free(distortion);
 
-  texture_ = GPU_texture_create_2d("Distortion Grid",
-                                   size.x,
-                                   size.y,
-                                   1,
-                                   GPU_RG16F,
-                                   GPU_TEXTURE_USAGE_SHADER_READ,
-                                   *distortion_grid.data());
+  texture_ = GPU_texture_create_2d(
+      "Distortion Grid",
+      size.x,
+      size.y,
+      1,
+      Result::texture_format(ResultType::Float2, context.get_precision()),
+      GPU_TEXTURE_USAGE_SHADER_READ,
+      *distortion_grid.data());
 }
 
 DistortionGrid::~DistortionGrid()
@@ -140,17 +141,15 @@ static int2 get_movie_clip_size(MovieClip *movie_clip, int frame_number)
   return size;
 }
 
-DistortionGrid &DistortionGridContainer::get(MovieClip *movie_clip,
-                                             int2 size,
-                                             DistortionType type,
-                                             int frame_number)
+DistortionGrid &DistortionGridContainer::get(
+    Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int frame_number)
 {
   const int2 calibration_size = get_movie_clip_size(movie_clip, frame_number);
 
   const DistortionGridKey key(movie_clip->tracking.camera, size, type, calibration_size);
 
   auto &distortion_grid = *map_.lookup_or_add_cb(key, [&]() {
-    return std::make_unique<DistortionGrid>(movie_clip, size, type, calibration_size);
+    return std::make_unique<DistortionGrid>(context, movie_clip, size, type, calibration_size);
   });
 
   distortion_grid.needed = true;

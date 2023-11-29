@@ -8,7 +8,7 @@
 
 #include "BLI_vector_set.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "DNA_object_types.h"
@@ -34,12 +34,19 @@ static int select_all_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
+  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
-        blender::ed::curves::select_all(drawing.strokes_for_write(), selection_domain, action);
-      });
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selectable_elements = retrieve_editable_elements(
+        *object, info.drawing, selection_domain, memory);
+    if (selectable_elements.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_all(
+        info.drawing.strokes_for_write(), selectable_elements, selection_domain, action);
+  });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
@@ -69,10 +76,17 @@ static int select_more_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
-        blender::ed::curves::select_adjacent(drawing.strokes_for_write(), false);
-      });
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_adjacent(
+        info.drawing.strokes_for_write(), selectable_strokes, false);
+  });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
@@ -100,10 +114,17 @@ static int select_less_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
-        blender::ed::curves::select_adjacent(drawing.strokes_for_write(), true);
-      });
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_adjacent(
+        info.drawing.strokes_for_write(), selectable_strokes, true);
+  });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
@@ -131,10 +152,16 @@ static int select_linked_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
-        blender::ed::curves::select_linked(drawing.strokes_for_write());
-      });
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+    blender::ed::curves::select_linked(info.drawing.strokes_for_write(), selectable_strokes);
+  });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
@@ -164,30 +191,38 @@ static int select_random_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
+  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int drawing_index, bke::greasepencil::Drawing &drawing) {
-        bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
-        IndexMaskMemory memory;
-        const IndexMask random_elements = ed::curves::random_mask(
-            curves,
-            selection_domain,
-            blender::get_default_hash_2<int>(seed, drawing_index),
-            ratio,
-            memory);
+    IndexMaskMemory memory;
+    const IndexMask selectable_elements = retrieve_editable_elements(
+        *object, info.drawing, selection_domain, memory);
+    if (selectable_elements.is_empty()) {
+      return;
+    }
 
-        const bool was_anything_selected = ed::curves::has_anything_selected(curves);
-        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-            curves, selection_domain, CD_PROP_BOOL);
-        if (!was_anything_selected) {
-          curves::fill_selection_true(selection.span);
-        }
+    const IndexMask random_elements = ed::curves::random_mask(
+        curves,
+        selectable_elements,
+        selection_domain,
+        blender::get_default_hash_2<int>(seed, info.layer_index),
+        ratio,
+        memory);
 
-        curves::fill_selection_false(selection.span, random_elements);
-        selection.finish();
-      });
+    const bool was_anything_selected = ed::curves::has_anything_selected(curves,
+                                                                         selectable_elements);
+    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+        curves, selection_domain, CD_PROP_BOOL);
+    if (!was_anything_selected) {
+      curves::fill_selection_true(selection.span, selectable_elements);
+    }
+
+    curves::fill_selection_false(selection.span, random_elements);
+    selection.finish();
+  });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
@@ -218,10 +253,10 @@ static int select_alternate_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
-        blender::ed::curves::select_alternate(drawing.strokes_for_write(), deselect_ends);
-      });
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    blender::ed::curves::select_alternate(info.drawing.strokes_for_write(), deselect_ends);
+  });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
@@ -257,29 +292,37 @@ static int select_ends_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
-        bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
-        IndexMaskMemory memory;
-        const IndexMask inverted_end_points_mask = ed::curves::end_points(
-            curves, amount_start, amount_end, true, memory);
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+    const IndexMask inverted_end_points_mask = ed::curves::end_points(
+        curves, selectable_strokes, amount_start, amount_end, true, memory);
 
-        const bool was_anything_selected = ed::curves::has_anything_selected(curves);
-        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-            curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
-        if (!was_anything_selected) {
-          ed::curves::fill_selection_true(selection.span);
-        }
+    const IndexMask selectable_points = ed::greasepencil::retrieve_editable_points(
+        *object, info.drawing, memory);
+    const bool was_anything_selected = ed::curves::has_anything_selected(curves,
+                                                                         selectable_points);
+    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+        curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+    if (!was_anything_selected) {
+      ed::curves::fill_selection_true(selection.span, selectable_points);
+    }
 
-        if (selection.span.type().is<bool>()) {
-          index_mask::masked_fill(selection.span.typed<bool>(), false, inverted_end_points_mask);
-        }
-        if (selection.span.type().is<float>()) {
-          index_mask::masked_fill(selection.span.typed<float>(), 0.0f, inverted_end_points_mask);
-        }
-        selection.finish();
-      });
+    if (selection.span.type().is<bool>()) {
+      index_mask::masked_fill(selection.span.typed<bool>(), false, inverted_end_points_mask);
+    }
+    if (selection.span.type().is<float>()) {
+      index_mask::masked_fill(selection.span.typed<float>(), 0.0f, inverted_end_points_mask);
+    }
+    selection.finish();
+  });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
@@ -327,14 +370,15 @@ static int select_set_mode_exec(bContext *C, wmOperator *op)
   /* Set new selection mode. */
   const int mode_new = RNA_enum_get(op->ptr, "mode");
   ToolSettings *ts = CTX_data_tool_settings(C);
+
+  bool changed = (mode_new != ts->gpencil_selectmode_edit);
   ts->gpencil_selectmode_edit = mode_new;
 
   /* Convert all drawings of the active GP to the new selection domain. */
-  const eAttrDomain domain = ED_grease_pencil_selection_domain_get(C);
+  const eAttrDomain domain = ED_grease_pencil_selection_domain_get(ts);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   Span<GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
-  bool changed = false;
 
   for (const int index : drawings.index_range()) {
     GreasePencilDrawingBase *drawing_base = drawings[index];
@@ -417,11 +461,9 @@ static void GREASE_PENCIL_OT_set_selection_mode(wmOperatorType *ot)
 
 }  // namespace blender::ed::greasepencil
 
-eAttrDomain ED_grease_pencil_selection_domain_get(bContext *C)
+eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings)
 {
-  ToolSettings *ts = CTX_data_tool_settings(C);
-
-  switch (ts->gpencil_selectmode_edit) {
+  switch (tool_settings->gpencil_selectmode_edit) {
     case GP_SELECTMODE_POINT:
       return ATTR_DOMAIN_POINT;
       break;

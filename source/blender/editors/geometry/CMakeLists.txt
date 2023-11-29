@@ -8,8 +8,6 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
-  ../../functions
   ../../makesrna
   ../../nodes
   ../../windowmanager
@@ -33,9 +31,10 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
-  bf_depsgraph
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_object
+  PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
   bf_windowmanager
 )

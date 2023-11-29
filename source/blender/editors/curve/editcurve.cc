@@ -25,8 +25,8 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -34,7 +34,8 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
+#include "BKE_object_types.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
@@ -4792,7 +4793,6 @@ bool ED_curve_editnurb_select_pick(bContext *C,
                                    const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Nurb *nu;
   BezTriple *bezt = nullptr;
   BPoint *bp = nullptr;
@@ -4801,7 +4801,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   bool changed = false;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
   const bool use_handle_select = (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
@@ -5616,15 +5616,14 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   if (vc.rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
     Curve *cu;
     float location[3];
     const bool use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
-                           (vc.scene->toolsettings->snap_mode == SCE_SNAP_TO_FACE));
+                           (vc.scene->toolsettings->snap_mode &
+                            (SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_PROJECT)));
 
     Nurb *nu;
     BezTriple *bezt;
@@ -5705,7 +5704,12 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     RNA_float_set_array(op->ptr, "location", location);
   }
 
-  return add_vertex_exec(C, op);
+  /* Support dragging to move after extrude, see: #114282. */
+  int retval = add_vertex_exec(C, op);
+  if (retval & OPERATOR_FINISHED) {
+    retval |= OPERATOR_PASS_THROUGH;
+  }
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void CURVE_OT_vertex_add(wmOperatorType *ot)
@@ -7141,10 +7145,10 @@ static int match_texture_space_exec(bContext *C, wmOperator * /*op*/)
   float min[3], max[3], texspace_size[3], texspace_location[3];
   int a;
 
-  BLI_assert(object_eval->runtime.curve_cache != nullptr);
+  BLI_assert(object_eval->runtime->curve_cache != nullptr);
 
   INIT_MINMAX(min, max);
-  BKE_displist_minmax(&object_eval->runtime.curve_cache->disp, min, max);
+  BKE_displist_minmax(&object_eval->runtime->curve_cache->disp, min, max);
 
   mid_v3_v3v3(texspace_location, min, max);
 

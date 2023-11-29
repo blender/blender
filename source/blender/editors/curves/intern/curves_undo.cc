@@ -8,10 +8,10 @@
 
 #include "BLI_task.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_undo_system.h"
 
 #include "CLG_log.h"
@@ -43,6 +43,8 @@ struct StepObject {
 
 struct CurvesUndoStep {
   UndoStep step;
+  /** See #ED_undo_object_editmode_validate_scene_from_windows code comment for details. */
+  UndoRefID_Scene scene_ref = {};
   Array<StepObject> objects;
 };
 
@@ -50,11 +52,12 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   CurvesUndoStep *us = reinterpret_cast<CurvesUndoStep *>(us_p);
 
-  const Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_num = 0;
   Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_num);
 
+  us->scene_ref.ptr = scene;
   new (&us->objects) Array<StepObject>(objects_num);
 
   threading::parallel_for(us->objects.index_range(), 8, [&](const IndexRange range) {
@@ -78,8 +81,13 @@ static void step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
   CurvesUndoStep *us = reinterpret_cast<CurvesUndoStep *>(us_p);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  ED_undo_object_editmode_restore_helper(C,
+  ED_undo_object_editmode_validate_scene_from_windows(
+      CTX_wm_manager(C), us->scene_ref.ptr, &scene, &view_layer);
+  ED_undo_object_editmode_restore_helper(scene,
+                                         view_layer,
                                          &us->objects.first().obedit_ref.ptr,
                                          us->objects.size(),
                                          sizeof(decltype(us->objects)::value_type));
@@ -95,11 +103,8 @@ static void step_decode(
     DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
   }
 
-  ED_undo_object_set_active_or_warn(CTX_data_scene(C),
-                                    CTX_data_view_layer(C),
-                                    us->objects.first().obedit_ref.ptr,
-                                    us_p->name,
-                                    &LOG);
+  ED_undo_object_set_active_or_warn(
+      scene, view_layer, us->objects.first().obedit_ref.ptr, us_p->name, &LOG);
 
   bmain->is_memfile_undo_flush_needed = true;
 
@@ -118,6 +123,7 @@ static void foreach_ID_ref(UndoStep *us_p,
 {
   CurvesUndoStep *us = reinterpret_cast<CurvesUndoStep *>(us_p);
 
+  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
   for (const StepObject &object : us->objects) {
     foreach_ID_ref_fn(user_data, ((UndoRefID *)&object.obedit_ref));
   }

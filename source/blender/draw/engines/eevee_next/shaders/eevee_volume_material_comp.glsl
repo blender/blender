@@ -5,12 +5,11 @@
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 
 /* Needed includes for shader nodes. */
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_attribute_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_occupancy_lib.glsl)
 
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
@@ -31,7 +30,7 @@ GlobalData init_globals(vec3 wP)
   surf.barycentric_dists = vec3(0.0);
   surf.ray_type = RAY_TYPE_CAMERA;
   surf.ray_depth = 0.0;
-  surf.ray_length = distance(surf.P, cameraPos);
+  surf.ray_length = distance(surf.P, drw_view_position());
   return surf;
 }
 
@@ -51,8 +50,23 @@ void main()
     return;
   }
 
+#ifdef MAT_GEOM_VOLUME_OBJECT
+  /** Check occupancy map. Discard thread if froxel is empty. */
+  /* Shift for 32bits per layer. Avoid integer modulo and division. */
+  const int shift = 5;
+  const int mask = int(~(0xFFFFFFFFu << 5u));
+  /* Divide by 32. */
+  int occupancy_layer = froxel.z >> shift;
+  /* Modulo 32. */
+  uint occupancy_shift = froxel.z & mask;
+  uint occupancy_bits = imageLoad(occupancy_img, ivec3(froxel.xy, occupancy_layer)).r;
+  if (((occupancy_bits >> occupancy_shift) & 1u) == 0u) {
+    return;
+  }
+#endif
+
   vec3 jitter = sampling_rng_3D_get(SAMPLING_VOLUME_U);
-  vec3 ndc_cell = volume_to_ndc((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
+  vec3 ndc_cell = volume_to_screen((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
 
   vec3 vP = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
   vec3 wP = point_view_to_world(vP);

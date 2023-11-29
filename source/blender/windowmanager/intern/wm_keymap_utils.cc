@@ -18,7 +18,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "RNA_access.hh"
 

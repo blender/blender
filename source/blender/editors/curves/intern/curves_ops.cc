@@ -29,8 +29,8 @@
 #include "WM_api.hh"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
@@ -39,7 +39,7 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_report.h"
@@ -572,8 +572,8 @@ static void CURVES_OT_convert_from_particle_system(wmOperatorType *ot)
 namespace snap_curves_to_surface {
 
 enum class AttachMode {
-  Nearest,
-  Deform,
+  Nearest = 0,
+  Deform = 1,
 };
 
 static void snap_curves_to_surface_exec_object(Object &curves_ob,
@@ -793,6 +793,16 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    /* Adding and removing attributes with the C++ API doesn't affect the active attribute index.
+     * In order to make the active attribute consistent before and after the change, save the name
+     * and reset the active item afterwards.
+     *
+     * This would be unnecessary if the active attribute were stored as a string on the ID. */
+    std::string active_attribute;
+    if (const CustomDataLayer *layer = BKE_id_attributes_active_get(&curves_id->id)) {
+      active_attribute = layer->name;
+    }
+
     if (const GVArray src = *attributes.lookup(".selection", domain)) {
       const CPPType &type = src.type();
       void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
@@ -807,6 +817,8 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
         MEM_freeN(dst);
       }
     }
+
+    BKE_id_attributes_active_set(&curves_id->id, active_attribute.c_str());
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -893,11 +905,12 @@ static int select_random_exec(bContext *C, wmOperator *op)
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
     const eAttrDomain selection_domain = eAttrDomain(curves_id->selection_domain);
+    const int domain_size = curves.attributes().domain_size(selection_domain);
 
     IndexMaskMemory memory;
     const IndexMask inv_random_elements = random_mask(
                                               curves, selection_domain, seed, probability, memory)
-                                              .complement(curves.points_range(), memory);
+                                              .complement(IndexRange(domain_size), memory);
 
     const bool was_anything_selected = has_anything_selected(curves);
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(
@@ -1236,6 +1249,7 @@ static void CURVES_OT_delete(wmOperatorType *ot)
 void ED_operatortypes_curves()
 {
   using namespace blender::ed::curves;
+  WM_operatortype_append(CURVES_OT_attribute_set);
   WM_operatortype_append(CURVES_OT_convert_to_particle_system);
   WM_operatortype_append(CURVES_OT_convert_from_particle_system);
   WM_operatortype_append(CURVES_OT_snap_curves_to_surface);
@@ -1255,5 +1269,5 @@ void ED_keymap_curves(wmKeyConfig *keyconf)
   using namespace blender::ed::curves;
   /* Only set in editmode curves, by space_view3d listener. */
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  keymap->poll = editable_curves_poll;
+  keymap->poll = editable_curves_in_edit_mode_poll;
 }

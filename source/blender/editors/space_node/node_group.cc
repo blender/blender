@@ -28,11 +28,11 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph_build.hh"
@@ -54,7 +54,7 @@
 #include "UI_resources.hh"
 
 #include "NOD_common.h"
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.hh"
@@ -268,7 +268,7 @@ static void update_nested_node_refs_after_ungroup(bNodeTree &ntree,
 /**
  * \return True if successful.
  */
-static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
+static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
   ListBase anim_basepaths = {nullptr, nullptr};
   Vector<bNode *> nodes_delayed_free;
@@ -448,11 +448,9 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
   /* delete the group instance and dereference group tree */
   nodeRemoveNode(bmain, ntree, gnode, true);
-
-  return true;
 }
 
-static int node_group_ungroup_exec(bContext *C, wmOperator *op)
+static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -460,19 +458,23 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  bNode *gnode = node_group_get_active(C, node_idname);
-  if (!gnode) {
+  blender::Vector<bNode *> nodes_to_ungroup;
+  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+    if (node->flag & NODE_SELECT) {
+      if (STREQ(node->idname, node_idname)) {
+        if (node->id != nullptr) {
+          nodes_to_ungroup.append(node);
+        }
+      }
+    }
+  }
+  if (nodes_to_ungroup.is_empty()) {
     return OPERATOR_CANCELLED;
   }
-
-  if (gnode->id && node_group_ungroup(bmain, snode->edittree, gnode)) {
-    ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
+  for (bNode *node : nodes_to_ungroup) {
+    node_group_ungroup(bmain, snode->edittree, node);
   }
-  else {
-    BKE_report(op->reports, RPT_WARNING, "Cannot ungroup");
-    return OPERATOR_CANCELLED;
-  }
-
+  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
   return OPERATOR_FINISHED;
 }
 

@@ -18,7 +18,7 @@ void main()
       vec3(uvs, scene_depth), volume_transmittance_tx, volume_scattering_tx);
 
   out_radiance = vec4(vol.scattering, 0.0);
-  out_transmittance = vec4(vol.transmittance, saturate(avg(vol.transmittance)));
+  out_transmittance = vec4(vol.transmittance, saturate(average(vol.transmittance)));
 
   if (uniform_buf.render_pass.volume_light_id >= 0) {
     imageStore(rp_color_img,

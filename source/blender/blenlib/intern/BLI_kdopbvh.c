@@ -142,15 +142,14 @@ typedef struct BVHRayCastData {
 } BVHRayCastData;
 
 typedef struct BVHNearestProjectedData {
-  const BVHTree *tree;
   struct DistProjectedAABBPrecalc precalc;
   bool closest_axis[3];
-  float clip_plane[6][4];
-  int clip_plane_len;
   BVHTree_NearestProjectedCallback callback;
   void *userdata;
   BVHTreeNearest nearest;
 
+  int clip_plane_len;
+  float clip_plane[0][4];
 } BVHNearestProjectedData;
 
 typedef struct BVHIntersectPlaneData {
@@ -2340,54 +2339,57 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
 {
   BVHNode *root = tree->nodes[tree->leaf_num];
   if (root != NULL) {
-    BVHNearestProjectedData data;
-    dist_squared_to_projected_aabb_precalc(&data.precalc, projmat, winsize, mval);
+    BVHNearestProjectedData *data = (BVHNearestProjectedData *)alloca(
+        sizeof(*data) + (sizeof(*clip_plane) * (size_t)max_ii(1, clip_plane_len)));
 
-    data.callback = callback;
-    data.userdata = userdata;
+    dist_squared_to_projected_aabb_precalc(&data->precalc, projmat, winsize, mval);
+
+    data->callback = callback;
+    data->userdata = userdata;
 
     if (clip_plane) {
-      data.clip_plane_len = clip_plane_len;
-      for (int i = 0; i < data.clip_plane_len; i++) {
-        copy_v4_v4(data.clip_plane[i], clip_plane[i]);
+      data->clip_plane_len = clip_plane_len;
+      for (int i = 0; i < clip_plane_len; i++) {
+        copy_v4_v4(data->clip_plane[i], clip_plane[i]);
       }
     }
     else {
-      data.clip_plane_len = 1;
-      planes_from_projmat(projmat, NULL, NULL, NULL, NULL, data.clip_plane[0], NULL);
+      data->clip_plane_len = 1;
+      planes_from_projmat(projmat, NULL, NULL, NULL, NULL, data->clip_plane[0], NULL);
     }
 
     if (nearest) {
-      memcpy(&data.nearest, nearest, sizeof(*nearest));
+      memcpy(&data->nearest, nearest, sizeof(*nearest));
     }
     else {
-      data.nearest.index = -1;
-      data.nearest.dist_sq = FLT_MAX;
+      data->nearest.index = -1;
+      data->nearest.dist_sq = FLT_MAX;
     }
     {
       const float bb_min[3] = {root->bv[0], root->bv[2], root->bv[4]};
       const float bb_max[3] = {root->bv[1], root->bv[3], root->bv[5]};
 
-      int isect_type = isect_aabb_planes_v3(data.clip_plane, data.clip_plane_len, bb_min, bb_max);
+      int isect_type = isect_aabb_planes_v3(
+          data->clip_plane, data->clip_plane_len, bb_min, bb_max);
 
       if (isect_type != 0 &&
-          dist_squared_to_projected_aabb(&data.precalc, bb_min, bb_max, data.closest_axis) <=
-              data.nearest.dist_sq)
+          dist_squared_to_projected_aabb(&data->precalc, bb_min, bb_max, data->closest_axis) <=
+              data->nearest.dist_sq)
       {
         if (isect_type == 1) {
-          bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(&data, root);
+          bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(data, root);
         }
         else {
-          bvhtree_nearest_projected_dfs_recursive(&data, root);
+          bvhtree_nearest_projected_dfs_recursive(data, root);
         }
       }
     }
 
     if (nearest) {
-      memcpy(nearest, &data.nearest, sizeof(*nearest));
+      memcpy(nearest, &data->nearest, sizeof(*nearest));
     }
 
-    return data.nearest.index;
+    return data->nearest.index;
   }
   return -1;
 }

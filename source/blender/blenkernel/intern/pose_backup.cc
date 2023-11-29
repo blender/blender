@@ -22,6 +22,7 @@
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_idprop.h"
+#include "BKE_object_types.hh"
 
 using namespace blender::bke;
 
@@ -142,24 +143,24 @@ void BKE_pose_backup_create_on_object(Object *ob, const bAction *action)
 {
   BKE_pose_backup_clear(ob);
   PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(ob, action);
-  ob->runtime.pose_backup = pose_backup;
+  ob->runtime->pose_backup = pose_backup;
 }
 
 bool BKE_pose_backup_restore_on_object(Object *ob)
 {
-  if (ob->runtime.pose_backup == nullptr) {
+  if (ob->runtime->pose_backup == nullptr) {
     return false;
   }
-  BKE_pose_backup_restore(ob->runtime.pose_backup);
+  BKE_pose_backup_restore(ob->runtime->pose_backup);
   return true;
 }
 
 void BKE_pose_backup_clear(Object *ob)
 {
-  if (ob->runtime.pose_backup == nullptr) {
+  if (ob->runtime->pose_backup == nullptr) {
     return;
   }
 
-  BKE_pose_backup_free(ob->runtime.pose_backup);
-  ob->runtime.pose_backup = nullptr;
+  BKE_pose_backup_free(ob->runtime->pose_backup);
+  ob->runtime->pose_backup = nullptr;
 }

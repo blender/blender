@@ -27,7 +27,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -98,38 +98,40 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
     ads = static_cast<bDopeSheet *>(ac->data);
   }
 
+  blender::float2 range = {ac->region->v2d.cur.xmin, ac->region->v2d.cur.xmax};
+
   if (ale->key_data) {
     switch (ale->datatype) {
       case ALE_SCE: {
         Scene *scene = (Scene *)ale->key_data;
-        scene_to_keylist(ads, scene, keylist, 0);
+        scene_to_keylist(ads, scene, keylist, 0, range);
         break;
       }
       case ALE_OB: {
         Object *ob = (Object *)ale->key_data;
-        ob_to_keylist(ads, ob, keylist, 0);
+        ob_to_keylist(ads, ob, keylist, 0, range);
         break;
       }
       case ALE_ACT: {
         bAction *act = (bAction *)ale->key_data;
-        action_to_keylist(adt, act, keylist, 0);
+        action_to_keylist(adt, act, keylist, 0, range);
         break;
       }
       case ALE_FCURVE: {
         FCurve *fcu = (FCurve *)ale->key_data;
-        fcurve_to_keylist(adt, fcu, keylist, 0);
+        fcurve_to_keylist(adt, fcu, keylist, 0, range);
         break;
       }
     }
   }
   else if (ale->type == ANIMTYPE_SUMMARY) {
     /* dopesheet summary covers everything */
-    summary_to_keylist(ac, keylist, 0);
+    summary_to_keylist(ac, keylist, 0, range);
   }
   else if (ale->type == ANIMTYPE_GROUP) {
     /* TODO: why don't we just give groups key_data too? */
     bActionGroup *agrp = (bActionGroup *)ale->data;
-    action_group_to_keylist(adt, agrp, keylist, 0);
+    action_group_to_keylist(adt, agrp, keylist, 0, range);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
     /* TODO: why don't we just give grease pencil layers key_data too? */

@@ -164,6 +164,31 @@ float safe_rcp(float a)
 }
 
 /**
+ * Safe square root function. Returns `sqrt(a)`.
+ * If `a` is less or equal to 0 then the result will be 0.
+ */
+float safe_sqrt(float a)
+{
+  return sqrt(max(0.0, a));
+}
+
+/**
+ * Safe `arccosine` function. Returns `acos(a)`.
+ * If `a` is greater than 1, returns 0.
+ * If `a` is less than -1, returns PI.
+ */
+float safe_acos(float a)
+{
+  if (a <= -1.0) {
+    return M_PI;
+  }
+  else if (a >= 1.0) {
+    return 0.0;
+  }
+  return acos(a);
+}
+
+/**
  * Return true if the difference between`a` and `b` is below the `epsilon` value.
  */
 bool is_equal(float a, float b, const float epsilon)

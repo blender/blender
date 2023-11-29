@@ -25,32 +25,35 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void edge_paths_to_selection(const Mesh &src_mesh,
                                     const IndexMask &start_selection,
                                     const Span<int> next_indices,
-                                    MutableSpan<bool> r_selection)
+                                    MutableSpan<bool> r_edge_selection)
 {
-  const Span<int2> edges = src_mesh.edges();
+  Array<bool> vert_selection(src_mesh.totvert, false);
 
-  Array<bool> selection(src_mesh.totvert);
-  start_selection.to_bools(selection);
-
-  start_selection.foreach_index([&](const int start_i) {
-    int iter = start_i;
-    while (iter != next_indices[iter] && !selection[next_indices[iter]]) {
-      if (next_indices[iter] < 0 || next_indices[iter] >= src_mesh.totvert) {
+  const IndexRange vert_range(src_mesh.totvert);
+  start_selection.foreach_index(GrainSize(2048), [&](const int start_vert) {
+    /* If vertex is selected, all next is already selected too. */
+    for (int current_vert = start_vert; !vert_selection[current_vert];
+         current_vert = next_indices[current_vert])
+    {
+      if (UNLIKELY(!vert_range.contains(current_vert))) {
         break;
       }
-      selection[next_indices[iter]] = true;
-      iter = next_indices[iter];
+      vert_selection[current_vert] = true;
     }
   });
 
-  for (const int i : edges.index_range()) {
-    const int2 &edge = edges[i];
-    if ((selection[edge[0]] && selection[edge[1]]) &&
-        (edge[0] == next_indices[edge[1]] || edge[1] == next_indices[edge[0]]))
-    {
-      r_selection[i] = true;
+  const Span<int2> edges = src_mesh.edges();
+  threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int2 edge = edges[i];
+      if (!(vert_selection[edge[0]] && vert_selection[edge[1]])) {
+        continue;
+      }
+      if (edge[0] == next_indices[edge[1]] || edge[1] == next_indices[edge[0]]) {
+        r_edge_selection[i] = true;
+      }
     }
-  }
+  });
 }
 
 class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
@@ -78,15 +81,12 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
     evaluator.evaluate();
     const VArraySpan<int> next_vert = evaluator.get_evaluated<int>(0);
     const IndexMask start_verts = evaluator.get_evaluated_as_mask(1);
-
     if (start_verts.is_empty()) {
       return {};
     }
 
     Array<bool> selection(mesh.totedge, false);
-    MutableSpan<bool> selection_span = selection.as_mutable_span();
-
-    edge_paths_to_selection(mesh, start_verts, next_vert, selection_span);
+    edge_paths_to_selection(mesh, start_verts, next_vert, selection);
 
     return mesh.attributes().adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);

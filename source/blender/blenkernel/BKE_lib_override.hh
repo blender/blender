@@ -105,6 +105,14 @@ bool BKE_lib_override_library_property_is_animated(
 bool BKE_lib_override_library_is_hierarchy_leaf(Main *bmain, ID *id);
 
 /**
+ * Tag the liboverride ID for auto-refresh when it gets tagged for depsgraph update.
+ *
+ * NOTE: This should only handle direct user editing, it is assumed that indirect updates should
+ * never require an update of the liboverride diffing info.
+ */
+void BKE_lib_override_id_tag_on_deg_tag_from_user(ID *id);
+
+/**
  * Create an overridden local copy of linked reference.
  *
  * \note This function is very basic, low-level. It does not consider any hierarchical dependency,
@@ -284,10 +292,14 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root);
 /**
  * Make given ID fully local.
  *
+ * \param bmain If given, all liboverrides hierarchy roots will be re-validated/generated after
+ * clearing the liboverride data from given \a id. If nullptr, caller is responsible to perform
+ * this action (call #BKE_lib_override_library_main_hierarchy_root_ensure) itself.
+ *
  * \note Only differs from lower-level #BKE_lib_override_library_free in infamous embedded ID
  * cases.
  */
-void BKE_lib_override_library_make_local(ID *id);
+void BKE_lib_override_library_make_local(Main *bmain, ID *id);
 
 /**
  * Find override property from given RNA path, if it exists.

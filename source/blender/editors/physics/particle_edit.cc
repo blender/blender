@@ -28,16 +28,16 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
@@ -206,7 +206,7 @@ int PE_minmax(
   }
 
   if (!ok) {
-    BKE_object_minmax(ob, min, max, true);
+    BKE_object_minmax(ob, min, max);
     ok = 1;
   }
 
@@ -497,7 +497,7 @@ struct PEData {
 
 static void PE_set_data(bContext *C, PEData *data)
 {
-  memset(data, 0, sizeof(*data));
+  *data = {};
 
   data->context = C;
   data->bmain = CTX_data_main(C);
@@ -512,7 +512,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 {
   PE_set_data(C, data);
 
-  ED_view3d_viewcontext_init(C, &data->vc, data->depsgraph);
+  data->vc = ED_view3d_viewcontext_init(C, data->depsgraph);
 
   if (!XRAY_ENABLED(data->vc.v3d)) {
     ED_view3d_depth_override(data->depsgraph,
@@ -529,7 +529,7 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
   Object *shapeob_eval = DEG_get_evaluated_object(data->depsgraph, shapeob);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(shapeob_eval);
 
-  memset(&data->shape_bvh, 0, sizeof(data->shape_bvh));
+  data->shape_bvh = {};
 
   if (!mesh) {
     return false;

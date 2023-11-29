@@ -3,11 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   ../blenkernel
   ../bmesh
   ../draw
-  ../functions
   ../makesrna
   ../modifiers
   ../sequencer
@@ -116,7 +115,6 @@ set(SRC
   intern/builder/pipeline_render.h
   intern/builder/pipeline_view_layer.h
   intern/debug/deg_debug.h
-  intern/debug/deg_time_average.h
   intern/eval/deg_eval.h
   intern/eval/deg_eval_copy_on_write.h
   intern/eval/deg_eval_flush.h
@@ -153,6 +151,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::functions
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
 )
@@ -165,6 +164,7 @@ if(WITH_PYTHON)
 endif()
 
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::depsgraph ALIAS bf_depsgraph)
 
 # RNA_prototypes.h
 add_dependencies(bf_depsgraph bf_rna)

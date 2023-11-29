@@ -183,33 +183,6 @@ class DATA_PT_context_mesh(MeshButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_normals(MeshButtonsPanel, Panel):
-    bl_label = "Normals"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {
-        'BLENDER_RENDER',
-        'BLENDER_EEVEE',
-        'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-    }
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        mesh = context.mesh
-
-        col = layout.column(align=False, heading="Auto Smooth")
-        col.use_property_decorate = False
-        row = col.row(align=True)
-        sub = row.row(align=True)
-        sub.prop(mesh, "use_auto_smooth", text="")
-        sub = sub.row(align=True)
-        sub.active = mesh.use_auto_smooth and not mesh.has_custom_normals
-        sub.prop(mesh, "auto_smooth_angle", text="")
-        row.prop_decorator(mesh, "auto_smooth_angle")
-
-
 class DATA_PT_texture_space(MeshButtonsPanel, Panel):
     bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
@@ -453,9 +426,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
 
             col = layout.column(heading="Preserve")
             col.prop(mesh, "use_remesh_preserve_volume", text="Volume")
-            col.prop(mesh, "use_remesh_preserve_paint_mask", text="Paint Mask")
-            col.prop(mesh, "use_remesh_preserve_sculpt_face_sets", text="Face Sets")
-            col.prop(mesh, "use_remesh_preserve_vertex_colors", text="Color Attributes")
+            col.prop(mesh, "use_remesh_preserve_attributes", text="Attributes")
 
             col.operator("object.voxel_remesh", text="Voxel Remesh")
         else:
@@ -728,7 +699,6 @@ classes = (
     DATA_PT_uv_texture,
     DATA_PT_vertex_colors,
     DATA_PT_mesh_attributes,
-    DATA_PT_normals,
     DATA_PT_texture_space,
     DATA_PT_remesh,
     DATA_PT_customdata,

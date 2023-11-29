@@ -15,51 +15,22 @@
 
 namespace blender::geometry {
 
-template<typename T>
-static void threaded_slice_fill(const Span<T> src,
-                                const OffsetIndices<int> offsets,
-                                MutableSpan<T> dst)
-{
-  threading::parallel_for(src.index_range(), 512, [&](IndexRange range) {
-    for (const int i : range) {
-      dst.slice(offsets[i]).fill(src[i]);
-    }
-  });
-}
-
-template<typename T>
 static void duplicate_fillet_point_data(const OffsetIndices<int> src_points_by_curve,
                                         const OffsetIndices<int> dst_points_by_curve,
                                         const IndexMask &curve_selection,
                                         const Span<int> all_point_offsets,
-                                        const Span<T> src,
-                                        MutableSpan<T> dst)
+                                        const GSpan src,
+                                        GMutableSpan dst)
 {
   curve_selection.foreach_index(GrainSize(512), [&](const int curve_i) {
     const IndexRange src_points = src_points_by_curve[curve_i];
     const IndexRange dst_points = dst_points_by_curve[curve_i];
     const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points,
                                                                                 curve_i);
-    const OffsetIndices<int> offsets(all_point_offsets.slice(offsets_range));
-    threaded_slice_fill(src.slice(src_points), offsets, dst.slice(dst_points));
-  });
-}
-
-static void duplicate_fillet_point_data(const OffsetIndices<int> src_points_by_curve,
-                                        const OffsetIndices<int> dst_points_by_curve,
-                                        const IndexMask &selection,
-                                        const Span<int> all_point_offsets,
-                                        const GSpan src,
-                                        GMutableSpan dst)
-{
-  bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    duplicate_fillet_point_data(src_points_by_curve,
-                                dst_points_by_curve,
-                                selection,
-                                all_point_offsets,
-                                src.typed<T>(),
-                                dst.typed<T>());
+    bke::attribute_math::gather_to_groups(all_point_offsets.slice(offsets_range),
+                                          IndexRange(src_points.size()),
+                                          src.slice(src_points),
+                                          dst.slice(dst_points));
   });
 }
 
@@ -145,13 +116,13 @@ static float limit_radius(const float3 &position_prev,
   const float segment_length_prev = math::distance(position, position_prev);
   const float total_displacement_prev = displacement_prev + displacement;
   const float factor_prev = std::clamp(
-      safe_divide(segment_length_prev, total_displacement_prev), 0.0f, 1.0f);
+      math::safe_divide(segment_length_prev, total_displacement_prev), 0.0f, 1.0f);
 
   const float displacement_next = radius_next * std::tan(angle_next / 2.0f);
   const float segment_length_next = math::distance(position, position_next);
   const float total_displacement_next = displacement_next + displacement;
   const float factor_next = std::clamp(
-      safe_divide(segment_length_next, total_displacement_next), 0.0f, 1.0f);
+      math::safe_divide(segment_length_next, total_displacement_next), 0.0f, 1.0f);
 
   return radius * std::min(factor_prev, factor_next);
 }
@@ -533,15 +504,14 @@ static bke::CurvesGeometry fillet_curves(
     attribute.dst.finish();
   }
 
-  if (!unselected.is_empty()) {
-    for (auto &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
-    {
-      bke::curves::copy_point_data(
-          src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
-      attribute.dst.finish();
-    }
-  }
+  bke::copy_attributes_group_to_group(src_attributes,
+                                      ATTR_DOMAIN_POINT,
+                                      propagation_info,
+                                      {},
+                                      src_points_by_curve,
+                                      dst_points_by_curve,
+                                      unselected,
+                                      dst_attributes);
 
   return dst_curves;
 }

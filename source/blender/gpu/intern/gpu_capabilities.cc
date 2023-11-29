@@ -207,6 +207,11 @@ bool GPU_transform_feedback_support()
   return GCaps.transform_feedback_support;
 }
 
+size_t GPU_max_storage_buffer_size()
+{
+  return GCaps.max_storage_buffer_size;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

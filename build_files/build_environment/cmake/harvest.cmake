@@ -191,6 +191,14 @@ else()
     harvest(wayland/bin wayland/bin "wayland-scanner")
     harvest(wayland/include wayland/include "*.h")
     harvest(wayland_libdecor/include wayland_libdecor/include "*.h")
+    # Only needed for running the WESTON compositor.
+    harvest(wayland/lib64 wayland/lib64 "*")
+
+    harvest(
+      wayland_weston/
+      wayland_weston/
+      "*"
+    )
   else()
     harvest(blosc/lib openvdb/lib "*.a")
     harvest(xml2/lib opencollada/lib "*.a")
@@ -217,7 +225,8 @@ else()
     "*"
   )
   harvest(openimagedenoise/include openimagedenoise/include "*")
-  harvest(openimagedenoise/lib openimagedenoise/lib "*.a")
+  harvest_rpath_lib(openimagedenoise/lib openimagedenoise/lib "*${SHAREDLIBEXT}*")
+  harvest(openimagedenoise/lib/cmake/OpenImageDenoise-${OIDN_VERSION} openimagedenoise/lib/cmake/OpenImageDenoise "*.cmake")
   harvest(embree/include embree/include "*.h")
   harvest(embree/lib embree/lib "*.a")
   harvest_rpath_lib(embree/lib embree/lib "*${SHAREDLIBEXT}*")

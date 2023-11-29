@@ -45,21 +45,3 @@ GPU_SHADER_CREATE_INFO(compositor_convert_vector_to_color)
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .define("CONVERT_EXPRESSION(value)", "vec4_from_vec3(value.xyz)")
     .do_static_compilation(true);
-
-GPU_SHADER_CREATE_INFO(compositor_extract_alpha_from_color)
-    .additional_info("compositor_convert_shared")
-    .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .define("CONVERT_EXPRESSION(value)", "vec4(value.a, vec3(0.0))")
-    .do_static_compilation(true);
-
-GPU_SHADER_CREATE_INFO(compositor_convert_color_to_half_color)
-    .additional_info("compositor_convert_shared")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .define("CONVERT_EXPRESSION(value)", "value")
-    .do_static_compilation(true);
-
-GPU_SHADER_CREATE_INFO(compositor_convert_float_to_half_float)
-    .additional_info("compositor_convert_shared")
-    .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .define("CONVERT_EXPRESSION(value)", "vec4(value.r, vec3(0.0))")
-    .do_static_compilation(true);

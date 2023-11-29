@@ -26,7 +26,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
@@ -181,7 +181,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
   if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
     filter |= ANIMFILTER_SEL;
   }
-  mapping_flag |= ANIM_get_normalization_flags(ac);
+  mapping_flag |= ANIM_get_normalization_flags(ac->sl);
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
@@ -581,7 +581,7 @@ static void initialize_box_select_key_editing_data(const bool incl_handles,
     *r_mapping_flag = ANIM_UNITCONV_ONLYKEYS;
   }
 
-  *r_mapping_flag |= ANIM_get_normalization_flags(ac);
+  *r_mapping_flag |= ANIM_get_normalization_flags(ac->sl);
 }
 
 /**

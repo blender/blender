@@ -7,6 +7,46 @@ __all__ = (
 )
 
 
+def find_base_socket_type(socket):
+    """
+    Find the base class of the socket.
+
+    Sockets can have a subtype such as NodeSocketFloatFactor,
+    but only the base type is allowed, e. g. NodeSocketFloat
+    """
+    if socket.type == 'CUSTOM':
+        # Custom socket types are used directly
+        return socket.bl_idname
+    if socket.type == 'VALUE':
+        return 'NodeSocketFloat'
+    if socket.type == 'INT':
+        return 'NodeSocketInt'
+    if socket.type == 'BOOLEAN':
+        return 'NodeSocketBoolean'
+    if socket.type == 'VECTOR':
+        return 'NodeSocketVector'
+    if socket.type == 'ROTATION':
+        return 'NodeSocketRotation'
+    if socket.type == 'STRING':
+        return 'NodeSocketString'
+    if socket.type == 'RGBA':
+        return 'NodeSocketColor'
+    if socket.type == 'SHADER':
+        return 'NodeSocketShader'
+    if socket.type == 'OBJECT':
+        return 'NodeSocketObject'
+    if socket.type == 'IMAGE':
+        return 'NodeSocketImage'
+    if socket.type == 'GEOMETRY':
+        return 'NodeSocketGeometry'
+    if socket.type == 'COLLECTION':
+        return 'NodeSocketCollection'
+    if socket.type == 'TEXTURE':
+        return 'NodeSocketTexture'
+    if socket.type == 'MATERIAL':
+        return 'NodeSocketMaterial'
+
+
 def connect_sockets(input, output):
     """
     Connect sockets in a node tree.
@@ -35,14 +75,16 @@ def connect_sockets(input, output):
         return
 
     if output_node.type == 'GROUP_OUTPUT' and type(input) == bpy.types.NodeSocketVirtual:
-        output_node.id_data.interface.new_socket(
-            name=output.name, socket_type=type(output).__name__, in_out='OUTPUT'
+        output_type = find_base_socket_type(output)
+        socket_interface = output_node.id_data.interface.new_socket(
+            name=output.name, socket_type=output_type, in_out='OUTPUT'
         )
         input = output_node.inputs[-2]
 
     if input_node.type == 'GROUP_INPUT' and type(output) == bpy.types.NodeSocketVirtual:
-        input_node.id_data.interface.new_socket(
-            name=input.name, socket_type=type(input).__name__, in_out='INPUT'
+        input_type = find_base_socket_type(input)
+        socket_interface = input_node.id_data.interface.new_socket(
+            name=input.name, socket_type=input_type, in_out='INPUT'
         )
         output = input_node.outputs[-2]
 

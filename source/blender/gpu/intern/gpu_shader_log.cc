@@ -10,7 +10,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "gpu_shader_dependency_private.h"

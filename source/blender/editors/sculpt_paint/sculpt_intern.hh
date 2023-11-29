@@ -20,12 +20,15 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
+#include "BLI_array.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_generic_array.hh"
 #include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
@@ -74,9 +77,9 @@ enum SculptUpdateType {
 };
 
 struct SculptCursorGeometryInfo {
-  float location[3];
-  float normal[3];
-  float active_vertex_co[3];
+  blender::float3 location;
+  blender::float3 normal;
+  blender::float3 active_vertex_co;
 };
 
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
@@ -177,30 +180,30 @@ struct SculptUndoNode {
   char idname[MAX_ID_NAME]; /* Name instead of pointer. */
   void *node;               /* only during push, not valid afterwards! */
 
-  float (*co)[3];
-  float (*orig_co)[3];
-  float (*no)[3];
-  float (*col)[4];
-  float *mask;
+  blender::Array<blender::float3> co;
+  blender::Array<blender::float3> orig_co;
+  blender::Array<blender::float3> no;
+  blender::Array<blender::float4> col;
+  blender::Array<float> mask;
   int totvert;
 
-  float (*loop_col)[4];
-  float (*orig_loop_col)[4];
+  blender::Array<blender::float4> loop_col;
+  blender::Array<blender::float4> orig_loop_col;
   int totloop;
 
   /* non-multires */
-  int maxvert; /* to verify if totvert it still the same */
-  int *index;  /* Unique vertex indices, to restore into right location */
+  int maxvert;               /* to verify if totvert it still the same */
+  blender::Array<int> index; /* Unique vertex indices, to restore into right location */
   int maxloop;
-  int *loop_index;
+  blender::Array<int> loop_index;
 
-  BLI_bitmap *vert_hidden;
+  blender::BitVector<> vert_hidden;
 
   /* multires */
-  int maxgrid;  /* same for grid */
-  int gridsize; /* same for grid */
-  int totgrid;  /* to restore into right location */
-  int *grids;   /* to restore into right location */
+  int maxgrid;               /* same for grid */
+  int gridsize;              /* same for grid */
+  int totgrid;               /* to restore into right location */
+  blender::Array<int> grids; /* to restore into right location */
   BLI_bitmap **grid_hidden;
 
   /* bmesh */
@@ -224,14 +227,13 @@ struct SculptUndoNode {
   SculptUndoNodeGeometry geometry_bmesh_enter;
 
   /* pivot */
-  float pivot_pos[3];
+  blender::float3 pivot_pos;
   float pivot_rot[4];
 
   /* Sculpt Face Sets */
-  int *face_sets;
+  blender::Array<int> face_sets;
 
-  PBVHFaceRef *faces;
-  int faces_num;
+  blender::Vector<int> face_indices;
 
   size_t undo_size;
 };
@@ -242,7 +244,7 @@ struct SculptUndoNode {
 
 struct SculptRakeData {
   float follow_dist;
-  float follow_co[3];
+  blender::float3 follow_co;
   float angle;
 };
 
@@ -250,7 +252,7 @@ struct SculptRakeData {
 struct SculptBrushTest {
   float radius_squared;
   float radius;
-  float location[3];
+  blender::float3 location;
   float dist;
   ePaintSymmetryFlags mirror_symmetry_pass;
 
@@ -373,7 +375,7 @@ struct FilterCache {
   float *normal_factor;
   float *edge_factor;
   float *prev_mask;
-  float mask_expand_initial_co[3];
+  blender::float3 mask_expand_initial_co;
 
   int new_face_set;
   int *prev_face_set;
@@ -384,8 +386,8 @@ struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
-  float initial_normal[3];
-  float view_normal[3];
+  blender::float3 initial_normal;
+  blender::float3 view_normal;
 
   /* Pre-smoothed colors used by sharpening. Colors are HSL. */
   float (*pre_smoothed_color)[4];
@@ -402,19 +404,19 @@ struct FilterCache {
 struct StrokeCache {
   /* Invariants */
   float initial_radius;
-  float scale[3];
+  blender::float3 scale;
   int flag;
-  float clip_tolerance[3];
+  blender::float3 clip_tolerance;
   float clip_mirror_mtx[4][4];
   float initial_mouse[2];
 
   /* Variants */
   float radius;
   float radius_squared;
-  float true_location[3];
-  float true_last_location[3];
-  float location[3];
-  float last_location[3];
+  blender::float3 true_location;
+  blender::float3 true_last_location;
+  blender::float3 location;
+  blender::float3 last_location;
   float stroke_distance;
 
   /* Used for alternating between deformation in brushes that need to apply different ones to
@@ -459,8 +461,8 @@ struct StrokeCache {
   const Brush *brush;
 
   float special_rotation;
-  float grab_delta[3], grab_delta_symmetry[3];
-  float old_grab_location[3], orig_grab_location[3];
+  blender::float3 grab_delta, grab_delta_symmetry;
+  blender::float3 old_grab_location, orig_grab_location;
 
   /* screen-space rotation defined by mouse motion */
   float rake_rotation[4], rake_rotation_symmetry[4];
@@ -475,14 +477,14 @@ struct StrokeCache {
   int symmetry;
   ePaintSymmetryFlags
       mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
-  float true_view_normal[3];
-  float view_normal[3];
+  blender::float3 true_view_normal;
+  blender::float3 view_normal;
 
   /* sculpt_normal gets calculated by calc_sculpt_normal(), then the
    * sculpt_normal_symm gets updated quickly with the usual symmetry
    * transforms */
-  float sculpt_normal[3];
-  float sculpt_normal_symm[3];
+  blender::float3 sculpt_normal;
+  blender::float3 sculpt_normal_symm;
 
   /* Used for area texture mode, local_mat gets calculated by
    * calc_brush_local_mat() and used in sculpt_apply_texture().
@@ -493,10 +495,10 @@ struct StrokeCache {
    * displacement in area plane mode. */
   float brush_local_mat_inv[4][4];
 
-  float plane_offset[3]; /* used to shift the plane around when doing tiled strokes */
+  blender::float3 plane_offset; /* used to shift the plane around when doing tiled strokes */
   int tile_pass;
 
-  float last_center[3];
+  blender::float3 last_center;
   int radial_symmetry_pass;
   float symm_rot_mat[4][4];
   float symm_rot_mat_inv[4][4];
@@ -504,7 +506,7 @@ struct StrokeCache {
   /* Accumulate mode. Note: inverted for SCULPT_TOOL_DRAW_SHARP. */
   bool accum;
 
-  float anchored_location[3];
+  blender::float3 anchored_location;
 
   /* Paint Brush. */
   struct {
@@ -530,10 +532,10 @@ struct StrokeCache {
 
   /* Cloth brush */
   SculptClothSimulation *cloth_sim;
-  float initial_location[3];
-  float true_initial_location[3];
-  float initial_normal[3];
-  float true_initial_normal[3];
+  blender::float3 initial_location;
+  blender::float3 true_initial_location;
+  blender::float3 initial_normal;
+  blender::float3 true_initial_normal;
 
   /* Boundary brush */
   SculptBoundary *boundaries[PAINT_SYMM_AREAS];
@@ -556,8 +558,8 @@ struct StrokeCache {
   float plane_trim_squared;
 
   bool supports_gravity;
-  float true_gravity_direction[3];
-  float gravity_direction[3];
+  blender::float3 true_gravity_direction;
+  blender::float3 gravity_direction;
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
@@ -957,7 +959,7 @@ void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
-float (*SCULPT_mesh_deformed_positions_get(SculptSession *ss))[3];
+blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptSession *ss);
 
 /* Fake Neighbors */
 
@@ -998,9 +1000,6 @@ int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 
-int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face);
-void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
-
 bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 
@@ -1031,23 +1030,6 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
  * handles #BMesh, #Mesh, and multi-resolution.
  */
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, SculptUndoNode *unode);
-/**
- * Initialize a #SculptOrigFaceData for accessing original face data;
- * handles #BMesh, #Mesh, and multi-resolution.
- */
-void SCULPT_orig_face_data_init(SculptOrigFaceData *data,
-                                Object *ob,
-                                PBVHNode *node,
-                                SculptUndoType type);
-/**
- * Update a #SculptOrigFaceData for a particular vertex from the PBVH iterator.
- */
-void SCULPT_orig_face_data_update(SculptOrigFaceData *orig_data, PBVHFaceIter *iter);
-/**
- * Initialize a #SculptOrigVertData for accessing original vertex data;
- * handles #BMesh, #Mesh, and multi-resolution.
- */
-void SCULPT_orig_face_data_unode_init(SculptOrigFaceData *data, Object *ob, SculptUndoNode *unode);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1287,7 +1269,6 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
  * \{ */
 
 struct AutomaskingNodeData {
-  PBVHNode *node;
   SculptOrigVertData orig_data;
   bool have_orig_data;
 };
@@ -1297,15 +1278,12 @@ struct AutomaskingNodeData {
  * \param automask_data: pointer to an uninitialized #AutomaskingNodeData struct.
  */
 void SCULPT_automasking_node_begin(Object *ob,
-                                   const SculptSession *ss,
                                    AutomaskingCache *automasking,
                                    AutomaskingNodeData *automask_data,
                                    PBVHNode *node);
 
 /* Call before SCULPT_automasking_factor_get and SCULPT_brush_strength_factor. */
-void SCULPT_automasking_node_update(SculptSession *ss,
-                                    AutomaskingNodeData *automask_data,
-                                    PBVHVertexIter *vd);
+void SCULPT_automasking_node_update(AutomaskingNodeData *automask_data, PBVHVertexIter *vd);
 
 float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     SculptSession *ss,
@@ -1539,12 +1517,7 @@ void SCULPT_undo_push_end_ex(Object *ob, const bool use_nested_undo);
 
 /** \} */
 
-void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
-
-/**
- * Copy the PBVH bounding box into the object's bounding box.
- */
-void SCULPT_update_object_bounding_box(Object *ob);
+void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, blender::Span<blender::float3> vertCos);
 
 /**
  * Get a screen-space rectangle of the modified area.

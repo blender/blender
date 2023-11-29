@@ -15,7 +15,7 @@
 
 #include "DNA_sequence_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -35,8 +35,8 @@
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
-#include "SEQ_relations.h"
-#include "SEQ_select.h"
+#include "SEQ_relations.hh"
+#include "SEQ_select.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

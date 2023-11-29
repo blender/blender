@@ -6,7 +6,7 @@
  * \ingroup obj
  */
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"

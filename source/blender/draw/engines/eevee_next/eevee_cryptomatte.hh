@@ -53,9 +53,9 @@ class Cryptomatte {
   void sync_material(const ::Material *material);
   void end_sync();
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_ssbo(CRYPTOMATTE_BUF_SLOT, &cryptomatte_object_buf);
+    pass.bind_ssbo(CRYPTOMATTE_BUF_SLOT, &cryptomatte_object_buf);
   }
 
   /* Register ID to use inside cryptomatte layer and returns associated hash as float. */

@@ -226,14 +226,14 @@ void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
   /* Rect of the combined areas. */
   const bool vertical = SCREEN_DIR_IS_VERTICAL(dir);
   rctf combined{};
-  combined.xmin = vertical ? MAX2(sa1->totrct.xmin, sa2->totrct.xmin) :
-                             MIN2(sa1->totrct.xmin, sa2->totrct.xmin);
-  combined.xmax = vertical ? MIN2(sa1->totrct.xmax, sa2->totrct.xmax) :
-                             MAX2(sa1->totrct.xmax, sa2->totrct.xmax);
-  combined.ymin = vertical ? MIN2(sa1->totrct.ymin, sa2->totrct.ymin) :
-                             MAX2(sa1->totrct.ymin, sa2->totrct.ymin);
-  combined.ymax = vertical ? MAX2(sa1->totrct.ymax, sa2->totrct.ymax) :
-                             MIN2(sa1->totrct.ymax, sa2->totrct.ymax);
+  combined.xmin = vertical ? std::max(sa1->totrct.xmin, sa2->totrct.xmin) :
+                             std::min(sa1->totrct.xmin, sa2->totrct.xmin);
+  combined.xmax = vertical ? std::min(sa1->totrct.xmax, sa2->totrct.xmax) :
+                             std::max(sa1->totrct.xmax, sa2->totrct.xmax);
+  combined.ymin = vertical ? std::min(sa1->totrct.ymin, sa2->totrct.ymin) :
+                             std::max(sa1->totrct.ymin, sa2->totrct.ymin);
+  combined.ymax = vertical ? std::max(sa1->totrct.ymax, sa2->totrct.ymax) :
+                             std::min(sa1->totrct.ymax, sa2->totrct.ymax);
 
   uint pos_id = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -243,18 +243,18 @@ void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
   /* Highlight source (sa1) within combined area. */
   immUniformColor4fv(blender::float4{1.0f, 1.0f, 1.0f, 0.10f});
   immRectf(pos_id,
-           MAX2(sa1->totrct.xmin, combined.xmin),
-           MAX2(sa1->totrct.ymin, combined.ymin),
-           MIN2(sa1->totrct.xmax, combined.xmax),
-           MIN2(sa1->totrct.ymax, combined.ymax));
+           std::max(float(sa1->totrct.xmin), combined.xmin),
+           std::max(float(sa1->totrct.ymin), combined.ymin),
+           std::min(float(sa1->totrct.xmax), combined.xmax),
+           std::min(float(sa1->totrct.ymax), combined.ymax));
 
   /* Highlight destination (sa2) within combined area. */
   immUniformColor4fv(blender::float4{0.0f, 0.0f, 0.0f, 0.25f});
   immRectf(pos_id,
-           MAX2(sa2->totrct.xmin, combined.xmin),
-           MAX2(sa2->totrct.ymin, combined.ymin),
-           MIN2(sa2->totrct.xmax, combined.xmax),
-           MIN2(sa2->totrct.ymax, combined.ymax));
+           std::max(float(sa2->totrct.xmin), combined.xmin),
+           std::max(float(sa2->totrct.ymin), combined.ymin),
+           std::min(float(sa2->totrct.xmax), combined.xmax),
+           std::min(float(sa2->totrct.ymax), combined.ymax));
 
   int offset1;
   int offset2;

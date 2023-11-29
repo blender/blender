@@ -11,18 +11,18 @@
 #include "BLI_math_vector.h"
 #include "BLI_sort.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -2171,7 +2171,7 @@ PyDoc_STRVAR(bpy_bmvertseq_new_doc,
              "   :type co: float triplet\n"
              "   :arg example: Existing vert to initialize settings.\n"
              "   :type example: :class:`BMVert`\n"
-             "   :return: The newly created edge.\n"
+             "   :return: The newly created vertex.\n"
              "   :rtype: :class:`BMVert`\n");
 static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 {

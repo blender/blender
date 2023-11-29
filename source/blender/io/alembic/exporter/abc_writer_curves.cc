@@ -12,9 +12,9 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};

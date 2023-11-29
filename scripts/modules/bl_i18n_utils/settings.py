@@ -85,6 +85,10 @@ LANGUAGES = (
     (46, "Thai (ภาษาไทย)", "th_TH"),
     (47, "Slovak (Slovenčina)", "sk_SK"),
     (48, "Georgian (ქართული)", "ka"),
+    (49, "Tamil (தமிழ்)", "ta"),
+    (50, "Khmer (ខ្មែរ)", "km"),
+    (51, "Swahili (Kiswahili)", "sw"),
+    (52, "Belarusian (беларуску)", "be"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
@@ -101,7 +105,7 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in the working repository that should not be imported in the Blender one currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ',
+    'am_ET', 'et_EE', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ', 'be',
 }
 
 # Languages that need RTL pre-processing.
@@ -272,9 +276,23 @@ PYGETTEXT_KEYWORDS = (() +
     tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("description", "error_message_add")) +
 
-    # Node socket labels
+    # Node socket labels from declarations: context-less names
+    tuple((r"\.{}\(\s*" + _msg_re +
+           r"\s*\)(?![^;]*\.translation_context\()[^;]*;").format(it)
+          for it in ("short_label",)) +
+
+    # Node socket labels from declarations: names with contexts
+    tuple((r"\.{}\(\s*" + _msg_re + r"[^;]*\.translation_context\(\s*" +
+           _ctxt_re + r"\s*\)").format(it)
+          for it in ("short_label",)) +
+
+    # Dynamic node socket labels
     tuple((r"{}\(\s*[^,]+,\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("node_sock_label",)) +
+
+    # Node panel declarations
+    tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
+          for it in ("add_panel",)) +
 
     # Geometry Nodes field inputs
     ((r"FieldInput\(CPPType::get<.*?>\(\),\s*" + _msg_re + r"\s*\)"),) +
@@ -329,6 +347,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "color_index is invalid",
     "cos(A)",
     "cosh(A)",
+    "dB",                            # dB audio power unit.
     "dbl-",                          # Compacted for 'double', for keymap items.
     "description",                   # Addons' field. :/
     "dx",
@@ -386,6 +405,45 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "wmOwnerID '%s' not in workspace '%s'",
     "y",
     "y = (Ax + B)",
+    # ID plural names, defined in IDTypeInfo.
+    "armatures",
+    "brushes",
+    "cache_files",
+    "cameras",
+    "collections",
+    "curves",
+    "fonts",
+    "grease_pencils",
+    "grease_pencils_v3",
+    "hair_curves",
+    "ipos",
+    "lattices",
+    "libraries",
+    "lightprobes",
+    "lights",
+    "linestyles",
+    "link_placeholders",
+    "masks",
+    "metaballs",
+    "materials",
+    "meshes",
+    "movieclips",
+    "node_groups",
+    "objects",
+    "paint_curves",
+    "palettes",
+    "particles",
+    "pointclouds",
+    "screens",
+    "shape_keys",
+    "sounds",
+    "speakers",
+    "texts",
+    "textures",
+    "volumes",
+    "window_managers",
+    "workspaces",
+    "worlds",
     # Sub-strings.
     "all",
     "all and invert unselected",
@@ -473,6 +531,7 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Float Neg. Exp.",
     "Max Ext.",
     "Newer graphics drivers may be available to improve Blender support.",
+    "Not assigned to any bone collection.",
     "Numpad .",
     "Pad.",
     "    RNA Path: bpy.types.",

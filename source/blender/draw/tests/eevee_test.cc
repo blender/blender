@@ -4,11 +4,11 @@
 
 #include "testing/testing.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -502,7 +502,8 @@ class TestDefrag {
   ShadowPageHeapBuf pages_free_data = {"PagesFreeBuf"};
   ShadowPageCacheBuf pages_cached_data = {"PagesCachedBuf"};
   ShadowPagesInfoDataBuf pages_infos_data = {"PagesInfosBuf"};
-  StorageBuffer<DispatchCommand> clear_draw_buf;
+  StorageBuffer<DispatchCommand> clear_dispatch_buf;
+  StorageBuffer<DrawCommand> tile_draw_buf;
   ShadowStatisticsBuf statistics_buf = {"statistics_buf"};
 
  public:
@@ -572,8 +573,9 @@ class TestDefrag {
     pass.bind_ssbo("pages_infos_buf", pages_infos_data);
     pass.bind_ssbo("pages_free_buf", pages_free_data);
     pass.bind_ssbo("pages_cached_buf", pages_cached_data);
+    pass.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf);
+    pass.bind_ssbo("tile_draw_buf", tile_draw_buf);
     pass.bind_ssbo("statistics_buf", statistics_buf);
-    pass.bind_ssbo("clear_draw_buf", clear_draw_buf);
     pass.dispatch(int3(1, 1, 1));
     pass.barrier(GPU_BARRIER_BUFFER_UPDATE);
 
@@ -645,6 +647,10 @@ class TestAlloc {
   {
     GPU_render_begin();
     int tiles_index = 1;
+
+    for (int i : IndexRange(SHADOW_MAX_TILE)) {
+      tiles_data[i] = 0;
+    }
 
     for (uint i : IndexRange(0, page_free_count)) {
       uint2 page = {i % SHADOW_PAGE_PER_ROW, i / SHADOW_PAGE_PER_ROW};
@@ -807,6 +813,9 @@ static void test_eevee_shadow_finalize()
     tilemap.viewmat = float4x4::identity();
     tilemap.tiles_index = 0;
     tilemap.clip_data_index = 0;
+    tilemap.clip_far = 10.0f;
+    tilemap.clip_near = 1.0f;
+    tilemap.half_size = 1.0f;
     tilemap.projection_type = SHADOW_PROJECTION_CUBEFACE;
     tilemaps_data.append(tilemap);
 
@@ -841,7 +850,9 @@ static void test_eevee_shadow_finalize()
 
   StorageArrayBuffer<ViewMatrices, DRW_VIEW_MAX> shadow_multi_view_buf = {"ShadowMultiView"};
   StorageBuffer<DispatchCommand> clear_dispatch_buf;
-  StorageArrayBuffer<uint, SHADOW_MAX_PAGE> clear_list_buf = {"clear_list_buf"};
+  StorageBuffer<DrawCommand> tile_draw_buf;
+  StorageArrayBuffer<uint, SHADOW_MAX_PAGE> dst_coord_buf = {"dst_coord_buf"};
+  StorageArrayBuffer<uint, SHADOW_MAX_PAGE> src_coord_buf = {"src_coord_buf"};
   StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE> render_map_buf = {"render_map_buf"};
   StorageArrayBuffer<uint, SHADOW_VIEW_MAX> viewport_index_buf = {"viewport_index_buf"};
 
@@ -857,7 +868,9 @@ static void test_eevee_shadow_finalize()
   pass.bind_ssbo("view_infos_buf", shadow_multi_view_buf);
   pass.bind_ssbo("statistics_buf", statistics_buf);
   pass.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf);
-  pass.bind_ssbo("clear_list_buf", clear_list_buf);
+  pass.bind_ssbo("tile_draw_buf", tile_draw_buf);
+  pass.bind_ssbo("dst_coord_buf", dst_coord_buf);
+  pass.bind_ssbo("src_coord_buf", src_coord_buf);
   pass.bind_ssbo("render_map_buf", render_map_buf);
   pass.bind_ssbo("viewport_index_buf", viewport_index_buf);
   pass.bind_ssbo("pages_infos_buf", pages_infos_data);

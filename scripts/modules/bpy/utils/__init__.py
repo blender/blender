@@ -292,7 +292,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
         # however reloading scripts re-enable all add-ons immediately (which may inspect key-maps).
         # For this reason it's important to update key-maps which will have been tagged to update.
         # Without this, add-on register functions accessing key-map properties can crash, see: #111702.
-        _bpy.context.window_manager.keyconfigs.update()
+        _bpy.context.window_manager.keyconfigs.update(keep_properties=True)
 
     from bpy_restrict_state import RestrictBlend
 
@@ -307,6 +307,11 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
                     if path_subdir == "startup":
                         for mod in modules_from_path(path, loaded_modules):
                             test_register(mod)
+
+    if reload_scripts:
+        # Update key-maps for key-map items referencing operators defined in "startup".
+        # Without this, key-map items wont be set properly, see: #113309.
+        _bpy.context.window_manager.keyconfigs.update()
 
     if extensions:
         load_scripts_extensions(reload_scripts=reload_scripts)

@@ -31,8 +31,6 @@ class GLShaderInterface : public ShaderInterface {
  private:
   /** Reference to VaoCaches using this interface */
   Vector<GLVaoCache *> refs_;
-  /** Bitmask of color attachments to bind as images for sub-pass input emulation. */
-  uint8_t subpass_inputs_ = 0u;
 
  public:
   GLShaderInterface(GLuint program, const shader::ShaderCreateInfo &info);

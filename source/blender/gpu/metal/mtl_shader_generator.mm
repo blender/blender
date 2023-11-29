@@ -383,7 +383,7 @@ static void replace_matrix_constructors(std::string &str)
 
     /* If is constructor, replace with MATN(..) syntax. */
     if (constructor_end != nullptr) {
-      strncpy(base_scan, "MAT", 3);
+      ARRAY_SET_ITEMS(base_scan, 'M', 'A', 'T');
       continue;
     }
   }
@@ -622,8 +622,7 @@ void extract_shared_memory_blocks(MSLGeneratorInterface &msl_iface,
     }
     int len = c_next_space - c;
     BLI_assert(len < 256);
-    strncpy(buf, c, len);
-    buf[len] = '\0';
+    BLI_strncpy(buf, c, len + 1);
     new_shared_block.type_name = std::string(buf);
 
     /* Read var-name.
@@ -663,15 +662,13 @@ void extract_shared_memory_blocks(MSLGeneratorInterface &msl_iface,
     }
     len = varname_end - c;
     BLI_assert(len < 256);
-    strncpy(buf, c, len);
-    buf[len] = '\0';
+    BLI_strncpy(buf, c, len + 1);
     new_shared_block.varname = std::string(buf);
 
     /* Determine if array. */
     if (new_shared_block.is_array) {
       int len = c_expr_end - c_array_begin;
-      strncpy(buf, c_array_begin, len);
-      buf[len] = '\0';
+      BLI_strncpy(buf, c_array_begin, len + 1);
       new_shared_block.array_decl = std::string(buf);
     }
 
@@ -693,7 +690,7 @@ void extract_shared_memory_blocks(MSLGeneratorInterface &msl_iface,
       out_str += ")" + new_shared_block.array_decl;
     }
     out_str += ";;";
-    strncpy(c_expr_start, out_str.c_str(), out_str.length() - 1);
+    memcpy(c_expr_start, out_str.c_str(), (out_str.length() - 1) * sizeof(char));
 
     /* Jump to end of statement. */
     c = c_expr_end + 1;
@@ -868,7 +865,7 @@ char *MSLGeneratorInterface::msl_patch_default_get()
   size_t len = strlen(ss_patch.str().c_str()) + 1;
 
   msl_patch_default = (char *)malloc(len * sizeof(char));
-  strcpy(msl_patch_default, ss_patch.str().c_str());
+  memcpy(msl_patch_default, ss_patch.str().c_str(), len * sizeof(char));
   return msl_patch_default;
 }
 
@@ -1740,11 +1737,15 @@ void MTLShader::prepare_ssbo_vertex_fetch_metadata()
     char strattr_buf_type[GPU_VERT_ATTR_MAX_LEN + len_UNIFORM_SSBO_TYPE_STR + 1] =
         UNIFORM_SSBO_TYPE_STR;
 
-    strcpy(&strattr_buf_stride[len_UNIFORM_SSBO_STRIDE_STR], attr_name);
-    strcpy(&strattr_buf_offset[len_UNIFORM_SSBO_OFFSET_STR], attr_name);
-    strcpy(&strattr_buf_fetchmode[len_UNIFORM_SSBO_FETCHMODE_STR], attr_name);
-    strcpy(&strattr_buf_vbo_id[len_UNIFORM_SSBO_VBO_ID_STR], attr_name);
-    strcpy(&strattr_buf_type[len_UNIFORM_SSBO_TYPE_STR], attr_name);
+    BLI_strncpy(
+        &strattr_buf_stride[len_UNIFORM_SSBO_STRIDE_STR], attr_name, GPU_VERT_ATTR_MAX_LEN);
+    BLI_strncpy(
+        &strattr_buf_offset[len_UNIFORM_SSBO_OFFSET_STR], attr_name, GPU_VERT_ATTR_MAX_LEN);
+    BLI_strncpy(
+        &strattr_buf_fetchmode[len_UNIFORM_SSBO_FETCHMODE_STR], attr_name, GPU_VERT_ATTR_MAX_LEN);
+    BLI_strncpy(
+        &strattr_buf_vbo_id[len_UNIFORM_SSBO_VBO_ID_STR], attr_name, GPU_VERT_ATTR_MAX_LEN);
+    BLI_strncpy(&strattr_buf_type[len_UNIFORM_SSBO_TYPE_STR], attr_name, GPU_VERT_ATTR_MAX_LEN);
 
     /* Fetch uniform locations and cache for fast access. */
     const ShaderInput *inp_unf_stride = mtl_interface->uniform_get(strattr_buf_stride);
@@ -3480,15 +3481,15 @@ static uint32_t name_buffer_copystr(char **name_buffer_ptr,
   BLI_assert(ret_len > 0);
 
   /* If required name buffer size is larger, increase by at least 128 bytes. */
-  if (name_buffer_size + ret_len > name_buffer_size) {
-    name_buffer_size = name_buffer_size + max_ii(128, ret_len);
+  if (name_buffer_offset + ret_len + 1 > name_buffer_size) {
+    name_buffer_size = name_buffer_offset + max_ii(128, ret_len + 1);
     *name_buffer_ptr = (char *)MEM_reallocN(*name_buffer_ptr, name_buffer_size);
   }
 
   /* Copy string into name buffer. */
   uint32_t insert_offset = name_buffer_offset;
   char *current_offset = (*name_buffer_ptr) + insert_offset;
-  strcpy(current_offset, str_to_copy);
+  memcpy(current_offset, str_to_copy, (ret_len + 1) * sizeof(char));
 
   /* Adjust offset including null terminator. */
   name_buffer_offset += ret_len + 1;

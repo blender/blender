@@ -25,13 +25,14 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_object_types.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
@@ -70,15 +71,15 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
-#include "BKE_editmesh.h"
+#include "BKE_armature.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_query.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_sound.h"
 
-#include "SEQ_relations.h"
+#include "SEQ_relations.hh"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_nodes.h"
@@ -706,7 +707,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       const Object *object_orig = (const Object *)id_orig;
       object_cow->mode = object_orig->mode;
       object_cow->sculpt = object_orig->sculpt;
-      object_cow->runtime.data_orig = (ID *)object_cow->data;
+      object_cow->runtime->data_orig = (ID *)object_cow->data;
       if (object_cow->type == OB_ARMATURE) {
         const bArmature *armature_orig = (bArmature *)object_orig->data;
         bArmature *armature_cow = (bArmature *)object_cow->data;

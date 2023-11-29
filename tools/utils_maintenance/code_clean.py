@@ -1076,6 +1076,41 @@ class edit_generators:
 
             return edits
 
+    class use_std_min_max(EditGenerator):
+        """
+        Use `std::min` & `std::max` instead of `MIN2`, `MAX2` macros:
+
+        Replace:
+          MAX2(a, b)
+        With:
+          std::max(a, b)
+        """
+        is_default = True
+
+        @staticmethod
+        def edit_list_from_file(source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
+            edits: List[Edit] = []
+
+            # The user might include C & C++, if they forget, it is better not to operate on C.
+            if source.lower().endswith((".h", ".c")):
+                return edits
+
+            for src, dst in (
+                    ("MIN2", "std::min"),
+                    ("MAX2", "std::max"),
+            ):
+                for match in re.finditer(
+                        (r"\b(" + src + r")\("),
+                        data,
+                ):
+                    edits.append(Edit(
+                        span=match.span(1),
+                        content=dst,
+                        content_fail='__ALWAYS_FAIL__',
+                    ))
+
+            return edits
+
     class use_str_sizeof_macros(EditGenerator):
         """
         Use `STRNCPY` & `SNPRINTF` macros:
@@ -1882,7 +1917,7 @@ def run_edits_on_directory(
         return 1
 
     if jobs <= 0:
-        jobs = multiprocessing.cpu_count() * 2
+        jobs = multiprocessing.cpu_count()
 
     if args is None:
         # Error will have been reported.
@@ -2135,7 +2170,7 @@ def main() -> int:
     verbose_edit_actions = False
     verbose_all_from_args = args.verbose.split(",") if args.verbose else []
     while verbose_all_from_args:
-        match (verbose_id := verbose_all_from_args.pop()):
+        match(verbose_id := verbose_all_from_args.pop()):
             case "compile":
                 verbose_compile = True
             case "edit_actions":

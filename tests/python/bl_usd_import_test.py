@@ -46,8 +46,12 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
 
         infile = str(self.testdir / "this_file_doesn't_exist.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'CANCELLED'}, res, "Was somehow able to import a non-existent USD file!")
+        # RPT_ERROR Reports from operators generate `RuntimeError` python exceptions.
+        try:
+            res = bpy.ops.wm.usd_import(filepath=infile)
+            self.assertEqual({'CANCELLED'}, res, "Was somehow able to import a non-existent USD file!")
+        except RuntimeError as e:
+            self.assertTrue(e.args[0].startswith("Error: USD Import: unable to open stage to read"))
 
     def test_import_prim_hierarchy(self):
         """Test importing a simple object hierarchy from a USDA file."""
@@ -183,8 +187,8 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(43.12, test_cam.lens, 2)
         self.assertAlmostEqual(24.89, test_cam.sensor_width, 2)
         self.assertAlmostEqual(14.00, test_cam.sensor_height, 2)
-        self.assertAlmostEqual(12.34, test_cam.shift_x, 2)
-        self.assertAlmostEqual(56.78, test_cam.shift_y, 2)
+        self.assertAlmostEqual(2.281, test_cam.shift_x, 2)
+        self.assertAlmostEqual(0.496, test_cam.shift_y, 2)
 
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
@@ -200,8 +204,8 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(4.312, test_cam.lens, 3)
         self.assertAlmostEqual(2.489, test_cam.sensor_width, 3)
         self.assertAlmostEqual(1.400, test_cam.sensor_height, 3)
-        self.assertAlmostEqual(1.234, test_cam.shift_x, 3)
-        self.assertAlmostEqual(5.678, test_cam.shift_y, 3)
+        self.assertAlmostEqual(2.281, test_cam.shift_x, 3)
+        self.assertAlmostEqual(0.496, test_cam.shift_y, 3)
 
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""

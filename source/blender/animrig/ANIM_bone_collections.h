@@ -14,7 +14,7 @@
 
 #include "BLI_math_bits.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"

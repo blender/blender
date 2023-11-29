@@ -26,7 +26,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -34,7 +34,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_scene.h"
 
 #include "RNA_access.hh"
@@ -276,6 +276,7 @@ static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
   bNodeSocketValueRGBA *src_rgba, *dst_rgba;
   bNodeSocketValueFloat *src_float, *dst_float;
   bNodeSocketValueInt *src_int;
+  bNodeSocketValueBoolean *src_bool;
 
   switch (socket->type) {
     case SOCK_VECTOR:
@@ -294,6 +295,15 @@ static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
       src_rgba = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
       dst_rgba = static_cast<bNodeSocketValueRGBA *>(value_socket->default_value);
       copy_v4_v4(dst_rgba->value, src_rgba->value);
+      break;
+    case SOCK_BOOLEAN:
+      /* HACK: Support as float. */
+      value_node = nodeAddStaticNode(nullptr, localtree, SH_NODE_VALUE);
+      value_socket = ntree_shader_node_find_output(value_node, "Value");
+      BLI_assert(value_socket != nullptr);
+      src_bool = static_cast<bNodeSocketValueBoolean *>(socket->default_value);
+      dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
+      dst_float->value = float(src_bool->value);
       break;
     case SOCK_INT:
       /* HACK: Support as float. */

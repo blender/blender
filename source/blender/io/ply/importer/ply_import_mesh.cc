@@ -8,7 +8,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -103,13 +103,35 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Calculate edges from the rest of the mesh. */
   BKE_mesh_calc_edges(mesh, true, false);
 
-  /* Note: This is important to do after initializing the loops. */
+  /* If we have custom vertex normals, set them (note: important to do this
+   * after initializing the loops). */
   if (!data.vertex_normals.is_empty()) {
-    BKE_mesh_set_custom_normals_from_verts(
-        mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
+    if (!data.face_sizes.is_empty()) {
+      /* For a non-point-cloud mesh, set custom normals. */
+      BKE_mesh_set_custom_normals_from_verts(
+          mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
+    }
+    else if (params.import_attributes) {
+      /* If we have no faces, add vertex normals as custom attribute. */
+      attributes.add<float3>(
+          "normal",
+          ATTR_DOMAIN_POINT,
+          bke::AttributeInitVArray(VArray<float3>::ForSpan(data.vertex_normals)));
+    }
+  }
+  else {
+    /* No vertex normals: set faces to sharp. */
+    BKE_mesh_smooth_flag_set(mesh, false);
   }
 
-  BKE_mesh_smooth_flag_set(mesh, false);
+  /* Custom attributes: add them after anything above. */
+  if (params.import_attributes && !data.vertex_custom_attr.is_empty()) {
+    for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
+      attributes.add<float>(attr.name,
+                            ATTR_DOMAIN_POINT,
+                            bke::AttributeInitVArray(VArray<float>::ForSpan(attr.data)));
+    }
+  }
 
   /* Merge all vertices on the same location. */
   if (params.merge_verts) {

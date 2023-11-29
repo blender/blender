@@ -14,7 +14,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 #include "BKE_volume_to_mesh.hh"
 
@@ -35,8 +35,8 @@ NODE_STORAGE_FUNCS(NodeGeometryVolumeToMesh)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume")
-      .translation_context(BLT_I18NCONTEXT_ID_ID)
-      .supported_type(GeometryComponent::Type::Volume);
+      .supported_type(GeometryComponent::Type::Volume)
+      .translation_context(BLT_I18NCONTEXT_ID_ID);
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
@@ -152,6 +152,8 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
 
   BKE_mesh_calc_edges(mesh, false, false);
   BKE_mesh_smooth_flag_set(mesh, false);
+
+  mesh->tag_overlapping_none();
 
   geometry::debug_randomize_mesh_order(mesh);
 

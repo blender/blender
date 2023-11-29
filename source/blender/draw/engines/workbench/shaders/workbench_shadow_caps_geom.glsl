@@ -15,19 +15,19 @@ void emit_cap(const bool front, bool reversed)
 {
   if (front) {
     gl_Position = vData[0].frontPosition;
-    EmitVertex();
+    gpu_EmitVertex();
     gl_Position = vData[reversed ? 2 : 1].frontPosition;
-    EmitVertex();
+    gpu_EmitVertex();
     gl_Position = vData[reversed ? 1 : 2].frontPosition;
-    EmitVertex();
+    gpu_EmitVertex();
   }
   else {
     gl_Position = vData[0].backPosition;
-    EmitVertex();
+    gpu_EmitVertex();
     gl_Position = vData[reversed ? 1 : 2].backPosition;
-    EmitVertex();
+    gpu_EmitVertex();
     gl_Position = vData[reversed ? 2 : 1].backPosition;
-    EmitVertex();
+    gpu_EmitVertex();
   }
   EndPrimitive();
 }

@@ -125,6 +125,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
 
   virtual void build_idproperties(IDProperty *id_property);
 
+  virtual void build_scene_camera(Scene *scene);
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
@@ -230,8 +231,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_light(Light *lamp);
   virtual void build_nodetree(bNodeTree *ntree);
   virtual void build_nodetree_socket(bNodeSocket *socket);
-  virtual void build_material(Material *ma);
-  virtual void build_materials(Material **materials, int num_materials);
+  virtual void build_material(Material *ma, ID *owner = nullptr);
+  virtual void build_materials(ID *owner, Material **materials, int num_materials);
   virtual void build_freestyle_lineset(FreestyleLineSet *fls);
   virtual void build_freestyle_linestyle(FreestyleLineStyle *linestyle);
   virtual void build_texture(Tex *tex);

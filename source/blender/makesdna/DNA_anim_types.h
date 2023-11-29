@@ -1035,8 +1035,6 @@ typedef enum eInsertKeyFlags {
   /* INSERTKEY_FASTR = (1 << 3), */ /* UNUSED */
   /** only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
   INSERTKEY_REPLACE = (1 << 4),
-  /** transform F-Curves should have XYZ->RGB color mode */
-  INSERTKEY_XYZ2RGB = (1 << 5),
   /** ignore user-prefs (needed for predictable API use) */
   INSERTKEY_NO_USERPREF = (1 << 6),
   /**

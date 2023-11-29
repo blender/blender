@@ -312,9 +312,21 @@ static void colorspace_to_scene_linear(MemoryBuffer *buf, const rcti &area, Colo
   }
 }
 
-void MemoryBuffer::copy_from(const ImBuf *src, const rcti &area, const bool ensure_linear_space)
+static void premultiply_alpha(MemoryBuffer *buf, const rcti &area)
 {
-  copy_from(src, area, 0, this->get_num_channels(), 0, ensure_linear_space);
+  for (int y = area.ymin; y < area.ymax; y++) {
+    for (int x = area.xmin; x < area.xmax; x++) {
+      straight_to_premul_v4(buf->get_elem(x, y));
+    }
+  }
+}
+
+void MemoryBuffer::copy_from(const ImBuf *src,
+                             const rcti &area,
+                             const bool ensure_premultiplied,
+                             const bool ensure_linear_space)
+{
+  copy_from(src, area, 0, this->get_num_channels(), 0, ensure_premultiplied, ensure_linear_space);
 }
 
 void MemoryBuffer::copy_from(const ImBuf *src,
@@ -322,6 +334,7 @@ void MemoryBuffer::copy_from(const ImBuf *src,
                              const int channel_offset,
                              const int elem_size,
                              const int to_channel_offset,
+                             const bool ensure_premultiplied,
                              const bool ensure_linear_space)
 {
   copy_from(src,
@@ -331,6 +344,7 @@ void MemoryBuffer::copy_from(const ImBuf *src,
             area.xmin,
             area.ymin,
             to_channel_offset,
+            ensure_premultiplied,
             ensure_linear_space);
 }
 
@@ -341,6 +355,7 @@ void MemoryBuffer::copy_from(const ImBuf *src,
                              const int to_x,
                              const int to_y,
                              const int to_channel_offset,
+                             const bool ensure_premultiplied,
                              const bool ensure_linear_space)
 {
   if (src->float_buffer.data) {
@@ -362,6 +377,9 @@ void MemoryBuffer::copy_from(const ImBuf *src,
               to_channel_offset);
     if (ensure_linear_space) {
       colorspace_to_scene_linear(this, area, src->byte_buffer.colorspace);
+    }
+    if (ensure_premultiplied) {
+      premultiply_alpha(this, area);
     }
   }
   else {
@@ -391,8 +409,8 @@ void MemoryBuffer::fill_from(const MemoryBuffer &src)
   rcti overlap;
   overlap.xmin = MAX2(rect_.xmin, src.rect_.xmin);
   overlap.xmax = MIN2(rect_.xmax, src.rect_.xmax);
-  overlap.ymin = MAX2(rect_.ymin, src.rect_.ymin);
-  overlap.ymax = MIN2(rect_.ymax, src.rect_.ymax);
+  overlap.ymin = std::max(rect_.ymin, src.rect_.ymin);
+  overlap.ymax = std::min(rect_.ymax, src.rect_.ymax);
   copy_from(&src, overlap);
 }
 

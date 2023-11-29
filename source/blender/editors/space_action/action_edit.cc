@@ -32,7 +32,7 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
@@ -43,6 +43,9 @@
 
 #include "UI_view2d.hh"
 
+#include "ANIM_animdata.hh"
+#include "ANIM_fcurve.hh"
+#include "ANIM_keyframing.hh"
 #include "ED_anim_api.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_grease_pencil.hh"
@@ -696,7 +699,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 }
 
 static std::string actkeys_paste_description(bContext * /*C*/,
-                                             wmOperatorType * /*op*/,
+                                             wmOperatorType * /*ot*/,
                                              PointerRNA *ptr)
 {
   /* Custom description if the 'flipped' option is used. */
@@ -793,7 +796,7 @@ static void insert_grease_pencil_key(bAnimContext *ac,
   bool changed = false;
   if (hold_previous) {
     const FramesMapKey active_frame_number = layer->frame_key_at(current_frame_number);
-    if ((active_frame_number == -1) || (layer->frames().lookup(active_frame_number).is_null())) {
+    if ((active_frame_number == -1) || layer->frames().lookup(active_frame_number).is_null()) {
       /* There is no active frame to hold to, or it's a null frame. Therefore just insert a blank
        * frame. */
       changed = grease_pencil->insert_blank_frame(
@@ -819,8 +822,7 @@ static void insert_grease_pencil_key(bAnimContext *ac,
 static void insert_fcurve_key(bAnimContext *ac,
                               bAnimListElem *ale,
                               const AnimationEvalContext anim_eval_context,
-                              eInsertKeyFlags flag,
-                              ListBase *nla_cache)
+                              eInsertKeyFlags flag)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
 
@@ -838,17 +840,16 @@ static void insert_fcurve_key(bAnimContext *ac,
    *   (TODO: add the full-blown PointerRNA relative parsing case here...)
    */
   if (ale->id && !ale->owner) {
-    insert_keyframe(ac->bmain,
-                    reports,
-                    ale->id,
-                    nullptr,
-                    ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
-                    fcu->rna_path,
-                    fcu->array_index,
-                    &anim_eval_context,
-                    eBezTriple_KeyframeType(ts->keyframe_type),
-                    nla_cache,
-                    flag);
+    blender::animrig::insert_keyframe(ac->bmain,
+                                      reports,
+                                      ale->id,
+                                      nullptr,
+                                      ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                                      fcu->rna_path,
+                                      fcu->array_index,
+                                      &anim_eval_context,
+                                      eBezTriple_KeyframeType(ts->keyframe_type),
+                                      flag);
   }
   else {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
@@ -860,7 +861,7 @@ static void insert_fcurve_key(bAnimContext *ac,
     }
 
     const float curval = evaluate_fcurve(fcu, cfra);
-    insert_vert_fcurve(
+    blender::animrig::insert_vert_fcurve(
         fcu, cfra, curval, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
   }
 
@@ -871,7 +872,6 @@ static void insert_fcurve_key(bAnimContext *ac,
 static void insert_action_keys(bAnimContext *ac, short mode)
 {
   ListBase anim_data = {nullptr, nullptr};
-  ListBase nla_cache = {nullptr, nullptr};
   eAnimFilter_Flags filter;
 
   Scene *scene = ac->scene;
@@ -919,15 +919,13 @@ static void insert_action_keys(bAnimContext *ac, short mode)
         break;
 
       case ANIMTYPE_FCURVE:
-        insert_fcurve_key(ac, ale, anim_eval_context, flag, &nla_cache);
+        insert_fcurve_key(ac, ale, anim_eval_context, flag);
         break;
 
       default:
         BLI_assert_msg(false, "Keys cannot be inserted into this animation type.");
     }
   }
-
-  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
@@ -1113,7 +1111,7 @@ static bool delete_action_keys(bAnimContext *ac)
 
       /* Only delete curve too if it won't be doing anything anymore */
       if (BKE_fcurve_is_empty(fcu)) {
-        ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
+        blender::animrig::animdata_fcurve_delete(ac, adt, fcu);
         ale->key_data = nullptr;
       }
     }
@@ -1182,12 +1180,18 @@ static void clean_action_keys(bAnimContext *ac, float thresh, bool clean_chan)
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_SEL | ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
+            ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
+
+  if (clean_chan) {
+    filter |= ANIMFILTER_SEL;
+  }
+
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
+  const bool only_selected_keys = !clean_chan;
   /* loop through filtered data and clean curves */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    clean_fcurve(ac, ale, thresh, clean_chan);
+    clean_fcurve(ac, ale, thresh, clean_chan, only_selected_keys);
 
     ale->update |= ANIM_UPDATE_DEFAULT;
   }

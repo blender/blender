@@ -9,7 +9,7 @@
 
 #include "DRW_render.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 

@@ -11,9 +11,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_context.hh"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_screen.hh"
 
 #include "DNA_object_force_types.h"
@@ -134,7 +134,7 @@ void modifier_vgroup_ui(uiLayout *layout,
   bool has_vertex_group = RNA_string_length(ptr, vgroup_prop) != 0;
 
   uiLayout *row = uiLayoutRow(layout, true);
-  uiItemPointerR(row, ptr, vgroup_prop, ob_ptr, "vertex_groups", text, ICON_NONE);
+  uiItemPointerR(row, ptr, vgroup_prop, ob_ptr, "vertex_groups", text, ICON_GROUP_VERTEX);
   if (invert_vgroup_prop != nullptr) {
     uiLayout *sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_vertex_group);
@@ -395,7 +395,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
           but, TIP_("This modifier can only deform control points, not the filled curve/surface"));
       buttons_number++;
     }
-    else if (mti->type != eModifierTypeType_Constructive) {
+    else if (mti->type != ModifierTypeType::Constructive) {
       /* Constructive modifiers tessellates curve before applying. */
       uiItemR(row, ptr, "use_apply_on_spline", UI_ITEM_NONE, "", ICON_NONE);
       buttons_number++;

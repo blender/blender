@@ -25,6 +25,7 @@ struct Scene;
 struct ViewContext;
 struct ViewLayer;
 struct bContext;
+struct bContextDataResult;
 struct wmGizmoGroupType;
 struct wmGizmoType;
 struct wmKeyConfig;
@@ -33,6 +34,10 @@ struct wmOperatorType;
 /* `view3d_header.cc` */
 
 void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
+
+/* `view3d_context.cc` */
+
+int view3d_context(const bContext *C, const char *member, bContextDataResult *result);
 
 /* `view3d_ops.cc` */
 

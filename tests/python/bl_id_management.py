@@ -8,6 +8,36 @@ import unittest
 import random
 
 
+class TestRNAIDTypes(unittest.TestCase):
+    data_container_id = 'meshes'
+    default_name = "Mesh"
+
+    def test_rna_idtypes(self):
+        # This test the coherence between ID types exposed in `bpy.data`, and these listed in `rna_enum_id_type_items`.
+        new_args_extra = {
+            "curves": {'type': 'CURVE'},
+            "lightprobes": {'type': 'SPHERE'},
+            "node_groups": {'type': 'CompositorNodeTree'},
+            "textures": {'type': 'NONE'},
+        }
+        for container_id in dir(bpy.data):
+            if container_id.startswith("rna") or container_id.startswith("__") or container_id.startswith("version"):
+                continue
+            container = getattr(bpy.data, container_id)
+            if callable(container):
+                continue
+            if not hasattr(container, "__len__"):
+                continue
+            if len(container) == 0:
+                if not hasattr(container, "new"):
+                    continue
+                if container_id in new_args_extra:
+                    container.new("TestData", **new_args_extra[container_id])
+                else:
+                    container.new("TestData")
+            self.assertIsNot(container[0].id_type, "")
+
+
 class TestHelper:
 
     @property

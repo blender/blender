@@ -23,14 +23,23 @@ namespace blender::gpu {
 
 void VKDevice::deinit()
 {
-  VK_ALLOCATION_CALLBACKS;
-  vkDestroyCommandPool(vk_device_, vk_command_pool_, vk_allocation_callbacks);
+  VK_ALLOCATION_CALLBACKS
+  if (!is_initialized()) {
+    return;
+  }
 
+  timeline_semaphore_.free(*this);
   dummy_buffer_.free();
-  sampler_.free();
+  if (dummy_color_attachment_.has_value()) {
+    delete &(*dummy_color_attachment_).get();
+    dummy_color_attachment_.reset();
+  }
+  samplers_.free();
   destroy_discarded_resources();
+  vkDestroyPipelineCache(vk_device_, vk_pipeline_cache_, vk_allocation_callbacks);
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
+
   debugging_tools_.deinit(vk_instance_);
 
   vk_instance_ = VK_NULL_HANDLE;
@@ -57,15 +66,16 @@ void VKDevice::init(void *ghost_context)
                          &vk_queue_);
 
   init_physical_device_properties();
+  init_physical_device_memory_properties();
   init_physical_device_features();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
   init_debug_callbacks();
   init_memory_allocator();
-  init_command_pools();
-  init_descriptor_pools();
+  init_pipeline_cache();
 
-  sampler_.create();
+  samplers_.init();
+  timeline_semaphore_.init(*this);
 
   debug::object_label(device_get(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
@@ -82,14 +92,26 @@ void VKDevice::init_physical_device_properties()
   vkGetPhysicalDeviceProperties(vk_physical_device_, &vk_physical_device_properties_);
 }
 
+void VKDevice::init_physical_device_memory_properties()
+{
+  BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
+  vkGetPhysicalDeviceMemoryProperties(vk_physical_device_, &vk_physical_device_memory_properties_);
+}
+
 void VKDevice::init_physical_device_features()
 {
   BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
+
   VkPhysicalDeviceFeatures2 features = {};
   features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
   vk_physical_device_vulkan_11_features_.sType =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+  vk_physical_device_vulkan_12_features_.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+
   features.pNext = &vk_physical_device_vulkan_11_features_;
+  vk_physical_device_vulkan_11_features_.pNext = &vk_physical_device_vulkan_12_features_;
+
   vkGetPhysicalDeviceFeatures2(vk_physical_device_, &features);
   vk_physical_device_features_ = features.features;
 }
@@ -106,20 +128,12 @@ void VKDevice::init_memory_allocator()
   vmaCreateAllocator(&info, &mem_allocator_);
 }
 
-void VKDevice::init_command_pools()
+void VKDevice::init_pipeline_cache()
 {
   VK_ALLOCATION_CALLBACKS;
-  VkCommandPoolCreateInfo command_pool_info = {};
-  command_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  command_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  command_pool_info.queueFamilyIndex = vk_queue_family_;
-
-  vkCreateCommandPool(vk_device_, &command_pool_info, vk_allocation_callbacks, &vk_command_pool_);
-}
-
-void VKDevice::init_descriptor_pools()
-{
-  descriptor_pools_.init(vk_device_);
+  VkPipelineCacheCreateInfo create_info = {};
+  create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+  vkCreatePipelineCache(vk_device_, &create_info, vk_allocation_callbacks, &vk_pipeline_cache_);
 }
 
 void VKDevice::init_dummy_buffer(VKContext &context)
@@ -130,9 +144,21 @@ void VKDevice::init_dummy_buffer(VKContext &context)
 
   dummy_buffer_.create(sizeof(float4x4),
                        GPU_USAGE_DEVICE_ONLY,
-                       static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                                                          VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   dummy_buffer_.clear(context, 0);
+}
+
+void VKDevice::init_dummy_color_attachment()
+{
+  if (dummy_color_attachment_.has_value()) {
+    return;
+  }
+
+  GPUTexture *texture = GPU_texture_create_2d(
+      "dummy_attachment", 1, 1, 1, GPU_R32F, GPU_TEXTURE_USAGE_ATTACHMENT, nullptr);
+  BLI_assert(texture);
+  VKTexture &vk_texture = *unwrap(unwrap(texture));
+  dummy_color_attachment_ = std::make_optional(std::reference_wrapper(vk_texture));
 }
 
 /* -------------------------------------------------------------------- */
@@ -301,6 +327,31 @@ void VKDevice::destroy_discarded_resources()
     VkFramebuffer vk_frame_buffer = discarded_frame_buffers_.pop_last();
     vkDestroyFramebuffer(vk_device_, vk_frame_buffer, vk_allocation_callbacks);
   }
+}
+
+void VKDevice::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const
+{
+  VmaBudget budgets[VK_MAX_MEMORY_HEAPS];
+  vmaGetHeapBudgets(mem_allocator_get(), budgets);
+  VkDeviceSize total_mem = 0;
+  VkDeviceSize used_mem = 0;
+
+  for (int memory_heap_index : IndexRange(vk_physical_device_memory_properties_.memoryHeapCount)) {
+    const VkMemoryHeap &memory_heap =
+        vk_physical_device_memory_properties_.memoryHeaps[memory_heap_index];
+    const VmaBudget &budget = budgets[memory_heap_index];
+
+    /* Skip host memory-heaps. */
+    if (!bool(memory_heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)) {
+      continue;
+    }
+
+    total_mem += memory_heap.size;
+    used_mem += budget.usage;
+  }
+
+  *r_total_mem_kb = int(total_mem / 1024);
+  *r_free_mem_kb = int((total_mem - used_mem) / 1024);
 }
 
 /** \} */

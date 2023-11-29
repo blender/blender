@@ -20,7 +20,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -29,7 +29,7 @@
 #include "DNA_mask_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_idtype.h"
 
 #include "BKE_anim_data.h"
@@ -187,7 +187,7 @@ IDTypeInfo IDType_ID_MSK = {
     /*main_listbase_index*/ INDEX_ID_MSK,
     /*struct_size*/ sizeof(Mask),
     /*name*/ "Mask",
-    /*name_plural*/ "masks",
+    /*name_plural*/ N_("masks"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MASK,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

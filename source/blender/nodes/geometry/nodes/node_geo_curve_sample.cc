@@ -122,11 +122,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(4));
   search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(3));
 
-  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
@@ -406,6 +406,7 @@ class SampleCurveFunction : public mf::MultiFunction {
       }
     }
     else {
+      Vector<int> valid_indices;
       Vector<int> invalid_indices;
       VectorSet<int> used_curves;
       devirtualize_varray(curve_indices, [&](const auto curve_indices) {
@@ -413,6 +414,7 @@ class SampleCurveFunction : public mf::MultiFunction {
           const int curve_i = curve_indices[i];
           if (curves.curves_range().contains(curve_i)) {
             used_curves.add(curve_i);
+            valid_indices.append(i);
           }
           else {
             invalid_indices.append(i);
@@ -421,9 +423,13 @@ class SampleCurveFunction : public mf::MultiFunction {
       });
 
       IndexMaskMemory memory;
+      const IndexMask valid_indices_mask = valid_indices.size() == mask.size() ?
+                                               mask :
+                                               IndexMask::from_indices(valid_indices.as_span(),
+                                                                       memory);
       Array<IndexMask> mask_by_curve(used_curves.size());
       IndexMask::from_groups<int>(
-          mask,
+          valid_indices_mask,
           memory,
           [&](const int i) { return used_curves.index_of(curve_indices[i]); },
           mask_by_curve);
@@ -465,17 +471,17 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
 {
   switch (data_type) {
     case CD_PROP_FLOAT:
-      return params.extract_input<Field<float>>("Value_Float");
+      return params.extract_input<GField>("Value_Float");
     case CD_PROP_FLOAT3:
-      return params.extract_input<Field<float3>>("Value_Vector");
+      return params.extract_input<GField>("Value_Vector");
     case CD_PROP_COLOR:
-      return params.extract_input<Field<ColorGeometry4f>>("Value_Color");
+      return params.extract_input<GField>("Value_Color");
     case CD_PROP_BOOL:
-      return params.extract_input<Field<bool>>("Value_Bool");
+      return params.extract_input<GField>("Value_Bool");
     case CD_PROP_INT32:
-      return params.extract_input<Field<int>>("Value_Int");
+      return params.extract_input<GField>("Value_Int");
     case CD_PROP_QUATERNION:
-      return params.extract_input<Field<math::Quaternion>>("Value_Rotation");
+      return params.extract_input<GField>("Value_Rotation");
     default:
       BLI_assert_unreachable();
   }

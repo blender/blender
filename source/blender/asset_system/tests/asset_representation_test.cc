@@ -9,7 +9,7 @@
 
 #include "AS_asset_representation.hh"
 
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 
 #include "DNA_asset_types.h"
 

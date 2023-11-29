@@ -10,7 +10,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {
@@ -38,30 +38,37 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
     }
   }
 
-  r_uv_layers = uv_layers;
+  r_uv_layers = 0;
 
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
       const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, i);
 
-      GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
-      /* UV layer name. */
-      SNPRINTF(attr_name, "a%s", attr_safe_name);
-      GPU_vertformat_attr_add(format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      /* Active render layer name. */
-      if (i == CustomData_get_render_layer(cd_ldata, CD_PROP_FLOAT2)) {
-        GPU_vertformat_alias_add(format, "a");
-      }
-      /* Active display layer name. */
-      if (i == CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2)) {
-        GPU_vertformat_alias_add(format, "au");
-        /* Alias to `pos` for edit uvs. */
-        GPU_vertformat_alias_add(format, "pos");
-      }
-      /* Stencil mask uv layer name. */
-      if (i == CustomData_get_stencil_layer(cd_ldata, CD_PROP_FLOAT2)) {
-        GPU_vertformat_alias_add(format, "mu");
+      /* not all UV layers are guaranteed to exist, since the list of available UV
+       * layers is generated for the evaluated mesh, which is needed to show modifier
+       * results in editmode, but the actual mesh might be the base mesh.
+       */
+      if (layer_name) {
+        r_uv_layers |= (1 << i);
+        GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+        /* UV layer name. */
+        SNPRINTF(attr_name, "a%s", attr_safe_name);
+        GPU_vertformat_attr_add(format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+        /* Active render layer name. */
+        if (i == CustomData_get_render_layer(cd_ldata, CD_PROP_FLOAT2)) {
+          GPU_vertformat_alias_add(format, "a");
+        }
+        /* Active display layer name. */
+        if (i == CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2)) {
+          GPU_vertformat_alias_add(format, "au");
+          /* Alias to `pos` for edit uvs. */
+          GPU_vertformat_alias_add(format, "pos");
+        }
+        /* Stencil mask uv layer name. */
+        if (i == CustomData_get_stencil_layer(cd_ldata, CD_PROP_FLOAT2)) {
+          GPU_vertformat_alias_add(format, "mu");
+        }
       }
     }
   }

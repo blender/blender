@@ -16,13 +16,13 @@ void extrude_edge(bool invert)
   /* Reverse order if back-facing the light. */
   ivec2 idx = (invert) ? ivec2(1, 2) : ivec2(2, 1);
   gl_Position = vData[idx.x].frontPosition;
-  EmitVertex();
+  gpu_EmitVertex();
   gl_Position = vData[idx.y].frontPosition;
-  EmitVertex();
+  gpu_EmitVertex();
   gl_Position = vData[idx.x].backPosition;
-  EmitVertex();
+  gpu_EmitVertex();
   gl_Position = vData[idx.y].backPosition;
-  EmitVertex();
+  gpu_EmitVertex();
   EndPrimitive();
 }
 

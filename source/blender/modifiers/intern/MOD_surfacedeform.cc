@@ -19,16 +19,16 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_context.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -606,7 +606,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           return nullptr;
         }
 
-        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, face.size(), false);
+        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, face.size());
 
         /* Initialize weight components */
         bpoly->weight_angular = 1.0f;
@@ -1571,10 +1571,14 @@ static void surfacedeformModifier_do(ModifierData *md,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh);
+  surfacedeformModifier_do(md,
+                           ctx,
+                           reinterpret_cast<float(*)[3]>(positions.data()),
+                           positions.size(),
+                           ctx->object,
+                           mesh);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
@@ -1713,7 +1717,7 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
     /*struct_name*/ "SurfaceDeformModifierData",
     /*struct_size*/ sizeof(SurfaceDeformModifierData),
     /*srna*/ &RNA_SurfaceDeformModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_MESHDEFORM,
 

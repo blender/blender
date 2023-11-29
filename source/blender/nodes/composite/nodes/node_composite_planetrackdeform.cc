@@ -15,7 +15,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -145,7 +145,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
     const Array<float4x4> homography_matrices = compute_homography_matrices(plane_track);
 
-    GPUShader *shader = shader_manager().get("compositor_plane_deform_motion_blur");
+    GPUShader *shader = context().get_shader("compositor_plane_deform_motion_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "number_of_motion_blur_samples", homography_matrices.size());

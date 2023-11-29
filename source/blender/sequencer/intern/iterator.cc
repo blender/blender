@@ -17,46 +17,17 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
 
 #include "BKE_scene.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_relations.h"
-#include "SEQ_render.h"
-#include "SEQ_time.h"
-#include "render.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_render.hh"
+#include "SEQ_time.hh"
+#include "render.hh"
 
-/* -------------------------------------------------------------------- */
-/** \name Iterator API
- * \{ */
-
-bool SEQ_iterator_ensure(SeqCollection *collection, SeqIterator *iterator, Sequence **r_seq)
-{
-  if (iterator->iterator_initialized) {
-    return true;
-  }
-
-  if (BLI_gset_len(collection->set) == 0) {
-    return false;
-  }
-
-  iterator->collection = collection;
-  BLI_gsetIterator_init(&iterator->gsi, iterator->collection->set);
-  iterator->iterator_initialized = true;
-
-  *r_seq = static_cast<Sequence *>(BLI_gsetIterator_getKey(&iterator->gsi));
-  BLI_gsetIterator_step(&iterator->gsi);
-
-  return true;
-}
-
-Sequence *SEQ_iterator_yield(SeqIterator *iterator)
-{
-  Sequence *seq = static_cast<Sequence *>(
-      BLI_gsetIterator_done(&iterator->gsi) ? nullptr : BLI_gsetIterator_getKey(&iterator->gsi));
-  BLI_gsetIterator_step(&iterator->gsi);
-  return seq;
-}
+using blender::VectorSet;
 
 static bool seq_for_each_recursive(ListBase *seqbase, SeqForEachFunc callback, void *user_data)
 {
@@ -79,194 +50,110 @@ void SEQ_for_each_callback(ListBase *seqbase, SeqForEachFunc callback, void *use
   seq_for_each_recursive(seqbase, callback, user_data);
 }
 
-void SEQ_collection_free(SeqCollection *collection)
+VectorSet<Sequence *> SEQ_query_by_reference(Sequence *reference_strip,
+                                             const Scene *scene,
+                                             ListBase *seqbase,
+                                             void seq_query_func(const Scene *scene,
+                                                                 Sequence *seq_reference,
+                                                                 ListBase *seqbase,
+                                                                 VectorSet<Sequence *> &strips))
 {
-  BLI_gset_free(collection->set, nullptr);
-  MEM_freeN(collection);
+  VectorSet<Sequence *> strips;
+  seq_query_func(scene, reference_strip, seqbase, strips);
+  return strips;
 }
 
-SeqCollection *SEQ_collection_create(const char *name)
+void SEQ_iterator_set_expand(const Scene *scene,
+                             ListBase *seqbase,
+                             VectorSet<Sequence *> &strips,
+                             void seq_query_func(const Scene *scene,
+                                                 Sequence *seq_reference,
+                                                 ListBase *seqbase,
+                                                 VectorSet<Sequence *> &strips))
 {
-  SeqCollection *collection = static_cast<SeqCollection *>(
-      MEM_callocN(sizeof(SeqCollection), name));
-  collection->set = BLI_gset_new(
-      BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "SeqCollection GSet");
-  return collection;
-}
+  /* Collect expanded results for each sequence in provided VectorSet. */
+  VectorSet<Sequence *> query_matches;
 
-uint SEQ_collection_len(const SeqCollection *collection)
-{
-  return BLI_gset_len(collection->set);
-}
-
-bool SEQ_collection_has_strip(const Sequence *seq, const SeqCollection *collection)
-{
-  return BLI_gset_haskey(collection->set, seq);
-}
-
-SeqCollection *SEQ_query_by_reference(Sequence *seq_reference,
-                                      const Scene *scene,
-                                      ListBase *seqbase,
-                                      void seq_query_func(const Scene *scene,
-                                                          Sequence *seq_reference,
-                                                          ListBase *seqbase,
-                                                          SeqCollection *collection))
-{
-  SeqCollection *collection = SEQ_collection_create(__func__);
-  seq_query_func(scene, seq_reference, seqbase, collection);
-  return collection;
-}
-bool SEQ_collection_append_strip(Sequence *seq, SeqCollection *collection)
-{
-  void **key;
-  if (BLI_gset_ensure_p_ex(collection->set, seq, &key)) {
-    return false;
+  for (Sequence *strip : strips) {
+    query_matches.add_multiple(SEQ_query_by_reference(strip, scene, seqbase, seq_query_func));
   }
 
-  *key = (void *)seq;
-  return true;
+  /* Merge all expanded results in provided VectorSet. */
+  strips.add_multiple(query_matches);
 }
 
-bool SEQ_collection_remove_strip(Sequence *seq, SeqCollection *collection)
-{
-  return BLI_gset_remove(collection->set, seq, nullptr);
-}
-
-void SEQ_collection_merge(SeqCollection *collection_dst, SeqCollection *collection_src)
-{
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection_src) {
-    SEQ_collection_append_strip(seq, collection_dst);
-  }
-  SEQ_collection_free(collection_src);
-}
-
-void SEQ_collection_exclude(SeqCollection *collection, SeqCollection *exclude_elements)
-{
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, exclude_elements) {
-    SEQ_collection_remove_strip(seq, collection);
-  }
-  SEQ_collection_free(exclude_elements);
-}
-
-void SEQ_collection_expand(const Scene *scene,
-                           ListBase *seqbase,
-                           SeqCollection *collection,
-                           void seq_query_func(const Scene *scene,
-                                               Sequence *seq_reference,
-                                               ListBase *seqbase,
-                                               SeqCollection *collection))
-{
-  /* Collect expanded results for each sequence in provided SeqIteratorCollection. */
-  SeqCollection *query_matches = SEQ_collection_create(__func__);
-
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    SEQ_collection_merge(query_matches,
-                         SEQ_query_by_reference(seq, scene, seqbase, seq_query_func));
-  }
-
-  /* Merge all expanded results in provided SeqIteratorCollection. */
-  SEQ_collection_merge(collection, query_matches);
-}
-
-SeqCollection *SEQ_collection_duplicate(SeqCollection *collection)
-{
-  SeqCollection *duplicate = SEQ_collection_create(__func__);
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    SEQ_collection_append_strip(seq, duplicate);
-  }
-  return duplicate;
-}
-
-/** \} */
-
-static void query_all_strips_recursive(ListBase *seqbase, SeqCollection *collection)
+static void query_all_strips_recursive(ListBase *seqbase, VectorSet<Sequence *> &strips)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
-      query_all_strips_recursive(&seq->seqbase, collection);
+      query_all_strips_recursive(&seq->seqbase, strips);
     }
-    SEQ_collection_append_strip(seq, collection);
+    strips.add(seq);
   }
 }
 
-SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase)
+VectorSet<Sequence *> SEQ_query_all_strips_recursive(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_collection_create(__func__);
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->type == SEQ_TYPE_META) {
-      query_all_strips_recursive(&seq->seqbase, collection);
-    }
-    SEQ_collection_append_strip(seq, collection);
-  }
-  return collection;
+  VectorSet<Sequence *> strips;
+  query_all_strips_recursive(seqbase, strips);
+  return strips;
 }
 
-SeqCollection *SEQ_query_all_strips(ListBase *seqbase)
+VectorSet<Sequence *> SEQ_query_all_strips(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_collection_create(__func__);
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    SEQ_collection_append_strip(seq, collection);
+  VectorSet<Sequence *> strips;
+  LISTBASE_FOREACH (Sequence *, strip, seqbase) {
+    strips.add(strip);
   }
-  return collection;
+  return strips;
 }
 
-SeqCollection *SEQ_query_selected_strips(ListBase *seqbase)
+VectorSet<Sequence *> SEQ_query_selected_strips(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_collection_create(__func__);
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if ((seq->flag & SELECT) == 0) {
-      continue;
+  VectorSet<Sequence *> strips;
+  LISTBASE_FOREACH (Sequence *, strip, seqbase) {
+    if ((strip->flag & SELECT) != 0) {
+      strips.add(strip);
     }
-    SEQ_collection_append_strip(seq, collection);
   }
-  return collection;
+  return strips;
 }
 
-static SeqCollection *query_strips_at_frame(const Scene *scene,
-                                            ListBase *seqbase,
-                                            const int timeline_frame)
+static VectorSet<Sequence *> query_strips_at_frame(const Scene *scene,
+                                                   ListBase *seqbase,
+                                                   const int timeline_frame)
 {
-  SeqCollection *collection = SEQ_collection_create(__func__);
+  VectorSet<Sequence *> strips;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (SEQ_time_strip_intersects_frame(scene, seq, timeline_frame)) {
-      SEQ_collection_append_strip(seq, collection);
+  LISTBASE_FOREACH (Sequence *, strip, seqbase) {
+    if (SEQ_time_strip_intersects_frame(scene, strip, timeline_frame)) {
+      strips.add(strip);
     }
   }
-  return collection;
+  return strips;
 }
 
-static void collection_filter_channel_up_to_incl(SeqCollection *collection, const int channel)
+static void collection_filter_channel_up_to_incl(VectorSet<Sequence *> &strips, const int channel)
 {
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (seq->machine <= channel) {
-      continue;
-    }
-    SEQ_collection_remove_strip(seq, collection);
-  }
+  strips.remove_if([&](Sequence *strip) { return strip->machine > channel; });
 }
 
 /* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
  * Order of applying these conditions is important. */
-static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_timeline_frame)
+static bool must_render_strip(VectorSet<Sequence *> &strips, Sequence *strip)
 {
   bool seq_have_effect_in_stack = false;
-  Sequence *seq_iter;
-  SEQ_ITERATOR_FOREACH (seq_iter, strips_at_timeline_frame) {
+  for (Sequence *strip_iter : strips) {
     /* Strips is below another strip with replace blending are not rendered. */
-    if (seq_iter->blend_mode == SEQ_BLEND_REPLACE && seq->machine < seq_iter->machine) {
+    if (strip_iter->blend_mode == SEQ_BLEND_REPLACE && strip->machine < strip_iter->machine) {
       return false;
     }
 
-    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 && SEQ_relation_is_effect_of_strip(seq_iter, seq))
+    if ((strip_iter->type & SEQ_TYPE_EFFECT) != 0 &&
+        SEQ_relation_is_effect_of_strip(strip_iter, strip))
     {
       /* Strips in same channel or higher than its effect are rendered. */
-      if (seq->machine >= seq_iter->machine) {
+      if (strip->machine >= strip_iter->machine) {
         return true;
       }
       /* Mark that this strip has effect in stack, that is above the strip. */
@@ -275,7 +162,7 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
   }
 
   /* All effects are rendered (with respect to conditions above). */
-  if ((seq->type & SEQ_TYPE_EFFECT) != 0) {
+  if ((strip->type & SEQ_TYPE_EFFECT) != 0) {
     return true;
   }
 
@@ -287,91 +174,74 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
   return true;
 }
 
-/* Remove strips we don't want to render from collection. */
-static void collection_filter_rendered_strips(ListBase *channels, SeqCollection *collection)
+/* Remove strips we don't want to render from VectorSet. */
+static void collection_filter_rendered_strips(VectorSet<Sequence *> &strips, ListBase *channels)
 {
-  Sequence *seq;
-
-  /* Remove sound strips and muted strips from collection, because these are not rendered.
+  /* Remove sound strips and muted strips from VectorSet, because these are not rendered.
    * Function #must_render_strip() don't have to check for these strips anymore. */
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (seq->type == SEQ_TYPE_SOUND_RAM || SEQ_render_is_muted(channels, seq)) {
-      SEQ_collection_remove_strip(seq, collection);
-    }
-  }
+  strips.remove_if([&](Sequence *strip) {
+    return strip->type == SEQ_TYPE_SOUND_RAM || SEQ_render_is_muted(channels, strip);
+  });
 
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (must_render_strip(seq, collection)) {
-      continue;
-    }
-    SEQ_collection_remove_strip(seq, collection);
-  }
+  strips.remove_if([&](Sequence *strip) { return !must_render_strip(strips, strip); });
 }
 
-SeqCollection *SEQ_query_rendered_strips(const Scene *scene,
-                                         ListBase *channels,
-                                         ListBase *seqbase,
-                                         const int timeline_frame,
-                                         const int displayed_channel)
+VectorSet<Sequence *> SEQ_query_rendered_strips(const Scene *scene,
+                                                ListBase *channels,
+                                                ListBase *seqbase,
+                                                const int timeline_frame,
+                                                const int displayed_channel)
 {
-  SeqCollection *collection = query_strips_at_frame(scene, seqbase, timeline_frame);
+  VectorSet strips = query_strips_at_frame(scene, seqbase, timeline_frame);
   if (displayed_channel != 0) {
-    collection_filter_channel_up_to_incl(collection, displayed_channel);
+    collection_filter_channel_up_to_incl(strips, displayed_channel);
   }
-  collection_filter_rendered_strips(channels, collection);
-  return collection;
+  collection_filter_rendered_strips(strips, channels);
+  return strips;
 }
 
-SeqCollection *SEQ_query_unselected_strips(ListBase *seqbase)
+VectorSet<Sequence *> SEQ_query_unselected_strips(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_collection_create(__func__);
+  VectorSet<Sequence *> strips;
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT) != 0) {
       continue;
     }
-    SEQ_collection_append_strip(seq, collection);
+    strips.add(seq);
   }
-  return collection;
+  return strips;
 }
 
 void SEQ_query_strip_effect_chain(const Scene *scene,
-                                  Sequence *seq_reference,
+                                  Sequence *reference_strip,
                                   ListBase *seqbase,
-                                  SeqCollection *collection)
+                                  VectorSet<Sequence *> &strips)
 {
-  if (!SEQ_collection_append_strip(seq_reference, collection)) {
+  if (strips.contains(reference_strip)) {
     return; /* Strip is already in set, so all effects connected to it are as well. */
   }
 
-  /* Find all strips that seq_reference is connected to. */
-  if (seq_reference->type & SEQ_TYPE_EFFECT) {
-    if (seq_reference->seq1) {
-      SEQ_query_strip_effect_chain(scene, seq_reference->seq1, seqbase, collection);
+  strips.add(reference_strip);
+
+  /* Find all strips that reference_strip is connected to. */
+  if (reference_strip->type & SEQ_TYPE_EFFECT) {
+    if (reference_strip->seq1) {
+      SEQ_query_strip_effect_chain(scene, reference_strip->seq1, seqbase, strips);
     }
-    if (seq_reference->seq2) {
-      SEQ_query_strip_effect_chain(scene, seq_reference->seq2, seqbase, collection);
+    if (reference_strip->seq2) {
+      SEQ_query_strip_effect_chain(scene, reference_strip->seq2, seqbase, strips);
     }
-    if (seq_reference->seq3) {
-      SEQ_query_strip_effect_chain(scene, seq_reference->seq3, seqbase, collection);
+    if (reference_strip->seq3) {
+      SEQ_query_strip_effect_chain(scene, reference_strip->seq3, seqbase, strips);
     }
   }
 
-  /* Find all strips connected to seq_reference. */
+  /* Find all strips connected to reference_strip. */
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
-    if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
-        seq_test->seq3 == seq_reference)
+    if (seq_test->seq1 == reference_strip || seq_test->seq2 == reference_strip ||
+        seq_test->seq3 == reference_strip)
     {
-      SEQ_query_strip_effect_chain(scene, seq_test, seqbase, collection);
-    }
-  }
-}
-
-void SEQ_filter_selected_strips(SeqCollection *collection)
-{
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if ((seq->flag & SELECT) == 0) {
-      SEQ_collection_remove_strip(seq, collection);
+      SEQ_query_strip_effect_chain(scene, seq_test, seqbase, strips);
     }
   }
 }

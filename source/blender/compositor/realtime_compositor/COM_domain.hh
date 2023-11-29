@@ -23,8 +23,8 @@ enum class Interpolation : uint8_t {
  * Realization Options
  *
  * The options that describe how an input result prefer to be realized on some other domain. This
- * is used by the Realize On Domain Operation to identify the appropriate method of realization.
- * See the Domain class for more information. */
+ * is used by the Realize On Domain and Transform algorithms to identify the appropriate method of
+ * realization. See the Domain class for more information. */
 struct RealizationOptions {
   /* The interpolation method that should be used when performing realization. Since realizing a
    * result involves projecting it on a different domain, which in turn, involves sampling the
@@ -34,11 +34,11 @@ struct RealizationOptions {
   /* If true, the result will be repeated infinitely along the horizontal axis when realizing the
    * result. If false, regions outside of bounds of the result along the horizontal axis will be
    * filled with zeros. */
-  bool repeat_x = false;
+  bool wrap_x = false;
   /* If true, the result will be repeated infinitely along the vertical axis when realizing the
    * result. If false, regions outside of bounds of the result along the vertical axis will be
    * filled with zeros. */
-  bool repeat_y = false;
+  bool wrap_y = false;
 };
 
 /* ------------------------------------------------------------------------------------------------

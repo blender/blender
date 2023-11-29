@@ -29,7 +29,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
@@ -63,11 +63,16 @@ static CLG_LogRef LOG = {"bke.collection"};
 
 static bool collection_child_add(Collection *parent,
                                  Collection *collection,
+                                 CollectionLightLinking *light_linking,
                                  const int flag,
                                  const bool add_us);
 static bool collection_child_remove(Collection *parent, Collection *collection);
-static bool collection_object_add(
-    Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us);
+static bool collection_object_add(Main *bmain,
+                                  Collection *collection,
+                                  Object *ob,
+                                  CollectionLightLinking *light_linking,
+                                  int flag,
+                                  const bool add_us);
 
 static void collection_object_remove_no_gobject_hash(Main *bmain,
                                                      Collection *collection,
@@ -141,10 +146,10 @@ static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
   collection_dst->runtime.gobject_hash = nullptr;
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection_src->children) {
-    collection_child_add(collection_dst, child->collection, flag, false);
+    collection_child_add(collection_dst, child->collection, &child->light_linking, flag, false);
   }
   LISTBASE_FOREACH (CollectionObject *, cob, &collection_src->gobject) {
-    collection_object_add(bmain, collection_dst, cob->ob, flag, false);
+    collection_object_add(bmain, collection_dst, cob->ob, &cob->light_linking, flag, false);
   }
 }
 
@@ -174,7 +179,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 
   BKE_LIB_FOREACHID_PROCESS_ID(
       data,
-      collection->runtime.owner_id,
+      collection->owner_id,
       (IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF | IDWALK_CB_READFILE_IGNORE));
 
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
@@ -220,12 +225,18 @@ static ID **collection_owner_pointer_get(ID *id)
 
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
-  BLI_assert(master_collection->runtime.owner_id != nullptr);
-  BLI_assert(GS(master_collection->runtime.owner_id->name) == ID_SCE);
-  BLI_assert(((Scene *)master_collection->runtime.owner_id)->master_collection ==
-             master_collection);
+  BLI_assert(master_collection->owner_id != nullptr);
+  BLI_assert(GS(master_collection->owner_id->name) == ID_SCE);
+  BLI_assert(((Scene *)master_collection->owner_id)->master_collection == master_collection);
 
-  return &master_collection->runtime.owner_id;
+  return &master_collection->owner_id;
+}
+
+void BKE_collection_blend_write_prepare_nolib(BlendWriter * /*writer*/, Collection *collection)
+{
+  memset(&collection->runtime, 0, sizeof(collection->runtime));
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 }
 
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
@@ -248,9 +259,7 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
 {
   Collection *collection = (Collection *)id;
 
-  memset(&collection->runtime, 0, sizeof(collection->runtime));
-  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
+  BKE_collection_blend_write_prepare_nolib(writer, collection);
 
   /* write LibData */
   BLO_write_id_struct(writer, Collection, id_address, &collection->id);
@@ -289,7 +298,7 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
   memset(&collection->runtime, 0, sizeof(collection->runtime));
   collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 
-  collection->runtime.owner_id = owner_id;
+  collection->owner_id = owner_id;
 
   BLO_read_list(reader, &collection->gobject);
   BLO_read_list(reader, &collection->children);
@@ -329,7 +338,7 @@ IDTypeInfo IDType_ID_GR = {
     /*main_listbase_index*/ INDEX_ID_GR,
     /*struct_size*/ sizeof(Collection),
     /*name*/ "Collection",
-    /*name_plural*/ "collections",
+    /*name_plural*/ N_("collections"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_COLLECTION,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -381,7 +390,7 @@ static Collection *collection_add(Main *bmain,
 
   /* Optionally add to parent collection. */
   if (collection_parent) {
-    collection_child_add(collection_parent, collection, 0, true);
+    collection_child_add(collection_parent, collection, nullptr, 0, true);
   }
 
   return collection;
@@ -405,14 +414,14 @@ void BKE_collection_add_from_object(Main *bmain,
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
         BKE_collection_has_object(collection, ob_src))
     {
-      collection_child_add(collection, collection_dst, 0, true);
+      collection_child_add(collection, collection_dst, nullptr, 0, true);
       is_instantiated = true;
     }
   }
   FOREACH_SCENE_COLLECTION_END;
 
   if (!is_instantiated) {
-    collection_child_add(scene->master_collection, collection_dst, 0, true);
+    collection_child_add(scene->master_collection, collection_dst, nullptr, 0, true);
   }
 
   BKE_main_collection_sync(bmain);
@@ -429,7 +438,7 @@ void BKE_collection_add_from_collection(Main *bmain,
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
         collection_find_child(collection, collection_src))
     {
-      collection_child_add(collection, collection_dst, 0, true);
+      collection_child_add(collection, collection_dst, nullptr, 0, true);
       is_instantiated = true;
     }
     else if (!is_instantiated && collection_find_child(collection, collection_dst)) {
@@ -441,7 +450,7 @@ void BKE_collection_add_from_collection(Main *bmain,
   FOREACH_SCENE_COLLECTION_END;
 
   if (!is_instantiated) {
-    collection_child_add(scene->master_collection, collection_dst, 0, true);
+    collection_child_add(scene->master_collection, collection_dst, nullptr, 0, true);
   }
 
   BKE_main_collection_sync(bmain);
@@ -496,7 +505,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
     LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
       LISTBASE_FOREACH (CollectionParent *, cparent, &collection->runtime.parents) {
         Collection *parent = cparent->collection;
-        collection_child_add(parent, child->collection, 0, true);
+        collection_child_add(parent, child->collection, nullptr, 0, true);
       }
     }
 
@@ -505,7 +514,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
       /* Link child object into parent collections. */
       LISTBASE_FOREACH (CollectionParent *, cparent, &collection->runtime.parents) {
         Collection *parent = cparent->collection;
-        collection_object_add(bmain, parent, cob->ob, 0, true);
+        collection_object_add(bmain, parent, cob->ob, nullptr, 0, true);
       }
 
       /* Remove child object. */
@@ -563,9 +572,9 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   /* Optionally add to parent (we always want to do that,
    * even if collection_old had already been duplicated). */
   if (parent != nullptr) {
-    if (collection_child_add(parent, collection_new, 0, true)) {
+    CollectionChild *child = collection_find_child(parent, collection_old);
+    if (collection_child_add(parent, collection_new, &child->light_linking, 0, true)) {
       /* Put collection right after existing one. */
-      CollectionChild *child = collection_find_child(parent, collection_old);
       CollectionChild *child_new = collection_find_child(parent, collection_new);
 
       if (child && child_new) {
@@ -608,7 +617,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
         continue;
       }
 
-      collection_object_add(bmain, collection_new, ob_new, 0, true);
+      collection_object_add(bmain, collection_new, ob_new, &cob->light_linking, 0, true);
       collection_object_remove(bmain, collection_new, ob_old, false);
     }
   }
@@ -867,7 +876,7 @@ Collection *BKE_collection_master_add(Scene *scene)
   Collection *master_collection = static_cast<Collection *>(
       BKE_libblock_alloc(nullptr, ID_GR, BKE_SCENE_COLLECTION_NAME, LIB_ID_CREATE_NO_MAIN));
   master_collection->id.flag |= LIB_EMBEDDED_DATA;
-  master_collection->runtime.owner_id = &scene->id;
+  master_collection->owner_id = &scene->id;
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;
 
@@ -1220,8 +1229,12 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
   return nullptr;
 }
 
-static bool collection_object_add(
-    Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)
+static bool collection_object_add(Main *bmain,
+                                  Collection *collection,
+                                  Object *ob,
+                                  CollectionLightLinking *light_linking,
+                                  int flag,
+                                  const bool add_us)
 {
   /* Cyclic dependency check. */
   if (ob->instance_collection) {
@@ -1241,6 +1254,9 @@ static bool collection_object_add(
   CollectionObject *cob = static_cast<CollectionObject *>(
       MEM_callocN(sizeof(CollectionObject), __func__));
   cob->ob = ob;
+  if (light_linking) {
+    cob->light_linking = *light_linking;
+  }
   *cob_p = cob;
   BLI_addtail(&collection->gobject, cob);
   BKE_collection_object_cache_free(collection);
@@ -1312,7 +1328,7 @@ bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Objec
     return false;
   }
 
-  if (!collection_object_add(bmain, collection, ob, 0, true)) {
+  if (!collection_object_add(bmain, collection, ob, nullptr, 0, true)) {
     return false;
   }
 
@@ -1356,7 +1372,7 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
         BKE_collection_has_object(collection, ob_src))
     {
-      collection_object_add(bmain, collection, ob_dst, 0, true);
+      collection_object_add(bmain, collection, ob_dst, nullptr, 0, true);
       is_instantiated = true;
     }
   }
@@ -1365,7 +1381,7 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
   if (!is_instantiated) {
     /* In case we could not find any non-linked collections in which instantiate our ob_dst,
      * fallback to scene's master collection... */
-    collection_object_add(bmain, scene->master_collection, ob_dst, 0, true);
+    collection_object_add(bmain, scene->master_collection, ob_dst, nullptr, 0, true);
   }
 
   BKE_main_collection_sync(bmain);
@@ -1709,6 +1725,7 @@ static CollectionParent *collection_find_parent(Collection *child, Collection *c
 
 static bool collection_child_add(Collection *parent,
                                  Collection *collection,
+                                 CollectionLightLinking *light_linking,
                                  const int flag,
                                  const bool add_us)
 {
@@ -1722,6 +1739,9 @@ static bool collection_child_add(Collection *parent,
 
   child = static_cast<CollectionChild *>(MEM_callocN(sizeof(CollectionChild), "CollectionChild"));
   child->collection = collection;
+  if (light_linking) {
+    child->light_linking = *light_linking;
+  }
   BLI_addtail(&parent->children, child);
 
   /* Don't add parent links for depsgraph datablocks, these are not kept in sync. */
@@ -1761,7 +1781,7 @@ static bool collection_child_remove(Collection *parent, Collection *collection)
 
 bool BKE_collection_child_add(Main *bmain, Collection *parent, Collection *child)
 {
-  if (!collection_child_add(parent, child, 0, true)) {
+  if (!collection_child_add(parent, child, nullptr, 0, true)) {
     return false;
   }
 
@@ -1771,7 +1791,7 @@ bool BKE_collection_child_add(Main *bmain, Collection *parent, Collection *child
 
 bool BKE_collection_child_add_no_sync(Collection *parent, Collection *child)
 {
-  return collection_child_add(parent, child, 0, true);
+  return collection_child_add(parent, child, nullptr, 0, true);
 }
 
 bool BKE_collection_child_remove(Main *bmain, Collection *parent, Collection *child)
@@ -2021,7 +2041,7 @@ bool BKE_collection_move(Main *bmain,
     collection_child_remove(from_parent, collection);
   }
 
-  collection_child_add(to_parent, collection, 0, true);
+  collection_child_add(to_parent, collection, nullptr, 0, true);
 
   /* Move to specified location under parent. */
   if (relative) {

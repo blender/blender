@@ -10,10 +10,10 @@
 
 #include "DNA_curve_types.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_curve.h"
+#include "BKE_bvhutils.hh"
+#include "BKE_curve.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "ED_transform_snap_object_context.hh"
 
@@ -39,8 +39,8 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float4x4 &ob
 
   if (use_obedit == false) {
     /* Test BoundBox */
-    BoundBox *bb = BKE_curve_boundbox_get(ob_eval);
-    if (bb && !nearest2d.snap_boundbox(bb->vec[0], bb->vec[6])) {
+    std::optional<blender::Bounds<blender::float3>> bounds = BKE_curve_minmax(cu, true);
+    if (bounds && !nearest2d.snap_boundbox(bounds->min, bounds->max)) {
       return SCE_SNAP_TO_NONE;
     }
   }

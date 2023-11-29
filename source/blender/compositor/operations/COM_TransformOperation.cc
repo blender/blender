@@ -24,6 +24,8 @@ TransformOperation::TransformOperation()
   invert_ = false;
   max_scale_canvas_size_ = {ScaleOperation::DEFAULT_MAX_SCALE_CANVAS_SIZE,
                             ScaleOperation::DEFAULT_MAX_SCALE_CANVAS_SIZE};
+
+  flags_.can_be_constant = true;
 }
 
 void TransformOperation::set_scale_canvas_max_size(Size2f size)

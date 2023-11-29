@@ -29,14 +29,14 @@
 #include "BKE_attribute.h"
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
@@ -748,7 +748,7 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
     const float new_mask = mask_by_color_floodfill[vd.index];
     const float mask = sculpt_mask_by_color_final_mask_get(
         current_mask, new_mask, invert, preserve_mask);
-    if (current_mask == current_mask) {
+    if (current_mask == mask) {
       continue;
     }
 
@@ -861,7 +861,7 @@ static void do_mask_by_color_task(Object *ob,
     const float new_mask = sculpt_mask_by_color_delta_get(active_color, col, threshold, invert);
     const float mask = sculpt_mask_by_color_final_mask_get(
         current_mask, new_mask, invert, preserve_mask);
-    if (current_mask == vd.mask) {
+    if (current_mask == mask) {
       continue;
     }
 
@@ -1014,10 +1014,10 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss, automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(ob, automasking, &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+    SCULPT_automasking_node_update(&automask_data, &vd);
 
     float automask = SCULPT_automasking_factor_get(automasking, ss, vd.vertex, &automask_data);
     float mask;
@@ -1312,7 +1312,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     BMIter iter;
     BMFace *f;
     BMVert *v;
-    const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+    const int cd_mask = CustomData_get_offset_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
       BM_log_vert_before_modified(ss->bm_log, v, cd_mask);

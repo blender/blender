@@ -20,7 +20,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
@@ -214,7 +214,7 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   params.export_uvmaps = false;
   params.visible_objects_only = true;
 
-  bool result = USD_export(context, output_filename.c_str(), &params, false);
+  bool result = USD_export(context, output_filename.c_str(), &params, false, nullptr);
   ASSERT_TRUE(result) << "Writing to " << output_filename << " failed!";
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filename);
@@ -280,7 +280,7 @@ TEST_F(UsdExportTest, usd_export_material)
   params.generate_preview_surface = true;
   params.relative_paths = false;
 
-  const bool result = USD_export(context, output_filename.c_str(), &params, false);
+  const bool result = USD_export(context, output_filename.c_str(), &params, false, nullptr);
   ASSERT_TRUE(result) << "Unable to export stage to " << output_filename;
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filename);

@@ -10,11 +10,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "DNA_meshdata_types.h"
 
@@ -1087,7 +1088,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
       theta = -M_PI;
     }
 
-    float phi = saacos(z / len);
+    float phi = safe_acosf(z / len);
     luv[0] = 0.5f + theta / (float(M_PI) * 2);
     luv[1] = 1.0f - phi / float(M_PI);
 

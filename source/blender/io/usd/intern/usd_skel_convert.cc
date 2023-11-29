@@ -26,17 +26,22 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
+<<<<<<< HEAD
 #include "BKE_armature.h"
 #include "BKE_attribute.hh"
+=======
+#include "BKE_armature.hh"
+>>>>>>> main
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
+#include "BKE_report.h"
 
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
@@ -45,6 +50,8 @@
 #include "ED_armature.hh"
 #include "ED_keyframing.hh"
 #include "ED_mesh.hh"
+
+#include "ANIM_fcurve.hh"
 
 #include "WM_api.hh"
 
@@ -104,7 +111,7 @@ void add_bezt(FCurve *fcu,
   bez.ipo = ipo; /* use default interpolation mode here... */
   bez.f1 = bez.f2 = bez.f3 = SELECT;
   bez.h1 = bez.h2 = HD_AUTO;
-  insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
+  blender::animrig::insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
 }
 
 /**
@@ -115,11 +122,14 @@ void add_bezt(FCurve *fcu,
  * \param arm_obj: Armature object to which the action will be added
  * \param skel_query: The USD skeleton query for reading the animation
  * \param joint_to_bone_map: Map a USD skeleton joint name to a bone name
+ * \param reports: the storage for potential warning or error reports (generated using BKE_report
+ *                 API).
  */
 void import_skeleton_curves(Main *bmain,
                             Object *arm_obj,
                             const pxr::UsdSkelSkeletonQuery &skel_query,
-                            const std::map<pxr::TfToken, std::string> &joint_to_bone_map)
+                            const std::map<pxr::TfToken, std::string> &joint_to_bone_map,
+                            ReportList *reports)
 
 {
   if (!(bmain && arm_obj && skel_query)) {
@@ -230,18 +240,20 @@ void import_skeleton_curves(Main *bmain,
   /* Get the world space joint transforms at bind time. */
   pxr::VtMatrix4dArray bind_xforms;
   if (!skel_query.GetJointWorldBindTransforms(&bind_xforms)) {
-    WM_reportf(RPT_WARNING,
-               "%s: Couldn't get world bind transforms for skeleton %s",
-               __func__,
-               skel_query.GetSkeleton().GetPrim().GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Couldn't get world bind transforms for skeleton %s",
+                __func__,
+                skel_query.GetSkeleton().GetPrim().GetPath().GetAsString().c_str());
     return;
   }
 
   if (bind_xforms.size() != joint_order.size()) {
-    WM_reportf(RPT_WARNING,
-               "%s: Number of bind transforms doesn't match the number of joints for skeleton %s",
-               __func__,
-               skel_query.GetSkeleton().GetPrim().GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Number of bind transforms doesn't match the number of joints for skeleton %s",
+                __func__,
+                skel_query.GetSkeleton().GetPrim().GetPath().GetAsString().c_str());
     return;
   }
 
@@ -381,6 +393,7 @@ namespace blender::io::usd {
 void import_blendshapes(Main *bmain,
                         Object *mesh_obj,
                         const pxr::UsdPrim &prim,
+                        ReportList *reports,
                         const bool import_anim)
 {
   if (!(mesh_obj && mesh_obj->data && mesh_obj->type == OB_MESH && prim)) {
@@ -410,10 +423,11 @@ void import_blendshapes(Main *bmain,
 
   pxr::SdfPathVector targets;
   if (!skel_api.GetBlendShapeTargetsRel().GetTargets(&targets)) {
-    WM_reportf(RPT_WARNING,
-               "%s: Couldn't get blendshape targets for prim %s",
-               __func__,
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Couldn't get blendshape targets for prim %s",
+                __func__,
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -437,20 +451,22 @@ void import_blendshapes(Main *bmain,
 
   /* Sanity check. */
   if (targets.size() != blendshapes.size()) {
-    WM_reportf(RPT_WARNING,
-               "%s: Number of blendshapes doesn't match number of blendshape targets for prim %s",
-               __func__,
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Number of blendshapes doesn't match number of blendshape targets for prim %s",
+                __func__,
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
   pxr::UsdStageRefPtr stage = prim.GetStage();
 
   if (!stage) {
-    WM_reportf(RPT_WARNING,
-               "%s: Couldn't get stage for prim %s",
-               __func__,
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Couldn't get stage for prim %s",
+                __func__,
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -487,16 +503,20 @@ void import_blendshapes(Main *bmain,
 
     pxr::VtVec3fArray offsets;
     if (!blendshape.GetOffsetsAttr().Get(&offsets)) {
-      WM_reportf(RPT_WARNING,
-                 "%s: Couldn't get offsets for blend shape %s",
-                 __func__,
-                 path.GetAsString().c_str());
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "%s: Couldn't get offsets for blend shape %s",
+                  __func__,
+                  path.GetAsString().c_str());
       continue;
     }
 
     if (offsets.empty()) {
-      WM_reportf(
-          RPT_WARNING, "%s: No offsets for blend shape %s", __func__, path.GetAsString().c_str());
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "%s: No offsets for blend shape %s",
+                  __func__,
+                  path.GetAsString().c_str());
       continue;
     }
 
@@ -520,7 +540,8 @@ void import_blendshapes(Main *bmain,
        * offset to the key block point. */
       for (int a = 0; a < kb->totelem; ++a, fp += 3) {
         if (a >= offsets.size()) {
-          WM_reportf(
+          BKE_reportf(
+              reports,
               RPT_WARNING,
               "%s: Number of offsets greater than number of mesh vertices for blend shape %s",
               __func__,
@@ -542,7 +563,8 @@ void import_blendshapes(Main *bmain,
           continue;
         }
         if (a >= offsets.size()) {
-          WM_reportf(
+          BKE_reportf(
+              reports,
               RPT_WARNING,
               "%s: Number of offsets greater than number of mesh vertices for blend shape %s",
               __func__,
@@ -668,6 +690,7 @@ void import_blendshapes(Main *bmain,
 void import_skeleton(Main *bmain,
                      Object *arm_obj,
                      const pxr::UsdSkelSkeleton &skel,
+                     ReportList *reports,
                      const bool import_anim)
 {
   if (!(arm_obj && arm_obj->data && arm_obj->type == OB_ARMATURE)) {
@@ -678,10 +701,11 @@ void import_skeleton(Main *bmain,
   pxr::UsdSkelSkeletonQuery skel_query = skel_cache.GetSkelQuery(skel);
 
   if (!skel_query.IsValid()) {
-    WM_reportf(RPT_WARNING,
-               "%s: Couldn't query skeleton %s",
-               __func__,
-               skel.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Couldn't query skeleton %s",
+                __func__,
+                skel.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -690,10 +714,11 @@ void import_skeleton(Main *bmain,
   pxr::VtTokenArray joint_order = skel_query.GetJointOrder();
 
   if (joint_order.size() != skel_topology.size()) {
-    WM_reportf(RPT_WARNING,
-               "%s: Topology and joint order size mismatch for skeleton %s",
-               __func__,
-               skel.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Topology and joint order size mismatch for skeleton %s",
+                __func__,
+                skel.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -715,8 +740,11 @@ void import_skeleton(Main *bmain,
     std::string name = pxr::SdfPath(joint).GetName();
     EditBone *bone = ED_armature_ebone_add(arm, name.c_str());
     if (!bone) {
-      WM_reportf(
-          RPT_WARNING, "%s: Couldn't add bone for joint %s", __func__, joint.GetString().c_str());
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "%s: Couldn't add bone for joint %s",
+                  __func__,
+                  joint.GetString().c_str());
       edit_bones.push_back(nullptr);
       continue;
     }
@@ -727,28 +755,31 @@ void import_skeleton(Main *bmain,
   /* Sanity check: we should have created a bone for each joint. */
   const size_t num_joints = skel_topology.GetNumJoints();
   if (edit_bones.size() != num_joints) {
-    WM_reportf(RPT_WARNING,
-               "%s: Mismatch in bone and joint counts for skeleton %s",
-               __func__,
-               skel.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Mismatch in bone and joint counts for skeleton %s",
+                __func__,
+                skel.GetPath().GetAsString().c_str());
     return;
   }
 
   /* Get the world space joint transforms at bind time. */
   pxr::VtMatrix4dArray bind_xforms;
   if (!skel_query.GetJointWorldBindTransforms(&bind_xforms)) {
-    WM_reportf(RPT_WARNING,
-               "%s: Couldn't get world bind transforms for skeleton %s",
-               __func__,
-               skel.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Couldn't get world bind transforms for skeleton %s",
+                __func__,
+                skel.GetPath().GetAsString().c_str());
     return;
   }
 
   if (bind_xforms.size() != num_joints) {
-    WM_reportf(RPT_WARNING,
-               "%s:  Mismatch in bind xforms and joint counts for skeleton %s",
-               __func__,
-               skel.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s:  Mismatch in bind xforms and joint counts for skeleton %s",
+                __func__,
+                skel.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -793,7 +824,8 @@ void import_skeleton(Main *bmain,
   bool valid_skeleton = true;
   if (negative_determinant) {
     valid_skeleton = false;
-    WM_reportf(
+    BKE_reportf(
+        reports,
         RPT_WARNING,
         "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. "
         "Such matrices may indicate negative scales, possibly due to mirroring operations, "
@@ -897,11 +929,14 @@ void import_skeleton(Main *bmain,
   ED_armature_edit_free(arm);
 
   if (import_anim && valid_skeleton) {
-    import_skeleton_curves(bmain, arm_obj, skel_query, joint_to_bone_map);
+    import_skeleton_curves(bmain, arm_obj, skel_query, joint_to_bone_map, reports);
   }
 }
 
-void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim &prim)
+void import_mesh_skel_bindings(Main *bmain,
+                               Object *mesh_obj,
+                               const pxr::UsdPrim &prim,
+                               ReportList *reports)
 {
   if (!(bmain && mesh_obj && mesh_obj->type == OB_MESH && prim)) {
     return;
@@ -959,10 +994,11 @@ void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim
 
   /* We expect the element counts to match. */
   if (joint_indices_elem_size != joint_weights_elem_size) {
-    WM_reportf(RPT_WARNING,
-               "%s: Joint weights and joint indices element size mismatch for prim %s",
-               __func__,
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Joint weights and joint indices element size mismatch for prim %s",
+                __func__,
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -978,10 +1014,11 @@ void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim
   }
 
   if (joint_indices.size() != joint_weights.size()) {
-    WM_reportf(RPT_WARNING,
-               "%s: Joint weights and joint indices size mismatch for prim %s",
-               __func__,
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Joint weights and joint indices size mismatch for prim %s",
+                __func__,
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -991,11 +1028,12 @@ void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim
 
   /* Sanity check: we expect only vertex or constant interpolation. */
   if (!ELEM(interp, pxr::UsdGeomTokens->vertex, pxr::UsdGeomTokens->constant)) {
-    WM_reportf(RPT_WARNING,
-               "%s: Unexpected joint weights interpolation type %s for prim %s",
-               __func__,
-               interp.GetString().c_str(),
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Unexpected joint weights interpolation type %s for prim %s",
+                __func__,
+                interp.GetString().c_str(),
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -1003,18 +1041,20 @@ void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim
   if (interp == pxr::UsdGeomTokens->vertex &&
       joint_weights.size() != mesh->totvert * joint_weights_elem_size)
   {
-    WM_reportf(RPT_WARNING,
-               "%s: Joint weights of unexpected size for vertex interpolation for prim %s",
-               __func__,
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Joint weights of unexpected size for vertex interpolation for prim %s",
+                __func__,
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
   if (interp == pxr::UsdGeomTokens->constant && joint_weights.size() != joint_weights_elem_size) {
-    WM_reportf(RPT_WARNING,
-               "%s: Joint weights of unexpected size for constant interpolation for prim %s",
-               __func__,
-               prim.GetPath().GetAsString().c_str());
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Joint weights of unexpected size for constant interpolation for prim %s",
+                __func__,
+                prim.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -1036,10 +1076,11 @@ void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim
   }
 
   if (BKE_object_defgroup_data_create(static_cast<ID *>(mesh_obj->data)) == nullptr) {
-    WM_reportf(RPT_WARNING,
-               "%s: Error creating deform group data for mesh %s",
-               __func__,
-               mesh_obj->id.name + 2);
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: Error creating deform group data for mesh %s",
+                __func__,
+                mesh_obj->id.name + 2);
     return;
   }
 

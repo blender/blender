@@ -6,10 +6,10 @@
  * \ingroup EEVEE
  */
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_sys_types.h" /* bool */
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -155,12 +155,14 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   }
 
   /* Update World AABB in frontbuffer. */
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  const blender::Bounds<blender::float3> bounds = *BKE_object_boundbox_get(ob);
+  BoundBox bb;
+  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
   float min[3], max[3];
   INIT_MINMAX(min, max);
   for (int i = 0; i < 8; i++) {
     float vec[3];
-    copy_v3_v3(vec, bb->vec[i]);
+    copy_v3_v3(vec, bb.vec[i]);
     mul_m4_v3(ob->object_to_world, vec);
     minmax_v3v3_v3(min, max, vec);
   }

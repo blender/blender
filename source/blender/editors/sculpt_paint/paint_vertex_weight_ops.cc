@@ -25,13 +25,13 @@
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
@@ -170,11 +170,10 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   Mesh *me;
   bool changed = false;
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   me = BKE_mesh_from_object(vc.obact);
   const MDeformVert *dvert = BKE_mesh_deform_verts(me);
 
@@ -317,8 +316,7 @@ static bool weight_paint_sample_mark_groups(const MDeformVert *dvert,
 static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   BLI_assert(vc.v3d && vc.rv3d); /* Ensured by poll. */
 
   Mesh *me = BKE_mesh_from_object(vc.obact);
@@ -644,10 +642,6 @@ static void gradientVertUpdate__mapFunc(void *user_data,
     return;
   }
 
-  if (grad_data->hide_vert[index]) {
-    return;
-  }
-
   gradientVert_update(grad_data, index);
 }
 
@@ -659,7 +653,9 @@ static void gradientVertInit__mapFunc(void *user_data,
   WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(user_data);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
-  if (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])) {
+  if (grad_data->hide_vert[index] ||
+      (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])))
+  {
     copy_v2_fl(vs->sco, FLT_MAX);
     return;
   }
@@ -849,12 +845,19 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
   if (scene->toolsettings->auto_normalize) {
     const int vgroup_num = BLI_listbase_count(&me->vertex_group_names);
+    bool *lock_flags = BKE_object_defgroup_lock_flags_get(ob, vgroup_num);
     bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
     if (vgroup_validmap != nullptr) {
       MDeformVert *dvert = dverts;
       for (int i = 0; i < me->totvert; i++) {
         if ((data.vert_cache->elem[i].flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) != 0) {
-          BKE_defvert_normalize_lock_single(&dvert[i], vgroup_validmap, vgroup_num, data.def_nr);
+          if (lock_flags != nullptr) {
+            BKE_defvert_normalize_lock_map(
+                &dvert[i], vgroup_validmap, vgroup_num, lock_flags, vgroup_num);
+          }
+          else {
+            BKE_defvert_normalize_lock_single(&dvert[i], vgroup_validmap, vgroup_num, data.def_nr);
+          }
         }
       }
       MEM_freeN(vgroup_validmap);

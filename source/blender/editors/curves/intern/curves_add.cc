@@ -6,9 +6,10 @@
  * \ingroup edcurves
  */
 
+#include "BLI_math_base_safe.h"
 #include "BLI_rand.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -124,7 +125,7 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
     MutableSpan<float> curve_radii = radius.span.slice(points);
 
     const float theta = 2.0f * M_PI * rng.get_float();
-    const float phi = saacosf(2.0f * rng.get_float() - 1.0f);
+    const float phi = safe_acosf(2.0f * rng.get_float() - 1.0f);
 
     float3 no = {std::sin(theta) * std::sin(phi), std::cos(theta) * std::sin(phi), std::cos(phi)};
     no = math::normalize(no);

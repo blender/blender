@@ -7,7 +7,7 @@
 
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "GEO_mesh_to_volume.hh"
@@ -72,7 +72,7 @@ void OpenVDBMeshAdapter::getIndexSpacePoint(size_t polygon_index,
 }
 
 float volume_compute_voxel_size(const Depsgraph *depsgraph,
-                                FunctionRef<void(float3 &r_min, float3 &r_max)> bounds_fn,
+                                const FunctionRef<Bounds<float3>()> bounds_fn,
                                 const MeshToVolumeResolution res,
                                 const float exterior_band_width,
                                 const float4x4 &transform)
@@ -89,14 +89,12 @@ float volume_compute_voxel_size(const Depsgraph *depsgraph,
     return 0;
   }
 
-  float3 bb_min;
-  float3 bb_max;
-  bounds_fn(bb_min, bb_max);
+  const Bounds<float3> bounds = bounds_fn();
 
   /* Compute the diagonal of the bounding box. This is used because
    * it will always be bigger than the widest side of the mesh. */
-  const float diagonal = math::distance(math::transform_point(transform, bb_max),
-                                        math::transform_point(transform, bb_min));
+  const float diagonal = math::distance(math::transform_point(transform, bounds.min),
+                                        math::transform_point(transform, bounds.max));
 
   /* To get the approximate size per voxel, first subtract the exterior band from the requested
    * voxel amount, then divide the diagonal with this value if it's bigger than 1. */

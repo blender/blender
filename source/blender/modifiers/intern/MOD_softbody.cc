@@ -17,7 +17,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_particle.h"
 #include "BKE_screen.hh"
@@ -40,12 +40,15 @@
 static void deform_verts(ModifierData * /*md*/,
                          const ModifierEvalContext *ctx,
                          Mesh * /*mesh*/,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  sbObjectStep(
-      ctx->depsgraph, scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, verts_num);
+  sbObjectStep(ctx->depsgraph,
+               scene,
+               ctx->object,
+               DEG_get_ctime(ctx->depsgraph),
+               reinterpret_cast<float(*)[3]>(positions.data()),
+               positions.size());
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
@@ -92,7 +95,7 @@ ModifierTypeInfo modifierType_Softbody = {
     /*struct_name*/ "SoftbodyModifierData",
     /*struct_size*/ sizeof(SoftbodyModifierData),
     /*srna*/ &RNA_SoftBodyModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_RequiresOriginalData | eModifierTypeFlag_Single |
         eModifierTypeFlag_UsesPointCache,

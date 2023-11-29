@@ -23,7 +23,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
 
@@ -46,15 +46,15 @@
 #include "BKE_action.h"
 #include "BKE_anim_path.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
-#include "BKE_bvhutils.h"
+#include "BKE_armature.hh"
+#include "BKE_bvhutils.hh"
 #include "BKE_cachefile.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -63,9 +63,10 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_movieclip.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_scene.h"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 #include "BKE_tracking.h"
 
 #include "BIK_api.h"
@@ -353,7 +354,8 @@ void BKE_constraint_mat_convertspace(Object *ob,
         /* local to pose - do inverse procedure that was done for pose to local */
         else {
           if (pchan->bone) {
-            /* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
+            /* We need the:
+             *  `posespace_matrix = local_matrix + (parent_posespace_matrix + restpos)`. */
             BKE_armature_mat_bone_to_pose(pchan, mat, mat);
           }
 
@@ -616,8 +618,8 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
 {
   Lattice *lt = (Lattice *)ob->data;
 
-  DispList *dl = ob->runtime.curve_cache ?
-                     BKE_displist_find(&ob->runtime.curve_cache->disp, DL_VERTS) :
+  DispList *dl = ob->runtime->curve_cache ?
+                     BKE_displist_find(&ob->runtime->curve_cache->disp, DL_VERTS) :
                      nullptr;
   const float *co = dl ? dl->verts : nullptr;
   BPoint *bp = lt->def;
@@ -1485,7 +1487,7 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
      * currently for paths to work it needs to go through the bevlist/displist system (ton)
      */
 
-    if (ct->tar->runtime.curve_cache && ct->tar->runtime.curve_cache->anim_path_accum_length) {
+    if (ct->tar->runtime->curve_cache && ct->tar->runtime->curve_cache->anim_path_accum_length) {
       float quat[4];
       if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
         /* animated position along curve depending on time */
@@ -2450,7 +2452,7 @@ static void pycon_get_tarmat(Depsgraph * /*depsgraph*/,
 #endif
 
   if (VALID_CONS_TARGET(ct)) {
-    if (ct->tar->type == OB_CURVES_LEGACY && ct->tar->runtime.curve_cache == nullptr) {
+    if (ct->tar->type == OB_CURVES_LEGACY && ct->tar->runtime->curve_cache == nullptr) {
       unit_m4(ct->matrix);
       return;
     }
@@ -3827,6 +3829,7 @@ static void clampto_get_tarmat(Depsgraph * /*depsgraph*/,
 
 static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
+  using namespace blender;
   bClampToConstraint *data = static_cast<bClampToConstraint *>(con->data);
   bConstraintTarget *ct = static_cast<bConstraintTarget *>(targets->first);
 
@@ -3841,15 +3844,14 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 
     unit_m4(targetMatrix);
     INIT_MINMAX(curveMin, curveMax);
-    /* XXX(@ideasman42): don't think this is good calling this here because
-     * the other object's data is lazily initializing bounding-box information.
-     * This could cause issues when evaluating from a thread.
-     * If the depsgraph ensures the bound-box is always available, a code-path could
-     * be used that doesn't lazy initialize to avoid thread safety issues in the future. */
-    BKE_object_minmax(ct->tar, curveMin, curveMax, true);
+    if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ct->tar)) {
+      copy_v3_v3(curveMin, bounds->min);
+      copy_v3_v3(curveMax, bounds->max);
+    }
 
     /* Get target-matrix. */
-    if (data->tar->runtime.curve_cache && data->tar->runtime.curve_cache->anim_path_accum_length) {
+    if (data->tar->runtime->curve_cache && data->tar->runtime->curve_cache->anim_path_accum_length)
+    {
       float vec[4], totmat[4][4];
       float curvetime;
       short clamp_axis;

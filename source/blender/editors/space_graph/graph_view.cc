@@ -20,7 +20,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
@@ -90,7 +90,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
 
       /* Get range. */
       if (BKE_fcurve_calc_bounds(fcu, do_sel_only, include_handles, nullptr, &bounds)) {
-        short mapping_flag = ANIM_get_normalization_flags(ac);
+        short mapping_flag = ANIM_get_normalization_flags(ac->sl);
 
         /* Apply NLA scaling. */
         if (adt) {
@@ -410,7 +410,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
     FPoint *fpt;
     float unitFac, offset;
     int cfra;
-    short mapping_flag = ANIM_get_normalization_flags(ac);
+    short mapping_flag = ANIM_get_normalization_flags(ac->sl);
 
     /* Disable driver so that it don't muck up the sampling process. */
     fcu->driver = nullptr;

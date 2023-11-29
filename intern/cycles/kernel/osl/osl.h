@@ -103,14 +103,20 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
         /* Layer closures may not appear in the top layer subtree of another layer closure. */
         kernel_assert(layer_stack_level == -1);
 
-        /* Push base layer onto the stack, will be handled after the top layers */
-        weight_stack[stack_size] = weight;
-        closure_stack[stack_size] = layer->base;
-        /* Start accumulating albedo of the top layers */
-        layer_stack_level = stack_size++;
-        layer_albedo = zero_float3();
-        /* Continue with the top layers */
-        closure = layer->top;
+        if (layer->top != nullptr) {
+          /* Push base layer onto the stack, will be handled after the top layers */
+          weight_stack[stack_size] = weight;
+          closure_stack[stack_size] = layer->base;
+          /* Start accumulating albedo of the top layers */
+          layer_stack_level = stack_size++;
+          layer_albedo = zero_float3();
+          /* Continue with the top layers */
+          closure = layer->top;
+        }
+        else {
+          /* No top layer, just continue with base. */
+          closure = layer->base;
+        }
         continue;
       }
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \
@@ -145,7 +151,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
       if (stack_size == layer_stack_level) {
         /* We just finished processing the top layers of a Layer closure, so adjust the weight to
          * account for the layering. */
-        weight *= saturatef(1.0f - reduce_max(safe_divide_color(layer_albedo, weight)));
+        weight = closure_layering_weight(layer_albedo, weight);
         layer_stack_level = -1;
         /* If it's fully occluded, skip the base layer we just popped from the stack and grab
          * the next entry instead. */

@@ -15,10 +15,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_outliner_treehash.hh"
 
 #include "ED_outliner.hh"

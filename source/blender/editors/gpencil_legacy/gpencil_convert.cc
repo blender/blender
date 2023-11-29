@@ -37,8 +37,8 @@
 
 #include "BKE_animsys.h"
 #include "BKE_collection.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"
@@ -47,7 +47,7 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
@@ -65,6 +65,9 @@
 
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
+
+#include "ANIM_action.hh"
+#include "ANIM_keyframing.hh"
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
@@ -436,14 +439,14 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
         }
         const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
             depsgraph, cfra);
-        insert_keyframe_direct(reports,
-                               ptr,
-                               prop,
-                               fcu,
-                               &anim_eval_context,
-                               BEZT_KEYTYPE_KEYFRAME,
-                               nullptr,
-                               INSERTKEY_FAST);
+        blender::animrig::insert_keyframe_direct(reports,
+                                                 ptr,
+                                                 prop,
+                                                 fcu,
+                                                 &anim_eval_context,
+                                                 BEZT_KEYTYPE_KEYFRAME,
+                                                 nullptr,
+                                                 INSERTKEY_FAST);
         last_valid_time = cfra;
       }
     }
@@ -454,14 +457,14 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
       }
       const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                         cfra);
-      insert_keyframe_direct(reports,
-                             ptr,
-                             prop,
-                             fcu,
-                             &anim_eval_context,
-                             BEZT_KEYTYPE_KEYFRAME,
-                             nullptr,
-                             INSERTKEY_FAST);
+      blender::animrig::insert_keyframe_direct(reports,
+                                               ptr,
+                                               prop,
+                                               fcu,
+                                               &anim_eval_context,
+                                               BEZT_KEYTYPE_KEYFRAME,
+                                               nullptr,
+                                               INSERTKEY_FAST);
       last_valid_time = cfra;
     }
     else {
@@ -471,14 +474,14 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
       if ((cfra - last_valid_time) > MIN_TIME_DELTA && (end_stroke_time - cfra) > MIN_TIME_DELTA) {
         const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
             depsgraph, cfra);
-        insert_keyframe_direct(reports,
-                               ptr,
-                               prop,
-                               fcu,
-                               &anim_eval_context,
-                               BEZT_KEYTYPE_BREAKDOWN,
-                               nullptr,
-                               INSERTKEY_FAST);
+        blender::animrig::insert_keyframe_direct(reports,
+                                                 ptr,
+                                                 prop,
+                                                 fcu,
+                                                 &anim_eval_context,
+                                                 BEZT_KEYTYPE_BREAKDOWN,
+                                                 nullptr,
+                                                 INSERTKEY_FAST);
         last_valid_time = cfra;
       }
       else if (G.debug & G_DEBUG) {
@@ -522,7 +525,7 @@ static void gpencil_stroke_path_animation(bContext *C,
 
   /* Ensure we have an F-Curve to add keyframes to */
   act = ED_id_action_ensure(bmain, (ID *)cu);
-  fcu = ED_action_fcurve_ensure(bmain, act, nullptr, &ptr, "eval_time", 0);
+  fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, "eval_time", 0);
 
   if (gtd->mode == GP_STROKECONVERT_TIMING_LINEAR) {
     float cfra;
@@ -534,14 +537,14 @@ static void gpencil_stroke_path_animation(bContext *C,
     cfra = float(gtd->start_frame);
     AnimationEvalContext anim_eval_context_start = BKE_animsys_eval_context_construct(depsgraph,
                                                                                       cfra);
-    insert_keyframe_direct(reports,
-                           ptr,
-                           prop,
-                           fcu,
-                           &anim_eval_context_start,
-                           BEZT_KEYTYPE_KEYFRAME,
-                           nullptr,
-                           INSERTKEY_FAST);
+    blender::animrig::insert_keyframe_direct(reports,
+                                             ptr,
+                                             prop,
+                                             fcu,
+                                             &anim_eval_context_start,
+                                             BEZT_KEYTYPE_KEYFRAME,
+                                             nullptr,
+                                             INSERTKEY_FAST);
 
     cu->ctime = cu->pathlen;
     if (gtd->realtime) {
@@ -552,14 +555,14 @@ static void gpencil_stroke_path_animation(bContext *C,
     }
     AnimationEvalContext anim_eval_context_end = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     cfra);
-    insert_keyframe_direct(reports,
-                           ptr,
-                           prop,
-                           fcu,
-                           &anim_eval_context_end,
-                           BEZT_KEYTYPE_KEYFRAME,
-                           nullptr,
-                           INSERTKEY_FAST);
+    blender::animrig::insert_keyframe_direct(reports,
+                                             ptr,
+                                             prop,
+                                             fcu,
+                                             &anim_eval_context_end,
+                                             BEZT_KEYTYPE_KEYFRAME,
+                                             nullptr,
+                                             INSERTKEY_FAST);
   }
   else {
     /* Use actual recorded timing! */

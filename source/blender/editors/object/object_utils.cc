@@ -22,11 +22,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_editmesh.h"
-#include "BKE_lattice.h"
+#include "BKE_armature.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_lattice.hh"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"

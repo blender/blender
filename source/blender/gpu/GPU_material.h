@@ -80,8 +80,11 @@ typedef enum eGPUMaterialFlag {
   GPU_MATFLAG_AO = (1 << 8),
   GPU_MATFLAG_COAT = (1 << 9),
 
-  GPU_MATFLAG_OBJECT_INFO = (1 << 10),
-  GPU_MATFLAG_AOV = (1 << 11),
+  GPU_MATFLAG_VOLUME_SCATTER = (1 << 10),
+  GPU_MATFLAG_VOLUME_ABSORPTION = (1 << 11),
+
+  GPU_MATFLAG_OBJECT_INFO = (1 << 12),
+  GPU_MATFLAG_AOV = (1 << 13),
 
   GPU_MATFLAG_BARYCENTRIC = (1 << 20),
 
@@ -320,6 +323,7 @@ struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void);
 
 bool GPU_material_has_surface_output(GPUMaterial *mat);
 bool GPU_material_has_volume_output(GPUMaterial *mat);
+bool GPU_material_has_displacement_output(GPUMaterial *mat);
 
 void GPU_material_flag_set(GPUMaterial *mat, eGPUMaterialFlag flag);
 bool GPU_material_flag_get(const GPUMaterial *mat, eGPUMaterialFlag flag);

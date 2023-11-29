@@ -36,20 +36,20 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_blender_version.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_curves.hh"
 #include "BKE_displist.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
@@ -109,7 +109,7 @@ static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *st
   const SubsurfRuntimeData *subsurf_runtime_data = me_eval->runtime->subsurf_runtime_data;
 
   if (subdiv_ccg != nullptr) {
-    BKE_subdiv_ccg_topology_counters(subdiv_ccg, &totvert, &totedge, &totface, &totloop);
+    BKE_subdiv_ccg_topology_counters(*subdiv_ccg, totvert, totedge, totface, totloop);
   }
   else if (subsurf_runtime_data && subsurf_runtime_data->resolution != 0) {
     totvert = subsurf_runtime_data->stats_totvert;
@@ -870,7 +870,7 @@ void ED_info_draw_stats(
   else if ((ob) && (ob->type == OB_LAMP)) {
     stats_row(col1, labels[LIGHTS], col2, stats_fmt.totlampsel, stats_fmt.totlamp, y, height);
   }
-  else if ((object_mode == OB_MODE_OBJECT) && ob && (ELEM(ob->type, OB_MESH, OB_FONT))) {
+  else if ((object_mode == OB_MODE_OBJECT) && ob && ELEM(ob->type, OB_MESH, OB_FONT)) {
     /* Object mode with the active object a mesh or text object. */
     stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
     stats_row(col1, labels[EDGES], col2, stats_fmt.totedgesel, stats_fmt.totedge, y, height);

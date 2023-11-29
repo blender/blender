@@ -24,8 +24,8 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
@@ -592,7 +592,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
                               const bool use_nla_remap,
                               const bool draw_extrapolation)
 {
-  short mapping_flag = ANIM_get_normalization_flags(ac);
+  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
 
   /* when opening a blend file on a different sized screen or while dragging the toolbar this can
    * happen best just bail out in this case. */
@@ -739,7 +739,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
   float fac, v[2];
   int b = fcu->totvert;
   float unit_scale, offset;
-  short mapping_flag = ANIM_get_normalization_flags(ac);
+  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
   int count = fcu->totvert;
 
   const bool extrap_left = draw_extrapolation && prevfpt->vec[0] > v2d->cur.xmin;
@@ -1023,7 +1023,7 @@ static void draw_fcurve_curve_keys(
   /* Apply unit mapping. */
   GPU_matrix_push();
   float offset;
-  short mapping_flag = ANIM_get_normalization_flags(ac);
+  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
   const float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
   GPU_matrix_scale_2f(1.0f, unit_scale);
   GPU_matrix_translate_2f(0.0f, offset);
@@ -1264,7 +1264,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       }
     }
     else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
-      short mapping_flag = ANIM_get_normalization_flags(ac);
+      short mapping_flag = ANIM_get_normalization_flags(ac->sl);
       float offset;
       const float unit_scale = ANIM_unit_mapping_get_factor(
           ac->scene, ale->id, fcu, mapping_flag, &offset);
@@ -1319,7 +1319,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 {
   ChannelDriver *driver = fcu->driver;
   View2D *v2d = &ac->region->v2d;
-  short mapping_flag = ANIM_get_normalization_flags(ac);
+  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
   float offset;
   float unitfac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 

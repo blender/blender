@@ -23,7 +23,7 @@
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_lib_override.hh"
 #include "BKE_main.h"

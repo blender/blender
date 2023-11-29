@@ -44,6 +44,10 @@ static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
   switch (uch) {
     case ',':
     case '.':
+    case 0x2026: /* Horizontal ellipsis. */
+    case 0x3002: /* CJK full width full stop. */
+    case 0xFF0C: /* CJK full width comma. */
+    case 0xFF61: /* CJK half width full stop. */
       return STRCUR_DELIM_PUNCT;
 
     case '{':
@@ -52,6 +56,10 @@ static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
     case ']':
     case '(':
     case ')':
+    case 0x3010: /* CJK full width left black lenticular bracket. */
+    case 0x3011: /* CJK full width right black lenticular bracket. */
+    case 0xFF08: /* CJK full width left parenthesis. */
+    case 0xFF09: /* CJK full width right parenthesis. */
       return STRCUR_DELIM_BRACE;
 
     case '+':
@@ -66,10 +74,21 @@ static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
     case '*':
     case '&':
     case '|':
+    case 0x2014: /* Em dash. */
+    case 0x300A: /* CJK full width left double angle bracket. */
+    case 0x300B: /* CJK full width right double angle bracket. */
+    case 0xFF0F: /* CJK full width solidus (forward slash). */
+    case 0xFF5E: /* CJK full width tilde. */
       return STRCUR_DELIM_OPERATOR;
 
     case '\'':
     case '\"':
+    case '`':
+    case 0xB4:   /* Acute accent. */
+    case 0x2018: /* Left single quotation mark. */
+    case 0x2019: /* Right single quotation mark. */
+    case 0x201C: /* Left double quotation mark. */
+    case 0x201D: /* Right double quotation mark. */
       return STRCUR_DELIM_QUOTE;
 
     case ' ':
@@ -85,8 +104,15 @@ static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
     case ';':
     case '?':
     case '!':
-    case 0xA3:        /* pound */
-    case 0x80:        /* euro */
+    case 0xA3:        /* Pound sign. */
+    case 0x80:        /* Euro sign. */
+    case 0x3001:      /* CJK ideographic comma. */
+    case 0xFF01:      /* CJK full width exclamation mark. */
+    case 0xFF64:      /* CJK half width ideographic comma. */
+    case 0xFF65:      /* Katakana half width middle dot. */
+    case 0xFF1A:      /* CJK full width colon. */
+    case 0xFF1B:      /* CJK full width semicolon. */
+    case 0xFF1F:      /* CJK full width question mark. */
       /* case '_': */ /* special case, for python */
       return STRCUR_DELIM_OTHER;
 
@@ -343,6 +369,7 @@ void BLI_str_cursor_step_bounds_utf8(
     const char *str, const int str_maxlen, const int pos, int *r_start, int *r_end)
 {
   BLI_assert(str_maxlen >= 0);
+  BLI_assert(pos >= 0 && pos <= str_maxlen);
   /* Identify the type of characters are on either side of the current cursor position. */
   const eStrCursorDelimType prev = (pos > 0) ? cursor_delim_type_utf8(str, str_maxlen, pos - 1) :
                                                STRCUR_DELIM_NONE;
@@ -371,6 +398,7 @@ void BLI_str_cursor_step_bounds_utf32(
     const char32_t *str, const int str_maxlen, const int pos, int *r_start, int *r_end)
 {
   BLI_assert(str_maxlen >= 0);
+  BLI_assert(pos >= 0 && pos <= str_maxlen);
   /* Identify the type of characters are on either side of the current cursor position. */
   const eStrCursorDelimType prev = (pos > 0) ? cursor_delim_type_unicode(str[pos - 1]) :
                                                STRCUR_DELIM_NONE;

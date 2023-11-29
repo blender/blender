@@ -18,14 +18,13 @@
 
 #  include "DNA_pointcloud_types.h"
 
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct BoundBox;
 struct Depsgraph;
 struct Main;
 struct Object;
@@ -73,8 +72,6 @@ void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
 struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
                                          struct PointCloud *pointcloud_dst);
-
-struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
 
 bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, const char *name);
 

@@ -18,7 +18,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -394,8 +394,8 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
   View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
 
   wmWindow *source_win = CTX_wm_window(C);
-  int r_mval[2];
-  wmWindow *target_win = WM_window_find_under_cursor(source_win, event->xy, &r_mval[0]);
+  int event_xy_target[2];
+  wmWindow *target_win = WM_window_find_under_cursor(source_win, event->xy, &event_xy_target[0]);
 
   /* Exit if we release the mouse button, hit escape, or enter a different window. */
   if (event->val == KM_RELEASE || event->type == EVT_ESCKEY || source_win != target_win) {
@@ -1906,7 +1906,12 @@ static void scroller_activate_init(bContext *C,
    * - zooming must be allowed on this axis, otherwise, default to pan
    */
   View2DScrollers scrollers;
-  view2d_scrollers_calc(v2d, nullptr, &scrollers);
+  /* Some Editors like the File-browser or Spreadsheet already set up custom masks for scroll-bars
+   * (they don't cover the whole region width or height), these need to be considered, otherwise
+   * coords for `mouse_in_scroller_handle` later are not compatible. */
+  rcti scroller_mask = v2d->hor;
+  BLI_rcti_union(&scroller_mask, &v2d->vert);
+  view2d_scrollers_calc(v2d, &scroller_mask, &scrollers);
 
   /* Use a union of 'cur' & 'tot' in case the current view is far outside 'tot'. In this cases
    * moving the scroll bars has far too little effect and the view can get stuck #31476. */

@@ -6,6 +6,8 @@
  * \ingroup ply
  */
 
+#include <iostream>
+
 #include "BLI_timeit.hh"
 
 #include "DNA_windowmanager_types.h"

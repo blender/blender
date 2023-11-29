@@ -48,6 +48,8 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
   blender::asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(
       asset_handle);
 
+  UI_but_dragflag_enable(but, UI_BUT_DRAG_FULL_BUT);
+
   ID *id = asset->local_id();
   if (id != nullptr) {
     UI_but_drag_set_id(but, id);

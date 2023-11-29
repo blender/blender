@@ -20,6 +20,9 @@ class BVHMetal : public BVH {
   id<MTLAccelerationStructure> accel_struct = nil;
 
   API_AVAILABLE(macos(11.0))
+  id<MTLAccelerationStructure> null_BLAS = nil;
+
+  API_AVAILABLE(macos(11.0))
   vector<id<MTLAccelerationStructure>> blas_array;
 
   API_AVAILABLE(macos(11.0))

@@ -22,7 +22,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_asset.h"
+#include "BKE_asset.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -31,7 +31,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_main_namemap.h"
+#include "BKE_main_namemap.hh"
 
 #include "lib_intern.h"
 

@@ -27,15 +27,17 @@ NODE_STORAGE_FUNCS(NodeGeometryStoreNamedAttribute)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNode *node = b.node_or_null();
+
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::String>("Name").is_attribute_name();
-  b.add_input<decl::Vector>("Value", "Value_Vector").field_on_all();
-  b.add_input<decl::Float>("Value", "Value_Float").field_on_all();
-  b.add_input<decl::Color>("Value", "Value_Color").field_on_all();
-  b.add_input<decl::Bool>("Value", "Value_Bool").field_on_all();
-  b.add_input<decl::Int>("Value", "Value_Int").field_on_all();
-  b.add_input<decl::Rotation>("Value", "Value_Rotation").field_on_all();
+
+  if (node != nullptr) {
+    const NodeGeometryStoreNamedAttribute &storage = node_storage(*node);
+    const eCustomDataType data_type = eCustomDataType(storage.data_type);
+    b.add_input(data_type, "Value").field_on_all();
+  }
 
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
@@ -56,38 +58,14 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeGeometryStoreNamedAttribute &storage = node_storage(*node);
-  const eCustomDataType data_type = eCustomDataType(storage.data_type);
-
-  bNodeSocket *socket_geometry = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *socket_name = socket_geometry->next->next;
-  bNodeSocket *socket_vector = socket_name->next;
-  bNodeSocket *socket_float = socket_vector->next;
-  bNodeSocket *socket_color4f = socket_float->next;
-  bNodeSocket *socket_boolean = socket_color4f->next;
-  bNodeSocket *socket_int32 = socket_boolean->next;
-  bNodeSocket *socket_quat = socket_int32->next;
-
-  bke::nodeSetSocketAvailability(
-      ntree, socket_vector, ELEM(data_type, CD_PROP_FLOAT2, CD_PROP_FLOAT3));
-  bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(
-      ntree, socket_color4f, ELEM(data_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
-  bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
-  bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
-  bke::nodeSetSocketAvailability(ntree, socket_quat, data_type == CD_PROP_QUATERNION);
-}
-
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(2));
-  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(1));
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
+  search_link_ops_for_declarations(params, declaration.inputs);
+  search_link_ops_for_declarations(params, declaration.outputs);
 
   if (params.in_out() == SOCK_IN) {
-    const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
+    const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
         eNodeSocketDatatype(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
@@ -123,39 +101,14 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
 
-  GField field;
-  switch (data_type) {
-    case CD_PROP_FLOAT:
-      field = params.get_input<Field<float>>("Value_Float");
-      break;
-    case CD_PROP_FLOAT2: {
-      field = params.get_input<Field<float3>>("Value_Vector");
-      field = bke::get_implicit_type_conversions().try_convert(field, CPPType::get<float2>());
-      break;
-    }
-    case CD_PROP_FLOAT3:
-      field = params.get_input<Field<float3>>("Value_Vector");
-      break;
-    case CD_PROP_COLOR:
-      field = params.get_input<Field<ColorGeometry4f>>("Value_Color");
-      break;
-    case CD_PROP_BYTE_COLOR: {
-      field = params.get_input<Field<ColorGeometry4f>>("Value_Color");
-      field = bke::get_implicit_type_conversions().try_convert(field,
-                                                               CPPType::get<ColorGeometry4b>());
-      break;
-    }
-    case CD_PROP_BOOL:
-      field = params.get_input<Field<bool>>("Value_Bool");
-      break;
-    case CD_PROP_INT32:
-      field = params.get_input<Field<int>>("Value_Int");
-      break;
-    case CD_PROP_QUATERNION:
-      field = params.get_input<Field<math::Quaternion>>("Value_Rotation");
-      break;
-    default:
-      break;
+  GField field = params.extract_input<GField>("Value");
+  if (data_type == CD_PROP_FLOAT2) {
+    field = bke::get_implicit_type_conversions().try_convert(std::move(field),
+                                                             CPPType::get<float2>());
+  }
+  if (data_type == CD_PROP_BYTE_COLOR) {
+    field = bke::get_implicit_type_conversions().try_convert(std::move(field),
+                                                             CPPType::get<ColorGeometry4b>());
   }
 
   std::atomic<bool> failure = false;
@@ -176,7 +129,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
       for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
                                                  GeometryComponent::Type::PointCloud,
-                                                 GeometryComponent::Type::Curve})
+                                                 GeometryComponent::Type::Curve,
+                                                 GeometryComponent::Type::GreasePencil})
       {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
@@ -228,7 +182,8 @@ static void node_rna(StructRNA *srna)
                     "Which domain to store the data in",
                     rna_enum_attribute_domain_items,
                     NOD_storage_enum_accessors(domain),
-                    ATTR_DOMAIN_POINT);
+                    ATTR_DOMAIN_POINT,
+                    enums::domain_experimental_grease_pencil_version3_fn);
 }
 
 static void node_register()
@@ -243,7 +198,6 @@ static void node_register()
                     node_copy_standard_storage);
   blender::bke::node_type_size(&ntype, 140, 100, 700);
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.geometry_node_execute = node_geo_exec;

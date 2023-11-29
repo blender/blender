@@ -15,7 +15,7 @@
 #include "RNA_define.hh"
 
 #include "BKE_appdir.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -23,7 +23,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "IMB_imbuf.h"

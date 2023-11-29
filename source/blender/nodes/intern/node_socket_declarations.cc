@@ -116,6 +116,9 @@ bool Float::can_connect(const bNodeSocket &socket) const
   if (!sockets_can_connect(*this, socket)) {
     return false;
   }
+  if (this->in_out == SOCK_OUT && socket.type == SOCK_ROTATION) {
+    return true;
+  }
   return basic_types_can_connect(*this, socket);
 }
 
@@ -254,6 +257,9 @@ bool Vector::can_connect(const bNodeSocket &socket) const
 {
   if (!sockets_can_connect(*this, socket)) {
     return false;
+  }
+  if (socket.type == SOCK_ROTATION) {
+    return true;
   }
   return basic_types_can_connect(*this, socket);
 }
@@ -411,7 +417,10 @@ bool Rotation::can_connect(const bNodeSocket &socket) const
   if (!sockets_can_connect(*this, socket)) {
     return false;
   }
-  return socket.type == SOCK_ROTATION;
+  if (this->in_out == SOCK_IN) {
+    return ELEM(socket.type, SOCK_ROTATION, SOCK_FLOAT, SOCK_VECTOR);
+  }
+  return ELEM(socket.type, SOCK_ROTATION, SOCK_VECTOR);
 }
 
 bNodeSocket &Rotation::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const

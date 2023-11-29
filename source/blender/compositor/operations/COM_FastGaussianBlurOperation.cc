@@ -210,7 +210,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, uint c
   (void)0
 
   /* Intermediate buffers. */
-  src_dim_max = MAX2(src_width, src_height);
+  src_dim_max = std::max(src_width, src_height);
   X = (double *)MEM_callocN(src_dim_max * sizeof(double), "IIR_gauss X buf");
   Y = (double *)MEM_callocN(src_dim_max * sizeof(double), "IIR_gauss Y buf");
   W = (double *)MEM_callocN(src_dim_max * sizeof(double), "IIR_gauss W buf");
@@ -424,12 +424,12 @@ void FastGaussianBlurValueOperation::update_memory_buffer_partial(MemoryBuffer *
   BuffersIterator<float> it = output->iterate_with({image, iirgaus_}, area);
   if (overlay_ == FAST_GAUSS_OVERLAY_MIN) {
     for (; !it.is_end(); ++it) {
-      *it.out = MIN2(*it.in(0), *it.in(1));
+      *it.out = std::min(*it.in(0), *it.in(1));
     }
   }
   else if (overlay_ == FAST_GAUSS_OVERLAY_MAX) {
     for (; !it.is_end(); ++it) {
-      *it.out = MAX2(*it.in(0), *it.in(1));
+      *it.out = std::max(*it.in(0), *it.in(1));
     }
   }
 }

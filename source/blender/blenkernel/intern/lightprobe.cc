@@ -58,7 +58,7 @@ IDTypeInfo IDType_ID_LP = {
     /*main_listbase_index*/ INDEX_ID_LP,
     /*struct_size*/ sizeof(LightProbe),
     /*name*/ "LightProbe",
-    /*name_plural*/ "lightprobes",
+    /*name_plural*/ N_("lightprobes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_LIGHTPROBE,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -86,17 +86,17 @@ void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)
   probe->type = lightprobe_type;
 
   switch (probe->type) {
-    case LIGHTPROBE_TYPE_GRID:
+    case LIGHTPROBE_TYPE_VOLUME:
       probe->distinf = 0.3f;
       probe->falloff = 1.0f;
       probe->clipsta = 0.01f;
       break;
-    case LIGHTPROBE_TYPE_PLANAR:
+    case LIGHTPROBE_TYPE_PLANE:
       probe->distinf = 0.1f;
       probe->falloff = 0.5f;
       probe->clipsta = 0.001f;
       break;
-    case LIGHTPROBE_TYPE_CUBE:
+    case LIGHTPROBE_TYPE_SPHERE:
       probe->attenuation_type = LIGHTPROBE_SHAPE_ELIPSOID;
       break;
     default:

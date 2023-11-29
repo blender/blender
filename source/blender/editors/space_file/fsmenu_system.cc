@@ -167,28 +167,27 @@ static void fsmenu_add_windows_quick_access(FSMenu *fsmenu,
                                             FSMenuInsert flag)
 {
   Microsoft::WRL::ComPtr<IShellDispatch> shell;
-  if (FAILED(
-          CoCreateInstance(CLSID_Shell, nullptr, CLSCTX_ALL, IID_PPV_ARGS(shell.GetAddressOf()))))
-  {
+  if (CoCreateInstance(CLSID_Shell, nullptr, CLSCTX_ALL, IID_PPV_ARGS(shell.GetAddressOf())) !=
+      S_OK) {
     return;
   }
 
   /* Open Quick Access folder. */
   Microsoft::WRL::ComPtr<Folder> dir;
-  if (FAILED(shell->NameSpace(_variant_t(L"shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}"),
-                              dir.GetAddressOf())))
+  if (shell->NameSpace(_variant_t(L"shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}"),
+                       dir.GetAddressOf()) != S_OK)
   {
     return;
   }
 
   /* Get FolderItems. */
   Microsoft::WRL::ComPtr<FolderItems> items;
-  if (FAILED(dir->Items(items.GetAddressOf()))) {
+  if (dir->Items(items.GetAddressOf()) != S_OK) {
     return;
   }
 
   long count = 0;
-  if (FAILED(items->get_Count(&count))) {
+  if (items->get_Count(&count) != S_OK) {
     return;
   }
 
@@ -196,18 +195,18 @@ static void fsmenu_add_windows_quick_access(FSMenu *fsmenu,
   for (long i = 0; i < count; i++) {
     Microsoft::WRL::ComPtr<FolderItem> item;
 
-    if (FAILED(items->Item(_variant_t(i), item.GetAddressOf()))) {
+    if (items->Item(_variant_t(i), item.GetAddressOf()) != S_OK) {
       continue;
     }
 
     VARIANT_BOOL isFolder;
     /* Skip if it's not a folder. */
-    if (FAILED(item->get_IsFolder(&isFolder)) || isFolder == VARIANT_FALSE) {
+    if (item->get_IsFolder(&isFolder) != S_OK || isFolder == VARIANT_FALSE) {
       continue;
     }
 
     _bstr_t path;
-    if (FAILED(item->get_Path(path.GetAddress()))) {
+    if (item->get_Path(path.GetAddress()) != S_OK) {
       continue;
     }
 

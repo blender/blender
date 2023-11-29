@@ -15,7 +15,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -593,13 +593,7 @@ int fsmenu_get_active_indices(FSMenu *fsmenu, enum FSMenuCategory category, cons
  * before being defined as unreachable by the OS, we need to validate the bookmarks in an
  * asynchronous job.
  */
-static void fsmenu_bookmark_validate_job_startjob(
-    void *fsmenuv,
-    /* Cannot be const, this function implements wm_jobs_start_callback.
-     * NOLINTNEXTLINE: readability-non-const-parameter. */
-    bool *stop,
-    bool *do_update,
-    float * /*progress*/)
+static void fsmenu_bookmark_validate_job_startjob(void *fsmenuv, wmJobWorkerStatus *worker_status)
 {
   FSMenu *fsmenu = static_cast<FSMenu *>(fsmenuv);
 
@@ -609,13 +603,13 @@ static void fsmenu_bookmark_validate_job_startjob(
   for (size_t i = ARRAY_SIZE(categories); i--;) {
     FSMenuEntry *fsm_iter = ED_fsmenu_get_category(fsmenu, FSMenuCategory(categories[i]));
     for (; fsm_iter; fsm_iter = fsm_iter->next) {
-      if (*stop) {
+      if (worker_status->stop) {
         return;
       }
       /* Note that we do not really need atomics primitives or thread locks here, since this only
        * sets one short, which is assumed to be 'atomic'-enough for us here. */
       fsmenu_entry_refresh_valid(fsm_iter);
-      *do_update = true;
+      worker_status->do_update = true;
     }
   }
 }

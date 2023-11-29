@@ -3,11 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   ../blenkernel
   ../blentranslation
   ../gpu
-  ../imbuf
   ../makesrna
 )
 
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
@@ -54,3 +54,4 @@ endif()
 
 
 blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::blenfont ALIAS bf_blenfont)

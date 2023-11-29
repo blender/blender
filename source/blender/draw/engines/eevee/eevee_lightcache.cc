@@ -18,7 +18,7 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_lightprobe_types.h"
@@ -276,7 +276,7 @@ static void irradiance_pool_size_get(int visibility_size, int total_samples, int
                     (visibility_size / IRRADIANCE_SAMPLE_SIZE_Y);
 
   /* The irradiance itself take one layer, hence the +1 */
-  int layer_count = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
+  int layer_count = std::min(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
 
   int texel_count = int(ceilf(float(total_samples) / float(layer_count - 1)));
   r_size[0] = visibility_size *
@@ -671,12 +671,12 @@ static void eevee_lightbake_count_probes(EEVEE_LightBake *lbake)
     if (ob->type == OB_LIGHTPROBE) {
       LightProbe *prb = (LightProbe *)ob->data;
 
-      if (prb->type == LIGHTPROBE_TYPE_GRID) {
+      if (prb->type == LIGHTPROBE_TYPE_VOLUME) {
         lbake->total_irr_samples += prb->grid_resolution_x * prb->grid_resolution_y *
                                     prb->grid_resolution_z;
         lbake->grid_len++;
       }
-      else if (prb->type == LIGHTPROBE_TYPE_CUBE && lbake->cube_len < EEVEE_PROBE_MAX) {
+      else if (prb->type == LIGHTPROBE_TYPE_SPHERE && lbake->cube_len < EEVEE_PROBE_MAX) {
         lbake->cube_len++;
       }
     }
@@ -686,8 +686,7 @@ static void eevee_lightbake_count_probes(EEVEE_LightBake *lbake)
 
 static void eevee_lightbake_create_render_target(EEVEE_LightBake *lbake, int rt_res)
 {
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                           GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
   lbake->rt_depth = DRW_texture_create_cube_ex(
       rt_res, GPU_DEPTH_COMPONENT24, usage, DRWTextureFlag(0), nullptr);
   lbake->rt_color = DRW_texture_create_cube_ex(
@@ -1334,12 +1333,12 @@ static void eevee_lightbake_gather_probes(EEVEE_LightBake *lbake)
     if (ob->type == OB_LIGHTPROBE) {
       LightProbe *prb = (LightProbe *)ob->data;
 
-      if (prb->type == LIGHTPROBE_TYPE_GRID) {
+      if (prb->type == LIGHTPROBE_TYPE_VOLUME) {
         lbake->grid_prb[grid_len] = prb;
         EEVEE_LightGrid *egrid = &lcache->grid_data[grid_len++];
         EEVEE_lightprobes_grid_data_from_object(ob, egrid, &total_irr_samples);
       }
-      else if (prb->type == LIGHTPROBE_TYPE_CUBE && cube_len < EEVEE_PROBE_MAX) {
+      else if (prb->type == LIGHTPROBE_TYPE_SPHERE && cube_len < EEVEE_PROBE_MAX) {
         lbake->cube_prb[cube_len] = prb;
         EEVEE_LightProbe *eprobe = &lcache->cube_data[cube_len++];
         EEVEE_lightprobes_cube_data_from_object(ob, eprobe);
@@ -1402,7 +1401,7 @@ static bool lightbake_do_sample(EEVEE_LightBake *lbake,
   return true;
 }
 
-void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *progress)
+void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
 {
   EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
   Depsgraph *depsgraph = lbake->depsgraph;
@@ -1411,9 +1410,9 @@ void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *
   DEG_evaluate_on_framechange(depsgraph, lbake->frame);
 
   lbake->view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  lbake->stop = stop;
-  lbake->do_update = do_update;
-  lbake->progress = progress;
+  lbake->stop = &worker_status->stop;
+  lbake->do_update = &worker_status->do_update;
+  lbake->progress = &worker_status->progress;
 
   if (G.background) {
     /* Make sure to init GL capabilities before counting probes. */

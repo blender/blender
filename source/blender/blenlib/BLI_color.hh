@@ -7,6 +7,7 @@
 #include <ostream>
 
 #include "BLI_math_color.h"
+#include "BLI_struct_equality_utils.hh"
 
 namespace blender {
 
@@ -118,17 +119,7 @@ template<typename ChannelStorageType, eSpace Space, eAlpha Alpha> class ColorRGB
     return stream;
   }
 
-  friend bool operator==(const ColorRGBA<ChannelStorageType, Space, Alpha> &a,
-                         const ColorRGBA<ChannelStorageType, Space, Alpha> &b)
-  {
-    return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
-  }
-
-  friend bool operator!=(const ColorRGBA<ChannelStorageType, Space, Alpha> &a,
-                         const ColorRGBA<ChannelStorageType, Space, Alpha> &b)
-  {
-    return !(a == b);
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_4(ColorRGBA, r, g, b, a)
 
   uint64_t hash() const
   {

@@ -13,9 +13,9 @@
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
-#include "BKE_unit.h"
+#include "BKE_context.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_unit.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

@@ -30,6 +30,8 @@
 
 #include "BLF_api.h"
 
+#include "DNA_curve_types.h"
+
 #include "GPU_capabilities.h"
 
 #include "blf_internal.h"
@@ -56,6 +58,14 @@
 static FT_Fixed to_16dot16(double val)
 {
   return (FT_Fixed)lround(val * 65536.0);
+}
+
+/**
+ * Convert a floating point value to a FreeType 16.16 fixed point value.
+ */
+static float from_16dot16(FT_Fixed value)
+{
+  return float(value) / 65536.0f;
 }
 
 /** \} */
@@ -710,11 +720,14 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
 /**
  * Load a glyph into the glyph slot of a font's face object.
  */
-static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index)
+static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index, bool outline_only)
 {
   int load_flags;
 
-  if (font->flags & BLF_MONOCHROME) {
+  if (outline_only) {
+    load_flags = FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP;
+  }
+  else if (font->flags & BLF_MONOCHROME) {
     load_flags = FT_LOAD_TARGET_MONO;
   }
   else {
@@ -813,11 +826,15 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
 
 /**
  * Convert a float factor to a fixed-point design coordinate.
+ * Currently unused because we are only dealing with known axes
+ * with specific functions, but this would be needed for unregistered,
+ * custom, or private tags. These are all uppercase axis tags.
  *
  * \param axis: Pointer to a design space axis structure.
  * \param factor: -1 to 1 with 0 meaning "default"
  */
-static FT_Fixed blf_factor_to_coordinate(const FT_Var_Axis *axis, const float factor)
+[[maybe_unused]] static FT_Fixed blf_factor_to_coordinate(const FT_Var_Axis *axis,
+                                                          const float factor)
 {
   FT_Fixed value = axis->def;
   if (factor > 0) {
@@ -832,16 +849,20 @@ static FT_Fixed blf_factor_to_coordinate(const FT_Var_Axis *axis, const float fa
 }
 
 /**
- * Alter a face variation axis by a factor
+ * Alter a face variation axis by a factor.
+ * Currently unused because we are only dealing with known axes
+ * with specific functions, but this would be needed for unregistered,
+ * custom, or private tags. These are all uppercase axis tags.
  *
  * \param coords: array of design coordinates, per axis.
  * \param tag: Axis tag, e.g. #BLF_VARIATION_AXIS_WEIGHT.
  * \param factor: -1 to 1 with 0 meaning "default"
+ * \return success if able to set this value.
  */
-static bool blf_glyph_set_variation_normalized(const FontBLF *font,
-                                               FT_Fixed coords[],
-                                               const uint32_t tag,
-                                               const float factor)
+[[maybe_unused]] static bool blf_glyph_set_variation_normalized(const FontBLF *font,
+                                                                FT_Fixed coords[],
+                                                                const uint32_t tag,
+                                                                const float factor)
 {
   int axis_index;
   const FT_Var_Axis *axis = blf_var_axis_by_tag(font->variations, tag, &axis_index);
@@ -858,21 +879,114 @@ static bool blf_glyph_set_variation_normalized(const FontBLF *font,
  * \param coords: Array of design coordinates, per axis.
  * \param tag: Axis tag, e.g. #BLF_VARIATION_AXIS_OPTSIZE.
  * \param value: New float value. Converted to 16.16 and clamped within allowed range.
+ * \return success if able to set this value.
  */
 static bool blf_glyph_set_variation_float(FontBLF *font,
                                           FT_Fixed coords[],
                                           uint32_t tag,
-                                          float value)
+                                          float *value)
 {
   int axis_index;
   const FT_Var_Axis *axis = blf_var_axis_by_tag(font->variations, tag, &axis_index);
   if (axis && (axis_index < BLF_VARIATIONS_MAX)) {
-    FT_Fixed int_value = to_16dot16(value);
+    FT_Fixed int_value = to_16dot16(*value);
     CLAMP(int_value, axis->minimum, axis->maximum);
     coords[axis_index] = int_value;
+    *value = from_16dot16(int_value);
     return true;
   }
   return false;
+}
+
+/**
+ * Set the #BLF_VARIATION_AXIS_WEIGHT (Weight) axis to a specific weight value.
+ *
+ * \param coords: Array of design coordinates, per axis.
+ * \param weight: Weight class value (1-1000 allowed, 100-900 typical).
+ * \return value set (could be clamped), or current weight if the axis does not exist.
+ */
+static float blf_glyph_set_variation_weight(FontBLF *font,
+                                            FT_Fixed coords[],
+                                            float current_weight,
+                                            float target_weight)
+{
+  float value = target_weight;
+  if (blf_glyph_set_variation_float(font, coords, BLF_VARIATION_AXIS_WEIGHT, &value)) {
+    return value;
+  }
+  return current_weight;
+}
+
+/**
+ * Set the #BLF_VARIATION_AXIS_SLANT (Slant) axis to a specific slant value.
+ *
+ * \param coords: Array of design coordinates, per axis.
+ * \param degrees: Slant in clockwise (opposite to spec) degrees.
+ * \return value set (could be clamped), or current slant if the axis does not exist.
+ */
+static float blf_glyph_set_variation_slant(FontBLF *font,
+                                           FT_Fixed coords[],
+                                           float current_degrees,
+                                           float target_degrees)
+{
+  float value = -target_degrees;
+  if (blf_glyph_set_variation_float(font, coords, BLF_VARIATION_AXIS_SLANT, &value)) {
+    return -value;
+  }
+  return current_degrees;
+}
+
+/**
+ * Set the #BLF_VARIATION_AXIS_WIDTH (Width) axis to a specific width value.
+ *
+ * \param coords: Array of design coordinates, per axis.
+ * \param width: Glyph width value. 1.0 is normal, as per spec (which uses percent).
+ * \return value set (could be clamped), or current width if the axis does not exist.
+ */
+static float blf_glyph_set_variation_width(FontBLF *font,
+                                           FT_Fixed coords[],
+                                           float current_width,
+                                           float target_width)
+{
+  float value = target_width * 100.0f;
+  if (blf_glyph_set_variation_float(font, coords, BLF_VARIATION_AXIS_WIDTH, &value)) {
+    return value / 100.0f;
+  }
+  return current_width;
+}
+
+/**
+ * Set the proposed #BLF_VARIATION_AXIS_SPACING (Spacing) axis to a specific value.
+ *
+ * \param coords: Array of design coordinates, per axis.
+ * \param spacing: Glyph spacing value. 0.0 is normal, as per spec.
+ * \return value set (could be clamped), or current spacing if the axis does not exist.
+ */
+static float blf_glyph_set_variation_spacing(FontBLF *font,
+                                             FT_Fixed coords[],
+                                             float current_spacing,
+                                             float target_spacing)
+{
+  float value = target_spacing;
+  if (blf_glyph_set_variation_float(font, coords, BLF_VARIATION_AXIS_SPACING, &value)) {
+    return value;
+  }
+  return current_spacing;
+}
+
+/**
+ * Set the #BLF_VARIATION_AXIS_OPTSIZE (Optical Size) axis to a specific size value.
+ *
+ * \param coords: Array of design coordinates, per axis.
+ * \param points: Non-zero size in typographic points.
+ * \return success if able to set this value.
+ */
+static bool blf_glyph_set_variation_optical_size(FontBLF *font,
+                                                 FT_Fixed coords[],
+                                                 const float points)
+{
+  float value = points;
+  return blf_glyph_set_variation_float(font, coords, BLF_VARIATION_AXIS_OPTSIZE, &value);
 }
 
 /** \} */
@@ -885,14 +999,15 @@ static bool blf_glyph_set_variation_float(FontBLF *font,
  * Adjust the glyph's weight by a factor.
  * Used for fonts without #BLF_VARIATION_AXIS_WEIGHT variable axis.
  *
- * \param factor: -1 (min stroke width) <= 0 (normal) => 1 (max boldness).
+ * \param width: -500 (make thinner) <= 0 (normal) => 500 (add boldness).
  */
-static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool monospaced)
+static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float width, bool monospaced)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     const FontBLF *font = (FontBLF *)glyph->face->generic.data;
     const FT_Pos average_width = font->ft_size->metrics.height;
-    FT_Pos change = (FT_Pos)(float(average_width) * factor * 0.12f);
+    float factor = width * 0.000225f;
+    FT_Pos change = (FT_Pos)(float(average_width) * factor);
     FT_Outline_EmboldenXY(&glyph->outline, change, 0);
     if (monospaced) {
       /* Widened fixed-pitch font needs a nudge left. */
@@ -908,19 +1023,23 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool mo
 }
 
 /**
- * Adjust the glyph's slant by a factor.
+ * Adjust the glyph's slant by a number of degrees.
  * Used for fonts without #BLF_VARIATION_AXIS_SLANT variable axis.
  *
- * \param factor: -1 (max right-leaning) <= 0 (no slant) => 1 (max left-leaning).
- *
- * \note that left-leaning italics are possible in some RTL writing systems.
+ * \param degrees: amount of tilt to add in clockwise degrees.
  */
-static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
+static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float degrees)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
-    /* Slant angle is counter-clockwise as per OTF specs. */
-    FT_Matrix transform = {to_16dot16(1), to_16dot16(-factor / 4.0f), 0, to_16dot16(1)};
+    FT_Matrix transform = {to_16dot16(1), to_16dot16(degrees * 0.0225f), 0, to_16dot16(1)};
     FT_Outline_Transform(&glyph->outline, &transform);
+    if (degrees < 0.0f) {
+      /* Leftward slant could interfere with prior characters to nudge right. */
+      const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+      const FT_Pos average_width = font->ft_size->metrics.height;
+      FT_Pos change = (FT_Pos)(float(average_width) * degrees * -0.01f);
+      FT_Outline_Translate(&glyph->outline, change, 0);
+    }
     return true;
   }
   return false;
@@ -930,12 +1049,12 @@ static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
  * Adjust the glyph width by factor.
  * Used for fonts without #BLF_VARIATION_AXIS_WIDTH variable axis.
  *
- * \param factor: -1 (min width) <= 0 (normal) => 1 (max width).
+ * \param factor: -1 (subtract width) <= 0 (normal) => 1 (add width).
  */
 static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
-    float scale = (factor * 0.4f) + 1.0f; /* 0.6f - 1.4f */
+    float scale = factor + 1.0f;
     FT_Matrix matrix = {to_16dot16(scale), 0, 0, to_16dot16(1)};
     FT_Outline_Transform(&glyph->outline, &matrix);
     glyph->advance.x = (FT_Pos)(double(glyph->advance.x) * scale);
@@ -948,7 +1067,7 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
  * Adjust the glyph spacing by factor.
  * Used for fonts without #BLF_VARIATION_AXIS_SPACING variable axis.
  *
- * \param factor: -1 (min tightness) <= 0 (normal) => 1 (max looseness).
+ * \param factor: -1 (make tighter) <= 0 (normal) => 1 (add space).
  */
 static bool blf_glyph_transform_spacing(FT_GlyphSlot glyph, float factor)
 {
@@ -1003,7 +1122,8 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
                                      FT_UInt glyph_index,
                                      uint charcode,
                                      uint8_t subpixel,
-                                     int fixed_width)
+                                     int fixed_width,
+                                     bool outline_only)
 {
   if (glyph_font != settings_font) {
     blf_font_size(glyph_font, settings_font->size);
@@ -1011,21 +1131,23 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 
   blf_ensure_size(glyph_font);
 
-  /* We need to keep track if changes are still needed. */
-  bool weight_done = false;
-  bool slant_done = false;
-  bool width_done = false;
-  bool spacing_done = false;
+  /* Default style values of the font containing the glyph. */
+  float weight = glyph_font->metrics.weight;
+  float slant = glyph_font->metrics.slant;
+  float width = glyph_font->metrics.width;
+  float spacing = glyph_font->metrics.spacing;
 
-  /* Treat bold as 75% of maximum weight. */
-  float weight = (settings_font->flags & BLF_BOLD) ? 0.75f : settings_font->char_weight;
-
-  /* Treat italics as 75% of maximum rightward slant. Note that slant angle is in
-   * counter-clockwise degrees per OTF spec, so negative. */
-  float slant = (settings_font->flags & BLF_ITALIC) ? -0.75f : settings_font->char_slant;
-
-  float width = settings_font->char_width;
-  float spacing = settings_font->char_spacing;
+  /* Style targets are on the settings_font. */
+  float weight_target = float(settings_font->char_weight);
+  if (settings_font->flags & BLF_BOLD) {
+    weight_target = std::min(weight_target + 300.0f, 900.0f);
+  }
+  float slant_target = settings_font->char_slant;
+  if (settings_font->flags & BLF_ITALIC) {
+    slant_target = std::min(slant_target + 8.0f, 15.0f);
+  }
+  float width_target = settings_font->char_width;
+  float spacing_target = settings_font->char_spacing;
 
   /* Font variations need to be set before glyph loading. Even if new value is zero. */
 
@@ -1034,22 +1156,18 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
     /* Load current design coordinates. */
     FT_Get_Var_Design_Coordinates(glyph_font->face, BLF_VARIATIONS_MAX, &coords[0]);
     /* Update design coordinates with new values. */
-    weight_done = blf_glyph_set_variation_normalized(
-        glyph_font, coords, BLF_VARIATION_AXIS_WEIGHT, weight);
-    slant_done = blf_glyph_set_variation_normalized(
-        glyph_font, coords, BLF_VARIATION_AXIS_SLANT, slant);
-    width_done = blf_glyph_set_variation_normalized(
-        glyph_font, coords, BLF_VARIATION_AXIS_WIDTH, width);
-    spacing_done = blf_glyph_set_variation_normalized(
-        glyph_font, coords, BLF_VARIATION_AXIS_SPACING, spacing);
-    /* Optical size, if available, is set to current font size. */
-    blf_glyph_set_variation_float(
-        glyph_font, coords, BLF_VARIATION_AXIS_OPTSIZE, settings_font->size);
+
+    weight = blf_glyph_set_variation_weight(glyph_font, coords, weight, weight_target);
+    slant = blf_glyph_set_variation_slant(glyph_font, coords, slant, slant_target);
+    width = blf_glyph_set_variation_width(glyph_font, coords, width, width_target);
+    spacing = blf_glyph_set_variation_spacing(glyph_font, coords, spacing, spacing_target);
+    blf_glyph_set_variation_optical_size(glyph_font, coords, settings_font->size);
+
     /* Save updated design coordinates. */
     FT_Set_Var_Design_Coordinates(glyph_font->face, BLF_VARIATIONS_MAX, &coords[0]);
   }
 
-  FT_GlyphSlot glyph = blf_glyph_load(glyph_font, glyph_index);
+  FT_GlyphSlot glyph = blf_glyph_load(glyph_font, glyph_index, outline_only);
   if (!glyph) {
     return nullptr;
   }
@@ -1063,17 +1181,21 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 
   /* Fallback glyph transforms, but only if required and not yet done. */
 
-  if (weight != 0.0f && !weight_done) {
-    blf_glyph_transform_weight(glyph, weight, FT_IS_FIXED_WIDTH(glyph_font));
+  if (weight != weight_target) {
+    blf_glyph_transform_weight(glyph, weight_target - weight, FT_IS_FIXED_WIDTH(glyph_font));
   }
-  if (slant != 0.0f && !slant_done) {
-    blf_glyph_transform_slant(glyph, slant);
+  if (slant != slant_target) {
+    blf_glyph_transform_slant(glyph, slant_target - slant);
   }
-  if (width != 0.0f && !width_done) {
-    blf_glyph_transform_width(glyph, width);
+  if (width != width_target) {
+    blf_glyph_transform_width(glyph, width_target - width);
   }
-  if (spacing != 0.0f && !spacing_done) {
-    blf_glyph_transform_spacing(glyph, spacing);
+  if (spacing != spacing_target) {
+    blf_glyph_transform_spacing(glyph, spacing_target - spacing);
+  }
+
+  if (outline_only) {
+    return glyph;
   }
 
   FT_Outline_Translate(&glyph->outline, (FT_Pos)subpixel, 0);
@@ -1103,7 +1225,7 @@ static GlyphBLF *blf_glyph_ensure_ex(FontBLF *font,
   }
 
   FT_GlyphSlot glyph = blf_glyph_render(
-      font, font_with_glyph, glyph_index, charcode, subpixel, gc->fixed_width);
+      font, font_with_glyph, glyph_index, charcode, subpixel, gc->fixed_width, false);
 
   if (glyph) {
     /* Save this glyph in the initial font's cache. */
@@ -1169,7 +1291,7 @@ static void blf_glyph_calc_rect_test(rcti *rect, GlyphBLF *g, const int x, const
    * width used by BLF_width. This allows that the text slightly
    * overlaps the clipping border to achieve better alignment. */
   rect->xmin = x + g->pos[0] + 1;
-  rect->xmax = x + MIN2(ft_pix_to_int(g->advance_x), g->dims[0]);
+  rect->xmax = x + std::min(ft_pix_to_int(g->advance_x), g->dims[0]);
   rect->ymin = y;
   rect->ymax = rect->ymin - g->dims[1];
 }
@@ -1362,6 +1484,308 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
 #else
   blf_texture_draw(font->color, g->dims, g->offset, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 #endif
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Glyph to Curves
+ * \{ */
+
+/**
+ * from: http://www.freetype.org/freetype2/docs/glyphs/glyphs-6.html#section-1
+ *
+ * Vectorial representation of Freetype glyphs
+ *
+ * The source format of outlines is a collection of closed paths called "contours". Each contour is
+ * made of a series of line segments and bezier arcs. Depending on the file format, these can be
+ * second-order or third-order polynomials. The former are also called quadratic or conic arcs, and
+ * they come from the TrueType format. The latter are called cubic arcs and mostly come from the
+ * Type1 format.
+ *
+ * Each arc is described through a series of start, end and control points.
+ * Each point of the outline has a specific tag which indicates whether it is
+ * used to describe a line segment or an arc.
+ * The following rules are applied to decompose the contour's points into segments and arcs :
+ *
+ * # two successive "on" points indicate a line segment joining them.
+ *
+ * # one conic "off" point midst two "on" points indicates a conic bezier arc,
+ *   the "off" point being the control point, and the "on" ones the start and end points.
+ *
+ * # Two successive cubic "off" points midst two "on" points indicate a cubic bezier arc.
+ *   There must be exactly two cubic control points and two on points for each cubic arc
+ *   (using a single cubic "off" point between two "on" points is forbidden, for example).
+ *
+ * # finally, two successive conic "off" points forces the rasterizer to create
+ *   (during the scan-line conversion process exclusively) a virtual "on" point midst them,
+ *   at their exact middle.
+ *   This greatly facilitates the definition of successive conic bezier arcs.
+ *   Moreover, it's the way outlines are described in the TrueType specification.
+ *
+ * Note that it is possible to mix conic and cubic arcs in a single contour, even though no current
+ * font driver produces such outlines.
+ *
+ * <pre>
+ *                                   *            # on
+ *                                                * off
+ *                                __---__
+ *   #-__                      _--       -_
+ *       --__                _-            -
+ *           --__           #               \
+ *               --__                        #
+ *                   -#
+ *                            Two "on" points
+ *    Two "on" points       and one "conic" point
+ *                             between them
+ *                 *
+ *   #            __      Two "on" points with two "conic"
+ *    \          -  -     points between them. The point
+ *     \        /    \    marked '0' is the middle of the
+ *      -      0      \   "off" points, and is a 'virtual'
+ *       -_  _-       #   "on" point where the curve passes.
+ *         --             It does not appear in the point
+ *                        list.
+ *         *
+ *         *                # on
+ *                    *     * off
+ *          __---__
+ *       _--       -_
+ *     _-            -
+ *    #               \
+ *                     #
+ *
+ *      Two "on" points
+ *    and two "cubic" point
+ *       between them
+ * </pre>
+ *
+ * Each glyphs original outline points are located on a grid of indivisible units.
+ * The points are stored in the font file as 16-bit integer grid coordinates,
+ * with the grid origin's being at (0, 0); they thus range from -16384 to 16383.
+ *
+ * Convert conic to bezier arcs:
+ * Conic P0 P1 P2
+ * Bezier B0 B1 B2 B3
+ * B0=P0
+ * B1=(P0+2*P1)/3
+ * B2=(P2+2*P1)/3
+ * B3=P2
+ */
+
+static void blf_glyph_to_curves(FT_Outline ftoutline, ListBase *nurbsbase, const float scale)
+{
+  const float eps = 0.0001f;
+  const float eps_sq = eps * eps;
+  Nurb *nu;
+  BezTriple *bezt;
+  float dx, dy;
+  int j, k, l, l_first = 0;
+
+  /* initialize as -1 to add 1 on first loop each time */
+  int contour_prev;
+
+  /* Start converting the FT data */
+  int *onpoints = static_cast<int *>(
+      MEM_callocN(size_t(ftoutline.n_contours) * sizeof(int), "onpoints"));
+
+  /* Get number of on-curve points for bezier-triples (including conic virtual on-points). */
+  for (j = 0, contour_prev = -1; j < ftoutline.n_contours; j++) {
+    const int n = ftoutline.contours[j] - contour_prev;
+    contour_prev = ftoutline.contours[j];
+
+    for (k = 0; k < n; k++) {
+      l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
+      if (k == 0) {
+        l_first = l;
+      }
+
+      if (ftoutline.tags[l] == FT_Curve_Tag_On) {
+        onpoints[j]++;
+      }
+
+      {
+        const int l_next = (k < n - 1) ? (l + 1) : l_first;
+        if (ftoutline.tags[l] == FT_Curve_Tag_Conic &&
+            ftoutline.tags[l_next] == FT_Curve_Tag_Conic) {
+          onpoints[j]++;
+        }
+      }
+    }
+  }
+
+  /* contour loop, bezier & conic styles merged */
+  for (j = 0, contour_prev = -1; j < ftoutline.n_contours; j++) {
+    const int n = ftoutline.contours[j] - contour_prev;
+    contour_prev = ftoutline.contours[j];
+
+    /* add new curve */
+    nu = (Nurb *)MEM_callocN(sizeof(Nurb), "objfnt_nurb");
+    bezt = static_cast<BezTriple *>(
+        MEM_callocN(size_t(onpoints[j]) * sizeof(BezTriple), "objfnt_bezt"));
+    BLI_addtail(nurbsbase, nu);
+
+    nu->type = CU_BEZIER;
+    nu->pntsu = onpoints[j];
+    nu->resolu = 8;
+    nu->flagu = CU_NURB_CYCLIC;
+    nu->bezt = bezt;
+
+    /* individual curve loop, start-end */
+    for (k = 0; k < n; k++) {
+      l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
+      if (k == 0) {
+        l_first = l;
+      }
+
+      /* virtual conic on-curve points */
+      {
+        const int l_next = (k < n - 1) ? (l + 1) : l_first;
+        if (ftoutline.tags[l] == FT_Curve_Tag_Conic &&
+            ftoutline.tags[l_next] == FT_Curve_Tag_Conic) {
+          dx = float(ftoutline.points[l].x + ftoutline.points[l_next].x) * scale / 2.0f;
+          dy = float(ftoutline.points[l].y + ftoutline.points[l_next].y) * scale / 2.0f;
+
+          /* left handle */
+          bezt->vec[0][0] = (dx + (2.0f * float(ftoutline.points[l].x)) * scale) / 3.0f;
+          bezt->vec[0][1] = (dy + (2.0f * float(ftoutline.points[l].y)) * scale) / 3.0f;
+
+          /* midpoint (virtual on-curve point) */
+          bezt->vec[1][0] = dx;
+          bezt->vec[1][1] = dy;
+
+          /* right handle */
+          bezt->vec[2][0] = (dx + (2.0f * float(ftoutline.points[l_next].x)) * scale) / 3.0f;
+          bezt->vec[2][1] = (dy + (2.0f * float(ftoutline.points[l_next].y)) * scale) / 3.0f;
+
+          bezt->h1 = bezt->h2 = HD_ALIGN;
+          bezt->radius = 1.0f;
+          bezt++;
+        }
+      }
+
+      /* on-curve points */
+      if (ftoutline.tags[l] == FT_Curve_Tag_On) {
+        const int l_prev = (k > 0) ? (l - 1) : ftoutline.contours[j];
+        const int l_next = (k < n - 1) ? (l + 1) : l_first;
+
+        /* left handle */
+        if (ftoutline.tags[l_prev] == FT_Curve_Tag_Cubic) {
+          bezt->vec[0][0] = float(ftoutline.points[l_prev].x) * scale;
+          bezt->vec[0][1] = float(ftoutline.points[l_prev].y) * scale;
+          bezt->h1 = HD_FREE;
+        }
+        else if (ftoutline.tags[l_prev] == FT_Curve_Tag_Conic) {
+          bezt->vec[0][0] = (float(ftoutline.points[l].x) +
+                             (2.0f * float(ftoutline.points[l_prev].x))) *
+                            scale / 3.0f;
+          bezt->vec[0][1] = (float(ftoutline.points[l].y) +
+                             (2.0f * float(ftoutline.points[l_prev].y))) *
+                            scale / 3.0f;
+          bezt->h1 = HD_FREE;
+        }
+        else {
+          bezt->vec[0][0] = float(ftoutline.points[l].x) * scale -
+                            (float(ftoutline.points[l].x) - float(ftoutline.points[l_prev].x)) *
+                                scale / 3.0f;
+          bezt->vec[0][1] = float(ftoutline.points[l].y) * scale -
+                            (float(ftoutline.points[l].y) - float(ftoutline.points[l_prev].y)) *
+                                scale / 3.0f;
+          bezt->h1 = HD_VECT;
+        }
+
+        /* midpoint (on-curve point) */
+        bezt->vec[1][0] = float(ftoutline.points[l].x) * scale;
+        bezt->vec[1][1] = float(ftoutline.points[l].y) * scale;
+
+        /* right handle */
+        if (ftoutline.tags[l_next] == FT_Curve_Tag_Cubic) {
+          bezt->vec[2][0] = float(ftoutline.points[l_next].x) * scale;
+          bezt->vec[2][1] = float(ftoutline.points[l_next].y) * scale;
+          bezt->h2 = HD_FREE;
+        }
+        else if (ftoutline.tags[l_next] == FT_Curve_Tag_Conic) {
+          bezt->vec[2][0] = (float(ftoutline.points[l].x) +
+                             (2.0f * float(ftoutline.points[l_next].x))) *
+                            scale / 3.0f;
+          bezt->vec[2][1] = (float(ftoutline.points[l].y) +
+                             (2.0f * float(ftoutline.points[l_next].y))) *
+                            scale / 3.0f;
+          bezt->h2 = HD_FREE;
+        }
+        else {
+          bezt->vec[2][0] = float(ftoutline.points[l].x) * scale -
+                            (float(ftoutline.points[l].x) - float(ftoutline.points[l_next].x)) *
+                                scale / 3.0f;
+          bezt->vec[2][1] = float(ftoutline.points[l].y) * scale -
+                            (float(ftoutline.points[l].y) - float(ftoutline.points[l_next].y)) *
+                                scale / 3.0f;
+          bezt->h2 = HD_VECT;
+        }
+
+        /* get the handles that are aligned, tricky...
+         * - check if one of them is a vector handle.
+         * - dist_squared_to_line_v2, check if the three beztriple points are on one line
+         * - len_squared_v2v2, see if there's a distance between the three points
+         * - len_squared_v2v2 again, to check the angle between the handles
+         */
+        if ((bezt->h1 != HD_VECT && bezt->h2 != HD_VECT) &&
+            (dist_squared_to_line_v2(bezt->vec[0], bezt->vec[1], bezt->vec[2]) <
+             (0.001f * 0.001f)) &&
+            (len_squared_v2v2(bezt->vec[0], bezt->vec[1]) > eps_sq) &&
+            (len_squared_v2v2(bezt->vec[1], bezt->vec[2]) > eps_sq) &&
+            (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > eps_sq) &&
+            (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) >
+             max_ff(len_squared_v2v2(bezt->vec[0], bezt->vec[1]),
+                    len_squared_v2v2(bezt->vec[1], bezt->vec[2]))))
+        {
+          bezt->h1 = bezt->h2 = HD_ALIGN;
+        }
+        bezt->radius = 1.0f;
+        bezt++;
+      }
+    }
+  }
+
+  MEM_freeN(onpoints);
+}
+
+static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font, const uint charcode)
+{
+  /* Glyph might not come from the initial font. */
+  FontBLF *font_with_glyph = font;
+  FT_UInt glyph_index = blf_glyph_index_from_charcode(&font_with_glyph, charcode);
+
+  if (!blf_ensure_face(font_with_glyph)) {
+    return nullptr;
+  }
+
+  FT_GlyphSlot glyph = blf_glyph_render(font, font_with_glyph, glyph_index, charcode, 0, 0, true);
+
+  if (font != font_with_glyph) {
+    if (!blf_ensure_face(font)) {
+      return nullptr;
+    }
+    double ratio = float(font->face->units_per_EM) / float(font_with_glyph->face->units_per_EM);
+    FT_Matrix transform = {to_16dot16(ratio), 0, 0, to_16dot16(ratio)};
+    FT_Outline_Transform(&glyph->outline, &transform);
+    glyph->advance.x = int(float(glyph->advance.x) * ratio);
+    glyph->metrics.horiAdvance = int(float(glyph->metrics.horiAdvance) * ratio);
+  }
+
+  return glyph;
+}
+
+float blf_character_to_curves(FontBLF *font,
+                              unsigned int unicode,
+                              ListBase *nurbsbase,
+                              const float scale)
+{
+  FT_GlyphSlot glyph = blf_glyphslot_ensure_outline(font, unicode);
+  if (!glyph) {
+    return 0.0f;
+  }
+
+  blf_glyph_to_curves(glyph->outline, nurbsbase, scale);
+  return float(glyph->advance.x) * scale;
 }
 
 /** \} */

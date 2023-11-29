@@ -15,7 +15,7 @@
 #  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_space_types.h"
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_report.h"
 

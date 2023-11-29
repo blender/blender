@@ -41,7 +41,7 @@
 #  include "BKE_node.h"
 #  include "BKE_scene.h"
 
-#  include "NOD_composite.h"
+#  include "NOD_composite.hh"
 
 #  include "BLI_listbase.h"
 

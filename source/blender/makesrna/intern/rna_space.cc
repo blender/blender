@@ -14,14 +14,14 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_studiolight.h"
-#include "BKE_viewer_path.h"
+#include "BKE_viewer_path.hh"
 
 #include "ED_asset.hh"
 #include "ED_spreadsheet.hh"
@@ -52,9 +52,9 @@
 
 #include "rna_internal.h"
 
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_proxy.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -85,6 +85,11 @@ const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
      ICON_EMPTY_AXIS,
      "Instances",
      "Instances of objects or collections"},
+    {int(blender::bke::GeometryComponent::Type::GreasePencil),
+     "GREASEPENCIL",
+     ICON_GREASEPENCIL,
+     "Grease Pencil",
+     "Grease Pencil component containing layers and curves data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -547,7 +552,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BKE_anim_data.h"
 #  include "BKE_brush.hh"
 #  include "BKE_colortools.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_global.h"
 #  include "BKE_icons.h"
 #  include "BKE_idprop.h"
@@ -3317,6 +3322,9 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
         continue;
       }
     }
+    if (!U.experimental.use_grease_pencil_version3 && item->value == ATTR_DOMAIN_LAYER) {
+      continue;
+    }
     if (item->value == ATTR_DOMAIN_POINT &&
         component_type == blender::bke::GeometryComponent::Type::Mesh)
     {
@@ -4602,11 +4610,6 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Display Split Normals", "Display vertex-per-face normals as lines");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
-  prop = RNA_def_property(srna, "show_edges", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "overlay.edit_flag", V3D_OVERLAY_EDIT_EDGES);
-  RNA_def_property_ui_text(prop, "Display Edges", "Highlight selected edges");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
-
   prop = RNA_def_property(srna, "show_faces", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "overlay.edit_flag", V3D_OVERLAY_EDIT_FACES);
   RNA_def_property_ui_text(prop, "Display Faces", "Highlight selected faces");
@@ -5462,7 +5465,7 @@ static void rna_def_space_properties(BlenderRNA *brna)
       prop, "Tab Search Results", "Whether or not each visible tab has a search result");
 
   prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
-  /* The search filter is stored in the property editor's runtime  which
+  /* The search filter is stored in the property editor's runtime which
    * is only defined in an internal header, so use the getter / setter here. */
   RNA_def_property_string_funcs(prop,
                                 "rna_SpaceProperties_search_filter_get",

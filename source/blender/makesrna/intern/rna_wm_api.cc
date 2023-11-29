@@ -62,7 +62,7 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_undo_system.h"
 
 #  include "WM_types.hh"
@@ -539,9 +539,9 @@ static PointerRNA rna_KeyConfig_find_item_from_operator(wmWindowManager *wm,
   return kmi_ptr;
 }
 
-static void rna_KeyConfig_update(wmWindowManager *wm)
+static void rna_KeyConfig_update(wmWindowManager *wm, bool keep_properties)
 {
-  WM_keyconfig_update(wm);
+  WM_keyconfig_update_ex(wm, keep_properties);
 }
 
 /* popup menu wrapper */
@@ -1335,7 +1335,13 @@ void RNA_api_keyconfigs(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
   RNA_def_function_return(func, parm);
 
-  RNA_def_function(srna, "update", "rna_KeyConfig_update"); /* WM_keyconfig_update */
+  func = RNA_def_function(srna, "update", "rna_KeyConfig_update"); /* WM_keyconfig_update */
+  RNA_def_boolean(
+      func,
+      "keep_properties",
+      false,
+      "Keep Properties",
+      "Operator properties are kept to allow the operators to be registered again in the future");
 }
 
 #endif

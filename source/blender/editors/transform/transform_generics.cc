@@ -26,13 +26,13 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_mask.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_paint.hh"
 
-#include "SEQ_transform.h"
+#include "SEQ_transform.hh"
 
 #include "ED_clip.hh"
 #include "ED_image.hh"
@@ -47,7 +47,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sequencer.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -189,6 +189,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->mval = mval;
 
+  /* Initialize this mouse variable in advance as it is required by
+   * `transform_convert_frame_side_dir_get` which is called before `initMouseInput`. */
+  t->mouse.imval = mval;
+
   t->mode_info = nullptr;
 
   t->data_len_all = 0;
@@ -223,6 +227,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* GPencil editing context */
   if (GPENCIL_EDIT_MODE(gpd)) {
+    t->options |= CTX_GPENCIL_STROKES;
+  }
+
+  /* Grease Pencil editing context */
+  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT) {
     t->options |= CTX_GPENCIL_STROKES;
   }
 
@@ -678,9 +687,20 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
            TFM_EDGE_SLIDE,
            TFM_VERT_SLIDE))
   {
-    const bool use_alt_navigation = (prop = RNA_struct_find_property(op->ptr, "alt_navigation")) &&
-                                    RNA_property_boolean_get(op->ptr, prop);
-    t->vod = ED_view3d_navigation_init(C, use_alt_navigation);
+    wmWindowManager *wm = CTX_wm_manager(C);
+    wmKeyMap *keymap = WM_keymap_active(wm, op->type->modalkeymap);
+    const wmKeyMapItem *kmi_passthrough = nullptr;
+    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
+      if (kmi->flag & KMI_INACTIVE) {
+        continue;
+      }
+
+      if (kmi->propvalue == TFM_MODAL_PASSTHROUGH_NAVIGATE) {
+        kmi_passthrough = kmi;
+        break;
+      }
+    }
+    t->vod = ED_view3d_navigation_init(C, kmi_passthrough);
   }
 
   setTransformViewMatrices(t);
@@ -821,15 +841,15 @@ void applyTransObjects(TransInfo *t)
 
 static void transdata_restore_basic(TransDataBasic *td_basic)
 {
-  if (td_basic->val) {
-    *td_basic->val = td_basic->ival;
+  if (td_basic->loc) {
+    copy_v3_v3(td_basic->loc, td_basic->iloc);
   }
 
   /* TODO(mano-wii): Only use 3D or larger vectors in `td->loc`.
    * If `loc` and `val` point to the same address, it may indicate that `loc` is not 3D which is
    * not safe for `copy_v3_v3`. */
-  if (td_basic->loc && td_basic->val != td_basic->loc) {
-    copy_v3_v3(td_basic->loc, td_basic->iloc);
+  if (td_basic->val && td_basic->val != td_basic->loc) {
+    *td_basic->val = td_basic->ival;
   }
 }
 

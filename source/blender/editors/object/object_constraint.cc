@@ -29,13 +29,13 @@
 
 #include "BIK_api.h"
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 
@@ -59,6 +59,8 @@
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
+
+#include "ANIM_action.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -1071,7 +1073,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     {
       /* create F-Curve for path animation */
       act = ED_id_action_ensure(bmain, &cu->id);
-      fcu = ED_action_fcurve_ensure(bmain, act, nullptr, nullptr, "eval_time", 0);
+      fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, nullptr, "eval_time", 0);
 
       /* standard vertical range - 1:1 = 100 frames */
       standardRange = 100.0f;
@@ -1095,7 +1097,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 
     /* create F-Curve for constraint */
     act = ED_id_action_ensure(bmain, &ob->id);
-    fcu = ED_action_fcurve_ensure(bmain, act, nullptr, nullptr, path, 0);
+    fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, nullptr, path, 0);
 
     /* standard vertical range - 0.0 to 1.0 */
     standardRange = 1.0f;

@@ -25,8 +25,8 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_animsys.h"
-#  include "BKE_armature.h"
-#  include "BKE_context.h"
+#  include "BKE_armature.hh"
+#  include "BKE_context.hh"
 #  include "BKE_pose_backup.h"
 
 #  include "DNA_action_types.h"

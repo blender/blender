@@ -17,10 +17,10 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "DNA_scene_types.h"
 

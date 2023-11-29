@@ -20,12 +20,14 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
+
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
@@ -81,6 +83,12 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   bone->ease1 = 1.0f;
   bone->ease2 = 1.0f;
 
+  /* Prevent custom bone colors from having alpha zero.
+   * Part of the fix for issue #115434. */
+  bone->color.custom.solid[3] = 255;
+  bone->color.custom.select[3] = 255;
+  bone->color.custom.active[3] = 255;
+
   copy_v3_fl(bone->scale_in, 1.0f);
   copy_v3_fl(bone->scale_out, 1.0f);
 
@@ -95,7 +103,7 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
   ED_armature_edit_deselect_all(obedit_arm);
 
   /* Create a bone */
-  bone = ED_armature_ebone_add(arm, "Bone");
+  bone = ED_armature_ebone_add(arm, DATA_("Bone"));
 
   arm->act_edbone = bone;
 
@@ -223,7 +231,6 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
   ARegion *region;
   View3D *v3d;
   float tvec[3], oldcurs[3], mval_f[2];
-  int retv;
 
   scene = CTX_data_scene(C);
   region = CTX_wm_region(C);
@@ -238,12 +245,16 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
   copy_v3_v3(cursor->location, tvec);
 
   /* extrude to the where new cursor is and store the operation result */
-  retv = armature_click_extrude_exec(C, op);
+  int retval = armature_click_extrude_exec(C, op);
 
   /* restore previous 3d cursor position */
   copy_v3_v3(cursor->location, oldcurs);
 
-  return retv;
+  /* Support dragging to move after extrude, see: #114282. */
+  if (retval & OPERATOR_FINISHED) {
+    retval |= OPERATOR_PASS_THROUGH;
+  }
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void ARMATURE_OT_click_extrude(wmOperatorType *ot)
@@ -268,7 +279,7 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 {
   EditBone *ebo;
 
-  ebo = ED_armature_ebone_add(static_cast<bArmature *>(obedit->data), "Bone");
+  ebo = ED_armature_ebone_add(static_cast<bArmature *>(obedit->data), DATA_("Bone"));
 
   copy_v3_v3(ebo->head, head);
   copy_v3_v3(ebo->tail, tail);
@@ -1517,6 +1528,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
               }
             }
 
+            newbone->color = ebone->color;
+
             newbone->weight = ebone->weight;
             newbone->dist = ebone->dist;
             newbone->xwidth = ebone->xwidth;
@@ -1695,7 +1708,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_string(ot->srna, "name", "Bone", MAXBONENAME, "Name", "Name of the newly created bone");
+  RNA_def_string(ot->srna, "name", nullptr, MAXBONENAME, "Name", "Name of the newly created bone");
 }
 
 /* ********************** Subdivide *******************************/

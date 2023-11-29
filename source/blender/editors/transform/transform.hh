@@ -283,6 +283,8 @@ enum {
 
   TFM_MODAL_EDIT_SNAP_SOURCE_ON = 34,
   TFM_MODAL_EDIT_SNAP_SOURCE_OFF = 35,
+
+  TFM_MODAL_PASSTHROUGH_NAVIGATE = 36,
 };
 
 /** \} */
@@ -676,7 +678,7 @@ struct TransInfo {
  * \{ */
 
 /**
- * \note  caller needs to free `t` on a 0 return
+ * \note Caller needs to free `t` on a 0 return.
  * \warning \a event might be NULL (when tweaking from redo panel)
  * \see #saveTransform which writes these values back.
  */

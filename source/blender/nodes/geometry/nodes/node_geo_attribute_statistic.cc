@@ -23,28 +23,24 @@ namespace blender::nodes::node_geo_attribute_statistic_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNode *node = b.node_or_null();
+
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
-  b.add_input<decl::Float>("Attribute").hide_value().field_on_all();
-  b.add_input<decl::Vector>("Attribute", "Attribute_001").hide_value().field_on_all();
 
-  b.add_output<decl::Float>("Mean");
-  b.add_output<decl::Float>("Median");
-  b.add_output<decl::Float>("Sum");
-  b.add_output<decl::Float>("Min");
-  b.add_output<decl::Float>("Max");
-  b.add_output<decl::Float>("Range");
-  b.add_output<decl::Float>("Standard Deviation");
-  b.add_output<decl::Float>("Variance");
+  if (node != nullptr) {
+    const eCustomDataType data_type = eCustomDataType(node->custom1);
+    b.add_input(data_type, "Attribute").hide_value().field_on_all();
 
-  b.add_output<decl::Vector>("Mean", "Mean_001");
-  b.add_output<decl::Vector>("Median", "Median_001");
-  b.add_output<decl::Vector>("Sum", "Sum_001");
-  b.add_output<decl::Vector>("Min", "Min_001");
-  b.add_output<decl::Vector>("Max", "Max_001");
-  b.add_output<decl::Vector>("Range", "Range_001");
-  b.add_output<decl::Vector>("Standard Deviation", "Standard Deviation_001");
-  b.add_output<decl::Vector>("Variance", "Variance_001");
+    b.add_output(data_type, "Mean");
+    b.add_output(data_type, "Median");
+    b.add_output(data_type, "Sum");
+    b.add_output(data_type, "Min");
+    b.add_output(data_type, "Max");
+    b.add_output(data_type, "Range");
+    b.add_output(data_type, "Standard Deviation");
+    b.add_output(data_type, "Variance");
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -57,54 +53,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = CD_PROP_FLOAT;
   node->custom2 = ATTR_DOMAIN_POINT;
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *socket_geo = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *socket_selection = socket_geo->next;
-  bNodeSocket *socket_float_attr = socket_selection->next;
-  bNodeSocket *socket_float3_attr = socket_float_attr->next;
-
-  bNodeSocket *socket_float_mean = static_cast<bNodeSocket *>(node->outputs.first);
-  bNodeSocket *socket_float_median = socket_float_mean->next;
-  bNodeSocket *socket_float_sum = socket_float_median->next;
-  bNodeSocket *socket_float_min = socket_float_sum->next;
-  bNodeSocket *socket_float_max = socket_float_min->next;
-  bNodeSocket *socket_float_range = socket_float_max->next;
-  bNodeSocket *socket_float_std = socket_float_range->next;
-  bNodeSocket *socket_float_variance = socket_float_std->next;
-
-  bNodeSocket *socket_vector_mean = socket_float_variance->next;
-  bNodeSocket *socket_vector_median = socket_vector_mean->next;
-  bNodeSocket *socket_vector_sum = socket_vector_median->next;
-  bNodeSocket *socket_vector_min = socket_vector_sum->next;
-  bNodeSocket *socket_vector_max = socket_vector_min->next;
-  bNodeSocket *socket_vector_range = socket_vector_max->next;
-  bNodeSocket *socket_vector_std = socket_vector_range->next;
-  bNodeSocket *socket_vector_variance = socket_vector_std->next;
-
-  const eCustomDataType data_type = eCustomDataType(node->custom1);
-
-  bke::nodeSetSocketAvailability(ntree, socket_float_attr, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_mean, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_median, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_sum, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_min, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_max, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_range, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_std, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, socket_float_variance, data_type == CD_PROP_FLOAT);
-
-  bke::nodeSetSocketAvailability(ntree, socket_float3_attr, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_mean, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_median, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_sum, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_min, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_max, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_range, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_std, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, socket_vector_variance, data_type == CD_PROP_FLOAT3);
 }
 
 static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
@@ -125,8 +73,8 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(2));
+  const NodeDeclaration &declaration = *params.node_type().static_declaration;
+  search_link_ops_for_declarations(params, declaration.inputs);
 
   const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());
   if (!type) {
@@ -278,7 +226,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case CD_PROP_FLOAT3: {
-      const Field<float3> input_field = params.get_input<Field<float3>>("Attribute_001");
+      const Field<float3> input_field = params.get_input<Field<float3>>("Attribute");
       Vector<float3> data;
       for (const GeometryComponent *component : components) {
         const std::optional<AttributeAccessor> attributes = component->attributes();
@@ -310,14 +258,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       float3 mean{0};
       float3 variance{0};
       float3 standard_deviation{0};
-      const bool sort_required = params.output_is_required("Min_001") ||
-                                 params.output_is_required("Max_001") ||
-                                 params.output_is_required("Range_001") ||
-                                 params.output_is_required("Median_001");
-      const bool sum_required = params.output_is_required("Sum_001") ||
-                                params.output_is_required("Mean_001");
-      const bool variance_required = params.output_is_required("Standard Deviation_001") ||
-                                     params.output_is_required("Variance_001");
+      const bool sort_required = params.output_is_required("Min") ||
+                                 params.output_is_required("Max") ||
+                                 params.output_is_required("Range") ||
+                                 params.output_is_required("Median");
+      const bool sum_required = params.output_is_required("Sum") ||
+                                params.output_is_required("Mean");
+      const bool variance_required = params.output_is_required("Standard Deviation") ||
+                                     params.output_is_required("Variance");
 
       Array<float> data_x;
       Array<float> data_y;
@@ -364,18 +312,18 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
 
       if (sum_required) {
-        params.set_output("Sum_001", sum);
-        params.set_output("Mean_001", mean);
+        params.set_output("Sum", sum);
+        params.set_output("Mean", mean);
       }
       if (sort_required) {
-        params.set_output("Min_001", min);
-        params.set_output("Max_001", max);
-        params.set_output("Range_001", range);
-        params.set_output("Median_001", median);
+        params.set_output("Min", min);
+        params.set_output("Max", max);
+        params.set_output("Range", range);
+        params.set_output("Median", median);
       }
       if (variance_required) {
-        params.set_output("Standard Deviation_001", standard_deviation);
-        params.set_output("Variance_001", variance);
+        params.set_output("Standard Deviation", standard_deviation);
+        params.set_output("Variance", variance);
       }
       break;
     }
@@ -407,7 +355,8 @@ static void node_rna(StructRNA *srna)
                     "Which domain to read the data from",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom2),
-                    ATTR_DOMAIN_POINT);
+                    ATTR_DOMAIN_POINT,
+                    enums::domain_experimental_grease_pencil_version3_fn);
 }
 
 static void node_register()
@@ -417,9 +366,8 @@ static void node_register()
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE);
 
-  ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
+  ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;

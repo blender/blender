@@ -8,7 +8,7 @@
 #include <pxr/base/gf/quaternion.h>
 #include <pxr/usd/usdGeom/xform.h>
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

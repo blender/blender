@@ -25,12 +25,13 @@
 #include "DNA_object_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
@@ -76,9 +77,9 @@ void paintface_flush_flags(bContext *C,
   }
 
   bke::AttributeAccessor attributes_me = me->attributes();
-  Mesh *me_orig = (Mesh *)ob_eval->runtime.data_orig;
+  Mesh *me_orig = (Mesh *)ob_eval->runtime->data_orig;
   bke::MutableAttributeAccessor attributes_orig = me_orig->attributes_for_write();
-  Mesh *me_eval = (Mesh *)ob_eval->runtime.data_eval;
+  Mesh *me_eval = (Mesh *)ob_eval->runtime->data_eval;
   bke::MutableAttributeAccessor attributes_eval = me_eval->attributes_for_write();
   bool updated = false;
 
@@ -456,8 +457,7 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   using namespace blender;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);

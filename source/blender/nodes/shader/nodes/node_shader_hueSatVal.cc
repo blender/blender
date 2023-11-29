@@ -33,7 +33,6 @@ static int gpu_shader_hue_sat(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* TODO: implement fac */
   NodeItem hue = get_input_value("Hue", NodeItem::Type::Float);
   NodeItem saturation = get_input_value("Saturation", NodeItem::Type::Float);
   NodeItem value = get_input_value("Value", NodeItem::Type::Float);
@@ -46,7 +45,10 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem combine = create_node(
       "combine3", NodeItem::Type::Vector3, {{"in1", hue}, {"in2", saturation}, {"in3", value}});
 
-  return create_node("hsvadjust", NodeItem::Type::Color3, {{"in", color}, {"amount", combine}});
+  NodeItem hsv = create_node(
+      "hsvadjust", NodeItem::Type::Color3, {{"in", color}, {"amount", combine}});
+
+  return fac.mix(color, hsv);
 }
 #endif
 NODE_SHADER_MATERIALX_END

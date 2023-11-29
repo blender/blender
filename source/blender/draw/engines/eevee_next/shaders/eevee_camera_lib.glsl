@@ -6,7 +6,7 @@
  * Camera projection / uv functions and utils.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Panoramic Projections
@@ -68,10 +68,10 @@ vec3 camera_mirror_ball_to_direction(CameraData cam, vec2 uv)
   uv = uv * cam.uv_scale + cam.uv_bias;
   vec3 dir;
   dir.xy = uv * 2.0 - 1.0;
-  if (len_squared(dir.xy) > 1.0) {
+  if (length_squared(dir.xy) > 1.0) {
     return vec3(0.0);
   }
-  dir.z = -safe_sqrt(1.0 - sqr(dir.x) - sqr(dir.y));
+  dir.z = -safe_sqrt(1.0 - square(dir.x) - square(dir.y));
   const vec3 I = vec3(0.0, 0.0, 1.0);
   return reflect(I, dir);
 }

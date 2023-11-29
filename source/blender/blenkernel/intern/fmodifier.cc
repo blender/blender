@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm> /* For `min/max`. */
 #include <cfloat>
 #include <cmath>
 #include <cstddef>
@@ -1327,7 +1328,7 @@ uint evaluate_fmodifiers_storage_size_per_modifier(ListBase *modifiers)
       continue;
     }
 
-    max_size = MAX2(max_size, fmi->storage_size);
+    max_size = std::max(max_size, fmi->storage_size);
   }
 
   return max_size;

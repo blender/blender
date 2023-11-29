@@ -117,7 +117,7 @@ ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N
   const float3 R = 2 * dot(N, I) * N - I;
 
   const float Iz = dot(I, Ng);
-  kernel_assert(Iz > 0);
+  kernel_assert(Iz >= 0);
 
   /* Reflection rays may always be at least as shallow as the incoming ray. */
   const float threshold = min(0.9f * Iz, 0.01f);
@@ -191,6 +191,9 @@ ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N
  * normal and the shading normal is the same. */
 ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd, float3 N)
 {
+  if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
+    return N;
+  }
   if ((sd->type & PRIMITIVE_CURVE) || isequal(sd->Ng, N)) {
     return N;
   }
@@ -221,6 +224,15 @@ ccl_device_inline Spectrum bsdf_principled_hair_sigma_from_concentration(const f
 
   return eumelanin * rgb_to_spectrum(eumelanin_color) +
          pheomelanin * rgb_to_spectrum(pheomelanin_color);
+}
+
+/* Computes the weight for base closure(s) which are layered under another closure.
+ * layer_albedo is an estimate of the top layer's reflectivity, while weight is the closure weight
+ * of the entire base+top combination. */
+ccl_device_inline Spectrum closure_layering_weight(const Spectrum layer_albedo,
+                                                   const Spectrum weight)
+{
+  return weight * saturatef(1.0f - reduce_max(safe_divide_color(layer_albedo, weight)));
 }
 
 CCL_NAMESPACE_END

@@ -120,8 +120,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
                                   });
   }
   else {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
-                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
     DRW_texture_ensure_2d_ex(&txl->maxzbuffer,
                              UNPACK2(effects->hiz_size),
                              GPU_DEPTH_COMPONENT24,
@@ -153,8 +152,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * Used for SSReflections & SSRefractions.
    */
   if ((effects->enabled_effects & EFFECT_RADIANCE_BUFFER) != 0) {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
-                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
     DRW_texture_ensure_2d_ex(&txl->filtered_radiance,
                              UNPACK2(effects->hiz_size),
                              GPU_R11F_G11F_B10F,

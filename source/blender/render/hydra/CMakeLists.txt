@@ -36,12 +36,9 @@ if(WIN32)
 endif()
 
 set(INC
-  ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../blenkernel
   ../../blenlib
-  ../../depsgraph
-  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../nodes
@@ -70,10 +67,14 @@ set(LIB
   ${BOOST_LIBRARIES}
   ${USD_LIBRARIES}
   ${TBB_LIBRARIES}
+  PRIVATE bf::depsgraph
+  PRIVATE bf::imbuf
+  PRIVATE bf::intern::clog
   bf_io_usd
 )
 
 set(SRC
+  camera.cc
   engine.cc
   final_engine.cc
   light_tasks_delegate.cc
@@ -82,6 +83,7 @@ set(SRC
   render_task_delegate.cc
   viewport_engine.cc
 
+  camera.h
   engine.h
   final_engine.h
   light_tasks_delegate.h

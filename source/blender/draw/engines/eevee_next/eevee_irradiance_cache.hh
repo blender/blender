@@ -130,11 +130,20 @@ class IrradianceBake {
   /** True if emission is recorded during the light propagation. */
   bool capture_emission_ = false;
 
+  /** True if the bake job should stop. */
+  bool do_break_ = false;
+
  public:
   IrradianceBake(Instance &inst) : inst_(inst){};
 
   void init(const Object &probe_object);
   void sync();
+
+  /** True if the bake job should stop. */
+  bool should_break()
+  {
+    return do_break_;
+  }
 
   /** Create the views used to rasterize the scene into surfel representation. */
   void surfel_raster_views_sync(float3 scene_min, float3 scene_max, float4x4 probe_to_world);
@@ -223,11 +232,11 @@ class IrradianceCache {
   Vector<IrradianceBrickPacked> bricks_alloc(int brick_len);
   void bricks_free(Vector<IrradianceBrickPacked> &bricks);
 
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass->bind_ubo(IRRADIANCE_GRID_BUF_SLOT, &grids_infos_buf_);
-    pass->bind_ssbo(IRRADIANCE_BRICK_BUF_SLOT, &bricks_infos_buf_);
-    pass->bind_texture(IRRADIANCE_ATLAS_TEX_SLOT, &irradiance_atlas_tx_);
+    pass.bind_ubo(IRRADIANCE_GRID_BUF_SLOT, &grids_infos_buf_);
+    pass.bind_ssbo(IRRADIANCE_BRICK_BUF_SLOT, &bricks_infos_buf_);
+    pass.bind_texture(IRRADIANCE_ATLAS_TEX_SLOT, &irradiance_atlas_tx_);
   }
 
  private:

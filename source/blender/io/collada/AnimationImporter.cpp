@@ -15,17 +15,19 @@
 
 #include "ED_keyframing.hh"
 
+#include "ANIM_fcurve.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_fcurve.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -65,7 +67,7 @@ void AnimationImporter::add_bezt(FCurve *fcu,
   bez.ipo = ipo; /* use default interpolation mode here... */
   bez.f1 = bez.f2 = bez.f3 = SELECT;
   bez.h1 = bez.h2 = HD_AUTO;
-  insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
+  blender::animrig::insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
   BKE_fcurve_handles_recalc(fcu);
 }
 
@@ -132,7 +134,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 #endif
           bez.f1 = bez.f2 = bez.f3 = SELECT;
 
-          insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
+          blender::animrig::insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
         }
 
         BKE_fcurve_handles_recalc(fcu);

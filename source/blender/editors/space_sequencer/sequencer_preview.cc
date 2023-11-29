@@ -13,7 +13,7 @@
 #include "BLI_task.h"
 #include "BLI_threads.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_sound.h"
 
@@ -114,7 +114,7 @@ static void push_preview_job_audio_task(TaskPool *__restrict task_pool,
 }
 
 /* Only this runs inside thread. */
-static void preview_startjob(void *data, bool *stop, bool *do_update, float *progress)
+static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
 {
   TaskPool *task_pool = BLI_task_pool_create(nullptr, TASK_PRIORITY_LOW);
   PreviewJob *pj = static_cast<PreviewJob *>(data);
@@ -128,9 +128,9 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
 
       float current_progress = (pj->total > 0) ? float(pj->processed) / float(pj->total) : 1.0f;
 
-      if (current_progress != *progress) {
-        *progress = current_progress;
-        *do_update = true;
+      if (current_progress != worker_status->progress) {
+        worker_status->progress = current_progress;
+        worker_status->do_update = true;
       }
 
       BLI_condition_wait(&pj->preview_suspend_cond, pj->mutex);
@@ -142,7 +142,7 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
       break;
     }
 
-    if (*stop || G.is_break) {
+    if (worker_status->stop || G.is_break) {
       BLI_task_pool_cancel(task_pool);
 
       LISTBASE_FOREACH (PreviewJobAudio *, previewjb, &pj->previews) {
@@ -159,7 +159,7 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
     }
 
     LISTBASE_FOREACH_MUTABLE (PreviewJobAudio *, previewjb, &pj->previews) {
-      push_preview_job_audio_task(task_pool, pj, previewjb, stop);
+      push_preview_job_audio_task(task_pool, pj, previewjb, &worker_status->stop);
 
       BLI_remlink(&pj->previews, previewjb);
     }

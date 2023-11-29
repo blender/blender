@@ -10,6 +10,8 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
+#include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 
 #include "BLI_task.hh"
@@ -27,7 +29,13 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveFill)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
+  b.add_input<decl::Geometry>("Curve").supported_type(
+      {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
+  b.add_input<decl::Int>("Group ID")
+      .supports_field()
+      .hide_value()
+      .description(
+          "An index used to group curves together. Filling is done separately for each group");
   b.add_output<decl::Geometry>("Mesh");
 }
 
@@ -72,75 +80,250 @@ static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curve
   return result;
 }
 
-/* Converts the CDT result into a Mesh. */
-static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
+static meshintersect::CDT_result<double> do_cdt_with_mask(const bke::CurvesGeometry &curves,
+                                                          const CDT_output_type output_type,
+                                                          const IndexMask &mask)
 {
-  const int vert_len = result.vert.size();
-  const int edge_len = result.edge.size();
-  const int face_len = result.face.size();
-  int loop_len = 0;
-  for (const Vector<int> &face : result.face) {
-    loop_len += face.size();
-  }
+  const OffsetIndices points_by_curve = curves.evaluated_points_by_curve();
+  const Span<float3> positions = curves.evaluated_positions();
 
-  Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, face_len, loop_len);
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  mesh->edges_for_write().copy_from(result.edge.as_span().cast<int2>());
-  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
-  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  int vert_len = 0;
+  mask.foreach_index([&](const int i) { vert_len += points_by_curve[i].size(); });
 
-  for (const int i : IndexRange(result.vert.size())) {
-    positions[i] = float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f);
-  }
-  int i_loop = 0;
-  for (const int i : IndexRange(result.face.size())) {
-    face_offsets[i] = i_loop;
-    for (const int j : result.face[i].index_range()) {
-      corner_verts[i_loop] = result.face[i][j];
-      i_loop++;
+  meshintersect::CDT_input<double> input;
+  input.need_ids = false;
+  input.vert.reinitialize(vert_len);
+  input.face.reinitialize(mask.size());
+
+  Array<int> offsets_data(mask.size() + 1);
+  const OffsetIndices points_by_curve_masked = offset_indices::gather_selected_offsets(
+      points_by_curve, mask, offsets_data);
+
+  mask.foreach_index(GrainSize(1024), [&](const int src_curve, const int dst_curve) {
+    const IndexRange src_points = points_by_curve[src_curve];
+    const IndexRange dst_points = points_by_curve_masked[dst_curve];
+
+    for (const int i : src_points.index_range()) {
+      const int src = src_points[i];
+      const int dst = dst_points[i];
+      input.vert[dst] = double2(positions[src].x, positions[src].y);
     }
+
+    input.face[dst_curve].resize(src_points.size());
+    array_utils::fill_index_range<int>(input.face[dst_curve], dst_points.start());
+  });
+
+  meshintersect::CDT_result<double> result = delaunay_2d_calc(input, output_type);
+  return result;
+}
+
+static Array<meshintersect::CDT_result<double>> do_group_aware_cdt(
+    const bke::CurvesGeometry &curves,
+    const CDT_output_type output_type,
+    const Field<int> &group_index_field)
+{
+  const bke::GeometryFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  fn::FieldEvaluator data_evaluator{field_context, curves.curves_num()};
+  data_evaluator.add(group_index_field);
+  data_evaluator.evaluate();
+  const VArray<int> curve_group_ids = data_evaluator.get_evaluated<int>(0);
+
+  if (curve_group_ids.is_single()) {
+    return {do_cdt(curves, output_type)};
   }
 
-  /* The delaunay triangulation doesn't seem to return all of the necessary edges, even in
+  const VArraySpan<int> group_ids_span(curve_group_ids);
+  const int domain_size = group_ids_span.size();
+
+  VectorSet<int> group_indexing(group_ids_span);
+  const int groups_num = group_indexing.size();
+
+  IndexMaskMemory mask_memory;
+  Array<IndexMask> group_masks(groups_num);
+  IndexMask::from_groups<int>(
+      IndexMask(domain_size),
+      mask_memory,
+      [&](const int i) {
+        const int group_id = group_ids_span[i];
+        return group_indexing.index_of(group_id);
+      },
+      group_masks);
+
+  Array<meshintersect::CDT_result<double>> cdt_results(groups_num);
+
+  /* The grain size should be larger as each group gets smaller. */
+  const int avg_group_size = domain_size / groups_num;
+  const int grain_size = std::max(8192 / avg_group_size, 1);
+  threading::parallel_for(IndexRange(groups_num), grain_size, [&](const IndexRange range) {
+    for (const int group_index : range) {
+      const IndexMask &mask = group_masks[group_index];
+      cdt_results[group_index] = do_cdt_with_mask(curves, output_type, mask);
+    }
+  });
+
+  return cdt_results;
+}
+
+/* Converts multiple CDT results into a single Mesh. */
+static Mesh *cdts_to_mesh(const Span<meshintersect::CDT_result<double>> results)
+{
+  /* Converting a single CDT result to a Mesh would be simple because the indices could be re-used.
+   * However, in the general case here we need to combine several CDT results into a single Mesh,
+   * which requires us to map the original indices to a new set of indices.
+   * In order to allow for parallelization when appropriate, this implementation starts by
+   * determining (for each domain) what range of indices in the final mesh data will be used for
+   * each CDT result. The index ranges are represented as offsets, which are referred to as "group
+   * offsets" to distinguish them from the other types of offsets we need to work with here.
+   * Since it's likely that most invocations will only have a single CDT result, it's important
+   * that case is made as optimal as feasible. */
+
+  Array<int> vert_groups_data(results.size() + 1);
+  Array<int> edge_groups_data(results.size() + 1);
+  Array<int> face_groups_data(results.size() + 1);
+  Array<int> loop_groups_data(results.size() + 1);
+  threading::parallel_for(results.index_range(), 1024, [&](const IndexRange results_range) {
+    for (const int i_result : results_range) {
+      const meshintersect::CDT_result<double> &result = results[i_result];
+      vert_groups_data[i_result] = result.vert.size();
+      edge_groups_data[i_result] = result.edge.size();
+      face_groups_data[i_result] = result.face.size();
+      int loop_len = 0;
+      for (const Vector<int> &face : result.face) {
+        loop_len += face.size();
+      }
+      loop_groups_data[i_result] = loop_len;
+    }
+  });
+
+  const OffsetIndices vert_groups = offset_indices::accumulate_counts_to_offsets(vert_groups_data);
+  const OffsetIndices edge_groups = offset_indices::accumulate_counts_to_offsets(edge_groups_data);
+  const OffsetIndices face_groups = offset_indices::accumulate_counts_to_offsets(face_groups_data);
+  const OffsetIndices loop_groups = offset_indices::accumulate_counts_to_offsets(loop_groups_data);
+
+  Mesh *mesh = BKE_mesh_new_nomain(vert_groups.total_size(),
+                                   edge_groups.total_size(),
+                                   face_groups.total_size(),
+                                   loop_groups.total_size());
+
+  MutableSpan<float3> all_positions = mesh->vert_positions_for_write();
+  MutableSpan<int2> all_edges = mesh->edges_for_write();
+  MutableSpan<int> all_face_offsets = mesh->face_offsets_for_write();
+  MutableSpan<int> all_corner_verts = mesh->corner_verts_for_write();
+
+  threading::parallel_for(results.index_range(), 1024, [&](const IndexRange results_range) {
+    for (const int i_result : results_range) {
+      const meshintersect::CDT_result<double> &result = results[i_result];
+      const IndexRange verts_range = vert_groups[i_result];
+      const IndexRange edges_range = edge_groups[i_result];
+      const IndexRange faces_range = face_groups[i_result];
+      const IndexRange loops_range = loop_groups[i_result];
+
+      MutableSpan<float3> positions = all_positions.slice(verts_range);
+      for (const int i : result.vert.index_range()) {
+        positions[i] = float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f);
+      }
+
+      MutableSpan<int2> edges = all_edges.slice(edges_range);
+      for (const int i : result.edge.index_range()) {
+        edges[i] = int2(result.edge[i].first + verts_range.start(),
+                        result.edge[i].second + verts_range.start());
+      }
+
+      MutableSpan<int> face_offsets = all_face_offsets.slice(faces_range);
+      MutableSpan<int> corner_verts = all_corner_verts.slice(loops_range);
+      int i_face_corner = 0;
+      for (const int i_face : result.face.index_range()) {
+        face_offsets[i_face] = i_face_corner + loops_range.start();
+        for (const int i_corner : result.face[i_face].index_range()) {
+          corner_verts[i_face_corner] = result.face[i_face][i_corner] + verts_range.start();
+          i_face_corner++;
+        }
+      }
+    }
+  });
+
+  /* The delaunay triangulation doesn't seem to return all of the necessary all_edges, even in
    * triangulation mode. */
   BKE_mesh_calc_edges(mesh, true, false);
   BKE_mesh_smooth_flag_set(mesh, false);
+
+  mesh->tag_overlapping_none();
+
   return mesh;
 }
 
-static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCurveFillMode mode)
+static void curve_fill_calculate(GeometrySet &geometry_set,
+                                 const GeometryNodeCurveFillMode mode,
+                                 const Field<int> &group_index)
 {
-  if (!geometry_set.has_curves()) {
-    return;
-  }
-
-  const Curves &curves_id = *geometry_set.get_curves();
-  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-  if (curves.curves_num() == 0) {
-    geometry_set.replace_curves(nullptr);
-    return;
-  }
-
   const CDT_output_type output_type = (mode == GEO_NODE_CURVE_FILL_MODE_NGONS) ?
                                           CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
                                           CDT_INSIDE_WITH_HOLES;
+  if (geometry_set.has_curves()) {
+    const Curves &curves_id = *geometry_set.get_curves();
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+    if (curves.curves_num() > 0) {
+      const Array<meshintersect::CDT_result<double>> results = do_group_aware_cdt(
+          curves, output_type, group_index);
+      Mesh *mesh = cdts_to_mesh(results);
+      geometry_set.replace_mesh(mesh);
+    }
+    geometry_set.replace_curves(nullptr);
+  }
 
-  const meshintersect::CDT_result<double> results = do_cdt(curves, output_type);
-  Mesh *mesh = cdt_to_mesh(results);
-
-  geometry_set.replace_mesh(mesh);
-  geometry_set.replace_curves(nullptr);
+  if (geometry_set.has_grease_pencil()) {
+    using namespace blender::bke::greasepencil;
+    const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
+    Vector<Mesh *> mesh_by_layer(grease_pencil.layers().size(), nullptr);
+    for (const int layer_index : grease_pencil.layers().index_range()) {
+      const Drawing *drawing = get_eval_grease_pencil_layer_drawing(grease_pencil, layer_index);
+      if (drawing == nullptr) {
+        continue;
+      }
+      const bke::CurvesGeometry &src_curves = drawing->strokes();
+      if (src_curves.curves_num() == 0) {
+        continue;
+      }
+      const Array<meshintersect::CDT_result<double>> results = do_group_aware_cdt(
+          src_curves, output_type, group_index);
+      mesh_by_layer[layer_index] = cdts_to_mesh(results);
+    }
+    if (!mesh_by_layer.is_empty()) {
+      InstancesComponent &instances_component =
+          geometry_set.get_component_for_write<InstancesComponent>();
+      bke::Instances *instances = instances_component.get_for_write();
+      if (instances == nullptr) {
+        instances = new bke::Instances();
+        instances_component.replace(instances);
+      }
+      for (Mesh *mesh : mesh_by_layer) {
+        if (!mesh) {
+          /* Add an empty reference so the number of layers and instances match.
+           * This makes it easy to reconstruct the layers afterwards and keep their attributes.
+           * Although in this particular case we don't propagate the attributes. */
+          const int handle = instances->add_reference(bke::InstanceReference());
+          instances->add_instance(handle, float4x4::identity());
+          continue;
+        }
+        GeometrySet temp_set = GeometrySet::from_mesh(mesh);
+        const int handle = instances->add_reference(bke::InstanceReference{temp_set});
+        instances->add_instance(handle, float4x4::identity());
+      }
+    }
+    geometry_set.replace_grease_pencil(nullptr);
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+  Field<int> group_index = params.extract_input<Field<int>>("Group ID");
 
   const NodeGeometryCurveFill &storage = node_storage(params.node());
   const GeometryNodeCurveFillMode mode = (GeometryNodeCurveFillMode)storage.mode;
 
   geometry_set.modify_geometry_sets(
-      [&](GeometrySet &geometry_set) { curve_fill_calculate(geometry_set, mode); });
+      [&](GeometrySet &geometry_set) { curve_fill_calculate(geometry_set, mode, group_index); });
 
   params.set_output("Mesh", std::move(geometry_set));
 }

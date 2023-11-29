@@ -26,7 +26,7 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 
@@ -680,6 +680,44 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
         select_poly.span);
   }
   select_edge.finish();
+  select_poly.finish();
+}
+
+void BKE_mesh_flush_select_from_edges(Mesh *me)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  MutableAttributeAccessor attributes = me->attributes_for_write();
+  const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
+      ".select_edge", ATTR_DOMAIN_POINT, false);
+  if (select_edge.is_single() && !select_edge.get_internal_single()) {
+    attributes.remove(".select_vert");
+    attributes.remove(".select_poly");
+    return;
+  }
+  SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+  SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
+  {
+    IndexMaskMemory memory;
+    const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
+        ".hide_vert", ATTR_DOMAIN_POINT, false);
+    array_utils::copy(
+        *attributes.lookup_or_default<bool>(".select_vert", ATTR_DOMAIN_POINT, false),
+        IndexMask::from_bools(hide_vert, memory).complement(hide_vert.index_range(), memory),
+        select_vert.span);
+  }
+  {
+    IndexMaskMemory memory;
+    const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
+        ".hide_poly", ATTR_DOMAIN_FACE, false);
+    array_utils::copy(
+        *attributes.lookup_or_default<bool>(".select_vert", ATTR_DOMAIN_FACE, false),
+        IndexMask::from_bools(hide_poly, memory).complement(hide_poly.index_range(), memory),
+        select_poly.span);
+  }
+  select_vert.finish();
   select_poly.finish();
 }
 

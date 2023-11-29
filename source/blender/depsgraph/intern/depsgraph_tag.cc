@@ -31,6 +31,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_override.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -634,6 +635,10 @@ void id_tag_update(Main *bmain, ID *id, uint flags, eUpdateSource update_source)
   graph_id_tag_update(bmain, nullptr, id, flags, update_source);
   for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
     graph_id_tag_update(bmain, depsgraph, id, flags, update_source);
+  }
+
+  if (update_source & DEG_UPDATE_SOURCE_USER_EDIT) {
+    BKE_lib_override_id_tag_on_deg_tag_from_user(id);
   }
 
   /* Accumulate all tags for an ID between two undo steps, so they can be

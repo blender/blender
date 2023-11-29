@@ -54,6 +54,14 @@
  */
 #define USE_EVENT_BACKGROUND_THREAD
 
+/**
+ * Hack for KDE where the initial window size includes window decorations (title-bar, borders etc),
+ * making the usable region smaller than requested. As the size of decorations is unknown:
+ * account for this by ignoring the initial size and using the size requested from GHOST instead
+ * (with some exceptions & sanity checks for overly large windows), see: #113059.
+ */
+#define USE_XDG_INIT_WINDOW_SIZE_HACK
+
 class GHOST_SystemWayland;
 
 struct GWL_Output;
@@ -74,7 +82,8 @@ class GHOST_WindowWayland : public GHOST_Window {
                       GHOST_TDrawingContextType type,
                       const bool is_dialog,
                       const bool stereoVisual,
-                      const bool exclusive);
+                      const bool exclusive,
+                      const bool is_debug);
 
   ~GHOST_WindowWayland() override;
 
@@ -135,9 +144,10 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   bool isDialog() const override;
 
-#ifdef GHOST_OPENGL_ALPHA
-  void setOpaque() const;
-#endif
+#ifdef WITH_INPUT_IME
+  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override;
+  void endIME() override;
+#endif /* WITH_INPUT_IME */
 
   /* WAYLAND direct-data access. */
 
@@ -152,9 +162,22 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   /* WAYLAND window-level functions. */
 
-  GHOST_TSuccess close();
+  /**
+   * Set the window as active and send an #GHOST_kEventWindowActivate event.
+   *
+   * \note The current active state is *not* checked, the caller is responsible for
+   * not activating windows which are already active.
+   */
   GHOST_TSuccess activate();
+  /**
+   * De-activate the window and send a #GHOST_kEventWindowDeactivate event.
+   *
+   * \note The current active state is *not* checked, the caller is responsible for
+   * not de-activating windows that aren't active.
+   */
   GHOST_TSuccess deactivate();
+
+  GHOST_TSuccess close();
   GHOST_TSuccess notify_size();
   GHOST_TSuccess notify_decor_redraw();
 
@@ -176,6 +199,7 @@ class GHOST_WindowWayland : public GHOST_Window {
  private:
   GHOST_SystemWayland *system_;
   struct GWL_Window *window_;
+  bool is_debug_context_;
 
   /**
    * \param type: The type of rendering context create.

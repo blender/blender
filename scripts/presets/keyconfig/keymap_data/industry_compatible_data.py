@@ -1074,6 +1074,8 @@ def km_node_generic(_params):
 
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
+        ("wm.search_single_menu", {"type": 'TAB', "value": 'PRESS'},
+         {"properties": [("menu_idname", 'NODE_MT_add')]}),
         ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
         ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
@@ -1488,10 +1490,10 @@ def km_nla_generic(params):
     return keymap
 
 
-def km_nla_channels(params):
+def km_nla_tracks(params):
     items = []
     keymap = (
-        "NLA Channels",
+        "NLA Tracks",
         {"space_type": 'NLA_EDITOR', "region_type": 'WINDOW'},
         {"items": items},
     )
@@ -2427,6 +2429,13 @@ def km_grease_pencil_stroke_edit_mode(params):
          {"properties": [("mode", 1)]}),
         ("gpencil.selectmode_toggle", {"type": 'THREE', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 2)]}),
+        # Active layer
+        op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
+        # Keyframes
+        op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
+        ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Tools
         *_template_items_basic_tools(),
         op_tool_cycle("builtin.extrude", {"type": 'E', "value": 'PRESS', "ctrl": True}),
@@ -2464,9 +2473,13 @@ def km_grease_pencil_stroke_paint_mode(params):
         ("gpencil.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         ("gpencil.hide", {"type": 'H', "value": 'PRESS', "ctrl": True}, {"properties": [("unselected", False)]}),
         ("gpencil.hide", {"type": 'H', "value": 'PRESS', "shift": True}, {"properties": [("unselected", True)]}),
-        # Draw delete menu
-        op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
-        op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'DEL', "value": 'PRESS'}),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.dissolve", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True}, None),
+        ("gpencil.dissolve", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Box delete
         ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
         # Lasso delete
@@ -2477,6 +2490,8 @@ def km_grease_pencil_stroke_paint_mode(params):
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Material menu
         op_menu("GPENCIL_MT_material_active", {"type": 'Y', "value": 'PRESS', "alt": True}),
         # Keyframes
@@ -2617,15 +2632,25 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("gpencil.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         # Display
         *_grease_pencil_display(),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Keyframes
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
         ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Material menu
         op_menu("GPENCIL_MT_material_active", {"type": 'Y', "value": 'PRESS', "alt": True}),
         # Context menu
         op_panel("VIEW3D_PT_gpencil_sculpt_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        op_menu_pie(
+            "VIEW3D_MT_sculpt_gpencil_automasking_pie",
+            {"type": 'A', "alt": True, "value": 'PRESS'}),
     ])
 
     return keymap
@@ -2836,11 +2861,18 @@ def km_grease_pencil_stroke_weight_mode(params):
         ("gpencil.weight_sample", {"type": 'I', "value": 'PRESS'}, None),
         # Tools
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Keyframes
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
         ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Context menu
         *_template_items_context_panel("VIEW3D_PT_gpencil_weight_context_menu",
                                        {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
@@ -2952,11 +2984,18 @@ def km_grease_pencil_stroke_vertex_mode(params):
         ("gpencil.tint_flip", {"type": 'X', "value": 'PRESS'}, None),
         # Display
         *_grease_pencil_display(),
+        # Delete
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Keyframes
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'S', "value": 'PRESS', "shift": True}),
         ("gpencil.blank_frame_add", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Merge Layer
+        ("gpencil.layer_merge", {"type": 'Y', "value": 'PRESS', "shift": True}, None),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
@@ -3186,7 +3225,7 @@ def km_pose(params):
         ("pose.select_hierarchy", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("direction", 'CHILD'), ("extend", True)]}),
         ("pose.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
-        ("anim.keyframe_insert_menu", {"type": 'S', "value": 'PRESS', "shift": True}, None),
+        ("anim.keyframe_insert", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("anim.keyframe_insert_by_name", {"type": 'S', "value": 'PRESS'},
          {"properties": [("type", 'LocRotScale')]}),
         ("anim.keyframe_insert_by_name", {"type": 'W', "value": 'PRESS', "shift": True},
@@ -3258,7 +3297,7 @@ def km_object_mode(params):
          {"properties": [("use_global", True), ("confirm", False)]}),
         ("object.duplicate_move", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         # Keyframing
-        ("anim.keyframe_insert_menu", {"type": 'S', "value": 'PRESS', "shift": True}, None),
+        ("anim.keyframe_insert", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("anim.keyframe_insert_by_name", {"type": 'S', "value": 'PRESS'},
          {"properties": [("type", 'LocRotScale')]}),
         ("anim.keyframe_insert_by_name", {"type": 'W', "value": 'PRESS', "shift": True},
@@ -4457,7 +4496,7 @@ def generate_keymaps_impl(params=None):
         km_dopesheet_generic(params),
         km_dopesheet(params),
         km_nla_generic(params),
-        km_nla_channels(params),
+        km_nla_tracks(params),
         km_nla_editor(params),
         km_text_generic(params),
         km_text(params),

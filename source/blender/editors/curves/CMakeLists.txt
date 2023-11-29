@@ -6,13 +6,10 @@ set(INC
   ../include
   ../../blenkernel
   ../../blentranslation
-  ../../depsgraph
-  ../../functions
   ../../geometry
   ../../gpu
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   ../../bmesh
 
   # RNA_prototypes.h
@@ -24,6 +21,7 @@ set(INC_SYS
 
 set(SRC
   intern/curves_add.cc
+  intern/curves_attribute_set.cc
   intern/curves_data.cc
   intern/curves_edit.cc
   intern/curves_masks.cc
@@ -35,7 +33,10 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::functions
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 

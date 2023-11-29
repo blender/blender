@@ -13,7 +13,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_mesh.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
 #ifdef WITH_OPENVDB
@@ -182,6 +182,8 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
 
   BKE_mesh_calc_edges(mesh, false, false);
   BKE_mesh_smooth_flag_set(mesh, false);
+
+  mesh->tag_overlapping_none();
 
   return mesh;
 }

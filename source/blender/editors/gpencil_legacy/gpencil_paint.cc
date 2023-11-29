@@ -36,7 +36,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_curve_legacy.h"
@@ -55,10 +55,11 @@
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -827,7 +828,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
     /* color strength */
     if (brush_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) {
       pt->strength *= BKE_curvemapping_evaluateF(brush_settings->curve_strength, 0, pressure);
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
     }
 
     /* Set vertex colors for buffer. */
@@ -1089,7 +1090,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       copy_v4_v4(pt->vert_color, ptc->vert_color);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
@@ -1123,7 +1124,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
       ED_gpencil_point_vertex_color_set(ts, brush, pt, ptc);
@@ -1255,7 +1256,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
+      CLAMP(pt->strength, std::min(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       copy_v4_v4(pt->vert_color, ptc->vert_color);
       pt->time = ptc->time;
       pt->uv_fac = ptc->uv_fac;
@@ -2255,7 +2256,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
         continue;
       }
 
-      if (!IS_AUTOKEY_ON(scene) && (gpl->actframe == nullptr)) {
+      if (!blender::animrig::is_autokey_on(scene) && (gpl->actframe == nullptr)) {
         continue;
       }
 
@@ -2267,7 +2268,8 @@ static void gpencil_paint_initstroke(tGPsdata *p,
        *       -> If there are no strokes in that frame, don't add a new empty frame
        */
       if (gpl->actframe && gpl->actframe->strokes.first) {
-        short frame_mode = IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_COPY : GP_GETFRAME_USE_PREV;
+        short frame_mode = blender::animrig::is_autokey_on(scene) ? GP_GETFRAME_ADD_COPY :
+                                                                    GP_GETFRAME_USE_PREV;
         gpl->actframe = BKE_gpencil_layer_frame_get(
             gpl, scene->r.cfra, eGP_GetFrame_Mode(frame_mode));
         has_layer_to_erase = true;
@@ -2291,7 +2293,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
     /* Drawing Modes - Add a new frame if needed on the active layer */
     short add_frame_mode;
 
-    if (IS_AUTOKEY_ON(scene)) {
+    if (blender::animrig::is_autokey_on(scene)) {
       if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
         add_frame_mode = GP_GETFRAME_ADD_COPY;
       }
@@ -2317,7 +2319,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
 
     if (p->gpf == nullptr) {
       p->status = GP_STATUS_ERROR;
-      if (!IS_AUTOKEY_ON(scene)) {
+      if (!blender::animrig::is_autokey_on(scene)) {
         BKE_report(p->reports, RPT_INFO, "No available frame for creating stroke");
       }
 
@@ -4048,7 +4050,7 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
 
 /* additional OPs */
 
-static int gpencil_guide_rotate(bContext *C, wmOperator *op)
+static int gpencil_guide_rotate_exec(bContext *C, wmOperator *op)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   GP_Sculpt_Guide *guide = &ts->gp_sculpt.guide;
@@ -4074,7 +4076,7 @@ void GPENCIL_OT_guide_rotate(wmOperatorType *ot)
   ot->description = "Rotate guide angle";
 
   /* api callbacks */
-  ot->exec = gpencil_guide_rotate;
+  ot->exec = gpencil_guide_rotate_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

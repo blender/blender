@@ -120,6 +120,18 @@ class View {
     return -(data_[view_id].winmat[3][2] + 1.0f) / data_[view_id].winmat[2][2];
   }
 
+  const float3 &location(int view_id = 0) const
+  {
+    BLI_assert(view_id < view_len_);
+    return data_[view_id].viewinv.location();
+  }
+
+  const float3 &forward(int view_id = 0) const
+  {
+    BLI_assert(view_id < view_len_);
+    return data_[view_id].viewinv.z_axis();
+  }
+
   const float4x4 &viewmat(int view_id = 0) const
   {
     BLI_assert(view_id < view_len_);

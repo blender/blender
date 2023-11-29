@@ -35,15 +35,15 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_editmesh.h"
+#include "BKE_DerivedMesh.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 #include "BKE_subdiv_modifier.hh"
@@ -130,40 +130,21 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
           me->vert_positions_for_write().copy_from(edit_data->vertexCos);
           me->runtime->is_original_bmesh = false;
         }
+
+        if (me->runtime->wrapper_type_finalize) {
+          BKE_mesh_wrapper_deferred_finalize_mdata(me);
+        }
+
         MEM_delete(me->runtime->edit_data);
         me->runtime->edit_data = nullptr;
         break;
       }
     }
 
-    if (me->runtime->wrapper_type_finalize) {
-      BKE_mesh_wrapper_deferred_finalize_mdata(me, &me->runtime->cd_mask_extra);
-    }
-
     /* Keep type assignment last, so that read-only access only uses the mdata code paths after all
      * the underlying data has been initialized. */
     me->runtime->wrapper_type = ME_WRAPPER_TYPE_MDATA;
   });
-}
-
-bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
-{
-  using namespace blender;
-  switch (me->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_BMESH:
-      return BKE_editmesh_cache_calc_minmax(me->edit_mesh, me->runtime->edit_data, min, max);
-    case ME_WRAPPER_TYPE_MDATA:
-    case ME_WRAPPER_TYPE_SUBD: {
-      if (const std::optional<Bounds<float3>> bounds = me->bounds_min_max()) {
-        copy_v3_v3(min, math::min(bounds->min, float3(min)));
-        copy_v3_v3(max, math::max(bounds->max, float3(max)));
-        return true;
-      }
-      return false;
-    }
-  }
-  BLI_assert_unreachable();
-  return false;
 }
 
 /* -------------------------------------------------------------------- */
@@ -218,37 +199,28 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
   }
 }
 
-void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
-                                       float (*vert_coords)[3],
-                                       int vert_coords_len)
+void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me, blender::MutableSpan<float3> positions)
 {
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = me->edit_mesh->bm;
-      BLI_assert(vert_coords_len <= bm->totvert);
       blender::bke::EditMeshData *edit_data = me->runtime->edit_data;
       if (!edit_data->vertexCos.is_empty()) {
-        for (int i = 0; i < vert_coords_len; i++) {
-          copy_v3_v3(vert_coords[i], edit_data->vertexCos[i]);
-        }
+        positions.copy_from(edit_data->vertexCos);
       }
       else {
         BMIter iter;
         BMVert *v;
         int i;
         BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-          copy_v3_v3(vert_coords[i], v->co);
+          copy_v3_v3(positions[i], v->co);
         }
       }
       return;
     }
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
-      BLI_assert(vert_coords_len <= me->totvert);
-      const Span<float3> positions = me->vert_positions();
-      for (int i = 0; i < vert_coords_len; i++) {
-        copy_v3_v3(vert_coords[i], positions[i]);
-      }
+      positions.copy_from(me->vert_positions());
       return;
     }
   }
@@ -384,22 +356,17 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
   if (use_clnors) {
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
-    BKE_mesh_calc_normals_split(me);
-    CustomData_clear_layer_flag(&me->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    void *data = CustomData_add_layer(&me->loop_data, CD_NORMAL, CD_CONSTRUCT, me->totloop);
+    memcpy(data, me->corner_normals().data(), me->corner_normals().size_in_bytes());
   }
 
   Mesh *subdiv_mesh = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me);
 
   if (use_clnors) {
-    float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&subdiv_mesh->loop_data, CD_NORMAL, subdiv_mesh->totloop));
-    BLI_assert(lnors != nullptr);
-    BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
-    CustomData_set_layer_flag(&me->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-    CustomData_set_layer_flag(&subdiv_mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-  }
-  else if (runtime_data->calc_loop_normals) {
-    BKE_mesh_calc_normals_split(subdiv_mesh);
+    BKE_mesh_set_custom_normals(subdiv_mesh,
+                                static_cast<float(*)[3]>(CustomData_get_layer_for_write(
+                                    &subdiv_mesh->loop_data, CD_NORMAL, me->totloop)));
+    CustomData_free_layers(&subdiv_mesh->loop_data, CD_NORMAL, me->totloop);
   }
 
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {

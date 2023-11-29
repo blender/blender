@@ -11,12 +11,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_task.hh"
+#include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -352,39 +355,70 @@ void mesh_render_data_update_looptris(MeshRenderData &mr,
   }
 }
 
+static bool bm_edge_is_sharp(const BMEdge *const &edge)
+{
+  return !BM_elem_flag_test(edge, BM_ELEM_SMOOTH);
+}
+
+static bool bm_face_is_sharp(const BMFace *const &face)
+{
+  return !BM_elem_flag_test(face, BM_ELEM_SMOOTH);
+}
+
+/**
+ * Returns whether loop normals are required because of mixed sharp and smooth flags.
+ * Similar to #Mesh::normals_domain().
+ */
+static bool bm_loop_normals_required(BMesh *bm)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  if (bm->totface == 0) {
+    return false;
+  }
+
+  if (CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+    return true;
+  }
+
+  BM_mesh_elem_table_ensure(bm, BM_FACE);
+  const VArray<bool> sharp_faces = VArray<bool>::ForDerivedSpan<const BMFace *, bm_face_is_sharp>(
+      Span(bm->ftable, bm->totface));
+  const array_utils::BooleanMix face_mix = array_utils::booleans_mix_calc(sharp_faces);
+  if (face_mix == array_utils::BooleanMix::AllTrue) {
+    return false;
+  }
+
+  BM_mesh_elem_table_ensure(bm, BM_EDGE);
+  const VArray<bool> sharp_edges = VArray<bool>::ForDerivedSpan<const BMEdge *, bm_edge_is_sharp>(
+      Span(bm->etable, bm->totedge));
+  const array_utils::BooleanMix edge_mix = array_utils::booleans_mix_calc(sharp_edges);
+  if (edge_mix == array_utils::BooleanMix::AllTrue) {
+    return false;
+  }
+
+  if (edge_mix == array_utils::BooleanMix::AllFalse &&
+      face_mix == array_utils::BooleanMix::AllFalse) {
+    return false;
+  }
+
+  return true;
+}
+
 void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_flag)
 {
-  Mesh *me = mr.me;
-  const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
-  const float split_angle = is_auto_smooth ? me->smoothresh : float(M_PI);
-
   if (mr.extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     mr.vert_normals = mr.me->vert_normals();
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
       mr.face_normals = mr.me->face_normals();
     }
-    if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
-      mr.loop_normals.reinitialize(mr.corner_verts.size());
-      const blender::short2 *clnors = static_cast<const blender::short2 *>(
-          CustomData_get_layer(&mr.me->loop_data, CD_CUSTOMLOOPNORMAL));
-      const bool *sharp_edges = static_cast<const bool *>(
-          CustomData_get_layer_named(&mr.me->edge_data, CD_PROP_BOOL, "sharp_edge"));
-      blender::bke::mesh::normals_calc_loop(mr.vert_positions,
-                                            mr.edges,
-                                            mr.faces,
-                                            mr.corner_verts,
-                                            mr.corner_edges,
-                                            mr.me->corner_to_face_map(),
-                                            mr.vert_normals,
-                                            mr.face_normals,
-                                            sharp_edges,
-                                            mr.sharp_faces,
-                                            clnors,
-                                            is_auto_smooth,
-                                            split_angle,
-                                            nullptr,
-                                            mr.loop_normals);
+    if (((data_flag & MR_DATA_LOOP_NOR) && ELEM(mr.me->normals_domain(),
+                                                blender::bke::MeshNormalDomain::Corner,
+                                                blender::bke::MeshNormalDomain::Face)) ||
+        (data_flag & MR_DATA_TAN_LOOP_NOR))
+    {
+      mr.loop_normals = mr.me->corner_normals();
     }
   }
   else {
@@ -392,7 +426,9 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
     if (data_flag & MR_DATA_POLY_NOR) {
       /* Use #BMFace.no instead. */
     }
-    if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
+    if (((data_flag & MR_DATA_LOOP_NOR) && bm_loop_normals_required(mr.bm)) ||
+        (data_flag & MR_DATA_TAN_LOOP_NOR))
+    {
 
       const float(*vert_coords)[3] = nullptr;
       const float(*vert_normals)[3] = nullptr;
@@ -404,19 +440,19 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
         face_normals = reinterpret_cast<const float(*)[3]>(mr.bm_face_normals.data());
       }
 
-      mr.loop_normals.reinitialize(mr.loop_len);
+      mr.bm_loop_normals.reinitialize(mr.loop_len);
       const int clnors_offset = CustomData_get_offset(&mr.bm->ldata, CD_CUSTOMLOOPNORMAL);
       BM_loops_calc_normal_vcos(mr.bm,
                                 vert_coords,
                                 vert_normals,
                                 face_normals,
-                                is_auto_smooth,
-                                split_angle,
-                                reinterpret_cast<float(*)[3]>(mr.loop_normals.data()),
+                                true,
+                                reinterpret_cast<float(*)[3]>(mr.bm_loop_normals.data()),
                                 nullptr,
                                 nullptr,
                                 clnors_offset,
                                 false);
+      mr.loop_normals = mr.bm_loop_normals;
     }
   }
 }

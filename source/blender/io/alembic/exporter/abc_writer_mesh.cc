@@ -10,17 +10,18 @@
 #include "abc_hierarchy_iterator.h"
 #include "intern/abc_axis_conversion.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_assert.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -63,8 +64,7 @@ namespace blender::io::alembic {
 static void get_vertices(Mesh *mesh, std::vector<Imath::V3f> &points);
 static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &face_verts,
-                         std::vector<int32_t> &loop_counts,
-                         bool &r_has_flat_shaded_face);
+                         std::vector<int32_t> &loop_counts);
 static void get_edge_creases(Mesh *mesh,
                              std::vector<int32_t> &indices,
                              std::vector<int32_t> &lengths,
@@ -72,9 +72,7 @@ static void get_edge_creases(Mesh *mesh,
 static void get_vert_creases(Mesh *mesh,
                              std::vector<int32_t> &indices,
                              std::vector<float> &sharpnesses);
-static void get_loop_normals(Mesh *mesh,
-                             std::vector<Imath::V3f> &normals,
-                             bool has_flat_shaded_poly);
+static void get_loop_normals(const Mesh *mesh, std::vector<Imath::V3f> &normals);
 
 ABCGenericMeshWriter::ABCGenericMeshWriter(const ABCWriterConstructorArgs &args)
     : ABCAbstractWriter(args), is_subd_(false)
@@ -215,10 +213,9 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   std::vector<Imath::V3f> points, normals;
   std::vector<int32_t> face_verts, loop_counts;
   std::vector<Imath::V3f> velocities;
-  bool has_flat_shaded_poly = false;
 
   get_vertices(mesh, points);
-  get_topology(mesh, face_verts, loop_counts, has_flat_shaded_poly);
+  get_topology(mesh, face_verts, loop_counts);
 
   if (!frame_has_been_written_ && args_.export_params->face_sets) {
     write_face_sets(context.object, mesh, abc_poly_mesh_schema_);
@@ -249,7 +246,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 
   if (args_.export_params->normals) {
-    get_loop_normals(mesh, normals, has_flat_shaded_poly);
+    get_loop_normals(mesh, normals);
 
     ON3fGeomParam::Sample normals_sample;
     if (!normals.empty()) {
@@ -282,10 +279,9 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
   std::vector<Imath::V3f> points;
   std::vector<int32_t> face_verts, loop_counts;
   std::vector<int32_t> edge_crease_indices, edge_crease_lengths, vert_crease_indices;
-  bool has_flat_poly = false;
 
   get_vertices(mesh, points);
-  get_topology(mesh, face_verts, loop_counts, has_flat_poly);
+  get_topology(mesh, face_verts, loop_counts);
   get_edge_creases(mesh, edge_crease_indices, edge_crease_lengths, edge_crease_sharpness);
   get_vert_creases(mesh, vert_crease_indices, vert_crease_sharpness);
 
@@ -450,20 +446,10 @@ static void get_vertices(Mesh *mesh, std::vector<Imath::V3f> &points)
 
 static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &face_verts,
-                         std::vector<int32_t> &loop_counts,
-                         bool &r_has_flat_shaded_face)
+                         std::vector<int32_t> &loop_counts)
 {
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
-  const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
-  for (const int i : sharp_faces.index_range()) {
-    if (sharp_faces[i]) {
-      r_has_flat_shaded_face = true;
-      break;
-    }
-  }
 
   face_verts.clear();
   loop_counts.clear();
@@ -535,36 +521,47 @@ static void get_vert_creases(Mesh *mesh,
   }
 }
 
-static void get_loop_normals(Mesh *mesh,
-                             std::vector<Imath::V3f> &normals,
-                             bool has_flat_shaded_poly)
+static void get_loop_normals(const Mesh *mesh, std::vector<Imath::V3f> &normals)
 {
   normals.clear();
 
-  /* If all polygons are smooth shaded, and there are no custom normals, we don't need to export
-   * normals at all. This is also done by other software, see #71246. */
-  if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL) &&
-      (mesh->flag & ME_AUTOSMOOTH) == 0)
-  {
-    return;
-  }
+  switch (mesh->normals_domain()) {
+    case blender::bke::MeshNormalDomain::Point: {
+      /* If all faces are smooth shaded, and there are no custom normals, we don't need to
+       * export normals at all. This is also done by other software, see #71246. */
+      break;
+    }
+    case blender::bke::MeshNormalDomain::Face: {
+      normals.resize(mesh->totloop);
+      MutableSpan dst_normals(reinterpret_cast<float3 *>(normals.data()), normals.size());
 
-  BKE_mesh_calc_normals_split(mesh);
-  const float(*lnors)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
-  BLI_assert_msg(lnors != nullptr, "BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
+      const OffsetIndices faces = mesh->faces();
+      const Span<float3> face_normals = mesh->face_normals();
+      threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+        for (const int i : range) {
+          float3 y_up;
+          copy_yup_from_zup(y_up, face_normals[i]);
+          dst_normals.slice(faces[i]).fill(y_up);
+        }
+      });
+      break;
+    }
+    case blender::bke::MeshNormalDomain::Corner: {
+      normals.resize(mesh->totloop);
+      MutableSpan dst_normals(reinterpret_cast<float3 *>(normals.data()), normals.size());
 
-  normals.resize(mesh->totloop);
-
-  /* NOTE: data needs to be written in the reverse order. */
-  int abc_index = 0;
-  const OffsetIndices faces = mesh->faces();
-
-  for (const int i : faces.index_range()) {
-    const IndexRange face = faces[i];
-    for (int j = face.size() - 1; j >= 0; j--, abc_index++) {
-      int blender_index = face[j];
-      copy_yup_from_zup(normals[abc_index].getValue(), lnors[blender_index]);
+      /* NOTE: data needs to be written in the reverse order. */
+      const OffsetIndices faces = mesh->faces();
+      const Span<float3> corner_normals = mesh->corner_normals();
+      threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+        for (const int i : range) {
+          const IndexRange face = faces[i];
+          for (const int i : face.index_range()) {
+            copy_yup_from_zup(dst_normals[face.last(i)], corner_normals[face[i]]);
+          }
+        }
+      });
+      break;
     }
   }
 }

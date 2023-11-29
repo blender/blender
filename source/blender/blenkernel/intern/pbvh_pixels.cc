@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_pbvh_api.hh"
@@ -173,7 +173,7 @@ static void split_pixel_node(
       continue;
     }
 
-    const float(*vert_cos)[3] = BKE_pbvh_get_vert_positions(pbvh);
+    const Span<float3> vert_cos = BKE_pbvh_get_vert_positions(pbvh);
     PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(*pbvh);
 
     for (const PackedPixelRow &row : tile.pixel_rows) {

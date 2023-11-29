@@ -20,6 +20,11 @@ void FileBufferAscii::write_UV(float u, float v)
   write_fstring(" {} {}", u, v);
 }
 
+void FileBufferAscii::write_data(float v)
+{
+  write_fstring(" {}", v);
+}
+
 void FileBufferAscii::write_vertex_normal(float nx, float ny, float nz)
 {
   write_fstring(" {} {} {}", nx, ny, nz);

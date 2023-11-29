@@ -27,8 +27,9 @@ class VKShader : public Shader {
   VkShaderModule fragment_module_ = VK_NULL_HANDLE;
   VkShaderModule compute_module_ = VK_NULL_HANDLE;
   bool compilation_failed_ = false;
-  VkDescriptorSetLayout layout_ = VK_NULL_HANDLE;
-  VkPipelineLayout pipeline_layout_ = VK_NULL_HANDLE;
+  /* TODO: Should we move descriptor set layout and pipeline layout to VKShaderInterface? */
+  VkDescriptorSetLayout vk_descriptor_set_layout_ = VK_NULL_HANDLE;
+  VkPipelineLayout vk_pipeline_layout_ = VK_NULL_HANDLE;
   VKPipeline pipeline_;
 
  public:
@@ -60,13 +61,23 @@ class VKShader : public Shader {
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
+  /* Unused: SSBO vertex fetch draw parameters. */
+  bool get_uses_ssbo_vertex_fetch() const override
+  {
+    return false;
+  }
+  int get_ssbo_vertex_fetch_output_num_verts() const override
+  {
+    return 0;
+  }
+
   /* DEPRECATED: Kept only because of BGL API. */
   int program_handle_get() const override;
 
   VKPipeline &pipeline_get();
   VkPipelineLayout vk_pipeline_layout_get() const
   {
-    return pipeline_layout_;
+    return vk_pipeline_layout_;
   }
 
   const VKShaderInterface &interface_get() const;
@@ -74,6 +85,31 @@ class VKShader : public Shader {
   void update_graphics_pipeline(VKContext &context,
                                 const GPUPrimType prim_type,
                                 const VKVertexAttributeObject &vertex_attribute_object);
+
+  bool is_graphics_shader() const
+  {
+    return !is_compute_shader();
+  }
+
+  bool is_compute_shader() const
+  {
+    return compute_module_ != VK_NULL_HANDLE;
+  }
+
+  /**
+   * Some shaders don't have a descriptor set and should not bind any descriptor set to the
+   * pipeline. This function can be used to determine if a descriptor set can be bound when this
+   * shader or one of its pipelines are active.
+   */
+  bool has_descriptor_set() const
+  {
+    return vk_descriptor_set_layout_ != VK_NULL_HANDLE;
+  }
+
+  VkDescriptorSetLayout vk_descriptor_set_layout_get() const
+  {
+    return vk_descriptor_set_layout_;
+  }
 
  private:
   Vector<uint32_t> compile_glsl_to_spirv(Span<const char *> sources, shaderc_shader_kind kind);
@@ -86,15 +122,12 @@ class VKShader : public Shader {
                                        const shader::ShaderCreateInfo &info);
   bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);
 
-  bool is_graphics_shader() const
-  {
-    return !is_compute_shader();
-  }
-
-  bool is_compute_shader() const
-  {
-    return compute_module_ != VK_NULL_HANDLE;
-  }
+  /**
+   * \brief features available on newer implementation such as native barycentric coordinates
+   * and layered rendering, necessitate a geometry shader to work on older hardware.
+   */
+  std::string workaround_geometry_shader_source_create(const shader::ShaderCreateInfo &info);
+  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info);
 };
 
 static inline VKShader &unwrap(Shader &shader)

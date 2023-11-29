@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_attribute_math.hh"
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"

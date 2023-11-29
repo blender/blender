@@ -22,7 +22,7 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
@@ -35,12 +35,12 @@
 #  include "DNA_meshdata_types.h"
 #  include "DNA_object_types.h"
 
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #  include "BKE_editmesh_bvh.h"
 #  include "BKE_lib_id.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"
-#  include "BKE_object.h"
+#  include "BKE_object.hh"
 
 #  include "DEG_depsgraph_query.hh"
 

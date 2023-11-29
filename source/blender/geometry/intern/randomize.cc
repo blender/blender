@@ -16,7 +16,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_instances.hh"
@@ -86,7 +86,7 @@ static void reorder_customdata(CustomData &data, const Span<int> new_by_old_map)
   data = new_data;
 }
 
-void debug_randomize_vertex_order(Mesh *mesh)
+void debug_randomize_vert_order(Mesh *mesh)
 {
   if (mesh == nullptr || !use_debug_randomization()) {
     return;
@@ -159,7 +159,7 @@ static void reorder_customdata_groups(CustomData &data,
 
 void debug_randomize_face_order(Mesh *mesh)
 {
-  if (mesh == nullptr || !use_debug_randomization()) {
+  if (mesh == nullptr || mesh->faces_num == 0 || !use_debug_randomization()) {
     return;
   }
 
@@ -225,7 +225,7 @@ void debug_randomize_mesh_order(Mesh *mesh)
     return;
   }
 
-  debug_randomize_vertex_order(mesh);
+  debug_randomize_vert_order(mesh);
   debug_randomize_edge_order(mesh);
   debug_randomize_face_order(mesh);
 }
@@ -240,7 +240,7 @@ void debug_randomize_instance_order(bke::Instances *instances)
   const int seed = seed_from_instances(*instances);
   const Array<int> new_by_old_map = get_permutation(instances_num, seed);
 
-  reorder_customdata(instances->custom_data_attributes().data, new_by_old_map);
+  reorder_customdata(instances->custom_data_attributes(), new_by_old_map);
 
   const Span<int> old_reference_handles = instances->reference_handles();
   const Span<float4x4> old_transforms = instances->transforms();

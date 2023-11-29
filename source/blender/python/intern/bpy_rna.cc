@@ -50,7 +50,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -5460,7 +5460,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
         /* Request failed. A `PyExc_BufferError` will have been raised,
          * so clear it to silently fall back to accessing as a sequence. */
         PyErr_Clear();
@@ -5521,7 +5521,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
         /* Request failed. A `PyExc_BufferError` will have been raised,
          * so clear it to silently fall back to accessing as a sequence. */
         PyErr_Clear();
@@ -5665,7 +5665,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   }
 
   Py_buffer buf;
-  if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+  if (PyObject_GetBuffer(seq, &buf, PyBUF_ND | PyBUF_FORMAT) == -1) {
     PyErr_Clear();
 
     switch (prop_type) {
@@ -6613,7 +6613,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 #ifdef DEBUG_STRING_FREE
 #  if 0
   if (PyList_GET_SIZE(string_free_ls)) {
-    printf("%.200s.%.200s():  has %d strings\n",
+    printf("%.200s.%.200s(): has %d strings\n",
            RNA_struct_identifier(self_ptr->type),
            RNA_function_identifier(self_func),
            int(PyList_GET_SIZE(string_free_ls)));
@@ -8710,7 +8710,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (ret_len == 1) {
       err = pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
 
-      /* When calling operator functions only gives `Function.result` with  no line number
+      /* When calling operator functions only gives `Function.result` with no line number
        * since the function has finished calling on error, re-raise the exception with more
        * information since it would be slow to create prefix on every call
        * (when there are no errors). */
@@ -8781,18 +8781,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       reports = CTX_wm_reports(C);
     }
 
-    /* Typically null reports are sent to the output,
-     * in this case however PyErr_Print is responsible for that,
-     * so only run this if reports are non-null. */
     if (reports) {
-      /* Create a temporary report list so none of the reports are printed (only stored).
-       * Only do this when reports is non-null because the error is printed to the `stderr`
-       * #PyErr_Print below. */
-      ReportList reports_temp = {{0}};
-      BKE_reports_init(&reports_temp, reports->flag | RPT_PRINT_HANDLED_BY_OWNER);
-      reports_temp.storelevel = reports->storelevel;
-      BPy_errors_to_report(&reports_temp);
-      BLI_movelisttolist(&reports->list, &reports_temp.list);
+      BPy_errors_to_report(reports);
     }
 
     /* Also print in the console for Python. */
@@ -9006,11 +8996,12 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     if (!has_error) {
       BPy_reports_write_stdout(&reports, error_prefix);
     }
-    BKE_reports_clear(&reports);
     if (has_error) {
+      BKE_reports_free(&reports);
       return nullptr;
     }
   }
+  BKE_reports_free(&reports);
 
   /* Python errors validating are not converted into reports so the check above will fail.
    * the cause for returning nullptr will be printed as an error */
@@ -9089,8 +9080,15 @@ PyDoc_STRVAR(pyrna_unregister_class_doc,
              "\n"
              "   Unload the Python class from blender.\n"
              "\n"
-             "   If the class has an *unregister* class method it will be called\n"
-             "   before unregistering.\n");
+             "   :arg cls: Blender type class, \n"
+             "      see :mod:`bpy.utils.register_class` for classes which can \n"
+             "      be registered.\n"
+             "   :type cls: class\n"
+             "\n"
+             "   .. note::\n"
+             "\n"
+             "      If the class has an *unregister* class method it will be called\n"
+             "      before unregistering.\n");
 PyMethodDef meth_bpy_unregister_class = {
     "unregister_class",
     pyrna_unregister_class,

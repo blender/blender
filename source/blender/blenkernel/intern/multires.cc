@@ -24,11 +24,11 @@
 
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -36,7 +36,7 @@
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "CCGSubSurf.h"
 
@@ -246,13 +246,16 @@ Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresMod
   return result;
 }
 
-float (*BKE_multires_create_deformed_base_mesh_vert_coords(
-    Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd, int *r_num_deformed_verts))[3]
+blender::Array<blender::float3> BKE_multires_create_deformed_base_mesh_vert_coords(
+    Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
 
   Object object_for_eval = blender::dna::shallow_copy(*object_eval);
+  blender::bke::ObjectRuntime runtime = *object_eval->runtime;
+  object_for_eval.runtime = &runtime;
+
   object_for_eval.data = object->data;
   object_for_eval.sculpt = nullptr;
 
@@ -269,31 +272,22 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(
 
   Mesh *base_mesh = static_cast<Mesh *>(object->data);
 
-  int num_deformed_verts;
-  float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(base_mesh, &num_deformed_verts);
+  blender::Array<blender::float3> deformed_verts(base_mesh->vert_positions());
 
   for (ModifierData *md = first_md; md != nullptr; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-
     if (md == &mmd->modifier) {
       break;
     }
-
     if (!BKE_modifier_is_enabled(scene_eval, md, required_mode)) {
       continue;
     }
-
-    if (mti->type != eModifierTypeType_OnlyDeform) {
+    if (mti->type != ModifierTypeType::OnlyDeform) {
       break;
     }
-
-    BKE_modifier_deform_verts(
-        md, &mesh_eval_context, base_mesh, deformed_verts, num_deformed_verts);
+    BKE_modifier_deform_verts(md, &mesh_eval_context, base_mesh, deformed_verts);
   }
 
-  if (r_num_deformed_verts != nullptr) {
-    *r_num_deformed_verts = num_deformed_verts;
-  }
   return deformed_verts;
 }
 
@@ -532,9 +526,9 @@ void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *o
 
   if (mdisp) {
     mmd->totlvl = get_levels_from_disps(ob);
-    mmd->lvl = MIN2(mmd->sculptlvl, mmd->totlvl);
-    mmd->sculptlvl = MIN2(mmd->sculptlvl, mmd->totlvl);
-    mmd->renderlvl = MIN2(mmd->renderlvl, mmd->totlvl);
+    mmd->lvl = std::min(mmd->sculptlvl, mmd->totlvl);
+    mmd->sculptlvl = std::min(mmd->sculptlvl, mmd->totlvl);
+    mmd->renderlvl = std::min(mmd->renderlvl, mmd->totlvl);
   }
 }
 
@@ -1222,12 +1216,11 @@ void multires_stitch_grids(Object *ob)
   /* NOTE: Currently CCG does not keep track of faces, making it impossible
    * to use BKE_pbvh_get_grid_updates().
    */
-  CCGFace **faces;
-  int num_faces;
-  BKE_pbvh_get_grid_updates(pbvh, false, (void ***)&faces, &num_faces);
-  if (num_faces) {
-    BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, faces, num_faces);
-    MEM_freeN(faces);
+  blender::IndexMaskMemory memory;
+  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  const blender::IndexMask mask = BKE_pbvh_get_grid_updates(pbvh, nodes, memory);
+  if (!mask.is_empty()) {
+    BKE_subdiv_ccg_average_stitch_faces(*subdiv_ccg, mask);
   }
 }
 

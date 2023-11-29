@@ -54,6 +54,11 @@ bool PathTraceTile::get_pass_pixels(const string_view pass_name,
   }
 
   pass = buffer_params.get_actual_display_pass(pass);
+  if (pass == nullptr) {
+    /* Happens when interactive session changes display pass but render
+     * buffer does not contain it yet. */
+    return false;
+  }
 
   const float exposure = buffer_params.exposure;
   const int num_samples = path_trace_.get_num_render_tile_samples();

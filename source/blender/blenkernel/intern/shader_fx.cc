@@ -12,7 +12,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -27,7 +27,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
@@ -121,14 +121,13 @@ void BKE_shaderfx_free(ShaderFxData *fx)
   BKE_shaderfx_free_ex(fx, 0);
 }
 
-bool BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx)
+void BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx)
 {
   if (shaders && fx) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
-    return BLI_uniquename(
+    BLI_uniquename(
         shaders, fx, DATA_(fxi->name), '.', offsetof(ShaderFxData, name), sizeof(fx->name));
   }
-  return false;
 }
 
 bool BKE_shaderfx_depends_ontime(ShaderFxData *fx)

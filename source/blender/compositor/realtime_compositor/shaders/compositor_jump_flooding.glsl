@@ -12,7 +12,7 @@
  * The shader is a straightforward implementation of the aforementioned sections of the paper,
  * noting that the nil special value in the paper is equivalent to JUMP_FLOODING_NON_FLOODED_VALUE.
  *
- * The gpu_shader_compositor_jump_flooding_lib.glsl library contains the necessary utility
+ * The `gpu_shader_compositor_jump_flooding_lib.glsl` library contains the necessary utility
  * functions to initialize and encode the jump flooding values. */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -32,8 +32,8 @@ void main()
     for (int i = -1; i <= 1; i++) {
       ivec2 offset = ivec2(i, j) * step_size;
 
-      /* Use JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels from
-       * the loop as can be seen in the following continue condition. */
+      /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels
+       * from the loop as can be seen in the following continue condition. */
       ivec4 fallback = ivec4(JUMP_FLOODING_NON_FLOODED_VALUE, ivec2(0));
       ivec2 jump_flooding_value = texture_load(input_tx, texel + offset, fallback).xy;
 
@@ -56,7 +56,7 @@ void main()
     }
   }
 
-  /* If the minimum squared distance is still FLT_MAX, that means the loop never got past the
+  /* If the minimum squared distance is still #FLT_MAX, that means the loop never got past the
    * continue condition and thus no flooding happened. If flooding happened, we encode the closest
    * seed texel in the format expected by the algorithm. */
   bool flooding_happened = minimum_squared_distance != FLT_MAX;

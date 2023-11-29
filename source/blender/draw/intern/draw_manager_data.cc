@@ -12,15 +12,15 @@
 #include "draw_manager.h"
 #include "draw_pbvh.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_duplilist.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 /* For debug cursor position. */
 #include "WM_api.hh"
@@ -643,9 +643,10 @@ static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
   if (ob_data != nullptr) {
     switch (GS(ob_data->name)) {
       case ID_VO: {
-        BoundBox *bbox = BKE_volume_boundbox_get(ob);
-        mid_v3_v3v3(static_buf.texspace_location, bbox->vec[0], bbox->vec[6]);
-        sub_v3_v3v3(static_buf.texspace_size, bbox->vec[0], bbox->vec[6]);
+        const Volume &volume = *reinterpret_cast<const Volume *>(ob_data);
+        const blender::Bounds<blender::float3> bounds = *BKE_volume_min_max(&volume);
+        mid_v3_v3v3(static_buf.texspace_location, bounds.max, bounds.min);
+        sub_v3_v3v3(static_buf.texspace_size, bounds.max, bounds.min);
         texspace_location = static_buf.texspace_location;
         texspace_size = static_buf.texspace_size;
         break;
@@ -730,12 +731,13 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
 
 static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
 {
-  const BoundBox *bbox;
-  if (ob != nullptr && (bbox = BKE_object_boundbox_get(ob))) {
+  using namespace blender;
+  std::optional<Bounds<float3>> bounds;
+  if (ob != nullptr && (bounds = BKE_object_boundbox_get(ob))) {
     float corner[3];
     /* Get BoundSphere center and radius from the BoundBox. */
-    mid_v3_v3v3(cull->bsphere.center, bbox->vec[0], bbox->vec[6]);
-    mul_v3_m4v3(corner, ob->object_to_world, bbox->vec[0]);
+    mid_v3_v3v3(cull->bsphere.center, bounds->max, bounds->min);
+    mul_v3_m4v3(corner, ob->object_to_world, bounds->max);
     mul_m4_v3(ob->object_to_world, cull->bsphere.center);
     cull->bsphere.radius = len_v3v3(cull->bsphere.center, corner);
 
@@ -1361,7 +1363,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   Mesh *mesh = static_cast<Mesh *>(scd->ob->data);
   BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg);
 
-  BKE_pbvh_draw_cb(pbvh,
+  BKE_pbvh_draw_cb(*mesh,
+                   pbvh,
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
@@ -1402,15 +1405,15 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   int attrs_num = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
-  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
+  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_CO_TYPE));
+  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_NO_TYPE));
 
   if (use_mask) {
-    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_MASK_TYPE;
+    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_MASK_TYPE));
   }
 
   if (use_fset) {
-    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_FSET_TYPE;
+    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_FACE, eCustomDataType(CD_PBVH_FSET_TYPE));
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);

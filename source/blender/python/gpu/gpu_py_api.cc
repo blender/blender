@@ -17,6 +17,7 @@
 #include "BLI_utildefines.h"
 
 #include "gpu_py_capabilities.h"
+#include "gpu_py_compute.h"
 #include "gpu_py_matrix.h"
 #include "gpu_py_platform.h"
 #include "gpu_py_select.h"
@@ -75,6 +76,9 @@ PyObject *BPyInit_gpu()
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   PyModule_AddObject(mod, "texture", (submodule = bpygpu_texture_init()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
+  PyModule_AddObject(mod, "compute", (submodule = bpygpu_compute_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   return mod;

@@ -6,6 +6,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -17,6 +18,8 @@
 
 struct PBVHGPUFormat;
 struct MLoopTri;
+struct BMVert;
+struct BMFace;
 
 /* Axis-aligned bounding box */
 struct BB {
@@ -102,18 +105,17 @@ struct PBVHNode {
   /* Scalar displacements for sculpt mode's layer brush. */
   float *layer_disp = nullptr;
 
-  int proxy_count = 0;
-  PBVHProxyNode *proxies = nullptr;
+  blender::Vector<PBVHProxyNode> proxies;
 
   /* Dyntopo */
 
-  /* GSet of pointers to the BMFaces used by this node.
+  /* Set of pointers to the BMFaces used by this node.
    * NOTE: PBVH_BMESH only. Faces are always triangles
    * (dynamic topology forcibly triangulates the mesh).
    */
-  GSet *bm_faces = nullptr;
-  GSet *bm_unique_verts = nullptr;
-  GSet *bm_other_verts = nullptr;
+  blender::Set<BMFace *, 0> bm_faces;
+  blender::Set<BMVert *, 0> bm_unique_verts;
+  blender::Set<BMVert *, 0> bm_other_verts;
 
   /* Deprecated. Stores original coordinates of triangles. */
   float (*bm_orco)[3] = nullptr;
@@ -151,13 +153,19 @@ struct PBVH {
   /* Mesh data */
   Mesh *mesh;
 
+  /** Local array used when not sculpting base mesh positions directly. */
+  blender::Array<blender::float3> vert_positions_deformed;
+  /** Local array used when not sculpting base mesh positions directly. */
+  blender::Array<blender::float3> vert_normals_deformed;
+  /** Local array used when not sculpting base mesh positions directly. */
+  blender::Array<blender::float3> face_normals_deformed;
+
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
-  bool *hide_vert;
-  blender::MutableSpan<blender::float3> vert_positions;
-  /** Local vertex positions owned by the PVBH when not sculpting base mesh positions directly. */
-  blender::Array<blender::float3> vert_positions_deformed;
+
   blender::OffsetIndices<int> faces;
+  bool *hide_vert;
   bool *hide_poly;
   /** Only valid for polygon meshes. */
   blender::Span<int> corner_verts;
@@ -167,10 +175,6 @@ struct PBVH {
   CustomData *vert_data;
   CustomData *loop_data;
   CustomData *face_data;
-
-  int face_sets_color_seed;
-  int face_sets_color_default;
-  int *face_sets;
 
   /* Grid Data */
   CCGKey gridkey;

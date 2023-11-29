@@ -14,7 +14,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -216,7 +216,7 @@ static void eevee_draw_scene(void *vedata)
   if (DRW_state_is_image_render()) {
     const DRWContextState *draw_ctx = DRW_context_state_get();
     const Scene *scene = draw_ctx->scene;
-    loop_len = MAX2(1, scene->eevee.taa_samples);
+    loop_len = std::max(1, scene->eevee.taa_samples);
   }
 
   if (stl->effects->bypass_drawing) {
@@ -668,7 +668,7 @@ RenderEngineType DRW_engine_viewport_eevee_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ EEVEE_ENGINE,
-    /*name*/ N_("EEVEE"),
+    /*name*/ N_("EEVEE (Legacy)"),
     /*flag*/ RE_INTERNAL | RE_USE_PREVIEW | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     /*update*/ nullptr,
     /*render*/ &DRW_render_to_image,

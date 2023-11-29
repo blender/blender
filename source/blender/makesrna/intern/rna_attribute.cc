@@ -23,7 +23,7 @@
 #include "BLI_math_color.h"
 
 #include "BKE_attribute.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 
 #include "BLT_translation.h"
 
@@ -88,6 +88,7 @@ const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     // {ATTR_DOMAIN_GRIDS, "GRIDS", 0, "Grids", "Attribute on mesh multires grids"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
     {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
+    {ATTR_DOMAIN_LAYER, "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -99,8 +100,23 @@ const EnumPropertyItem rna_enum_attribute_domain_only_mesh_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_attribute_domain_only_mesh_no_edge_items[] = {
+    {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
+    {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
+    {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 const EnumPropertyItem rna_enum_attribute_domain_point_face_curve_items[] = {
     {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
+    {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
+    {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+const EnumPropertyItem rna_enum_attribute_domain_point_edge_face_curve_items[] = {
+    {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
+    {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
     {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
     {0, nullptr, 0, nullptr, nullptr},
@@ -118,6 +134,7 @@ const EnumPropertyItem rna_enum_attribute_domain_without_corner_items[] = {
     {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
     {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
+    {ATTR_DOMAIN_LAYER, "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -129,6 +146,7 @@ const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[] = {
     {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
     {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
+    {ATTR_DOMAIN_LAYER, "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -244,6 +262,9 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
       continue;
     }
     if (!include_instances && domain_item->value == ATTR_DOMAIN_INSTANCE) {
+      continue;
+    }
+    if (!U.experimental.use_grease_pencil_version3 && domain_item->value == ATTR_DOMAIN_LAYER) {
       continue;
     }
 
@@ -569,10 +590,11 @@ static void rna_AttributeGroup_update_active(Main *bmain, Scene *scene, PointerR
 static PointerRNA rna_AttributeGroup_active_color_get(PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  CustomDataLayer *layer = BKE_id_attribute_search(ptr->owner_id,
-                                                   BKE_id_attributes_active_color_name(id),
-                                                   CD_MASK_COLOR_ALL,
-                                                   ATTR_DOMAIN_MASK_COLOR);
+  CustomDataLayer *layer = BKE_id_attribute_search_for_write(
+      ptr->owner_id,
+      BKE_id_attributes_active_color_name(id),
+      CD_MASK_COLOR_ALL,
+      ATTR_DOMAIN_MASK_COLOR);
 
   PointerRNA attribute_ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return attribute_ptr;

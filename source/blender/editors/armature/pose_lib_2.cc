@@ -22,10 +22,10 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_lib_id.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pose_backup.h"
 #include "BKE_report.h"
 
@@ -46,6 +46,7 @@
 #include "ED_util.hh"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_keyframing.hh"
 
 #include "armature_intern.h"
 
@@ -116,7 +117,7 @@ static void poselib_backup_posecopy(PoseBlendData *pbd)
 /* Auto-key/tag bones affected by the pose Action. */
 static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 {
-  if (!autokeyframe_cfra_can_key(scene, &pbd->ob->id)) {
+  if (!blender::animrig::autokeyframe_cfra_can_key(scene, &pbd->ob->id)) {
     return;
   }
 
@@ -132,7 +133,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   bAction *act = poselib_action_to_blend(pbd);
 
   KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
-  ListBase dsources = {nullptr, nullptr};
+  blender::Vector<PointerRNA> sources;
 
   /* start tagging/keying */
   const bArmature *armature = static_cast<const bArmature *>(pbd->ob->data);
@@ -150,12 +151,11 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
     }
 
     /* Add data-source override for the PoseChannel, to be used later. */
-    ANIM_relative_keyingset_add_source(&dsources, &pbd->ob->id, &RNA_PoseBone, pchan);
+    ANIM_relative_keyingset_add_source(sources, &pbd->ob->id, &RNA_PoseBone, pchan);
   }
 
   /* Perform actual auto-keying. */
-  ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
-  BLI_freelistN(&dsources);
+  ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
 
   /* send notifiers for this */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);

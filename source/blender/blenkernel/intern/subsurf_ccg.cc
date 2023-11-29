@@ -36,9 +36,9 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_subsurf.hh"
@@ -94,7 +94,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int numLaye
   int normalOffset = 0;
 
   /* (subdivLevels == 0) is not allowed */
-  subdivLevels = MAX2(subdivLevels, 1);
+  subdivLevels = std::max(subdivLevels, 1);
 
   if (prevSS) {
     int oldUseAging;

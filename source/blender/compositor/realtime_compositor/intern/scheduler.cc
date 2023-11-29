@@ -263,8 +263,8 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<DNode> &output_nodes
     /* Compute the heuristic estimation of the number of needed intermediate buffers to compute
      * this node and all of its dependencies. This is computing the aforementioned equation
      * "max(n + m, d)". */
-    const int total_buffers = MAX2(number_of_input_buffers + number_of_output_buffers,
-                                   buffers_needed_by_dependencies);
+    const int total_buffers = std::max(number_of_input_buffers + number_of_output_buffers,
+                                       buffers_needed_by_dependencies);
     needed_buffers.add(node, total_buffers);
   }
 

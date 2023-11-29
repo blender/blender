@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -49,7 +49,7 @@ void main()
     }
   }
 
-  gl_Position = point_world_to_ndc(P);
+  gl_Position = drw_point_world_to_homogenous(P);
   gl_Position.z -= 2.5e-5;
   gl_PointSize = 3.0;
 }

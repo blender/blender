@@ -34,8 +34,8 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::Int32ArraySamplePtr;
@@ -289,7 +289,6 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
     }
   }
 
-  mesh->flag |= ME_AUTOSMOOTH;
   BKE_mesh_set_custom_normals(mesh, lnors);
 
   MEM_freeN(lnors);
@@ -312,7 +311,6 @@ static void process_vertex_normals(CDStreamConfig &config,
     copy_zup_from_yup(vert_normals[index], vertex_normals[index].getValue());
   }
 
-  config.mesh->flag |= ME_AUTOSMOOTH;
   BKE_mesh_set_custom_normals_from_verts(config.mesh, vert_normals);
   MEM_freeN(vert_normals);
 }

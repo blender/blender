@@ -2141,7 +2141,7 @@ typedef struct DataTransferModifierData {
   /** DT_MULTILAYER_INDEX_MAX; See DT_TOLAYERS_ enum in ED_object.hh. */
   int layers_select_dst[5];
 
-  /** See CDT_MIX_ enum in BKE_customdata.h. */
+  /** See CDT_MIX_ enum in BKE_customdata.hh. */
   int mix_mode;
   float mix_factor;
   /** #MAX_VGROUP_NAME. */

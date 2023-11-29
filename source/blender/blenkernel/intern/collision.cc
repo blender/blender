@@ -28,7 +28,7 @@
 #include "BKE_collection.h"
 #include "BKE_effect.h"
 #include "BKE_layer.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_scene.h"
 
 #include "BKE_collision.h"
@@ -757,7 +757,7 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
       }
 
       if ((magrelVel < 0.1f * d * time_multiplier) && (d > ALMOST_ZERO)) {
-        repulse = MIN2(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
+        repulse = std::min(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
 
         /* Stay on the safe side and clamp repulse. */
         if (impulse > ALMOST_ZERO) {

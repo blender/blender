@@ -17,9 +17,9 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 using Alembic::AbcGeom::kWrapExisting;
 using Alembic::AbcGeom::N3fArraySamplePtr;

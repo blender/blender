@@ -317,7 +317,7 @@ void EDBM_select_toggle_all(BMEditMesh *em);
 
 void EDBM_select_swap(BMEditMesh *em); /* exported for UV */
 bool EDBM_select_interior_faces(BMEditMesh *em);
-void em_setup_viewcontext(bContext *C, ViewContext *vc); /* rename? */
+ViewContext em_setup_viewcontext(bContext *C); /* rename? */
 
 bool EDBM_mesh_deselect_all_multi_ex(Base **bases, uint bases_len);
 bool EDBM_mesh_deselect_all_multi(bContext *C);

@@ -1985,9 +1985,12 @@ typedef struct SpaceSpreadsheet {
   uint8_t attribute_domain;
   /* eSpaceSpreadsheet_ObjectEvalState. */
   uint8_t object_eval_state;
+  /* Active grease pencil layer index for grease pencil component. */
+  int active_layer_index;
 
   /* eSpaceSpreadsheet_Flag. */
   uint32_t flag;
+  char _pad1[4];
 
   SpaceSpreadsheet_Runtime *runtime;
 } SpaceSpreadsheet;

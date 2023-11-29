@@ -42,7 +42,7 @@
 
 #include "BLI_ghash.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_report.h"
 
 /* so operators called can spawn threads which acquire the GIL */
@@ -263,6 +263,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
 
       BKE_reports_clear(reports);
       if ((reports->flag & RPT_FREE) == 0) {
+        BKE_reports_free(reports);
         MEM_freeN(reports);
       }
       else {

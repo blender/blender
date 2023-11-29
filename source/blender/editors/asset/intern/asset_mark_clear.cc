@@ -10,8 +10,8 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_asset.h"
-#include "BKE_context.h"
+#include "BKE_asset.hh"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -95,7 +95,8 @@ void ED_assets_pre_save(Main *bmain)
 
 bool ED_asset_can_mark_single_from_context(const bContext *C)
 {
-  /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_clear() to use. */
+  /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_mark_single() and
+   * #ASSET_OT_clear()/#ASSET_OT_clear_single() to use. */
   const ID *id = static_cast<ID *>(CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data);
   if (!id) {
     return false;

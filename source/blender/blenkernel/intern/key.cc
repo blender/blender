@@ -16,7 +16,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -34,13 +34,13 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
+#include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -193,7 +193,7 @@ IDTypeInfo IDType_ID_KE = {
     /*main_listbase_index*/ INDEX_ID_KE,
     /*struct_size*/ sizeof(Key),
     /*name*/ "Key",
-    /*name_plural*/ "shape_keys",
+    /*name_plural*/ N_("shape_keys"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_SHAPEKEY,
     /*flags*/ IDTYPE_FLAGS_NO_LIBLINKING,
     /*asset_type_info*/ nullptr,
@@ -2265,6 +2265,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         positions,
         faces,
         corner_verts,
+        mesh->vert_to_face_map(),
         {reinterpret_cast<const blender::float3 *>(face_normals), faces.size()},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }
@@ -2287,8 +2288,6 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         sharp_edges,
         sharp_faces,
         clnors,
-        (mesh->flag & ME_AUTOSMOOTH) != 0,
-        mesh->smoothresh,
         nullptr,
         {reinterpret_cast<blender::float3 *>(r_loop_normals), corner_verts.size()});
   }

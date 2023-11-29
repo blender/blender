@@ -10,7 +10,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

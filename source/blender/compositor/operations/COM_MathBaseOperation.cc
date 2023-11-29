@@ -997,8 +997,9 @@ void MathCompareOperation::execute_pixel_sampled(float output[4],
   input_value2_operation_->read_sampled(input_value2, x, y, sampler);
   input_value3_operation_->read_sampled(input_value3, x, y, sampler);
 
-  output[0] = (fabsf(input_value1[0] - input_value2[0]) <= MAX2(input_value3[0], 1e-5f)) ? 1.0f :
-                                                                                           0.0f;
+  output[0] = (fabsf(input_value1[0] - input_value2[0]) <= std::max(input_value3[0], 1e-5f)) ?
+                  1.0f :
+                  0.0f;
 
   clamp_if_needed(output);
 }

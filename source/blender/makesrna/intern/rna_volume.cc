@@ -17,7 +17,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
-#include "BKE_volume.h"
+#include "BKE_volume.hh"
 
 #include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"

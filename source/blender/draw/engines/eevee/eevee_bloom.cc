@@ -59,7 +59,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
     effects->bloom_clamp = scene_eval->eevee.bloom_clamp;
 
     /* determine the iteration count */
-    const float minDim = float(MIN2(blitsize[0], blitsize[1]));
+    const float minDim = float(std::min(blitsize[0], blitsize[1]));
     const float maxIter = (radius - 8.0f) + log(minDim) / log(2);
     const int maxIterInt = effects->bloom_iteration_len = int(maxIter);
 
@@ -79,15 +79,14 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
       texsize[0] /= 2;
       texsize[1] /= 2;
 
-      texsize[0] = MAX2(texsize[0], 2);
-      texsize[1] = MAX2(texsize[1], 2);
+      texsize[0] = std::max(texsize[0], 2);
+      texsize[1] = std::max(texsize[1], 2);
 
       effects->downsamp_texel_size[i][0] = 1.0f / float(texsize[0]);
       effects->downsamp_texel_size[i][1] = 1.0f / float(texsize[1]);
 
       eGPUTextureUsage downsample_usage = GPU_TEXTURE_USAGE_SHADER_READ |
-                                          GPU_TEXTURE_USAGE_ATTACHMENT |
-                                          GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+                                          GPU_TEXTURE_USAGE_ATTACHMENT;
       effects->bloom_downsample[i] = DRW_texture_pool_query_2d_ex(
           texsize[0], texsize[1], GPU_R11F_G11F_B10F, downsample_usage, &draw_engine_eevee_type);
       GPU_framebuffer_ensure_config(
@@ -101,12 +100,11 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
       texsize[0] /= 2;
       texsize[1] /= 2;
 
-      texsize[0] = MAX2(texsize[0], 2);
-      texsize[1] = MAX2(texsize[1], 2);
+      texsize[0] = std::max(texsize[0], 2);
+      texsize[1] = std::max(texsize[1], 2);
 
       eGPUTextureUsage upsample_usage = GPU_TEXTURE_USAGE_SHADER_READ |
-                                        GPU_TEXTURE_USAGE_ATTACHMENT |
-                                        GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+                                        GPU_TEXTURE_USAGE_ATTACHMENT;
 
       effects->bloom_upsample[i] = DRW_texture_pool_query_2d_ex(
           texsize[0], texsize[1], GPU_R11F_G11F_B10F, upsample_usage, &draw_engine_eevee_type);

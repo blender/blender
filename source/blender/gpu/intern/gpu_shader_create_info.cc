@@ -243,7 +243,37 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
-#ifdef DEBUG
+  if (!this->geometry_source_.is_empty()) {
+    if (bool(this->builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
+      error += "Shader " + this->name_ +
+               " has geometry stage and uses barycentric coordinates. This is not allowed as "
+               "fallback injects a geometry stage.\n";
+    }
+    if (bool(this->builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+      error += "Shader " + this->name_ +
+               " has geometry stage and uses multi-viewport. This is not allowed as "
+               "fallback injects a geometry stage.\n";
+    }
+    if (bool(this->builtins_ & BuiltinBits::LAYER)) {
+      error += "Shader " + this->name_ +
+               " has geometry stage and uses layer output. This is not allowed as "
+               "fallback injects a geometry stage.\n";
+    }
+  }
+
+#ifndef NDEBUG
+  if (bool(this->builtins_ &
+           (BuiltinBits::BARYCENTRIC_COORD | BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)))
+  {
+    for (const StageInterfaceInfo *interface : this->vertex_out_interfaces_) {
+      if (interface->instance_name.is_empty()) {
+        error += "Shader " + this->name_ + " uses interface " + interface->name +
+                 " that doesn't contain an instance name, but is required for the fallback "
+                 "geometry shader.\n";
+      }
+    }
+  }
+
   if (!this->is_vulkan_compatible()) {
     error += this->name_ +
              " contains a stage interface using an instance name and mixed interpolation modes. "
@@ -522,7 +552,8 @@ bool gpu_shader_create_info_compile_all()
       if ((info->metal_backend_only_ && GPU_backend_get_type() != GPU_BACKEND_METAL) ||
           (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) ||
           (GPU_geometry_shader_support() == false && info->geometry_source_ != nullptr) ||
-          (GPU_shader_image_load_store_support() == false && info->has_resource_image()))
+          (GPU_shader_image_load_store_support() == false && info->has_resource_image()) ||
+          (GPU_transform_feedback_support() == false && info->tf_type_ != GPU_SHADER_TFB_NONE))
       {
         skipped++;
         continue;

@@ -324,19 +324,26 @@ void looptris_calc_with_normals(const Span<float3> vert_positions,
 
 /** \} */
 
-}  // namespace blender::bke::mesh
-
-void BKE_mesh_recalc_looptri(const int *corner_verts,
-                             const int *face_offsets,
-                             const float (*vert_positions)[3],
-                             int totvert,
-                             int totloop,
-                             int faces_num,
-                             MLoopTri *mlooptri)
+int3 looptri_get_real_edges(const Span<int2> edges,
+                            const Span<int> corner_verts,
+                            const Span<int> corner_edges,
+                            const MLoopTri &tri)
 {
-  blender::bke::mesh::looptris_calc(
-      {reinterpret_cast<const blender::float3 *>(vert_positions), totvert},
-      blender::Span(face_offsets, faces_num + 1),
-      {corner_verts, totloop},
-      {mlooptri, poly_to_tri_count(faces_num, totloop)});
+  int3 real_edges;
+  for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
+    const int corner_1 = int(tri.tri[i]);
+    const int corner_2 = int(tri.tri[i_next]);
+    const int vert_1 = corner_verts[corner_1];
+    const int vert_2 = corner_verts[corner_2];
+    const int edge_i = corner_edges[corner_1];
+    const int2 edge = edges[edge_i];
+
+    const bool is_real = (vert_1 == edge[0] && vert_2 == edge[1]) ||
+                         (vert_1 == edge[1] && vert_2 == edge[0]);
+
+    real_edges[i] = is_real ? edge_i : -1;
+  }
+  return real_edges;
 }
+
+}  // namespace blender::bke::mesh

@@ -6,6 +6,8 @@
  * \ingroup obj
  */
 
+#include <iostream>
+
 #include "BLI_path_util.h"
 #include "BLI_timeit.hh"
 

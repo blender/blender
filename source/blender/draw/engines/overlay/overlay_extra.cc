@@ -12,17 +12,19 @@
 
 #include "BLI_math_color.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_anim_path.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_movieclip.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_tracking.h"
 
 #include "BLI_listbase.h"
@@ -354,28 +356,18 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
                            char boundtype,
                            bool around_origin)
 {
-  float center[3], size[3], tmp[4][4], final_mat[4][4];
+  using namespace blender;
+  float tmp[4][4], final_mat[4][4];
 
   if (ob->type == OB_MBALL && !BKE_mball_is_basis(ob)) {
     return;
   }
 
-  const BoundBox *bb = BKE_object_boundbox_get(ob);
-  BoundBox bb_local;
-  if (bb == nullptr) {
-    const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
-    BKE_boundbox_init_from_minmax(&bb_local, min, max);
-    bb = &bb_local;
-  }
+  const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(
+      Bounds<float3>{float3(-1.0f), float3(1.0f)});
 
-  BKE_boundbox_calc_size_aabb(bb, size);
-
-  if (around_origin) {
-    zero_v3(center);
-  }
-  else {
-    BKE_boundbox_calc_center_aabb(bb, center);
-  }
+  float3 size = bounds.max - bounds.min;
+  const float3 center = around_origin ? float3(0) : math::midpoint(bounds.min, bounds.max);
 
   switch (boundtype) {
     case OB_BOUND_BOX:
@@ -536,7 +528,7 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
       DRW_buffer_add_entry(cb->field_vortex, color, &instdata);
       break;
     case PFIELD_GUIDE:
-      if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->anim_path_accum_length) {
+      if (cu && (cu->flag & CU_PATH) && ob->runtime->curve_cache->anim_path_accum_length) {
         instdata.size_x = instdata.size_y = instdata.size_z = pd->f_strength;
         float pos[4];
         BKE_where_on_path(ob, 0.0f, pos, nullptr, nullptr, nullptr, nullptr);
@@ -737,7 +729,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
   copy_m4_m4(instdata.mat, ob->object_to_world);
 
   switch (prb->type) {
-    case LIGHTPROBE_TYPE_CUBE:
+    case LIGHTPROBE_TYPE_SPHERE:
       instdata.clip_sta = show_clipping ? prb->clipsta : -1.0;
       instdata.clip_end = show_clipping ? prb->clipend : -1.0;
       DRW_buffer_add_entry(cb->probe_cube, color_p, &instdata);
@@ -757,7 +749,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
         OVERLAY_empty_shape(cb, ob->object_to_world, dist, shape, color_p);
       }
       break;
-    case LIGHTPROBE_TYPE_GRID:
+    case LIGHTPROBE_TYPE_VOLUME:
       instdata.clip_sta = show_clipping ? prb->clipsta : -1.0;
       instdata.clip_end = show_clipping ? prb->clipend : -1.0;
       DRW_buffer_add_entry(cb->probe_grid, color_p, &instdata);
@@ -787,7 +779,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
         DRW_shgroup_call_procedural_points(grp, nullptr, cell_count);
       }
       break;
-    case LIGHTPROBE_TYPE_PLANAR:
+    case LIGHTPROBE_TYPE_PLANE:
       DRW_buffer_add_entry(cb->probe_planar, color_p, &instdata);
 
       if (DRW_state_is_select() && (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
@@ -949,7 +941,7 @@ static void camera_view3d_reconstruction(
       }
 
       if (is_select) {
-        DRW_select_load_id(ob->runtime.select_id | (track_index << 16));
+        DRW_select_load_id(ob->runtime->select_id | (track_index << 16));
         track_index++;
       }
 
@@ -1284,7 +1276,7 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
   float *constraint_color = G_draw.block.color_grid_axis_z; /* ? */
 
   if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
-    float *parent_pos = ob->runtime.parent_display_origin;
+    float *parent_pos = ob->runtime->parent_display_origin;
     OVERLAY_extra_line_dashed(cb, parent_pos, ob->object_to_world[3], relation_color);
   }
 

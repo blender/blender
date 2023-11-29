@@ -22,7 +22,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idtype.h"
 #include "BKE_report.h"
 #include "BKE_screen.hh"

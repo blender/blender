@@ -156,7 +156,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   OperationNode *find_operation_node(const OperationKey &key);
 
-  virtual void build_id(ID *id);
+  virtual void build_id(ID *id, bool force_be_visible = false);
 
   /* Build function for ID types that do not need their own build_xxx() function. */
   virtual void build_generic_id(ID *id);
@@ -195,6 +195,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_object_transform(Object *object);
   virtual void build_object_constraints(Object *object);
   virtual void build_object_pointcache(Object *object);
+  virtual void build_object_shading(Object *object);
 
   virtual void build_object_light_linking(Object *object);
   virtual void build_light_linking_collection(Collection *collection);

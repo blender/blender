@@ -145,11 +145,31 @@ struct GeoNodesModifierData {
   const Object *self_object = nullptr;
   /** Depsgraph that is evaluating the modifier. */
   Depsgraph *depsgraph = nullptr;
-  /** Optional logger. */
+};
+
+struct GeoNodesOperatorData {
+  eObjectMode mode;
+  /** The object currently effected by the operator. */
+  const Object *self_object = nullptr;
+  /** Current evaluated depsgraph. */
+  Depsgraph *depsgraph = nullptr;
+  Scene *scene = nullptr;
+};
+
+struct GeoNodesCallData {
+  /**
+   * Top-level node tree of the current evaluation.
+   */
+  const bNodeTree *root_ntree = nullptr;
+  /**
+   * Optional logger that keeps track of data generated during evaluation to allow for better
+   * debugging afterwards.
+   */
   geo_eval_log::GeoModifierLog *eval_log = nullptr;
-
+  /**
+   * Optional injected behavior for simulations.
+   */
   GeoNodesSimulationParams *simulation_params = nullptr;
-
   /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
@@ -163,20 +183,7 @@ struct GeoNodesModifierData {
    * If this is null, all socket values will be logged.
    */
   const Set<ComputeContextHash> *socket_log_contexts = nullptr;
-};
 
-struct GeoNodesOperatorData {
-  /** The object currently effected by the operator. */
-  const Object *self_object = nullptr;
-  /** Current evaluated depsgraph. */
-  Depsgraph *depsgraph = nullptr;
-  Scene *scene = nullptr;
-};
-
-/**
- * Custom user data that is passed to every geometry nodes related lazy-function evaluation.
- */
-struct GeoNodesLFUserData : public lf::UserData {
   /**
    * Data from the modifier that is being evaluated.
    */
@@ -185,6 +192,22 @@ struct GeoNodesLFUserData : public lf::UserData {
    * Data from execution as operator in 3D viewport.
    */
   GeoNodesOperatorData *operator_data = nullptr;
+
+  /**
+   * Self object has slightly different semantics depending on how geometry nodes is called.
+   * Therefor, it is not stored directly in the global data.
+   */
+  const Object *self_object() const;
+};
+
+/**
+ * Custom user data that is passed to every geometry nodes related lazy-function evaluation.
+ */
+struct GeoNodesLFUserData : public lf::UserData {
+  /**
+   * Data provided by the root caller of geometry nodes.
+   */
+  const GeoNodesCallData *call_data = nullptr;
   /**
    * Current compute context. This is different depending in the (nested) node group that is being
    * evaluated.
@@ -194,10 +217,6 @@ struct GeoNodesLFUserData : public lf::UserData {
    * Log socket values in the current compute context. Child contexts might use logging again.
    */
   bool log_socket_values = true;
-  /**
-   * Top-level node tree of the current evaluation.
-   */
-  const bNodeTree *root_ntree = nullptr;
 
   destruct_ptr<lf::LocalUserData> get_local(LinearAllocator<> &allocator) override;
 };
@@ -270,7 +289,7 @@ struct GeometryNodeLazyFunctionGraphMapping {
    * types, so better have more specialized mappings for now.
    */
   Map<const bNode *, const lf::FunctionNode *> group_node_map;
-  Map<const bNode *, const lf::FunctionNode *> viewer_node_map;
+  Map<const bNode *, const lf::FunctionNode *> possible_side_effect_node_map;
   Map<const bke::bNodeTreeZone *, const lf::FunctionNode *> zone_node_map;
 
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
@@ -358,6 +377,7 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     const bNode &node,
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
+std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(const bNode &node);
 
 struct FoundNestedNodeID {
   int id;

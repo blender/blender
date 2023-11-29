@@ -12,7 +12,7 @@
 
 #include "GHOST_Types.h"
 
-#include "vk_command_buffer.hh"
+#include "vk_command_buffers.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
@@ -25,7 +25,9 @@ class VKStateManager;
 
 class VKContext : public Context, NonCopyable {
  private:
-  VKCommandBuffer command_buffer_;
+  VKCommandBuffers command_buffers_;
+  VKDescriptorPools descriptor_pools_;
+  VKDescriptorSetTracker descriptor_set_;
 
   VkExtent2D vk_extent_ = {};
   VkFormat swap_chain_format_ = {};
@@ -44,7 +46,7 @@ class VKContext : public Context, NonCopyable {
   void flush() override;
   void finish() override;
 
-  void memory_statistics_get(int *total_mem, int *free_mem) override;
+  void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) override;
 
   void debug_group_begin(const char *, int) override;
   void debug_group_end() override;
@@ -69,9 +71,19 @@ class VKContext : public Context, NonCopyable {
     return static_cast<VKContext *>(Context::get());
   }
 
-  VKCommandBuffer &command_buffer_get()
+  VKCommandBuffers &command_buffers_get()
   {
-    return command_buffer_;
+    return command_buffers_;
+  }
+
+  VKDescriptorPools &descriptor_pools_get()
+  {
+    return descriptor_pools_;
+  }
+
+  VKDescriptorSetTracker &descriptor_set_get()
+  {
+    return descriptor_set_;
   }
 
   VKStateManager &state_manager_get() const;

@@ -47,7 +47,7 @@ class FilterOperation : public NodeOperation {
 
   void execute() override
   {
-    GPUShader *shader = shader_manager().get(get_shader_name());
+    GPUShader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_mat3_as_mat4(shader, "ukernel", get_filter_kernel().ptr());

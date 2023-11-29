@@ -805,6 +805,8 @@ struct ShaderCreateInfo {
 
   Self &push_constant(Type type, StringRefNull name, int array_size = 0)
   {
+    /* We don't have support for UINT push constants yet, use INT instead.*/
+    BLI_assert(type != Type::UINT);
     BLI_assert_msg(name.find("[") == -1,
                    "Array syntax is forbidden for push constants."
                    "Use the array_size parameter instead.");

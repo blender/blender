@@ -27,10 +27,11 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_mball.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -87,8 +88,7 @@ void ED_mball_editmball_load(Object * /*obedit*/) {}
 bool ED_mball_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
@@ -749,7 +749,7 @@ Base *ED_mball_base_and_elem_from_select_buffer(Base **bases,
   MetaElem *ml = nullptr;
   /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
-    if (bases[base_index]->object->runtime.select_id == hit_object) {
+    if (bases[base_index]->object->runtime->select_id == hit_object) {
       base = bases[base_index];
       break;
     }
@@ -771,13 +771,12 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
                                           uint *r_selmask)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   int a, hits;
   GPUSelectResult buffer[MAXPICKELEMS];
   rcti rect;
   bool found = false;
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   BLI_rcti_init_pt_radius(&rect, mval, 12);
 
@@ -799,7 +798,7 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
   int hit_cycle_offset = 0;
   if (use_cycle) {
     /* When cycling, use the hit directly after the current active meta-element (when set). */
-    const int base_index = vc.obact->runtime.select_id;
+    const int base_index = vc.obact->runtime->select_id;
     MetaBall *mb = (MetaBall *)vc.obact->data;
     MetaElem *ml = mb->lastelem;
     if (ml && (ml->flag & SELECT)) {

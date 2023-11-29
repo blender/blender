@@ -10,5 +10,6 @@ void main()
   uv_screen = image_pos.xy;
 
   vec4 position = point_world_to_ndc(image_pos);
+  position.z = 0.0;
   gl_Position = position;
 }

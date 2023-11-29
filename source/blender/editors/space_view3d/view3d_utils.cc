@@ -31,8 +31,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_camera.h"
-#include "BKE_context.h"
-#include "BKE_object.h"
+#include "BKE_context.hh"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 
@@ -50,6 +50,8 @@
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
+
+#include "ANIM_keyframing.hh"
 
 #include "UI_resources.hh"
 
@@ -638,12 +640,11 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 bool ED_view3d_camera_autokey(
     const Scene *scene, ID *id_key, bContext *C, const bool do_rotate, const bool do_translate)
 {
-  if (autokeyframe_cfra_can_key(scene, id_key)) {
+  if (blender::animrig::autokeyframe_cfra_can_key(scene, id_key)) {
     const float cfra = float(scene->r.cfra);
-    ListBase dsources = {nullptr, nullptr};
-
+    blender::Vector<PointerRNA> sources;
     /* add data-source override for the camera object */
-    ANIM_relative_keyingset_add_source(&dsources, id_key, nullptr, nullptr);
+    ANIM_relative_keyingset_add_source(sources, id_key);
 
     /* insert keyframes
      * 1) on the first frame
@@ -652,15 +653,12 @@ bool ED_view3d_camera_autokey(
      */
     if (do_rotate) {
       KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
-      ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
     if (do_translate) {
       KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
-      ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
-
-    /* free temp data */
-    BLI_freelistN(&dsources);
 
     return true;
   }

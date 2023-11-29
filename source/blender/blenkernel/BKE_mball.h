@@ -12,7 +12,6 @@ extern "C" {
 #endif
 
 struct Base;
-struct BoundBox;
 struct Depsgraph;
 struct Main;
 struct MetaBall;
@@ -54,11 +53,6 @@ bool BKE_mball_is_basis(const struct Object *ob);
  * \warning #BKE_mball_is_basis() can fail on returned object, see function docs for details.
  */
 struct Object *BKE_mball_basis_find(struct Scene *scene, struct Object *ob);
-
-/**
- * Return or compute bounding-box for given meta-ball object.
- */
-struct BoundBox *BKE_mball_boundbox_get(struct Object *ob);
 
 /**
  * Copy some properties from a meta-ball obdata to all other meta-ball obdata belonging to the same

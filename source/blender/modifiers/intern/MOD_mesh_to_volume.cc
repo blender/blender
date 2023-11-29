@@ -13,9 +13,9 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_volume.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
+#include "BKE_volume.hh"
 
 #include "BLT_translation.h"
 
@@ -128,6 +128,9 @@ static Volume *mesh_to_volume(ModifierData *md,
     return input_volume;
   }
   BKE_mesh_wrapper_ensure_mdata(mesh);
+  if (mesh->totvert == 0) {
+    return input_volume;
+  }
 
   const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->world_to_object) *
                                                       float4x4(object_to_convert->object_to_world);
@@ -146,14 +149,12 @@ static Volume *mesh_to_volume(ModifierData *md,
     }
   }
 
-  auto bounds_fn = [&](float3 &r_min, float3 &r_max) {
-    const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
-    r_min = bb->vec[0];
-    r_max = bb->vec[6];
-  };
-
   const float voxel_size = geometry::volume_compute_voxel_size(
-      ctx->depsgraph, bounds_fn, resolution, 0.0f, mesh_to_own_object_space_transform);
+      ctx->depsgraph,
+      [&]() { return *mesh->bounds_min_max(); },
+      resolution,
+      0.0f,
+      mesh_to_own_object_space_transform);
 
   /* Create a new volume. */
   Volume *volume;
@@ -199,7 +200,7 @@ ModifierTypeInfo modifierType_MeshToVolume = {
     /*struct_name*/ "MeshToVolumeModifierData",
     /*struct_size*/ sizeof(MeshToVolumeModifierData),
     /*srna*/ &RNA_MeshToVolumeModifier,
-    /*type*/ eModifierTypeType_Constructive,
+    /*type*/ ModifierTypeType::Constructive,
     /*flags*/ static_cast<ModifierTypeFlag>(0),
     /*icon*/ ICON_VOLUME_DATA, /* TODO: Use correct icon. */
 

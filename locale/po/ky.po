@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -59,6 +59,10 @@ msgstr "Билдирүү"
 
 msgid "Full"
 msgstr "Толук"
+
+
+msgid "Auto"
+msgstr "Авто"
 
 
 msgid "Animation Data"
@@ -137,6 +141,10 @@ msgid "Description"
 msgstr "Баяндама"
 
 
+msgid "All"
+msgstr "Баары"
+
+
 msgid "Data Type"
 msgstr "Маалыматтар түрү"
 
@@ -147,6 +155,10 @@ msgstr "Кыр"
 
 msgid "Face"
 msgstr "Каптал"
+
+
+msgid "Layer"
+msgstr "Кат"
 
 
 msgid "Margin"
@@ -199,10 +211,6 @@ msgstr "Тазалоо"
 
 msgid "Free"
 msgstr "Бош"
-
-
-msgid "Auto"
-msgstr "Авто"
 
 
 msgid "Hide"
@@ -315,10 +323,6 @@ msgstr "Чоку түсү"
 
 msgid "Normal"
 msgstr "Нормаль"
-
-
-msgid "All"
-msgstr "Баары"
 
 
 msgid "Simplify"
@@ -843,10 +847,6 @@ msgid "Blend Mode"
 msgstr "Аралаштыруу режими"
 
 
-msgid "Layer"
-msgstr "Кат"
-
-
 msgid "Window"
 msgstr "Терезе"
 
@@ -924,12 +924,52 @@ msgid "Blue"
 msgstr "Көк"
 
 
-msgid "Users"
-msgstr "Колдонуучулар"
-
-
 msgid "Brush"
 msgstr "Чачы"
+
+
+msgid "Font"
+msgstr "Арип"
+
+
+msgid "Key"
+msgstr "Ачкыч"
+
+
+msgid "Mask"
+msgstr "Маска"
+
+
+msgid "Mesh"
+msgstr "Политор"
+
+
+msgid "Particle"
+msgstr "Бөлүкчө"
+
+
+msgid "Sound"
+msgstr "Үн"
+
+
+msgid "Speaker"
+msgstr "Үн булагы"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Window Manager"
+msgstr "Терезе менеджери"
+
+
+msgid "World"
+msgstr "Дүйнө"
+
+
+msgid "Users"
+msgstr "Колдонуучулар"
 
 
 msgid "Rate"
@@ -990,10 +1030,6 @@ msgstr "Жартысы"
 
 msgid "Text Curve"
 msgstr "Текст ийриси"
-
-
-msgid "Font"
-msgstr "Арип"
 
 
 msgid "Font Size"
@@ -1092,12 +1128,12 @@ msgid "Opaque"
 msgstr "Күңүрттүк"
 
 
-msgid "Update"
-msgstr "Жаңылоо"
-
-
 msgid "Fast"
 msgstr "Тез"
+
+
+msgid "Update"
+msgstr "Жаңылоо"
 
 
 msgid "Movie File"
@@ -1128,10 +1164,6 @@ msgid "Tool"
 msgstr "Аспап"
 
 
-msgid "Mesh"
-msgstr "Политор"
-
-
 msgid "Active Material"
 msgstr "Активдүү материал"
 
@@ -1158,10 +1190,6 @@ msgstr "Скульптинг режими"
 
 msgid "Mass"
 msgstr "Масса"
-
-
-msgid "Particle"
-msgstr "Бөлүкчө"
 
 
 msgid "Halo"
@@ -1199,10 +1227,6 @@ msgstr "Көрсөтүү ырастоолору"
 msgctxt "Sound"
 msgid "Pitch"
 msgstr "Бийиктик"
-
-
-msgid "Sound"
-msgstr "Үн"
 
 
 msgid "Clouds"
@@ -1285,10 +1309,6 @@ msgid "(x*x+y*y+z*z)"
 msgstr "(x*x+y*y+z*z)"
 
 
-msgid "Window Manager"
-msgstr "Терезе менеджери"
-
-
 msgid "Category"
 msgstr "Категориясы"
 
@@ -1369,10 +1389,6 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Mask"
-msgstr "Маска"
-
-
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Видеофрагмент"
@@ -1398,8 +1414,8 @@ msgid "Channel"
 msgstr "Канал"
 
 
-msgid "Key"
-msgstr "Ачкыч"
+msgid "Files"
+msgstr "Файлдар"
 
 
 msgid "Align"
@@ -1409,10 +1425,6 @@ msgstr "Түздөө"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Кошуу"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Tracking"
@@ -1429,6 +1441,10 @@ msgstr "Модификаторду кошуу"
 
 msgid "Physics"
 msgstr "Физика"
+
+
+msgid "Sequencer"
+msgstr "Секвенсор"
 
 
 msgid "Apply"
@@ -1521,10 +1537,6 @@ msgstr "Деңгээлдер"
 
 msgid "Copy"
 msgstr "Көчүрүү"
-
-
-msgid "World"
-msgstr "Дүйнө"
 
 
 msgid "Origin"
@@ -1702,10 +1714,6 @@ msgstr "Тандоо"
 msgctxt "Operator"
 msgid "Open Clip"
 msgstr "Видеофрагментти ачуу"
-
-
-msgid "Files"
-msgstr "Файлдар"
 
 
 msgid "Wall"
@@ -1985,6 +1993,10 @@ msgstr "Өчүргүч"
 
 msgid "Sigma"
 msgstr "Сигма"
+
+
+msgid "Flat"
+msgstr "Жалпак"
 
 
 msgctxt "Operator"
@@ -2279,10 +2291,6 @@ msgstr "Жаңылоо"
 
 msgid "Bake"
 msgstr "Бышыруу"
-
-
-msgid "Sequencer"
-msgstr "Секвенсор"
 
 
 msgctxt "Operator"
@@ -2647,10 +2655,6 @@ msgid "Trusted Source"
 msgstr "Ишеничтүү булак"
 
 
-msgid "Speaker"
-msgstr "Үн булагы"
-
-
 msgctxt "Operator"
 msgid "Quit Blender"
 msgstr "Blender'ден чыгуу"
@@ -2714,10 +2718,6 @@ msgstr "Өндүргүчтүк"
 
 msgid "Paragraph"
 msgstr "Абзац"
-
-
-msgid "Skeleton"
-msgstr "Скелет"
 
 
 msgid "Filters"
@@ -2985,10 +2985,6 @@ msgid "3D"
 msgstr "3D"
 
 
-msgid "Flat"
-msgstr "Жалпак"
-
-
 msgid "Stereo Mode"
 msgstr "Стереорежим"
 
@@ -3110,11 +3106,6 @@ msgstr "Бөлүкчө"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "NLA редактору"
-
-
-msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "NLA-каналдар"
 
 
 msgctxt "WindowManager"
@@ -3495,11 +3486,6 @@ msgstr "Үн булагы"
 
 
 msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Ачкыч кадрын кошуу..."
-
-
-msgctxt "Operator"
 msgid "Change Shape"
 msgstr "Калыбын өзгөртүү"
 
@@ -3799,11 +3785,6 @@ msgid "(Key) "
 msgstr "(Ачкыч) "
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Топ"
-
-
 msgid "(empty)"
 msgstr "(бош)"
 
@@ -3846,6 +3827,11 @@ msgstr "FPS: %i"
 
 msgid "(Smooth)"
 msgstr "(тегиз)"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "Топ"
 
 
 msgid "Modify"

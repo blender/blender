@@ -8,7 +8,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
-#include "DNA_shader_fx_types.h" /* needed for all enum typdefs */
+#include "DNA_shader_fx_types.h" /* Needed for all enum type definitions. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -157,7 +157,7 @@ void BKE_shaderfx_free(struct ShaderFxData *fx);
 /**
  * Check unique name.
  */
-bool BKE_shaderfx_unique_name(struct ListBase *shaderfx, struct ShaderFxData *fx);
+void BKE_shaderfx_unique_name(struct ListBase *shaderfx, struct ShaderFxData *fx);
 bool BKE_shaderfx_depends_ontime(struct ShaderFxData *fx);
 /**
  * Check whether given shaderfx is not local (i.e. from linked data) when the object is a library

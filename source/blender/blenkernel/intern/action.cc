@@ -29,7 +29,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_session_uuid.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -38,8 +38,8 @@
 #include "BKE_anim_data.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.h"
-#include "BKE_asset.h"
+#include "BKE_armature.hh"
+#include "BKE_asset.hh"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
@@ -48,7 +48,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_preview_image.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1708,7 +1709,9 @@ void what_does_obaction(Object *ob,
   bActionGroup *agrp = BKE_action_group_find_name(act, groupname);
 
   /* clear workob */
+  blender::bke::ObjectRuntime workob_runtime;
   BKE_object_workob_clear(workob);
+  workob->runtime = &workob_runtime;
 
   /* init workob */
   copy_m4_m4(workob->object_to_world, ob->object_to_world);

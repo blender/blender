@@ -19,7 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
@@ -159,11 +159,10 @@ void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *resh
   BLI_assert(object != nullptr);
   BLI_assert(mmd != nullptr);
 
-  float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
-      depsgraph, object, mmd, nullptr);
+  blender::Array<blender::float3> deformed_verts =
+      BKE_multires_create_deformed_base_mesh_vert_coords(depsgraph, object, mmd);
 
-  BKE_subdiv_eval_refine_from_mesh(
-      reshape_context->subdiv, reshape_context->base_mesh, deformed_verts);
-
-  MEM_freeN(deformed_verts);
+  BKE_subdiv_eval_refine_from_mesh(reshape_context->subdiv,
+                                   reshape_context->base_mesh,
+                                   reinterpret_cast<float(*)[3]>(deformed_verts.data()));
 }

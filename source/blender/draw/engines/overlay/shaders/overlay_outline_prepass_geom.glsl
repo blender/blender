@@ -41,10 +41,10 @@ void main()
   //  return;
 
   vert_from_gl_in(1);
-  EmitVertex();
+  gpu_EmitVertex();
 
   vert_from_gl_in(2);
-  EmitVertex();
+  gpu_EmitVertex();
 
   EndPrimitive();
 }

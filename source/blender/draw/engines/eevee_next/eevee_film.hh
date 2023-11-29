@@ -90,7 +90,7 @@ class Film {
   void end_sync();
 
   /** Accumulate the newly rendered sample contained in #RenderBuffers and blit to display. */
-  void accumulate(const DRWView *view, GPUTexture *combined_final_tx);
+  void accumulate(View &view, GPUTexture *combined_final_tx);
 
   /** Sort and normalize cryptomatte samples. */
   void cryptomatte_sort();
@@ -180,6 +180,8 @@ class Film {
         return data_.shadow_id;
       case EEVEE_RENDER_PASS_AO:
         return data_.ambient_occlusion_id;
+      case EEVEE_RENDER_PASS_TRANSPARENT:
+        return data_.transparent_id;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT:
         return data_.cryptomatte_object_id;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET:

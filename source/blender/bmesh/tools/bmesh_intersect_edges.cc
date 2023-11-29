@@ -13,7 +13,7 @@
 #include "BLI_sort.h"
 #include "BLI_stack.h"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 
 #include "atomic_ops.h"
 

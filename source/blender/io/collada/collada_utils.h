@@ -37,11 +37,11 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"

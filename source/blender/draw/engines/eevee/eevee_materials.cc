@@ -14,7 +14,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_memblock.h"
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_global.h"
 #include "BKE_paint.hh"

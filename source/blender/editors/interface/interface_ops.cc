@@ -24,7 +24,7 @@
 #include "BLT_lang.h"
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -58,6 +58,7 @@
 
 #include "ED_object.hh"
 #include "ED_paint.hh"
+#include "ED_undo.hh"
 
 /* for Copy As Driver */
 #include "ED_keyframing.hh"
@@ -1678,7 +1679,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
   PropertyRNA *prop;
   int index;
 
-  UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+  const uiBut *but = UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   /* If there is a valid property... */
   if (ptr.data && prop) {
@@ -1692,7 +1693,6 @@ static bool jump_to_target_button(bContext *C, bool poll)
     }
     /* For string properties with prop_search, look up the search collection item. */
     if (type == PROP_STRING) {
-      const uiBut *but = UI_context_active_but_get(C);
       const uiButSearch *search_but = (but->type == UI_BTYPE_SEARCH_MENU) ? (uiButSearch *)but :
                                                                             nullptr;
 
@@ -2315,6 +2315,10 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       }
       RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
+    }
+
+    if (UI_but_flag_is_set(but, UI_BUT_UNDO)) {
+      ED_undo_push(C, RNA_property_ui_name(but->rnaprop));
     }
   }
   else {

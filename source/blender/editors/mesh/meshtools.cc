@@ -26,10 +26,10 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -39,7 +39,7 @@
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
@@ -47,7 +47,7 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
@@ -294,24 +294,22 @@ static void join_mesh_single(Depsgraph *depsgraph,
  * of them will have different IDs for their Face Sets. */
 static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
 {
-  if (!mesh->faces_num) {
-    return;
-  }
-
-  int *face_sets = (int *)CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num);
+  using namespace blender;
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<int> face_sets = attributes.lookup_for_write_span<int>(
+      ".sculpt_face_set");
   if (!face_sets) {
     return;
   }
 
   int max_face_set = 0;
-  for (int f = 0; f < mesh->faces_num; f++) {
+  for (const int i : face_sets.span.index_range()) {
     /* As face sets encode the visibility in the integer sign, the offset needs to be added or
      * subtracted depending on the initial sign of the integer to get the new ID. */
-    if (face_sets[f] <= *face_set_offset) {
-      face_sets[f] += *face_set_offset;
+    if (face_sets.span[i] <= *face_set_offset) {
+      face_sets.span[i] += *face_set_offset;
     }
-    max_face_set = max_ii(max_face_set, face_sets[f]);
+    max_face_set = max_ii(max_face_set, face_sets.span[i]);
   }
   *face_set_offset = max_face_set;
 }
@@ -1164,7 +1162,6 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
 bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {
-  ViewContext vc;
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
@@ -1174,7 +1171,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   if (dist_px) {
@@ -1336,7 +1333,6 @@ static void ed_mesh_pick_vert__mapFunc(void *user_data,
 bool ED_mesh_pick_vert(
     bContext *C, Object *ob, const int mval[2], uint dist_px, bool use_zbuf, uint *r_index)
 {
-  ViewContext vc;
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
@@ -1346,7 +1342,7 @@ bool ED_mesh_pick_vert(
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   if (use_zbuf) {

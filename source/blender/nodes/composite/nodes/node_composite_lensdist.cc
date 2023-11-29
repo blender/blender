@@ -96,7 +96,7 @@ class LensDistortionOperation : public NodeOperation {
 
   void execute_projector_distortion()
   {
-    GPUShader *shader = shader_manager().get("compositor_projector_lens_distortion");
+    GPUShader *shader = context().get_shader("compositor_projector_lens_distortion");
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");
@@ -123,7 +123,7 @@ class LensDistortionOperation : public NodeOperation {
 
   void execute_screen_distortion()
   {
-    GPUShader *shader = shader_manager().get(get_screen_distortion_shader());
+    GPUShader *shader = context().get_shader(get_screen_distortion_shader());
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");

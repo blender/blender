@@ -12,7 +12,7 @@
 #include "BCSampleData.h"
 #include "ExportSettings.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_math_rotation.h"
 

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
-"PO-Revision-Date: 2023-01-28 11:09+0800\n"
-"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
-"Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
-"Language: zh_TW\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"PO-Revision-Date: 2023-11-23 11:54+0000\n"
+"Last-Translator: 楊 景貴 <issacsopp@gmail.com>\n"
+"Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
+"Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.2.2"
+"X-Generator: Weblate 5.0.1"
 
 
 msgid "Shader AOV"
@@ -56,7 +56,7 @@ msgstr "AOV 列表"
 
 
 msgid "Collection of AOVs"
-msgstr "AOV 集合"
+msgstr "AOV 集盒"
 
 
 msgid "Action F-Curves"
@@ -64,7 +64,7 @@ msgstr "動作 F 曲線"
 
 
 msgid "Collection of action F-Curves"
-msgstr "動作 F 曲線的集合"
+msgstr "動作 F 曲線的集盒"
 
 
 msgid "Action Group"
@@ -203,6 +203,10 @@ msgid "Mute"
 msgstr "靜音"
 
 
+msgid "Action group is muted"
+msgstr "動作群組已靜音"
+
+
 msgid "Select"
 msgstr "選取"
 
@@ -236,7 +240,7 @@ msgstr "動作群組"
 
 
 msgid "Collection of action groups"
-msgstr "動作群組的集合"
+msgstr "動作群組的集盒"
 
 
 msgid "Action Pose Markers"
@@ -244,7 +248,7 @@ msgstr "動作姿態標記"
 
 
 msgid "Collection of timeline markers"
-msgstr "時間軸標記的集合"
+msgstr "時間軸標記的集盒"
 
 
 msgid "Active Pose Marker"
@@ -307,6 +311,10 @@ msgid "Device to use for computation (rendering with Cycles)"
 msgstr "用於計算的裝置 (以 Cycles 算繪)"
 
 
+msgid "Kernel Optimization"
+msgstr "內核心最佳化"
+
+
 msgid "Off"
 msgstr "關"
 
@@ -315,24 +323,36 @@ msgid "Full"
 msgstr "完整"
 
 
+msgid "On"
+msgstr "開"
+
+
+msgid "Auto"
+msgstr "自動"
+
+
 msgid "Distribute memory across devices"
-msgstr "共享記憶體分發"
+msgstr "分散記憶體到各個裝置"
 
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "以互連裝置間的共享記憶體 (例如: 透過 NVLink分發) 方式分發記憶體，以保留更多空間給大型場景"
 
 
-msgid "MetalRT (Experimental)"
-msgstr "MetalRT (測試版本)"
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (實驗中)"
 
 
-msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT 用於光跡追蹤運算時, 在大量使用曲線的場景可減少記憶體用量並在特定條件下有較佳效能。不過此支援功能目前還在測試階段並且某些場景可能無法正確算繪"
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "在著色器編輯器中顯示 glTF 材質輸出節點 (選單「添加 > 輸出」)"
 
 
 msgid "Fribidi Library"
 msgstr "Fribidi 函式庫"
+
+
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "FriBidi C 編譯的函式庫 (Linux 下為 .so，Windows 下為 .dll⋯)，若您是在 Windows 下您可能需要編輯它，例如使用 Blender 函式庫儲存庫中收錄的版本"
 
 
 msgid "Translation Root"
@@ -388,7 +408,7 @@ msgstr "使用者附加元件"
 
 
 msgid "Collection of add-ons"
-msgstr "附加元件的集合"
+msgstr "附加元件的集盒"
 
 
 msgid "Animation Data"
@@ -396,7 +416,7 @@ msgstr "動畫資料"
 
 
 msgid "Animation data for data-block"
-msgstr "資料塊的動畫資料"
+msgstr "數據組塊的動畫資料"
 
 
 msgid "Action"
@@ -404,7 +424,7 @@ msgstr "動作"
 
 
 msgid "Active Action for this data-block"
-msgstr "此資料塊的作用中動作"
+msgstr "此數據組塊的作用中動作"
 
 
 msgid "Action Blending"
@@ -428,11 +448,11 @@ msgstr "結合"
 
 
 msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
-msgstr "根據頻道類型，妥善以加法、乘法或四元數等數學方法來結合累積結果的片段值"
+msgstr "根據頻道類型，妥善以加法、乘法或四元數等數學方法來結合累積貨運算出結果的片段值"
 
 
 msgid "Add"
-msgstr "添加"
+msgstr "加"
 
 
 msgid "Weighted result of strip is added to the accumulated results"
@@ -440,7 +460,7 @@ msgstr "片段的權重結果被添加到累積的結果"
 
 
 msgid "Subtract"
-msgstr "減去"
+msgstr "減"
 
 
 msgid "Weighted result of strip is removed from the accumulated results"
@@ -500,7 +520,7 @@ msgstr "驅動器"
 
 
 msgid "The Drivers/Expressions for this data-block"
-msgstr "此資料塊的驅動器/表述式"
+msgstr "此數據組塊的驅動器/表述式"
 
 
 msgid "NLA Tracks"
@@ -528,7 +548,7 @@ msgstr "是否要在 NLA 中啟用或停用調校模式"
 
 
 msgid "Collection of Driver F-Curves"
-msgstr "驅動器 F 曲線的集合"
+msgstr "驅動器 F 曲線的集盒"
 
 
 msgid "Animation Visualization"
@@ -625,6 +645,18 @@ msgstr "有運動路徑"
 
 msgid "Are there any bone paths that will need updating (read-only)"
 msgstr "檢查是否有骨架的運動路經需要更新 (唯讀)"
+
+
+msgid "Selected Keys"
+msgstr "選取的鍵"
+
+
+msgid "Manual Range"
+msgstr "手動範圍"
+
+
+msgid "Manually determined frame range"
+msgstr "手動決定框幀範圍"
 
 
 msgid "Show Frame Numbers"
@@ -808,7 +840,7 @@ msgstr "文字編輯器"
 
 
 msgid "Edit scripts and in-file documentation"
-msgstr "編輯指令稿與檔案內文件"
+msgstr "編輯命令稿與檔案內文件"
 
 
 msgid "Python Console"
@@ -816,7 +848,7 @@ msgstr "Python 主控臺"
 
 
 msgid "Interactive programmatic console for advanced editing and script development"
-msgstr "互動性程設用主控臺供進階編輯與指令稿開發"
+msgstr "互動性程設用主控臺供進階編輯與命令稿開發"
 
 
 msgid "Info"
@@ -848,7 +880,7 @@ msgstr "大綱管理器"
 
 
 msgid "Overview of scene graph and all available data-blocks"
-msgstr "場景圖表與所有可用資料塊的概覽"
+msgstr "場景圖表與所有可用數據組塊的概覽"
 
 
 msgid "Properties"
@@ -856,7 +888,7 @@ msgstr "屬性"
 
 
 msgid "Edit properties of active object and related data-blocks"
-msgstr "編輯作用中物體與相關資料塊的屬性"
+msgstr "編輯作用中物體與相關數據組塊的屬性"
 
 
 msgid "File Browser"
@@ -864,7 +896,7 @@ msgstr "檔案瀏覽器"
 
 
 msgid "Browse for files and assets"
-msgstr "瀏覽檔案與材料"
+msgstr "瀏覽檔案與素材"
 
 
 msgid "Spreadsheet"
@@ -912,7 +944,7 @@ msgstr "區域空間"
 
 
 msgid "Collection of spaces"
-msgstr "空間的選集"
+msgstr "空間的集盒"
 
 
 msgid "Active Space"
@@ -928,7 +960,7 @@ msgstr "骨架骨骼"
 
 
 msgid "Collection of armature bones"
-msgstr "骨架骨骼選集"
+msgstr "骨架骨骼的集盒"
 
 
 msgid "Active Bone"
@@ -944,7 +976,7 @@ msgstr "骨架變形約束目標"
 
 
 msgid "Collection of target bones and weights"
-msgstr "目標骨骼與權重選集"
+msgstr "目標骨骼與權重的集盒"
 
 
 msgid "Armature EditBones"
@@ -952,7 +984,7 @@ msgstr "骨架編輯骨骼"
 
 
 msgid "Collection of armature edit bones"
-msgstr "骨架編輯骨骼選集"
+msgstr "骨架編輯骨骼的集盒"
 
 
 msgid "Active EditBone"
@@ -963,8 +995,93 @@ msgid "Armatures active edit bone"
 msgstr "骨架作用中編輯骨骼"
 
 
+msgid "Catalog Path"
+msgstr "編目檔路徑"
+
+
+msgid "Asset Library Reference"
+msgstr "素材藏庫參照"
+
+
+msgid "Identifier to refer to the asset library"
+msgstr "素材藏庫的識別碼"
+
+
+msgid "Asset Data"
+msgstr "素材資料"
+
+
+msgid "Additional data stored for an asset data-block"
+msgstr "素材數據組塊儲存的其他資料"
+
+
+msgid "Active Tag"
+msgstr "作用中標記"
+
+
+msgid "Index of the tag set for editing"
+msgstr "要編輯的標記集索引"
+
+
+msgid "Author"
+msgstr "作者"
+
+
+msgid "Name of the creator of the asset"
+msgstr "素材的建立者名稱"
+
+
+msgid "Catalog UUID"
+msgstr "編目檔 UUID"
+
+
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
+msgstr "此素材編目檔的識別碼，Blender 透過識別碼來查找素材的編目檔路徑。UUID 必須遵照 RFC4122 定義"
+
+
+msgid "Catalog Simple Name"
+msgstr "編目檔簡單名稱"
+
+
+msgid "Simple name of the asset's catalog, for debugging and data recovery purposes"
+msgstr "素材的編目檔簡單名稱，供除錯及資料復原用途使用"
+
+
+msgid "Copyright"
+msgstr "著作權"
+
+
 msgid "Description"
 msgstr "描述"
+
+
+msgid "A description of the asset to be displayed for the user"
+msgstr "顯示給使用者看的素材描述"
+
+
+msgid "Tags"
+msgstr "標記"
+
+
+msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
+msgstr "素材的自訂標記 (名稱代符)，供篩選以及一般的素材管理使用"
+
+
+msgid "Full Library Path"
+msgstr "完整藏庫路徑"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "含有此素材的 .blend 檔的絕對路徑"
+
+
+msgid "Full Path"
+msgstr "完整路徑"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "數據組塊類型"
 
 
 msgctxt "ID"
@@ -994,11 +1111,16 @@ msgstr "攝影機"
 
 msgctxt "ID"
 msgid "Collection"
-msgstr "選集"
+msgstr "集盒"
 
 
 msgctxt "ID"
 msgid "Curve"
+msgstr "曲線"
+
+
+msgctxt "ID"
+msgid "Curves"
 msgstr "曲線"
 
 
@@ -1098,6 +1220,11 @@ msgstr "粒子"
 
 
 msgctxt "ID"
+msgid "Point Cloud"
+msgstr "點雲"
+
+
+msgctxt "ID"
 msgid "Scene"
 msgstr "場景"
 
@@ -1137,6 +1264,22 @@ msgid "World"
 msgstr "世界"
 
 
+msgid "Asset Metadata"
+msgstr "素材中介資料"
+
+
+msgid "Asset Library"
+msgstr "素材藏庫"
+
+
+msgid "All"
+msgstr "全部"
+
+
+msgid "Custom"
+msgstr "自訂"
+
+
 msgid "ID Name"
 msgstr "ID 名稱"
 
@@ -1157,24 +1300,92 @@ msgid "Show Names"
 msgstr "顯示名稱"
 
 
+msgid "Asset Tag"
+msgstr "素材標記"
+
+
+msgid "User defined tag (name token)"
+msgstr "使用者定義的標記 (名稱代符)"
+
+
+msgid "The identifier that makes up this tag"
+msgstr "構成此標記的識別碼"
+
+
+msgid "Asset Tags"
+msgstr "素材標記"
+
+
+msgid "Collection of custom asset tags"
+msgstr "自訂素材標記的集盒"
+
+
+msgid "Geometry attribute"
+msgstr "幾何特性"
+
+
 msgid "Data Type"
 msgstr "資料類型"
+
+
+msgid "Type of data stored in attribute"
+msgstr "儲存在特性中的資料類型"
 
 
 msgid "Float"
 msgstr "浮點"
 
 
+msgid "Floating-point value"
+msgstr "浮點數值"
+
+
+msgid "Integer"
+msgstr "整數"
+
+
+msgid "32-bit integer"
+msgstr "32 位元整數"
+
+
 msgid "Vector"
 msgstr "向量"
+
+
+msgid "3D vector with floating-point values"
+msgstr "浮點數值表示的 3D 向量"
+
+
+msgid "Byte Color"
+msgstr "位元組色彩"
 
 
 msgid "String"
 msgstr "字串"
 
 
+msgid "Text string"
+msgstr "文字字串"
+
+
 msgid "Boolean"
 msgstr "布林"
+
+
+msgid "True or false"
+msgstr "真或假"
+
+
+msgid "2D Vector"
+msgstr "2D 向量"
+
+
+msgid "2D vector with floating-point values"
+msgstr "浮點數值表示的 2D 向量"
+
+
+msgid "8-Bit Integer"
+msgstr "8 位元整數"
 
 
 msgid "Smaller integer with a range from -128 to 127"
@@ -1189,20 +1400,140 @@ msgid "Domain"
 msgstr "領域"
 
 
+msgid "Domain of the Attribute"
+msgstr "特性的屬域"
+
+
 msgid "Point"
 msgstr "點"
+
+
+msgid "Attribute on point"
+msgstr "點的特性"
 
 
 msgid "Edge"
 msgstr "邊線"
 
 
+msgid "Attribute on mesh edge"
+msgstr "網格邊線的特性"
+
+
 msgid "Face"
 msgstr "面"
 
 
+msgid "Attribute on mesh faces"
+msgstr "網格面的特性"
+
+
+msgid "Face Corner"
+msgstr "面的邊角"
+
+
+msgid "Attribute on mesh face corner"
+msgstr "網格面的邊角特性"
+
+
 msgid "Spline"
-msgstr "樣條"
+msgstr "雲形線"
+
+
+msgid "Attribute on spline"
+msgstr "雲形線的特性"
+
+
+msgid "Instance"
+msgstr "實體"
+
+
+msgid "Attribute on instance"
+msgstr "實體的特性"
+
+
+msgid "Layer"
+msgstr "層"
+
+
+msgid "Is Internal"
+msgstr "屬於內部"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "該屬性是否可以被刪除或重新命名"
+
+
+msgid "Name of the Attribute"
+msgstr "特性的名稱"
+
+
+msgid "Bool Attribute"
+msgstr "布林值特性"
+
+
+msgid "Byte Color Attribute"
+msgstr "位元組色彩特性"
+
+
+msgid "Float2 Attribute"
+msgstr "2D 浮點特性"
+
+
+msgid "Float Attribute"
+msgstr "浮點特性"
+
+
+msgid "Float Color Attribute"
+msgstr "浮點色彩特性"
+
+
+msgid "Float Vector Attribute"
+msgstr "浮點向量特性"
+
+
+msgid "Quaternion Attribute"
+msgstr "四元數特性"
+
+
+msgid "String Attribute"
+msgstr "字串特性"
+
+
+msgid "Attribute Group"
+msgstr "特性群組"
+
+
+msgid "Group of geometry attributes"
+msgstr "幾何特性的群組"
+
+
+msgid "Active Attribute"
+msgstr "作用中特性"
+
+
+msgid "Active attribute"
+msgstr "作用中特性"
+
+
+msgid "Active Color"
+msgstr "作用中色彩"
+
+
+msgid "Active Color Attribute"
+msgstr "作用中色彩特性"
+
+
+msgid "The name of the active color attribute for display and editing"
+msgstr "供顯示與編輯的作用中色彩特性名稱"
+
+
+msgid "Default Color Attribute"
+msgstr "預設色彩特性"
+
+
+msgid "The name of the default color attribute used as a fallback for rendering"
+msgstr "用作為後備算繪的預設色彩特性名稱"
 
 
 msgid "Bake Data"
@@ -1210,7 +1541,15 @@ msgstr "烘焙資料"
 
 
 msgid "Bake data for a Scene data-block"
-msgstr "場景資料塊的烘焙資料"
+msgstr "場景數據組塊的烘焙資料"
+
+
+msgid "Cage Extrusion"
+msgstr "罩體擠出"
+
+
+msgid "Cage Object"
+msgstr "罩體物體"
 
 
 msgid "Object to use as cage instead of calculating the cage from the active object with cage extrusion"
@@ -1382,7 +1721,7 @@ msgstr "內部"
 
 
 msgid "Save the baking map in an internal image data-block"
-msgstr "將烘焙映射圖儲存在內部影像資料塊中"
+msgstr "將烘焙映射圖儲存在內部影像數據組塊中"
 
 
 msgid "External"
@@ -1397,8 +1736,20 @@ msgid "Target"
 msgstr "目標"
 
 
+msgid "Where to output the baked map"
+msgstr "烘焙貼圖的輸出位置"
+
+
+msgid "Image Textures"
+msgstr "影像紋理"
+
+
 msgid "Bake to image data-blocks associated with active image texture nodes in materials"
-msgstr "烘焙至材質內作用中的影像紋理結點的關聯影像資料區塊"
+msgstr "烘焙至材質內作用中的影像紋理結點的關聯影像數據組塊"
+
+
+msgid "Bake to the active color attribute on meshes"
+msgstr "烘焙至網格的作用中色彩特性"
 
 
 msgid "Automatic Name"
@@ -1469,6 +1820,10 @@ msgid "Split external images per material (external only)"
 msgstr "各材質分割外部影像 (僅用於外部)"
 
 
+msgid "View From"
+msgstr "視圖方位"
+
+
 msgid "Horizontal dimension of the baking map"
 msgstr "烘焙映射的水平維度"
 
@@ -1511,10 +1866,6 @@ msgstr "自由"
 
 msgid "Aligned"
 msgstr "對齊"
-
-
-msgid "Auto"
-msgstr "自動"
 
 
 msgid "Handle 2"
@@ -1586,7 +1937,7 @@ msgstr "柔體目的權重"
 
 
 msgid "Main data structure representing a .blend file and all its data-blocks"
-msgstr "代表 .blend 檔案與其資料塊的主要資料結構"
+msgstr "代表 .blend 檔案與其數據組塊的主要資料結構"
 
 
 msgid "Actions"
@@ -1594,7 +1945,7 @@ msgstr "動作"
 
 
 msgid "Action data-blocks"
-msgstr "動作資料塊"
+msgstr "動作數據組塊"
 
 
 msgid "Armatures"
@@ -1602,7 +1953,7 @@ msgstr "骨架"
 
 
 msgid "Armature data-blocks"
-msgstr "骨架資料塊"
+msgstr "骨架數據組塊"
 
 
 msgid "Brushes"
@@ -1610,7 +1961,7 @@ msgstr "筆刷"
 
 
 msgid "Brush data-blocks"
-msgstr "筆刷資料塊"
+msgstr "筆刷數據組塊"
 
 
 msgid "Cache Files"
@@ -1618,7 +1969,7 @@ msgstr "快取檔案"
 
 
 msgid "Cache Files data-blocks"
-msgstr "快取檔案資料塊"
+msgstr "快取檔案數據組塊"
 
 
 msgid "Cameras"
@@ -1626,7 +1977,7 @@ msgstr "攝影機"
 
 
 msgid "Camera data-blocks"
-msgstr "攝影機資料塊"
+msgstr "攝影機數據組塊"
 
 
 msgid "Collections"
@@ -1634,7 +1985,7 @@ msgstr "集盒"
 
 
 msgid "Collection data-blocks"
-msgstr "集盒資料塊"
+msgstr "集盒數據組塊"
 
 
 msgid "Curves"
@@ -1642,7 +1993,7 @@ msgstr "曲線"
 
 
 msgid "Curve data-blocks"
-msgstr "曲線資料塊"
+msgstr "曲線數據組塊"
 
 
 msgid "Filename"
@@ -1658,7 +2009,7 @@ msgstr "向量字型"
 
 
 msgid "Vector font data-blocks"
-msgstr "向量字型資料塊"
+msgstr "向量字型數據組塊"
 
 
 msgid "Grease Pencil"
@@ -1670,7 +2021,7 @@ msgstr "影像"
 
 
 msgid "Image data-blocks"
-msgstr "影像資料塊"
+msgstr "影像數據組塊"
 
 
 msgid "File Has Unsaved Changes"
@@ -1694,7 +2045,7 @@ msgstr "晶格"
 
 
 msgid "Lattice data-blocks"
-msgstr "晶格資料塊"
+msgstr "晶格數據組塊"
 
 
 msgid "Libraries"
@@ -1702,7 +2053,7 @@ msgstr "藏庫"
 
 
 msgid "Library data-blocks"
-msgstr "藏庫資料塊"
+msgstr "藏庫數據組塊"
 
 
 msgid "Light Probes"
@@ -1710,7 +2061,7 @@ msgstr "燈光採樣器"
 
 
 msgid "Light Probe data-blocks"
-msgstr "燈光採樣器資料區塊"
+msgstr "燈光採樣器數據組塊"
 
 
 msgid "Lights"
@@ -1718,7 +2069,7 @@ msgstr "光照"
 
 
 msgid "Light data-blocks"
-msgstr "光照資料塊"
+msgstr "光照數據組塊"
 
 
 msgid "Line Styles"
@@ -1726,7 +2077,7 @@ msgstr "線條樣式"
 
 
 msgid "Line Style data-blocks"
-msgstr "線條樣式資料塊"
+msgstr "線條樣式數據組塊"
 
 
 msgid "Masks"
@@ -1734,7 +2085,7 @@ msgstr "遮罩"
 
 
 msgid "Masks data-blocks"
-msgstr "遮罩資料塊"
+msgstr "遮罩數據組塊"
 
 
 msgid "Materials"
@@ -1742,7 +2093,7 @@ msgstr "材質"
 
 
 msgid "Material data-blocks"
-msgstr "材質資料塊"
+msgstr "材質數據組塊"
 
 
 msgid "Meshes"
@@ -1750,7 +2101,7 @@ msgstr "網格"
 
 
 msgid "Mesh data-blocks"
-msgstr "網格資料塊"
+msgstr "網格數據組塊"
 
 
 msgid "Metaballs"
@@ -1758,7 +2109,7 @@ msgstr "變幻球"
 
 
 msgid "Metaball data-blocks"
-msgstr "變幻球資料塊"
+msgstr "變幻球數據組塊"
 
 
 msgid "Movie Clips"
@@ -1766,7 +2117,7 @@ msgstr "影片剪輯"
 
 
 msgid "Movie Clip data-blocks"
-msgstr "影片剪輯資料塊"
+msgstr "影片剪輯數據組塊"
 
 
 msgid "Node Groups"
@@ -1774,7 +2125,7 @@ msgstr "節點群組"
 
 
 msgid "Node group data-blocks"
-msgstr "節點群組資料塊"
+msgstr "節點群組數據組塊"
 
 
 msgid "Objects"
@@ -1782,7 +2133,7 @@ msgstr "物體"
 
 
 msgid "Object data-blocks"
-msgstr "物體資料塊"
+msgstr "物體數據組塊"
 
 
 msgid "Paint Curves"
@@ -1790,7 +2141,7 @@ msgstr "繪製曲線"
 
 
 msgid "Paint Curves data-blocks"
-msgstr "繪製曲線資料塊"
+msgstr "繪製曲線數據組塊"
 
 
 msgid "Palettes"
@@ -1798,7 +2149,7 @@ msgstr "色版"
 
 
 msgid "Palette data-blocks"
-msgstr "色版資料塊"
+msgstr "色版數據組塊"
 
 
 msgid "Particles"
@@ -1806,7 +2157,7 @@ msgstr "粒子"
 
 
 msgid "Particle data-blocks"
-msgstr "粒子資料塊"
+msgstr "粒子數據組塊"
 
 
 msgid "Scenes"
@@ -1814,7 +2165,7 @@ msgstr "場景"
 
 
 msgid "Scene data-blocks"
-msgstr "場景資料塊"
+msgstr "場景數據組塊"
 
 
 msgid "Screens"
@@ -1822,7 +2173,7 @@ msgstr "螢幕"
 
 
 msgid "Screen data-blocks"
-msgstr "螢幕資料塊"
+msgstr "螢幕數據組塊"
 
 
 msgid "Shape Keys"
@@ -1830,7 +2181,7 @@ msgstr "外形鍵"
 
 
 msgid "Shape Key data-blocks"
-msgstr "外形鍵資料塊"
+msgstr "外形鍵數據組塊"
 
 
 msgid "Sounds"
@@ -1842,7 +2193,7 @@ msgstr "喇叭"
 
 
 msgid "Speaker data-blocks"
-msgstr "喇叭資料塊"
+msgstr "喇叭數據組塊"
 
 
 msgid "Texts"
@@ -1850,7 +2201,7 @@ msgstr "文字"
 
 
 msgid "Text data-blocks"
-msgstr "文字資料塊"
+msgstr "文字數據組塊"
 
 
 msgid "Textures"
@@ -1858,7 +2209,7 @@ msgstr "紋理"
 
 
 msgid "Texture data-blocks"
-msgstr "紋理資料塊"
+msgstr "紋理數據組塊"
 
 
 msgid "Automatically pack all external data into .blend file"
@@ -1882,7 +2233,7 @@ msgstr "視窗管理器"
 
 
 msgid "Window manager data-blocks"
-msgstr "視窗管理器資料塊"
+msgstr "視窗管理器數據組塊"
 
 
 msgid "Workspaces"
@@ -1890,7 +2241,7 @@ msgstr "工作空間"
 
 
 msgid "Workspace data-blocks"
-msgstr "工作空間資料塊"
+msgstr "工作空間數據組塊"
 
 
 msgid "Worlds"
@@ -1898,7 +2249,7 @@ msgstr "世界"
 
 
 msgid "World data-blocks"
-msgstr "世界資料塊"
+msgstr "世界數據組塊"
 
 
 msgid "Main Actions"
@@ -1906,7 +2257,7 @@ msgstr "主要動作"
 
 
 msgid "Collection of actions"
-msgstr "動作的集合"
+msgstr "動作的集盒"
 
 
 msgid "Main Armatures"
@@ -1914,7 +2265,7 @@ msgstr "主要骨架"
 
 
 msgid "Collection of armatures"
-msgstr "骨架的選集"
+msgstr "骨架的集盒"
 
 
 msgid "Main Brushes"
@@ -1922,7 +2273,7 @@ msgstr "主要筆刷"
 
 
 msgid "Collection of brushes"
-msgstr "筆刷的選集"
+msgstr "筆刷的集盒"
 
 
 msgid "Main Cache Files"
@@ -1930,7 +2281,7 @@ msgstr "主要快取檔案"
 
 
 msgid "Collection of cache files"
-msgstr "快取檔案的選集"
+msgstr "快取檔案的集盒"
 
 
 msgid "Main Cameras"
@@ -1938,7 +2289,7 @@ msgstr "主要攝影機"
 
 
 msgid "Collection of cameras"
-msgstr "攝影機的選集"
+msgstr "攝影機的集盒"
 
 
 msgid "Main Collections"
@@ -1946,7 +2297,7 @@ msgstr "主要集盒"
 
 
 msgid "Collection of collections"
-msgstr "選集的選集"
+msgstr "集盒的集盒"
 
 
 msgid "Main Curves"
@@ -1954,7 +2305,7 @@ msgstr "主要曲線"
 
 
 msgid "Collection of curves"
-msgstr "曲線的選集"
+msgstr "曲線的集盒"
 
 
 msgid "Main Fonts"
@@ -1962,7 +2313,7 @@ msgstr "主要字型"
 
 
 msgid "Collection of fonts"
-msgstr "字型的選集"
+msgstr "字型的集盒"
 
 
 msgid "Main Grease Pencils"
@@ -1970,7 +2321,7 @@ msgstr "主要蠟筆"
 
 
 msgid "Collection of grease pencils"
-msgstr "蠟筆的選集"
+msgstr "蠟筆的集盒"
 
 
 msgid "Main Images"
@@ -1978,7 +2329,7 @@ msgstr "主要影像"
 
 
 msgid "Collection of images"
-msgstr "影像的選集"
+msgstr "影像的集盒"
 
 
 msgid "Main Lattices"
@@ -1986,7 +2337,7 @@ msgstr "主要晶格"
 
 
 msgid "Collection of lattices"
-msgstr "晶格的選集"
+msgstr "晶格的集盒"
 
 
 msgid "Main Libraries"
@@ -1994,7 +2345,7 @@ msgstr "主要藏庫"
 
 
 msgid "Collection of libraries"
-msgstr "藏庫的選集"
+msgstr "藏庫的集盒"
 
 
 msgid "Main Lights"
@@ -2002,7 +2353,7 @@ msgstr "主要光照"
 
 
 msgid "Collection of lights"
-msgstr "光照的選集"
+msgstr "光照的集盒"
 
 
 msgid "Main Line Styles"
@@ -2010,7 +2361,7 @@ msgstr "主要線條樣式"
 
 
 msgid "Collection of line styles"
-msgstr "線條樣式的選集"
+msgstr "線條樣式的集盒"
 
 
 msgid "Main Masks"
@@ -2018,7 +2369,7 @@ msgstr "主要遮罩"
 
 
 msgid "Collection of masks"
-msgstr "遮罩的選集"
+msgstr "遮罩的集盒"
 
 
 msgid "Main Materials"
@@ -2026,7 +2377,7 @@ msgstr "主要材質"
 
 
 msgid "Collection of materials"
-msgstr "材質的選集"
+msgstr "材質的集盒"
 
 
 msgid "Main Meshes"
@@ -2034,7 +2385,7 @@ msgstr "主要網格"
 
 
 msgid "Collection of meshes"
-msgstr "網格的選集"
+msgstr "網格的集盒"
 
 
 msgid "Main Metaballs"
@@ -2042,7 +2393,7 @@ msgstr "主要變幻球"
 
 
 msgid "Collection of metaballs"
-msgstr "變幻球的選集"
+msgstr "變幻球的集盒"
 
 
 msgid "Main Movie Clips"
@@ -2050,7 +2401,7 @@ msgstr "主要影片剪輯"
 
 
 msgid "Collection of movie clips"
-msgstr "影片剪輯的選集"
+msgstr "影片剪輯的集盒"
 
 
 msgid "Main Node Trees"
@@ -2058,7 +2409,7 @@ msgstr "主要節點樹"
 
 
 msgid "Collection of node trees"
-msgstr "節點樹的選集"
+msgstr "節點樹的集盒"
 
 
 msgid "Main Objects"
@@ -2066,7 +2417,7 @@ msgstr "主要物體"
 
 
 msgid "Collection of objects"
-msgstr "物體的選集"
+msgstr "物體的集盒"
 
 
 msgid "Main Paint Curves"
@@ -2074,7 +2425,7 @@ msgstr "主要繪製曲線"
 
 
 msgid "Collection of paint curves"
-msgstr "繪製曲線的選集"
+msgstr "繪製曲線的集盒"
 
 
 msgid "Main Palettes"
@@ -2082,7 +2433,7 @@ msgstr "主要色版"
 
 
 msgid "Collection of palettes"
-msgstr "色版的選集"
+msgstr "色版的集盒"
 
 
 msgid "Main Particle Settings"
@@ -2090,7 +2441,7 @@ msgstr "主要粒子設定"
 
 
 msgid "Collection of particle settings"
-msgstr "粒子設定的選集"
+msgstr "粒子設定的集盒"
 
 
 msgid "Main Light Probes"
@@ -2098,7 +2449,7 @@ msgstr "主要光照探子"
 
 
 msgid "Collection of light probes"
-msgstr "光照探子的選集"
+msgstr "光照探子的集盒"
 
 
 msgid "Main Scenes"
@@ -2106,7 +2457,7 @@ msgstr "主要場景"
 
 
 msgid "Collection of scenes"
-msgstr "場景的選集"
+msgstr "場景的集盒"
 
 
 msgid "Main Screens"
@@ -2114,7 +2465,7 @@ msgstr "主要螢幕"
 
 
 msgid "Collection of screens"
-msgstr "螢幕的選集"
+msgstr "螢幕的集盒"
 
 
 msgid "Main Sounds"
@@ -2122,7 +2473,7 @@ msgstr "主要音效"
 
 
 msgid "Collection of sounds"
-msgstr "聲音的選集"
+msgstr "聲音的集盒"
 
 
 msgid "Main Speakers"
@@ -2130,7 +2481,7 @@ msgstr "主要喇叭"
 
 
 msgid "Collection of speakers"
-msgstr "喇叭的選集"
+msgstr "喇叭的集盒"
 
 
 msgid "Main Texts"
@@ -2138,7 +2489,7 @@ msgstr "主要文字"
 
 
 msgid "Collection of texts"
-msgstr "文字的選集"
+msgstr "文字的集盒"
 
 
 msgid "Main Textures"
@@ -2146,7 +2497,7 @@ msgstr "主要紋理"
 
 
 msgid "Collection of textures"
-msgstr "紋理的選集"
+msgstr "紋理的集盒"
 
 
 msgid "Main Volumes"
@@ -2154,7 +2505,7 @@ msgstr "主要音量"
 
 
 msgid "Collection of volumes"
-msgstr "音量選集"
+msgstr "音量集盒"
 
 
 msgid "Main Window Managers"
@@ -2162,7 +2513,7 @@ msgstr "主要視窗管理器"
 
 
 msgid "Collection of window managers"
-msgstr "視窗管理器選集"
+msgstr "視窗管理器集盒"
 
 
 msgid "Main Workspaces"
@@ -2170,7 +2521,7 @@ msgstr "主要工作空間"
 
 
 msgid "Collection of workspaces"
-msgstr "工作空間的選集"
+msgstr "工作空間的集盒"
 
 
 msgid "Main Worlds"
@@ -2178,7 +2529,7 @@ msgstr "主要世界"
 
 
 msgid "Collection of worlds"
-msgstr "世界的選集"
+msgstr "世界的集盒"
 
 
 msgid "Blender RNA"
@@ -2662,7 +3013,7 @@ msgstr "體積"
 
 
 msgid "Bone in an Armature data-block"
-msgstr "骨架資料塊內的骨骼"
+msgstr "骨架數據組塊內的骨骼"
 
 
 msgid "X-axis handle offset for start of the B-Bone's curve, adjusts curvature"
@@ -2702,7 +3053,7 @@ msgstr "自動"
 
 
 msgid "Absolute"
-msgstr "絕對"
+msgstr "絕對值"
 
 
 msgid "Relative"
@@ -2751,6 +3102,14 @@ msgstr "B-骨骼始端控制桿縮放"
 
 msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it"
 msgstr "將始端控制桿的局部縮放值與 B 骨骼的縮放輸入頻道相乘。這是在縮放緩和選項之後計算所以不受其影響"
+
+
+msgid "Straight"
+msgstr "直出"
+
+
+msgid "Curved"
+msgstr "曲線式"
 
 
 msgid "Roll In"
@@ -2977,10 +3336,6 @@ msgid "Bone inherits rotation or scale from parent bone"
 msgstr "骨骼繼承親代骨骼的旋轉或縮放"
 
 
-msgid "DEPRECATED: Bone inherits scaling from parent bone"
-msgstr "過期棄用選項: 繼承親代骨骼的縮放"
-
-
 msgid "Local Location"
 msgstr "區域位置"
 
@@ -3011,10 +3366,6 @@ msgstr "骨骼"
 
 msgid "Visible"
 msgstr "可見"
-
-
-msgid "Custom"
-msgstr "自訂"
 
 
 msgid "Bool Attribute Value"
@@ -3153,12 +3504,32 @@ msgid "Count"
 msgstr "計數"
 
 
+msgid "Curve Length"
+msgstr "曲線長度"
+
+
+msgid "Length of newly added curves when it is not interpolated from other curves"
+msgstr "未從其他曲線進行插值時新添加的曲線其長度"
+
+
 msgid "Remove"
 msgstr "移除"
 
 
+msgid "Use length of the curves in close proximity"
+msgstr "使用接近的曲線長度"
+
+
 msgid "Minimum Distance"
 msgstr "最小距離"
+
+
+msgid "Minimum Length"
+msgstr "最小長度"
+
+
+msgid "Avoid shrinking curves shorter than this length"
+msgstr "避免收縮曲線小於此長度"
 
 
 msgid "Grow or shrink curves by changing their size uniformly instead of using trimming or extrapolation"
@@ -3189,6 +3560,10 @@ msgid "Active"
 msgstr "作用中"
 
 
+msgid "Use current mode"
+msgstr "使用目前模式"
+
+
 msgid "Material"
 msgstr "材質"
 
@@ -3205,8 +3580,18 @@ msgid "Use always Vertex Color mode"
 msgstr "啟用恆用頂點色彩模式"
 
 
+msgctxt "GPencil"
+msgid "Caps Type"
+msgstr "蓋帽類型"
+
+
 msgid "The shape of the start and end of the stroke"
 msgstr "筆觸的啟始及結束的形狀"
+
+
+msgctxt "GPencil"
+msgid "Round"
+msgstr "圓"
 
 
 msgid "Random Curve"
@@ -3279,10 +3664,6 @@ msgstr "填充反轉區域"
 
 msgid "Mode to draw boundary limits"
 msgstr "繪製邊緣限制的模式"
-
-
-msgid "All"
-msgstr "全部"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -3501,6 +3882,10 @@ msgid "Use tablet pressure for jitter"
 msgstr "啟用繪圖板壓力控制抖動"
 
 
+msgid "Keep caps"
+msgstr "保留蓋帽"
+
+
 msgid "Keep material assigned to brush"
 msgstr "保留指定給筆刷的材質"
 
@@ -3610,7 +3995,7 @@ msgstr "物體路徑"
 
 
 msgid "Collection of object paths"
-msgstr "物體路徑的集合"
+msgstr "物體路徑的集盒"
 
 
 msgid "Background Image"
@@ -3762,11 +4147,11 @@ msgstr "背景影像"
 
 
 msgid "Collection of background images"
-msgstr "背景影像的集合"
+msgstr "背景影像的集盒"
 
 
 msgid "Depth of Field"
-msgstr "景深"
+msgstr "場域的深度"
 
 
 msgid "Blades"
@@ -3906,7 +4291,7 @@ msgstr "布料自身碰撞以及與其他物體碰撞的模擬設定"
 
 
 msgid "Collision Collection"
-msgstr "碰撞集合"
+msgstr "碰撞集盒"
 
 
 msgid "Collision Quality"
@@ -4662,7 +5047,7 @@ msgstr "差集"
 
 
 msgid "Divide"
-msgstr "劃分"
+msgstr "除"
 
 
 msgid "Brightness"
@@ -4758,7 +5143,7 @@ msgstr "基數"
 
 
 msgid "B-Spline"
-msgstr "B 樣條"
+msgstr "B 雲形線"
 
 
 msgid "Constant"
@@ -5031,7 +5416,7 @@ msgstr "查詢外部檔案中的變換矩陣"
 
 
 msgid "Clamp To"
-msgstr "緊固至"
+msgstr "限定至"
 
 
 msgid "Restrict movements to lie along a curve by remapping location along curve's longest axis"
@@ -5063,7 +5448,7 @@ msgstr "沿指定 (「鎖定」) 軸旋轉以指向目標"
 
 
 msgid "Spline IK"
-msgstr "樣條 IK"
+msgstr "雲形線 IK"
 
 
 msgid "Align chain of bones along a curve (Bones only)"
@@ -5351,7 +5736,7 @@ msgstr "使用親代的 Z 軸縮放"
 
 
 msgid "Clamp To Constraint"
-msgstr "緊固至約束"
+msgstr "限定至約束"
 
 
 msgid "Constrain an object's location to the nearest point along the target path"
@@ -5387,7 +5772,7 @@ msgstr "循環"
 
 
 msgid "Treat curve as cyclic curve (no clamping to curve bounding box)"
-msgstr "將曲線視為循環曲線 (不會緊固至曲線邊界盒)"
+msgstr "將曲線視為循環曲線 (不會限定至曲線邊界盒)"
 
 
 msgid "Copy Location Constraint"
@@ -6107,15 +6492,15 @@ msgstr "Python 約束"
 
 
 msgid "Use Python script for constraint evaluation"
-msgstr "使用 Python 指令稿來評估約束"
+msgstr "使用 Python 命令稿來評估約束"
 
 
 msgid "Script Error"
-msgstr "指令稿錯誤"
+msgstr "命令稿錯誤"
 
 
 msgid "The linked Python script has thrown an error"
-msgstr "連結的 Python 指令稿拋出錯誤"
+msgstr "連結的 Python 命令稿拋出錯誤"
 
 
 msgid "Number of Targets"
@@ -6127,11 +6512,11 @@ msgstr "目標物體"
 
 
 msgid "Script"
-msgstr "指令稿"
+msgstr "命令稿"
 
 
 msgid "The text object that contains the Python script"
-msgstr "包含 Python 指令稿的文字物體"
+msgstr "包含 Python 命令稿的文字物體"
 
 
 msgid "Use Targets"
@@ -6239,7 +6624,7 @@ msgstr "將位置收縮至最近的目標頂點"
 
 
 msgid "Spline IK Constraint"
-msgstr "樣條 IK 約束"
+msgstr "雲形線 IK 約束"
 
 
 msgid "Align 'n' bones along a curve"
@@ -6275,7 +6660,7 @@ msgstr "體積變化平滑度"
 
 
 msgid "Strength of volume stretching clamping"
-msgstr "體積拉伸的緊固強度"
+msgstr "體積拉伸的限定強度"
 
 
 msgid "How many bones are included in the chain"
@@ -6734,6 +7119,10 @@ msgid "Detect Corners"
 msgstr "偵測角落"
 
 
+msgid "Absolute Offset"
+msgstr "絕對值偏移"
+
+
 msgid "Index"
 msgstr "索引"
 
@@ -6747,7 +7136,7 @@ msgstr "直線邊緣樣本"
 
 
 msgid "Active Spline"
-msgstr "作用中樣條"
+msgstr "作用中雲形線"
 
 
 msgid "Dash"
@@ -7071,7 +7460,7 @@ msgstr "ID 塊表示來源資料，通常是 ID_SCE (例如：場景)"
 
 
 msgid "Sort Data-Blocks"
-msgstr "排序資料塊"
+msgstr "排序數據組塊"
 
 
 msgid "Invert"
@@ -7087,7 +7476,7 @@ msgstr "表述式"
 
 
 msgid "Expression to use for Scripted Expression"
-msgstr "用作指令稿表述的表述式"
+msgstr "用作命令稿表述的表述式"
 
 
 msgid "Invalid"
@@ -7111,7 +7500,7 @@ msgstr "和值"
 
 
 msgid "Scripted Expression"
-msgstr "指令稿表述"
+msgstr "命令稿表述"
 
 
 msgid "Minimum Value"
@@ -7216,7 +7605,7 @@ msgstr "是否對驅動器變數來說是有效名稱"
 
 
 msgid "Name to use in scripted expressions/functions (no spaces or dots are allowed, and must start with a letter)"
-msgstr "在指令稿表述/函式中要使用的名稱 (不允許空格或點，必須以英文字母開頭)"
+msgstr "在命令稿表述/函式中要使用的名稱 (不允許空格或點，必須以英文字母開頭)"
 
 
 msgid "Sources of input data for evaluating this variable"
@@ -7468,7 +7857,7 @@ msgstr "用來定義筆刷速度效應的色彩漸變"
 
 
 msgid "Clamp Waves"
-msgstr "緊固波形"
+msgstr "限定波形"
 
 
 msgid "Maximum level of surface intersection used to influence waves (use 0.0 to disable)"
@@ -7536,7 +7925,7 @@ msgstr "當色彩開始轉換至背景時的潮濕等級"
 
 
 msgid "Color Spread"
-msgstr "色彩渲染"
+msgstr "色彩擴散"
 
 
 msgid "How fast colors get mixed within wet paint"
@@ -7704,7 +8093,7 @@ msgstr "收縮效果在畫布表面上移動的速度有多快"
 
 
 msgid "Spread Speed"
-msgstr "渲染速度"
+msgstr "擴散速度"
 
 
 msgid "How fast spread effect moves on the canvas surface"
@@ -7800,7 +8189,7 @@ msgstr "處理收縮效果 (收縮繪製區域)"
 
 
 msgid "Use Spread"
-msgstr "使用渲染"
+msgstr "使用擴散"
 
 
 msgid "Process spread effect (spread wet paint around surface)"
@@ -8028,7 +8417,7 @@ msgstr "識別碼"
 
 
 msgid "Unique name used in the code and scripting"
-msgstr "在代碼與指令稿中使用的獨一名稱"
+msgstr "在代碼與命令稿中使用的獨一名稱"
 
 
 msgid "Human readable name"
@@ -8650,11 +9039,11 @@ msgstr "要使用的內建函式類型"
 
 
 msgid "Sine"
-msgstr "Sin"
+msgstr "正弦"
 
 
 msgid "Cosine"
-msgstr "Cos"
+msgstr "餘弦"
 
 
 msgid "Square Root"
@@ -8666,7 +9055,7 @@ msgstr "自然對數"
 
 
 msgid "Normalized Sine"
-msgstr "歸一化 Sine"
+msgstr "正弦歸一化"
 
 
 msgid "sin(x) / x"
@@ -8870,7 +9259,7 @@ msgstr "場域有效作用的最大距離"
 
 
 msgid "Falloff Power"
-msgstr "衰減能"
+msgstr "衰減力量"
 
 
 msgid "Cone"
@@ -9090,7 +9479,7 @@ msgstr "建立減緩運動用的外力"
 
 
 msgid "Radial field toward the center of object"
-msgstr "朝向物體中心的半徑場"
+msgstr "朝向物體中心的半徑場域"
 
 
 msgid "The source of this force field is the zero point of a harmonic oscillator"
@@ -9098,7 +9487,7 @@ msgstr "此力場的來源為諧振子的零點"
 
 
 msgid "Forcefield based on the Lennard-Jones potential"
-msgstr "基於蘭納瓊斯位能的力場"
+msgstr "基於 Lennard-Jones 位能( 勢 )的力場 ( 描述分子間的相互作用 )"
 
 
 msgid "Forcefield depends on the speed of the particles"
@@ -9210,7 +9599,7 @@ msgstr "字型"
 
 
 msgid "Show workspace data-blocks"
-msgstr "顯示工作空間資料塊"
+msgstr "顯示工作空間數據組塊"
 
 
 msgid "File Select Parameters"
@@ -9249,6 +9638,10 @@ msgid "Directory displayed in the file browser"
 msgstr "檔案瀏覽器中顯示的目錄"
 
 
+msgid "Medium"
+msgstr "中"
+
+
 msgid "Display Mode"
 msgstr "顯示模式"
 
@@ -9275,10 +9668,6 @@ msgstr "檔案瀏覽器中的作用中檔案"
 
 msgid "Extension Filter"
 msgstr "副檔名過濾器"
-
-
-msgid "Filter by name, supports '*' wildcard"
-msgstr "依名稱過濾，支援「*」萬用字符"
 
 
 msgid "Show hidden dot files"
@@ -9366,11 +9755,11 @@ msgstr "顯示影片檔案"
 
 
 msgid "Filter Script"
-msgstr "過濾指令稿"
+msgstr "過濾命令稿"
 
 
 msgid "Show script files"
-msgstr "顯示指令稿檔案"
+msgstr "顯示命令稿檔案"
 
 
 msgid "Filter Sound"
@@ -9451,6 +9840,10 @@ msgstr "色彩格線"
 
 msgid "Smoke color grid"
 msgstr "煙霧色彩網格"
+
+
+msgid "Field"
+msgstr "場域"
 
 
 msgid "Density Grid"
@@ -9601,6 +9994,10 @@ msgid "Randomness factor for particle sampling"
 msgstr "用於粒子採樣的隨機係數"
 
 
+msgid "Visualize vector fields"
+msgstr "視覺化向量場域"
+
+
 msgid "Delete"
 msgstr "刪除"
 
@@ -9639,6 +10036,10 @@ msgstr "頂"
 
 msgid "Dissolve Smoke"
 msgstr "煙霧消散"
+
+
+msgid "Fractional obstacles improve and smoothen the fluid-obstacle boundary"
+msgstr "分數障礙改善並平滑了流體障礙物邊界"
 
 
 msgid "Tracer"
@@ -9747,10 +10148,6 @@ msgstr "發射表面"
 
 msgid "Controls fluid emission from the mesh surface (higher value results in emission further away from the mesh surface"
 msgstr "控制來自網格表面的流體發射（較高的值會導致發射離網格表面更遠）"
-
-
-msgid "Temp. Diff."
-msgstr "溫差"
 
 
 msgid "Temperature difference to ambient temperature"
@@ -10146,7 +10543,7 @@ msgstr "樣式模組"
 
 
 msgid "Python script to define a style module"
-msgstr "定義樣式模組的 Python 指令稿"
+msgstr "定義樣式模組的 Python 命令稿"
 
 
 msgid "Use"
@@ -10266,7 +10663,7 @@ msgstr "蠟筆框幀"
 
 
 msgid "Collection of related sketches on a particular frame"
-msgstr "特定框幀上的相關草圖集合"
+msgstr "特定框幀上的相關草圖集盒"
 
 
 msgid "Frame Number"
@@ -10314,7 +10711,7 @@ msgstr "蠟筆框幀"
 
 
 msgid "Collection of grease pencil frames"
-msgstr "新蠟筆框幀的集合"
+msgstr "新蠟筆框幀的集盒"
 
 
 msgid "Grease Pencil Interpolate Settings"
@@ -10326,7 +10723,7 @@ msgstr "蠟筆分層"
 
 
 msgid "Collection of related sketches"
-msgstr "相關草圖的集合"
+msgstr "相關草圖的集盒"
 
 
 msgid "Active Frame"
@@ -10465,10 +10862,6 @@ msgid "Grease Pencil Masking Layers"
 msgstr "蠟筆遮罩圖層"
 
 
-msgid "Layer"
-msgstr "層"
-
-
 msgid "Spacing"
 msgstr "間隔"
 
@@ -10535,6 +10928,11 @@ msgstr "2D 影像"
 
 msgid "Stroke is in 2D-space (but with special 'image' scaling)"
 msgstr "筆觸位於 2D 空間 (但含有特殊「影像」縮放)"
+
+
+msgctxt "GPencil"
+msgid "Rounded"
+msgstr "圓形的"
 
 
 msgid "Stroke Points"
@@ -11123,6 +11521,78 @@ msgid "Display lines rather than filled shapes"
 msgstr "顯示線條而不是上色的形狀"
 
 
+msgid "Brush"
+msgstr "筆刷"
+
+
+msgid "Font"
+msgstr "字型"
+
+
+msgid "Key"
+msgstr "鍵"
+
+
+msgid "Library"
+msgstr "藏庫"
+
+
+msgid "Light"
+msgstr "光照"
+
+
+msgid "Mask"
+msgstr "遮罩"
+
+
+msgid "Mesh"
+msgstr "網格"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Node Tree"
+msgstr "節點樹"
+
+
+msgid "Paint Curve"
+msgstr "繪製曲線"
+
+
+msgid "Palette"
+msgstr "色版"
+
+
+msgid "Particle"
+msgstr "粒子"
+
+
+msgid "Sound"
+msgstr "聲音"
+
+
+msgid "Speaker"
+msgstr "喇叭"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Window Manager"
+msgstr "視窗管理器"
+
+
+msgid "Workspace"
+msgstr "工作空間"
+
+
+msgid "World"
+msgstr "世界"
+
+
 msgid "Is Indirect"
 msgstr "為間接"
 
@@ -11131,12 +11601,8 @@ msgid "Is this ID block linked indirectly"
 msgstr "此 ID 塊是否間接連結"
 
 
-msgid "Library"
-msgstr "藏庫"
-
-
 msgid "Library file the data-block is linked from"
-msgstr "與資料塊連結的藏庫檔案"
+msgstr "與數據組塊連結的藏庫檔案"
 
 
 msgid "Tag"
@@ -11152,7 +11618,7 @@ msgstr "使用者"
 
 
 msgid "A collection of F-Curves for animation"
-msgstr "動畫的 F 曲線集合"
+msgstr "動畫的 F 曲線集盒"
 
 
 msgid "F-Curves"
@@ -11189,7 +11655,7 @@ msgstr "姿態標記"
 
 
 msgid "Markers specific to this action, for labeling poses"
-msgstr "此動作的特定標記，用來為姿勢加上標籤"
+msgstr "此動作的特定標註，用來為姿勢加上標籤"
 
 
 msgid "Octahedral"
@@ -11213,7 +11679,7 @@ msgstr "B 骨骼"
 
 
 msgid "Display bones as boxes, showing subdivision and B-Splines"
-msgstr "將骨骼顯示為方塊，顯示其細分與 B 樣條"
+msgstr "將骨骼顯示為方塊，顯示其細分與 B 雲形線"
 
 
 msgid "Display bones as extruded spheres, showing deformation influence volume"
@@ -11225,7 +11691,7 @@ msgstr "線"
 
 
 msgid "Display bones as thin wires, showing subdivision and B-Splines"
-msgstr "將骨骼顯示為細線，顯示其細分與 B 樣條"
+msgstr "將骨骼顯示為細線，顯示其細分與 B 雲形線"
 
 
 msgid "Edit Bones"
@@ -11457,7 +11923,7 @@ msgstr "重復"
 
 
 msgid "Clamp"
-msgstr "緊固"
+msgstr "限定"
 
 
 msgid "Brush Height"
@@ -11482,10 +11948,6 @@ msgstr "繪製時抖動筆刷的位置"
 
 msgid "Jitter the position of the brush in pixels while painting"
 msgstr "繪製時抖動筆刷的位置，單位為像素"
-
-
-msgid "Brush"
-msgstr "筆刷"
 
 
 msgid "Mask Stencil Dimensions"
@@ -11520,10 +11982,6 @@ msgid "Normal Weight"
 msgstr "法線權重"
 
 
-msgid "Paint Curve"
-msgstr "繪製曲線"
-
-
 msgid "Plane Offset"
 msgstr "平面偏移"
 
@@ -11549,7 +12007,7 @@ msgstr "面集"
 
 
 msgid "Rake"
-msgstr "筆順走向"
+msgstr "走耙"
 
 
 msgid "Rate"
@@ -12037,7 +12495,7 @@ msgstr "3D 視圖中攝影機物體的外觀大小"
 
 
 msgid "Depth Of Field"
-msgstr "景深"
+msgstr "場域的深度"
 
 
 msgid "Field of view for the fisheye lens"
@@ -12289,7 +12747,7 @@ msgstr "選取 2D 或 3D 曲線類型"
 
 
 msgid "Clamp the Z axis of the curve"
-msgstr "緊固曲線的 Z 軸"
+msgstr "限定曲線的 Z 軸"
 
 
 msgid "Allow editing on the Z axis of this curve, also allows tilt and curve radius to be used"
@@ -12337,11 +12795,11 @@ msgstr "解析度 V"
 
 
 msgid "Splines"
-msgstr "樣條"
+msgstr "雲形線"
 
 
 msgid "Collection of splines in this curve data object"
-msgstr "此曲線資料物體中樣條的集合"
+msgstr "此曲線資料物體中雲形線的集盒"
 
 
 msgid "Taper Object"
@@ -12401,11 +12859,11 @@ msgstr "變換物體時自動調整作用中物體的紋理空間"
 
 
 msgid "Bounds Clamp"
-msgstr "邊界緊固"
+msgstr "邊界限定"
 
 
 msgid "Option for curve-deform: Use the mesh bounds to clamp the deformation"
-msgstr "曲線變形的選項：使用網格邊界以緊固變形"
+msgstr "曲線變形的選項：使用網格邊界以限定變形"
 
 
 msgid "Fill Caps"
@@ -12504,10 +12962,6 @@ msgid "Curve deforming text object"
 msgstr "曲線變形文字物體"
 
 
-msgid "Font"
-msgstr "字型"
-
-
 msgid "Font Bold"
 msgstr "字型粗體"
 
@@ -12521,7 +12975,43 @@ msgstr "字型斜體"
 
 
 msgid "Text Selected"
-msgstr "選取的文字"
+msgstr "選取了文字"
+
+
+msgid "Whether there is any text selected"
+msgstr "是否有選取任何文字"
+
+
+msgid "Selected Bold"
+msgstr "選取了粗體"
+
+
+msgid "Whether the selected text is bold"
+msgstr "選取的文字是否是粗體"
+
+
+msgid "Selected Italic"
+msgstr "選取了斜體"
+
+
+msgid "Whether the selected text is italics"
+msgstr "選取的文字是否是斜體"
+
+
+msgid "Selected Small Caps"
+msgstr "選取了小型大寫字"
+
+
+msgid "Whether the selected text is small caps"
+msgstr "選取的文字是否是小型大寫字"
+
+
+msgid "Selected Underline"
+msgstr "選取了底線"
+
+
+msgid "Whether the selected text is underlined"
+msgstr "選取的文字是否有底線"
 
 
 msgid "X Offset"
@@ -12605,7 +13095,7 @@ msgstr "Freestyle 線條樣式"
 
 
 msgid "Freestyle line style, reusable by multiple line sets"
-msgstr "Freesyle 樣條樣式，可被多種線條集重復使用"
+msgstr "Freesyle 雲形線樣式，可被多種線條集重復使用"
 
 
 msgid "Active Texture"
@@ -12850,10 +13340,6 @@ msgstr "鏈接的選取其最小曲線構成 2D 長度"
 
 msgid "If true, chains of feature edges are split at material boundaries"
 msgstr "若為真，特徵邊線的鏈接會在材質邊界處被分割"
-
-
-msgid "Node Tree"
-msgstr "節點樹"
 
 
 msgid "Node tree for node-based shaders"
@@ -13202,10 +13688,6 @@ msgstr "筆觸編輯模式"
 
 msgid "Alpha Mode"
 msgstr "Alpha 模式"
-
-
-msgid "Straight"
-msgstr "直出"
 
 
 msgid "Premultiplied"
@@ -13565,7 +14047,7 @@ msgstr "卡特姆-羅姆"
 
 
 msgid "BSpline"
-msgstr "B 樣條"
+msgstr "B 雲形線"
 
 
 msgid "Interpolation Type V"
@@ -13658,6 +14140,11 @@ msgid "Directional area light source"
 msgstr "定向區域光源"
 
 
+msgctxt "Light"
+msgid "Power"
+msgstr "次方"
+
+
 msgid "Shadow Buffer Bias"
 msgstr "陰影緩衝偏差"
 
@@ -13715,11 +14202,11 @@ msgstr "投射方形聚光外形"
 
 
 msgid "Clamp Direct"
-msgstr "緊固直接"
+msgstr "限定直接"
 
 
 msgid "Clamp Indirect"
-msgstr "緊固間接"
+msgstr "限定間接"
 
 
 msgid "Resolution X"
@@ -13739,7 +14226,7 @@ msgstr "減少變異陰影映射光出血的偏差"
 
 
 msgid "Mask data-block defining mask for compositing"
-msgstr "遮罩資料塊用來定義合成用的遮罩"
+msgstr "遮罩數據組塊用來定義合成用的遮罩"
 
 
 msgid "Active Shape Index"
@@ -13759,7 +14246,7 @@ msgstr "遮罩的第一幀 (用於序段編輯器)"
 
 
 msgid "Collection of layers which defines this mask"
-msgstr "定義此遮罩的層集合"
+msgstr "定義此遮罩的層集盒"
 
 
 msgid "Blend Mode for Transparent Faces"
@@ -13784,6 +14271,18 @@ msgstr "漫射色彩"
 
 msgid "Diffuse color of the material"
 msgstr "材質的漫射色彩"
+
+
+msgid "Displacement Method"
+msgstr "錯置方法"
+
+
+msgid "Method to use for the displacement"
+msgstr "錯置所要使用的方法"
+
+
+msgid "Bump mapping to simulate the appearance of displacement"
+msgstr "凹凸映射處理可模擬錯置的外觀"
 
 
 msgid "Grease Pencil Settings"
@@ -13850,6 +14349,10 @@ msgid "Cloth"
 msgstr "布料"
 
 
+msgid "Refraction Depth"
+msgstr "折射深度"
+
+
 msgid "Roughness"
 msgstr "粗糙度"
 
@@ -13902,8 +14405,12 @@ msgid "Use shader nodes to render the material"
 msgstr "使用著色器節點來算繪材質"
 
 
-msgid "Auto Smooth Angle"
-msgstr "自動平滑角"
+msgid "Transparent Shadows"
+msgstr "透明陰影"
+
+
+msgid "Fast"
+msgstr "快速"
 
 
 msgid "Edges"
@@ -13994,10 +14501,6 @@ msgid "Selected vertex count in editmode"
 msgstr "編輯模式中所選頂點的計數"
 
 
-msgid "Auto Smooth"
-msgstr "自動平滑"
-
-
 msgid "Topology Mirror"
 msgstr "拓撲鏡像"
 
@@ -14020,14 +14523,6 @@ msgstr "選取繪圖遮罩處理的面"
 
 msgid "Vertex Selection"
 msgstr "頂點選取項"
-
-
-msgid "Preserve Face Sets"
-msgstr "保留面集"
-
-
-msgid "Keep the current Face Sets on the new mesh"
-msgstr "將目前面集保留於新網格上"
 
 
 msgid "UV loop layer to be used as cloning source"
@@ -14056,14 +14551,6 @@ msgstr "所有 UV 迴圈分層"
 
 msgid "Vertex Colors"
 msgstr "頂點色彩"
-
-
-msgid "Vertex Paint Mask"
-msgstr "頂點繪製遮罩"
-
-
-msgid "Vertex paint mask"
-msgstr "頂點繪製遮罩"
 
 
 msgid "Vertices"
@@ -14100,10 +14587,6 @@ msgstr "當編輯時，總是更新變幻球"
 
 msgid "While editing, update metaball in half resolution"
 msgstr "當編輯時，以一半的解析度更新變幻球"
-
-
-msgid "Fast"
-msgstr "快速"
 
 
 msgid "While editing, update metaball without polygonization"
@@ -14246,10 +14729,6 @@ msgid "High quality"
 msgstr "高品質"
 
 
-msgid "Medium"
-msgstr "中"
-
-
 msgid "Medium quality"
 msgstr "中品質"
 
@@ -14316,10 +14795,6 @@ msgstr "修改器"
 
 msgid "Tool"
 msgstr "工具"
-
-
-msgid "Mesh"
-msgstr "網格"
 
 
 msgid "Shader Node Tree"
@@ -15249,10 +15724,6 @@ msgid "Object Aligned"
 msgstr "物體對齊"
 
 
-msgid "Particle"
-msgstr "粒子"
-
-
 msgid "The size of the particles"
 msgstr "粒子的大小"
 
@@ -15522,7 +15993,7 @@ msgstr "將物體的全域座標系用於複本製作"
 
 
 msgid "Interpolate hair using B-Splines"
-msgstr "使用 B 樣條插補毛髮"
+msgstr "使用 B 雲形線插補毛髮"
 
 
 msgid "Use Modifier Stack"
@@ -15646,11 +16117,11 @@ msgstr "反轉距離模型"
 
 
 msgid "Inverse Clamped"
-msgstr "反轉緊固"
+msgstr "反轉限定"
 
 
 msgid "Inverse distance model with clamping"
-msgstr "帶緊固的反轉距離模型"
+msgstr "帶限定的反轉距離模型"
 
 
 msgid "Linear distance model"
@@ -15658,11 +16129,11 @@ msgstr "線性距離模型"
 
 
 msgid "Linear Clamped"
-msgstr "線性緊固"
+msgstr "線性限定"
 
 
 msgid "Linear distance model with clamping"
-msgstr "帶緊固的線性距離模型"
+msgstr "帶限定的線性距離模型"
 
 
 msgid "Doppler Factor"
@@ -16039,10 +16510,6 @@ msgid "Playback pitch of the sound"
 msgstr "回播聲音的音調"
 
 
-msgid "Sound"
-msgstr "聲音"
-
-
 msgid "How loud the sound is"
 msgstr "聲音有多大聲"
 
@@ -16084,7 +16551,7 @@ msgstr "目前文列索引"
 
 
 msgid "Index of current TextLine in TextLine collection"
-msgstr "TextLine 集合中目前 TextLine 的索引"
+msgstr "TextLine 集盒中目前 TextLine 的索引"
 
 
 msgid "Filename of the text file"
@@ -17063,8 +17530,12 @@ msgid "Offset the number of the frame to use in the animation"
 msgstr "在動畫中要使用的偏移幀數"
 
 
-msgid "Window Manager"
-msgstr "視窗管理器"
+msgid "MathVisProp"
+msgstr "統計表屬性"
+
+
+msgid "MathVisStatePropList"
+msgstr "統計表狀態屬性列表"
 
 
 msgid "Category"
@@ -17135,12 +17606,8 @@ msgid "Runtime state information about the VR session"
 msgstr "VR 作業階段的執行時期狀態資訊"
 
 
-msgid "Workspace"
-msgstr "工作空間"
-
-
 msgid "Workspace data-block, defining the working environment for the user"
-msgstr "工作空間資料塊，定義使用者的工作用環境"
+msgstr "工作空間數據組塊，定義使用者的工作用環境"
 
 
 msgid "Switch to this object mode when activating the workspace"
@@ -17152,7 +17619,7 @@ msgstr "工作空間的螢幕配置"
 
 
 msgid "World data-block describing the environment and ambient lighting of a scene"
-msgstr "描述環境與場景周遭光照的世界資料塊"
+msgstr "描述環境與場景周遭光照的世界數據組塊"
 
 
 msgid "Cycles World Settings"
@@ -17792,7 +18259,7 @@ msgstr "自動建立直線手柄"
 
 
 msgid "Auto Clamped"
-msgstr "自動緊固"
+msgstr "自動限定"
 
 
 msgid "Right Handle"
@@ -17856,7 +18323,7 @@ msgstr "鍵處理集的簡短描述"
 
 
 msgid "If this is set, the Keying Set gets a custom ID, otherwise it takes the name of the class used to define the Keying Set (for example, if the class name is \"BUILTIN_KSI_location\", and bl_idname is not set by the script, then bl_idname = \"BUILTIN_KSI_location\")"
-msgstr "如果這沒設定的話，鍵處理集會取得自訂 ID，否則它會採用定義鍵處理集的類別名稱 (舉例來說，如果類別名稱為「BUILTIN_KSI_location」，且尚未透過指令稿設定 bl_idname，那麼 bl_idname = \"BUILTIN_KSI_location\")"
+msgstr "如果這沒設定的話，鍵處理集會取得自訂 ID，否則它會採用定義鍵處理集的類別名稱 (舉例來說，如果類別名稱為「BUILTIN_KSI_location」，且尚未透過命令稿設定 bl_idname，那麼 bl_idname = \"BUILTIN_KSI_location\")"
 
 
 msgid "UI Name"
@@ -18063,6 +18530,14 @@ msgid "Base type to define alpha transparency modifiers"
 msgstr "定義 alpha 透明修改器的基礎類型"
 
 
+msgid "Modifier Name"
+msgstr "修改器名稱"
+
+
+msgid "Name of the modifier"
+msgstr "修改器的名稱"
+
+
 msgid "Along Stroke"
 msgstr "沿筆觸"
 
@@ -18097,14 +18572,6 @@ msgstr "使用線性映射"
 
 msgid "Use curve mapping"
 msgstr "使用曲線映射"
-
-
-msgid "Modifier Name"
-msgstr "修改器名稱"
-
-
-msgid "Name of the modifier"
-msgstr "修改器的名稱"
 
 
 msgid "Modifier Type"
@@ -18633,7 +19100,7 @@ msgstr "層的獨一名稱"
 
 
 msgid "Collection of splines which defines this layer"
-msgstr "定義此層的樣條其集合"
+msgstr "定義此層的雲形線其集盒"
 
 
 msgid "Calculate Holes"
@@ -18681,11 +19148,11 @@ msgstr "平面追蹤"
 
 
 msgid "Mask spline"
-msgstr "遮罩樣條"
+msgstr "遮罩雲形線"
 
 
 msgid "Single spline used for defining mask shape"
-msgstr "定義遮罩外形使用的單一樣條"
+msgstr "定義遮罩外形使用的單一雲形線"
 
 
 msgid "The method used for calculating the feather offset"
@@ -18701,15 +19168,15 @@ msgstr "計算羽毛偏移為第二個曲線"
 
 
 msgid "Collection of points"
-msgstr "點的集合"
+msgstr "點的集盒"
 
 
 msgid "Make this spline a closed loop"
-msgstr "讓這個樣條成為封閉的迴圈"
+msgstr "讓這個雲形線成為封閉的迴圈"
 
 
 msgid "Make this spline filled"
-msgstr "填補這個樣條"
+msgstr "填補這個雲形線"
 
 
 msgid "Self Intersection Check"
@@ -18725,15 +19192,15 @@ msgstr "權重插補"
 
 
 msgid "The type of weight interpolation for spline"
-msgstr "樣條的權重插補類型"
+msgstr "雲形線的權重插補類型"
 
 
 msgid "Mask Spline Point"
-msgstr "遮罩樣條點"
+msgstr "遮罩雲形線點"
 
 
 msgid "Single point in spline used for defining mask"
-msgstr "樣條中用於定義遮罩的單一點"
+msgstr "雲形線中用於定義遮罩的單一點"
 
 
 msgid "Feather Points"
@@ -18753,15 +19220,15 @@ msgstr "點的權重"
 
 
 msgid "Mask Spline UW Point"
-msgstr "遮罩樣條 UW 點"
+msgstr "遮罩雲形線 UW 點"
 
 
 msgid "Single point in spline segment defining feather"
-msgstr "樣條分段中定義羽毛的單一點"
+msgstr "雲形線分段中定義羽毛的單一點"
 
 
 msgid "U coordinate of point along spline segment"
-msgstr "點沿著樣條分段的 U 座標軸"
+msgstr "點沿著雲形線分段的 U 座標軸"
 
 
 msgid "Weight of feather point"
@@ -18802,10 +19269,6 @@ msgstr "混合筆觸係數"
 
 msgid "Scale Factor for Texture"
 msgstr "紋理縮放係數"
-
-
-msgid "Mask"
-msgstr "遮罩"
 
 
 msgid "Material slot in an object"
@@ -18853,6 +19316,10 @@ msgid "Show/Hide"
 msgstr "顯示/隱藏"
 
 
+msgid "Fractional Zoom"
+msgstr "關於分數縮放"
+
+
 msgid "Console"
 msgstr "主控臺"
 
@@ -18865,12 +19332,16 @@ msgid "Channel"
 msgstr "通道"
 
 
-msgid "Key"
-msgstr "鍵"
+msgid "Dope Sheet Channel"
+msgstr "律表通道"
 
 
 msgid "Snap"
 msgstr "吸附"
+
+
+msgid "Files"
+msgstr "檔案"
 
 
 msgid "Change Active Material"
@@ -18910,16 +19381,12 @@ msgid "Vertex Group Specials"
 msgstr "頂點群組特殊項"
 
 
-msgid "Text"
-msgstr "文字"
-
-
 msgid "Utilities"
 msgstr "效用"
 
 
 msgid "Math"
-msgstr "比對"
+msgstr "數學公式"
 
 
 msgid "Primitives"
@@ -18946,16 +19413,20 @@ msgid "Distort"
 msgstr "扭曲"
 
 
+msgid "Node"
+msgstr "節點"
+
+
 msgid "Attribute"
 msgstr "特性"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
 msgid "Instances"
 msgstr "實例化"
-
-
-msgid "Node"
-msgstr "節點"
 
 
 msgid "Node Color Specials"
@@ -18984,6 +19455,10 @@ msgstr "線條集特殊項"
 
 msgid "Effect Strip"
 msgstr "效果片段"
+
+
+msgid "Sequencer"
+msgstr "序段編輯器"
 
 
 msgid "Apply"
@@ -19122,16 +19597,8 @@ msgid "Select Similar"
 msgstr "選取相似者"
 
 
-msgid "Metaball"
-msgstr "變幻球"
-
-
 msgid "Hooks"
 msgstr "鉤"
-
-
-msgid "Light"
-msgstr "光照"
 
 
 msgid "Make Single User"
@@ -19655,7 +20122,7 @@ msgstr "柔體"
 
 
 msgid "Apply this and all preceding deformation modifiers on splines' points rather than on filled curve/surface"
-msgstr "套用這與所有前導的變形修改器於樣條的點上，而不是於填補的曲線/表面上"
+msgstr "套用這與所有前導的變形修改器於雲形線的點上，而不是於填補的曲線/表面上"
 
 
 msgid "Armature deformation modifier"
@@ -19871,11 +20338,11 @@ msgstr "圓邊線/頂點的分段數"
 
 
 msgid "Clamp Overlap"
-msgstr "緊固重疊"
+msgstr "限定重疊"
 
 
 msgid "Clamp the width to avoid overlap"
-msgstr "緊固寬度以避免重疊"
+msgstr "限定寬度以避免重疊"
 
 
 msgid "Vertex group name"
@@ -21010,10 +21477,6 @@ msgid "Show instances when particles are unborn"
 msgstr "當粒子未生出時顯示實體"
 
 
-msgid "World"
-msgstr "世界"
-
-
 msgid "Create instances from child particles"
 msgstr "從子代粒子建立實體"
 
@@ -21324,7 +21787,7 @@ msgstr "外殼的厚度"
 
 
 msgid "Offset clamp based on geometry scale"
-msgstr "根據幾何縮放偏移緊固"
+msgstr "根據幾何縮放偏移限定"
 
 
 msgid "Vertex Group Factor"
@@ -22207,7 +22670,7 @@ msgstr "作用中物體的索引"
 
 
 msgid "Collection of objects in this tracking data object"
-msgstr "此追蹤資料物體中的物體集合"
+msgstr "此追蹤資料物體中的物體集盒"
 
 
 msgid "Plane Tracks"
@@ -22463,7 +22926,7 @@ msgstr "物體的獨一名稱"
 
 
 msgid "Collection of plane tracks in this tracking data object"
-msgstr "此追蹤資料物體中的平面軌道集合"
+msgstr "此追蹤資料物體中的平面軌道集盒"
 
 
 msgid "Scale of object solution in camera space"
@@ -22471,7 +22934,7 @@ msgstr "在攝影機空間中物體解決方案的規模"
 
 
 msgid "Collection of tracks in this tracking data object"
-msgstr "此追蹤資料物體中的軌道集合"
+msgstr "此追蹤資料物體中的軌道集盒"
 
 
 msgid "Movie Tracking Plane Marker Data"
@@ -22511,7 +22974,7 @@ msgstr "標記"
 
 
 msgid "Collection of markers in track"
-msgstr "軌道中標記的集合"
+msgstr "軌道中標記的集盒"
 
 
 msgid "Unique name of track"
@@ -22527,7 +22990,7 @@ msgstr "自動鍵幀處理"
 
 
 msgid "Collection of solved cameras"
-msgstr "解算的攝影機集合"
+msgstr "解算的攝影機集盒"
 
 
 msgid "Movie tracking reconstruction data"
@@ -23111,7 +23574,7 @@ msgstr "獨演"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
-msgstr "NLA 軌道評估其自身 (例：作用中動作與相同動畫資料塊中的所有其他 NLA 軌道會被停用)"
+msgstr "NLA 軌道評估其自身 (例：作用中動作與相同動畫數據組塊中的所有其他 NLA 軌道會被停用)"
 
 
 msgid "NLA Track is locked"
@@ -24363,6 +24826,69 @@ msgid "Motion Blur"
 msgstr "運動模糊"
 
 
+msgctxt "NodeTree"
+msgid "Subtract"
+msgstr "減"
+
+
+msgctxt "NodeTree"
+msgid "Divide"
+msgstr "除"
+
+
+msgctxt "NodeTree"
+msgid "Power"
+msgstr "次方"
+
+
+msgctxt "NodeTree"
+msgid "Absolute"
+msgstr "絕對值"
+
+
+msgctxt "NodeTree"
+msgid "Sign"
+msgstr "符號"
+
+
+msgctxt "NodeTree"
+msgid "Compare"
+msgstr "比較"
+
+
+msgid "The integer part of A, removing fractional digits"
+msgstr "A 的整數部分，去除小數位"
+
+
+msgctxt "NodeTree"
+msgid "Fraction"
+msgstr "分數( 小數點後數值 )"
+
+
+msgid "The fraction part of A"
+msgstr "A 的小數點部分( 會在 0 ~ 1 之間循環 )"
+
+
+msgctxt "NodeTree"
+msgid "Sine"
+msgstr "正弦"
+
+
+msgctxt "NodeTree"
+msgid "Cosine"
+msgstr "餘弦"
+
+
+msgctxt "NodeTree"
+msgid "Arcsine"
+msgstr "反正弦"
+
+
+msgctxt "NodeTree"
+msgid "Arccosine"
+msgstr "反餘弦"
+
+
 msgid "Include alpha of second input in this operation"
 msgstr "將第二輸入的 alpha 內含於此操作"
 
@@ -24683,10 +25209,6 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "像素轉為模糊的最小速度 (用來將背景從前景分離出來)"
 
 
-msgid "Curved"
-msgstr "曲線式"
-
-
 msgid "Interpolate between frames in a Bezier curve, rather than linearly"
 msgstr "以貝茲曲線在框幀與框幀之間插補，而不是線性插補"
 
@@ -24723,6 +25245,10 @@ msgid "Anti-Alias Z"
 msgstr "抗鋸齒 Z"
 
 
+msgid "Boolean Math"
+msgstr "布林公式計算"
+
+
 msgid "Equal"
 msgstr "等於"
 
@@ -24749,6 +25275,10 @@ msgstr "大於"
 
 msgid "Input value used for unconnected socket"
 msgstr "用於未連接接口的輸入值"
+
+
+msgid "Accumulate Field"
+msgstr "累加場域"
 
 
 msgid "Component"
@@ -24779,8 +25309,16 @@ msgid "No interpolation (sample closest texel)"
 msgstr "無插補 (樣本最接近紋理)"
 
 
+msgid "Curve Handle Positions"
+msgstr "曲線控制棒位置"
+
+
 msgid "Edge Angle"
 msgstr "線角"
+
+
+msgid "Named Attribute"
+msgstr "具名的屬性"
 
 
 msgid "Merge by Distance"
@@ -24795,8 +25333,20 @@ msgid "Object Info"
 msgstr "物體資訊"
 
 
+msgid "Remove Named Attribute"
+msgstr "刪除具名屬性"
+
+
+msgid "Set the positions for the handles of Bézier curves"
+msgstr "設定貝茲曲線控制棒的位置"
+
+
 msgid "Z Up"
 msgstr "Z 向上"
+
+
+msgid "Store Named Attribute"
+msgstr "儲存並命名屬性"
 
 
 msgid "Subdivide Mesh"
@@ -24976,6 +25526,10 @@ msgid "Transform a texture by inverse mapping the texture coordinate"
 msgstr "藉反轉紋理座標映射以轉換紋理"
 
 
+msgid "Perform math operations"
+msgstr "執行數學公式運算"
+
+
 msgid "MixRGB"
 msgstr "混合RGB"
 
@@ -25053,7 +25607,7 @@ msgstr "位元組碼"
 
 
 msgid "Compile bytecode for shader script node"
-msgstr "為著色器指令稿節點編譯位元組碼"
+msgstr "為著色器命令稿節點編譯位元組碼"
 
 
 msgid "Bytecode Hash"
@@ -25065,15 +25619,15 @@ msgstr "編譯位元組碼的雜湊，作為快速品質檢驗之用"
 
 
 msgid "Shader script path"
-msgstr "著色器指令稿路徑"
+msgstr "著色器命令稿路徑"
 
 
 msgid "Script Source"
-msgstr "指令稿來源"
+msgstr "命令稿來源"
 
 
 msgid "Use internal text data-block"
-msgstr "使用內部文字資料塊"
+msgstr "使用內部文字數據組塊"
 
 
 msgid "Use external .osl or .oso file"
@@ -25081,7 +25635,7 @@ msgstr "使用外部 .osl 或 .oso 檔案"
 
 
 msgid "Internal shader script to define the shader"
-msgstr "內部著色器指令稿來定義著色器"
+msgstr "內部著色器命令稿來定義著色器"
 
 
 msgid "Auto Update"
@@ -25089,7 +25643,7 @@ msgstr "自動更新"
 
 
 msgid "Automatically update the shader when the .osl file changes (external scripts only)"
-msgstr "當 .osl 檔案更動時 (僅限外部指令稿) 自動更新著色器"
+msgstr "當 .osl 檔案更動時 (僅限外部命令稿) 自動更新著色器"
 
 
 msgid "Separate HSV"
@@ -25226,10 +25780,6 @@ msgstr "針對方塊投影，在一側與一側之間使用的混合量"
 
 msgid "Level of detail in the added turbulent noise"
 msgstr "添加的擾動噪訊詳細等級"
-
-
-msgid "Musgrave Texture"
-msgstr "馬斯格雷夫紋理"
 
 
 msgid "Object to take point data from"
@@ -25370,6 +25920,18 @@ msgstr "沿筆觸 UV"
 
 msgid "Use Tips"
 msgstr "使用提示"
+
+
+msgid "Vector Math"
+msgstr "數學公式 ( 向量 )"
+
+
+msgid "Perform vector math operation"
+msgstr "執行向量型數值的數學運算"
+
+
+msgid "The fraction part of A entry-wise"
+msgstr "A 的每個元素小數部分"
 
 
 msgid "Z Axis"
@@ -25682,10 +26244,6 @@ msgstr "虛擬節點接口"
 
 msgid "Virtual socket of a node"
 msgstr "節點的虛擬接口"
-
-
-msgid "Both"
-msgstr "兩者"
 
 
 msgid "Socket Type"
@@ -26546,10 +27104,6 @@ msgid "Insert Keyframe"
 msgstr "插入鍵幀"
 
 
-msgid "Insert keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "為所有指定鍵處理集中的屬性於目前框幀插入鍵幀"
-
-
 msgctxt "Operator"
 msgid "Insert Keyframe (Buttons)"
 msgstr "插入鍵幀 (按鈕)"
@@ -26679,19 +27233,6 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "對齊所選骨骼至作用中骨骼 (或至其親代)"
 
 
-msgctxt "Operator"
-msgid "Change Armature Layers"
-msgstr "更改骨架分層"
-
-
-msgid "Change the visible armature layers"
-msgstr "更改可見的骨架分層"
-
-
-msgid "Armature layers to make visible"
-msgstr "要設為可見的骨架分層"
-
-
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "根據其傾向的目標軸向自動重新命名所選骨骼"
 
@@ -26714,19 +27255,6 @@ msgstr "前/後"
 
 msgid "Top/Bottom"
 msgstr "頂/底"
-
-
-msgctxt "Operator"
-msgid "Change Bone Layers"
-msgstr "更改骨骼分層"
-
-
-msgid "Change the layers that the selected bones belong to"
-msgstr "更改所選骨骼所在的層"
-
-
-msgid "Armature layers that bone belongs to"
-msgstr "骨骼所屬的骨架分層"
 
 
 msgctxt "Operator"
@@ -26765,6 +27293,15 @@ msgstr "檢視軸"
 
 msgid "Create a new bone going from the last selected joint to the mouse position"
 msgstr "在上一個所選關節與滑鼠位置之間建立一段新骨骼"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "顯示全部"
+
+
+msgid "Pose Bone"
+msgstr "姿勢骨骼"
 
 
 msgctxt "Operator"
@@ -26853,19 +27390,6 @@ msgstr "未選取"
 
 msgid "Hide unselected rather than selected"
 msgstr "隱藏未選取項而不是選取項"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "顯示所有層"
-
-
-msgid "Make all armature layers visible"
-msgstr "讓所有骨架分層可以看見"
-
-
-msgid "Enable all layers or just the first 16 (top row)"
-msgstr "啟用所有層或僅前 16 層 (頭列)"
 
 
 msgctxt "Operator"
@@ -27821,10 +28345,6 @@ msgid "Load a sequence of frames or a movie file"
 msgstr "載入框幀序段或影片檔"
 
 
-msgid "Files"
-msgstr "檔案"
-
-
 msgid "Enable Multi-View"
 msgstr "啟用多重視圖"
 
@@ -28280,22 +28800,22 @@ msgstr "添加或移除布料預置"
 
 msgctxt "Operator"
 msgid "Create New Collection"
-msgstr "建立新的選集"
+msgstr "建立新的集盒"
 
 
 msgctxt "Operator"
 msgid "Add Selected to Active Collection"
-msgstr "添加所選項至作用中選集"
+msgstr "添加所選項至作用中集盒"
 
 
 msgctxt "Operator"
 msgid "Remove from Collection"
-msgstr "從選集中移除"
+msgstr "從集盒中移除"
 
 
 msgctxt "Operator"
 msgid "Remove Selected from Active Collection"
-msgstr "從作用中選集移除所選項"
+msgstr "從作用中集盒移除所選項"
 
 
 msgctxt "Operator"
@@ -28360,7 +28880,7 @@ msgstr "將所選文字複製到剪貼簿"
 
 
 msgid "Copy the console contents for use in a script"
-msgstr "複製主控臺內容以用於指令稿"
+msgstr "複製主控臺內容以用於命令稿"
 
 
 msgctxt "Operator"
@@ -28677,7 +29197,7 @@ msgstr "切換循環"
 
 
 msgid "Make active spline closed/opened loop"
-msgstr "讓作用中的樣條成為封閉/開放的循環"
+msgstr "讓作用中的雲形線成為封閉/開放的循環"
 
 
 msgid "Direction to make surface cyclic in"
@@ -28810,7 +29330,7 @@ msgstr "設定所選控制點的控制桿類型"
 
 
 msgid "Spline type"
-msgstr "樣條類型"
+msgstr "雲形線類型"
 
 
 msgid "Toggle Free/Align"
@@ -29067,11 +29587,11 @@ msgstr "全域視圖空間中的中心"
 
 msgctxt "Operator"
 msgid "Set Spline Type"
-msgstr "設定樣條類型"
+msgstr "設定雲形線類型"
 
 
 msgid "Set type of active spline"
-msgstr "設定作用中樣條的類型"
+msgstr "設定作用中雲形線的類型"
 
 
 msgid "Handles"
@@ -29096,7 +29616,7 @@ msgstr "細分所選分段"
 
 
 msgid "Switch direction of selected splines"
-msgstr "切換所選樣條的方向"
+msgstr "切換所選雲形線的方向"
 
 
 msgctxt "Operator"
@@ -29243,7 +29763,7 @@ msgstr "匯出攝影機與標記"
 
 
 msgid "Save a python script which re-creates cameras and markers elsewhere"
-msgstr "在其他地方儲存個可重新建立攝影機與標記的 Python 指令稿"
+msgstr "在其他地方儲存個可重新建立攝影機與標記的 Python 命令稿"
 
 
 msgid "Filepath used for exporting the file"
@@ -30228,6 +30748,10 @@ msgid "Default fill color"
 msgstr "預設填入色彩"
 
 
+msgid "Asset Library Identifier"
+msgstr "素材藏庫識別碼"
+
+
 msgctxt "Operator"
 msgid "Delete Active Frame"
 msgstr "刪除作用中框幀"
@@ -30517,6 +31041,11 @@ msgid "Recalculate internal geometry"
 msgstr "重新計算內部幾何結構"
 
 
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "顯示所有層"
+
+
 msgid "Name of the modifier to edit"
 msgstr "要編輯的修改器名稱"
 
@@ -30584,6 +31113,10 @@ msgstr "向下降一層"
 
 msgid "Send to Back"
 msgstr "降至最後層"
+
+
+msgid "Both"
+msgstr "兩者"
 
 
 msgid "Dissolve Points"
@@ -30882,6 +31415,10 @@ msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "劃下筆觸時將筆刷切換至光滑模式"
 
 
+msgid "Flat"
+msgstr "扁平"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "選取模式"
@@ -30980,6 +31517,10 @@ msgstr "開啟影像"
 
 msgid "Open image"
 msgstr "開啟影像"
+
+
+msgid "Allow the path to contain substitution tokens"
+msgstr "允許路徑包含替用代符"
 
 
 msgctxt "Operator"
@@ -31490,7 +32031,7 @@ msgstr "添加頂點"
 
 
 msgid "Add vertex to active spline"
-msgstr "添加頂點至作用中樣條"
+msgstr "添加頂點至作用中雲形線"
 
 
 msgctxt "Operator"
@@ -31507,11 +32048,11 @@ msgstr "添加頂點"
 
 
 msgid "Toggle cyclic for selected splines"
-msgstr "為選取的樣條切換循環"
+msgstr "為選取的雲形線切換循環"
 
 
 msgid "Delete selected control points or splines"
-msgstr "刪除所選的控制點或樣條"
+msgstr "刪除所選的控制點或雲形線"
 
 
 msgctxt "Operator"
@@ -31607,7 +32148,7 @@ msgstr "添加圓"
 
 
 msgid "Add new circle-shaped spline"
-msgstr "添加新的圓形樣條"
+msgstr "添加新的圓形雲形線"
 
 
 msgid "Location of new circle"
@@ -31624,11 +32165,11 @@ msgstr "添加方"
 
 
 msgid "Add new square-shaped spline"
-msgstr "添加新的方形樣條"
+msgstr "添加新的方形雲形線"
 
 
 msgid "Select spline points"
-msgstr "選取樣條點"
+msgstr "選取雲形線點"
 
 
 msgid "Change selection of all curve points"
@@ -31644,7 +32185,7 @@ msgstr "使用套索選取來選取曲線點"
 
 
 msgid "Deselect spline points at the boundary of each selection region"
-msgstr "取消選取每個選取區塊邊界處的樣條點"
+msgstr "取消選取每個選取區塊邊界處的雲形線點"
 
 
 msgid "Select all curve points linked to already selected ones"
@@ -31656,7 +32197,7 @@ msgstr "(取消)選取所有滑鼠游標下連結至曲線的點"
 
 
 msgid "Select more spline points connected to initial selection"
-msgstr "選取更多與初始選取內容相連接的樣條點"
+msgstr "選取更多與初始選取內容相連接的雲形線點"
 
 
 msgctxt "Operator"
@@ -31725,6 +32266,11 @@ msgstr "貼上材質"
 
 msgid "Paste the material settings and nodes"
 msgstr "貼上材質設定與節點"
+
+
+msgctxt "Operator"
+msgid "Cleanup Math Vis Console"
+msgstr "清理統計表主控台"
 
 
 msgid "Select similar metaballs by property types"
@@ -33500,10 +34046,6 @@ msgid "Remove original faces"
 msgstr "移除原始面"
 
 
-msgid "Channel Index"
-msgstr "通道索引"
-
-
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "同步動作長度"
@@ -33582,15 +34124,6 @@ msgstr "視覺鍵處理"
 
 msgid "Keyframe from the final transformations (with constraints applied)"
 msgstr "最終變換的鍵幀 (含套用約束)"
-
-
-msgctxt "Operator"
-msgid "Mouse Click on NLA Channels"
-msgstr "對 NLA 通道的滑鼠點擊"
-
-
-msgid "Handle clicks to select NLA channels"
-msgstr "將滑鼠點擊處理為選取 NLA 通道"
 
 
 msgctxt "Operator"
@@ -34302,11 +34835,11 @@ msgstr "啟動並檢視相同的節點類型，一步接一步"
 
 msgctxt "Operator"
 msgid "Script Node Update"
-msgstr "指令稿節點更新"
+msgstr "命令稿節點更新"
 
 
 msgid "Update shader script node with new sockets and options from the script"
-msgstr "以指令稿中的新接口與選項更新著色器指令稿節點"
+msgstr "以命令稿中的新接口與選項更新著色器命令稿節點"
 
 
 msgctxt "Operator"
@@ -34433,7 +34966,7 @@ msgstr "向添加一個攝影機物體至場景中"
 
 msgctxt "Operator"
 msgid "Link to Collection"
-msgstr "連結至選集"
+msgstr "連結至集盒"
 
 
 msgctxt "Operator"
@@ -34782,7 +35315,7 @@ msgstr "子集"
 
 
 msgid "Link objects to a collection"
-msgstr "將物體連結至選集"
+msgstr "將物體連結至集盒"
 
 
 msgctxt "Operator"
@@ -35496,11 +36029,11 @@ msgstr "計算相對位置 (使用邊線)"
 
 
 msgid "Clamp Offset"
-msgstr "緊固偏移"
+msgstr "限定偏移"
 
 
 msgid "Clamp the transformation to the distance each vertex moves in the original shape"
-msgstr "將變換緊固至每個頂點在原始外形中移動的該距離"
+msgstr "將變換限定至每個頂點在原始外形中移動的該距離"
 
 
 msgctxt "Operator"
@@ -35973,7 +36506,7 @@ msgstr "展開/折疊所有項目"
 
 msgctxt "Operator"
 msgid "Delete Data-Block"
-msgstr "刪除資料塊"
+msgstr "刪除數據組塊"
 
 
 msgid "Unlink"
@@ -36523,10 +37056,6 @@ msgid "Remove active color from palette"
 msgstr "從色版中移除作用中色彩"
 
 
-msgid "Palette"
-msgstr "色版"
-
-
 msgctxt "Operator"
 msgid "Add New Palette"
 msgstr "添加新色版"
@@ -36888,82 +37417,6 @@ msgid "Copy Pose"
 msgstr "複製姿勢"
 
 
-msgctxt "Operator"
-msgid "Add Bone Group"
-msgstr "添加骨骼群組"
-
-
-msgid "Add a new bone group"
-msgstr "添加一個新的骨骼群組"
-
-
-msgctxt "Operator"
-msgid "Add Selected to Bone Group"
-msgstr "添加所選項至骨骼群組中"
-
-
-msgid "Add selected bones to the chosen bone group"
-msgstr "將所選骨骼添加至選擇的骨骼群組中"
-
-
-msgid "Bone Group Index"
-msgstr "骨骼群組索引"
-
-
-msgctxt "Operator"
-msgid "Deselect Bone Group"
-msgstr "取消選取骨骼群組"
-
-
-msgid "Deselect bones of active Bone Group"
-msgstr "取消選取作用中骨骼群組的骨骼"
-
-
-msgctxt "Operator"
-msgid "Move Bone Group"
-msgstr "移除骨骼群組"
-
-
-msgid "Change position of active Bone Group in list of Bone Groups"
-msgstr "於骨骼群組清單中更改作用中骨骼群組的位置"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Group"
-msgstr "移除骨骼群組"
-
-
-msgid "Remove the active bone group"
-msgstr "移除作用中骨骼群組"
-
-
-msgctxt "Operator"
-msgid "Select Bones of Bone Group"
-msgstr "選取骨骼群組中的骨骼"
-
-
-msgid "Select bones in active Bone Group"
-msgstr "選取作用中骨骼群組的骨骼"
-
-
-msgctxt "Operator"
-msgid "Sort Bone Groups"
-msgstr "排序骨骼群組"
-
-
-msgid "Sort Bone Groups by their names in ascending order"
-msgstr "依其名稱以遞增順序排序骨骼群組"
-
-
-msgctxt "Operator"
-msgid "Remove Selected from Bone Groups"
-msgstr "從骨骼群組刪除所選項"
-
-
-msgid "Remove selected bones from all bone groups"
-msgstr "從所有骨骼群組中移除所選骨骼"
-
-
 msgid "Tag selected bones to not be visible in Pose Mode"
 msgstr "標記所選的骨骼讓它在姿勢模式下看不見"
 
@@ -37168,10 +37621,6 @@ msgstr "選取要作為目前所選骨骼目標的骨骼"
 
 msgid "Select all visible bones grouped by similar properties"
 msgstr "選取所有以類似屬性為群組的可見骨骼"
-
-
-msgid "Shared group"
-msgstr "共享群組"
 
 
 msgid "All bones affected by active Keying Set"
@@ -37546,10 +37995,6 @@ msgstr "算繪來自此場景動畫範圍的檔案"
 
 msgid "Render Keyframes Only"
 msgstr "僅算繪鍵幀"
-
-
-msgid "Sequencer"
-msgstr "序段編輯器"
 
 
 msgid "Render using the sequencer's OpenGL display"
@@ -38462,7 +38907,7 @@ msgstr "執行 Python 檔案"
 
 msgctxt "Operator"
 msgid "Reload Scripts"
-msgstr "重新載入指令稿"
+msgstr "重新載入命令稿"
 
 
 msgctxt "Operator"
@@ -38589,10 +39034,6 @@ msgstr "亂數重置面集色彩"
 
 msgid "Generates a new set of random colors to render the Face Sets in the viewport"
 msgstr "在視接口中使用一組新的隨機色彩重設所有面集"
-
-
-msgid "Set the pivot position to the mask border after creating the mask"
-msgstr "在雕刻模式下設定樞紐點至建立的雕刻遮罩邊緣的中心"
 
 
 msgid "Smooth Mask"
@@ -38793,7 +39234,7 @@ msgstr "添加效果片段類型"
 
 msgctxt "Sequence"
 msgid "Subtract"
-msgstr "減去"
+msgstr "減"
 
 
 msgid "Subtract effect strip type"
@@ -39810,11 +40251,11 @@ msgstr "忽略"
 
 msgctxt "Operator"
 msgid "Run Script"
-msgstr "執行指令稿"
+msgstr "執行命令稿"
 
 
 msgid "Run active script"
-msgstr "執行作用中指令稿"
+msgstr "執行作用中命令稿"
 
 
 msgctxt "Operator"
@@ -40479,10 +40920,6 @@ msgid "Align"
 msgstr "對齊"
 
 
-msgid "Align selected UV vertices to an axis"
-msgstr "將已選取的 UV 頂點對齊某一軸"
-
-
 msgid "Axis to align UV locations on"
 msgstr "對齊 UV 位置的軸"
 
@@ -40491,48 +40928,16 @@ msgid "Straighten"
 msgstr "拉直"
 
 
-msgid "Align UVs along the line defined by the endpoints"
-msgstr "將 UV 沿端點定義的線對齊"
-
-
 msgid "Straighten X"
 msgstr "X 向拉直"
-
-
-msgid "Align UVs along the line defined by the endpoints along the X axis"
-msgstr "將 UV 於 X 軸沿端點定義的線對齊"
 
 
 msgid "Straighten Y"
 msgstr "Y 向拉直"
 
 
-msgid "Align UVs along the line defined by the endpoints along the Y axis"
-msgstr "將 UV 於 Y 軸沿端點定義的線對齊"
-
-
 msgid "Align Auto"
 msgstr "對齊自動"
-
-
-msgid "Automatically choose the axis on which there is most alignment already"
-msgstr "自動選擇目前最對齊的軸"
-
-
-msgid "Align X"
-msgstr "對齊 X"
-
-
-msgid "Align UVs on X axis"
-msgstr "對齊 UV 至 X 軸"
-
-
-msgid "Align Y"
-msgstr "對齊 Y"
-
-
-msgid "Align UVs on Y axis"
-msgstr "對齊 UV 至 Y 軸"
 
 
 msgid "Correct Aspect"
@@ -40675,10 +41080,6 @@ msgid "Export the UV layout to a vector SVG file"
 msgstr "將 UV 配置匯出至向量 SVG 檔案"
 
 
-msgid "Encapsulate PostScript (.eps)"
-msgstr "封裝 PostScript (.eps)"
-
-
 msgid "Export the UV layout to a vector EPS file"
 msgstr "將 UV 配置匯出至向量 EPS 檔案"
 
@@ -40689,10 +41090,6 @@ msgstr "PNG 影像 (.png)"
 
 msgid "Export the UV layout to a bitmap image"
 msgstr "將 UV 配置匯出至點陣圖影像"
-
-
-msgid "Modified"
-msgstr "已修改"
 
 
 msgid "Exports UVs from the modified mesh"
@@ -40801,6 +41198,10 @@ msgstr "打包島塊"
 
 msgid "Space between islands"
 msgstr "島塊間的空間"
+
+
+msgid "Fraction"
+msgstr "分數( 小數點後數值 )"
 
 
 msgctxt "Operator"
@@ -41588,7 +41989,7 @@ msgstr "從庫 .blend 檔案中連結或附加"
 
 
 msgid "Link the objects or data-blocks rather than appending"
-msgstr "連結對象或資料塊而非附加"
+msgstr "連結對象或數據組塊而非附加"
 
 
 msgid "Set \"Fake User\" for appended items (except objects and collections)"
@@ -41747,7 +42148,7 @@ msgstr "情境收集布林設定"
 
 
 msgid "Set boolean values for a collection of items"
-msgstr "為項目集合設定布林值"
+msgstr "為項目集盒設定布林值"
 
 
 msgctxt "Operator"
@@ -41882,7 +42283,7 @@ msgstr "設定藏庫 ID"
 
 
 msgid "Set a context value to an ID data-block"
-msgstr "將情境值設定給一 ID 資料塊"
+msgstr "將情境值設定給一 ID 數據組塊"
 
 
 msgctxt "Operator"
@@ -41956,7 +42357,7 @@ msgstr "Demo 模式 (設置)"
 
 
 msgid "Create a demo script and optionally execute it"
-msgstr "建立一個 demo 指令稿並選擇性執行它"
+msgstr "建立一個 demo 命令稿並選擇性執行它"
 
 
 msgid "Number of times to play the animation"
@@ -42101,7 +42502,7 @@ msgstr "信任的來源"
 
 
 msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "允許 .blend 檔自動執行指令稿，系統偏好設定中預設為可用"
+msgstr "允許 .blend 檔自動執行命令稿，系統偏好設定中預設為可用"
 
 
 msgctxt "Operator"
@@ -42152,15 +42553,15 @@ msgstr "批次生成預覽"
 
 msgctxt "Operator"
 msgid "Clear Data-Block Previews"
-msgstr "清除資料塊預覽"
+msgstr "清除數據組塊預覽"
 
 
 msgid "Clear data-block previews (only for some types like objects, materials, textures, etc.)"
-msgstr "清除資料塊預覽（僅適用一些類型，如物體、材質、紋理…等。）"
+msgstr "清除數據組塊預覽（僅適用一些類型，如物體、材質、紋理…等。）"
 
 
 msgid "Which data-block previews to clear"
-msgstr "要清除哪些資料塊預覽"
+msgstr "要清除哪些數據組塊預覽"
 
 
 msgid "All Types"
@@ -42168,12 +42569,12 @@ msgstr "全部類型"
 
 
 msgid "Clear previews for scenes, collections and objects"
-msgstr "清除場景、選集和物體的預覽"
+msgstr "清除場景、集盒和物體的預覽"
 
 
 msgctxt "Operator"
 msgid "Refresh Data-Block Previews"
-msgstr "重新整理資料塊預覽"
+msgstr "重新整理數據組塊預覽"
 
 
 msgctxt "Operator"
@@ -42200,10 +42601,6 @@ msgstr "情境"
 msgctxt "Operator"
 msgid "Edit Property"
 msgstr "編輯屬性"
-
-
-msgid "Speaker"
-msgstr "喇叭"
 
 
 msgid "Property Name"
@@ -43001,10 +43398,6 @@ msgid "Effects"
 msgstr "效果"
 
 
-msgid "Skeleton"
-msgstr "骨骼"
-
-
 msgid "Spot Shape"
 msgstr "聚光外形"
 
@@ -43117,6 +43510,14 @@ msgstr "波形"
 
 msgid "Freestyle Line"
 msgstr "Freestyle 線條"
+
+
+msgid "Math Vis"
+msgstr "統計表"
+
+
+msgid "Math Vis Console"
+msgstr "統計表控制台"
 
 
 msgid "Backdrop"
@@ -43315,10 +43716,6 @@ msgid "Timeline"
 msgstr "時間軸"
 
 
-msgid "Duplicate Data"
-msgstr "製作資料複本"
-
-
 msgid "New Objects"
 msgstr "新增物體"
 
@@ -43348,11 +43745,7 @@ msgstr "儲存偏好設定"
 
 
 msgid "Auto Run Python Scripts"
-msgstr "自動執行 Python 指令稿"
-
-
-msgid "Auto Save"
-msgstr "自動儲存"
+msgstr "自動執行 Python 命令稿"
 
 
 msgid "Bone Color Sets"
@@ -44261,7 +44654,7 @@ msgstr "物理模擬的點快取"
 
 
 msgid "A collection of pose channels, including settings for animating bones"
-msgstr "姿勢通道的集合，包括骨骼動畫的設定"
+msgstr "姿勢通道的集盒，包括骨骼動畫的設定"
 
 
 msgid "Pose Bones"
@@ -44290,10 +44683,6 @@ msgstr "自動 IK"
 
 msgid "Add temporary IK constraints while grabbing bones in Pose Mode"
 msgstr "當在姿勢模式中抓取骨骼時添加暫時 IK 約束"
-
-
-msgid "Pose Bone"
-msgstr "姿勢骨骼"
 
 
 msgid "Channel defining pose data for a bone in a Pose"
@@ -44865,7 +45254,7 @@ msgstr "手動儲存時，在目前目錄中要維護的舊版本數"
 
 
 msgid "Python Scripts Directory"
-msgstr "Python 指令稿目錄"
+msgstr "Python 命令稿目錄"
 
 
 msgid "Sounds Directory"
@@ -44905,7 +45294,7 @@ msgstr "載入 .blend 檔案時載入使用者介面設置"
 
 
 msgid "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)"
-msgstr "允許任意 .blend 檔均可自動執行指令稿 (如果 blend 檔來自未受信任的來源時將不安全)"
+msgstr "允許任意 .blend 檔均可自動執行命令稿 (如果 blend 檔來自未受信任的來源時將不安全)"
 
 
 msgid "Tabs as Spaces"
@@ -45078,6 +45467,10 @@ msgstr "使用滑鼠下的深度來改善視圖的搖鏡/旋轉/調焦功能"
 
 msgid "Emulate 3 Button Mouse"
 msgstr "模擬 3 鍵滑鼠"
+
+
+msgid "When entering numbers while transforming, default to advanced mode for full math expression evaluation"
+msgstr "在進行轉換時輸入數字，預設使用高級模式進行完整的表達式評估"
 
 
 msgid "Use selection as the pivot point"
@@ -45664,24 +46057,8 @@ msgid "Cast Shadow"
 msgstr "投射陰影"
 
 
-msgid "Displacement Method"
-msgstr "錯置方法"
-
-
-msgid "Method to use for the displacement"
-msgstr "錯置所要使用的方法"
-
-
-msgid "Bump mapping to simulate the appearance of displacement"
-msgstr "凹凸映射處理可模擬錯置的外觀"
-
-
 msgid "Homogeneous Volume"
 msgstr "同質體積"
-
-
-msgid "Transparent Shadows"
-msgstr "透明陰影"
 
 
 msgid "Volume Sampling"
@@ -45973,7 +46350,7 @@ msgstr "活躍語言"
 
 
 msgid "Index of active language in langs collection"
-msgstr "語言集合中活躍語言的索引"
+msgstr "語言集盒中活躍語言的索引"
 
 
 msgid "Whether these settings have already been auto-set or not"
@@ -46356,10 +46733,6 @@ msgid "The file extension used for saving renders"
 msgstr "用來儲存算繪器的檔案副檔名"
 
 
-msgid "Directory/name to save animations, # characters defines the position and length of frame numbers"
-msgstr "儲存動畫用的目錄/名稱，使用 # 字元來定義幀號的位置與長度"
-
-
 msgid "FPS"
 msgstr "FPS"
 
@@ -46721,7 +47094,7 @@ msgstr "算繪檢視"
 
 
 msgid "Collection of render views"
-msgstr "算繪檢視的選集"
+msgstr "算繪檢視的集盒"
 
 
 msgid "Active Render View"
@@ -47232,6 +47605,22 @@ msgid "Factor for ambient occlusion blending"
 msgstr "周遭遮擋其混合的係數"
 
 
+msgid "Refraction Trace Options"
+msgstr "折射追蹤選項"
+
+
+msgid "EEVEE settings for tracing refractions"
+msgstr "EEVEE 中用於追蹤折射的設定"
+
+
+msgid "Screen Space Refractions"
+msgstr "螢幕空間折射"
+
+
+msgid "Enable screen space Refractions"
+msgstr "啟用螢幕空間折射"
+
+
 msgid "Scene Objects"
 msgstr "場景物體"
 
@@ -47641,6 +48030,14 @@ msgid "Subtract Sequence"
 msgstr "減去序段"
 
 
+msgid "Align X"
+msgstr "對齊 X"
+
+
+msgid "Align Y"
+msgstr "對齊 Y"
+
+
 msgid "Transform Sequence"
 msgstr "變換序段"
 
@@ -47765,6 +48162,10 @@ msgid "Camera Override"
 msgstr "攝影機凌駕"
 
 
+msgid "Playback volume of the sound"
+msgstr "聲音的播放控制音量"
+
+
 msgid "Sound Sequence"
 msgstr "聲音序段"
 
@@ -47775,10 +48176,6 @@ msgstr "定義可播放一段時間的聲音之序段片段"
 
 msgid "Playback panning of the sound (only for Mono sources)"
 msgstr "聲音的播放控制平展 (僅適用於單聲道來源)"
-
-
-msgid "Playback volume of the sound"
-msgstr "聲音的播放控制音量"
 
 
 msgid "Sequence Color Balance Data"
@@ -48826,7 +49223,7 @@ msgstr "編輯檔案中所有蠟筆草圖的時機"
 
 
 msgid "Edit timings for Mask Editor splines"
-msgstr "編輯遮罩編輯器樣條的時機"
+msgstr "編輯遮罩編輯器雲形線的時機"
 
 
 msgid "Show the status of cached frames in the timeline"
@@ -49506,7 +49903,7 @@ msgstr "語法標明"
 
 
 msgid "Syntax highlight for scripting"
-msgstr "供指令稿使用的語法標明功能"
+msgstr "供命令稿使用的語法標明功能"
 
 
 msgid "Word Wrap"
@@ -49717,8 +50114,12 @@ msgid "Use Local Camera"
 msgstr "使用區域攝影機"
 
 
-msgid "Flat"
-msgstr "扁平"
+msgid "Show Named Attributes"
+msgstr "秀出具名屬性"
+
+
+msgid "Show when nodes are using named attributes"
+msgstr "顯示節點何時使用具名的屬性"
 
 
 msgid "Space UV Editor"
@@ -49762,7 +50163,7 @@ msgstr "貝茲點"
 
 
 msgid "Collection of points for Bezier curves only"
-msgstr "僅貝茲曲線點的集合"
+msgstr "僅貝茲曲線點的集盒"
 
 
 msgid "Character Index"
@@ -49802,7 +50203,7 @@ msgstr "V 方向中曲線或表面的點總數"
 
 
 msgid "Collection of points that make up this poly or nurbs spline"
-msgstr "構成此多角形或 NURBS 樣條的點集合"
+msgstr "構成此多角形或 NURBS 雲形線的點集盒"
 
 
 msgid "Radius Interpolation"
@@ -49862,7 +50263,7 @@ msgstr "讓表面或倒角曲線的法線平滑"
 
 
 msgid "Spline point without handles"
-msgstr "樣條點，沒有控制桿"
+msgstr "雲形線點，沒有控制桿"
 
 
 msgid "NURBS weight"
@@ -50469,10 +50870,6 @@ msgid "Channels Selected"
 msgstr "選取的通道"
 
 
-msgid "Dope Sheet Channel"
-msgstr "律表通道"
-
-
 msgid "Color of Keyframe"
 msgstr "鍵幀的色彩"
 
@@ -50689,10 +51086,6 @@ msgid "Face Dot Selected"
 msgstr "選取的面點"
 
 
-msgid "Face Selected"
-msgstr "選取的面"
-
-
 msgid "Face Dot Size"
 msgstr "面點大小"
 
@@ -50842,7 +51235,7 @@ msgstr "樣式節點"
 
 
 msgid "Script Node"
-msgstr "指令稿節點"
+msgstr "命令稿節點"
 
 
 msgid "Selected Text"
@@ -51165,10 +51558,6 @@ msgid "Tooltip Colors"
 msgstr "提示框色彩"
 
 
-msgid "Bone Pose"
-msgstr "骨骼姿勢"
-
-
 msgid "Bone Pose Active"
 msgstr "骨骼姿勢作用中"
 
@@ -51293,6 +51682,10 @@ msgid "Driven Selected"
 msgstr "選取的被驅動"
 
 
+msgid "Overridden"
+msgstr "被覆寫"
+
+
 msgid "Marker for noting points in the timeline"
 msgstr "時間軸中提醒某些點的標記"
 
@@ -51382,10 +51775,6 @@ msgid "Type of element to snap to"
 msgstr "吸附哪個元素類型"
 
 
-msgid "Nearest Marker"
-msgstr "最近標記"
-
-
 msgid "Snap to nearest marker"
 msgstr "吸附最近標記"
 
@@ -51460,6 +51849,10 @@ msgstr "統一繪畫設定"
 
 msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
 msgstr "確保所有骨骼變形頂點群組當權重繪製時添加高至 1.0"
+
+
+msgid "Automerge"
+msgstr "自動合併"
 
 
 msgid "Only Endpoints"
@@ -52124,7 +52517,7 @@ msgstr "世界迷霧"
 
 
 msgid "Mist settings for a World data-block"
-msgstr "世界資料塊的迷霧設定"
+msgstr "世界數據組塊的迷霧設定"
 
 
 msgid "Distance over which the mist effect fades in"
@@ -52177,6 +52570,10 @@ msgstr "作業階段狀態"
 
 msgid "Search"
 msgstr "搜尋"
+
+
+msgid "Immediate"
+msgstr "立即"
 
 
 msgctxt "WindowManager"
@@ -52410,11 +52807,6 @@ msgstr "NLA 編輯器"
 
 
 msgctxt "WindowManager"
-msgid "NLA Channels"
-msgstr "NLA 通道"
-
-
-msgctxt "WindowManager"
 msgid "NLA Generic"
 msgstr "NLA 通用"
 
@@ -52570,6 +52962,11 @@ msgstr "View3D 手勢圓"
 
 
 msgctxt "WindowManager"
+msgid "Subtract"
+msgstr "減"
+
+
+msgctxt "WindowManager"
 msgid "Gesture Straight Line"
 msgstr "手勢直線"
 
@@ -52594,12 +52991,28 @@ msgid "Snap Toggle"
 msgstr "吸附切換"
 
 
+msgid "Authentication token is valid"
+msgstr "身分認證代符有效"
+
+
+msgid "We do not know when your token expires, please validate it"
+msgstr "我們不知道您的代符何時過期了，還請驗證"
+
+
+msgid "Your token will expire %s. Please log out and log in again to refresh it"
+msgstr "您的代符將於 %s 過期。請登出，並重新登入以便重新整理"
+
+
+msgid "Your authentication token expires %s"
+msgstr "您的身分認證代符將於 %s 過期"
+
+
 msgid "OSL shader compilation succeeded"
 msgstr "OSL 著色器編纂成功"
 
 
 msgid "OSL script compilation failed, see console for errors"
-msgstr "OSL 指令稿編纂失敗，請查看主控臺以瞭解錯誤"
+msgstr "OSL 命令稿編纂失敗，請查看主控臺以瞭解錯誤"
 
 
 msgid "No text or file specified in node, nothing to compile"
@@ -52607,7 +53020,7 @@ msgstr "節點中無指定文字或檔案，無可編譯"
 
 
 msgid "External shader script must have .osl or .oso extension, or be a module name"
-msgstr "外部著色器指令稿必須有 .osl 或 .oso 副檔名，或者是一個模組名稱"
+msgstr "外部著色器命令稿必須有 .osl 或 .oso 副檔名，或者是一個模組名稱"
 
 
 msgid "Can't read OSO bytecode to store in node at %r"
@@ -52727,6 +53140,11 @@ msgid "Export"
 msgstr "匯出"
 
 
+msgctxt "Operator"
+msgid "Clear Math Vis"
+msgstr "清除統計表"
+
+
 msgid "Demo Mode:"
 msgstr "Demo 模式："
 
@@ -52808,10 +53226,6 @@ msgstr "載入"
 
 msgid "Message extraction process failed!"
 msgstr "訊息抽出程序失敗！"
-
-
-msgid "Info written to {} text datablock!"
-msgstr "資訊已寫入至 {} 文字資料塊！"
 
 
 msgid "Could not init languages data!"
@@ -52896,13 +53310,13 @@ msgstr "%s：%s"
 
 
 msgctxt "Operator"
-msgid "Blender Website"
-msgstr "Blender 網站"
+msgid "Blender Store"
+msgstr "Blender 商店"
 
 
 msgctxt "Operator"
-msgid "Blender Store"
-msgstr "Blender 商店"
+msgid "Blender Website"
+msgstr "Blender 網站"
 
 
 msgid "Operator not found: bpy.ops.%s"
@@ -53018,11 +53432,6 @@ msgstr "偏移 X"
 
 msgid "Endpoint"
 msgstr "端點"
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "顯示全部"
 
 
 msgctxt "Operator"
@@ -53288,6 +53697,11 @@ msgid "Jittering Amount"
 msgstr "抖動量"
 
 
+msgctxt "Operator"
+msgid "Delete Edit"
+msgstr "刪除編輯"
+
+
 msgid "Use Timing"
 msgstr "使用計時"
 
@@ -53376,7 +53790,11 @@ msgstr "色彩分層"
 
 
 msgid "Wave Clamp"
-msgstr "波形緊固"
+msgstr "波形限定"
+
+
+msgid "Field Absorption"
+msgstr "場域吸收"
 
 
 msgid "Heat"
@@ -53405,10 +53823,6 @@ msgstr "自動步進"
 
 msgid "Paths:"
 msgstr "路徑："
-
-
-msgid "XYZ to RGB"
-msgstr "XYZ 至 RGB"
 
 
 msgctxt "Operator"
@@ -53652,11 +54066,6 @@ msgstr "擴展"
 
 
 msgctxt "Operator"
-msgid "Back"
-msgstr "後"
-
-
-msgctxt "Operator"
 msgid "Hide Selected Curves"
 msgstr "隱藏所選曲線"
 
@@ -53664,6 +54073,11 @@ msgstr "隱藏所選曲線"
 msgctxt "Operator"
 msgid "Hide Unselected Curves"
 msgstr "隱藏未選取曲線"
+
+
+msgctxt "Operator"
+msgid "Back"
+msgstr "後"
 
 
 msgctxt "Operator"
@@ -53878,6 +54292,10 @@ msgid "Inputs:"
 msgstr "輸入："
 
 
+msgid "Named Attributes"
+msgstr "具名的屬性"
+
+
 msgid "Slot %d"
 msgstr "槽 %d"
 
@@ -53925,6 +54343,10 @@ msgstr "儲藏"
 
 msgid "Offset:"
 msgstr "偏移："
+
+
+msgid "Power:"
+msgstr "力量:"
 
 
 msgctxt "Operator"
@@ -54000,6 +54422,10 @@ msgstr "重新載入片段並調整長度"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "旋轉"
+
+
+msgid "Fractional Preview Zoom"
+msgstr "無階段式預覽縮放"
 
 
 msgid "Unpack"
@@ -54166,6 +54592,10 @@ msgid "Only Insert Available"
 msgstr "只在可行之處插入"
 
 
+msgid "XYZ to RGB"
+msgstr "XYZ 至 RGB"
+
+
 msgid "Mixing Buffer"
 msgstr "混合用緩衝"
 
@@ -54215,7 +54645,7 @@ msgstr "找到多個同名的附加元件！"
 
 
 msgid "Missing script files"
-msgstr "遺失的指令稿檔案"
+msgstr "遺失的命令稿檔案"
 
 
 msgid "Color Set %d"
@@ -54502,18 +54932,8 @@ msgstr "喇叭"
 
 
 msgctxt "Operator"
-msgid "Make Library Override..."
-msgstr "製作庫覆寫…"
-
-
-msgctxt "Operator"
 msgid "Make Local..."
 msgstr "設為區域..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "插入鍵幀..."
 
 
 msgctxt "Operator"
@@ -54833,16 +55253,6 @@ msgid "Per Loose Part"
 msgstr "依每個分散的部分"
 
 
-msgctxt "Operator"
-msgid "Change Armature Layers..."
-msgstr "更改骨架分層..."
-
-
-msgctxt "Operator"
-msgid "Change Bone Layers..."
-msgstr "更改骨骼分層..."
-
-
 msgid "Bone Settings"
 msgstr "骨骼設定"
 
@@ -54955,6 +55365,11 @@ msgstr "環形線"
 msgctxt "Operator"
 msgid "Lattice"
 msgstr "晶格"
+
+
+msgctxt "Operator"
+msgid "Collection Instance"
+msgstr "集盒實體"
 
 
 msgctxt "Operator"
@@ -55258,6 +55673,50 @@ msgid "in memory to enable editing!"
 msgstr "在記憶體中以啟用編輯！"
 
 
+msgid "<No ID pointer>"
+msgstr "<無 ID 指標>"
+
+
+msgid "<Missing ID block>"
+msgstr "<遺失 ID 塊>"
+
+
+msgid "No F-Curve to add keyframes to"
+msgstr "無 F 曲線可添加鍵幀"
+
+
+msgid "No RNA pointer available to retrieve values for keyframing from"
+msgstr "無 RNA 指標可供鍵幀擷取值"
+
+
+msgid "No ID block and/or AnimData to delete keyframe from"
+msgstr "無 ID 塊與/或動畫資料可供刪除鍵幀"
+
+
+msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "無法插入鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
+
+
+msgid "No ID block to insert keyframe in (path = %s)"
+msgstr "無可插入鍵幀的 ID 塊 (路徑 = %s)"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
+msgstr "無法插入鍵幀，因次此類型不支援動畫資料 (ID = %s，路徑 = %s)"
+
+
+msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "無法刪除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 =%s)"
+
+
+msgid "No action to delete keyframes from for ID = %s"
+msgstr "無動作可供刪除鍵幀，其 ID = %s"
+
+
+msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "無法清除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
+
+
 msgid "Modifier requires original data, bad stack position"
 msgstr "修改器需要原始資料，不良的堆疊位置"
 
@@ -55307,7 +55766,7 @@ msgstr "已附資料"
 
 
 msgid "Lib Reload: Replacing all references to old data-block '%s' by reloaded one failed, old one (%d remaining users) had to be kept and was renamed to '%s'"
-msgstr "藏庫重載：若重新載入者失敗則將所有參照取代為「%s」舊資料塊，而舊的（%d 位剩餘使用者）必須保留並重新命名為「%s」"
+msgstr "藏庫重載：若重新載入者失敗則將所有參照取代為「%s」舊數據組塊，而舊的（%d 位剩餘使用者）必須保留並重新命名為「%s」"
 
 
 msgid "Path '%s' not found"
@@ -55429,6 +55888,10 @@ msgstr "算繪錯誤 (%s) 無法儲存：「%s」"
 
 msgid "Key %d"
 msgstr "鍵 %d"
+
+
+msgid "Auto Smooth"
+msgstr "自動平滑"
 
 
 msgid "GPencil"
@@ -55712,6 +56175,10 @@ msgid "Does F-Curve contribute to result"
 msgstr "F 曲線是否會影響結果"
 
 
+msgid "Nothing selected"
+msgstr "未有選取"
+
+
 msgid "<invalid>"
 msgstr "<無效>"
 
@@ -55760,26 +56227,6 @@ msgid "Delete envelope control point"
 msgstr "刪除封套控制點"
 
 
-msgid "<No ID pointer>"
-msgstr "<無 ID 指標>"
-
-
-msgid "<Missing ID block>"
-msgstr "<遺失 ID 塊>"
-
-
-msgid "No F-Curve to add keyframes to"
-msgstr "無 F 曲線可添加鍵幀"
-
-
-msgid "No RNA pointer available to retrieve values for keyframing from"
-msgstr "無 RNA 指標可供鍵幀擷取值"
-
-
-msgid "No ID block and/or AnimData to delete keyframe from"
-msgstr "無 ID 塊與/或動畫資料可供刪除鍵幀"
-
-
 msgid "No suitable context info for active keying set"
 msgstr "無適當情境資料可供作用中的鍵處理集使用"
 
@@ -55798,34 +56245,6 @@ msgstr "無法解析路徑為屬性，試著改用鍵處理集來手動指定此
 
 msgid "No active Keying Set"
 msgstr "無作用中鍵處理集"
-
-
-msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
-msgstr "含路徑「%s[%d]」的 F 曲線無法作為鍵幀，請確保它沒上鎖或被取樣，並嘗試移除 F 修改器"
-
-
-msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "無法插入鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "無可插入鍵幀的 ID 塊 (路徑 = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "無法插入鍵幀，因次此類型不支援動畫資料 (ID = %s，路徑 = %s)"
-
-
-msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "無法刪除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 =%s)"
-
-
-msgid "No action to delete keyframes from for ID = %s"
-msgstr "無動作可供刪除鍵幀，其 ID = %s"
-
-
-msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "無法清除鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"
@@ -56108,10 +56527,6 @@ msgid "No active frame to delete"
 msgstr "無作用中框幀可刪除"
 
 
-msgid "Nothing selected"
-msgstr "未有選取"
-
-
 msgid "No active area"
 msgstr "無作用中區域"
 
@@ -56222,7 +56637,7 @@ msgstr "目錄遺失:"
 
 
 msgid "Active button is not from a script, cannot edit source"
-msgstr "作用中按鈕不是源自指令稿，無法編輯來源"
+msgstr "作用中按鈕不是源自命令稿，無法編輯來源"
 
 
 msgid "Active button match cannot be found"
@@ -56247,10 +56662,6 @@ msgstr "找不到有效的「%s」語言 po 檔，尋找目標為 %s"
 
 msgid "Hex"
 msgstr "十六進位"
-
-
-msgid "(Gamma Corrected)"
-msgstr "(伽瑪已校正)"
 
 
 msgid "Lightness"
@@ -56498,16 +56909,16 @@ msgid "Browse Particle Settings to be linked"
 msgstr "瀏覽要連結的粒子設定"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "瀏覽要連結的蠟筆"
+
+
 msgid "Browse Palette Data to be linked"
 msgstr "瀏覽要連結的色版資料"
 
 
 msgid "Browse Paint Curve Data to be linked"
 msgstr "瀏覽要連結的繪製曲線資料"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "瀏覽要連結的蠟筆"
 
 
 msgid "Browse ID data to be linked"
@@ -56833,16 +57244,6 @@ msgstr "音軌"
 
 
 msgctxt "Light"
-msgid "ReflectionPlane"
-msgstr "反射平面"
-
-
-msgctxt "Light"
-msgid "ReflectionCubemap"
-msgstr "反射立方體映射"
-
-
-msgctxt "Light"
 msgid "LightProbe"
 msgstr "光照探測"
 
@@ -56853,8 +57254,13 @@ msgstr "曲線引導"
 
 
 msgctxt "Object"
+msgid "FluidField"
+msgstr "流體場域"
+
+
+msgctxt "Object"
 msgid "Field"
-msgstr "欄位"
+msgstr "場域"
 
 
 msgid "Cannot create editmode armature"
@@ -57446,7 +57852,7 @@ msgstr "在紋理標籤頁中顯示紋理"
 
 
 msgid "Fields"
-msgstr "場"
+msgstr "場域"
 
 
 msgid "File Path:"
@@ -57566,7 +57972,7 @@ msgstr "檔案路徑"
 
 
 msgid "Path to asset library does not exist:"
-msgstr "資產庫路徑不存在:"
+msgstr "素材藏庫路徑不存在："
 
 
 msgid "File does not exist"
@@ -57874,12 +58280,12 @@ msgid "Now"
 msgstr "現在"
 
 
-msgid "Internal Error - AnimData block is not valid"
-msgstr "內部錯誤 - AnimData 塊無效"
-
-
 msgid "No valid action to add"
 msgstr "無有效的動作可添加"
+
+
+msgid "Internal Error - AnimData block is not valid"
+msgstr "內部錯誤 - AnimData 塊無效"
 
 
 msgid "Some nodes references could not be restored, will be left empty"
@@ -57918,12 +58324,20 @@ msgid "Geometry:"
 msgstr "幾何:"
 
 
+msgid "read"
+msgstr "讀取"
+
+
+msgid " Named Attribute"
+msgstr " 具名的屬性"
+
+
+msgid " Named Attributes"
+msgstr " 具名的屬性"
+
+
 msgid "Text not used by any node, no update done"
 msgstr "文字無法被任何節點使用，無更新"
-
-
-msgid "Cannot ungroup"
-msgstr "無法取消群組"
 
 
 msgid "Not inside node group"
@@ -57970,11 +58384,6 @@ msgstr ""
 "* 按 Shift 來指定子代"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "群組"
-
-
 msgid "Library path '%s' does not exist, correct this before saving"
 msgstr "函式庫路徑「%s」不存在，請在儲存之前修正此問題"
 
@@ -57997,10 +58406,6 @@ msgstr "無法重新定位間接連結的「%s」藏庫位置"
 
 msgid "Not yet implemented"
 msgstr "尚未實作"
-
-
-msgid "Bone Groups"
-msgstr "骨骼群組"
 
 
 msgid "(empty)"
@@ -58556,7 +58961,7 @@ msgstr "翻轉(F)：%s， "
 
 
 msgid "Alt or (C)lamp: %s"
-msgstr "Alt 或緊固(C)：%s"
+msgstr "Alt 或限定(C)：%s"
 
 
 msgid "Feather Shrink/Fatten: %s"
@@ -58744,6 +59149,11 @@ msgid "Bone Envelopes"
 msgstr "骨骼封套"
 
 
+msgctxt "Action"
+msgid "Group"
+msgstr "群組"
+
+
 msgid "Index out of range"
 msgstr "索引超出範圍"
 
@@ -58837,7 +59247,7 @@ msgstr "無法移除背景影像"
 
 
 msgid "Element not found in element collection or last element"
-msgstr "元素集合中或上個元素資料都找不到元素"
+msgstr "元素集盒中或上個元素資料都找不到元素"
 
 
 msgid "Unable to remove curve point"
@@ -58853,15 +59263,15 @@ msgstr "關係"
 
 
 msgid "Bezier spline cannot have points added"
-msgstr "貝茲樣條無法添加點"
+msgstr "貝茲雲形線無法添加點"
 
 
 msgid "Only Bezier splines can be added"
-msgstr "僅貝茲樣條可以添加"
+msgstr "僅貝茲雲形線可以添加"
 
 
 msgid "Curve '%s' does not contain spline given"
-msgstr "曲線「%s」不含給定的樣條"
+msgstr "曲線「%s」不含給定的雲形線"
 
 
 msgid "Variable does not exist in this driver"
@@ -58886,6 +59296,14 @@ msgstr "框幀 %.6f 已有控制點"
 
 msgid "Flame"
 msgstr "火焰"
+
+
+msgid "Flame field"
+msgstr "火焰場域"
+
+
+msgid "Fuel field"
+msgstr "燃燒場域"
 
 
 msgid "GPencilStrokePoints.pop: index out of range"
@@ -58982,11 +59400,11 @@ msgstr "ID 類型「%s」不是有效的物體類型"
 
 
 msgid "Mask layer not found for given spline"
-msgstr "找不到給定樣條的遮罩層"
+msgstr "找不到給定雲形線的遮罩層"
 
 
 msgid "Point is not found in given spline"
-msgstr "給定樣條中找不到點"
+msgstr "給定雲形線中找不到點"
 
 
 msgid "Mask layer '%s' not found in mask '%s'"
@@ -58994,7 +59412,7 @@ msgstr "找不到遮罩層「%s」於遮罩「%s」中"
 
 
 msgid "Mask layer '%s' does not contain spline given"
-msgstr "遮罩層「%s」無法包含給定樣條"
+msgstr "遮罩層「%s」無法包含給定雲形線"
 
 
 msgid "Mtex not found for this type"
@@ -59010,7 +59428,7 @@ msgstr "索引 %d 無效"
 
 
 msgid "Metaball '%s' does not contain spline given"
-msgstr "變幻球「%s」不含給定樣條"
+msgstr "變幻球「%s」不含給定雲形線"
 
 
 msgid "Unable to create new strip"
@@ -59241,6 +59659,10 @@ msgid "Bind data missing"
 msgstr "綁定資料遺失"
 
 
+msgid "No named attributes used"
+msgstr "未使用具名的屬性"
+
+
 msgid "Coverage"
 msgstr "收斂"
 
@@ -59434,16 +59856,16 @@ msgid "Cr"
 msgstr "Cr"
 
 
-msgid "On"
-msgstr "開"
-
-
 msgid "Speed:"
 msgstr "速度："
 
 
 msgid "Old"
 msgstr "老舊"
+
+
+msgid "Expects a Named Attribute with the name of a Grid in the Volume"
+msgstr "需要具有體積中網格名稱的具名屬性"
 
 
 msgid "Edge Crease"
@@ -59455,7 +59877,7 @@ msgstr "旋轉島塊以最佳適應"
 
 
 msgid "Missing Data-Block"
-msgstr "遺失資料塊"
+msgstr "遺失數據組塊"
 
 
 msgid "Shader Editor"
@@ -59486,12 +59908,12 @@ msgid "RoughnessV"
 msgstr "粗糙度V"
 
 
-msgid "Subsurface"
-msgstr "次表面"
-
-
 msgid "Subsurface Radius"
 msgstr "次表面半徑"
+
+
+msgid "Emission Color"
+msgstr "發光色"
 
 
 msgid "Emission Strength"
@@ -59654,10 +60076,6 @@ msgid "Absorption Color"
 msgstr "吸收色彩"
 
 
-msgid "Emission Color"
-msgstr "發光色"
-
-
 msgid "Blackbody Intensity"
 msgstr "黑體強度"
 
@@ -59708,10 +60126,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iScale"
-
-
-msgid "Unknown py-exception, could not convert"
-msgstr "未知的 py-exception，無法轉換"
 
 
 msgid "Could not resolve path (%s)"
@@ -59841,8 +60255,12 @@ msgid "unable to open the file"
 msgstr "無法開啟檔案"
 
 
+msgid "Modified"
+msgstr "已修改"
+
+
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
-msgstr "基於安全性考量，此檔案的 Python 指令稿自動執行功能已停用："
+msgstr "基於安全性考量，此檔案的 Python 命令稿自動執行功能已停用："
 
 
 msgid "This may lead to unexpected behavior"
@@ -59850,19 +60268,19 @@ msgstr "這可能導致預期外的行為"
 
 
 msgid "Permanently allow execution of scripts"
-msgstr "永遠允許執行指令稿"
+msgstr "永遠允許執行命令稿"
 
 
 msgid "Reload file with execution of Python scripts enabled"
-msgstr "重新載入檔案並啟用 Python 指令稿執行"
+msgstr "重新載入檔案並啟用 Python 命令稿執行"
 
 
 msgid "Enable scripts"
-msgstr "啟用指令稿"
+msgstr "啟用命令稿"
 
 
 msgid "Continue using file without Python scripts"
-msgstr "繼續使用檔案而不用 Python 指令稿"
+msgstr "繼續使用檔案而不用 Python 命令稿"
 
 
 msgid "Save changes before closing?"
@@ -59898,11 +60316,11 @@ msgstr "未有指示"
 
 
 msgid "Can't append data-block '%s' of type '%s'"
-msgstr "無法附加「%s」資料塊，其類型為「%s」"
+msgstr "無法附加「%s」數據組塊，其類型為「%s」"
 
 
 msgid "Can't link data-block '%s' of type '%s'"
-msgstr "無法連結「%s」資料塊，其類型為「%s」"
+msgstr "無法連結「%s」數據組塊，其類型為「%s」"
 
 
 msgid "'%s': cannot use current file as library"
@@ -60072,6 +60490,14 @@ msgstr "立體 3D 模式需要視窗變成全螢幕"
 msgctxt "WorkSpace"
 msgid "Masking"
 msgstr "遮罩"
+
+
+msgid "Math Vis (Console)"
+msgstr "統計表 ( 控制台 )"
+
+
+msgid "Display console defined mathutils variables in the 3D view"
+msgstr "在 3D 視圖中顯示控制台定義的 模組( mathutils ) 變數"
 
 
 msgid "All Add-ons"

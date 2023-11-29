@@ -26,9 +26,9 @@
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_blender_copybuffer.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -36,7 +36,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
@@ -90,7 +90,7 @@ static void outliner_copybuffer_filepath_get(char filepath[FILE_MAX], size_t fil
 /** \name Highlight on Cursor Motion Operator
  * \{ */
 
-static int outliner_highlight_update(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+static int outliner_highlight_update_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* stop highlighting if out of area */
   if (!ED_screen_area_active(C)) {
@@ -150,7 +150,7 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_highlight_update";
   ot->description = "Update the item highlight based on the current mouse position";
 
-  ot->invoke = outliner_highlight_update;
+  ot->invoke = outliner_highlight_update_invoke;
 
   ot->poll = ED_operator_outliner_active;
 }
@@ -403,7 +403,7 @@ static TreeElement *outliner_item_rename_find_hovered(const SpaceOutliner *space
   return nullptr;
 }
 
-static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *event)
+static int outliner_item_rename_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
@@ -436,7 +436,7 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_item_rename";
   ot->description = "Rename the active element";
 
-  ot->invoke = outliner_item_rename;
+  ot->invoke = outliner_item_rename_invoke;
 
   ot->poll = ED_operator_outliner_active;
 

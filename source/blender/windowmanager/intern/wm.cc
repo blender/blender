@@ -28,7 +28,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -167,10 +167,12 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->ghostwin = nullptr;
     win->gpuctx = nullptr;
     win->eventstate = nullptr;
+    win->eventstate_prev_press_time_ms = 0;
     win->event_last_handled = nullptr;
     win->cursor_keymap_status = nullptr;
 #if defined(WIN32) || defined(__APPLE__)
     win->ime_data = nullptr;
+    win->ime_data_is_composing = false;
 #endif
 
     BLI_listbase_clear(&win->event_queue);
@@ -245,7 +247,7 @@ IDTypeInfo IDType_ID_WM = {
     /*main_listbase_index*/ INDEX_ID_WM,
     /*struct_size*/ sizeof(wmWindowManager),
     /*name*/ "WindowManager",
-    /*name_plural*/ "window_managers",
+    /*name_plural*/ N_("window_managers"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_WINDOWMANAGER,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA |
         IDTYPE_FLAGS_NO_MEMFILE_UNDO,
@@ -291,7 +293,7 @@ void WM_operator_free(wmOperator *op)
   }
 
   if (op->reports && (op->reports->flag & RPT_FREE)) {
-    BKE_reports_clear(op->reports);
+    BKE_reports_free(op->reports);
     MEM_freeN(op->reports);
   }
 
@@ -342,7 +344,7 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 
 static void wm_reports_free(wmWindowManager *wm)
 {
-  BKE_reports_clear(&wm->reports);
+  BKE_reports_free(&wm->reports);
   WM_event_timer_remove(wm, nullptr, wm->reports.reporttimer);
 }
 
@@ -446,7 +448,7 @@ void WM_keyconfig_init(bContext *C)
     if (!G.background) {
       WM_keyconfig_update_tag(nullptr, nullptr);
     }
-    WM_keyconfig_update(wm);
+    /* Don't call #WM_keyconfig_update here because add-ons have not yet been registered yet. */
 
     wm->init_flag |= WM_INIT_FLAG_KEYCONFIG;
   }
@@ -521,6 +523,8 @@ void wm_add_default(Main *bmain, bContext *C)
   bScreen *screen = CTX_wm_screen(C); /* XXX from file read hrmf */
   WorkSpace *workspace;
   WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
+
+  BKE_reports_init(&wm->reports, RPT_STORE);
 
   CTX_wm_manager_set(C, wm);
   win = wm_window_new(bmain, wm, nullptr, false);

@@ -8,9 +8,9 @@
  * Engine for drawing a selection map where the pixels indicate the selection indices.
  */
 
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -20,29 +20,15 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
 
-#include "select_private.h"
+#include "select_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Draw Utilities
  * \{ */
-
-void select_id_object_min_max(Object *obj, float r_min[3], float r_max[3])
-{
-  const BoundBox *bb;
-  BMEditMesh *em = BKE_editmesh_from_object(obj);
-  if (em) {
-    bb = BKE_editmesh_cage_boundbox_get(obj, em);
-  }
-  else {
-    bb = BKE_object_boundbox_get(obj);
-  }
-  copy_v3_v3(r_min, bb->vec[0]);
-  copy_v3_v3(r_max, bb->vec[6]);
-}
 
 short select_id_get_object_select_mode(Scene *scene, Object *ob)
 {

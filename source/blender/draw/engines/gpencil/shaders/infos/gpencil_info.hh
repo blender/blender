@@ -85,7 +85,7 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry_next)
     .vertex_out(gpencil_geometry_flat_iface)
     .vertex_out(gpencil_geometry_noperspective_iface)
     .vertex_source("grease_pencil_vert.glsl")
-    .fragment_source("gpencil_frag.glsl")
+    .fragment_source("grease_pencil_frag.glsl")
     .additional_info("draw_gpencil_new")
     .depth_write(DepthWrite::ANY);
 
@@ -125,6 +125,16 @@ GPU_SHADER_CREATE_INFO(gpencil_depth_merge)
     .fragment_source("gpencil_depth_merge_frag.glsl")
     .depth_write(DepthWrite::ANY)
     .additional_info("draw_view");
+
+GPU_SHADER_CREATE_INFO(grease_pencil_depth_merge)
+    .do_static_compilation(true)
+    .define("strokeOrder3d", "false")
+    .sampler(0, ImageType::DEPTH_2D, "depthBuf")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_source("grease_pencil_depth_merge_vert.glsl")
+    .fragment_source("gpencil_depth_merge_frag.glsl")
+    .depth_write(DepthWrite::ANY)
+    .additional_info("draw_modelmat_new", "draw_view");
 
 /** \} */
 

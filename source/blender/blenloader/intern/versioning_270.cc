@@ -12,6 +12,8 @@
 /* for MinGW32 definition of NULL, could use BLI_blenlib.h instead too */
 #include <cstddef>
 
+#include <string>
+
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
@@ -52,29 +54,29 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
 #include "DNA_material_types.h"
 
-#include "SEQ_effects.h"
-#include "SEQ_iterator.h"
+#include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
 #include "BLO_readfile.h"
 
 #include "NOD_common.h"
-#include "NOD_composite.h"
+#include "NOD_composite.hh"
 #include "NOD_socket.hh"
 
 #include "readfile.hh"
@@ -527,9 +529,9 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 270, 2)) {
-    /* Mesh smoothresh deg->rad. */
+    /* Mesh smoothresh_legacy deg->rad. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      me->smoothresh = DEG2RADF(me->smoothresh);
+      me->smoothresh_legacy = DEG2RADF(me->smoothresh_legacy);
     }
   }
 
@@ -805,7 +807,9 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 273, 8)) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (BKE_modifier_unique_name(&ob->modifiers, md)) {
+        const std::string old_name = md->name;
+        BKE_modifier_unique_name(&ob->modifiers, md);
+        if (old_name != md->name) {
           printf(
               "Warning: Object '%s' had several modifiers with the "
               "same name, renamed one of them to '%s'.\n",

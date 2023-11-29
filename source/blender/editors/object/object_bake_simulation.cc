@@ -12,7 +12,7 @@
 #include "BLI_path_util.h"
 #include "BLI_serialize.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "PIL_time.h"
@@ -31,16 +31,16 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_global.h"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -82,10 +82,7 @@ struct CalculateSimulationJob {
   int end_frame;
 };
 
-static void calculate_simulation_job_startjob(void *customdata,
-                                              bool *stop,
-                                              bool *do_update,
-                                              float *progress)
+static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   CalculateSimulationJob &job = *static_cast<CalculateSimulationJob *>(customdata);
   G.is_rendering = true;
@@ -114,8 +111,8 @@ static void calculate_simulation_job_startjob(void *customdata,
     objects_to_calc.append(object);
   }
 
-  *progress = 0.0f;
-  *do_update = true;
+  worker_status->progress = 0.0f;
+  worker_status->do_update = true;
 
   const float frame_step_size = 1.0f;
   const float progress_per_frame = 1.0f /
@@ -125,7 +122,7 @@ static void calculate_simulation_job_startjob(void *customdata,
   for (float frame_f = job.start_frame; frame_f <= job.end_frame; frame_f += frame_step_size) {
     const SubFrame frame{frame_f};
 
-    if (G.is_break || (stop != nullptr && *stop)) {
+    if (G.is_break || worker_status->stop) {
       break;
     }
 
@@ -134,15 +131,15 @@ static void calculate_simulation_job_startjob(void *customdata,
 
     BKE_scene_graph_update_for_newframe(job.depsgraph);
 
-    *progress += progress_per_frame;
-    *do_update = true;
+    worker_status->progress += progress_per_frame;
+    worker_status->do_update = true;
   }
 
   job.scene->r.cfra = old_frame;
   DEG_time_tag_update(job.bmain);
 
-  *progress = 1.0f;
-  *do_update = true;
+  worker_status->progress = 1.0f;
+  worker_status->do_update = true;
 }
 
 static void calculate_simulation_job_endjob(void *customdata)
@@ -250,10 +247,7 @@ struct BakeSimulationJob {
   Vector<ObjectBakeData> objects;
 };
 
-static void bake_simulation_job_startjob(void *customdata,
-                                         bool *stop,
-                                         bool *do_update,
-                                         float *progress)
+static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   BakeSimulationJob &job = *static_cast<BakeSimulationJob *>(customdata);
   G.is_rendering = true;
@@ -272,8 +266,8 @@ static void bake_simulation_job_startjob(void *customdata,
     }
   }
 
-  *progress = 0.0f;
-  *do_update = true;
+  worker_status->progress = 0.0f;
+  worker_status->do_update = true;
 
   const int frames_to_bake = global_bake_end_frame - global_bake_start_frame + 1;
 
@@ -286,7 +280,7 @@ static void bake_simulation_job_startjob(void *customdata,
   {
     const SubFrame frame{frame_f};
 
-    if (G.is_break || (stop != nullptr && *stop)) {
+    if (G.is_break || worker_status->stop) {
       break;
     }
 
@@ -338,8 +332,8 @@ static void bake_simulation_job_startjob(void *customdata,
       }
     }
 
-    *progress += progress_per_frame;
-    *do_update = true;
+    worker_status->progress += progress_per_frame;
+    worker_status->do_update = true;
   }
 
   for (ObjectBakeData &object_bake_data : job.objects) {
@@ -363,8 +357,8 @@ static void bake_simulation_job_startjob(void *customdata,
   job.scene->r.cfra = old_frame;
   DEG_time_tag_update(job.bmain);
 
-  *progress = 1.0f;
-  *do_update = true;
+  worker_status->progress = 1.0f;
+  worker_status->do_update = true;
 }
 
 static void bake_simulation_job_endjob(void *customdata)

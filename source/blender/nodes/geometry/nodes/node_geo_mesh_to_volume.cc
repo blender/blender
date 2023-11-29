@@ -9,8 +9,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_object.h"
-#include "BKE_volume.h"
+#include "BKE_object.hh"
+#include "BKE_volume.hh"
 
 #include "GEO_mesh_to_volume.hh"
 
@@ -104,16 +104,12 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
 
   const float4x4 mesh_to_volume_space_transform = float4x4::identity();
 
-  auto bounds_fn = [&](float3 &r_min, float3 &r_max) {
-    float3 min{std::numeric_limits<float>::max()};
-    float3 max{-std::numeric_limits<float>::max()};
-    BKE_mesh_wrapper_minmax(&mesh, min, max);
-    r_min = min;
-    r_max = max;
-  };
-
   const float voxel_size = geometry::volume_compute_voxel_size(
-      params.depsgraph(), bounds_fn, resolution, 0.0f, mesh_to_volume_space_transform);
+      params.depsgraph(),
+      [&]() { return *mesh.bounds_min_max(); },
+      resolution,
+      0.0f,
+      mesh_to_volume_space_transform);
 
   Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
 
@@ -182,7 +178,7 @@ static void node_register()
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_TO_VOLUME, "Mesh to Volume", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
-  blender::bke::node_type_size(&ntype, 200, 120, 700);
+  bke::node_type_size(&ntype, 200, 120, 700);
   ntype.initfunc = node_init;
   ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;

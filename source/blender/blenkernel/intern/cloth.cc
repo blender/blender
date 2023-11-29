@@ -25,14 +25,14 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BKE_bvhutils.h"
+#include "BKE_bvhutils.hh"
 #include "BKE_cloth.hh"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 
 #include "SIM_mass_spring.h"
@@ -1420,7 +1420,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
       treedata->tree, new_co, no, radius, &rayhit, treedata->raycast_callback, treedata);
 
   int vert_idx = -1;
-  const int *corner_verts = treedata->corner_verts;
+  const int *corner_verts = treedata->corner_verts.data();
   const MLoopTri *lt = nullptr;
 
   if (rayhit.index != -1 && rayhit.dist <= max_length) {
@@ -1430,7 +1430,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
     }
 
     float min_len = FLT_MAX;
-    lt = &treedata->looptri[rayhit.index];
+    lt = &treedata->looptris[rayhit.index];
 
     for (int i = 0; i < 3; i++) {
       int tmp_vert_idx = corner_verts[lt->tri[i]];

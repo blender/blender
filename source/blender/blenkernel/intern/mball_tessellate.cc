@@ -27,7 +27,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_displist.h"
@@ -35,7 +35,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mball_tessellate.h" /* own include */
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"

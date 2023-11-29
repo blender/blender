@@ -109,7 +109,7 @@ ivec2 get_diagonal_direction()
 
 /* Computes the number of values in the anti diagonal of the given index in the matrix with the
  * given size, where the anti diagonals are indexed from the lower left corner to the upper right
- * corner such that that their start is at the bottom and right edges of the matrix as shown in the
+ * corner such that their start is at the bottom and right edges of the matrix as shown in the
  * diagram below. The numbers in the diagram denote the index of the anti diagonal and its length.
  *
  *                     Width = 6

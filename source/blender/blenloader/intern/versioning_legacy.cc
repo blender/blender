@@ -52,23 +52,23 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
-#include "BKE_lattice.h"
+#include "BKE_lattice.hh"
 #include "BKE_main.h"  /* for Main */
 #include "BKE_mesh.hh" /* for ME_ defines (patching) */
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_node.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
 
 #include "BLO_readfile.h"
 
@@ -635,7 +635,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 164) {
     Mesh *me = static_cast<Mesh *>(bmain->meshes.first);
     while (me) {
-      me->smoothresh = 30;
+      me->smoothresh_legacy = 30;
       me = static_cast<Mesh *>(me->id.next);
     }
   }
@@ -1402,7 +1402,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
 
           while (md && BKE_modifier_get_info(ModifierType(md->type))->type ==
-                           eModifierTypeType_OnlyDeform) {
+                           ModifierTypeType::OnlyDeform) {
             md = md->next;
           }
 
@@ -2259,7 +2259,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         /* convert settings from old particle system */
         /* general settings */
-        part->totpart = MIN2(paf->totpart, 100000);
+        part->totpart = std::min(paf->totpart, 100000);
         part->sta = paf->sta;
         part->end = paf->end;
         part->lifetime = paf->lifetime;
@@ -2503,8 +2503,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          * use it for the number of divisions per segment
          */
         if (nu->pntsv > 1) {
-          nu->resolu = MAX2(1, int((float(nu->resolu) / float(nu->pntsu)) + 0.5f));
-          nu->resolv = MAX2(1, int((float(nu->resolv) / float(nu->pntsv)) + 0.5f));
+          nu->resolu = std::max(1, int((float(nu->resolu) / float(nu->pntsu)) + 0.5f));
+          nu->resolv = std::max(1, int((float(nu->resolv) / float(nu->pntsv)) + 0.5f));
         }
       }
     }

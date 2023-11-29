@@ -29,7 +29,7 @@ extern "C" {
 
 struct FileReader;
 
-typedef ssize_t (*FileReaderReadFn)(struct FileReader *reader, void *buffer, size_t size);
+typedef int64_t (*FileReaderReadFn)(struct FileReader *reader, void *buffer, size_t size);
 typedef off64_t (*FileReaderSeekFn)(struct FileReader *reader, off64_t offset, int whence);
 typedef void (*FileReaderCloseFn)(struct FileReader *reader);
 

@@ -21,7 +21,7 @@
 #include "BLI_string.h"
 
 #include "BKE_constraint.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 
 #include "RNA_access.hh"
@@ -239,7 +239,7 @@ void protectedSizeBits(short protectflag, float size[3])
 /** \name Transform Limits
  * \{ */
 
-void constraintTransLim(const TransInfo *t, TransData *td)
+void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransData *td)
 {
   if (td->con) {
     const bConstraintTypeInfo *ctiLoc = BKE_constraint_typeinfo_from_type(
@@ -292,8 +292,10 @@ void constraintTransLim(const TransInfo *t, TransData *td)
       if (cti) {
         /* do space conversions */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-          /* just multiply by td->mtx (this should be ok) */
-          mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
+          mul_m3_v3(td->mtx, cob.matrix[3]);
+          if (tc->use_local_mat) {
+            add_v3_v3(cob.matrix[3], tc->mat[3]);
+          }
         }
         else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
           /* skip... incompatible spacetype */
@@ -311,8 +313,10 @@ void constraintTransLim(const TransInfo *t, TransData *td)
 
         /* convert spaces again */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-          /* just multiply by td->smtx (this should be ok) */
-          mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
+          if (tc->use_local_mat) {
+            sub_v3_v3(cob.matrix[3], tc->mat[3]);
+          }
+          mul_m3_v3(td->smtx, cob.matrix[3]);
         }
 
         /* free targets list */
@@ -562,11 +566,17 @@ void ElementRotation_ex(const TransInfo *t,
 
     /* Apply gpencil falloff. */
     if (t->options & CTX_GPENCIL_STROKES) {
-      bGPDstroke *gps = (bGPDstroke *)td->extra;
-      if (gps->runtime.multi_frame_falloff != 1.0f) {
-        float ident_mat[3][3];
-        unit_m3(ident_mat);
-        interp_m3_m3m3(smat, ident_mat, smat, gps->runtime.multi_frame_falloff);
+      if (t->obedit_type == OB_GPENCIL_LEGACY) {
+
+        bGPDstroke *gps = (bGPDstroke *)td->extra;
+        if (gps->runtime.multi_frame_falloff != 1.0f) {
+          float ident_mat[3][3];
+          unit_m3(ident_mat);
+          interp_m3_m3m3(smat, ident_mat, smat, gps->runtime.multi_frame_falloff);
+        }
+      }
+      else if (t->obedit_type == OB_GREASE_PENCIL) {
+        /* pass */
       }
     }
 
@@ -635,7 +645,7 @@ void ElementRotation_ex(const TransInfo *t,
 
       add_v3_v3v3(td->loc, td->iloc, vec);
 
-      constraintTransLim(t, td);
+      constraintTransLim(t, tc, td);
     }
 
     /* rotation */
@@ -711,7 +721,7 @@ void ElementRotation_ex(const TransInfo *t,
       add_v3_v3v3(td->loc, td->iloc, vec);
     }
 
-    constraintTransLim(t, td);
+    constraintTransLim(t, tc, td);
 
     /* rotation */
     if ((t->flag & T_V3D_ALIGN) == 0) { /* Align mode doesn't rotate objects itself. */
@@ -1026,21 +1036,26 @@ void ElementResize(const TransInfo *t,
    *   Operating on copies as a temporary solution.
    */
   if (t->options & CTX_GPENCIL_STROKES) {
-    bGPDstroke *gps = (bGPDstroke *)td->extra;
-    mul_v3_fl(vec, td->factor * gps->runtime.multi_frame_falloff);
+    if (t->obedit_type == OB_GPENCIL_LEGACY) {
+      bGPDstroke *gps = (bGPDstroke *)td->extra;
+      mul_v3_fl(vec, td->factor * gps->runtime.multi_frame_falloff);
 
-    /* Scale stroke thickness. */
-    if (td->val) {
-      NumInput num_evil = t->num;
-      float values_final_evil[4];
-      copy_v4_v4(values_final_evil, t->values_final);
-      transform_snap_increment(t, values_final_evil);
-      applyNumInput(&num_evil, values_final_evil);
+      /* Scale stroke thickness. */
+      if (td->val) {
+        NumInput num_evil = t->num;
+        float values_final_evil[4];
+        copy_v4_v4(values_final_evil, t->values_final);
+        transform_snap_increment(t, values_final_evil);
+        applyNumInput(&num_evil, values_final_evil);
 
-      float ratio = values_final_evil[0];
-      float transformed_value = td->ival * fabs(ratio);
-      *td->val = max_ff(interpf(transformed_value, td->ival, gps->runtime.multi_frame_falloff),
-                        0.001f);
+        float ratio = values_final_evil[0];
+        float transformed_value = td->ival * fabs(ratio);
+        *td->val = max_ff(interpf(transformed_value, td->ival, gps->runtime.multi_frame_falloff),
+                          0.001f);
+      }
+    }
+    else if (t->obedit_type == OB_GREASE_PENCIL) {
+      mul_v3_fl(vec, td->factor);
     }
   }
   else {
@@ -1061,7 +1076,7 @@ void ElementResize(const TransInfo *t,
     add_v3_v3v3(td->loc, td->iloc, vec);
   }
 
-  constraintTransLim(t, td);
+  constraintTransLim(t, tc, td);
 }
 
 /** \} */

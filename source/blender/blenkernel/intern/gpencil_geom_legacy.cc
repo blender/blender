@@ -28,7 +28,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -41,7 +41,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
@@ -49,7 +49,8 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -88,36 +89,35 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
   return changed;
 }
 
-bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
+std::optional<blender::Bounds<blender::float3>> BKE_gpencil_data_minmax(const bGPdata *gpd)
 {
   bool changed = false;
 
-  INIT_MINMAX(r_min, r_max);
-
-  if (gpd == nullptr) {
-    return changed;
-  }
-
+  float3 min;
+  float3 max;
+  INIT_MINMAX(min, max);
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf = gpl->actframe;
 
     if (gpf != nullptr) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        changed |= BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
+        changed |= BKE_gpencil_stroke_minmax(gps, false, min, max);
       }
     }
   }
 
-  return changed;
+  if (!changed) {
+    return std::nullopt;
+  }
+
+  return blender::Bounds<blender::float3>{min, max};
 }
 
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
-  float3 min;
-  float3 max;
-  BKE_gpencil_data_minmax(gpd, min, max);
+  const blender::Bounds<blender::float3> bounds = *BKE_gpencil_data_minmax(gpd);
 
-  const float3 tot = min + max;
+  const float3 tot = bounds.min + bounds.max;
   mul_v3_v3fl(r_centroid, tot, 0.5f);
 }
 
@@ -125,60 +125,6 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
 {
   INIT_MINMAX(gps->boundbox_min, gps->boundbox_max);
   BKE_gpencil_stroke_minmax(gps, false, gps->boundbox_min, gps->boundbox_max);
-}
-
-/**
- * Create bounding box values.
- * \param ob: Grease pencil object
- */
-static void boundbox_gpencil(Object *ob)
-{
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
-  }
-
-  BoundBox *bb = ob->runtime.bb;
-  bGPdata *gpd = (bGPdata *)ob->data;
-
-  float3 min;
-  float3 max;
-  if (!BKE_gpencil_data_minmax(gpd, min, max)) {
-    min = float3(-1);
-    max = float3(1);
-  }
-
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
-  bb->flag &= ~BOUNDBOX_DIRTY;
-}
-
-BoundBox *BKE_gpencil_boundbox_get(Object *ob)
-{
-  if (ELEM(nullptr, ob, ob->data)) {
-    return nullptr;
-  }
-
-  bGPdata *gpd = (bGPdata *)ob->data;
-  if ((ob->runtime.bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
-    return ob->runtime.bb;
-  }
-
-  boundbox_gpencil(ob);
-
-  Object *ob_orig = (Object *)DEG_get_original_id(&ob->id);
-  /* Update orig object's boundbox with re-computed evaluated values. This function can be
-   * called with the evaluated object and need update the original object bound box data
-   * to keep both values synchronized. */
-  if (!ELEM(ob_orig, nullptr, ob)) {
-    if (ob_orig->runtime.bb == nullptr) {
-      ob_orig->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
-    }
-    for (int i = 0; i < 8; i++) {
-      copy_v3_v3(ob_orig->runtime.bb->vec[i], ob->runtime.bb->vec[i]);
-    }
-  }
-
-  return ob->runtime.bb;
 }
 
 /** \} */
@@ -1717,7 +1663,7 @@ float BKE_gpencil_stroke_segment_length(const bGPDstroke *gps,
   }
 
   int index = MAX2(start_index, 0) + 1;
-  int last_index = MIN2(end_index, gps->totpoints - 1) + 1;
+  int last_index = std::min(end_index, gps->totpoints - 1) + 1;
 
   float *last_pt = &gps->points[index - 1].x;
   float total_length = 0.0f;
@@ -3560,8 +3506,8 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
   if (smooth) {
     const int sample_points = 8;
     /* Get the segment to smooth using n points on each side of the join. */
-    int start = MAX2(0, totpoints_a - sample_points);
-    int end = MIN2(gps_a->totpoints - 1, start + (sample_points * 2));
+    int start = std::max(0, totpoints_a - sample_points);
+    int end = std::min(gps_a->totpoints - 1, start + (sample_points * 2));
     const int len = (end - start);
     float step = 1.0f / ((len / 2) + 1);
 

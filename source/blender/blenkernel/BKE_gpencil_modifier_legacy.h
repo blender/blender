@@ -8,7 +8,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
-#include "DNA_gpencil_modifier_types.h" /* needed for all enum typdefs */
+#include "DNA_gpencil_modifier_types.h" /* Needed for all enum type definitions. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -274,7 +274,7 @@ void BKE_gpencil_modifier_free_ex(struct GpencilModifierData *md, int flag);
  */
 void BKE_gpencil_modifier_free(struct GpencilModifierData *md);
 /* check unique name */
-bool BKE_gpencil_modifier_unique_name(struct ListBase *modifiers, struct GpencilModifierData *gmd);
+void BKE_gpencil_modifier_unique_name(struct ListBase *modifiers, struct GpencilModifierData *gmd);
 /**
  * Check if grease pencil modifier depends on time.
  * \param md: Modifier data.

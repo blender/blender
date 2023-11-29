@@ -7,6 +7,9 @@
  */
 
 #include "BKE_global.h"
+#if defined(WIN32)
+#  include "BLI_winstuff.h"
+#endif
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -96,8 +99,15 @@ void GLBackend::platform_init()
     driver = GPU_DRIVER_SOFTWARE;
   }
   else if (strstr(vendor, "Microsoft")) {
-    device = GPU_DEVICE_SOFTWARE;
-    driver = GPU_DRIVER_SOFTWARE;
+    /* Qualcomm devices use Mesa's GLOn12, which claims to be vended by Microsoft */
+    if (strstr(renderer, "Qualcomm")) {
+      device = GPU_DEVICE_QUALCOMM;
+      driver = GPU_DRIVER_OFFICIAL;
+    }
+    else {
+      device = GPU_DEVICE_SOFTWARE;
+      driver = GPU_DRIVER_SOFTWARE;
+    }
   }
   else if (strstr(vendor, "Apple")) {
     /* Apple Silicon. */
@@ -124,6 +134,31 @@ void GLBackend::platform_init()
     support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
   }
   else {
+#if defined(WIN32)
+    long long driverVersion = 0;
+    if (device & GPU_DEVICE_QUALCOMM) {
+      if (BLI_windows_get_directx_driver_version(L"Qualcomm(R) Adreno(TM)", &driverVersion)) {
+        /* Parse out the driver version in format x.x.x.x */
+        WORD ver0 = (driverVersion >> 48) & 0xffff;
+        WORD ver1 = (driverVersion >> 32) & 0xffff;
+        WORD ver2 = (driverVersion >> 16) & 0xffff;
+
+        /* Any Qualcomm driver older than 30.x.x.x will never capable of running blender >= 4.0
+         * As due to an issue in D3D typed UAV load capabilities, Compute Shaders are not available
+         * 30.0.3820.x and above are capable of running blender >=4.0, but these drivers
+         * are only available on 8cx gen3 devices or newer */
+        if (ver0 < 30 || (ver0 == 30 && ver1 == 0 && ver2 < 3820)) {
+          std::cout
+              << "=====================================\n"
+              << "Qualcomm drivers older than 30.0.3820.x are not capable of running Blender 4.0\n"
+              << "If your device is older than an 8cx Gen3, you must use a 3.x LTS release.\n"
+              << "If you have an 8cx Gen3 or newer device, a driver update may be available.\n"
+              << "=====================================\n";
+          support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+        }
+      }
+    }
+#endif
     if ((device & GPU_DEVICE_INTEL) && (os & GPU_OS_WIN)) {
       /* Old Intel drivers with known bugs that cause material properties to crash.
        * Version Build 10.18.14.5067 is the latest available and appears to be working
@@ -135,6 +170,12 @@ void GLBackend::platform_init()
           strstr(version, "Build 10.18.14.4"))
       {
         support_level = GPU_SUPPORT_LEVEL_LIMITED;
+      }
+      /* Latest Intel driver have bugs that won't allow Blender to start.
+       * Users must install different version of the driver.
+       * See #113124 for more information. */
+      if (strstr(version, "Build 20.19.15.51")) {
+        support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
       }
     }
     if ((device & GPU_DEVICE_ATI) && (os & GPU_OS_UNIX)) {
@@ -154,7 +195,7 @@ void GLBackend::platform_init()
     glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds_compute);
     GLint max_ssbo_binds = min_iii(
         max_ssbo_binds_vertex, max_ssbo_binds_fragment, max_ssbo_binds_compute);
-    if (max_ssbo_binds < 8) {
+    if (max_ssbo_binds < 12) {
       std::cout << "Warning: Unsupported platform as it supports max " << max_ssbo_binds
                 << " SSBO binding locations\n";
       support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
@@ -266,7 +307,8 @@ static void detect_workarounds()
     /* Although an OpenGL 4.3 feature, our implementation requires shader_draw_parameters_support.
      * NOTE: we should untangle this by checking both features for clarity. */
     GLContext::multi_draw_indirect_support = false;
-
+    /* Turn off extensions. */
+    GLContext::layered_rendering_support = false;
     /* Turn off vendor specific extensions. */
     GLContext::native_barycentric_support = false;
     GLContext::framebuffer_fetch_support = false;
@@ -281,7 +323,6 @@ static void detect_workarounds()
     GLContext::debug_layer_support = false;
     GLContext::fixed_restart_index_support = false;
     GLContext::geometry_shader_invocations = false;
-    GLContext::layered_rendering_support = false;
     GLContext::texture_cube_map_array_support = false;
     GLContext::texture_gather_support = false;
     GLContext::texture_storage_support = false;
@@ -435,6 +476,13 @@ static void detect_workarounds()
     }
   }
 
+  /* Right now draw shader parameters are broken on Qualcomm devices
+   * regardless of driver version */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    GCaps.shader_draw_parameters_support = false;
+    GLContext::shader_draw_parameters_support = false;
+  }
+
   /* Some Intel drivers have issues with using mips as frame-buffer targets if
    * GL_TEXTURE_MAX_LEVEL is higher than the target MIP.
    * Only check at the end after all other workarounds because this uses the drawing code.
@@ -469,7 +517,6 @@ GLint GLContext::max_cubemap_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
 GLint GLContext::max_ssbo_binds = 0;
-GLint GLContext::max_ssbo_size = 0;
 
 /** Extensions. */
 
@@ -544,6 +591,9 @@ void GLBackend::capabilities_init()
     glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS,
                   &GCaps.max_shader_storage_buffer_bindings);
     glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &GCaps.max_compute_shader_storage_blocks);
+    int64_t max_ssbo_size;
+    glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_ssbo_size);
+    GCaps.max_storage_buffer_size = size_t(max_ssbo_size);
   }
   GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
@@ -562,7 +612,6 @@ void GLBackend::capabilities_init()
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
   glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
-  glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");
   GLContext::clear_texture_support = epoxy_has_gl_extension("GL_ARB_clear_texture");
   GLContext::copy_image_support = epoxy_has_gl_extension("GL_ARB_copy_image");

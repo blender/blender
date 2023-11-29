@@ -20,17 +20,17 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.h"
-#include "BKE_customdata.h"
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_screen.hh"
 #include "BKE_texture.h"
 
@@ -156,7 +156,7 @@ struct DisplaceUserdata {
   bool use_global_direction;
   Tex *tex_target;
   float (*tex_co)[3];
-  float (*vertexCos)[3];
+  blender::MutableSpan<blender::float3> positions;
   float local_mat[4][4];
   blender::Span<blender::float3> vert_normals;
   float (*vert_clnors)[3];
@@ -175,7 +175,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   int direction = data->direction;
   bool use_global_direction = data->use_global_direction;
   float(*tex_co)[3] = data->tex_co;
-  float(*vertexCos)[3] = data->vertexCos;
+  blender::MutableSpan<blender::float3> positions = data->positions;
   float(*vert_clnors)[3] = data->vert_clnors;
 
   /* When no texture is used, we fallback to white. */
@@ -212,32 +212,32 @@ static void displaceModifier_do_task(void *__restrict userdata,
   switch (direction) {
     case MOD_DISP_DIR_X:
       if (use_global_direction) {
-        vertexCos[iter][0] += delta * data->local_mat[0][0];
-        vertexCos[iter][1] += delta * data->local_mat[1][0];
-        vertexCos[iter][2] += delta * data->local_mat[2][0];
+        positions[iter][0] += delta * data->local_mat[0][0];
+        positions[iter][1] += delta * data->local_mat[1][0];
+        positions[iter][2] += delta * data->local_mat[2][0];
       }
       else {
-        vertexCos[iter][0] += delta;
+        positions[iter][0] += delta;
       }
       break;
     case MOD_DISP_DIR_Y:
       if (use_global_direction) {
-        vertexCos[iter][0] += delta * data->local_mat[0][1];
-        vertexCos[iter][1] += delta * data->local_mat[1][1];
-        vertexCos[iter][2] += delta * data->local_mat[2][1];
+        positions[iter][0] += delta * data->local_mat[0][1];
+        positions[iter][1] += delta * data->local_mat[1][1];
+        positions[iter][2] += delta * data->local_mat[2][1];
       }
       else {
-        vertexCos[iter][1] += delta;
+        positions[iter][1] += delta;
       }
       break;
     case MOD_DISP_DIR_Z:
       if (use_global_direction) {
-        vertexCos[iter][0] += delta * data->local_mat[0][2];
-        vertexCos[iter][1] += delta * data->local_mat[1][2];
-        vertexCos[iter][2] += delta * data->local_mat[2][2];
+        positions[iter][0] += delta * data->local_mat[0][2];
+        positions[iter][1] += delta * data->local_mat[1][2];
+        positions[iter][2] += delta * data->local_mat[2][2];
       }
       else {
-        vertexCos[iter][2] += delta;
+        positions[iter][2] += delta;
       }
       break;
     case MOD_DISP_DIR_RGB_XYZ:
@@ -248,13 +248,13 @@ static void displaceModifier_do_task(void *__restrict userdata,
         mul_transposed_mat3_m4_v3(data->local_mat, local_vec);
       }
       mul_v3_fl(local_vec, strength);
-      add_v3_v3(vertexCos[iter], local_vec);
+      add_v3_v3(positions[iter], local_vec);
       break;
     case MOD_DISP_DIR_NOR:
-      madd_v3_v3fl(vertexCos[iter], data->vert_normals[iter], delta);
+      madd_v3_v3fl(positions[iter], data->vert_normals[iter], delta);
       break;
     case MOD_DISP_DIR_CLNOR:
-      madd_v3_v3fl(vertexCos[iter], vert_clnors[iter], delta);
+      madd_v3_v3fl(positions[iter], vert_clnors[iter], delta);
       break;
   }
 }
@@ -262,8 +262,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
 static void displaceModifier_do(DisplaceModifierData *dmd,
                                 const ModifierEvalContext *ctx,
                                 Mesh *mesh,
-                                float (*vertexCos)[3],
-                                const int verts_num)
+                                blender::MutableSpan<blender::float3> positions)
 {
   Object *ob = ctx->object;
   const MDeformVert *dvert;
@@ -291,9 +290,14 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 
   Tex *tex_target = dmd->texture;
   if (tex_target != nullptr) {
-    tex_co = static_cast<float(*)[3]>(
-        MEM_calloc_arrayN(size_t(verts_num), sizeof(*tex_co), "displaceModifier_do tex_co"));
-    MOD_get_texture_coords((MappingInfoModifierData *)dmd, ctx, ob, mesh, vertexCos, tex_co);
+    tex_co = static_cast<float(*)[3]>(MEM_calloc_arrayN(
+        size_t(positions.size()), sizeof(*tex_co), "displaceModifier_do tex_co"));
+    MOD_get_texture_coords((MappingInfoModifierData *)dmd,
+                           ctx,
+                           ob,
+                           mesh,
+                           reinterpret_cast<float(*)[3]>(positions.data()),
+                           tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)dmd, ctx);
   }
@@ -302,22 +306,15 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
-    CustomData *ldata = &mesh->loop_data;
-
-    if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
-      if (!CustomData_has_layer(ldata, CD_NORMAL)) {
-        BKE_mesh_calc_normals_split(mesh);
-      }
-
-      float(*clnors)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
+    if (CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL)) {
       vert_clnors = static_cast<float(*)[3]>(
-          MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
-      BKE_mesh_normals_loop_to_vertex(verts_num,
-                                      mesh->corner_verts().data(),
-                                      mesh->totloop,
-                                      (const float(*)[3])clnors,
-                                      vert_clnors);
+          MEM_malloc_arrayN(positions.size(), sizeof(*vert_clnors), __func__));
+      BKE_mesh_normals_loop_to_vertex(
+          positions.size(),
+          mesh->corner_verts().data(),
+          mesh->totloop,
+          reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
+          vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;
@@ -339,7 +336,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.use_global_direction = use_global_direction;
   data.tex_target = tex_target;
   data.tex_co = tex_co;
-  data.vertexCos = vertexCos;
+  data.positions = positions;
   copy_m4_m4(data.local_mat, local_mat);
   if (direction == MOD_DISP_DIR_NOR) {
     data.vert_normals = mesh->vert_normals();
@@ -351,8 +348,8 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (verts_num > 512);
-  BLI_task_parallel_range(0, verts_num, &data, displaceModifier_do_task, &settings);
+  settings.use_threading = (positions.size() > 512);
+  BLI_task_parallel_range(0, positions.size(), &data, displaceModifier_do_task, &settings);
 
   if (data.pool != nullptr) {
     BKE_image_pool_free(data.pool);
@@ -370,10 +367,9 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         float (*vertexCos)[3],
-                         int verts_num)
+                         blender::MutableSpan<blender::float3> positions)
 {
-  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh, vertexCos, verts_num);
+  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh, positions);
 }
 
 static void panel_draw(const bContext *C, Panel *panel)
@@ -414,7 +410,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
   }
 
   uiItemS(layout);
@@ -452,7 +448,7 @@ ModifierTypeInfo modifierType_Displace = {
     /*struct_name*/ "DisplaceModifierData",
     /*struct_size*/ sizeof(DisplaceModifierData),
     /*srna*/ &RNA_DisplaceModifier,
-    /*type*/ eModifierTypeType_OnlyDeform,
+    /*type*/ ModifierTypeType::OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_DISPLACE,
 

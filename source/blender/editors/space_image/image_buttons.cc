@@ -19,7 +19,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_node.h"
@@ -801,7 +801,7 @@ void uiTemplateImage(uiLayout *layout,
       const float dpi_fac = UI_SCALE_FAC;
       const int menus_width = 230 * dpi_fac;
 
-      /* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
+      /* Use #BKE_image_acquire_renderresult so we get the correct slot in the menu. */
       rr = BKE_image_acquire_renderresult(scene, ima);
       uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
       BKE_image_release_renderresult(scene, ima);

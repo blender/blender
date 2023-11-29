@@ -2,18 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
@@ -23,7 +23,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_virtual_array.hh"
 
 #include "PIL_time.h"
@@ -2152,9 +2152,8 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   runtime_data->stats_totloop = draw_cache.num_subdiv_loops;
 
   draw_cache.use_custom_loop_normals = (runtime_data->use_loop_normals) &&
-                                       (mesh_eval->flag & ME_AUTOSMOOTH) &&
-                                       CustomData_has_layer(&mesh_eval->loop_data,
-                                                            CD_CUSTOMLOOPNORMAL);
+                                       mesh_eval->normals_domain() ==
+                                           blender::bke::MeshNormalDomain::Corner;
 
   if (DRW_ibo_requested(mbc.buff.ibo.tris)) {
     draw_subdiv_cache_ensure_mat_offsets(draw_cache, mesh_eval, batch_cache.mat_len);

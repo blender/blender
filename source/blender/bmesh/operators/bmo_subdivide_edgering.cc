@@ -29,7 +29,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 
 #include "bmesh.h"
 

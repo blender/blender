@@ -9,10 +9,18 @@ namespace blender::nodes::node_shader_volume_absorption_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+#define SOCK_COLOR_ID 0
   b.add_input<decl::Float>("Density").default_value(1.0f).min(0.0f).max(1000.0f);
+#define SOCK_DENSITY_ID 1
   b.add_input<decl::Float>("Weight").unavailable();
   b.add_output<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
+
+#define socket_not_zero(sock) (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f))
+#define socket_not_white(sock) \
+  (in[sock].link || \
+   (clamp_f(in[sock].vec[0], 0.0f, 1.0f) < 1.0f && clamp_f(in[sock].vec[1], 0.0f, 1.0f) < 1.0f && \
+    clamp_f(in[sock].vec[2], 0.0f, 1.0f) < 1.0f))
 
 static int node_shader_gpu_volume_absorption(GPUMaterial *mat,
                                              bNode *node,
@@ -20,8 +28,14 @@ static int node_shader_gpu_volume_absorption(GPUMaterial *mat,
                                              GPUNodeStack *in,
                                              GPUNodeStack *out)
 {
+  if (socket_not_zero(SOCK_DENSITY_ID) && socket_not_white(SOCK_COLOR_ID)) {
+    GPU_material_flag_set(mat, GPU_MATFLAG_VOLUME_ABSORPTION);
+  }
   return GPU_stack_link(mat, node, "node_volume_absorption", in, out);
 }
+
+#undef SOCK_COLOR_ID
+#undef SOCK_DENSITY_ID
 
 }  // namespace blender::nodes::node_shader_volume_absorption_cc
 

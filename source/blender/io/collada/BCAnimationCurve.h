@@ -9,13 +9,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_fcurve.h"
 #include "BKE_material.h"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
-#include "ED_keyframing.hh"
+
+#include "ANIM_fcurve.hh"
 
 typedef float(TangentPoint)[2];
 

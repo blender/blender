@@ -21,14 +21,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"
 
 #include "UI_interface.hh"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
@@ -83,7 +83,7 @@ static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
   return kmin;
 }
 
-static void wm_keymap_item_free(wmKeyMapItem *kmi)
+static void wm_keymap_item_free_data(wmKeyMapItem *kmi)
 {
   /* not kmi itself */
   if (kmi->ptr) {
@@ -92,6 +92,21 @@ static void wm_keymap_item_free(wmKeyMapItem *kmi)
     kmi->ptr = nullptr;
     kmi->properties = nullptr;
   }
+  else if (kmi->properties) {
+    IDP_FreeProperty(kmi->properties);
+    kmi->properties = nullptr;
+  }
+}
+
+static void wm_keymap_item_clear_runtime(wmKeyMapItem *kmi)
+{
+  IDProperty *properties = kmi->properties;
+  kmi->properties = nullptr;
+  if (kmi->ptr) {
+    kmi->ptr->data = nullptr;
+  }
+  wm_keymap_item_free_data(kmi);
+  kmi->properties = properties;
 }
 
 static void wm_keymap_item_properties_set(wmKeyMapItem *kmi)
@@ -107,7 +122,7 @@ static void wm_keymap_item_properties_set(wmKeyMapItem *kmi)
  * Similar to #wm_keymap_item_properties_set
  * but checks for the #wmOperatorType having changed, see #38042.
  */
-static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
+static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi, const bool keep_properties)
 {
   if (kmi->idname[0] == 0) {
     BLI_assert(kmi->ptr == nullptr);
@@ -137,25 +152,31 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
       }
     }
     else {
-      /* zombie keymap item */
-      wm_keymap_item_free(kmi);
+      /* Zombie key-map item. */
+      if (keep_properties) {
+        wm_keymap_item_clear_runtime(kmi);
+      }
+      else {
+        wm_keymap_item_free_data(kmi);
+      }
     }
   }
 }
 
-static void wm_keymap_item_properties_update_ot_from_list(ListBase *km_lb)
+static void wm_keymap_item_properties_update_ot_from_list(ListBase *km_lb,
+                                                          const bool keep_properties)
 {
   LISTBASE_FOREACH (wmKeyMap *, km, km_lb) {
     LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
-      wm_keymap_item_properties_update_ot(kmi);
+      wm_keymap_item_properties_update_ot(kmi, keep_properties);
     }
 
     LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &km->diff_items) {
       if (kmdi->add_item) {
-        wm_keymap_item_properties_update_ot(kmdi->add_item);
+        wm_keymap_item_properties_update_ot(kmdi->add_item, keep_properties);
       }
       if (kmdi->remove_item) {
-        wm_keymap_item_properties_update_ot(kmdi->remove_item);
+        wm_keymap_item_properties_update_ot(kmdi->remove_item, keep_properties);
       }
     }
   }
@@ -186,6 +207,9 @@ void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, IDProperty *properties)
     MEM_freeN(kmi->ptr);
 
     kmi->ptr = nullptr;
+  }
+  else if (kmi->properties) {
+    IDP_FreeProperty(kmi->properties);
   }
 
   kmi->properties = properties;
@@ -242,11 +266,11 @@ static wmKeyMapDiffItem *wm_keymap_diff_item_copy(wmKeyMapDiffItem *kmdi)
 static void wm_keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
 {
   if (kmdi->remove_item) {
-    wm_keymap_item_free(kmdi->remove_item);
+    wm_keymap_item_free_data(kmdi->remove_item);
     MEM_freeN(kmdi->remove_item);
   }
   if (kmdi->add_item) {
-    wm_keymap_item_free(kmdi->add_item);
+    wm_keymap_item_free_data(kmdi->add_item);
     MEM_freeN(kmdi->add_item);
   }
 }
@@ -425,7 +449,7 @@ void WM_keymap_clear(wmKeyMap *keymap)
   }
 
   LISTBASE_FOREACH_MUTABLE (wmKeyMapItem *, kmi, &keymap->items) {
-    wm_keymap_item_free(kmi);
+    wm_keymap_item_free_data(kmi);
     MEM_freeN(kmi);
   }
 
@@ -557,6 +581,9 @@ void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
   if (kmi->ptr) {
     WM_operator_properties_free(kmi->ptr);
     MEM_freeN(kmi->ptr);
+  }
+  else if (kmi->properties) {
+    IDP_FreeProperty(kmi->properties);
   }
   BLI_freelinkN(&keymap->items, kmi);
 
@@ -710,7 +737,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 
     /* remove item */
     if (kmi_remove) {
-      wm_keymap_item_free(kmi_remove);
+      wm_keymap_item_free_data(kmi_remove);
       BLI_freelinkN(&km->items, kmi_remove);
     }
   }
@@ -1794,6 +1821,8 @@ enum {
 
   /* ensure all wmKeyMap have their operator types validated after removing an operator */
   WM_KEYMAP_UPDATE_OPERATORTYPE = (1 << 1),
+
+  WM_KEYMAP_UPDATE_POSTPONE = (1 << 2),
 };
 
 static char wm_keymap_update_flag = 0;
@@ -1848,6 +1877,16 @@ void WM_keyconfig_update_suppress_end()
   wm_keymap_update_suppress_flag = 0;
 }
 
+void WM_keyconfig_update_postpone_begin()
+{
+  wm_keymap_update_flag |= WM_KEYMAP_UPDATE_POSTPONE;
+}
+
+void WM_keyconfig_update_postpone_end()
+{
+  wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_POSTPONE;
+}
+
 static bool wm_keymap_test_and_clear_update(wmKeyMap *km)
 {
   int update = (km->flag & KEYMAP_UPDATE);
@@ -1874,18 +1913,29 @@ static wmKeyMap *wm_keymap_preset(wmWindowManager *wm, wmKeyMap *km)
 
 void WM_keyconfig_update(wmWindowManager *wm)
 {
+  WM_keyconfig_update_ex(wm, false);
+}
+
+void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
+{
   bool compat_update = false;
 
   if (wm_keymap_update_flag == 0) {
     return;
   }
 
+  /* Postpone update until after the key-map has been initialized
+   * to ensure add-ons have been loaded, see: #113603. */
+  if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_POSTPONE) {
+    return;
+  }
+
   if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_OPERATORTYPE) {
     /* One or more operator-types have been removed, this won't happen often
      * but when it does we have to check _every_ key-map item. */
-    wm_keymap_item_properties_update_ot_from_list(&U.user_keymaps);
+    wm_keymap_item_properties_update_ot_from_list(&U.user_keymaps, keep_properties);
     LISTBASE_FOREACH (wmKeyConfig *, kc, &wm->keyconfigs) {
-      wm_keymap_item_properties_update_ot_from_list(&kc->keymaps);
+      wm_keymap_item_properties_update_ot_from_list(&kc->keymaps, keep_properties);
     }
     wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_OPERATORTYPE;
   }
@@ -2054,7 +2104,9 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
       }
 
       kmi->properties = IDP_CopyProperty(orig->properties);
-      kmi->ptr->data = kmi->properties;
+      if (kmi->ptr) {
+        kmi->ptr->data = kmi->properties;
+      }
     }
 
     kmi->propvalue = orig->propvalue;

@@ -28,12 +28,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_blender.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_tracking.h"
 
 #include "RNA_access.hh"
@@ -44,10 +44,10 @@
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 
-#include "SEQ_channels.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_transform.h"
+#include "SEQ_channels.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
 #include "WM_api.hh"

@@ -21,14 +21,14 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_mempool.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "BKE_armature.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -38,10 +38,10 @@
 #include "BKE_lib_override.hh"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_main_namemap.h"
-#include "BKE_modifier.h"
+#include "BKE_main_namemap.hh"
+#include "BKE_modifier.hh"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_report.h"
 
@@ -2527,14 +2527,14 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_LP: {
       const LightProbe *lp = (LightProbe *)id;
       switch (lp->type) {
-        case LIGHTPROBE_TYPE_CUBE:
-          return ICON_LIGHTPROBE_CUBEMAP;
-        case LIGHTPROBE_TYPE_PLANAR:
-          return ICON_LIGHTPROBE_PLANAR;
-        case LIGHTPROBE_TYPE_GRID:
-          return ICON_LIGHTPROBE_GRID;
+        case LIGHTPROBE_TYPE_SPHERE:
+          return ICON_LIGHTPROBE_SPHERE;
+        case LIGHTPROBE_TYPE_PLANE:
+          return ICON_LIGHTPROBE_PLANE;
+        case LIGHTPROBE_TYPE_VOLUME:
+          return ICON_LIGHTPROBE_VOLUME;
         default:
-          return ICON_LIGHTPROBE_CUBEMAP;
+          return ICON_LIGHTPROBE_SPHERE;
       }
     }
     case ID_BR:
@@ -3214,7 +3214,7 @@ static void outliner_draw_iconrow(bContext *C,
         if ((merged->tree_element[index] == nullptr) || (active > merged->active[index])) {
           merged->tree_element[index] = te;
         }
-        merged->active[index] = MAX2(active, merged->active[index]);
+        merged->active[index] = std::max(active, merged->active[index]);
       }
     }
 

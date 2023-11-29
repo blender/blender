@@ -17,7 +17,7 @@
 #include "BLI_timeit.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
 namespace blender::bke::calc_edges {

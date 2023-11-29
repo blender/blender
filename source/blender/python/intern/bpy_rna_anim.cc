@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -23,9 +23,11 @@
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframing.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -366,14 +368,14 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     if (prop) {
       NlaStrip *strip = static_cast<NlaStrip *>(ptr.data);
       FCurve *fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), index);
-      result = insert_keyframe_direct(&reports,
-                                      ptr,
-                                      prop,
-                                      fcu,
-                                      &anim_eval_context,
-                                      eBezTriple_KeyframeType(keytype),
-                                      nullptr,
-                                      eInsertKeyFlags(options));
+      result = blender::animrig::insert_keyframe_direct(&reports,
+                                                        ptr,
+                                                        prop,
+                                                        fcu,
+                                                        &anim_eval_context,
+                                                        eBezTriple_KeyframeType(keytype),
+                                                        nullptr,
+                                                        eInsertKeyFlags(options));
     }
     else {
       BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);
@@ -383,17 +385,16 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     ID *id = self->ptr.owner_id;
 
     BLI_assert(BKE_id_is_in_global_main(id));
-    result = (insert_keyframe(G_MAIN,
-                              &reports,
-                              id,
-                              nullptr,
-                              group_name,
-                              path_full,
-                              index,
-                              &anim_eval_context,
-                              eBezTriple_KeyframeType(keytype),
-                              nullptr,
-                              eInsertKeyFlags(options)) != 0);
+    result = (blender::animrig::insert_keyframe(G_MAIN,
+                                                &reports,
+                                                id,
+                                                nullptr,
+                                                group_name,
+                                                path_full,
+                                                index,
+                                                &anim_eval_context,
+                                                eBezTriple_KeyframeType(keytype),
+                                                eInsertKeyFlags(options)) != 0);
   }
 
   MEM_freeN((void *)path_full);
@@ -513,7 +514,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
     }
   }
   else {
-    result = (delete_keyframe(
+    result = (blender::animrig::delete_keyframe(
                   G.main, &reports, self->ptr.owner_id, nullptr, path_full, index, cfra) != 0);
   }
 

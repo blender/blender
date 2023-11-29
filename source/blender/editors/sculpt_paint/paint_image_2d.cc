@@ -23,7 +23,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colorband.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
@@ -164,11 +164,11 @@ static void brush_painter_2d_require_imbuf(
     cache->ibuf = nullptr;
     cache->tex_mask = nullptr;
     cache->lastdiameter = -1; /* force ibuf create in refresh */
-    cache->invert = invert;
   }
 
   cache->use_float = use_float;
   cache->use_color_correction = use_float && use_color_correction;
+  cache->invert = invert;
   cache->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? true :
                                                                                         false;
   cache->is_maskbrush = (brush->mask_mtex.tex) ? true : false;
@@ -1889,8 +1889,8 @@ void paint_2d_bucket_fill(const bContext *C,
       copy_v4_v4(pixel_color, ibuf->float_buffer.data + 4 * coordinate);
     }
     else {
-      int pixel_color_b = *ibuf->byte_buffer.data + 4 * coordinate;
-      rgba_uchar_to_float(pixel_color, (uchar *)&pixel_color_b);
+      uchar *pixel_color_b = ibuf->byte_buffer.data + 4 * coordinate;
+      rgba_uchar_to_float(pixel_color, pixel_color_b);
       straight_to_premul_v4(pixel_color);
     }
 

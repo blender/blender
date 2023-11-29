@@ -109,6 +109,20 @@ PACKAGES_FOR_LIBS=(
     # Required by: `external_ssl` (build dependencies).
     perl-IPC-Cmd
     perl-Pod-Html
+
+    # Required by: `external_wayland_weston`
+    cairo-devel
+    libdrm-devel
+    pixman-devel
+    libffi-devel
+    libinput-devel
+    libevdev-devel
+    mesa-libEGL-devel
+    systemd-devel # for `libudev` (not so obvious!).
+    # Required by: `weston --headless` (run-time requirement for off screen rendering).
+    mesa-dri-drivers
+    mesa-libEGL
+    mesa-libGL
 )
 
 # Additional packages needed for building Blender.
@@ -134,3 +148,6 @@ yum -y install python3 python3-pip python3-devel
 # Dependencies for asound.
 yum -y install -y  \
     alsa-lib-devel pulseaudio-libs-devel
+
+# Required by Blender build option: `WITH_JACK`.
+yum -y install jack-audio-connection-kit-devel

@@ -28,7 +28,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -280,8 +280,8 @@ ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
 
 bool ED_space_clip_get_position(const SpaceClip *sc,
                                 const ARegion *region,
-                                int mval[2],
-                                float fpos[2])
+                                const int mval[2],
+                                float r_fpos[2])
 {
   ImBuf *ibuf = ED_space_clip_get_buffer(sc);
   if (!ibuf) {
@@ -289,7 +289,7 @@ bool ED_space_clip_get_position(const SpaceClip *sc,
   }
 
   /* map the mouse coords to the backdrop image space */
-  ED_clip_mouse_pos(sc, region, mval, fpos);
+  ED_clip_mouse_pos(sc, region, mval, r_fpos);
 
   IMB_freeImBuf(ibuf);
   return true;
@@ -545,9 +545,12 @@ void ED_clip_point_stable_pos__reverse(const SpaceClip *sc,
   r_co[1] = (pos[1] * height * zoomy) + float(sy);
 }
 
-void ED_clip_mouse_pos(const SpaceClip *sc, const ARegion *region, const int mval[2], float co[2])
+void ED_clip_mouse_pos(const SpaceClip *sc,
+                       const ARegion *region,
+                       const int mval[2],
+                       float r_co[2])
 {
-  ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &co[0], &co[1]);
+  ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &r_co[0], &r_co[1]);
 }
 
 bool ED_space_clip_check_show_trackedit(const SpaceClip *sc)
@@ -709,7 +712,7 @@ static uchar *prefetch_read_file_to_memory(
   }
 
   const size_t size = BLI_file_descriptor_size(file);
-  if (size < 1) {
+  if (UNLIKELY(ELEM(size, 0, size_t(-1)))) {
     close(file);
     return nullptr;
   }
@@ -720,7 +723,7 @@ static uchar *prefetch_read_file_to_memory(
     return nullptr;
   }
 
-  if (read(file, mem, size) != size) {
+  if (BLI_read(file, mem, size) != size) {
     close(file);
     MEM_freeN(mem);
     return nullptr;
@@ -998,7 +1001,7 @@ static void do_prefetch_movie(MovieClip *clip,
   }
 }
 
-static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
+static void prefetch_startjob(void *pjv, wmJobWorkerStatus *worker_status)
 {
   PrefetchJob *pj = static_cast<PrefetchJob *>(pjv);
 
@@ -1010,9 +1013,9 @@ static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *pro
                            pj->end_frame,
                            pj->render_size,
                            pj->render_flag,
-                           stop,
-                           do_update,
-                           progress);
+                           &worker_status->stop,
+                           &worker_status->do_update,
+                           &worker_status->progress);
   }
   else if (pj->clip->source == MCLIP_SRC_MOVIE) {
     /* read movie in a single thread */
@@ -1023,9 +1026,9 @@ static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *pro
                       pj->end_frame,
                       pj->render_size,
                       pj->render_flag,
-                      stop,
-                      do_update,
-                      progress);
+                      &worker_status->stop,
+                      &worker_status->do_update,
+                      &worker_status->progress);
   }
   else {
     BLI_assert_msg(0, "Unknown movie clip source when prefetching frames");

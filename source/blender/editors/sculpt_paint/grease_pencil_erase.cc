@@ -12,7 +12,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
@@ -23,6 +23,7 @@
 #include "DEG_depsgraph_query.hh"
 #include "DNA_brush_enums.h"
 
+#include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
 #include "WM_api.hh"
@@ -59,7 +60,13 @@ struct EraseOperationExecutor {
   int2 mouse_position_pixels{};
   int64_t eraser_squared_radius_pixels{};
 
-  EraseOperationExecutor(const bContext & /*C*/) {}
+  bke::greasepencil::DrawingTransforms transforms_;
+
+  EraseOperationExecutor(const bContext &C)
+  {
+    Object *object = CTX_data_active_object(&C);
+    transforms_ = bke::greasepencil::DrawingTransforms(*object);
+  }
 
   /**
    * Computes the intersections between a 2D line segment and a circle with integer values.
@@ -525,14 +532,18 @@ struct EraseOperationExecutor {
     const bke::AnonymousAttributePropagationInfo propagation_info{};
 
     /* Copy curves attributes. */
-    for (bke::AttributeTransferData &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_CURVE, propagation_info, {"cyclic"}))
-    {
-      bke::attribute_math::gather(attribute.src, dst_to_src_curve.as_span(), attribute.dst.span);
-      attribute.dst.finish();
+    bke::gather_attributes(src_attributes,
+                           ATTR_DOMAIN_CURVE,
+                           propagation_info,
+                           {"cyclic"},
+                           dst_to_src_curve,
+                           dst_attributes);
+    if (src_cyclic.get_if_single().value_or(true)) {
+      array_utils::gather(
+          src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
     }
-    array_utils::gather(
-        src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
+
+    dst.update_curve_types();
 
     /* Display intersections with flat caps. */
     if (!keep_caps) {
@@ -747,47 +758,50 @@ struct EraseOperationExecutor {
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
 
     bool changed = false;
-    const auto execute_eraser_on_drawing = [&](int drawing_index, Drawing &drawing) {
-      const bke::CurvesGeometry &src = drawing.strokes();
+    const auto execute_eraser_on_drawing =
+        [&](const int layer_index, const int frame_number, Drawing &drawing) {
+          const bke::CurvesGeometry &src = drawing.strokes();
 
-      /* Evaluated geometry. */
-      bke::crazyspace::GeometryDeformation deformation =
-          bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              ob_eval, *obact, drawing_index);
+          /* Evaluated geometry. */
+          bke::crazyspace::GeometryDeformation deformation =
+              bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                  ob_eval, *obact, layer_index, frame_number);
 
-      /* Compute screen space positions. */
-      Array<float2> screen_space_positions(src.points_num());
-      threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
-        for (const int src_point : src_points) {
-          ED_view3d_project_float_global(region,
-                                         deformation.positions[src_point],
-                                         screen_space_positions[src_point],
-                                         V3D_PROJ_TEST_NOP);
-        }
-      });
+          /* Compute screen space positions. */
+          Array<float2> screen_space_positions(src.points_num());
+          threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
+            for (const int src_point : src_points) {
+              ED_view3d_project_float_global(
+                  region,
+                  math::transform_point(transforms_.layer_space_to_world_space,
+                                        deformation.positions[src_point]),
+                  screen_space_positions[src_point],
+                  V3D_PROJ_TEST_NOP);
+            }
+          });
 
-      /* Erasing operator. */
-      bke::CurvesGeometry dst;
-      bool erased = false;
-      switch (self.eraser_mode) {
-        case GP_BRUSH_ERASER_STROKE:
-          erased = stroke_eraser(src, screen_space_positions, dst);
-          break;
-        case GP_BRUSH_ERASER_HARD:
-          erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps);
-          break;
-        case GP_BRUSH_ERASER_SOFT:
-          // To be implemented
-          return;
-      }
+          /* Erasing operator. */
+          bke::CurvesGeometry dst;
+          bool erased = false;
+          switch (self.eraser_mode) {
+            case GP_BRUSH_ERASER_STROKE:
+              erased = stroke_eraser(src, screen_space_positions, dst);
+              break;
+            case GP_BRUSH_ERASER_HARD:
+              erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps);
+              break;
+            case GP_BRUSH_ERASER_SOFT:
+              // To be implemented
+              return;
+          }
 
-      if (erased) {
-        /* Set the new geometry. */
-        drawing.geometry.wrap() = std::move(dst);
-        drawing.tag_topology_changed();
-        changed = true;
-      }
-    };
+          if (erased) {
+            /* Set the new geometry. */
+            drawing.geometry.wrap() = std::move(dst);
+            drawing.tag_topology_changed();
+            changed = true;
+          }
+        };
 
     if (self.active_layer_only) {
       /* Erase only on the drawing at the current frame of the active layer. */
@@ -798,11 +812,17 @@ struct EraseOperationExecutor {
         return;
       }
 
-      execute_eraser_on_drawing(active_layer->drawing_index_at(scene->r.cfra), *drawing);
+      execute_eraser_on_drawing(
+          active_layer->drawing_index_at(scene->r.cfra), scene->r.cfra, *drawing);
     }
     else {
       /* Erase on all editable drawings. */
-      grease_pencil.foreach_editable_drawing(scene->r.cfra, execute_eraser_on_drawing);
+      const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+          ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
+      threading::parallel_for_each(
+          drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
+            execute_eraser_on_drawing(info.layer_index, info.frame_number, info.drawing);
+          });
     }
 
     if (changed) {

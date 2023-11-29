@@ -34,6 +34,12 @@ struct rcti;
 int BLF_init(void);
 void BLF_exit(void);
 
+/**
+ * Close any user-loaded fonts that are not used by the Interface. Call when
+ * loading new blend files so that the old fonts are not still taking resources.
+ */
+void BLF_reset_fonts(void);
+
 void BLF_cache_clear(void);
 
 /**
@@ -65,6 +71,21 @@ void BLF_unload_all(void);
 
 char *BLF_display_name_from_file(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
+char *BLF_display_name_from_id(int fontid);
+
+/**
+ * Get the metrics needed for the initial sizing of text objects.
+ */
+bool BLF_get_vfont_metrics(int fontid, float *ascend_ratio, float *em_ratio, float *scale);
+
+/**
+ * Convert a character's outlines into curves.
+ */
+float BLF_character_to_curves(int fontid,
+                              unsigned int unicode,
+                              struct ListBase *nurbsbase,
+                              const float scale);
+
 /**
  * Check if font supports a particular glyph.
  */
@@ -78,6 +99,11 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size) ATTR_NONNU
 void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
 void BLF_size(int fontid, float size);
+
+/**
+ * Weight class: 100 (Thin) - 400 (Normal) - 900 (Heavy).
+ */
+void BLF_character_weight(int fontid, int weight);
 
 /* Goal: small but useful color API. */
 
@@ -95,10 +121,10 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
 
 /**
  * Set a 4x4 matrix to be multiplied before draw the text.
- * Remember that you need call BLF_enable(BLF_MATRIX)
+ * Remember that you need call `BLF_enable(BLF_MATRIX)`
  * to enable this.
  *
- * The order of the matrix is like GL:
+ * The order of the matrix is column major (following the GPU module):
  * \code{.unparsed}
  *  | m[0]  m[4]  m[8]  m[12] |
  *  | m[1]  m[5]  m[9]  m[13] |
@@ -349,7 +375,7 @@ enum {
   BLF_BAD_FONT = 1 << 16,
   /** This font is managed by the FreeType cache subsystem. */
   BLF_CACHED = 1 << 17,
-  /** At small sizes glyphs are rendered at multiple subpixel positions. */
+  /** At small sizes glyphs are rendered at multiple sub-pixel positions. */
   BLF_RENDER_SUBPIXELAA = 1 << 18,
 };
 

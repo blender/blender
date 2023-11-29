@@ -312,6 +312,10 @@ bool BKE_collection_validate(struct Collection *collection);
 
 /* .blend file I/O */
 
+/** Perform some pre-writing cleanup on the COllection data itself (_not_ in any sub-data
+ * referenced by pointers). To be called before writing the Collection struct itself. */
+void BKE_collection_blend_write_prepare_nolib(struct BlendWriter *writer,
+                                              struct Collection *collection);
 void BKE_collection_blend_write_nolib(struct BlendWriter *writer, struct Collection *collection);
 void BKE_collection_blend_read_data(struct BlendDataReader *reader,
                                     struct Collection *collection,

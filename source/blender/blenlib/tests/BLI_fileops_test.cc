@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <fcntl.h>
+
 #include "testing/testing.h"
 
 #include "BLI_fileops.hh"
@@ -14,6 +16,207 @@
 #include BLI_SYSTEM_PID_H
 
 namespace blender::tests {
+
+/*
+ * General `BLI_fileops.h` tests.
+ */
+
+class FileOpsTest : public testing::Test {
+ public:
+  /* The base temp directory for all tests using this helper class. Absolute path. */
+  std::string temp_dir;
+
+  void SetUp() override
+  {
+    char temp_dir_c[FILE_MAX];
+    BLI_temp_directory_path_get(temp_dir_c, sizeof(temp_dir_c));
+
+    temp_dir = std::string(temp_dir_c) + SEP_STR + "blender_fileops_test_" +
+               std::to_string(getpid());
+    if (!BLI_exists(temp_dir.c_str())) {
+      BLI_dir_create_recursive(temp_dir.c_str());
+    }
+  }
+
+  void TearDown() override
+  {
+    if (BLI_exists(temp_dir.c_str())) {
+      BLI_delete(temp_dir.c_str(), true, true);
+    }
+  }
+};
+
+TEST_F(FileOpsTest, rename)
+{
+  const std::string file_name_src = "test_file_src.txt";
+  const std::string file_name_dst = "test_file_dst.txt";
+
+  const std::string test_filepath_src = temp_dir + SEP_STR + file_name_src;
+  const std::string test_filepath_dst = temp_dir + SEP_STR + file_name_dst;
+
+  ASSERT_FALSE(BLI_exists(test_filepath_src.c_str()));
+  ASSERT_FALSE(BLI_exists(test_filepath_dst.c_str()));
+  BLI_file_touch(test_filepath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+
+  /* `test_filepath_dst` does not exist, so regular rename should succeed. */
+  ASSERT_EQ(0, BLI_rename(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_filepath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_filepath_dst.c_str()));
+
+  BLI_file_touch(test_filepath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+
+  /* `test_filepath_dst` does exist now, so regular rename should succeed on Unix, but fail on
+   * Windows. */
+#ifdef WIN32
+  ASSERT_NE(0, BLI_rename(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+#else
+  ASSERT_EQ(0, BLI_rename(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_filepath_src.c_str()));
+#endif
+  ASSERT_TRUE(BLI_exists(test_filepath_dst.c_str()));
+
+  BLI_file_touch(test_filepath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+
+  /* `test_filepath_dst` does exist now, but overwrite rename should succeed on all systems. */
+  ASSERT_EQ(0, BLI_rename_overwrite(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_filepath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_filepath_dst.c_str()));
+
+  BLI_file_touch(test_filepath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+
+  /* Keep `test_filepath_dst` read-open before attempting to rename `test_filepath_src` to
+   * `test_filepath_dst`.
+   *
+   * This is expected to succeed on Unix, but fail on Windows. */
+  int fd_dst = BLI_open(test_filepath_dst.c_str(), O_BINARY | O_RDONLY, 0);
+#ifdef WIN32
+  ASSERT_NE(0, BLI_rename(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+#else
+  ASSERT_EQ(0, BLI_rename(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_filepath_src.c_str()));
+#endif
+  ASSERT_TRUE(BLI_exists(test_filepath_dst.c_str()));
+
+  BLI_file_touch(test_filepath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+
+#ifdef WIN32
+  ASSERT_NE(0, BLI_rename_overwrite(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_filepath_src.c_str()));
+#else
+  ASSERT_EQ(0, BLI_rename_overwrite(test_filepath_src.c_str(), test_filepath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_filepath_src.c_str()));
+#endif
+  ASSERT_TRUE(BLI_exists(test_filepath_dst.c_str()));
+
+  close(fd_dst);
+
+  /*
+   * Check directory renaming.
+   */
+
+  const std::string dir_name_src = "test_dir_src";
+  const std::string dir_name_dst = "test_dir_dst";
+
+  const std::string test_dirpath_src = temp_dir + SEP_STR + dir_name_src;
+  const std::string test_dirpath_dst = temp_dir + SEP_STR + dir_name_dst;
+
+  BLI_dir_create_recursive(test_dirpath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+
+  /* `test_dirpath_dst` does not exist, so regular rename should succeed. */
+  ASSERT_EQ(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dirpath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
+
+  BLI_dir_create_recursive(test_dirpath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+
+  /* `test_dirpath_dst` now exists, so regular rename should succeed on Unix, but fail on Windows.
+   */
+#ifdef WIN32
+  ASSERT_NE(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+#else
+  ASSERT_EQ(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dirpath_src.c_str()));
+#endif
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
+
+#ifndef WIN32
+  BLI_dir_create_recursive(test_dirpath_src.c_str());
+#endif
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+
+  const std::string test_dir_filepath_src = test_dirpath_src + SEP_STR + file_name_src;
+  const std::string test_dir_filepath_dst = test_dirpath_dst + SEP_STR + file_name_dst;
+
+  ASSERT_FALSE(BLI_exists(test_dir_filepath_src.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dir_filepath_dst.c_str()));
+  BLI_file_touch(test_dir_filepath_src.c_str());
+  ASSERT_TRUE(BLI_exists(test_dir_filepath_src.c_str()));
+
+  /* `test_dir_filepath_src` does not exist, so regular rename should succeed. */
+  ASSERT_EQ(0, BLI_rename(test_dir_filepath_src.c_str(), test_dir_filepath_dst.c_str()));
+  ASSERT_FALSE(BLI_exists(test_dir_filepath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dir_filepath_dst.c_str()));
+
+  /* `test_dirpath_dst` exists and is not empty, so regular rename should fail on all platforms. */
+  ASSERT_NE(0, BLI_rename(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
+
+  /* `test_dirpath_dst` exists and is not empty, so even overwrite rename should fail on all
+   * platforms. */
+  ASSERT_NE(0, BLI_rename_overwrite(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
+  ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
+}
+
+/*
+ * blender::fstream tests.
+ */
+
+TEST(fileops, fstream_open_string_filename)
+{
+  const std::string test_files_dir = blender::tests::flags_test_asset_dir();
+  if (test_files_dir.empty()) {
+    FAIL();
+  }
+
+  const std::string filepath = test_files_dir + "/asset_library/новый/blender_assets.cats.txt";
+  fstream in(filepath, std::ios_base::in);
+  ASSERT_TRUE(in.is_open()) << "could not open " << filepath;
+  in.close(); /* This should not crash. */
+
+  /* Reading the file not tested here. That's deferred to `std::fstream` anyway. */
+}
+
+TEST(fileops, fstream_open_charptr_filename)
+{
+  const std::string test_files_dir = blender::tests::flags_test_asset_dir();
+  if (test_files_dir.empty()) {
+    FAIL();
+  }
+
+  const std::string filepath_str = test_files_dir + "/asset_library/новый/blender_assets.cats.txt";
+  const char *filepath = filepath_str.c_str();
+  fstream in(filepath, std::ios_base::in);
+  ASSERT_TRUE(in.is_open()) << "could not open " << filepath;
+  in.close(); /* This should not crash. */
+
+  /* Reading the file not tested here. That's deferred to `std::fstream` anyway. */
+}
+
+/*
+ * Current Directory operations tests.
+ */
 
 class ChangeWorkingDirectoryTest : public testing::Test {
  public:
@@ -48,37 +251,6 @@ class ChangeWorkingDirectoryTest : public testing::Test {
     return filepath;
   }
 };
-
-TEST(fileops, fstream_open_string_filename)
-{
-  const std::string test_files_dir = blender::tests::flags_test_asset_dir();
-  if (test_files_dir.empty()) {
-    FAIL();
-  }
-
-  const std::string filepath = test_files_dir + "/asset_library/новый/blender_assets.cats.txt";
-  fstream in(filepath, std::ios_base::in);
-  ASSERT_TRUE(in.is_open()) << "could not open " << filepath;
-  in.close(); /* This should not crash. */
-
-  /* Reading the file not tested here. That's deferred to `std::fstream` anyway. */
-}
-
-TEST(fileops, fstream_open_charptr_filename)
-{
-  const std::string test_files_dir = blender::tests::flags_test_asset_dir();
-  if (test_files_dir.empty()) {
-    FAIL();
-  }
-
-  const std::string filepath_str = test_files_dir + "/asset_library/новый/blender_assets.cats.txt";
-  const char *filepath = filepath_str.c_str();
-  fstream in(filepath, std::ios_base::in);
-  ASSERT_TRUE(in.is_open()) << "could not open " << filepath;
-  in.close(); /* This should not crash. */
-
-  /* Reading the file not tested here. That's deferred to `std::fstream` anyway. */
-}
 
 TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
 {

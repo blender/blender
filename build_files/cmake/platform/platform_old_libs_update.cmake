@@ -104,3 +104,13 @@ if(UNIX AND (NOT APPLE) AND LIBDIR AND (EXISTS ${LIBDIR}))
   )
   unset(_libdir_stale)
 endif()
+
+# Detect update in 4.1 to shared library OpenImageDenoise.
+if(UNIX AND
+  DEFINED OPENIMAGEDENOISE_LIBRARY AND
+  OPENIMAGEDENOISE_LIBRARY MATCHES "libOpenImageDenoise.a$" AND
+  (EXISTS ${LIBDIR}/openimagedenoise/lib/libOpenImageDenoise.so OR
+   EXISTS ${LIBDIR}/openimagedenoise/lib/libOpenImageDenoise.dylib))
+  message(STATUS "Auto updating CMake configuration for dynamic OpenImageDenoise")
+  unset_cache_variables("^OPENIMAGEDENOISE")
+endif()

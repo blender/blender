@@ -25,16 +25,16 @@
 
 #include "IMB_imbuf.h"
 
-#include "SEQ_iterator.h"
-#include "SEQ_prefetch.h"
-#include "SEQ_relations.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_prefetch.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
-#include "effects.h"
-#include "image_cache.h"
-#include "utils.h"
+#include "effects.hh"
+#include "image_cache.hh"
+#include "utils.hh"
 
 bool SEQ_relation_is_effect_of_strip(const Sequence *effect, const Sequence *input)
 {

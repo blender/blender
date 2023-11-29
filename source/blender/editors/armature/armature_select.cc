@@ -17,13 +17,14 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_context.h"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_report.h"
 
 #include "RNA_access.hh"
@@ -66,7 +67,7 @@ Base *ED_armature_base_and_ebone_from_select_buffer(Base **bases,
   EditBone *ebone = nullptr;
   /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
-    if (bases[base_index]->object->runtime.select_id == hit_object) {
+    if (bases[base_index]->object->runtime->select_id == hit_object) {
       base = bases[base_index];
       break;
     }
@@ -90,7 +91,7 @@ Object *ED_armature_object_and_ebone_from_select_buffer(Object **objects,
   EditBone *ebone = nullptr;
   /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    if (objects[ob_index]->runtime.select_id == hit_object) {
+    if (objects[ob_index]->runtime->select_id == hit_object) {
       ob = objects[ob_index];
       break;
     }
@@ -114,7 +115,7 @@ Base *ED_armature_base_and_pchan_from_select_buffer(Base **bases,
   bPoseChannel *pchan = nullptr;
   /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
-    if (bases[base_index]->object->runtime.select_id == hit_object) {
+    if (bases[base_index]->object->runtime->select_id == hit_object) {
       base = bases[base_index];
       break;
     }
@@ -316,12 +317,11 @@ static void *ed_armature_pick_bone_impl(
     const bool is_editmode, bContext *C, const int xy[2], bool findunsel, Base **r_base)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   rcti rect;
   GPUSelectResult buffer[MAXPICKELEMS];
   short hits;
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   BLI_assert((vc.obedit != nullptr) == is_editmode);
 
   BLI_rcti_init_pt_radius(&rect, xy, 0);
@@ -770,7 +770,7 @@ cache_end:
 
       if (use_cycle) {
         bArmature *arm = static_cast<bArmature *>(obedit_orig->data);
-        int ob_index = obedit_orig->runtime.select_id & 0xFFFF;
+        int ob_index = obedit_orig->runtime->select_id & 0xFFFF;
         int bone_index = BLI_findindex(arm->edbo, ebone_active_orig);
         /* Offset from the current active bone, so we cycle onto the next. */
         cycle_order.offset.ob = ob_index;
@@ -950,8 +950,7 @@ bool ED_armature_edit_deselect_all_visible_multi_ex(Base **bases, uint bases_len
 bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
@@ -1143,12 +1142,11 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPi
 
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
   EditBone *nearBone = nullptr;
   int selmask;
   Base *basact = nullptr;
 
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   vc.mval[0] = mval[0];
   vc.mval[1] = mval[1];
 

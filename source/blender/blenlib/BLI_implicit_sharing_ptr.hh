@@ -9,6 +9,7 @@
  */
 
 #include "BLI_implicit_sharing.hh"
+#include "BLI_struct_equality_utils.hh"
 
 namespace blender {
 
@@ -24,7 +25,10 @@ template<typename T> class ImplicitSharingPtr {
  public:
   ImplicitSharingPtr() = default;
 
-  ImplicitSharingPtr(T *data) : data_(data) {}
+  explicit ImplicitSharingPtr(T *data) : data_(data) {}
+
+  /* Implicit conversion from nullptr. */
+  ImplicitSharingPtr(std::nullptr_t) : data_(nullptr) {}
 
   ImplicitSharingPtr(const ImplicitSharingPtr &other) : data_(other.data_)
   {
@@ -127,10 +131,7 @@ template<typename T> class ImplicitSharingPtr {
     return get_default_hash(data_);
   }
 
-  friend bool operator==(const ImplicitSharingPtr &a, const ImplicitSharingPtr &b)
-  {
-    return a.data_ == b.data_;
-  }
+  BLI_STRUCT_EQUALITY_OPERATORS_1(ImplicitSharingPtr, data_)
 
  private:
   static void add_user(T *data)

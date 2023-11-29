@@ -48,6 +48,10 @@ void LightProbeModule::sync_grid(const Object *ob, ObjectHandle &handle)
     grid.dilation_threshold = lightprobe->grid_dilation_threshold;
     grid.dilation_radius = lightprobe->grid_dilation_radius;
     grid.intensity = lightprobe->intensity;
+
+    grid.viewport_display = lightprobe->flag & LIGHTPROBE_FLAG_SHOW_DATA;
+    grid.viewport_display_size = lightprobe->data_display_size;
+
     /* Force reupload. */
     inst_.irradiance_cache.bricks_free(grid.bricks);
   }
@@ -67,13 +71,13 @@ void LightProbeModule::sync_probe(const Object *ob, ObjectHandle &handle)
 {
   const ::LightProbe *lightprobe = static_cast<const ::LightProbe *>(ob->data);
   switch (lightprobe->type) {
-    case LIGHTPROBE_TYPE_CUBE:
+    case LIGHTPROBE_TYPE_SPHERE:
       sync_cube(handle);
       return;
-    case LIGHTPROBE_TYPE_PLANAR:
+    case LIGHTPROBE_TYPE_PLANE:
       /* TODO(fclem): Remove support? Add support? */
       return;
-    case LIGHTPROBE_TYPE_GRID:
+    case LIGHTPROBE_TYPE_VOLUME:
       sync_grid(ob, handle);
       return;
   }

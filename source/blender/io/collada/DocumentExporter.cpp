@@ -69,15 +69,15 @@
 #include "BKE_action.h" /* pose functions */
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_blender_version.h"
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 
 #include "ED_keyframing.hh"

@@ -18,8 +18,8 @@
 
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
-#include "BKE_main_namemap.h"
-#include "BKE_object.h"
+#include "BKE_main_namemap.hh"
+#include "BKE_object.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -42,14 +42,14 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_CU_LEGACY, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_CV, "CURVES", ICON_CURVES_DATA, "Curves", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
-    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil (legacy)", ""},
-    {ID_GP, "GREASEPENCIL_V3", ICON_GREASEPENCIL, "Grease Pencil", ""},
+    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
+    {ID_GP, "GREASEPENCIL_V3", ICON_GREASEPENCIL, "Grease Pencil v3", ""},
     {ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
     {ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
     {ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
     {ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
     {ID_LA, "LIGHT", ICON_LIGHT_DATA, "Light", ""},
-    {ID_LP, "LIGHT_PROBE", ICON_LIGHTPROBE_CUBEMAP, "Light Probe", ""},
+    {ID_LP, "LIGHT_PROBE", ICON_LIGHTPROBE_SPHERE, "Light Probe", ""},
     {ID_LS, "LINESTYLE", ICON_LINE_DATA, "Line Style", ""},
     {ID_MSK, "MASK", ICON_MOD_MASK, "Mask", ""},
     {ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
@@ -63,6 +63,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
     {ID_PT, "POINTCLOUD", ICON_POINTCLOUD_DATA, "Point Cloud", ""},
     {ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
+    {ID_SCR, "SCREEN", ICON_WORKSPACE, "Screen", ""},
     {ID_SO, "SOUND", ICON_SOUND, "Sound", ""},
     {ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
     {ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
@@ -224,7 +225,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_library.h"
 #  include "BKE_material.h"
 #  include "BKE_preview_image.hh"
-#  include "BKE_vfont.h"
+#  include "BKE_vfont.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -324,6 +325,12 @@ int rna_ID_name_full_length(PointerRNA *ptr)
   char name[MAX_ID_FULL_NAME];
   BKE_id_full_name_get(name, id, 0);
   return strlen(name);
+}
+
+static int rna_ID_type_get(PointerRNA *ptr)
+{
+  ID *id = static_cast<ID *>(ptr->data);
+  return GS(id->name);
 }
 
 static bool rna_ID_is_evaluated_get(PointerRNA *ptr)
@@ -916,10 +923,11 @@ static bool rna_ID_override_library_resync(ID *id,
   if (!override_library->hierarchy_root ||
       (override_library->flag & LIBOVERRIDE_FLAG_NO_HIERARCHY) != 0)
   {
-    BKE_reportf(reports,
-                RPT_ERROR_INVALID_INPUT,
-                "Data-block '%s' is not a liboverride, or not part of a liboverride hierarchy",
-                id->name);
+    BKE_reportf(
+        reports,
+        RPT_ERROR_INVALID_INPUT,
+        "Data-block '%s' is not a library override, or not part of a library override hierarchy",
+        id->name);
     return false;
   }
 
@@ -1095,7 +1103,7 @@ static ID *rna_ID_make_local(ID *self, Main *bmain, bool /*clear_proxy*/)
     BKE_lib_id_make_local(bmain, self, 0);
   }
   else if (ID_IS_OVERRIDE_LIBRARY_REAL(self)) {
-    BKE_lib_override_library_make_local(self);
+    BKE_lib_override_library_make_local(bmain, self);
   }
 
   ID *ret_id = self->newid ? self->newid : self;
@@ -2174,7 +2182,8 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Name", "Unique data-block ID name");
+  RNA_def_property_ui_text(
+      prop, "Name", "Unique data-block ID name (within a same type and library)");
   RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
   RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
   RNA_def_property_editable_func(prop, "rna_ID_name_editable");
@@ -2188,6 +2197,13 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, "rna_ID_name_full_get", "rna_ID_name_full_length", nullptr);
   RNA_def_property_string_maxlength(prop, MAX_ID_FULL_NAME);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Type", "Type identifier of this data-block");
+  RNA_def_property_enum_items(prop, rna_enum_id_type_items);
+  RNA_def_property_enum_funcs(prop, "rna_ID_type_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
   prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

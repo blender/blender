@@ -70,10 +70,17 @@ void MTLBufferPool::free()
     delete completed_safelist_queue_[safe_pool_free_index];
   }
   completed_safelist_queue_.clear();
+
+  safelist_lock_.lock();
   if (current_free_list_ != nullptr) {
     delete current_free_list_;
     current_free_list_ = nullptr;
   }
+  if (prev_free_buffer_list_ != nullptr) {
+    delete prev_free_buffer_list_;
+    prev_free_buffer_list_ = nullptr;
+  }
+  safelist_lock_.unlock();
 
   /* Clear and release memory pools. */
   for (std::multiset<blender::gpu::MTLBufferHandle, blender::gpu::CompareMTLBuffer> *buffer_pool :
@@ -425,8 +432,17 @@ MTLSafeFreeList *MTLBufferPool::get_current_safe_list()
 void MTLBufferPool::begin_new_safe_list()
 {
   safelist_lock_.lock();
+  MTLSafeFreeList *previous_list = prev_free_buffer_list_;
+  MTLSafeFreeList *active_list = get_current_safe_list();
   current_free_list_ = new MTLSafeFreeList();
+  prev_free_buffer_list_ = active_list;
   safelist_lock_.unlock();
+
+  /* Release final reference for previous list.
+   * Note: Outside of lock as this function itself locks. */
+  if (previous_list) {
+    previous_list->decrement_reference();
+  }
 }
 
 void MTLBufferPool::ensure_buffer_pool(MTLResourceOptions options)

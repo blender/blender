@@ -22,7 +22,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.h"
 
@@ -277,10 +277,10 @@ static const EnumPropertyItem modifier_noise_random_mode_items[] = {
 #  include "DNA_particle_types.h"
 
 #  include "BKE_cachefile.h"
-#  include "BKE_context.h"
+#  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_gpencil_modifier_legacy.h"
-#  include "BKE_object.h"
+#  include "BKE_object.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

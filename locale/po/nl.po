@@ -1,29 +1,46 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
-"PO-Revision-Date: 2021-12-05 20:05+0100\n"
+"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"PO-Revision-Date: 2023-10-08 06:34+0000\n"
+"Last-Translator: Wannes Malfait <wannes.malfait@gmail.com>\n"
+"Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"X-Generator: Poedit 3.0"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Shader AOV"
+msgstr "Schaduw AOV"
 
 
 msgid "Valid"
 msgstr "Geldig"
 
 
+msgid "Is the name of the AOV conflicting"
+msgstr "Is de naam van de AOV-conflicterende"
+
+
 msgid "Name"
 msgstr "Naam"
 
 
+msgid "Name of the AOV"
+msgstr "Naam van de AOV"
+
+
 msgid "Type"
 msgstr "Type"
+
+
+msgid "Data type of the AOV"
+msgstr "Data type van de AOV"
 
 
 msgid "Color"
@@ -34,12 +51,36 @@ msgid "Value"
 msgstr "Waarde"
 
 
+msgid "List of AOVs"
+msgstr "Lijst van AOV's"
+
+
+msgid "Collection of AOVs"
+msgstr "Collectie van AOV's"
+
+
+msgid "Action F-Curves"
+msgstr "Actie F-Curves"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Collectie van actie F-Curves"
+
+
 msgid "Action Group"
 msgstr "Actie Groep"
 
 
+msgid "Groups of F-Curves"
+msgstr "Groepen van actie F-Curves"
+
+
 msgid "Channels"
 msgstr "Kanalen"
+
+
+msgid "F-Curves in this group"
+msgstr "F-Curves in deze groep"
 
 
 msgid "Color Set"
@@ -54,12 +95,100 @@ msgid "Default Colors"
 msgstr "Standaard Kleuren"
 
 
+msgid "01 - Theme Color Set"
+msgstr "01 - Thema kleurenverzameling"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Thema kleurenverzameling"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Thema kleurenverzameling"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Thema kleurenverzameling"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Thema kleurenverzameling"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Thema kleurenverzameling"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Thema kleurenverzameling"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Thema kleurenverzameling"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Thema kleurenverzameling"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Thema kleurenverzameling"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Thema kleurenverzameling"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Thema kleurenverzameling"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Thema kleurenverzameling"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Thema kleurenverzameling"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Thema kleurenverzameling"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Thema kleurenverzameling"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Thema kleurenverzameling"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Thema kleurenverzameling"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Thema kleurenverzameling"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Thema kleurenverzameling"
+
+
 msgid "Custom Color Set"
 msgstr "Aangepast Kleurenpalet"
 
 
 msgid "Colors"
 msgstr "Kleuren"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Kopie van de kleuren geassocieerd aan de kleurenverzameling van de groep"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "De kleurenverzameling is door de gebruiker gedefinieerd in plaats van een vaste verzameling gedefinieerd door het thema"
 
 
 msgid "Lock"
@@ -74,6 +203,10 @@ msgid "Mute"
 msgstr "Zet Uit"
 
 
+msgid "Action group is muted"
+msgstr "Actie groep is gedempt"
+
+
 msgid "Select"
 msgstr "Selecteer"
 
@@ -84,6 +217,14 @@ msgstr "Actie groep is geselecteerd"
 
 msgid "Expanded"
 msgstr "Uitgebreid"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "Actie groep is uitgebreid behalve in grafiek bewerker"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Uitgebreid in grafiek bewerker"
 
 
 msgid "Collection of action groups"
@@ -116,6 +257,10 @@ msgstr "Bericht"
 
 msgid "Full"
 msgstr "Volledig"
+
+
+msgid "Auto"
+msgstr "Auto"
 
 
 msgid "Animation Data"
@@ -333,6 +478,14 @@ msgid "World"
 msgstr "Wereld"
 
 
+msgid "All"
+msgstr "Alle"
+
+
+msgid "Custom"
+msgstr "Aangepast"
+
+
 msgid "Options"
 msgstr "Opties"
 
@@ -367,6 +520,10 @@ msgstr "Rand"
 
 msgid "Face"
 msgstr "Vlak"
+
+
+msgid "Layer"
+msgstr "Laag"
 
 
 msgid "File Path"
@@ -431,10 +588,6 @@ msgstr "Controlepunt"
 
 msgid "Free"
 msgstr "Vrij"
-
-
-msgid "Auto"
-msgstr "Auto"
 
 
 msgid "Hide"
@@ -621,6 +774,10 @@ msgid "Speed"
 msgstr "Snelheid"
 
 
+msgid "Deflectors"
+msgstr "Deflectoren"
+
+
 msgid "Distance"
 msgstr "Afstand"
 
@@ -677,10 +834,6 @@ msgid "Visible"
 msgstr "Zichtbaar"
 
 
-msgid "Custom"
-msgstr "Aangepast"
-
-
 msgid "Has Color"
 msgstr "Heeft Kleur"
 
@@ -711,10 +864,6 @@ msgstr "Kleur van Punt"
 
 msgid "Dissolve"
 msgstr "Oplossen"
-
-
-msgid "All"
-msgstr "Alle"
 
 
 msgid "Precision"
@@ -811,6 +960,10 @@ msgstr "Midden"
 
 msgid "Friction"
 msgstr "Wrijving"
+
+
+msgid "Angular"
+msgstr "Hoekig"
 
 
 msgid "Linear"
@@ -1598,10 +1751,6 @@ msgid "Locked"
 msgstr "Vergrendeld"
 
 
-msgid "Layer"
-msgstr "Laag"
-
-
 msgid "Grid"
 msgstr "Rooster"
 
@@ -1848,12 +1997,56 @@ msgid "Show Line"
 msgstr "Toon Lijn"
 
 
-msgid "Is Indirect"
-msgstr "Is Indirect"
+msgid "Brush"
+msgstr "Kwast"
+
+
+msgid "Font"
+msgstr "Lettertype"
+
+
+msgid "Key"
+msgstr "Sleutel"
 
 
 msgid "Library"
 msgstr "Bibliotheek"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Mask"
+msgstr "Mask"
+
+
+msgid "Node Tree"
+msgstr "Node Boom"
+
+
+msgid "Particle"
+msgstr "Deeltje"
+
+
+msgid "Sound"
+msgstr "Geluid"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Workspace"
+msgstr "Werkomgeving"
+
+
+msgid "World"
+msgstr "Wereld"
+
+
+msgid "Is Indirect"
+msgstr "Is Indirect"
 
 
 msgid "Full Name"
@@ -1918,10 +2111,6 @@ msgstr "Geprojecteerd"
 
 msgid "Repeat"
 msgstr "Herhaal"
-
-
-msgid "Brush"
-msgstr "Kwast"
 
 
 msgid "Elastic"
@@ -2080,10 +2269,6 @@ msgid "Edit Format"
 msgstr "Bewerk Formaat"
 
 
-msgid "Font"
-msgstr "Lettertype"
-
-
 msgid "Font Size"
 msgstr "Groote Lettertype"
 
@@ -2114,10 +2299,6 @@ msgstr "Min"
 
 msgid "Max"
 msgstr "Max"
-
-
-msgid "Node Tree"
-msgstr "Node Boom"
 
 
 msgid "Rounds"
@@ -2169,6 +2350,11 @@ msgstr "Zon"
 msgctxt "Light"
 msgid "Area"
 msgstr "Gebied"
+
+
+msgctxt "Light"
+msgid "Power"
+msgstr "Kracht"
 
 
 msgid "Shadow Color"
@@ -2315,10 +2501,6 @@ msgid "Material Slot"
 msgstr "Materiaal Plek"
 
 
-msgid "Particle"
-msgstr "Deeltje"
-
-
 msgid "Death"
 msgstr "Dood"
 
@@ -2412,10 +2594,6 @@ msgid "Mute the speaker"
 msgstr "Demp de speaker"
 
 
-msgid "Sound"
-msgstr "Geluid"
-
-
 msgid "Area"
 msgstr "Gebied"
 
@@ -2430,10 +2608,6 @@ msgstr "Spiegel Y"
 
 msgid "Sharp"
 msgstr "Scherp"
-
-
-msgid "Workspace"
-msgstr "Werkomgeving"
 
 
 msgid "Animation"
@@ -2658,10 +2832,6 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
-msgid "Mask"
-msgstr "Mask"
-
-
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clip"
@@ -2683,10 +2853,6 @@ msgid "Channel"
 msgstr "Kanaal"
 
 
-msgid "Key"
-msgstr "Sleutel"
-
-
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
@@ -2694,10 +2860,6 @@ msgstr "Selecteer Aaneengesloten"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Toevoegen"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Layout"
@@ -2783,10 +2945,6 @@ msgstr "Haken"
 
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Light"
-msgstr "Licht"
 
 
 msgid "Convert"
@@ -2895,10 +3053,6 @@ msgstr "Spiegel As"
 
 msgid "Copy"
 msgstr "Kopieer"
-
-
-msgid "World"
-msgstr "Wereld"
 
 
 msgctxt "Operator"
@@ -3370,13 +3524,13 @@ msgstr "Zet Startframe"
 
 
 msgctxt "Operator"
-msgid "Change Armature Layers"
-msgstr "Verander Skellet Lagen"
+msgid "Add Bone"
+msgstr "Voeg Bot Toe"
 
 
 msgctxt "Operator"
-msgid "Add Bone"
-msgstr "Voeg Bot Toe"
+msgid "Show All"
+msgstr "Toon Alles"
 
 
 msgctxt "Operator"
@@ -3392,11 +3546,6 @@ msgstr "Opvullen Tussen KnoopPunten"
 msgctxt "Operator"
 msgid "Flip Names"
 msgstr "Namen Omdraaien"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "Toon Alle Lagen"
 
 
 msgctxt "Operator"
@@ -4182,6 +4331,11 @@ msgstr "Plak Strepen"
 
 
 msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Toon Alle Lagen"
+
+
+msgctxt "Operator"
 msgid "Select First"
 msgstr "Selecteer Eerste"
 
@@ -4250,6 +4404,10 @@ msgstr "Volgende Sleutelframe"
 msgctxt "Operator"
 msgid "Reveal Curves"
 msgstr "Toon Krommes"
+
+
+msgid "Flat"
+msgstr "Vlak"
 
 
 msgctxt "Operator"
@@ -4798,6 +4956,15 @@ msgid "Toggle Force Field"
 msgstr "Krachtveld Aan/Uit"
 
 
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Voeg Vetkrijt Toe"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Voeg een vetkrijt object toe in de scene"
+
+
 msgid "Monkey"
 msgstr "Aap"
 
@@ -4814,15 +4981,6 @@ msgstr "Object Gegevens"
 msgctxt "Operator"
 msgid "Copy Modifier"
 msgstr "Kopieer Aanpasser"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Voeg Vetkrijt Toe"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Voeg een vetkrijt object toe in de scene"
 
 
 msgctxt "Operator"
@@ -5295,26 +5453,6 @@ msgstr "Vorige Sleutelframe"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "Kopieer Pose"
-
-
-msgctxt "Operator"
-msgid "Add Bone Group"
-msgstr "Voeg Groep van Botten Toe"
-
-
-msgctxt "Operator"
-msgid "Deselect Bone Group"
-msgstr "Deselecteer Groep van Botten"
-
-
-msgctxt "Operator"
-msgid "Move Bone Group"
-msgstr "Verplaats Groep van Botten"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Group"
-msgstr "Verwijder Groep van Botten"
 
 
 msgctxt "Operator"
@@ -6499,10 +6637,6 @@ msgid "Timeline"
 msgstr "Tijdslijn"
 
 
-msgid "Duplicate Data"
-msgstr "Dupliceer Data"
-
-
 msgid "New Objects"
 msgstr "Nieuwe Objecten"
 
@@ -6542,10 +6676,6 @@ msgstr "Sla instellingen Op"
 
 msgid "Blend Files"
 msgstr "Blenderbestanden"
-
-
-msgid "Auto Save"
-msgstr "Auto Opslaan"
 
 
 msgid "Pose Library"
@@ -7001,10 +7131,6 @@ msgid "3D"
 msgstr "3D"
 
 
-msgid "Flat"
-msgstr "Vlak"
-
-
 msgid "Force Field"
 msgstr "Krachtveld"
 
@@ -7063,10 +7189,6 @@ msgstr "Alle Punten"
 
 msgid "Lock Markers"
 msgstr "Vergrendel Markeringen"
-
-
-msgid "Second"
-msgstr "Seconde"
 
 
 msgid "Only Endpoints"
@@ -7398,11 +7520,6 @@ msgstr "Aangepast..."
 
 
 msgctxt "Operator"
-msgid "Show All"
-msgstr "Toon Alles"
-
-
-msgctxt "Operator"
 msgid "Lock All"
 msgstr "Vergrendel Alles"
 
@@ -7621,16 +7738,16 @@ msgid "Resume"
 msgstr "Hervat"
 
 
+msgid "Second"
+msgstr "Seconde"
+
+
 msgid "Auto-Step"
 msgstr "Auto-Stap"
 
 
 msgid "Paths:"
 msgstr "Paden:"
-
-
-msgid "XYZ to RGB"
-msgstr "XYZ naar RGB"
 
 
 msgctxt "Operator"
@@ -7714,18 +7831,28 @@ msgstr "Verplaats..."
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "Plak Omgekeerd"
-
-
-msgctxt "Operator"
 msgid "Clean Channels"
 msgstr "Maak Kanalen Schoon"
 
 
 msgctxt "Operator"
+msgid "Paste Flipped"
+msgstr "Plak Omgekeerd"
+
+
+msgctxt "Operator"
 msgid "Mute Channels"
 msgstr "Demp Kanalen"
+
+
+msgctxt "Operator"
+msgid "Hide Selected Curves"
+msgstr "Verberg Geselecteerde Curven"
+
+
+msgctxt "Operator"
+msgid "Hide Unselected Curves"
+msgstr "Verberg Niet Geselecteerde Curven"
 
 
 msgctxt "Operator"
@@ -7766,16 +7893,6 @@ msgstr "Geluidsbestanden"
 
 msgid "Text Files"
 msgstr "Tekstbestanden"
-
-
-msgctxt "Operator"
-msgid "Hide Selected Curves"
-msgstr "Verberg Geselecteerde Curven"
-
-
-msgctxt "Operator"
-msgid "Hide Unselected Curves"
-msgstr "Verberg Niet Geselecteerde Curven"
 
 
 msgctxt "Operator"
@@ -8137,12 +8254,12 @@ msgid "Blender Version"
 msgstr "Blender Versie"
 
 
-msgid "Use Custom Colors"
-msgstr "Gebruik Aangepaste Kleur"
-
-
 msgid "Show Warning"
 msgstr "Toon Waarschuwing"
+
+
+msgid "XYZ to RGB"
+msgstr "XYZ naar RGB"
 
 
 msgctxt "Operator"
@@ -8335,11 +8452,6 @@ msgstr "Achtergrond"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Maak Lokaal..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Voeg Sleutelframe toe..."
 
 
 msgctxt "Operator"
@@ -8722,6 +8834,10 @@ msgid "Hidden %d"
 msgstr "Verborgen %d"
 
 
+msgid "Nothing selected"
+msgstr "Niets geselecteerd"
+
+
 msgid "Delete Modifier"
 msgstr "Verwijder Aanpasser"
 
@@ -8800,10 +8916,6 @@ msgstr "Niets om te gummen"
 
 msgid "Object created"
 msgstr "Object gecreëerd"
-
-
-msgid "Nothing selected"
-msgstr "Niets geselecteerd"
 
 
 msgid "Pin"
@@ -9269,11 +9381,6 @@ msgid "Now"
 msgstr "Nu"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Groep"
-
-
 msgid "Not yet implemented"
 msgstr "Nog niet geimplementeerd"
 
@@ -9291,7 +9398,7 @@ msgstr "TODO: wanneer gebeurt dit?"
 
 
 msgid "No valid inputs to swap"
-msgstr "Geen geldige invoers om om te wisselen"
+msgstr "Geen geldige invoers om te wisselen"
 
 
 msgid "Mean Crease:"
@@ -9319,6 +9426,11 @@ msgid "Custom Camera"
 msgstr "Aangepaste Camera"
 
 
+msgctxt "Action"
+msgid "Group"
+msgstr "Groep"
+
+
 msgid "Flame"
 msgstr "Vlam"
 
@@ -9330,6 +9442,10 @@ msgstr "Sleutel"
 
 msgid "Point is not found in given spline"
 msgstr "Punt is niet gevonden voor de opgegeven Spline"
+
+
+msgid "No active window in context!"
+msgstr "Geen actieve venster in context!"
 
 
 msgid "Create Armature"
@@ -9390,10 +9506,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iScaal"
-
-
-msgid "Unknown py-exception, could not convert"
-msgstr "Onbekeende py-exceptie, kan niet converteren"
 
 
 msgid "| Time:%s | "

@@ -6,6 +6,10 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.h"
 
+#include "DNA_grease_pencil_types.h"
+
+#include "attribute_access_intern.hh"
+
 namespace blender::bke {
 
 /* -------------------------------------------------------------------- */
@@ -93,6 +97,105 @@ void GreasePencilComponent::ensure_owns_direct_data()
     grease_pencil_ = BKE_grease_pencil_copy_for_eval(grease_pencil_);
     ownership_ = GeometryOwnershipType::Owned;
   }
+}
+
+static ComponentAttributeProviders create_attribute_providers_for_grease_pencil()
+{
+  static CustomDataAccessInfo layers_access = {
+      [](void *owner) -> CustomData * {
+        GreasePencil &grease_pencil = *static_cast<GreasePencil *>(owner);
+        return &grease_pencil.layers_data;
+      },
+      [](const void *owner) -> const CustomData * {
+        const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
+        return &grease_pencil.layers_data;
+      },
+      [](const void *owner) -> int {
+        const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
+        return grease_pencil.layers().size();
+      }};
+
+  static CustomDataAttributeProvider layer_custom_data(ATTR_DOMAIN_LAYER, layers_access);
+
+  return ComponentAttributeProviders({}, {&layer_custom_data});
+}
+
+static GVArray adapt_grease_pencil_attribute_domain(const GreasePencil & /*grease_pencil*/,
+                                                    const GVArray &varray,
+                                                    const eAttrDomain from,
+                                                    const eAttrDomain to)
+{
+  if (from == to) {
+    return varray;
+  }
+  return {};
+}
+
+static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
+{
+  static const ComponentAttributeProviders providers =
+      create_attribute_providers_for_grease_pencil();
+  AttributeAccessorFunctions fn =
+      attribute_accessor_functions::accessor_functions_for_providers<providers>();
+  fn.domain_size = [](const void *owner, const eAttrDomain domain) {
+    if (owner == nullptr) {
+      return 0;
+    }
+    const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
+    switch (domain) {
+      case ATTR_DOMAIN_LAYER:
+        return int(grease_pencil.layers().size());
+      default:
+        return 0;
+    }
+  };
+  fn.domain_supported = [](const void * /*owner*/, const eAttrDomain domain) {
+    return domain == ATTR_DOMAIN_LAYER;
+  };
+  fn.adapt_domain = [](const void *owner,
+                       const GVArray &varray,
+                       const eAttrDomain from_domain,
+                       const eAttrDomain to_domain) -> GVArray {
+    if (owner == nullptr) {
+      return {};
+    }
+    const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
+    return adapt_grease_pencil_attribute_domain(grease_pencil, varray, from_domain, to_domain);
+  };
+  return fn;
+}
+
+static const AttributeAccessorFunctions &get_grease_pencil_accessor_functions_ref()
+{
+  static const AttributeAccessorFunctions fn = get_grease_pencil_accessor_functions();
+  return fn;
+}
+
+}  // namespace blender::bke
+
+blender::bke::AttributeAccessor GreasePencil::attributes() const
+{
+  return blender::bke::AttributeAccessor(this,
+                                         blender::bke::get_grease_pencil_accessor_functions_ref());
+}
+
+blender::bke::MutableAttributeAccessor GreasePencil::attributes_for_write()
+{
+  return blender::bke::MutableAttributeAccessor(
+      this, blender::bke::get_grease_pencil_accessor_functions_ref());
+}
+
+namespace blender::bke {
+
+std::optional<AttributeAccessor> GreasePencilComponent::attributes() const
+{
+  return AttributeAccessor(grease_pencil_, get_grease_pencil_accessor_functions_ref());
+}
+
+std::optional<MutableAttributeAccessor> GreasePencilComponent::attributes_for_write()
+{
+  GreasePencil *grease_pencil = this->get_for_write();
+  return MutableAttributeAccessor(grease_pencil, get_grease_pencil_accessor_functions_ref());
 }
 
 }  // namespace blender::bke

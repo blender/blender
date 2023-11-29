@@ -23,7 +23,9 @@ class VKBindableResource {
   /**
    * Bind the resource to the shader.
    */
-  virtual void bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type) = 0;
+  virtual void bind(int binding,
+                    shader::ShaderCreateInfo::Resource::BindType bind_type,
+                    const GPUSamplerState sampler_state) = 0;
 
  protected:
   void unbind_from_active_context();
@@ -41,6 +43,7 @@ template<shader::ShaderCreateInfo::Resource::BindType BindType> class VKBindSpac
    public:
     int binding;
     VKBindableResource *resource;
+    GPUSamplerState sampler_state;
   };
 
   Vector<ResourceBinding> bindings_;
@@ -49,15 +52,18 @@ template<shader::ShaderCreateInfo::Resource::BindType BindType> class VKBindSpac
   /**
    * Register a binding to this namespace.
    */
-  void bind(int binding, VKBindableResource &resource)
+  void bind(int binding,
+            VKBindableResource &resource,
+            const GPUSamplerState sampler_state = GPUSamplerState::default_sampler())
   {
     for (ResourceBinding &bind : bindings_) {
       if (bind.binding == binding) {
         bind.resource = &resource;
+        bind.sampler_state = sampler_state;
         return;
       }
     }
-    ResourceBinding bind = {binding, &resource};
+    ResourceBinding bind = {binding, &resource, sampler_state};
     bindings_.append(bind);
   }
 
@@ -67,7 +73,7 @@ template<shader::ShaderCreateInfo::Resource::BindType BindType> class VKBindSpac
   void apply_bindings()
   {
     for (ResourceBinding &binding : bindings_) {
-      binding.resource->bind(binding.binding, BindType);
+      binding.resource->bind(binding.binding, BindType, binding.sampler_state);
     }
   }
 

@@ -21,7 +21,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -203,6 +203,7 @@ static void undoptcache_free_data(PTCacheUndo *undo)
 
 struct ParticleUndoStep {
   UndoStep step;
+  /** See #ED_undo_object_editmode_validate_scene_from_windows code comment for details. */
   UndoRefID_Scene scene_ref;
   UndoRefID_Object object_ref;
   PTCacheUndo data;
@@ -240,8 +241,14 @@ static void particle_undosys_step_decode(
 
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;
   Scene *scene = us->scene_ref.ptr;
-  Object *ob = us->object_ref.ptr;
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
+  /* Only to correct the `view_layer` which might not match the scene
+   * (in the case of undoing with multiple windows). */
+  ED_undo_object_editmode_validate_scene_from_windows(
+      CTX_wm_manager(C), us->scene_ref.ptr, &scene, &view_layer);
+
+  Object *ob = us->object_ref.ptr;
   ED_object_particle_edit_mode_enter_ex(depsgraph, scene, ob);
 
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
@@ -261,9 +268,10 @@ static void particle_undosys_step_decode(
   }
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
-  ED_undo_object_set_active_or_warn(scene, CTX_data_view_layer(C), ob, us_p->name, &LOG);
+  ED_undo_object_set_active_or_warn(scene, view_layer, ob, us_p->name, &LOG);
 
-  BLI_assert(particle_undosys_poll(C));
+  /* Check after setting active (unless undoing into another scene). */
+  BLI_assert(particle_undosys_poll(C) || (scene != CTX_data_scene(C)));
 }
 
 static void particle_undosys_step_free(UndoStep *us_p)

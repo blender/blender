@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_editmesh.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_editmesh.hh"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
@@ -69,13 +69,7 @@ class Instance {
 
   void begin_sync()
   {
-    const float2 viewport_size = DRW_viewport_size_get();
-    const int2 resolution = {int(viewport_size.x), int(viewport_size.y)};
-    resources.depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8,
-                                 resolution,
-                                 GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                                     GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
-    resources.material_buf.clear();
+    resources.material_buf.clear_and_trim();
 
     opaque_ps.sync(scene_state, resources);
     transparent_ps.sync(scene_state, resources);
@@ -85,7 +79,7 @@ class Instance {
     volume_ps.sync(resources);
     outline_ps.sync(resources);
     dof_ps.sync(resources);
-    anti_aliasing_ps.sync(resources, scene_state.resolution);
+    anti_aliasing_ps.sync(scene_state, resources);
   }
 
   void end_sync()
@@ -162,7 +156,9 @@ class Instance {
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
         /* Disable frustum culling for sculpt meshes. */
+        /* TODO(@pragma37): Implement a cleaner way to disable frustum culling.  */
         ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+        handle = ResourceHandle(handle.resource_index(), ob_ref.object->transflag & OB_NEG_SCALE);
         sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
@@ -436,41 +432,43 @@ class Instance {
 
     int2 resolution = scene_state.resolution;
 
+    /** Always setup in-front depth, since Overlays can be updated without causing a Workbench
+     * re-sync (See #113580). */
+    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
+                                (!opaque_ps.gbuffer_in_front_ps_.is_empty() &&
+                                 scene_state.overlays_enabled && scene_state.sample == 0);
+    resources.depth_in_front_tx.wrap(needs_depth_in_front ? depth_in_front_tx : nullptr);
+    if ((!needs_depth_in_front && scene_state.overlays_enabled) ||
+        (needs_depth_in_front && opaque_ps.gbuffer_in_front_ps_.is_empty()))
+    {
+      resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
+      resources.clear_in_front_fb.bind();
+      GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
+    }
+
     if (scene_state.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps.draw(
-          manager, view, resources, resolution, depth_tx, depth_in_front_tx, color_tx);
+      anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
       return;
     }
 
-    anti_aliasing_ps.setup_view(view, resolution);
+    anti_aliasing_ps.setup_view(view, scene_state);
 
-    resources.color_tx.acquire(
-        resolution, GPU_RGBA16F, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-    resources.color_tx.clear(resources.world_buf.background_color);
+    resources.depth_tx.wrap(depth_tx);
+    resources.color_tx.wrap(color_tx);
+    GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state.draw_object_id) {
       resources.object_id_tx.acquire(
           resolution, GPU_R16UI, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-      resources.object_id_tx.clear(uint4(0));
+      id_attachment = GPU_ATTACHMENT_TEXTURE(resources.object_id_tx);
     }
-
-    Framebuffer fb = Framebuffer("Workbench.Clear");
-    fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx));
-    fb.bind();
-    GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
-
-    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
-                                scene_state.sample == 0;
-    if (needs_depth_in_front) {
-      resources.depth_in_front_tx.acquire(resolution,
-                                          GPU_DEPTH24_STENCIL8,
-                                          GPU_TEXTURE_USAGE_SHADER_READ |
-                                              GPU_TEXTURE_USAGE_ATTACHMENT);
-
-      fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx));
-      fb.bind();
-      GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
-    }
+    resources.clear_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx),
+                              GPU_ATTACHMENT_TEXTURE(resources.color_tx),
+                              id_attachment);
+    resources.clear_fb.bind();
+    float4 clear_colors[2] = {scene_state.background_color, float4(0.0f)};
+    GPU_framebuffer_multi_clear(resources.clear_fb, reinterpret_cast<float(*)[4]>(clear_colors));
+    GPU_framebuffer_clear_depth_stencil(resources.clear_fb, 1.0f, 0x00);
 
     opaque_ps.draw(
         manager, view, resources, resolution, scene_state.draw_shadows ? &shadow_ps : nullptr);
@@ -480,12 +478,9 @@ class Instance {
     volume_ps.draw(manager, view, resources);
     outline_ps.draw(manager, resources);
     dof_ps.draw(manager, view, resources, resolution);
-    anti_aliasing_ps.draw(
-        manager, view, resources, resolution, depth_tx, depth_in_front_tx, color_tx);
+    anti_aliasing_ps.draw(manager, view, scene_state, resources, depth_in_front_tx);
 
-    resources.color_tx.release();
     resources.object_id_tx.release();
-    resources.depth_in_front_tx.release();
   }
 
   void draw_viewport(Manager &manager,
@@ -512,8 +507,7 @@ class Instance {
         /* Re-sync anything dependent on scene_state.sample. */
         resources.init(scene_state);
         dof_ps.init(scene_state);
-        anti_aliasing_ps.init(scene_state);
-        anti_aliasing_ps.sync(resources, scene_state.resolution);
+        anti_aliasing_ps.sync(scene_state, resources);
       }
       this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
     }
@@ -622,9 +616,11 @@ static bool workbench_render_framebuffers_init()
         "txl.color", size.x, size.y, 1, GPU_RGBA16F, usage, nullptr);
     dtxl->depth = GPU_texture_create_2d(
         "txl.depth", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
+    dtxl->depth_in_front = GPU_texture_create_2d(
+        "txl.depth_in_front", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
   }
 
-  if (!(dtxl->depth && dtxl->color)) {
+  if (!(dtxl->depth && dtxl->color && dtxl->depth_in_front)) {
     return false;
   }
 
@@ -787,6 +783,9 @@ static void workbench_render_to_image(void *vedata,
 
     /* Perform render step between samples to allow
      * flushing of freed GPUBackend resources. */
+    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      GPU_flush();
+    }
     GPU_render_step();
     GPU_FINISH_DELIMITER();
   } while (ved->instance->scene_state.sample + 1 < ved->instance->scene_state.samples_len);

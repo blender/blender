@@ -10,7 +10,7 @@
 
 #include "extract_mesh.hh"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 
 namespace blender::draw {
 
@@ -258,18 +258,16 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache &subdiv_cache,
   draw_subdiv_extract_pos_nor(subdiv_cache, flags_buffer, vbo, orco_vbo);
 
   if (subdiv_cache.use_custom_loop_normals) {
-    Mesh *coarse_mesh = subdiv_cache.mesh;
-    const float(*loop_normals)[3] = static_cast<const float(*)[3]>(
-        CustomData_get_layer(&coarse_mesh->loop_data, CD_NORMAL));
-    BLI_assert(loop_normals != nullptr);
+    const Mesh *coarse_mesh = subdiv_cache.mesh;
+    const Span<float3> corner_normals = coarse_mesh->corner_normals();
 
     GPUVertBuf *src_custom_normals = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format(src_custom_normals, get_custom_normals_format());
     GPU_vertbuf_data_alloc(src_custom_normals, coarse_mesh->totloop);
 
     memcpy(GPU_vertbuf_get_data(src_custom_normals),
-           loop_normals,
-           sizeof(float[3]) * coarse_mesh->totloop);
+           corner_normals.data(),
+           corner_normals.size_in_bytes());
 
     GPUVertBuf *dst_custom_normals = GPU_vertbuf_calloc();
     GPU_vertbuf_init_build_on_device(

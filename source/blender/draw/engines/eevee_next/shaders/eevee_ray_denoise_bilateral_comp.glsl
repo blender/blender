@@ -15,11 +15,10 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 
@@ -30,7 +29,7 @@ float bilateral_depth_weight(vec3 center_N, vec3 center_P, vec3 sample_P)
   float depth_delta = dot(center_plane_eq, vec4(sample_P, 1.0));
   /* TODO(fclem): Scene parameter. This is dependent on scene scale. */
   const float scale = 10000.0;
-  float weight = exp2(-scale * sqr(depth_delta));
+  float weight = exp2(-scale * square(depth_delta));
   return weight;
 }
 
@@ -54,11 +53,11 @@ float bilateral_normal_weight(vec3 center_N, vec3 sample_N)
 /* In order to remove some more fireflies, "tone-map" the color samples during the accumulation. */
 vec3 to_accumulation_space(vec3 color)
 {
-  return color / (1.0 + dot(color, vec3(1.0)));
+  return color / (1.0 + reduce_add(color));
 }
 vec3 from_accumulation_space(vec3 color)
 {
-  return color / (1.0 - dot(color, vec3(1.0)));
+  return color / (1.0 - reduce_add(color));
 }
 
 void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
@@ -102,10 +101,10 @@ void main()
   const uint tile_size = RAYTRACE_GROUP_SIZE;
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel_fullres = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
-  vec2 center_uv = vec2(texel_fullres) * uniform_buf.raytrace.full_resolution_inv;
+  vec2 center_uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
 
   float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
-  vec3 center_P = get_world_space_from_depth(center_uv, center_depth);
+  vec3 center_P = drw_point_screen_to_world(vec3(center_uv, center_depth));
 
 #if defined(RAYTRACE_DIFFUSE)
   ClosureDiffuse sample_closure, center_closure;
@@ -158,14 +157,15 @@ void main()
     ivec2 sample_texel = texel_fullres + offset;
     ivec2 sample_tile = sample_texel / RAYTRACE_GROUP_SIZE;
     /* Make sure the sample has been processed and do not contain garbage data. */
-    bool unprocessed_tile = imageLoad(tile_mask_img, sample_tile).r == 0;
+    uint tile_mask = imageLoad(tile_mask_img, sample_tile).r;
+    bool unprocessed_tile = !flag_test(tile_mask, 1u << 0u);
     if (unprocessed_tile) {
       continue;
     }
 
     float sample_depth = texelFetch(depth_tx, sample_texel, 0).r;
-    vec2 sample_uv = vec2(sample_texel) * uniform_buf.raytrace.full_resolution_inv;
-    vec3 sample_P = get_world_space_from_depth(sample_uv, sample_depth);
+    vec2 sample_uv = (vec2(sample_texel) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
+    vec3 sample_P = drw_point_screen_to_world(vec3(sample_uv, sample_depth));
 
     /* Background case. */
     if (sample_depth == 0.0) {
@@ -182,7 +182,7 @@ void main()
 
     vec3 radiance = imageLoad(in_radiance_img, sample_texel).rgb;
     /* Do not gather unprocessed pixels. */
-    if (all(equal(in_radiance, FLT_11_11_10_MAX))) {
+    if (all(equal(radiance, FLT_11_11_10_MAX))) {
       continue;
     }
     accum_radiance += to_accumulation_space(radiance) * weight;

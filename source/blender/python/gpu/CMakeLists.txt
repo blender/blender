@@ -7,11 +7,9 @@ set(INC
   ../../blenkernel
   ../../editors/include
   ../../gpu
-  ../../imbuf
 )
 
 set(INC_SYS
-  ${Epoxy_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
 )
 
@@ -35,6 +33,7 @@ set(SRC
   gpu_py_uniformbuffer.cc
   gpu_py_vertex_buffer.cc
   gpu_py_vertex_format.cc
+  gpu_py_compute.cc
 
   gpu_py.h
   gpu_py_api.h
@@ -54,15 +53,25 @@ set(SRC
   gpu_py_uniformbuffer.h
   gpu_py_vertex_buffer.h
   gpu_py_vertex_format.h
+  gpu_py_compute.h
 )
 
 set(LIB
-  ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
+
+if(WITH_OPENGL_BACKEND)
+  list(APPEND INC_SYS
+    ${Epoxy_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${Epoxy_LIBRARIES}
+  )
+endif()
 
 blender_add_lib(bf_python_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

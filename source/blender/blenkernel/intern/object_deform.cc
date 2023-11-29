@@ -15,7 +15,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
@@ -33,11 +33,11 @@
 
 #include "BKE_action.h"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h" /* own include */
 
 /* -------------------------------------------------------------------- */

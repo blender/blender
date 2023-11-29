@@ -3262,7 +3262,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
     RNA_def_property_translation_context(prop, translation_context);
   }
   RNA_def_property_range(prop, min, max);
-  RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
+  RNA_def_property_ui_range(prop, std::max(soft_min, min), MIN2(soft_max, max), step, 3);
 
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);
@@ -3460,7 +3460,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
   if (translation_context) {
     RNA_def_property_translation_context(prop, translation_context);
   }
-  RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
+  RNA_def_property_ui_range(prop, std::max(soft_min, min), MIN2(soft_max, max), step, 3);
 
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);

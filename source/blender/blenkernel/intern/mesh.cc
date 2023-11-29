@@ -45,7 +45,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_bpath.h"
 #include "BKE_deform.h"
-#include "BKE_editmesh.h"
+#include "BKE_editmesh.hh"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -57,9 +58,9 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "PIL_time.h"
 
@@ -243,6 +244,7 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
+  using namespace blender::bke;
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
@@ -276,6 +278,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
     CustomData_blend_write_prepare(mesh->loop_data, loop_layers, {});
     CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
+    if (!is_undo) {
+      mesh_sculpt_mask_to_legacy(vert_layers);
+    }
   }
 
   mesh->runtime = nullptr;
@@ -372,7 +377,7 @@ IDTypeInfo IDType_ID_ME = {
     /*main_listbase_index*/ INDEX_ID_ME,
     /*struct_size*/ sizeof(Mesh),
     /*name*/ "Mesh",
-    /*name_plural*/ "meshes",
+    /*name_plural*/ N_("meshes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MESH,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -394,380 +399,6 @@ IDTypeInfo IDType_ID_ME = {
 
     /*lib_override_apply_post*/ nullptr,
 };
-
-enum {
-  MESHCMP_DVERT_WEIGHTMISMATCH = 1,
-  MESHCMP_DVERT_GROUPMISMATCH,
-  MESHCMP_DVERT_TOTGROUPMISMATCH,
-  MESHCMP_LOOPCOLMISMATCH,
-  MESHCMP_LOOPUVMISMATCH,
-  MESHCMP_LOOPMISMATCH,
-  MESHCMP_POLYVERTMISMATCH,
-  MESHCMP_POLYMISMATCH,
-  MESHCMP_EDGEUNKNOWN,
-  MESHCMP_VERTCOMISMATCH,
-  MESHCMP_CDLAYERS_MISMATCH,
-  MESHCMP_ATTRIBUTE_VALUE_MISMATCH,
-};
-
-static const char *cmpcode_to_str(int code)
-{
-  switch (code) {
-    case MESHCMP_DVERT_WEIGHTMISMATCH:
-      return "Vertex Weight Mismatch";
-    case MESHCMP_DVERT_GROUPMISMATCH:
-      return "Vertex Group Mismatch";
-    case MESHCMP_DVERT_TOTGROUPMISMATCH:
-      return "Vertex Doesn't Belong To Same Number Of Groups";
-    case MESHCMP_LOOPCOLMISMATCH:
-      return "Color Attribute Mismatch";
-    case MESHCMP_LOOPUVMISMATCH:
-      return "UV Mismatch";
-    case MESHCMP_LOOPMISMATCH:
-      return "Loop Mismatch";
-    case MESHCMP_POLYVERTMISMATCH:
-      return "Loop Vert Mismatch In Poly Test";
-    case MESHCMP_POLYMISMATCH:
-      return "Loop Vert Mismatch";
-    case MESHCMP_EDGEUNKNOWN:
-      return "Edge Mismatch";
-    case MESHCMP_VERTCOMISMATCH:
-      return "Vertex Coordinate Mismatch";
-    case MESHCMP_CDLAYERS_MISMATCH:
-      return "CustomData Layer Count Mismatch";
-    case MESHCMP_ATTRIBUTE_VALUE_MISMATCH:
-      return "Attribute Value Mismatch";
-    default:
-      return "Mesh Comparison Code Unknown";
-  }
-}
-
-static bool is_sublayer_name(char const *sublayer_name, char const *name)
-{
-  BLI_assert(strlen(sublayer_name) == 2);
-  if (name[1] != sublayer_name[0]) {
-    return false;
-  }
-  if (name[2] != sublayer_name[1]) {
-    return false;
-  }
-  if (name[3] != '.') {
-    return false;
-  }
-  return true;
-}
-
-static bool is_uv_bool_sublayer(const CustomDataLayer &layer)
-{
-  char const *name = layer.name;
-
-  if (name[0] != '.') {
-    return false;
-  }
-
-  return is_sublayer_name(UV_VERTSEL_NAME, name) || is_sublayer_name(UV_EDGESEL_NAME, name) ||
-         is_sublayer_name(UV_PINNED_NAME, name);
-}
-
-/** Thresh is threshold for comparing vertices, UVs, vertex colors, weights, etc. */
-static int customdata_compare(
-    CustomData *c1, CustomData *c2, const int total_length, Mesh *m1, const float thresh)
-{
-  using namespace blender;
-  CustomDataLayer *l1, *l2;
-  int layer_count1 = 0, layer_count2 = 0, j;
-  const uint64_t cd_mask_non_generic = CD_MASK_MDEFORMVERT;
-  const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
-
-  /* The uv selection / pin layers are ignored in the comparisons because
-   * the original flags they replace were ignored as well. Because of the
-   * lazy creation of these layers it would need careful handling of the
-   * test files to compare these layers. For now it has been decided to
-   * skip them.
-   */
-
-  for (int i = 0; i < c1->totlayer; i++) {
-    l1 = &c1->layers[i];
-    if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(*l1))
-    {
-      layer_count1++;
-    }
-  }
-
-  for (int i = 0; i < c2->totlayer; i++) {
-    l2 = &c2->layers[i];
-    if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(*l2))
-    {
-      layer_count2++;
-    }
-  }
-
-  if (layer_count1 != layer_count2) {
-    /* TODO(@HooglyBoogly): Re-enable after tests are updated for material index refactor and UV as
-     * generic attribute refactor. */
-    // return MESHCMP_CDLAYERS_MISMATCH;
-  }
-
-  l1 = c1->layers;
-  l2 = c2->layers;
-
-  for (int i1 = 0; i1 < c1->totlayer; i1++) {
-    l1 = c1->layers + i1;
-    if (l1->anonymous_id != nullptr || is_uv_bool_sublayer(*l1)) {
-      continue;
-    }
-    bool found_corresponding_layer = false;
-    for (int i2 = 0; i2 < c2->totlayer; i2++) {
-      l2 = c2->layers + i2;
-      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l2->anonymous_id != nullptr) {
-        continue;
-      }
-      /* At this point `l1` and `l2` have the same name and type, so they should be compared. */
-
-      found_corresponding_layer = true;
-
-      if (StringRef(l1->name) == ".corner_edge") {
-        /* TODO(Hans): This attribute wasn't tested before loops were refactored into separate
-         * corner edges and corner verts attributes. Remove after updating tests. */
-        continue;
-      }
-
-      switch (l1->type) {
-        case CD_PROP_INT32_2D: {
-          blender::int2 *e1 = (blender::int2 *)l1->data;
-          blender::int2 *e2 = (blender::int2 *)l2->data;
-
-          if (StringRef(l1->name) == ".edge_verts") {
-            int etot = m1->totedge;
-            Set<OrderedEdge> ordered_edges;
-            ordered_edges.reserve(etot);
-            for (const int2 value : Span(e1, etot)) {
-              ordered_edges.add(value);
-            }
-
-            for (j = 0; j < etot; j++) {
-              if (!ordered_edges.contains(e2[j])) {
-                return MESHCMP_EDGEUNKNOWN;
-              }
-            }
-          }
-          else {
-            for (j = 0; j < total_length; j++) {
-              if (e1[j] != e2[j]) {
-                return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-              }
-            }
-          }
-          break;
-        }
-        case CD_PROP_BYTE_COLOR: {
-          MLoopCol *lp1 = (MLoopCol *)l1->data;
-          MLoopCol *lp2 = (MLoopCol *)l2->data;
-          int ltot = m1->totloop;
-
-          for (j = 0; j < ltot; j++, lp1++, lp2++) {
-            if (lp1->r != lp2->r || lp1->g != lp2->g || lp1->b != lp2->b || lp1->a != lp2->a) {
-              return MESHCMP_LOOPCOLMISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_MDEFORMVERT: {
-          MDeformVert *dv1 = (MDeformVert *)l1->data;
-          MDeformVert *dv2 = (MDeformVert *)l2->data;
-          int dvtot = m1->totvert;
-
-          for (j = 0; j < dvtot; j++, dv1++, dv2++) {
-            int k;
-            MDeformWeight *dw1 = dv1->dw, *dw2 = dv2->dw;
-
-            if (dv1->totweight != dv2->totweight) {
-              return MESHCMP_DVERT_TOTGROUPMISMATCH;
-            }
-
-            for (k = 0; k < dv1->totweight; k++, dw1++, dw2++) {
-              if (dw1->def_nr != dw2->def_nr) {
-                return MESHCMP_DVERT_GROUPMISMATCH;
-              }
-              if (fabsf(dw1->weight - dw2->weight) > thresh) {
-                return MESHCMP_DVERT_WEIGHTMISMATCH;
-              }
-            }
-          }
-          break;
-        }
-        case CD_PROP_FLOAT: {
-          const float *l1_data = (float *)l1->data;
-          const float *l2_data = (float *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i], l2_data[i], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_FLOAT2: {
-          const float(*l1_data)[2] = (float(*)[2])l1->data;
-          const float(*l2_data)[2] = (float(*)[2])l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_FLOAT3: {
-          const float(*l1_data)[3] = (float(*)[3])l1->data;
-          const float(*l2_data)[3] = (float(*)[3])l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][2], l2_data[i][2], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_QUATERNION: {
-          const float(*l1_data)[4] = (float(*)[4])l1->data;
-          const float(*l2_data)[4] = (float(*)[4])l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][2], l2_data[i][2], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][3], l2_data[i][3], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_INT32: {
-          const int *l1_data = (int *)l1->data;
-          const int *l2_data = (int *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (l1_data[i] != l2_data[i]) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_INT8: {
-          const int8_t *l1_data = (int8_t *)l1->data;
-          const int8_t *l2_data = (int8_t *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (l1_data[i] != l2_data[i]) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_BOOL: {
-          const bool *l1_data = (bool *)l1->data;
-          const bool *l2_data = (bool *)l2->data;
-          for (int i = 0; i < total_length; i++) {
-            if (l1_data[i] != l2_data[i]) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_COLOR: {
-          const MPropCol *l1_data = (MPropCol *)l1->data;
-          const MPropCol *l2_data = (MPropCol *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            for (j = 0; j < 4; j++) {
-              if (compare_threshold_relative(l1_data[i].color[j], l2_data[i].color[j], thresh)) {
-                return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-              }
-            }
-          }
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    }
-    if (!found_corresponding_layer) {
-      if ((uint64_t(1) << l1->type) & CD_MASK_PROP_ALL) {
-        return MESHCMP_CDLAYERS_MISMATCH;
-      }
-    }
-  }
-
-  return 0;
-}
-
-const char *BKE_mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
-{
-  int c;
-
-  if (!me1 || !me2) {
-    return "Requires two input meshes";
-  }
-
-  if (me1->totvert != me2->totvert) {
-    return "Number of verts don't match";
-  }
-
-  if (me1->totedge != me2->totedge) {
-    return "Number of edges don't match";
-  }
-
-  if (me1->faces_num != me2->faces_num) {
-    return "Number of faces don't match";
-  }
-
-  if (me1->totloop != me2->totloop) {
-    return "Number of loops don't match";
-  }
-
-  if (!std::equal(
-          me1->face_offsets().begin(), me1->face_offsets().end(), me2->face_offsets().begin()))
-  {
-    return "Face sizes don't match";
-  }
-
-  if ((c = customdata_compare(&me1->vert_data, &me2->vert_data, me1->totvert, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  if ((c = customdata_compare(&me1->edge_data, &me2->edge_data, me1->totedge, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  if ((c = customdata_compare(&me1->loop_data, &me2->loop_data, me1->totloop, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  if ((c = customdata_compare(&me1->face_data, &me2->face_data, me1->faces_num, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  return nullptr;
-}
 
 bool BKE_mesh_attribute_required(const char *name)
 {
@@ -972,7 +603,6 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   /* Copy general settings. */
   me_dst->editflag = me_src->editflag;
   me_dst->flag = me_src->flag;
-  me_dst->smoothresh = me_src->smoothresh;
   me_dst->remesh_voxel_size = me_src->remesh_voxel_size;
   me_dst->remesh_voxel_adaptivity = me_src->remesh_voxel_adaptivity;
   me_dst->remesh_mode = me_src->remesh_mode;
@@ -1155,47 +785,19 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
   ensure_orig_index_layer(mesh->face_data, mesh->faces_num);
 }
 
-BoundBox *BKE_mesh_boundbox_get(Object *ob)
-{
-  /* This is Object-level data access,
-   * DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
-  if (ob->runtime.bb == nullptr || ob->runtime.bb->flag & BOUNDBOX_DIRTY) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    float min[3], max[3];
-
-    INIT_MINMAX(min, max);
-    if (!BKE_mesh_wrapper_minmax(me, min, max)) {
-      min[0] = min[1] = min[2] = -1.0f;
-      max[0] = max[1] = max[2] = 1.0f;
-    }
-
-    if (ob->runtime.bb == nullptr) {
-      ob->runtime.bb = (BoundBox *)MEM_mallocN(sizeof(*ob->runtime.bb), __func__);
-    }
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-    ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
-  }
-
-  return ob->runtime.bb;
-}
-
 void BKE_mesh_texspace_calc(Mesh *me)
 {
+  using namespace blender;
   if (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
-    float min[3], max[3];
-
-    INIT_MINMAX(min, max);
-    if (!BKE_mesh_wrapper_minmax(me, min, max)) {
-      min[0] = min[1] = min[2] = -1.0f;
-      max[0] = max[1] = max[2] = 1.0f;
-    }
+    const Bounds<float3> bounds = me->bounds_min_max().value_or(
+        Bounds<float3>{float3(-1.0f), float3(1.0f)});
 
     float texspace_location[3], texspace_size[3];
-    mid_v3_v3v3(texspace_location, min, max);
+    mid_v3_v3v3(texspace_location, bounds.min, bounds.max);
 
-    texspace_size[0] = (max[0] - min[0]) / 2.0f;
-    texspace_size[1] = (max[1] - min[1]) / 2.0f;
-    texspace_size[2] = (max[2] - min[2]) / 2.0f;
+    texspace_size[0] = (bounds.max[0] - bounds.min[0]) / 2.0f;
+    texspace_size[1] = (bounds.max[1] - bounds.min[1]) / 2.0f;
+    texspace_size[2] = (bounds.max[2] - bounds.min[2]) / 2.0f;
 
     for (int a = 0; a < 3; a++) {
       if (texspace_size[a] == 0.0f) {
@@ -1437,9 +1039,11 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
   if (use_smooth) {
+    attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
   }
   else {
+    attributes.remove("sharp_edge");
     SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
         "sharp_face", ATTR_DOMAIN_FACE);
     sharp_faces.span.fill(true);
@@ -1447,48 +1051,53 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   }
 }
 
-void BKE_mesh_auto_smooth_flag_set(Mesh *me,
-                                   const bool use_auto_smooth,
-                                   const float auto_smooth_angle)
+void BKE_mesh_sharp_edges_set_from_angle(Mesh *me, const float angle)
 {
-  if (use_auto_smooth) {
-    me->flag |= ME_AUTOSMOOTH;
-    me->smoothresh = auto_smooth_angle;
+  using namespace blender;
+  using namespace blender::bke;
+  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  if (angle >= M_PI) {
+    attributes.remove("sharp_edge");
+    attributes.remove("sharp_face");
+    return;
   }
-  else {
-    me->flag &= ~ME_AUTOSMOOTH;
+  if (angle == 0.0f) {
+    BKE_mesh_smooth_flag_set(me, false);
+    return;
   }
-}
-
-void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
-                                     const int *corner_verts,
-                                     const int *corner_edges,
-                                     const MLoopTri *tri,
-                                     int r_edges[3])
-{
-  for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
-    const int corner_1 = tri->tri[i];
-    const int corner_2 = tri->tri[i_next];
-    const int vert_1 = corner_verts[corner_1];
-    const int vert_2 = corner_verts[corner_2];
-    const int edge_i = corner_edges[corner_1];
-    const blender::int2 &edge = edges[edge_i];
-
-    bool is_real = (vert_1 == edge[0] && vert_2 == edge[1]) ||
-                   (vert_1 == edge[1] && vert_2 == edge[0]);
-
-    r_edges[i] = is_real ? edge_i : -1;
-  }
+  bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_edge", ATTR_DOMAIN_EDGE);
+  const bool *sharp_faces = static_cast<const bool *>(
+      CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
+  bke::mesh::edges_sharp_from_angle_set(me->faces(),
+                                        me->corner_verts(),
+                                        me->corner_edges(),
+                                        me->face_normals(),
+                                        me->corner_to_face_map(),
+                                        sharp_faces,
+                                        angle,
+                                        sharp_edges.span);
+  sharp_edges.finish();
 }
 
 std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
 {
   using namespace blender;
-  if (this->totvert == 0) {
+  const int verts_num = BKE_mesh_wrapper_vert_len(this);
+  if (verts_num == 0) {
     return std::nullopt;
   }
-  this->runtime->bounds_cache.ensure(
-      [&](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(this->vert_positions()); });
+  this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
+    switch (this->runtime->wrapper_type) {
+      case ME_WRAPPER_TYPE_BMESH:
+        r_bounds = *BKE_editmesh_cache_calc_minmax(this->edit_mesh, this->runtime->edit_data);
+        break;
+      case ME_WRAPPER_TYPE_MDATA:
+      case ME_WRAPPER_TYPE_SUBD:
+        r_bounds = *bounds::min_max(this->vert_positions());
+        break;
+    }
+  });
   return this->runtime->bounds_cache.data();
 }
 
@@ -1514,20 +1123,6 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
     }
   }
 
-  /* don't update normals, caller can do this explicitly.
-   * We do update loop normals though, those may not be auto-generated
-   * (see e.g. STL import script)! */
-  float(*lnors)[3] = (float(*)[3])CustomData_get_layer_for_write(
-      &me->loop_data, CD_NORMAL, me->totloop);
-  if (lnors) {
-    float m3[3][3];
-
-    copy_m3_m4(m3, mat);
-    normalize_m3(m3);
-    for (int i = 0; i < me->totloop; i++, lnors++) {
-      mul_m3_v3(m3, *lnors);
-    }
-  }
   BKE_mesh_tag_positions_changed(me);
 }
 
@@ -1706,94 +1301,6 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
     r_count[2] = bm->totfacesel;
   }
   /* We could support faces in paint modes. */
-}
-
-float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
-{
-  float(*vert_coords)[3] = (float(*)[3])MEM_mallocN(sizeof(float[3]) * mesh->totvert, __func__);
-  MutableSpan(reinterpret_cast<float3 *>(vert_coords), mesh->totvert)
-      .copy_from(mesh->vert_positions());
-  if (r_vert_len) {
-    *r_vert_len = mesh->totvert;
-  }
-  return vert_coords;
-}
-
-void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    copy_v3_v3(positions[i], vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
-}
-
-void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
-                                          const float (*vert_coords)[3],
-                                          const float mat[4][4])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    mul_v3_m4v3(positions[i], mat, vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
-}
-
-static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
-{
-  float(*r_loop_normals)[3];
-  if (CustomData_has_layer(&mesh.loop_data, CD_NORMAL)) {
-    r_loop_normals = (float(*)[3])CustomData_get_layer_for_write(
-        &mesh.loop_data, CD_NORMAL, mesh.totloop);
-    memset(r_loop_normals, 0, sizeof(float[3]) * mesh.totloop);
-  }
-  else {
-    r_loop_normals = (float(*)[3])CustomData_add_layer(
-        &mesh.loop_data, CD_NORMAL, CD_SET_DEFAULT, mesh.totloop);
-    CustomData_set_layer_flag(&mesh.loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
-  }
-  return r_loop_normals;
-}
-
-void BKE_mesh_calc_normals_split_ex(const Mesh *mesh,
-                                    MLoopNorSpaceArray *r_lnors_spacearr,
-                                    float (*r_corner_normals)[3])
-{
-  /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
-   * However, we obviously only use the auto-smooth angle threshold
-   * only in case auto-smooth is enabled. */
-  const bool use_split_normals = (r_lnors_spacearr != nullptr) ||
-                                 ((mesh->flag & ME_AUTOSMOOTH) != 0);
-  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
-
-  const blender::short2 *clnors = static_cast<const blender::short2 *>(
-      CustomData_get_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL));
-  const bool *sharp_edges = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "sharp_edge"));
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
-
-  blender::bke::mesh::normals_calc_loop(
-      mesh->vert_positions(),
-      mesh->edges(),
-      mesh->faces(),
-      mesh->corner_verts(),
-      mesh->corner_edges(),
-      mesh->corner_to_face_map(),
-      mesh->vert_normals(),
-      mesh->face_normals(),
-      sharp_edges,
-      sharp_faces,
-      clnors,
-      use_split_normals,
-      split_angle,
-      nullptr,
-      {reinterpret_cast<float3 *>(r_corner_normals), mesh->totloop});
-}
-
-void BKE_mesh_calc_normals_split(Mesh *mesh)
-{
-  BKE_mesh_calc_normals_split_ex(mesh, nullptr, ensure_corner_normal_layer(*mesh));
 }
 
 /* **** Depsgraph evaluation **** */

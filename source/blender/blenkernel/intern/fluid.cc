@@ -32,7 +32,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
+#include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 
 #ifdef WITH_FLUID
@@ -54,14 +54,14 @@
 #  include "BLI_threads.h"
 #  include "BLI_voxel.h"
 
-#  include "BKE_bvhutils.h"
+#  include "BKE_bvhutils.hh"
 #  include "BKE_collision.h"
 #  include "BKE_colortools.h"
-#  include "BKE_customdata.h"
+#  include "BKE_customdata.hh"
 #  include "BKE_deform.h"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"
-#  include "BKE_object.h"
+#  include "BKE_object.hh"
 #  include "BKE_particle.h"
 #  include "BKE_scene.h"
 #  include "BKE_texture.h"
@@ -450,7 +450,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
     fds->base_res[1] = max_ii(int(size[1] * scale + 0.5f), 4);
     fds->base_res[2] = max_ii(int(size[2] * scale + 0.5f), 4);
   }
-  else if (size[1] >= MAX2(size[0], size[2])) {
+  else if (size[1] >= std::max(size[0], size[2])) {
     scale = res / size[1];
     fds->scale = size[1] / fabsf(ob->scale[1]);
     fds->base_res[0] = max_ii(int(size[0] * scale + 0.5f), 4);
@@ -736,8 +736,8 @@ static void bb_combineMaps(FluidObjectBB *output,
 
   for (i = 0; i < 3; i++) {
     if (bb1.valid) {
-      output->min[i] = MIN2(bb1.min[i], bb2->min[i]);
-      output->max[i] = MAX2(bb1.max[i], bb2->max[i]);
+      output->min[i] = std::min(bb1.min[i], bb2->min[i]);
+      output->max[i] = std::max(bb1.max[i], bb2->max[i]);
     }
     else {
       output->min[i] = bb2->min[i];
@@ -783,14 +783,15 @@ static void bb_combineMaps(FluidObjectBB *output,
               x - bb2->min[0], bb2->res[0], y - bb2->min[1], bb2->res[1], z - bb2->min[2]);
 
           /* Values. */
-          output->numobjs[index_out] = MAX2(bb2->numobjs[index_in], output->numobjs[index_out]);
+          output->numobjs[index_out] = std::max(bb2->numobjs[index_in],
+                                                output->numobjs[index_out]);
           if (output->influence && bb2->influence) {
             if (additive) {
               output->influence[index_out] += bb2->influence[index_in] * sample_size;
             }
             else {
-              output->influence[index_out] = MAX2(bb2->influence[index_in],
-                                                  output->influence[index_out]);
+              output->influence[index_out] = std::max(bb2->influence[index_in],
+                                                      output->influence[index_out]);
             }
           }
           output->distances[index_out] = MIN2(bb2->distances[index_in],
@@ -2481,7 +2482,7 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *ffs,
   /* Set emission value for smoke inflow.
    * Ensure that emission value is "maximized". */
   if (emission_in) {
-    emission_in[index] = MAX2(emission_value, emission_in[index]);
+    emission_in[index] = std::max(emission_value, emission_in[index]);
   }
 
   /* Set inflow for smoke from here on. */
@@ -2502,13 +2503,13 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *ffs,
     if (density && density_in) {
       if (ffs->type != FLUID_FLOW_TYPE_FIRE && dens_flow > density[index]) {
         /* Use MAX2 to preserve values from other emitters at this cell. */
-        density_in[index] = MAX2(dens_flow, density_in[index]);
+        density_in[index] = std::max(dens_flow, density_in[index]);
       }
     }
     if (fuel && fuel_in) {
       if (ffs->type != FLUID_FLOW_TYPE_SMOKE && fuel_flow && fuel_flow > fuel[index]) {
         /* Use MAX2 to preserve values from other emitters at this cell. */
-        fuel_in[index] = MAX2(fuel_flow, fuel_in[index]);
+        fuel_in[index] = std::max(fuel_flow, fuel_in[index]);
       }
     }
   }
@@ -4414,7 +4415,7 @@ float BKE_fluid_get_velocity_at(Object *ob, float position[3], float velocity[3]
     if (manta_smoke_has_fuel(fds->fluid)) {
       fuel = BLI_voxel_sample_trilinear(manta_smoke_get_fuel(fds->fluid), fds->res, pos);
     }
-    return MAX2(density, fuel);
+    return std::max(density, fuel);
   }
   return -1.0f;
 }

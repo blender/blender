@@ -8,7 +8,7 @@
  * \brief Contains procedural GPU hair drawing methods.
  */
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_curves_types.h"
@@ -158,7 +158,7 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
   const int max_strands_per_call = GPU_max_work_group_count(0);
   int strands_start = 0;
   while (strands_start < strands_len) {
-    int batch_strands_len = MIN2(strands_len - strands_start, max_strands_per_call);
+    int batch_strands_len = std::min(strands_len - strands_start, max_strands_per_call);
     DRWShadingGroup *subgroup = DRW_shgroup_create_sub(shgrp);
     DRW_shgroup_uniform_int_copy(subgroup, "hairStrandOffset", strands_start);
     DRW_shgroup_call_compute(subgroup, batch_strands_len, cache->final[subdiv].strands_res, 1);
@@ -306,6 +306,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
                                                DRWShadingGroup *shgrp_parent,
                                                GPUMaterial *gpu_material)
 {
+  using namespace blender;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
   CurvesUniformBufPool *pool = DST.vmempool->curves_ubos;
@@ -346,7 +347,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
     hair_rad_root = radii[first_curve_points.first()];
     hair_rad_tip = radii[first_curve_points.last()];
     hair_rad_shape = std::clamp(
-        safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
+        math::safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
         -1.0f,
         1.0f);
   }
@@ -509,7 +510,7 @@ void DRW_curves_update()
     GPUFrameBuffer *temp_fb = nullptr;
     GPUFrameBuffer *prev_fb = nullptr;
     if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-      if (!(GPU_compute_shader_support())) {
+      if (!GPU_compute_shader_support()) {
         prev_fb = GPU_framebuffer_active_get();
         char errorOut[256];
         /* if the frame-buffer is invalid we need a dummy frame-buffer to be bound. */
@@ -692,7 +693,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
     hair_rad_root = radii[first_curve_points.first()];
     hair_rad_tip = radii[first_curve_points.last()];
     hair_rad_shape = std::clamp(
-        safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
+        math::safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
         -1.0f,
         1.0f);
   }

@@ -11,7 +11,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_scene.h"
 
 #include "WM_api.hh"
@@ -21,11 +21,11 @@
 
 #include "UI_view2d.hh"
 
-#include "SEQ_iterator.h"
-#include "SEQ_select.h"
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-#include "SEQ_transform.h"
+#include "SEQ_iterator.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
 /* For menu, popup, icons, etc. */
 #include "ED_anim_api.hh"
@@ -271,7 +271,9 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 /** \name Frame Selected Operator
  * \{ */
 
-static void seq_view_collection_rect_preview(Scene *scene, SeqCollection *strips, rctf *rect)
+static void seq_view_collection_rect_preview(Scene *scene,
+                                             blender::Span<Sequence *> strips,
+                                             rctf *rect)
 {
   float min[2], max[2];
   SEQ_image_transform_bounding_box_from_collection(scene, strips, true, min, max);
@@ -292,10 +294,10 @@ static void seq_view_collection_rect_preview(Scene *scene, SeqCollection *strips
   BLI_rctf_scale(rect, 1.1f);
 }
 
-static void seq_view_collection_rect_timeline(Scene *scene, SeqCollection *strips, rctf *rect)
+static void seq_view_collection_rect_timeline(Scene *scene,
+                                              blender::Span<Sequence *> strips,
+                                              rctf *rect)
 {
-  Sequence *seq;
-
   int xmin = MAXFRAME * 2;
   int xmax = -MAXFRAME * 2;
   int ymin = MAXSEQ + 1;
@@ -305,7 +307,7 @@ static void seq_view_collection_rect_timeline(Scene *scene, SeqCollection *strip
   int ymargin = 1;
   int xmargin = FPS;
 
-  SEQ_ITERATOR_FOREACH (seq, strips) {
+  for (Sequence *seq : strips) {
     xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, seq));
     xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, seq));
 
@@ -339,11 +341,11 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  SeqCollection *strips = selected_strips_from_context(C);
+  blender::VectorSet strips = selected_strips_from_context(C);
   View2D *v2d = UI_view2d_fromcontext(C);
   rctf cur_new = v2d->cur;
 
-  if (SEQ_collection_len(strips) == 0) {
+  if (strips.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 

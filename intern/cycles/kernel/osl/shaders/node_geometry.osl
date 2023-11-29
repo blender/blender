@@ -34,11 +34,13 @@ shader node_geometry(string bump_offset = "center",
 
   point generated;
   float IsCurve = 0;
+  float IsPoint = 0;
   getattribute("geom:is_curve", IsCurve);
+  getattribute("geom:is_point", IsPoint);
 
   /* create spherical tangent from generated coordinates if they're available,
-   * unless we're on a curve. */
-  if (!IsCurve && getattribute("geom:generated", generated)) {
+   * unless we're on a curve or point. */
+  if (!(IsCurve || IsPoint) && getattribute("geom:generated", generated)) {
     normal data = normal(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);
     vector T = transform("object", "world", data);
     Tangent = cross(Normal, normalize(cross(T, Normal)));

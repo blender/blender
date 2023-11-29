@@ -14,7 +14,7 @@
 
 #include "DNA_world_types.h"
 
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 
 #include "eevee_private.h"
 

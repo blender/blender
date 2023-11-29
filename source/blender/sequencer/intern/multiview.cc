@@ -16,7 +16,7 @@
 
 #include "IMB_imbuf.h"
 
-#include "multiview.h"
+#include "multiview.hh"
 
 void seq_anim_add_suffix(Scene *scene, anim *anim, const int view_id)
 {

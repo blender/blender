@@ -31,12 +31,12 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_screen.hh"
 
@@ -456,12 +456,17 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
   {
     const char *idname_array[] = {
         /* While we could include this, it's just showing filenames to load. */
-        "TOPBAR_MT_file_open_recent",
+        (single_menu_idname && STREQ(single_menu_idname, "TOPBAR_MT_file_open_recent")) ?
+            nullptr :
+            "TOPBAR_MT_file_open_recent",
         /* Showing undo history is not helpful since users may accidentally undo
          * an action they intend to run. */
         "TOPBAR_MT_undo_history",
     };
     for (int i = 0; i < ARRAY_SIZE(idname_array); i++) {
+      if (!idname_array[i]) {
+        continue;
+      }
       MenuType *mt = WM_menutype_find(idname_array[i], false);
       if (mt != nullptr) {
         menu_tagged.add(mt);
@@ -469,8 +474,8 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
     }
   }
 
-  {
-    /* Exclude context menus because:
+  if (!single_menu_idname) {
+    /* Exclude context menus (when not searching in a specific single menu) because:
      * - The menu items are available elsewhere (and will show up multiple times).
      * - Menu items depend on exact context, making search results unpredictable
      *   (exact number of items selected for example). See design doc #74158.

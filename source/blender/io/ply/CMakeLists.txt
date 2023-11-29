@@ -10,7 +10,6 @@ set(INC
   ../common
   ../../blenkernel
   ../../bmesh
-  ../../depsgraph
   ../../geometry
   ../../makesrna
   ../../windowmanager
@@ -54,6 +53,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_io_common

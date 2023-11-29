@@ -151,7 +151,7 @@ class OIDNDenoiseContext {
 
     OIDNPass oidn_color_access_pass = read_input_pass(oidn_color_pass, oidn_output_pass);
 
-    oidn::DeviceRef oidn_device = oidn::newDevice();
+    oidn::DeviceRef oidn_device = oidn::newDevice(oidn::DeviceType::CPU);
     oidn_device.set("setAffinity", false);
     oidn_device.commit();
 
@@ -181,7 +181,7 @@ class OIDNDenoiseContext {
     const char *error_message;
     const oidn::Error error = oidn_device.getError(error_message);
     if (error != oidn::Error::None && error != oidn::Error::Cancelled) {
-      LOG(ERROR) << "OpenImageDenoise error: " << error_message;
+      denoiser_->set_error("OpenImageDenoise error: " + string(error_message));
     }
 
     postprocess_output(oidn_color_pass, oidn_output_pass);
@@ -630,7 +630,7 @@ Device *OIDNDenoiser::ensure_denoiser_device(Progress *progress)
 {
 #ifndef WITH_OPENIMAGEDENOISE
   (void)progress;
-  path_trace_device_->set_error("Build without OpenImageDenoiser");
+  path_trace_device_->set_error("Failed to denoise, build has no OpenImageDenoise support");
   return nullptr;
 #else
   if (!openimagedenoise_supported()) {

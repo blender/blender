@@ -309,7 +309,7 @@ class DOPESHEET_PT_snapping(Panel):
         col.label(text="Snap To")
         tool_settings = context.tool_settings
         col.prop(tool_settings, "snap_anim_element", expand=True)
-        if tool_settings.snap_anim_element not in ('MARKER', ):
+        if tool_settings.snap_anim_element != 'MARKER':
             col.prop(tool_settings, "use_snap_time_absolute")
 
 
@@ -495,6 +495,7 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
         layout.operator("anim.channels_delete")
+        layout.operator("action.clean", text="Clean Channels").channels = True
 
         layout.separator()
         layout.operator("anim.channels_group")
@@ -555,7 +556,6 @@ class DOPESHEET_MT_key(Menu):
 
         layout.separator()
         layout.operator("action.clean").channels = False
-        layout.operator("action.clean", text="Clean Channels").channels = True
         layout.operator("action.bake_keys")
 
         layout.separator()
@@ -841,7 +841,7 @@ class DOPESHEET_PT_gpencil_mode(LayersDopeSheetPanel, Panel):
             row.prop(gpl, "opacity", text="Opacity", slider=True)
 
             row = layout.row(align=True)
-            row.prop(gpl, "use_lights")
+            row.prop(gpl, "use_lights", text="Lights")
 
 
 class DOPESHEET_PT_gpencil_layer_masks(LayersDopeSheetPanel, GreasePencilLayerMasksPanel, Panel):

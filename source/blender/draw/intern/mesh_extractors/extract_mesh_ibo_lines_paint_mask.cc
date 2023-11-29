@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_subdivision.h"
+#include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {

@@ -94,9 +94,10 @@ eV3DProjStatus ED_view3d_project_base(const ARegion *region, Base *base, float r
   return ret;
 }
 
-/* perspmat is typically...
- * - 'rv3d->perspmat',   is_local == false
- * - 'rv3d->persmatob', is_local == true
+/**
+ * `perspmat` is typically either:
+ * - 'rv3d->perspmat',  is_local == false.
+ * - 'rv3d->persmatob', is_local == true.
  */
 static eV3DProjStatus ed_view3d_project__internal(const ARegion *region,
                                                   const float perspmat[4][4],
@@ -372,20 +373,19 @@ bool ED_view3d_win_to_ray_clipped_ex(Depsgraph *depsgraph,
                                      const ARegion *region,
                                      const View3D *v3d,
                                      const float mval[2],
+                                     const bool do_clip_planes,
                                      float r_ray_co[3],
                                      float r_ray_normal[3],
                                      float r_ray_start[3],
-                                     bool do_clip_planes)
+                                     float r_ray_end[3])
 {
-  float ray_end[3];
-
   view3d_win_to_ray_segment(
-      depsgraph, region, v3d, mval, r_ray_co, r_ray_normal, r_ray_start, ray_end);
+      depsgraph, region, v3d, mval, r_ray_co, r_ray_normal, r_ray_start, r_ray_end);
 
   /* bounds clipping */
   if (do_clip_planes) {
     return ED_view3d_clip_segment(
-        static_cast<const RegionView3D *>(region->regiondata), r_ray_start, ray_end);
+        static_cast<const RegionView3D *>(region->regiondata), r_ray_start, r_ray_end);
   }
 
   return true;
@@ -400,7 +400,7 @@ bool ED_view3d_win_to_ray_clipped(Depsgraph *depsgraph,
                                   const bool do_clip_planes)
 {
   return ED_view3d_win_to_ray_clipped_ex(
-      depsgraph, region, v3d, mval, nullptr, r_ray_normal, r_ray_start, do_clip_planes);
+      depsgraph, region, v3d, mval, do_clip_planes, nullptr, r_ray_normal, r_ray_start, nullptr);
 }
 
 void ED_view3d_win_to_ray(const ARegion *region,
