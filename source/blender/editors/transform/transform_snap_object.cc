@@ -1488,12 +1488,22 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
                                                     bool sort,
                                                     ListBase *r_hit_list)
 {
-  float ray_start[3], ray_normal[3];
+  float3 ray_start, ray_normal, ray_end;
+  const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
 
   if (!ED_view3d_win_to_ray_clipped_ex(
-          depsgraph, region, v3d, mval, true, nullptr, ray_normal, ray_start, nullptr))
+          depsgraph, region, v3d, mval, false, nullptr, ray_normal, ray_start, ray_end))
   {
     return false;
+  }
+
+  if ((rv3d->rflag & RV3D_CLIPPING) &&
+      clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end))
+  {
+    float ray_depth_max = math::dot(ray_end - ray_start, ray_normal);
+    if ((ray_depth == -1.0f) || (ray_depth > ray_depth_max)) {
+      ray_depth = ray_depth_max;
+    }
   }
 
   return ED_transform_snap_object_project_ray_all(
