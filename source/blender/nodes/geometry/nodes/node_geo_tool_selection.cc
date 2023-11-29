@@ -53,7 +53,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!check_tool_context_and_error(params)) {
     return;
   }
-  if (params.user_data()->operator_data->mode == OB_MODE_OBJECT) {
+  if (params.user_data()->call_data->operator_data->mode == OB_MODE_OBJECT) {
     params.set_output("Selection", true);
   }
   else {

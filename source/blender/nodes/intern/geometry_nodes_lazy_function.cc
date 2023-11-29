@@ -238,11 +238,11 @@ class LazyFunctionForGeometryNode : public LazyFunction {
 
   static const Object *get_self_object(const GeoNodesLFUserData &user_data)
   {
-    if (user_data.modifier_data) {
-      return user_data.modifier_data->self_object;
+    if (user_data.call_data->modifier_data) {
+      return user_data.call_data->modifier_data->self_object;
     }
-    if (user_data.operator_data) {
-      return user_data.operator_data->self_object;
+    if (user_data.call_data->operator_data) {
+      return user_data.call_data->operator_data->self_object;
     }
     BLI_assert_unreachable();
     return nullptr;
@@ -854,14 +854,13 @@ class LazyFunctionForViewerInputUsage : public LazyFunction {
   {
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
-    if (!user_data->modifier_data) {
+    if (!user_data->call_data->side_effect_nodes) {
       params.set_default_remaining_outputs();
       return;
     }
     const ComputeContextHash &context_hash = user_data->compute_context->hash();
-    const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
     const Span<const lf::FunctionNode *> nodes_with_side_effects =
-        modifier_data.side_effect_nodes->nodes_by_context.lookup(context_hash);
+        user_data->call_data->side_effect_nodes->nodes_by_context.lookup(context_hash);
 
     const bool viewer_is_used = nodes_with_side_effects.contains(&lf_viewer_node_);
     params.set_output(0, viewer_is_used);
@@ -883,12 +882,13 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
     const GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-    if (!user_data.modifier_data) {
+    const GeoNodesCallData &call_data = *user_data.call_data;
+    if (!call_data.modifier_data) {
       params.set_default_remaining_outputs();
       return;
     }
-    const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
-    if (!modifier_data.simulation_params) {
+    const GeoNodesModifierData &modifier_data = *call_data.modifier_data;
+    if (!call_data.simulation_params) {
       params.set_default_remaining_outputs();
       return;
     }
@@ -902,17 +902,16 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
       params.set_default_remaining_outputs();
       return;
     }
-    SimulationZoneBehavior *zone_behavior = modifier_data.simulation_params->get(found_id->id);
+    SimulationZoneBehavior *zone_behavior = call_data.simulation_params->get(found_id->id);
     if (!zone_behavior) {
       params.set_default_remaining_outputs();
       return;
     }
 
     bool solve_contains_side_effect = false;
-    if (modifier_data.side_effect_nodes) {
+    if (call_data.side_effect_nodes) {
       const Span<const lf::FunctionNode *> side_effect_nodes =
-          modifier_data.side_effect_nodes->nodes_by_context.lookup(
-              user_data.compute_context->hash());
+          call_data.side_effect_nodes->nodes_by_context.lookup(user_data.compute_context->hash());
       solve_contains_side_effect = !side_effect_nodes.is_empty();
     }
 
@@ -927,12 +926,10 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
 static bool should_log_socket_values_for_context(const GeoNodesLFUserData &user_data,
                                                  const ComputeContextHash hash)
 {
-  if (const GeoNodesModifierData *md_data = user_data.modifier_data) {
-    if (const Set<ComputeContextHash> *contexts = md_data->socket_log_contexts) {
-      return contexts->contains(hash);
-    }
+  if (const Set<ComputeContextHash> *contexts = user_data.call_data->socket_log_contexts) {
+    return contexts->contains(hash);
   }
-  else if (user_data.operator_data) {
+  else if (user_data.call_data->operator_data) {
     return false;
   }
   return true;
@@ -1485,15 +1482,13 @@ class RepeatZoneSideEffectProvider : public lf::GraphExecutorSideEffectProvider 
       const lf::Context &context) const override
   {
     GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-    if (!user_data.modifier_data) {
-      return {};
-    }
-    if (!user_data.modifier_data->side_effect_nodes) {
+    const GeoNodesCallData &call_data = *user_data.call_data;
+    if (!call_data.side_effect_nodes) {
       return {};
     }
     const ComputeContextHash &context_hash = user_data.compute_context->hash();
     const Span<int> iterations_with_side_effects =
-        user_data.modifier_data->side_effect_nodes->iterations_by_repeat_zone.lookup(
+        call_data.side_effect_nodes->iterations_by_repeat_zone.lookup(
             {context_hash, repeat_output_bnode_->identifier});
 
     Vector<const lf::FunctionNode *> lf_nodes;
@@ -1982,12 +1977,12 @@ class GeometryNodesLazyFunctionSideEffectProvider : public lf::GraphExecutor::Si
   {
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
-    if (!user_data->modifier_data) {
+    const GeoNodesCallData &call_data = *user_data->call_data;
+    if (!call_data.side_effect_nodes) {
       return {};
     }
     const ComputeContextHash &context_hash = user_data->compute_context->hash();
-    const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
-    return modifier_data.side_effect_nodes->nodes_by_context.lookup(context_hash);
+    return call_data.side_effect_nodes->nodes_by_context.lookup(context_hash);
   }
 };
 
@@ -4178,17 +4173,9 @@ destruct_ptr<lf::LocalUserData> GeoNodesLFUserData::get_local(LinearAllocator<> 
 
 void GeoNodesLFLocalUserData::ensure_tree_logger(const GeoNodesLFUserData &user_data) const
 {
-  if (GeoNodesModifierData *md_data = user_data.modifier_data) {
-    if (geo_eval_log::GeoModifierLog *log = md_data->eval_log) {
-      tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
-      return;
-    }
-  }
-  if (GeoNodesOperatorData *op_data = user_data.operator_data) {
-    if (geo_eval_log::GeoModifierLog *log = op_data->eval_log) {
-      tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
-      return;
-    }
+  if (geo_eval_log::GeoModifierLog *log = user_data.call_data->eval_log) {
+    tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
+    return;
   }
   this->tree_logger_.emplace(nullptr);
 }
@@ -4213,13 +4200,24 @@ std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &u
   }
   std::reverse(node_ids.begin(), node_ids.end());
   node_ids.append(node_id);
-  const bNestedNodeRef *nested_node_ref = user_data.root_ntree->nested_node_ref_from_node_id_path(
-      node_ids);
+  const bNestedNodeRef *nested_node_ref =
+      user_data.call_data->root_ntree->nested_node_ref_from_node_id_path(node_ids);
   if (nested_node_ref == nullptr) {
     return std::nullopt;
   }
   found.id = nested_node_ref->id;
   return found;
+}
+
+const Object *GeoNodesCallData::self_object() const
+{
+  if (this->modifier_data) {
+    return this->modifier_data->self_object;
+  }
+  if (this->operator_data) {
+    return this->operator_data->self_object;
+  }
+  return nullptr;
 }
 
 }  // namespace blender::nodes

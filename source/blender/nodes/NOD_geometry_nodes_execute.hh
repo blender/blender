@@ -22,7 +22,7 @@ struct GeometrySet;
 struct IDProperty;
 struct Object;
 namespace blender::nodes {
-struct GeoNodesLFUserData;
+struct GeoNodesCallData;
 namespace geo_eval_log {
 class GeoModifierLog;
 }  // namespace geo_eval_log
@@ -57,12 +57,11 @@ bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
 std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_from_socket(
     const bNodeTreeInterfaceSocket &socket);
 
-bke::GeometrySet execute_geometry_nodes_on_geometry(
-    const bNodeTree &btree,
-    const IDProperty *properties,
-    const ComputeContext &base_compute_context,
-    bke::GeometrySet input_geometry,
-    FunctionRef<void(nodes::GeoNodesLFUserData &)> fill_user_data);
+bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
+                                                    const IDProperty *properties,
+                                                    const ComputeContext &base_compute_context,
+                                                    GeoNodesCallData &call_data,
+                                                    bke::GeometrySet input_geometry);
 
 void update_input_properties_from_node_tree(const bNodeTree &tree,
                                             const IDProperty *old_properties,
