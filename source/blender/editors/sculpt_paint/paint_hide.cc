@@ -54,39 +54,36 @@ using blender::Vector;
 
 namespace blender::ed::sculpt_paint::hide {
 
-enum PartialVisAction {
-  PARTIALVIS_HIDE,
-  PARTIALVIS_SHOW,
+enum class VisAction {
+  Hide,
+  Show,
 };
 
-enum PartialVisArea {
-  PARTIALVIS_INSIDE,
-  PARTIALVIS_OUTSIDE,
-  PARTIALVIS_ALL,
-  PARTIALVIS_MASKED,
+enum VisArea {
+  Inside,
+  Outside,
+  All,
+  Masked,
 };
 
 /* Return true if the element should be hidden/shown. */
-static bool is_effected(PartialVisArea area,
-                        float planes[4][4],
-                        const float co[3],
-                        const float mask)
+static bool is_effected(VisArea area, float planes[4][4], const float co[3], const float mask)
 {
-  if (area == PARTIALVIS_ALL) {
+  if (area == VisArea::All) {
     return true;
   }
-  if (area == PARTIALVIS_MASKED) {
+  if (area == VisArea::Masked) {
     return mask > 0.5f;
   }
 
   bool inside = isect_point_planes_v3(planes, 4, co);
-  return ((inside && area == PARTIALVIS_INSIDE) || (!inside && area == PARTIALVIS_OUTSIDE));
+  return ((inside && area == VisArea::Inside) || (!inside && area == VisArea::Outside));
 }
 
 static void partialvis_update_mesh(Object *ob,
                                    PBVH *pbvh,
-                                   PartialVisAction action,
-                                   PartialVisArea area,
+                                   VisAction action,
+                                   VisArea area,
                                    float planes[4][4],
                                    const Span<PBVHNode *> nodes)
 {
@@ -109,7 +106,7 @@ static void partialvis_update_mesh(Object *ob,
     for (const int vert : verts) {
       /* Hide vertex if in the hide volume. */
       if (is_effected(area, planes, positions[vert], mask[vert])) {
-        hide_vert.span[vert] = (action == PARTIALVIS_HIDE);
+        hide_vert.span[vert] = (action == VisAction::Hide);
         any_changed = true;
       }
 
@@ -132,8 +129,8 @@ static void partialvis_update_mesh(Object *ob,
 static void partialvis_update_grids(Depsgraph *depsgraph,
                                     Object *ob,
                                     PBVH *pbvh,
-                                    PartialVisAction action,
-                                    PartialVisArea area,
+                                    VisAction action,
+                                    VisArea area,
                                     float planes[4][4],
                                     const Span<PBVHNode *> nodes)
 {
@@ -160,16 +157,16 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 
       if (!gh) {
         switch (action) {
-          case PARTIALVIS_HIDE:
+          case VisAction::Hide:
             /* Create grid flags data. */
             gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area, "partialvis_update_grids");
             break;
-          case PARTIALVIS_SHOW:
+          case VisAction::Show:
             /* Entire grid is visible, nothing to show. */
             continue;
         }
       }
-      else if (action == PARTIALVIS_SHOW && area == PARTIALVIS_ALL) {
+      else if (action == VisAction::Show && area == VisArea::All) {
         /* Special case if we're showing all, just free the grid. */
         MEM_freeN(gh);
         grid_hidden[g] = nullptr;
@@ -187,7 +184,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
           /* Skip grid element if not in the effected area. */
           if (is_effected(area, planes, co, mask)) {
             /* Set or clear the hide flag. */
-            BLI_BITMAP_SET(gh, y * key.grid_size + x, action == PARTIALVIS_HIDE);
+            BLI_BITMAP_SET(gh, y * key.grid_size + x, action == VisAction::Hide);
 
             any_changed = true;
           }
@@ -220,8 +217,8 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
                                           const Set<BMVert *, 0> &verts,
-                                          PartialVisAction action,
-                                          PartialVisArea area,
+                                          VisAction action,
+                                          VisArea area,
                                           float planes[4][4],
                                           bool *any_changed,
                                           bool *any_visible)
@@ -232,7 +229,7 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
 
     /* Hide vertex if in the hide volume. */
     if (is_effected(area, planes, v->co, vmask)) {
-      if (action == PARTIALVIS_HIDE) {
+      if (action == VisAction::Hide) {
         BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
       }
       else {
@@ -261,8 +258,8 @@ static void partialvis_update_bmesh_faces(const Set<BMFace *, 0> &faces)
 
 static void partialvis_update_bmesh(Object *ob,
                                     PBVH *pbvh,
-                                    PartialVisAction action,
-                                    PartialVisArea area,
+                                    VisAction action,
+                                    VisArea area,
                                     float planes[4][4],
                                     const Span<PBVHNode *> nodes)
 {
@@ -324,19 +321,19 @@ static void clip_planes_from_rect(bContext *C,
  * inside the clip_planes volume. If mode is outside, get all nodes
  * that lie at least partially outside the volume. If showing all, get
  * all nodes. */
-static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh, float clip_planes[4][4], PartialVisArea mode)
+static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh, float clip_planes[4][4], VisArea area)
 {
   PBVHFrustumPlanes frustum{};
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
   return blender::bke::pbvh::search_gather(pbvh, [&](PBVHNode &node) {
-    switch (mode) {
-      case PARTIALVIS_INSIDE:
+    switch (area) {
+      case VisArea::Inside:
         return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
-      case PARTIALVIS_OUTSIDE:
+      case VisArea::Outside:
         return BKE_pbvh_node_frustum_exclude_AABB(&node, &frustum);
-      case PARTIALVIS_ALL:
-      case PARTIALVIS_MASKED:
+      case VisArea::All:
+      case VisArea::Masked:
         return true;
     }
     BLI_assert_unreachable();
@@ -350,16 +347,14 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mesh *me = static_cast<Mesh *>(ob->data);
-  PartialVisAction action;
-  PartialVisArea area;
   PBVH *pbvh;
   PBVHType pbvh_type;
   float clip_planes[4][4];
   rcti rect;
 
   /* Read operator properties. */
-  action = PartialVisAction(RNA_enum_get(op->ptr, "action"));
-  area = PartialVisArea(RNA_enum_get(op->ptr, "area"));
+  VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
+  VisArea area = VisArea(RNA_enum_get(op->ptr, "area"));
   rect_from_props(&rect, op->ptr);
 
   clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
@@ -374,10 +369,10 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
   /* Start undo. */
   switch (action) {
-    case PARTIALVIS_HIDE:
+    case VisAction::Hide:
       SCULPT_undo_push_begin_ex(ob, "Hide area");
       break;
-    case PARTIALVIS_SHOW:
+    case VisAction::Show:
       SCULPT_undo_push_begin_ex(ob, "Show area");
       break;
   }
@@ -418,9 +413,9 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
 static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  PartialVisArea area = PartialVisArea(RNA_enum_get(op->ptr, "area"));
+  VisArea area = VisArea(RNA_enum_get(op->ptr, "area"));
 
-  if (!ELEM(area, PARTIALVIS_ALL, PARTIALVIS_MASKED)) {
+  if (!ELEM(area, VisArea::All, VisArea::Masked)) {
     return WM_gesture_box_invoke(C, op, event);
   }
   return op->type->exec(C, op);
@@ -429,16 +424,20 @@ static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 void PAINT_OT_hide_show(wmOperatorType *ot)
 {
   static const EnumPropertyItem action_items[] = {
-      {PARTIALVIS_HIDE, "HIDE", 0, "Hide", "Hide vertices"},
-      {PARTIALVIS_SHOW, "SHOW", 0, "Show", "Show vertices"},
+      {int(VisAction::Hide), "HIDE", 0, "Hide", "Hide vertices"},
+      {int(VisAction::Show), "SHOW", 0, "Show", "Show vertices"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem area_items[] = {
-      {PARTIALVIS_OUTSIDE, "OUTSIDE", 0, "Outside", "Hide or show vertices outside the selection"},
-      {PARTIALVIS_INSIDE, "INSIDE", 0, "Inside", "Hide or show vertices inside the selection"},
-      {PARTIALVIS_ALL, "ALL", 0, "All", "Hide or show all vertices"},
-      {PARTIALVIS_MASKED,
+      {int(VisArea::Outside),
+       "OUTSIDE",
+       0,
+       "Outside",
+       "Hide or show vertices outside the selection"},
+      {int(VisArea::Inside), "INSIDE", 0, "Inside", "Hide or show vertices inside the selection"},
+      {int(VisArea::All), "ALL", 0, "All", "Hide or show all vertices"},
+      {int(VisArea::Masked),
        "MASKED",
        0,
        "Masked",
@@ -446,12 +445,10 @@ void PAINT_OT_hide_show(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  /* Identifiers. */
   ot->name = "Hide/Show";
   ot->idname = "PAINT_OT_hide_show";
   ot->description = "Hide/show some vertices";
 
-  /* API callbacks. */
   ot->invoke = hide_show_invoke;
   ot->modal = WM_gesture_box_modal;
   ot->exec = hide_show_exec;
@@ -460,16 +457,14 @@ void PAINT_OT_hide_show(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* RNA. */
   RNA_def_enum(ot->srna,
                "action",
                action_items,
-               PARTIALVIS_HIDE,
-               "Action",
+               int(VisAction::Hide),
+               "VisAction",
                "Whether to hide or show vertices");
   RNA_def_enum(
-      ot->srna, "area", area_items, PARTIALVIS_INSIDE, "Area", "Which vertices to hide or show");
-
+      ot->srna, "area", area_items, VisArea::Inside, "VisArea", "Which vertices to hide or show");
   WM_operator_properties_border(ot);
 }
 
