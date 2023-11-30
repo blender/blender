@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
@@ -17,6 +18,12 @@
 #include "IMB_imbuf_types.h"
 
 #include "sequencer_intern.hh"
+
+// #define DEBUG_TIME
+
+#ifdef DEBUG_TIME
+#  include "BLI_timeit.hh"
+#endif
 
 /* XXX(@ideasman42): why is this function better than BLI_math version?
  * only difference is it does some normalize after, need to double check on this. */
@@ -125,8 +132,11 @@ static void wform_put_grid(uchar *tgt, int w, int h)
 
 static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
+#ifdef DEBUG_TIME
+  SCOPED_TIMER_AVERAGED(__func__);
+#endif
+  using namespace blender;
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
-  int x, y;
   const uchar *src = ibuf->byte_buffer.data;
   uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
@@ -137,37 +147,53 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
   wform_put_grid(tgt, w, h);
   wform_put_border(tgt, w, h);
 
-  for (x = 0; x < 256; x++) {
+  for (int x = 0; x < 256; x++) {
     wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
-  for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p = nullptr;
+  /* IMB_colormanagement_get_luminance_byte for each pixel is quite a lot of
+   * overhead, so instead get luma coefficients as 16-bit integers. */
+  float coeffs[3];
+  IMB_colormanagement_get_luminance_coefficients(coeffs);
+  int muls[3] = {int(coeffs[0] * 65535), int(coeffs[1] * 65535), int(coeffs[2] * 65535)};
 
-    for (x = 0; x < ibuf->x; x++) {
-      const uchar *rgb = src + 4 * (ibuf->x * y + x);
-      float v = float(IMB_colormanagement_get_luminance_byte(rgb)) / 255.0f;
-      uchar *p = tgt;
-      p += 4 * (w * (int(v * (h - 3)) + 1) + x + 1);
+  /* Parallel over x, since each column is easily independent from others. */
+  threading::parallel_for(IndexRange(ibuf->x), 16, [&](IndexRange x_range) {
+    for (int y = 0; y < ibuf->y; y++) {
+      uchar *last_p = nullptr;
 
-      scope_put_pixel(wtable, p);
-      p += 4 * w;
-      scope_put_pixel(wtable, p);
+      for (const int x : x_range) {
+        const uchar *rgb = src + 4 * (ibuf->x * y + x);
+        /* +1 is "Sree's solution" from http://stereopsis.com/doubleblend.html */
+        int rgb0 = rgb[0] + 1;
+        int rgb1 = rgb[1] + 1;
+        int rgb2 = rgb[2] + 1;
+        int luma = (rgb0 * muls[0] + rgb1 * muls[1] + rgb2 * muls[2]) >> 16;
+        int luma_y = clamp_i(luma, 0, 255) * 2;
+        uchar *p = tgt + 4 * (w * (luma_y + 1) + x + 1);
 
-      if (last_p != nullptr) {
-        wform_put_line(w, last_p, p);
+        scope_put_pixel(wtable, p);
+        p += 4 * w;
+        scope_put_pixel(wtable, p);
+
+        if (last_p != nullptr) {
+          wform_put_line(w, last_p, p);
+        }
+        last_p = p;
       }
-      last_p = p;
     }
-  }
+  });
 
   return rval;
 }
 
 static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
+#ifdef DEBUG_TIME
+  SCOPED_TIMER_AVERAGED(__func__);
+#endif
+  using namespace blender;
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
-  int x, y;
   const float *src = ibuf->float_buffer.data;
   uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
@@ -177,32 +203,35 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
   wform_put_grid(tgt, w, h);
 
-  for (x = 0; x < 256; x++) {
+  for (int x = 0; x < 256; x++) {
     wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
-  for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p = nullptr;
+  /* Parallel over x, since each column is easily independent from others. */
+  threading::parallel_for(IndexRange(ibuf->x), 16, [&](IndexRange x_range) {
+    for (int y = 0; y < ibuf->y; y++) {
+      uchar *last_p = nullptr;
 
-    for (x = 0; x < ibuf->x; x++) {
-      const float *rgb = src + 4 * (ibuf->x * y + x);
-      float v = IMB_colormanagement_get_luminance(rgb);
-      uchar *p = tgt;
+      for (const int x : x_range) {
+        const float *rgb = src + 4 * (ibuf->x * y + x);
+        float v = IMB_colormanagement_get_luminance(rgb);
+        uchar *p = tgt;
 
-      CLAMP(v, 0.0f, 1.0f);
+        CLAMP(v, 0.0f, 1.0f);
 
-      p += 4 * (w * (int(v * (h - 3)) + 1) + x + 1);
+        p += 4 * (w * (int(v * (h - 3)) + 1) + x + 1);
 
-      scope_put_pixel(wtable, p);
-      p += 4 * w;
-      scope_put_pixel(wtable, p);
+        scope_put_pixel(wtable, p);
+        p += 4 * w;
+        scope_put_pixel(wtable, p);
 
-      if (last_p != nullptr) {
-        wform_put_line(w, last_p, p);
+        if (last_p != nullptr) {
+          wform_put_line(w, last_p, p);
+        }
+        last_p = p;
       }
-      last_p = p;
     }
-  }
+  });
 
   wform_put_border(tgt, w, h);
 
@@ -219,8 +248,11 @@ ImBuf *make_waveform_view_from_ibuf(ImBuf *ibuf)
 
 static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
+#ifdef DEBUG_TIME
+  SCOPED_TIMER_AVERAGED(__func__);
+#endif
+  using namespace blender;
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
-  int x, y;
   const uchar *src = ibuf->byte_buffer.data;
   uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
@@ -231,31 +263,34 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 
   wform_put_grid(tgt, w, h);
 
-  for (x = 0; x < 256; x++) {
+  for (int x = 0; x < 256; x++) {
     wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
-  for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p[3] = {nullptr, nullptr, nullptr};
+  /* Parallel over x, since each column is easily independent from others. */
+  threading::parallel_for(IndexRange(ibuf->x), 16, [&](IndexRange x_range) {
+    for (int y = 0; y < ibuf->y; y++) {
+      uchar *last_p[3] = {nullptr, nullptr, nullptr};
 
-    for (x = 0; x < ibuf->x; x++) {
-      int c;
-      const uchar *rgb = src + 4 * (ibuf->x * y + x);
-      for (c = 0; c < 3; c++) {
-        uchar *p = tgt;
-        p += 4 * (w * ((rgb[c] * (h - 3)) / 255 + 1) + c * sw + x / 3 + 1);
+      for (const int x : x_range) {
+        int c;
+        const uchar *rgb = src + 4 * (ibuf->x * y + x);
+        for (c = 0; c < 3; c++) {
+          uchar *p = tgt;
+          p += 4 * (w * (rgb[c] * 2 + 1) + c * sw + x / 3 + 1);
 
-        scope_put_pixel_single(wtable, p, c);
-        p += 4 * w;
-        scope_put_pixel_single(wtable, p, c);
+          scope_put_pixel_single(wtable, p, c);
+          p += 4 * w;
+          scope_put_pixel_single(wtable, p, c);
 
-        if (last_p[c] != nullptr) {
-          wform_put_line_single(w, last_p[c], p, c);
+          if (last_p[c] != nullptr) {
+            wform_put_line_single(w, last_p[c], p, c);
+          }
+          last_p[c] = p;
         }
-        last_p[c] = p;
       }
     }
-  }
+  });
 
   wform_put_border(tgt, w, h);
 
@@ -264,8 +299,11 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 
 static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
+#ifdef DEBUG_TIME
+  SCOPED_TIMER_AVERAGED(__func__);
+#endif
+  using namespace blender;
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
-  int x, y;
   const float *src = ibuf->float_buffer.data;
   uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
@@ -276,35 +314,38 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
   wform_put_grid(tgt, w, h);
 
-  for (x = 0; x < 256; x++) {
+  for (int x = 0; x < 256; x++) {
     wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
-  for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p[3] = {nullptr, nullptr, nullptr};
+  /* Parallel over x, since each column is easily independent from others. */
+  threading::parallel_for(IndexRange(ibuf->x), 16, [&](IndexRange x_range) {
+    for (int y = 0; y < ibuf->y; y++) {
+      uchar *last_p[3] = {nullptr, nullptr, nullptr};
 
-    for (x = 0; x < ibuf->x; x++) {
-      int c;
-      const float *rgb = src + 4 * (ibuf->x * y + x);
-      for (c = 0; c < 3; c++) {
-        uchar *p = tgt;
-        float v = rgb[c];
+      for (const int x : x_range) {
+        int c;
+        const float *rgb = src + 4 * (ibuf->x * y + x);
+        for (c = 0; c < 3; c++) {
+          uchar *p = tgt;
+          float v = rgb[c];
 
-        CLAMP(v, 0.0f, 1.0f);
+          CLAMP(v, 0.0f, 1.0f);
 
-        p += 4 * (w * (int(v * (h - 3)) + 1) + c * sw + x / 3 + 1);
+          p += 4 * (w * (int(v * (h - 3)) + 1) + c * sw + x / 3 + 1);
 
-        scope_put_pixel_single(wtable, p, c);
-        p += 4 * w;
-        scope_put_pixel_single(wtable, p, c);
+          scope_put_pixel_single(wtable, p, c);
+          p += 4 * w;
+          scope_put_pixel_single(wtable, p, c);
 
-        if (last_p[c] != nullptr) {
-          wform_put_line_single(w, last_p[c], p, c);
+          if (last_p[c] != nullptr) {
+            wform_put_line_single(w, last_p[c], p, c);
+          }
+          last_p[c] = p;
         }
-        last_p[c] = p;
       }
     }
-  }
+  });
 
   wform_put_border(tgt, w, h);
 
