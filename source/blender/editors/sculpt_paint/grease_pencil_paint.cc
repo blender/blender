@@ -301,12 +301,12 @@ struct PaintOperationExecutor {
         corner_angle_threshold,
         memory);
 
-    /* Pre-blur the coordinates for the curve fitting. This generally leads to a better fit. */
+    /* Pre-blur the coordinates for the curve fitting. This generally leads to a better (more stable) fit. */
     Array<float2> coords_pre_blur(smooth_window.size());
     const int pre_blur_iterations = 3;
     ed::greasepencil::gaussian_blur_1D(coords_to_smooth,
                                        pre_blur_iterations,
-                                       1.0f,
+                                       settings_->active_smooth,
                                        true,
                                        true,
                                        false,
