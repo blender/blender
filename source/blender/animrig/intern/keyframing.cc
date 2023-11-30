@@ -225,125 +225,36 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
   return type;
 }
 
-/* Return codes for new_key_needed. */
-enum {
-  KEYNEEDED_DONTADD = 0,
-  KEYNEEDED_JUSTADD,
-  KEYNEEDED_DELPREV,
-  KEYNEEDED_DELNEXT,
-} /*eKeyNeededStatus*/;
-
 /**
  * This helper function determines whether a new keyframe is needed.
- *
- * Cases where keyframes should not be added:
- * 1. Keyframe to be added between two keyframes with similar values.
- * 2. Keyframe to be added on frame where two keyframes are already situated.
- * 3. Keyframe lies at point that intersects the linear line between two keyframes.
+ * A keyframe doesn't get added when the FCurve already has the proposed value.
  */
-static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
+static bool new_key_needed(FCurve *fcu, const float frame, const float value)
 {
   if (fcu == nullptr) {
-    return KEYNEEDED_JUSTADD;
+    return true;
   }
-  int totCount = fcu->totvert;
-  if (totCount == 0) {
-    return KEYNEEDED_JUSTADD;
-  }
-
-  /* Loop through checking if any are the same. */
-  BezTriple *bezt = fcu->bezt;
-  BezTriple *prev = nullptr;
-  for (int i = 0; i < totCount; i++) {
-    float prevPosi = 0.0f, prevVal = 0.0f;
-    float beztPosi = 0.0f, beztVal = 0.0f;
-
-    beztPosi = bezt->vec[1][0];
-    beztVal = bezt->vec[1][1];
-
-    if (prev) {
-      /* There is a keyframe before the one currently being examined. */
-      prevPosi = prev->vec[1][0];
-      prevVal = prev->vec[1][1];
-
-      /* Keyframe to be added at point where there are already two similar points? */
-      if (IS_EQF(prevPosi, cFrame) && IS_EQF(beztPosi, cFrame) && IS_EQF(beztPosi, prevPosi)) {
-        return KEYNEEDED_DONTADD;
-      }
-
-      /* Keyframe between prev+current points? */
-      if ((prevPosi <= cFrame) && (cFrame <= beztPosi)) {
-        /* Is the value of keyframe to be added the same as keyframes on either side? */
-        if (IS_EQF(prevVal, nValue) && IS_EQF(beztVal, nValue) && IS_EQF(prevVal, beztVal)) {
-          return KEYNEEDED_DONTADD;
-        }
-
-        float realVal;
-
-        /* Get real value of curve at that point. */
-        realVal = evaluate_fcurve(fcu, cFrame);
-
-        /* Compare whether it's the same as proposed. */
-        if (IS_EQF(realVal, nValue)) {
-          return KEYNEEDED_DONTADD;
-        }
-        return KEYNEEDED_JUSTADD;
-      }
-
-      /* New keyframe before prev beztriple? */
-      if (cFrame < prevPosi) {
-        /* A new keyframe will be added. However, whether the previous beztriple
-         * stays around or not depends on whether the values of previous/current
-         * beztriples and new keyframe are the same.
-         */
-        if (IS_EQF(prevVal, nValue) && IS_EQF(beztVal, nValue) && IS_EQF(prevVal, beztVal)) {
-          return KEYNEEDED_DELNEXT;
-        }
-
-        return KEYNEEDED_JUSTADD;
-      }
-    }
-    else {
-      /* Just add a keyframe if there's only one keyframe
-       * and the new one occurs before the existing one does.
-       */
-      if ((cFrame < beztPosi) && (totCount == 1)) {
-        return KEYNEEDED_JUSTADD;
-      }
-    }
-
-    /* Continue. Frame to do not yet passed (or other conditions not met) */
-    if (i < (totCount - 1)) {
-      prev = bezt;
-      bezt++;
-    }
-    else {
-      break;
-    }
+  if (fcu->totvert == 0) {
+    return true;
   }
 
-  /* Frame in which to add a new-keyframe occurs after all other keys
-   * -> If there are at least two existing keyframes, then if the values of the
-   *    last two keyframes and the new-keyframe match, the last existing keyframe
-   *    gets deleted as it is no longer required.
-   * -> Otherwise, a keyframe is just added. 1.0 is added so that fake-2nd-to-last
-   *    keyframe is not equal to last keyframe.
-   */
-  bezt = (fcu->bezt + (fcu->totvert - 1));
-  const float valA = bezt->vec[1][1];
-  float valB;
-  if (prev) {
-    valB = prev->vec[1][1];
-  }
-  else {
-    valB = bezt->vec[1][1] + 1.0f;
+  bool replace;
+  const int bezt_index = BKE_fcurve_bezt_binarysearch_index(
+      fcu->bezt, frame, fcu->totvert, &replace);
+
+  if (replace) {
+    /* If there is already a key, we only need to modify it if the proposed value is different. */
+    return fcu->bezt[bezt_index].vec[1][1] != value;
   }
 
-  if (IS_EQF(valA, nValue) && IS_EQF(valA, valB)) {
-    return KEYNEEDED_DELPREV;
+  const int diff_ulp = 32;
+  const float fcu_eval = evaluate_fcurve(fcu, frame);
+  /* No need to insert a key if the same value is already the value of the FCurve at that point. */
+  if (compare_ff_relative(fcu_eval, value, FLT_EPSILON, diff_ulp)) {
+    return false;
   }
 
-  return KEYNEEDED_JUSTADD;
+  return true;
 }
 
 static AnimationEvalContext nla_time_remap(const AnimationEvalContext *anim_eval_context,
@@ -400,27 +311,12 @@ static bool insert_keyframe_value(
   }
 
   if (flag & INSERTKEY_NEEDED) {
-    static short insert_mode = new_key_needed(fcu, cfra, curval);
-
-    if (insert_mode == KEYNEEDED_DONTADD) {
+    if (!new_key_needed(fcu, cfra, curval)) {
       return false;
     }
 
     if (insert_vert_fcurve(fcu, cfra, curval, keytype, flag) < 0) {
       return false;
-    }
-
-    /* Based on the heuristics applied in new_key_needed(), the previous or next key needs to be
-     * deleted. */
-    switch (insert_mode) {
-      case KEYNEEDED_DELPREV:
-        BKE_fcurve_delete_key(fcu, fcu->totvert - 2);
-        BKE_fcurve_handles_recalc(fcu);
-        break;
-      case KEYNEEDED_DELNEXT:
-        BKE_fcurve_delete_key(fcu, 1);
-        BKE_fcurve_handles_recalc(fcu);
-        break;
     }
 
     return true;
