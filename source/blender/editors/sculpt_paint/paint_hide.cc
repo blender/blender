@@ -49,6 +49,7 @@
 /* For undo push. */
 #include "sculpt_intern.hh"
 
+using blender::Span;
 using blender::Vector;
 
 /* Return true if the element should be hidden/shown. */
@@ -70,44 +71,46 @@ static bool is_effected(PartialVisArea area,
 
 static void partialvis_update_mesh(Object *ob,
                                    PBVH *pbvh,
-                                   PBVHNode *node,
                                    PartialVisAction action,
                                    PartialVisArea area,
-                                   float planes[4][4])
+                                   float planes[4][4],
+                                   const Span<PBVHNode *> nodes)
 {
   using namespace blender;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const blender::Span<blender::float3> positions = BKE_pbvh_get_vert_positions(pbvh);
-  bool any_changed = false, any_visible = false;
+  for (PBVHNode *node : nodes) {
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    const blender::Span<blender::float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+    bool any_changed = false, any_visible = false;
 
-  const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
 
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  const VArray<float> mask = *attributes.lookup_or_default<float>(
-      ".sculpt_mask", ATTR_DOMAIN_POINT, 0.0f);
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    const VArray<float> mask = *attributes.lookup_or_default<float>(
+        ".sculpt_mask", ATTR_DOMAIN_POINT, 0.0f);
 
-  bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
-      ".hide_vert", ATTR_DOMAIN_POINT);
+    bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
+        ".hide_vert", ATTR_DOMAIN_POINT);
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
+    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-  for (const int vert : verts) {
-    /* Hide vertex if in the hide volume. */
-    if (is_effected(area, planes, positions[vert], mask[vert])) {
-      hide_vert.span[vert] = (action == PARTIALVIS_HIDE);
-      any_changed = true;
+    for (const int vert : verts) {
+      /* Hide vertex if in the hide volume. */
+      if (is_effected(area, planes, positions[vert], mask[vert])) {
+        hide_vert.span[vert] = (action == PARTIALVIS_HIDE);
+        any_changed = true;
+      }
+
+      if (!hide_vert.span[vert]) {
+        any_visible = true;
+      }
     }
 
-    if (!hide_vert.span[vert]) {
-      any_visible = true;
+    hide_vert.finish();
+
+    if (any_changed) {
+      BKE_pbvh_node_mark_rebuild_draw(node);
+      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
     }
-  }
-
-  hide_vert.finish();
-
-  if (any_changed) {
-    BKE_pbvh_node_mark_rebuild_draw(node);
-    BKE_pbvh_node_fully_hidden_set(node, !any_visible);
   }
 }
 
@@ -116,87 +119,89 @@ static void partialvis_update_mesh(Object *ob,
 static void partialvis_update_grids(Depsgraph *depsgraph,
                                     Object *ob,
                                     PBVH *pbvh,
-                                    PBVHNode *node,
                                     PartialVisAction action,
                                     PartialVisArea area,
-                                    float planes[4][4])
+                                    float planes[4][4],
+                                    const Span<PBVHNode *> nodes)
 {
-  CCGElem *const *grids;
-  const int *grid_indices;
-  int totgrid;
-  bool any_changed = false, any_visible = false;
+  for (PBVHNode *node : nodes) {
+    CCGElem *const *grids;
+    const int *grid_indices;
+    int totgrid;
+    bool any_changed = false, any_visible = false;
 
-  /* Get PBVH data. */
-  BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, nullptr, &grids);
+    /* Get PBVH data. */
+    BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, nullptr, &grids);
 
-  SculptSession *ss = ob->sculpt;
-  SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
-  CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
+    SculptSession *ss = ob->sculpt;
+    SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
+    blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
+    CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
+    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-  for (int i = 0; i < totgrid; i++) {
-    int any_hidden = 0;
-    int g = grid_indices[i];
-    BLI_bitmap *gh = grid_hidden[g];
+    for (int i = 0; i < totgrid; i++) {
+      int any_hidden = 0;
+      int g = grid_indices[i];
+      BLI_bitmap *gh = grid_hidden[g];
 
-    if (!gh) {
-      switch (action) {
-        case PARTIALVIS_HIDE:
-          /* Create grid flags data. */
-          gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area, "partialvis_update_grids");
-          break;
-        case PARTIALVIS_SHOW:
-          /* Entire grid is visible, nothing to show. */
-          continue;
-      }
-    }
-    else if (action == PARTIALVIS_SHOW && area == PARTIALVIS_ALL) {
-      /* Special case if we're showing all, just free the grid. */
-      MEM_freeN(gh);
-      grid_hidden[g] = nullptr;
-      any_changed = true;
-      any_visible = true;
-      continue;
-    }
-
-    for (int y = 0; y < key.grid_size; y++) {
-      for (int x = 0; x < key.grid_size; x++) {
-        CCGElem *elem = CCG_grid_elem(&key, grids[g], x, y);
-        const float *co = CCG_elem_co(&key, elem);
-        float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
-
-        /* Skip grid element if not in the effected area. */
-        if (is_effected(area, planes, co, mask)) {
-          /* Set or clear the hide flag. */
-          BLI_BITMAP_SET(gh, y * key.grid_size + x, action == PARTIALVIS_HIDE);
-
-          any_changed = true;
-        }
-
-        /* Keep track of whether any elements are still hidden. */
-        if (BLI_BITMAP_TEST(gh, y * key.grid_size + x)) {
-          any_hidden = true;
-        }
-        else {
-          any_visible = true;
+      if (!gh) {
+        switch (action) {
+          case PARTIALVIS_HIDE:
+            /* Create grid flags data. */
+            gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area, "partialvis_update_grids");
+            break;
+          case PARTIALVIS_SHOW:
+            /* Entire grid is visible, nothing to show. */
+            continue;
         }
       }
+      else if (action == PARTIALVIS_SHOW && area == PARTIALVIS_ALL) {
+        /* Special case if we're showing all, just free the grid. */
+        MEM_freeN(gh);
+        grid_hidden[g] = nullptr;
+        any_changed = true;
+        any_visible = true;
+        continue;
+      }
+
+      for (int y = 0; y < key.grid_size; y++) {
+        for (int x = 0; x < key.grid_size; x++) {
+          CCGElem *elem = CCG_grid_elem(&key, grids[g], x, y);
+          const float *co = CCG_elem_co(&key, elem);
+          float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
+
+          /* Skip grid element if not in the effected area. */
+          if (is_effected(area, planes, co, mask)) {
+            /* Set or clear the hide flag. */
+            BLI_BITMAP_SET(gh, y * key.grid_size + x, action == PARTIALVIS_HIDE);
+
+            any_changed = true;
+          }
+
+          /* Keep track of whether any elements are still hidden. */
+          if (BLI_BITMAP_TEST(gh, y * key.grid_size + x)) {
+            any_hidden = true;
+          }
+          else {
+            any_visible = true;
+          }
+        }
+      }
+
+      /* If everything in the grid is now visible, free the grid flags. */
+      if (!any_hidden) {
+        MEM_freeN(gh);
+        grid_hidden[g] = nullptr;
+      }
     }
 
-    /* If everything in the grid is now visible, free the grid flags. */
-    if (!any_hidden) {
-      MEM_freeN(gh);
-      grid_hidden[g] = nullptr;
+    /* Mark updates if anything was hidden/shown. */
+    if (any_changed) {
+      BKE_pbvh_node_mark_rebuild_draw(node);
+      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+      multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
     }
-  }
-
-  /* Mark updates if anything was hidden/shown. */
-  if (any_changed) {
-    BKE_pbvh_node_mark_rebuild_draw(node);
-    BKE_pbvh_node_fully_hidden_set(node, !any_visible);
-    multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
   }
 }
 
@@ -243,35 +248,42 @@ static void partialvis_update_bmesh_faces(const blender::Set<BMFace *, 0> &faces
 
 static void partialvis_update_bmesh(Object *ob,
                                     PBVH *pbvh,
-                                    PBVHNode *node,
                                     PartialVisAction action,
                                     PartialVisArea area,
-                                    float planes[4][4])
+                                    float planes[4][4],
+                                    const Span<PBVHNode *> nodes)
 {
-  BMesh *bm;
-  bool any_changed = false, any_visible = false;
+  for (PBVHNode *node : nodes) {
+    BMesh *bm;
+    bool any_changed = false, any_visible = false;
 
-  bm = BKE_pbvh_get_bmesh(pbvh);
+    bm = BKE_pbvh_get_bmesh(pbvh);
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
+    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-  partialvis_update_bmesh_verts(bm,
-                                BKE_pbvh_bmesh_node_unique_verts(node),
-                                action,
-                                area,
-                                planes,
-                                &any_changed,
-                                &any_visible);
+    partialvis_update_bmesh_verts(bm,
+                                  BKE_pbvh_bmesh_node_unique_verts(node),
+                                  action,
+                                  area,
+                                  planes,
+                                  &any_changed,
+                                  &any_visible);
 
-  partialvis_update_bmesh_verts(
-      bm, BKE_pbvh_bmesh_node_other_verts(node), action, area, planes, &any_changed, &any_visible);
+    partialvis_update_bmesh_verts(bm,
+                                  BKE_pbvh_bmesh_node_other_verts(node),
+                                  action,
+                                  area,
+                                  planes,
+                                  &any_changed,
+                                  &any_visible);
 
-  /* Finally loop over node faces and tag the ones that are fully hidden. */
-  partialvis_update_bmesh_faces(BKE_pbvh_bmesh_node_faces(node));
+    /* Finally loop over node faces and tag the ones that are fully hidden. */
+    partialvis_update_bmesh_faces(BKE_pbvh_bmesh_node_faces(node));
 
-  if (any_changed) {
-    BKE_pbvh_node_mark_rebuild_draw(node);
-    BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+    if (any_changed) {
+      BKE_pbvh_node_mark_rebuild_draw(node);
+      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+    }
   }
 }
 
@@ -357,18 +369,16 @@ static int hide_show_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  for (PBVHNode *node : nodes) {
-    switch (pbvh_type) {
-      case PBVH_FACES:
-        partialvis_update_mesh(ob, pbvh, node, action, area, clip_planes);
-        break;
-      case PBVH_GRIDS:
-        partialvis_update_grids(depsgraph, ob, pbvh, node, action, area, clip_planes);
-        break;
-      case PBVH_BMESH:
-        partialvis_update_bmesh(ob, pbvh, node, action, area, clip_planes);
-        break;
-    }
+  switch (pbvh_type) {
+    case PBVH_FACES:
+      partialvis_update_mesh(ob, pbvh, action, area, clip_planes, nodes);
+      break;
+    case PBVH_GRIDS:
+      partialvis_update_grids(depsgraph, ob, pbvh, action, area, clip_planes, nodes);
+      break;
+    case PBVH_BMESH:
+      partialvis_update_bmesh(ob, pbvh, action, area, clip_planes, nodes);
+      break;
   }
 
   /* End undo. */
