@@ -2847,18 +2847,6 @@ static bool ed_object_select_pick(bContext *C,
     }
   }
 
-  /* NOTE(@ideasman42): When select changes object-mode it doesn't make sense to use pass-through.
-   *
-   * - When object-mode locking is disabled:
-   *   Selecting another already selected object does not need to make it active,
-   *   allowing a cursor-drag to move this objects as well as other selected objects.
-   * - When object-mode locking is enabled:
-   *   Selecting an object in a different mode (typically pose-mode) must prioritize
-   *   entering that mode which requires making the object active, further, the selection
-   *   before switching modes wont make sense in the newly entered mode,
-   *   so it makes sense to disable pass-through logic in this case.
-   *
-   * See: #115181 for details. */
   bool changed_object_mode = false;
 
   if (handled == false) {
@@ -2902,11 +2890,39 @@ static bool ed_object_select_pick(bContext *C,
    * it's best if changing the active object is localized to a single place. */
   BLI_assert(oldbasact == (vc.obact ? BKE_view_layer_active_base_get(view_layer) : nullptr));
 
-  bool found = (basact != nullptr);
-  if ((handled == false) && (vc.obedit == nullptr) && (changed_object_mode == false)) {
-    /* Object-mode (pose mode will have been handled already). */
+  if (handled) {
+    /* Pass. */
+  }
+  else if (basact && vc.obedit) {
+    /* Only do the select (use for setting vertex parents & hooks).
+     * In edit-mode do not activate. */
+    object_deselect_all_except(scene, view_layer, basact);
+    ED_object_base_select(basact, BA_SELECT);
+
+    changed_object = true;
+  }
+  else {
+    /* Object-mode (pose mode will have been handled already)
+     * unless entering pose-mode from object selection (handled by `changed_object_mode`). */
+
+    /* NOTE(@ideasman42): When select changes object-mode it doesn't make sense to use
+     * pass-through.
+     *
+     * - When object-mode locking is disabled:
+     *   Selecting another already selected object does not need to make it active,
+     *   allowing a cursor-drag to move this objects as well as other selected objects.
+     * - When object-mode locking is enabled:
+     *   Selecting an object in a different mode (typically pose-mode) must prioritize
+     *   entering that mode which requires making the object active, further, the selection
+     *   before switching modes wont make sense in the newly entered mode,
+     *   so it makes sense to disable pass-through logic in this case.
+     *
+     * See: #115181 for details. */
+    const bool select_passthrough = params->select_passthrough && (changed_object_mode == false);
+
+    bool found = (basact != nullptr) && BASE_SELECTABLE(v3d, basact);
     if (params->sel_op == SEL_OP_SET) {
-      if ((found && params->select_passthrough) && (basact->flag & BASE_SELECTED)) {
+      if ((found && select_passthrough) && (basact->flag & BASE_SELECTED)) {
         found = false;
       }
       else if (found || params->deselect_all) {
@@ -2917,20 +2933,8 @@ static bool ed_object_select_pick(bContext *C,
         }
       }
     }
-  }
 
-  if ((handled == false) && found) {
-
-    if (vc.obedit) {
-      /* Only do the select (use for setting vertex parents & hooks).
-       * In edit-mode do not activate. */
-      object_deselect_all_except(scene, view_layer, basact);
-      ED_object_base_select(basact, BA_SELECT);
-
-      changed_object = true;
-    }
-    /* Also prevent making it active on mouse selection. */
-    else if (BASE_SELECTABLE(v3d, basact)) {
+    if (found) {
       use_activate_selected_base |= (oldbasact != basact) && (is_obedit == false);
 
       switch (params->sel_op) {
@@ -2955,7 +2959,7 @@ static bool ed_object_select_pick(bContext *C,
           break;
         }
         case SEL_OP_SET: {
-          object_deselect_all_except(scene, view_layer, basact);
+          /* Deselect has already been performed. */
           ED_object_base_select(basact, BA_SELECT);
           break;
         }
