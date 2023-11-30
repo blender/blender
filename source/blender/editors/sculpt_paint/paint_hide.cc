@@ -9,7 +9,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -49,9 +51,6 @@
 /* For undo push. */
 #include "sculpt_intern.hh"
 
-using blender::Span;
-using blender::Vector;
-
 namespace blender::ed::sculpt_paint::hide {
 
 enum class VisAction {
@@ -65,6 +64,11 @@ enum VisArea {
   All,
   Masked,
 };
+
+static bool action_to_hide(const VisAction action)
+{
+  return action == VisAction::Hide;
+}
 
 /* Return true if the element should be hidden/shown. */
 static bool is_effected(const VisArea area,
@@ -83,49 +87,131 @@ static bool is_effected(const VisArea area,
   return ((inside && area == VisArea::Inside) || (!inside && area == VisArea::Outside));
 }
 
-static void partialvis_update_mesh(Object *ob,
-                                   PBVH *pbvh,
+static void vert_show_all(Object &object, const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (const VArray<bool> attribute = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT)) {
+    const VArraySpan hide_vert(attribute);
+    for (PBVHNode *node : nodes) {
+      const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+      if (std::any_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
+        SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+        BKE_pbvh_node_mark_rebuild_draw(node);
+      }
+    }
+  }
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_fully_hidden_set(node, false);
+  }
+  attributes.remove(".hide_vert");
+}
+
+static bool vert_hide_is_changed(const Span<int> verts,
+                                 const Span<bool> orig_hide,
+                                 const Span<bool> new_hide)
+{
+  for (const int i : verts.index_range()) {
+    if (orig_hide[verts[i]] != new_hide[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static void vert_hide_update(Object &object,
+                             const Span<PBVHNode *> nodes,
+                             FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".hide_vert", ATTR_DOMAIN_POINT);
+
+  threading::EnumerableThreadSpecific<Vector<bool>> all_new_hide;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    Vector<bool> &new_hide = all_new_hide.local();
+    for (PBVHNode *node : nodes.slice(range)) {
+      const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+
+      new_hide.reinitialize(verts.size());
+      array_utils::gather(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
+      calc_hide(verts, new_hide);
+      if (!vert_hide_is_changed(verts, hide_vert.span, new_hide)) {
+        continue;
+      }
+
+      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+
+      /* Don't tag a visibility update, we handle updating the fully hidden status here. */
+      BKE_pbvh_node_mark_rebuild_draw(node);
+      BKE_pbvh_node_fully_hidden_set(node, !new_hide.contains(false));
+
+      array_utils::scatter(new_hide.as_span(), verts, hide_vert.span);
+    }
+  });
+  hide_vert.finish();
+}
+
+static void partialvis_update_mesh(Object &object,
+                                   PBVH &pbvh,
                                    const VisAction action,
                                    const VisArea area,
                                    const float planes[4][4],
                                    const Span<PBVHNode *> nodes)
 {
-  for (PBVHNode *node : nodes) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
-    const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
-    bool any_changed = false;
-    bool any_visible = false;
-
-    const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-
-    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-    const VArray<float> mask = *attributes.lookup_or_default<float>(
-        ".sculpt_mask", ATTR_DOMAIN_POINT, 0.0f);
-
-    bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
-        ".hide_vert", ATTR_DOMAIN_POINT);
-
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
-
-    for (const int vert : verts) {
-      /* Hide vertex if in the hide volume. */
-      if (is_effected(area, planes, positions[vert], mask[vert])) {
-        hide_vert.span[vert] = (action == VisAction::Hide);
-        any_changed = true;
-      }
-
-      if (!hide_vert.span[vert]) {
-        any_visible = true;
-      }
-    }
-
-    hide_vert.finish();
-
-    if (any_changed) {
-      BKE_pbvh_node_mark_rebuild_draw(node);
-      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
-    }
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (action == VisAction::Show && !attributes.contains(".hide_vert")) {
+    /* If everything is already visible, don't do anything.*/
+    return;
   }
+
+  const bool value = action_to_hide(action);
+  switch (area) {
+    case VisArea::Inside:
+    case VisArea::Outside: {
+      const Span<float3> positions = BKE_pbvh_get_vert_positions(&pbvh);
+      vert_hide_update(object, nodes, [&](const Span<int> verts, MutableSpan<bool> hide) {
+        for (const int i : verts.index_range()) {
+          if (isect_point_planes_v3(planes, 4, positions[verts[i]])) {
+            hide[i] = value;
+          }
+        }
+      });
+      break;
+    }
+    case VisArea::All:
+      switch (action) {
+        case VisAction::Hide:
+          vert_hide_update(object, nodes, [&](const Span<int> /*verts*/, MutableSpan<bool> hide) {
+            hide.fill(true);
+          });
+          break;
+        case VisAction::Show:
+          vert_show_all(object, nodes);
+          break;
+      }
+      break;
+    case VisArea::Masked:
+      const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+      if (action == VisAction::Show && mask.is_empty()) {
+        vert_show_all(object, nodes);
+      }
+      else {
+        vert_hide_update(object, nodes, [&](const Span<int> verts, MutableSpan<bool> hide) {
+          for (const int i : verts.index_range()) {
+            if (mask[verts[i]] > 0.5f) {
+              hide[i] = value;
+            }
+          }
+        });
+      }
+      break;
+  }
+
+  BKE_mesh_flush_hidden_from_verts(&mesh);
+  BKE_pbvh_update_hide_attributes_from_mesh(&pbvh);
 }
 
 /* Hide or show elements in multires grids with a special GridFlags
@@ -217,6 +303,8 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
       multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
     }
   }
+
+  BKE_pbvh_sync_visibility_from_verts(pbvh, static_cast<Mesh *>(ob->data));
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
@@ -351,7 +439,6 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   /* Read operator properties. */
   const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
@@ -383,7 +470,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
   switch (pbvh_type) {
     case PBVH_FACES:
-      partialvis_update_mesh(ob, pbvh, action, area, clip_planes, nodes);
+      partialvis_update_mesh(*ob, *pbvh, action, area, clip_planes, nodes);
       break;
     case PBVH_GRIDS:
       partialvis_update_grids(depsgraph, ob, pbvh, action, area, clip_planes, nodes);
@@ -397,12 +484,6 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   SCULPT_topology_islands_invalidate(ob->sculpt);
-
-  /* Ensure that edges and faces get hidden as well (not used by
-   * sculpt but it looks wrong when entering editmode otherwise). */
-  if (ELEM(pbvh_type, PBVH_FACES, PBVH_GRIDS)) {
-    BKE_pbvh_sync_visibility_from_verts(pbvh, mesh);
-  }
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
