@@ -54,6 +54,7 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "PIL_time.h"
 
@@ -643,7 +644,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     }
     BLI_assert(id_hierarchy_root != nullptr);
 
-    LinkNode *relinked_ids = nullptr;
+    blender::Vector<ID *> relinked_ids;
     IDRemapper *id_remapper = BKE_id_remapper_create();
     /* Still checking the whole Main, that way we can tag other local IDs as needing to be
      * remapped to use newly created overriding IDs, if needed. */
@@ -677,7 +678,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
             (!ID_IS_OVERRIDE_LIBRARY_REAL(owner_id) ||
              owner_id->override_library->hierarchy_root == id_hierarchy_root))
         {
-          BLI_linklist_prepend(&relinked_ids, other_id);
+          relinked_ids.append(other_id);
         }
 
         if (ID_IS_OVERRIDE_LIBRARY_REAL(other_id) &&
@@ -718,7 +719,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                  ID_REMAP_SKIP_OVERRIDE_LIBRARY | ID_REMAP_FORCE_USER_REFCOUNT);
 
     BKE_id_remapper_free(id_remapper);
-    BLI_linklist_free(relinked_ids, nullptr);
+    relinked_ids.clear();
   }
   else {
     /* We need to cleanup potentially already created data. */
@@ -1837,7 +1838,7 @@ static void lib_override_library_remap(Main *bmain,
 {
   ID *id;
   IDRemapper *remapper = BKE_id_remapper_create();
-  LinkNode *nomain_ids = nullptr;
+  blender::Vector<ID *> nomain_ids;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->tag & LIB_TAG_DOIT && id->newid != nullptr && id->lib == id_root_reference->lib) {
@@ -1861,7 +1862,7 @@ static void lib_override_library_remap(Main *bmain,
       continue;
     }
 
-    BLI_linklist_prepend(&nomain_ids, id_override_old_iter);
+    nomain_ids.append(id_override_old_iter);
   }
 
   /* Remap all IDs to use the new override. */
@@ -1872,7 +1873,6 @@ static void lib_override_library_remap(Main *bmain,
                                remapper,
                                ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
   BKE_id_remapper_free(remapper);
-  BLI_linklist_free(nomain_ids, nullptr);
 }
 
 /**
@@ -2280,7 +2280,7 @@ static bool lib_override_library_resync(Main *bmain,
 
   BKE_main_collection_sync(bmain);
 
-  LinkNode *id_override_old_list = nullptr;
+  blender::Vector<ID *> id_override_old_vector;
 
   /* We need to apply override rules in a separate loop, after all ID pointers have been properly
    * remapped, and all new local override IDs have gotten their proper original names, otherwise
@@ -2398,7 +2398,7 @@ static bool lib_override_library_resync(Main *bmain,
       }
     }
 
-    BLI_linklist_prepend(&id_override_old_list, id_override_old);
+    id_override_old_vector.append(id_override_old);
   }
   FOREACH_MAIN_ID_END;
 
@@ -2407,17 +2407,15 @@ static bool lib_override_library_resync(Main *bmain,
    * This is necessary in case said old ID is not in Main anymore. */
   IDRemapper *id_remapper = BKE_id_remapper_create();
   BKE_libblock_relink_multiple(bmain,
-                               id_override_old_list,
+                               id_override_old_vector,
                                ID_REMAP_TYPE_CLEANUP,
                                id_remapper,
                                ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
-  for (LinkNode *ln_iter = id_override_old_list; ln_iter != nullptr; ln_iter = ln_iter->next) {
-    ID *id_override_old = static_cast<ID *>(ln_iter->link);
+  for (ID *id_override_old : id_override_old_vector) {
     id_override_old->tag |= LIB_TAG_NO_USER_REFCOUNT;
   }
+  id_override_old_vector.clear();
   BKE_id_remapper_free(id_remapper);
-  BLI_linklist_free(id_override_old_list, nullptr);
-  id_override_old_list = nullptr;
 
   /* Delete old override IDs.
    * Note that we have to use tagged group deletion here, since ID deletion also uses
@@ -2442,7 +2440,7 @@ static bool lib_override_library_resync(Main *bmain,
           }
           else {
             /* Defer tagging. */
-            BLI_linklist_prepend(&id_override_old_list, id_override_old);
+            id_override_old_vector.append(id_override_old);
           }
         }
       }
@@ -2507,11 +2505,10 @@ static bool lib_override_library_resync(Main *bmain,
   FOREACH_MAIN_ID_END;
 
   /* Finalize tagging old liboverrides for deletion. */
-  for (LinkNode *ln_iter = id_override_old_list; ln_iter != nullptr; ln_iter = ln_iter->next) {
-    ID *id_override_old = static_cast<ID *>(ln_iter->link);
+  for (ID *id_override_old : id_override_old_vector) {
     id_override_old->tag |= LIB_TAG_DOIT;
   }
-  BLI_linklist_free(id_override_old_list, nullptr);
+  id_override_old_vector.clear();
 
   /* Cleanup, many pointers in this GHash are already invalid now. */
   BLI_ghash_free(linkedref_to_old_override, nullptr, nullptr);

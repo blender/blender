@@ -21,11 +21,11 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 struct ID;
 struct IDRemapper;
-struct LinkNode;
 struct Main;
 
 /* BKE_libblock_free, delete are declared in BKE_lib_id.h for convenience. */
@@ -168,8 +168,11 @@ void BKE_libblock_relink_ex(Main *bmain, void *idv, void *old_idv, void *new_idv
  * Same as #BKE_libblock_relink_ex, but applies all rules defined in \a id_remapper to \a ids (or
  * does cleanup if `ID_REMAP_TYPE_CLEANUP` is specified as \a remap_type).
  */
-void BKE_libblock_relink_multiple(
-    Main *bmain, LinkNode *ids, eIDRemapType remap_type, IDRemapper *id_remapper, int remap_flags);
+void BKE_libblock_relink_multiple(Main *bmain,
+                                  const blender::Span<ID *> &ids,
+                                  eIDRemapType remap_type,
+                                  IDRemapper *id_remapper,
+                                  int remap_flags);
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively
