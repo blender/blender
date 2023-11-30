@@ -3,13 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-<<<<<<< HEAD
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
-=======
 #include "DNA_windowmanager_types.h"
->>>>>>> main
+
 #include <map>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/xformCache.h>

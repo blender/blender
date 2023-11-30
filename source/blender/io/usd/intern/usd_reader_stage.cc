@@ -49,14 +49,12 @@
 #include <iostream>
 
 #include "BKE_lib_id.h"
-<<<<<<< HEAD
-#include "BKE_modifier.h"
-#include "BLI_sort.hh"
-#include "BLI_string.h"
-=======
+
 #include "BKE_modifier.hh"
 #include "BKE_report.h"
->>>>>>> main
+
+#include "BLI_sort.hh"
+#include "BLI_string.h"
 
 #include "DNA_material_types.h"
 

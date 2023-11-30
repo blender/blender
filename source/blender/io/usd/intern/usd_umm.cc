@@ -124,7 +124,7 @@ static PyObject *import_texture(PyObject *self, PyObject *args)
   eUSDTexNameCollisionMode name_collision_mode = static_cast<eUSDTexNameCollisionMode>(
       PyLong_AsLong(name_collision_mode_item));
 
-  std::string import_path = import_asset(asset_path, tex_dir, name_collision_mode);
+  std::string import_path = import_asset(asset_path, tex_dir, name_collision_mode, nullptr);
 
   if (!import_path.empty()) {
     return PyUnicode_FromString(import_path.c_str());

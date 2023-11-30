@@ -60,32 +60,12 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
    * tenth_unit_to_millimeters = 1000 * unit_to_tenth_unit
    *                           = 100 * stage_meters_per_unit
    */
-<<<<<<< HEAD
   const double scale_to_mm = 100.0 * settings_->stage_meters_per_unit;
-=======
-  const double tenth_unit_to_millimeters = 100.0 * settings_->stage_meters_per_unit;
-  bcam->lens = val.Get<float>() * tenth_unit_to_millimeters;
-  bcam->sensor_x = horAp.Get<float>() * tenth_unit_to_millimeters;
-  bcam->sensor_y = verAp.Get<float>() * tenth_unit_to_millimeters;
-
-  bcam->sensor_fit = bcam->sensor_x >= bcam->sensor_y ? CAMERA_SENSOR_FIT_HOR :
-                                                        CAMERA_SENSOR_FIT_VERT;
-
-  float sensor_size = bcam->sensor_x >= bcam->sensor_y ? bcam->sensor_x : bcam->sensor_y;
-  bcam->shiftx = (horApOffset.Get<float>() * tenth_unit_to_millimeters) / sensor_size;
-  bcam->shifty = (verApOffset.Get<float>() * tenth_unit_to_millimeters) / sensor_size;
->>>>>>> main
 
   bcam->lens = usd_cam.GetFocalLength() * scale_to_mm;
 
-<<<<<<< HEAD
   bcam->sensor_x = apperture_x * scale_to_mm;
   bcam->sensor_y = apperture_y * scale_to_mm;
-=======
-  /* Call UncheckedGet() to silence compiler warnings.
-   * Clamp to 1e-6 matching range defined in RNA. */
-  bcam->clip_end = clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[1];
->>>>>>> main
 
   bcam->shiftx = h_film_offset / apperture_x;
   bcam->shifty = v_film_offset / apperture_y / film_aspect;

@@ -163,11 +163,8 @@ static void populate_curve_props(const bke::CurvesGeometry &geometry,
                                  pxr::TfToken &interpolation,
                                  const bool is_cyclic,
                                  const bool is_cubic,
-<<<<<<< HEAD
-                                 const float multiplier)
-=======
+                                 const float multiplier,
                                  ReportList *reports)
->>>>>>> main
 {
   const int num_curves = geometry.curve_num;
   const Span<float3> positions = geometry.positions();
@@ -177,14 +174,9 @@ static void populate_curve_props(const bke::CurvesGeometry &geometry,
   populate_curve_verts(
       geometry, positions, verts, control_point_counts, segments, is_cyclic, is_cubic);
 
-<<<<<<< HEAD
   populate_curve_widths(geometry, widths, multiplier);
-  interpolation = get_curve_width_interpolation(widths, segments, control_point_counts, is_cyclic);
-=======
-  populate_curve_widths(geometry, widths);
   interpolation = get_curve_width_interpolation(
       widths, segments, control_point_counts, is_cyclic, reports);
->>>>>>> main
 }
 
 static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
@@ -262,11 +254,8 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
                                             pxr::VtArray<float> &widths,
                                             pxr::TfToken &interpolation,
                                             const bool is_cyclic,
-<<<<<<< HEAD
-                                            const float multiplier)
-=======
+                                            const float multiplier,
                                             ReportList *reports)
->>>>>>> main
 {
 
   const int num_curves = geometry.curve_num;
@@ -281,14 +270,9 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
   populate_curve_verts_for_bezier(
       geometry, positions, handles_l, handles_r, verts, control_point_counts, segments, is_cyclic);
 
-<<<<<<< HEAD
   populate_curve_widths(geometry, widths, multiplier);
-  interpolation = get_curve_width_interpolation(widths, segments, control_point_counts, is_cyclic);
-=======
-  populate_curve_widths(geometry, widths);
   interpolation = get_curve_width_interpolation(
       widths, segments, control_point_counts, is_cyclic, reports);
->>>>>>> main
 }
 
 static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
@@ -493,11 +477,8 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                            interpolation,
                            is_cyclic,
                            false,
-<<<<<<< HEAD
-                           bevel_radius);
-=======
+                           bevel_radius,
                            reports());
->>>>>>> main
       break;
     case CURVE_TYPE_CATMULL_ROM:
       usd_curves = DefineUsdGeomBasisCurves(
@@ -510,22 +491,22 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                            interpolation,
                            is_cyclic,
                            true,
-<<<<<<< HEAD
-                           bevel_radius);
-=======
+                           bevel_radius,
                            reports());
->>>>>>> main
       break;
     case CURVE_TYPE_BEZIER:
       usd_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->bezier), is_cyclic, true);
 
       populate_curve_props_for_bezier(
-<<<<<<< HEAD
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, bevel_radius);
-=======
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, reports());
->>>>>>> main
+          geometry,
+          verts,
+          control_point_counts,
+          widths,
+          interpolation,
+          is_cyclic,
+          bevel_radius,
+          reports());
       break;
     case CURVE_TYPE_NURBS: {
       pxr::VtArray<double> knots;

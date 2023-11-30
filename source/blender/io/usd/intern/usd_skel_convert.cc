@@ -26,12 +26,8 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-<<<<<<< HEAD
-#include "BKE_armature.h"
-#include "BKE_attribute.hh"
-=======
 #include "BKE_armature.hh"
->>>>>>> main
+#include "BKE_attribute.hh"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"

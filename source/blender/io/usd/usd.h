@@ -17,7 +17,6 @@ struct CacheArchiveHandle;
 struct CacheReader;
 struct CacheFile;
 struct Object;
-<<<<<<< HEAD
 
 typedef enum USD_global_forward_axis {
   USD_GLOBAL_FORWARD_X = 0,
@@ -61,10 +60,9 @@ typedef enum eUSDZTextureDownscaleSize {
 
 static const USD_global_forward_axis USD_DEFAULT_FORWARD = USD_GLOBAL_FORWARD_MINUS_Z;
 static const USD_global_up_axis USD_DEFAULT_UP = USD_GLOBAL_UP_Y;
-=======
+
 struct bContext;
 struct wmJobWorkerStatus;
->>>>>>> main
 
 /* Behavior when the name of an imported material
  * conflicts with an existing material. */
@@ -103,7 +101,6 @@ typedef enum eUSDTexNameCollisionMode {
 } eUSDTexNameCollisionMode;
 
 struct USDExportParams {
-<<<<<<< HEAD
   double frame_start;
   double frame_end;
 
@@ -125,7 +122,7 @@ struct USDExportParams {
   bool selected_objects_only;
   bool visible_objects_only;
   bool use_instancing;
-  enum eEvaluationMode evaluation_mode;
+  enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
   bool generate_preview_surface;
   bool convert_uv_to_st;
   bool convert_orientation;
@@ -173,27 +170,10 @@ struct USDExportParams {
   char root_prim_path[1024] = "";     /* FILE_MAX */
   char default_prim_path[1024] = "";  /* FILE_MAX */
   char material_prim_path[1024] = ""; /* FILE_MAX */
-=======
-  bool export_animation = false;
-  bool export_hair = true;
-  bool export_uvmaps = true;
-  bool export_normals = true;
-  bool export_mesh_colors = true;
-  bool export_materials = true;
-  bool selected_objects_only = false;
-  bool visible_objects_only = true;
-  bool use_instancing = false;
-  enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
-  bool generate_preview_surface = true;
-  bool export_textures = true;
-  bool overwrite_textures = true;
-  bool relative_paths = true;
-  char root_prim_path[1024] = ""; /* FILE_MAX */
 
   /** Communication structure between the wmJob management code and the worker code. Currently used
    * to generate safely reports from the worker thread. */
   wmJobWorkerStatus *worker_status;
->>>>>>> main
 };
 
 struct USDImportParams {

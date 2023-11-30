@@ -27,33 +27,6 @@ bool USDCameraWriter::is_supported(const HierarchyContext *context) const
   return camera->type == CAM_PERSP;
 }
 
-<<<<<<< HEAD
-// static void camera_sensor_size_for_render(const Camera *camera,
-//                                          const RenderData *rd,
-//                                          float *r_sensor_x,
-//                                          float *r_sensor_y)
-//{
-//  /* Compute the final image size in pixels. */
-//  float sizex = rd->xsch * rd->xasp;
-//  float sizey = rd->ysch * rd->yasp;
-//
-//  int sensor_fit = BKE_camera_sensor_fit(camera->sensor_fit, sizex, sizey);
-//
-//  switch (sensor_fit) {
-//    case CAMERA_SENSOR_FIT_HOR:
-//      *r_sensor_x = camera->sensor_x;
-//      *r_sensor_y = camera->sensor_x * sizey / sizex;
-//      break;
-//    case CAMERA_SENSOR_FIT_VERT:
-//      *r_sensor_x = camera->sensor_y * sizex / sizey;
-//      *r_sensor_y = camera->sensor_y;
-//      break;
-//    case CAMERA_SENSOR_FIT_AUTO:
-//      BLI_assert_msg(0, "Camera fit should be either horizontal or vertical");
-//      break;
-//  }
-//}
-=======
 static void camera_sensor_size_for_render(const Camera *camera,
                                           const RenderData *rd,
                                           float *r_sensor,
@@ -83,7 +56,6 @@ static void camera_sensor_size_for_render(const Camera *camera,
       break;
   }
 }
->>>>>>> main
 
 void USDCameraWriter::do_write(HierarchyContext &context)
 {
@@ -104,7 +76,6 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   /*
    * For USD, these camera properties are in tenths of a world unit.
    * https://graphics.pixar.com/usd/release/api/class_usd_geom_camera.html#UsdGeom_CameraUnits
-<<<<<<< HEAD
    * val_in_tenths_of_units = val_in_meters * 10.0f * (units / meter)
    */
   const float scale_from_mm = .001f * 10.0f * unit_scale;
@@ -138,25 +109,6 @@ void USDCameraWriter::do_write(HierarchyContext &context)
 
   usd_camera.CreateShutterOpenAttr().Set(shutter_open);
   usd_camera.CreateShutterCloseAttr().Set(shutter_close);
-=======
-   *
-   * tenth_unit_to_meters  = stage_meters_per_unit / 10
-   * tenth_unit_to_millimeters = 1000 * unit_to_tenth_unit
-   *                           = 100 * stage_meters_per_unit
-   */
-  const float tenth_unit_to_mm = 100.0f * scene->unit.scale_length;
-
-  float sensor_size, aperture_x, aperture_y;
-  camera_sensor_size_for_render(camera, &scene->r, &sensor_size, &aperture_x, &aperture_y);
-
-  usd_camera.CreateFocalLengthAttr().Set(camera->lens / tenth_unit_to_mm, timecode);
-  usd_camera.CreateHorizontalApertureAttr().Set(aperture_x / tenth_unit_to_mm, timecode);
-  usd_camera.CreateVerticalApertureAttr().Set(aperture_y / tenth_unit_to_mm, timecode);
-  usd_camera.CreateHorizontalApertureOffsetAttr().Set(
-      sensor_size * camera->shiftx / tenth_unit_to_mm, timecode);
-  usd_camera.CreateVerticalApertureOffsetAttr().Set(
-      sensor_size * camera->shifty / tenth_unit_to_mm, timecode);
->>>>>>> main
 
   usd_camera.CreateClippingRangeAttr().Set(
       pxr::VtValue(pxr::GfVec2f(camera->clip_start * unit_scale, camera->clip_end * unit_scale)),
@@ -166,12 +118,9 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   if (camera->dof.flag & CAM_DOF_ENABLED) {
     usd_camera.CreateFStopAttr().Set(camera->dof.aperture_fstop, timecode);
 
-<<<<<<< HEAD
     float focus_distance = scene->unit.scale_length *
                            BKE_camera_object_dof_distance(context.object) * unit_scale;
-=======
-    float focus_distance = BKE_camera_object_dof_distance(context.object);
->>>>>>> main
+
     usd_camera.CreateFocusDistanceAttr().Set(focus_distance, timecode);
   }
 

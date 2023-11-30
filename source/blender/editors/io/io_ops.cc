@@ -16,7 +16,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_context.h"
+#include "BKE_context.hh"
 #include "BKE_screen.hh"
 #include "WM_api.hh"
 

@@ -25,15 +25,12 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "BKE_attribute.h"
-<<<<<<< HEAD
-#include "BKE_customdata.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_key.h"
-=======
 #include "BKE_customdata.hh"
->>>>>>> main
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
 #include "BKE_material.h"

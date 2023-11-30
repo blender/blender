@@ -7,7 +7,7 @@
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_transform.h"
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 #include "DNA_armature_types.h"
 
 #include "ED_armature.hh"

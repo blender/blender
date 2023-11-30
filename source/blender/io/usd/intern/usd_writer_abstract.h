@@ -57,17 +57,15 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
   const pxr::SdfPath &usd_path() const;
 
-<<<<<<< HEAD
   void set_iterator(const USDHierarchyIterator *iter);
 
   bool is_prototype(const Object *obj) const;
-=======
+
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
   ReportList *reports() const
   {
     return usd_export_context_.export_params.worker_status->reports;
   }
->>>>>>> main
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;

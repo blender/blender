@@ -996,20 +996,11 @@ void WM_OT_usd_export(wmOperatorType *ot)
                "Kind to author on the Default Prim");
 
   RNA_def_string(ot->srna,
-<<<<<<< HEAD
                  "default_prim_custom_kind",
                  nullptr,
                  128,
                  "Default Prim Custom Kind",
                  "If default_prim_kind is True, author this value as the Default Prim's Kind");
-=======
-                 "root_prim_path",
-                 "/root",
-                 FILE_MAX,
-                 "Root Prim",
-                 "If set, add a transform primitive with the given path to the stage "
-                 "as the parent of all exported data");
->>>>>>> main
 }
 
 /* ====== USD Import ====== */

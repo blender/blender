@@ -254,9 +254,9 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   }
 
   std::string active_uv = get_mesh_active_uvlayer_name(context.object);
-<<<<<<< HEAD
 
-  usd_material = create_usd_material(usd_export_context_, usd_path, material, active_uv);
+  usd_material = create_usd_material(
+      usd_export_context_, usd_path, material, active_uv, reports());
 
   if (usd_export_context_.export_params.export_custom_properties && material) {
     auto prim = usd_material.GetPrim();
@@ -264,9 +264,6 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   }
 
   return usd_material;
-=======
-  return create_usd_material(usd_export_context_, usd_path, material, active_uv, reports());
->>>>>>> main
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,

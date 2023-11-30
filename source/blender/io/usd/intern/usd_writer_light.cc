@@ -192,7 +192,6 @@ void USDLightWriter::do_write(HierarchyContext &context)
   usd_light_api.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
   usd_light_api.CreateDiffuseAttr().Set(light->diff_fac, timecode);
   usd_light_api.CreateSpecularAttr().Set(light->spec_fac, timecode);
-<<<<<<< HEAD
 
   if (!usd_export_context_.export_params.convert_light_to_nits) {
     usd_light_api.CreateNormalizeAttr().Set(true, timecode);
@@ -202,11 +201,8 @@ void USDLightWriter::do_write(HierarchyContext &context)
     auto prim = usd_light_api.GetPrim();
     write_id_properties(prim, light->id, timecode);
   }
-=======
-  usd_light_api.CreateNormalizeAttr().Set(true, timecode);
 
   set_light_extents(usd_light_api.GetPrim(), timecode);
->>>>>>> main
 }
 
 }  // namespace blender::io::usd

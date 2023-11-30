@@ -44,7 +44,8 @@ const pxr::TfToken token_for_input(const char *input_name);
 
 void export_texture(bNode *node,
                     const pxr::UsdStageRefPtr stage,
-                    const bool allow_overwrite = false);
+                    const bool allow_overwrite = false,
+                    ReportList *reports = nullptr);
 
 std::string get_tex_image_asset_filepath(bNode *node,
                                          const pxr::UsdStageRefPtr stage,

@@ -71,13 +71,8 @@ struct ImportSettings {
         sequence_offset(0),
         read_flag(0),
         validate_meshes(false),
-<<<<<<< HEAD
-        stage_meters_per_unit(1.0)
-=======
-        cache_file(NULL),
         stage_meters_per_unit(1.0),
         skip_prefix(pxr::SdfPath{})
->>>>>>> main
   {
   }
 };

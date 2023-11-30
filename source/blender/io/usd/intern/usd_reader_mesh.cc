@@ -414,14 +414,9 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
     return;
   }
 
-<<<<<<< HEAD
-  pxr::VtArray<pxr::GfVec3f> usd_colors = get_prim_attribute_array<pxr::GfVec3f>(primvar,
-                                                                                 motionSampleTime);
-=======
   pxr::VtArray<pxr::GfVec3f> usd_colors = get_prim_attribute_array<pxr::GfVec3f>(
       primvar, motionSampleTime, reports());
 
->>>>>>> main
   if (usd_colors.empty()) {
     return;
   }
@@ -473,12 +468,7 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   }
   /* Check for situations that allow for a straight-forward copy by index. */
   else if (interp == pxr::UsdGeomTokens->vertex ||
-<<<<<<< HEAD
-           (ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->varying) &&
-            !is_left_handed_))
-=======
            (interp == pxr::UsdGeomTokens->faceVarying && !is_left_handed_))
->>>>>>> main
   {
     for (int i = 0; i < usd_colors.size(); i++) {
       ColorGeometry4f color = ColorGeometry4f(
@@ -487,17 +477,12 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
     }
   }
   else {
-<<<<<<< HEAD
     BLI_assert((ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->varying) &&
                 is_left_handed_) ||
                interp == pxr::UsdGeomTokens->uniform);
 
     /* Catch all for the remaining cases. */
 
-=======
-    /* Catch all for the remaining cases. */
-
->>>>>>> main
     /* Special case: we will expand uniform color into corner color.
      * Uniforms in USD come through as single colors, face-varying. Since Blender does not
      * support this particular combination for paintable color attributes, we convert the type
@@ -506,11 +491,7 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
     const OffsetIndices faces = mesh->faces();
     const Span<int> corner_verts = mesh->corner_verts();
     for (const int i : faces.index_range()) {
-<<<<<<< HEAD
       const IndexRange &face = faces[i];
-=======
-      const IndexRange face = faces[i];
->>>>>>> main
       for (int j = 0; j < face.size(); ++j) {
         int loop_index = face[j];
 
@@ -554,14 +535,9 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
 {
   const StringRef primvar_name(primvar.StripPrimvarsName(primvar.GetName()).GetString());
 
-<<<<<<< HEAD
-  pxr::VtArray<pxr::GfVec2f> usd_uvs = get_prim_attribute_array<pxr::GfVec2f>(primvar,
-                                                                              motionSampleTime);
-=======
   pxr::VtArray<pxr::GfVec2f> usd_uvs = get_prim_attribute_array<pxr::GfVec2f>(
       primvar, motionSampleTime, reports());
 
->>>>>>> main
   if (usd_uvs.empty()) {
     return;
   }
@@ -983,11 +959,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
              pxr::SdfValueTypeNames->QuatdArray,
              pxr::SdfValueTypeNames->QuathArray))
     {
-<<<<<<< HEAD
-      /* Skip creating known unsupported types, and avoid spammy error prints. */
-=======
       /* Skip creating known unsupported types, and avoid noisy error prints. */
->>>>>>> main
       continue;
     }
 

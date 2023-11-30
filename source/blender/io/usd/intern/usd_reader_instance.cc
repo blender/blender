@@ -19,7 +19,7 @@
 
 #include "usd_reader_instance.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "DNA_object_types.h"
 
 #include <iostream>

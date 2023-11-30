@@ -13,18 +13,15 @@
 #include "BKE_appdir.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
-#include "BKE_curve.h"
+#include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-<<<<<<< HEAD
-#include "BKE_node_tree_update.h"
-=======
+#include "BKE_node_tree_update.hh"
 #include "BKE_report.h"
->>>>>>> main
 
 #include "IMB_colormanagement.h"
 
@@ -93,10 +90,7 @@ static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
 static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
-<<<<<<< HEAD
 static const pxr::TfToken emissiveColor("emissiveColor", pxr::TfToken::Immortal);
-=======
->>>>>>> main
 static const pxr::TfToken in("in", pxr::TfToken::Immortal);
 static const pxr::TfToken translation("translation", pxr::TfToken::Immortal);
 static const pxr::TfToken rotation("rotation", pxr::TfToken::Immortal);
@@ -144,17 +138,14 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
                             bNodeSocket *input_socket,
                             pxr::UsdShadeMaterial &usd_material,
                             pxr::UsdShadeInput &usd_input,
-<<<<<<< HEAD
-                            const pxr::TfToken &default_uv);
+                            const pxr::TfToken &default_uv,
+                            ReportList *reports);
 static void create_uvmap_shader(const USDExporterContext &usd_export_context,
                                 bNode *tex_node,
                                 pxr::UsdShadeMaterial &usd_material,
                                 pxr::UsdShadeShader &usd_tex_shader,
-                                const pxr::TfToken &default_uv);
-=======
-                            const pxr::TfToken &default_uv,
-                            ReportList *reports);
->>>>>>> main
+                                const pxr::TfToken &default_uv,
+                                ReportList *reports);
 static void export_texture(const USDExporterContext &usd_export_context, bNode *node);
 static bNode *find_bsdf_node(Material *material);
 static void get_absolute_path(Image *ima, char *r_path);
@@ -163,12 +154,6 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
 static InputSpecMap &preview_surface_input_map();
 static bNodeLink *traverse_channel(bNodeSocket *input, short target_type);
 
-<<<<<<< HEAD
-template<typename T1, typename T2>
-void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value, float scale);
-
-=======
->>>>>>> main
 void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &input_spec);
 
 /* Create an input on the given shader with name and type
@@ -232,12 +217,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       /* Don't export emission color if strength is zero. */
       bNodeSocket *emission_strength_sock = nodeFindSocket(node, SOCK_IN, "Emission Strength");
 
-<<<<<<< HEAD
-      if (!emission_strength_sock)
-      {
-=======
       if (!emission_strength_sock) {
->>>>>>> main
         continue;
       }
 
@@ -285,12 +265,8 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
         if (pxr::UsdShadeInput st_input = usd_shader.CreateInput(usdtokens::st,
                                                                  pxr::SdfValueTypeNames->Float2))
         {
-<<<<<<< HEAD
-          create_uv_input(usd_export_context, socket, usd_material, st_input, default_uv_sampler);
-=======
           create_uv_input(
               usd_export_context, socket, usd_material, st_input, default_uv_sampler, reports);
->>>>>>> main
         }
       }
 
@@ -408,34 +384,16 @@ static InputSpecMap &preview_surface_input_map()
   return input_map;
 }
 
-<<<<<<< HEAD
-/* Create an input on the given shader with name and type
- * provided by the InputSpec and assign the given value to the
- * input.  Parameters T1 and T2 indicate the Blender and USD
- * value types, respectively. */
-template<typename T1, typename T2>
-void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value, float scale)
-{
-  const T1 *cast_value = static_cast<const T1 *>(value);
-  shader.CreateInput(spec.input_name, spec.input_type).Set(scale * T2(cast_value->value));
-}
-
-=======
 /* Find the UVMAP node input to the given texture image node and convert it
  * to a USD primvar reader shader. If no UVMAP node is found, create a primvar
  * reader for the given default uv set. The primvar reader will be attached to
  * the 'st' input of the given USD texture shader. */
->>>>>>> main
 static void create_uvmap_shader(const USDExporterContext &usd_export_context,
                                 bNodeLink *uvmap_link,
                                 pxr::UsdShadeMaterial &usd_material,
                                 pxr::UsdShadeInput &usd_input,
-<<<<<<< HEAD
-                                const pxr::TfToken &default_uv)
-=======
                                 const pxr::TfToken &default_uv,
                                 ReportList *reports)
->>>>>>> main
 
 {
   bNode *uv_node = (uvmap_link && uvmap_link->fromnode ? uvmap_link->fromnode : nullptr);
@@ -448,11 +406,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
       usd_export_context, usd_material, shader_name, SH_NODE_UVMAP);
 
   if (!uv_shader) {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING, "%s: Couldn't create USD shader for UV map", __func__);
-=======
     BKE_reportf(reports, RPT_WARNING, "%s: Couldn't create USD shader for UV map", __func__);
->>>>>>> main
     return;
   }
 
@@ -463,13 +417,10 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
     uv_name = pxr::TfToken(pxr::TfMakeValidIdentifier(shader_uv_map->uv_map));
   }
 
-<<<<<<< HEAD
   if (usd_export_context.export_params.convert_uv_to_st && uv_name == default_uv) {
     uv_name = usdtokens::st;
   }
 
-=======
->>>>>>> main
   uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(uv_name);
   usd_input.ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
 }
@@ -478,13 +429,8 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
                                       bNodeLink *mapping_link,
                                       pxr::UsdShadeMaterial &usd_material,
                                       pxr::UsdShadeInput &usd_input,
-<<<<<<< HEAD
-                                      const pxr::TfToken &default_uv)
-=======
                                       const pxr::TfToken &default_uv,
                                       ReportList *reports)
->>>>>>> main
-
 {
   bNode *mapping_node = (mapping_link && mapping_link->fromnode ? mapping_link->fromnode :
                                                                   nullptr);
@@ -497,87 +443,13 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
 
   if (mapping_node->custom1 != TEXMAP_TYPE_POINT) {
     if (bNodeSocket *socket = nodeFindSocket(mapping_node, SOCK_IN, "Vector")) {
-<<<<<<< HEAD
-      create_uv_input(usd_export_context, socket, usd_material, usd_input, default_uv);
-=======
       create_uv_input(usd_export_context, socket, usd_material, usd_input, default_uv, reports);
->>>>>>> main
     }
     return;
   }
 
   pxr::UsdShadeShader transform2d_shader = create_usd_preview_shader(
       usd_export_context, usd_material, mapping_node);
-<<<<<<< HEAD
-
-  if (!transform2d_shader) {
-    WM_reportf(RPT_WARNING, "%s: Couldn't create USD shader for mapping node", __func__);
-    return;
-  }
-
-  usd_input.ConnectToSource(transform2d_shader.ConnectableAPI(), usdtokens::result);
-
-  float scale[3] = {1.0f, 1.0f, 1.0f};
-  float loc[3] = {0.0f, 0.0f, 0.0f};
-  float rot[3] = {0.0f, 0.0f, 0.0f};
-
-  if (bNodeSocket *scale_socket = nodeFindSocket(mapping_node, SOCK_IN, "Scale")) {
-    copy_v3_v3(scale, ((bNodeSocketValueVector *)scale_socket->default_value)->value);
-    /* Ignore the Z scale. */
-    scale[2] = 1.0f;
-  }
-
-  if (bNodeSocket *loc_socket = nodeFindSocket(mapping_node, SOCK_IN, "Location")) {
-    copy_v3_v3(loc, ((bNodeSocketValueVector *)loc_socket->default_value)->value);
-    /* Ignore the Z translation. */
-    loc[2] = 0.0f;
-  }
-
-  if (bNodeSocket *rot_socket = nodeFindSocket(mapping_node, SOCK_IN, "Rotation")) {
-    copy_v3_v3(rot, ((bNodeSocketValueVector *)rot_socket->default_value)->value);
-    /* Ignore the X and Y rotations. */
-    rot[0] = 0.0f;
-    rot[1] = 0.0f;
-  }
-
-  if (pxr::UsdShadeInput scale_input = transform2d_shader.CreateInput(
-          usdtokens::scale, pxr::SdfValueTypeNames->Float2))
-  {
-    pxr::GfVec2f scale_val(scale[0], scale[1]);
-    if (!scale_input.Set(scale_val)) {
-      WM_reportf(RPT_WARNING,
-                 "%s: Couldn't set scale input for UVTransform2d prim %s",
-                 __func__,
-                 transform2d_shader.GetPath().GetAsString().c_str());
-    }
-  }
-
-  if (pxr::UsdShadeInput trans_input = transform2d_shader.CreateInput(
-          usdtokens::translation, pxr::SdfValueTypeNames->Float2))
-  {
-    pxr::GfVec2f trans_val(loc[0], loc[1]);
-    if (!trans_input.Set(trans_val)) {
-      WM_reportf(RPT_WARNING,
-                 "%s: Couldn't set translation input for UVTransform2d prim %s",
-                 __func__,
-                 transform2d_shader.GetPath().GetAsString().c_str());
-    }
-  }
-
-  if (pxr::UsdShadeInput rot_input = transform2d_shader.CreateInput(usdtokens::rotation,
-                                                                    pxr::SdfValueTypeNames->Float))
-  {
-    /* Convert to degrees. */
-    float rot_val = rot[2] * 180.0f / M_PI;
-    if (!rot_input.Set(rot_val)) {
-      WM_reportf(RPT_WARNING,
-                 "%s: Couldn't set rotation input for UVTransform2d prim %s",
-                 __func__,
-                 transform2d_shader.GetPath().GetAsString().c_str());
-    }
-  }
-
-=======
 
   if (!transform2d_shader) {
     BKE_reportf(reports, RPT_WARNING, "%s: Couldn't create USD shader for mapping node", __func__);
@@ -631,16 +503,11 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
     rot_input.Set(rot_val);
   }
 
->>>>>>> main
   if (bNodeSocket *socket = nodeFindSocket(mapping_node, SOCK_IN, "Vector")) {
     if (pxr::UsdShadeInput in_input = transform2d_shader.CreateInput(
             usdtokens::in, pxr::SdfValueTypeNames->Float2))
     {
-<<<<<<< HEAD
-      create_uv_input(usd_export_context, socket, usd_material, in_input, default_uv);
-=======
       create_uv_input(usd_export_context, socket, usd_material, in_input, default_uv, reports);
->>>>>>> main
     }
   }
 }
@@ -649,12 +516,8 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
                             bNodeSocket *input_socket,
                             pxr::UsdShadeMaterial &usd_material,
                             pxr::UsdShadeInput &usd_input,
-<<<<<<< HEAD
-                            const pxr::TfToken &default_uv)
-=======
                             const pxr::TfToken &default_uv,
                             ReportList *reports)
->>>>>>> main
 {
   if (!(usd_material && usd_input)) {
     return;
@@ -662,29 +525,21 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
 
   if (bNodeLink *mapping_link = traverse_channel(input_socket, SH_NODE_MAPPING)) {
     create_transform2d_shader(
-<<<<<<< HEAD
-        usd_export_context, mapping_link, usd_material, usd_input, default_uv);
-=======
         usd_export_context, mapping_link, usd_material, usd_input, default_uv, reports);
->>>>>>> main
     return;
   }
 
   bNodeLink *uvmap_link = traverse_channel(input_socket, SH_NODE_UVMAP);
 
   /* Note that uvmap_link might be null, but create_uv_shader() can handle this case. */
-<<<<<<< HEAD
-  create_uvmap_shader(usd_export_context, uvmap_link, usd_material, usd_input, default_uv);
+  create_uvmap_shader(
+      usd_export_context, uvmap_link, usd_material, usd_input, default_uv, reports);
 }
 
 static bool is_in_memory_texture(Image *ima)
 {
   return BKE_image_is_dirty(ima) || ima->source == IMA_SRC_GENERATED ||
          BKE_image_has_packedfile(ima);
-=======
-  create_uvmap_shader(
-      usd_export_context, uvmap_link, usd_material, usd_input, default_uv, reports);
->>>>>>> main
 }
 
 /* Generate a file name for an in-memory image that doesn't have a
@@ -762,19 +617,14 @@ static void export_in_memory_texture(Image *ima,
 
   std::cout << "Exporting in-memory texture to " << export_path << std::endl;
 
-<<<<<<< HEAD
   if (BLI_is_dir(export_dir.c_str())) {
     /* We are copying to a file system directory, so we can write the image buffer
      * directly to the destination. */
     if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
-      WM_reportf(RPT_WARNING, "USD export: couldn't save in-memory texture to %s", export_path);
+      BKE_reportf(
+          reports, RPT_WARNING, "USD export: couldn't save in-memory texture to %s", export_path);
     }
     return;
-=======
-  if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
-    BKE_reportf(
-        reports, RPT_WARNING, "USD export: couldn't export in-memory texture to %s", export_path);
->>>>>>> main
   }
 
   /* If we got here, the export directory path is not on the file system, which
@@ -798,7 +648,8 @@ static void export_in_memory_texture(Image *ima,
   if (!copy_asset(temp_filepath,
                   export_path,
                   allow_overwrite ? USD_TEX_NAME_COLLISION_OVERWRITE :
-                                    USD_TEX_NAME_COLLISION_USE_EXISTING))
+                                    USD_TEX_NAME_COLLISION_USE_EXISTING,
+                  reports))
   {
     WM_reportf(RPT_WARNING, "USD export: couldn't export in-memory texture to %s", temp_filepath);
   }
@@ -1084,36 +935,6 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
 }
 
 /* ===== USD/Blender Material Interchange ===== */
-
-static pxr::TfToken get_node_tex_image_wrap(bNode *node)
-{
-  if (node->type != SH_NODE_TEX_IMAGE) {
-    std::cout << "get_node_tex_image_wrap() called with unexpected type.\n";
-    return pxr::TfToken();
-  }
-
-  if (node->storage == nullptr) {
-    return pxr::TfToken();
-  }
-
-  NodeTexImage *tex_image = static_cast<NodeTexImage *>(node->storage);
-
-  pxr::TfToken wrap;
-
-  switch (tex_image->extension) {
-    case SHD_IMAGE_EXTENSION_REPEAT:
-      wrap = usdtokens::repeat;
-      break;
-    case SHD_IMAGE_EXTENSION_EXTEND:
-      wrap = usdtokens::clamp;
-      break;
-    case SHD_IMAGE_EXTENSION_CLIP:
-      wrap = usdtokens::black;
-      break;
-  }
-
-  return wrap;
-}
 
 static const int HD_CYCLES_CURVE_EXPORT_RES = 256;
 
@@ -1893,7 +1714,7 @@ static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage
                              voronoi_storage->distance);
     } break;
 
-    case SH_NODE_TEX_MUSGRAVE: {
+    case SH_NODE_TEX_MUSGRAVE_DEPRECATED: {
       NodeTexMusgrave *musgrave_storage = (NodeTexMusgrave *)node->storage;
       if (!musgrave_storage)
         break;
@@ -2655,20 +2476,12 @@ static void copy_tiled_textures(Image *ima,
     }
 
     /* Copy the file. */
-<<<<<<< HEAD
-    if (!copy_asset(src_tile_path, dest_tile_path, tex_name_collision_mode)) {
-      WM_reportf(RPT_WARNING,
-                 "USD export: could not copy texture tile from %s to %s",
-                 src_tile_path,
-                 dest_tile_path);
-=======
-    if (BLI_copy(src_tile_path, dest_tile_path) != 0) {
+    if (!copy_asset(src_tile_path, dest_tile_path, tex_name_collision_mode, reports)) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "USD export: could not copy texture tile from %s to %s",
                   src_tile_path,
                   dest_tile_path);
->>>>>>> main
     }
   }
   MEM_SAFE_FREE(udim_pattern);
@@ -2700,22 +2513,17 @@ static void copy_single_file(Image *ima,
   }
 
   /* Copy the file. */
-<<<<<<< HEAD
   if (!copy_asset(source_path,
                   dest_path,
                   allow_overwrite ? USD_TEX_NAME_COLLISION_OVERWRITE :
-                                    USD_TEX_NAME_COLLISION_USE_EXISTING))
+                                    USD_TEX_NAME_COLLISION_USE_EXISTING,
+                  reports))
   {
-    WM_reportf(
-        RPT_WARNING, "USD export: could not copy texture from %s to %s", source_path, dest_path);
-=======
-  if (BLI_copy(source_path, dest_path) != 0) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "USD export: could not copy texture from %s to %s",
                 source_path,
                 dest_path);
->>>>>>> main
   }
 }
 
@@ -2723,7 +2531,8 @@ static void copy_single_file(Image *ima,
  * node tree. */
 static void export_textures(const bNodeTree *ntree,
                             const pxr::UsdStageRefPtr stage,
-                            const bool allow_overwrite)
+                            const bool allow_overwrite,
+                            ReportList *reports)
 {
   if (!ntree) {
     return;
@@ -2737,11 +2546,11 @@ static void export_textures(const bNodeTree *ntree,
 
   for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
     if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
-      export_texture(node, stage, allow_overwrite);
+      export_texture(node, stage, allow_overwrite, reports);
     }
     else if (node->is_group()) {
       if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
-        export_textures(sub_tree, stage, allow_overwrite);
+        export_textures(sub_tree, stage, allow_overwrite, reports);
       }
     }
   }
@@ -2751,11 +2560,16 @@ static void export_textures(const bNodeTree *ntree,
  * Based on ImagesExporter::export_UV_Image() */
 static void export_texture(const USDExporterContext &usd_export_context, bNode *node)
 {
-  export_texture(
-      node, usd_export_context.stage, usd_export_context.export_params.overwrite_textures);
+  export_texture(node,
+                 usd_export_context.stage,
+                 usd_export_context.export_params.overwrite_textures,
+                 usd_export_context.export_params.worker_status->reports);
 }
 
-void export_texture(bNode *node, const pxr::UsdStageRefPtr stage, const bool allow_overwrite)
+void export_texture(bNode *node,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite,
+                    ReportList *reports)
 {
   if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
     return;
@@ -2773,44 +2587,25 @@ void export_texture(bNode *node, const pxr::UsdStageRefPtr stage, const bool all
     return;
   }
 
-<<<<<<< HEAD
   if (is_in_memory_texture(ima)) {
-    export_in_memory_texture(ima, dest_dir, allow_overwrite);
-=======
-  char usd_dir_path[FILE_MAX];
-  BLI_path_split_dir_part(export_path.c_str(), usd_dir_path, FILE_MAX);
-
-  char tex_dir_path[FILE_MAX];
-  BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR);
-
-  BLI_dir_create_recursive(tex_dir_path);
-
-  const bool is_dirty = BKE_image_is_dirty(ima);
-  const bool is_generated = ima->source == IMA_SRC_GENERATED;
-  const bool is_packed = BKE_image_has_packedfile(ima);
-  const bool allow_overwrite = usd_export_context.export_params.overwrite_textures;
-
-  std::string dest_dir(tex_dir_path);
-
-  if (is_generated || is_dirty || is_packed) {
     export_in_memory_texture(
-        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
->>>>>>> main
+        ima, dest_dir, allow_overwrite, reports);
   }
   else if (ima->source == IMA_SRC_TILED) {
     copy_tiled_textures(
-        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
+        ima, dest_dir, allow_overwrite, reports);
   }
   else {
     copy_single_file(
-        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
+        ima, dest_dir, allow_overwrite, reports);
   }
 }
 
 /* Export the texture of every texture image node in the given material's node tree. */
 static void export_textures(const Material *material,
                             const pxr::UsdStageRefPtr stage,
-                            const bool allow_overwrite)
+                            const bool allow_overwrite,
+                            ReportList *reports)
 {
   if (!(material && material->use_nodes)) {
     return;
@@ -2820,7 +2615,7 @@ static void export_textures(const Material *material,
     return;
   }
 
-  export_textures(material->nodetree, stage, allow_overwrite);
+  export_textures(material->nodetree, stage, allow_overwrite, reports);
 }
 
 const pxr::TfToken token_for_input(const char *input_name)
@@ -2850,7 +2645,7 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
     create_mdl_material(usd_export_context, material, usd_material);
     if (usd_export_context.export_params.export_textures) {
       export_textures(
-          material, usd_export_context.stage, usd_export_context.export_params.overwrite_textures);
+          material, usd_export_context.stage, usd_export_context.export_params.overwrite_textures, reports);
       textures_exported = true;
     }
   }
@@ -2859,7 +2654,7 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
         usd_export_context.stage, material, usd_material, usd_export_context.export_params);
     if (!textures_exported && usd_export_context.export_params.export_textures) {
       export_textures(
-          material, usd_export_context.stage, usd_export_context.export_params.overwrite_textures);
+          material, usd_export_context.stage, usd_export_context.export_params.overwrite_textures, reports);
       textures_exported = true;
     }
   }

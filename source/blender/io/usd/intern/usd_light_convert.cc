@@ -39,7 +39,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.h"
+#include "BKE_node_tree_update.hh"
 #include "BKE_scene.h"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
@@ -560,7 +560,7 @@ void dome_light_to_world_material(const USDImportParams &params,
                                                              USD_TEX_NAME_COLLISION_OVERWRITE :
                                                              params.tex_name_collision_mode;
 
-    tex_path_str = import_asset(tex_path_str.c_str(), textures_dir, name_collision_mode);
+    tex_path_str = import_asset(tex_path_str.c_str(), textures_dir, name_collision_mode, nullptr);
   }
 
   Image *image = BKE_image_load_exists(bmain, tex_path_str.c_str());
