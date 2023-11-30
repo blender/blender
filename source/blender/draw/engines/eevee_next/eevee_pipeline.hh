@@ -593,9 +593,10 @@ class PipelineModule {
   CapturePipeline capture;
 
   UtilityTexture utility_tx;
+  PipelineInfoData &data;
 
  public:
-  PipelineModule(Instance &inst)
+  PipelineModule(Instance &inst, PipelineInfoData &data)
       : background(inst),
         world(inst),
         world_volume(inst),
@@ -605,7 +606,8 @@ class PipelineModule {
         forward(inst),
         shadow(inst),
         volume(inst),
-        capture(inst){};
+        capture(inst),
+        data(data){};
 
   void begin_sync()
   {

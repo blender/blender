@@ -1394,7 +1394,19 @@ struct ProbePlanarDisplayData {
 BLI_STATIC_ASSERT_ALIGN(ProbePlanarDisplayData, 16)
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name Pipeline Data
+ * \{ */
 
+struct PipelineInfoData {
+  float alpha_hash_scale;
+  float _pad0;
+  float _pad1;
+  float _pad3;
+};
+BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
+
+/** \} */
 /* -------------------------------------------------------------------- */
 /** \name Uniform Data
  * \{ */
@@ -1410,6 +1422,7 @@ struct UniformData {
   ShadowSceneData shadow;
   SubsurfaceData subsurface;
   VolumesInfoData volumes;
+  PipelineInfoData pipeline;
 };
 BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 
