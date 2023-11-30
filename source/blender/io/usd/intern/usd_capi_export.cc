@@ -683,8 +683,6 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   ModifierDisabler mod_disabler(data->depsgraph, data->params);
 
-  validate_unique_root_prim_path(data->params, data->depsgraph);
-
   worker_status->progress = 0.01f;
   worker_status->do_update = true;
 
@@ -696,6 +694,8 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
    * changes are expected to have been triggered and processed during depsgraph building in
    * #USD_export. */
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
+
+  validate_unique_root_prim_path(data->params, data->depsgraph);
 
   worker_status->progress = 0.1f;
   worker_status->do_update = true;
