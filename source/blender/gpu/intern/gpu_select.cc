@@ -244,16 +244,16 @@ bool GPU_select_is_cached()
 
 const GPUSelectResult *GPU_select_buffer_near(const blender::Span<GPUSelectResult> hit_results)
 {
-  const GPUSelectResult *buffer_near = nullptr;
+  const GPUSelectResult *hit_result_near = nullptr;
   uint depth_min = uint(-1);
-  for (const GPUSelectResult &result : hit_results) {
-    if (result.depth < depth_min) {
-      BLI_assert(result.id != -1);
-      depth_min = result.depth;
-      buffer_near = &result;
+  for (const GPUSelectResult &hit_result : hit_results) {
+    if (hit_result.depth < depth_min) {
+      BLI_assert(hit_result.id != -1);
+      depth_min = hit_result.depth;
+      hit_result_near = &hit_result;
     }
   }
-  return buffer_near;
+  return hit_result_near;
 }
 
 uint GPU_select_buffer_remove_by_id(blender::MutableSpan<GPUSelectResult> hit_results,
@@ -262,10 +262,10 @@ uint GPU_select_buffer_remove_by_id(blender::MutableSpan<GPUSelectResult> hit_re
   uint index_src = 0;
   uint index_dst = 0;
   uint hits_final = 0;
-  for (const GPUSelectResult &result : hit_results) {
-    if (result.id != select_id) {
+  for (const GPUSelectResult &hit_result : hit_results) {
+    if (hit_result.id != select_id) {
       if (index_dst != index_src) {
-        hit_results[index_dst] = result;
+        hit_results[index_dst] = hit_result;
       }
       index_dst++;
       hits_final++;

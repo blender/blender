@@ -1703,11 +1703,11 @@ static bool object_mouse_select_menu(bContext *C,
 
     /* two selection methods, the CTRL select uses max dist of 15 */
     if (!hit_results.is_empty()) {
-      for (const GPUSelectResult &result : hit_results) {
+      for (const GPUSelectResult &hit_result : hit_results) {
         /* index was converted */
-        if (base->object->runtime->select_id == (result.id & ~0xFFFF0000)) {
+        if (base->object->runtime->select_id == (hit_result.id & ~0xFFFF0000)) {
           ok = true;
-          depth_id = result.depth;
+          depth_id = hit_result.depth;
           break;
         }
       }
@@ -1913,10 +1913,10 @@ static bool bone_mouse_select_menu(bContext *C,
 
   /* Select logic taken from #ed_armature_pick_bone_from_selectbuffer_impl
    * in `armature_select.cc`. */
-  for (const GPUSelectResult &result : hit_results) {
+  for (const GPUSelectResult &hit_result : hit_results) {
     void *bone_ptr = nullptr;
     Base *bone_base = nullptr;
-    uint hitresult = result.id;
+    uint hitresult = hit_result.id;
 
     if (!(hitresult & BONESEL_ANY)) {
       /* To avoid including objects in selection. */
@@ -1969,7 +1969,7 @@ static bool bone_mouse_select_menu(bContext *C,
       BoneRefWithDepth *bone_ref = MEM_new<BoneRefWithDepth>(__func__);
       bone_ref->base = bone_base;
       bone_ref->bone_ptr = bone_ptr;
-      bone_ref->depth_id = result.depth;
+      bone_ref->depth_id = hit_result.depth;
       BLI_addtail(&bone_ref_list, (void *)bone_ref);
 
       BLI_gset_insert(added_bones, bone_ptr);
@@ -2037,8 +2037,8 @@ static bool bone_mouse_select_menu(bContext *C,
 
 static bool selectbuffer_has_bones(const blender::Span<GPUSelectResult> hit_results)
 {
-  for (const GPUSelectResult &result : hit_results) {
-    if (result.id & 0xFFFF0000) {
+  for (const GPUSelectResult &hit_result : hit_results) {
+    if (hit_result.id & 0xFFFF0000) {
       return true;
     }
   }
@@ -2046,28 +2046,30 @@ static bool selectbuffer_has_bones(const blender::Span<GPUSelectResult> hit_resu
 }
 
 /* utility function for mixed_bones_object_selectbuffer */
-static int selectbuffer_ret_hits_15(blender::MutableSpan<GPUSelectResult> /*results*/,
+static int selectbuffer_ret_hits_15(blender::MutableSpan<GPUSelectResult> /*hit_results*/,
                                     const int hits15)
 {
   return hits15;
 }
 
-static int selectbuffer_ret_hits_9(blender::MutableSpan<GPUSelectResult> results,
+static int selectbuffer_ret_hits_9(blender::MutableSpan<GPUSelectResult> hit_results,
                                    const int hits15,
                                    const int hits9)
 {
   const int ofs = hits15;
-  results.slice(0, hits9).copy_from(results.slice(ofs, hits9)); /* Shift results to beginning. */
+  /* Shift results to beginning. */
+  hit_results.slice(0, hits9).copy_from(hit_results.slice(ofs, hits9));
   return hits9;
 }
 
-static int selectbuffer_ret_hits_5(blender::MutableSpan<GPUSelectResult> results,
+static int selectbuffer_ret_hits_5(blender::MutableSpan<GPUSelectResult> hit_results,
                                    const int hits15,
                                    const int hits9,
                                    const int hits5)
 {
   const int ofs = hits15 + hits9;
-  results.slice(0, hits5).copy_from(results.slice(ofs, hits5)); /* Shift results to beginning. */
+  /* Shift results to beginning. */
+  hit_results.slice(0, hits5).copy_from(hit_results.slice(ofs, hits5));
   return hits5;
 }
 

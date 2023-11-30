@@ -171,8 +171,8 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(
   bool takeNext = false;
   int minsel = 0xffffffff, minunsel = 0xffffffff;
 
-  for (const GPUSelectResult &result : hit_results) {
-    uint hit_id = result.id;
+  for (const GPUSelectResult &hit_result : hit_results) {
+    uint hit_id = hit_result.id;
 
     if (hit_id & BONESEL_ANY) { /* to avoid including objects in selection */
       Base *base = nullptr;
@@ -212,10 +212,10 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(
       if (data) {
         if (sel) {
           if (do_nearest) {
-            if (minsel > result.depth) {
+            if (minsel > hit_result.depth) {
               firstSel = data;
               firstSel_base = base;
-              minsel = result.depth;
+              minsel = hit_result.depth;
             }
           }
           else {
@@ -228,10 +228,10 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(
         }
         else {
           if (do_nearest) {
-            if (minunsel > result.depth) {
+            if (minunsel > hit_result.depth) {
               firstunSel = data;
               firstunSel_base = base;
-              minunsel = result.depth;
+              minunsel = hit_result.depth;
             }
           }
           else {
@@ -629,18 +629,19 @@ void ARMATURE_OT_select_linked_pick(wmOperatorType *ot)
  * \{ */
 
 /* utility function for get_nearest_editbonepoint */
-static int selectbuffer_ret_hits_12(blender::MutableSpan<GPUSelectResult> /*results*/,
+static int selectbuffer_ret_hits_12(blender::MutableSpan<GPUSelectResult> /*hit_results*/,
                                     const int hits12)
 {
   return hits12;
 }
 
-static int selectbuffer_ret_hits_5(blender::MutableSpan<GPUSelectResult> results,
+static int selectbuffer_ret_hits_5(blender::MutableSpan<GPUSelectResult> hit_results,
                                    const int hits12,
                                    const int hits5)
 {
   const int ofs = hits12;
-  results.slice(0, hits5).copy_from(results.slice(ofs, hits5)); /* Shift results to beginning. */
+  /* Shift results to beginning. */
+  hit_results.slice(0, hits5).copy_from(hit_results.slice(ofs, hits5));
   return hits5;
 }
 

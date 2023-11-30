@@ -51,25 +51,25 @@ eGPUSelectMode gpu_select_next_get_mode()
 void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len)
 {
   g_state.buffer->storage.resize(hit_len);
-  blender::MutableSpan<GPUSelectResult> result = g_state.buffer->storage.as_mutable_span();
+  blender::MutableSpan<GPUSelectResult> hit_results = g_state.buffer->storage.as_mutable_span();
   const blender::Span<GPUSelectResult> hits(hit_buf, hit_len);
 
   /* TODO(fclem): There might be some conversion to do to align to the other APIs output. */
   switch (g_state.mode) {
     case eGPUSelectMode::GPU_SELECT_ALL:
-      result.copy_from(hits);
+      hit_results.copy_from(hits);
       break;
     case eGPUSelectMode::GPU_SELECT_NEAREST_FIRST_PASS:
-      result.copy_from(hits);
+      hit_results.copy_from(hits);
       break;
     case eGPUSelectMode::GPU_SELECT_NEAREST_SECOND_PASS:
-      result.copy_from(hits);
+      hit_results.copy_from(hits);
       break;
     case eGPUSelectMode::GPU_SELECT_PICK_ALL:
-      result.copy_from(hits);
+      hit_results.copy_from(hits);
       break;
     case eGPUSelectMode::GPU_SELECT_PICK_NEAREST:
-      result.copy_from(hits);
+      hit_results.copy_from(hits);
       break;
   }
 
