@@ -718,63 +718,6 @@ static void pbvh_build(PBVH *pbvh,
             0);
 }
 
-static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
-{
-  memset((void *)args, 0, sizeof(*args));
-
-  args->pbvh_type = pbvh->header.type;
-  args->node = node;
-
-  args->face_sets_color_default = mesh.face_sets_color_default;
-  args->face_sets_color_seed = mesh.face_sets_color_seed;
-
-  args->active_color = mesh.active_color_attribute;
-  args->render_color = mesh.default_color_attribute;
-
-  switch (pbvh->header.type) {
-    case PBVH_FACES:
-      args->vert_data = &mesh.vert_data;
-      args->loop_data = &mesh.loop_data;
-      args->face_data = &mesh.face_data;
-      args->me = pbvh->mesh;
-      args->vert_positions = pbvh->vert_positions;
-      args->corner_verts = mesh.corner_verts();
-      args->corner_edges = mesh.corner_edges();
-      args->mlooptri = pbvh->looptri;
-      args->vert_normals = pbvh->vert_normals;
-      args->face_normals = pbvh->face_normals;
-      args->hide_poly = static_cast<const bool *>(
-          CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
-
-      args->prim_indices = node->prim_indices;
-      args->looptri_faces = mesh.looptri_faces();
-      break;
-    case PBVH_GRIDS:
-      args->vert_data = &mesh.vert_data;
-      args->loop_data = &mesh.loop_data;
-      args->face_data = &mesh.face_data;
-      args->ccg_key = pbvh->gridkey;
-      args->me = pbvh->mesh;
-      args->grid_indices = node->prim_indices;
-      args->subdiv_ccg = pbvh->subdiv_ccg;
-      args->grids = pbvh->subdiv_ccg->grids;
-      args->grid_hidden = pbvh->subdiv_ccg->grid_hidden;
-      args->grid_flag_mats = pbvh->subdiv_ccg->grid_flag_mats;
-      args->vert_normals = pbvh->vert_normals;
-      break;
-    case PBVH_BMESH:
-      args->bm = pbvh->header.bm;
-      args->vert_data = &args->bm->vdata;
-      args->loop_data = &args->bm->ldata;
-      args->face_data = &args->bm->pdata;
-      args->bm_faces = &node->bm_faces;
-      args->cd_mask_layer = CustomData_get_offset_named(
-          &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-
-      break;
-  }
-}
-
 #ifdef VALIDATE_UNIQUE_NODE_FACES
 static void pbvh_validate_node_prims(PBVH *pbvh, const Span<int> looptri_faces)
 {
@@ -1462,6 +1405,63 @@ bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *
       &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
   *r_domain = *r_layer ? BKE_id_attribute_domain(&me->id, *r_layer) : ATTR_DOMAIN_POINT;
   return *r_layer != nullptr;
+}
+
+static void pbvh_draw_args_init(const Mesh &mesh, PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
+{
+  memset((void *)args, 0, sizeof(*args));
+
+  args->pbvh_type = pbvh->header.type;
+  args->node = node;
+
+  args->face_sets_color_default = mesh.face_sets_color_default;
+  args->face_sets_color_seed = mesh.face_sets_color_seed;
+
+  args->active_color = mesh.active_color_attribute;
+  args->render_color = mesh.default_color_attribute;
+
+  switch (pbvh->header.type) {
+    case PBVH_FACES:
+      args->vert_data = &mesh.vert_data;
+      args->loop_data = &mesh.loop_data;
+      args->face_data = &mesh.face_data;
+      args->me = pbvh->mesh;
+      args->vert_positions = pbvh->vert_positions;
+      args->corner_verts = mesh.corner_verts();
+      args->corner_edges = mesh.corner_edges();
+      args->mlooptri = pbvh->looptri;
+      args->vert_normals = pbvh->vert_normals;
+      args->face_normals = pbvh->face_normals;
+      args->hide_poly = static_cast<const bool *>(
+          CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
+
+      args->prim_indices = node->prim_indices;
+      args->looptri_faces = mesh.looptri_faces();
+      break;
+    case PBVH_GRIDS:
+      args->vert_data = &mesh.vert_data;
+      args->loop_data = &mesh.loop_data;
+      args->face_data = &mesh.face_data;
+      args->ccg_key = pbvh->gridkey;
+      args->me = pbvh->mesh;
+      args->grid_indices = node->prim_indices;
+      args->subdiv_ccg = pbvh->subdiv_ccg;
+      args->grids = pbvh->subdiv_ccg->grids;
+      args->grid_hidden = pbvh->subdiv_ccg->grid_hidden;
+      args->grid_flag_mats = pbvh->subdiv_ccg->grid_flag_mats;
+      args->vert_normals = pbvh->vert_normals;
+      break;
+    case PBVH_BMESH:
+      args->bm = pbvh->header.bm;
+      args->vert_data = &args->bm->vdata;
+      args->loop_data = &args->bm->ldata;
+      args->face_data = &args->bm->pdata;
+      args->bm_faces = &node->bm_faces;
+      args->cd_mask_layer = CustomData_get_offset_named(
+          &pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+
+      break;
+  }
 }
 
 static void node_update_draw_buffers(const Mesh &mesh, PBVH &pbvh, PBVHNode &node)
