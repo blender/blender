@@ -88,8 +88,9 @@ typedef struct BatchBLF {
   struct FontBLF *font;
   struct GPUBatch *batch;
   struct GPUVertBuf *verts;
-  struct GPUVertBufRaw pos_step, col_step, offset_step, glyph_size_step;
-  unsigned int pos_loc, col_loc, offset_loc, glyph_size_loc;
+  struct GPUVertBufRaw pos_step, col_step, offset_step, glyph_size_step, glyph_depth_step,
+      glyph_mode_step;
+  unsigned int pos_loc, col_loc, offset_loc, glyph_size_loc, glyph_depth_loc, glyph_mode_loc;
   unsigned int glyph_len;
   /** Copy of `font->pos`. */
   int ofs[2];
@@ -174,6 +175,10 @@ typedef struct GlyphBLF {
   /** Glyph width and height. */
   int dims[2];
   int pitch;
+  int depth;
+
+  /** Render mode (FT_Render_Mode). */
+  int render_mode;
 
   /**
    * X and Y bearing of the glyph.

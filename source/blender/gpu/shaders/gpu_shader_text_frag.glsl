@@ -62,8 +62,35 @@ float texture_1D_custom_bilinear_filter(vec2 uv)
 #endif
 }
 
+vec4 texture_1D_custom_bilinear_filter_color(vec2 uv)
+{
+  vec2 texel_2d = uv * glyph_dim + 0.5;
+  ivec2 texel_2d_near = ivec2(texel_2d) - 1;
+
+  int frag_offset = glyph_offset + ((texel_2d_near.y * glyph_dim.x * glyph_depth) +
+                                    (texel_2d_near.x * glyph_depth));
+
+  float tr = 0.0;
+  float tg = 0.0;
+  float tb = 0.0;
+  float ta = 0.0;
+
+  if (is_inside_box(texel_2d_near)) {
+    tr = texel_fetch(frag_offset);
+    tg = texel_fetch(frag_offset + 1);
+    tb = texel_fetch(frag_offset + 2);
+    ta = texel_fetch(frag_offset + 3);
+  }
+  return vec4(tr, tg, tb, ta);
+}
+
 void main()
 {
+  if (glyph_depth == 4) {
+    fragColor.rgba = texture_1D_custom_bilinear_filter_color(texCoord_interp).rgba;
+    return;
+  }
+
   // input color replaces texture color
   fragColor.rgb = color_flat.rgb;
 
