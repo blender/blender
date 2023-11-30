@@ -1570,24 +1570,36 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
   }
 }
 
-static void pbvh_faces_node_visibility_update(PBVH *pbvh, PBVHNode *node)
+static void pbvh_faces_node_visibility_update(const Mesh &mesh, const Span<PBVHNode *> nodes)
 {
-  if (pbvh->hide_vert == nullptr) {
+  using namespace blender;
+  using namespace blender::bke;
+  const AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  if (hide_vert.is_empty()) {
+    for (PBVHNode *node : nodes) {
     BKE_pbvh_node_fully_hidden_set(node, false);
-    return;
+      node->flag &= ~PBVH_UpdateVisibility;
   }
-  for (const int vert : node->vert_indices) {
-    if (!(pbvh->hide_vert[vert])) {
-      BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
-  }
 
-  BKE_pbvh_node_fully_hidden_set(node, true);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      const bool hidden = std::all_of(node->vert_indices.begin(),
+                                      node->vert_indices.end(),
+                                      [&](const int i) { return hide_vert[i]; });
+      BKE_pbvh_node_fully_hidden_set(node, hidden);
+      node->flag &= ~PBVH_UpdateVisibility;
+    }
+  });
 }
 
-static void pbvh_grids_node_visibility_update(PBVH *pbvh, PBVHNode *node)
+static void pbvh_grids_node_visibility_update(PBVH *pbvh, const Span<PBVHNode *> nodes)
 {
+  using namespace blender;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
   CCGElem *const *grids;
   const int *grid_indices;
   int totgrid, i;
@@ -1615,18 +1627,24 @@ static void pbvh_grids_node_visibility_update(PBVH *pbvh, PBVHNode *node)
     }
   }
   BKE_pbvh_node_fully_hidden_set(node, true);
+      node->flag &= ~PBVH_UpdateVisibility;
+    }
+  });
 }
 
-static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
+static void pbvh_bmesh_node_visibility_update(const Span<PBVHNode *> nodes)
 {
-  for (BMVert *v : node->bm_unique_verts) {
+  using namespace blender;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      for (const BMVert *v : node->bm_unique_verts) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
   }
 
-  for (BMVert *v : node->bm_other_verts) {
+      for (const BMVert *v : node->bm_other_verts) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
@@ -1634,42 +1652,27 @@ static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
   }
 
   BKE_pbvh_node_fully_hidden_set(node, true);
-}
-
-static void node_update_visibility(PBVH &pbvh, PBVHNode &node)
-{
-  if (!(node.flag & PBVH_UpdateVisibility)) {
-    return;
-  }
-  node.flag &= ~PBVH_UpdateVisibility;
-  switch (BKE_pbvh_type(&pbvh)) {
-    case PBVH_FACES:
-      pbvh_faces_node_visibility_update(&pbvh, &node);
-      break;
-    case PBVH_GRIDS:
-      pbvh_grids_node_visibility_update(&pbvh, &node);
-      break;
-    case PBVH_BMESH:
-      pbvh_bmesh_node_visibility_update(&node);
-      break;
-  }
+      node->flag &= ~PBVH_UpdateVisibility;
+    }
+  });
 }
 
 void BKE_pbvh_update_visibility(PBVH *pbvh)
 {
-  using namespace blender;
-  if (pbvh->nodes.is_empty()) {
-    return;
-  }
-
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
       pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateVisibility); });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.as_span().slice(range)) {
-      node_update_visibility(*pbvh, *node);
-    }
-  });
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+      pbvh_faces_node_visibility_update(*pbvh->mesh, nodes);
+      break;
+    case PBVH_GRIDS:
+      pbvh_grids_node_visibility_update(pbvh, nodes);
+      break;
+    case PBVH_BMESH:
+      pbvh_bmesh_node_visibility_update(nodes);
+      break;
+  }
 }
 
 void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
