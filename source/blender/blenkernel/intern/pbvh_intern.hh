@@ -178,10 +178,7 @@ struct PBVH {
 
   /* Grid Data */
   CCGKey gridkey;
-  blender::Span<CCGElem *> grids;
-  blender::Span<int> grid_to_face_map;
-  blender::Span<DMFlagMat> grid_flag_mats;
-  blender::Span<BLI_bitmap *> grid_hidden;
+  SubdivCCG *subdiv_ccg;
 
   /* Used during BVH build and later to mark that a vertex needs to update
    * (its normal must be recalculated). */
@@ -204,7 +201,6 @@ struct PBVH {
   int num_planes;
 
   BMLog *bm_log;
-  SubdivCCG *subdiv_ccg;
 
   blender::GroupedSpan<int> pmap;
 

@@ -215,14 +215,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */
-void BKE_pbvh_build_grids(PBVH *pbvh,
-                          blender::Span<CCGElem *> grids,
-                          CCGKey *key,
-                          blender::Span<int> grid_to_face_map,
-                          blender::Span<DMFlagMat> flagmats,
-                          blender::Span<BLI_bitmap *> grid_hidden,
-                          Mesh *me,
-                          SubdivCCG *subdiv_ccg);
+void BKE_pbvh_build_grids(PBVH *pbvh, CCGKey *key, Mesh *me, SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
@@ -329,11 +322,6 @@ bool BKE_pbvh_has_faces(const PBVH *pbvh);
  */
 void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3]);
 
-/**
- * Multi-res hidden data, only valid for type == PBVH_GRIDS.
- */
-blender::Span<const BLI_bitmap *> BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
-
 void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *me);
 
 /**
@@ -350,7 +338,6 @@ int BKE_pbvh_count_grid_quads(blender::Span<const BLI_bitmap *> grid_hidden,
  */
 const CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh);
 
-blender::Span<CCGElem *> BKE_pbvh_get_grids(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_verts(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 
@@ -460,12 +447,7 @@ void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3]);
 blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
                                              blender::Span<const PBVHNode *> nodes,
                                              blender::IndexMaskMemory &memory);
-void BKE_pbvh_grids_update(PBVH *pbvh,
-                           blender::Span<CCGElem *> grids,
-                           blender::Span<int> grid_to_face_map,
-                           blender::Span<DMFlagMat> flagmats,
-                           blender::Span<BLI_bitmap *> grid_hidden,
-                           CCGKey *key);
+void BKE_pbvh_grids_update(PBVH *pbvh, CCGKey *key);
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 
 /**
