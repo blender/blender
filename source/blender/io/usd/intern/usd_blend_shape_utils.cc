@@ -103,9 +103,9 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
     return;
   }
 
-  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
+  pxr::UsdSkelBindingAPI mesh_skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
 
-  if (!skel_api) {
+  if (!mesh_skel_api) {
     WM_reportf(RPT_WARNING,
                "%s: Couldn't apply UsdSkelBindingAPI to mesh prim %s",
                __func__,
@@ -114,7 +114,7 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
   }
 
   pxr::UsdSkelSkeleton skel;
-  if (!skel_api.GetSkeleton(&skel)) {
+  if (!mesh_skel_api.GetSkeleton(&skel)) {
     pxr::SdfPath skel_path = mesh_prim.GetParent().GetPath().AppendChild(usdtokens::Skel);
     skel = pxr::UsdSkelSkeleton::Define(stage, skel_path);
 
@@ -126,7 +126,7 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
       return;
     }
 
-    skel_api.CreateSkeletonRel().AddTarget(skel.GetPath());
+    mesh_skel_api.CreateSkeletonRel().AddTarget(skel.GetPath());
 
     /* Initialize the skeleton. */
     pxr::VtMatrix4dArray bind_transforms(1, pxr::GfMatrix4d(1.0));
@@ -138,6 +138,16 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
      * skeleton to blendshapes. */
     pxr::VtTokenArray joints({usdtokens::joint1});
     skel.CreateJointsAttr().Set(joints);
+  }
+
+  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(skel.GetPrim());
+
+  if (!skel_api) {
+    WM_reportf(RPT_WARNING,
+               "%s: Couldn't apply UsdSkelBindingAPI to skeleton prim %s",
+               __func__,
+               skel.GetPath().GetAsString().c_str());
+    return;
   }
 
   pxr::UsdAttribute temp_weights_attr = pxr::UsdGeomPrimvarsAPI(mesh_prim).GetPrimvar(
@@ -160,7 +170,7 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
   }
 
   pxr::VtTokenArray blendshape_names;
-  skel_api.GetBlendShapesAttr().Get(&blendshape_names);
+  mesh_skel_api.GetBlendShapesAttr().Get(&blendshape_names);
   anim.CreateBlendShapesAttr().Set(blendshape_names);
 
   std::vector<double> times;
@@ -175,10 +185,7 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
     }
   }
 
-  if (!pxr::UsdSkelBindingAPI(skel.GetPrim())
-           .CreateAnimationSourceRel()
-           .AddTarget(pxr::SdfPath(usdtokens::Anim)))
-  {
+  if (!skel_api.CreateAnimationSourceRel().AddTarget(pxr::SdfPath(usdtokens::Anim))) {
     WM_reportf(RPT_WARNING,
                "%s: Couldn't set animation source on skeleton %s",
                __func__,
