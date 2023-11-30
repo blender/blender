@@ -52,6 +52,18 @@
 using blender::Span;
 using blender::Vector;
 
+enum PartialVisAction {
+  PARTIALVIS_HIDE,
+  PARTIALVIS_SHOW,
+};
+
+enum PartialVisArea {
+  PARTIALVIS_INSIDE,
+  PARTIALVIS_OUTSIDE,
+  PARTIALVIS_ALL,
+  PARTIALVIS_MASKED,
+};
+
 /* Return true if the element should be hidden/shown. */
 static bool is_effected(PartialVisArea area,
                         float planes[4][4],
