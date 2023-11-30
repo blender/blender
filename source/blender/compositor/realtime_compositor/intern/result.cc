@@ -192,6 +192,19 @@ void Result::steal_data(Result &source)
   source.texture_pool_ = nullptr;
 }
 
+void Result::wrap_external(GPUTexture *texture)
+{
+  const eGPUTextureFormat texture_format = GPU_texture_format(texture);
+  BLI_assert(texture_format == get_texture_format());
+  BLI_assert(!is_allocated());
+  BLI_assert(!master_);
+
+  texture_ = texture;
+  is_external_ = true;
+  is_single_value_ = false;
+  domain_ = Domain(int2(GPU_texture_width(texture), GPU_texture_height(texture)));
+}
+
 void Result::set_transformation(const float3x3 &transformation)
 {
   domain_.transformation = transformation;
@@ -298,7 +311,9 @@ void Result::release()
    * texture pool. */
   reference_count_--;
   if (reference_count_ == 0) {
-    texture_pool_->release(texture_);
+    if (!is_external_) {
+      texture_pool_->release(texture_);
+    }
     texture_ = nullptr;
   }
 }
