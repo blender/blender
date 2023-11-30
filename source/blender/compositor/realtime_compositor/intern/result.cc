@@ -300,8 +300,7 @@ void Result::steal_data(Result &source)
 
 void Result::wrap_external(GPUTexture *texture)
 {
-  const eGPUTextureFormat texture_format = GPU_texture_format(texture);
-  BLI_assert(texture_format == get_texture_format());
+  BLI_assert(GPU_texture_format(texture) == get_texture_format());
   BLI_assert(!is_allocated());
   BLI_assert(!master_);
 
