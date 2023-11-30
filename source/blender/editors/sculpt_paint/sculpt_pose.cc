@@ -1109,7 +1109,7 @@ static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
   ortho_basis_v3v3_v3(r_mat[0], r_mat[1], r_mat[2]);
 }
 
-void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;

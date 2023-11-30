@@ -80,6 +80,9 @@
 #include "bmesh.h"
 #include "sculpt_intern.hh"
 
+using blender::Span;
+using blender::Vector;
+
 /* Uncomment to print the undo stack in the console on push/undo/redo. */
 //#define SCULPT_UNDO_DEBUG
 

@@ -55,6 +55,7 @@
 #include <cstdlib>
 #include <cstring>
 
+using blender::Span;
 using blender::Vector;
 
 static void cloth_brush_simulation_location_get(SculptSession *ss,

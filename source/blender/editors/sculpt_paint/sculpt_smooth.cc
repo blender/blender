@@ -226,7 +226,7 @@ static void do_enhance_details_brush_task(Object *ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
@@ -317,8 +317,11 @@ static void do_smooth_brush_task(Object *ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_smooth(
-    Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength, const bool smooth_mask)
+void SCULPT_smooth(Sculpt *sd,
+                   Object *ob,
+                   blender::Span<PBVHNode *> nodes,
+                   float bstrength,
+                   const bool smooth_mask)
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
@@ -352,7 +355,7 @@ void SCULPT_smooth(
   }
 }
 
-void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -508,7 +511,7 @@ static void do_surface_smooth_brush_displace_task(Object *ob, const Brush *brush
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes)
 {
   using namespace blender;
   Brush *brush = BKE_paint_brush(&sd->paint);

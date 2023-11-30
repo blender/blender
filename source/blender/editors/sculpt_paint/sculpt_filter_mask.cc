@@ -225,7 +225,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
 void SCULPT_mask_filter_smooth_apply(Sculpt * /*sd*/,
                                      Object *ob,
-                                     Span<PBVHNode *> nodes,
+                                     blender::Span<PBVHNode *> nodes,
                                      const int smooth_iterations)
 {
   using namespace blender;

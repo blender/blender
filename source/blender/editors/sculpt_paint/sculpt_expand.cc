@@ -53,6 +53,9 @@
 
 #include "bmesh.h"
 
+using blender::Span;
+using blender::Vector;
+
 /* Sculpt Expand. */
 /* Operator for creating selections and patterns in Sculpt Mode. Expand can create masks, face sets
  * and fill vertex colors. */
@@ -2112,7 +2115,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
 static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:

@@ -1278,7 +1278,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
 
   bool with_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;

@@ -237,8 +237,8 @@ static void do_sample_wet_paint_task(SculptSession *ss,
 void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
                            Sculpt *sd,
                            Object *ob,
-                           Span<PBVHNode *> nodes,
-                           Span<PBVHNode *> texnodes)
+                           blender::Span<PBVHNode *> nodes,
+                           blender::Span<PBVHNode *> texnodes)
 {
   using namespace blender;
   if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
@@ -489,7 +489,7 @@ static void do_smear_store_prev_colors_task(SculptSession *ss,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes)
 {
   using namespace blender;
   Brush *brush = BKE_paint_brush(&sd->paint);
