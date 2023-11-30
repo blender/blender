@@ -92,7 +92,7 @@ static void context_free_avi(void *context_v);
 #endif /* WITH_AVI */
 
 #ifdef WITH_FFMPEG
-#  include "BKE_writeffmpeg.h"
+#  include "BKE_writeffmpeg.hh"
 #endif
 
 bMovieHandle *BKE_movie_handle_get(const char imtype)

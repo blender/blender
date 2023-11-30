@@ -10,10 +10,6 @@
 
 #ifdef WITH_FFMPEG
 
-#  ifdef __cplusplus
-extern "C" {
-#  endif
-
 enum {
   FFMPEG_MPEG1 = 0,
   FFMPEG_MPEG2 = 1,
@@ -48,37 +44,33 @@ struct ReportList;
 struct Scene;
 
 int BKE_ffmpeg_start(void *context_v,
-                     const struct Scene *scene,
-                     struct RenderData *rd,
+                     const Scene *scene,
+                     RenderData *rd,
                      int rectx,
                      int recty,
-                     struct ReportList *reports,
+                     ReportList *reports,
                      bool preview,
                      const char *suffix);
 void BKE_ffmpeg_end(void *context_v);
 int BKE_ffmpeg_append(void *context_v,
-                      struct RenderData *rd,
+                      RenderData *rd,
                       int start_frame,
                       int frame,
                       int *pixels,
                       int rectx,
                       int recty,
                       const char *suffix,
-                      struct ReportList *reports);
+                      ReportList *reports);
 void BKE_ffmpeg_filepath_get(char filepath[/*FILE_MAX*/ 1024],
-                             const struct RenderData *rd,
+                             const RenderData *rd,
                              bool preview,
                              const char *suffix);
 
-void BKE_ffmpeg_preset_set(struct RenderData *rd, int preset);
-void BKE_ffmpeg_image_type_verify(struct RenderData *rd, const struct ImageFormatData *imf);
-bool BKE_ffmpeg_alpha_channel_is_supported(const struct RenderData *rd);
+void BKE_ffmpeg_preset_set(RenderData *rd, int preset);
+void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf);
+bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd);
 
 void *BKE_ffmpeg_context_create(void);
 void BKE_ffmpeg_context_free(void *context_v);
-
-#  ifdef __cplusplus
-}
-#  endif
 
 #endif

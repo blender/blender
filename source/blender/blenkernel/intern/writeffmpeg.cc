@@ -36,12 +36,13 @@
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 #  include "BKE_sound.h"
-#  include "BKE_writeffmpeg.h"
+#  include "BKE_writeffmpeg.hh"
 
 #  include "IMB_imbuf.h"
 
 /* This needs to be included after BLI_math_base.h otherwise it will redefine some math defines
  * like M_SQRT1_2 leading to warnings with MSVC */
+extern "C" {
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
 #  include <libavutil/channel_layout.h>
@@ -52,13 +53,14 @@
 #  include <libswscale/swscale.h>
 
 #  include "ffmpeg_compat.h"
+}
 
 struct StampData;
 
-typedef struct FFMpegContext {
+struct FFMpegContext {
   int ffmpeg_type;
-  int ffmpeg_codec;
-  int ffmpeg_audio_codec;
+  AVCodecID ffmpeg_codec;
+  AVCodecID ffmpeg_audio_codec;
   int ffmpeg_video_bitrate;
   int ffmpeg_audio_bitrate;
   int ffmpeg_gop_size;
@@ -80,7 +82,7 @@ typedef struct FFMpegContext {
 
   /* Image frame in Blender's own pixel format, may need conversion to the output pixel format. */
   AVFrame *img_convert_frame;
-  struct SwsContext *img_convert_ctx;
+  SwsContext *img_convert_ctx;
 
   uint8_t *audio_input_buffer;
   uint8_t *audio_deinterleave_buffer;
@@ -90,12 +92,12 @@ typedef struct FFMpegContext {
   bool audio_deinterleave;
   int audio_sample_size;
 
-  struct StampData *stamp_data;
+  StampData *stamp_data;
 
 #  ifdef WITH_AUDASPACE
   AUD_Device *audio_mixdown_device;
 #  endif
-} FFMpegContext;
+};
 
 #  define FFMPEG_AUTOSPLIT_SIZE 2000000000
 
@@ -181,10 +183,12 @@ static int write_audio_frame(FFMpegContext *context)
 
   int success = 1;
 
+  char error_str[AV_ERROR_MAX_STRING_SIZE];
   int ret = avcodec_send_frame(c, frame);
   if (ret < 0) {
     /* Can't send frame to encoder. This shouldn't happen. */
-    fprintf(stderr, "Can't send audio frame: %s\n", av_err2str(ret));
+    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    fprintf(stderr, "Can't send audio frame: %s\n", error_str);
     success = -1;
   }
 
@@ -197,7 +201,8 @@ static int write_audio_frame(FFMpegContext *context)
       break;
     }
     if (ret < 0) {
-      fprintf(stderr, "Error encoding audio frame: %s\n", av_err2str(ret));
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+      fprintf(stderr, "Error encoding audio frame: %s\n", error_str);
       success = -1;
     }
 
@@ -211,7 +216,8 @@ static int write_audio_frame(FFMpegContext *context)
 
     int write_ret = av_interleaved_write_frame(context->outfile, pkt);
     if (write_ret != 0) {
-      fprintf(stderr, "Error writing audio packet: %s\n", av_err2str(write_ret));
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+      fprintf(stderr, "Error writing audio packet: %s\n", error_str);
       success = -1;
       break;
     }
@@ -225,7 +231,7 @@ static int write_audio_frame(FFMpegContext *context)
 #  endif /* #ifdef WITH_AUDASPACE */
 
 /* Allocate a temporary frame */
-static AVFrame *alloc_picture(int pix_fmt, int width, int height)
+static AVFrame *alloc_picture(AVPixelFormat pix_fmt, int width, int height)
 {
   AVFrame *f;
   uint8_t *buf;
@@ -238,7 +244,7 @@ static AVFrame *alloc_picture(int pix_fmt, int width, int height)
   }
   size = av_image_get_buffer_size(pix_fmt, width, height, 1);
   /* allocate the actual picture buffer */
-  buf = MEM_mallocN(size, "AVFrame buffer");
+  buf = static_cast<uint8_t *>(MEM_mallocN(size, "AVFrame buffer"));
   if (!buf) {
     free(f);
     return NULL;
@@ -328,10 +334,12 @@ static int write_video_frame(FFMpegContext *context, AVFrame *frame, ReportList 
   frame->pts = context->video_time;
   context->video_time++;
 
+  char error_str[AV_ERROR_MAX_STRING_SIZE];
   ret = avcodec_send_frame(c, frame);
   if (ret < 0) {
     /* Can't send frame to encoder. This shouldn't happen. */
-    fprintf(stderr, "Can't send video frame: %s\n", av_err2str(ret));
+    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    fprintf(stderr, "Can't send video frame: %s\n", error_str);
     success = -1;
   }
 
@@ -343,7 +351,8 @@ static int write_video_frame(FFMpegContext *context, AVFrame *frame, ReportList 
       break;
     }
     if (ret < 0) {
-      fprintf(stderr, "Error encoding frame: %s\n", av_err2str(ret));
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+      fprintf(stderr, "Error encoding frame: %s\n", error_str);
       break;
     }
 
@@ -361,7 +370,8 @@ static int write_video_frame(FFMpegContext *context, AVFrame *frame, ReportList 
 
   if (!success) {
     BKE_report(reports, RPT_ERROR, "Error writing frame");
-    PRINT("Error writing frame: %s\n", av_err2str(ret));
+    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    PRINT("Error writing frame: %s\n", error_str);
   }
 
   av_packet_free(&packet);
@@ -671,7 +681,7 @@ static const AVCodec *get_av1_encoder(
 
 static AVStream *alloc_video_stream(FFMpegContext *context,
                                     RenderData *rd,
-                                    int codec_id,
+                                    AVCodecID codec_id,
                                     AVFormatContext *of,
                                     int rectx,
                                     int recty,
@@ -882,7 +892,9 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   int ret = avcodec_open2(c, codec, &opts);
 
   if (ret < 0) {
-    fprintf(stderr, "Couldn't initialize video codec: %s\n", av_err2str(ret));
+    char error_str[AV_ERROR_MAX_STRING_SIZE];
+    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    fprintf(stderr, "Couldn't initialize video codec: %s\n", error_str);
     BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
     av_dict_free(&opts);
     avcodec_free_context(&c);
@@ -923,7 +935,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
 
 static AVStream *alloc_audio_stream(FFMpegContext *context,
                                     RenderData *rd,
-                                    int codec_id,
+                                    AVCodecID codec_id,
                                     AVFormatContext *of,
                                     char *error,
                                     int error_size)
@@ -1029,7 +1041,9 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
   int ret = avcodec_open2(c, codec, NULL);
 
   if (ret < 0) {
-    fprintf(stderr, "Couldn't initialize audio codec: %s\n", av_err2str(ret));
+    char error_str[AV_ERROR_MAX_STRING_SIZE];
+    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    fprintf(stderr, "Couldn't initialize audio codec: %s\n", error_str);
     BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
     avcodec_free_context(&c);
     context->audio_codec = NULL;
@@ -1083,7 +1097,7 @@ static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
 static void ffmpeg_add_metadata_callback(void *data,
                                          const char *propname,
                                          char *propvalue,
-                                         int UNUSED(propvalue_maxncpy))
+                                         int /*propvalue_maxncpy*/)
 {
   AVDictionary **metadata = (AVDictionary **)data;
   av_dict_set(metadata, propname, propvalue, 0);
@@ -1101,10 +1115,11 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   const AVOutputFormat *fmt;
   char filepath[FILE_MAX], error[1024];
   const char **exts;
+  int ret = 0;
 
   context->ffmpeg_type = rd->ffcodecdata.type;
-  context->ffmpeg_codec = rd->ffcodecdata.codec;
-  context->ffmpeg_audio_codec = rd->ffcodecdata.audio_codec;
+  context->ffmpeg_codec = AVCodecID(rd->ffcodecdata.codec);
+  context->ffmpeg_audio_codec = AVCodecID(rd->ffcodecdata.audio_codec);
   context->ffmpeg_video_bitrate = rd->ffcodecdata.video_bitrate;
   context->ffmpeg_audio_bitrate = rd->ffcodecdata.audio_bitrate;
   context->ffmpeg_gop_size = rd->ffcodecdata.gop_size;
@@ -1270,12 +1285,14 @@ static int start_ffmpeg_impl(FFMpegContext *context,
         &of->metadata, context->stamp_data, ffmpeg_add_metadata_callback, false);
   }
 
-  int ret = avformat_write_header(of, NULL);
+  ret = avformat_write_header(of, NULL);
   if (ret < 0) {
     BKE_report(reports,
                RPT_ERROR,
                "Could not initialize streams, probably unsupported codec combination");
-    PRINT("Could not write media header: %s\n", av_err2str(ret));
+    char error_str[AV_ERROR_MAX_STRING_SIZE];
+    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    PRINT("Could not write media header: %s\n", error_str);
     goto fail;
   }
 
@@ -1320,6 +1337,7 @@ fail:
  */
 static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *outfile)
 {
+  char error_str[AV_ERROR_MAX_STRING_SIZE];
   AVPacket *packet = av_packet_alloc();
 
   avcodec_send_frame(c, NULL);
@@ -1334,7 +1352,8 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
       break;
     }
     if (ret < 0) {
-      fprintf(stderr, "Error encoding delayed frame: %s\n", av_err2str(ret));
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+      fprintf(stderr, "Error encoding delayed frame: %s\n", error_str);
       break;
     }
 
@@ -1346,7 +1365,8 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
 
     int write_ret = av_interleaved_write_frame(outfile, packet);
     if (write_ret != 0) {
-      fprintf(stderr, "Error writing delayed frame: %s\n", av_err2str(write_ret));
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+      fprintf(stderr, "Error writing delayed frame: %s\n", error_str);
       break;
     }
   }
@@ -1446,7 +1466,7 @@ int BKE_ffmpeg_start(void *context_v,
                      const char *suffix)
 {
   int success;
-  FFMpegContext *context = context_v;
+  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
 
   context->ffmpeg_autosplit_count = 0;
   context->ffmpeg_preview = preview;
@@ -1459,9 +1479,9 @@ int BKE_ffmpeg_start(void *context_v,
 
     AUD_DeviceSpecs specs;
 #    ifdef FFMPEG_USE_OLD_CHANNEL_VARS
-    specs.channels = c->channels;
+    specs.channels = AUD_Channels(c->channels);
 #    else
-    specs.channels = c->ch_layout.nb_channels;
+    specs.channels = AUD_Channels(c->ch_layout.nb_channels);
 #    endif
 
     switch (av_get_packed_sample_fmt(c->sample_fmt)) {
@@ -1519,7 +1539,7 @@ int BKE_ffmpeg_append(void *context_v,
                       const char *suffix,
                       ReportList *reports)
 {
-  FFMpegContext *context = context_v;
+  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
   AVFrame *avframe;
   int success = 1;
 
@@ -1636,7 +1656,7 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 
 void BKE_ffmpeg_end(void *context_v)
 {
-  FFMpegContext *context = context_v;
+  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
   end_ffmpeg_impl(context, false);
 }
 
@@ -1805,10 +1825,9 @@ bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd)
 
 void *BKE_ffmpeg_context_create(void)
 {
-  FFMpegContext *context;
-
   /* new ffmpeg data struct */
-  context = MEM_callocN(sizeof(FFMpegContext), "new ffmpeg context");
+  FFMpegContext *context = static_cast<FFMpegContext *>(
+      MEM_callocN(sizeof(FFMpegContext), "new ffmpeg context"));
 
   context->ffmpeg_codec = AV_CODEC_ID_MPEG4;
   context->ffmpeg_audio_codec = AV_CODEC_ID_NONE;
@@ -1826,7 +1845,7 @@ void *BKE_ffmpeg_context_create(void)
 
 void BKE_ffmpeg_context_free(void *context_v)
 {
-  FFMpegContext *context = context_v;
+  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
   if (context == NULL) {
     return;
   }

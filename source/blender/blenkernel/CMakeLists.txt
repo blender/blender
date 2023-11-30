@@ -638,8 +638,8 @@ endif()
 
 if(WITH_CODEC_FFMPEG)
   list(APPEND SRC
-    intern/writeffmpeg.c
-    BKE_writeffmpeg.h
+    intern/writeffmpeg.cc
+    BKE_writeffmpeg.hh
   )
   list(APPEND INC
     ../../../intern/ffmpeg
